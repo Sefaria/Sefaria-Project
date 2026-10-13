@@ -1,4 +1,5 @@
 import django
+
 django.setup()
 import pytest
 from ne_span import NEDoc, NESpan
@@ -10,7 +11,7 @@ class TestNEDoc:
         [
             (slice(0, 4), "This", (0, 4)),
             (slice(0, 0), "", (0, 0)),
-        ]
+        ],
     )
     def test_subspan(self, slc, expected_text, expected_range):
         doc = NEDoc("This is a test document.")
@@ -23,7 +24,7 @@ class TestNEDoc:
         [
             (slice(1, 3), "is a", (5, 9)),
             (slice(2, 2), "", (0, 0)),
-        ]
+        ],
     )
     def test_subspan_by_word_indices(self, slc, expected_text, expected_range):
         doc = NEDoc("This is a test document.")
@@ -49,7 +50,7 @@ class TestNESpan:
             ("Abraham went to Egypt.", 0, 7, "PERSON", "Abraham", "PERSON", (0, 7)),
             ("Abraham went to Egypt.", 8, 12, "ACTION", "went", "ACTION", (8, 12)),
             ("Abraham went to Egypt.", 13, 15, None, "to", None, (13, 15)),
-        ]
+        ],
     )
     def test_properties(self, text, start, end, label, expected_text, expected_label, expected_range):
         doc = NEDoc(text)
@@ -72,7 +73,7 @@ class TestNESpan:
         [
             ("Abraham went to Egypt.", 0, 7, (0, 3), "Abr", (0, 3)),
             ("Abraham went to Egypt.", 8, 12, (0, 2), "we", (0, 2)),
-        ]
+        ],
     )
     def test_subspan(self, text, start, end, slice_args, expected_text, expected_range):
         doc = NEDoc(text)

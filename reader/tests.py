@@ -1,37 +1,46 @@
-# -*- coding: utf-8 -*-
 """
 Run me with:
 python manage.py test reader
 """
+
 import sys
 
 # Tells sefaria.system.database to use a test db
 sys._called_from_test = True
 
-from copy import deepcopy
-from pprint import pprint
 import json
+import random as rand
+from copy import deepcopy
 
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.client import Client
-from django.contrib.auth.models import User
+
 # import selenium
-
 import sefaria.utils.testing_utils as tutils
-
-from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, \
-    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet, WebPage
+from sefaria.model import (
+    Category,
+    HistorySet,
+    Index,
+    IndexSet,
+    LinkSet,
+    NoteSet,
+    Ref,
+    TextChunk,
+    UserHistorySet,
+    VersionSet,
+    VersionStateSet,
+    library,
+)
 from sefaria.system.database import db
-import sefaria.system.cache as scache
-import random as rand
 
 c = Client()
 
 
 class SefariaTestCase(TestCase):
     def make_test_user(self):
-        user = User.objects.create_user(username="test@sefaria.org", email='test@sefaria.org', password='!!!')
-        user.set_password('!!!')
+        user = User.objects.create_user(username="test@sefaria.org", email="test@sefaria.org", password="!!!")
+        user.set_password("!!!")
         user.first_name = "Test"
         user.last_name = "Testerberg"
         user.is_staff = True
@@ -55,87 +64,87 @@ class PagesTest(SefariaTestCase):
     """
 
     def test_root(self):
-        response = c.get('/')
+        response = c.get("/")
         self.assertEqual(200, response.status_code)
 
     def test_activity(self):
-        response = c.get('/activity')
+        response = c.get("/activity")
         self.assertEqual(200, response.status_code)
 
     def test_text_history(self):
-        response = c.get('/activity/Genesis_12/en/The_Holy_Scriptures:_A_New_Translation_(JPS_1917)')
+        response = c.get("/activity/Genesis_12/en/The_Holy_Scriptures:_A_New_Translation_(JPS_1917)")
         self.assertEqual(200, response.status_code)
 
     def test_toc(self):
-        response = c.get('/texts')
+        response = c.get("/texts")
         self.assertEqual(200, response.status_code)
 
     def test_dashboard(self):
-        response = c.get('/dashboard')
+        response = c.get("/dashboard")
         self.assertEqual(200, response.status_code)
 
     def test_get_text_tanakh(self):
-        response = c.get('/Genesis.1')
+        response = c.get("/Genesis.1")
         self.assertEqual(200, response.status_code)
 
     def test_get_text_talmud(self):
-        response = c.get('/Shabbat.32a')
+        response = c.get("/Shabbat.32a")
         self.assertEqual(200, response.status_code)
 
     def test_get_text_tanakh_commentary(self):
-        response = c.get('/Rashi_on_Genesis.2.3')
+        response = c.get("/Rashi_on_Genesis.2.3")
         self.assertEqual(200, response.status_code)
 
     def test_get_text_talmud_commentary(self):
-        response = c.get('/Tosafot_on_Sukkah.2a.1.1')
+        response = c.get("/Tosafot_on_Sukkah.2a.1.1")
         self.assertEqual(200, response.status_code)
 
     def test_get_tanakh_toc(self):
-        response = c.get('/Genesis')
+        response = c.get("/Genesis")
         self.assertEqual(200, response.status_code)
 
     def test_get_talmud_toc(self):
-        response = c.get('/Shabbat')
+        response = c.get("/Shabbat")
         self.assertEqual(200, response.status_code)
 
     def test_get_tanakh_commentary_toc(self):
-        response = c.get('/Rashi_on_Genesis')
+        response = c.get("/Rashi_on_Genesis")
         self.assertEqual(200, response.status_code)
 
     def test_get_talmud_commentary_toc(self):
-        response = c.get('/Tosafot_on_Sukkah')
+        response = c.get("/Tosafot_on_Sukkah")
         self.assertEqual(200, response.status_code)
 
     def test_get_text_unknown(self):
-        response = c.get('/Gibbledeegoobledeemoop')
+        response = c.get("/Gibbledeegoobledeemoop")
         self.assertEqual(404, response.status_code)
 
     def test_sheets_splash(self):
-        response = c.get('/sheets')
+        response = c.get("/sheets")
         self.assertEqual(200, response.status_code)
 
     def test_new_sheet(self):
-        response = c.get('/sheets/new?editor=1')
+        response = c.get("/sheets/new?editor=1")
         self.assertEqual(200, response.status_code)
 
     def test_sheets_tags(self):
-        response = c.get('/sheets/tags')
+        response = c.get("/sheets/tags")
         self.assertEqual(200, response.status_code)
 
     def test_profile(self):
-        response = c.get('/profile/brett-lockspeiser')
+        response = c.get("/profile/brett-lockspeiser")
         self.assertEqual(200, response.status_code)
 
     def test_explorer(self):
-        response = c.get('/explore')
+        response = c.get("/explore")
         self.assertEqual(200, response.status_code)
 
     def test_discussions(self):
-        response = c.get('/discussions')
+        response = c.get("/discussions")
         self.assertEqual(200, response.status_code)
 
     def test_login(self):
-        response = c.post('/login/', {'username': 'john', 'password': 'smith'})
+        response = c.post("/login/", {"username": "john", "password": "smith"})
         self.assertEqual(200, response.status_code)
 
 
@@ -148,7 +157,7 @@ class ApiTest(SefariaTestCase):
         pass
 
     def test_api_get_text_tanakh(self):
-        response = c.get('/api/texts/Genesis.1')
+        response = c.get("/api/texts/Genesis.1")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data["text"]) > 0)
@@ -160,7 +169,7 @@ class ApiTest(SefariaTestCase):
         self.assertEqual(data["toSections"], [1])
 
     def test_api_get_text_talmud(self):
-        response = c.get('/api/texts/Shabbat.22a')
+        response = c.get("/api/texts/Shabbat.22a")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data["text"]) > 0)
@@ -172,7 +181,7 @@ class ApiTest(SefariaTestCase):
         self.assertEqual(data["toSections"], ["22a"])
 
     def test_api_get_text_tanakh_commentary(self):
-        response = c.get('/api/texts/Rashi_on_Genesis.2.3')
+        response = c.get("/api/texts/Rashi_on_Genesis.2.3")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data["he"]) > 0)
@@ -184,7 +193,7 @@ class ApiTest(SefariaTestCase):
         self.assertEqual(data["toSections"], [2, 3])
 
     def test_api_get_text_talmud_commentary(self):
-        response = c.get('/api/texts/Tosafot_on_Sukkah.2a.4.1')
+        response = c.get("/api/texts/Tosafot_on_Sukkah.2a.4.1")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data["he"]) > 0)
@@ -196,39 +205,41 @@ class ApiTest(SefariaTestCase):
         self.assertEqual(data["toSections"], ["2a", 4, 1])
 
     def test_api_get_text_range(self):
-        response = c.get('/api/texts/Job.5.2-4')
+        response = c.get("/api/texts/Job.5.2-4")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["sections"], [5, 2])
         self.assertEqual(data["toSections"], [5, 4])
 
     def test_api_get_text_bad_text(self):
-        response = c.get('/api/texts/Protocols_of_the_Elders_of_Zion.13.13')
+        response = c.get("/api/texts/Protocols_of_the_Elders_of_Zion.13.13")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["error"],
-                         "Failed to parse sections for ref Protocols_of_the_Elders_of_Zion.13.13")  # "Unrecognized Index record: Protocols of the Elders of Zion.13.13")
+        self.assertEqual(
+            data["error"],
+            "Failed to parse sections for ref Protocols_of_the_Elders_of_Zion.13.13",
+        )  # "Unrecognized Index record: Protocols of the Elders of Zion.13.13")
 
     def test_api_get_text_out_of_bound(self):
-        response = c.get('/api/texts/Genesis.999')
+        response = c.get("/api/texts/Genesis.999")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Genesis ends at Chapter 50.")
 
     def test_api_get_text_too_many_hyphens(self):
-        response = c.get('/api/texts/Genesis.9-4-5')
+        response = c.get("/api/texts/Genesis.9-4-5")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Couldn't understand ref 'Genesis.9-4-5' (too many -'s).")
 
     def test_api_get_text_bad_sections(self):
-        response = c.get('/api/texts/Job.6-X')
+        response = c.get("/api/texts/Job.6-X")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Couldn't understand text sections: 'Job.6-X'.")
 
     def text_api_get_index(self):
-        response = c.get('/api/index/Job')
+        response = c.get("/api/index/Job")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["title"], "Job")
@@ -236,13 +247,13 @@ class ApiTest(SefariaTestCase):
         self.assertEqual(data["categories"], ["Tanakh", "Writings"])
 
     def text_api_get_commentator_index(self):
-        response = c.get('/api/index/Rashi')
+        response = c.get("/api/index/Rashi")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "No book named 'Rashi'.")
 
     def text_api_get_toc(self):
-        response = c.get('/api/index')
+        response = c.get("/api/index")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data) > 10)
@@ -252,7 +263,7 @@ class ApiTest(SefariaTestCase):
         self.assertTrue(data[-1]["category"] == "Other")
 
     def text_api_get_books(self):
-        response = c.get('/api/index/titles/')
+        response = c.get("/api/index/titles/")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data["books"]) > 1000)
@@ -272,7 +283,7 @@ class LoginTest(SefariaTestCase):
         self.make_test_user()
 
     def test_logged_in(self):
-        response = c.get('/')
+        response = c.get("/")
         self.assertTrue(response.content.find("Log In") == -1)
 
 
@@ -292,7 +303,7 @@ class PostV2IndexTest(SefariaTestCase):
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
-        response = c.post("/api/index/Complex_Book", {'json': json.dumps(index)})
+        response = c.post("/api/index/Complex_Book", {"json": json.dumps(index)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertNotIn("error", data)
@@ -313,32 +324,32 @@ class PostV2IndexTest(SefariaTestCase):
                             {
                                 "lang": "en",
                                 "text": "Idrah Rabbah",
-                                "primary": True
+                                "primary": True,
                             },
                             {
                                 "lang": "he",
                                 "text": "אידרה רבה",
-                                "primary": True
-                            }
+                                "primary": True,
+                            },
                         ],
                         "addressTypes": [
-                            "Integer"
+                            "Integer",
                         ],
                         "sectionNames": [
-                            "Paragraph"
+                            "Paragraph",
                         ],
                         "wholeRef": "Complex Book 3:4-7:1",
                         "refs": [
                             "Complex Book 3:4-4:1",
                             "Complex Book 4:2-6:3",
-                            "Complex Book 6:4-7:1"
-                        ]
-                    }
-                ]
-            }
+                            "Complex Book 6:4-7:1",
+                        ],
+                    },
+                ],
+            },
         }
         # Save
-        response = c.post("/api/v2/raw/index/Complex_Book", {'json': json.dumps(data)})
+        response = c.post("/api/v2/raw/index/Complex_Book", {"json": json.dumps(data)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertNotIn("error", data)
@@ -376,7 +387,7 @@ class PostIndexTest(SefariaTestCase):
         self.assertTrue("Boj" not in orig["titleVariants"])
         new = deepcopy(orig)
         new["titleVariants"].append("Boj")
-        response = c.post("/api/index/Pele_Yoetz", {'json': json.dumps(new)})
+        response = c.post("/api/index/Pele_Yoetz", {"json": json.dumps(new)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertNotIn("error", data)
@@ -386,7 +397,7 @@ class PostIndexTest(SefariaTestCase):
         self.assertIn("books", data)
         self.assertTrue("Boj" in data["books"])
         # Reset this change
-        c.post("/api/index/Pele_Yoetz", {'json': json.dumps(orig)})
+        c.post("/api/index/Pele_Yoetz", {"json": json.dumps(orig)})
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
         self.assertTrue("Boj" not in data["books"])
@@ -402,7 +413,7 @@ class PostIndexTest(SefariaTestCase):
             "titleVariants": ["Book of Bad Index"],
             "sectionNames": ["Chapter", "Paragraph"],
         }
-        response = c.post("/api/index/Book_of_Bad_Index", {'json': json.dumps(index)})
+        response = c.post("/api/index/Book_of_Bad_Index", {"json": json.dumps(index)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("error", data)
@@ -410,9 +421,9 @@ class PostIndexTest(SefariaTestCase):
         index = {
             "title": "Book of Bad Index",
             "titleVariants": ["Book of Bad Index"],
-            "categories": ["Musar"]
+            "categories": ["Musar"],
         }
-        response = c.post("/api/index/Book_of_Bad_Index", {'json': json.dumps(index)})
+        response = c.post("/api/index/Book_of_Bad_Index", {"json": json.dumps(index)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("error", data)
@@ -526,11 +537,11 @@ class PostTextNameChange(SefariaTestCase):
         index = {
             "title": "Name Change Test",
             "titleVariants": ["The Book of Name Change Test"],
-            "heTitle": 'Hebrew Name Change Test',
+            "heTitle": "Hebrew Name Change Test",
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
-        response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(index)})
+        response = c.post("/api/index/Name_Change_Test", {"json": json.dumps(index)})
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, HistorySet({"rev_type": "add index", "title": "Name Change Test"}).count())
         self.in_cache("Name Change Test")
@@ -542,7 +553,7 @@ class PostTextNameChange(SefariaTestCase):
             "versionSource": "www.sefaria.org",
             "language": "en",
         }
-        response = c.post("/api/texts/Name_Change_Test.1.1", {'json': json.dumps(text)})
+        response = c.post("/api/texts/Name_Change_Test.1.1", {"json": json.dumps(text)})
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, LinkSet({"refs": {"$regex": "^Name Change Test"}}).count())
         self.assertEqual(1, HistorySet({"version": "The Name Change Test Edition", "rev_type": "add text"}).count())
@@ -550,40 +561,42 @@ class PostTextNameChange(SefariaTestCase):
 
         # Test posting notes and links
         note1 = {
-            'title': 'test title 1',
-            'text': 'test body 1',
-            'type': 'note',
-            'ref': 'Name Change Test 1.1',
-            'public': False
+            "title": "test title 1",
+            "text": "test body 1",
+            "type": "note",
+            "ref": "Name Change Test 1.1",
+            "public": False,
         }
         note2 = {
-            'title': 'test title 2',
-            'text': 'test body 2',
-            'type': 'note',
-            'ref': 'Name Change Test 1.1',
-            'public': True
+            "title": "test title 2",
+            "text": "test body 2",
+            "type": "note",
+            "ref": "Name Change Test 1.1",
+            "public": True,
         }
         link1 = {
-            'refs': ['Name Change Test 1.1', 'Genesis 1:5'],
-            'type': 'reference'
+            "refs": ["Name Change Test 1.1", "Genesis 1:5"],
+            "type": "reference",
         }
         link2 = {
-            'refs': ['Name Change Test 1.1', 'Rashi on Genesis 1:5'],
-            'type': 'reference'
+            "refs": ["Name Change Test 1.1", "Rashi on Genesis 1:5"],
+            "type": "reference",
         }
 
         # Post notes and refs and record ids of records
         for o in [note1, note2, link1, link2]:
-            url = "/api/notes/" if o['type'] == 'note' else "/api/links/"
-            response = c.post(url, {'json': json.dumps(o)})
+            url = "/api/notes/" if o["type"] == "note" else "/api/links/"
+            response = c.post(url, {"json": json.dumps(o)})
             self.assertEqual(200, response.status_code)
             data = json.loads(response.content)
             self.assertIn("_id", data)
             o["id"] = data["_id"]
 
         # test history
-        self.assertEqual(1, HistorySet(
-            {"new.ref": {"$regex": "Name Change Test"}, "rev_type": "add note"}).count())  # only one is public
+        self.assertEqual(
+            1,
+            HistorySet({"new.ref": {"$regex": "Name Change Test"}, "rev_type": "add note"}).count(),
+        )  # only one is public
         self.assertEqual(3, HistorySet({"new.refs": {"$regex": "Name Change Test"}, "rev_type": "add link"}).count())
 
         # Change name of index record
@@ -592,14 +605,14 @@ class PostTextNameChange(SefariaTestCase):
         new["oldTitle"] = orig["title"]
         new["title"] = "Name Changed"
         new["titleVariants"].remove("Name Change Test")
-        response = c.post("/api/index/Name_Changed", {'json': json.dumps(new)})
+        response = c.post("/api/index/Name_Changed", {"json": json.dumps(new)})
         self.assertEqual(200, response.status_code)
 
         # Check for change on index record
         response = c.get("/api/index/Name_Changed")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertTrue("Name Changed" == data["title"])
+        self.assertTrue(data["title"] == "Name Changed")
         self.assertIn("Name Changed", data["titleVariants"])
         self.assertTrue("Name Change Test" not in data["titleVariants"])
 
@@ -625,8 +638,8 @@ class PostTextNameChange(SefariaTestCase):
         self.assertTrue("Name Change Test" not in data["books"])
 
         # toc changed
-        toc = json.loads(c.get("/api/index").content)
-        tutils.verify_title_existence_in_toc(new["title"], expected_toc_location=orig['categories'])
+        json.loads(c.get("/api/index").content)
+        tutils.verify_title_existence_in_toc(new["title"], expected_toc_location=orig["categories"])
 
         self.assertEqual(2, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
@@ -646,13 +659,13 @@ class PostTextNameChange(SefariaTestCase):
         self.assertEqual(1, HistorySet({"old.refs": {"$regex": "Name Changed"}, "rev_type": "delete link"}).count())
 
         # Delete Test Index
-        IndexSet({"title": 'Name Changed'}).delete()
+        IndexSet({"title": "Name Changed"}).delete()
 
         # Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache
         self.not_in_cache("Name Changed")
-        self.assertEqual(0, IndexSet({"title": 'Name Changed'}).count())
-        self.assertEqual(0, VersionSet({"title": 'Name Changed'}).count())
-        self.assertEqual(0, VersionStateSet({"title": 'Name Changed'}).count())
+        self.assertEqual(0, IndexSet({"title": "Name Changed"}).count())
+        self.assertEqual(0, VersionSet({"title": "Name Changed"}).count())
+        self.assertEqual(0, VersionStateSet({"title": "Name Changed"}).count())
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(0, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
 
@@ -773,19 +786,19 @@ class PostTextTest(SefariaTestCase):
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
-        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
+        response = c.post("/api/index/Sefer_Test", {"json": json.dumps(index)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("titleVariants", data)
-        self.assertIn('Sefer Test', data["titleVariants"])
+        self.assertIn("Sefer Test", data["titleVariants"])
 
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
-        self.assertIn('Sefer Test', data["books"])
+        self.assertIn("Sefer Test", data["books"])
 
         # test the toc is updated
-        toc = json.loads(c.get("/api/index").content)
-        tutils.verify_title_existence_in_toc(index['title'], expected_toc_location=index['categories'])
+        json.loads(c.get("/api/index").content)
+        tutils.verify_title_existence_in_toc(index["title"], expected_toc_location=index["categories"])
 
         # Post Text (with English citation)
         text = {
@@ -794,17 +807,17 @@ class PostTextTest(SefariaTestCase):
             "versionSource": "www.sefaria.org",
             "language": "en",
         }
-        response = c.post("/api/texts/Sefer_Test.99.99", {'json': json.dumps(text)})
+        response = c.post("/api/texts/Sefer_Test.99.99", {"json": json.dumps(text)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
         # Verify one link was auto extracted
-        response = c.get('/api/texts/Sefer_Test.99.99')
+        response = c.get("/api/texts/Sefer_Test.99.99")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(1, len(data["commentary"]))
         # Verify Count doc was updated
-        response = c.get('/api/counts/Sefer_Test')
+        response = c.get("/api/counts/Sefer_Test")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertNotIn("error", data)
@@ -819,16 +832,16 @@ class PostTextTest(SefariaTestCase):
             "versionSource": "www.sefaria.org",
             "language": "en",
         }
-        response = c.post("/api/texts/Sefer_Test.99.99", {'json': json.dumps(text)})
+        response = c.post("/api/texts/Sefer_Test.99.99", {"json": json.dumps(text)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
         # Verify one link was auto extracted
-        response = c.get('/api/texts/Sefer_Test.99.99')
+        response = c.get("/api/texts/Sefer_Test.99.99")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(1, len(data["commentary"]))
-        self.assertEqual(data["commentary"][0]["ref"], 'Job 4:10')
+        self.assertEqual(data["commentary"][0]["ref"], "Job 4:10")
 
         # Post Text (with Hebrew citation)
         text = {
@@ -837,15 +850,15 @@ class PostTextTest(SefariaTestCase):
             "versionSource": "www.sefaria.org",
             "language": "he",
         }
-        response = c.post("/api/texts/Sefer_Test.88.88", {'json': json.dumps(text)})
+        response = c.post("/api/texts/Sefer_Test.88.88", {"json": json.dumps(text)})
         self.assertEqual(200, response.status_code)
         # Verify one link was auto extracted
-        response = c.get('/api/texts/Sefer_Test.88.88')
+        response = c.get("/api/texts/Sefer_Test.88.88")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(1, len(data["commentary"]))
         # Verify count doc was updated
-        response = c.get('/api/counts/Sefer_Test')
+        response = c.get("/api/counts/Sefer_Test")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual([1, 1], data["_he"]["availableCounts"])
@@ -853,15 +866,15 @@ class PostTextTest(SefariaTestCase):
         self.assertEqual(0, data["_en"]["availableTexts"][87][87])
 
         # Delete Test Index
-        textRegex = Ref('Sefer Test').regex()
-        IndexSet({"title": 'Sefer Test'}).delete()
+        textRegex = Ref("Sefer Test").regex()
+        IndexSet({"title": "Sefer Test"}).delete()
 
         # Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
-        # todo: notes?, reviews?
-        self.assertEqual(0, IndexSet({"title": 'Sefer Test'}).count())
-        self.assertEqual(0, VersionSet({"title": 'Sefer Test'}).count())
-        self.assertEqual(0, VersionStateSet({"title": 'Sefer Test'}).count())
-        # todo: better way to do this?
+        # TODO: notes?, reviews?
+        self.assertEqual(0, IndexSet({"title": "Sefer Test"}).count())
+        self.assertEqual(0, VersionSet({"title": "Sefer Test"}).count())
+        self.assertEqual(0, VersionStateSet({"title": "Sefer Test"}).count())
+        # TODO: better way to do this?
         self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
     """def test_post_commentary_text(self):
@@ -912,8 +925,10 @@ class PostTextTest(SefariaTestCase):
             "versionSource": "www.sefaria.org",
             "language": "en",
         }
-        response = c.post("/api/texts/Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1",
-                          {'json': json.dumps(text)})
+        response = c.post(
+            "/api/texts/Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1",
+            {"json": json.dumps(text)},
+        )
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
@@ -939,22 +954,22 @@ class PostCategory(SefariaTestCase):
         cat = {
             "path": [
                 "Tanakh",
-                "Torah"
+                "Torah",
             ],
             "titles": [
                 {
                     "lang": "en",
                     "text": "Torah",
-                    "primary": True
+                    "primary": True,
                 },
                 {
                     "lang": "he",
                     "text": "תורה",
-                    "primary": True
-                }
-            ]
+                    "primary": True,
+                },
+            ],
         }
-        response = c.post("/api/category", {'json': json.dumps(cat)})
+        response = c.post("/api/category", {"json": json.dumps(cat)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" in data)
@@ -964,22 +979,22 @@ class PostCategory(SefariaTestCase):
             "path": [
                 "Tanakh",
                 "Other Stuff",
-                "New Works"
+                "New Works",
             ],
             "titles": [
                 {
                     "lang": "en",
                     "text": "New Works",
-                    "primary": True
+                    "primary": True,
                 },
                 {
                     "lang": "he",
                     "text": "חידושים",
-                    "primary": True
-                }
-            ]
+                    "primary": True,
+                },
+            ],
         }
-        response = c.post("/api/category", {'json': json.dumps(cat)})
+        response = c.post("/api/category", {"json": json.dumps(cat)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" in data)
@@ -990,16 +1005,16 @@ class PostCategory(SefariaTestCase):
                 {
                     "lang": "en",
                     "text": "New Works",
-                    "primary": True
+                    "primary": True,
                 },
                 {
                     "lang": "he",
                     "text": "חידושים",
-                    "primary": True
-                }
-            ]
+                    "primary": True,
+                },
+            ],
         }
-        response = c.post("/api/category", {'json': json.dumps(cat)})
+        response = c.post("/api/category", {"json": json.dumps(cat)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" in data)
@@ -1007,17 +1022,17 @@ class PostCategory(SefariaTestCase):
         cat = {
             "path": [
                 "Tanakh",
-                "New Works"
+                "New Works",
             ],
             "titles": [
                 {
                     "lang": "en",
                     "text": "New Works",
-                    "primary": True
-                }
-            ]
+                    "primary": True,
+                },
+            ],
         }
-        response = c.post("/api/category", {'json': json.dumps(cat)})
+        response = c.post("/api/category", {"json": json.dumps(cat)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" in data)
@@ -1025,17 +1040,17 @@ class PostCategory(SefariaTestCase):
         cat = {
             "path": [
                 "Tanakh",
-                "New Works"
+                "New Works",
             ],
             "titles": [
                 {
                     "lang": "he",
                     "text": "חידושים",
-                    "primary": True
-                }
-            ]
+                    "primary": True,
+                },
+            ],
         }
-        response = c.post("/api/category", {'json': json.dumps(cat)})
+        response = c.post("/api/category", {"json": json.dumps(cat)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" in data)
@@ -1044,22 +1059,22 @@ class PostCategory(SefariaTestCase):
         cat = {
             "path": [
                 "Tanakh",
-                "New Works"
+                "New Works",
             ],
             "titles": [
                 {
                     "lang": "en",
                     "text": "New Works",
-                    "primary": True
+                    "primary": True,
                 },
                 {
                     "lang": "he",
                     "text": "חידושים",
-                    "primary": True
-                }
-            ]
+                    "primary": True,
+                },
+            ],
         }
-        response = c.post("/api/category", {'json': json.dumps(cat)})
+        response = c.post("/api/category", {"json": json.dumps(cat)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
@@ -1075,7 +1090,7 @@ class PostLinks(SefariaTestCase):
         self.make_test_user()
 
     def tearDown(self):
-        LinkSet({"refs": {"$regex": 'Meshekh Chokhmah'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
+        LinkSet({"refs": {"$regex": "Meshekh Chokhmah"}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
 
     def test_post_new_links(self):
         """
@@ -1083,8 +1098,18 @@ class PostLinks(SefariaTestCase):
            posts a batch of links
         """
         # Post a new Index
-        bible_books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth', 'Esther',
-                       'Lamentations']
+        bible_books = [
+            "Genesis",
+            "Exodus",
+            "Leviticus",
+            "Numbers",
+            "Deuteronomy",
+            "Joshua",
+            "Judges",
+            "Ruth",
+            "Esther",
+            "Lamentations",
+        ]
         links = []
         for i in range(1, 61):
             for j in range(1, 11):
@@ -1095,18 +1120,19 @@ class PostLinks(SefariaTestCase):
                 }
                 links.append(link_obj)
         self.assertEqual(600, len(links))
-        response = c.post("/api/links/", {'json': json.dumps(links)})
+        response = c.post("/api/links/", {"json": json.dumps(links)})
         print(response.status_code)
         self.assertEqual(200, response.status_code)
-        self.assertNotEqual(600, LinkSet({"refs": {"$regex": 'Meshekh Chokhmah'}}).count())
+        self.assertNotEqual(600, LinkSet({"refs": {"$regex": "Meshekh Chokhmah"}}).count())
         # Delete links
-        LinkSet({"refs": {"$regex": 'Meshekh Chokhmah'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
+        LinkSet({"refs": {"$regex": "Meshekh Chokhmah"}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
 
 
 class SheetPostTest(SefariaTestCase):
     """
     Tests posting a Source Sheet.
     """
+
     _sheet_id = None
 
     def setUp(self):
@@ -1130,9 +1156,9 @@ class SheetPostTest(SefariaTestCase):
             "title": "Test Sheet",
             "sources": [],
             "options": {},
-            "status": "unlisted"
+            "status": "unlisted",
         }
-        response = c.post("/api/sheets", {'json': json.dumps(sheet)})
+        response = c.post("/api/sheets", {"json": json.dumps(sheet)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("id", data)
@@ -1146,11 +1172,11 @@ class SheetPostTest(SefariaTestCase):
         sheet["lastModified"] = sheet["dateModified"]
 
         # Add a source via add source API
-        response = c.post("/api/sheets/{}/add_ref".format(sheet_id), {"ref": "Mishnah Peah 1:1"})
+        response = c.post(f"/api/sheets/{sheet_id}/add_ref", {"ref": "Mishnah Peah 1:1"})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
-        response = c.get("/api/sheets/{}".format(sheet_id))
+        response = c.get(f"/api/sheets/{sheet_id}")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual("Mishnah Peah 1:1", data["sources"][0]["ref"])
@@ -1158,7 +1184,7 @@ class SheetPostTest(SefariaTestCase):
         # Publish Sheet
         sheet["status"] = "public"
         sheet["lastModified"] = data["dateModified"]
-        response = c.post("/api/sheets", {'json': json.dumps(sheet)})
+        response = c.post("/api/sheets", {"json": json.dumps(sheet)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("datePublished", data)
@@ -1171,7 +1197,7 @@ class SheetPostTest(SefariaTestCase):
         # Unpublish Sheet
         sheet["status"] = "unlisted"
         sheet["lastModified"] = data["dateModified"]
-        response = c.post("/api/sheets", {'json': json.dumps(sheet)})
+        response = c.post("/api/sheets", {"json": json.dumps(sheet)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual("unlisted", data["status"])
@@ -1179,7 +1205,7 @@ class SheetPostTest(SefariaTestCase):
         self.assertEqual(None, log)
 
         # Delete the Sheet
-        response = c.post("/api/sheets/{}/delete".format(sheet_id), {})
+        response = c.post(f"/api/sheets/{sheet_id}/delete", {})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
@@ -1207,31 +1233,41 @@ class UserSyncTest(SefariaTestCase):
         return json.loads(x)
 
     def test_simple_sync(s):
-        response = c.post("/api/profile/sync", {
-            'last_sync': s.d(0),
-            'user_history': s.d([
-                {
-                    "ref": "Genesis 1:1",
-                    "time_stamp": 1,
-                    "server_time_stamp": 1,
-                    "versions": {}
-                }
-            ])
-        })
+        response = c.post(
+            "/api/profile/sync",
+            {
+                "last_sync": s.d(0),
+                "user_history": s.d(
+                    [
+                        {
+                            "ref": "Genesis 1:1",
+                            "time_stamp": 1,
+                            "server_time_stamp": 1,
+                            "versions": {},
+                        },
+                    ],
+                ),
+            },
+        )
         data = s.l(response.content)
         s.assertEqual(len(data["user_history"]), 0)
 
-        response = c.post("/api/profile/sync", {
-            'last_sync': s.d(0),
-            'user_history': s.d([
-                {
-                    "ref": "Genesis 1:2",
-                    "time_stamp": 2,
-                    "server_time_stamp": 2,
-                    "versions": {}
-                }
-            ])
-        })
+        response = c.post(
+            "/api/profile/sync",
+            {
+                "last_sync": s.d(0),
+                "user_history": s.d(
+                    [
+                        {
+                            "ref": "Genesis 1:2",
+                            "time_stamp": 2,
+                            "server_time_stamp": 2,
+                            "versions": {},
+                        },
+                    ],
+                ),
+            },
+        )
         data = s.l(response.content)
         s.assertEqual(len(data["user_history"]), 1)
         s.assertEqual(data["user_history"][0]["ref"], "Genesis 1:1")
@@ -1241,48 +1277,66 @@ class UserSyncTest(SefariaTestCase):
             "ref": "Genesis 1:1",
             "time_stamp": 0,
             "server_time_stamp": 0,
-            "versions": {}
+            "versions": {},
         }
         hist1save = hist1.copy()
-        hist1save['action'] = 'add_saved'
+        hist1save["action"] = "add_saved"
         hist1delete = hist1.copy()
-        hist1delete['action'] = 'delete_saved'
-        hist1delete['server_time_stamp'] = 1
+        hist1delete["action"] = "delete_saved"
+        hist1delete["server_time_stamp"] = 1
         hist2 = hist1.copy()
-        hist2['ref'] = "Genesis 1:2"
+        hist2["ref"] = "Genesis 1:2"
 
-        response = c.post("/api/profile/sync", {
-            'last_sync': s.d(0),
-            'user_history': s.d([
-                hist1
-            ])
-        })
-        response = c.post("/api/profile/sync", {
-            'last_sync': s.d(0),
-            'user_history': s.d([
-                hist1save
-            ])
-        })
+        response = c.post(
+            "/api/profile/sync",
+            {
+                "last_sync": s.d(0),
+                "user_history": s.d(
+                    [
+                        hist1,
+                    ],
+                ),
+            },
+        )
+        response = c.post(
+            "/api/profile/sync",
+            {
+                "last_sync": s.d(0),
+                "user_history": s.d(
+                    [
+                        hist1save,
+                    ],
+                ),
+            },
+        )
         response = c.get("/api/profile/user_history?saved=1")
         data = s.l(response.content)
         s.assertEqual(len(data), 1)
-        s.assertEqual(data[0]['ref'], "Genesis 1:1")
+        s.assertEqual(data[0]["ref"], "Genesis 1:1")
 
-        response = c.post("/api/profile/sync", {
-            'last_sync': s.d(0),
-            'user_history': s.d([
-                hist1delete
-            ])
-        })
+        response = c.post(
+            "/api/profile/sync",
+            {
+                "last_sync": s.d(0),
+                "user_history": s.d(
+                    [
+                        hist1delete,
+                    ],
+                ),
+            },
+        )
         response = c.get("/api/profile/user_history?saved=1")
         data = s.l(response.content)
         s.assertEqual(len(data), 0)
 
         # check that another device will pick up a modification of a saved item
 
-        response = c.post("/api/profile/sync", {
-            'last_sync': s.d(0),
-        })
+        response = c.post(
+            "/api/profile/sync",
+            {
+                "last_sync": s.d(0),
+            },
+        )
         data = s.l(response.content)
         s.assertEqual(data["user_history"][0]["ref"], "Genesis 1:1")
         s.assertFalse(data["user_history"][0]["saved"])
@@ -1291,7 +1345,7 @@ class UserSyncTest(SefariaTestCase):
         pass
 
 
-'''
+"""
 # Fails. Ignore
 class VersionAttrsPostTest(SefariaTestCase):
     def test_post_atts(self):
@@ -1304,4 +1358,4 @@ class VersionAttrsPostTest(SefariaTestCase):
         response = c.post("api/version/flags/Genesis/he/Tanach+With+Nikkud", {'json': json.dumps(vattrs)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-'''
+"""

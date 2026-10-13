@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
 from sefaria.model.category import Category
 from sefaria.model.linker.category_resolver import CategoryMatcher
 
@@ -10,16 +12,20 @@ def make_title(text, lang):
 
 @pytest.fixture
 def mock_category():
-    return Category({
-        "titles": [make_title("Title1", "en"), make_title("Title2", "en")]
-    })
+    return Category(
+        {
+            "titles": [make_title("Title1", "en"), make_title("Title2", "en")],
+        },
+    )
 
 
 @pytest.fixture
 def mock_category_2():
-    return Category({
-        "titles": [make_title("Title1", "en"), make_title("Title4", "en")]
-    })
+    return Category(
+        {
+            "titles": [make_title("Title1", "en"), make_title("Title4", "en")],
+        },
+    )
 
 
 @pytest.fixture

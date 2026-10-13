@@ -1,7 +1,5 @@
-from sefaria.system.database import db
-
 from sefaria.model import *
-
+from sefaria.system.database import db
 
 record_classes = abstract.get_record_classes()
 for record_class in record_classes:

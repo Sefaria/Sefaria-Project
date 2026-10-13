@@ -1,11 +1,13 @@
 """
 Override the add- and change-form in the admin, to hide the username.
 """
+
+from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from django.contrib import admin
-from emailusernames.forms import EmailUserCreationForm, EmailUserChangeForm
 from django.utils.translation import gettext_lazy as _
+
+from emailusernames.forms import EmailUserChangeForm, EmailUserCreationForm
 
 
 class EmailUserAdmin(UserAdmin):
@@ -13,20 +15,20 @@ class EmailUserAdmin(UserAdmin):
     form = EmailUserChangeForm
 
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2')}
+        (
+            None,
+            {"classes": ("wide",), "fields": ("email", "password1", "password2")},
         ),
     )
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name')}),
-        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'user_permissions')}),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
-        (_('Groups'), {'fields': ('groups',)}),
+        (None, {"fields": ("email", "password")}),
+        (_("Personal info"), {"fields": ("first_name", "last_name")}),
+        (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser", "user_permissions")}),
+        (_("Important dates"), {"fields": ("last_login", "date_joined")}),
+        (_("Groups"), {"fields": ("groups",)}),
     )
-    list_display = ('email', 'first_name', 'last_name', 'is_staff')
-    ordering = ('email',)
+    list_display = ("email", "first_name", "last_name", "is_staff")
+    ordering = ("email",)
 
 
 admin.site.unregister(User)

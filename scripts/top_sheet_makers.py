@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
 from collections import defaultdict
 
-from sefaria.system.database import db
 from sefaria.model import *
+from sefaria.system.database import db
 
-authors          = defaultdict(int)
-public_authors   = defaultdict(int)
+authors = defaultdict(int)
+public_authors = defaultdict(int)
 authors_by_views = defaultdict(int)
 
 sheets = db.sheets.find()
@@ -20,8 +20,8 @@ for sheet in sheets:
     if "status" in sheet and sheet["status"] == "public":
         public_authors[owner] += 1
 
-sorted_authors          = sorted(iter(authors.items()), key=lambda x: -x[1])
-sorted_public_authors   = sorted(iter(public_authors.items()), key=lambda x: -x[1])
+sorted_authors = sorted(iter(authors.items()), key=lambda x: -x[1])
+sorted_public_authors = sorted(iter(public_authors.items()), key=lambda x: -x[1])
 sorted_authors_by_views = sorted(iter(authors_by_views.items()), key=lambda x: -x[1])
 
 

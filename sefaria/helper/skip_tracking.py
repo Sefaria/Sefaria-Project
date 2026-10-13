@@ -15,12 +15,15 @@ single Slack summary of everything it skipped, then clears the log.
 Slack is the only outbound dependency (notify_engineering_signal); this module knows nothing
 about how the message is delivered.
 """
+
 import threading
-import structlog
-from contextlib import contextmanager
 from collections import defaultdict, namedtuple
-from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS
+from contextlib import contextmanager
+
+import structlog
+
 from sefaria.helper.slack.send_message import notify_engineering_signal
+from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS
 
 logger = structlog.get_logger(__name__)
 
@@ -102,7 +105,7 @@ def log_skip(log, pathway, operation, detail, level="warning", record=None):
     required field rather than raising an exception).
     """
     _note_skip(pathway, operation, level, record=record, detail=detail)
-    getattr(log, level)("[pathway:{}] {}: {}".format(pathway, operation, detail))
+    getattr(log, level)(f"[pathway:{pathway}] {operation}: {detail}")
 
 
 def signal_and_reset_skip_counts(pathway):
@@ -149,18 +152,18 @@ def signal_and_reset_skip_counts(pathway):
     # Groups, worst-offender first then alphabetical, for stable & scannable output.
     groups = sorted(group_counts.items(), key=lambda kv: (-kv[1], kv[0]))
 
-    header = "*[{}]* skipped *{}* bad record(s)".format(pathway, total)
+    header = f"*[{pathway}]* skipped *{total}* bad record(s)"
 
     # Detail (B): a bold group header, bulleted records, with the site's own pathway
     # noted only when it differs from the build pathway in the header.
     lines = [header]
     for (pw, operation), count in groups:
-        lines.append("\n*{}* — {}".format(operation, count))
+        lines.append(f"\n*{operation}* — {count}")
         stored = grouped.get((pw, operation), [])
         for rec in stored:
-            lines.append("  • {}".format(_format_skip_record(rec)))
+            lines.append(f"  • {_format_skip_record(rec)}")
         if count > len(stored):
-            lines.append("  _… {} more_".format(count - len(stored)))
+            lines.append(f"  _… {count - len(stored)} more_")
 
     message = "\n".join(lines)
     level = "error" if saw_error else "warning"
@@ -171,20 +174,20 @@ def signal_and_reset_skip_counts(pathway):
         "cache_build_skipped",
         pathway=pathway,
         total=total,
-        groups={"{}/{}".format(pw, operation): count for (pw, operation), count in groups},
+        groups={f"{pw}/{operation}": count for (pw, operation), count in groups},
     )
     notify_engineering_signal(message, level=level)
 
 
 def _format_skip_record(rec):
     """One-line '<record> — <error_type>: <detail>' rendering of a SkipRecord for the summary."""
-    record = "{!r}".format(rec.record) if rec.record is not None else "<unknown>"
+    record = f"{rec.record!r}" if rec.record is not None else "<unknown>"
     if rec.error_type and rec.detail:
-        return "{} — {}: {}".format(record, rec.error_type, rec.detail)
+        return f"{record} — {rec.error_type}: {rec.detail}"
     if rec.detail:
-        return "{} — {}".format(record, rec.detail)
+        return f"{record} — {rec.detail}"
     if rec.error_type:
-        return "{} — {}".format(record, rec.error_type)
+        return f"{record} — {rec.error_type}"
     return record
 
 
@@ -219,6 +222,7 @@ def bad_record_guard(log):
             with skip_bad_record("startup", "build_virtual_books", record=rec_id):
                 ...build using rec...
     """
+
     @contextmanager
     def skip_bad_record(pathway, operation, record=None, level="warning", exceptions=BAD_RECORD_EXCEPTIONS):
         try:
@@ -226,5 +230,6 @@ def bad_record_guard(log):
         except exceptions as e:
             _note_skip(pathway, operation, level, record=record, error_type=type(e).__name__, detail=str(e))
             # Local log only; the per-build summary is posted by signal_and_reset_skip_counts().
-            getattr(log, level)("[pathway:{}] {}: skipping {!r}: {}".format(pathway, operation, record, e))
+            getattr(log, level)(f"[pathway:{pathway}] {operation}: skipping {record!r}: {e}")
+
     return skip_bad_record

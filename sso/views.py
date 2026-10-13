@@ -9,13 +9,14 @@ from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.providers.google.views import (
     login_by_token as google_login_by_token,
 )
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from emailusernames.utils import user_exists, get_user
+from emailusernames.utils import get_user, user_exists
 from sefaria.forms import SefariaPasswordResetForm
 
 logger = structlog.get_logger(__name__)
@@ -53,7 +54,11 @@ def _sso_only_account_error(email):
 
 
 def _social_login_or_error(
-    request, provider_id, id_token, first_name=None, last_name=None
+    request,
+    provider_id,
+    id_token,
+    first_name=None,
+    last_name=None,
 ):
     """Verify a provider ID token and complete the social login.
     Returns (user, None) on success, or (None, JsonResponse(error)) on failure.
@@ -149,7 +154,11 @@ def apple_callback(request):
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
     user, err = _social_login_or_error(
-        request, "apple", id_token, first_name, last_name
+        request,
+        "apple",
+        id_token,
+        first_name,
+        last_name,
     )
     if err:
         return err
@@ -185,7 +194,11 @@ def apple_mobile(request):
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
     user, err = _social_login_or_error(
-        request, "apple", id_token, first_name, last_name
+        request,
+        "apple",
+        id_token,
+        first_name,
+        last_name,
     )
     if err:
         return err
@@ -248,7 +261,8 @@ def email_login(request):
         if err:
             return err
         return JsonResponse(
-            {"error": "auth.invalid_credentials"}, status=401
+            {"error": "auth.invalid_credentials"},
+            status=401,
         )
 
     auth_login(request, user)

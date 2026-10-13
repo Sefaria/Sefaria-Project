@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Unit tests for sefaria.helper.skip_tracking.
 
@@ -9,23 +8,24 @@ building the library. The startup/reset_cache/reset_toc pathways each just call
 signal_and_reset_skip_counts() at the end of a build; the guarded loops themselves are
 exercised against the test DB by the existing TOC-rebuild tests.
 """
+
 import sys
 import threading
-
-import pytest
 from unittest.mock import MagicMock, patch
 
-from sefaria.system.exceptions import InputError
+import pytest
+
 from sefaria.helper import skip_tracking
 from sefaria.helper.skip_tracking import (
-    bad_record_guard,
-    log_skip,
-    get_skip_records,
-    get_skip_counts,
-    signal_and_reset_skip_counts,
-    reset_skip_counts,
     MAX_STORED_PER_GROUP,
+    bad_record_guard,
+    get_skip_counts,
+    get_skip_records,
+    log_skip,
+    reset_skip_counts,
+    signal_and_reset_skip_counts,
 )
+from sefaria.system.exceptions import InputError
 
 
 @pytest.fixture(autouse=True)
@@ -44,7 +44,6 @@ def mock_notify():
 
 
 class TestBadRecordGuard:
-
     def test_bad_record_is_caught_recorded_and_logged(self):
         log = MagicMock()
         skip_bad_record = bad_record_guard(log)
@@ -81,18 +80,16 @@ class TestBadRecordGuard:
         """AttributeError is not in BAD_RECORD_EXCEPTIONS — a code bug must abort the
         build loudly, not degrade into a silently incomplete library."""
         skip_bad_record = bad_record_guard(MagicMock())
-        with pytest.raises(AttributeError):
-            with skip_bad_record("startup", "test operation", record="rec"):
-                raise AttributeError("renamed method")
+        with pytest.raises(AttributeError), skip_bad_record("startup", "test operation", record="rec"):
+            raise AttributeError("renamed method")
         assert get_skip_records() == []
 
     def test_narrowed_exceptions_only_catch_what_was_asked(self):
         skip_bad_record = bad_record_guard(MagicMock())
         with skip_bad_record("startup", "test operation", exceptions=KeyError):
             raise KeyError("caught")
-        with pytest.raises(ValueError):
-            with skip_bad_record("startup", "test operation", exceptions=KeyError):
-                raise ValueError("not caught")
+        with pytest.raises(ValueError), skip_bad_record("startup", "test operation", exceptions=KeyError):
+            raise ValueError("not caught")
         assert len(get_skip_records()) == 1
 
     def test_no_exception_records_nothing(self):
@@ -107,7 +104,6 @@ class TestBadRecordGuard:
 
 
 class TestLogSkip:
-
     def test_soft_skip_is_recorded_and_logged(self):
         log = MagicMock()
         log_skip(log, "reset_toc,startup", "topic toc", "node has no slug", record="some-node")
@@ -121,7 +117,6 @@ class TestLogSkip:
 
 
 class TestSignalAndReset:
-
     def test_no_skips_posts_nothing(self, mock_notify):
         signal_and_reset_skip_counts("startup")
         mock_notify.assert_not_called()
@@ -171,7 +166,7 @@ class TestSignalAndReset:
         skip_bad_record = bad_record_guard(MagicMock())
         n_skips = MAX_STORED_PER_GROUP + 5
         for i in range(n_skips):
-            with skip_bad_record("startup", "flood op", record="rec{}".format(i)):
+            with skip_bad_record("startup", "flood op", record=f"rec{i}"):
                 raise InputError("corrupt")
 
         assert len(get_skip_records()) == MAX_STORED_PER_GROUP
@@ -179,12 +174,11 @@ class TestSignalAndReset:
 
         signal_and_reset_skip_counts("startup")
         message = mock_notify.call_args[0][0]
-        assert "skipped *{}* bad record(s)".format(n_skips) in message
+        assert f"skipped *{n_skips}* bad record(s)" in message
         assert "_… 5 more_" in message
 
 
 class TestThreadSafety:
-
     @pytest.fixture(autouse=True)
     def tight_switch_interval(self):
         """Force the GIL to hand off aggressively for the duration of each race test.
@@ -215,7 +209,7 @@ class TestThreadSafety:
             log = MagicMock()
             try:
                 for j in range(per_thread):
-                    log_skip(log, "reset_toc", "op{}".format(i), "detail", record="r{}".format(j))
+                    log_skip(log, "reset_toc", f"op{i}", "detail", record=f"r{j}")
             except Exception as e:
                 errors.append(e)
 

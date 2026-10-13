@@ -1,4 +1,5 @@
 import django
+
 django.setup()
 from sefaria.model import *
 from sefaria.system.database import db
@@ -30,7 +31,6 @@ for i, refs in enumerate(duplicates):
         else:
             l.delete()
 
-col, args, kwargs = ('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True})
+col, args, kwargs = ("links", [[("refs.0", 1), ("refs.1", 1)]], {"unique": True})
 print("Creating unique field on link refs...")
 getattr(db, col).create_index(*args, **kwargs)
-

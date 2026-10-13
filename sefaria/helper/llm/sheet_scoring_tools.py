@@ -1,15 +1,15 @@
-from typing import List, Dict, Any, Iterable, Optional
-
-from sefaria.system.database import db
-from sefaria.helper.llm.tasks.sheet_scoring import generate_and_save_sheet_scoring
 import logging
+from collections.abc import Iterable
+from typing import Any
 
+from sefaria.helper.llm.tasks.sheet_scoring import generate_and_save_sheet_scoring
 from sefaria.model import Ref  # adjust import if needed
+from sefaria.system.database import db
 
 logger = logging.getLogger(__name__)
 
 
-def _already_scored(sheet: Dict[str, Any]) -> bool:
+def _already_scored(sheet: dict[str, Any]) -> bool:
     """
     Detect if a sheet is already scored in the *new* format.
     We consider it scored if llm_scoring.sheet.ref_scores exists and is non-empty.
@@ -20,7 +20,7 @@ def _already_scored(sheet: Dict[str, Any]) -> bool:
     return isinstance(ref_scores, dict) and len(ref_scores) > 0
 
 
-def _fetch_sheet_by_id(sheet_id: str) -> Optional[Dict[str, Any]]:
+def _fetch_sheet_by_id(sheet_id: str) -> dict[str, Any] | None:
     try:
         return db.sheets.find_one({"id": int(sheet_id)})
     except Exception as e:
@@ -28,7 +28,7 @@ def _fetch_sheet_by_id(sheet_id: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def _segment_list_for_ref(tref: str) -> List[str]:
+def _segment_list_for_ref(tref: str) -> list[str]:
     """
     Expand a tref into all segment refs (normalized strings) to match
     against includedRefs/expandedRefs.
@@ -37,18 +37,17 @@ def _segment_list_for_ref(tref: str) -> List[str]:
     return [r.normal() for r in oref.all_segment_refs()]
 
 
-def _find_sheets_for_ref(tref: str) -> Iterable[Dict[str, Any]]:
+def _find_sheets_for_ref(tref: str) -> Iterable[dict[str, Any]]:
     """
     Find all sheets (public + private) that cite the tref in includedRefs OR expandedRefs.
     """
     segments = _segment_list_for_ref(tref)
-    query = {"$or": [{"includedRefs": {"$in": segments}},
-                     {"expandedRefs": {"$in": segments}}]}
+    query = {"$or": [{"includedRefs": {"$in": segments}}, {"expandedRefs": {"$in": segments}}]}
     logger.debug("Querying sheets for tref=%r with segments count=%d", tref, len(segments))
     return db.sheets.find(query)
 
 
-def _dispatch(sheet: Dict[str, Any]) -> None:
+def _dispatch(sheet: dict[str, Any]) -> None:
     """
     Call the actual worker function. It may return an AsyncResult (Celery),
     a bool, or None depending on your implementation. We handle common cases.
@@ -60,7 +59,7 @@ def _dispatch(sheet: Dict[str, Any]) -> None:
         elif isinstance(res, bool):
             logger.info("Synchronous scoring result: %s", "OK" if res else "FAIL")
         elif res is None:
-            logger.info('No scoring task dispatched: LLM or tasks pod may be missing.')
+            logger.info("No scoring task dispatched: LLM or tasks pod may be missing.")
         else:
             logger.debug("Dispatched scoring (no return value)")
     except Exception as e:

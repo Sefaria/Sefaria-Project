@@ -9,25 +9,22 @@
  */
 
 // ── SCSS vars ────────────────────────────────────────────────────────────────
-$sef-error:           #c03522;
-$sef-text-primary:    #121212;
-$sef-text-muted:      #707070;
-$sef-surface:         #ffffff;
-$sef-border-default:  #e6e6e6;
-$sef-surface-disabled:#f5f5f5;
-
-$sp-1:  4px;
-$sp-2:  8px;
-$sp-3:  12px;
-$sp-4:  16px;
-$sp-6:  24px;
-
+$sef-error: #c03522;
+$sef-text-primary: #121212;
+$sef-text-muted: #707070;
+$sef-surface: #fff;
+$sef-border-default: #e6e6e6;
+$sef-surface-disabled: #f5f5f5;
+$sp-1: 4px;
+$sp-2: 8px;
+$sp-3: 12px;
+$sp-4: 16px;
+$sp-6: 24px;
 $font-size-field: 16px;
 $font-size-label: 14px;
 $font-size-error: 14px;
-$stroke:          1px;
-$stroke-strong:   1.5px;
-
+$stroke: 1px;
+$stroke-strong: 1.5px;
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Input
@@ -84,7 +81,6 @@ $stroke-strong:   1.5px;
     font-size: $font-size-field;
     line-height: 1.45;
     outline: none;
-    -webkit-appearance: none;
     appearance: none;
 
     &::placeholder {
@@ -93,8 +89,13 @@ $stroke-strong:   1.5px;
       opacity: 1;
     }
 
-    &:hover:not(:disabled)  { border-color: var(--medium-grey-legacy); }
-    &:focus                 { border-color: var(--light-grey); }
+    &:hover:not(:disabled) {
+      border-color: var(--medium-grey-legacy);
+    }
+
+    &:focus {
+      border-color: var(--light-grey);
+    }
 
     &:disabled {
       background: $sef-surface-disabled;
@@ -104,7 +105,9 @@ $stroke-strong:   1.5px;
     }
   }
 
-  &--error .sefaria-input-control { border-color: $sef-error; }
+  &--error .sefaria-input-control {
+    border-color: $sef-error;
+  }
 
   // Password reveal toggle
   &-reveal {
@@ -123,7 +126,11 @@ $stroke-strong:   1.5px;
     color: $sef-text-muted;
     direction: ltr;
 
-    img { width: 20px; height: 20px; display: block; }
+    img {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
   }
 
   // Inline error message
@@ -136,9 +143,12 @@ $stroke-strong:   1.5px;
     line-height: 1.3;
   }
 
-  &-errorIcon { width: 16px; height: 16px; flex: 0 0 auto; }
+  &-errorIcon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+  }
 }
-
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Auth-primary button variant
@@ -152,17 +162,20 @@ a.sefaria-common-button.auth-primary {
   font-size: $font-size-field;
   font-weight: 600;
   height: 51px;
-  color: #ffffff;
+  color: #fff;
 
-  * { color: #ffffff; }
+  * {
+    color: #fff;
+  }
 
-  &:hover { background-color: #132b4c; }
+  &:hover {
+    background-color: #132b4c;
+  }
 }
 
 button.sefaria-common-button.auth-primary:disabled {
   cursor: not-allowed;
 }
-
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Captcha wrapper
@@ -192,6 +205,10 @@ button.sefaria-common-button.auth-primary:disabled {
     font-size: $font-size-error;
     line-height: 1;
 
-    img { width: 18px; height: 18px; flex: 0 0 18px; }
+    img {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+    }
   }
 }

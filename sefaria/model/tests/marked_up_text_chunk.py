@@ -1,10 +1,12 @@
 from copy import deepcopy
 
 import pytest
-from sefaria.system.database import db as mongo_db
+
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
-from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.model.text import Ref
+from sefaria.system.database import db as mongo_db
+from sefaria.system.exceptions import DuplicateRecordError, InputError
+
 pytestmark = pytest.mark.django_db
 
 MARKED_UP_TEXT_CHUNKS_DATA = [
@@ -30,7 +32,7 @@ MARKED_UP_TEXT_CHUNKS_DATA = [
                 "text": "Job 26:11",
                 "type": "citation",
                 "ref": "Job 26:11",
-            }
+            },
         ],
     },
     {
@@ -43,7 +45,7 @@ MARKED_UP_TEXT_CHUNKS_DATA = [
                 "text": "Yalkut Shimoni on Torah 187",
                 "type": "citation",
                 "ref": "Yalkut Shimoni on Torah 187",
-            }
+            },
         ],
     },
     {
@@ -56,7 +58,7 @@ MARKED_UP_TEXT_CHUNKS_DATA = [
                 "text": "Midrash Tanchuma, Tazria 1",
                 "type": "citation",
                 "ref": "Midrash Tanchuma, Tazria 1",
-            }
+            },
         ],
     },
 ]
@@ -94,7 +96,7 @@ def marked_up_chunks():
     # 1) Start with a clean slate for the PKs we care about
     for c in MARKED_UP_TEXT_CHUNKS_DATA:
         mongo_db.marked_up_text_chunks.delete_many(
-            {"ref": c["ref"], "versionTitle": c["versionTitle"], "language": c["language"]}
+            {"ref": c["ref"], "versionTitle": c["versionTitle"], "language": c["language"]},
         )
 
     # 2) Insert merged (PK-unique) payloads
@@ -106,18 +108,19 @@ def marked_up_chunks():
         objs.append(obj)
 
     yield {
-        "objects": objs,     # the live objects we saved
-        "payloads": payloads # the canonical input they were built from
+        "objects": objs,  # the live objects we saved
+        "payloads": payloads,  # the canonical input they were built from
     }
 
     # 3) Tear-down – remove every object we created
     for o in objs:
         o.delete()
 
+
 class TestMarkedUpTextChunk:
     def test_inserted_records_match_input(self, marked_up_chunks):
-        objs  = marked_up_chunks["objects"]
-        input = { (p["ref"], p["versionTitle"], p["language"]): p for p in marked_up_chunks["payloads"] }
+        objs = marked_up_chunks["objects"]
+        input = {(p["ref"], p["versionTitle"], p["language"]): p for p in marked_up_chunks["payloads"]}
 
         for obj in objs:
             k = (obj.ref, obj.versionTitle, obj.language)

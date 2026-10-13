@@ -1,24 +1,20 @@
-# -*- coding: utf-8 -*-
-from urllib.parse import urlparse, quote_plus
+import time  # import stand library below name collision in sefaria.model
+from urllib.parse import quote_plus, urlparse
 
-from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support.ui import WebDriverWait, Select
-from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element
-from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.expected_conditions import staleness_of, visibility_of_element_located
+from selenium.webdriver.support.ui import WebDriverWait
 
 from sefaria.model import *
-from sefaria.utils.hebrew import strip_cantillation, strip_nikkud
-from sefaria.utils.hebrew import has_cantillation
-from .framework import SefariaTest, one_of_these_texts_present_in_element
+from sefaria.utils.hebrew import has_cantillation, strip_cantillation
 
-import time  # import stand library below name collision in sefaria.model
+from .framework import SefariaTest, one_of_these_texts_present_in_element
 
 TEMPER = 30
 
 
 class PagesLoad(SefariaTest):
-    
     every_build = True
     initial_url = "/texts"
 
@@ -31,21 +27,20 @@ class PagesLoad(SefariaTest):
         self.load_gardens()
         self.load_people()
 
+
 class PagesLoadLoggedIn(SefariaTest):
-    
-    every_build  = True
-    single_panel = False   # todo write or rewrite this to account for logged in state on mobile
-    initial_url  = "/texts"
+    every_build = True
+    single_panel = False  # TODO write or rewrite this to account for logged in state on mobile
+    initial_url = "/texts"
 
     def body(self):
         self.login_user()
         self.load_my_profile()
-        self.nav_to_profile() # load_account might be superceded by load_my_profile or nav_to_profile
+        self.nav_to_profile()  # load_account might be superceded by load_my_profile or nav_to_profile
         self.load_notifications()
 
 
 class SinglePanelOnMobile(SefariaTest):
-    
     every_build = True
     multi_panel = False
     initial_url = "/texts"
@@ -61,14 +56,13 @@ class SinglePanelOnMobile(SefariaTest):
 
 
 class ChangeTextLanguage(SefariaTest):
-    
     every_build = True
     initial_url = "/Job.1"
 
     def body(self):
-        expected_heb = 'אִ֛ישׁ הָיָ֥ה בְאֶֽרֶץ־ע֖וּץ אִיּ֣וֹב שְׁמ֑וֹ וְהָיָ֣ה ׀ הָאִ֣ישׁ הַה֗וּא תָּ֧ם וְיָשָׁ֛ר וִירֵ֥א אֱלֹהִ֖ים וְסָ֥ר מֵרָֽע׃'
-        expected_eng_closed = 'There was a man in the land of Uz named Job. That man was blameless and upright; he feared God and shunned evil.'
-        expected_eng_open = 'THERE was a man in the land of Uz, whose name was Job; and that man was whole-hearted and upright, and one that feared God, and shunned evil.'
+        expected_heb = "אִ֛ישׁ הָיָ֥ה בְאֶֽרֶץ־ע֖וּץ אִיּ֣וֹב שְׁמ֑וֹ וְהָיָ֣ה ׀ הָאִ֣ישׁ הַה֗וּא תָּ֧ם וְיָשָׁ֛ר וִירֵ֥א אֱלֹהִ֖ים וְסָ֥ר מֵרָֽע׃"
+        expected_eng_closed = "There was a man in the land of Uz named Job. That man was blameless and upright; he feared God and shunned evil."
+        expected_eng_open = "THERE was a man in the land of Uz, whose name was Job; and that man was whole-hearted and upright, and one that feared God, and shunned evil."
         sgmnt_eng = self.get_nth_section_english(1)
         sgmnt_heb = self.get_nth_section_hebrew(1)
         str_eng = sgmnt_eng.text.strip()
@@ -76,40 +70,43 @@ class ChangeTextLanguage(SefariaTest):
         # not sure why, but he strings aren't equal unless vowels are stripped
         expected_heb_stripped = strip_cantillation(expected_heb, strip_vowels=True)
         str_heb_stripped = strip_cantillation(str_heb, strip_vowels=True)
-        assert expected_heb_stripped == str_heb_stripped, "'{}' does not equal '{}'".format(expected_heb_stripped, str_heb_stripped)
-        assert str_eng in [expected_eng_open, expected_eng_closed], "'{}' does not equal '{}' or '{}'".format(str_eng, expected_eng_closed, expected_eng_open)
+        assert expected_heb_stripped == str_heb_stripped, (
+            f"'{expected_heb_stripped}' does not equal '{str_heb_stripped}'"
+        )
+        assert str_eng in [expected_eng_open, expected_eng_closed], (
+            f"'{str_eng}' does not equal '{expected_eng_closed}' or '{expected_eng_open}'"
+        )
         self.toggle_on_text_settings()
         self.toggle_language_hebrew()
-        assert 'hebrew' in self.get_content_language()
-        assert 'english' not in self.get_content_language()
-        assert 'bilingual' not in self.get_content_language()
-        assert self.has_hebrew_text() == True
-        assert self.has_english_text() == False
+        assert "hebrew" in self.get_content_language()
+        assert "english" not in self.get_content_language()
+        assert "bilingual" not in self.get_content_language()
+        assert self.has_hebrew_text()
+        assert not self.has_english_text()
         self.toggle_on_text_settings()
         self.toggle_language_english()
-        assert 'hebrew' not in self.get_content_language()
-        assert 'english' in self.get_content_language()
-        assert 'bilingual' not in self.get_content_language()
-        assert self.has_hebrew_text() == False
-        assert self.has_english_text() == True
+        assert "hebrew" not in self.get_content_language()
+        assert "english" in self.get_content_language()
+        assert "bilingual" not in self.get_content_language()
+        assert not self.has_hebrew_text()
+        assert self.has_english_text()
         self.toggle_on_text_settings()
         self.toggle_language_bilingual()
-        assert 'hebrew' not in self.get_content_language()
-        assert 'english' not in self.get_content_language()
-        assert 'bilingual' in self.get_content_language()
-        assert self.has_hebrew_text() == True
-        assert self.has_english_text() == True
+        assert "hebrew" not in self.get_content_language()
+        assert "english" not in self.get_content_language()
+        assert "bilingual" in self.get_content_language()
+        assert self.has_hebrew_text()
+        assert self.has_english_text()
         self.get_content_language()
 
 
 class FontSizeTest(SefariaTest):
-    
     every_build = True
     initial_url = "/Tosefta_Peah.3"
 
     def body(self):
         self.toggle_on_text_settings()
-        font_size_original = self.get_font_size()
+        self.get_font_size()
         self.toggle_fontSize_smaller()
         font_size_smaller = self.get_font_size()
 
@@ -128,40 +125,46 @@ class LayoutSettings(SefariaTest):
         if not self.single_panel:
             self.toggle_on_text_settings()
             self.toggle_bilingual_layout_heLeft()
-            assert self.get_content_layout_direction() == 'left'
+            assert self.get_content_layout_direction() == "left"
 
             self.toggle_on_text_settings()
             self.toggle_bilingual_layout_heRight()
-            assert self.get_content_layout_direction() == 'right'
+            assert self.get_content_layout_direction() == "right"
 
             self.toggle_on_text_settings()
             self.toggle_bilingual_layout_stacked()
-            assert self.get_content_layout_direction() == 'stacked'
+            assert self.get_content_layout_direction() == "stacked"
 
 
 class TextVocalizationSettings(SefariaTest):
-    
     every_build = True
     initial_url = "/Job.1"
 
     def body(self):
-        just_text = 'איש היה בארץ־עוץ איוב שמו והיה  האיש ההוא תם וישר וירא אלהים וסר מרע'
-        text_with_vowels = 'אִישׁ הָיָה בְאֶרֶץ־עוּץ אִיּוֹב שְׁמוֹ וְהָיָה  הָאִישׁ הַהוּא תָּם וְיָשָׁר וִירֵא אֱלֹהִים וְסָר מֵרָע׃'
-        text_with_cantillation = 'אִ֛ישׁ הָיָ֥ה בְאֶֽרֶץ־ע֖וּץ אִיּ֣וֹב שְׁמ֑וֹ וְהָיָ֣ה ׀ הָאִ֣ישׁ הַה֗וּא תָּ֧ם וְיָשָׁ֛ר וִירֵ֥א אֱלֹהִ֖ים וְסָ֥ר מֵרָֽע׃'
+        just_text = "איש היה בארץ־עוץ איוב שמו והיה  האיש ההוא תם וישר וירא אלהים וסר מרע"
+        text_with_vowels = "אִישׁ הָיָה בְאֶרֶץ־עוּץ אִיּוֹב שְׁמוֹ וְהָיָה  הָאִישׁ הַהוּא תָּם וְיָשָׁר וִירֵא אֱלֹהִים וְסָר מֵרָע׃"
+        text_with_cantillation = "אִ֛ישׁ הָיָ֥ה בְאֶֽרֶץ־ע֖וּץ אִיּ֣וֹב שְׁמ֑וֹ וְהָיָ֣ה ׀ הָאִ֣ישׁ הַה֗וּא תָּ֧ם וְיָשָׁ֛ר וִירֵ֥א אֱלֹהִ֖ים וְסָ֥ר מֵרָֽע׃"
 
         self.toggle_on_text_settings()
         self.toggle_vowels_partial()
-        assert self.get_nth_section_hebrew(1).text.strip() == text_with_vowels, "'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), text_with_vowels)
+        assert self.get_nth_section_hebrew(1).text.strip() == text_with_vowels, (
+            f"'{self.get_nth_section_hebrew(1).text.strip()}' does not equal '{text_with_vowels}'"
+        )
 
         self.toggle_on_text_settings()
         self.toggle_vowels_all()
-        assert self.get_nth_section_hebrew(1).text.strip() == text_with_cantillation, "'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), text_with_cantillation)
+        assert self.get_nth_section_hebrew(1).text.strip() == text_with_cantillation, (
+            f"'{self.get_nth_section_hebrew(1).text.strip()}' does not equal '{text_with_cantillation}'"
+        )
 
         self.toggle_on_text_settings()
         self.toggle_vowels_none()
-        assert self.get_nth_section_hebrew(1).text.strip() == just_text, "'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), just_text)
+        assert self.get_nth_section_hebrew(1).text.strip() == just_text, (
+            f"'{self.get_nth_section_hebrew(1).text.strip()}' does not equal '{just_text}'"
+        )
 
-'''
+
+"""
 class TanakhCantillationAndVowels(SefariaTest):
     
     every_build = False
@@ -186,10 +189,10 @@ class TanakhCantillationAndVowels(SefariaTest):
         # self.load_ref("Joshua 1")
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
-'''
+"""
+
 
 class AliyotAndCantillationToggles(SefariaTest):
-    
     every_build = True
     initial_url = "/Derashot_HaRan.1"
 
@@ -204,12 +207,12 @@ class AliyotAndCantillationToggles(SefariaTest):
         self.toggle_on_text_settings()
         assert not self.is_aliyot_toggleSet_displayed()
         assert self.is_vocalization_toggleSet_displayed()
-        
+
         self.browse_to_ref("Joshua 2")
         self.toggle_on_text_settings()
         assert not self.is_aliyot_toggleSet_displayed()
         assert self.is_vocalization_toggleSet_displayed()
-        
+
         self.browse_to_ref("Genesis 1")
         self.toggle_on_text_settings()
         assert self.is_aliyot_toggleSet_displayed()
@@ -217,11 +220,10 @@ class AliyotAndCantillationToggles(SefariaTest):
 
 
 class SidebarOpens(SefariaTest):
-    
     every_build = True
     single_panel = False
     initial_url = "/Ecclesiastes.1"
-    # todo: make this work on mobile.
+    # TODO: make this work on mobile.
     # "sidebar" elements will need to be scrolled into view before clicking
 
     def body(self):
@@ -234,24 +236,34 @@ class SidebarOpens(SefariaTest):
             self.click_resources_on_sidebar()
 
         self.click_sidebar_button("Compare Text")
-        self.driver.find_element_by_css_selector('.readerNavMenuMenuButton').click()
+        self.driver.find_element_by_css_selector(".readerNavMenuMenuButton").click()
 
         self.click_sidebar_button("Sheets")
         self.click_resources_on_sidebar()
 
         self.click_sidebar_button("About this Text")
-        msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').get_attribute('innerHTML')
-        assert msg == 'About This Text'
+        msg = self.driver.find_element_by_css_selector(
+            "#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en",
+        ).get_attribute("innerHTML")
+        assert msg == "About This Text"
         self.click_resources_on_sidebar()
 
         self.click_sidebar_button("Translations")
-        assert self.get_sidebar_nth_version_button(1).text in ['Current Translation', 'מהדורה נוכחית'],  "'{}' does not equal 'Current Translation'".format(self.get_sidebar_nth_version_button(1).text)
-        assert self.get_sidebar_nth_version_button(2).text in ['Select Translation', 'בחירת תרגום'],  "'{}' does not equal 'Select Translation'".format(self.get_sidebar_nth_version_button(2).text)
+        assert self.get_sidebar_nth_version_button(1).text in ["Current Translation", "מהדורה נוכחית"], (
+            f"'{self.get_sidebar_nth_version_button(1).text}' does not equal 'Current Translation'"
+        )
+        assert self.get_sidebar_nth_version_button(2).text in ["Select Translation", "בחירת תרגום"], (
+            f"'{self.get_sidebar_nth_version_button(2).text}' does not equal 'Select Translation'"
+        )
         self.click_sidebar_nth_version_button(2)
 
         time.sleep(1)
-        assert self.get_sidebar_nth_version_button(1).text in ['Select Translation', 'בחירת תרגום'],  u"'{}' does not equal 'Select Translation'".format(self.get_sidebar_nth_version_button(1).text)
-        assert self.get_sidebar_nth_version_button(2).text in ['Current Translation', 'מהדורה נוכחית'], u"'{}' does not equal 'Current Translation'".format(self.get_sidebar_nth_version_button(2).text)
+        assert self.get_sidebar_nth_version_button(1).text in ["Select Translation", "בחירת תרגום"], (
+            f"'{self.get_sidebar_nth_version_button(1).text}' does not equal 'Select Translation'"
+        )
+        assert self.get_sidebar_nth_version_button(2).text in ["Current Translation", "מהדורה נוכחית"], (
+            f"'{self.get_sidebar_nth_version_button(2).text}' does not equal 'Current Translation'"
+        )
         self.click_resources_on_sidebar()
 
         self.click_sidebar_button("Web Pages")
@@ -270,22 +282,23 @@ class SidebarOpens(SefariaTest):
 
 
 class ChangeSiteLanguage(SefariaTest):
-    # Switch between Hebrew and English and sample a few of the objects to make sure 
+    # Switch between Hebrew and English and sample a few of the objects to make sure
     # the language has actually changed.
-    
+
     every_build = True
     initial_url = "/texts"
 
     def body(self):
         self.click_ivrit_link()
         time.sleep(1)
-        assert self.driver.find_element_by_css_selector('.interface-hebrew') != None
-        
+        assert self.driver.find_element_by_css_selector(".interface-hebrew") is not None
+
         self.click_english_link()
         time.sleep(1)
-        assert self.driver.find_element_by_css_selector('.interface-english') != None
+        assert self.driver.find_element_by_css_selector(".interface-english") is not None
 
-'''
+
+"""
 class LinkExplorer(SefariaTest):
     # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check 
     # that torah>nevi'im>ketuvim and the Sedarim are in the correct order
@@ -383,11 +396,10 @@ class LinkExplorer(SefariaTest):
         assert float(self.get_object_by_id('Tamid').get_attribute('cx')) < float(self.get_object_by_id('Niddah').get_attribute('cx'))
         assert self.get_object_by_id('Niddah').is_displayed()
 
-'''
+"""
 
 
 class ReadingHistory(SefariaTest):
-    
     single_panel = False
     every_build = True
     initial_url = "/texts"
@@ -408,7 +420,6 @@ class ReadingHistory(SefariaTest):
 
 
 class LoadRefAndClickSegment(SefariaTest):
-    
     every_build = True
     initial_url = "/Job.3"
 
@@ -421,11 +432,12 @@ class LoadRefAndClickSegment(SefariaTest):
         self.click_text_filter("Ibn Ezra")
 
         assert "Job.3.4" in self.driver.current_url, self.driver.current_url
-        assert "with=Ibn%20Ezra" in self.driver.current_url or "with=Ibn Ezra" in self.driver.current_url, self.driver.current_url
+        assert "with=Ibn%20Ezra" in self.driver.current_url or "with=Ibn Ezra" in self.driver.current_url, (
+            self.driver.current_url
+        )
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(SefariaTest):
-    
     every_build = True
     initial_url = "/Job.3.4?with=all"
 
@@ -436,7 +448,6 @@ class LoadRefWithCommentaryAndClickOnCommentator(SefariaTest):
 
 
 class NavToBookPages(SefariaTest):
-    
     every_build = True
     initial_url = "/texts"
 
@@ -447,15 +458,14 @@ class NavToBookPages(SefariaTest):
             (["Tanakh", "Ibn Ezra"], "Ibn Ezra on Psalms"),  # Commentary on Simple text
             (["Kabbalah"], "Zohar"),  # Zohar, just cuz
             (["Talmud", "Tosafot"], "Tosafot on Shabbat"),  # Commentary on Talmud
-            (["Liturgy"], "Pesach Haggadah") # Complex text
+            (["Liturgy"], "Pesach Haggadah"),  # Complex text
         ]
 
-        for (cats, text_title) in navs:
+        for cats, text_title in navs:
             self.nav_to_book_page(cats, text_title)
 
 
 class LoadBookPages(SefariaTest):
-    
     every_build = True
     initial_url = "/texts"
 
@@ -466,14 +476,13 @@ class LoadBookPages(SefariaTest):
             "Ibn Ezra on Psalms",  # Commentary on Simple text
             "Zohar",  # Zohar, just cuz
             "Tosafot on Shabbat",  # Commentary on Talmud
-            "Pesach Haggadah" # Complex text
+            "Pesach Haggadah",  # Complex text
         ]
         for title in titles:
             self.load_book_page(title)
 
 
 class LoadSpanningRefAndOpenConnections(SefariaTest):
-    
     every_build = True
     initial_url = "/Shabbat.2a-2b"
 
@@ -482,7 +491,6 @@ class LoadSpanningRefAndOpenConnections(SefariaTest):
 
 
 class NavToSpanningRefAndOpenConnections(SefariaTest):
-    
     every_build = True
     single_panel = False
     initial_url = "/texts"
@@ -497,7 +505,7 @@ class PermanenceOfRangedRefs(SefariaTest):
     There have been bugs around Links with ranged references.
     This test checks that they are present, and that they survive to a second click (they had previously been ephemeral.)
     """
-    
+
     every_build = True
     single_panel = False  # Segment clicks on mobile have different semantics  todo: write this for mobile?  It's primarily a data test.
     initial_url = "/Shabbat.2a"
@@ -521,10 +529,14 @@ class ClickVersionedSearchResultDesktop(SefariaTest):
 
     def body(self):
         self.search_for("they howl like dogs")
-        versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=they howl like dogs"]')
+        versionedResult = self.driver.find_element_by_css_selector(
+            'a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=they howl like dogs"]',
+        )
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
-        assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
+        assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, (
+            self.driver.current_url
+        )
 
 
 class ClickVersionedSearchResultMobile(SefariaTest):
@@ -534,10 +546,14 @@ class ClickVersionedSearchResultMobile(SefariaTest):
 
     def body(self):
         self.search_for("Dogs")
-        versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
+        versionedResult = self.driver.find_element_by_css_selector(
+            'a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]',
+        )
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
-        assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
+        assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, (
+            self.driver.current_url
+        )
 
 
 class CollectionsPagesLoad(SefariaTest):
@@ -552,9 +568,8 @@ class CollectionsPagesLoad(SefariaTest):
 
 
 class BrowserBackAndForward(SefariaTest):
-    
     every_build = True
-    exclude = ['FF/x12', 'FF/x13', 'Sf/x11', 'Sf/x12', 'Sf/x13'] # Buggy handling of Back button
+    exclude = ["FF/x12", "FF/x13", "Sf/x11", "Sf/x12", "Sf/x13"]  # Buggy handling of Back button
     initial_url = "/texts"
 
     def body(self):
@@ -574,7 +589,7 @@ class BrowserBackAndForward(SefariaTest):
         self.driver.forward()
         assert "Amos.3.1" in self.driver.current_url, self.driver.current_url
         assert "with=Commentary" in self.driver.current_url, self.driver.current_url
-        # Todo - infinite scroll, nav pages, display options, ref normalization
+        # TODO - infinite scroll, nav pages, display options, ref normalization
 
 
 class SaveNewSourceSheet(SefariaTest):
@@ -586,21 +601,29 @@ class SaveNewSourceSheet(SefariaTest):
         self.login_user()
         self.nav_to_new_sheet()
 
-        time.sleep(2)   #  If we enter text before the js is ready, we don't get a dropdown menu.
+        time.sleep(2)  #  If we enter text before the js is ready, we don't get a dropdown menu.
 
         textBox = self.driver.find_element_by_css_selector("#inlineAdd")
 
         textBox.send_keys("Genesis")
         WebDriverWait(self.driver, TEMPER).until(
-            one_of_these_texts_present_in_element((By.ID, "inlineAddDialogTitle"), ["Enter a", "ENTER A"]))
+            one_of_these_texts_present_in_element((By.ID, "inlineAddDialogTitle"), ["Enter a", "ENTER A"]),
+        )
 
         textBox.send_keys(" 1")
         WebDriverWait(self.driver, TEMPER).until(
-            one_of_these_texts_present_in_element((By.ID, "inlineAddDialogTitle"), ["to continue or", "TO CONTINUE OR"]))
+            one_of_these_texts_present_in_element(
+                (By.ID, "inlineAddDialogTitle"), ["to continue or", "TO CONTINUE OR"]
+            ),
+        )
 
         textBox.send_keys(":9")
         WebDriverWait(self.driver, TEMPER).until(
-            one_of_these_texts_present_in_element((By.ID, "inlineAddDialogTitle"), ["to continue or enter a range", "TO CONTINUE OR ENTER A RANGE"]))
+            one_of_these_texts_present_in_element(
+                (By.ID, "inlineAddDialogTitle"),
+                ["to continue or enter a range", "TO CONTINUE OR ENTER A RANGE"],
+            ),
+        )
 
         self.driver.find_element_by_css_selector("#inlineAddSourceOK").click()
 
@@ -613,7 +636,7 @@ class SaveNewSourceSheet(SefariaTest):
         except TimeoutException:
             self.wait_until_title_contains("דף מקורות חדש")
 
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.header .home')))
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".header .home")))
 
 
 class SearchNavigation(SefariaTest):
@@ -642,36 +665,36 @@ class SearchNavigation(SefariaTest):
 
         self.type_in_search_box("#יוסף שאול נתנזון")
         self.wait_until_title_contains("Yosef")
-        
+
         self.type_in_search_box("מדרש")
         self.wait_until_visible(".readerNavCategoryMenu")
 
 
 class EditTextPagesLoad(SefariaTest):
-    #todo: build a no-load reader test to match this
+    # TODO: build a no-load reader test to match this
     every_build = True
     single_panel = False
     initial_url = "/texts"
 
     def body(self):
         self.login_user()
-        self.load_edit("Genesis 1", "en", "Sefaria Community Translation") # threw a 500 on travis, works local
+        self.load_edit("Genesis 1", "en", "Sefaria Community Translation")  # threw a 500 on travis, works local
         self.load_add("Mishnah Peah 4")
 
 
 class ScrollToHighlight(SefariaTest):
     every_build = True
-    single_panel = False        # is_element_visible_in_viewport fails for mobile.
+    single_panel = False  # is_element_visible_in_viewport fails for mobile.
     initial_url = "/texts"
 
     def test_by_load(self, ref):
         self.load_ref(ref)
-        el = self.get_element('[data-ref="{}"]'.format(ref))
+        el = self.get_element(f'[data-ref="{ref}"]')
         assert self.is_element_visible_in_viewport(el)
 
     def test_in_app(self, ref):
         self.search_ref(ref)
-        el = self.get_element('[data-ref="{}"]'.format(ref))
+        el = self.get_element(f'[data-ref="{ref}"]')
         assert self.is_element_visible_in_viewport(el)
 
     def body(self):
@@ -691,11 +714,13 @@ class InfiniteScrollUp(SefariaTest):
 
     def test_up(self, start_ref, prev_segment_ref):
         self.browse_to_ref(start_ref)
-        time.sleep(.5)
-        self.scroll_reader_panel_down(100) # This jiggle feels like cheating, but I am finding that a single scroll doesn't trigger the "scroll" event, causing the next scroll to be ignore (with this.justScrolled flag)
+        time.sleep(0.5)
+        self.scroll_reader_panel_down(
+            100,
+        )  # This jiggle feels like cheating, but I am finding that a single scroll doesn't trigger the "scroll" event, causing the next scroll to be ignore (with this.justScrolled flag)
         self.scroll_reader_panel_up(200)
         self.wait_until_visible('[data-ref="%s"]' % prev_segment_ref)
-        time.sleep(.5)
+        time.sleep(0.5)
         # Wait then check that URL has not changed as a proxy for checking that visible scroll position has not changed
         assert quote_plus(Ref(start_ref).url()) in self.driver.current_url, self.driver.current_url
 
@@ -712,7 +737,9 @@ class InfiniteScrollDown(SefariaTest):
 
     def test_down(self, start_ref, next_segment_ref):
         self.browse_to_ref(start_ref).scroll_reader_panel_to_bottom()
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="{}"]'.format(next_segment_ref))))
+        WebDriverWait(self.driver, TEMPER).until(
+            visibility_of_element_located((By.CSS_SELECTOR, f'[data-ref="{next_segment_ref}"]')),
+        )
 
     def body(self):
         # Simple Text
@@ -724,10 +751,12 @@ class InfiniteScrollDown(SefariaTest):
 ##############
 # Editor Tests
 
+
 class EditorTest(SefariaTest):
     """
     Tests that do editor things
     """
+
     every_build = False
     temp_sheet_id = None
 
@@ -741,7 +770,7 @@ class EditorTest(SefariaTest):
         self.temp_sheet_id = urlparse(self.get_current_url()).path.rsplit("/", 1)[-1]
 
     def teardown(self):
-        self.driver.get(f'{self.base_url}/api/sheets/{self.temp_sheet_id}/delete')
+        self.driver.get(f"{self.base_url}/api/sheets/{self.temp_sheet_id}/delete")
         self.disable_new_editor()
         self.driver.close()
 
@@ -767,7 +796,7 @@ class AddSourceToEditor(EditorTest):
         print(len(sheet_items))
 
         last_sheet_item = sheet_items[-1]
-        added_source = last_sheet_item.find_element_by_css_selector(".SheetSource")  # will throw error if doesn't exist
+        last_sheet_item.find_element_by_css_selector(".SheetSource")  # will throw error if doesn't exist
 
         print(last_sheet_item == sheet_items_and_spacers[-2])
 
@@ -795,7 +824,7 @@ class AddSheetContent(EditorTest):
         # assert edited_sheet == loaded_sheet
 
 
-'''
+"""
 # This test is cranky.  It can pass and fail without any external changes.  Seemingly because the underlying functionality isn't dependable yet.
 class BackRestoresScrollPosition(SefariaTest):
     
@@ -836,7 +865,7 @@ class BackRestoresScrollPosition(SefariaTest):
         self.driver.back()
         time.sleep(0.4)
         assert self.get_content_scroll_position() == SCROLL_DISTANCE, "Scroll Position {} != {}".format(self.get_content_scroll_position(), SCROLL_DISTANCE)
-'''
+"""
 
 
 """

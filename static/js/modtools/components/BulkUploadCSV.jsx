@@ -23,21 +23,28 @@ const HELP_CONTENT = (
   <>
     <h3>What This Tool Does</h3>
     <p>
-      This tool <strong>uploads text content from CSV files</strong>. Each CSV file contains
-      the content for a text version, formatted with one segment per row.
+      This tool <strong>uploads text content from CSV files</strong>. Each CSV file contains the content for a text
+      version, formatted with one segment per row.
     </p>
 
     <h3>How It Works</h3>
     <ol>
-      <li><strong>Prepare CSV:</strong> Create CSV file(s) with the correct column format.</li>
-      <li><strong>Select files:</strong> Choose one or more CSV files to upload.</li>
-      <li><strong>Upload:</strong> Submit to create or update Version records. Multi-book CSVs are split per book in the browser and uploaded one book at a time.</li>
+      <li>
+        <strong>Prepare CSV:</strong> Create CSV file(s) with the correct column format.
+      </li>
+      <li>
+        <strong>Select files:</strong> Choose one or more CSV files to upload.
+      </li>
+      <li>
+        <strong>Upload:</strong> Submit to create or update Version records. Multi-book CSVs are split per book in the
+        browser and uploaded one book at a time.
+      </li>
     </ol>
 
     <h3>CSV Format</h3>
     <p>
-      The CSV file should have a specific column structure. Check the backend documentation
-      or existing exports for the exact format required, which typically includes:
+      The CSV file should have a specific column structure. Check the backend documentation or existing exports for the
+      exact format required, which typically includes:
     </p>
     <ul>
       <li>Reference column (the segment address)</li>
@@ -46,8 +53,8 @@ const HELP_CONTENT = (
     </ul>
 
     <div className="info">
-      <strong>Tip:</strong> Use the Bulk Download tool to export an existing text as CSV,
-      then use that file as a template for the expected format.
+      <strong>Tip:</strong> Use the Bulk Download tool to export an existing text as CSV, then use that file as a
+      template for the expected format.
     </div>
 
     <div className="warning">
@@ -70,9 +77,15 @@ const HELP_CONTENT = (
 
     <h3>Troubleshooting</h3>
     <ul>
-      <li><strong>Upload fails</strong> - Check CSV encoding (should be UTF-8).</li>
-      <li><strong>Hebrew displays incorrectly</strong> - Ensure proper UTF-8 encoding.</li>
-      <li><strong>Partial upload</strong> - Some rows may have invalid refs or format.</li>
+      <li>
+        <strong>Upload fails</strong> - Check CSV encoding (should be UTF-8).
+      </li>
+      <li>
+        <strong>Hebrew displays incorrectly</strong> - Ensure proper UTF-8 encoding.
+      </li>
+      <li>
+        <strong>Partial upload</strong> - Some rows may have invalid refs or format.
+      </li>
     </ul>
   </>
 );
@@ -131,9 +144,7 @@ const postJob = async (job) => {
   try {
     data = JSON.parse(responseText);
   } catch (e) {
-    throw new Error(
-      `HTTP ${response.status} ${response.statusText} - non-JSON response (see console)`,
-    );
+    throw new Error(`HTTP ${response.status} ${response.statusText} - non-JSON response (see console)`);
   }
   if (!data || data.status !== 'ok') {
     throw new Error(data?.error || `HTTP ${response.status} ${response.statusText}`);
@@ -165,15 +176,11 @@ function BulkUploadCSV() {
     }
 
     if (jobs.length === 0) {
-      const fileErrText = fileErrors
-        .map((f) => `${f.file}: ${f.error}`)
-        .join('; ');
+      const fileErrText = fileErrors.map((f) => `${f.file}: ${f.error}`).join('; ');
       setUploading(false);
       setUploadMessage(null);
       setUploadError(
-        fileErrText
-          ? `No uploadable indices found. ${fileErrText}`
-          : 'No uploadable indices found in selected files.',
+        fileErrText ? `No uploadable indices found. ${fileErrText}` : 'No uploadable indices found in selected files.'
       );
       return;
     }
@@ -225,15 +232,9 @@ function BulkUploadCSV() {
       }
     }
 
-    const summaryParts = [
-      `Uploaded ${succeeded.length}/${jobs.length} indices`,
-    ];
+    const summaryParts = [`Uploaded ${succeeded.length}/${jobs.length} indices`];
     if (failed.length > 0) {
-      summaryParts.push(
-        `${failed.length} failed: ${failed
-          .map((f) => `${f.idxTitle} (${f.error})`)
-          .join('; ')}`,
-      );
+      summaryParts.push(`${failed.length} failed: ${failed.map((f) => `${f.idxTitle} (${f.error})`).join('; ')}`);
     }
     if (unresolvedRefs.length > 0) {
       const sample = unresolvedRefs
@@ -245,21 +246,16 @@ function BulkUploadCSV() {
       console.warn('Bulk CSV upload: unresolved refs', unresolvedRefs);
     }
     if (fileErrors.length > 0) {
-      summaryParts.push(
-        `File errors: ${fileErrors.map((f) => `${f.file} (${f.error})`).join('; ')}`,
-      );
+      summaryParts.push(`File errors: ${fileErrors.map((f) => `${f.file} (${f.error})`).join('; ')}`);
     }
     if (tocRebuildError) {
-      summaryParts.push(
-        `ToC rebuild failed (${tocRebuildError}). Trigger /admin/reset/toc manually.`,
-      );
+      summaryParts.push(`ToC rebuild failed (${tocRebuildError}). Trigger /admin/reset/toc manually.`);
     }
 
     const message = summaryParts.join(' | ');
     setUploading(false);
 
-    const cleanRun =
-      failed.length === 0 && fileErrors.length === 0 && !tocRebuildError;
+    const cleanRun = failed.length === 0 && fileErrors.length === 0 && !tocRebuildError;
     if (cleanRun) {
       setUploadMessage(message);
       setUploadError(null);
@@ -272,7 +268,7 @@ function BulkUploadCSV() {
       setUploadError(
         succeeded.length > 0
           ? `Some indices failed - ${failed.length} of ${jobs.length}${tocRebuildError ? ' (ToC rebuild also failed)' : ''}`
-          : message,
+          : message
       );
     }
   };
@@ -280,19 +276,9 @@ function BulkUploadCSV() {
   const isReady = !uploading && files.length > 0;
 
   return (
-    <ModToolsSection
-      title="Bulk Upload CSV"
-      titleHe="העלאה מ-CSV"
-      helpContent={HELP_CONTENT}
-    >
+    <ModToolsSection title="Bulk Upload CSV" titleHe="העלאה מ-CSV" helpContent={HELP_CONTENT}>
       <form id="file-form" ref={formRef}>
-        <input
-          className="dlVersionSelect"
-          type="file"
-          id="file-select"
-          multiple
-          onChange={handleFiles}
-        />
+        <input className="dlVersionSelect" type="file" id="file-select" multiple onChange={handleFiles} />
         {isReady && (
           <button type="button" className="modtoolsButton" onClick={uploadFiles}>
             <div className="modtoolsButtonInner">

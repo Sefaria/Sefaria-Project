@@ -3,31 +3,31 @@ from django.contrib.auth.models import User
 
 from powered_by.models import Project
 
-
 PRIVATE_FIELDS = Project.PRIVATE_FIELDS
 
 
 def make_project(**overrides):
     """Create a Project with sane defaults, overridable per-test."""
-    defaults = dict(
-        submission_source="manual",
-        creator="Ada Lovelace",
-        creator_email="ada@example.com",
-        is_developer=True,
-        job_title="Engineer",
-        found_sefaria="A friend told me.",
-        submitter="Staff Member",
-        salesforce_id="SF-123",
-        notes="Internal staff note.",
-        project_name="Example Project",
-        project_link="https://example.com",
-        is_published=True,
-    )
+    defaults = {
+        "submission_source": "manual",
+        "creator": "Ada Lovelace",
+        "creator_email": "ada@example.com",
+        "is_developer": True,
+        "job_title": "Engineer",
+        "found_sefaria": "A friend told me.",
+        "submitter": "Staff Member",
+        "salesforce_id": "SF-123",
+        "notes": "Internal staff note.",
+        "project_name": "Example Project",
+        "project_link": "https://example.com",
+        "is_published": True,
+    }
     defaults.update(overrides)
     return Project.objects.create(**defaults)
 
 
 # --- model.contents() serialization gating ----------------------------------
+
 
 @pytest.mark.django_db
 def test_contents_omits_private_fields_when_not_authenticated():
@@ -57,6 +57,7 @@ def test_contents_defaults_to_unauthenticated():
 
 
 # --- view: published filter + PII gating ------------------------------------
+
 
 @pytest.fixture
 def projects(db):

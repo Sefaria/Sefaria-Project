@@ -1,8 +1,11 @@
-from typing import Union, Optional, Iterable
+from collections.abc import Iterable
+
+import structlog
+from ne_span import NamedEntityType, NEDoc, NESpan, RefPartType
+
 from sefaria.model import abstract as abst
 from sefaria.model import schema
-from ne_span import NESpan, NEDoc, RefPartType, NamedEntityType
-import structlog
+
 logger = structlog.get_logger(__name__)
 
 
@@ -10,6 +13,7 @@ class TrieEntry:
     """
     Base class for entries in MatchTemplateTrie
     """
+
     key_is_id = False  # is key an ID which shouldn't be manipulated with string functions?
 
     def key(self):
@@ -29,15 +33,16 @@ class RawRefPart(TrieEntry, abst.Cloneable):
     Immutable part of a RawRef
     Represents a unit of text used to find a match to a SchemaNode
     """
+
     key_is_id = False
     max_dh_continuation_len = 4  # max num tokens in potential_dh_continuation.
 
-    def __init__(self, type: RefPartType, span: Optional[NESpan], potential_dh_continuation: NESpan = None):
+    def __init__(self, type: RefPartType, span: NESpan | None, potential_dh_continuation: NESpan = None):
         self.span = span
         self.type = type
         self.potential_dh_continuation = self.__truncate_potential_dh_continuation(potential_dh_continuation)
 
-    def __truncate_potential_dh_continuation(self, potential_dh_continuation: NESpan) -> Optional[NESpan]:
+    def __truncate_potential_dh_continuation(self, potential_dh_continuation: NESpan) -> NESpan | None:
         if potential_dh_continuation is None:
             return potential_dh_continuation
         return potential_dh_continuation.subspan_by_word_indices(slice(0, self.max_dh_continuation_len))
@@ -73,7 +78,8 @@ class RawRefPart(TrieEntry, abst.Cloneable):
 
     def get_dh_text_to_match(self, lang: str) -> Iterable[tuple[str, int]]:
         import re2
-        reg = r'^(?:ב?ד"ה )?(.+?)$' if lang == 'he' else r'^(?:s ?\. ?v ?\. )?(.+?)$'
+
+        reg = r'^(?:ב?ד"ה )?(.+?)$' if lang == "he" else r"^(?:s ?\. ?v ?\. )?(.+?)$"
         match = re2.match(reg, self.text)
         if match is None:
             return []
@@ -85,7 +91,9 @@ class RawRefPart(TrieEntry, abst.Cloneable):
 
     def __enumerate_potential_dh_continuations(self, dh: str) -> Iterable[tuple[str, int]]:
         for potential_dh_token_idx in range(self.potential_dh_continuation.word_length(), 0, -1):
-            temp_dh = f"{dh} {self.potential_dh_continuation.subspan_by_word_indices(slice(0, potential_dh_token_idx)).text}"
+            temp_dh = (
+                f"{dh} {self.potential_dh_continuation.subspan_by_word_indices(slice(0, potential_dh_token_idx)).text}"
+            )
             yield temp_dh, potential_dh_token_idx
 
     @property
@@ -107,9 +115,9 @@ class RawRefPart(TrieEntry, abst.Cloneable):
         old_raw_start, _ = old_raw_ref_span.range
         new_raw_start, _ = new_raw_ref_span.range
         offset = new_raw_start - old_raw_start
-        return self.clone(span=new_raw_ref_span.subspan(slice(part_start-offset, part_end-offset)))
+        return self.clone(span=new_raw_ref_span.subspan(slice(part_start - offset, part_end - offset)))
 
-    def merge(self, other: 'RawRefPart') -> None:
+    def merge(self, other: "RawRefPart") -> None:
         """
         Merge spans of two RawRefParts.
         Assumes other has same type as self
@@ -149,6 +157,7 @@ class TermContext(ContextPart):
     """
     Represents context backed by a NonUniqueTerm
     """
+
     key_is_id = True
 
     def __init__(self, term: schema.NonUniqueTerm):
@@ -210,6 +219,7 @@ class RangedRawRefParts(RawRefPart):
     """
     Container for ref parts that represent the sections and toSections of a ranged ref
     """
+
     def __init__(self, sections: list[RawRefPart], toSections: list[RawRefPart], **kwargs):
         super().__init__(RefPartType.RANGE, self._get_full_span(sections, toSections))
         self.sections = sections
@@ -254,7 +264,7 @@ class RawNamedEntity(abst.Cloneable):
         @param offset: char offset that aligns chars in `self.span` to `new_doc
         """
         curr_start, curr_end = self.span.range
-        new_start, new_end = curr_start+offset, curr_end+offset
+        new_start, new_end = curr_start + offset, curr_end + offset
         self.span = new_doc.subspan(slice(new_start, new_end))
 
     @property
@@ -277,6 +287,7 @@ class RawRef(RawNamedEntity):
     Span of text which may represent one or more Refs
     Contains RawRefParts
     """
+
     def __init__(self, span: NESpan, lang: str, raw_ref_parts: list, **clonable_kwargs) -> None:
         """
 
@@ -288,14 +299,16 @@ class RawRef(RawNamedEntity):
         super().__init__(span, NamedEntityType.CITATION)
         self.lang = lang
         self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
-        self.parts_to_match = self.raw_ref_parts  # actual parts that will be matched. different when there are context swaps
+        self.parts_to_match = (
+            self.raw_ref_parts
+        )  # actual parts that will be matched. different when there are context swaps
         self.prev_num_parts_map = self._get_prev_num_parts_map(self.raw_ref_parts)
         for k, v in clonable_kwargs.items():
             setattr(self, k, v)
         self.span = span
 
     @staticmethod
-    def _group_ranged_parts(raw_ref_parts: list['RawRefPart']) -> list['RawRefPart']:
+    def _group_ranged_parts(raw_ref_parts: list["RawRefPart"]) -> list["RawRefPart"]:
         """
         Preprocessing function to group together RawRefParts which represent ranged sections
         """
@@ -304,24 +317,28 @@ class RawRef(RawNamedEntity):
             if part.type == RefPartType.RANGE_SYMBOL:
                 ranged_symbol_ind = i
                 break
-        if ranged_symbol_ind is None or ranged_symbol_ind == len(raw_ref_parts) - 1: return raw_ref_parts
+        if ranged_symbol_ind is None or ranged_symbol_ind == len(raw_ref_parts) - 1:
+            return raw_ref_parts
         section_slice, toSection_slice = None, None
-        for i in range(ranged_symbol_ind-1, -1, -1):
-            if i == 0 or raw_ref_parts[i-1].type != RefPartType.NUMBERED:
+        for i in range(ranged_symbol_ind - 1, -1, -1):
+            if i == 0 or raw_ref_parts[i - 1].type != RefPartType.NUMBERED:
                 section_slice = slice(i, ranged_symbol_ind)
                 break
-        for i in range(ranged_symbol_ind+1, len(raw_ref_parts)):
-            if i == len(raw_ref_parts) - 1 or raw_ref_parts[i+1].type != RefPartType.NUMBERED:
-                toSection_slice = slice(ranged_symbol_ind+1, i+1)
+        for i in range(ranged_symbol_ind + 1, len(raw_ref_parts)):
+            if i == len(raw_ref_parts) - 1 or raw_ref_parts[i + 1].type != RefPartType.NUMBERED:
+                toSection_slice = slice(ranged_symbol_ind + 1, i + 1)
                 break
-        if section_slice is None: return raw_ref_parts
+        if section_slice is None:
+            return raw_ref_parts
         sections = raw_ref_parts[section_slice]
         toSections = sections[:]
         num_explicit_to_sections = toSection_slice.stop - toSection_slice.start
         toSections[-num_explicit_to_sections:] = raw_ref_parts[toSection_slice]
-        new_raw_ref_parts = raw_ref_parts[:section_slice.start] + \
-                            [RangedRawRefParts(sections, toSections)] + \
-                            raw_ref_parts[toSection_slice.stop:]
+        new_raw_ref_parts = (
+            raw_ref_parts[: section_slice.start]
+            + [RangedRawRefParts(sections, toSections)]
+            + raw_ref_parts[toSection_slice.stop :]
+        )
         return new_raw_ref_parts
 
     @staticmethod
@@ -331,7 +348,8 @@ class RawRef(RawNamedEntity):
         AddressInteger sections must resolve in order because resolving out of order would be meaningless
         Returns a map from NUMBERED RawRefParts to directly preceeding NUMBERED RawRefParts
         """
-        if len(raw_ref_parts) == 0: return {}
+        if len(raw_ref_parts) == 0:
+            return {}
         prev_num_parts_map = {}
         prev_part = raw_ref_parts[0]
         for part in raw_ref_parts[1:]:
@@ -349,13 +367,13 @@ class RawRef(RawNamedEntity):
         _, end_char = parts[-1].span.range
 
         offset_i, _ = self.span.range
-        subspan = self.span.doc.subspan(slice(offset_i+start_char, offset_i+end_char))
+        subspan = self.span.doc.subspan(slice(offset_i + start_char, offset_i + end_char))
         # potentially possible that tokenization of raw ref spans is not identical to that of ref parts. check to make sure.
         comparison_text = parts[0].span.doc.subspan(slice(start_char, end_char)).text
         assert subspan.text == comparison_text, f"{subspan.text} != {comparison_text}"
         return subspan
 
-    def split_part(self, part: RawRefPart, str_end) -> ['RawRef', RawRefPart, RawRefPart]:
+    def split_part(self, part: RawRefPart, str_end) -> ["RawRef", RawRefPart, RawRefPart]:
         """
         split `part` into two parts based on strings in `str_end`
         Return new RawRef with split parts (doesn't modify self)
@@ -374,14 +392,14 @@ class RawRef(RawNamedEntity):
         try:
             orig_part_index = self.raw_ref_parts.index(part)
             new_parts = self.raw_ref_parts[:]
-            new_parts[orig_part_index:orig_part_index+1] = [apart, bpart]
+            new_parts[orig_part_index : orig_part_index + 1] = [apart, bpart]
         except ValueError:
             new_parts = self.raw_ref_parts
         # splice parts_to_match
         try:
             orig_part_index = self.parts_to_match.index(part)
             new_parts_to_match = self.parts_to_match[:]
-            new_parts_to_match[orig_part_index:orig_part_index+1] = [apart, bpart]
+            new_parts_to_match[orig_part_index : orig_part_index + 1] = [apart, bpart]
         except ValueError:
             new_parts_to_match = self.parts_to_match
         return self.clone(raw_ref_parts=new_parts, parts_to_match=new_parts_to_match), apart, bpart
@@ -392,7 +410,7 @@ class RawRef(RawNamedEntity):
         """
         start_char, _ = self.char_indices
         for part, temp_part_indices in zip(self.raw_ref_parts, new_part_char_indices):
-            part.span = self.span.subspan(slice(*[i-start_char for i in temp_part_indices]))
+            part.span = self.span.subspan(slice(*[i - start_char for i in temp_part_indices]))
 
     def align_parts_to_new_doc(self, new_doc: NEDoc, offset: int) -> None:
         """
@@ -403,5 +421,5 @@ class RawRef(RawNamedEntity):
         """
         for part in self.raw_ref_parts:
             curr_start, curr_end = part.span.range
-            new_start, new_end = curr_start+offset, curr_end+offset
+            new_start, new_end = curr_start + offset, curr_end + offset
             part.span = new_doc.subspan(slice(new_start, new_end))

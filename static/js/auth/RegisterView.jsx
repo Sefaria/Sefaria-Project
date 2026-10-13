@@ -9,7 +9,14 @@ import Button from '../common/Button.jsx';
 import Captcha from '../common/Captcha.jsx';
 import LegalText from './LegalText.jsx';
 import {
-  whenReady, pickFirstError, authError, postForm, requiredFieldValidate, emailValidate, onBlurValidate, onChangeClear,
+  whenReady,
+  pickFirstError,
+  authError,
+  postForm,
+  requiredFieldValidate,
+  emailValidate,
+  onBlurValidate,
+  onChangeClear,
 } from './utils.js';
 import { EMAIL_EXISTS_ERRORS } from './emailExistsErrors.js';
 
@@ -19,9 +26,16 @@ const FIELD_MAP = { email: 'email', password1: 'password', first_name: 'first', 
 const BACKEND_MESSAGES = { required: 'auth.required_field' };
 
 const RegisterView = ({
-  switchFlow, fields, setField, onBack,
-  endProcess, next, csrf,
-  registerGoogleTarget, triggerApple, setActiveErrorHandler,
+  switchFlow,
+  fields,
+  setField,
+  onBack,
+  endProcess,
+  next,
+  csrf,
+  registerGoogleTarget,
+  triggerApple,
+  setActiveErrorHandler,
 }) => {
   const [captchaError, setCaptchaError] = useState(null);
   const captchaToken = useRef('');
@@ -67,8 +81,12 @@ const RegisterView = ({
       try {
         captchaWidgetId.current = window.grecaptcha.render(slot, {
           sitekey: recaptchaSiteKey,
-          callback: (t) => { captchaToken.current = t; },
-          'expired-callback': () => { captchaToken.current = ''; },
+          callback: (t) => {
+            captchaToken.current = t;
+          },
+          'expired-callback': () => {
+            captchaToken.current = '';
+          },
         });
         scaleWidget();
         const box = slot.parentElement;
@@ -76,7 +94,9 @@ const RegisterView = ({
           captchaObserver.current = new ResizeObserver(scaleWidget);
           captchaObserver.current.observe(box);
         }
-      } catch (e) { /* not ready / already rendered */ }
+      } catch (e) {
+        /* not ready / already rendered */
+      }
     };
 
     const cancel = whenReady(
@@ -84,7 +104,7 @@ const RegisterView = ({
       () => {
         if (window.grecaptcha.ready) window.grecaptcha.ready(renderWidget);
         else renderWidget();
-      },
+      }
     );
 
     return () => {
@@ -117,7 +137,13 @@ const RegisterView = ({
       return;
     }
     const message = pickFirstError(data) || 'auth.generic_error';
-    endProcess('failure', Object.keys(data || {}).filter((key) => key !== '_auth').map((key) => `${key}: ${data[key]}`).join(' | '));
+    endProcess(
+      'failure',
+      Object.keys(data || {})
+        .filter((key) => key !== '_auth')
+        .map((key) => `${key}: ${data[key]}`)
+        .join(' | ')
+    );
     const newFieldErrors = {};
     let hasUnknownError = false;
     let emailExistsError = null;
@@ -136,55 +162,80 @@ const RegisterView = ({
     }
     if (data?.captcha) setCaptchaError('auth.verify_not_robot');
     if (window.grecaptcha && captchaWidgetId.current !== null) {
-      try { window.grecaptcha.reset(captchaWidgetId.current); } catch (e2) { /* noop */ }
+      try {
+        window.grecaptcha.reset(captchaWidgetId.current);
+      } catch (e2) {
+        /* noop */
+      }
       captchaToken.current = '';
     }
-    const hasAuthError = !!(data?._auth?.code);
+    const hasAuthError = !!data?._auth?.code;
     return {
-      error: emailExistsError || ((hasAuthError || hasUnknownError) ? authError(data, message) : undefined),
+      error: emailExistsError || (hasAuthError || hasUnknownError ? authError(data, message) : undefined),
       fieldErrors: newFieldErrors,
     };
   };
 
   return (
-    <FormView cardClass="sefaria-auth-card--register-email" onBack={onBack}
+    <FormView
+      cardClass="sefaria-auth-card--register-email"
+      onBack={onBack}
       heading={<InterfaceText>auth.create_account</InterfaceText>}
-      sub={(
+      sub={
         <>
-          <InterfaceText>auth.already_have_an_account</InterfaceText>
-          {' '}
+          <InterfaceText>auth.already_have_an_account</InterfaceText>{' '}
           <a href="/login" onClick={switchFlow('login')}>
             <InterfaceText>auth.log_in_link</InterfaceText>
           </a>
         </>
-      )}
-      formId="register-form" onSubmit={onSubmit}
-      registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+      }
+      formId="register-form"
+      onSubmit={onSubmit}
+      registerGoogleTarget={registerGoogleTarget}
+      triggerApple={triggerApple}
       setActiveErrorHandler={setActiveErrorHandler}
       onLinkClick={switchFlow('login')}
     >
       {({ fieldErrors, submitting, setFieldError }) => (
         <>
           <div className="sefaria-auth-fields">
-            <EmailInput value={fields.email}
-                   setField={(k) => onChangeClear(k, setField(k), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onBlur={(e) => setFieldError('email', requiredFieldValidate(fields.email) || emailValidate(e.target))}
-                   error={fieldErrors.email} />
-            <PasswordInput autoComplete="new-password"
-                   value={fields.password}
-                   onChange={onChangeClear('password', setField('password'), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onBlur={onBlurValidate('password', () => requiredFieldValidate(fields.password), setFieldError)}
-                   error={fieldErrors.password} />
-            <Input label="common.first_name" placeholder={Sefaria._('common.first_name')} name="first_name"
-                   value={fields.first}
-                   onChange={onChangeClear('first', setField('first'), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onBlur={onBlurValidate('first', () => requiredFieldValidate(fields.first), setFieldError)}
-                   error={fieldErrors.first} />
-            <Input label="common.last_name" placeholder={Sefaria._('common.last_name')} name="last_name"
-                   value={fields.last}
-                   onChange={onChangeClear('last', setField('last'), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onBlur={onBlurValidate('last', () => requiredFieldValidate(fields.last), setFieldError)}
-                   error={fieldErrors.last} />
+            <EmailInput
+              value={fields.email}
+              setField={(k) => onChangeClear(k, setField(k), requiredFieldValidate, fieldErrors, setFieldError)}
+              onBlur={(e) => setFieldError('email', requiredFieldValidate(fields.email) || emailValidate(e.target))}
+              error={fieldErrors.email}
+            />
+            <PasswordInput
+              autoComplete="new-password"
+              value={fields.password}
+              onChange={onChangeClear(
+                'password',
+                setField('password'),
+                requiredFieldValidate,
+                fieldErrors,
+                setFieldError
+              )}
+              onBlur={onBlurValidate('password', () => requiredFieldValidate(fields.password), setFieldError)}
+              error={fieldErrors.password}
+            />
+            <Input
+              label="common.first_name"
+              placeholder={Sefaria._('common.first_name')}
+              name="first_name"
+              value={fields.first}
+              onChange={onChangeClear('first', setField('first'), requiredFieldValidate, fieldErrors, setFieldError)}
+              onBlur={onBlurValidate('first', () => requiredFieldValidate(fields.first), setFieldError)}
+              error={fieldErrors.first}
+            />
+            <Input
+              label="common.last_name"
+              placeholder={Sefaria._('common.last_name')}
+              name="last_name"
+              value={fields.last}
+              onChange={onChangeClear('last', setField('last'), requiredFieldValidate, fieldErrors, setFieldError)}
+              onBlur={onBlurValidate('last', () => requiredFieldValidate(fields.last), setFieldError)}
+              error={fieldErrors.last}
+            />
           </div>
           {recaptchaSiteKey && (
             <Captcha error={captchaError}>

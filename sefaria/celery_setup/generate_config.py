@@ -3,11 +3,13 @@ NOTE: This file is a direct copy of the same file in the LLM repo
 This file is required for any new service that wants to configure celery
 We should consider releasing this as a pip module but it's not clear where that would live at this point
 """
+
 import re
-import dns.resolver
 from dataclasses import dataclass
-from time import sleep
 from threading import Thread
+from time import sleep
+
+import dns.resolver
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -38,17 +40,17 @@ class RedisConfig:
 
 
 def add_db_num_to_url(url, port, db_num):
-    return url.replace(f':{port}', f':{port}/{db_num}')
+    return url.replace(f":{port}", f":{port}/{db_num}")
 
 
 def add_password_to_url(url, password):
     if not password:
         return url
-    return re.sub(r'((?:redis|sentinel)://)', fr'\1:{password}@', url)
+    return re.sub(r"((?:redis|sentinel)://)", rf"\1:{password}@", url)
 
 
 def get_sentinel_joined_address(url, port, password):
-    redisdns = dns.resolver.resolve(url, 'A')
+    redisdns = dns.resolver.resolve(url, "A")
     addressstring = []
     for res in redisdns.response.answer:
         for item in res.items:
@@ -67,21 +69,24 @@ def generate_config(redis_config: RedisConfig, sentinel_config: SentinelConfig =
         joined_address = get_sentinel_joined_address(sentinel_config.url, sentinel_config.port, redis_config.password)
         merged_transport_opts = {
             **sentinel_config.transport_opts,
-            "sentinel_kwargs": {"password": sentinel_config.password}
+            "sentinel_kwargs": {"password": sentinel_config.password},
         }
 
         return {
             "broker_url": add_db_num_to_url(joined_address, sentinel_config.port, redis_config.broker_db_num),
-            "result_backend": add_db_num_to_url(joined_address, sentinel_config.port, redis_config.result_backend_db_num),
+            "result_backend": add_db_num_to_url(
+                joined_address,
+                sentinel_config.port,
+                redis_config.result_backend_db_num,
+            ),
             "result_backend_transport_options": merged_transport_opts,
             "broker_transport_options": merged_transport_opts,
         }
-    else:
-        redis_url = add_password_to_url(f"{redis_config.url}:{redis_config.port}", redis_config.password)
-        return {
-            "broker_url": add_db_num_to_url(redis_url, redis_config.port, redis_config.broker_db_num),
-            "result_backend": add_db_num_to_url(redis_url, redis_config.port, redis_config.result_backend_db_num),
-        }
+    redis_url = add_password_to_url(f"{redis_config.url}:{redis_config.port}", redis_config.password)
+    return {
+        "broker_url": add_db_num_to_url(redis_url, redis_config.port, redis_config.broker_db_num),
+        "result_backend": add_db_num_to_url(redis_url, redis_config.port, redis_config.result_backend_db_num),
+    }
 
 
 def dns_refresher(app, redis_config: RedisConfig, sentinel_config: SentinelConfig):

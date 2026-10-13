@@ -1,8 +1,8 @@
-import regex as re
-from typing import Dict, List, Callable
-from functools import reduce, lru_cache
 from bisect import bisect_right
-from bs4 import BeautifulSoup, Tag
+from collections.abc import Callable
+from functools import lru_cache, reduce
+
+import regex as re
 
 """
 Tools for normalizing text
@@ -29,7 +29,7 @@ UNIDECODE_TABLE = {
     "ĩ": "i",
     "ë": "e",
     "’": "'",
-    '\u05f3': "'",
+    "\u05f3": "'",
     "\u05f4": '"',
     "\u0323": "",  # chirik-like dot
     "”": '"',
@@ -44,6 +44,7 @@ class AbstractNormalizer:
     Subclasses should implement find_text_to_remove() and optionally normalize()
     Default implementation of normalize() works, but is not optimized. Consider implementing if speed is important.
     """
+
     def __init__(self):
         pass
 
@@ -57,9 +58,9 @@ class AbstractNormalizer:
         # make sure to iterate backwards b/c you're changing indices
         for (start, end), repl in reversed(text_to_remove):
             schars[start:end] = repl
-        return ''.join(schars)
+        return "".join(schars)
 
-    def find_text_to_remove(self, s:str, **kwargs) -> list:
+    def find_text_to_remove(self, s: str, **kwargs) -> list:
         """
         Returns a list of text to remove when applying normalizer to string s.
         Each item in the list is of form ((start, end), replacement) where start and end are indices in s of text to replace with string `replacement`
@@ -73,6 +74,7 @@ class AbstractNormalizer:
         Assumes there are no overlapping or equal length ranges
         Removes strict subsets from list
         """
+
         def remove_subsets_reducer(curr_text_to_remove: list, next: tuple) -> list:
             (next_start, next_end), _ = next
             for (start, end), _ in curr_text_to_remove:
@@ -106,7 +108,7 @@ class AbstractNormalizer:
         removal_map = {}
         subst_end_indexes = set()
         for (start, end), subst in removal_list:
-            normalized_text_index = start if reverse else (start + min(len(subst), end-start) - total_removed)
+            normalized_text_index = start if reverse else (start + min(len(subst), end - start) - total_removed)
             curr_removed = end - start - len(subst)
             if curr_removed != 0:
                 total_removed += curr_removed
@@ -144,14 +146,15 @@ class AbstractNormalizer:
             bisect_end_index = end if (start == end or end in subst_end_indices) else end - 1
             unnorm_end_index = bisect_right(removal_keys, bisect_end_index) - 1
 
-            unnorm_start = start if unnorm_start_index < 0 else start + (sign * removal_map[removal_keys[unnorm_start_index]])
+            unnorm_start = (
+                start if unnorm_start_index < 0 else start + (sign * removal_map[removal_keys[unnorm_start_index]])
+            )
             unnorm_end = end if unnorm_end_index < 0 else end + (sign * removal_map[removal_keys[unnorm_end_index]])
             unnormalized_indices += [(unnorm_start, unnorm_end)]
         return unnormalized_indices
 
 
 class FootnoteNormalizer(AbstractNormalizer):
-
     FOOTNOTE_START_RE = re.compile(
         r"""<sup[^>]*class="(?:[^"]+ )?footnote-marker(?: [^"]+)?">.*?</sup>\s*<i[^>]*class="(?:[^"]+ )?footnote(?: [^"]+)?"[^>]*>""",
     )
@@ -169,19 +172,19 @@ class FootnoteNormalizer(AbstractNormalizer):
             depth = 1
             i = i_open_end
             while depth > 0:
-                next_open = s.find('<i', i)
-                next_close = s.find('</i', i)
-                
+                next_open = s.find("<i", i)
+                next_close = s.find("</i", i)
+
                 # determine where the </i> tag ends in case it's slightly malformed
                 next_close_end = -1
-                if s[next_close+3] == '>':
+                if s[next_close + 3] == ">":
                     next_close_end = next_close + 4
-                elif s[next_close+4] == '>':
+                elif s[next_close + 4] == ">":
                     next_close_end = next_close + 5
                 if next_close == -1 or next_close_end == -1:
                     # no </i> to match <i>, bail out
                     break
-                if next_open != -1 and next_open < next_close and s[next_open+2] in (' ', '>'):
+                if next_open != -1 and next_open < next_close and s[next_open + 2] in (" ", ">"):
                     depth += 1
                     i = next_open + 2
                 else:
@@ -194,13 +197,12 @@ class FootnoteNormalizer(AbstractNormalizer):
                     is_subset = True
             if not is_subset:
                 matches.append(((start_pos, end_pos), self.repl))
-            
+
         # remove subsets
         return matches
 
 
 class ReplaceNormalizer(AbstractNormalizer):
-
     def __init__(self, old, new):
         super().__init__()
         self.old = old
@@ -214,7 +216,6 @@ class ReplaceNormalizer(AbstractNormalizer):
 
 
 class RegexNormalizer(AbstractNormalizer):
-
     def __init__(self, reg, repl) -> None:
         super().__init__()
         self.reg = reg
@@ -228,8 +229,7 @@ class RegexNormalizer(AbstractNormalizer):
 
 
 class NormalizerComposer(AbstractNormalizer):
-
-    def __init__(self, step_keys: List[str]=None, steps: List[AbstractNormalizer]=None) -> None:
+    def __init__(self, step_keys: list[str] = None, steps: list[AbstractNormalizer] = None) -> None:
         """
         Combines multiple normalizers as if they are one normalizer.
         Should pass either step_keys or steps.
@@ -263,8 +263,11 @@ class NormalizerComposer(AbstractNormalizer):
             else:
                 text_to_remove_inds, text_to_remove_repls = zip(*curr_text_to_remove)
             for mapping, subst_end_indices in reversed(mappings):
-                text_to_remove_inds = step.norm_to_unnorm_indices_with_mapping(text_to_remove_inds, mapping,
-                                                                               subst_end_indices)
+                text_to_remove_inds = step.norm_to_unnorm_indices_with_mapping(
+                    text_to_remove_inds,
+                    mapping,
+                    subst_end_indices,
+                )
             curr_text_to_remove = list(zip(text_to_remove_inds, text_to_remove_repls))
 
             # merge any overlapping ranges
@@ -313,8 +316,7 @@ class NormalizerComposer(AbstractNormalizer):
 
 
 class TableReplaceNormalizer(AbstractNormalizer):
-
-    def __init__(self, table: Dict[str, str]):
+    def __init__(self, table: dict[str, str]):
         """
         :param table: will replace every key with value in string
         """
@@ -349,17 +351,26 @@ class NormalizerFactory:
         "cantillation": RegexNormalizer("[\u0591-\u05bd\u05bf-\u05c5\u05c7]+", ""),
         "parens-plus-contents": RegexNormalizer(r"\([^)]+\)", " "),
         "brackets": RegexNormalizer(r"[\[\]]", ""),
-        "kri-ktiv": RegexNormalizer(r'\[[^\[\]]{1,7}\]', ""),  # approximation for length of ktiv
-        "english": RegexNormalizer(r'[A-Za-z]+', ""),
+        "kri-ktiv": RegexNormalizer(r"\[[^\[\]]{1,7}\]", ""),  # approximation for length of ktiv
+        "english": RegexNormalizer(r"[A-Za-z]+", ""),
         "punctuation": RegexNormalizer(r'[.,"?!״:׃]+', ""),
-        "hashem": RegexNormalizer(r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d4['\u05f3]|\u05d9\u05d9)($|\s)", "\1\2\u05d9\u05d4\u05d5\u05d4\3"),
-        "elokim": RegexNormalizer(r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d0\u05dc\u05e7\u05d9\u05dd)($|\s)", "\1\2\u05d0\u05dc\u05d4\u05d9\u05dd\3"),
+        "hashem": RegexNormalizer(
+            r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d4['\u05f3]|\u05d9\u05d9)($|\s)",
+            "\1\2\u05d9\u05d4\u05d5\u05d4\3",
+        ),
+        "elokim": RegexNormalizer(
+            r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d0\u05dc\u05e7\u05d9\u05dd)($|\s)",
+            "\1\2\u05d0\u05dc\u05d4\u05d9\u05dd\3",
+        ),
         "unidecode": TableReplaceNormalizer(UNIDECODE_TABLE),
-        "maqaf": ReplaceNormalizer('־', ' '),
-        "footnote": FootnoteNormalizer(''),
-        "other-itag": RegexNormalizer(r'<i [^>]*(data-commentator|data-overlay)=[^>]*>\s*</i>', ''),  # other itag types besides for footnotes
-        "fn-marker": RegexNormalizer(r'\s*<sup class="(footnote-marker|endFootnote|itag)">(?:.*?)</sup>\s*', ' '),
-        "br-tag": ReplaceNormalizer('<br>', '<br/>'),
+        "maqaf": ReplaceNormalizer("־", " "),
+        "footnote": FootnoteNormalizer(""),
+        "other-itag": RegexNormalizer(
+            r"<i [^>]*(data-commentator|data-overlay)=[^>]*>\s*</i>",
+            "",
+        ),  # other itag types besides for footnotes
+        "fn-marker": RegexNormalizer(r'\s*<sup class="(footnote-marker|endFootnote|itag)">(?:.*?)</sup>\s*', " "),
+        "br-tag": ReplaceNormalizer("<br>", "<br/>"),
         "double-space": RegexNormalizer(r"\s+", " "),
     }
 
@@ -368,12 +379,12 @@ class NormalizerFactory:
         return cls.key_normalizer_map[normalizer_key]
 
     @classmethod
-    def get_all(cls, step_keys: List[str]) -> List[AbstractNormalizer]:
+    def get_all(cls, step_keys: list[str]) -> list[AbstractNormalizer]:
         cls.validate_keys(step_keys)
         return [cls.get(key) for key in step_keys]
 
     @classmethod
-    def validate_keys(cls, step_keys: List[str]):
+    def validate_keys(cls, step_keys: list[str]):
         if step_keys is None:
             raise Exception("step_keys and steps cannot both be None")
         nonexistant_keys = []
@@ -381,12 +392,14 @@ class NormalizerFactory:
             if key not in cls.key_normalizer_map:
                 nonexistant_keys += [key]
         if len(nonexistant_keys) > 0:
-            raise Exception(f"Couldn't find the following keys in NormalizerComposer.key_normalizer_map:", ", ".join(nonexistant_keys))
+            raise Exception(
+                "Couldn't find the following keys in NormalizerComposer.key_normalizer_map:",
+                ", ".join(nonexistant_keys),
+            )
 
 
 class NormalizerByLang(AbstractNormalizer):
-
-    def __init__(self, normalizers_by_lang: Dict[str, AbstractNormalizer]):
+    def __init__(self, normalizers_by_lang: dict[str, AbstractNormalizer]):
         """
         :param normalizers_by_lang: dict with keys that are letter lang codes (usually "en" or "he") and values that are subclasses of AbstractNormalizer
         """
@@ -397,16 +410,18 @@ class NormalizerByLang(AbstractNormalizer):
         """
         :param lang: passed through kwargs. two letter lang code (usually "en" or "he") indicating which normalizer to apply
         """
-        lang = kwargs.get('lang')
-        if lang not in self.normalizers_by_lang: return s
+        lang = kwargs.get("lang")
+        if lang not in self.normalizers_by_lang:
+            return s
         return self.normalizers_by_lang[lang].normalize(s, **kwargs)
 
-    def find_text_to_remove(self, s:str, **kwargs) -> list:
+    def find_text_to_remove(self, s: str, **kwargs) -> list:
         """
         :param lang: passed through kwargs. two letter lang code (usually "en" or "he") indicating which normalizer to apply
         """
-        lang = kwargs.get('lang')
-        if lang not in self.normalizers_by_lang: return []
+        lang = kwargs.get("lang")
+        if lang not in self.normalizers_by_lang:
+            return []
         return self.normalizers_by_lang[lang].find_text_to_remove(s, **kwargs)
 
 
@@ -434,9 +449,9 @@ def char_indices_from_word_indices(input_string, word_ranges, split_regex=None):
     """
 
     if not split_regex:
-        split_regex = r'\s+'
+        split_regex = r"\s+"
     regex = re.compile(split_regex)
-    regex_normalizer = RegexNormalizer(split_regex, '')
+    regex_normalizer = RegexNormalizer(split_regex, "")
     split_words = regex.split(input_string)
     count, word_indices = 0, []
     for word in split_words:
@@ -445,26 +460,26 @@ def char_indices_from_word_indices(input_string, word_ranges, split_regex=None):
         end = count
         word_indices.append((start, end))
     normalized_char_indices = []
-    for i, words in enumerate(word_ranges):
+    for _i, words in enumerate(word_ranges):
         first_word, last_word = [w if w < len(word_indices) else -1 for w in words]
         normalized_char_indices.append(
             (
-                word_indices[first_word][0] if first_word >=0 else -1,
-                word_indices[last_word][1] if last_word >= 0 else -1
-            )
+                word_indices[first_word][0] if first_word >= 0 else -1,
+                word_indices[last_word][1] if last_word >= 0 else -1,
+            ),
         )
     return regex_normalizer.norm_to_unnorm_indices(input_string, normalized_char_indices)
 
 
 @lru_cache(maxsize=32)
-def get_word_indices(input_string, split_regex=r'\s+'):
+def get_word_indices(input_string, split_regex=r"\s+"):
     """
     helper method for word_index_from_char_index. Broken out for memoization purposes
     """
     return [r.end() for r in re.finditer(split_regex, input_string)]
 
 
-def word_index_from_char_index(full_string, char_index, split_regex=r'\s+'):
+def word_index_from_char_index(full_string, char_index, split_regex=r"\s+"):
     word_indices = get_word_indices(full_string, split_regex)
     return bisect_right(word_indices, char_index) if char_index >= 0 else -1
 
@@ -476,8 +491,9 @@ def sanitized_words_to_unsanitized_words(input_string, sanitized_string, sanitiz
     # for char_range in unsanitied_char_ranges:
     #     word_range = tuple(word_index_from_char_index(input_string, i) for i in char_range)
     #     stuff.append(word_range)
-    return [tuple(word_index_from_char_index(input_string, i) for i in char_range)
-            for char_range in unsanitzied_char_ranges]
+    return [
+        tuple(word_index_from_char_index(input_string, i) for i in char_range) for char_range in unsanitzied_char_ranges
+    ]
 
 
 class TextSanitizer:
@@ -486,7 +502,8 @@ class TextSanitizer:
     for use in dibbur_hamatchil_matcher.match_text. It is primarily helpful when we need to keep track of text before and after edits were
     made to said text that were necessary for improving text matching.
     """
-    def __init__(self, section: List[str], divider_pattern: str):
+
+    def __init__(self, section: list[str], divider_pattern: str):
         self._original_segments = tuple(section)
         self._sanitized_segments = None
         self.sanitizer = None
@@ -516,11 +533,14 @@ class TextSanitizer:
 
     def _set_unsanitzed_word_indices(self):
         self._unsanitized_word_indices = self.get_segment_start_indices(
-            self._original_segments, self._dividing_expression)
+            self._original_segments,
+            self._dividing_expression,
+        )
 
     def _set_sanitized_word_indices(self):
         self._sanitzed_word_indices = self.get_segment_start_indices(
-            self._sanitized_segments, self._dividing_expression
+            self._sanitized_segments,
+            self._dividing_expression,
         )
 
     def get_unsanitized_word_indices(self):
@@ -529,11 +549,10 @@ class TextSanitizer:
     def get_sanitized_word_indices(self):
         if self._sanitzed_word_indices:
             return tuple(self._sanitzed_word_indices)
-        elif self.sanitizer:
+        if self.sanitizer:
             self.sanitize()
             return tuple(self._sanitzed_word_indices)
-        else:
-            raise AttributeError('Cannot get sanitied word indices: No sanitizer set')
+        raise AttributeError("Cannot get sanitied word indices: No sanitizer set")
 
     def set_dividing_expression(self, regex_pattern: str):
         self._dividing_expression = regex_pattern
@@ -584,5 +603,5 @@ class TextSanitizer:
         """
         return self.get_segment_index_from_word_index(word_index, self._sanitzed_word_indices)
 
-    def check_unsanitized_word_index(self, word_index:int):
+    def check_unsanitized_word_index(self, word_index: int):
         return self.get_segment_index_from_word_index(word_index, self._unsanitized_word_indices)

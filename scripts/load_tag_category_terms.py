@@ -1,12 +1,59 @@
-# -*- coding: utf-8 -*-
 import django
+
 django.setup()
 
 from sefaria import model
 
-
-tag_categories = ['Art', 'Authors', 'Tanakh', 'Calendar', 'Education', 'Folklore', 'Food', 'Geography', 'History', 'Holidays', 'Israel', 'Language', 'Law', 'Literature', 'Medicine', 'Philosophy', 'Prayer', 'Religion', 'Ritual Objects', 'Science', 'Society', 'Texts', 'Torah Portions']
-he_tag_categories = ['אמנות', 'אישים', 'תנ"ך', 'מעגל השנה', 'חינוך', 'הווי ומסורת', 'מזון', 'גיאוגרפיה', 'היסטוריה', 'מועדי ישראל', 'ישראל', 'לשון', 'חוקים', 'ספרות', 'רפואה', 'פילוסופיה', 'תפילה', 'הדתות', 'מצוה ומנהג', 'מדע', 'קהילה וחברה', 'טקסטים', 'פרשיות התורה']
+tag_categories = [
+    "Art",
+    "Authors",
+    "Tanakh",
+    "Calendar",
+    "Education",
+    "Folklore",
+    "Food",
+    "Geography",
+    "History",
+    "Holidays",
+    "Israel",
+    "Language",
+    "Law",
+    "Literature",
+    "Medicine",
+    "Philosophy",
+    "Prayer",
+    "Religion",
+    "Ritual Objects",
+    "Science",
+    "Society",
+    "Texts",
+    "Torah Portions",
+]
+he_tag_categories = [
+    "אמנות",
+    "אישים",
+    'תנ"ך',
+    "מעגל השנה",
+    "חינוך",
+    "הווי ומסורת",
+    "מזון",
+    "גיאוגרפיה",
+    "היסטוריה",
+    "מועדי ישראל",
+    "ישראל",
+    "לשון",
+    "חוקים",
+    "ספרות",
+    "רפואה",
+    "פילוסופיה",
+    "תפילה",
+    "הדתות",
+    "מצוה ומנהג",
+    "מדע",
+    "קהילה וחברה",
+    "טקסטים",
+    "פרשיות התורה",
+]
 z = list(zip(tag_categories, he_tag_categories))
 
 ts = model.TermScheme()
@@ -20,18 +67,20 @@ def add_term(i, en, he):
     term.name = en
     term.scheme = ts.name
     term.order = i
-    term.set_titles([
-        {
-            "lang": "en",
-            "text": en,
-            "primary": True
-        },
-        {
-            "lang": "he",
-            "text": he,
-            "primary": True
-        }
-    ])
+    term.set_titles(
+        [
+            {
+                "lang": "en",
+                "text": en,
+                "primary": True,
+            },
+            {
+                "lang": "he",
+                "text": he,
+                "primary": True,
+            },
+        ],
+    )
     term.save()
 
 
@@ -46,7 +95,6 @@ for title in titles_to_delete_if_they_exist:
 
 
 for i, (en, he) in enumerate(z, 1):
-
     term = model.Term()
 
     en_term_exists = term.load_by_title(en)

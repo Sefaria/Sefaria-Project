@@ -1,7 +1,9 @@
-import django
-from datetime import datetime
 import time
+from datetime import datetime
+
+import django
 from pymongo.errors import AutoReconnect
+
 django.setup()
 from sefaria.model import *
 from sefaria.system.database import db
@@ -13,11 +15,11 @@ def get_all_sheets(tries=0, page=0):
     has_more = True
     while has_more:
         try:
-            temp_sheets = list(db.sheets.find().skip(page*limit).limit(limit))
+            temp_sheets = list(db.sheets.find().skip(page * limit).limit(limit))
         except AutoReconnect as e:
             tries += 1
             if tries >= 200:
-                print("Tried: {} times".format(tries))
+                print(f"Tried: {tries} times")
                 raise e
             time.sleep(5)
             continue
@@ -27,8 +29,11 @@ def get_all_sheets(tries=0, page=0):
             yield s
         page += 1
 
+
 now = epoch_time()
-default_epoch_time = epoch_time(datetime(2017, 12, 1))  # the Sefaria epoch. approx time since we added time stamps to recent items
+default_epoch_time = epoch_time(
+    datetime(2017, 12, 1),
+)  # the Sefaria epoch. approx time since we added time stamps to recent items
 for sheet in get_all_sheets():
     likes = sheet.get("likes", [])
     if "id" not in sheet:
@@ -50,7 +55,7 @@ for sheet in get_all_sheets():
                 "sheet_title": sheet["title"],
                 "sheet_owner": sheet["owner"],
                 "time_stamp": default_epoch_time,
-                "server_time_stamp": now
+                "server_time_stamp": now,
             }
             uh = UserHistory(d)
             uh.save()

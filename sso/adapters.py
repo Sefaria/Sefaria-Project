@@ -18,7 +18,6 @@ from PIL import Image
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.file import get_resized_file
-from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import epoch_time
 
 logger = structlog.get_logger(__name__)
@@ -82,7 +81,9 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
         # request's host instead, matching the pattern in sefaria/views.py's register().
         request = allauth_context.request
         return bool(request) and url_has_allowed_host_and_scheme(
-            url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+            url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
         )
 
     def _next_from_cookie(self, request):
@@ -102,7 +103,6 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
 
 
 class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
-
     def pre_social_login(self, request, sociallogin):
         """
         Called after sociallogin.lookup() has run (so is_existing already
@@ -158,6 +158,8 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
         too, instead of leaving a user who can authenticate via SSO but has no
         profile (mirrors sefaria/views.py's process_register_form).
         """
+        from sefaria.model.user_profile import UserProfile
+
         with transaction.atomic():
             user = super().save_user(request, sociallogin, form)
 

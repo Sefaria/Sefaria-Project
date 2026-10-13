@@ -1,4 +1,5 @@
 # Topic Serving, Community Page, Descriptions & Trends
+
 > Sources: `sefaria/helper/topic.py`, `sefaria/helper/community_page.py`, `sefaria/helper/descriptions.py`, `sefaria/helper/trend_manager.py`
 
 ## Purpose
@@ -10,6 +11,7 @@ These helpers serve topic pages, the community homepage, author/topic metadata m
 ### topic.py (~1478 lines)
 
 **API Response Assembly:**
+
 - **`get_topic(v2, topic, lang, ...)`** -- Main helper for `api/topics/<slug>`. Loads a Topic by slug, assembles response with primary titles, transliteration flags, description (only if `description_published`), intra-topic links, ref links, author indexes, and ambiguous topic possibilities. Optimizes by querying `topic_links` once when both `with_links` and `with_refs` are requested.
 - **`group_links_by_type(link_class, links, annotate_links, group_related)`** -- Groups links by their link type slug. For intra-topic links, deduplicates by topic slug. When `group_related` is true, collapses related link types into a single `related` group.
 - **`sort_and_group_similar_refs(ref_links, lang)`** -- Sorts ref links by relevance, then merges links with overlapping `expandedRefs` into groups. Learning-team links are never merged. Deduplication considers curatedPrimacy, dataSources, and descriptions.
@@ -25,15 +27,17 @@ These helpers serve topic pages, the community homepage, author/topic metadata m
 - **`get_topics_for_book(title, annotate, n)`** -- Returns top topics for a book, aggregated by user_votes, excluding parasha topics.
 
 **Author Indexes:**
+
 - **`get_author_indexes(slug, include_aggregations, include_descriptions)`** -- Returns authored works for an AuthorTopic slug, with optional aggregated URLs and descriptions.
 - **`_serialize_author_index(index, include_descriptions)`** -- Formats an Index for the author-indexes API response.
 
 **Secondary Data Generation (batch scripts):**
+
 - **`generate_all_topic_links_from_sheets(topic)`** -- Processes all public source sheets to create:
   - RefTopicLinks (source-to-topic) using TF-IDF scoring with owner thresholds.
   - IntraTopicLinks (topic-to-topic, "sheets-related-to") based on co-occurrence on sheets.
   - Sheet-to-topic links.
-  Uses `RecommendationEngine.cluster_close_refs` to merge nearby source refs into ranges.
+    Uses `RecommendationEngine.cluster_close_refs` to merge nearby source refs into ranges.
 - **`calculate_tfidf_related_sheet_links(related_links)`** -- Computes TF-IDF scores for intra-topic relatedness based on sheet co-occurrence.
 - **`update_ref_topic_link_orders(source_links, sheet_topic_links)`** -- Calculates and attaches ordering metadata to all ref-topic links:
   - `tfidf` -- mean TF-IDF score of Hebrew words in the source

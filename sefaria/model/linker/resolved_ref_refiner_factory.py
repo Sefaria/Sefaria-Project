@@ -1,11 +1,33 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from ne_span import RefPartType
+
+if TYPE_CHECKING:
+    from sefaria.model.linker.ref_resolver import ResolvedRef
+
 from sefaria.model.linker.ref_part import RawRefPart
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode, NumberedReferenceableBookNode, MapReferenceableBookNode, PassageNodeSet
-from sefaria.model.linker.resolved_ref_refiner import ResolvedRefRefinerForDefaultNode, ResolvedRefRefinerForNumberedPart, ResolvedRefRefinerForDiburHamatchilPart, ResolvedRefRefinerForRangedPart, ResolvedRefRefinerForNamedNode, ResolvedRefRefiner, ResolvedRefRefinerCatchAll, ResolvedRefRefinerForPassage
+from sefaria.model.linker.referenceable_book_node import (
+    MapReferenceableBookNode,
+    NamedReferenceableBookNode,
+    NumberedReferenceableBookNode,
+    PassageNodeSet,
+    ReferenceableBookNode,
+)
+from sefaria.model.linker.resolved_ref_refiner import (
+    ResolvedRefRefiner,
+    ResolvedRefRefinerCatchAll,
+    ResolvedRefRefinerForDefaultNode,
+    ResolvedRefRefinerForDiburHamatchilPart,
+    ResolvedRefRefinerForNamedNode,
+    ResolvedRefRefinerForNumberedPart,
+    ResolvedRefRefinerForPassage,
+    ResolvedRefRefinerForRangedPart,
+)
 
 
 class ResolvedRefRefinerFactoryKey:
-
     def __init__(self, part_type: RefPartType = None, node_class: type = None, is_default: bool = False):
         self.key = (part_type, node_class, is_default)
 
@@ -31,7 +53,7 @@ class ResolvedRefRefinerFactory:
     def register_refiner(self, key: ResolvedRefRefinerFactoryKey, refiner_type: type):
         self.__refiner_list += [(key, refiner_type)]
 
-    def create(self, part: RawRefPart, node: ReferenceableBookNode, resolved_ref: 'ResolvedRef') -> ResolvedRefRefiner:
+    def create(self, part: RawRefPart, node: ReferenceableBookNode, resolved_ref: ResolvedRef) -> ResolvedRefRefiner:
         refiner = self.__get_refiner_class(part.type, node.__class__, node.is_default())
         return refiner(part, node, resolved_ref)
 
@@ -40,7 +62,7 @@ class ResolvedRefRefinerFactory:
         for temp_key, temp_refiner in self.__refiner_list:
             if key == temp_key:
                 return temp_refiner
-        raise ValueError(f"Invalid combination of part and node passed.")
+        raise ValueError("Invalid combination of part and node passed.")
 
 
 def initialize_resolved_ref_refiner_factory() -> ResolvedRefRefinerFactory:

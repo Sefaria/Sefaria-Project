@@ -34,27 +34,22 @@ const SearchTabsMobileWeb = ({ tabs, currTabName, setTab }) => {
 
   return (
     <div className="searchTabsMobileWeb">
-      <div
-        className="searchTabsMobileWeb-scroll"
-        ref={scrollRef}
-        role="tablist"
-        onScroll={updateGradients}
-      >
-        {tabs.map(tab => {
+      <div className="searchTabsMobileWeb-scroll" ref={scrollRef} role="tablist" onScroll={updateGradients}>
+        {tabs.map((tab) => {
           const isActive = tab.id === currTabName;
           return (
             <button
               key={tab.id}
-              ref={el => { tabRefs.current[tab.id] = el; }}
+              ref={(el) => {
+                tabRefs.current[tab.id] = el;
+              }}
               className={`searchTabsMobileWeb-tab${isActive ? ' active' : ''}`}
               role="tab"
               aria-selected={isActive}
               onClick={() => setTab(tab.id)}
             >
               <InterfaceText>{tab.title}</InterfaceText>
-              {tab.count != null && tab.count !== "" && (
-                <span className="searchTabsMobileWeb-count">{tab.count}</span>
-              )}
+              {tab.count != null && tab.count !== '' && <span className="searchTabsMobileWeb-count">{tab.count}</span>}
             </button>
           );
         })}
@@ -67,11 +62,13 @@ const SearchTabsMobileWeb = ({ tabs, currTabName, setTab }) => {
 };
 
 SearchTabsMobileWeb.propTypes = {
-  tabs: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
-    count: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  })).isRequired,
+  tabs: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
+      count: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    })
+  ).isRequired,
   currTabName: PropTypes.string.isRequired,
   setTab: PropTypes.func.isRequired,
 };

@@ -1,6 +1,6 @@
 from contextvars import ContextVar
 
-_progress_reporter: ContextVar = ContextVar('_progress_reporter', default=None)
+_progress_reporter: ContextVar = ContextVar("_progress_reporter", default=None)
 
 
 def set_progress_reporter(fn):

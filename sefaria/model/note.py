@@ -4,12 +4,13 @@ Writes to MongoDB Collection: notes
 """
 
 import regex as re
+import structlog
+
+from sefaria.model.text import Ref
+from sefaria.system.progress_context import report_progress
 
 from . import abstract as abst
-from sefaria.model.text import Ref
 
-import structlog
-from sefaria.system.progress_context import report_progress
 logger = structlog.get_logger(__name__)
 
 
@@ -17,25 +18,26 @@ class Note(abst.AbstractMongoRecord):
     """
     A note on a specific place in a text.  May be public or private.
     """
-    collection    = 'notes'
-    history_noun  = 'note'
-    ALLOWED_TAGS  = ("i", "b", "br", "u", "strong", "em", "big", "small", "span", "div", "img", "a")
+
+    collection = "notes"
+    history_noun = "note"
+    ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small", "span", "div", "img", "a")
     ALLOWED_ATTRS = {
-                        '*': ['class'],
-                        'a': ['href', 'rel'],
-                        'img': ['src', 'alt'],
-                    }
+        "*": ["class"],
+        "a": ["href", "rel"],
+        "img": ["src", "alt"],
+    }
 
     required_attrs = [
         "owner",
         "public",
         "text",
         "type",
-        "ref"
+        "ref",
     ]
     optional_attrs = [
         "title",
-        "anchorText"
+        "anchorText",
     ]
 
     def _normalize(self):
@@ -47,7 +49,7 @@ class NoteSet(abst.AbstractMongoSet):
 
 
 def process_index_title_change_in_notes(indx, **kwargs):
-    report_progress("Cascading Notes {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Notes {} to {}".format(kwargs["old"], kwargs["new"]))
     pattern = Ref(indx.title).regex()
     pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
     notes = NoteSet({"ref": {"$regex": pattern}})
@@ -56,10 +58,12 @@ def process_index_title_change_in_notes(indx, **kwargs):
             n.ref = n.ref.replace(kwargs["old"], kwargs["new"], 1)
             n.save()
         except Exception:
-            logger.warning("Deleting note that failed to save: {}".format(n.ref))
+            logger.warning(f"Deleting note that failed to save: {n.ref}")
             n.delete()
+
 
 def process_index_delete_in_notes(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
+
     pattern = prepare_index_regex_for_dependency_process(indx)
     NoteSet({"ref": {"$regex": pattern}}).delete()

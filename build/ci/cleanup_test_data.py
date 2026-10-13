@@ -1,4 +1,5 @@
 """Remove stale test fixtures from prior pytest runs in the shared sandbox Mongo."""
+
 import re
 
 from sefaria.system.database import db
@@ -20,6 +21,8 @@ r3 = db.texts.delete_many(title_filter)
 r4 = db.vstate.delete_many(title_filter)
 r5 = db.profiles.delete_many({"id": {"$gte": SYNTHETIC_USER_ID_FLOOR}})
 
-print(f"Cleaned stale test data: {r1.deleted_count} indexes, {r2.deleted_count} links, "
-      f"{r3.deleted_count} texts, {r4.deleted_count} vstates, "
-      f"{r5.deleted_count} synthetic profiles")
+print(
+    f"Cleaned stale test data: {r1.deleted_count} indexes, {r2.deleted_count} links, "
+    f"{r3.deleted_count} texts, {r4.deleted_count} vstates, "
+    f"{r5.deleted_count} synthetic profiles",
+)

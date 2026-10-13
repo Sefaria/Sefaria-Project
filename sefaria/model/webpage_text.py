@@ -1,17 +1,17 @@
-# coding=utf-8
-from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+
+from sefaria.helper.webpages import normalize_url
 from sefaria.system.exceptions import DuplicateRecordError
 
 from . import abstract as abst
-from sefaria.helper.webpages import normalize_url
 
 
 class WebPageText(abst.AbstractMongoRecord):
-    collection = 'webpages_text'
-    criteria_field = 'url'
+    collection = "webpages_text"
+    criteria_field = "url"
     track_pkeys = True
-    pkeys = ['url']
+    pkeys = ["url"]
 
     required_attrs = [
         "url",
@@ -21,7 +21,7 @@ class WebPageText(abst.AbstractMongoRecord):
 
     def load(self, url_or_query):
         query = {"url": normalize_url(url_or_query)} if isinstance(url_or_query, str) else url_or_query
-        return super(WebPageText, self).load(query)
+        return super().load(query)
 
     def _normalize(self):
         self.url = normalize_url(self.url)
@@ -29,11 +29,13 @@ class WebPageText(abst.AbstractMongoRecord):
     def _validate(self):
         validator = URLValidator()
         validator(self.url)
-        super(WebPageText, self)._validate()
+        super()._validate()
 
         existing = WebPageText().load(self.url)
         if existing and existing._id != getattr(self, "_id", None):
-            raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key {self.pkeys}, found url={self.url} to already exist in the database.")
+            raise DuplicateRecordError(
+                f"{type(self).__name__}._validate(): Duplicate primary key {self.pkeys}, found url={self.url} to already exist in the database.",
+            )
 
         return True
 
@@ -54,11 +56,13 @@ class WebPageText(abst.AbstractMongoRecord):
             webpage_text.title = title
             webpage_text.body = body
         else:
-            webpage_text = WebPageText({
-                "url": url,
-                "title": title,
-                "body": body,
-            })
+            webpage_text = WebPageText(
+                {
+                    "url": url,
+                    "title": title,
+                    "body": body,
+                },
+            )
 
         try:
             webpage_text.save()

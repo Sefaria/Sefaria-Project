@@ -82,7 +82,7 @@ class RemoteConfigCacheTest(TestCase):
         cache = RemoteConfigCache()
 
         def raise_programming_error():
-            raise ProgrammingError("relation \"remote_config_remoteconfigentry\" does not exist")
+            raise ProgrammingError('relation "remote_config_remoteconfigentry" does not exist')
 
         cache._build_cache = raise_programming_error
 

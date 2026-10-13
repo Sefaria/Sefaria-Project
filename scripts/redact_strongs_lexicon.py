@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import json
+
 import django
+
 django.setup()
 
 from sefaria.model import *
@@ -34,8 +34,9 @@ suspect_words = [
     "Christ",
     "Jesus",
     "Mary",
-    "Messiah"
+    "Messiah",
 ]
+
 
 def suspect_word(definition):
     return any(i in definition for i in suspect_words)
@@ -43,25 +44,22 @@ def suspect_word(definition):
 
 def recurse_senses(senses):
     for subdict in senses:
-        if "definition" in subdict:
-            if suspect_word(subdict["definition"]):
-                return subdict["definition"]
+        if "definition" in subdict and suspect_word(subdict["definition"]):
+            return subdict["definition"]
         if "senses" in subdict:
             return recurse_senses(subdict["senses"])
     return None
 
 
-
-lex_entries = LexiconEntrySet({"parent_lexicon" : "BDB Augmented Strong"})
-suspect_entries =[]
+lex_entries = LexiconEntrySet({"parent_lexicon": "BDB Augmented Strong"})
+suspect_entries = []
 for entry in lex_entries:
-
     if "senses" not in entry.content:
-        print("Entry {} doesnt have senses".format(entry.strong_number))
+        print(f"Entry {entry.strong_number} doesnt have senses")
     else:
         if recurse_senses(entry.content["senses"]) is not None:
             suspect_entries.append(entry.strong_number)
             print("{}".format(entry.headword.encode("utf-8")))
 print(suspect_entries)
-query = {'strong_number': {'$in': suspect_entries }}
+query = {"strong_number": {"$in": suspect_entries}}
 print(json.dumps(query))

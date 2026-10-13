@@ -1,8 +1,8 @@
-from sefaria.utils.util import find_all_html_elements_indices, truncate_string, strip_markdown
 from sefaria.image_generator import html_to_text_canonical
+from sefaria.utils.util import find_all_html_elements_indices, strip_markdown, truncate_string
+
 
 class TestFindAllHtmlElementsIndices:
-
     def test_empty_input(self):
         input_string = ""
         expected_output = {}
@@ -25,7 +25,6 @@ class TestFindAllHtmlElementsIndices:
 
 
 class TestTruncateString:
-
     def test_short_string(self):
         string = "This is a short string."
         min_length = 10
@@ -55,14 +54,14 @@ class TestTruncateString:
         assert truncate_string(string, min_length, max_length) == expected_output
 
     def test_string_length_equals_max(self):
-        string = 'string with length of 24'
+        string = "string with length of 24"
         min_length = 10
         max_length = 24
         expected_output = "string with length of 24"
         assert truncate_string(string, min_length, max_length) == expected_output
 
     def test_long_string_with_html_closing_tag_after_max_length(self):
-        string = 'This is a long string aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa <i>a</i>'
+        string = "This is a long string aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa <i>a</i>"
         min_length = 10
         max_length = 22
         expected_output = "This is a long string…"
@@ -70,7 +69,6 @@ class TestTruncateString:
 
 
 class TestStripMarkdown:
-
     def test_empty_and_none(self):
         assert strip_markdown("") == ""
         assert strip_markdown(None) == ""
@@ -80,14 +78,20 @@ class TestStripMarkdown:
 
     def test_link(self):
         # real sample from the 'animals' topic description
-        assert strip_markdown(
-            "the [book of Genesis](https://www.sefaria.org/Genesis?tab=contents) opens"
-        ) == "the book of Genesis opens"
+        assert (
+            strip_markdown(
+                "the [book of Genesis](https://www.sefaria.org/Genesis?tab=contents) opens",
+            )
+            == "the book of Genesis opens"
+        )
 
     def test_multiple_links(self):
-        assert strip_markdown(
-            "[Genesis](/Genesis) and [Exodus](/Exodus)"
-        ) == "Genesis and Exodus"
+        assert (
+            strip_markdown(
+                "[Genesis](/Genesis) and [Exodus](/Exodus)",
+            )
+            == "Genesis and Exodus"
+        )
 
     def test_asterisk_emphasis(self):
         # real sample from the 'hoshana-rabbah' topic description

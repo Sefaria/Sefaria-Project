@@ -1,22 +1,22 @@
 import dataclasses
-import re2 as re
-from functools import reduce
 from collections import defaultdict
+from functools import reduce
+
+import re2 as re
 
 from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.linker.ref_part import RawNamedEntity
 from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.model.topic import Topic
-from sefaria.utils.hebrew import strip_cantillation, get_matches_with_prefixes
 from sefaria.system.exceptions import InputError
+from sefaria.utils.hebrew import get_matches_with_prefixes, strip_cantillation
 
 
 class ResolvedNamedEntity(AbstractResolvedEntity):
-
     def __init__(self, raw_named_entity: RawNamedEntity, topics: list[Topic]):
         self._raw_entity = raw_named_entity
         self.topics = topics
-        
+
     @property
     def raw_entity(self):
         return self._raw_entity
@@ -24,8 +24,9 @@ class ResolvedNamedEntity(AbstractResolvedEntity):
     @property
     def topic(self):
         if len(self.topics) != 1:
-            raise InputError(f"ResolvedNamedEntity is ambiguous and has {len(self.topics)} topics so you can't access "
-                             ".topic.")
+            raise InputError(
+                f"ResolvedNamedEntity is ambiguous and has {len(self.topics)} topics so you can't access .topic.",
+            )
         return self.topics[0]
 
     @property
@@ -35,7 +36,7 @@ class ResolvedNamedEntity(AbstractResolvedEntity):
     @property
     def resolution_failed(self):
         return len(self.topics) == 0
-    
+
     def get_debug_spans(self) -> list[dict]:
         span = self._get_base_debug_span()
         span["type"] = MUTCSpanType.NAMED_ENTITY.value
@@ -50,11 +51,9 @@ class ResolvedNamedEntity(AbstractResolvedEntity):
             cat_span["topicSlug"] = topic.slug
             spans.append(cat_span)
         return spans
-        
 
 
 class TitleGenerator:
-
     expansions = {}
 
     @classmethod
@@ -63,28 +62,27 @@ class TitleGenerator:
         for reg, reg_expansions in cls.expansions.items():
             for reg_expansion in reg_expansions:
                 potential_expansion = re.sub(reg, reg_expansion, title)
-                if potential_expansion == title: continue
+                if potential_expansion == title:
+                    continue
                 expansions += [potential_expansion]
         expansions = [strip_cantillation(t, strip_vowels=True) for t in expansions]
         return expansions
 
 
 class PersonTitleGenerator(TitleGenerator):
-
     expansions = {
-        r' b\. ': [' ben ', ' bar ', ', son of ', ', the son of ', ' son of ', ' the son of ', ' Bar ', ' Ben '],
-        r'^Ben ': ['ben '],
-        r'^Bar ': ['bar '],
-        r'^Rabbi ': ['R. '],
-        r'^Rebbi ': ['R. '],
-        r'^רבי ': ["ר' "],
+        r" b\. ": [" ben ", " bar ", ", son of ", ", the son of ", " son of ", " the son of ", " Bar ", " Ben "],
+        r"^Ben ": ["ben "],
+        r"^Bar ": ["bar "],
+        r"^Rabbi ": ["R. "],
+        r"^Rebbi ": ["R. "],
+        r"^רבי ": ["ר' "],
     }
 
 
 class FallbackTitleGenerator(TitleGenerator):
-
     expansions = {
-        '^The ': ['the '],
+        "^The ": ["the "],
     }
 
 
@@ -96,8 +94,8 @@ class NamedEntityTitleExpanderRoute:
 
 class NamedEntityTitleExpander:
     type_generator_router = [
-        NamedEntityTitleExpanderRoute('people', PersonTitleGenerator),
-        NamedEntityTitleExpanderRoute('entity', FallbackTitleGenerator),
+        NamedEntityTitleExpanderRoute("people", PersonTitleGenerator),
+        NamedEntityTitleExpanderRoute("entity", FallbackTitleGenerator),
     ]
 
     def __init__(self, lang: str):
@@ -120,7 +118,6 @@ class NamedEntityTitleExpander:
 
 
 class TopicMatcher:
-
     def __init__(self, lang: str, named_entity_types_to_topics: dict[str, dict[str, list[str]]]):
         self._lang = lang
         self._title_expander = NamedEntityTitleExpander(lang)
@@ -148,22 +145,21 @@ class TopicMatcher:
     @staticmethod
     def __generate_topic_list_from_spec(topic_spec: dict[str, list[str]]) -> list[Topic]:
         topics = []
-        for root in topic_spec.get('ontology_roots', []):
+        for root in topic_spec.get("ontology_roots", []):
             topics += Topic.init(root).topics_by_link_type_recursively()
-        topics += [Topic.init(slug) for slug in topic_spec.get('single_slugs', [])]
+        topics += [Topic.init(slug) for slug in topic_spec.get("single_slugs", [])]
         return topics
 
     def match(self, named_entity: RawNamedEntity) -> list[Topic]:
         slugs = get_matches_with_prefixes(
             named_entity.text,
             matches_map=self._title_slug_map_by_type.get(named_entity.type.name, {}),
-            prefix_exclusion_set={'ע'}  # ayin isn't valid for names
+            prefix_exclusion_set={"ע"},  # ayin isn't valid for names
         )
         return [self._slug_topic_map[slug] for slug in slugs]
 
 
 class NamedEntityResolver:
-
     def __init__(self, topic_matcher: TopicMatcher):
         self._topic_matcher = topic_matcher
 
@@ -173,6 +169,3 @@ class NamedEntityResolver:
             matched_topics = self._topic_matcher.match(named_entity)
             resolved += [ResolvedNamedEntity(named_entity, matched_topics)]
         return resolved
-
-
-

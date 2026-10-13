@@ -1,6 +1,6 @@
-//This file is for everything that is part of the 'static' header, baring dropping elements (autocompleter, dropdown menus, mobile menu)
+// This file is for everything that is part of the 'static' header, baring dropping elements (autocompleter, dropdown menus, mobile menu)
 
-@import "breakpoints";
+@import 'breakpoints';
 
 $header-height: 60px;
 
@@ -8,17 +8,19 @@ $header-height: 60px;
   --header-height: #{$header-height};
 }
 
-$exclude-flex: ( //Elements excluded from the general rules of flex and align to center
-  ".dropdownLinks-menu",
-  ".autocomplete-dropdown",
-  ".languageToggle",
-  ".floating-ui-popover",
-  ".keyboardInputInitiator",
-  ".readerNavMenuSearchButton",
+$exclude-flex: (
+  //Elements excluded from the general rules of flex and align to center
+  '.dropdownLinks-menu',
+  '.autocomplete-dropdown',
+  '.languageToggle',
+  '.floating-ui-popover',
+  '.keyboardInputInitiator',
+  '.readerNavMenuSearchButton'
 );
-$not-selector: "";
+$not-selector: '';
+
 @each $sel in $exclude-flex {
-  $not-selector: "#{$not-selector}:not(#{$sel}):not(#{$sel} *)";
+  $not-selector: '#{$not-selector}:not(#{$sel}):not(#{$sel} *)';
 }
 .headerInner,
 .headerInner *#{$not-selector} {
@@ -35,6 +37,7 @@ $not-selector: "";
   padding: 0 30px;
   justify-content: space-between;
   background: white;
+
   @include breakpoint(mobile) {
     padding: 0 15px;
   }
@@ -51,28 +54,27 @@ $not-selector: "";
 }
 
 .headerInner.boxShadow {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
 }
 
 $logo-widths: (
   library: (
     english: 154px,
-    hebrew: 141px
+    hebrew: 141px,
   ),
   voices: (
     english: 174px,
-    hebrew: 148px
-  )
+    hebrew: 148px,
+  ),
 );
-
 $modules: library voices;
 $interfaces: english hebrew;
 
 @mixin full-logo {
   @each $module in $modules {
     @each $interface in $interfaces {
-      [data-active-module="#{$module}"] .interface-#{$interface} .home {
-        background: url("/static/img/#{$module}-logo-#{$interface}.svg") no-repeat center / contain;
+      [data-active-module='#{$module}'] .interface-#{$interface} .home {
+        background: url('/static/img/#{$module}-logo-#{$interface}.svg') no-repeat center / contain;
         height: 25px;
         width: map-get(map-get($logo-widths, $module), $interface);
       }
@@ -88,9 +90,7 @@ $interfaces: english hebrew;
   .home {
     height: 25px;
     width: 19px;
-    -webkit-mask: url("/static/img/samech-logo.svg") no-repeat;
-    mask: url("/static/img/samech-logo.svg") no-repeat;
-    -webkit-mask-size: cover;
+    mask: url('/static/img/samech-logo.svg') no-repeat;
     mask-size: cover;
     background-color: var(--theme-primary);
   }
@@ -101,15 +101,19 @@ $interfaces: english hebrew;
     gap: 30px;
     margin-inline-start: 60px;
   }
+
   @include breakpoint(tablet) {
     gap: 24px;
     margin-inline-start: 20px;
   }
+
   font-size: 16px;
   font-weight: 500;
+
   .int-en {
     transform: translateY(0.15em); // Align text that is more stable in zoom
   }
+
   .int-he {
     transform: translateY(0.1em);
   }
@@ -121,8 +125,8 @@ $interfaces: english hebrew;
 }
 
 .headerLinksSection {
-	justify-content: flex-end;
-    gap: 20px;
+  justify-content: flex-end;
+  gap: 20px;
 }
 
 .header .searchBox {
@@ -142,17 +146,18 @@ $interfaces: english hebrew;
 }
 
 .header .readerNavMenuSearchButton {
-    top: 2px;
+  top: 2px;
 }
 
 .header .searchBox .keyboardInputInitiator {
-    display: none;
+  display: none;
 }
 
 .header-icons {
   @include breakpoint(desktop) {
     gap: 20px;
   }
+
   @include breakpoint(tablet) {
     gap: 16px;
   }

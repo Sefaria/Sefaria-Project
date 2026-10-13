@@ -28,7 +28,9 @@ const VALUE_COL = 1;
 const isMultiFormat = (rows) =>
   rows.length > 0 &&
   rows[0].length > 0 &&
-  String(rows[0][REF_COL] || '').trim().toLowerCase() === 'version title';
+  String(rows[0][REF_COL] || '')
+    .trim()
+    .toLowerCase() === 'version title';
 
 const buildSingleIndexCsv = (idxTitle, vt, lang, src, notes, dataRows) => {
   const allRows = [
@@ -44,7 +46,9 @@ const buildSingleIndexCsv = (idxTitle, vt, lang, src, notes, dataRows) => {
 };
 
 const sanitizeForFilename = (s) =>
-  String(s || 'upload').replace(/[^A-Za-z0-9._-]+/g, '_').slice(0, 80);
+  String(s || 'upload')
+    .replace(/[^A-Za-z0-9._-]+/g, '_')
+    .slice(0, 80);
 
 /**
  * Parse a CSV string and produce an array of upload jobs, one per index.
@@ -63,9 +67,7 @@ const splitCsvByIndex = (text, sourceName = 'upload.csv') => {
   const parsed = Papa.parse(text, { header: false, skipEmptyLines: true });
   const rows = parsed.data || [];
 
-  const fatalParseErrors = (parsed.errors || []).filter(
-    (e) => e.type === 'Quotes' || e.type === 'Delimiter'
-  );
+  const fatalParseErrors = (parsed.errors || []).filter((e) => e.type === 'Quotes' || e.type === 'Delimiter');
   if (fatalParseErrors.length > 0) {
     const first = fatalParseErrors[0];
     const where = first.row != null ? ` on row ${first.row + 1}` : '';

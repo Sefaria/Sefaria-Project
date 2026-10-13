@@ -1,6 +1,13 @@
 [tool.ruff]
 target-version = "py312"
 line-length = 120
+exclude = [
+    # Python 2-era scripts with syntax errors that predate linting
+    "scripts/add_is_cited_field.py",
+    "scripts/bavli_word_count.py",
+    "scripts/lexicon/adjust_laaz_rashi_add_forms.py",
+    "scripts/split_commentaries.py",
+]
 
 [tool.ruff.lint]
 select = [
@@ -33,6 +40,167 @@ select = [
 
 ignore = [
     "PLR0913",  # too many arguments
+
+    # ── Legacy codebase — deferred to incremental follow-up work ──────────────
+
+    # Import style: `from module import *` is pervasive in Django settings and legacy Sefaria modules
+    "F403",  # undefined-local-with-import-star
+    "F405",  # undefined-local-with-import-star-usage
+
+    # Unused imports: many are re-exported from __init__.py; unsafe to auto-remove
+    "F401",  # unused-import
+
+    # Module-level imports not at top: Django conditional imports and settings inheritance
+    "E402",  # module-import-not-at-top-of-file
+
+    # Line length: formatter handles what it can; remaining are strings/comments that can't be broken
+    "E501",  # line-too-long
+
+    # Trailing commas: managed by ruff format; avoid duplicate enforcement
+    "COM812",  # missing-trailing-comma
+    "COM819",  # prohibited-trailing-comma
+
+    # Print statements: intentional in management commands, scripts, and debug helpers
+    "T201",  # print
+    "T203",  # pprint
+
+    # Pytest style: codebase uses unittest-style assertions (assertTrue etc.) in pytest; migrate incrementally
+    "PT009",  # pytest-unittest-assertion
+    "PT027",  # pytest-unittest-raises-assertion
+    "PT007",  # pytest-parametrize-values-wrong-type
+    "PT006",  # pytest-parametrize-names-wrong-type
+    "PT018",  # pytest-composite-assertion
+    "PT011",  # pytest-raises-too-broad
+    "PT012",  # pytest-raises-with-multiple-statements
+    "PT019",  # pytest-fixture-param-without-value
+    "PT017",  # pytest-assert-in-except
+    "B017",   # assert-raises-exception
+
+    # Unused arguments: Django views and callbacks require specific signatures
+    "ARG001",  # unused-function-argument
+    "ARG002",  # unused-method-argument
+    "ARG003",  # unused-class-method-argument
+    "ARG004",  # unused-static-method-argument
+    "ARG005",  # unused-lambda-argument
+
+    # Naming conventions: existing code has established patterns (Rx, CamelCase vars, etc.)
+    "N802",  # invalid-function-name
+    "N803",  # invalid-argument-name
+    "N806",  # non-lowercase-variable-in-function
+    "N801",  # invalid-class-name
+    "N805",  # invalid-first-argument-name-for-method
+    "N815",  # mixed-case-variable-in-class-scope
+    "N816",  # mixed-case-variable-in-global-scope
+    "N818",  # error-suffix-on-exception-name
+
+    # pathlib migration: large-scale refactor, tracked separately
+    "PTH100",  # os-path-abspath
+    "PTH103",  # os-makedirs
+    "PTH107",  # os-remove
+    "PTH110",  # os-path-exists
+    "PTH111",  # os-path-expanduser
+    "PTH112",  # os-path-isdir
+    "PTH113",  # os-path-isfile
+    "PTH116",  # os-stat
+    "PTH118",  # os-path-join
+    "PTH119",  # os-path-basename
+    "PTH120",  # os-path-dirname
+    "PTH122",  # os-path-splitext
+    "PTH123",  # builtin-open
+    "PTH202",  # os-path-getsize
+    "PTH204",  # os-path-getmtime
+    "PTH207",  # glob
+    "PTH208",  # os-listdir
+
+    # Exception message style: string literals in raise — refactor separately
+    "EM101",  # raw-string-in-exception
+    "EM102",  # f-string-in-exception
+    "EM103",  # dot-format-in-exception
+
+    # TODO/FIXME comment format: enforce author and link in follow-up tooling
+    "TD002",  # missing-todo-author
+    "TD003",  # missing-todo-link
+    "TD004",  # missing-todo-colon
+    "TD005",  # missing-todo-description
+    "FIX002",  # line-contains-todo
+    "FIX004",  # line-contains-hack
+
+    # Return patterns: existing code style; refactor incrementally
+    "RET503",  # implicit-return
+    "RET504",  # unnecessary-assign
+
+    # Ambiguous variable names: conventional in math/algorithm code (l for length, etc.)
+    "E741",  # ambiguous-variable-name
+
+    # Builtin shadowing: common in Django (type=, list=, id=)
+    "A001",  # builtin-variable-shadowing
+    "A002",  # builtin-argument-shadowing
+    "A006",  # builtin-lambda-argument-shadowing
+
+    # zip() without strict: existing code; add strict incrementally
+    "B905",  # zip-without-explicit-strict
+
+    # printf-style formatting: existing i18n strings; migrate to f-strings separately
+    "UP031",  # printf-string-formatting
+
+    # Exception handling patterns: existing code style
+    "E722",  # bare-except (refactor to specific exception types separately)
+    "B904",  # raise-without-from-inside-except
+
+    # Simplification patterns: incrementally adopt
+    "SIM102",  # collapsible-if
+    "SIM105",  # suppressible-exception
+    "SIM108",  # if-else-block-instead-of-if-exp
+    "SIM113",  # enumerate-for-loop
+    "SIM115",  # open-file-with-context-handler
+    "SIM401",  # if-else-block-instead-of-dict-get
+    "SIM110",  # reimplemented-builtin
+    "SIM101",  # duplicate-isinstance-call
+
+    # Loop variable patterns
+    "B007",  # unused-loop-control-variable
+    "B023",  # function-uses-loop-variable
+    "B020",  # loop-variable-overrides-iterator
+
+    # Comprehension / collection patterns
+    "C401",  # unnecessary-generator-set
+    "C409",  # unnecessary-literal-within-tuple-call
+    "C414",  # unnecessary-double-cast-or-process
+
+    # Miscellaneous: refactor separately
+    "B015",  # useless-comparison
+    "B018",  # useless-expression
+    "B026",  # star-arg-unpacking-after-keyword-arg
+    "E721",  # type-comparison (use isinstance)
+    "DJ001",  # django-nullable-model-string-field
+    "DJ012",  # django-unordered-body-content-in-model
+    "UP028",  # yield-in-for-loop
+    "UP040",  # non-pep695-type-alias
+    "W291",  # trailing-whitespace (formatter handles; remaining are in parse-error files)
+    "W293",  # blank-line-with-whitespace
+
+    # Naming: less-common naming patterns (import aliases, module names) — ignore these less-common N-codes
+    "N807",  # dunder-function-name
+    "N812",  # lowercase-imported-as-non-lowercase
+    "N813",  # camelcase-imported-as-lowercase
+    "N817",  # camelcase-imported-as-acronym
+    "N999",  # invalid-module-name
+
+    # Type annotations: Optional[X] vs X | None — migrate incrementally with TypeScript adoption
+    "UP007",  # non-pep604-annotation-union
+
+    # Regex sub: positional args are fine for simple patterns
+    "B034",  # re-sub-positional-args
+
+    # Django model conventions: enforce separately as part of model cleanup
+    "DJ007",  # django-all-with-model-form
+    "DJ008",  # django-model-without-dunder-str
+
+    # Ambiguous function names: established patterns (l, O, I are used in math code)
+    "E743",  # ambiguous-function-name
+
+    # Simplification: minor, non-critical
+    "SIM103",  # needless-bool
 ]
 
 [tool.ruff.format]
@@ -40,5 +208,8 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.ruff.lint.per-file-ignores]
-"*/migrations/*.py" = ["E501", "N", "I"]
+"*/migrations/*.py" = ["E501", "N", "I", "E711", "E712", "F601"]
 "manage.py" = ["T20"]
+"**/tests/**/*.py" = ["PT009", "PT027", "ARG", "F821"]
+"scripts/**/*.py" = ["T20", "E402", "F401", "ARG", "F811", "F821", "B006", "F841"]
+"**/conftest.py" = ["F401", "ARG"]

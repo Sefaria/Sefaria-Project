@@ -17,14 +17,7 @@ const PROVIDERS = {
  * see `useProviderTriggers` (`useSsoSignIn.jsx`). Apple exposes `AppleID.auth.signIn()`
  * directly, so its button just uses `onClick`.
  */
-const ProviderButton = ({
-  provider,
-  label,
-  onClick,
-  disabled = false,
-  id,
-  trackingRef = null,
-}) => {
+const ProviderButton = ({ provider, label, onClick, disabled = false, id, trackingRef = null }) => {
   const config = PROVIDERS[provider];
   if (!config) return null;
 
@@ -56,13 +49,7 @@ const ProviderButton = ({
   }
 
   return (
-    <button
-      id={id}
-      type="button"
-      className="sefaria-provider-button"
-      onClick={onClick}
-      disabled={disabled}
-    >
+    <button id={id} type="button" className="sefaria-provider-button" onClick={onClick} disabled={disabled}>
       {content}
     </button>
   );

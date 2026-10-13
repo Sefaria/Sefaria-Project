@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Put a Welcome to S2 message in the profile of every existing user
 
 from sefaria.model import *

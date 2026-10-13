@@ -8,42 +8,42 @@ from django_topics.models.pool import TopicPool, PoolType
 
 
 def add_to_torah_tab_pool():
-    print('Adding topics to torah tab pool')
+    print("Adding topics to torah tab pool")
     pool = TopicPool.objects.get(name=PoolType.TORAH_TAB.value)
-    ts = TopicSet({'good_to_promote': True})
+    ts = TopicSet({"good_to_promote": True})
     for topic in ts:
         t = Topic.objects.get(slug=topic.slug)
         t.pools.add(pool)
 
 
 def add_to_library_pool():
-    print('Adding topics to library pool')
+    print("Adding topics to library pool")
     pool = TopicPool.objects.get(name=PoolType.LIBRARY.value)
-    ts = TopicSet({'subclass': 'author'})
+    ts = TopicSet({"subclass": "author"})
     for topic in ts:
         t = Topic.objects.get(slug=topic.slug)
         t.pools.add(pool)
-    links = RefTopicLinkSet({'is_sheet': False, 'linkType': 'about'})
+    links = RefTopicLinkSet({"is_sheet": False, "linkType": "about"})
     topic_slugs = {link.toTopic for link in links}
     for slug in topic_slugs:
         try:
             t = Topic.objects.get(slug=slug)
             t.pools.add(pool)
         except Topic.DoesNotExist:
-            print('Could not find topic with slug {}'.format(slug))
+            print(f"Could not find topic with slug {slug}")
 
 
 def add_to_sheets_pool():
-    print('Adding topics to sheets pool')
+    print("Adding topics to sheets pool")
     pool = TopicPool.objects.get(name=PoolType.SHEETS.value)
-    links = RefTopicLinkSet({'is_sheet': True, 'linkType': 'about'})
+    links = RefTopicLinkSet({"is_sheet": True, "linkType": "about"})
     topic_slugs = {link.toTopic for link in links}
     for slug in topic_slugs:
         try:
             t = Topic.objects.get(slug=slug)
             t.pools.add(pool)
         except Topic.DoesNotExist:
-            print('Could not find topic with slug {}'.format(slug))
+            print(f"Could not find topic with slug {slug}")
 
 
 def delete_all_data():
@@ -54,19 +54,29 @@ def delete_all_data():
 
 
 def add_topics():
-    print('Adding topics')
+    print("Adding topics")
     for topic in TopicSet({}):
         try:
-            Topic.objects.create(slug=topic.slug, en_title=topic.get_primary_title('en'), he_title=topic.get_primary_title('he'))
+            Topic.objects.create(
+                slug=topic.slug,
+                en_title=topic.get_primary_title("en"),
+                he_title=topic.get_primary_title("he"),
+            )
         except IntegrityError:
-            print('Duplicate topic', topic.slug)
+            print("Duplicate topic", topic.slug)
         except DataError:
-            print('Data error with topic', topic.slug)
+            print("Data error with topic", topic.slug)
 
 
 def add_pools():
-    print('Adding pools')
-    for pool_name in [PoolType.LIBRARY.value, PoolType.SHEETS.value, 'general_en', 'general_he', PoolType.TORAH_TAB.value]:
+    print("Adding pools")
+    for pool_name in [
+        PoolType.LIBRARY.value,
+        PoolType.SHEETS.value,
+        "general_en",
+        "general_he",
+        PoolType.TORAH_TAB.value,
+    ]:
         TopicPool.objects.create(name=pool_name)
 
 

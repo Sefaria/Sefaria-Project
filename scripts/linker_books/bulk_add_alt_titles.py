@@ -1,10 +1,14 @@
 """
 Goal is to sample segments from our library and find places where we aren't matching citations
 """
+
 import csv
+
 import django
+
 django.setup()
-import logging, os
+import logging
+import os
 
 # Turn off Anthropic and HTTPX debug logs
 os.environ["ANTHROPIC_LOG_LEVEL"] = "error"
@@ -13,19 +17,19 @@ os.environ["HTTPX_LOG_LEVEL"] = "error"
 logging.getLogger("anthropic").setLevel(logging.ERROR)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
-from sefaria.model import *
-from sefaria.utils.hebrew import strip_cantillation
-from scripts.linker_books.linker_books_utils import run_parallel
 import random
 import re
-from tqdm import tqdm
 import sys
-from dataclasses import dataclass
-from typing import Optional
 
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import BaseOutputParser
 from langchain_anthropic import ChatAnthropicMessages
+from langchain_core.output_parsers import BaseOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from tqdm import tqdm
+
+from scripts.linker_books.linker_books_utils import run_parallel
+from sefaria.model import *
+from sefaria.utils.hebrew import strip_cantillation
+
 csv.field_size_limit(sys.maxsize)
 
 from langchain.globals import set_llm_cache
@@ -39,21 +43,24 @@ def sample_segments():
 
     def action(s, en_tref, he_tref, v):
         nonlocal all_segment_refs
-        all_segment_refs.append({
-            "Ref": en_tref,
-            "VTitle": v.versionTitle,
-            "Language": v.language,
-            "Text": s,
-        })
+        all_segment_refs.append(
+            {
+                "Ref": en_tref,
+                "VTitle": v.versionTitle,
+                "Language": v.language,
+                "Text": s,
+            },
+        )
+
     for version in tqdm(VersionSet({}).array()):
         try:
             version.walk_thru_contents(action)
-        except Exception as e:
+        except Exception:
             print("Skip", version.title, version.versionTitle)
 
     rows = random.sample(all_segment_refs, 100000)
 
-    with open('../../data/private/all_segment_refs.csv', 'w') as fout:
+    with open("../../data/private/all_segment_refs.csv", "w") as fout:
         cout = csv.DictWriter(fout, fieldnames=rows[0].keys())
         cout.writeheader()
         cout.writerows(rows)
@@ -62,31 +69,31 @@ def sample_segments():
 def batch_link(curr_linker, inputs, batch_size):
     all_docs = []
     for i in tqdm(list(range(0, len(inputs), batch_size))):
-        curr_inputs = inputs[i:i+batch_size]
-        curr_docs = curr_linker.bulk_link(curr_inputs, with_failures=True, type_filter='citation')
+        curr_inputs = inputs[i : i + batch_size]
+        curr_docs = curr_linker.bulk_link(curr_inputs, with_failures=True, type_filter="citation")
         all_docs += curr_docs
     return all_docs
 
 
 def find_failed_resolutions():
     linker_map = {
-        'en': library.get_linker('en'),
-        'he': library.get_linker('he'),
+        "en": library.get_linker("en"),
+        "he": library.get_linker("he"),
     }
-    inputs_by_lang = {'en': [], 'he': []}
-    rows_by_lang = {'en': [], 'he': []}
+    inputs_by_lang = {"en": [], "he": []}
+    rows_by_lang = {"en": [], "he": []}
 
-    with open('../../data/private/all_segment_refs.csv', 'r') as fin:
+    with open("../../data/private/all_segment_refs.csv") as fin:
         cin = csv.DictReader(fin)
         rows = list(cin)
     for row in rows:
-        if row['Language'] == 'en':
-            inputs_by_lang['en'].append(row['Text'])
-            rows_by_lang['en'].append(row)
+        if row["Language"] == "en":
+            inputs_by_lang["en"].append(row["Text"])
+            rows_by_lang["en"].append(row)
         else:
-            inputs_by_lang['he'].append(row['Text'])
-            rows_by_lang['he'].append(row)
-    for lang in ('he',):
+            inputs_by_lang["he"].append(row["Text"])
+            rows_by_lang["he"].append(row)
+    for lang in ("he",):
         out_rows = []
         docs = batch_link(linker_map[lang], inputs_by_lang[lang], 2000)
         for doc, row in zip(docs, rows_by_lang[lang]):
@@ -94,15 +101,17 @@ def find_failed_resolutions():
                 if ref.resolution_failed:
                     ent = ref.raw_entity
                     start, end = ent.span.range
-                    context = row['Text'][max(0, start - 20):end + 20]
-                    out_rows.append({
-                        'Ref': row['Ref'],
-                        'VTitle': row['VTitle'],
-                        'Language': row['Language'],
-                        'Context': context,
-                        'Resolution': ref.raw_entity.span.text,
-                    })
-        with open(f'../../data/private/failed_resolutions_{lang}.csv', 'w') as fout:
+                    context = row["Text"][max(0, start - 20) : end + 20]
+                    out_rows.append(
+                        {
+                            "Ref": row["Ref"],
+                            "VTitle": row["VTitle"],
+                            "Language": row["Language"],
+                            "Context": context,
+                            "Resolution": ref.raw_entity.span.text,
+                        },
+                    )
+        with open(f"../../data/private/failed_resolutions_{lang}.csv", "w") as fout:
             cout = csv.DictWriter(fout, fieldnames=out_rows[0].keys())
             cout.writeheader()
             cout.writerows(out_rows)
@@ -110,28 +119,28 @@ def find_failed_resolutions():
 
 def post_process_failed_resolutions():
     unique_citations = {}
-    with open('../../data/private/failed_resolutions_en.csv', 'r') as fin:
+    with open("../../data/private/failed_resolutions_en.csv") as fin:
         cin = csv.DictReader(fin)
         rows = list(cin)
-    with open('../../data/private/failed_resolutions_he.csv', 'r') as fin:
+    with open("../../data/private/failed_resolutions_he.csv") as fin:
         cin = csv.DictReader(fin)
         rows = rows + list(cin)
     for row in rows:
-        cit = row['Resolution']
-        cit = re.sub(r'<[^>]+>', ' ', cit).strip()
+        cit = row["Resolution"]
+        cit = re.sub(r"<[^>]+>", " ", cit).strip()
         if cit not in unique_citations:
-            if re.search(r'\[.{2,4}]$', row["VTitle"].strip()):
+            if re.search(r"\[.{2,4}]$", row["VTitle"].strip()):
                 continue
             if "BDB" in row["Ref"] or "Jastrow" in row["Ref"]:
                 continue
-            short_cit = re.sub(r'[ ,:;v.V\-§]', '', cit)
-            if len(short_cit) < 3 or re.match(r'[0-9ab]+$', short_cit):
+            short_cit = re.sub(r"[ ,:;v.V\-§]", "", cit)
+            if len(short_cit) < 3 or re.match(r"[0-9ab]+$", short_cit):
                 continue
             if len(strip_cantillation(cit, strip_vowels=True)) > 70:
                 continue
-            row['Resolution'] = cit
+            row["Resolution"] = cit
             unique_citations[cit] = row
-    with open('../../data/private/failed_resolutions_unique.csv', 'w') as fout:
+    with open("../../data/private/failed_resolutions_unique.csv", "w") as fout:
         cout = csv.DictWriter(fout, fieldnames=rows[0].keys())
         cout.writeheader()
         cout.writerows(unique_citations.values())
@@ -217,7 +226,7 @@ Reminder: Decide only from the provided citation string itself (and the context 
         [
             ("system", system_prompt),
             ("user", user_prompt),
-        ]
+        ],
     )
     llm = ChatAnthropicMessages(model="claude-sonnet-4-5-20250929", temperature=0)
     parser = YesNoParser()
@@ -226,13 +235,13 @@ Reminder: Decide only from the provided citation string itself (and the context 
 
 
 def classify_all_citations():
-    with open('../../data/private/failed_resolutions_unique.csv', 'r') as fin:
+    with open("../../data/private/failed_resolutions_unique.csv") as fin:
         cin = csv.DictReader(fin)
         rows = list(cin)
-    classifier_input = [(row['Resolution'], row['Context']) for row in rows]
+    classifier_input = [(row["Resolution"], row["Context"]) for row in rows]
     results = run_parallel(classifier_input, classify_citation, 100)
-    out_rows = [r[0] for r in filter(lambda r: r[1] == 'y', zip(rows, results))]
-    with open('../../data/private/failed_resolutions_explicit_only.csv', 'w') as fout:
+    out_rows = [r[0] for r in filter(lambda r: r[1] == "y", zip(rows, results))]
+    with open("../../data/private/failed_resolutions_explicit_only.csv", "w") as fout:
         cout = csv.DictWriter(fout, fieldnames=out_rows[0].keys())
         cout.writeheader()
         cout.writerows(out_rows)
@@ -291,7 +300,7 @@ def classify_index_of_citation():
         [
             ("system", system_prompt),
             ("user", user_prompt),
-        ]
+        ],
     )
 
     # Use your existing `llm` object from above
@@ -312,7 +321,7 @@ def classify_index_of_citation():
         return first if first and len(first.split()) < 20 else "UNKNOWN"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # sample_segments()
     # find_failed_resolutions()
     # post_process_failed_resolutions()

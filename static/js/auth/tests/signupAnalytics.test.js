@@ -1,8 +1,13 @@
 /* Testing done using Jest */
 import {
-  SIGNUP_EVENT, SIGNUP_METHOD, SSO_REFERRER_ORIGIN,
+  SIGNUP_EVENT,
+  SIGNUP_METHOD,
+  SSO_REFERRER_ORIGIN,
   fireFlowStarted,
-  persistPendingAttempt, persistActiveFlow, clearActiveFlow, clearPendingAttempt,
+  persistPendingAttempt,
+  persistActiveFlow,
+  clearActiveFlow,
+  clearPendingAttempt,
   resumePendingSignUpAttempt,
 } from '../signupAnalytics.js';
 
@@ -90,12 +95,25 @@ describe('resumePendingSignUpAttempt', () => {
 
     resumePendingSignUpAttempt();
 
-    expect(window.gtag).toHaveBeenCalledWith('event', SIGNUP_EVENT.PROCESS_ENDED, expect.objectContaining({
-      flow_id: 'flow-1', attempt_id: 'attempt-1', status: 'success', error: null,
-    }));
-    expect(window.gtag).toHaveBeenCalledWith('event', SIGNUP_EVENT.FLOW_ENDED, expect.objectContaining({
-      flow_id: 'flow-1', status: 'success', error: null,
-    }));
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      SIGNUP_EVENT.PROCESS_ENDED,
+      expect.objectContaining({
+        flow_id: 'flow-1',
+        attempt_id: 'attempt-1',
+        status: 'success',
+        error: null,
+      })
+    );
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      SIGNUP_EVENT.FLOW_ENDED,
+      expect.objectContaining({
+        flow_id: 'flow-1',
+        status: 'success',
+        error: null,
+      })
+    );
     expect(sessionStorage.getItem(PENDING_ATTEMPT_KEY)).toBeNull();
     expect(sessionStorage.getItem(ACTIVE_FLOW_KEY)).toBeNull();
   });
@@ -106,13 +124,23 @@ describe('resumePendingSignUpAttempt', () => {
 
     resumePendingSignUpAttempt();
 
-    expect(window.gtag).toHaveBeenCalledWith('event', SIGNUP_EVENT.FLOW_ENDED, expect.objectContaining({
-      status: 'failure', error: 'unexpected_return_without_provider_referrer',
-    }));
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      SIGNUP_EVENT.FLOW_ENDED,
+      expect.objectContaining({
+        status: 'failure',
+        error: 'unexpected_return_without_provider_referrer',
+      })
+    );
   });
 
   it('an expired pending attempt (older than the 10-minute window) is ignored', () => {
-    const stale = { flowId: 'flow-1', attemptId: 'attempt-1', method: SIGNUP_METHOD.APPLE, ts: Date.now() - 11 * 60 * 1000 };
+    const stale = {
+      flowId: 'flow-1',
+      attemptId: 'attempt-1',
+      method: SIGNUP_METHOD.APPLE,
+      ts: Date.now() - 11 * 60 * 1000,
+    };
     sessionStorage.setItem(PENDING_ATTEMPT_KEY, JSON.stringify(stale));
     setReferrer(SSO_REFERRER_ORIGIN.APPLE);
 
@@ -127,18 +155,42 @@ describe('resumePendingSignUpAttempt', () => {
 
     resumePendingSignUpAttempt();
 
-    expect(window.gtag).toHaveBeenCalledWith('event', SIGNUP_EVENT.METHOD_CHOSEN, expect.objectContaining({
-      flow_id: 'flow-2', attempt_id: 'generated-uuid', method: SIGNUP_METHOD.GOOGLE,
-    }));
-    expect(window.gtag).toHaveBeenCalledWith('event', SIGNUP_EVENT.PROCESS_STARTED, expect.objectContaining({
-      flow_id: 'flow-2', attempt_id: 'generated-uuid',
-    }));
-    expect(window.gtag).toHaveBeenCalledWith('event', SIGNUP_EVENT.PROCESS_ENDED, expect.objectContaining({
-      flow_id: 'flow-2', attempt_id: 'generated-uuid', status: 'success', error: null,
-    }));
-    expect(window.gtag).toHaveBeenCalledWith('event', SIGNUP_EVENT.FLOW_ENDED, expect.objectContaining({
-      flow_id: 'flow-2', status: 'success', error: null,
-    }));
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      SIGNUP_EVENT.METHOD_CHOSEN,
+      expect.objectContaining({
+        flow_id: 'flow-2',
+        attempt_id: 'generated-uuid',
+        method: SIGNUP_METHOD.GOOGLE,
+      })
+    );
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      SIGNUP_EVENT.PROCESS_STARTED,
+      expect.objectContaining({
+        flow_id: 'flow-2',
+        attempt_id: 'generated-uuid',
+      })
+    );
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      SIGNUP_EVENT.PROCESS_ENDED,
+      expect.objectContaining({
+        flow_id: 'flow-2',
+        attempt_id: 'generated-uuid',
+        status: 'success',
+        error: null,
+      })
+    );
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      SIGNUP_EVENT.FLOW_ENDED,
+      expect.objectContaining({
+        flow_id: 'flow-2',
+        status: 'success',
+        error: null,
+      })
+    );
     expect(sessionStorage.getItem(ACTIVE_FLOW_KEY)).toBeNull();
   });
 

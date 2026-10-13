@@ -1,4 +1,9 @@
 {
   "extends": ["stylelint-config-standard-scss"],
+  "rules": {
+    "selector-class-pattern": null,
+    "scss/no-global-function-names": null,
+    "scss/operator-no-unspaced": null
+  },
   "ignoreFiles": ["node_modules/**", "static/bundles/**", "static/css/*.css", "static/css/*.css.map"]
 }

@@ -13,29 +13,34 @@ Examples:
 """
 
 import django
+
 django.setup()
 
-from collections import defaultdict
 import argparse
 import json
-import random
 import os
-from tqdm import tqdm
-from sefaria.system.exceptions import InputError
-from sefaria.model import Ref
-from sefaria.system.database import db
-from sefaria.settings import CELERY_QUEUES, CELERY_ENABLED
-from sefaria.celery_setup.app import app
+import random
+from collections import defaultdict
 from dataclasses import asdict
+
+from tqdm import tqdm
+
+from sefaria.celery_setup.app import app
 from sefaria.helper.linker.disambiguator import (
-    AmbiguousResolutionPayload, NonSegmentResolutionPayload, _get_commentary_base_ref
+    AmbiguousResolutionPayload,
+    NonSegmentResolutionPayload,
+    _get_commentary_base_ref,
 )
 from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
+from sefaria.model import Ref
+from sefaria.settings import CELERY_ENABLED, CELERY_QUEUES
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 
 # Global flag for debug mode
 DEBUG_MODE = False  # True = sample a small random subset; False = process all matching LinkerOutput docs
 DEBUG_LIMIT = 3000  # Number of random examples to fetch in debug mode
-DEBUG_SEED = 6139   # Seed for reproducible random sampling
+DEBUG_SEED = 6139  # Seed for reproducible random sampling
 
 DEBUG_CACHE_DIR = os.path.join(os.path.dirname(__file__), "debug_cache")
 
@@ -50,10 +55,10 @@ def _debug_cached_sample(cache_name: str, query: dict, collection, limit: int) -
 
     if os.path.exists(cache_path):
         print(f"  Loading cached sample from {cache_path}")
-        with open(cache_path, "r") as f:
+        with open(cache_path) as f:
             return json.load(f)
 
-    print(f"  No cache found. Sampling from MongoDB...")
+    print("  No cache found. Sampling from MongoDB...")
     pipeline = [
         {"$match": query},
         {"$sample": {"size": limit}},
@@ -87,14 +92,14 @@ def _get_base_text_ref_for_grouping(ref_str: str):
 
 
 _RESUME_MARKER_FIELDS = (
-    'llm_ambiguous_option_valid',
-    'llm_resolved_ref_ambiguous',
-    'llm_resolved_method_ambiguous',
-    'llm_resolved_phrase_ambiguous',
-    'llm_resolved_ref_non_segment',
-    'llm_resolved_method_non_segment',
-    'llm_resolved_phrase_non_segment',
-    'llm_resolved_ref_but_rejected',
+    "llm_ambiguous_option_valid",
+    "llm_resolved_ref_ambiguous",
+    "llm_resolved_method_ambiguous",
+    "llm_resolved_phrase_ambiguous",
+    "llm_resolved_ref_non_segment",
+    "llm_resolved_method_non_segment",
+    "llm_resolved_phrase_non_segment",
+    "llm_resolved_ref_but_rejected",
 )
 
 
@@ -130,8 +135,8 @@ def find_all_resolutions(debug_parent_ref=None, resume_mode=False):
                     {"ambiguous": True},
                     {"failed": {"$ne": True}, "ref": {"$exists": True}},
                 ],
-            }
-        }
+            },
+        },
     }
 
     if DEBUG_MODE:
@@ -149,12 +154,12 @@ def find_all_resolutions(debug_parent_ref=None, resume_mode=False):
     doc_total = len(docs) if isinstance(docs, list) else None
     progress = tqdm(docs, desc="Processing docs", total=doc_total, unit="doc")
     for raw_doc in progress:
-        citing_ref = raw_doc.get('ref')
+        citing_ref = raw_doc.get("ref")
         if not citing_ref:
             continue
 
         base_ref = _get_base_text_ref_for_grouping(citing_ref) or "__no_base_ref__"
-        spans = raw_doc.get('spans', [])
+        spans = raw_doc.get("spans", [])
 
         if resume_mode:
             for span in spans:
@@ -164,15 +169,18 @@ def find_all_resolutions(debug_parent_ref=None, resume_mode=False):
         # --- Ambiguous payloads: group spans by charRange ---
         char_range_groups = defaultdict(list)
         for span in spans:
-            if span.get('type') == 'citation' and span.get('ambiguous', False) and span.get('llm_ambiguous_option_valid') is None:
-                char_range_groups[tuple(span['charRange'])].append(span)
+            if (
+                span.get("type") == "citation"
+                and span.get("ambiguous", False)
+                and span.get("llm_ambiguous_option_valid") is None
+            ):
+                char_range_groups[tuple(span["charRange"])].append(span)
 
         for char_range, amb_spans in char_range_groups.items():
-            ambiguous_refs = []
             normalized_refs = set()
-            text = amb_spans[0].get('text', '')
+            text = amb_spans[0].get("text", "")
             for s in amb_spans:
-                r = s.get('ref')
+                r = s.get("ref")
                 if not r:
                     continue
                 try:
@@ -193,29 +201,31 @@ def find_all_resolutions(debug_parent_ref=None, resume_mode=False):
                             continue
 
                 if not debug_parent_ref or has_match_to_parent_ref:
-                    groups[base_ref].append(AmbiguousResolutionPayload(
-                        ref=citing_ref,
-                        versionTitle=raw_doc['versionTitle'],
-                        language=raw_doc['language'],
-                        charRange=list(char_range),
-                        text=text,
-                        ambiguous_refs=list(normalized_refs),
-                    ))
+                    groups[base_ref].append(
+                        AmbiguousResolutionPayload(
+                            ref=citing_ref,
+                            versionTitle=raw_doc["versionTitle"],
+                            language=raw_doc["language"],
+                            charRange=list(char_range),
+                            text=text,
+                            ambiguous_refs=list(normalized_refs),
+                        ),
+                    )
                     total_ambiguous += 1
                     progress.set_postfix(ambiguous=total_ambiguous, non_segment=total_non_segment, refresh=False)
 
         # --- Non-segment payloads ---
         for span in spans:
-            if span.get('type') != 'citation' or span.get('failed', False):
+            if span.get("type") != "citation" or span.get("failed", False):
                 continue
-            if span.get('ambiguous', False) and not span.get('llm_ambiguous_option_valid'):
+            if span.get("ambiguous", False) and not span.get("llm_ambiguous_option_valid"):
                 continue
-            if span.get('llm_resolved_ref_non_segment'):
+            if span.get("llm_resolved_ref_non_segment"):
                 continue
 
-            ref_str = span.get('ref')
-            if span.get('ambiguous', False) and span.get('llm_ambiguous_option_valid'):
-                ref_str = span.get('llm_resolved_ref_ambiguous') or ref_str
+            ref_str = span.get("ref")
+            if span.get("ambiguous", False) and span.get("llm_ambiguous_option_valid"):
+                ref_str = span.get("llm_resolved_ref_ambiguous") or ref_str
             if not ref_str:
                 continue
             if debug_parent_ref is not None:
@@ -228,14 +238,16 @@ def find_all_resolutions(debug_parent_ref=None, resume_mode=False):
 
             if _is_non_segment_or_perek_ref(ref_str):
                 try:
-                    groups[base_ref].append(NonSegmentResolutionPayload(
-                        ref=citing_ref,
-                        versionTitle=raw_doc['versionTitle'],
-                        language=raw_doc['language'],
-                        charRange=span['charRange'],
-                        text=span['text'],
-                        resolved_non_segment_ref=ref_str,
-                    ))
+                    groups[base_ref].append(
+                        NonSegmentResolutionPayload(
+                            ref=citing_ref,
+                            versionTitle=raw_doc["versionTitle"],
+                            language=raw_doc["language"],
+                            charRange=span["charRange"],
+                            text=span["text"],
+                            resolved_non_segment_ref=ref_str,
+                        ),
+                    )
                     total_non_segment += 1
                     progress.set_postfix(ambiguous=total_ambiguous, non_segment=total_non_segment, refresh=False)
                 except Exception as e:
@@ -243,7 +255,7 @@ def find_all_resolutions(debug_parent_ref=None, resume_mode=False):
 
     print(
         f"Found {total_ambiguous} ambiguous + {total_non_segment} non-segment = "
-        f"{total_ambiguous + total_non_segment} total payloads across {len(groups)} base text groups"
+        f"{total_ambiguous + total_non_segment} total payloads across {len(groups)} base text groups",
     )
     return groups
 
@@ -258,10 +270,10 @@ def _payload_match_key(payload):
 
 def _target_match_key(target: dict):
     """Identity tuple for a resume-anchor dict loaded from JSON."""
-    base = (target['ref'], target['versionTitle'], target['language'], tuple(target['charRange']))
-    if 'resolved_non_segment_ref' in target:
-        return base + ("non_segment", target['resolved_non_segment_ref'])
-    return base + ("ambiguous", tuple(sorted(target['ambiguous_refs'])))
+    base = (target["ref"], target["versionTitle"], target["language"], tuple(target["charRange"]))
+    if "resolved_non_segment_ref" in target:
+        return base + ("non_segment", target["resolved_non_segment_ref"])
+    return base + ("ambiguous", tuple(sorted(target["ambiguous_refs"])))
 
 
 def enqueue_bulk_disambiguation(payload: dict):
@@ -276,18 +288,27 @@ def enqueue_bulk_disambiguation(payload: dict):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--start", type=int, default=0,
-                        help="Number of individual payloads to skip before dispatching")
-    parser.add_argument("--limit", type=int, default=0,
-                        help="Number of individual payloads to limit to")
-    parser.add_argument("--debug-ref", type=str, default=None,
-                        help="Filter to citing refs equal to or contained within this ref")
-    parser.add_argument("--resume-after-payload-file", type=str, default=None,
-                        help="Path to JSON file with the last-dispatched payload. Enables "
-                             "resume mode: sorts docs by _id, ignores prior disambiguation "
-                             "markers, and dispatches starting after the matching payload.")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="In resume mode, locate the anchor and print context without dispatching.")
+    parser.add_argument("--start", type=int, default=0, help="Number of individual payloads to skip before dispatching")
+    parser.add_argument("--limit", type=int, default=0, help="Number of individual payloads to limit to")
+    parser.add_argument(
+        "--debug-ref",
+        type=str,
+        default=None,
+        help="Filter to citing refs equal to or contained within this ref",
+    )
+    parser.add_argument(
+        "--resume-after-payload-file",
+        type=str,
+        default=None,
+        help="Path to JSON file with the last-dispatched payload. Enables "
+        "resume mode: sorts docs by _id, ignores prior disambiguation "
+        "markers, and dispatches starting after the matching payload.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="In resume mode, locate the anchor and print context without dispatching.",
+    )
     args = parser.parse_args()
 
     if args.resume_after_payload_file and args.limit:
@@ -337,8 +358,10 @@ def main():
                 match_index = i
                 break
         if match_index is None:
-            print("ERROR: Could not find resume-after payload in rebuilt list. "
-                  "Verify the JSON file contents and that the doc is still in the collection.")
+            print(
+                "ERROR: Could not find resume-after payload in rebuilt list. "
+                "Verify the JSON file contents and that the doc is still in the collection.",
+            )
             return
 
         print(f"\n=== Resume anchor found at index {match_index} / {len(all_payloads)} ===")
@@ -347,23 +370,25 @@ def main():
             j = match_index + offset
             if 0 <= j < len(all_payloads):
                 print(f"  [{j:>8}] {'<-- anchor' if offset == 0 else ''} {asdict(all_payloads[j])}")
-        print(f"=== Would dispatch {len(all_payloads) - match_index - 1} payloads starting at index {match_index + 1} ===\n")
+        print(
+            f"=== Would dispatch {len(all_payloads) - match_index - 1} payloads starting at index {match_index + 1} ===\n",
+        )
 
         if args.dry_run:
             print("Dry-run: not dispatching.")
             return
 
-        dispatch_list = all_payloads[match_index + 1:]
+        dispatch_list = all_payloads[match_index + 1 :]
         start = match_index + 1
         total = len(all_payloads)
     elif args.limit:
         random.shuffle(all_payloads)
         total = args.limit
-        dispatch_list = all_payloads[args.start:args.start+args.limit]
+        dispatch_list = all_payloads[args.start : args.start + args.limit]
         start = args.start
     else:
         total = len(all_payloads)
-        dispatch_list = all_payloads[args.start:]
+        dispatch_list = all_payloads[args.start :]
         start = args.start
 
     print(f"Dispatching {len(dispatch_list)} tasks (skipping first {start})...")

@@ -45,15 +45,17 @@ def _load_test_cases():
                 if row.get(f"correct_output_{n}", "").strip()
             ]
 
-            sanitized_ref = re.sub(r'[^A-Za-z0-9]+', '_', row['payload_ref']).strip('_')
+            sanitized_ref = re.sub(r"[^A-Za-z0-9]+", "_", row["payload_ref"]).strip("_")
             case_id = f"row_{i}_{case_type}_{sanitized_ref}"
 
-            cases.append({
-                "id": case_id,
-                "case_type": case_type,
-                "payload": payload_kwargs,
-                "correct_outputs": correct_outputs,
-            })
+            cases.append(
+                {
+                    "id": case_id,
+                    "case_type": case_type,
+                    "payload": payload_kwargs,
+                    "correct_outputs": correct_outputs,
+                },
+            )
     return cases
 
 
@@ -92,12 +94,9 @@ def test_disambiguator_from_csv(case):
         assert result is None, f"Expected no resolution for case {case['id']}, got {result}"
         return
 
-    assert result is not None, (
-        f"Expected one of {correct_outputs} for case {case['id']}, got None"
-    )
+    assert result is not None, f"Expected one of {correct_outputs} for case {case['id']}, got None"
 
     result_output = getattr(result, "matched_segment", None) or result.resolved_ref
     assert result_output in correct_outputs, (
-        f"Unexpected output for case {case['id']}: {result_output} "
-        f"(expected one of {correct_outputs})"
+        f"Unexpected output for case {case['id']}: {result_output} (expected one of {correct_outputs})"
     )

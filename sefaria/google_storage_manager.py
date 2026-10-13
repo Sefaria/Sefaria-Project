@@ -1,11 +1,14 @@
-from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
-from google.cloud import storage
 import re
 from io import BytesIO
+
+from google.cloud import storage
+
 from sefaria.site.site_settings import SITE_SETTINGS
 
-class GoogleStorageManager(object):
+from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 
+
+class GoogleStorageManager:
     """
     Wrapper class for interacting with Google Cloud storage via Google's API classes.
     Please note that several Google exceptions (mostly subclasses of google.cloud.exceptions.GoogleAPICallError)
@@ -24,7 +27,7 @@ class GoogleStorageManager(object):
 
     @classmethod
     def get_bucket(cls, bucket_name):
-        if getattr(cls, 'client', None) is None:
+        if getattr(cls, "client", None) is None:
             # for local development, change below line to cls.client = storage.Client(project="production-deployment")
             cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
         bucket = cls.client.get_bucket(bucket_name)
@@ -53,9 +56,8 @@ class GoogleStorageManager(object):
     def duplicate_file(cls, from_file, to_filename, bucket_name):
         bucket = cls.get_bucket(bucket_name)
         source_blob = bucket.blob(from_file)
-        blob_copy = bucket.copy_blob(source_blob, bucket, to_filename)
+        bucket.copy_blob(source_blob, bucket, to_filename)
         return cls.get_url(to_filename, bucket_name)
-
 
     @classmethod
     def delete_filename(cls, filename, bucket_name):
@@ -84,7 +86,7 @@ class GoogleStorageManager(object):
 
     @classmethod
     def get_url(cls, filename, bucket_name):
-        return "{}/{}/{}".format(cls.BASE_URL, bucket_name, filename)
+        return f"{cls.BASE_URL}/{bucket_name}/{filename}"
 
     @classmethod
     def get_filename_from_url(cls, old_file_url):

@@ -1,16 +1,18 @@
 import re
 
 import django
+
 django.setup()
-from sefaria.model import *
 import csv
-from tqdm import tqdm
-from langchain.prompts import ChatPromptTemplate
-from langchain_anthropic import ChatAnthropicMessages
-from scripts.linker_books.linker_books_utils import run_parallel
 
 from langchain.globals import set_llm_cache
+from langchain.prompts import ChatPromptTemplate
+from langchain_anthropic import ChatAnthropicMessages
 from langchain_community.cache import SQLiteCache
+from tqdm import tqdm
+
+from scripts.linker_books.linker_books_utils import run_parallel
+from sefaria.model import *
 
 set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 
@@ -39,15 +41,20 @@ def get_corresponding_title(title):
     """)
     llm = ChatAnthropicMessages(model="claude-sonnet-4-5-20250929", temperature=0)
 
-    sefaria_titles = [title.replace("Mishneh Torah, ", "") for title in library.get_indexes_in_category_path(["Halakhah", "Mishneh Torah"]) if title.startswith("Mishneh Torah")]
+    sefaria_titles = [
+        title.replace("Mishneh Torah, ", "")
+        for title in library.get_indexes_in_category_path(["Halakhah", "Mishneh Torah"])
+        if title.startswith("Mishneh Torah")
+    ]
 
-    response = llm.invoke(prompt.format_messages(
-        sefaria_titles="\n".join(sefaria_titles),
-        new_title=title
-    ))
+    response = llm.invoke(
+        prompt.format_messages(
+            sefaria_titles="\n".join(sefaria_titles),
+            new_title=title,
+        ),
+    )
 
     return response.content
-
 
 
 def run():
@@ -60,15 +67,24 @@ def run():
 
     def action(s, en_tref, he_tref, v):
         nonlocal rows
-        for match in re.finditer("<i>Hilchot ([ a-zA-Z'\-]+)", s):
-            rows.append({
-                "Ref": en_tref,
-                "Hilchot": match.group(1)
-            })
+        for match in re.finditer(r"<i>Hilchot ([ a-zA-Z'\-]+)", s):
+            rows.append(
+                {
+                    "Ref": en_tref,
+                    "Hilchot": match.group(1),
+                },
+            )
 
     for index in tqdm(library.get_indexes_in_category_path(["Halakhah", "Mishneh Torah"], full_records=True)):
-        if not index.title.startswith("Mishneh Torah"): continue
-        version = Version().load({"title": index.title, "language": "en", "versionTitle": "Mishneh Torah, trans. by Eliyahu Touger. Jerusalem, Moznaim Pub. c1986-c2007"})
+        if not index.title.startswith("Mishneh Torah"):
+            continue
+        version = Version().load(
+            {
+                "title": index.title,
+                "language": "en",
+                "versionTitle": "Mishneh Torah, trans. by Eliyahu Touger. Jerusalem, Moznaim Pub. c1986-c2007",
+            },
+        )
         if not version:
             continue
         version.walk_thru_contents(action)
@@ -80,15 +96,17 @@ def run():
 
 def match_titles():
     out_rows = []
-    with open("/Users/nss/sefaria/project/data/private/Untitled spreadsheet - Sheet2.csv", "r") as fin:
+    with open("/Users/nss/sefaria/project/data/private/Untitled spreadsheet - Sheet2.csv") as fin:
         cin = csv.DictReader(fin)
         titles = [row["Title"] for row in cin]
         matching_titles = run_parallel(titles, get_corresponding_title, 25)
         for title, match in zip(titles, matching_titles):
-            out_rows.append({
-                "Sefaria": "Mishneh Torah, " + match,
-                "Other": title
-            })
+            out_rows.append(
+                {
+                    "Sefaria": "Mishneh Torah, " + match,
+                    "Other": title,
+                },
+            )
     with open("/Users/nss/sefaria/project/data/private/mt_title_matches.csv", "w") as fout:
         cout = csv.DictWriter(fout, fieldnames=out_rows[0].keys())
         cout.writeheader()
@@ -97,13 +115,15 @@ def match_titles():
 
 def import_mt_titles():
     from collections import defaultdict
+
     by_title = defaultdict(list)
-    with open("/Users/nss/sefaria/project/data/private/mt_title_matches.csv", "r") as fin:
+    with open("/Users/nss/sefaria/project/data/private/mt_title_matches.csv") as fin:
         cin = csv.DictReader(fin)
         for row in cin:
             by_title[row["Sefaria"]].append(row["Other"])
     for sefaria_title, other_titles in by_title.items():
-        if "No match" in sefaria_title: continue
+        if "No match" in sefaria_title:
+            continue
         index = library.get_index(sefaria_title)
         if not index:
             print(f"Could not find index for {sefaria_title}")
@@ -115,8 +135,6 @@ def import_mt_titles():
             term.add_title(title, "en")
         term.save()
         print(f"Saved alt titles for {sefaria_title}: {', '.join(other_titles)}")
-
-
 
 
 if __name__ == "__main__":

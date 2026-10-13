@@ -1,11 +1,12 @@
 import codecs
-import json
-import re
-import unicodecsv
-from collections import defaultdict
 import heapq
+import json
 import math as mathy
+from collections import defaultdict
+
 import django
+import unicodecsv
+
 django.setup()
 
 from sefaria.model import *
@@ -15,8 +16,8 @@ from sefaria.system.exceptions import InputError
 def argmax(iterable, n=1):
     if n == 1:
         return max(enumerate(iterable), key=lambda x: x[1])[0]
-    else:
-        return heapq.nlargest(n, range(len(iterable)), iterable.__getitem__)
+    return heapq.nlargest(n, range(len(iterable)), iterable.__getitem__)
+
 
 ref2parsha = {}
 parsha2pr = defaultdict(list)
@@ -40,7 +41,7 @@ with codecs.open("../static/pagerank.json", "rb", encoding="utf8") as fin:
             if len(oref.text("he").text) == 0:
                 continue
             new_pr = mathy.log(pr) + 20
-            sheet_pr = (1.0 + sheetrank[tref]["count"] / 5)**2 if tref in sheetrank else (1.0 / 5) ** 2
+            sheet_pr = (1.0 + sheetrank[tref]["count"] / 5) ** 2 if tref in sheetrank else (1.0 / 5) ** 2
             my_csv += [{"Ref": tref, "PR": new_pr * sheet_pr}]
         except InputError:
             continue

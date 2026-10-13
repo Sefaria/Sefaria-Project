@@ -1,3 +1,4 @@
+import contextlib
 import csv
 import io
 
@@ -40,9 +41,9 @@ class UserExperimentSettingsAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path(
-                'upload-csv/',
+                "upload-csv/",
                 self.admin_site.admin_view(self.upload_csv_view),
-                name='reader_userexperimentsettings_upload_csv',
+                name="reader_userexperimentsettings_upload_csv",
             ),
         ]
         return custom_urls + urls
@@ -117,13 +118,13 @@ class UserExperimentsChangeForm(UserChangeForm):
             # Store the value to be set after the user is saved
             self._experiments_value = self.cleaned_data.get("experiments", False)
         return user
-    
+
     def _save_m2m(self):
         super()._save_m2m()
         # Set experiments after the user and all related objects are saved
-        if hasattr(self, '_experiments_value'):
+        if hasattr(self, "_experiments_value"):
             _set_user_experiments(self.instance, self._experiments_value)
-            delattr(self, '_experiments_value')
+            delattr(self, "_experiments_value")
 
 
 class UserAdminWithExperiments(UserAdmin):
@@ -132,10 +133,8 @@ class UserAdminWithExperiments(UserAdmin):
 
 
 def register_user_admin():
-    try:
+    with contextlib.suppress(admin.sites.NotRegistered):
         admin.site.unregister(User)
-    except admin.sites.NotRegistered:
-        pass
     admin.site.register(User, UserAdminWithExperiments)
 
 

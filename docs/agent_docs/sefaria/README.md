@@ -1,38 +1,46 @@
 # Sefaria Backend Package
+
 > Source: `sefaria/`
 
 ## Purpose
+
 The core backend Python package. Contains the model layer (ORM over MongoDB), the web views and URL routing, business logic for sheets/search/tracking/export, helper modules, and infrastructure (database, caching, middleware, multiserver coordination, Varnish integration). This is where nearly all Python-side business logic lives.
 
 ## Navigation
 
 ### Model Layer
+
 Covered separately in [`../model/`](../model/README.md) — the MongoDB ORM, text models (Index, Version, Ref, TextChunk, Library), schema trees, topics, links, users, etc. **Start there for any data-model work.**
 
 ### Views & Routing
-| Doc | Covers | Load when... |
-|-----|--------|-------------|
+
+| Doc                                            | Covers                             | Load when...                                                   |
+| ---------------------------------------------- | ---------------------------------- | -------------------------------------------------------------- |
 | [views_and_routing.md](./views_and_routing.md) | `views.py`, `urls*.py`, `hosts.py` | Adding/modifying Django views, URL patterns, subdomain routing |
 
 ### Business Logic
-| Doc | Covers | Load when... |
-|-----|--------|-------------|
-| [sheets.md](./sheets.md) | `sheets.py` | Working with source sheets (CRUD, topics, collections, publishing) |
-| [search.md](./search.md) | `search.py` | Working with Elasticsearch indexing of texts and sheets |
-| [tracker_and_history.md](./tracker_and_history.md) | `tracker.py`, `history.py` | Text mutations, change logging, activity feeds, diff reconstruction |
-| [config_and_utilities.md](./config_and_utilities.md) | `settings.py`, `forms.py`, `export.py`, `recommendation_engine.py`, `pagesheetrank.py`, `stats.py`, `clean.py`, `sitemap.py`, `image_generator.py`, `google_storage_manager.py`, `settings_utils.py`, `decorators.py` | Config, forms, exports, analytics, maintenance, media |
+
+| Doc                                                  | Covers                                                                                                                                                                                                                | Load when...                                                        |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [sheets.md](./sheets.md)                             | `sheets.py`                                                                                                                                                                                                           | Working with source sheets (CRUD, topics, collections, publishing)  |
+| [search.md](./search.md)                             | `search.py`                                                                                                                                                                                                           | Working with Elasticsearch indexing of texts and sheets             |
+| [tracker_and_history.md](./tracker_and_history.md)   | `tracker.py`, `history.py`                                                                                                                                                                                            | Text mutations, change logging, activity feeds, diff reconstruction |
+| [config_and_utilities.md](./config_and_utilities.md) | `settings.py`, `forms.py`, `export.py`, `recommendation_engine.py`, `pagesheetrank.py`, `stats.py`, `clean.py`, `sitemap.py`, `image_generator.py`, `google_storage_manager.py`, `settings_utils.py`, `decorators.py` | Config, forms, exports, analytics, maintenance, media               |
 
 ### Helper Layer
+
 Business logic between models and views. See [`helper/README.md`](./helper/README.md) for the full navigation.
 
 ### System Infrastructure
+
 Database, caching, middleware, multi-server coordination, Varnish. See [`system/README.md`](./system/README.md).
 
 ### Utility Packages
-| Doc | Covers | Load when... |
-|-----|--------|-------------|
-| [utils.md](./utils.md) | `sefaria/utils/` | Hebrew numerals, dates, user account utils, time/calendar helpers |
-| [datatype.md](./datatype.md) | `sefaria/datatype/` | The `JaggedArray` data structure — core to text representation |
+
+| Doc                                      | Covers                                                                                 | Load when...                                                                                                   |
+| ---------------------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [utils.md](./utils.md)                   | `sefaria/utils/`                                                                       | Hebrew numerals, dates, user account utils, time/calendar helpers                                              |
+| [datatype.md](./datatype.md)             | `sefaria/datatype/`                                                                    | The `JaggedArray` data structure — core to text representation                                                 |
 | [small_packages.md](./small_packages.md) | `client/`, `gauth/`, `celery_setup/`, `constants/`, `site/`, `sefaria_tasks_interace/` | Internal HTTP client, Google OAuth, Celery config, shared constants, multi-site routing, async task interfaces |
 
 ## Package Layout

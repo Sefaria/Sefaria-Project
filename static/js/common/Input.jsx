@@ -62,18 +62,23 @@ const Input = ({
     'sefaria-input',
     error ? 'sefaria-input--error' : '',
     disabled ? 'sefaria-input--disabled' : '',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
-  const fieldClasses = [
-    'sefaria-input-field',
-    isPassword ? 'has-trailing-icon' : '',
-  ].filter(Boolean).join(' ');
+  const fieldClasses = ['sefaria-input-field', isPassword ? 'has-trailing-icon' : ''].filter(Boolean).join(' ');
 
   return (
     <div className={wrapperClasses}>
       {(label || trailingLink) && (
         <div className="sefaria-input-labelRow">
-          {label ? <label className="sefaria-input-label" htmlFor={inputId}><InterfaceText>{label}</InterfaceText></label> : <span />}
+          {label ? (
+            <label className="sefaria-input-label" htmlFor={inputId}>
+              <InterfaceText>{label}</InterfaceText>
+            </label>
+          ) : (
+            <span />
+          )}
           {trailingLink && (
             <a
               className="sefaria-input-trailingLink"
@@ -81,9 +86,13 @@ const Input = ({
               onClick={trailingLink.onClick}
               tabIndex={!trailingLink.href && 0}
               role={!trailingLink.href && 'link'}
-              onKeyDown={!trailingLink.href && trailingLink.onClick
-                ? (e) => { if (e.key === 'Enter') trailingLink.onClick(e); }
-                : undefined}
+              onKeyDown={
+                !trailingLink.href && trailingLink.onClick
+                  ? (e) => {
+                      if (e.key === 'Enter') trailingLink.onClick(e);
+                    }
+                  : undefined
+              }
             >
               <InterfaceText>{trailingLink.text}</InterfaceText>
             </a>

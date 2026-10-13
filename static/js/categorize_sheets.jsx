@@ -1,10 +1,10 @@
-import "core-js/stable";
-import "regenerator-runtime/runtime";
-import React  from 'react';
-import ReactDOM  from 'react-dom';
-import ReactTags from 'react-tag-autocomplete'
-import DjangoCSRF  from './lib/django-csrf';
-import Sefaria  from './sefaria/sefaria';
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTags from 'react-tag-autocomplete';
+import DjangoCSRF from './lib/django-csrf';
+import Sefaria from './sefaria/sefaria';
 
 class SheetCategorizer extends React.Component {
   constructor(props) {
@@ -18,7 +18,7 @@ class SheetCategorizer extends React.Component {
       previousTags: [],
       adminType: props.adminType,
       skipIds: [],
-      doesNotContain: props.doesNotContain
+      doesNotContain: props.doesNotContain,
     };
     this.reactTags = React.createRef();
   }
@@ -38,9 +38,8 @@ class SheetCategorizer extends React.Component {
     tags.splice(i, 1);
     if (tags.length === 0) {
       this.setState({ tags, previousTags: tags, noTags: true });
-    }
-    else {
-      this.setState({ tags, previousTags: tags })
+    } else {
+      this.setState({ tags, previousTags: tags });
     }
   }
 
@@ -50,11 +49,11 @@ class SheetCategorizer extends React.Component {
   }
 
   updateSuggestedTags(input) {
-    if (input == "") return;
+    if (input == '') return;
     Sefaria.getName(input, 0)
       .then((d) => {
         const topics = d.completion_objects
-          .filter((obj) => obj.type === "Topic")
+          .filter((obj) => obj.type === 'Topic')
           .map((filteredObj, index) => ({
             id: index,
             name: filteredObj.title,
@@ -66,121 +65,122 @@ class SheetCategorizer extends React.Component {
   }
 
   saveAndNext() {
-    const topics = this.state.tags.map(tag => ({
+    const topics = this.state.tags.map((tag) => ({
       asTyped: tag.name,
       slug: tag.slug,
     }));
     const currentCategories = this.state.categories;
     const keys = Object.keys(currentCategories);
-    const categoriesToSend = keys.filter(x => currentCategories[x])
+    const categoriesToSend = keys.filter((x) => currentCategories[x]);
     this.putSheetAndUpdateNext({
       sheetId: this.state.sheetId,
       tags: topics,
       noTags: this.state.noTags,
       categories: categoriesToSend,
-      skipIds: this.state.skipIds
+      skipIds: this.state.skipIds,
     });
   }
 
   skipAndNext() {
-    this.setState({
-      skipIds: [...this.state.skipIds, this.state.sheetId]
-    }, () => {
-      this.putSheetAndUpdateNext({
-        skipIds: this.state.skipIds
-      })
-    })
+    this.setState(
+      {
+        skipIds: [...this.state.skipIds, this.state.sheetId],
+      },
+      () => {
+        this.putSheetAndUpdateNext({
+          skipIds: this.state.skipIds,
+        });
+      }
+    );
   }
 
   putSheetAndUpdateNext(postJSON) {
-    jQuery.ajax(
-      {
-        type: 'PUT',
-        url: this.state.doesNotContain === "topics" ? "/api/sheets/next-untagged" : "/api/sheets/next-uncategorized",
-        contentType: 'application/json',
-        data: JSON.stringify(postJSON), // access in body
-        success: function (data) {
-          if (data.sheetId) {
-            this.setState({ sheetId: data.sheetId, allCategories: data.allCategories });
-          } else {
-            console.log(data);
-          }
-        }.bind(this)
-      });
+    jQuery.ajax({
+      type: 'PUT',
+      url: this.state.doesNotContain === 'topics' ? '/api/sheets/next-untagged' : '/api/sheets/next-uncategorized',
+      contentType: 'application/json',
+      data: JSON.stringify(postJSON), // access in body
+      success: function (data) {
+        if (data.sheetId) {
+          this.setState({ sheetId: data.sheetId, allCategories: data.allCategories });
+        } else {
+          console.log(data);
+        }
+      }.bind(this),
+    });
   }
 
   getSheet() {
-    Sefaria.sheets.loadSheetByID(
-      this.state.sheetId,
-      this.updateStateWithNewSheet.bind(this)
-      );
+    Sefaria.sheets.loadSheetByID(this.state.sheetId, this.updateStateWithNewSheet.bind(this));
   }
 
   updateStateWithNewSheet(sheet) {
     const topics = sheet.topics.map((topic, i) => ({
       id: i,
-      name: topic["asTyped"],
-      slug: topic["slug"],
-    })
-    )
-    const categories = sheet.categories ? sheet.categories.reduce((a, x) => {
-      return { ...a, [x]: true }
-    }, {}) : {};
+      name: topic['asTyped'],
+      slug: topic['slug'],
+    }));
+    const categories = sheet.categories
+      ? sheet.categories.reduce((a, x) => {
+          return { ...a, [x]: true };
+        }, {})
+      : {};
     this.setState({ tags: topics, previousTags: topics, categories: categories, noTags: sheet.noTags });
   }
 
   addCategory(e) {
-    if (e.key === "Enter" || e.key === "Tab" || e.key === "," || e.type == "click") {
-      const newCategoryElem = document.getElementById('newCategory')
-      if (newCategoryElem !== "" && !this.state.allCategories.includes(newCategoryElem)) {
+    if (e.key === 'Enter' || e.key === 'Tab' || e.key === ',' || e.type == 'click') {
+      const newCategoryElem = document.getElementById('newCategory');
+      if (newCategoryElem !== '' && !this.state.allCategories.includes(newCategoryElem)) {
         this.setState({
-          allCategories: [...this.state.allCategories, newCategoryElem.value]
-        })
+          allCategories: [...this.state.allCategories, newCategoryElem.value],
+        });
       }
-      newCategoryElem.value = "";
+      newCategoryElem.value = '';
     }
   }
 
   handleCategoryToggle(e) {
     const categories = this.state.categories;
     categories[e.target.name] = e.target.checked;
-    this.setState({ categories: categories })
+    this.setState({ categories: categories });
   }
 
   handleNoTagsChange(e) {
     const target = e.target;
     const value = target.checked;
-    if (value === true) { // remove Tags
+    if (value === true) {
+      // remove Tags
       this.setState({
         noTags: value,
-        tags: []
+        tags: [],
       });
     } else {
       this.setState({
         noTags: value,
-        tags: this.state.previousTags
+        tags: this.state.previousTags,
       });
     }
   }
 
   toggleSheetSortingMechanism() {
-    this.setState({ doesNotContain: this.getOpposite(this.state.doesNotContain) },
-    () => {this.putSheetAndUpdateNext({
-      skipIds: this.state.skipIds
-    })})
+    this.setState({ doesNotContain: this.getOpposite(this.state.doesNotContain) }, () => {
+      this.putSheetAndUpdateNext({
+        skipIds: this.state.skipIds,
+      });
+    });
   }
 
   getOpposite(keyword) {
-    return keyword === "topics" ? "categories" : "topics"
+    return keyword === 'topics' ? 'categories' : 'topics';
   }
 
   render() {
- 
     return (
       <div className="categorizer">
         <div id="edit-pane">
           <h3>Topics/Tags:</h3>
-          
+
           <div className="publishBox">
             <ReactTags
               ref={this.reactTags}
@@ -189,8 +189,8 @@ class SheetCategorizer extends React.Component {
               suggestions={this.state.suggestions}
               onDelete={this.onTagDelete.bind(this)}
               onAddition={this.onTagAddition.bind(this)}
-              placeholderText={Sefaria._("common.add_a_topic")}
-              delimiters={["Enter", ","]}
+              placeholderText={Sefaria._('common.add_a_topic')}
+              delimiters={['Enter', ',']}
               onInput={this.updateSuggestedTags.bind(this)}
             />
           </div>
@@ -207,43 +207,62 @@ class SheetCategorizer extends React.Component {
           <div className="categorize-section">
             <fieldset>
               <h3> Categories:</h3>
-              {
-                this.state.allCategories.map((category, i) => (
-                  <div key={i}>
-                    <input
-                      type="checkbox"
-                      onChange={this.handleCategoryToggle.bind(this)}
-                      key={i}
-                      name={category}
-                      checked={this.state.categories[category] || false}
-                    ></input>
-                    <label htmlFor={category}>{category}</label>
-                  </div>
-                ))
-              }
+              {this.state.allCategories.map((category, i) => (
+                <div key={i}>
+                  <input
+                    type="checkbox"
+                    onChange={this.handleCategoryToggle.bind(this)}
+                    key={i}
+                    name={category}
+                    checked={this.state.categories[category] || false}
+                  ></input>
+                  <label htmlFor={category}>{category}</label>
+                </div>
+              ))}
             </fieldset>
-            <label htmlFor="newCategory" className="sr-only">New Category</label>
-            <input type="text" key="newCategory" id="newCategory" placeholder="New Category" aria-label={Sefaria._("categorize_sheets.new_category")} onKeyUp={this.addCategory.bind(this)}></input>
-            <button onClick={this.addCategory.bind(this)} aria-label={Sefaria._("categorize_sheets.add_new_category")}>Add</button>
+            <label htmlFor="newCategory" className="sr-only">
+              New Category
+            </label>
+            <input
+              type="text"
+              key="newCategory"
+              id="newCategory"
+              placeholder="New Category"
+              aria-label={Sefaria._('categorize_sheets.new_category')}
+              onKeyUp={this.addCategory.bind(this)}
+            ></input>
+            <button onClick={this.addCategory.bind(this)} aria-label={Sefaria._('categorize_sheets.add_new_category')}>
+              Add
+            </button>
           </div>
-          <button id="save-and-next" onClick={this.saveAndNext.bind(this)} aria-label={Sefaria._("categorize_sheets.save_and_next")}>Save and Next</button>
+          <button
+            id="save-and-next"
+            onClick={this.saveAndNext.bind(this)}
+            aria-label={Sefaria._('categorize_sheets.save_and_next')}
+          >
+            Save and Next
+          </button>
           <div className="left-pane-bottom">
             <h3>Settings/Admin:</h3>
             <h4>Latest sheets without: {this.state.doesNotContain}</h4>
             <div>
-            <button onClick={this.toggleSheetSortingMechanism.bind(this)} aria-label={`Switch to finding sheets without: ${this.getOpposite(this.state.doesNotContain)}`}>Switch to finding sheets without: {this.getOpposite(this.state.doesNotContain)}</button>
+              <button
+                onClick={this.toggleSheetSortingMechanism.bind(this)}
+                aria-label={`Switch to finding sheets without: ${this.getOpposite(this.state.doesNotContain)}`}
+              >
+                Switch to finding sheets without: {this.getOpposite(this.state.doesNotContain)}
+              </button>
             </div>
             <div>
-            <button onClick={this.skipAndNext.bind(this)} aria-label={Sefaria._("categorize_sheets.skip_this_sheet")}>Skip this sheet</button>
+              <button onClick={this.skipAndNext.bind(this)} aria-label={Sefaria._('categorize_sheets.skip_this_sheet')}>
+                Skip this sheet
+              </button>
             </div>
             Sheet will not be saved!
           </div>
         </div>
         <div id="iframeContainer">
-          <iframe
-            className="sheet"
-            src={"../sheets/" + this.state.sheetId}
-          ></iframe>
+          <iframe className="sheet" src={'../sheets/' + this.state.sheetId}></iframe>
         </div>
       </div>
     );
@@ -252,8 +271,4 @@ class SheetCategorizer extends React.Component {
 
 DjangoCSRF.init();
 
-
-ReactDOM.render(
-  React.createElement(SheetCategorizer, DJANGO_VARS.props),
-  document.getElementById("content")
-);
+ReactDOM.render(React.createElement(SheetCategorizer, DJANGO_VARS.props), document.getElementById('content'));

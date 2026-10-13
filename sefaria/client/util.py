@@ -1,27 +1,27 @@
-
 import json
 from datetime import datetime
 from urllib.parse import urlparse
 
-from django.http import HttpResponse
 from django.core.mail import EmailMultiAlternatives
+from django.http import HttpResponse
 from webpack_loader import utils as webpack_utils
 
 from sefaria.settings import relative_to_abs_path
+
 # from sefaria.model.user_profile import UserProfile
 
 
 def jsonResponse(data, callback=None, status=200):
     if callback:
         return jsonpResponse(data, callback, status)
-    #these next few lines are a quick hack.  this needs thought.
-    try: # Duck typing on AbstractMongoRecord's contents method
+    # these next few lines are a quick hack.  this needs thought.
+    try:  # Duck typing on AbstractMongoRecord's contents method
         data = data.contents()
     except AttributeError:
         pass
 
     if data is None:
-        data = {"error": 'No data available'}
+        data = {"error": "No data available"}
 
     if "_id" in data:
         data["_id"] = str(data["_id"])
@@ -31,44 +31,61 @@ def jsonResponse(data, callback=None, status=200):
             if isinstance(data[key], datetime):
                 data[key] = data[key].isoformat()
 
-    return HttpResponse(json.dumps(data, ensure_ascii=False), content_type="application/json; charset=utf-8", charset="utf-8", status=status)
+    return HttpResponse(
+        json.dumps(data, ensure_ascii=False),
+        content_type="application/json; charset=utf-8",
+        charset="utf-8",
+        status=status,
+    )
 
 
 def jsonpResponse(data, callback, status=200):
     if "_id" in data:
         data["_id"] = str(data["_id"])
-    return HttpResponse("%s(%s)" % (callback, json.dumps(data, ensure_ascii=False)), content_type="application/javascript; charset=utf-8", charset="utf-8", status=status)
+    return HttpResponse(
+        "%s(%s)" % (callback, json.dumps(data, ensure_ascii=False)),
+        content_type="application/javascript; charset=utf-8",
+        charset="utf-8",
+        status=status,
+    )
 
 
 def celeryResponse(task_id: str, sub_task_ids: list[str] = None):
-    data = {'task_id': task_id}
+    data = {"task_id": task_id}
     if sub_task_ids:
-        data['sub_task_ids'] = sub_task_ids
+        data["sub_task_ids"] = sub_task_ids
     return jsonResponse(data, status=202)
 
+
 def send_email(subject, message_html, from_email, to_email):
-    msg = EmailMultiAlternatives(subject, message_html, "Sefaria <hello@sefaria.org>", [to_email], reply_to=[from_email])
+    msg = EmailMultiAlternatives(
+        subject,
+        message_html,
+        "Sefaria <hello@sefaria.org>",
+        [to_email],
+        reply_to=[from_email],
+    )
     msg.send()
 
     return True
 
 
 def _webpack_bundle_path(config_name):
-    webpack_files = webpack_utils.get_files('main', config=config_name)
+    webpack_files = webpack_utils.get_files("main", config=config_name)
     url = webpack_files[0]["url"]
     # Handle both relative paths and full URLs
     # In production, STATIC_URL can be a full URL like https://www.sefaria.org/static/
     # which makes webpack_files return full URLs instead of relative paths
     parsed = urlparse(url)
     path = parsed.path if parsed.scheme else url
-    return relative_to_abs_path('..' + path)
+    return relative_to_abs_path(".." + path)
 
 
 def read_webpack_bundle(config_name):
-    with open(_webpack_bundle_path(config_name), 'r') as file:
+    with open(_webpack_bundle_path(config_name)) as file:
         return file.read()
 
 
 def read_webpack_bundle_map(config_name):
-    with open(_webpack_bundle_path(config_name) + '.map', 'r') as file:
+    with open(_webpack_bundle_path(config_name) + ".map") as file:
         return file.read()

@@ -1,43 +1,43 @@
 """
 Celery tasks for the LLM server
 """
-from sefaria.model.linker.category_resolver import ResolvedCategory
-from sefaria.model.linker.named_entity_resolver import ResolvedNamedEntity
-from sefaria.settings import CELERY_QUEUES
+
+from dataclasses import asdict, dataclass, field
+from typing import Any
+
+import structlog
+from bson import ObjectId
 from celery import signature
 from celery.signals import worker_init
-from sefaria.settings import USE_VARNISH
+
 from sefaria import tracker
-from sefaria.model import library, Link, LinkSet, Version, TermSet
 from sefaria.celery_setup.app import app
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType, LinkerOutput, MarkedUpTextChunkSet
-from sefaria.model import Ref
-from sefaria.model.linker.ref_resolver import ResolutionThoroughness, ResolvedRef, AmbiguousResolvedRef
-from sefaria.model.linker.ref_part import TermContext, RefPartType
-from sefaria.model.linker.linker import LinkedDoc
-from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
 from sefaria.helper.linker.disambiguator import (
+    AmbiguousResolutionPayload,
+    AmbiguousResolutionResult,
+    DictaAPIError,
+    NonSegmentResolutionPayload,
+    NonSegmentResolutionResult,
     disambiguate_ambiguous_ref,
     disambiguate_non_segment_ref,
-    AmbiguousResolutionPayload,
-    NonSegmentResolutionPayload,
-    AmbiguousResolutionResult,
-    NonSegmentResolutionResult,
-    DictaAPIError,
 )
-from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
-from dataclasses import dataclass, field, asdict
-from bson import ObjectId
-import structlog
-from typing import Any, Dict, List, Optional
+from sefaria.helper.linker.linker import FindRefsInput, make_find_refs_response
+from sefaria.helper.text import get_parasha_ref_set, get_talmud_perek_ref_set
+from sefaria.model import Link, LinkSet, Ref, library
+from sefaria.model.linker.linker import LinkedDoc
+from sefaria.model.linker.ref_resolver import ResolutionThoroughness
+from sefaria.model.marked_up_text_chunk import LinkerOutput, MarkedUpTextChunk, MarkedUpTextChunkSet, MUTCSpanType
+from sefaria.settings import CELERY_QUEUES, USE_VARNISH
 
 logger = structlog.get_logger(__name__)
 
 
-from sefaria.system.exceptions import InputError, DuplicateRecordError
-from sefaria.system.varnish.wrapper import invalidate_ref
-from sefaria.system.database import db
+import contextlib
 from datetime import datetime
+
+from sefaria.system.database import db
+from sefaria.system.exceptions import DuplicateRecordError, InputError
+from sefaria.system.varnish.wrapper import invalidate_ref
 
 
 @dataclass(frozen=True)
@@ -49,17 +49,18 @@ class LinkingArgs:
     user_id: str = None  # optional, for tracker
     kwargs: dict = None  # optional, for tracke
 
+
 @dataclass(frozen=True)
 class DeleteAndSaveLinksMsg:
     ref: str
-    added_mutc_trefs: List[str]
-    vtitle: Optional[str] = None
-    lang: Optional[str] = None
-    user_id: Optional[str] = None
-    tracker_kwargs: Dict[str, Any] = field(default_factory=dict)
+    added_mutc_trefs: list[str]
+    vtitle: str | None = None
+    lang: str | None = None
+    user_id: str | None = None
+    tracker_kwargs: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "DeleteAndSaveLinksMsg":
+    def from_dict(cls, d: dict[str, Any]) -> "DeleteAndSaveLinksMsg":
         return cls(
             ref=d["ref"],
             added_mutc_trefs=list(d.get("added_mutc_trefs", [])),
@@ -70,11 +71,10 @@ class DeleteAndSaveLinksMsg:
         )
 
 
-
-
 @worker_init.connect
 def on_worker_init(**kwargs):
     from reader.startup import init_library_cache
+
     logger.info("linker worker_init")
     init_library_cache()
 
@@ -109,18 +109,25 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     linking_args = LinkingArgs(**linking_args_dict)
     linker = library.get_linker(linking_args.lang)
     book_ref = Ref(linking_args.ref)
-    output = linker.link_with_footnotes(linking_args.text, book_context_ref=book_ref, thoroughness=ResolutionThoroughness.HIGH, with_failures=True)
+    output = linker.link_with_footnotes(
+        linking_args.text,
+        book_context_ref=book_ref,
+        thoroughness=ResolutionThoroughness.HIGH,
+        with_failures=True,
+    )
 
     _save_linker_debug_data(linking_args.ref, linking_args.vtitle, linking_args.lang, output)
     # Build spans/chunk (write MarkedUpTextChunk)
     spans = _extract_resolved_spans(output.resolved_refs)
 
-    chunk = MarkedUpTextChunk({
-        "ref": linking_args.ref,
-        "versionTitle": linking_args.vtitle,
-        "language": linking_args.lang,
-        "spans": spans,
-    })
+    chunk = MarkedUpTextChunk(
+        {
+            "ref": linking_args.ref,
+            "versionTitle": linking_args.vtitle,
+            "language": linking_args.lang,
+            "spans": spans,
+        },
+    )
 
     _replace_existing_chunk(chunk)
 
@@ -134,7 +141,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
         user_id=linking_args.user_id,
         tracker_kwargs=linking_args.kwargs,
     )
-    
+
     delete_and_save_new_links(asdict(msg))
     run_disambiguator(linking_args)
 
@@ -153,11 +160,13 @@ def run_disambiguator(linking_args: LinkingArgs) -> None:
 
 def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[AmbiguousResolutionPayload]:
     """Load ambiguous cases from the latest LinkerOutput for this ref."""
-    linker_output = LinkerOutput().load({
-        "ref": linking_args.ref,
-        "versionTitle": linking_args.vtitle,
-        "language": linking_args.lang,
-    })
+    linker_output = LinkerOutput().load(
+        {
+            "ref": linking_args.ref,
+            "versionTitle": linking_args.vtitle,
+            "language": linking_args.lang,
+        },
+    )
     if not linker_output:
         return []
 
@@ -179,35 +188,41 @@ def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[AmbiguousRes
             except Exception:
                 normalized.add(ref_str)
         if len(normalized) > 1:
-            ambiguous_payloads.append(AmbiguousResolutionPayload(
-                ref=linker_output.ref,
-                versionTitle=linker_output.versionTitle,
-                language=linker_output.language,
-                charRange=list(char_range),
-                text=group[0].get("text"),
-                ambiguous_refs=refs,
-            ))
+            ambiguous_payloads.append(
+                AmbiguousResolutionPayload(
+                    ref=linker_output.ref,
+                    versionTitle=linker_output.versionTitle,
+                    language=linker_output.language,
+                    charRange=list(char_range),
+                    text=group[0].get("text"),
+                    ambiguous_refs=refs,
+                ),
+            )
 
     return ambiguous_payloads
 
 
 def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegmentResolutionPayload]:
     """Load non-segment citation spans; include ambiguous only if MUTC shows non-segment at same charRange."""
-    linker_output = LinkerOutput().load({
-        "ref": linking_args.ref,
-        "versionTitle": linking_args.vtitle,
-        "language": linking_args.lang,
-    })
+    linker_output = LinkerOutput().load(
+        {
+            "ref": linking_args.ref,
+            "versionTitle": linking_args.vtitle,
+            "language": linking_args.lang,
+        },
+    )
     if not linker_output:
         return []
 
     spans = linker_output.spans
-    mutc = MarkedUpTextChunk().load({
-        "ref": linking_args.ref,
-        "versionTitle": linking_args.vtitle,
-        "language": linking_args.lang,
-    })
-    mutc_spans = (mutc.spans if mutc else [])
+    mutc = MarkedUpTextChunk().load(
+        {
+            "ref": linking_args.ref,
+            "versionTitle": linking_args.vtitle,
+            "language": linking_args.lang,
+        },
+    )
+    mutc_spans = mutc.spans if mutc else []
     mutc_non_segment_char_ranges: set[tuple[int, int]] = set()
     for mutc_span in mutc_spans:
         if mutc_span.get("type") != MUTCSpanType.CITATION.value:
@@ -241,19 +256,21 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegment
         except Exception:
             continue
         if _is_non_segment_or_perek_ref(ref_str, oref):
-            non_segment_payloads.append(NonSegmentResolutionPayload(
-                ref=linker_output.ref,
-                versionTitle=linker_output.versionTitle,
-                language=linker_output.language,
-                charRange=span.get("charRange"),
-                text=span.get("text"),
-                resolved_non_segment_ref=ref_str,
-            ))
+            non_segment_payloads.append(
+                NonSegmentResolutionPayload(
+                    ref=linker_output.ref,
+                    versionTitle=linker_output.versionTitle,
+                    language=linker_output.language,
+                    charRange=span.get("charRange"),
+                    text=span.get("text"),
+                    resolved_non_segment_ref=ref_str,
+                ),
+            )
 
     return non_segment_payloads
 
 
-def _is_non_segment_or_perek_ref(ref_str: str, oref: Optional[Ref] = None) -> bool:
+def _is_non_segment_or_perek_ref(ref_str: str, oref: Ref | None = None) -> bool:
     """Return True for non-segment refs or refs treated as non-segment (perakim/parshiot)."""
     if oref is None:
         try:
@@ -265,7 +282,10 @@ def _is_non_segment_or_perek_ref(ref_str: str, oref: Optional[Ref] = None) -> bo
     return ref_str in get_talmud_perek_ref_set() or ref_str in get_parasha_ref_set()
 
 
-def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
+def _apply_non_segment_resolution(
+    payload: NonSegmentResolutionPayload,
+    result: NonSegmentResolutionResult | None,
+) -> None:
     """Upsert citation span + link for a resolved non-segment reference."""
     if result and not result.resolved_ref:
         _update_linker_output_resolution_fields(payload, result)
@@ -291,7 +311,7 @@ def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: 
     _update_linker_output_resolution_fields(payload, result)
 
 
-def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Optional[AmbiguousResolutionResult]) -> None:
+def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: AmbiguousResolutionResult | None) -> None:
     """Upsert citation span + link for a resolved ambiguous reference."""
     if not result or not result.resolved_ref:
         return
@@ -333,7 +353,10 @@ def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Opt
     _update_linker_output_resolution_fields(payload, result)
 
 
-def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
+def _apply_non_segment_resolution_with_record(
+    payload: NonSegmentResolutionPayload,
+    result: NonSegmentResolutionResult | None,
+) -> None:
     """Upsert citation span + link and record temp data for a resolved non-segment reference."""
     if result and not result.resolved_ref:
         _update_linker_output_resolution_fields(payload, result)
@@ -356,18 +379,20 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
         return_mutc=True,
     )
     if mutc is not None:
-        _record_disambiguated_mutc({
-            "id": mutc._id,
-            "span": span_data,
-            "type": "mutc",
-            "resolution_type": "non_segment",
-            "ref": payload.ref,
-            "versionTitle": payload.versionTitle,
-            "language": payload.language,
-            "llm_resolved_ref_non_segment": result.resolved_ref,
-            "llm_resolved_method_non_segment": result.method,
-            "llm_resolved_phrase_non_segment": result.llm_resolved_phrase,
-        })
+        _record_disambiguated_mutc(
+            {
+                "id": mutc._id,
+                "span": span_data,
+                "type": "mutc",
+                "resolution_type": "non_segment",
+                "ref": payload.ref,
+                "versionTitle": payload.versionTitle,
+                "language": payload.language,
+                "llm_resolved_ref_non_segment": result.resolved_ref,
+                "llm_resolved_method_non_segment": result.method,
+                "llm_resolved_phrase_non_segment": result.llm_resolved_phrase,
+            },
+        )
 
     link_obj, action = _create_or_update_link_for_non_segment_resolution(
         citing_ref=citing_ref,
@@ -375,25 +400,30 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
         resolved_ref=resolved_ref,
     )
     if link_obj is not None:
-        _record_disambiguated_link({
-            "id": link_obj._id,
-            "type": "link",
-            "action": action,
-            "link": link_obj.contents(),
-            "resolution_type": "non_segment",
-            "ref": payload.ref,
-            "versionTitle": payload.versionTitle,
-            "language": payload.language,
-            "previous_ref": payload.resolved_non_segment_ref,
-            "resolved_ref": resolved_ref,
-            "llm_resolved_ref_non_segment": result.resolved_ref,
-            "llm_resolved_method_non_segment": result.method,
-            "llm_resolved_phrase_non_segment": result.llm_resolved_phrase,
-        })
+        _record_disambiguated_link(
+            {
+                "id": link_obj._id,
+                "type": "link",
+                "action": action,
+                "link": link_obj.contents(),
+                "resolution_type": "non_segment",
+                "ref": payload.ref,
+                "versionTitle": payload.versionTitle,
+                "language": payload.language,
+                "previous_ref": payload.resolved_non_segment_ref,
+                "resolved_ref": resolved_ref,
+                "llm_resolved_ref_non_segment": result.resolved_ref,
+                "llm_resolved_method_non_segment": result.method,
+                "llm_resolved_phrase_non_segment": result.llm_resolved_phrase,
+            },
+        )
     _update_linker_output_resolution_fields(payload, result)
 
 
-def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload, result: Optional[AmbiguousResolutionResult]) -> None:
+def _apply_ambiguous_resolution_with_record(
+    payload: AmbiguousResolutionPayload,
+    result: AmbiguousResolutionResult | None,
+) -> None:
     """Upsert citation span + link and record temp data for a resolved ambiguous reference."""
     if not result or not result.resolved_ref:
         return
@@ -413,34 +443,38 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
         return_mutc=True,
     )
     if mutc is not None:
-        _record_disambiguated_mutc({
-            "id": mutc._id,
-            "span": span_data,
-            "type": "mutc",
-            "resolution_type": "ambiguous",
-            "ref": payload.ref,
-            "versionTitle": payload.versionTitle,
-            "language": payload.language,
-            "llm_resolved_ref_ambiguous": result.matched_segment or result.resolved_ref,
-            "llm_resolved_method_ambiguous": result.method,
-            "llm_resolved_phrase_ambiguous": result.llm_resolved_phrase,
-            "llm_ambiguous_option_valid": True,
-        })
+        _record_disambiguated_mutc(
+            {
+                "id": mutc._id,
+                "span": span_data,
+                "type": "mutc",
+                "resolution_type": "ambiguous",
+                "ref": payload.ref,
+                "versionTitle": payload.versionTitle,
+                "language": payload.language,
+                "llm_resolved_ref_ambiguous": result.matched_segment or result.resolved_ref,
+                "llm_resolved_method_ambiguous": result.method,
+                "llm_resolved_phrase_ambiguous": result.llm_resolved_phrase,
+                "llm_ambiguous_option_valid": True,
+            },
+        )
 
     link_obj = _create_link_for_resolution(citing_ref, resolved_ref)
     if link_obj is not None:
-        _record_disambiguated_link({
-            "id": link_obj._id,
-            "type": "link",
-            "resolution_type": "ambiguous",
-            "ref": payload.ref,
-            "versionTitle": payload.versionTitle,
-            "language": payload.language,
-            "llm_resolved_ref_ambiguous": result.matched_segment or result.resolved_ref,
-            "llm_resolved_method_ambiguous": result.method,
-            "llm_resolved_phrase_ambiguous": result.llm_resolved_phrase,
-            "llm_ambiguous_option_valid": True,
-        })
+        _record_disambiguated_link(
+            {
+                "id": link_obj._id,
+                "type": "link",
+                "resolution_type": "ambiguous",
+                "ref": payload.ref,
+                "versionTitle": payload.versionTitle,
+                "language": payload.language,
+                "llm_resolved_ref_ambiguous": result.matched_segment or result.resolved_ref,
+                "llm_resolved_method_ambiguous": result.method,
+                "llm_resolved_phrase_ambiguous": result.llm_resolved_phrase,
+                "llm_ambiguous_option_valid": True,
+            },
+        )
 
     if result.matched_segment:
         try:
@@ -462,22 +496,24 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
                 resolved_ref=result.matched_segment,
             )
             if link_obj is not None:
-                _record_disambiguated_link({
-                    "id": link_obj._id,
-                    "type": "link",
-                    "action": action,
-                    "link": link_obj.contents(),
-                    "resolution_type": "ambiguous",
-                    "ref": payload.ref,
-                    "versionTitle": payload.versionTitle,
-                    "language": payload.language,
-                    "previous_ref": resolved_ref,
-                    "resolved_ref": result.matched_segment,
-                    "llm_resolved_ref_ambiguous": result.matched_segment or result.resolved_ref,
-                    "llm_resolved_method_ambiguous": result.method,
-                    "llm_resolved_phrase_ambiguous": result.llm_resolved_phrase,
-                    "llm_ambiguous_option_valid": True,
-                })
+                _record_disambiguated_link(
+                    {
+                        "id": link_obj._id,
+                        "type": "link",
+                        "action": action,
+                        "link": link_obj.contents(),
+                        "resolution_type": "ambiguous",
+                        "ref": payload.ref,
+                        "versionTitle": payload.versionTitle,
+                        "language": payload.language,
+                        "previous_ref": resolved_ref,
+                        "resolved_ref": result.matched_segment,
+                        "llm_resolved_ref_ambiguous": result.matched_segment or result.resolved_ref,
+                        "llm_resolved_method_ambiguous": result.method,
+                        "llm_resolved_phrase_ambiguous": result.llm_resolved_phrase,
+                        "llm_ambiguous_option_valid": True,
+                    },
+                )
     _update_linker_output_resolution_fields(payload, result)
 
 
@@ -504,16 +540,15 @@ def _update_linker_output_resolution_fields(payload: object, result: object) -> 
         if span.get("charRange") != payload.charRange:
             continue
         if is_ambiguous:
-            is_valid = (span.get("ref") == getattr(result, "resolved_ref", None))
+            is_valid = span.get("ref") == getattr(result, "resolved_ref", None)
             span["llm_ambiguous_option_valid"] = is_valid
             if is_valid:
                 span["llm_resolved_ref_ambiguous"] = result.matched_segment or result.resolved_ref
                 span["llm_resolved_method_ambiguous"] = result.method
                 span["llm_resolved_phrase_ambiguous"] = result.llm_resolved_phrase
         else:
-            if span.get("ambiguous"):
-                if not span.get("llm_ambiguous_option_valid"):
-                    continue
+            if span.get("ambiguous") and not span.get("llm_ambiguous_option_valid"):
+                continue
             if result.resolved_ref:
                 span["llm_resolved_ref_non_segment"] = result.resolved_ref
                 span["llm_resolved_method_non_segment"] = result.method
@@ -583,18 +618,21 @@ def _dicta_error_payload(info: dict, payload_obj: object) -> dict:
         "payload_type": payload_type,
     }
 
+
 def _extract_resolved_spans(resolved_refs):
     spans = []
     for resolved_ref in resolved_refs:
         if resolved_ref.is_ambiguous or resolved_ref.resolution_failed:
             continue
         entity = resolved_ref.raw_entity
-        spans.append({
-            "charRange": entity.char_indices,
-            "text": entity.text,
-            "type": MUTCSpanType.CITATION.value,
-            "ref": resolved_ref.ref.normal(),
-        })
+        spans.append(
+            {
+                "charRange": entity.char_indices,
+                "text": entity.text,
+                "type": MUTCSpanType.CITATION.value,
+                "ref": resolved_ref.ref.normal(),
+            },
+        )
     return spans
 
 
@@ -614,18 +652,17 @@ def _upsert_mutc_span(
         "ref": resolved_ref,
     }
 
-    mutc = MarkedUpTextChunk().load({
-        "ref": ref,
-        "versionTitle": version_title,
-        "language": language,
-    })
+    mutc = MarkedUpTextChunk().load(
+        {
+            "ref": ref,
+            "versionTitle": version_title,
+            "language": language,
+        },
+    )
     if mutc:
         updated = False
         for span in mutc.spans:
-            if (
-                span.get("type") == MUTCSpanType.CITATION.value and
-                span.get("charRange") == char_range
-            ):
+            if span.get("type") == MUTCSpanType.CITATION.value and span.get("charRange") == char_range:
                 span["ref"] = resolved_ref
                 updated = True
                 break
@@ -633,12 +670,14 @@ def _upsert_mutc_span(
             mutc.add_non_overlapping_spans([span_data])
         mutc.save()
     else:
-        mutc = MarkedUpTextChunk({
-            "ref": ref,
-            "versionTitle": version_title,
-            "language": language,
-            "spans": [span_data],
-        })
+        mutc = MarkedUpTextChunk(
+            {
+                "ref": ref,
+                "versionTitle": version_title,
+                "language": language,
+                "spans": [span_data],
+            },
+        )
         mutc.save()
 
     if return_mutc:
@@ -646,7 +685,7 @@ def _upsert_mutc_span(
     return None
 
 
-def _create_link_for_resolution(citing_ref: str, resolved_ref: str) -> Optional[Link]:
+def _create_link_for_resolution(citing_ref: str, resolved_ref: str) -> Link | None:
     link = {
         "refs": [citing_ref, resolved_ref],
         "type": "",
@@ -655,12 +694,10 @@ def _create_link_for_resolution(citing_ref: str, resolved_ref: str) -> Optional[
         "inline_citation": True,
     }
     try:
-        link_obj = tracker.add(None, Link, link, **{})
+        link_obj = tracker.add(None, Link, link)
         if USE_VARNISH:
-            try:
+            with contextlib.suppress(InputError):
                 invalidate_ref(Ref(resolved_ref))
-            except InputError:
-                pass
         return link_obj
     except DuplicateRecordError:
         return None
@@ -673,7 +710,7 @@ def _create_or_update_link_for_non_segment_resolution(
     citing_ref: str,
     non_segment_ref: str,
     resolved_ref: str,
-) -> tuple[Optional[Link], str]:
+) -> tuple[Link | None, str]:
     try:
         citing_normal = Ref(citing_ref).normal()
         non_segment_normal = Ref(non_segment_ref).normal()
@@ -686,15 +723,12 @@ def _create_or_update_link_for_non_segment_resolution(
         existing_link.refs = sorted([citing_ref, resolved_ref])
         existing_link.save()
         if USE_VARNISH:
-            try:
+            with contextlib.suppress(InputError):
                 invalidate_ref(Ref(resolved_ref))
-            except InputError:
-                pass
         return existing_link, "updated"
 
     link_obj = _create_link_for_resolution(citing_ref, resolved_ref)
     return link_obj, "created"
-
 
 
 def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: LinkedDoc) -> None:
@@ -725,15 +759,17 @@ def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
     return spans
 
 
-def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextChunk]:
+def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> MarkedUpTextChunk | None:
     """
     :return: existing mutc that was replaced, or None
     """
-    existing = MarkedUpTextChunk().load({
-        "ref": chunk.ref,
-        "language": chunk.language,
-        "versionTitle": chunk.versionTitle,
-    })
+    existing = MarkedUpTextChunk().load(
+        {
+            "ref": chunk.ref,
+            "language": chunk.language,
+            "versionTitle": chunk.versionTitle,
+        },
+    )
     if existing:
         if len(chunk.spans) == 0:
             # If the new chunk has no spans, just delete the existing one
@@ -753,11 +789,13 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextCh
 
 
 def _get_existing_linked_trefs(base_tref: str) -> tuple[list[str], list[ObjectId]]:
-    existing_links = LinkSet({
-        "refs": base_tref,
-        "auto": True,
-        "generated_by": "add_links_from_text",
-    })
+    existing_links = LinkSet(
+        {
+            "refs": base_tref,
+            "auto": True,
+            "generated_by": "add_links_from_text",
+        },
+    )
     existing_linked_trefs = []
     existing_link_ids = []
     for link in existing_links:
@@ -768,7 +806,10 @@ def _get_existing_linked_trefs(base_tref: str) -> tuple[list[str], list[ObjectId
     return existing_linked_trefs, existing_link_ids
 
 
-def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, existing_linked_trefs: set[str]) -> tuple[set[str], set[str]]:
+def _get_link_trefs_to_add_and_delete_from_msg(
+    msg: DeleteAndSaveLinksMsg,
+    existing_linked_trefs: set[str],
+) -> tuple[set[str], set[str]]:
     all_mutcs = MarkedUpTextChunkSet({"ref": msg.ref}, hint="ref_1")
     other_mutc_trefs = set()
     for mutc in all_mutcs:
@@ -776,15 +817,15 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
             # Skip MUTC that matches the current version
             continue
         for span in mutc.spans:
-            if span['type'] == MUTCSpanType.CITATION.value and ('ref' in span):
-                other_mutc_trefs.add(span['ref'])
+            if span["type"] == MUTCSpanType.CITATION.value and ("ref" in span):
+                other_mutc_trefs.add(span["ref"])
 
     # we need to consider all other MUTCs that link to this ref, to avoid deleting links that are still needed
     # a link should be deleted if it isn't backed by any MUTCs, either an alternate version of the target ref or for any ref that is linked to the target ref
     linked_mutcs = MarkedUpTextChunkSet({"ref": {"$in": list(existing_linked_trefs)}}, hint="ref_1")
     for mutc in linked_mutcs:
         for span in mutc.spans:
-            if span['type'] == MUTCSpanType.CITATION.value and span.get('ref') == msg.ref:
+            if span["type"] == MUTCSpanType.CITATION.value and span.get("ref") == msg.ref:
                 # this is an MUTC that links back to the current ref implying we need to keep this link
                 other_mutc_trefs.add(mutc.ref)
 
@@ -794,7 +835,11 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
     return _get_link_trefs_to_add_and_delete(set(msg.added_mutc_trefs), existing_linked_trefs, other_mutc_trefs)
 
 
-def _get_link_trefs_to_add_and_delete(added_mutc_trefs: set[str], existing_linked_trefs: set[str], other_mutc_trefs: set[str]) -> tuple[set[str], set[str]]:
+def _get_link_trefs_to_add_and_delete(
+    added_mutc_trefs: set[str],
+    existing_linked_trefs: set[str],
+    other_mutc_trefs: set[str],
+) -> tuple[set[str], set[str]]:
     linked_trefs_to_add = added_mutc_trefs - existing_linked_trefs
     linked_refs_to_delete = existing_linked_trefs - (other_mutc_trefs | added_mutc_trefs)
     return linked_trefs_to_add, linked_refs_to_delete
@@ -814,17 +859,15 @@ def _add_new_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_add: set[str]) ->
             "type": "",
             "auto": True,
             "generated_by": "add_links_from_text",
-            "inline_citation": True
+            "inline_citation": True,
         }
 
         try:
             logger.info(f"LINKER: Adding new link from {msg.ref} to {linked_tref}")
             tracker.add(msg.user_id, Link, link, **msg.tracker_kwargs)
             if USE_VARNISH:
-                try:
+                with contextlib.suppress(InputError):
                     invalidate_ref(Ref(linked_tref))
-                except InputError:
-                    pass
         except DuplicateRecordError as e:
             # Link exists - skip
             print(f"Existing Link no need to change: {e}")
@@ -833,14 +876,17 @@ def _add_new_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_add: set[str]) ->
             print(f"InputError: {e}")
 
 
-def _delete_old_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_delete: set[str], existing_linked_trefs: list[str], existing_link_ids: list[ObjectId]) -> None:
+def _delete_old_links(
+    msg: DeleteAndSaveLinksMsg,
+    linked_trefs_to_delete: set[str],
+    existing_linked_trefs: list[str],
+    existing_link_ids: list[ObjectId],
+) -> None:
     for tref, _id in zip(existing_linked_trefs, existing_link_ids):
         if tref in linked_trefs_to_delete:
             if USE_VARNISH:
-                try:
+                with contextlib.suppress(InputError):
                     invalidate_ref(Ref(tref))
-                except InputError:
-                    pass
             logger.info(f"LINKER: Deleting old link from {msg.ref} to {tref}")
             tracker.delete(msg.user_id, Link, _id)
 
@@ -848,7 +894,10 @@ def _delete_old_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_delete: set[st
 def delete_and_save_new_links(payload: dict):
     msg = DeleteAndSaveLinksMsg.from_dict(payload)
     existing_linked_trefs, existing_link_ids = _get_existing_linked_trefs(msg.ref)
-    linked_trefs_to_add, linked_trefs_to_delete = _get_link_trefs_to_add_and_delete_from_msg(msg, set(existing_linked_trefs))
+    linked_trefs_to_add, linked_trefs_to_delete = _get_link_trefs_to_add_and_delete_from_msg(
+        msg,
+        set(existing_linked_trefs),
+    )
     _delete_old_links(msg, linked_trefs_to_delete, existing_linked_trefs, existing_link_ids)
     _add_new_links(msg, linked_trefs_to_add)
 
@@ -890,9 +939,9 @@ def process_ambiguous_resolution(resolution_data: dict) -> None:
         result = disambiguate_ambiguous_ref(payload)
         if result:
             resolved_ref = result.resolved_ref
-            print(f"\n{'='*80}")
-            print(f"AMBIGUOUS RESOLUTION SUCCESS")
-            print(f"{'='*80}")
+            print(f"\n{'=' * 80}")
+            print("AMBIGUOUS RESOLUTION SUCCESS")
+            print(f"{'=' * 80}")
             print(f"Citing Ref: {payload.ref}")
             print(f"Version: {payload.versionTitle} ({payload.language})")
             print(f"Citation Text: '{payload.text}'")
@@ -904,29 +953,28 @@ def process_ambiguous_resolution(resolution_data: dict) -> None:
                 print(f"  Phrase: {result.llm_resolved_phrase}")
             if result.matched_segment:
                 print(f"  Matched Segment: {result.matched_segment}")
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
 
             logger.info(f"✓ Resolved to: {resolved_ref} (method: {result.method})")
         else:
-            print(f"\n{'='*80}")
-            print(f"AMBIGUOUS RESOLUTION FAILED")
-            print(f"{'='*80}")
+            print(f"\n{'=' * 80}")
+            print("AMBIGUOUS RESOLUTION FAILED")
+            print(f"{'=' * 80}")
             print(f"Citing Ref: {payload.ref}")
             print(f"Citation Text: '{payload.text}'")
             print(f"Ambiguous Options: {payload.ambiguous_refs}")
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
             logger.warning("✗ Could not resolve ambiguous reference")
     except Exception as e:
-        print(f"\n{'='*80}")
-        print(f"AMBIGUOUS RESOLUTION ERROR")
-        print(f"{'='*80}")
+        print(f"\n{'=' * 80}")
+        print("AMBIGUOUS RESOLUTION ERROR")
+        print(f"{'=' * 80}")
         print(f"Citing Ref: {payload.ref}")
         print(f"Error: {e}")
-        print(f"{'='*80}\n")
+        print(f"{'=' * 80}\n")
         logger.error(f"✗ Error during disambiguation: {e}", exc_info=True)
 
     logger.info("=====================================")
-
 
 
 @app.task(name="linker.process_non_segment_resolution")
@@ -958,9 +1006,9 @@ def process_non_segment_resolution(resolution_data: dict) -> None:
         result = disambiguate_non_segment_ref(payload)
         if result:
             resolved_ref = result.resolved_ref
-            print(f"\n{'='*80}")
-            print(f"NON-SEGMENT RESOLUTION SUCCESS")
-            print(f"{'='*80}")
+            print(f"\n{'=' * 80}")
+            print("NON-SEGMENT RESOLUTION SUCCESS")
+            print(f"{'=' * 80}")
             print(f"Citing Ref: {payload.ref}")
             print(f"Version: {payload.versionTitle} ({payload.language})")
             print(f"Citation Text: '{payload.text}'")
@@ -970,26 +1018,26 @@ def process_non_segment_resolution(resolution_data: dict) -> None:
             print(f"  Method: {result.method}")
             if getattr(result, "llm_resolved_phrase", None):
                 print(f"  Phrase: {result.llm_resolved_phrase}")
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
 
             logger.info(f"✓ Resolved to segment: {resolved_ref} (method: {result.method})")
         else:
-            print(f"\n{'='*80}")
-            print(f"NON-SEGMENT RESOLUTION FAILED")
-            print(f"{'='*80}")
+            print(f"\n{'=' * 80}")
+            print("NON-SEGMENT RESOLUTION FAILED")
+            print(f"{'=' * 80}")
             print(f"Citing Ref: {payload.ref}")
             print(f"Citation Text: '{payload.text}'")
             print(f"Non-Segment Ref: {payload.resolved_non_segment_ref}")
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
             logger.warning("✗ Could not resolve to segment level")
     except Exception as e:
-        print(f"\n{'='*80}")
-        print(f"NON-SEGMENT RESOLUTION ERROR")
-        print(f"{'='*80}")
+        print(f"\n{'=' * 80}")
+        print("NON-SEGMENT RESOLUTION ERROR")
+        print(f"{'=' * 80}")
         print(f"Citing Ref: {payload.ref}")
         print(f"Non-Segment Ref: {payload.resolved_non_segment_ref}")
         print(f"Error: {e}")
-        print(f"{'='*80}\n")
+        print(f"{'=' * 80}\n")
         logger.error(f"✗ Error during resolution: {e}", exc_info=True)
 
     logger.info("=========================================")

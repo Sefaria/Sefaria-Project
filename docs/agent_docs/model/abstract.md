@@ -1,19 +1,22 @@
 # abstract.py
+
 > Source: `sefaria/model/abstract.py`
 
 ## Purpose
+
 Defines the base ORM layer for all Sefaria MongoDB models. Every persistent model inherits from `AbstractMongoRecord` (single document) or uses `AbstractMongoSet` (collection queries). Also contains the pub/sub dependency/notification system that propagates changes across models (e.g., when an Index title changes, all linked records update).
 
 ## Key Classes
 
 ### AbstractMongoRecord
+
 - **Inherits**: `object`
 - **Collection**: Set by subclass via `collection` class attribute
 - **Role**: Base class for all single-document MongoDB models. Handles CRUD, validation, sanitization, and change notification.
 - **Key class attributes**:
   - `collection` -- MongoDB collection name (string). `None` means the class is abstract/not directly persisted.
   - `criteria_field` -- Primary lookup field, defaults to `"_id"`. Subclasses like `Index` use `"title"` instead.
-  - `criteria_override_field` -- When a primary key is being *renamed*, this field carries the old value (e.g., `"oldTitle"` on Index). Enables the system to find the existing record despite the key change.
+  - `criteria_override_field` -- When a primary key is being _renamed_, this field carries the old value (e.g., `"oldTitle"` on Index). Enables the system to find the existing record despite the key change.
   - `required_attrs` / `optional_attrs` -- Whitelist of fields. Together with `id_field`, these define what gets saved to Mongo and validated. **Any key loaded from Mongo that isn't in this whitelist triggers an assertion error.**
   - `attr_schemas` -- Cerberus validation schemas for individual attributes. The root level uses `allow_unknown=True` (so you don't need to schema-ify every field), but nested dicts default to `allow_unknown=False`.
   - `track_pkeys` / `pkeys` -- When `track_pkeys = True`, the original values of fields listed in `pkeys` are snapshotted on load. On save, if any differ, an `"attributeChange"` notification fires. **If tracking is on but not all pkeys have been captured, save aborts with an exception** -- this is a safety rail against partial tracking.
@@ -47,6 +50,7 @@ Defines the base ORM layer for all Sefaria MongoDB models. Every persistent mode
   - The `replace_one` on update uses `upsert=True` but then **raises an exception** if an upsert actually happened (meaning the `_id` was somehow lost). This is a corruption detector, not intentional upsert behavior.
 
 ### AbstractMongoSet
+
 - **Inherits**: `collections.abc.Iterable`
 - **Collection**: Determined by `recordClass.collection`
 - **Role**: Lazy-loading query wrapper over a MongoDB collection. Does NOT hit the DB until you iterate, index, or call `count()`/`__len__()`.
@@ -68,6 +72,7 @@ Defines the base ORM layer for all Sefaria MongoDB models. Every persistent mode
   - `record_kwargs` passed to the set constructor get forwarded to each record's `__init__`. Useful for classes that need extra context at construction time (e.g., `DictionaryEntry` subclasses).
 
 ### SluggedAbstractMongoRecord
+
 - **Inherits**: `AbstractMongoRecord` (with `SluggedAbstractMongoRecordMeta` metaclass)
 - **Collection**: Set by subclass
 - **Role**: Adds slug management for models that need URL-friendly unique identifiers (Topics, Collections, Manuscripts, etc.).
@@ -87,6 +92,7 @@ Defines the base ORM layer for all Sefaria MongoDB models. Every persistent mode
   - `cacheable` caches are never invalidated automatically. Stale data risk in long-running processes.
 
 ### Cloneable
+
 - **Inherits**: nothing
 - **Role**: Mixin for value objects. `clone(**kwargs)` returns a new instance with selectively overridden attributes via `__dict__` merge.
 
@@ -142,6 +148,7 @@ The `deps` dict is a module-level registry. Key structure: `(class, action, attr
 ## Common Tasks
 
 **Create a new model class:**
+
 ```python
 class MyRecord(AbstractMongoRecord):
     collection = "my_collection"
@@ -153,6 +160,7 @@ class MyRecord(AbstractMongoRecord):
 ```
 
 **Create a new model with a slug:**
+
 ```python
 class MySluggedRecord(SluggedAbstractMongoRecord):
     collection = "my_collection"
@@ -161,6 +169,7 @@ class MySluggedRecord(SluggedAbstractMongoRecord):
 ```
 
 **Register a dependency (in dependencies.py):**
+
 ```python
 subscribe(my_handler_function, SomeModel, "attributeChange", "field_name")
 subscribe(cascade(MyModelSet, "fk_field"), SomeModel, "attributeChange", "pk_field")
@@ -168,6 +177,7 @@ subscribe(cascade_delete(MyModelSet, "fk_field", "pk_field"), SomeModel, "delete
 ```
 
 **Load or check existence:**
+
 ```python
 record = MyRecord().load({"title": "foo"})  # returns None if not found
 if record:
@@ -175,6 +185,7 @@ if record:
 ```
 
 **Bulk operations without triggering cascades:**
+
 ```python
 record.save(override_dependencies=True)
 my_set.delete(bulk_delete=True)  # WARNING: no notifications fired

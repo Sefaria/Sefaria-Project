@@ -7,9 +7,9 @@
 // viewer between them — even ambiguous or unknown ones — with no overlap and no gap. Two adjacent
 // campaigns can therefore run at once as a true partition; keep that invariant when editing.
 const CountryMode = {
-  ALL: "all",
-  INCLUDE: "include",
-  EXCLUDE: "exclude",
+  ALL: 'all',
+  INCLUDE: 'include',
+  EXCLUDE: 'exclude',
 };
 
 const matchesCountryTarget = (countriesToTarget, candidates) => {

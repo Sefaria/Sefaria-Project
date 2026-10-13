@@ -1,8 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { makeUuid } from './utils.js';
 import {
-  persistActiveFlow, clearActiveFlow, clearPendingAttempt,
-  fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded,
+  persistActiveFlow,
+  clearActiveFlow,
+  clearPendingAttempt,
+  fireFlowStarted,
+  fireMethodChosen,
+  fireProcessStarted,
+  fireProcessEnded,
+  fireFlowEnded,
 } from './signupAnalytics.js';
 
 /**
@@ -103,7 +109,6 @@ export function useSignUpTracking({ flow, source }) {
     } else if (!isRegister && wasRegister) {
       endFlow();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flow, source]);
 
   // beforeunload can be suppressed (mobile SSO redirect may be in flight — resolved
@@ -140,7 +145,6 @@ export function useSignUpTracking({ flow, source }) {
       window.removeEventListener('popstate', onPopState);
       window.removeEventListener('pageshow', onPageShow);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flow, source]);
 
   // Unmount-cleanup: ReaderApp.openURL can unmount AuthPage via a pure SPA
@@ -148,6 +152,10 @@ export function useSignUpTracking({ flow, source }) {
   useEffect(() => endFlow, []);
 
   return {
-    chooseMethod, startProcess, endProcess, getIds, suppressFlowEndRef,
+    chooseMethod,
+    startProcess,
+    endProcess,
+    getIds,
+    suppressFlowEndRef,
   };
 }

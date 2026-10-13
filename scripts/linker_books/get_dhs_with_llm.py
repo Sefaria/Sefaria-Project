@@ -1,24 +1,25 @@
 from __future__ import annotations
-from typing import List, Optional
-from enum import Enum
-from collections import Counter
-import json
-import csv
-from tqdm import tqdm
-from scripts.linker_books.linker_books_utils import run_parallel
 
-from pydantic import BaseModel, Field, ValidationError
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI  # pip install langchain-openai
+import csv
+import json
+from collections import Counter
+from enum import Enum, StrEnum
+
 from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI  # pip install langchain-openai
+from pydantic import BaseModel, Field, ValidationError
+
+from scripts.linker_books.linker_books_utils import run_parallel
 
 set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 
 
 # ---------------- Pydantic validation models ----------------
 
-class Delimiter(str, Enum):
+
+class Delimiter(StrEnum):
     NO_DELIM = "no delimiter"
     BOLD = "bold"
     DASH = "dash"
@@ -30,13 +31,16 @@ class Delimiter(str, Enum):
 class SnippetDecision(BaseModel):
     has_dibur: bool = Field(..., description="Whether the snippet contains a dibbur hamatchil.")
     delimiter: Delimiter = Field(..., description='One of: "no delimiter", "bold", "dash", "period", "colon", "other".')
-    details: Optional[str] = Field(
-        None, description='If delimiter is "other", briefly describe (e.g., quotes, colon).'
+    details: str | None = Field(
+        None,
+        description='If delimiter is "other", briefly describe (e.g., quotes, colon).',
     )
+
 
 # ---------------- Helper: final selection ----------------
 
-def pick_final_delimiter(decisions: List[SnippetDecision]) -> Delimiter:
+
+def pick_final_delimiter(decisions: list[SnippetDecision]) -> Delimiter:
     labeled = [d.delimiter for d in decisions if d.has_dibur and d.delimiter != Delimiter.NO_DELIM]
     if not labeled:
         return Delimiter.NO_DELIM
@@ -44,6 +48,7 @@ def pick_final_delimiter(decisions: List[SnippetDecision]) -> Delimiter:
     # Most frequent; tie-break by earliest occurrence
     best = max(labeled, key=lambda x: (counts[x], -labeled.index(x)))
     return best
+
 
 # ---------------- Prompt ----------------
 
@@ -84,12 +89,12 @@ prompt = ChatPromptTemplate.from_messages([("system", SYSTEM), ("user", USER)])
 # ---------------- Main entrypoint ----------------
 
 
-def detect_dibur_delimiter(snippets: List[str], model_name: str = "gpt-4o"):
+def detect_dibur_delimiter(snippets: list[str], model_name: str = "gpt-4o"):
     if len(snippets) != 3:
         raise ValueError("Please provide exactly 3 snippets.")
 
     llm = ChatOpenAI(model=model_name, temperature=0.0).bind(
-        response_format={"type": "json_object"}
+        response_format={"type": "json_object"},
     )
 
     msg = prompt.format_messages(s1=snippets[0], s2=snippets[1], s3=snippets[2])
@@ -120,31 +125,38 @@ def detect_dibur_delimiter(snippets: List[str], model_name: str = "gpt-4o"):
 
 def bulk_detect_dibur_delimiter():
     out_rows = []
-    with open("../../data/private/commentary_on.csv", "r") as fin:
+    with open("../../data/private/commentary_on.csv") as fin:
         cin = list(csv.DictReader(fin))
-        snippet_input = [[
-            row['Sample Text 1'][:200],
-            row['Sample Text 2'][:200],
-            row['Sample Text 3'][:200],
-        ] for row in cin]
+        snippet_input = [
+            [
+                row["Sample Text 1"][:200],
+                row["Sample Text 2"][:200],
+                row["Sample Text 3"][:200],
+            ]
+            for row in cin
+        ]
         results = run_parallel(snippet_input, detect_dibur_delimiter, 50, desc="Detecting delimiters")
         for result, row in zip(results, cin):
-            out_rows.append({
-                "Title": row['Title'],
-                "Delimiter": result['delimiter'],
-                "Has Dibur": result['has_dibur'],
-                "Details": result.get('details', ''),
-            })
+            out_rows.append(
+                {
+                    "Title": row["Title"],
+                    "Delimiter": result["delimiter"],
+                    "Has Dibur": result["has_dibur"],
+                    "Details": result.get("details", ""),
+                },
+            )
     with open("../../data/private/commentary_on_delimiters.csv", "w") as fout:
         cout = csv.DictWriter(fout, fieldnames=out_rows[0].keys())
         cout.writeheader()
         cout.writerows(out_rows)
+
+
 # ---------------- Example ----------------
 def example():
     snippets = [
-        '... <b>ויאמר ה׳ אל משה</b> מלמד שמדבר עמו בלשון ...',
-        'ויאמר פרעה — פירוש, שכיוון ...',
-        'בפירוש זה המחבר מאריך לבאר עניין המצוה ...',
+        "... <b>ויאמר ה׳ אל משה</b> מלמד שמדבר עמו בלשון ...",
+        "ויאמר פרעה — פירוש, שכיוון ...",
+        "בפירוש זה המחבר מאריך לבאר עניין המצוה ...",
     ]
     result = detect_dibur_delimiter(snippets)
     print(json.dumps(result, ensure_ascii=False, indent=2))

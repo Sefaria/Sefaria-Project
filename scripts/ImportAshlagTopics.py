@@ -1,28 +1,30 @@
-# -*- coding: utf-8 -*-
-
-import csv, re, django, os
+import csv
+import os
+import re
 from collections import OrderedDict
 
+import django
+
 django.setup()
+from sefaria.helper.category import create_category, move_index_into
 from sefaria.model import *
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.system.exceptions import DuplicateRecordError
-from sefaria.helper.category import move_index_into, create_category
 
 UID = 28
 SOURCE_SLUG = "ashlag-glossary"
 TEXTS = [
     # 'Peticha LeChokhmat HaKabbalah',
     "Petichah LeChokhmat HaKabbalah",
-    'Introduction to Sulam Commentary',
-    "Baal HaSulam's Preface to Zohar"
+    "Introduction to Sulam Commentary",
+    "Baal HaSulam's Preface to Zohar",
 ]
 # Group 1: Openings tags
 # Group 2: Matched Word(s)
 # Group 3: Closing tags
 # FULL_REG = re.compile(r'(?:<<|&lt&lt)((?:<[^<>]*>)*)([^<>]*)((?:<[^<>]*>)*)(?:>>|&rt&rt)')
-FULL_REG = re.compile(r'(?:<<|&lt&lt)(.*?)(?:>>|&rt&rt)(?!>|&rt)')
-PHRASE_REG = re.compile(r'[^()<>,. ][^()<>,.]+[^()<>,. ]')
+FULL_REG = re.compile(r"(?:<<|&lt&lt)(.*?)(?:>>|&rt&rt)(?!>|&rt)")
+PHRASE_REG = re.compile(r"[^()<>,. ][^()<>,.]+[^()<>,. ]")
 
 
 #####
@@ -70,8 +72,10 @@ def get_normal_mapping():
 # IMPORT
 #####
 def load_raw_from_sheet():
-    f = os.getenv("KBDB")  # export KBDB='/Users/levisrael/Downloads/Background entries DATABASE - live - Background entries DATABASE - live.csv'
-    with open(f, 'r') as csvfile:
+    f = os.getenv(
+        "KBDB",
+    )  # export KBDB='/Users/levisrael/Downloads/Background entries DATABASE - live - Background entries DATABASE - live.csv'
+    with open(f) as csvfile:
         reader = csv.DictReader(csvfile)
         return list(reader)
 
@@ -93,8 +97,8 @@ def set_topic_datasource():
         "slug": SOURCE_SLUG,
         "displayName": {
             "en": "Glossary of terms in the writings of Rabbi Yehuda Ashlag",
-            "he": "מילון מונחים בכתבי רבי יהודה אשלג"
-        }
+            "he": "מילון מונחים בכתבי רבי יהודה אשלג",
+        },
     }
     tds = TopicDataSource().load({"slug": SOURCE_SLUG})
     if tds is None:
@@ -141,10 +145,10 @@ def create_intra_topic_link(from_slug, to_slug, link_type, data_source_slug):
         "fromTopic": from_slug,
         "toTopic": to_slug,
         "linkType": link_type,
-        "dataSource": data_source_slug
+        "dataSource": data_source_slug,
     }
 
-    link_json['generatedBy'] = "Import Ashlag Topics"
+    link_json["generatedBy"] = "Import Ashlag Topics"
     itl = IntraTopicLink().load(link_json)
     if itl is not None:
         itl.delete()
@@ -176,15 +180,17 @@ def build_topic_from_record(d):
             t.add_title(s, "he")
 
     for title in t.get_titles_object():
-        if title['lang'] == "en":
-            title['disambiguation'] = "Kabbalah"
-        if title['lang'] == "he":
-            title['disambiguation'] = "קבלה"
+        if title["lang"] == "en":
+            title["disambiguation"] = "Kabbalah"
+        if title["lang"] == "he":
+            title["disambiguation"] = "קבלה"
 
-    t.change_description({
-        "en": d.get('english description'),
-        "he": d.get('hebrew description'),
-    })
+    t.change_description(
+        {
+            "en": d.get("english description"),
+            "he": d.get("hebrew description"),
+        },
+    )
     t.description_published = True
     t.properties = {"source": SOURCE_SLUG}
 
@@ -201,10 +207,10 @@ def build_topic_from_record(d):
 
 
 def interlink_topics(orig_descs):
-    '''
+    """
 
     :return:
-    '''
+    """
 
     mapping = get_normal_mapping()
     topic_pairs = set()
@@ -221,18 +227,16 @@ def interlink_topics(orig_descs):
                 if to_slug != from_slug:
                     topic_pairs.add(frozenset([from_slug, to_slug]))
                     return f'<a href="/topics/{to_slug}" class="namedEntityLink" data-slug="{to_slug}">{rawmatch}</a>'
-                else:
-                    print(f"Reference to {norm} in it's own description")
+                print(f"Reference to {norm} in it's own description")
             return m.group()
 
         def full_sub(m):
             full_result = do_sub(m, 1)
             if full_result != m.group():
                 return full_result
-            else:
-                return PHRASE_REG.sub(do_sub, m.group(1))
+            return PHRASE_REG.sub(do_sub, m.group(1))
 
-        desc = orig_descs.get(topix.slug)  #getattr(topix, "description", {}).get("en")
+        desc = orig_descs.get(topix.slug)  # getattr(topix, "description", {}).get("en")
         if not desc:
             continue
 
@@ -307,8 +311,8 @@ def create_ref_topic_link(ref: text.Ref, topix: topic.Topic, version: text.Versi
             "endChar": match.end(),
             "versionTitle": version.versionTitle,
             "language": version.language,
-            "text": match.group()
-        }
+            "text": match.group(),
+        },
     }
     try:
         RefTopicLink(link).save()
@@ -333,7 +337,7 @@ def create_topic_links_for_text(text_name, mapping):
 
     matches = TextMatches()
 
-    vs = VersionSet({'title': text_name, 'language': 'en'})
+    vs = VersionSet({"title": text_name, "language": "en"})
     for v in vs:
         print(text_name)
         print(v.versionTitle)
@@ -378,11 +382,12 @@ def categorize():
         i = library.get_index(t)
         move_index_into(i, c)
 
+
 def test_coverage():
     background_list = load_raw_from_sheet()
     english_terms = {normalize(d["term english"]) for d in background_list}
-    term_translations = {normalize(d['term translation']) for d in background_list}
-    term_alternates = {normalize(e.strip()) for d in background_list for e in d['term alternate'].split(",")}
+    term_translations = {normalize(d["term translation"]) for d in background_list}
+    term_alternates = {normalize(e.strip()) for d in background_list for e in d["term alternate"].split(",")}
     all_entries = english_terms | term_translations | term_alternates
 
     misses = set()

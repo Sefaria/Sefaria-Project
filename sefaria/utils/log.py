@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Deprecated as we move to structured logging
 

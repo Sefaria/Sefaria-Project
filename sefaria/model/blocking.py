@@ -3,17 +3,17 @@ blocking.py - handle block relationships between users
 
 Writes to MongoDB Collection: blocking
 """
+
 from datetime import datetime
 
-from sefaria.system.database import db
-from sefaria.system.cache import django_cache
-
 import structlog
+
+from sefaria.system.database import db
 
 logger = structlog.get_logger(__name__)
 
 
-class BlockRelationship(object):
+class BlockRelationship:
     def __init__(self, blocker=None, blockee=None):
         self.blocker = blocker
         self.blockee = blockee
@@ -26,7 +26,7 @@ class BlockRelationship(object):
         db.blocking.replace_one(
             {"blocker": self.blocker, "blockee": self.blockee},
             vars(self),
-            upsert=True
+            upsert=True,
         )
         return self
 
@@ -34,10 +34,9 @@ class BlockRelationship(object):
         db.blocking.delete_one({"blocker": self.blocker, "blockee": self.blockee})
 
 
-class BlockSet(object):
+class BlockSet:
     def __init__(self):
         self.uids = []
-        return self
 
     @property
     def count(self):
@@ -52,4 +51,3 @@ class BlockersSet(BlockSet):
 class BlockeesSet(BlockSet):
     def __init__(self, uid):
         self.uids = db.blocking.find({"blocker": uid}).distinct("blockee")
-

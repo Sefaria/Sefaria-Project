@@ -1,5 +1,3 @@
-# encoding=utf-8
-
 """
 Script to convert Footnotes in B'Mareh HaBazak to standard footnote format. At the time this project was issued, the
 footnotes looked like this:
@@ -30,8 +28,10 @@ It will be easiest to just hardcode the segment numbers that contain the footnot
 """
 
 import re
-from sefaria.model import *
+
 import requests
+
+from sefaria.model import *
 
 
 def run_on_books(cb, *args, **kwargs):
@@ -41,7 +41,7 @@ def run_on_books(cb, *args, **kwargs):
     :return: Dict with keys=booktitles, and values=callback return values
     """
     results = {}
-    for i in IndexSet({'title': re.compile(r".*B'Mareh.*")}).array():
+    for i in IndexSet({"title": re.compile(r".*B'Mareh.*")}).array():
         results[i.title] = cb(i, *args, **kwargs)
     return results
 
@@ -54,12 +54,12 @@ def all_sections_have_single_divider(book_index):
     success = True
     sections = book_index.all_section_refs()
     for section in sections:
-        dividers = re.findall(r'<br> ?_+ ?(<br>)?', ''.join(section.text('he').text))
+        dividers = re.findall(r"<br> ?_+ ?(<br>)?", "".join(section.text("he").text))
         if len(dividers) > 1:
-            print('{} has extra divider'.format(section.normal()))
+            print(f"{section.normal()} has extra divider")
             success = False
         elif len(dividers) < 1:
-            print('{} has no divider'.format(section.normal()))
+            print(f"{section.normal()} has no divider")
             success = False
     return success
 
@@ -71,9 +71,9 @@ def border_segment(segment_list):
     :return: segment ref
     """
     for segment in segment_list:
-        if re.search(r'<br> ?_+ ?(<br>)?', segment.text('he').text):
+        if re.search(r"<br> ?_+ ?(<br>)?", segment.text("he").text):
             return segment
-    return
+    return None
 
 
 def footnote_segments(section_ref):
@@ -108,10 +108,16 @@ def compare_footnote_markers_to_comments(section_ref):
     if body is None and footnotes is None:
         return True
 
-    body_markers = [m.group(1) for segment in body.all_segment_refs()
-                    for m in re.finditer(r'<sup>(\d{,2})</sup>', segment.text('he').text)]
-    footers = [m.group(1) for segment in footnotes.all_segment_refs()
-                    for m in re.finditer(r'^ *<sup>(\d{,2})</sup>', segment.text('he').text)]
+    body_markers = [
+        m.group(1)
+        for segment in body.all_segment_refs()
+        for m in re.finditer(r"<sup>(\d{,2})</sup>", segment.text("he").text)
+    ]
+    footers = [
+        m.group(1)
+        for segment in footnotes.all_segment_refs()
+        for m in re.finditer(r"^ *<sup>(\d{,2})</sup>", segment.text("he").text)
+    ]
     return body_markers == footers
 
 
@@ -123,7 +129,7 @@ def all_sections_match_markers(index):
     success = True
     for section in index.all_section_refs():
         if not compare_footnote_markers_to_comments(section):
-            print("Mismatch found in {}".format(section.normal()))
+            print(f"Mismatch found in {section.normal()}")
             success = False
     return success
 
@@ -140,7 +146,7 @@ def border_is_last_segment(index):
         border = border_segment(segments)
         if border == segments[-1]:
             success = False
-            print("Bad border at {}".format(section.normal()))
+            print(f"Bad border at {section.normal()}")
     return success
 
 
@@ -149,8 +155,8 @@ def locate_double_sup(index):
     for section in sections:
         segments = section.all_segment_refs()
         for segment in segments:
-            if re.search('<sup>\d{,2},\d{,2}</sup>', segment.text('he').text):
-                print("Problem in {}".format(segment.normal()))
+            if re.search(r"<sup>\d{,2},\d{,2}</sup>", segment.text("he").text):
+                print(f"Problem in {segment.normal()}")
 
 
 def fix_footnotes(section):
@@ -158,24 +164,25 @@ def fix_footnotes(section):
     :param Ref section:
     :return:
     """
+
     def generate_footnote_dict(footnote_ref):
         footnote_dict, holder = {}, []
         f_value = None
         for f_segment in footnote_ref.all_segment_refs():
-            t = f_segment.text('he', f_segment.version_list()[0]['versionTitle']).text
-            match = re.match(r'^ *<sup>(\d{,2})</sup>', t)
+            t = f_segment.text("he", f_segment.version_list()[0]["versionTitle"]).text
+            match = re.match(r"^ *<sup>(\d{,2})</sup>", t)
             if match:
                 if f_value is None:  # This is the first footnote
                     assert len(holder) == 0
                 else:
                     assert len(holder) > 0
-                    footnote_dict[f_value] = '<br>'.join(holder)
+                    footnote_dict[f_value] = "<br>".join(holder)
                 f_value = match.group(1)
-                holder = [re.sub(r'^ *<sup>\d{,2}</sup> *', '', t)]
+                holder = [re.sub(r"^ *<sup>\d{,2}</sup> *", "", t)]
             else:
                 holder.append(t)
         else:
-            footnote_dict[f_value] = '<br>'.join(holder)
+            footnote_dict[f_value] = "<br>".join(holder)
 
         return footnote_dict
 
@@ -186,19 +193,19 @@ def fix_footnotes(section):
     replacement_map = generate_footnote_dict(footnotes)
 
     def repl(m):
-        return '{}<i class="footnote">{}</i>'.format(m.group(), replacement_map[m.group(1)])
+        return f'{m.group()}<i class="footnote">{replacement_map[m.group(1)]}</i>'
 
     for segment in main_body.all_segment_refs():
-        chunk = segment.text('he', segment.version_list()[0]['versionTitle'])
-        fixed_text = re.sub('<sup>(\d{,2})</sup>', repl, chunk.text)
+        chunk = segment.text("he", segment.version_list()[0]["versionTitle"])
+        fixed_text = re.sub(r"<sup>(\d{,2})</sup>", repl, chunk.text)
         chunk.text = fixed_text
         chunk.save()
 
     # Clean up original footnotes
-    section_chunk = section.text('he', section.version_list()[0]['versionTitle'])
+    section_chunk = section.text("he", section.version_list()[0]["versionTitle"])
     text_list = section_chunk.text
-    text_list[main_body.toSections[-1]-1] = re.sub(r'<br> ?_+ ?(<br>)?', '', text_list[main_body.toSections[-1]-1])
-    del text_list[footnotes.sections[-1]-1:footnotes.toSections[-1]]
+    text_list[main_body.toSections[-1] - 1] = re.sub(r"<br> ?_+ ?(<br>)?", "", text_list[main_body.toSections[-1] - 1])
+    del text_list[footnotes.sections[-1] - 1 : footnotes.toSections[-1]]
     section_chunk.text = text_list
     section_chunk.save(force_save=True)
 
@@ -208,11 +215,11 @@ def update_from_prod(ref):
     :param Ref ref:
     :return:
     """
-    vtitle = ref.version_list()[0]['versionTitle']
-    url = 'https://www.sefaria.org/api/texts/{}/he/{}'.format(ref.url(), vtitle)
-    result = requests.get(url, params={'commentary': 0, 'pad': 0})
-    he = result.json()['he']
-    tc = ref.text('he', vtitle)
+    vtitle = ref.version_list()[0]["versionTitle"]
+    url = f"https://www.sefaria.org/api/texts/{ref.url()}/he/{vtitle}"
+    result = requests.get(url, params={"commentary": 0, "pad": 0})
+    he = result.json()["he"]
+    tc = ref.text("he", vtitle)
     tc.text = he
     tc.save()
     ref.index.versionState().refresh()
@@ -221,5 +228,6 @@ def update_from_prod(ref):
 def fix_footnotes_on_book(index):
     for section in index.all_section_refs():
         fix_footnotes(section)
+
 
 run_on_books(fix_footnotes_on_book)

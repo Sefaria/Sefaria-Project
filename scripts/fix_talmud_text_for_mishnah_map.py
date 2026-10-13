@@ -1,19 +1,32 @@
-# -*- coding: utf-8 -*-
-import unicodecsv as csv
 import re
 from itertools import groupby
 
-from sefaria.model import *
+import unicodecsv as csv
 from sefaria.helper.splice import SegmentSplicer
 
-
+from sefaria.model import *
 
 live = True
 writeMishnahMapChanges = True
 
-filename = '../data/Mishnah Map.csv'
+filename = "../data/Mishnah Map.csv"
 versionTitle = "Wikisource Talmud Bavli"
-matni_re = re.compile(r"(^|\s+)((?:" + "מת" + "נ" + "?" + "י" + "?" + r"(?:'|" + "׳" + "|" + "תין" + ")?)|" + r"משנה" + r")" + r"(?:$|:|\s+)(.*)")
+matni_re = re.compile(
+    r"(^|\s+)((?:"
+    + "מת"
+    + "נ"
+    + "?"
+    + "י"
+    + "?"
+    + r"(?:'|"
+    + "׳"
+    + "|"
+    + "תין"
+    + ")?)|"
+    + r"משנה"
+    + r")"
+    + r"(?:$|:|\s+)(.*)",
+)
 gemarah_re = re.compile(r"(^|\s+)(" + "גמ" + r"(?:" + r"\'" + "|" + "רא))" + r"(?:$|:|\s+)(.*)")
 standard_mishnah_start = "מתני׳"
 standard_gemara_start = "גמ׳"
@@ -23,13 +36,13 @@ refresh_count = 0
 
 mishnah_map = []
 # Read in the old Mishnah Map
-with open(filename, 'rb') as csvfile:
+with open(filename, "rb") as csvfile:
     next(csvfile)
     for row in csv.reader(csvfile):
         d = {
             "line": row,
-            "orig_ref": Ref("{} {}:{}-{}:{}".format(row[0], row[4], row[5], row[6], row[7])),
-            "new_ref": None
+            "orig_ref": Ref(f"{row[0]} {row[4]}:{row[5]}-{row[6]}:{row[7]}"),
+            "new_ref": None,
         }
         mishnah_map.append(d)
 
@@ -46,7 +59,9 @@ def review_map(splicer):
             row["new_ref"] = splicer._rewrite(row["orig_ref"])
             print("...to {}".format(row["new_ref"]))
 
-missing_matni = ["Berakhot 54a:1",
+
+missing_matni = [
+    "Berakhot 54a:1",
     "Beitzah 15b:1",
     "Beitzah 23b:22",
     "Nazir.30b.26",
@@ -55,69 +70,77 @@ missing_matni = ["Berakhot 54a:1",
     "Shevuot 19b:37",
     "Nedarim.66b.66",
     "Kiddushin 2a:1",
-     "Berakhot 2a:1",
-     "Beitzah 2a:1",
-     "Tamid 33b:1"]
+    "Berakhot 2a:1",
+    "Beitzah 2a:1",
+    "Tamid 33b:1",
+]
 for r in missing_matni:
     tc = TextChunk(Ref(r), "he", versionTitle)
     tc.text = standard_mishnah_start + " " + tc.text
     if live:
         tc.save()
     else:
-        print("Changing text to {}".format(tc.text))
+        print(f"Changing text to {tc.text}")
 
-#These will need some manual work afterwards
-to_split = ["Nedarim.25b.9",
-    "Sukkah 20b:29", # Hadrans in parens, joined at end of other line:
+# These will need some manual work afterwards
+to_split = [
+    "Nedarim.25b.9",
+    "Sukkah 20b:29",  # Hadrans in parens, joined at end of other line:
     "Sukkah 29b:5",
-    "Chagigah 11b:6", # Joined at end of other line:
+    "Chagigah 11b:6",  # Joined at end of other line:
     "Chagigah 20b:13",
     "Zevachim 15b:17",
 ]
 for r in to_split:
     s = SegmentSplicer().insert_blank_segment_after(Ref(r))
-    #s._save_text_only = True
+    # s._save_text_only = True
     s._rebuild_toc = False
     s._refresh_states = True
     if live:
         s.execute()
     else:
-        print("Adding blank segment after {}".format(r))
+        print(f"Adding blank segment after {r}")
     review_map(s)
 
-to_merge = ["Zevachim.66a.23", # merge into previous 22
-    "Zevachim.83a.37", # merge into previous 36
+to_merge = [
+    "Zevachim.66a.23",  # merge into previous 22
+    "Zevachim.83a.37",  # merge into previous 36
     "Bava_Batra.176b.6",  # Slika on last line (and next 3)
     "Bekhorot 61a:47",
     "Arakhin 34a:30",
-    "Keritot 28b:37"]
+    "Keritot 28b:37",
+]
 for r in to_merge:
     s = SegmentSplicer().splice_this_into_prev(Ref(r))
-    #s._save_text_only = True
+    # s._save_text_only = True
     s._rebuild_toc = False
     s._refresh_states = True
     if live:
         s.execute()
     else:
-        print("Merging {} into previous".format(r))
+        print(f"Merging {r} into previous")
     review_map(s)
 
 
 Ref.clear_cache()
 
 booklists = []
-for k, g in groupby(mishnah_map, lambda d: d["orig_ref"].index.title):
+for _k, g in groupby(mishnah_map, lambda d: d["orig_ref"].index.title):
     booklist = []
     for mishnah in g:
         ref = mishnah["new_ref"] if mishnah["new_ref"] else mishnah["orig_ref"]
-        booklist.append({
-            "ref": ref.starting_ref(),
-            "type": "Mishnah"
-        })
-        booklist.append({
-            "ref": ref.ending_ref().next_segment_ref(),
-            "type": "Gemara"
-        })
+        booklist.append(
+            {
+                "ref": ref.starting_ref(),
+                "type": "Mishnah",
+            },
+        )
+        booklist.append(
+            {
+                "ref": ref.ending_ref().next_segment_ref(),
+                "type": "Gemara",
+            },
+        )
     booklists.append(booklist)
 
 
@@ -147,7 +170,7 @@ for booklist in booklists:
                             needs_refresh = True
                             review_map(splc)
                         except Exception as e:
-                            print("(mf) Failed to splice {} into next: {}".format(current["ref"].normal(),e))
+                            print("(mf) Failed to splice {} into next: {}".format(current["ref"].normal(), e))
                 else:
                     print("(m0) Did not match mishnah {}".format(current["ref"].normal()))
             elif current["type"] == "Gemara":
@@ -201,15 +224,26 @@ for booklist in booklists:
             splc.refresh_states()
             Ref.clear_cache()
 
-print("Mishnah count: {}".format(m_count))
-print("Gemara count: {}".format(g_count))
-print("Refresh count: {}".format(refresh_count))
+print(f"Mishnah count: {m_count}")
+print(f"Gemara count: {g_count}")
+print(f"Refresh count: {refresh_count}")
 
 # Write out the new Mishnah Map
 if writeMishnahMapChanges:
     with open(filename, "wb") as csvfile:
         cwriter = csv.writer(csvfile)
-        cwriter.writerow(['Book','Mishnah Chapter','Start Mishnah','End Mishnah','Start Daf','Start Line','End Daf','End Line'])
+        cwriter.writerow(
+            [
+                "Book",
+                "Mishnah Chapter",
+                "Start Mishnah",
+                "End Mishnah",
+                "Start Daf",
+                "Start Line",
+                "End Daf",
+                "End Line",
+            ],
+        )
         for row in mishnah_map:
             if row["new_ref"] and row["new_ref"] != row["orig_ref"]:
                 row["line"][5] = row["new_ref"].sections[1]

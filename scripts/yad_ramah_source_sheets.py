@@ -1,8 +1,11 @@
 import django
+
 django.setup()
+import csv
+
 from sefaria.model import *
 from sefaria.system.database import db
-import csv
+
 if __name__ == "__main__":
     f = open("./data/yad_ramah.csv")
     actual_sources = {}
@@ -16,10 +19,7 @@ if __name__ == "__main__":
     sheets = db.sheets.find()
 
     for sheet in sheets:
-        if "id" not in list(sheet.keys()):
-            id = -1
-        else:
-            id = sheet["id"]
+        id = -1 if "id" not in list(sheet.keys()) else sheet["id"]
         if "id" not in list(sheet.keys()) or id not in list(actual_sources.keys()):
             continue
         print(id)

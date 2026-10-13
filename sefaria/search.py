@@ -1,40 +1,50 @@
-# -*- coding: utf-8 -*-
 """
 search.py - full-text search for Sefaria using ElasticSearch
 
 Writes to MongoDB Collection: index_queue
 """
-from datetime import datetime, timedelta
+
 import logging
 import re
 import sys
+import time as pytime
+from collections import defaultdict
+from datetime import datetime, timedelta
+
 import bleach
 import pymongo
-
-from collections import defaultdict
-import time as pytime
-
-from elastic_transport import ConnectionError as ESConnectionError, ConnectionTimeout
+from elastic_transport import ConnectionError as ESConnectionError
+from elastic_transport import ConnectionTimeout
 from elasticsearch.client import IndicesClient
-from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
-from django_topics.models import Topic as DjangoTopic, PoolType
+from elasticsearch.helpers import bulk
+
+import sefaria.model.queue as qu
+from django_topics.models import PoolType
+from django_topics.models import Topic as DjangoTopic
+from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
 from sefaria.model import *
-from sefaria.model.text import AbstractIndex, AbstractTextRecord
-from sefaria.model.user_profile import user_link, public_user_data
-from sefaria.model.collection import CollectionSet
-from sefaria.system.database import db
-from sefaria.system.exceptions import InputError
-from sefaria.utils.util import strip_tags, strip_markdown
-from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
-from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK, SEARCH_INDEX_NAME_CATEGORY
+
 # Aliased on import: this module already defines an unrelated `get_search_categories(oref,
 # categories)` (the text index's category-path helper, below), which would shadow it.
 from sefaria.model.autospell import get_search_categories as get_searchable_toc_categories
-from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
+from sefaria.model.collection import CollectionSet
+from sefaria.model.text import AbstractIndex, AbstractTextRecord
+from sefaria.model.user_profile import public_user_data, user_link
 from sefaria.site.site_settings import SITE_SETTINGS
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import strip_cantillation
-import sefaria.model.queue as qu
+from sefaria.utils.util import strip_markdown, strip_tags
+
+from .settings import (
+    SEARCH_INDEX_NAME_BOOK,
+    SEARCH_INDEX_NAME_CATEGORY,
+    SEARCH_INDEX_NAME_SHEET,
+    SEARCH_INDEX_NAME_TEXT,
+    SEARCH_INDEX_NAME_TOPIC,
+)
+
 
 def setup_logging(debug=False):
     """
@@ -44,10 +54,11 @@ def setup_logging(debug=False):
     level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(
         level=level,
-        format='[%(levelname)s] %(asctime)s - %(message)s',
+        format="[%(levelname)s] %(asctime)s - %(message)s",
         stream=sys.stdout,
-        force=True  # Override any existing logging configuration
+        force=True,  # Override any existing logging configuration
     )
+
 
 # Initial setup with default level
 setup_logging(False)
@@ -71,12 +82,12 @@ def delete_text_by_ref_string(tref, version, lang):
     # Takes the ref as a plain string so callers can delete docs whose refs can no
     # longer be parsed into an Ref (e.g. refs built from a book's pre-rename title).
     try:
-        index_names = get_new_and_current_index_names('text')
+        index_names = get_new_and_current_index_names("text")
         if not index_names:
             logger.error(f"Could not get index names for text - ref: {tref}, version: {version}, lang: {lang}")
             return
 
-        curr_index = index_names.get('current')
+        curr_index = index_names.get("current")
         if not curr_index:
             logger.error(f"No current index found for text - ref: {tref}, version: {version}, lang: {lang}")
             return
@@ -102,7 +113,7 @@ def delete_version(index, version, lang, old_title=None):
 
     if SITE_SETTINGS.get("TORAH_SPECIFIC"):
         all_gemara_indexes = library.get_indexes_in_category("Bavli")
-        davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
+        davidson_indexes = all_gemara_indexes[: all_gemara_indexes.index("Horayot") + 1]
         if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
             refs += index.all_section_refs()
 
@@ -111,14 +122,14 @@ def delete_version(index, version, lang, old_title=None):
     for ref in refs:
         tref = ref.normal()
         if old_title:
-            tref = old_title + tref[len(index.title):]
+            tref = old_title + tref[len(index.title) :]
         delete_text_by_ref_string(tref, version, lang)
 
 
 def delete_sheet(index_name, id):
     try:
         es_client.delete(index=index_name, id=id)
-    except Exception as e:
+    except Exception:
         logger.error(f"deleting sheet {id}")
 
 
@@ -147,14 +158,16 @@ def unicode_number(u):
         n += ord(u[i])
     return n
 
+
 def make_sheet_topics(sheet):
     topics = []
-    for t in sheet.get('topics', []):
-        topic_obj = Topic.init(t.get('slug'))
+    for t in sheet.get("topics", []):
+        topic_obj = Topic.init(t.get("slug"))
         if not topic_obj:
             continue
         topics += [topic_obj]
     return topics
+
 
 def index_sheet(index_name, id):
     """
@@ -163,7 +176,7 @@ def index_sheet(index_name, id):
     sheet = db.sheets.find_one({"id": id})
     if not sheet:
         return False  # Sheet not found - tracked as failed
-    
+
     # Validate all critical fields upfront
     owner_id = sheet.get("owner")
     sheet_title = sheet.get("title")
@@ -171,26 +184,26 @@ def index_sheet(index_name, id):
     datePublished = sheet.get("datePublished")
     dateCreated = sheet.get("dateCreated")
     dateModified = sheet.get("dateModified")
-    
+
     if any(x is None for x in [summary, datePublished, dateCreated, dateModified]) or not (owner_id and sheet_title):
         return False  # Missing critical sheet fields - tracked as failed
-    
+
     pud = public_user_data(owner_id)
     if not pud:
         return False  # Could not get user data - tracked as failed
-    
+
     owner_name = pud.get("name")
     owner_image = pud.get("imageUrl")
     profile_url = pud.get("profileUrl")
     owner_link = user_link(owner_id)
-    
+
     if not all([owner_name, owner_image, profile_url, owner_link]):
         return False  # Missing critical user fields - tracked as failed
-    
+
     topics = make_sheet_topics(sheet)
     collections = CollectionSet({"sheets": id, "listed": True})
     collection_names = [c.name for c in collections]
-    
+
     try:
         doc = {
             "title": strip_tags(sheet_title),
@@ -201,21 +214,22 @@ def index_sheet(index_name, id):
             "profile_url": profile_url,
             "version": "Source Sheet by " + owner_link,
             "topic_slugs": [topic_obj.slug for topic_obj in topics],
-            "topics_en": [topic_obj.get_primary_title('en') for topic_obj in topics],
-            "topics_he": [topic_obj.get_primary_title('he') for topic_obj in topics],
+            "topics_en": [topic_obj.get_primary_title("en") for topic_obj in topics],
+            "topics_he": [topic_obj.get_primary_title("he") for topic_obj in topics],
             "sheetId": id,
             "summary": summary,
             "collections": collection_names,
             "datePublished": datePublished,
             "dateCreated": dateCreated,
             "dateModified": dateModified,
-            "views": sheet.get("views", 0)
+            "views": sheet.get("views", 0),
         }
         es_client.create(index=index_name, id=id, body=doc)
         return True
-    except Exception as e:
+    except Exception:
         # Error indexing - skip silently, will be tracked as failed
         return False
+
 
 def make_sheet_text(sheet, pud):
     """
@@ -229,21 +243,21 @@ def make_sheet_text(sheet, pud):
     if not title or not summary:
         # Critical fields missing - raise exception to be caught and tracked as failed
         raise ValueError(f"Missing critical fields: title={title is not None}, summary={summary is not None}")
-    
+
     text = f"{title}\n{summary}"
-    
+
     # Null-safety for author name
     author_name = pud.get("name") if pud else None
     if author_name:
         text += "\nBy: " + author_name
     text += "\n"
-    
+
     if sheet.get("topics"):
         topics = make_sheet_topics(sheet)
-        topics_en = [topic_obj.get_primary_title('en') for topic_obj in topics]
-        topics_he = [topic_obj.get_primary_title('he') for topic_obj in topics]
-        text += " [" + ", ".join(topics_en+topics_he) + "]\n"
-    
+        topics_en = [topic_obj.get_primary_title("en") for topic_obj in topics]
+        topics_he = [topic_obj.get_primary_title("he") for topic_obj in topics]
+        text += " [" + ", ".join(topics_en + topics_he) + "]\n"
+
     for s in sheet.get("sources", []):
         text += source_text(s) + " "
 
@@ -284,49 +298,53 @@ def get_exact_english_analyzer():
 
 def get_stemmed_english_analyzer():
     stemmed_english_analyzer = get_exact_english_analyzer()
-    stemmed_english_analyzer['filter'] += ["my_snow"]
+    stemmed_english_analyzer["filter"] += ["my_snow"]
     return stemmed_english_analyzer
 
 
 def create_index(index_name, type, force=False):
     """
     Creates a new Elasticsearch index with appropriate settings and mappings.
-    
+
     If the index already exists and contains documents:
     - If force=False (default): Raises a ValueError to prevent accidental data loss
     - If force=True: Clears the existing index and recreates it
-    
+
     :param index_name: Name of the index to create
     :param type: Type of index ('text' or 'sheet')
     :param force: If False (default), will not recreate an index with documents (safety check)
     """
     logger.debug(f"Creating new Elasticsearch index - index_name: {index_name}, type: {type}, force: {force}")
-    
+
     # Check if index already exists and has documents
     exists_before = index_client.exists(index=index_name)
     if exists_before:
         try:
             stats = index_client.stats(index=index_name)
-            doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
-            
+            doc_count = stats.get("_all", {}).get("primaries", {}).get("docs", {}).get("count", 0)
+
             if doc_count > 0 and not force:
                 error_msg = f"Index {index_name} already exists with {doc_count} documents. Use force=True to recreate."
-                logger.error(f"Refusing to recreate index with existing data - index_name: {index_name}, doc_count: {doc_count}")
+                logger.error(
+                    f"Refusing to recreate index with existing data - index_name: {index_name}, doc_count: {doc_count}",
+                )
                 raise ValueError(error_msg)
-            
-            logger.warning(f"Index exists with documents, will be cleared - index_name: {index_name}, doc_count: {doc_count}")
+
+            logger.warning(
+                f"Index exists with documents, will be cleared - index_name: {index_name}, doc_count: {doc_count}",
+            )
         except ValueError:
             # Re-raise ValueError (from the safety check above) to caller
             raise
         except Exception as e:
             logger.warning(f"Could not get index stats - index_name: {index_name}, error: {str(e)}")
-    
+
     clear_index(index_name)
 
     settings = {
         "index": {
             "blocks": {
-                "read_only_allow_delete": False
+                "read_only_allow_delete": False,
             },
             "analysis": {
                 "analyzer": {
@@ -338,15 +356,15 @@ def create_index(index_name, type, force=False):
                     # entity titles for A-Z sorting (a raw keyword sort puts "iggeret" after "Zohar").
                     "keyword_lowercase": {
                         "type": "custom",
-                        "filter": ["lowercase"]
-                    }
+                        "filter": ["lowercase"],
+                    },
                 },
                 "filter": {
                     "my_snow": {
                         "type": "snowball",
-                        "language": "English"
-                    }
-                }
+                        "language": "English",
+                    },
+                },
             },
             "similarity": {
                 # Scoring for "alias bag" fields: a multi-valued list of alternate names
@@ -371,14 +389,14 @@ def create_index(index_name, type, force=False):
                 "alias_bag": {
                     "type": "BM25",
                     "k1": 0.0,
-                    "b": 0.0
-                }
-            }
-        }
+                    "b": 0.0,
+                },
+            },
+        },
     }
 
     logger.debug(f"Creating index with settings - index_name: {index_name}")
-    
+
     try:
         index_client.create(index=index_name, settings=settings)
         logger.info(f"Successfully created index - index_name: {index_name}")
@@ -386,23 +404,23 @@ def create_index(index_name, type, force=False):
         logger.error(f"Failed to create index - index_name: {index_name}, error: {str(e)}", exc_info=True)
         raise
 
-    if type == 'text':
+    if type == "text":
         logger.debug(f"Applying text mapping to index - index_name: {index_name}")
         put_text_mapping(index_name)
         logger.debug(f"Text mapping applied successfully - index_name: {index_name}")
-    elif type == 'sheet':
+    elif type == "sheet":
         logger.debug(f"Applying sheet mapping to index - index_name: {index_name}")
         put_sheet_mapping(index_name)
         logger.debug(f"Sheet mapping applied successfully - index_name: {index_name}")
-    elif type == 'topic':
+    elif type == "topic":
         logger.debug(f"Applying topic mapping to index - index_name: {index_name}")
         put_topic_mapping(index_name)
         logger.debug(f"Topic mapping applied successfully - index_name: {index_name}")
-    elif type == 'book':
+    elif type == "book":
         logger.debug(f"Applying book mapping to index - index_name: {index_name}")
         put_book_mapping(index_name)
         logger.debug(f"Book mapping applied successfully - index_name: {index_name}")
-    elif type == 'category':
+    elif type == "category":
         logger.debug(f"Applying category mapping to index - index_name: {index_name}")
         put_category_mapping(index_name)
         logger.debug(f"Category mapping applied successfully - index_name: {index_name}")
@@ -415,65 +433,65 @@ def put_text_mapping(index_name):
     Settings mapping for the text document type.
     """
     text_mapping = {
-        '_source': {
-            'excludes': ['linked_refs']
+        "_source": {
+            "excludes": ["linked_refs"],
         },
-        'properties' : {
-            'categories': {
-                'type': 'keyword',
+        "properties": {
+            "categories": {
+                "type": "keyword",
             },
             "category": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "he_category": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "index_title": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "path": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "he_index_title": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "he_path": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "order": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "pagesheetrank": {
-                'type': 'double',
-                'index': False
+                "type": "double",
+                "index": False,
             },
             "comp_date": {
-                'type': 'integer',
-                'index': False
+                "type": "integer",
+                "index": False,
             },
             "version_priority": {
-                'type': 'integer',
-                'index': False
+                "type": "integer",
+                "index": False,
             },
             "exact": {
-                'type': 'text',
-                'analyzer': 'exact_english'
+                "type": "text",
+                "analyzer": "exact_english",
             },
             "naive_lemmatizer": {
-                'type': 'text',
-                'analyzer': 'sefaria-naive-lemmatizer',
-                'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes',
-                'fields': {
-                    'exact': {
-                        'type': 'text',
-                        'analyzer': 'exact_english'
-                    }
-                }
+                "type": "text",
+                "analyzer": "sefaria-naive-lemmatizer",
+                "search_analyzer": "sefaria-naive-lemmatizer-less-prefixes",
+                "fields": {
+                    "exact": {
+                        "type": "text",
+                        "analyzer": "exact_english",
+                    },
+                },
             },
             "linked_refs": {
-                'type': 'keyword'
-            }
-        }
+                "type": "keyword",
+            },
+        },
     }
     index_client.put_mapping(body=text_mapping, index=index_name)
 
@@ -483,63 +501,63 @@ def put_sheet_mapping(index_name):
     Sets mapping for the sheets document type.
     """
     sheet_mapping = {
-        'properties': {
-            'owner_name': {
-                'type': 'keyword'
+        "properties": {
+            "owner_name": {
+                "type": "keyword",
             },
-            'tags': {
-                'type': 'keyword'
+            "tags": {
+                "type": "keyword",
             },
             "topics_en": {
-                "type": "keyword"
+                "type": "keyword",
             },
             "topics_he": {
-                "type": "keyword"
+                "type": "keyword",
             },
             "topic_slugs": {
-                "type": "keyword"
+                "type": "keyword",
             },
-            'owner_image': {
-                'type': 'keyword'
+            "owner_image": {
+                "type": "keyword",
             },
-            'datePublished': {
-                'type': 'date'
+            "datePublished": {
+                "type": "date",
             },
-            'dateCreated': {
-                'type': 'date'
+            "dateCreated": {
+                "type": "date",
             },
-            'dateModified': {
-                'type': 'date'
+            "dateModified": {
+                "type": "date",
             },
-            'sheetId': {
-                'type': 'integer'
+            "sheetId": {
+                "type": "integer",
             },
-            'collections': {
-                'type': 'keyword'
+            "collections": {
+                "type": "keyword",
             },
-            'title': {
-                'type': 'keyword'
+            "title": {
+                "type": "keyword",
             },
-            'views': {
-                'type': 'integer'
+            "views": {
+                "type": "integer",
             },
-            'summary': {
-                'type': 'keyword'
+            "summary": {
+                "type": "keyword",
             },
-            'content': {
-                'type': 'text',
-                'analyzer': 'stemmed_english'
+            "content": {
+                "type": "text",
+                "analyzer": "stemmed_english",
             },
-            'version': {
-                'type': 'keyword'
+            "version": {
+                "type": "keyword",
             },
-            'profile_url': {
-                'type': 'keyword'
+            "profile_url": {
+                "type": "keyword",
             },
-            'owner_id': {
-                'type': 'integer'
-            }
-        }
+            "owner_id": {
+                "type": "integer",
+            },
+        },
     }
     index_client.put_mapping(body=sheet_mapping, index=index_name)
 
@@ -555,42 +573,42 @@ def put_topic_mapping(index_name):
     exact-match and a lowercased `sort` sub-field for A-Z sorting.
     """
     topic_mapping = {
-        'properties': {
-            'slug': {
-                'type': 'keyword',
+        "properties": {
+            "slug": {
+                "type": "keyword",
             },
-            'subtype': {
-                'type': 'keyword',
+            "subtype": {
+                "type": "keyword",
             },
-            'title_en': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
-                'fields': {
-                    'keyword': {'type': 'keyword'},
-                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
+            "title_en": {
+                "type": "text",
+                "analyzer": "stemmed_english",
+                "fields": {
+                    "keyword": {"type": "keyword"},
+                    "sort": {"type": "keyword", "normalizer": "keyword_lowercase"},
                 },
             },
-            'title_he': {
-                'type': 'text',
-                'fields': {
-                    'keyword': {'type': 'keyword'},
-                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
+            "title_he": {
+                "type": "text",
+                "fields": {
+                    "keyword": {"type": "keyword"},
+                    "sort": {"type": "keyword", "normalizer": "keyword_lowercase"},
                 },
             },
             # An alias bag, not prose: term frequency across the variant list is a
             # cataloging artifact, so score on idf alone (see the `alias_bag`
             # similarity in create_index). Norms are moot under k1=0.
-            'titleVariants': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
-                'similarity': 'alias_bag',
+            "titleVariants": {
+                "type": "text",
+                "analyzer": "stemmed_english",
+                "similarity": "alias_bag",
             },
-            'description_en': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
+            "description_en": {
+                "type": "text",
+                "analyzer": "stemmed_english",
             },
-            'description_he': {
-                'type': 'text',
+            "description_he": {
+                "type": "text",
             },
             # No `numSources`. It was indexed only to drive a popularity function_score on
             # relevance, which was never specced and has been removed; nothing in the entity
@@ -599,14 +617,14 @@ def put_topic_mapping(index_name):
             # source-count filter is ever specced — that needs a reindex, not just a query
             # change. The Mongo `Topic.numSources` field is untouched and still drives topic
             # pages / the topics TOC / the autocompleter via Topic.should_display().
-            'era': {
-                'type': 'keyword',
+            "era": {
+                "type": "keyword",
             },
-            'birthYear': {
-                'type': 'integer',
+            "birthYear": {
+                "type": "integer",
             },
-            'deathYear': {
-                'type': 'integer',
+            "deathYear": {
+                "type": "integer",
             },
             # The author's single derived year for the chronological sort: `deathYear`,
             # falling back to `birthYear` when there is no death year (see
@@ -615,8 +633,8 @@ def put_topic_mapping(index_name):
             # contradicts the year the card actually displays (SearchPage.jsx). This
             # mirrors the book index, whose `compDate` is likewise collapsed to one
             # sortable int at index time rather than derived per query.
-            'sortYear': {
-                'type': 'integer',
+            "sortYear": {
+                "type": "integer",
             },
             # Denormalized titles of the books this author wrote (analyzed text, split
             # by language, incl. English title variants — the same title set the book
@@ -626,18 +644,18 @@ def put_topic_mapping(index_name):
             # by field-length normalization; the `keyword` sub-field powers exact-match
             # (tier 1), which is what ranks the true author of an exactly-titled work
             # above its commentators.
-            'authored_titles_en': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
-                'norms': False,
-                'fields': {'keyword': {'type': 'keyword'}},
+            "authored_titles_en": {
+                "type": "text",
+                "analyzer": "stemmed_english",
+                "norms": False,
+                "fields": {"keyword": {"type": "keyword"}},
             },
-            'authored_titles_he': {
-                'type': 'text',
-                'norms': False,
-                'fields': {'keyword': {'type': 'keyword'}},
+            "authored_titles_he": {
+                "type": "text",
+                "norms": False,
+                "fields": {"keyword": {"type": "keyword"}},
             },
-        }
+        },
     }
     index_client.put_mapping(body=topic_mapping, index=index_name)
 
@@ -652,67 +670,67 @@ def put_book_mapping(index_name):
     "Maimonides" matches his works even when his name isn't in the title.
     """
     book_mapping = {
-        'properties': {
+        "properties": {
             # Length norms are intentionally ON for the primary title fields: a short,
             # focused title ("Chafetz Chaim") should outscore a longer title that merely
             # contains the query words ("Chafetz Chaim on Sifra") for the same matched
             # term. titleVariants is scored by the `alias_bag` similarity instead, which
             # neutralizes both term frequency and length (see create_index): a book is
             # neither penalized nor rewarded for the size of its variant list.
-            'title_en': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
-                'fields': {
-                    'keyword': {'type': 'keyword'},
-                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
+            "title_en": {
+                "type": "text",
+                "analyzer": "stemmed_english",
+                "fields": {
+                    "keyword": {"type": "keyword"},
+                    "sort": {"type": "keyword", "normalizer": "keyword_lowercase"},
                 },
             },
-            'title_he': {
-                'type': 'text',
-                'fields': {
-                    'keyword': {'type': 'keyword'},
-                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
+            "title_he": {
+                "type": "text",
+                "fields": {
+                    "keyword": {"type": "keyword"},
+                    "sort": {"type": "keyword", "normalizer": "keyword_lowercase"},
                 },
             },
-            'titleVariants': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
-                'norms': False,
-                'similarity': 'alias_bag',
-                'fields': {
-                    'keyword': {'type': 'keyword'},
+            "titleVariants": {
+                "type": "text",
+                "analyzer": "stemmed_english",
+                "norms": False,
+                "similarity": "alias_bag",
+                "fields": {
+                    "keyword": {"type": "keyword"},
                 },
             },
-            'categories': {
-                'type': 'keyword',
+            "categories": {
+                "type": "keyword",
             },
-            'path': {
-                'type': 'keyword',
+            "path": {
+                "type": "keyword",
             },
-            'description_en': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
+            "description_en": {
+                "type": "text",
+                "analyzer": "stemmed_english",
             },
-            'description_he': {
-                'type': 'text',
+            "description_he": {
+                "type": "text",
             },
-            'compDate': {
-                'type': 'integer',
+            "compDate": {
+                "type": "integer",
             },
-            'era': {
-                'type': 'keyword',
+            "era": {
+                "type": "keyword",
             },
-            'authors': {
-                'type': 'keyword',
+            "authors": {
+                "type": "keyword",
             },
-            'author_names': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
+            "author_names": {
+                "type": "text",
+                "analyzer": "stemmed_english",
             },
-            'order': {
-                'type': 'keyword',
+            "order": {
+                "type": "keyword",
             },
-        }
+        },
     }
     index_client.put_mapping(body=book_mapping, index=index_name)
 
@@ -729,57 +747,57 @@ def put_category_mapping(index_name):
     shape exactly.
     """
     category_mapping = {
-        'properties': {
-            'title_en': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
-                'fields': {
-                    'keyword': {'type': 'keyword'},
-                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
+        "properties": {
+            "title_en": {
+                "type": "text",
+                "analyzer": "stemmed_english",
+                "fields": {
+                    "keyword": {"type": "keyword"},
+                    "sort": {"type": "keyword", "normalizer": "keyword_lowercase"},
                 },
             },
-            'title_he': {
-                'type': 'text',
-                'fields': {
-                    'keyword': {'type': 'keyword'},
-                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
+            "title_he": {
+                "type": "text",
+                "fields": {
+                    "keyword": {"type": "keyword"},
+                    "sort": {"type": "keyword", "normalizer": "keyword_lowercase"},
                 },
             },
             # Every non-primary title of the category, EN and HE in one field. For a
             # category with a `sharedTitle` these come from the shared Term (see
             # make_category_index_document), which is where the real aliases live:
             # "Bible" for Tanakh, "Gemara" for Talmud, "Mishnah Torah" for Mishneh Torah.
-            'titleVariants': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
-                'norms': False,
-                'similarity': 'alias_bag',
-                'fields': {
-                    'keyword': {'type': 'keyword'},
+            "titleVariants": {
+                "type": "text",
+                "analyzer": "stemmed_english",
+                "norms": False,
+                "similarity": "alias_bag",
+                "fields": {
+                    "keyword": {"type": "keyword"},
                 },
             },
             # Parent path components ("Halakhah" for Halakhah/Mishneh Torah); rendered as
             # the result card's breadcrumb. Empty for a top-level category.
-            'categories': {
-                'type': 'keyword',
+            "categories": {
+                "type": "keyword",
             },
-            'path': {
-                'type': 'keyword',
+            "path": {
+                "type": "keyword",
             },
-            'depth': {
-                'type': 'integer',
+            "depth": {
+                "type": "integer",
             },
-            'description_en': {
-                'type': 'text',
-                'analyzer': 'stemmed_english',
+            "description_en": {
+                "type": "text",
+                "analyzer": "stemmed_english",
             },
-            'description_he': {
-                'type': 'text',
+            "description_he": {
+                "type": "text",
             },
-            'order': {
-                'type': 'integer',
+            "order": {
+                "type": "integer",
             },
-        }
+        },
     }
     index_client.put_mapping(body=category_mapping, index=index_name)
 
@@ -798,13 +816,12 @@ def get_search_categories(oref, categories):
         cnode = toc_tree.lookup(path)
         if getattr(cnode, "searchRoot", None) is not None:
             # Use the specified searchRoot, with the rest of the category path appended.
-            indexed_categories = [cnode.searchRoot] + cats[len(path) - 1:]
+            indexed_categories = [cnode.searchRoot] + cats[len(path) - 1 :]
             break
     return indexed_categories
 
 
-class TextIndexer(object):
-    
+class TextIndexer:
     # Class-level failure tracking
     _failed_versions = None
     _skipped_versions = None
@@ -817,30 +834,34 @@ class TextIndexer(object):
         cls.best_time_period = None
         cls._failed_versions = []
         cls._skipped_versions = []
-    
+
     @classmethod
     def _add_failed_version(cls, version, error_message, error_type=None):
         """Helper method to consistently add failed versions to tracking list."""
         if cls._failed_versions is None:
             cls._failed_versions = []
-        cls._failed_versions.append({
-            'title': getattr(version, 'title', 'Unknown'),
-            'version': getattr(version, 'versionTitle', 'Unknown'),
-            'lang': getattr(version, 'language', 'Unknown'),
-            'error': error_message,
-            'error_type': error_type or 'Exception'
-        })
-    
+        cls._failed_versions.append(
+            {
+                "title": getattr(version, "title", "Unknown"),
+                "version": getattr(version, "versionTitle", "Unknown"),
+                "lang": getattr(version, "language", "Unknown"),
+                "error": error_message,
+                "error_type": error_type or "Exception",
+            },
+        )
+
     @classmethod
     def _add_skipped_version(cls, version, reason):
         """Helper method to consistently add skipped versions to tracking list."""
         if cls._skipped_versions is None:
             cls._skipped_versions = []
-        cls._skipped_versions.append({
-            'title': getattr(version, 'title', 'Unknown'),
-            'version': getattr(version, 'versionTitle', 'Unknown'),
-            'reason': reason
-        })
+        cls._skipped_versions.append(
+            {
+                "title": getattr(version, "title", "Unknown"),
+                "version": getattr(version, "versionTitle", "Unknown"),
+                "reason": reason,
+            },
+        )
 
     @classmethod
     def _flush_bulk_actions(cls, in_flight_versions):
@@ -851,23 +872,22 @@ class TextIndexer(object):
         if not cls._bulk_actions:
             return 0
         try:
-            bulk(_indexer_es_client, cls._bulk_actions, stats_only=True,
-                 raise_on_error=False, request_timeout=120)
+            bulk(_indexer_es_client, cls._bulk_actions, stats_only=True, raise_on_error=False, request_timeout=120)
             cls._bulk_actions = []
             return 0
         except (ESConnectionError, ConnectionTimeout) as e:
             # Both are siblings under TransportError, not parent/child — list explicitly.
             logger.warning(
-                f"Bulk indexing failed: {type(e).__name__}: {e}; "
-                f"continuing with next index"
+                f"Bulk indexing failed: {type(e).__name__}: {e}; continuing with next index",
             )
             for v in in_flight_versions:
                 cls._add_failed_version(
-                    v, f"Bulk write failed: {e}", type(e).__name__
+                    v,
+                    f"Bulk write failed: {e}",
+                    type(e).__name__,
                 )
             cls._bulk_actions = []
             return len(in_flight_versions)
-
 
     @classmethod
     def create_terms_dict(cls):
@@ -901,14 +921,19 @@ class TextIndexer(object):
                     return
                 vlist = cls.get_ref_version_list(r)
                 vpriorities = defaultdict(lambda: 0)
-                for i, v in enumerate(vlist):
+                for _i, v in enumerate(vlist):
                     lang = v.language
-                    cls.version_priority_map[(title, v.versionTitle, lang)] = (vpriorities[lang], mini_toc.get("categories", []))
+                    cls.version_priority_map[(title, v.versionTitle, lang)] = (
+                        vpriorities[lang],
+                        mini_toc.get("categories", []),
+                    )
                     vpriorities[lang] += 1
 
         traverse(toc)
         elapsed = datetime.now() - start_time
-        logger.debug(f"Completed version priority map creation - total_versions: {len(cls.version_priority_map)}, parse_errors: {len(parse_errors)}, elapsed: {elapsed}")
+        logger.debug(
+            f"Completed version priority map creation - total_versions: {len(cls.version_priority_map)}, parse_errors: {len(parse_errors)}, elapsed: {elapsed}",
+        )
 
     @staticmethod
     def get_ref_version_list(oref, tries=0):
@@ -922,10 +947,9 @@ class TextIndexer(object):
                 if tries % 10 == 0:  # Log every 10 retries
                     logger.warning(f"MongoDB AutoReconnect, retrying - ref: {oref.normal()}, attempt: {tries}")
                 pytime.sleep(RETRY_SLEEP_SECONDS)
-                return TextIndexer.get_ref_version_list(oref, tries+1)
-            else:
-                logger.error(f"get_ref_version_list failed after max retries - ref: {oref.normal()}, attempts: {tries}")
-                raise e
+                return TextIndexer.get_ref_version_list(oref, tries + 1)
+            logger.error(f"get_ref_version_list failed after max retries - ref: {oref.normal()}, attempts: {tries}")
+            raise e
 
     @classmethod
     def get_all_versions(cls, tries=0, versions=None, page=0):
@@ -949,40 +973,46 @@ class TextIndexer(object):
         except pymongo.errors.AutoReconnect as e:
             if tries < MAX_RETRY_ATTEMPTS:
                 if tries % 10 == 0:
-                    logger.warning(f"MongoDB AutoReconnect while fetching versions, retrying - attempt: {tries}, versions_so_far: {len(versions)}")
+                    logger.warning(
+                        f"MongoDB AutoReconnect while fetching versions, retrying - attempt: {tries}, versions_so_far: {len(versions)}",
+                    )
                 pytime.sleep(RETRY_SLEEP_SECONDS)
-                return cls.get_all_versions(tries+1, versions, page)
-            else:
-                logger.error(f"get_all_versions failed after max retries - attempts: {tries}, versions_retrieved: {len(versions)}")
-                raise e
+                return cls.get_all_versions(tries + 1, versions, page)
+            logger.error(
+                f"get_all_versions failed after max retries - attempts: {tries}, versions_retrieved: {len(versions)}",
+            )
+            raise e
 
     @staticmethod
     def excluded_from_search(version):
         return version.versionTitle in [
             "Yehoyesh's Yiddish Tanakh Translation [yi]",
-            'Miqra Mevoar, trans. and edited by David Kokhav, Jerusalem 2020'
+            "Miqra Mevoar, trans. and edited by David Kokhav, Jerusalem 2020",
         ]
 
     @classmethod
     def index_all(cls, index_name, debug=False, for_es=True, action=None):
         start_time = datetime.now()
         cls.index_name = index_name
-        
+
         logger.debug(f"TextIndexer.index_all starting - index_name: {index_name}, debug: {debug}, for_es: {for_es}")
-        
+
         # Create priority map and terms dict
         cls.create_version_priority_map()
         logger.debug("Created terms dictionary")
         cls.create_terms_dict()
-        
+
         logger.debug("Clearing Ref cache to save RAM")
         Ref.clear_cache()
 
         # Get and sort versions
         logger.debug("Sorting versions by priority")
-        versions = sorted([x for x in cls.get_all_versions() if (x.title, x.versionTitle, x.language) in cls.version_priority_map], key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
+        versions = sorted(
+            [x for x in cls.get_all_versions() if (x.title, x.versionTitle, x.language) in cls.version_priority_map],
+            key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0],
+        )
         versions_by_index = {}
-        
+
         # Organize by index for the merged case
         for v in versions:
             key = (v.title, v.language)
@@ -990,21 +1020,21 @@ class TextIndexer(object):
                 versions_by_index[key] += [v]
             else:
                 versions_by_index[key] = [v]
-        
+
         total_versions = len(versions)
         total_indexes = len(versions_by_index)
         logger.debug(f"Beginning text indexing - total_versions: {total_versions}, total_indexes: {total_indexes}")
         logger.debug(f"Beginning index of {total_versions} versions.")
-        
+
         vcount = 0
         skipped = 0
         failed = 0
         versions = None  # release RAM
-        
-        for idx_count, (title, vlist) in enumerate(list(versions_by_index.items())):
+
+        for idx_count, (_title, vlist) in enumerate(list(versions_by_index.items())):
             if len(vlist) == 0:
                 continue
-            
+
             try:
                 cls.curr_index = vlist[0].get_index()
             except Exception as e:
@@ -1012,20 +1042,20 @@ class TextIndexer(object):
                 for v in vlist:
                     cls._add_failed_version(v, f"Failed to get index: {str(e)}", type(e).__name__)
                 continue
-                
+
             if cls.curr_index is None:
                 failed += len(vlist)
                 for v in vlist:
-                    cls._add_failed_version(v, 'Index is None', 'ValidationError')
+                    cls._add_failed_version(v, "Index is None", "ValidationError")
                 continue
-            
+
             # Validate that index has a title
-            if not hasattr(cls.curr_index, 'title') or not cls.curr_index.title:
+            if not hasattr(cls.curr_index, "title") or not cls.curr_index.title:
                 failed += len(vlist)
                 for v in vlist:
-                    cls._add_failed_version(v, 'Index missing title', 'ValidationError')
+                    cls._add_failed_version(v, "Index missing title", "ValidationError")
                 continue
-                
+
             if for_es:
                 cls._bulk_actions = []
                 try:
@@ -1042,12 +1072,16 @@ class TextIndexer(object):
                 # Validate critical fields
                 if not v.title or not v.versionTitle or not v.language:
                     failed += 1
-                    cls._add_failed_version(v, 'Missing critical field (title, versionTitle, or language)', 'ValidationError')
+                    cls._add_failed_version(
+                        v,
+                        "Missing critical field (title, versionTitle, or language)",
+                        "ValidationError",
+                    )
                     continue
 
                 if cls.excluded_from_search(v):
                     skipped += 1
-                    cls._add_skipped_version(v, 'excluded_from_search')
+                    cls._add_skipped_version(v, "excluded_from_search")
                     continue
 
                 try:
@@ -1066,39 +1100,56 @@ class TextIndexer(object):
 
             if idx_count % 100 == 0:
                 elapsed_so_far = datetime.now() - start_time
-                logger.info(f"TextIndexer progress: {idx_count}/{total_indexes} indexes ({100*idx_count//total_indexes}%), {vcount} versions indexed, elapsed: {elapsed_so_far}")
+                logger.info(
+                    f"TextIndexer progress: {idx_count}/{total_indexes} indexes ({100 * idx_count // total_indexes}%), {vcount} versions indexed, elapsed: {elapsed_so_far}",
+                )
 
         elapsed = datetime.now() - start_time
-        logger.info(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
+        logger.info(
+            f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}",
+        )
 
     @classmethod
     def index_version(cls, version, tries=0, action=None):
         # Validate critical fields before processing
         if not version.title or not version.versionTitle or not version.language:
-            cls._add_failed_version(version, 'Missing critical field (title, versionTitle, or language)', 'ValidationError')
+            cls._add_failed_version(
+                version,
+                "Missing critical field (title, versionTitle, or language)",
+                "ValidationError",
+            )
             return
-        
+
         if not action:
             action = cls._cache_action
         try:
             # Validate curr_index has required attributes
-            if not cls.curr_index or not hasattr(cls.curr_index, 'get_title') or not hasattr(cls.curr_index, 'schema'):
-                cls._add_failed_version(version, 'Index missing required attributes (get_title or schema)', 'ValidationError')
+            if not cls.curr_index or not hasattr(cls.curr_index, "get_title") or not hasattr(cls.curr_index, "schema"):
+                cls._add_failed_version(
+                    version,
+                    "Index missing required attributes (get_title or schema)",
+                    "ValidationError",
+                )
                 return
-            version.walk_thru_contents(action, heTref=cls.curr_index.get_title('he'), schema=cls.curr_index.schema, terms_dict=cls.terms_dict)
+            version.walk_thru_contents(
+                action,
+                heTref=cls.curr_index.get_title("he"),
+                schema=cls.curr_index.schema,
+                terms_dict=cls.terms_dict,
+            )
         except pymongo.errors.AutoReconnect as e:
             # Adding this because there is a mongo call for dictionary words in walk_thru_contents()
             if tries < MAX_RETRY_ATTEMPTS:
                 pytime.sleep(RETRY_SLEEP_SECONDS)
                 # Retry silently - no logging for retries
-                cls.index_version(version, tries+1)
+                cls.index_version(version, tries + 1)
             else:
                 # Max retries exceeded - will be caught and tracked as failed
                 raise e
         except StopIteration:
             # Dictionary node not found - will be caught and tracked as failed
             raise
-        except Exception as e:
+        except Exception:
             # Unexpected error - will be caught and tracked as failed
             raise
 
@@ -1116,11 +1167,22 @@ class TextIndexer(object):
         for priority, v in enumerate(cls.get_ref_version_list(oref)):
             if v.versionTitle == version_title:
                 version_priority = priority
-                hebrew_version_title = getattr(v, 'versionTitleInHebrew', None)
+                hebrew_version_title = getattr(v, "versionTitleInHebrew", None)
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
         tref = oref.normal()
-        doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary)
+        doc = cls.make_text_index_document(
+            tref,
+            oref.he_normal(),
+            version_title,
+            lang,
+            version_priority,
+            content,
+            categories,
+            hebrew_version_title,
+            language_family_name,
+            is_primary,
+        )
         if not doc:  # segment is empty in this version — nothing to index
             return
         id = make_text_doc_id(tref, version_title, lang)
@@ -1133,26 +1195,41 @@ class TextIndexer(object):
         vlang = version.language
         language_family_name = version.languageFamilyName
         is_primary = version.isPrimary
-        hebrew_version_title = getattr(version, 'versionTitleInHebrew', None)
-        
+        hebrew_version_title = getattr(version, "versionTitleInHebrew", None)
+
         # Validate critical fields - if missing, track as failure and continue
         if not version.title or not vtitle or not vlang:
             # Critical field missing - track as failed and continue
-            cls._add_failed_version(version, f'Missing critical field (title, versionTitle, or language) - ref: {tref}', 'ValidationError')
+            cls._add_failed_version(
+                version,
+                f"Missing critical field (title, versionTitle, or language) - ref: {tref}",
+                "ValidationError",
+            )
             return
-        
+
         # Safe access to version_priority_map
         version_key = (version.title, vtitle, vlang)
         if version_key not in cls.version_priority_map:
             # Version not in priority map - skip silently, will be tracked as skipped
             return
-        
+
         try:
             version_priority, categories = cls.version_priority_map[version_key]
-            #TODO include sgement_str in this func
-            doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories, hebrew_version_title, language_family_name, is_primary)
+            # TODO include sgement_str in this func
+            doc = cls.make_text_index_document(
+                tref,
+                heTref,
+                vtitle,
+                vlang,
+                version_priority,
+                segment_str,
+                categories,
+                hebrew_version_title,
+                language_family_name,
+                is_primary,
+            )
             # print doc
-        except Exception as e:
+        except Exception:
             # Error making document - skip silently, will be tracked as failed
             return
 
@@ -1162,10 +1239,10 @@ class TextIndexer(object):
                     {
                         "_index": cls.index_name,
                         "_id": make_text_doc_id(tref, vtitle, vlang),
-                        "_source": doc
-                    }
+                        "_source": doc,
+                    },
                 ]
-            except Exception as e:
+            except Exception:
                 # Error indexing - skip silently, will be tracked as failed
                 pass
 
@@ -1174,28 +1251,43 @@ class TextIndexer(object):
         ftnotes = AbstractTextRecord.find_all_footnotes(content)
         if len(ftnotes) == 0:
             return content
-        else:
-            for raw_footnote in ftnotes:
-                sup_text = re.search(r'<sup[^>]*class="footnote-marker">(.*?)</sup>', raw_footnote).group(1)
-                # should be greedy since we already pulled out precise i-tag
-                itag_text = re.search(r'<i[^>]*class="footnote"[^>]*>(.*)</i>', raw_footnote).group(1)
-                content += f" {sup_text} {itag_text}"
-            content = AbstractTextRecord.strip_itags(content)
-            return content
+        for raw_footnote in ftnotes:
+            sup_text = re.search(r'<sup[^>]*class="footnote-marker">(.*?)</sup>', raw_footnote).group(1)
+            # should be greedy since we already pulled out precise i-tag
+            itag_text = re.search(r'<i[^>]*class="footnote"[^>]*>(.*)</i>', raw_footnote).group(1)
+            content += f" {sup_text} {itag_text}"
+        content = AbstractTextRecord.strip_itags(content)
+        return content
 
     @classmethod
     def modify_text_in_doc(cls, content):
         content = AbstractTextRecord.strip_imgs(content)
         content = cls.remove_footnotes(content)
         content = strip_cantillation(content, strip_vowels=False).strip()
-        content = re.sub(r'<[^>]+>', ' ', content)     # replace HTML tags with space so that words dont get smushed together
-        content = re.sub(r'\([^)]+\)', ' ', content)   # remove all parens
-        while "  " in content:                                 # make sure there are not many spaces in a row
+        content = re.sub(
+            r"<[^>]+>",
+            " ",
+            content,
+        )  # replace HTML tags with space so that words dont get smushed together
+        content = re.sub(r"\([^)]+\)", " ", content)  # remove all parens
+        while "  " in content:  # make sure there are not many spaces in a row
             content = content.replace("  ", " ")
         return content
-        
+
     @classmethod
-    def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary):
+    def make_text_index_document(
+        cls,
+        tref,
+        heTref,
+        version,
+        lang,
+        version_priority,
+        content,
+        categories,
+        hebrew_version_title,
+        language_family_name,
+        is_primary,
+    ):
         """
         Create a document for indexing from the text specified by ref/version/lang
         """
@@ -1217,7 +1309,9 @@ class TextIndexer(object):
         indexed_categories = get_search_categories(oref, categories)
 
         tp = cls.best_time_period
-        comp_start_date = int(getattr(tp, 'end', None) or getattr(tp, 'start', 3000)) # If there is no end/start date, use 3000 which make it appear at the end of the results
+        comp_start_date = int(
+            getattr(tp, "end", None) or getattr(tp, "start", 3000),
+        )  # If there is no end/start date, use 3000 which make it appear at the end of the results
         ref_data = RefData().load({"ref": tref})
         pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGESHEETRANK
 
@@ -1233,10 +1327,10 @@ class TextIndexer(object):
             "path": "/".join(indexed_categories + [cls.curr_index.title]),
             "pagesheetrank": pagesheetrank,
             "comp_date": comp_start_date,
-            #"hebmorph_semi_exact": content,
+            # "hebmorph_semi_exact": content,
             "exact": content,
             "naive_lemmatizer": content,
-            'hebrew_version_title': hebrew_version_title,
+            "hebrew_version_title": hebrew_version_title,
             "languageFamilyName": language_family_name,
             "isPrimary": is_primary,
             "linked_refs": linked_refs,
@@ -1248,11 +1342,11 @@ def index_sheets_by_timestamp(timestamp):
     :param timestamp str: index all sheets modified after `timestamp` (in isoformat)
     """
     logger.debug(f"Starting index_sheets_by_timestamp - timestamp: {timestamp}")
-    
-    name_dict = get_new_and_current_index_names('sheet', debug=False)
-    curr_index_name = name_dict.get('current')
+
+    name_dict = get_new_and_current_index_names("sheet", debug=False)
+    curr_index_name = name_dict.get("current")
     logger.debug(f"Using sheet index - index_name: {curr_index_name}")
-    
+
     try:
         ids = db.sheets.find({"status": "public", "dateModified": {"$gt": timestamp}}).distinct("id")
         logger.debug(f"Found sheets to index by timestamp - count: {len(ids)}, timestamp: {timestamp}")
@@ -1264,51 +1358,55 @@ def index_sheets_by_timestamp(timestamp):
     failed = []
     total = len(ids)
 
-    for i, _id in enumerate(ids):
+    for _i, _id in enumerate(ids):
         did_succeed = index_sheet(curr_index_name, _id)
         if did_succeed:
             succeeded.append(_id)
         else:
             failed.append(_id)
-        
+
     # Only log if there are failures
     if len(failed) > 0:
-        logger.info(f"Completed index_sheets_by_timestamp - total: {total}, succeeded: {len(succeeded)}, failed: {len(failed)}, failed_ids: {failed[:20] if failed else []}")
-    
+        logger.info(
+            f"Completed index_sheets_by_timestamp - total: {total}, succeeded: {len(succeeded)}, failed: {len(failed)}, failed_ids: {failed[:20] if failed else []}",
+        )
+
     return {"succeeded": {"num": len(succeeded), "ids": succeeded}, "failed": {"num": len(failed), "ids": failed}}
 
 
 def index_public_sheets(index_name):
     """
     Index all source sheets that are publicly listed.
-    
+
     Returns:
         list: List of failed sheet IDs
     """
     start_time = datetime.now()
     logger.debug(f"Starting index_public_sheets - index_name: {index_name}")
-    
+
     ids = db.sheets.find({"status": "public"}).distinct("id")
     total = len(ids)
     logger.debug(f"Found public sheets to index - total: {total}, first_10_ids: {ids[:10] if ids else []}")
-    
+
     succeeded = 0
     failed = 0
     failed_ids = []
-    
-    for i, _id in enumerate(ids):
+
+    for _i, _id in enumerate(ids):
         result = index_sheet(index_name, _id)
         if result:
             succeeded += 1
         else:
             failed += 1
             failed_ids.append(_id)
-        
+
     elapsed = datetime.now() - start_time
     # Only log if there are failures
     if failed > 0:
-        logger.info(f"Completed index_public_sheets - index_name: {index_name}, total: {total}, succeeded: {succeeded}, failed: {failed}, elapsed: {elapsed}, failed_ids_sample: {failed_ids[:20] if failed_ids else []}")
-    
+        logger.info(
+            f"Completed index_public_sheets - index_name: {index_name}, total: {total}, succeeded: {succeeded}, failed: {failed}, elapsed: {elapsed}, failed_ids_sample: {failed_ids[:20] if failed_ids else []}",
+        )
+
     return failed_ids
 
 
@@ -1318,7 +1416,6 @@ def index_public_notes():
 
     TODO
     """
-    pass
 
 
 # --------------------------------------------------------------------------- #
@@ -1330,6 +1427,7 @@ def index_public_notes():
 #  iterate the corpus, call a builder per record, and collect skips into a    #
 #  summary report rather than aborting the whole run.                         #
 # --------------------------------------------------------------------------- #
+
 
 def _without_none(doc):
     """
@@ -1389,12 +1487,12 @@ def _authored_index_titles(index):
     :return: (en_titles, he_titles), primary title first, de-duped downstream
     """
     en_titles = []
-    primary_en = index.get_title('en')
+    primary_en = index.get_title("en")
     if primary_en:
         en_titles.append(primary_en)
-    en_titles += [t for t in _book_title_variants(index, 'en') if t != primary_en]
+    en_titles += [t for t in _book_title_variants(index, "en") if t != primary_en]
     try:
-        he = index.get_title('he')
+        he = index.get_title("he")
     except Exception:
         he = None
     return en_titles, ([he] if he else [])
@@ -1409,15 +1507,15 @@ def _build_authored_titles_map():
     `IndexSet({"authors": slug})` fallback in `make_topic_index_document` is a full
     collection scan; during a full reindex one scan here replaces one per author.
     """
-    titles_by_slug = defaultdict(lambda: {'en': [], 'he': []})
+    titles_by_slug = defaultdict(lambda: {"en": [], "he": []})
     for index in IndexSet():
-        author_slugs = getattr(index, 'authors', None) or []
+        author_slugs = getattr(index, "authors", None) or []
         if not author_slugs:
             continue
         en_titles, he_titles = _authored_index_titles(index)
         for slug in author_slugs:
-            titles_by_slug[slug]['en'] += en_titles
-            titles_by_slug[slug]['he'] += he_titles
+            titles_by_slug[slug]["en"] += en_titles
+            titles_by_slug[slug]["he"] += he_titles
     return titles_by_slug
 
 
@@ -1444,7 +1542,7 @@ def _author_sort_year(topic):
     Note the `is not None` check rather than truthiness: year 0 is a real (if unlikely)
     value, and BCE years are stored negative, so both must survive the fallback.
     """
-    for prop in ('deathYear', 'birthYear'):
+    for prop in ("deathYear", "birthYear"):
         year = _as_year_int(topic.get_property(prop))
         if year is not None:
             return year
@@ -1467,7 +1565,7 @@ def make_topic_index_document(topic, authored_titles_map=None):
     :return: dict document, or None if the topic lacks a slug or has no title in any
         language (many auto-generated topics are Hebrew-only or empty and add only noise)
     """
-    slug = getattr(topic, 'slug', None)
+    slug = getattr(topic, "slug", None)
     if not slug:
         return None
 
@@ -1475,31 +1573,31 @@ def make_topic_index_document(topic, authored_titles_map=None):
     # A handful of auto-generated topics have pathological slugs (a slugified blob of
     # every title variant) that blow past this. They're noise anyway (typically no
     # English title and zero sources), so drop them rather than fail the bulk request.
-    if len(slug.encode('utf-8')) > 512:
+    if len(slug.encode("utf-8")) > 512:
         logger.warning(f"make_topic_index_document: skipping topic with slug > 512 bytes - slug: {slug[:80]}...")
         return None
 
-    title_en = topic.get_primary_title('en')
-    title_he = topic.get_primary_title('he')
+    title_en = topic.get_primary_title("en")
+    title_he = topic.get_primary_title("he")
     if not title_en and not title_he:
         return None
 
-    is_author = getattr(topic, 'subclass', None) == 'author'
+    is_author = getattr(topic, "subclass", None) == "author"
     # titleVariants is the main recall driver; exclude the primary to avoid double-weighting it.
-    variants = [t for t in topic.get_titles('en', with_disambiguation=False) if t != title_en]
-    description = getattr(topic, 'description', None) or {}
+    variants = [t for t in topic.get_titles("en", with_disambiguation=False) if t != title_en]
+    description = getattr(topic, "description", None) or {}
 
     doc = {
-        'slug': slug,
-        'subtype': 'author' if is_author else 'topic',
+        "slug": slug,
+        "subtype": "author" if is_author else "topic",
         # An absent title (many topics are Hebrew-only) is omitted rather than stored as ""
         # so the A-Z sort's `missing: _last` pushes untitled docs to the end — an empty
         # string is a real keyword value and would sort *first*.
-        'title_en': title_en or None,
-        'title_he': title_he or None,
-        'titleVariants': variants,
-        'description_en': strip_markdown(description.get('en', '')),
-        'description_he': strip_markdown(description.get('he', '')),
+        "title_en": title_en or None,
+        "title_he": title_he or None,
+        "titleVariants": variants,
+        "description_en": strip_markdown(description.get("en", "")),
+        "description_he": strip_markdown(description.get("he", "")),
     }
 
     if is_author:
@@ -1507,32 +1605,32 @@ def make_topic_index_document(topic, authored_titles_map=None):
         # so we don't need to re-load the record as an AuthorTopic subclass. These
         # fields are sparse; _without_none() omits any that are absent (rather than
         # writing null into _source).
-        doc['era'] = topic.get_property('era')
+        doc["era"] = topic.get_property("era")
         # Both are mapped as `integer`, but the stored properties are free-form and can
         # hold '' or 'c. 1204'. ES rejects the *whole document* on a type mismatch, which
         # would silently drop the author from the index entirely, so coerce here and let
         # _without_none() omit anything unparseable.
-        doc['birthYear'] = _as_year_int(topic.get_property('birthYear'))
-        doc['deathYear'] = _as_year_int(topic.get_property('deathYear'))
+        doc["birthYear"] = _as_year_int(topic.get_property("birthYear"))
+        doc["deathYear"] = _as_year_int(topic.get_property("deathYear"))
         # `sortYear` is the derived single year the chronological sort keys on (death
         # year, else birth year). It is computed here rather than in the query so the
         # sort stays a plain field sort.
-        doc['sortYear'] = _author_sort_year(topic)
+        doc["sortYear"] = _author_sort_year(topic)
         # Denormalize the titles of this author's works (EN incl. variants + HE, the
         # same title set the book index carries — see _authored_index_titles) so the
         # author is searchable by any name of a book they wrote (e.g. "Mishneh Torah"
         # -> Maimonides, "Moreh Nevukhim" -> Rambam).
         if authored_titles_map is not None:
-            authored = authored_titles_map.get(slug, {'en': [], 'he': []})
-            authored_en, authored_he = authored['en'], authored['he']
+            authored = authored_titles_map.get(slug, {"en": [], "he": []})
+            authored_en, authored_he = authored["en"], authored["he"]
         else:
             authored_en, authored_he = [], []
             for authored_index in IndexSet({"authors": slug}):
                 en_titles, he_titles = _authored_index_titles(authored_index)
                 authored_en += en_titles
                 authored_he += he_titles
-        doc['authored_titles_en'] = list(dict.fromkeys(authored_en))  # de-dup, preserve order
-        doc['authored_titles_he'] = list(dict.fromkeys(authored_he))
+        doc["authored_titles_en"] = list(dict.fromkeys(authored_en))  # de-dup, preserve order
+        doc["authored_titles_he"] = list(dict.fromkeys(authored_he))
 
     return _without_none(doc)
 
@@ -1549,7 +1647,7 @@ def _resolve_author_names(author_slugs, cache):
             author = Topic.init(slug)
             resolved = []
             if author is not None:
-                for lang in ('en', 'he'):
+                for lang in ("en", "he"):
                     resolved += author.get_titles(lang, with_disambiguation=False)
             cache[slug] = list(dict.fromkeys(resolved))  # de-dup, preserve order
         names += cache[slug]
@@ -1570,50 +1668,52 @@ def make_book_index_document(index, author_name_cache=None):
     if author_name_cache is None:
         author_name_cache = {}
 
-    title_en = index.get_title('en')
+    title_en = index.get_title("en")
     if not title_en:
         return None
     try:
-        title_he = index.get_title('he') or None  # "" would sort before "A" in the A-Z sort
+        title_he = index.get_title("he") or None  # "" would sort before "A" in the A-Z sort
     except Exception:
         title_he = None
 
-    categories = getattr(index, 'categories', None) or []
-    variants = [t for t in _book_title_variants(index, 'en') if t != title_en]
+    categories = getattr(index, "categories", None) or []
+    variants = [t for t in _book_title_variants(index, "en") if t != title_en]
     # collective_title is a plain string term key (e.g. "Rashi", "Chafetz Chaim"), not a
     # dict — see Index._saveable_attr_keys / Index.contents(). Treat it as the English
     # collective title directly; the Hebrew side is resolved via hebrew_term() elsewhere.
-    collective_en = getattr(index, 'collective_title', None)
+    collective_en = getattr(index, "collective_title", None)
     if collective_en and collective_en not in variants:
         variants.append(collective_en)
 
     # compDate is stored in Mongo as a list of ints; collapse to one sortable int.
     # Mirror the text index: prefer end year, else start, else 3000 (sorts undated last).
     tp = index.best_time_period()
-    comp_date = int(getattr(tp, 'end', None) or getattr(tp, 'start', 3000)) if tp else None
+    comp_date = int(getattr(tp, "end", None) or getattr(tp, "start", 3000)) if tp else None
 
-    author_slugs = getattr(index, 'authors', None) or []
+    author_slugs = getattr(index, "authors", None) or []
     author_names = _resolve_author_names(author_slugs, author_name_cache)
 
     # Sparse fields (compDate, era, order, title_he) are omitted by _without_none()
     # when absent rather than stored as null.
-    return _without_none({
-        'title_en': title_en,
-        'title_he': title_he,
-        'titleVariants': variants,
-        'categories': categories,
-        'path': "/".join(categories + [title_en]),  # mirrors the text index path shape
-        # Prefer the short description, but fall back to the long one — many Indexes
-        # carry only `enDesc`/`heDesc`, and showing that beats showing nothing. Mirrors
-        # the author-works aggregation in helper.topic._serialize_author_index().
-        'description_en': strip_markdown(getattr(index, 'enShortDesc', '') or getattr(index, 'enDesc', '') or ''),
-        'description_he': strip_markdown(getattr(index, 'heShortDesc', '') or getattr(index, 'heDesc', '') or ''),
-        'compDate': comp_date,
-        'era': getattr(index, 'era', None),
-        'authors': author_slugs,
-        'author_names': author_names,
-        'order': getattr(index, 'order', None),
-    })
+    return _without_none(
+        {
+            "title_en": title_en,
+            "title_he": title_he,
+            "titleVariants": variants,
+            "categories": categories,
+            "path": "/".join(categories + [title_en]),  # mirrors the text index path shape
+            # Prefer the short description, but fall back to the long one — many Indexes
+            # carry only `enDesc`/`heDesc`, and showing that beats showing nothing. Mirrors
+            # the author-works aggregation in helper.topic._serialize_author_index().
+            "description_en": strip_markdown(getattr(index, "enShortDesc", "") or getattr(index, "enDesc", "") or ""),
+            "description_he": strip_markdown(getattr(index, "heShortDesc", "") or getattr(index, "heDesc", "") or ""),
+            "compDate": comp_date,
+            "era": getattr(index, "era", None),
+            "authors": author_slugs,
+            "author_names": author_names,
+            "order": getattr(index, "order", None),
+        },
+    )
 
 
 def make_category_index_document(toc_node):
@@ -1659,21 +1759,23 @@ def make_category_index_document(toc_node):
             variants.append(t)
 
     # Prefer the short description (what the book index indexes), fall back to the long one.
-    desc_en = getattr(toc_node, 'enShortDesc', '') or getattr(toc_node, 'enDesc', '') or ''
-    desc_he = getattr(toc_node, 'heShortDesc', '') or getattr(toc_node, 'heDesc', '') or ''
+    desc_en = getattr(toc_node, "enShortDesc", "") or getattr(toc_node, "enDesc", "") or ""
+    desc_he = getattr(toc_node, "heShortDesc", "") or getattr(toc_node, "heDesc", "") or ""
 
-    order = getattr(toc_node, 'order', None)
-    return _without_none({
-        'title_en': title_en,
-        'title_he': title_he,
-        'titleVariants': variants,
-        'categories': path_components[:-1],  # parent path -> the card's breadcrumb
-        'path': "/".join(path_components),
-        'depth': len(path_components),
-        'description_en': strip_markdown(desc_en),
-        'description_he': strip_markdown(desc_he),
-        'order': order if isinstance(order, int) else None,
-    })
+    order = getattr(toc_node, "order", None)
+    return _without_none(
+        {
+            "title_en": title_en,
+            "title_he": title_he,
+            "titleVariants": variants,
+            "categories": path_components[:-1],  # parent path -> the card's breadcrumb
+            "path": "/".join(path_components),
+            "depth": len(path_components),
+            "description_en": strip_markdown(desc_en),
+            "description_he": strip_markdown(desc_he),
+            "order": order if isinstance(order, int) else None,
+        },
+    )
 
 
 def _bulk_index_entities(index_name, actions, entity_label):
@@ -1684,7 +1786,10 @@ def _bulk_index_entities(index_name, actions, entity_label):
     start_time = datetime.now()
     try:
         succeeded, errors = bulk(
-            _indexer_es_client, actions, raise_on_error=False, request_timeout=120
+            _indexer_es_client,
+            actions,
+            raise_on_error=False,
+            request_timeout=120,
         )
     except (ESConnectionError, ConnectionTimeout) as e:
         logger.error(f"Bulk {entity_label} indexing connection failure - index_name: {index_name}, error: {e}")
@@ -1694,7 +1799,7 @@ def _bulk_index_entities(index_name, actions, entity_label):
         logger.warning(f"index_{entity_label} bulk errors - count: {len(errors)}, sample: {errors[:5]}")
     logger.info(
         f"Completed index_{entity_label} - index_name: {index_name}, "
-        f"succeeded: {succeeded}, errors: {len(errors)}, elapsed: {elapsed}"
+        f"succeeded: {succeeded}, errors: {len(errors)}, elapsed: {elapsed}",
     )
     return {"succeeded": succeeded, "errors": errors}
 
@@ -1719,9 +1824,9 @@ def index_topics(index_name):
             total += 1
             doc = make_topic_index_document(topic, authored_titles_map)
             if doc is None:
-                skipped.append(getattr(topic, 'slug', '<no-slug>'))
+                skipped.append(getattr(topic, "slug", "<no-slug>"))
                 continue
-            yield {"_index": index_name, "_id": doc['slug'], "_source": doc}
+            yield {"_index": index_name, "_id": doc["slug"], "_source": doc}
 
     result = _bulk_index_entities(index_name, actions(), "topics")
     result.update({"total": total, "skipped": skipped})
@@ -1748,12 +1853,12 @@ def index_books(index_name):
                 doc = make_book_index_document(index, author_name_cache)
             except Exception as e:
                 logger.warning(f"index_books: failed building doc for '{getattr(index, 'title', '<unknown>')}': {e}")
-                skipped.append(getattr(index, 'title', '<unknown>'))
+                skipped.append(getattr(index, "title", "<unknown>"))
                 continue
             if doc is None:
-                skipped.append(getattr(index, 'title', '<no-title>'))
+                skipped.append(getattr(index, "title", "<no-title>"))
                 continue
-            yield {"_index": index_name, "_id": doc['title_en'], "_source": doc}
+            yield {"_index": index_name, "_id": doc["title_en"], "_source": doc}
 
     result = _bulk_index_entities(index_name, actions(), "books")
     result.update({"total": total, "skipped": skipped})
@@ -1780,7 +1885,9 @@ def index_categories(index_name):
     total = 0
     toc_nodes = get_searchable_toc_categories(library.get_toc_tree().get_root())
     if not toc_nodes:
-        raise RuntimeError("index_categories: no searchable categories found; refusing to build an empty category index")
+        raise RuntimeError(
+            "index_categories: no searchable categories found; refusing to build an empty category index",
+        )
 
     def actions():
         nonlocal total
@@ -1789,14 +1896,14 @@ def index_categories(index_name):
             try:
                 doc = make_category_index_document(node)
             except Exception as e:
-                label = "/".join(getattr(node, 'full_path', None) or ['<unknown>'])
+                label = "/".join(getattr(node, "full_path", None) or ["<unknown>"])
                 logger.warning(f"index_categories: failed building doc for '{label}': {e}")
                 skipped.append(label)
                 continue
             if doc is None:
-                skipped.append("/".join(getattr(node, 'full_path', None) or ['<no-path>']))
+                skipped.append("/".join(getattr(node, "full_path", None) or ["<no-path>"]))
                 continue
-            yield {"_index": index_name, "_id": doc['path'], "_source": doc}
+            yield {"_index": index_name, "_id": doc["path"], "_source": doc}
 
     result = _bulk_index_entities(index_name, actions(), "categories")
     result.update({"total": total, "skipped": skipped})
@@ -1818,12 +1925,13 @@ def index_categories(index_name):
 #  docs missed here.                                                          #
 # --------------------------------------------------------------------------- #
 
+
 def _current_entity_index_name(entity_type):
     index_names = get_new_and_current_index_names(entity_type)
-    if not index_names or not index_names.get('current'):
+    if not index_names or not index_names.get("current"):
         logger.error(f"Could not resolve current index name - entity_type: {entity_type}")
         return None
-    return index_names['current']
+    return index_names["current"]
 
 
 def index_topic_doc(topic):
@@ -1838,9 +1946,9 @@ def index_topic_doc(topic):
     publish it to live entity search, where it would sit until the weekly rebuild
     dropped it again.
     """
-    slug = getattr(topic, 'slug', '<no-slug>')
+    slug = getattr(topic, "slug", "<no-slug>")
     try:
-        index_name = _current_entity_index_name('topic')
+        index_name = _current_entity_index_name("topic")
         if not index_name:
             return
         if not is_library_pool_topic(slug):
@@ -1855,7 +1963,7 @@ def index_topic_doc(topic):
         doc = make_topic_index_document(topic)
         if not doc:
             return
-        es_client.index(index=index_name, document=doc, id=doc['slug'])
+        es_client.index(index=index_name, document=doc, id=doc["slug"])
     except Exception as e:
         # Includes a failed pool lookup: on an unreachable Postgres this leaves the doc
         # exactly as it was rather than guessing, which is the safe direction for both a
@@ -1871,7 +1979,7 @@ def delete_topic_doc(slug, warn_if_missing=True):
     rather than a symptom (see index_topic_doc's non-pool branch).
     """
     try:
-        index_name = _current_entity_index_name('topic')
+        index_name = _current_entity_index_name("topic")
         if not index_name:
             return
         es_client.delete(index=index_name, id=slug)
@@ -1888,15 +1996,15 @@ def index_book_doc(index):
     """
     Upsert the ES doc for a single book (doc id = English title) in the live `book` index.
     """
-    title = getattr(index, 'title', '<no-title>')
+    title = getattr(index, "title", "<no-title>")
     try:
-        index_name = _current_entity_index_name('book')
+        index_name = _current_entity_index_name("book")
         if not index_name:
             return
         doc = make_book_index_document(index)
         if not doc:
             return
-        es_client.index(index=index_name, document=doc, id=doc['title_en'])
+        es_client.index(index=index_name, document=doc, id=doc["title_en"])
     except Exception as e:
         logger.error(f"Failed to index book doc - title: {title}, error: {e}")
 
@@ -1906,7 +2014,7 @@ def delete_book_doc(title_en):
     Delete the ES doc for a single book (doc id = English title) from the live `book` index.
     """
     try:
-        index_name = _current_entity_index_name('book')
+        index_name = _current_entity_index_name("book")
         if not index_name:
             return
         es_client.delete(index=index_name, id=title_en)
@@ -1925,7 +2033,7 @@ def index_book_docs(indexes):
     logged and skipped so one bad record can't block the rest.
     """
     try:
-        index_name = _current_entity_index_name('book')
+        index_name = _current_entity_index_name("book")
         if not index_name:
             return
         author_name_cache = {}
@@ -1934,11 +2042,13 @@ def index_book_docs(indexes):
             try:
                 doc = make_book_index_document(index, author_name_cache)
             except Exception as e:
-                logger.warning(f"index_book_docs: failed building doc for '{getattr(index, 'title', '<unknown>')}': {e}")
+                logger.warning(
+                    f"index_book_docs: failed building doc for '{getattr(index, 'title', '<unknown>')}': {e}",
+                )
                 continue
             if doc is None:
                 continue
-            actions.append({"_index": index_name, "_id": doc['title_en'], "_source": doc})
+            actions.append({"_index": index_name, "_id": doc["title_en"], "_source": doc})
         if not actions:
             return
         succeeded, errors = bulk(es_client, actions, raise_on_error=False)
@@ -1967,7 +2077,7 @@ def resync_category_docs():
     Mongo write has already been committed and the weekly rebuild reconciles anyway.
     """
     try:
-        index_name = _current_entity_index_name('category')
+        index_name = _current_entity_index_name("category")
         if not index_name:
             return
         actions = []
@@ -1976,13 +2086,13 @@ def resync_category_docs():
             try:
                 doc = make_category_index_document(node)
             except Exception as e:
-                label = "/".join(getattr(node, 'full_path', None) or ['<unknown>'])
+                label = "/".join(getattr(node, "full_path", None) or ["<unknown>"])
                 logger.warning(f"resync_category_docs: failed building doc for '{label}': {e}")
                 continue
             if doc is None:
                 continue
-            current_paths.add(doc['path'])
-            actions.append({"_index": index_name, "_id": doc['path'], "_source": doc})
+            current_paths.add(doc["path"])
+            actions.append({"_index": index_name, "_id": doc["path"], "_source": doc})
         if not actions:
             # Never delete the whole index off the back of an empty or half-built TOC tree.
             logger.warning("resync_category_docs: no category docs built; leaving the index untouched")
@@ -1994,9 +2104,9 @@ def resync_category_docs():
         # its stale docs deleted.
         try:
             existing = es_client.search(index=index_name, size=1000, source=False, query={"match_all": {}})
-            for hit in existing.get('hits', {}).get('hits', []):
-                if hit['_id'] not in current_paths:
-                    actions.append({"_op_type": "delete", "_index": index_name, "_id": hit['_id']})
+            for hit in existing.get("hits", {}).get("hits", []):
+                if hit["_id"] not in current_paths:
+                    actions.append({"_op_type": "delete", "_index": index_name, "_id": hit["_id"]})
         except NotFoundError:
             logger.warning(f"resync_category_docs: index not found, will only upsert - index_name: {index_name}")
 
@@ -2031,12 +2141,14 @@ def add_ref_to_index_queue(ref, version, lang):
     """
     Adds a text to index queue to be indexed later.
     """
-    qu.IndexQueue({
-        "ref": ref,
-        "lang": lang,
-        "version": version,
-        "type": "ref",
-    }).save()
+    qu.IndexQueue(
+        {
+            "ref": ref,
+            "lang": lang,
+            "version": version,
+            "type": "ref",
+        },
+    ).save()
 
     return True
 
@@ -2046,14 +2158,23 @@ def index_from_queue():
     Index every ref/version/lang found in the index queue.
     Delete queue records on success.
     """
-    index_name = get_new_and_current_index_names('text').get('current')
+    index_name = get_new_and_current_index_names("text").get("current")
     queue = db.index_queue.find()
     for item in queue:
         try:
-            TextIndexer.index_ref(index_name, Ref(item.get("ref")), item.get("version"), item.get("lang"), item.get('languageFamilyName'), item.get('isPrimary'))
+            TextIndexer.index_ref(
+                index_name,
+                Ref(item.get("ref")),
+                item.get("version"),
+                item.get("lang"),
+                item.get("languageFamilyName"),
+                item.get("isPrimary"),
+            )
             db.index_queue.remove(item)
         except Exception as e:
-            logger.error(f"Error indexing from queue ({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {e}")
+            logger.error(
+                f"Error indexing from queue ({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {e}",
+            )
 
 
 def add_recent_to_queue(ndays):
@@ -2064,7 +2185,7 @@ def add_recent_to_queue(ndays):
     cutoff = datetime.now() - timedelta(days=ndays)
     query = {
         "date": {"$gt": cutoff},
-        "rev_type": {"$in": ["add text", "edit text"]}
+        "rev_type": {"$in": ["add text", "edit text"]},
     }
     activity = db.history.find(query)
     refs = set()
@@ -2076,19 +2197,19 @@ def add_recent_to_queue(ndays):
 
 def get_new_and_current_index_names(type, debug=False):
     base_index_name_dict = {
-        'text': SEARCH_INDEX_NAME_TEXT,
-        'sheet': SEARCH_INDEX_NAME_SHEET,
-        'topic': SEARCH_INDEX_NAME_TOPIC,
-        'book': SEARCH_INDEX_NAME_BOOK,
-        'category': SEARCH_INDEX_NAME_CATEGORY,
+        "text": SEARCH_INDEX_NAME_TEXT,
+        "sheet": SEARCH_INDEX_NAME_SHEET,
+        "topic": SEARCH_INDEX_NAME_TOPIC,
+        "book": SEARCH_INDEX_NAME_BOOK,
+        "category": SEARCH_INDEX_NAME_CATEGORY,
     }
-    debug_suffix = '-debug' if debug else ''
+    debug_suffix = "-debug" if debug else ""
     index_name_a = f"{base_index_name_dict[type]}-a{debug_suffix}"
     index_name_b = f"{base_index_name_dict[type]}-b{debug_suffix}"
     alias_name = f"{base_index_name_dict[type]}{debug_suffix}"
     aliases = index_client.get_alias()
     try:
-        a_alias = aliases.get(index_name_a, {}).get('aliases', {})
+        a_alias = aliases.get(index_name_a, {}).get("aliases", {})
         choose_a = alias_name not in a_alias
     except KeyError:
         choose_a = True
@@ -2110,35 +2231,35 @@ def index_all(skip=0, debug=False):
     logger.info("=" * 60)
     logger.info(f"STARTING FULL ELASTICSEARCH REINDEX - skip: {skip}, debug: {debug}, start_time: {start.isoformat()}")
     logger.info("=" * 60)
-    
+
     # Initialize elapsed time variables
     text_elapsed = None
     sheet_elapsed = None
-    
+
     # Index texts
     text_start = datetime.now()
     logger.info("Starting text indexing phase")
     try:
-        index_all_of_type('text', skip=skip, debug=debug)
+        index_all_of_type("text", skip=skip, debug=debug)
         text_elapsed = datetime.now() - text_start
         logger.info(f"Completed text indexing phase - elapsed: {text_elapsed}")
     except Exception as e:
         text_elapsed = datetime.now() - text_start
         logger.error(f"Text indexing phase failed after {text_elapsed} - error: {str(e)}", exc_info=True)
         raise
-    
+
     # Index sheets
     sheet_start = datetime.now()
     logger.info("Starting sheet indexing phase")
     try:
-        index_all_of_type('sheet', skip=skip, debug=debug)
+        index_all_of_type("sheet", skip=skip, debug=debug)
         sheet_elapsed = datetime.now() - sheet_start
         logger.info(f"Completed sheet indexing phase - elapsed: {sheet_elapsed}")
     except Exception as e:
         sheet_elapsed = datetime.now() - sheet_start
         logger.error(f"Sheet indexing phase failed after {sheet_elapsed} - error: {str(e)}", exc_info=True)
         raise
-    
+
     # Index entities (topics/authors and books). Unlike text/sheet, a failure here
     # is recorded but does NOT abort the run — the entity indices are independent of
     # each other and of the text/sheet indices.
@@ -2152,11 +2273,13 @@ def index_all(skip=0, debug=False):
     end = datetime.now()
     total_elapsed = end - start
     logger.info("=" * 60)
-    logger.info(f"COMPLETED FULL ELASTICSEARCH REINDEX - total_elapsed: {total_elapsed}, text_elapsed: {text_elapsed}, sheet_elapsed: {sheet_elapsed}, entity_elapsed: {topic_elapsed}")
+    logger.info(
+        f"COMPLETED FULL ELASTICSEARCH REINDEX - total_elapsed: {total_elapsed}, text_elapsed: {text_elapsed}, sheet_elapsed: {sheet_elapsed}, entity_elapsed: {topic_elapsed}",
+    )
     logger.info("=" * 60)
 
 
-def index_entities(skip=0, debug=False, types=('topic', 'book', 'category')):
+def index_entities(skip=0, debug=False, types=("topic", "book", "category")):
     """
     (Re)build the entity indices that power /api/entity-search.
 
@@ -2175,7 +2298,10 @@ def index_entities(skip=0, debug=False, types=('topic', 'book', 'category')):
             index_all_of_type(entity_type, skip=skip, debug=debug)
             logger.info(f"Completed {entity_type} indexing phase - elapsed: {datetime.now() - type_start}")
         except Exception as e:
-            logger.error(f"{entity_type} indexing phase failed after {datetime.now() - type_start} - error: {str(e)}", exc_info=True)
+            logger.error(
+                f"{entity_type} indexing phase failed after {datetime.now() - type_start} - error: {str(e)}",
+                exc_info=True,
+            )
             # Intentionally not re-raised: entity index failures are independent.
     return datetime.now() - entity_start
 
@@ -2186,77 +2312,93 @@ def index_all_of_type(type, skip=0, debug=False):
     Handles index creation, alias switching, and cleanup.
     """
     index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
-    
+
     logger.debug("=" * 40)
-    logger.debug(f"Starting index_all_of_type for '{type}' - type: {type}, new_index: {index_names_dict.get('new')}, current_index: {index_names_dict.get('current')}, alias: {index_names_dict.get('alias')}, skip: {skip}, debug: {debug}")
-    
+    logger.debug(
+        f"Starting index_all_of_type for '{type}' - type: {type}, new_index: {index_names_dict.get('new')}, current_index: {index_names_dict.get('current')}, alias: {index_names_dict.get('alias')}, skip: {skip}, debug: {debug}",
+    )
+
     # Check if new index already exists
-    new_exists = index_client.exists(index=index_names_dict.get('new'))
+    new_exists = index_client.exists(index=index_names_dict.get("new"))
     if new_exists:
         try:
-            stats = index_client.stats(index=index_names_dict.get('new'))
-            doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
-            logger.debug(f"New index already exists, will be recreated - index: {index_names_dict.get('new')}, existing_doc_count: {doc_count}")
+            stats = index_client.stats(index=index_names_dict.get("new"))
+            doc_count = stats.get("_all", {}).get("primaries", {}).get("docs", {}).get("count", 0)
+            logger.debug(
+                f"New index already exists, will be recreated - index: {index_names_dict.get('new')}, existing_doc_count: {doc_count}",
+            )
         except Exception:
             logger.debug(f"New index already exists, will be recreated - index: {index_names_dict.get('new')}")
-    
+
     # Countdown (keeping for backwards compatibility, but logging instead of just printing)
     logger.debug("Starting countdown before indexing...")
     for i in range(10):
         remaining = 10 - i
-        logger.debug(f'STARTING IN T-MINUS {remaining}')
+        logger.debug(f"STARTING IN T-MINUS {remaining}")
         logger.debug(f"Countdown - seconds_remaining: {remaining}")
         pytime.sleep(1)
 
     # Perform the actual indexing
     logger.debug(f"Beginning indexing operation - type: {type}, index_name: {index_names_dict.get('new')}")
-    index_all_of_type_by_index_name(type, index_names_dict.get('new'), skip, debug)
+    index_all_of_type_by_index_name(type, index_names_dict.get("new"), skip, debug)
 
     # Switch aliases
     logger.debug("Switching aliases after indexing")
     try:
-        index_client.delete_alias(index=index_names_dict.get('current'), name=index_names_dict.get('alias'))
-        logger.debug(f"Successfully deleted alias from old index - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}")
+        index_client.delete_alias(index=index_names_dict.get("current"), name=index_names_dict.get("alias"))
+        logger.debug(
+            f"Successfully deleted alias from old index - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}",
+        )
     except NotFoundError:
-        logger.debug(f"Alias not found on old index (may be first run) - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}")
+        logger.debug(
+            f"Alias not found on old index (may be first run) - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}",
+        )
 
     # Clear any index with the alias name
-    clear_index(index_names_dict.get('alias'))
+    clear_index(index_names_dict.get("alias"))
 
     # Create new alias
-    index_client.put_alias(index=index_names_dict.get('new'), name=index_names_dict.get('alias'))
-    logger.debug(f"Successfully created alias for new index - alias: {index_names_dict.get('alias')}, new_index: {index_names_dict.get('new')}")
+    index_client.put_alias(index=index_names_dict.get("new"), name=index_names_dict.get("alias"))
+    logger.debug(
+        f"Successfully created alias for new index - alias: {index_names_dict.get('alias')}, new_index: {index_names_dict.get('new')}",
+    )
 
     # Cleanup old index
-    if index_names_dict.get('new') != index_names_dict.get('current'):
+    if index_names_dict.get("new") != index_names_dict.get("current"):
         logger.debug(f"Cleaning up old index - old_index: {index_names_dict.get('current')}")
-        clear_index(index_names_dict.get('current'))
-    
-    logger.debug(f"Completed index_all_of_type for '{type}' - type: {type}, final_index: {index_names_dict.get('new')}, alias: {index_names_dict.get('alias')}")
+        clear_index(index_names_dict.get("current"))
+
+    logger.debug(
+        f"Completed index_all_of_type for '{type}' - type: {type}, final_index: {index_names_dict.get('new')}, alias: {index_names_dict.get('alias')}",
+    )
 
 
 def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force_recreate=True):
     """
     Index all documents of a given type into a specific index.
-    
+
     :param type: Type of index ('text' or 'sheet')
     :param index_name: Name of the index
     :param skip: Number of documents to skip (for resuming)
     :param debug: Debug mode
     :param force_recreate: If True, will recreate index even if it has documents
     """
-    logger.debug(f"Starting index_all_of_type_by_index_name - type: {type}, index_name: {index_name}, skip: {skip}, debug: {debug}, force_recreate: {force_recreate}")
-    
+    logger.debug(
+        f"Starting index_all_of_type_by_index_name - type: {type}, index_name: {index_name}, skip: {skip}, debug: {debug}, force_recreate: {force_recreate}",
+    )
+
     # Check if index exists and validate
     index_exists = index_client.exists(index=index_name)
     if index_exists and skip == 0:
         try:
             stats = index_client.stats(index=index_name)
-            doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
-            logger.debug(f"Index already exists before creation - index_name: {index_name}, existing_doc_count: {doc_count}, will_recreate: {force_recreate}")
+            doc_count = stats.get("_all", {}).get("primaries", {}).get("docs", {}).get("count", 0)
+            logger.debug(
+                f"Index already exists before creation - index_name: {index_name}, existing_doc_count: {doc_count}, will_recreate: {force_recreate}",
+            )
         except Exception as e:
             logger.debug(f"Could not check existing index stats - index_name: {index_name}, error: {str(e)}")
-    
+
     if skip == 0:
         logger.debug(f"Creating fresh index (skip=0) - index_name: {index_name}, type: {type}")
         create_index(index_name, type, force=force_recreate)
@@ -2265,26 +2407,26 @@ def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force
         if not index_exists:
             logger.error(f"Cannot resume - index does not exist - index_name: {index_name}")
             raise ValueError(f"Cannot resume indexing - index {index_name} does not exist")
-    
-    if type == 'text':
+
+    if type == "text":
         logger.debug("Clearing TextIndexer cache")
         TextIndexer.clear_cache()
         logger.debug("Starting TextIndexer.index_all")
         TextIndexer.index_all(index_name, debug=debug)
         logger.debug("Completed TextIndexer.index_all")
-    elif type == 'sheet':
+    elif type == "sheet":
         logger.debug("Starting sheet indexing")
         index_public_sheets(index_name)
         logger.debug("Completed sheet indexing")
-    elif type == 'topic':
+    elif type == "topic":
         logger.debug("Starting topic indexing")
         index_topics(index_name)
         logger.debug("Completed topic indexing")
-    elif type == 'book':
+    elif type == "book":
         logger.debug("Starting book indexing")
         index_books(index_name)
         logger.debug("Completed book indexing")
-    elif type == 'category':
+    elif type == "category":
         logger.debug("Starting category indexing")
         index_categories(index_name)
         logger.debug("Completed category indexing")

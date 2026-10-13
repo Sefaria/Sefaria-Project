@@ -1,12 +1,12 @@
-import React, {useState, useContext, useEffect, useRef} from "react";
-import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
-import { buildInAppAdsFromSidebarAds } from "./sefaria/sidebarAds";
-import classNames from "classnames";
-import Sefaria from "./sefaria/sefaria";
-import Util from "./sefaria/util";
-import {EnglishText, HebrewText, InterfaceText, OnInView} from "./Misc";
-import $ from "./sefaria/sefariaJquery";
-import { NewsletterSignUpForm } from "./NewsletterSignUpForm";
+import React, { useState, useContext, useEffect, useRef } from 'react';
+import { AdContext, StrapiDataProvider, StrapiDataContext } from './context';
+import { buildInAppAdsFromSidebarAds } from './sefaria/sidebarAds';
+import classNames from 'classnames';
+import Sefaria from './sefaria/sefaria';
+import Util from './sefaria/util';
+import { EnglishText, HebrewText, InterfaceText, OnInView } from './Misc';
+import $ from './sefaria/sefariaJquery';
+import { NewsletterSignUpForm } from './NewsletterSignUpForm';
 
 const Promotions = () => {
   const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
@@ -28,7 +28,7 @@ const Promotions = () => {
           setInAppAds(Sefaria._inAppAds);
         }
       } catch (error) {
-        console.error("Failed to process sidebar ads from Strapi: ", error);
+        console.error('Failed to process sidebar ads from Strapi: ', error);
       }
     }
     // strapiData must be a dependency, not just the received-flag: context.js sets the flag and
@@ -39,20 +39,19 @@ const Promotions = () => {
     // remounted this component.
   }, [strapi.dataFromStrapiHasBeenReceived, strapi.strapiData]);
   // dataFromStrapiHasBeenReceived will originally be null until that part is scheduled and executed
-  
+
   useEffect(() => {
     if (inAppAds) {
       setMatchingAds(getCurrentMatchingAds());
     }
   }, [context, inAppAds]);
 
-
   function showToUser(ad) {
-    if (ad.trigger.showTo === "all") {
+    if (ad.trigger.showTo === 'all') {
       return true;
-    } else if (ad.trigger.showTo === "loggedIn" && context.isLoggedIn) {
+    } else if (ad.trigger.showTo === 'loggedIn' && context.isLoggedIn) {
       return true;
-    } else if (ad.trigger.showTo === "loggedOut" && !context.isLoggedIn) {
+    } else if (ad.trigger.showTo === 'loggedOut' && !context.isLoggedIn) {
       return true;
     } else {
       return false;
@@ -78,70 +77,82 @@ const Promotions = () => {
         ad.trigger.interfaceLang === context.interfaceLang &&
         context.dt >= ad.trigger.startTimeDate &&
         context.dt <= ad.trigger.endTimeDate &&
-        (context.keywordTargets.some((kw) =>
-          ad.trigger.keywordTargets.includes(kw)
-        ) ||
+        (context.keywordTargets.some((kw) => ad.trigger.keywordTargets.includes(kw)) ||
           (ad.trigger.excludeKeywordTargets.length !== 0 &&
-            !context.keywordTargets.some((kw) =>
-              ad.trigger.excludeKeywordTargets.includes(kw)
-            )))
+            !context.keywordTargets.some((kw) => ad.trigger.excludeKeywordTargets.includes(kw))))
       );
     });
   }
 
   return matchingAds
-    ? matchingAds.map((ad) => (
-        <SidebarAd context={context} matchingAd={ad} key={ad.campaignId} />
-      ))
+    ? matchingAds.map((ad) => <SidebarAd context={context} matchingAd={ad} key={ad.campaignId} />)
     : null;
 };
 
 function trackSidebarAdImpression(ad) {
-  console.log(ad.campaignId + " has been seen");
-  gtag("event", "promo_viewed", {
+  console.log(ad.campaignId + ' has been seen');
+  gtag('event', 'promo_viewed', {
     campaignID: ad.campaignId,
-    adType: "sidebar",
+    adType: 'sidebar',
   });
 }
 
 function trackSidebarAdClick(ad) {
-  gtag("event", "promo_clicked", {
+  gtag('event', 'promo_clicked', {
     campaignID: ad.campaignId,
-    adType: "sidebar",
+    adType: 'sidebar',
   });
 }
 const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
 const GDocAdvertText = () => {
-    const learnMoreLink = "https://voices.sefaria.org/sheets/529099?origin=AddToSheetsPromo"
-    return    <InterfaceText>
-                <EnglishText> Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>! <a href={learnMoreLink} data-target-module={Sefaria.VOICES_MODULE}>Learn more</a></EnglishText>
-                <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ גוגל עם <span id="newExtension">התוסף החדש</span> שלנו! <a href={learnMoreLink} data-target-module={Sefaria.VOICES_MODULE}>למדו עוד</a></HebrewText>
-             </InterfaceText>;
-}
+  const learnMoreLink = 'https://voices.sefaria.org/sheets/529099?origin=AddToSheetsPromo';
+  return (
+    <InterfaceText>
+      <EnglishText>
+        {' '}
+        Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>!{' '}
+        <a href={learnMoreLink} data-target-module={Sefaria.VOICES_MODULE}>
+          Learn more
+        </a>
+      </EnglishText>
+      <HebrewText>
+        {' '}
+        הוסיפו טקסטים מספריא ישירות לקובץ גוגל עם <span id="newExtension">התוסף החדש</span> שלנו!{' '}
+        <a href={learnMoreLink} data-target-module={Sefaria.VOICES_MODULE}>
+          למדו עוד
+        </a>
+      </HebrewText>
+    </InterfaceText>
+  );
+};
 const GDocAdvertBox = React.memo(() => {
-    const gdocsCampaignId = "GDocs_Promo_AddToSheet";
-    const installNowLink = 'https://workspace.google.com/marketplace/app/sefaria/849562338091?utm_source=SefariaOrg&utm_medium=SidebarAdButton&utm_campaign=AddToSheetPromotion&utm_content=InstallFromAddToSheet';
-    const gdocsCampaignAd = {campaignId: gdocsCampaignId};
-    const gdocInstalled = 'gdoc_installed';
-    const handleInstall = () => {
-        cookie(gdocInstalled, JSON.stringify(1), {path: "/"});
-        trackSidebarAdClick(gdocsCampaignAd);
-    }
-    return !cookie(gdocInstalled) &&
-        <OnInView onVisible={() => trackSidebarAdImpression(gdocsCampaignAd)}>
-            <div className="gDocAdvertBox">
-              <GDocAdvertText/>
-              <div id="installNow">
-                <a 
-                  href={installNowLink}
-                  onClick={handleInstall}
-                  onKeyDown={(e) => Util.handleLinkSpaceKey(e, handleInstall)}
-                >
-                  <InterfaceText>promotions.install_now</InterfaceText>
-                </a>
-              </div>
-            </div>
-          </OnInView>;
+  const gdocsCampaignId = 'GDocs_Promo_AddToSheet';
+  const installNowLink =
+    'https://workspace.google.com/marketplace/app/sefaria/849562338091?utm_source=SefariaOrg&utm_medium=SidebarAdButton&utm_campaign=AddToSheetPromotion&utm_content=InstallFromAddToSheet';
+  const gdocsCampaignAd = { campaignId: gdocsCampaignId };
+  const gdocInstalled = 'gdoc_installed';
+  const handleInstall = () => {
+    cookie(gdocInstalled, JSON.stringify(1), { path: '/' });
+    trackSidebarAdClick(gdocsCampaignAd);
+  };
+  return (
+    !cookie(gdocInstalled) && (
+      <OnInView onVisible={() => trackSidebarAdImpression(gdocsCampaignAd)}>
+        <div className="gDocAdvertBox">
+          <GDocAdvertText />
+          <div id="installNow">
+            <a
+              href={installNowLink}
+              onClick={handleInstall}
+              onKeyDown={(e) => Util.handleLinkSpaceKey(e, handleInstall)}
+            >
+              <InterfaceText>promotions.install_now</InterfaceText>
+            </a>
+          </div>
+        </div>
+      </OnInView>
+    )
+  );
 });
 
 // Don't continuously rerender a SidebarAd if the parent component decides to rerender
@@ -154,11 +165,7 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
 
   function getButton() {
     return (
-      <a
-        className="button small"
-        href={matchingAd.buttonURL}
-        onClick={() => trackSidebarAdClick(matchingAd)}
-      >
+      <a className="button small" href={matchingAd.buttonURL} onClick={() => trackSidebarAdClick(matchingAd)}>
         {matchingAd.buttonIcon ? (
           <img
             // TODO: Create middleware to handle serving media assets to distinguish between different environments
@@ -174,47 +181,47 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
     );
   }
 
-    const isHebrew = context.interfaceLang === "hebrew";
-    const getLanguageClass = () => (isHebrew ? "int-he" : "int-en");
+  const isHebrew = context.interfaceLang === 'hebrew';
+  const getLanguageClass = () => (isHebrew ? 'int-he' : 'int-en');
 
-    return (
-      <OnInView onVisible={() => trackSidebarAdImpression(matchingAd)}>
-        <div className={classes}>
-          <h3 className={getLanguageClass()}>{matchingAd.title}</h3>
-          {matchingAd.buttonLocation === "below" ? (
-            matchingAd.isNewsletterSubscriptionInputForm ? (
-              <>
-                <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
-                <NewsletterSignUpForm
-                  context={"Sidebar Ad: " + context.keywordTargets.toString()}
-                  includeEducatorOption={false}
-                  additionalNewsletterMailingLists={matchingAd.newsletterMailingLists}
-                />
-              </>
-            ) : (
-              <>
-                <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
-                {getButton()}
-              </>
-            )
-          ) : matchingAd.isNewsletterSubscriptionInputForm ? (
+  return (
+    <OnInView onVisible={() => trackSidebarAdImpression(matchingAd)}>
+      <div className={classes}>
+        <h3 className={getLanguageClass()}>{matchingAd.title}</h3>
+        {matchingAd.buttonLocation === 'below' ? (
+          matchingAd.isNewsletterSubscriptionInputForm ? (
             <>
+              <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
               <NewsletterSignUpForm
-                context={"Sidebar Ad: " + context.keywordTargets.toString()}
+                context={'Sidebar Ad: ' + context.keywordTargets.toString()}
                 includeEducatorOption={false}
                 additionalNewsletterMailingLists={matchingAd.newsletterMailingLists}
               />
-              <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
             </>
           ) : (
             <>
-              {getButton()}
               <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+              {getButton()}
             </>
-          )}
-        </div>
-      </OnInView>
-    );
+          )
+        ) : matchingAd.isNewsletterSubscriptionInputForm ? (
+          <>
+            <NewsletterSignUpForm
+              context={'Sidebar Ad: ' + context.keywordTargets.toString()}
+              includeEducatorOption={false}
+              additionalNewsletterMailingLists={matchingAd.newsletterMailingLists}
+            />
+            <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+          </>
+        ) : (
+          <>
+            {getButton()}
+            <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+          </>
+        )}
+      </div>
+    </OnInView>
+  );
 });
 
 export { Promotions, GDocAdvertBox };

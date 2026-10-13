@@ -1,34 +1,39 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import VersionBlockSelectButton from "./VersionBlockSelectButton";
-import {VersionBlockUtils} from './VersionBlock';
-import Sefaria from "../sefaria/sefaria";
+import VersionBlockSelectButton from './VersionBlockSelectButton';
+import { VersionBlockUtils } from './VersionBlock';
+import Sefaria from '../sefaria/sefaria';
 
-function VersionTitleAndSelector({currentRef, version, currObjectVersions, openVersionInReader, isSelected}) {
-    function makeShortVersionTitle() {
-        let shortVersionTitle = version.shortVersionTitle || version.versionTitle;
-        if (Sefaria.interfaceLang === "hebrew") {
-            shortVersionTitle = version.shortVersionTitleInHebrew || version.versionTitleInHebrew || shortVersionTitle;
-        }
-        return shortVersionTitle;
+function VersionTitleAndSelector({ currentRef, version, currObjectVersions, openVersionInReader, isSelected }) {
+  function makeShortVersionTitle() {
+    let shortVersionTitle = version.shortVersionTitle || version.versionTitle;
+    if (Sefaria.interfaceLang === 'hebrew') {
+      shortVersionTitle = version.shortVersionTitleInHebrew || version.versionTitleInHebrew || shortVersionTitle;
     }
-    const renderMode = 'translation'; //for now this component is only rendered from TranslationsBox
-    const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, currentRef, version, currObjectVersions, renderMode,
-        null, openVersionInReader);
-    const buttonText = isSelected ? 'version_block.currently_selected' : 'version_block.select';
-    return (
-        <div className='version-with-preview-title-line'>
-            <div className='open-details'>
-                {makeShortVersionTitle()}
-            </div>
-            <VersionBlockSelectButton
-                isSelected={isSelected}
-                openVersionInMainPanel={openVersionInMainPanel}
-                text={buttonText}
-                link={VersionBlockUtils.makeVersionLink(currentRef, version, currObjectVersions, true)}
-            />
-        </div>
-    );
+    return shortVersionTitle;
+  }
+  const renderMode = 'translation'; //for now this component is only rendered from TranslationsBox
+  const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(
+    null,
+    currentRef,
+    version,
+    currObjectVersions,
+    renderMode,
+    null,
+    openVersionInReader
+  );
+  const buttonText = isSelected ? 'version_block.currently_selected' : 'version_block.select';
+  return (
+    <div className="version-with-preview-title-line">
+      <div className="open-details">{makeShortVersionTitle()}</div>
+      <VersionBlockSelectButton
+        isSelected={isSelected}
+        openVersionInMainPanel={openVersionInMainPanel}
+        text={buttonText}
+        link={VersionBlockUtils.makeVersionLink(currentRef, version, currObjectVersions, true)}
+      />
+    </div>
+  );
 }
 VersionTitleAndSelector.prototypes = {
   currObjectVersions: PropTypes.object.isRequired,

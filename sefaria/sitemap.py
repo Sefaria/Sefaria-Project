@@ -3,13 +3,15 @@ sitemap.py - generate sitemaps of all available texts for search engines.
 
 Outputs sitemaps and sitemapindex to the first entry of STATICFILES_DIRS by default, a custom directory can be supplied.
 """
-import os, errno
+
+import os
 from datetime import datetime
 
+from sefaria.constants.model import MIN_SOURCES_FOR_TOPIC_DISPLAY
 from sefaria.model import *
 from sefaria.system.database import db
-from sefaria.constants.model import MIN_SOURCES_FOR_TOPIC_DISPLAY
-from .settings import STATICFILES_DIRS, STATIC_URL
+
+from .settings import STATIC_URL, STATICFILES_DIRS
 
 
 def chunks(l, n):
@@ -17,14 +19,13 @@ def chunks(l, n):
     Yield successive n-sized chunks from l.
     """
     for i in range(0, len(l), n):
-        yield l[i:i + n]
+        yield l[i : i + n]
 
 
-class SefariaSiteMapGenerator(object):
-
+class SefariaSiteMapGenerator:
     hostnames = {
-        'org': {'interfaceLang': 'en', 'hostname':'https://www.sefaria.org'},
-        'org.il': {'interfaceLang': 'he', 'hostname':'https://www.sefaria.org.il'},
+        "org": {"interfaceLang": "en", "hostname": "https://www.sefaria.org"},
+        "org.il": {"interfaceLang": "he", "hostname": "https://www.sefaria.org.il"},
     }
     static_urls = [
         "",
@@ -57,7 +58,7 @@ class SefariaSiteMapGenerator(object):
     ]
     sitemaps = []
 
-    def __init__(self, hostSuffix='org', output_directory=STATICFILES_DIRS[0]):
+    def __init__(self, hostSuffix="org", output_directory=STATICFILES_DIRS[0]):
         if hostSuffix in SefariaSiteMapGenerator.hostnames:
             self._interfaceLang = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get("interfaceLang")
             self._hostname = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get("hostname")
@@ -73,8 +74,8 @@ class SefariaSiteMapGenerator(object):
         Create sitemap for each text section for which content is available.
         Returns the number of files written (each sitemap can have only 50k URLs)
         """
-        refs = library.ref_list() # All refs at section level
-        
+        refs = library.ref_list()  # All refs at section level
+
         segment_level_categories = ("Tanakh", "Mishnah")
         for cat in segment_level_categories:
             books = library.get_indexes_in_corpus(cat, full_records=True)
@@ -103,6 +104,7 @@ class SefariaSiteMapGenerator(object):
         Creates sitemap for each category page.
         """
         toc = library.get_toc()
+
         def cat_paths(toc):
             paths = []
             for t in toc:
@@ -116,6 +118,7 @@ class SefariaSiteMapGenerator(object):
                         continue
                     paths = paths + [cat + "/" + sp for sp in subpaths]
             return paths
+
         paths = cat_paths(toc)
         urls = [self._hostname + "/texts/" + p for p in paths]
         self.write_urls(urls, "categories-sitemap.xml")
@@ -148,20 +151,23 @@ class SefariaSiteMapGenerator(object):
         """
         Writes the list of `urls` to `filename`.
         """
+
         def escape_url(url):
             return url.replace("&", "&amp;")
 
         content = ""
         for url in urls:
-            content += ("<url><loc>{}</loc></url>\n".format(escape_url(url)))
+            content += f"<url><loc>{escape_url(url)}</loc></url>\n"
 
-        xml = ('<?xml version="1.0" encoding="UTF-8"?>'
-               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-               '{}'
-               '</urlset>'.format(content))
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            f"{content}"
+            "</urlset>"
+        )
 
         out = self.output_directory + "sitemaps/" + self._interfaceLang + "/" + filename
-        f = open(out, 'w')
+        f = open(out, "w")
         f.write(xml)
         f.close()
         self.sitemaps.append(filename)
@@ -170,18 +176,22 @@ class SefariaSiteMapGenerator(object):
         now = datetime.now().strftime("%Y-%m-%d")
         xml = ""
         for m in self.sitemaps:
-            xml += ('<sitemap>'
-                    '<loc>{}{}sitemaps/{}/{}</loc>'
-                    '<lastmod>{}</lastmod>'
-                    '</sitemap>'.format(self._hostname, STATIC_URL, self._interfaceLang, m, now))
+            xml += (
+                "<sitemap>"
+                f"<loc>{self._hostname}{STATIC_URL}sitemaps/{self._interfaceLang}/{m}</loc>"
+                f"<lastmod>{now}</lastmod>"
+                "</sitemap>"
+            )
 
-        sitemapindex = ('<?xml version="1.0" encoding="UTF-8"?>'
+        sitemapindex = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
             '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-            '{}'
-            '</sitemapindex>'.format(xml))
+            f"{xml}"
+            "</sitemapindex>"
+        )
 
         out = self.output_directory + "sitemaps/" + self._interfaceLang + "/sitemapindex.xml"
-        f = open(out, 'w')
+        f = open(out, "w")
         f.write(sitemapindex)
         f.close()
 

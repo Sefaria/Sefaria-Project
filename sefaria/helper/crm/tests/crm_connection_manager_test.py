@@ -1,8 +1,3 @@
-from unittest import TestCase
-
-from sefaria.helper.crm.dummy_crm import DummyConnectionManager
-from sefaria.helper.crm.salesforce import SalesforceConnectionManager
-
 """
 class TestConnectionTest(TestCase):
     def __init__(self):

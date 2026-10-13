@@ -10,13 +10,15 @@ Output files:
   linker_output.json       - linker_output docs (1:1 with mutc records, matched by ref/versionTitle/language)
   marked_up_text_chunks.json - marked_up_text_chunk docs (type='mutc' records)
 """
+
 import argparse
 import json
 import os
-from bson import ObjectId
 from datetime import datetime
 
 import django
+from bson import ObjectId
+
 django.setup()
 
 from tqdm import tqdm
@@ -66,7 +68,8 @@ def main():
 
     total = db.linker_disambiguation_tmp.count_documents({})
     cursor = db.linker_disambiguation_tmp.find(
-        {}, {"type": 1, "ref": 1, "versionTitle": 1, "language": 1, "link": 1, "id": 1}
+        {},
+        {"type": 1, "ref": 1, "versionTitle": 1, "language": 1, "link": 1, "id": 1},
     )
     with tqdm(cursor, total=total, desc="Scanning tmp collection", unit="doc") as bar:
         for doc in bar:
@@ -91,8 +94,7 @@ def main():
     links_path = os.path.join(args.output_dir, "links.json")
 
     mutc_count = lo_count = 0
-    with open(mutc_path, "w", encoding="utf-8") as mutc_f, \
-         open(lo_path, "w", encoding="utf-8") as lo_f:
+    with open(mutc_path, "w", encoding="utf-8") as mutc_f, open(lo_path, "w", encoding="utf-8") as lo_f:
         _open_json_array(mutc_f)
         _open_json_array(lo_f)
         with tqdm(mutc_keys, total=len(mutc_keys), desc="Fetching MUTC + linker_output", unit="key") as bar:
@@ -116,9 +118,14 @@ def main():
     num_batches = (len(link_ids) + LINK_BATCH_SIZE - 1) // LINK_BATCH_SIZE
     with open(links_path, "w", encoding="utf-8") as links_f:
         _open_json_array(links_f)
-        with tqdm(range(0, len(link_ids), LINK_BATCH_SIZE), total=num_batches, desc="Fetching links", unit="batch") as bar:
+        with tqdm(
+            range(0, len(link_ids), LINK_BATCH_SIZE),
+            total=num_batches,
+            desc="Fetching links",
+            unit="batch",
+        ) as bar:
             for batch_start in bar:
-                batch = link_ids[batch_start:batch_start + LINK_BATCH_SIZE]
+                batch = link_ids[batch_start : batch_start + LINK_BATCH_SIZE]
                 for link in db.links.find({"_id": {"$in": batch}}):
                     _write_item(links_f, _serialize(link), link_count == 0)
                     link_count += 1

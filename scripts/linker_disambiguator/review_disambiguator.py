@@ -9,13 +9,11 @@ Edit INPUT_REF_OR_URL below (no CLI params).
 """
 
 import django
+
 django.setup()
 
-from urllib.parse import urlparse, unquote
+from urllib.parse import unquote, urlparse
 
-from sefaria.model import Ref
-from sefaria.system.database import db
-from sefaria.settings import FRONT_END_URL
 from sefaria.helper.linker.disambiguator import (
     AmbiguousResolutionPayload,
     NonSegmentResolutionPayload,
@@ -23,7 +21,9 @@ from sefaria.helper.linker.disambiguator import (
     disambiguate_non_segment_ref,
 )
 from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
-
+from sefaria.model import Ref
+from sefaria.settings import FRONT_END_URL
+from sefaria.system.database import db
 
 # ---- params (edit these) ----
 INPUT_REF_OR_URL = "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem 37:26"
@@ -35,7 +35,7 @@ BASE_URL_OVERRIDE = None  # e.g. "https://www.sefaria.org"
 def _normalize_input_to_ref_and_base_url(value: str):
     base_url = BASE_URL_OVERRIDE or FRONT_END_URL or "https://www.sefaria.org"
     raw = value.strip()
-    if raw.startswith("http://") or raw.startswith("https://"):
+    if raw.startswith(("http://", "https://")):
         parsed = urlparse(raw)
         base_url = f"{parsed.scheme}://{parsed.netloc}"
         path = parsed.path.strip("/")
@@ -85,25 +85,29 @@ def _ambiguous_payloads_for_output(raw_linker_output):
             except Exception:
                 normalized.add(ref_str)
         if len(normalized) > 1:
-            payloads.append(AmbiguousResolutionPayload(
-                ref=raw_linker_output["ref"],
-                versionTitle=raw_linker_output["versionTitle"],
-                language=raw_linker_output["language"],
-                charRange=list(char_range),
-                text=group[0].get("text"),
-                ambiguous_refs=refs,
-            ))
+            payloads.append(
+                AmbiguousResolutionPayload(
+                    ref=raw_linker_output["ref"],
+                    versionTitle=raw_linker_output["versionTitle"],
+                    language=raw_linker_output["language"],
+                    charRange=list(char_range),
+                    text=group[0].get("text"),
+                    ambiguous_refs=refs,
+                ),
+            )
     return payloads
 
 
 def _non_segment_payloads_for_output(raw_linker_output):
     spans = raw_linker_output.get("spans", [])
-    mutc = db.marked_up_text_chunks.find_one({
-        "ref": raw_linker_output["ref"],
-        "versionTitle": raw_linker_output["versionTitle"],
-        "language": raw_linker_output["language"],
-    })
-    mutc_spans = (mutc.get("spans", []) if mutc else [])
+    mutc = db.marked_up_text_chunks.find_one(
+        {
+            "ref": raw_linker_output["ref"],
+            "versionTitle": raw_linker_output["versionTitle"],
+            "language": raw_linker_output["language"],
+        },
+    )
+    mutc_spans = mutc.get("spans", []) if mutc else []
     mutc_non_segment_ranges = set()
     for mutc_span in mutc_spans:
         if mutc_span.get("type") != "citation":
@@ -136,14 +140,16 @@ def _non_segment_payloads_for_output(raw_linker_output):
         except Exception:
             continue
         if _is_non_segment_or_perek_ref(ref_str, oref):
-            payloads.append(NonSegmentResolutionPayload(
-                ref=raw_linker_output["ref"],
-                versionTitle=raw_linker_output["versionTitle"],
-                language=raw_linker_output["language"],
-                charRange=span.get("charRange"),
-                text=span.get("text"),
-                resolved_non_segment_ref=ref_str,
-            ))
+            payloads.append(
+                NonSegmentResolutionPayload(
+                    ref=raw_linker_output["ref"],
+                    versionTitle=raw_linker_output["versionTitle"],
+                    language=raw_linker_output["language"],
+                    charRange=span.get("charRange"),
+                    text=span.get("text"),
+                    resolved_non_segment_ref=ref_str,
+                ),
+            )
     return payloads
 
 

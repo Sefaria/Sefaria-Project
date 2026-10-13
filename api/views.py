@@ -9,85 +9,92 @@ from django.views.decorators.csrf import csrf_exempt
 from sefaria.client.util import jsonResponse
 from sefaria.model import *
 from sefaria.model.text_request_adapter import TextRequestAdapter
-from sefaria.system.exceptions import InputError, ComplexBookLevelRefError, DictionaryEntryNotFoundError
-from .api_warnings import *
+from sefaria.system.exceptions import DictionaryEntryNotFoundError, InputError
 
+from .api_warnings import *
 
 logger = logging.getLogger(__name__)
 
 
 class Text(View):
-
-    RETURN_FORMATS = ['default', 'wrap_all_entities', 'text_only', 'strip_only_footnotes']
+    RETURN_FORMATS = ["default", "wrap_all_entities", "text_only", "strip_only_footnotes"]
 
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs['tref'])
+            self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs["tref"])
         except Exception as e:
-            return jsonResponse({'error': getattr(e, 'message', str(e))}, status=404)
+            return jsonResponse({"error": getattr(e, "message", str(e))}, status=404)
         return super().dispatch(request, *args, **kwargs)
 
     @staticmethod
-    def split_piped_params(params_string) -> List[str]:
-        params = params_string.split('|')
+    def split_piped_params(params_string) -> list[str]:
+        params = params_string.split("|")
         if len(params) < 2:
-            params.append('')
-        params[1] = params[1].replace('_', ' ')
+            params.append("")
+        params[1] = params[1].replace("_", " ")
         return params
 
     def _handle_warnings(self, data):
-        data['warnings'] = []
-        for lang, vtitle in data['missings']:
-            if lang == 'source':
+        data["warnings"] = []
+        for lang, vtitle in data["missings"]:
+            if lang == "source":
                 warning = APINoSourceText(self.oref)
-            elif lang == 'translation':
+            elif lang == "translation":
                 warning = APINoTranslationText(self.oref)
-            elif vtitle and vtitle != 'all':
+            elif vtitle and vtitle != "all":
                 warning = APINoVersion(self.oref, vtitle, lang)
             else:
-                warning = APINoLanguageVersion(self.oref, data['available_langs'])
-            representing_string = f'{lang}|{vtitle}' if vtitle else lang
-            data['warnings'].append({representing_string: warning.get_message()})
-        data.pop('missings')
-        data.pop('available_langs')
+                warning = APINoLanguageVersion(self.oref, data["available_langs"])
+            representing_string = f"{lang}|{vtitle}" if vtitle else lang
+            data["warnings"].append({representing_string: warning.get_message()})
+        data.pop("missings")
+        data.pop("available_langs")
         return data
 
     def get(self, request, *args, **kwargs):
         if self.oref.is_empty() and not self.oref.index_node.is_virtual:
-            return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=404)
+            return jsonResponse({"error": f"We have no text for {self.oref}."}, status=404)
 
-        versions_params = request.GET.getlist('version', [])
+        versions_params = request.GET.getlist("version", [])
         if not versions_params:
-            versions_params = ['primary']
+            versions_params = ["primary"]
 
         versions_params = [self.split_piped_params(param_str) for param_str in versions_params]
-        fill_in_missing_segments = bool(int(request.GET.get('fill_in_missing_segments', False)))
-        return_format = request.GET.get('return_format', 'default')
+        fill_in_missing_segments = bool(int(request.GET.get("fill_in_missing_segments", False)))
+        return_format = request.GET.get("return_format", "default")
         if return_format not in self.RETURN_FORMATS:
-            return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
+            return jsonResponse(
+                {"error": f"return_format should be one of those formats: {self.RETURN_FORMATS}."},
+                status=400,
+            )
 
-        debug_mode = request.GET.get('debug_mode', None)
-        text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format, debug_mode)
+        debug_mode = request.GET.get("debug_mode", None)
+        text_manager = TextRequestAdapter(
+            self.oref,
+            versions_params,
+            fill_in_missing_segments,
+            return_format,
+            debug_mode,
+        )
 
         try:
             data = text_manager.get_versions_for_query()
             data = self._handle_warnings(data)
 
         except Exception as e:
-            return jsonResponse({'error': str(e)}, status=400)
+            return jsonResponse({"error": str(e)}, status=400)
 
         return jsonResponse(data)
 
 
 class RefView(View):
-
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs['tref'])
+            self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs["tref"])
         except (InputError, DictionaryEntryNotFoundError):
-            return jsonResponse({'is_ref': False})
+            return jsonResponse({"is_ref": False})
         except Exception as e:
-            return jsonResponse({'error': getattr(e, 'message', str(e))}, status=404)
+            return jsonResponse({"error": getattr(e, "message", str(e))}, status=404)
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -97,80 +104,92 @@ class RefView(View):
         # Load vstate for non-virtual nodes (JaggedArrayNode, SchemaNode, DictionaryNode).
         vstate = VersionState(index.title) if not index_node.is_virtual else None
         return_object = {
-            'is_ref': True,
-            'normalized': oref.normal(),
-            'hebrew': oref.he_normal(),
-            'url_ref': oref.url(),
-            'index_title': index.title,
-            'node_type': type(index_node).__name__,
-            'navigation_refs': {
-                'shortest_path_to_root': [r.normal() for r in oref.all_context_refs(False, True)][::-1]
-            }
+            "is_ref": True,
+            "normalized": oref.normal(),
+            "hebrew": oref.he_normal(),
+            "url_ref": oref.url(),
+            "index_title": index.title,
+            "node_type": type(index_node).__name__,
+            "navigation_refs": {
+                "shortest_path_to_root": [r.normal() for r in oref.all_context_refs(False, True)][::-1],
+            },
         }
 
-        if return_object['node_type'] != 'SheetNode':
-            norm = lambda r: r.normal() if r else None
-            return_object['navigation_refs']['first_available_section_ref'] = norm(oref.first_available_section_ref(vstate=vstate))
+        if return_object["node_type"] != "SheetNode":
+
+            def norm(r):
+                return r.normal() if r else None
+
+            return_object["navigation_refs"]["first_available_section_ref"] = norm(
+                oref.first_available_section_ref(vstate=vstate),
+            )
             if oref.is_segment_level():
-                return_object['navigation_refs']['prev_segment_ref'] = norm(oref.prev_segment_ref(vstate=vstate))
-                return_object['navigation_refs']['next_segment_ref'] = norm(oref.next_segment_ref(vstate=vstate))
+                return_object["navigation_refs"]["prev_segment_ref"] = norm(oref.prev_segment_ref(vstate=vstate))
+                return_object["navigation_refs"]["next_segment_ref"] = norm(oref.next_segment_ref(vstate=vstate))
             elif oref.is_section_level():
-                return_object['navigation_refs']['prev_section_ref'] = norm(oref.prev_section_ref(vstate=vstate))
-                return_object['navigation_refs']['next_section_ref'] = norm(oref.next_section_ref(vstate=vstate))
+                return_object["navigation_refs"]["prev_section_ref"] = norm(oref.prev_section_ref(vstate=vstate))
+                return_object["navigation_refs"]["next_section_ref"] = norm(oref.next_section_ref(vstate=vstate))
 
-        if return_object['node_type'] == 'SchemaNode':
-            return_object['children'] = [child.get_primary_title() for child in index_node.children]
+        if return_object["node_type"] == "SchemaNode":
+            return_object["children"] = [child.get_primary_title() for child in index_node.children]
 
-        elif return_object['node_type'] in ['JaggedArrayNode', 'DictionaryEntryNode']:
-            return_object.update({
-                'depth': index_node.depth,
-                'address_types': index_node.addressTypes,
-                'section_names': index_node.sectionNames,
-                'start_indexes': oref.sections,
-                'start_labels': oref.normal_sections(),
-                'end_indexes': oref.toSections,
-                'end_labels': oref.normal_toSections(),
-            })
+        elif return_object["node_type"] in ["JaggedArrayNode", "DictionaryEntryNode"]:
+            return_object.update(
+                {
+                    "depth": index_node.depth,
+                    "address_types": index_node.addressTypes,
+                    "section_names": index_node.sectionNames,
+                    "start_indexes": oref.sections,
+                    "start_labels": oref.normal_sections(),
+                    "end_indexes": oref.toSections,
+                    "end_labels": oref.normal_toSections(),
+                },
+            )
 
-            if return_object['node_type'] == 'DictionaryEntryNode':
+            if return_object["node_type"] == "DictionaryEntryNode":
                 lexicon_entry = index_node.lexicon_entry
-                return_object['lexicon_name'] = lexicon_entry.parent_lexicon
-                return_object['headword'] = lexicon_entry.headword
+                return_object["lexicon_name"] = lexicon_entry.parent_lexicon
+                return_object["headword"] = lexicon_entry.headword
 
-        elif return_object['node_type'] == 'SheetNode':
-            return_object['sheet_id'] = index_node.sheetId
+        elif return_object["node_type"] == "SheetNode":
+            return_object["sheet_id"] = index_node.sheetId
 
-        elif return_object['node_type'] == 'DictionaryNode':
-            return_object['lexicon_name'] = index_node.lexiconName
+        elif return_object["node_type"] == "DictionaryNode":
+            return_object["lexicon_name"] = index_node.lexiconName
 
         if index_node.has_default_child():
             default_ref = oref.default_child_ref()
             default_node = default_ref.index_node
-            return_object['default_child_node'] = {
-                'node_type': type(default_node).__name__,
-                'node_index': index_node.children.index(default_node)
+            return_object["default_child_node"] = {
+                "node_type": type(default_node).__name__,
+                "node_index": index_node.children.index(default_node),
             }
-            if return_object['default_child_node']['node_type'] == 'JaggedArrayNode':
-                return_object['default_child_node']['depth'] = default_node.depth
-                return_object['default_child_node']['address_types'] = default_node.addressTypes
-                return_object['default_child_node']['sectionNames'] = default_node.sectionNames
+            if return_object["default_child_node"]["node_type"] == "JaggedArrayNode":
+                return_object["default_child_node"]["depth"] = default_node.depth
+                return_object["default_child_node"]["address_types"] = default_node.addressTypes
+                return_object["default_child_node"]["sectionNames"] = default_node.sectionNames
 
-            if return_object['node_type'] == 'DictionaryNode':
-                return_object['default_child_node']['lexicon_name'] = index_node.lexiconName
+            if return_object["node_type"] == "DictionaryNode":
+                return_object["default_child_node"]["lexicon_name"] = index_node.lexiconName
 
         if getattr(index_node, "depth", None) and not oref.is_range() and not oref.is_segment_level():
             state_ja = oref.get_state_ja(vstate=vstate) if vstate else None
             subrefs = oref.all_subrefs(state_ja=state_ja)
-            return_object['navigation_refs']['first_subref'] = subrefs[0].normal()
-            return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()
+            return_object["navigation_refs"]["first_subref"] = subrefs[0].normal()
+            return_object["navigation_refs"]["last_subref"] = subrefs[-1].normal()
 
         return jsonResponse(return_object)
 
 
 class KnnSearch(View):
     SEARCH_RESULT_FIELDS = (
-        'ref', 'url', 'index_title', 'language', 'version_title',
-        'primary_category', 'all_categories',
+        "ref",
+        "url",
+        "index_title",
+        "language",
+        "version_title",
+        "primary_category",
+        "all_categories",
     )
 
     # Public response controls. Clients may request fewer or more items, but values
@@ -284,10 +303,12 @@ class KnnSearch(View):
         serialized = {"ref": ref}
         if include_text:
             if not cls._is_supported_linked_ref(ref):
-                serialized.update({
-                    "text": "",
-                    "text_source": "omitted_unsupported_linked_ref",
-                })
+                serialized.update(
+                    {
+                        "text": "",
+                        "text_source": "omitted_unsupported_linked_ref",
+                    },
+                )
                 return serialized
             text = cls._ref_text(ref)
             if len(text) > cls.LINKED_REF_FULL_TEXT_CHAR_LIMIT and query_embedding is not None:
@@ -315,21 +336,22 @@ class KnnSearch(View):
                         }
                         for chunk_number, chunk in enumerate(chunks, start=1)
                     ]
-                else:
-                    logger.warning(
-                        "Omitted oversized linked ref text because no semantic chunks were found",
-                        extra={
-                            "ref": ref,
-                            "original_text_char_count": len(text),
-                        },
-                    )
-                    serialized.update({
+                logger.warning(
+                    "Omitted oversized linked ref text because no semantic chunks were found",
+                    extra={
+                        "ref": ref,
+                        "original_text_char_count": len(text),
+                    },
+                )
+                serialized.update(
+                    {
                         "text": "",
                         "text_source": "omitted_oversized_linked_ref",
                         "original_text_char_count": len(text),
                         "semantic_chunk_limit": cls.LINKED_REF_SEMANTIC_CHUNK_LIMIT,
-                    })
-                    return serialized
+                    },
+                )
+                return serialized
             serialized["text"] = text
         return serialized
 
@@ -358,7 +380,7 @@ class KnnSearch(View):
         auth = request.headers.get("Authorization", "")
         if not auth.startswith("Bearer "):
             return jsonResponse({"error": "Unauthorized"}, status=401)
-        token = auth[len("Bearer "):]
+        token = auth[len("Bearer ") :]
         expected = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
         if not expected or token != expected:
             return jsonResponse({"error": "Unauthorized"}, status=401)
@@ -412,24 +434,23 @@ class KnnSearch(View):
         results = search_results[:result_limit]
 
         response = {
-            "results": [
-                self._serialize_search_result(r, include_text)
-                for r in results
-            ]
+            "results": [self._serialize_search_result(r, include_text) for r in results],
         }
 
         if include_linked_refs:
             from semantic_search.linked_refs import get_mean_std_linked_ref_enhancements
 
             enhancement = get_mean_std_linked_ref_enhancements(
-                search_results[:self.LINKED_REF_ENHANCEMENT_LIMIT],
+                search_results[: self.LINKED_REF_ENHANCEMENT_LIMIT],
                 link_depth=self.LINKED_REF_ENHANCEMENT_DEPTH,
                 std_threshold=self.LINKED_REF_ENHANCEMENT_STD_THRESHOLD,
                 min_count=self.LINKED_REF_ENHANCEMENT_MIN_COUNT,
             )
             top_linked_refs = self._top_linked_refs(enhancement, linked_ref_limit)
-            response.update({
-                "linked_refs": self._serialize_linked_refs(top_linked_refs, include_text, query_embedding, filters),
-            })
+            response.update(
+                {
+                    "linked_refs": self._serialize_linked_refs(top_linked_refs, include_text, query_embedding, filters),
+                },
+            )
 
         return jsonResponse(response)

@@ -1,132 +1,128 @@
-import { useState, useEffect } from "react";
-import Sefaria from "./sefaria/sefaria";
+import { useState, useEffect } from 'react';
+import Sefaria from './sefaria/sefaria';
 import SearchState from './sefaria/searchState';
-import DictionarySearch  from './DictionarySearch';
+import DictionarySearch from './DictionarySearch';
 import classNames from 'classnames';
-import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
-import {
-  SearchButton,
-} from './Misc';
+import { ElasticSearchQuerier } from './ElasticSearchQuerier';
+import { SearchButton } from './Misc';
 
-
-const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarSearchQuery, setSidebarSearchQuery, onSidebarSearchClick }) => {
-  const [lexiconName, setLexiconName] = useState(Sefaria.getIndexDetailsFromCache(title)?.lexiconName)
+const SidebarSearch = ({
+  title,
+  updateAppliedOptionSort,
+  navigatePanel,
+  sidebarSearchQuery,
+  setSidebarSearchQuery,
+  onSidebarSearchClick,
+}) => {
+  const [lexiconName, setLexiconName] = useState(Sefaria.getIndexDetailsFromCache(title)?.lexiconName);
   const [searchFilterPathForBook, setSearchFilterPathForBook] = useState('');
   const [query, setQuery] = useState(sidebarSearchQuery || '');
   const isDictionary = !!lexiconName;
   const [searchState, setSearchState] = useState(
-          new SearchState({
-                  type: 'text',
-                  appliedFilters:        [searchFilterPathForBook],
-                  field:                 "naive_lemmatizer",
-                  appliedFilterAggTypes: ["path"],
-                  sortType:              "chronological",
-          })
-      )
+    new SearchState({
+      type: 'text',
+      appliedFilters: [searchFilterPathForBook],
+      field: 'naive_lemmatizer',
+      appliedFilterAggTypes: ['path'],
+      sortType: 'chronological',
+    })
+  );
 
   useEffect(() => {
-      attachKeyboard();
-      const searchInput = document.getElementById('searchQueryInput')
-      if (searchInput) {
-          searchInput.value = query
-      }
+    attachKeyboard();
+    const searchInput = document.getElementById('searchQueryInput');
+    if (searchInput) {
+      searchInput.value = query;
+    }
   }, []);
 
   useEffect(() => {
-      Sefaria.bookSearchPathFilterAPI(title).then((path) => {
-        setSearchFilterPathForBook(path)
-      })
-      setSidebarSearchQuery(query)
-  }, [query])
+    Sefaria.bookSearchPathFilterAPI(title).then((path) => {
+      setSearchFilterPathForBook(path);
+    });
+    setSidebarSearchQuery(query);
+  }, [query]);
 
   useEffect(() => {
-      setSearchState(
-        new SearchState({
-                type: 'text',
-                appliedFilters:        [searchFilterPathForBook],
-                field:                 "naive_lemmatizer",
-                appliedFilterAggTypes: ["path"],
-                sortType:              "chronological",
-                filtersValid: true,
-        })
-      )
-  }, [searchFilterPathForBook])
+    setSearchState(
+      new SearchState({
+        type: 'text',
+        appliedFilters: [searchFilterPathForBook],
+        field: 'naive_lemmatizer',
+        appliedFilterAggTypes: ['path'],
+        sortType: 'chronological',
+        filtersValid: true,
+      })
+    );
+  }, [searchFilterPathForBook]);
 
-   const attachKeyboard = () => {
-      const inputElement = document.querySelector('.sidebarSearch input');
-      if (inputElement && (!inputElement.VKI_attached)) {
-        VKI_attach(inputElement);
-      }
+  const attachKeyboard = () => {
+    const inputElement = document.querySelector('.sidebarSearch input');
+    if (inputElement && !inputElement.VKI_attached) {
+      VKI_attach(inputElement);
     }
-
+  };
 
   const inputClasses = classNames({
     search: 1,
     serif: 1,
-    keyboardInput: Sefaria.interfaceLang === "english",
-    hebrewSearch: Sefaria.interfaceLang === "hebrew"
-    });
+    keyboardInput: Sefaria.interfaceLang === 'english',
+    hebrewSearch: Sefaria.interfaceLang === 'hebrew',
+  });
   // const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
-  const searchBoxClasses = classNames({searchBox: 1});
+  const searchBoxClasses = classNames({ searchBox: 1 });
 
   const handleSearchButtonClick = () => {
-    const searchBoxValue = document.getElementById('searchQueryInput').value
+    const searchBoxValue = document.getElementById('searchQueryInput').value;
     if (searchBoxValue !== query) {
-      setSearchFilterPathForBook('')
-      setQuery(document.getElementById('searchQueryInput').value)
+      setSearchFilterPathForBook('');
+      setQuery(document.getElementById('searchQueryInput').value);
     }
-  }
-
+  };
 
   return (
     <div className="sidebarSearch lexicon-content">
       <div className={searchBoxClasses}>
-
-      { isDictionary ?
-         <DictionarySearch
-              lexiconName={lexiconName}
-              title={title}
-              navigatePanel={navigatePanel}
-              contextSelector=".lexicon-content"/>
-        :
-        <>
-          <SearchButton onClick={handleSearchButtonClick} />
-          <input className={inputClasses}
-            placeholder={Sefaria._("sidebar_search.search_in_this_text")}
-            id="searchQueryInput"
-            maxLength={75}
-            onKeyUp={
-              (event) => {
+        {isDictionary ? (
+          <DictionarySearch
+            lexiconName={lexiconName}
+            title={title}
+            navigatePanel={navigatePanel}
+            contextSelector=".lexicon-content"
+          />
+        ) : (
+          <>
+            <SearchButton onClick={handleSearchButtonClick} />
+            <input
+              className={inputClasses}
+              placeholder={Sefaria._('sidebar_search.search_in_this_text')}
+              id="searchQueryInput"
+              maxLength={75}
+              onKeyUp={(event) => {
                 if (event.keyCode === 13) {
-                  handleSearchButtonClick()
+                  handleSearchButtonClick();
                 }
-              }
-            }
-            title={Sefaria._("sidebar_search.search_in_this_text")} />
-        </>
-        }
-
+              }}
+              title={Sefaria._('sidebar_search.search_in_this_text')}
+            />
+          </>
+        )}
       </div>
-      {query &&
-          <ElasticSearchQuerier
-              query={query}
-              compare={false}
-              searchInBook={true}
-              type={"text"}
-              searchState={searchState}
-              updateTotalResults={n => console.log(n)}
-              registerAvailableFilters={n => console.log(n)}
-              updateAppliedOptionSort={updateAppliedOptionSort}
-              onResultClick={onSidebarSearchClick}
-              />}
+      {query && (
+        <ElasticSearchQuerier
+          query={query}
+          compare={false}
+          searchInBook={true}
+          type={'text'}
+          searchState={searchState}
+          updateTotalResults={(n) => console.log(n)}
+          registerAvailableFilters={(n) => console.log(n)}
+          updateAppliedOptionSort={updateAppliedOptionSort}
+          onResultClick={onSidebarSearchClick}
+        />
+      )}
     </div>
   );
-
-
-
-}
-
-
-
+};
 
 export default SidebarSearch;

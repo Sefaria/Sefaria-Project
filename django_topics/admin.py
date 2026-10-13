@@ -1,8 +1,15 @@
 from django.contrib import admin, messages
-from django_topics.models import Topic, TopicPool, FeaturedTopicEnglish, FeaturedTopicHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
-from django_topics.models.pool import PoolType
 from django.utils.html import format_html
 
+from django_topics.models import (
+    FeaturedTopicEnglish,
+    FeaturedTopicHebrew,
+    SeasonalTopicEnglish,
+    SeasonalTopicHebrew,
+    Topic,
+    TopicPool,
+)
+from django_topics.models.pool import PoolType
 
 
 def create_add_to_pool_action(pool_name):
@@ -38,22 +45,22 @@ def create_remove_from_pool_action(pool_name):
 
 
 class PoolFilter(admin.SimpleListFilter):
-    title = 'Pool Filter'
-    parameter_name = 'pool'
+    title = "Pool Filter"
+    parameter_name = "pool"
 
     def lookups(self, request, model_admin):
         return [
-            (PoolType.LIBRARY.value, 'Library Pool'),
-            (PoolType.SHEETS.value, 'Sheets Pool'),
-            (PoolType.GENERAL_EN.value, 'General Pool EN'),
-            (PoolType.GENERAL_HE.value, 'General Pool HE'),
-            (PoolType.TORAH_TAB.value, 'TorahTab Pool'),
-            ('all', 'All Topics'),
+            (PoolType.LIBRARY.value, "Library Pool"),
+            (PoolType.SHEETS.value, "Sheets Pool"),
+            (PoolType.GENERAL_EN.value, "General Pool EN"),
+            (PoolType.GENERAL_HE.value, "General Pool HE"),
+            (PoolType.TORAH_TAB.value, "TorahTab Pool"),
+            ("all", "All Topics"),
         ]
 
     def queryset(self, request, queryset):
         pool_name = self.value()
-        if pool_name == 'all':
+        if pool_name == "all":
             return queryset
         try:
             pool = TopicPool.objects.get(name=pool_name)
@@ -70,15 +77,17 @@ class PoolFilter(admin.SimpleListFilter):
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
-    search_help_text = "Searching within the active pool filter. Select 'All Topics' in the filter panel to search all topics."
-    list_display = ['slug', 'en_title', 'he_title', 'sefaria_link']
+    search_help_text = (
+        "Searching within the active pool filter. Select 'All Topics' in the filter panel to search all topics."
+    )
+    list_display = ["slug", "en_title", "he_title", "sefaria_link"]
     for pool_type in PoolType:
-        list_display.append(f'is_in_pool_{pool_type.value}')
+        list_display.append(f"is_in_pool_{pool_type.value}")
     list_filter = (PoolFilter,)
-    filter_horizontal = ('pools',)
-    search_fields = ('slug', 'en_title', 'he_title')
-    ordering = ['slug']
-    readonly_fields = ('slug', 'en_title', 'he_title')
+    filter_horizontal = ("pools",)
+    search_fields = ("slug", "en_title", "he_title")
+    ordering = ["slug"]
+    readonly_fields = ("slug", "en_title", "he_title")
     actions = [
         create_add_to_pool_action(PoolType.LIBRARY.value),
         create_add_to_pool_action(PoolType.SHEETS.value),
@@ -91,6 +100,7 @@ class TopicAdmin(admin.ModelAdmin):
         create_remove_from_pool_action(PoolType.GENERAL_HE.value),
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
+
     def get_queryset(self, request):
         # The PoolFilter adds an INNER JOIN on the M2M through table which can
         # produce duplicate rows if the through table has duplicate entries.
@@ -101,7 +111,6 @@ class TopicAdmin(admin.ModelAdmin):
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         Topic.objects.build_slug_to_pools_cache(rebuild=True)
-
 
     def has_add_permission(self, request):
         return False
@@ -145,7 +154,7 @@ class TopicAdmin(admin.ModelAdmin):
         return obj.pools.filter(name=PoolType.TORAH_TAB.value).exists()
 
     @admin.display(
-        description="Sefaria Link"
+        description="Sefaria Link",
     )
     def sefaria_link(self, obj):
         url = f"https://www.sefaria.org/topics/{obj.slug}"
@@ -154,16 +163,19 @@ class TopicAdmin(admin.ModelAdmin):
 
 class FeaturedTopicAdmin(admin.ModelAdmin):
     exclude = ("lang",)  # not for manual editing
-    list_display = ('start_date', 'topic')
-    list_filter = ('start_date',)
-    raw_id_fields = ('topic',)
-    search_fields = ('topic__slug', 'topic__en_title', 'topic__he_title')
-    date_hierarchy = 'start_date'
-    ordering = ['-start_date']
+    list_display = ("start_date", "topic")
+    list_filter = ("start_date",)
+    raw_id_fields = ("topic",)
+    search_fields = ("topic__slug", "topic__en_title", "topic__he_title")
+    date_hierarchy = "start_date"
+    ordering = ["-start_date"]
     fieldsets = (
-        (None, {
-            'fields': ('topic', 'start_date'),
-        }),
+        (
+            None,
+            {
+                "fields": ("topic", "start_date"),
+            },
+        ),
     )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -175,7 +187,6 @@ class FeaturedTopicAdmin(admin.ModelAdmin):
 
 @admin.register(FeaturedTopicEnglish)
 class FeaturedTopicAdminEnglish(FeaturedTopicAdmin):
-
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(lang="en")
@@ -183,7 +194,6 @@ class FeaturedTopicAdminEnglish(FeaturedTopicAdmin):
 
 @admin.register(FeaturedTopicHebrew)
 class FeaturedTopicAdminHebrew(FeaturedTopicAdmin):
-
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(lang="he")
@@ -192,59 +202,70 @@ class FeaturedTopicAdminHebrew(FeaturedTopicAdmin):
 class SeasonalTopicAdmin(admin.ModelAdmin):
     exclude = ("lang",)  # not for manual editing
     list_display = (
-        'start_date',
-        'topic',
-        'display_date_prefix',
-        'display_date_suffix',
-        'secondary_topic',
-        'display_start_date_israel',
-        'display_end_date_israel',
-        'display_start_date_diaspora',
-        'display_end_date_diaspora'
+        "start_date",
+        "topic",
+        "display_date_prefix",
+        "display_date_suffix",
+        "secondary_topic",
+        "display_start_date_israel",
+        "display_end_date_israel",
+        "display_start_date_diaspora",
+        "display_end_date_diaspora",
     )
     list_filter = (
-        'start_date',
-        'display_start_date_israel',
-        'display_start_date_diaspora'
+        "start_date",
+        "display_start_date_israel",
+        "display_start_date_diaspora",
     )
-    ordering = ['-start_date']
-    search_fields = ('topic__slug', 'topic__en_title', 'topic__he_title', 'secondary_topic__slug')
-    raw_id_fields = ('topic', 'secondary_topic')
-    date_hierarchy = 'start_date'
+    ordering = ["-start_date"]
+    search_fields = ("topic__slug", "topic__en_title", "topic__he_title", "secondary_topic__slug")
+    raw_id_fields = ("topic", "secondary_topic")
+    date_hierarchy = "start_date"
     fieldsets = (
-        (None, {
-            'fields': (
-                'topic',
-                'secondary_topic',
-                'start_date'
-            )
-        }),
-        ('Display Date Prefix/Suffix', {
-            'fields': (
-                'display_date_prefix',
-                'display_date_suffix',
-            ),
-            'description': 'Prefix/Suffix that will be displayed around the secondary topic.',
-        }),
-        ('Israel Display Dates', {
-            'fields': (
-                'display_start_date_israel',
-                'display_end_date_israel'
-            ),
-            'description': 'Dates to be displayed to the user of when this topic is "happening". '
-                           'E.g. for a holiday, when the holiday occurs. '
-                           'When the dates are the same for both Israel and Diaspora, only fill out Israeli dates. '
-                           'Similarly, when the start and end dates are the same, only fill out start date.'
-        }),
-        ('Diaspora Display Dates', {
-            'fields': (
-                'display_start_date_diaspora',
-                'display_end_date_diaspora'
-            ),
-            'description': 'When the dates are the same for both Israel and Diaspora, only fill out Israeli dates. '
-                           'Similarly, when the start and end dates are the same, only fill out start date.'
-
-        }),
+        (
+            None,
+            {
+                "fields": (
+                    "topic",
+                    "secondary_topic",
+                    "start_date",
+                ),
+            },
+        ),
+        (
+            "Display Date Prefix/Suffix",
+            {
+                "fields": (
+                    "display_date_prefix",
+                    "display_date_suffix",
+                ),
+                "description": "Prefix/Suffix that will be displayed around the secondary topic.",
+            },
+        ),
+        (
+            "Israel Display Dates",
+            {
+                "fields": (
+                    "display_start_date_israel",
+                    "display_end_date_israel",
+                ),
+                "description": 'Dates to be displayed to the user of when this topic is "happening". '
+                "E.g. for a holiday, when the holiday occurs. "
+                "When the dates are the same for both Israel and Diaspora, only fill out Israeli dates. "
+                "Similarly, when the start and end dates are the same, only fill out start date.",
+            },
+        ),
+        (
+            "Diaspora Display Dates",
+            {
+                "fields": (
+                    "display_start_date_diaspora",
+                    "display_end_date_diaspora",
+                ),
+                "description": "When the dates are the same for both Israel and Diaspora, only fill out Israeli dates. "
+                "Similarly, when the start and end dates are the same, only fill out start date.",
+            },
+        ),
     )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -265,7 +286,6 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
 
 @admin.register(SeasonalTopicEnglish)
 class SeasonalTopicAdminEnglish(SeasonalTopicAdmin):
-
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(lang="en")

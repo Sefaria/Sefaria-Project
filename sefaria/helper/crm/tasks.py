@@ -11,9 +11,7 @@ from sefaria.settings import CELERY_ENABLED
 
 logger = structlog.get_logger(__name__)
 
-CHATBOT_OPT_IN_WEBHOOK_URL = (
-    "https://sefariainc.my.salesforce-sites.com/services/apexrest/Streams/webhookflow"
-)
+CHATBOT_OPT_IN_WEBHOOK_URL = "https://sefariainc.my.salesforce-sites.com/services/apexrest/Streams/webhookflow"
 
 
 @app.task(
@@ -51,7 +49,7 @@ def send_chatbot_opt_in_webhook(self: Any, email: str, opt_in: bool, interface_l
         if not resp_json.get("success"):
             error_msg = resp_json.get("error", "Unknown error")
             raise RuntimeError(
-                f"Webhook returned success=false: {error_msg}"
+                f"Webhook returned success=false: {error_msg}",
             )
 
     except Exception as exc:

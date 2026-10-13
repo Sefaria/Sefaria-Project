@@ -4,20 +4,23 @@ This module is no longer used in production. The CrmFactory routes
 NATIONBUILDER CRM_TYPE to DummyConnectionManager instead.
 For new CRM integrations, use SalesforceConnectionManager.
 """
+
 import warnings
+
 warnings.warn(
     "NationbuilderConnectionManager is deprecated and will be removed in a future release. "
     "Use SalesforceConnectionManager or DummyConnectionManager instead.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
-from urllib.parse import unquote
-from rauth import OAuth2Service
-import time
 import json
+import time
+from urllib.parse import unquote
 
 from django.conf import settings as sls
+from rauth import OAuth2Service
+
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 
 base_url = "https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com"
@@ -36,7 +39,7 @@ class NationbuilderConnectionManager(CrmConnectionManager):
             name="NationBuilder",
             authorize_url=authorize_url,
             access_token_url=access_token_url,
-            base_url=base_url
+            base_url=base_url,
         )
         token = sls.NATIONBUILDER_TOKEN
         session = service.get_session(token)
@@ -62,7 +65,7 @@ class NationbuilderConnectionManager(CrmConnectionManager):
             "person": {
                 "email": email,
                 "tags": tags,
-            }
+            },
         }
         if first_name:
             post["person"]["first_name"] = first_name
@@ -70,17 +73,20 @@ class NationbuilderConnectionManager(CrmConnectionManager):
             post["person"]["last_name"] = last_name
 
         try:
-            r = self.session.put("https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com/api/v1/people/push",
-                                 data=json.dumps(post),
-                                 params={'format': 'json'},
-                                 headers={'content-type': 'application/json'})
+            r = self.session.put(
+                "https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com/api/v1/people/push",
+                data=json.dumps(post),
+                params={"format": "json"},
+                headers={"content-type": "application/json"},
+            )
         except Exception:
             return False
 
         try:  # add nationbuilder id to user profile
             nationbuilder_user = r.json()
-            nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else \
-                nationbuilder_user["id"]
+            nationbuilder_id = (
+                nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
+            )
             return nationbuilder_id
         except Exception:
             return False
@@ -91,31 +97,34 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, educator, lang, mailing_lists)
         return self.add_user_to_crm(email, first_name, last_name, lang, educator, signup=False)
 
-    def nationbuilder_get_all(self, endpoint_func, args=[]):
+    def nationbuilder_get_all(self, endpoint_func, args=None):
+        if args is None:
+            args = []
         next_endpoint = endpoint_func(*args)
         while next_endpoint:
             # print(next_endpoint)
-            for attempt in range(0, 3):
+            for attempt in range(3):
                 try:
                     res = self.session.get(base_url + next_endpoint)
                     res_data = res.json()
-                    for item in res_data['results']:
+                    for item in res_data["results"]:
                         yield item
-                    next_endpoint = unquote(res_data['next']) if res_data['next'] else None
-                    if 'nation-ratelimit-remaining' in res.headers and res.headers['nation-ratelimit-remaining'] == '0':
+                    next_endpoint = unquote(res_data["next"]) if res_data["next"] else None
+                    if "nation-ratelimit-remaining" in res.headers and res.headers["nation-ratelimit-remaining"] == "0":
                         time.sleep(10)
-                        print('sleeping')
+                        print("sleeping")
                     break
                 except Exception as e:
                     time.sleep(5)
-                    print("Trying again to access and process {}. Attempts: {}. Exception: {}".format(next_endpoint,
-                                                                                                      attempt + 1, e))
+                    print(
+                        f"Trying again to access and process {next_endpoint}. Attempts: {attempt + 1}. Exception: {e}",
+                    )
                     print(next_endpoint)
 
     def get_sustainers(self):
-        for nationbuilder_sustainer in self.nationbuilder_get_all(self.get_by_tag, ['sustainer_current_engineering']):
+        for nationbuilder_sustainer in self.nationbuilder_get_all(self.get_by_tag, ["sustainer_current_engineering"]):
             yield {
-                "email": nationbuilder_sustainer["email"]
+                "email": nationbuilder_sustainer["email"],
             }
 
     def mark_as_spam_in_crm(self, nationbuilder_id):
@@ -125,10 +134,19 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         r = self.session.get(self.update_person(nationbuilder_id))
         try:
             # If user is only signed up for junk tags, delete from CRM
-            tags = [x for x in r.json()["person"]["tags"] if
-                    x.lower() not in ["announcements_general_hebrew", "announcements_general",
-                                      "announcements_edu_hebrew",
-                                      "announcements_edu", "signed_up_on_sefaria", "spam"]]
+            tags = [
+                x
+                for x in r.json()["person"]["tags"]
+                if x.lower()
+                not in [
+                    "announcements_general_hebrew",
+                    "announcements_general",
+                    "announcements_edu_hebrew",
+                    "announcements_edu",
+                    "signed_up_on_sefaria",
+                    "spam",
+                ]
+            ]
             if len(tags) == 0:
                 self.session.delete(self.update_person(nationbuilder_id))
             return True
@@ -142,7 +160,6 @@ class NationbuilderConnectionManager(CrmConnectionManager):
     def find_crm_id(self, email=None):
         # This will not be implemented for NB because it will never be used
         CrmConnectionManager.find_crm_id(self, email=email)
-        pass
 
     def __del__(self):
         self.session.close()

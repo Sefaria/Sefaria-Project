@@ -9,6 +9,7 @@ response still looks like a normal page the caller appends them as new results.
 `entity_search` is patched out: this is about the argument arithmetic in the view, so no
 Elasticsearch (and no index) is involved.
 """
+
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -26,8 +27,7 @@ class EntitySearchApiPagingTest(TestCase):
         """GET the endpoint and return the (start, size) it asked entity_search for."""
         params.setdefault("q", "rashi")
         params.setdefault("type", "book")
-        with patch("sefaria.helper.search.entity_search",
-                   return_value={"hits": [], "total": 0}) as mock_search:
+        with patch("sefaria.helper.search.entity_search", return_value={"hits": [], "total": 0}) as mock_search:
             response = self.client.get(self.url, params)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(mock_search.called, "view returned before querying")

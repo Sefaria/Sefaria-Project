@@ -5,9 +5,9 @@ import { InterfaceText } from './Misc';
 
 const CTA_HREFS = {
   sources: '/texts',
-  books:   '/texts',
+  books: '/texts',
   authors: '/people',
-  topics:  '/topics',
+  topics: '/topics',
 };
 
 function renderCaption() {
@@ -17,9 +17,13 @@ function renderCaption() {
   return (
     <p className="noSearchResults-caption">
       {before}
-      <a href={Sefaria._('search.null.caption.bug.link')} className="noSearchResults-captionLink">{reportBugText}</a>
+      <a href={Sefaria._('search.null.caption.bug.link')} className="noSearchResults-captionLink">
+        {reportBugText}
+      </a>
       {middle}
-      <a href={Sefaria._('search.null.caption.contact_us.href')} className="noSearchResults-captionLink">{contactUsText}</a>
+      <a href={Sefaria._('search.null.caption.contact_us.href')} className="noSearchResults-captionLink">
+        {contactUsText}
+      </a>
       {after}
     </p>
   );
@@ -33,7 +37,7 @@ function NoSearchResults({ mode, query }) {
     <div className="noSearchResults">
       <img
         src={`/static/img/no-results-search-illustrations/NoResults${
-          {sources: 'Source', books: 'Books', authors: 'Authors', topics: 'Topics'}[mode]
+          { sources: 'Source', books: 'Books', authors: 'Authors', topics: 'Topics' }[mode]
         }.svg`}
         alt=""
         className="noSearchResults-image"
@@ -56,7 +60,7 @@ function NoSearchResults({ mode, query }) {
 }
 
 NoSearchResults.propTypes = {
-  mode:  PropTypes.oneOf(['sources', 'books', 'authors', 'topics']).isRequired,
+  mode: PropTypes.oneOf(['sources', 'books', 'authors', 'topics']).isRequired,
   query: PropTypes.string,
 };
 

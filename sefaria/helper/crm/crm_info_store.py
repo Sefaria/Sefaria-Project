@@ -1,41 +1,37 @@
-from sefaria.model.user_profile import UserProfile
 from django.conf import settings as sls
+
 from sefaria.system.database import db
 
-import structlog
 
-class CrmInfoStore(object):
-
+class CrmInfoStore:
     @staticmethod
     def save_crm_id(crm_id, email, crm_type, profile=None):
         """
         Saves CRM id to the database with the correct field
         """
+        from sefaria.model.user_profile import UserProfile
+
         if crm_type == "NATIONBUILDER":
-            if profile:
-                user_profile = profile
-            else:
-                user_profile = UserProfile(email=email, user_registration=True)
+            user_profile = profile or UserProfile(email=email, user_registration=True)
             if user_profile.id is not None and user_profile.nationbuilder_id != crm_id:
                 user_profile.nationbuilder_id = crm_id
                 user_profile.save()
                 return True
             return False
-        elif crm_type == "SALESFORCE":
-            if profile:
-                user_profile = profile
-            else:
-                user_profile = UserProfile(email=email, user_registration=True)
+        if crm_type == "SALESFORCE":
+            user_profile = profile or UserProfile(email=email, user_registration=True)
             if user_profile.id is not None and user_profile.sf_app_user_id != crm_id:
                 user_profile.sf_app_user_id = crm_id
                 user_profile.save()
                 return True
             return False
-        elif crm_type == "NONE" or not crm_type:
+        if crm_type == "NONE" or not crm_type:
             return True
 
     @staticmethod
     def get_crm_id(uid=None, email=None, profile=None, crm_type=sls.CRM_TYPE):
+        from sefaria.model.user_profile import UserProfile
+
         if profile:
             user_profile = profile
         elif email:
@@ -47,9 +43,9 @@ class CrmInfoStore(object):
 
         if crm_type == "NATIONBUILDER":
             return user_profile.nationbuilder_id
-        elif crm_type == "SALESFORCE":
+        if crm_type == "SALESFORCE":
             return user_profile.sf_app_user_id
-        elif crm_type == "NONE":
+        if crm_type == "NONE":
             return True
 
     @staticmethod
@@ -58,8 +54,10 @@ class CrmInfoStore(object):
 
     @staticmethod
     def find_sustainer_profile(sustainer):
-        if sustainer['email']:
-            return UserProfile(email=sustainer['email'])
+        from sefaria.model.user_profile import UserProfile
+
+        if sustainer["email"]:
+            return UserProfile(email=sustainer["email"])
 
     @staticmethod
     def mark_sustainer(profile, is_sustainer=True):

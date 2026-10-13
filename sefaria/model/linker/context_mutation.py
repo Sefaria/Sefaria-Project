@@ -1,18 +1,17 @@
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
+from collections.abc import Callable, Iterable, Sequence
+from enum import Enum, StrEnum
 from itertools import product
-from typing import List, Sequence, Dict, Optional, Tuple, Iterable, Callable, Set
-from enum import Enum
+
+import structlog
 
 from sefaria.model import schema
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, TermContext
-import structlog
 
 logger = structlog.get_logger(__name__)
 
 
-
-
-class ContextMutationOp(str, Enum):
+class ContextMutationOp(StrEnum):
     ADD = "add"
     SWAP = "swap"
 
@@ -32,7 +31,7 @@ class ContextMutation:
     def applies_to(self, matched_terms: Sequence[str]) -> bool:
         return tuple(matched_terms) == self.input_terms
 
-    def apply(self, raw_parts: List[RawRefPart], output_contexts: Sequence[TermContext]) -> List[RawRefPart]:
+    def apply(self, raw_parts: list[RawRefPart], output_contexts: Sequence[TermContext]) -> list[RawRefPart]:
         """Given the already-matched raw parts and the TermContexts to insert, return the mutated part list."""
         if len(output_contexts) != len(self.output_terms):
             raise ValueError("Mismatch between declared output_terms and provided TermContexts")
@@ -52,21 +51,25 @@ class ContextMutationSet:
     """
 
     def __init__(self) -> None:
-        self._mutations: Dict[Tuple[str, ...], List[ContextMutation]] = {}
+        self._mutations: dict[tuple[str, ...], list[ContextMutation]] = {}
 
     def add_mutations(self, mutations: Iterable[ContextMutation]) -> None:
         for mutation in mutations:
             key = mutation.input_terms
             self._mutations.setdefault(key, []).append(mutation)
 
-    def get(self, input_terms: Sequence[str]) -> Optional[ContextMutation]:
+    def get(self, input_terms: Sequence[str]) -> ContextMutation | None:
         key = tuple(input_terms)
         if key not in self._mutations:
             return None
         return self._mutations[key][-1]
 
-    def apply(self, matched_terms: Sequence[str], raw_parts: List[RawRefPart],
-              term_factory: Callable[[str], TermContext]) -> List[RawRefPart]:
+    def apply(
+        self,
+        matched_terms: Sequence[str],
+        raw_parts: list[RawRefPart],
+        term_factory: Callable[[str], TermContext],
+    ) -> list[RawRefPart]:
         """
         Convenience wrapper that looks up the matching ContextMutation for `matched_terms`
         and applies it to the provided raw parts using the given term factory.
@@ -80,13 +83,13 @@ class ContextMutationSet:
     def __len__(self) -> int:
         return len(self._mutations)
 
-    def debug_view(self) -> Dict[Tuple[str, ...], List[ContextMutation]]:
+    def debug_view(self) -> dict[tuple[str, ...], list[ContextMutation]]:
         """
         Return a shallow copy of the raw mutation mapping for debugging.
         """
         return {key: list(value) for key, value in self._mutations.items()}
 
-    def effective_mutations(self) -> Iterable[Tuple[Tuple[str, ...], ContextMutation]]:
+    def effective_mutations(self) -> Iterable[tuple[tuple[str, ...], ContextMutation]]:
         # Yield (input_terms, mutation) in insertion order, taking the last entry
         # per key so descendant mutations override ancestors.
         for key, stack in self._mutations.items():
@@ -124,18 +127,18 @@ class ContextMutationSet:
             raw_ref.parts_to_match = raw_parts
             return
 
-        slug_candidates: List[List[str]] = []
+        slug_candidates: list[list[str]] = []
         for part in raw_parts:
             term_matches = term_matcher.match_term(part)
             candidates = [match.slug for match in term_matches]
             slug_candidates.append(candidates if candidates else ["__EMPTY__"])
 
-        swap_inserts: Dict[int, List[RawRefPart]] = {}
-        swap_removed_indices: Set[int] = set()
-        additions_by_index: Dict[int, List[TermContext]] = defaultdict(list)
-        existing_context_slugs: Set[str] = set()
+        swap_inserts: dict[int, list[RawRefPart]] = {}
+        swap_removed_indices: set[int] = set()
+        additions_by_index: dict[int, list[TermContext]] = defaultdict(list)
+        existing_context_slugs: set[str] = set()
 
-        def _find_matching_indices(input_terms: Tuple[str, ...], disallowed: Set[int]) -> Optional[List[int]]:
+        def _find_matching_indices(input_terms: tuple[str, ...], disallowed: set[int]) -> list[int] | None:
             if len(input_terms) == 0:
                 return []
             needed = Counter(input_terms)
@@ -175,7 +178,7 @@ class ContextMutationSet:
                         additions_by_index[anchor_index].append(new_part)
                         existing_context_slugs.add(new_part.term.slug)
 
-        parts_to_match: List[RawRefPart] = []
+        parts_to_match: list[RawRefPart] = []
         for index, part in enumerate(raw_parts):
             if index in swap_inserts:
                 parts_to_match.extend(swap_inserts[index])
@@ -193,13 +196,16 @@ class ContextMutationSet:
         raw_ref.parts_to_match = parts_to_match
 
 
-def _find_ordered_subset_indices(sequence: Sequence[str], targets: Sequence[str],
-                                 disallowed_indices: Set[int]) -> Optional[List[int]]:
+def _find_ordered_subset_indices(
+    sequence: Sequence[str],
+    targets: Sequence[str],
+    disallowed_indices: set[int],
+) -> list[int] | None:
     """
     Given `sequence` and target slugs, return the earliest set of indices in sequence
     for each term in `targets` such that occurrences are ordered and not in `disallowed_indices`.
     """
-    indices: List[int] = []
+    indices: list[int] = []
     last_index = -1
     for target in targets:
         try:

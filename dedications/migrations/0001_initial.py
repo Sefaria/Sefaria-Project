@@ -5,29 +5,46 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Dedication',
+            name="Dedication",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('slug', models.SlugField(help_text="URL identifier. The page is served at /dedication/<slug> (e.g. 'hirsch' -> /dedication/hirsch).", max_length=100, unique=True, validators=[django.core.validators.RegexValidator('^[\\w-]+$', 'Slug may only contain letters, numbers, underscores, and hyphens.')])),
-                ('en_title', models.CharField(help_text='Page title (English).', max_length=255)),
-                ('he_title', models.CharField(help_text='Page title (Hebrew).', max_length=255)),
-                ('en_content', models.TextField(blank=True, help_text='Page body as HTML (English). Rendered as-is on the page.')),
-                ('he_content', models.TextField(blank=True, help_text='Page body as HTML (Hebrew). Rendered as-is on the page.')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "slug",
+                    models.SlugField(
+                        help_text="URL identifier. The page is served at /dedication/<slug> (e.g. 'hirsch' -> /dedication/hirsch).",
+                        max_length=100,
+                        unique=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                "^[\\w-]+$",
+                                "Slug may only contain letters, numbers, underscores, and hyphens.",
+                            ),
+                        ],
+                    ),
+                ),
+                ("en_title", models.CharField(help_text="Page title (English).", max_length=255)),
+                ("he_title", models.CharField(help_text="Page title (Hebrew).", max_length=255)),
+                (
+                    "en_content",
+                    models.TextField(blank=True, help_text="Page body as HTML (English). Rendered as-is on the page."),
+                ),
+                (
+                    "he_content",
+                    models.TextField(blank=True, help_text="Page body as HTML (Hebrew). Rendered as-is on the page."),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Dedication Page',
-                'verbose_name_plural': 'Dedication Pages',
-                'ordering': ['slug'],
+                "verbose_name": "Dedication Page",
+                "verbose_name_plural": "Dedication Pages",
+                "ordering": ["slug"],
             },
         ),
     ]

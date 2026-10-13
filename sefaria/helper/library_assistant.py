@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The Library Assistant's on/off switch, in one place.
 
@@ -74,6 +73,7 @@ def _legacy_enabled(profile):
     # Imported here, not at the top: the import serves only this TEMPORARY
     # fallback and disappears with it.
     from reader.models import user_has_experiments
+
     user = getattr(profile, "user", None)
     if user is None:
         return False

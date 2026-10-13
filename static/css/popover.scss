@@ -1,17 +1,18 @@
 // Floating UI popover styles for Module Switcher
 
-@import "breakpoints";
+@import 'breakpoints';
 
 // Popover theme variables
 $popover-bg: var(--theme-primary);
 $popover-text: white;
 $popover-radius: 8px;
-$popover-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+$popover-shadow: 0px 1px 3px rgb(0 0 0 / 25%);
 $popover-arrow-offset: -4px;
 
 // Mixin for consistent desktop (14px) / mobile (16px) font sizing
 @mixin responsive-font {
   font-size: 14px;
+
   @include breakpoint(mobile) {
     font-size: 16px;
   }
@@ -46,8 +47,9 @@ $button-height-desktop: 30px;
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
+
     @include responsive-font;
-  
+
     a {
       text-decoration: underline;
       color: inherit;
@@ -58,6 +60,7 @@ $button-height-desktop: 30px;
 .popover-header {
   font-weight: 600;
   margin-bottom: 8px;
+
   @include responsive-font;
 }
 
@@ -68,19 +71,22 @@ $button-height-desktop: 30px;
   margin-top: 16px;
   margin-bottom: 0;
   width: 100%;
+
   @include responsive-font;
 
   // Desktop - both buttons have 30px height
   > a,
   > button {
     @include flex-center-row;
+
     height: $button-height-desktop;
   }
 
   // Learn More link styling - override Button component styles
   > a.learn-more {
-    padding: 6px 0px;
+    padding: 6px 0;
     text-decoration: underline;
+
     @include responsive-font;
   }
 }
@@ -91,6 +97,7 @@ $button-height-desktop: 30px;
 
 .popover-button {
   @include flex-center-row;
+
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
@@ -98,6 +105,7 @@ $button-height-desktop: 30px;
   color: var(--theme-primary);
   border: none;
   height: $button-height-desktop;
+
   @include responsive-font;
 
   &:is(:hover, :active, :focus) {
@@ -141,6 +149,7 @@ $button-height-desktop: 30px;
 @include breakpoint(mobile) {
   .floating-ui-popover {
     width: 264px;
+
     // max-width: 264px;
   }
 
@@ -152,7 +161,7 @@ $button-height-desktop: 30px;
 
     // Ensure position: relative applies with high specificity
     // (the ::before is defined in .accessible-touch-target class below)
-    > a.learn-more.accessible-touch-target, 
+    > a.learn-more.accessible-touch-target,
     > button.popover-button.accessible-touch-target {
       position: relative;
     }
@@ -178,4 +187,3 @@ $button-height-desktop: 30px;
     }
   }
 }
-

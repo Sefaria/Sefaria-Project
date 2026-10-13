@@ -1,35 +1,39 @@
-import dataclasses
+from __future__ import annotations
+
 import copy
+import dataclasses
 import re
-from collections import defaultdict
-from typing import Union, Optional
-from threading import Lock
-from sefaria.model import abstract as abst
-from sefaria.model import text
-from sefaria.model import schema
-from sefaria.model.passage import PassageSet, Passage
-from sefaria.system.exceptions import InputError
 from bisect import bisect_right
+from collections import defaultdict
+from threading import Lock
+from typing import TYPE_CHECKING
+
 import structlog
 
+from sefaria.model import abstract as abst
+from sefaria.model import schema, text
+from sefaria.model.passage import Passage, PassageSet
+from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import hebrew_term
+
+if TYPE_CHECKING:
+    from sefaria.model.linker.ref_part import SectionContext
 
 logger = structlog.get_logger(__name__)
 
 
 def subref(ref: text.Ref, section: int):
-    if ref.index_node.addressTypes[len(ref.sections)-1] == "Talmud":
+    if ref.index_node.addressTypes[len(ref.sections) - 1] == "Talmud":
         return _talmud_subref(ref, section)
-    elif ref.index.categories == ['Tanakh', 'Torah']:
+    if ref.index.categories == ["Tanakh", "Torah"]:
         return _parsha_subref(ref, section)
-    else:
-        return ref.subref(section)
+    return ref.subref(section)
 
 
 def _talmud_subref(ref: text.Ref, section: int):
     d = ref._core_dict()
-    d['sections'][-1] += (section-1)
-    d['toSections'] = d['sections'][:]
+    d["sections"][-1] += section - 1
+    d["toSections"] = d["sections"][:]
     return text.Ref(_obj=d)
 
 
@@ -39,16 +43,14 @@ def _parsha_subref(ref: text.Ref, section: int):
         book_subref = text.Ref(ref.index.title).subref(section)
         if ref.contains(book_subref):
             return book_subref
-        else:
-            # section doesn't fall within parsha
-            # Note, only validates that perek is in parsha range, doesn't check segment level.
-            # Edge case is Parshat Noach 6:3
-            raise InputError
-    else:
-        return ref.subref(section)
+        # section doesn't fall within parsha
+        # Note, only validates that perek is in parsha range, doesn't check segment level.
+        # Edge case is Parshat Noach 6:3
+        raise InputError
+    return ref.subref(section)
 
 
-JA_NODE_LIST_ATTRS = ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections')
+JA_NODE_LIST_ATTRS = ("addressTypes", "sectionNames", "lengths", "referenceableSections")
 
 
 def truncate_serialized_node_to_depth(serial_node: dict, depth: int) -> dict:
@@ -66,9 +68,9 @@ def insert_amud_node_values(serial_node: dict) -> (dict, int):
     @param serial_node: serialized JA node
     @return: `serial_node` with values for Amud section + the next referenceable depth corresponding to this modified node
     """
-    serial_node['depth'] += 1
+    serial_node["depth"] += 1
     next_referenceable_depth = 1
-    for key, value in zip(JA_NODE_LIST_ATTRS, ('Amud', 'Amud', 1, True)):
+    for key, value in zip(JA_NODE_LIST_ATTRS, ("Amud", "Amud", 1, True)):
         if key in serial_node:
             serial_node[key].insert(1, value)
     return serial_node, next_referenceable_depth
@@ -83,7 +85,7 @@ class ReferenceableBookNode:
     - The leave node of a JaggedArrayNode with `isSegmentLevelDiburHamatchil == True` is a DiburHamatchilNodeSet
     """
 
-    def get_children(self, *args, **kwargs) -> list['ReferenceableBookNode']:
+    def get_children(self, *args, **kwargs) -> list[ReferenceableBookNode]:
         return []
 
     def is_default(self) -> bool:
@@ -93,7 +95,7 @@ class ReferenceableBookNode:
     def referenceable(self) -> bool:
         return True
 
-    def is_ancestor_of(self, other: 'ReferenceableBookNode') -> bool:
+    def is_ancestor_of(self, other: ReferenceableBookNode) -> bool:
         other_node = other._get_titled_tree_node()
         self_node = self._get_titled_tree_node()
         return self_node.is_ancestor_of(other_node)
@@ -119,7 +121,7 @@ class IndexNodeReferenceableBookNode(ReferenceableBookNode):
 
     @property
     def referenceable(self):
-        return getattr(self._titled_tree_node, 'referenceable', not self.is_default())
+        return getattr(self._titled_tree_node, "referenceable", not self.is_default())
 
     def _get_titled_tree_node(self) -> schema.TitledTreeNode:
         return self._titled_tree_node
@@ -148,8 +150,7 @@ class IndexNodeReferenceableBookNode(ReferenceableBookNode):
 
 
 class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
-
-    def __init__(self, titled_tree_node_or_index: Union[schema.TitledTreeNode, text.Index]):
+    def __init__(self, titled_tree_node_or_index: schema.TitledTreeNode | text.Index):
         self._titled_tree_node_or_index = titled_tree_node_or_index
         titled_tree_node = titled_tree_node_or_index
         if isinstance(titled_tree_node_or_index, text.Index):
@@ -165,9 +166,7 @@ class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
             return False
         if getattr(node, "refs", None):
             return True
-        if getattr(node, "wholeRef", None) and getattr(node, "includeSections", None):
-            return True
-        return False
+        return bool(getattr(node, "wholeRef", None) and getattr(node, "includeSections", None))
 
     def _get_all_children(self) -> list[ReferenceableBookNode]:
         thingy = self._titled_tree_node_or_index
@@ -184,10 +183,9 @@ class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
         elif isinstance(thingy, schema.ArrayMapNode):
             if self._is_array_map_referenceable(thingy):
                 return [MapReferenceableBookNode(thingy)]
-            else:
-                index = thingy.ref().index
-                yo = NamedReferenceableBookNode(index)
-                return yo.get_children()
+            index = thingy.ref().index
+            yo = NamedReferenceableBookNode(index)
+            return yo.get_children()
         else:
             # Any other type of TitledTreeNode
             children = self._titled_tree_node.children
@@ -204,18 +202,18 @@ class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
         return NamedReferenceableBookNode(schema_node)
 
     def get_children(self, *args, **kwargs) -> list[ReferenceableBookNode]:
-        '''
+        """
         Node can have the attribute 'referenceable' sets to True (which is the default when the attribute ismissing), False or 'optional'.
         When node has referenceable False, it will return its referenceable descendant instead of itself.
         When has referenceable 'optional', it will return the node itself and its referenceable descendant.
         :return: list of the referenceable cihldren of the node
-        '''
+        """
         nodes = []
         for node in self._get_all_children():
-            referenceable = getattr(node, 'referenceable', True)
-            if referenceable: #referenceable or optional
+            referenceable = getattr(node, "referenceable", True)
+            if referenceable:  # referenceable or optional
                 nodes.append(node)
-            if referenceable is not True: #unreferenceable or optional
+            if referenceable is not True:  # unreferenceable or optional
                 nodes += node._get_all_children()
         return nodes
 
@@ -227,39 +225,69 @@ class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
 
 
 class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
-
     def __init__(self, ja_node: schema.NumberedTitledTreeNode):
         super().__init__(ja_node)
         self._ja_node: schema.NumberedTitledTreeNode = ja_node
 
     @property
     def referenceable(self):
-        return getattr(self._ja_node, 'referenceable', True)
+        return getattr(self._ja_node, "referenceable", True)
 
     def leaf_refs(self) -> list[text.Ref]:
         return [self.ref()]
-    
-    def _get_all_possible_sections_for_address_class(self, lang: str, section_str: str, fromSections=None) -> tuple[list[int], list[int], list[schema.AddressType]]:
+
+    def _get_all_possible_sections_for_address_class(
+        self,
+        lang: str,
+        section_str: str,
+        fromSections=None,
+    ) -> tuple[list[int], list[int], list[schema.AddressType]]:
         try:
-            possible_sections, possible_to_sections, addr_classes = self._address_class.get_all_possible_sections_from_string(lang, section_str, fromSections, strip_prefixes=True)
+            possible_sections, possible_to_sections, addr_classes = (
+                self._address_class.get_all_possible_sections_from_string(
+                    lang,
+                    section_str,
+                    fromSections,
+                    strip_prefixes=True,
+                )
+            )
             return possible_sections, possible_to_sections, addr_classes
         except (IndexError, TypeError, KeyError):
             return [], [], []
-        
-    def _get_all_possible_sections_for_address_class_or_section_name(self, lang: str, section_str: str, fromSections=None) -> tuple[list[int], list[int], list[schema.AddressType]]:
-        possible_sections, possible_to_sections, addr_classes = self._get_all_possible_sections_for_address_class(lang, section_str, fromSections)
+
+    def _get_all_possible_sections_for_address_class_or_section_name(
+        self,
+        lang: str,
+        section_str: str,
+        fromSections=None,
+    ) -> tuple[list[int], list[int], list[schema.AddressType]]:
+        possible_sections, possible_to_sections, addr_classes = self._get_all_possible_sections_for_address_class(
+            lang,
+            section_str,
+            fromSections,
+        )
         if len(possible_sections) == 0:
             # try removing section name prefix
             section_name = self._section_name
-            if lang == 'he':
+            if lang == "he":
                 section_name = hebrew_term(section_name)
-            new_section_str = re.sub(fr'^{re.escape(section_name)}\s+', '', section_str, flags=re.IGNORECASE)
+            new_section_str = re.sub(rf"^{re.escape(section_name)}\s+", "", section_str, flags=re.IGNORECASE)
             if new_section_str != section_str:
-                possible_sections, possible_to_sections, addr_classes = self._get_all_possible_sections_for_address_class(lang, new_section_str, fromSections)
+                possible_sections, possible_to_sections, addr_classes = (
+                    self._get_all_possible_sections_for_address_class(lang, new_section_str, fromSections)
+                )
         return possible_sections, possible_to_sections, addr_classes
 
-    def possible_subrefs(self, lang: str, initial_ref: text.Ref, section_str: str, fromSections=None) -> tuple[list[text.Ref], list[bool]]:
-        possible_sections, possible_to_sections, addr_classes = self._get_all_possible_sections_for_address_class_or_section_name(lang, section_str, fromSections)
+    def possible_subrefs(
+        self,
+        lang: str,
+        initial_ref: text.Ref,
+        section_str: str,
+        fromSections=None,
+    ) -> tuple[list[text.Ref], list[bool]]:
+        possible_sections, possible_to_sections, addr_classes = (
+            self._get_all_possible_sections_for_address_class_or_section_name(lang, section_str, fromSections)
+        )
         possible_subrefs = []
         can_match_out_of_order_list = []
         for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
@@ -287,9 +315,12 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
             return 0
         next_refereceable_depth = 1
         # if `referenceableSections` is not define, assume they're all referenceable
-        referenceable_sections = getattr(self._ja_node, 'referenceableSections', [])
+        referenceable_sections = getattr(self._ja_node, "referenceableSections", [])
         if len(referenceable_sections) > 0:
-            while next_refereceable_depth < len(referenceable_sections) and not referenceable_sections[next_refereceable_depth]:
+            while (
+                next_refereceable_depth < len(referenceable_sections)
+                and not referenceable_sections[next_refereceable_depth]
+            ):
                 next_refereceable_depth += 1
         return next_refereceable_depth
 
@@ -298,10 +329,10 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
         next_referenceable_depth = self._get_next_referenceable_depth()
         if isinstance(self._address_class, schema.AddressTalmud):
             serial, next_referenceable_depth = insert_amud_node_values(serial)
-        serial['depth'] -= next_referenceable_depth
-        serial['default'] = False  # any JA node that has been modified should lose 'default' flag
-        serial['parent'] = self._ja_node
-        if serial['depth'] == 0:
+        serial["depth"] -= next_referenceable_depth
+        serial["default"] = False  # any JA node that has been modified should lose 'default' flag
+        serial["parent"] = self._ja_node
+        if serial["depth"] == 0:
             raise ValueError("Can't serialize JaggedArray of depth 0")
         serial = truncate_serialized_node_to_depth(serial, next_referenceable_depth)
         return serial
@@ -314,22 +345,22 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
         children = []
         if self._ja_node.is_segment_level_dibur_hamatchil():
             children += [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
-            if serial['depth'] == 1:
+            if serial["depth"] == 1:
                 return children
         if context_ref is not None:
             passages = PASSAGE_MATCHER.get_passages(context_ref)
             if passages:
                 children += [PassageNodeSet(passages)]
-        new_ja = schema.JaggedArrayNode(serial=serial, index=getattr(self, 'index', None), **kwargs)
+        new_ja = schema.JaggedArrayNode(serial=serial, index=getattr(self, "index", None), **kwargs)
         return children + [NumberedReferenceableBookNode(new_ja)]
 
-    def matches_section_context(self, section_context: 'SectionContext') -> bool:
+    def matches_section_context(self, section_context: SectionContext) -> bool:
         """
         Does the address in `self` match the address in `section_context`?
         """
-        if self._address_class.__class__ != section_context.addr_type.__class__: return False
-        if self._section_name != section_context.section_name: return False
-        return True
+        if self._address_class.__class__ != section_context.addr_type.__class__:
+            return False
+        return self._section_name == section_context.section_name
 
 
 class MapReferenceableBookNode(NumberedReferenceableBookNode):
@@ -348,33 +379,33 @@ class MapReferenceableBookNode(NumberedReferenceableBookNode):
 
     @staticmethod
     def __make_ja(addressTypes: list[str], sectionNames: list[str], **ja_node_attrs):
-        return schema.JaggedArrayNode(serial={
-            "addressTypes": addressTypes,
-            "sectionNames": sectionNames,
-            **ja_node_attrs,
-            "depth": len(addressTypes),
-        })
+        return schema.JaggedArrayNode(
+            serial={
+                "addressTypes": addressTypes,
+                "sectionNames": sectionNames,
+                **ja_node_attrs,
+                "depth": len(addressTypes),
+            },
+        )
 
     @staticmethod
     def __get_ja_attributes_from_array_map(node: schema.ArrayMapNode) -> dict:
-        if getattr(node, 'refs', None):
+        if getattr(node, "refs", None):
             address_types = node.addressTypes
             section_names = node.sectionNames
             return {"addressTypes": address_types, "sectionNames": section_names}
-        elif getattr(node, 'wholeRef', None) and getattr(node, 'includeSections', False):
+        if getattr(node, "wholeRef", None) and getattr(node, "includeSections", False):
             whole_ref = text.Ref(node.wholeRef)
             schema_node = whole_ref.index_node.serialize()
             return truncate_serialized_node_to_depth(schema_node, -2)
-        else:
-            return {}
+        return {}
 
     def __make_section_ref_map(self, node: schema.ArrayMapNode) -> dict[int, text.Ref]:
-        if getattr(node, 'refs', None):
+        if getattr(node, "refs", None):
             section_ref_map = {
-                self.__get_section_with_offset(ichild, node): text.Ref(tref)
-                for ichild, tref in enumerate(node.refs)
+                self.__get_section_with_offset(ichild, node): text.Ref(tref) for ichild, tref in enumerate(node.refs)
             }
-        elif getattr(node, 'wholeRef', None) and getattr(node, 'includeSections', False):
+        elif getattr(node, "wholeRef", None) and getattr(node, "includeSections", False):
             whole_ref = text.Ref(node.wholeRef)
             refs = whole_ref.split_spanning_ref()
             section_ref_map = {}
@@ -400,43 +431,51 @@ class MapReferenceableBookNode(NumberedReferenceableBookNode):
         return section
 
     def ref(self):
-        raise NotImplementedError(f'{self.__class__} does not have a single ref.')
+        raise NotImplementedError(f"{self.__class__} does not have a single ref.")
 
     def leaf_refs(self) -> list[text.Ref]:
         return list(self._section_ref_map.values())
 
-    def possible_subrefs(self, lang: str, initial_ref: text.Ref, section_str: str, fromSections=None) -> tuple[list[text.Ref], list[bool]]:
-        possible_sections, possible_to_sections, addr_classes = self._get_all_possible_sections_for_address_class_or_section_name(lang, section_str, fromSections)
+    def possible_subrefs(
+        self,
+        lang: str,
+        initial_ref: text.Ref,
+        section_str: str,
+        fromSections=None,
+    ) -> tuple[list[text.Ref], list[bool]]:
+        possible_sections, possible_to_sections, addr_classes = (
+            self._get_all_possible_sections_for_address_class_or_section_name(lang, section_str, fromSections)
+        )
         # map sections to equivalent refs in section_ref_map
         mapped_refs = []
         for sec, to_sec in zip(possible_sections, possible_to_sections):
             mapped_ref = self._section_ref_map.get(sec)
             if mapped_ref and sec == to_sec:
                 mapped_refs += [mapped_ref]
-        return mapped_refs, [True]*len(mapped_refs)
+        return mapped_refs, [True] * len(mapped_refs)
 
 
 @dataclasses.dataclass
 class DiburHamatchilMatch:
     score: float
-    dh: Optional[str]
+    dh: str | None
     potential_dh_token_idx: int
-    dh_node: 'DiburHamatchilNode' = None
+    dh_node: DiburHamatchilNode = None
 
     def order_key(self):
         dh_len = len(self.dh) if self.dh else 0
         return self.score, dh_len
 
-    def __gt__(self, other: 'DiburHamatchilMatch'):
+    def __gt__(self, other: DiburHamatchilMatch):
         return self.order_key() > other.order_key()
 
-    def __ge__(self, other: 'DiburHamatchilMatch'):
+    def __ge__(self, other: DiburHamatchilMatch):
         return self.order_key() >= other.order_key()
 
-    def __lt__(self, other: 'DiburHamatchilMatch'):
+    def __lt__(self, other: DiburHamatchilMatch):
         return self.order_key() < other.order_key()
 
-    def __le__(self, other: 'DiburHamatchilMatch'):
+    def __le__(self, other: DiburHamatchilMatch):
         return self.order_key() <= other.order_key()
 
 
@@ -444,6 +483,7 @@ class DiburHamatchilNode(abst.AbstractMongoRecord, ReferenceableBookNode):
     """
     Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
     """
+
     collection = "dibur_hamatchils"
     required_attrs = [
         "dibur_hamatchil",
@@ -453,35 +493,33 @@ class DiburHamatchilNode(abst.AbstractMongoRecord, ReferenceableBookNode):
 
     def fuzzy_match_score(self, lang, raw_ref_part) -> DiburHamatchilMatch:
         from sefaria.utils.hebrew import hebrew_starts_with
+
         for dh, dh_index in raw_ref_part.get_dh_text_to_match(lang):
             if hebrew_starts_with(self.dibur_hamatchil, dh):
                 return DiburHamatchilMatch(1.0, dh, dh_index)
         return DiburHamatchilMatch(0.0, None, dh_index)
-    
-    
+
+
 class PassageNode(ReferenceableBookNode):
-    
     def __init__(self, passage: Passage):
         self._passage = passage
-        
+
     def ref(self) -> text.Ref:
         return self._passage.ref()
-        
+
     def get_match_template_trie(self, *args, **kwargs):
         return self._passage.get_match_template_trie(*args, **kwargs)
-    
-    
+
+
 class PassageNodeSet(ReferenceableBookNode):
-    
     def __init__(self, passages: list[Passage]):
         self._passages = passages
-        
-    def get_children(self, *args, **kwargs) -> list['PassageNode']:
-        return [PassageNode(passage) for passage in self._passages]
-    
-    
-class PassageMatcher:
 
+    def get_children(self, *args, **kwargs) -> list[PassageNode]:
+        return [PassageNode(passage) for passage in self._passages]
+
+
+class PassageMatcher:
     # make class into singleton that is thread-safe
     _instance = None
     _lock = Lock()
@@ -500,7 +538,7 @@ class PassageMatcher:
         for passage in passages:
             for seg_tref in passage.ref_list:
                 self._by_segment[seg_tref].append(passage)
-                
+
     def get_passages(self, ref: text.Ref) -> list[Passage]:
         reg = re.compile(ref.regex())
         matched_keys = [key for key in self._by_segment if re.search(reg, key)]
@@ -523,13 +561,19 @@ class DiburHamatchilNodeSet(abst.AbstractMongoSet, ReferenceableBookNode):
         :param score_leeway: all scores within `score_leeway` of the highest score are returned
         :param threshold: scores below `threshold` aren't returned
         """
-        best_list = [DiburHamatchilMatch(0.0, '', 0)]
+        best_list = [DiburHamatchilMatch(0.0, "", 0)]
         for node in self:
             dh_match = node.fuzzy_match_score(lang, raw_ref_part)
-            if dh_match.dh is None: continue
+            if dh_match.dh is None:
+                continue
             if dh_match >= best_list[-1]:
                 dh_match.dh_node = node
                 best_list += [dh_match]
         best_match = best_list[-1]
-        return [best for best in best_list if best.score > threshold and best.score + score_leeway >= best_match.score
-                and len(best.dh) == len(best_match.dh)]
+        return [
+            best
+            for best in best_list
+            if best.score > threshold
+            and best.score + score_leeway >= best_match.score
+            and len(best.dh) == len(best_match.dh)
+        ]

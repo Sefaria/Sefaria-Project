@@ -7,12 +7,12 @@ All other exceptions get handled by the default Django error handling system.
 
 
 class InputError(Exception):
-    """ Exception thrown when bad input of some sort is found.  This is the parent exception for parsing exceptions. """
-    pass
+    """Exception thrown when bad input of some sort is found.  This is the parent exception for parsing exceptions."""
 
 
 class PartialRefInputError(InputError):
-    """ Special Case Exception to throw when an input error is partially correct"""
+    """Special Case Exception to throw when an input error is partially correct"""
+
     def __init__(self, message, matched_part, valid_continuations):
 
         # Call the base class constructor with the parameters it needs
@@ -24,13 +24,11 @@ class PartialRefInputError(InputError):
 
 
 class BookNameError(InputError):
-    """ Thrown when a book title is searched for and not found.  """
-    pass
+    """Thrown when a book title is searched for and not found."""
 
 
 class DuplicateRecordError(InputError):
-    """ Thrown when trying to save a record that would duplicate existing information """
-    pass
+    """Thrown when trying to save a record that would duplicate existing information"""
 
 
 class IndexSchemaError(InputError):
@@ -43,7 +41,7 @@ class NoVersionFoundError(InputError):
 
 class DictionaryEntryNotFoundError(InputError):
     def __init__(self, message, lexicon_name=None, base_title=None, word=None):
-        super(DictionaryEntryNotFoundError, self).__init__(message)
+        super().__init__(message)
         self.lexicon_name = lexicon_name
         self.base_title = base_title
         self.word = word
@@ -104,11 +102,13 @@ class InvalidHTTPMethodException(Exception):
 class ComplexBookLevelRefError(InputError):
     def __init__(self, book_ref):
         self.book_ref = book_ref
-        self.message = (f"You passed '{book_ref}', please pass a more specific ref for this book, and try again. "
-                        f"'{book_ref}' is a \'complex\' book-level ref. We only support book-level "
-                        f"refs in cases of texts with a 'simple' structure. To learn more about the "
-                        f"structure of a text on Sefaria, "
-                        f"see: https://developers.sefaria.org/docs/the-structure-of-a-simple-text")
+        self.message = (
+            f"You passed '{book_ref}', please pass a more specific ref for this book, and try again. "
+            f"'{book_ref}' is a 'complex' book-level ref. We only support book-level "
+            f"refs in cases of texts with a 'simple' structure. To learn more about the "
+            f"structure of a text on Sefaria, "
+            f"see: https://developers.sefaria.org/docs/the-structure-of-a-simple-text"
+        )
         super().__init__(self.message)
 
 

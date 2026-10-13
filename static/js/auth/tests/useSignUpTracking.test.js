@@ -7,8 +7,14 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { useSignUpTracking } from '../useSignUpTracking.js';
 import {
-  persistActiveFlow, clearActiveFlow, clearPendingAttempt,
-  fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded,
+  persistActiveFlow,
+  clearActiveFlow,
+  clearPendingAttempt,
+  fireFlowStarted,
+  fireMethodChosen,
+  fireProcessStarted,
+  fireProcessEnded,
+  fireFlowEnded,
 } from '../signupAnalytics.js';
 import { makeUuid } from '../utils.js';
 
@@ -36,15 +42,21 @@ function Harness(props) {
 function mount(props) {
   container = document.createElement('div');
   document.body.appendChild(container);
-  act(() => { ReactDOM.render(React.createElement(Harness, props), container); });
+  act(() => {
+    ReactDOM.render(React.createElement(Harness, props), container);
+  });
 }
 
 function rerender(props) {
-  act(() => { ReactDOM.render(React.createElement(Harness, props), container); });
+  act(() => {
+    ReactDOM.render(React.createElement(Harness, props), container);
+  });
 }
 
 function unmount() {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 }
@@ -162,7 +174,9 @@ describe('popstate', () => {
   it('concludes the flow while on the register flow (never suppressed, unlike beforeunload)', () => {
     mount({ flow: 'register', source: 'nav_bar' });
 
-    act(() => { window.dispatchEvent(new Event('popstate')); });
+    act(() => {
+      window.dispatchEvent(new Event('popstate'));
+    });
 
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'no_attempt');
   });
@@ -170,7 +184,9 @@ describe('popstate', () => {
   it('does nothing outside the register flow (no listener attached)', () => {
     mount({ flow: 'login', source: 'nav_bar' });
 
-    act(() => { window.dispatchEvent(new Event('popstate')); });
+    act(() => {
+      window.dispatchEvent(new Event('popstate'));
+    });
 
     expect(fireFlowEnded).not.toHaveBeenCalled();
   });
@@ -188,7 +204,9 @@ describe('pageshow (bfcache restore)', () => {
     hookApi.chooseMethod('google');
     hookApi.startProcess();
 
-    act(() => { window.dispatchEvent(pageShowEvent(false)); });
+    act(() => {
+      window.dispatchEvent(pageShowEvent(false));
+    });
 
     expect(fireProcessEnded).not.toHaveBeenCalled();
     expect(fireFlowEnded).not.toHaveBeenCalled();
@@ -199,7 +217,9 @@ describe('pageshow (bfcache restore)', () => {
     const attemptId = hookApi.chooseMethod('google'); // chooseMethod consumes 'id-2' as the attemptId
     hookApi.startProcess();
 
-    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+    act(() => {
+      window.dispatchEvent(pageShowEvent(true));
+    });
 
     expect(fireProcessEnded).toHaveBeenCalledWith('id-1', attemptId, 'failure', 'back_navigation');
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'back_navigation');
@@ -212,7 +232,9 @@ describe('pageshow (bfcache restore)', () => {
   it('persisted:true with no attempt in progress still concludes and restarts cleanly', () => {
     mount({ flow: 'register', source: 'nav_bar' });
 
-    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+    act(() => {
+      window.dispatchEvent(pageShowEvent(true));
+    });
 
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'no_attempt');
     expect(fireFlowStarted).toHaveBeenCalledWith('id-2', 'nav_bar');
@@ -222,7 +244,9 @@ describe('pageshow (bfcache restore)', () => {
     mount({ flow: 'register', source: 'nav_bar' });
     hookApi.suppressFlowEndRef.current = true; // simulates a redirect in flight
 
-    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+    act(() => {
+      window.dispatchEvent(pageShowEvent(true));
+    });
 
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'no_attempt');
   });
@@ -230,7 +254,9 @@ describe('pageshow (bfcache restore)', () => {
   it('does nothing outside the register flow (no listener attached)', () => {
     mount({ flow: 'login', source: 'nav_bar' });
 
-    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+    act(() => {
+      window.dispatchEvent(pageShowEvent(true));
+    });
 
     expect(fireFlowEnded).not.toHaveBeenCalled();
   });

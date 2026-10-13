@@ -85,9 +85,7 @@
   .home {
     height: 25px;
     width: 19px;
-    -webkit-mask: url("/static/img/samech-logo.svg") no-repeat;
     mask: url("/static/img/samech-logo.svg") no-repeat;
-    -webkit-mask-size: cover;
     mask-size: cover;
     background-color: var(--theme-primary);
   }

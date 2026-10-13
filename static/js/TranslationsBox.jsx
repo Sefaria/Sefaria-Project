@@ -1,9 +1,9 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
-import {VersionsBlocksList} from './VersionBlock/VersionBlock';
-import {EnglishText, HebrewText, InterfaceText, LoadingMessage} from "./Misc";
-import {VersionsTextList} from "./VersionsTextList";
+import { VersionsBlocksList } from './VersionBlock/VersionBlock';
+import { EnglishText, HebrewText, InterfaceText, LoadingMessage } from './Misc';
+import { VersionsTextList } from './VersionsTextList';
 
 const TranslationsBox = ({
   currObjectVersions,
@@ -16,18 +16,20 @@ const TranslationsBox = ({
   openVersionInReader,
   onRangeClick,
   onCitationClick,
-  translationLanguagePreference
+  translationLanguagePreference,
 }) => {
   useEffect(() => {
     console.log('Sidebar content is updating');
   });
-  const _excludedLangs = ["he"];
-  
+  const _excludedLangs = ['he'];
+
   const [versionLangMap, setVersionLangMap] = useState({});
-  const [currentVersionsByActualLangs, setCurrentVersionsByActualLangs] = useState(Sefaria.transformVersionObjectsToByActualLanguageKeys(currObjectVersions));
+  const [currentVersionsByActualLangs, setCurrentVersionsByActualLangs] = useState(
+    Sefaria.transformVersionObjectsToByActualLanguageKeys(currObjectVersions)
+  );
 
   const isSheet = useCallback(() => {
-    return srefs[0].startsWith("Sheet");
+    return srefs[0].startsWith('Sheet');
   }, [srefs]);
 
   useEffect(() => {
@@ -36,22 +38,25 @@ const TranslationsBox = ({
     }
   }, [srefs, isSheet, vFilter, recentVFilters]);
 
-  const onVersionsLoad = useCallback((versions) => {
-    let versionsByLang = versions;
-    let currentVersionsByActualLangs = Sefaria.transformVersionObjectsToByActualLanguageKeys(currObjectVersions);
-    for (let [lang, ver] of Object.entries(currentVersionsByActualLangs)) {
-      if (!_excludedLangs.includes(lang)) {
-        versionsByLang[lang]?.sort((a, b) => {
-          return a.versionTitle === ver.versionTitle ? -1 : b.versionTitle === ver.versionTitle ? 1 : 0;
-        });
+  const onVersionsLoad = useCallback(
+    (versions) => {
+      let versionsByLang = versions;
+      let currentVersionsByActualLangs = Sefaria.transformVersionObjectsToByActualLanguageKeys(currObjectVersions);
+      for (let [lang, ver] of Object.entries(currentVersionsByActualLangs)) {
+        if (!_excludedLangs.includes(lang)) {
+          versionsByLang[lang]?.sort((a, b) => {
+            return a.versionTitle === ver.versionTitle ? -1 : b.versionTitle === ver.versionTitle ? 1 : 0;
+          });
+        }
       }
-    }
-    setVersionLangMap(versionsByLang);
-    setCurrentVersionsByActualLangs(currentVersionsByActualLangs);
-  }, [currObjectVersions]);
+      setVersionLangMap(versionsByLang);
+      setCurrentVersionsByActualLangs(currentVersionsByActualLangs);
+    },
+    [currObjectVersions]
+  );
 
   const openVersionInSidebar = (versionTitle, versionLanguage) => {
-    setConnectionsMode("Translation Open");
+    setConnectionsMode('Translation Open');
     setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
   };
 
@@ -71,7 +76,7 @@ const TranslationsBox = ({
     );
   }
 
-  if (mode === "Translation Open") {
+  if (mode === 'Translation Open') {
     return (
       <VersionsTextList
         srefs={srefs}
@@ -87,14 +92,14 @@ const TranslationsBox = ({
     );
   }
 
-  if (mode === "Translations") {
+  if (mode === 'Translations') {
     return (
       <>
         <TranslationsHeader />
         <VersionsBlocksList
           versionsByLanguages={versionLangMap}
           currObjectVersions={currObjectVersions}
-          sortPrioritizeLanugage={"en"}
+          sortPrioritizeLanugage={'en'}
           currentRef={srefs[0]}
           openVersionInReader={openVersionInReader}
           openVersionInSidebar={openVersionInSidebar}
@@ -111,7 +116,7 @@ const TranslationsBox = ({
 
 TranslationsBox.propTypes = {
   currObjectVersions: PropTypes.object.isRequired,
-  mode: PropTypes.oneOf(["Translations", "Translation Open"]),
+  mode: PropTypes.oneOf(['Translations', 'Translation Open']),
   vFilter: PropTypes.array,
   recentVFilters: PropTypes.array,
   srefs: PropTypes.array.isRequired,
@@ -131,10 +136,24 @@ const TranslationsHeader = () => (
     </h3>
     <div className="translationsDesc sans-serif">
       <InterfaceText>
-        <EnglishText>Sefaria acquires translations to enrich your learning experience. Preview or choose a different translation below.</EnglishText>
-        <HebrewText>ספריא עושה מאמצים להוסיף תרגומים שונים לספרים כדי להעשיר את חווית הלמידה שלכם. כאן ניתן להחליף לתרגום אחר או לראות תצוגה מקדימה שלו לצד הטקסט הנוכחי.</HebrewText>
+        <EnglishText>
+          Sefaria acquires translations to enrich your learning experience. Preview or choose a different translation
+          below.
+        </EnglishText>
+        <HebrewText>
+          ספריא עושה מאמצים להוסיף תרגומים שונים לספרים כדי להעשיר את חווית הלמידה שלכם. כאן ניתן להחליף לתרגום אחר או
+          לראות תצוגה מקדימה שלו לצד הטקסט הנוכחי.
+        </HebrewText>
       </InterfaceText>
-      <a href={Sefaria._v({en: Sefaria._siteSettings.HELP_CENTER_URLS.TRANSLATION_PREFERENCE_EN, he: Sefaria._siteSettings.HELP_CENTER_URLS.TRANSLATION_PREFERENCE_HE})} target="_blank" className="inTextLink">
+      <a
+        href={Sefaria._v({
+          en: Sefaria._siteSettings.HELP_CENTER_URLS.TRANSLATION_PREFERENCE_EN,
+          he: Sefaria._siteSettings.HELP_CENTER_URLS.TRANSLATION_PREFERENCE_HE,
+        })}
+        target="_blank"
+        className="inTextLink"
+        rel="noreferrer"
+      >
         <InterfaceText>
           <EnglishText>Learn more ›</EnglishText>
           <HebrewText>למידע נוסף ›</HebrewText>
@@ -146,9 +165,11 @@ const TranslationsHeader = () => (
 
 const translationBoxStateCompare = (prevProps, nextProps) => {
   // Only update if the vFilter, recentVFilters, or srefs have changed
-  return nextProps.vFilter.compare(prevProps.vFilter)
-  && nextProps.recentVFilters.compare(prevProps.recentVFilters)
-  && nextProps.srefs.compare(prevProps.srefs)
+  return (
+    nextProps.vFilter.compare(prevProps.vFilter) &&
+    nextProps.recentVFilters.compare(prevProps.recentVFilters) &&
+    nextProps.srefs.compare(prevProps.srefs)
+  );
 };
 
 export default TranslationsBox;

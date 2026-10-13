@@ -1,6 +1,8 @@
+from sefaria import tracker
 from sefaria.model import *
 from sefaria.system.exceptions import BookNameError
-from sefaria import tracker
+
+
 def move_index_into(index, cat):
     """
     :param index: (String)  The primary name of the Index to move.
@@ -11,7 +13,7 @@ def move_index_into(index, cat):
         try:
             index = library.get_index(index)
         except BookNameError:
-            print("Can not find: {}".format(index))
+            print(f"Can not find: {index}")
             return
     if not isinstance(cat, Category):
         cat = Category().load({"path": cat})
@@ -34,14 +36,14 @@ def rename_category(cat, en, he=None):
     assert isinstance(cat, Category)
 
     if en is None:
-        raise Exception("Need en name for category {} renaming.".format(cat.path[-1]))
+        raise Exception(f"Need en name for category {cat.path[-1]} renaming.")
 
     old_category_path = cat.path[:]
     path_length = len(old_category_path)
 
     if not Term().load({"name": en}):
         if he is None:
-            raise Exception("Need Hebrew term names for {}".format(en))
+            raise Exception(f"Need Hebrew term names for {en}")
         print("adding term for " + en)
         term = Term()
         term.name = en
@@ -51,7 +53,7 @@ def rename_category(cat, en, he=None):
     cat.add_shared_term(en)
     cat.path[-1] = en
     cat.lastPath = en
-    print("Renaming category to {}".format(en))
+    print(f"Renaming category to {en}")
     cat.save(override_dependencies=True)
 
     # move all matching categories
@@ -96,7 +98,6 @@ def move_category_into(cat, parent):
         parent = Category().load({"path": parent})
     assert isinstance(parent, Category) or parent is None
 
-
     old_category_path = cat.path[:]
     old_parent_path = cat.path[:-1]
     new_parent_path = parent.path[:] if parent else []
@@ -137,7 +138,7 @@ def create_category(path, en=None, he=None, searchRoot=None, order=None):
     c = Category()
     if not Term().load({"name": path[-1]}):
         if en is None or he is None:
-            raise Exception("Need term names for {}".format(path[-1]))
+            raise Exception(f"Need term names for {path[-1]}")
         print("adding term for " + en)
         term = Term()
         term.name = en
@@ -165,6 +166,7 @@ def get_category_paths(path):
     appear as Tanakh Commentaries
     """
     from sefaria.model.category import TocCategory
+
     root = library.get_toc_tree().lookup(path)
     return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]
 
@@ -186,20 +188,17 @@ def update_order_of_category_children(cat, uid, subcategoriesAndBooks):
     results = []
     for subcategoryOrBook in subcategoriesAndBooks:
         order += 5
-        book = Index().load({'title': subcategoryOrBook, 'categories': cat_path})
+        book = Index().load({"title": subcategoryOrBook, "categories": cat_path})
         if book:
             book = book.contents(raw=True)
-            book['order'] = [order]
+            book["order"] = [order]
             result = tracker.update(uid, Index, book)
         else:
-            cat = Category().load({"path": cat_path+[subcategoryOrBook]}).contents()
-            cat['order'] = order
+            cat = Category().load({"path": cat_path + [subcategoryOrBook]}).contents()
+            cat["order"] = order
             result = tracker.update(uid, Category, cat)
         results.append(result.contents())
     return results
-
-
-
 
 
 def check_term(last_path, he_last_path):

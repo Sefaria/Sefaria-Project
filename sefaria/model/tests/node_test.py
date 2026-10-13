@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import copy
 
 import pytest
@@ -8,14 +7,14 @@ from sefaria.model.schema import JaggedArrayNode, SchemaNode
 from sefaria.system.exceptions import IndexSchemaError
 
 
-class Test_Validate(object):
+class Test_Validate:
     def test_jaggedarray_fields(self):
 
         j = JaggedArrayNode()
-        j.add_title("title1", "en", primary=True)\
-         .add_title("ייי", "he", primary=True)\
-         .add_title("title2", "en")\
-         .add_title("ייכי", "he")
+        j.add_title("title1", "en", primary=True).add_title("ייי", "he", primary=True).add_title(
+            "title2",
+            "en",
+        ).add_title("ייכי", "he")
         j.depth = 1
         j.sectionNames = ["Foo"]
         j.addressTypes = ["Integer"]
@@ -40,7 +39,6 @@ class Test_Validate(object):
         with pytest.raises(IndexSchemaError):
             t.validate()
 
-
     def test_validate_children(self):
         """
         Does validate fall through to children?
@@ -59,8 +57,7 @@ class Test_Validate(object):
             s.validate()
 
 
-class Test_Titles(object):
-
+class Test_Titles:
     def test_add(self):
         j = JaggedArrayNode()
         j.add_title("title1", "en", primary=True)
@@ -78,10 +75,10 @@ class Test_Titles(object):
 
     def test_remove(self):
         j = JaggedArrayNode()
-        j.add_title("title1", "en", primary=True)\
-         .add_title("ייי", "he", primary=True)\
-         .add_title("title2", "en")\
-         .add_title("ייכי", "he")
+        j.add_title("title1", "en", primary=True).add_title("ייי", "he", primary=True).add_title(
+            "title2",
+            "en",
+        ).add_title("ייכי", "he")
         j.remove_title("title1", "en")
         j.depth = 1
         j.sectionNames = ["Foo"]
@@ -91,7 +88,7 @@ class Test_Titles(object):
         with pytest.raises(IndexSchemaError):
             j.validate()
 
-    #todo: why failing?
+    # TODO: why failing?
     @pytest.mark.xfail(reason="unknown")
     def test_terms_and_he(self):
         s = SchemaNode()
@@ -121,11 +118,11 @@ class Test_Titles(object):
         assert len(td) == 5
 
         target = {
-            'שרש': s,
-            'שרש, בראשית': j,
-            'שרש, נח': j2,
-            'שרש בראשית': j,
-            'שרש נח': j2,
+            "שרש": s,
+            "שרש, בראשית": j,
+            "שרש, נח": j2,
+            "שרש בראשית": j,
+            "שרש נח": j2,
         }
 
         assert td == target
@@ -135,7 +132,7 @@ class Test_Titles(object):
             j = JaggedArrayNode()
             j.add_shared_term("BadTermName")
 
-    #todo: why failing?
+    # TODO: why failing?
     @pytest.mark.xfail(reason="unknown")
     def test_presentation_and_default(self):
         s = SchemaNode()
@@ -175,18 +172,18 @@ class Test_Titles(object):
         assert len(td) == 7
 
         target = {
-            'root': j2,
-            'root, Child 1': j,
-            'root, Sweet Child of Mine': j,
-            'root Child 1': j,
-            'root Sweet Child of Mine': j,
-            'Sweet Child of Mine': j,
-            'Sweet Child': j,
+            "root": j2,
+            "root, Child 1": j,
+            "root, Sweet Child of Mine": j,
+            "root Child 1": j,
+            "root Sweet Child of Mine": j,
+            "Sweet Child of Mine": j,
+            "Sweet Child": j,
         }
 
         assert td == target
 
-    #todo: why failing?
+    # TODO: why failing?
     @pytest.mark.xfail(reason="unknown")
     def test_grandchild_presentation(self):
         s = SchemaNode()
@@ -238,75 +235,64 @@ class Test_Titles(object):
             "Level 2 Both": s2,
             "Level 3a both": j,
             "Level 3b both": j2,
-
             # combined, with comma separator
             "root, Level 2 Both": s2,
             "root, Level 2": s2,
             "alt root, Level 2 Both": s2,
             "alt root, Level 2": s2,
-
             "root, Level 2 Both, Level 3a": j,
             "root, Level 2, Level 3a": j,
             "alt root, Level 2 Both, Level 3a": j,
             "alt root, Level 2, Level 3a": j,
             "Level 2 Alone, Level 3a": j,
             "Level 2 Both, Level 3a": j,
-
             "root, Level 2 Both, Level 3a both": j,
             "root, Level 2, Level 3a both": j,
             "alt root, Level 2 Both, Level 3a both": j,
             "alt root, Level 2, Level 3a both": j,
             "Level 2 Alone, Level 3a both": j,
             "Level 2 Both, Level 3a both": j,
-
             "root, Level 2 Both, Level 3b": j2,
             "root, Level 2, Level 3b": j2,
             "alt root, Level 2 Both, Level 3b": j2,
             "alt root, Level 2, Level 3b": j2,
             "Level 2 Alone, Level 3b": j2,
             "Level 2 Both, Level 3b": j2,
-
             "root, Level 2 Both, Level 3b both": j2,
             "root, Level 2, Level 3b both": j2,
             "alt root, Level 2 Both, Level 3b both": j2,
             "alt root, Level 2, Level 3b both": j2,
             "Level 2 Alone, Level 3b both": j2,
             "Level 2 Both, Level 3b both": j2,
-
             # combined, with space separator
             "root Level 2 Both": s2,
             "root Level 2": s2,
             "alt root Level 2 Both": s2,
             "alt root Level 2": s2,
-
             "root Level 2 Both Level 3a": j,
             "root Level 2 Level 3a": j,
             "alt root Level 2 Both Level 3a": j,
             "alt root Level 2 Level 3a": j,
             "Level 2 Alone Level 3a": j,
             "Level 2 Both Level 3a": j,
-
             "root Level 2 Both Level 3a both": j,
             "root Level 2 Level 3a both": j,
             "alt root Level 2 Both Level 3a both": j,
             "alt root Level 2 Level 3a both": j,
             "Level 2 Alone Level 3a both": j,
             "Level 2 Both Level 3a both": j,
-
             "root Level 2 Both Level 3b": j2,
             "root Level 2 Level 3b": j2,
             "alt root Level 2 Both Level 3b": j2,
             "alt root Level 2 Level 3b": j2,
             "Level 2 Alone Level 3b": j2,
             "Level 2 Both Level 3b": j2,
-
             "root Level 2 Both Level 3b both": j2,
             "root Level 2 Level 3b both": j2,
             "alt root Level 2 Both Level 3b both": j2,
             "alt root Level 2 Level 3b both": j2,
             "Level 2 Alone Level 3b both": j2,
             "Level 2 Both Level 3b both": j2,
-
             # combined, space, comma
             "root Level 2 Both, Level 3a": j,
             "root Level 2, Level 3a": j,
@@ -324,7 +310,6 @@ class Test_Titles(object):
             "root Level 2, Level 3b both": j2,
             "alt root Level 2 Both, Level 3b both": j2,
             "alt root Level 2, Level 3b both": j2,
-
             # combined, comma, space
             "root, Level 2 Both Level 3a": j,
             "root, Level 2 Level 3a": j,
@@ -342,7 +327,6 @@ class Test_Titles(object):
             "root, Level 2 Level 3b both": j2,
             "alt root, Level 2 Both Level 3b both": j2,
             "alt root, Level 2 Level 3b both": j2,
-
         }
 
         assert td == target
@@ -375,7 +359,6 @@ class Test_Titles(object):
         assert not s.has_titled_continuation()
         assert not s2.has_titled_continuation()
         assert not j.has_titled_continuation()
-
 
     def test_duplicate_primary(self):
         with pytest.raises(IndexSchemaError):

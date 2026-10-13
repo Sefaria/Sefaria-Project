@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-
 import django
+
 django.setup()
 
 from sefaria.model import *
@@ -9,8 +8,8 @@ from sefaria.system.database import db
 sheets = db.sheets.find()
 
 for sheet in sheets:
-    olddoc = sheet;
-    newdoc = {};
+    olddoc = sheet
+    newdoc = {}
     included_refs = []
 
     nextNode = sheet.get("nextNode", 1)
@@ -24,11 +23,9 @@ for sheet in sheets:
         checked_sources.append(source)
     sheet["sources"] = checked_sources
 
-
     newdoc = olddoc
 
     newdoc["sources"] = sheet["sources"]
     newdoc["nextNode"] = nextNode
 
-    db.sheets.update({'_id': olddoc["_id"]}, newdoc);
-
+    db.sheets.update({"_id": olddoc["_id"]}, newdoc)

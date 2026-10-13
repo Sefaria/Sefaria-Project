@@ -61,31 +61,30 @@ const ModToolsSection = ({
   className = '',
   helpContent,
   helpTitle,
-  defaultCollapsed = true
+  defaultCollapsed = true,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   const toggleCollapse = useCallback(() => {
-    setIsCollapsed(prev => !prev);
+    setIsCollapsed((prev) => !prev);
   }, []);
 
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      toggleCollapse();
-    }
-  }, [toggleCollapse]);
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleCollapse();
+      }
+    },
+    [toggleCollapse]
+  );
 
   const handleHelpClick = useCallback((e) => {
     // Prevent collapse toggle when clicking help button
     e.stopPropagation();
   }, []);
 
-  const sectionClasses = [
-    'modToolsSection',
-    isCollapsed ? 'collapsed' : '',
-    className
-  ].filter(Boolean).join(' ');
+  const sectionClasses = ['modToolsSection', isCollapsed ? 'collapsed' : '', className].filter(Boolean).join(' ');
 
   return (
     <div className={sectionClasses}>
@@ -109,17 +108,12 @@ const ModToolsSection = ({
           </div>
           {helpContent && (
             <div className="sectionHeaderRight" onClick={handleHelpClick}>
-              <HelpButton
-                title={helpTitle || title}
-                description={helpContent}
-              />
+              <HelpButton title={helpTitle || title} description={helpContent} />
             </div>
           )}
         </div>
       )}
-      <div className="sectionContent">
-        {children}
-      </div>
+      <div className="sectionContent">{children}</div>
     </div>
   );
 };
@@ -131,7 +125,7 @@ ModToolsSection.propTypes = {
   className: PropTypes.string,
   helpContent: PropTypes.node,
   helpTitle: PropTypes.string,
-  defaultCollapsed: PropTypes.bool
+  defaultCollapsed: PropTypes.bool,
 };
 
 export default ModToolsSection;

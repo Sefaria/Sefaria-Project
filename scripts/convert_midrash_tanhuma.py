@@ -1,10 +1,14 @@
-# -*- coding: utf-8 -*-
-__author__ = 'stevenkaplan'
-from sefaria.model import *
+__author__ = "stevenkaplan"
 import csv
 import sys
+
+from sefaria.model import *
+
 sys.path.append("./scripts")
+import contextlib
+
 from convert_to_complex_text import *
+
 from sefaria.system.exceptions import InputError
 
 en_he_parshiot = []
@@ -17,7 +21,7 @@ with open("./data/tmp/parsha.csv") as parsha_file:
         (en, he, ref) = row
         if en == "Lech-Lecha":
             en = "Lech Lecha"
-        he = he.decode('utf-8')
+        he = he.decode("utf-8")
         en_he_parshiot.append((en, he))
 
 
@@ -59,9 +63,6 @@ for count, parsha_tuple in enumerate(en_he_parshiot):
     en_parshiot.append(parsha_tuple[0])
 
 
-
-
-
 book.validate()
 
 
@@ -70,15 +71,13 @@ torah = [12, 11, 10, 10, 11]
 counter = 0
 for torah_index, sefer in enumerate(torah):
     for sefer_index in range(sefer):
-        orig = "Midrash Tanchuma.{}.{}".format(torah_index+1, sefer_index+1)
-        new = "Midrash Tanchuma, {}".format(en_parshiot[counter])
+        orig = f"Midrash Tanchuma.{torah_index + 1}.{sefer_index + 1}"
+        new = f"Midrash Tanchuma, {en_parshiot[counter]}"
         mappings.append((orig, new))
         counter += 1
 
-#Go through each sefer and set the key of a dictionary to be like 1.2 = Noah
-try:
+# Go through each sefer and set the key of a dictionary to be like 1.2 = Noah
+with contextlib.suppress(InputError):
     library.get_index("Complex Midrash Tanchuma").delete()
-except InputError:
-    pass
 
 migrate_to_complex_structure("Midrash Tanchuma", book.serialize(), mappings)

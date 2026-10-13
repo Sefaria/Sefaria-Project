@@ -1,12 +1,15 @@
 # ref_resolver
+
 > Source: `sefaria/model/linker/ref_resolver.py`
 
 ## Purpose
+
 Converts parsed `RawRef` objects (sequences of classified ref parts from the ML model) into concrete `Ref` objects by matching parts against a trie of known titles, then recursively refining matches through the schema tree. Handles ambiguity (multiple valid interpretations), context injection (ibid, current book, section context), and pruning of false positives. This is the core resolution engine -- everything upstream produces `RawRef`s, everything downstream consumes `ResolvedRef`s.
 
 ## Key Classes
 
 ### ResolvedRef
+
 - **Inherits**: `AbstractResolvedEntity`, `abst.Cloneable`
 - **Role**: Represents a partial or complete resolution of a `RawRef` into a `Ref`. Tracks which parts were matched, which nodes they matched against, and any context used.
 - **Key fields/methods**:
@@ -24,6 +27,7 @@ Converts parsed `RawRef` objects (sequences of classified ref parts from the ML 
   - `resolution_failed` -- `True` when both `ref` and `node` are `None`
 
 ### AmbiguousResolvedRef
+
 - **Inherits**: `AbstractResolvedEntity`
 - **Role**: Wraps multiple `ResolvedRef` objects when the resolver cannot pick a single winner. Returned when >1 match survives pruning.
 - **Key fields/methods**:
@@ -31,6 +35,7 @@ Converts parsed `RawRef` objects (sequences of classified ref parts from the ML 
   - `is_ambiguous` -- always `True`
 
 ### RefResolver
+
 - **Inherits**: none
 - **Role**: Stateful resolver that holds the trie, term matcher, ibid history, and thoroughness level. Entry point for all resolution.
 - **Key fields/methods**:
@@ -45,6 +50,7 @@ Converts parsed `RawRef` objects (sequences of classified ref parts from the ML 
   - `resolve_raw_ref_using_ref_instantiation(raw_ref)` -- fallback: tries `Ref(raw_ref.text)` directly if trie matching fails
 
 ### TermMatcher
+
 - **Inherits**: none
 - **Role**: Precomputed map from term title strings to `NonUniqueTerm` objects, used to inject title context from the current book's schema path.
 - **Key fields/methods**:
@@ -52,6 +58,7 @@ Converts parsed `RawRef` objects (sequences of classified ref parts from the ML 
   - `match_terms(ref_parts)` -- matches a list of parts, returns unique terms
 
 ### IbidHistory
+
 - **Inherits**: none
 - **Role**: Sliding window of recently resolved refs, used to provide ibid context. Tracks last N refs and last N distinct titles.
 - **Key fields/methods**:
@@ -59,6 +66,7 @@ Converts parsed `RawRef` objects (sequences of classified ref parts from the ML 
   - `get_ref_by_title(title)` -- look up most recent ref for a given index title
 
 ### ResolvedRefPruner
+
 - **Inherits**: none
 - **Role**: Static utility class with heuristics to remove false-positive matches at both unrefined and refined stages.
 - **Key fields/methods**:
@@ -68,10 +76,12 @@ Converts parsed `RawRef` objects (sequences of classified ref parts from the ML 
   - `remove_superfluous_matches(thoroughness, matches)` -- deduplicates equivalent refs; at HIGH thoroughness or when ambiguous, also filters empty refs
 
 ### ResolutionThoroughness (IntEnum)
+
 - `NORMAL = 1` -- skips book-level DH matches, skips filtering empty refs when unambiguous
 - `HIGH = 2` -- enables book-level DH search, filters empty refs always
 
 ### ContextType (Enum)
+
 - `CURRENT_BOOK` -- context from the book the user is currently viewing
 - `IBID` -- context from previously resolved refs in the same text passage
 

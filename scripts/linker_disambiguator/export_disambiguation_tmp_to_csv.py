@@ -10,23 +10,28 @@ Added columns (he/en text for payload_ref and result ref):
 English text is fetched from Sefaria. If unavailable, Sonnet 4.6 translates from Hebrew.
 If Hebrew is also unavailable, the field is left blank.
 """
+
 import argparse
 import csv
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import django
+
 django.setup()
 
-from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import HumanMessage
+import contextlib
+
 from langchain.globals import set_llm_cache
+from langchain_anthropic import ChatAnthropic
 from langchain_community.cache import SQLiteCache
+from langchain_core.messages import HumanMessage
 from tqdm import tqdm
+
+from sefaria.helper.normalization import NormalizerComposer
 from sefaria.model import Ref
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-from sefaria.helper.normalization import NormalizerComposer
 
 set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 
@@ -81,6 +86,7 @@ def _get_llm():
     global _llm
     if _llm is None:
         import os
+
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
@@ -90,10 +96,16 @@ def _get_llm():
 
 def _translate_he_to_en(hebrew_text: str) -> str:
     llm = _get_llm()
-    response = llm.invoke([HumanMessage(content=(
-        "Translate the following Hebrew rabbinic text to English. "
-        "Output only the translation, no commentary.\n\n" + hebrew_text
-    ))])
+    response = llm.invoke(
+        [
+            HumanMessage(
+                content=(
+                    "Translate the following Hebrew rabbinic text to English. "
+                    "Output only the translation, no commentary.\n\n" + hebrew_text
+                ),
+            ),
+        ],
+    )
     return response.content.strip()
 
 
@@ -120,10 +132,8 @@ def _fetch_text(ref_str: str) -> tuple[str, str]:
 
     he = _normalize(_fetch_raw_he(ref_str), "he")
     en = ""
-    try:
+    with contextlib.suppress(InputError, AttributeError):
         en = _normalize(_extract_text(Ref(ref_str).text("en").text), "en")
-    except (InputError, AttributeError):
-        pass
 
     if not en and he:
         en = _translate_he_to_en(he)
@@ -219,16 +229,20 @@ def _prefetch_refs(refs: list[str], threads: int = 30) -> None:
     unique = [r for r in dict.fromkeys(refs) if r]
     with ThreadPoolExecutor(max_workers=threads) as pool:
         futures = {pool.submit(_fetch_text, ref): ref for ref in unique}
-        for future in tqdm(as_completed(futures), total=len(futures),
-                           desc="Fetching text", file=sys.stderr):
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Fetching text", file=sys.stderr):
             future.result()  # re-raise any exception
 
 
 def main():
     parser = argparse.ArgumentParser(description="Export linker_disambiguation_tmp to CSV")
     parser.add_argument("--output", "-o", default="-", help="Output file path (default: stdout)")
-    parser.add_argument("--threads", "-t", type=int, default=30,
-                        help="Number of threads for parallel text fetching (default: 30)")
+    parser.add_argument(
+        "--threads",
+        "-t",
+        type=int,
+        default=30,
+        help="Number of threads for parallel text fetching (default: 30)",
+    )
     args = parser.parse_args()
 
     docs = list(db.linker_disambiguation_tmp.find({"type": "mutc"}))[:1000]
@@ -236,10 +250,7 @@ def main():
 
     # Collect all unique refs that will need text fetched
     payload_refs = [d.get("ref", "") for d in docs]
-    result_refs = [
-        d.get("llm_resolved_ref_ambiguous") or d.get("llm_resolved_ref_non_segment", "")
-        for d in docs
-    ]
+    result_refs = [d.get("llm_resolved_ref_ambiguous") or d.get("llm_resolved_ref_non_segment", "") for d in docs]
     _prefetch_refs(payload_refs + result_refs, threads=args.threads)
 
     out = open(args.output, "w", newline="", encoding="utf-8") if args.output != "-" else sys.stdout

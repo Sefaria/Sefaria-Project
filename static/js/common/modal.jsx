@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from 'react';
 
 const Modal = ({ children, close }) => {
   const dialogRef = useRef(null);
@@ -11,7 +11,8 @@ const Modal = ({ children, close }) => {
       if (dialogRef.current) {
         dialogRef.current.close();
       }
-  }}, []);
+    };
+  }, []);
 
   const handleClickOutside = (e) => {
     if (dialogRef.current && e.target === dialogRef.current) {
@@ -27,17 +28,10 @@ const Modal = ({ children, close }) => {
   };
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="dialogModal"
-      onClick={handleClickOutside}
-      onKeyDown={handleKeyDown}
-    >
-      <div className="modal-content">
-        {children}
-      </div>
+    <dialog ref={dialogRef} className="dialogModal" onClick={handleClickOutside} onKeyDown={handleKeyDown}>
+      <div className="modal-content">{children}</div>
     </dialog>
   );
-}
+};
 
 export default Modal;

@@ -55,29 +55,25 @@
 }
 :root {
   /* font stacks */
-  --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
+  --english-sans-serif-font-family: 'Roboto', 'Helvetica Neue', 'Helvetica', sans-serif;
+  --hebrew-sans-serif-font-family: 'Heebo', 'Roboto', sans-serif;
   --english-serif-font-family:
-          "Cardo", /*Greek*/
-          "Meltho", /*Syriac*/
-          "adobe-garamond-pro", /*basic English font (including punctuation etc.)*/
-          "Taamey Frank", /*Hebrew, punctuation will be caught by adobe-garamond-pro*/
-          "Crimson Text", /*this font is loaded in base.html only for some latin letters with diacritics*/
-          "Georgia", /*this font ssems to be here for historical reasons, but actually it applies for Cyrillic*/
-          "Times New Roman", serif, /*fallbacks*/
-          "Noto Sans Samaritan"; /*Samaritan - this font is loaded in base.html for only Samaritan characters*/
+    'Cardo', /*Greek*/ 'Meltho', /*Syriac*/ 'adobe-garamond-pro',
+    /*basic English font (including punctuation etc.)*/ 'Taamey Frank',
+    /*Hebrew, punctuation will be caught by adobe-garamond-pro*/ 'Crimson Text',
+    /*this font is loaded in base.html only for some latin letters with diacritics*/ 'Georgia',
+    /*this font ssems to be here for historical reasons, but actually it applies for Cyrillic*/ 'Times New Roman',
+    serif, /*fallbacks*/ 'Noto Sans Samaritan'; /* Samaritan - this font is loaded in base.html for only Samaritan characters */
   --hebrew-serif-font-family:
-          "Cardo", /*Greek*/
-          "Noto Color Emoji", /*flag emojis*/
-          "Taamey Frank", /*basic Hebrew font (including punctuation etc., but no English)*/
-          "adobe-garamond-pro", /*English*/
-          "Crimson Text", /*this font is loaded in base.html for only some latin letters with diacritics*/
-          "Times New Roman", serif; /*fallbacks*/
+    'Cardo', /*Greek*/ 'Noto Color Emoji', /*flag emojis*/ 'Taamey Frank',
+    /*basic Hebrew font (including punctuation etc., but no English)*/ 'adobe-garamond-pro', /*English*/ 'Crimson Text',
+    /*this font is loaded in base.html for only some latin letters with diacritics*/ 'Times New Roman', serif; /* fallbacks */
   --english-secondary-font-family: 'Miriam Libre', var(--english-sans-serif-font-family);
   --hebrew-secondary-font-family: 'Miriam Libre', var(--hebrew-sans-serif-font-family);
 }
 
-body, .sans-serif {
+body,
+.sans-serif {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
@@ -98,11 +94,15 @@ body, .sans-serif {
   font-size: var(--is-hebrew) 90%;
 }
 
-body, .en, .int-en, .englishWithinHebrew {
+body,
+.en,
+.int-en,
+.englishWithinHebrew {
   --is-hebrew: initial;
 }
 
-.he, .int-he {
+.he,
+.int-he {
   unicode-bidi: plaintext;
   --is-hebrew: ;
 }

@@ -1,12 +1,14 @@
-from collections import defaultdict
-from typing import List, Optional, Iterable
+from collections.abc import Iterable
 from functools import reduce
+
+import structlog
+
+from sefaria.helper.skip_tracking import bad_record_guard
 from sefaria.model import abstract as abst
 from sefaria.model import schema
-from .ref_part import TermContext, LEAF_TRIE_ENTRY
+
+from .ref_part import LEAF_TRIE_ENTRY, TermContext
 from .referenceable_book_node import NamedReferenceableBookNode
-from sefaria.helper.skip_tracking import bad_record_guard
-import structlog
 
 logger = structlog.get_logger(__name__)
 skip_bad_record = bad_record_guard(logger)
@@ -16,7 +18,8 @@ class MatchTemplate(abst.Cloneable):
     """
     Template for matching a SchemaNode to a RawRef
     """
-    def __init__(self, term_slugs, scope='combined'):
+
+    def __init__(self, term_slugs, scope="combined"):
         self.term_slugs = term_slugs
         self.scope = scope
 
@@ -28,8 +31,8 @@ class MatchTemplate(abst.Cloneable):
         serial = {
             "term_slugs": [t.slug for t in self.get_terms()],
         }
-        if self.scope != 'combined':
-            serial['scope'] = self.scope
+        if self.scope != "combined":
+            serial["scope"] = self.scope
         return serial
 
     def matches_scope(self, other_scope: str) -> bool:
@@ -38,7 +41,7 @@ class MatchTemplate(abst.Cloneable):
         @param other_scope:
         @return: True if scope matches
         """
-        return other_scope == 'any' or self.scope == 'any' or other_scope == self.scope
+        return other_scope == "any" or self.scope == "any" or other_scope == self.scope
 
     terms = property(get_terms)
 
@@ -49,7 +52,8 @@ class MatchTemplateTrie:
     E.g. if there is match template with term slugs ["term1", "term2"], term1 has title "Term 1", term2 has title "Term 2"
     then an entry in the trie would be {"Term 1": {"Term 2": ...}}
     """
-    def __init__(self, lang: str, nodes: List[schema.TitledTreeNode] = None, sub_trie: dict = None, scope: str = None):
+
+    def __init__(self, lang: str, nodes: list[schema.TitledTreeNode] = None, sub_trie: dict = None, scope: str = None):
         """
         :param lang:
         :param nodes:
@@ -60,12 +64,12 @@ class MatchTemplateTrie:
         self.scope = scope
         self._trie = self.__init_trie(nodes, sub_trie)
 
-    def __init_trie(self, nodes: List[schema.TitledTreeNode], sub_trie: dict):
+    def __init_trie(self, nodes: list[schema.TitledTreeNode], sub_trie: dict):
         if nodes is None:
             return sub_trie
         return self.__init_trie_with_nodes(nodes)
 
-    def __init_trie_with_nodes(self, nodes: List[schema.TitledTreeNode]):
+    def __init_trie_with_nodes(self, nodes: list[schema.TitledTreeNode]):
         trie = {}
         for node in nodes:
             # One node with a corrupt match_template/term/schema must not abort startup.
@@ -83,25 +87,31 @@ class MatchTemplateTrie:
         try:
             node_ref = node.ref()
         except:
-            node_ref = node.get_primary_title('en')
-        logger.warning(f"{node_ref} has match_templates that reference slugs that don't exist."
-                       f"Check match_templates and fix.")
+            node_ref = node.get_primary_title("en")
+        logger.warning(
+            f"{node_ref} has match_templates that reference slugs that don't exist.Check match_templates and fix.",
+        )
 
-    def __add_all_term_titles_to_trie(self, term_list: List[schema.NonUniqueTerm], node: schema.TitledTreeNode, curr_dict_queue: List[dict]):
+    def __add_all_term_titles_to_trie(
+        self,
+        term_list: list[schema.NonUniqueTerm],
+        node: schema.TitledTreeNode,
+        curr_dict_queue: list[dict],
+    ):
         for term in term_list:
             if term is None:
                 self.__log_non_existent_term_warning(node)
                 continue
             self.__add_term_titles_to_trie(term, curr_dict_queue)
 
-    def __add_term_titles_to_trie(self, term, curr_dict_queue: List[dict]):
+    def __add_term_titles_to_trie(self, term, curr_dict_queue: list[dict]):
         len_curr_dict_queue = len(curr_dict_queue)
         for _ in range(len_curr_dict_queue):
             curr_dict = curr_dict_queue.pop(0)
             curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
 
     @staticmethod
-    def __add_nodes_to_leaves(node: schema.TitledTreeNode, curr_dict_queue: List[dict]):
+    def __add_nodes_to_leaves(node: schema.TitledTreeNode, curr_dict_queue: list[dict]):
         for curr_dict in curr_dict_queue:
             leaf_node = NamedReferenceableBookNode(node.index if node.is_root() else node)
             if LEAF_TRIE_ENTRY in curr_dict:
@@ -118,7 +128,7 @@ class MatchTemplateTrie:
             curr_trie[key] = sub_trie
         return sub_trie
 
-    def __get_sub_tries_for_term(self, term: schema.NonUniqueTerm, curr_trie: dict) -> List[dict]:
+    def __get_sub_tries_for_term(self, term: schema.NonUniqueTerm, curr_trie: dict) -> list[dict]:
         sub_tries = []
         for title in term.get_titles(self.lang):
             sub_tries += [self.__get_sub_trie_for_new_key(title, curr_trie)]
@@ -127,11 +137,12 @@ class MatchTemplateTrie:
         return sub_tries
 
     def __getitem__(self, key):
-        return self.get(key)        
+        return self.get(key)
 
     def get(self, key, default=None):
         sub_trie = self._trie.get(key, default)
-        if sub_trie is None: return
+        if sub_trie is None:
+            return None
         return MatchTemplateTrie(self.lang, sub_trie=sub_trie, scope=self.scope)
 
     def has_continuations(self, key: str, key_is_id=False) -> bool:
@@ -156,7 +167,7 @@ class MatchTemplateTrie:
                 elif isinstance(a[key], list) and isinstance(b[key], list):
                     a[key] += b[key]
                 else:
-                    raise Exception('Conflict in _merge_two_tries')
+                    raise Exception("Conflict in _merge_two_tries")
             else:
                 a[key] = b[key]
         return a
@@ -168,7 +179,11 @@ class MatchTemplateTrie:
         return reduce(MatchTemplateTrie._merge_two_tries, tries)
 
     def get_continuations(self, key: str, default=None, key_is_id=False, allow_partial=False):
-        continuations, partial_key_end_list = self._get_continuations_recursive(key, key_is_id=key_is_id, allow_partial=allow_partial)
+        continuations, partial_key_end_list = self._get_continuations_recursive(
+            key,
+            key_is_id=key_is_id,
+            allow_partial=allow_partial,
+        )
         if len(continuations) == 0:
             return default, None
         merged = self._merge_n_tries(*continuations)
@@ -176,9 +191,17 @@ class MatchTemplateTrie:
         partial_key_end = partial_key_end_list[0] if len(partial_key_end_list) == 1 else None
         return MatchTemplateTrie(self.lang, sub_trie=merged, scope=self.scope), partial_key_end
 
-    def _get_continuations_recursive(self, key: str, prev_sub_tries=None, key_is_id=False, has_partial_matches=False, allow_partial=False):
-        from sefaria.utils.hebrew import get_prefixless_inds
+    def _get_continuations_recursive(
+        self,
+        key: str,
+        prev_sub_tries=None,
+        key_is_id=False,
+        has_partial_matches=False,
+        allow_partial=False,
+    ):
         import re
+
+        from sefaria.utils.hebrew import get_prefixless_inds
 
         prev_sub_tries = prev_sub_tries or self._trie
         if key_is_id:
@@ -189,19 +212,25 @@ class MatchTemplateTrie:
         partial_key_end_list = []
         key = key.strip()
         starti_list = [0]
-        if self.lang == 'he' and len(key) >= 4:
+        if self.lang == "he" and len(key) >= 4:
             # In AddressType.get_all_possible_sections_from_string(), we prevent stripping of prefixes from AddressInteger. No simple way to do that with terms that take the place of AddressInteger (e.g. Bavli Perek). len() check is a heuristic.
             starti_list += get_prefixless_inds(key)
         for starti in starti_list:
-            for match in reversed(list(re.finditer(r'(\s+|$)', key[starti:]))):
+            for match in reversed(list(re.finditer(r"(\s+|$)", key[starti:]))):
                 endi = match.start() + starti
                 sub_key = key[starti:endi]
-                if sub_key not in prev_sub_tries: continue
+                if sub_key not in prev_sub_tries:
+                    continue
                 if endi == len(key):
                     next_sub_tries += [prev_sub_tries[sub_key]]
                     partial_key_end_list += [None]
                     continue
-                temp_sub_tries, temp_partial_key_end_list = self._get_continuations_recursive(key[endi:], prev_sub_tries[sub_key], has_partial_matches=True, allow_partial=allow_partial)
+                temp_sub_tries, temp_partial_key_end_list = self._get_continuations_recursive(
+                    key[endi:],
+                    prev_sub_tries[sub_key],
+                    has_partial_matches=True,
+                    allow_partial=allow_partial,
+                )
                 next_sub_tries += temp_sub_tries
                 partial_key_end_list += temp_partial_key_end_list
 

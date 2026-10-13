@@ -1,11 +1,12 @@
-import pytest
-from typing import List
-from functools import reduce
 from copy import deepcopy
+from functools import reduce
+
+import pytest
 from ne_span import NEDoc, RefPartType
-from sefaria.model.text import Ref, library
+
 from sefaria.model.linker.ref_part import RawRef, RawRefPart
-from sefaria.model.linker.ref_resolver import ResolutionThoroughness, PossiblyAmbigResolvedRef
+from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef, ResolutionThoroughness
+from sefaria.model.text import Ref, library
 from sefaria.settings import ENABLE_LINKER
 
 if not ENABLE_LINKER:
@@ -16,11 +17,9 @@ class RefPartTypeNone:
     """
     Represents no ref part type. A RefPart with this type will not be considered in parsing
     """
-    pass
 
 
 class EncodedPart:
-
     PART_TYPE_MAP = {
         "@": RefPartType.NAMED,
         "#": RefPartType.NUMBERED,
@@ -47,15 +46,18 @@ class EncodedPart:
         symbol = self._get_symbol()
 
         if symbol not in self.PART_TYPE_MAP:
-            raise Exception(f"Symbol '{symbol}' does not exist in EncodedParts.PART_TYPE_MAP. Valid symbols are "
-                            f"{', '.join(self.PART_TYPE_MAP.keys())}")
+            raise Exception(
+                f"Symbol '{symbol}' does not exist in EncodedParts.PART_TYPE_MAP. Valid symbols are "
+                f"{', '.join(self.PART_TYPE_MAP.keys())}",
+            )
 
         return self.PART_TYPE_MAP.get(symbol)
 
     @staticmethod
     def get_symbol_by_part_type(part_type):
         for symbol, temp_part_type in EncodedPart.PART_TYPE_MAP.items():
-            if part_type == temp_part_type: return symbol
+            if part_type == temp_part_type:
+                return symbol
 
     @staticmethod
     def convert_to_raw_encoded_part_list(lang, text, span_slices, part_types):
@@ -70,10 +72,9 @@ class EncodedPart:
 
 
 class EncodedPartList:
-
-    def __init__(self, lang, raw_encoded_part_list: List[str]):
+    def __init__(self, lang, raw_encoded_part_list: list[str]):
         self.lang = lang
-        self.encoded_part_list: List[EncodedPart] = [EncodedPart(x) for x in raw_encoded_part_list]
+        self.encoded_part_list: list[EncodedPart] = [EncodedPart(x) for x in raw_encoded_part_list]
         self._span = None
 
     @staticmethod
@@ -83,10 +84,7 @@ class EncodedPartList:
     def _get_char_inds(self):
         char_inds = []
         for part in self.encoded_part_list:
-            if len(char_inds) > 0:
-                last_char_ind = char_inds[-1][-1] + len(self._get_part_separator())
-            else:
-                last_char_ind = 0
+            last_char_ind = char_inds[-1][-1] + len(self._get_part_separator()) if len(char_inds) > 0 else 0
             char_inds += [(last_char_ind, last_char_ind + len(part.text))]
         return char_inds
 
@@ -123,7 +121,8 @@ class EncodedPartList:
             raise e
         raw_ref_parts = []
         for part_type, part_span in zip(self.part_types, part_spans):
-            if part_type == RefPartTypeNone: continue
+            if part_type == RefPartTypeNone:
+                continue
             raw_ref_parts += [RawRefPart(part_type, part_span)]
         return raw_ref_parts
 
@@ -131,14 +130,14 @@ class EncodedPartList:
         return self.span, self.lang, self.raw_ref_parts
 
     def print_debug_info(self):
-        print('Input:', self.input_str)
-        print('Span indexes:', self.span_slices)
-        print('Spans:')
+        print("Input:", self.input_str)
+        print("Span indexes:", self.span_slices)
+        print("Spans:")
         for i, subspan in enumerate(self.span):
-            print(f'{i}) {subspan.text}')
+            print(f"{i}) {subspan.text}")
 
 
-def create_raw_ref_data(raw_encoded_parts: List[str], context_tref=None, lang='he', prev_trefs=None):
+def create_raw_ref_data(raw_encoded_parts: list[str], context_tref=None, lang="he", prev_trefs=None):
     """
     Just reflecting prev_trefs here b/c pytest.parametrize can't handle optional parameters
     """
@@ -149,12 +148,12 @@ def create_raw_ref_data(raw_encoded_parts: List[str], context_tref=None, lang='h
 
 
 def print_spans(raw_ref: RawRef):
-    print('\nInput:', raw_ref.text)
-    print('Spans:')
+    print("\nInput:", raw_ref.text)
+    print("Spans:")
     for i, part in enumerate(raw_ref.raw_ref_parts):
-        print(f'{i}) {part.text}')
-        
-        
+        print(f"{i}) {part.text}")
+
+
 def get_matches_from_resolver_data(resolver_data) -> PossiblyAmbigResolvedRef:
     raw_ref, context_ref, lang, prev_trefs = resolver_data
     linker = library.get_linker(lang)
@@ -169,7 +168,6 @@ def get_matches_from_resolver_data(resolver_data) -> PossiblyAmbigResolvedRef:
     print_spans(raw_ref)
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
     return ref_resolver.resolve_raw_ref(context_ref, raw_ref)
-
 
 
 _MISSING = object()

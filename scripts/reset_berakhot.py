@@ -1,20 +1,18 @@
-# -*- coding: utf-8 -*-
 """
 Remove all links to Berakhot
-Remove text of 
+Remove text of
 """
-import sys
-import os
+
 import csv
-from pprint import pprint
+import os
+import sys
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "settings"
 
 from sefaria.system.database import db
-
 
 keepers = []
 titles = db.index.find({"categories.1": {"$in": ["Torah", "Writings", "Prophets"]}}).distinct("title")
@@ -31,7 +29,7 @@ for link in links:
     else:
         db.links.remove(link)
 
-with open("../tmp/berakhot_review_links.csv", 'wb') as csvfile:
+with open("../tmp/berakhot_review_links.csv", "wb") as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(["Ref 1", "Ref 2", "Type", "Anchort Text"])
     for line in keepers:

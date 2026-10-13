@@ -12,12 +12,13 @@ jagged_array.py: a sparse array of arrays
 import re
 from functools import reduce
 from itertools import zip_longest
+
 import structlog
+
 logger = structlog.get_logger(__name__)
 
 
-class JaggedArray(object):
-
+class JaggedArray:
     def __init__(self, ja=None):
         if ja is None:
             ja = []
@@ -25,7 +26,7 @@ class JaggedArray(object):
         self.e_count = None
         self._depth = None
 
-    #Intention is to call this when the contents of the JA change, so that counts don't get stale
+    # Intention is to call this when the contents of the JA change, so that counts don't get stale
     def _reinit(self):
         self.e_count = None
         self._depth = None
@@ -41,7 +42,7 @@ class JaggedArray(object):
         :return: True if indexes1 is before indexes2. If equal, False
         """
 
-        #pad with 0s so their len == _depth
+        # pad with 0s so their len == _depth
         N = self.get_depth()
         if len(indexes1) <= N:
             indexes1 += [0] * (N - len(indexes1))
@@ -72,7 +73,7 @@ class JaggedArray(object):
             return 0
 
         # make sure indexes1 represents earliest index
-        if self.is_first(indexes2,indexes1):
+        if self.is_first(indexes2, indexes1):
             indexes1, indexes2 = (indexes2, indexes1)
 
         # pad with 0s so their len == _depth
@@ -93,45 +94,45 @@ class JaggedArray(object):
                 first_diff_index = i
                 break
 
-
-        if first_diff_index == N-1:
-            #base case
+        if first_diff_index == N - 1:
+            # base case
             if self.sub_array_length(indexes1[:-1]) == 0:
                 # empty section
                 return 0
             return abs(indexes1[-1] - indexes2[-1])
-        else:
-            #recurse
-            distance = 0
-            temp_start_index = indexes1[:]
-            for i in range(indexes1[first_diff_index],indexes2[first_diff_index]+1):
-                is_zero_len_section = False
+        # recurse
+        distance = 0
+        temp_start_index = indexes1[:]
+        for i in range(indexes1[first_diff_index], indexes2[first_diff_index] + 1):
+            is_zero_len_section = False
 
-                if indexes2[first_diff_index] == i:
-                    temp_end_index = indexes2[:]
-                else:
-                    temp_end_index = temp_start_index[:]
-                    # max out all indexes greater than first_diff_index
+            if indexes2[first_diff_index] == i:
+                temp_end_index = indexes2[:]
+            else:
+                temp_end_index = temp_start_index[:]
+                # max out all indexes greater than first_diff_index
 
-                    temp_subarray_indexes = indexes1[:first_diff_index+1]
-                    temp_subarray_indexes[first_diff_index] = i
-                    for j in range(first_diff_index+1,N):
-                        temp_subarray_len = self.sub_array_length(temp_subarray_indexes)
-                        if temp_subarray_len == 0 or temp_subarray_len is None:  # it's None when you try to index past list end
-                            is_zero_len_section = True
-                            break
+                temp_subarray_indexes = indexes1[: first_diff_index + 1]
+                temp_subarray_indexes[first_diff_index] = i
+                for j in range(first_diff_index + 1, N):
+                    temp_subarray_len = self.sub_array_length(temp_subarray_indexes)
+                    if (
+                        temp_subarray_len == 0 or temp_subarray_len is None
+                    ):  # it's None when you try to index past list end
+                        is_zero_len_section = True
+                        break
 
-                        temp_end_index[j] = temp_subarray_len - 1
-                        temp_subarray_indexes += [temp_end_index[j]]
+                    temp_end_index[j] = temp_subarray_len - 1
+                    temp_subarray_indexes += [temp_end_index[j]]
 
-                if not is_zero_len_section:
-                    distance += self.distance(temp_start_index,temp_end_index) + 1  # + 1 to include the current seg
-                temp_start_index[first_diff_index] = i + 1
-                # set all indexes greater than first_diff_index to zero because you've moved on to the next section
-                for j in range(first_diff_index+1,N):
-                    temp_start_index[j] = 0
+            if not is_zero_len_section:
+                distance += self.distance(temp_start_index, temp_end_index) + 1  # + 1 to include the current seg
+            temp_start_index[first_diff_index] = i + 1
+            # set all indexes greater than first_diff_index to zero because you've moved on to the next section
+            for j in range(first_diff_index + 1, N):
+                temp_start_index[j] = 0
 
-            return distance - 1  # - 1 to not include the first seg in the sequence
+        return distance - 1  # - 1 to not include the first seg in the sequence
 
     def shape(self, _cur=None):
         """
@@ -151,8 +152,7 @@ class JaggedArray(object):
 
         if len(_cur) and isinstance(_cur[0], list):
             return [self.shape(e) for e in _cur]
-        else:
-            return len(_cur)
+        return len(_cur)
 
     def sub_array_length(self, indexes=None, until_last_nonempty=False):
         """
@@ -166,7 +166,7 @@ class JaggedArray(object):
         a = self._store
         if len(indexes) == 0 and not until_last_nonempty:
             return len(a)
-        for i in range(0, len(indexes)):
+        for i in range(len(indexes)):
             if indexes[i] > len(a) - 1:
                 return None
             a = a[indexes[i]]
@@ -178,7 +178,7 @@ class JaggedArray(object):
                 result = curr_result
             else:
                 result = len(a)
-        except TypeError as e:
+        except TypeError:
             result = 0
         return result
 
@@ -216,9 +216,8 @@ class JaggedArray(object):
         if isinstance(_cur, list):
             if not len(_cur):
                 return True
-            return all([self.is_empty(a) for a in _cur])
-        else:
-            return not bool(_cur)
+            return all(self.is_empty(a) for a in _cur)
+        return not bool(_cur)
 
     def sections(self, _cur=None):
         """
@@ -243,8 +242,7 @@ class JaggedArray(object):
     def _ecnt(self, jta) -> int:
         if isinstance(jta, list):
             return sum([self._ecnt(i) for i in jta])
-        else:
-            return 1
+        return 1
 
     @staticmethod
     def _dfs_traverse(counts_map, starting_points=None, forward=True, depth=0):
@@ -259,44 +257,43 @@ class JaggedArray(object):
         if starting_points is None:
             starting_points = []
 
-        #at the lowest level, we will have either strings or ints indicating text existence or not.
+        # at the lowest level, we will have either strings or ints indicating text existence or not.
         if isinstance(counts_map, (int, str)):
             return bool(counts_map)
 
-        #otherwise iterate through the sections
-        else:
-            #doesn't matter if we are out of bounds (slicing returns empty arrays for illegal indices)
-            if forward:
-                #we have been told where to start looking
-                if depth < len(starting_points):
-                    begin_index = starting_points[depth]
-                    #this is in case we come back to this depth, then we want to start from 0 becasue the start point only matters for the
-                    #array element we were in to begin with
-                    starting_points[depth] = 0
-                else:
-                    begin_index = 0
-                #we are going in order, so we want the next element (we also want to preserve the original indices)
-                #TODO: this is a bit of wasted memory allocation, but have not yet found a better way
-                section_to_traverse = enumerate(counts_map[begin_index:], begin_index)
+        # otherwise iterate through the sections
+        # doesn't matter if we are out of bounds (slicing returns empty arrays for illegal indices)
+        if forward:
+            # we have been told where to start looking
+            if depth < len(starting_points):
+                begin_index = starting_points[depth]
+                # this is in case we come back to this depth, then we want to start from 0 becasue the start point only matters for the
+                # array element we were in to begin with
+                starting_points[depth] = 0
             else:
-                if depth < len(starting_points):
-                    #we want to include the element we are on when going backwards.
-                    begin_index = starting_points[depth] + 1 if starting_points[depth] is not None else None
-                    #this will make the slice go to the end.
-                    starting_points[depth] = None
-                else:
-                    begin_index = None
-                #we are going in reverse, so we want everything up to the current element.
-                #this weird hack will preserve the original numeric indices and allow reverse iterating
-                section_to_traverse = reversed(list(enumerate(counts_map[:begin_index])))
+                begin_index = 0
+            # we are going in order, so we want the next element (we also want to preserve the original indices)
+            # TODO: this is a bit of wasted memory allocation, but have not yet found a better way
+            section_to_traverse = enumerate(counts_map[begin_index:], begin_index)
+        else:
+            if depth < len(starting_points):
+                # we want to include the element we are on when going backwards.
+                begin_index = starting_points[depth] + 1 if starting_points[depth] is not None else None
+                # this will make the slice go to the end.
+                starting_points[depth] = None
+            else:
+                begin_index = None
+            # we are going in reverse, so we want everything up to the current element.
+            # this weird hack will preserve the original numeric indices and allow reverse iterating
+            section_to_traverse = reversed(list(enumerate(counts_map[:begin_index])))
 
-            for n, j in section_to_traverse:
-                result = JaggedArray._dfs_traverse(j, starting_points, forward, depth+1)
-                if result:
-                    #if we have a result, add the index location to a list that will eventually map to this section.
-                    indices = [n] + result if isinstance(result, list) else [n]
-                    return indices
-            return False
+        for n, j in section_to_traverse:
+            result = JaggedArray._dfs_traverse(j, starting_points, forward, depth + 1)
+            if result:
+                # if we have a result, add the index location to a list that will eventually map to this section.
+                indices = [n] + result if isinstance(result, list) else [n]
+                return indices
+        return False
 
     def mask(self, __curr=None):
         """
@@ -309,8 +306,7 @@ class JaggedArray(object):
             return JaggedIntArray(self.mask(self._store))
         if isinstance(__curr, list):  # on recursed calls, return array
             return [self.mask(c) for c in __curr]
-        else:
-            return 0 if not __curr else 1
+        return 0 if not __curr else 1
 
     def zero_mask(self):
         """
@@ -324,8 +320,7 @@ class JaggedArray(object):
             return JaggedIntArray(self.constant_mask(constant, self._store))
         if isinstance(__curr, list):
             return [self.constant_mask(constant, c) for c in __curr]
-        else:
-            return constant
+        return constant
 
     def get_depth(self):
         if not self._depth:
@@ -348,10 +343,9 @@ class JaggedArray(object):
             return self.depth(_cur=self._store, deep=deep)
         if not isinstance(_cur, list):
             return 0
-        elif len(_cur) > 0 and (deep or all([isinstance(y, list) for y in _cur])):
+        if len(_cur) > 0 and (deep or all(isinstance(y, list) for y in _cur)):
             return 1 + max([self.depth(y, deep=deep) for y in _cur])
-        else:
-            return 1
+        return 1
 
     # derived from TextChunk.trim_text
     def subarray_with_ref(self, ref):
@@ -377,7 +371,7 @@ class JaggedArray(object):
 
         range_index = len(start_indexes)
 
-        for i in range(0, len(start_indexes)):
+        for i in range(len(start_indexes)):
             if start_indexes[i] != end_indexes[i]:
                 range_index = i
                 break
@@ -385,7 +379,7 @@ class JaggedArray(object):
         if not start_indexes:
             pass
         else:
-            for i in range(0, len(start_indexes)):
+            for i in range(len(start_indexes)):
                 if range_index > i:  # Either not range, or range begins later.  Return simple value.
                     if isinstance(sub, list) and len(sub) > start_indexes[i]:
                         sub = sub[start_indexes[i]]
@@ -400,8 +394,8 @@ class JaggedArray(object):
                     for _ in range(range_index, i - 1):
                         begin = begin[0]
                         end = end[-1]
-                    begin[0] = begin[0][start_indexes[i]:]
-                    end[-1] = end[-1][:end_indexes[i] + 1]
+                    begin[0] = begin[0][start_indexes[i] :]
+                    end[-1] = end[-1][: end_indexes[i] + 1]
         return self.__class__(sub)
 
     def resize(self, factor):
@@ -412,10 +406,10 @@ class JaggedArray(object):
         E.g., up twice for '2', down twice for '-2'.
         """
         if factor > 0:
-            for i in range(factor):
+            for _i in range(factor):
                 self._upsize()
         elif factor < 0:
-            for i in range(abs(factor)):
+            for _i in range(abs(factor)):
                 self._downsize()
         self._reinit()
         return self
@@ -435,7 +429,7 @@ class JaggedArray(object):
                 return normalized
             return self.normalize(terminal_depth=terminal_depth, _cur=self._store)
         if depth < terminal_depth:
-            for i,elem in enumerate(_cur):
+            for i, _elem in enumerate(_cur):
                 if not isinstance(_cur[i], list):
                     if isinstance(_cur[i], str) and not len(_cur[i].strip()):
                         _cur[i] = []
@@ -444,11 +438,11 @@ class JaggedArray(object):
                             _cur[i] = [_cur[i]]
                     normalized = True
                 else:
-                    res = self.normalize(terminal_depth=terminal_depth, _cur=_cur[i], depth=depth+1)
+                    res = self.normalize(terminal_depth=terminal_depth, _cur=_cur[i], depth=depth + 1)
                     normalized = normalized or res
         return normalized
 
-    # todo: move to JaggedTextArray?
+    # TODO: move to JaggedTextArray?
     def _upsize(self, _cur=None):
         """
         Returns a jagged array for text which restructures the content of text
@@ -467,7 +461,7 @@ class JaggedArray(object):
                 new_text.append(self._upsize(segment))
         return new_text
 
-    # todo: move to JaggedTextArray?
+    # TODO: move to JaggedTextArray?
     def _downsize(self, _cur=None):
         """
         Returns a jagged array for text which restructures the content of text
@@ -487,37 +481,40 @@ class JaggedArray(object):
             # Assumes segments are of uniform type, either all strings or all lists
             if isinstance(segment, str):
                 return " ".join(_cur)
-            elif isinstance(segment, list):
+            if isinstance(segment, list):
                 new_text.append(self._downsize(segment))
         # Return which was filled in, defaulted to [] if both are empty
         return new_text
 
     def get_element(self, indx_list):
-        sa = reduce(lambda a, i: a[i],
-                    indx_list[:-1],
-                    self._store
+        sa = reduce(
+            lambda a, i: a[i],
+            indx_list[:-1],
+            self._store,
         )
         return sa[indx_list[-1]]
 
     # warning, writes!
     def set_element(self, indx_list, value, pad=None):
-        '''
+        """
         Set element at position specified by indx_list to value.
         If JA is not big enough, pad with [] at higher levels, and value of pad variable at last level.
         :param indx_list:
         :param value:
         :param pad:
         :return:
-        '''
+        """
+
         def pad_and_walk(arry, indx):
             if len(arry) <= indx:
                 for _ in range(len(arry), indx + 1):
                     arry += [[]]
             return arry[indx]
 
-        sa = reduce(pad_and_walk, #lambda a, i: a[i],
-                    indx_list[:-1],
-                    self._store
+        sa = reduce(
+            pad_and_walk,  # lambda a, i: a[i],
+            indx_list[:-1],
+            self._store,
         )
         if len(sa) <= indx_list[-1]:
             sa += [pad] * (indx_list[-1] - len(sa) + 1)
@@ -550,10 +547,10 @@ class JaggedArray(object):
             if isinstance(el, list):
                 sub_flat = self.flatten_to_array_with_indices(_cur=el)
                 for item in sub_flat:
-                    item[0] = [i+1] + item[0]
+                    item[0] = [i + 1] + item[0]
                     flat += [item]
             else:
-                flat += [[[i+1], el]]
+                flat += [[[i + 1], el]]
         return flat
 
     def last_index(self, depth):
@@ -588,7 +585,9 @@ class JaggedArray(object):
             # relative_sections is only as deep as ja. however, top-level ja could be deeper
             # use start_sections as a starting point and then update with relative_sections to get absolute section indexes
             sections = start_sections[:]
-            for rel_section_index, abs_section_index in enumerate(range(len(sections)-len(relative_sections), len(sections))):
+            for rel_section_index, abs_section_index in enumerate(
+                range(len(sections) - len(relative_sections), len(sections)),
+            ):
                 sections[abs_section_index] = relative_sections[rel_section_index]
                 if rel_section_index == 0 or relative_sections[0] == 0:
                     # first section should always be offset by start_sections. later sections should only be offset if first section is 0
@@ -609,14 +608,13 @@ class JaggedArray(object):
 
 
 class JaggedTextArray(JaggedArray):
-
     def __init__(self, ja=None):
         JaggedArray.__init__(self, ja)
         self.w_count = None
         self.c_count = None
 
     def _reinit(self):
-        super(JaggedTextArray, self)._reinit()
+        super()._reinit()
         self.w_count = None
         self.c_count = None
 
@@ -624,34 +622,32 @@ class JaggedTextArray(JaggedArray):
         return self.element_count()
 
     def word_count(self) -> int:
-        """ return word count in this JTA """
+        """return word count in this JTA"""
         if self.w_count is None:
             self.w_count = self._wcnt(self._store)
         return self.w_count if self.w_count else 0
 
     def _wcnt(self, jta) -> int:
-        """ Returns the number of words in an undecorated jagged array """
+        """Returns the number of words in an undecorated jagged array"""
         if isinstance(jta, str):
             return len(re.split(r"[\s\u05be]+", jta.strip()))
-        elif isinstance(jta, list):
+        if isinstance(jta, list):
             return sum([self._wcnt(i) for i in jta])
-        else:
-            return 0
+        return 0
 
     def char_count(self) -> int:
-        """ return character count in this JTA """
+        """return character count in this JTA"""
         if self.c_count is None:
             self.c_count = self._ccnt(self._store)
         return self.c_count if self.c_count else 0
 
     def _ccnt(self, jta) -> int:
-        """ Returns the number of characters in an undecorated jagged array """
+        """Returns the number of characters in an undecorated jagged array"""
         if isinstance(jta, str):
             return len(jta)
-        elif isinstance(jta, list):
+        if isinstance(jta, list):
             return sum([self._ccnt(i) for i in jta])
-        else:
-            return 0
+        return 0
 
     def modify_by_function(self, func, start_sections=None, _cur=None, _curSections=None):
         """
@@ -664,9 +660,12 @@ class JaggedTextArray(JaggedArray):
         if isinstance(_cur, str):
             _curSections = _curSections or [0]
             return func(_cur, self.get_offset_sections(_curSections, start_sections))
-        elif isinstance(_cur, list):
+        if isinstance(_cur, list):
             _curSections = _curSections or []
-            return [self.modify_by_function(func, start_sections, temp_curr, _curSections + [i]) for i, temp_curr in enumerate(_cur)]
+            return [
+                self.modify_by_function(func, start_sections, temp_curr, _curSections + [i])
+                for i, temp_curr in enumerate(_cur)
+            ]
 
     def flatten_to_array(self, _cur=None):
         # Flatten deep jagged array to flat array
@@ -719,7 +718,7 @@ class JaggedTextArray(JaggedArray):
             if isinstance(item, list) or (isinstance(item, str) and len(item.strip()) > 0):
                 break
             final_index -= 1
-        del curr_ja[final_index+1:]
+        del curr_ja[final_index + 1 :]
         return curr_ja
 
     def overlaps(self, other=None, _self_cur=None, _other_cur=None) -> bool:
@@ -733,10 +732,7 @@ class JaggedTextArray(JaggedArray):
             for i in range(min(len(_self_cur), len(_other_cur))):
                 if self.overlaps(_self_cur=_self_cur[i], _other_cur=_other_cur[i]):
                     return True
-        if isinstance(_self_cur, str) and isinstance(_other_cur, str):
-            if _self_cur and _other_cur:
-                return True
-        return False
+        return bool(isinstance(_self_cur, str) and isinstance(_other_cur, str) and _self_cur and _other_cur)
 
 
 class JaggedIntArray(JaggedArray):
@@ -767,9 +763,9 @@ class JaggedIntArray(JaggedArray):
         # Treat the int as an empty list.
         # Needed e.g, when a whole chapter is missing appears as 0
         if isinstance(a, int) and isinstance(b, list):
-            return JaggedIntArray._add([],b)
+            return JaggedIntArray._add([], b)
         if isinstance(b, int) and isinstance(a, list):
-            return JaggedIntArray._add(a,[])
+            return JaggedIntArray._add(a, [])
 
         # If both are ints, return the sum
         if isinstance(a, int) and isinstance(b, int):
@@ -793,13 +789,11 @@ class JaggedIntArray(JaggedArray):
         if depth == 0:
             if isinstance(curr, int):
                 return min(curr, 1)
-            else:
-                sum = 0
-                for i in range(len(curr)):
-                    sum += min(JaggedIntArray._depth_sum(curr[i], 0), 1)
-                return sum
-        else:
             sum = 0
             for i in range(len(curr)):
-                sum += JaggedIntArray._depth_sum(curr[i], depth - 1)
+                sum += min(JaggedIntArray._depth_sum(curr[i], 0), 1)
             return sum
+        sum = 0
+        for i in range(len(curr)):
+            sum += JaggedIntArray._depth_sum(curr[i], depth - 1)
+        return sum

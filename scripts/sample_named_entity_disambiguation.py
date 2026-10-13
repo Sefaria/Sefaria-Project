@@ -20,25 +20,26 @@ Usage:
 
 import argparse
 import csv
-import json
+import os
 import random
 import sys
 
 from tqdm import tqdm
 
-import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
 
 import django
+
 django.setup()
 
-from sefaria.model import *
-from sefaria.system.database import db
-from sefaria.helper.normalization import NormalizerComposer
 from rapidfuzz import process as fuzz_process
 from rapidfuzz.distance import Levenshtein
 
-_he_normalizer = NormalizerComposer(['unidecode', 'fn-marker', 'html', 'double-space', 'maqaf', 'cantillation'])
+from sefaria.helper.normalization import NormalizerComposer
+from sefaria.model import *
+from sefaria.system.database import db
+
+_he_normalizer = NormalizerComposer(["unidecode", "fn-marker", "html", "double-space", "maqaf", "cantillation"])
 
 CONTEXT_WORDS = 200  # words before/after the mention to include as context
 
@@ -46,6 +47,7 @@ CONTEXT_WORDS = 200  # words before/after the mention to include as context
 # ---------------------------------------------------------------------------
 # Topic index
 # ---------------------------------------------------------------------------
+
 
 def _primary_he_title(titles: list) -> str:
     for t in titles:
@@ -105,6 +107,7 @@ def build_topic_index():
 # Text index + retrieval
 # ---------------------------------------------------------------------------
 
+
 def load_text_index() -> dict[tuple[str, str, str], str]:
     """Map (tref, version_title, language) → segment text for all Hebrew versions."""
     index: dict[tuple[str, str, str], str] = {}
@@ -113,14 +116,22 @@ def load_text_index() -> dict[tuple[str, str, str], str]:
         if isinstance(text, str) and text:
             index[(tref, version.versionTitle, version.language)] = text
 
-    for version in tqdm(VersionSet({"language": "he"}), desc="versions", unit="version",
-                        total=db.texts.count_documents({"language": "he"})):
+    for version in tqdm(
+        VersionSet({"language": "he"}),
+        desc="versions",
+        unit="version",
+        total=db.texts.count_documents({"language": "he"}),
+    ):
         version.walk_thru_contents(_store)
     return index
 
 
-def _get_segment_text(ref: str, version_title: str, language: str,
-                      text_index: dict[tuple[str, str, str], str]) -> str | None:
+def _get_segment_text(
+    ref: str,
+    version_title: str,
+    language: str,
+    text_index: dict[tuple[str, str, str], str],
+) -> str | None:
     return text_index.get((ref, version_title, language))
 
 
@@ -138,7 +149,14 @@ def _build_context(raw_text: str, char_start: int, char_end: int, mention_text: 
 # Levenshtein nearest neighbours
 # ---------------------------------------------------------------------------
 
-def find_nearest_topics(mention_text: str, all_titles: list, title_strings: list, slug_to_meta: dict, top_n: int = 3) -> list:
+
+def find_nearest_topics(
+    mention_text: str,
+    all_titles: list,
+    title_strings: list,
+    slug_to_meta: dict,
+    top_n: int = 3,
+) -> list:
     raw_results = fuzz_process.extract(
         mention_text,
         title_strings,
@@ -148,7 +166,7 @@ def find_nearest_topics(mention_text: str, all_titles: list, title_strings: list
     )
 
     seen_slugs = {}
-    for matched_title, score, idx in raw_results:
+    for matched_title, _score, idx in raw_results:
         _, slug = all_titles[idx]
         dist = Levenshtein.distance(mention_text, matched_title)
         if slug not in seen_slugs or dist < seen_slugs[slug]["levenshtein_distance"]:
@@ -171,6 +189,7 @@ def find_nearest_topics(mention_text: str, all_titles: list, title_strings: list
 # Sampling
 # ---------------------------------------------------------------------------
 
+
 def _query_docs(status: str, sample_size: int | None):
     """Return linker_output docs containing named-entity spans of the requested status."""
     if status == "succeeded":
@@ -180,10 +199,12 @@ def _query_docs(status: str, sample_size: int | None):
     elif status == "failed":
         ne = {"type": "named-entity", "failed": True}
     elif status == "no-failed":
-        ne = {"$or": [
-            {"type": "named-entity", "failed": False, "ambiguous": False},
-            {"type": "named-entity", "ambiguous": True, "failed": False},
-        ]}
+        ne = {
+            "$or": [
+                {"type": "named-entity", "failed": False, "ambiguous": False},
+                {"type": "named-entity", "ambiguous": True, "failed": False},
+            ],
+        }
     else:  # all
         ne = {"type": "named-entity"}
 
@@ -210,6 +231,7 @@ def _group_ne_spans_by_char_range(spans: list) -> dict:
 # In-memory indexes
 # ---------------------------------------------------------------------------
 
+
 def load_passage_index() -> dict[str, list[str]]:
     """Map each segment ref → its passage's ref_list (first match wins)."""
     index: dict[str, list[str]] = {}
@@ -224,8 +246,11 @@ def load_passage_index() -> dict[str, list[str]]:
 def load_intra_topic_index() -> dict[str, set[str]]:
     """Map each slug → set of slugs it is linked to (in either direction)."""
     index: dict[str, set[str]] = {}
-    for doc in tqdm(db.topic_links.find({"class": "intraTopic"}, {"fromTopic": 1, "toTopic": 1}),
-                    desc="intra-topic links", unit="link"):
+    for doc in tqdm(
+        db.topic_links.find({"class": "intraTopic"}, {"fromTopic": 1, "toTopic": 1}),
+        desc="intra-topic links",
+        unit="link",
+    ):
         a, b = doc.get("fromTopic"), doc.get("toTopic")
         if a and b:
             index.setdefault(a, set()).add(b)
@@ -236,6 +261,7 @@ def load_intra_topic_index() -> dict[str, set[str]]:
 # ---------------------------------------------------------------------------
 # Passage co-occurrence lookup
 # ---------------------------------------------------------------------------
+
 
 def _passage_topics(context_ref: str, passage_index: dict[str, list[str]]) -> set[str]:
     """
@@ -251,8 +277,11 @@ def _passage_topics(context_ref: str, passage_index: dict[str, list[str]]) -> se
     return slugs
 
 
-def _topics_linked_to_candidate(candidate_slug: str, passage_topics: set[str],
-                                 intra_index: dict[str, set[str]]) -> list[str]:
+def _topics_linked_to_candidate(
+    candidate_slug: str,
+    passage_topics: set[str],
+    intra_index: dict[str, set[str]],
+) -> list[str]:
     """
     Among the topics present in the passage, return those linked to candidate_slug.
     """
@@ -266,8 +295,17 @@ def _topics_linked_to_candidate(candidate_slug: str, passage_topics: set[str],
 # Main record builder
 # ---------------------------------------------------------------------------
 
-def generate_records(docs, slug_to_meta: dict, all_titles: list, title_strings: list, status_filter: str,
-                     passage_index: dict, intra_index: dict, text_index: dict):
+
+def generate_records(
+    docs,
+    slug_to_meta: dict,
+    all_titles: list,
+    title_strings: list,
+    status_filter: str,
+    passage_index: dict,
+    intra_index: dict,
+    text_index: dict,
+):
     """Generator — yields one record dict at a time to avoid holding all records in RAM."""
     for doc in tqdm(docs, desc="building records", unit="doc"):
         ref = doc["ref"]
@@ -300,12 +338,14 @@ def generate_records(docs, slug_to_meta: dict, all_titles: list, title_strings: 
                 if not slug:
                     continue
                 meta = slug_to_meta.get(slug, {})
-                candidates = [{
-                    "slug": slug,
-                    "primary_title": meta.get("primary_title", ""),
-                    "disambiguation": meta.get("disambiguation"),
-                    "cooccurring_topics": _topics_linked_to_candidate(slug, passage_topics, intra_index),
-                }]
+                candidates = [
+                    {
+                        "slug": slug,
+                        "primary_title": meta.get("primary_title", ""),
+                        "disambiguation": meta.get("disambiguation"),
+                        "cooccurring_topics": _topics_linked_to_candidate(slug, passage_topics, intra_index),
+                    },
+                ]
                 record_status = "succeeded"
             elif is_ambiguous:
                 candidates = []
@@ -315,12 +355,14 @@ def generate_records(docs, slug_to_meta: dict, all_titles: list, title_strings: 
                     if slug and slug not in seen:
                         seen.add(slug)
                         meta = slug_to_meta.get(slug, {})
-                        candidates.append({
-                            "slug": slug,
-                            "primary_title": meta.get("primary_title", ""),
-                            "disambiguation": meta.get("disambiguation"),
-                            "cooccurring_topics": _topics_linked_to_candidate(slug, passage_topics, intra_index),
-                        })
+                        candidates.append(
+                            {
+                                "slug": slug,
+                                "primary_title": meta.get("primary_title", ""),
+                                "disambiguation": meta.get("disambiguation"),
+                                "cooccurring_topics": _topics_linked_to_candidate(slug, passage_topics, intra_index),
+                            },
+                        )
                 record_status = "ambiguous"
             else:
                 candidates = find_nearest_topics(mention_text, all_titles, title_strings, slug_to_meta)
@@ -344,22 +386,33 @@ def generate_records(docs, slug_to_meta: dict, all_titles: list, title_strings: 
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--sample-size", type=int, default=300,
-                        help="Number of linker_output documents to sample (default: 300)")
-    parser.add_argument("--all", action="store_true",
-                        help="Run on the entire linker_output collection instead of sampling")
-    parser.add_argument("--status", choices=["all", "succeeded", "ambiguous", "failed", "no-failed"],
-                        default="all",
-                        help="Which mention types to include (default: all). "
-                             "'no-failed' includes succeeded + ambiguous.")
-    parser.add_argument("--exclude-failed", action="store_true",
-                        help="Exclude failed (unresolved) spans; equivalent to --status no-failed")
-    parser.add_argument("--output", default=None,
-                        help="Output CSV file path (default: stdout)")
-    parser.add_argument("--seed", type=int, default=None,
-                        help="Random seed for reproducibility")
+    parser.add_argument(
+        "--sample-size",
+        type=int,
+        default=300,
+        help="Number of linker_output documents to sample (default: 300)",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Run on the entire linker_output collection instead of sampling",
+    )
+    parser.add_argument(
+        "--status",
+        choices=["all", "succeeded", "ambiguous", "failed", "no-failed"],
+        default="all",
+        help="Which mention types to include (default: all). 'no-failed' includes succeeded + ambiguous.",
+    )
+    parser.add_argument(
+        "--exclude-failed",
+        action="store_true",
+        help="Exclude failed (unresolved) spans; equivalent to --status no-failed",
+    )
+    parser.add_argument("--output", default=None, help="Output CSV file path (default: stdout)")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducibility")
     return parser.parse_args()
 
 
@@ -383,11 +436,19 @@ def main():
     docs = _query_docs(args.status, sample_size)
 
     CSV_FIELDS = [
-        "ref", "version_title", "language",
-        "mention_text", "char_range_start", "char_range_end",
-        "context", "status",
-        "candidate_slugs", "candidate_primary_titles",
-        "candidate_disambiguations", "matched_titles", "levenshtein_distances",
+        "ref",
+        "version_title",
+        "language",
+        "mention_text",
+        "char_range_start",
+        "char_range_end",
+        "context",
+        "status",
+        "candidate_slugs",
+        "candidate_primary_titles",
+        "candidate_disambiguations",
+        "matched_titles",
+        "levenshtein_distances",
         "candidate_cooccurring_topics",
     ]
 
@@ -396,26 +457,37 @@ def main():
         writer = csv.DictWriter(out, fieldnames=CSV_FIELDS)
         writer.writeheader()
         row_count = 0
-        for rec in generate_records(docs, slug_to_meta, all_titles, title_strings, status_filter, passage_index, intra_index, text_index):
+        for rec in generate_records(
+            docs,
+            slug_to_meta,
+            all_titles,
+            title_strings,
+            status_filter,
+            passage_index,
+            intra_index,
+            text_index,
+        ):
             cands = rec["candidates"]
-            writer.writerow({
-                "ref": rec["ref"],
-                "version_title": rec["version_title"],
-                "language": rec["language"],
-                "mention_text": rec["mention_text"],
-                "char_range_start": rec["char_range"][0],
-                "char_range_end": rec["char_range"][1],
-                "context": rec["context"] or "",
-                "status": rec["status"],
-                "candidate_slugs": "|".join(c["slug"] for c in cands),
-                "candidate_primary_titles": "|".join(c.get("primary_title", "") for c in cands),
-                "candidate_disambiguations": "|".join(c.get("disambiguation") or "" for c in cands),
-                "matched_titles": "|".join(c.get("matched_title", "") for c in cands),
-                "levenshtein_distances": "|".join(str(c["levenshtein_distance"]) if "levenshtein_distance" in c else "" for c in cands),
-                "candidate_cooccurring_topics": "|".join(
-                    ",".join(c.get("cooccurring_topics", [])) for c in cands
-                ),
-            })
+            writer.writerow(
+                {
+                    "ref": rec["ref"],
+                    "version_title": rec["version_title"],
+                    "language": rec["language"],
+                    "mention_text": rec["mention_text"],
+                    "char_range_start": rec["char_range"][0],
+                    "char_range_end": rec["char_range"][1],
+                    "context": rec["context"] or "",
+                    "status": rec["status"],
+                    "candidate_slugs": "|".join(c["slug"] for c in cands),
+                    "candidate_primary_titles": "|".join(c.get("primary_title", "") for c in cands),
+                    "candidate_disambiguations": "|".join(c.get("disambiguation") or "" for c in cands),
+                    "matched_titles": "|".join(c.get("matched_title", "") for c in cands),
+                    "levenshtein_distances": "|".join(
+                        str(c["levenshtein_distance"]) if "levenshtein_distance" in c else "" for c in cands
+                    ),
+                    "candidate_cooccurring_topics": "|".join(",".join(c.get("cooccurring_topics", [])) for c in cands),
+                },
+            )
             row_count += 1
     finally:
         if args.output:

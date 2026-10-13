@@ -1,12 +1,13 @@
-from django.db import models
 from datetime import datetime
+
+from django.db import models
 from django.utils.timezone import now
-from django_topics.models import Topic
+
+from django_topics.models.topic import Topic
 
 
 class FeaturedTopicManager(models.Manager):
-
-    def get_featured_topic(self, lang: str, date: datetime = None) -> 'TopicOfTheDay':
+    def get_featured_topic(self, lang: str, date: datetime = None) -> "TopicOfTheDay":
         """
         Return featured topic for given date or closest date that is less than or equal to given date
         @param lang: language code, "en" or "he"
@@ -14,25 +15,21 @@ class FeaturedTopicManager(models.Manager):
         @return:
         """
         date = date or now().date()
-        return (
-            self.filter(start_date__lte=date, lang=lang)
-            .order_by('-start_date')
-            .first()
-        )
+        return self.filter(start_date__lte=date, lang=lang).order_by("-start_date").first()
 
 
 class TopicOfTheDay(models.Model):
     topic = models.ForeignKey(
         Topic,
         on_delete=models.CASCADE,
-        related_name='topic_of_the_day'
+        related_name="topic_of_the_day",
     )
     start_date = models.DateField()
-    lang = models.CharField(max_length=2, choices=[('en', 'English'), ('he', 'Hebrew')])
+    lang = models.CharField(max_length=2, choices=[("en", "English"), ("he", "Hebrew")])
     objects = FeaturedTopicManager()
 
     class Meta:
-        unique_together = ('topic', 'start_date', 'lang')
+        unique_together = ("topic", "start_date", "lang")
         verbose_name = "Landing Page - Featured Topic"
         verbose_name_plural = "Landing Page - Featured Topic"
 

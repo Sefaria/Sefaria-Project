@@ -1,9 +1,11 @@
 # Varnish wrapper that does not depend on core code.  Used for the multiserver monitor.
 
-from .common import ban_url, purge_url, FRONT_END_URL
+import structlog
+
 from sefaria.utils.util import graceful_exception
 
-import structlog
+from .common import FRONT_END_URL, ban_url, purge_url
+
 logger = structlog.get_logger(__name__)
 
 
@@ -12,16 +14,16 @@ def invalidate_title(title):
     title = title.replace(" ", "_").replace(":", ".")
 
     # Parallel to sefaria.system.varnish.wrapper.invalidate_index()
-    purge_url("{}/api/index/{}".format(FRONT_END_URL, title))
-    purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, title))
-    purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, title))
-    purge_url("{}/api/v2/index/{}?with_content_counts=1".format(FRONT_END_URL, title))
+    purge_url(f"{FRONT_END_URL}/api/index/{title}")
+    purge_url(f"{FRONT_END_URL}/api/v2/raw/index/{title}")
+    purge_url(f"{FRONT_END_URL}/api/v2/index/{title}")
+    purge_url(f"{FRONT_END_URL}/api/v2/index/{title}?with_content_counts=1")
 
     # Parallel to sefaria.system.varnish.wrapper.invalidate_counts()
-    purge_url("{}/api/preview/{}".format(FRONT_END_URL, title))
-    purge_url("{}/api/counts/{}".format(FRONT_END_URL, title))
-    purge_url("{}/api/v2/index/{}?with_content_counts=1".format(FRONT_END_URL, title))
+    purge_url(f"{FRONT_END_URL}/api/preview/{title}")
+    purge_url(f"{FRONT_END_URL}/api/counts/{title}")
+    purge_url(f"{FRONT_END_URL}/api/v2/index/{title}?with_content_counts=1")
 
     # Parallel to base of sefaria.system.varnish.wrapper.invalidate_title()
-    ban_url("/api/texts/{}".format(title))
-    ban_url("/api/links/{}".format(title))
+    ban_url(f"/api/texts/{title}")
+    ban_url(f"/api/links/{title}")

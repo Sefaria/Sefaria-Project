@@ -1,46 +1,69 @@
-# -*- coding: utf-8 -*-
 """
 text.py
 """
 
-import time
-import structlog
 import dataclasses
-from sefaria.system.progress_context import report_progress
-from functools import reduce, partial
-from typing import Optional, Union
+import time
+from functools import partial, reduce
+
+import structlog
 
 from remote_config.keys import REF_CACHE_LIMIT_KEY
+from sefaria.system.progress_context import report_progress
+
 logger = structlog.get_logger(__name__)
 
-import sys
-import regex
 import copy
-import bleach
-import json
 import itertools
-from collections import defaultdict, OrderedDict
-from bs4 import BeautifulSoup, Tag
+import json
+import sys
+from collections import OrderedDict, defaultdict
+
+import bleach
 import re2 as re
-from . import abstract as abst
-from django_topics.models.topic import Topic as DjangoTopic
-from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
-from sefaria.system.database import db
+import regex
+from bs4 import BeautifulSoup
 
 import sefaria.system.cache as scache
+from sefaria.helper.skip_tracking import bad_record_guard, log_skip
 from sefaria.system.cache import in_memory_cache
-from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
-    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
-from sefaria.helper.skip_tracking import log_skip, bad_record_guard
+from sefaria.system.database import db
+from sefaria.system.exceptions import (
+    BookNameError,
+    ComplexBookLevelRefError,
+    IndexSchemaError,
+    InputError,
+    MissingKeyError,
+    NoVersionFoundError,
+    PartialRefInputError,
+)
+
+from . import abstract as abst
+from .schema import (
+    AddressTalmud,
+    AddressType,
+    AltStructNode,
+    DictionaryEntryNode,
+    JaggedArrayNode,
+    SheetNode,
+    Term,
+    TermSet,
+    TitledTreeNode,
+    VirtualNode,
+    deserialize_tree,
+)
+
 skip_bad_record = bad_record_guard(logger)
-from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
-from sefaria.utils.util import list_depth, truncate_string
-from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
-from sefaria.system.multiserver.coordinator import server_coordinator
-from sefaria.constants import model as constants
-from sefaria.helper.normalization import NormalizerFactory
+import contextlib
+
 from remote_config import remoteConfigCache
+from sefaria.constants import model as constants
+from sefaria.datatype.jagged_array import JaggedArray, JaggedTextArray
+from sefaria.helper.normalization import NormalizerFactory
+from sefaria.settings import DISABLE_AUTOCOMPLETER, DISABLE_INDEX_SAVE, MULTISERVER_ENABLED, USE_VARNISH
+from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.utils.hebrew import has_hebrew, hebrew_term, is_all_hebrew
+from sefaria.utils.util import list_depth, truncate_string
 
 """
                 ----------------------------------
@@ -49,7 +72,7 @@ from remote_config import remoteConfigCache
 """
 
 
-class AbstractIndex(object):
+class AbstractIndex:
     def contents(self, raw=False, **kwargs):
         pass
 
@@ -58,6 +81,7 @@ class AbstractIndex(object):
 
     def versionState(self):
         from . import version_state
+
         return version_state.VersionState(self.title)
 
     def is_new_style(self):
@@ -70,13 +94,15 @@ class AbstractIndex(object):
         return self.nodes.primary_title(lang)
 
     def set_title(self, title, lang="en"):
-        if getattr(self, 'nodes', None) is None:
+        if getattr(self, "nodes", None) is None:
             if lang == "en":
                 self._title = title
             return
 
         if lang == "en":
-            self._title = title  # we need to store the title attr in a physical storage, note that .title is a virtual property
+            self._title = (
+                title  # we need to store the title attr in a physical storage, note that .title is a virtual property
+            )
             self.nodes.key = title
 
         old_primary = self.nodes.primary_title(lang)
@@ -95,18 +121,26 @@ class AbstractIndex(object):
                 state_ja = vs.state_node(c).ja("all")
                 for indxs in state_ja.non_empty_sections():
                     sections = [a + 1 for a in indxs]
-                    refs += [Ref(
-                        _obj={
-                            "index": vs.index,
-                            "book": vs.index.nodes.full_title("en"),
-                            "primary_category": vs.index.get_primary_category(),
-                            "index_node": c,
-                            "sections": sections,
-                            "toSections": sections
-                        }
-                    )]
+                    refs += [
+                        Ref(
+                            _obj={
+                                "index": vs.index,
+                                "book": vs.index.nodes.full_title("en"),
+                                "primary_category": vs.index.get_primary_category(),
+                                "index_node": c,
+                                "sections": sections,
+                                "toSections": sections,
+                            },
+                        ),
+                    ]
             except Exception as e:
-                logger.warning("Failed to generate references for {}, section {}. {}".format(c.full_title("en"), ".".join([str(s) for s in sections]) if sections else "-", str(e)))
+                logger.warning(
+                    "Failed to generate references for {}, section {}. {}".format(
+                        c.full_title("en"),
+                        ".".join([str(s) for s in sections]) if sections else "-",
+                        str(e),
+                    ),
+                )
         return refs
 
     def all_segment_refs(self):
@@ -122,13 +156,14 @@ class AbstractIndex(object):
         refs = []
         for oref in section_refs:
             top_ref = oref.top_section_ref()
-            if not top_ref.normal() in tally:
+            if top_ref.normal() not in tally:
                 tally[top_ref.normal()] = 1
                 refs.append(top_ref)
         return refs
 
     def author_objects(self):
         from . import topic
+
         return [topic.Topic.init(slug) for slug in getattr(self, "authors", []) if topic.Topic.init(slug)]
 
     def composition_time_period(self):
@@ -149,7 +184,7 @@ class AbstractIndex(object):
         from version_state.
         """
         contents = self.contents()
-        vstate   = self.versionState()
+        vstate = self.versionState()
 
         def simplify_version_state(vstate_node):
             return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
@@ -159,8 +194,7 @@ class AbstractIndex(object):
             (by throwing out the number of versions of each segment)"""
             if len(available) == 0 or type(available[0]) is int:
                 return len(available)
-            else:
-                return [aggregate_available_texts(x) for x in available]
+            return [aggregate_available_texts(x) for x in available]
 
         def annotate_schema(schema, vstate):
             if "nodes" in schema:
@@ -188,55 +222,56 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     There is an Index object for every text.
 
     """
-    collection = 'index'
-    history_noun = 'index'
-    criteria_field = 'title'
-    criteria_override_field = 'oldTitle'  # used when primary attribute changes. field that holds old value.
+
+    collection = "index"
+    history_noun = "index"
+    criteria_field = "title"
+    criteria_override_field = "oldTitle"  # used when primary attribute changes. field that holds old value.
     track_pkeys = True
     pkeys = ["title", "compPlace", "pubPlace"]
 
     required_attrs = [
         "title",
-        "categories"
+        "categories",
     ]
     optional_attrs = [
-        "schema",             # required for new style
-        "alt_structs",        # optional for new style
-        "default_struct",     # optional for new style
-        "exclude_structs",    # optional, specifies which structs the client should ignore when displaying navigation ToCs
-        "order",              # optional for old style and new
+        "schema",  # required for new style
+        "alt_structs",  # optional for new style
+        "default_struct",  # optional for new style
+        "exclude_structs",  # optional, specifies which structs the client should ignore when displaying navigation ToCs
+        "order",  # optional for old style and new
         "authors",
         "enDesc",
         "heDesc",
         "enShortDesc",
         "heShortDesc",
         "pubDate",
-        "hasErrorMargin",     # (bool) whether or not compDate is exact.  used to be 'errorMargin' which was an integer amount that compDate was off by
+        "hasErrorMargin",  # (bool) whether or not compDate is exact.  used to be 'errorMargin' which was an integer amount that compDate was off by
         "compDate",
         "compPlace",
         "pubPlace",
         "era",
-        "dependence",           # (str) Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
-        "base_text_titles",     # (list) the base book(s) this one is dependant on
-        "base_text_mapping",    # (str) string that matches a key in sefaria.helper.link.AutoLinkerFactory._class_map
-        "collective_title",     # (str) string value for a group of index records - the former commentator name. Requires a matching term.
-        "is_cited",             # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
-        "lexiconName",          # (str) For dictionaries - the name used in the Lexicon collection
-        "dedication",           # (dict) Dedication texts, keyed by language
-        "hidden",               # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
-        "corpora",              # (list[str]) List of corpora that this index is included in. Currently these are just strings without validation. First element is used to group texts for determining version preference within a corpus.
+        "dependence",  # (str) Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
+        "base_text_titles",  # (list) the base book(s) this one is dependant on
+        "base_text_mapping",  # (str) string that matches a key in sefaria.helper.link.AutoLinkerFactory._class_map
+        "collective_title",  # (str) string value for a group of index records - the former commentator name. Requires a matching term.
+        "is_cited",  # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
+        "lexiconName",  # (str) For dictionaries - the name used in the Lexicon collection
+        "dedication",  # (dict) Dedication texts, keyed by language
+        "hidden",  # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
+        "corpora",  # (list[str]) List of corpora that this index is included in. Currently these are just strings without validation. First element is used to group texts for determining version preference within a corpus.
     ]
 
     def __str__(self):
-        return "Index: {}".format(self.title)
+        return f"Index: {self.title}"
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return "{}().load({{'title': '{}'}})".format(self.__class__.__name__, self.title)
+        return f"{self.__class__.__name__}().load({{'title': '{self.title}'}})"
 
     def save(self, override_dependencies=False):
         if DISABLE_INDEX_SAVE:
             raise InputError("Index saving has been disabled on this system.")
-        return super(Index, self).save(override_dependencies=override_dependencies)
+        return super().save(override_dependencies=override_dependencies)
 
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):
@@ -259,7 +294,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def contents(self, raw=False, with_content_counts=False, with_related_topics=False, **kwargs):
         if raw:
-            contents = super(Index, self).contents()
+            contents = super().contents()
         else:
             # adds a set of legacy fields like 'titleVariants', expands alt structures with preview, etc.
             contents = self.nodes.as_index_contents()
@@ -269,7 +304,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
             contents = self.expand_metadata_on_contents(contents)
         return contents
-
 
     def annotate_schema_with_content_counts(self, schema):
         """
@@ -286,8 +320,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             (by throwing out the number of versions of each segment)"""
             if len(available) == 0 or type(available[0]) is int:
                 return len(available)
-            else:
-                return [aggregate_available_texts(x) for x in available]
+            return [aggregate_available_texts(x) for x in available]
 
         def annotate_schema(schema, vstate):
             if "nodes" in schema:
@@ -309,29 +342,34 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         authors = self.author_objects()
         if len(authors):
-            contents["authors"] = [{"en": author.get_primary_title("en"), "he": author.get_primary_title("he"), "slug": author.slug} for author in authors]
+            contents["authors"] = [
+                {"en": author.get_primary_title("en"), "he": author.get_primary_title("he"), "slug": author.slug}
+                for author in authors
+            ]
 
         if getattr(self, "collective_title", None):
             contents["collective_title"] = {"en": self.collective_title, "he": hebrew_term(self.collective_title)}
 
         if getattr(self, "base_text_titles", None):
-            contents["base_text_titles"] = [{"en": btitle, "he": hebrew_term(btitle)} for btitle in self.base_text_titles]
+            contents["base_text_titles"] = [
+                {"en": btitle, "he": hebrew_term(btitle)} for btitle in self.base_text_titles
+            ]
 
         contents["heCategories"] = list(map(hebrew_term, self.categories))
         contents = self.time_period_and_place_contents(contents)
         return contents
 
     def time_period_and_place_contents(self, contents):
-        """ Used to expand contents for date and time info """
+        """Used to expand contents for date and time info"""
         for k, f in [("compDateString", self.composition_time_period), ("pubDateString", self.publication_time_period)]:
             time_period = f()
             if time_period:
-                contents[k] = {"en": time_period.period_string('en'), 'he': time_period.period_string('he')}
+                contents[k] = {"en": time_period.period_string("en"), "he": time_period.period_string("he")}
 
         for k, f in [("compPlaceString", self.composition_place), ("pubPlaceString", self.publication_place)]:
             place = f()
             if place:
-                contents[k] = {"en": place.primary_name('en'), 'he': place.primary_name('he')}
+                contents[k] = {"en": place.primary_name("en"), "he": place.primary_name("he")}
         return contents
 
     def _saveable_attrs(self):
@@ -348,22 +386,22 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def versions_are_sparse(self):
         """
-            This function is just a convenience function!
-            It's left as legacy code to estimate completion on a sparse text.
-            Do not write code that depends on it.
+        This function is just a convenience function!
+        It's left as legacy code to estimate completion on a sparse text.
+        Do not write code that depends on it.
         """
-        return getattr(self, 'base_text_mapping', None) == 'many_to_one'
+        return getattr(self, "base_text_mapping", None) == "many_to_one"
 
     def is_dependant_text(self):
-        return getattr(self, 'dependence', None) is not None
+        return getattr(self, "dependence", None) is not None
 
     def all_titles(self, lang):
         if self.nodes:
             return self.nodes.all_tree_titles(lang)
-        else:
-            return None
+        return None
 
-    '''         Alternate Title Structures          '''
+    """         Alternate Title Structures          """
+
     def set_alt_structure(self, name, struct_obj):
         """
         :param name: String
@@ -385,17 +423,17 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def has_alt_structures(self):
         return bool(self.struct_objs)
 
-    #These next 3 functions parallel functions on Library, but are simpler.  Refactor?
+    # These next 3 functions parallel functions on Library, but are simpler.  Refactor?
     def alt_titles_dict(self, lang):
         title_dict = {}
-        for key, tree in list(self.get_alt_structures().items()):
+        for _key, tree in list(self.get_alt_structures().items()):
             title_dict.update(tree.title_dict(lang))
         return title_dict
 
     def alt_titles_regex(self, lang):
         full_title_list = list(self.alt_titles_dict(lang).keys())
         alt_titles = list(map(re.escape, full_title_list))
-        reg = '(?P<title>' + '|'.join(sorted(alt_titles, key=len, reverse=True)) + r')($|[:., ]+)'
+        reg = "(?P<title>" + "|".join(sorted(alt_titles, key=len, reverse=True)) + r")($|[:., ]+)"
         # increase max memory b/c re2 is RAM limited and the titles regex exceeds this limit
         options = re.Options()
         options.max_mem = 384 * 1024 * 1024
@@ -434,7 +472,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         # Set up empty Array that mirrors text structure
         alts_ja = JaggedArray()
-        for key, struct in self.get_alt_structures().items():
+        for _key, struct in self.get_alt_structures().items():
             # Assuming these are in order, continue if it is before ours, break if we see one after
             for n in struct.get_leaf_nodes():
                 wholeRef = Ref(n.wholeRef).default_child_ref().as_ranged_segment_ref()
@@ -448,10 +486,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 if oref.contains(wholeRefStart) and not wholeRefStart.contains(oref):
                     indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
                     val = {"en": [], "he": []}
-                    try:
+                    with contextlib.suppress(IndexError):
                         val = alts_ja.get_element(indxs) or val
-                    except IndexError:
-                        pass
                     val["en"] += [n.primary_title("en")]
                     val["he"] += [n.primary_title("he")]
                     val["whole"] = True
@@ -467,10 +503,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                         if oref.contains(subRefStart) and not subRefStart.contains(oref):
                             indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
                             val = {"en": [], "he": []}
-                            try:
+                            with contextlib.suppress(IndexError):
                                 val = alts_ja.get_element(indxs) or val
-                            except IndexError:
-                                pass
                             val["en"] += [n.sectionString([i + 1], "en", title=False)]
                             val["he"] += [n.sectionString([i + 1], "he", title=False)]
                             alts_ja.set_element(indxs, val)
@@ -481,12 +515,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def composition_place(self):
         from . import place
+
         if getattr(self, "compPlace", None) is None:
             return None
         return place.Place().load({"key": self.compPlace})
 
     def publication_place(self):
         from . import place
+
         if getattr(self, "pubPlace", None) is None:
             return None
         return place.Place().load({"key": self.pubPlace})
@@ -503,19 +539,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :return: TimePeriod: First tries to return `compDate`.
         If no compDate or compDate is an empty list, _get_time_period returns None and it then looks at author info
         """
-        compDatePeriod = self._get_time_period('compDate', margin_field="hasErrorMargin")
+        compDatePeriod = self._get_time_period("compDate", margin_field="hasErrorMargin")
         if compDatePeriod:
             return compDatePeriod
-        else:
-            author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
-            tp = author and author.most_accurate_time_period()
-            return tp
+        author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
+        tp = author and author.most_accurate_time_period()
+        return tp
 
     def _get_time_period(self, date_field, margin_field=""):
         """
         Assumes that value of `date_field` ('pubDate' or 'compDate') is a list of integers.
         """
         from . import timeperiod
+
         years = getattr(self, date_field, [])
         if years is None or len(years) == 0:
             return None
@@ -528,16 +564,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             start, end = years
         else:
             start = end = years[0]
-        return timeperiod.TimePeriod({
-        "start": start,
-        "startIsApprox": startIsApprox,
-        "end": end,
-        "endIsApprox": endIsApprox
-    })
+        return timeperiod.TimePeriod(
+            {
+                "start": start,
+                "startIsApprox": startIsApprox,
+                "end": end,
+                "endIsApprox": endIsApprox,
+            },
+        )
 
     # Index changes behavior of load_from_dict, so this circumvents that changed behavior to call load_from_dict on the abstract superclass
     def update_from_dict(self, d):
-        return super(Index, self).load_from_dict(d, is_init=False)
+        return super().load_from_dict(d, is_init=False)
 
     def load_from_dict(self, d, is_init=False):
         if d:
@@ -570,7 +608,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                         else:
                             node.addressTypes = ["Integer" for _ in range(node.depth)]
 
-                #Build titles
+                # Build titles
                 node.add_title(d["title"], "en", True)
 
                 tv = d.pop("titleVariants", None)
@@ -590,12 +628,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
                 d["schema"] = node.serialize()
 
-            # todo: should this functionality be on load()?
+            # TODO: should this functionality be on load()?
             if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
                 self.load({"title": d["oldTitle"]})
                 # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
-        return super(Index, self).load_from_dict(d, is_init)
-
+        return super().load_from_dict(d, is_init)
 
     @staticmethod
     def get_title_quotations_variants(title):
@@ -607,10 +644,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :return: list
         """
         titles = []
-        quotes = ['"', '״', '”']
+        quotes = ['"', "״", "”"]
         found_quotes = [quote for quote in quotes if quote in title]
         for found_quote_char in found_quotes:
-            titles += [title.replace(found_quote_char, quote_char) for quote_char in quotes if quote_char != found_quote_char]
+            titles += [
+                title.replace(found_quote_char, quote_char) for quote_char in quotes if quote_char != found_quote_char
+            ]
         return titles
 
     def normalize_titles_with_quotations(self):
@@ -620,32 +659,32 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         # 2. all primary titles will not have gershayim or fancy quotes, but only have regular quotes or none at all.
         # 3. all titles have either gershayim or fancy quotes or regular quotes or none at all,
         # so that no title can have two different types of quotes.
-        primary_title = self.get_title('he').replace('״', '"').replace('”', '"')
-        self.nodes.add_title(primary_title, 'he', True, True)
+        primary_title = self.get_title("he").replace("״", '"').replace("”", '"')
+        self.nodes.add_title(primary_title, "he", True, True)
         index_titles = [primary_title]
         for title in self.schema["titles"]:
-            if title["lang"] == "he" and title.get("primary", False) == False:
+            if title["lang"] == "he" and not title.get("primary", False):
                 index_titles.append(title["text"])
 
         for title in index_titles:
-            title = title.replace('״', '"').replace('”', '"')
+            title = title.replace("״", '"').replace("”", '"')
             new_titles = [title] + self.get_title_quotations_variants(title)
             for new_title in new_titles:
                 if new_title not in index_titles:
-                    self.nodes.add_title(new_title, 'he')
+                    self.nodes.add_title(new_title, "he")
 
         for node in self.nodes.children:
-            if getattr(node, "default", False) == False and getattr(node, "sharedTitle", "") == "":
-                primary_title = node.get_primary_title('he')
-                primary_title = primary_title.replace('״', '"').replace('”', '"')
-                node.add_title(primary_title, 'he', True, True)
-                node_titles = node.get_titles('he')
+            if not getattr(node, "default", False) and getattr(node, "sharedTitle", "") == "":
+                primary_title = node.get_primary_title("he")
+                primary_title = primary_title.replace("״", '"').replace("”", '"')
+                node.add_title(primary_title, "he", True, True)
+                node_titles = node.get_titles("he")
                 for node_title in node_titles:
-                    node_title = node_title.replace('״', '"').replace('”', '"')
+                    node_title = node_title.replace("״", '"').replace("”", '"')
                     new_titles = [node_title] + self.get_title_quotations_variants(node_title)
                     for new_title in new_titles:
                         if new_title not in node_titles:
-                            node.add_title(new_title, 'he')
+                            node.add_title(new_title, "he")
 
     def _normalize(self):
         self.title = self.title.strip()
@@ -677,7 +716,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "lengths",            # optional for old style
         "transliteratedTitle",# optional for old style
         """
-        deprecated_attrs = ["titleVariants","sectionNames","heTitle","heTitleVariants","maps","length","lengths", "transliteratedTitle"]
+        deprecated_attrs = [
+            "titleVariants",
+            "sectionNames",
+            "heTitle",
+            "heTitleVariants",
+            "maps",
+            "length",
+            "lengths",
+            "transliteratedTitle",
+        ]
         for attr in deprecated_attrs:
             if getattr(self, attr, None):
                 delattr(self, attr)
@@ -688,48 +736,49 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             delattr(self, "base_text_titles")
         if getattr(self, "dependence", None) == "":
             delattr(self, "dependence")
-        if hasattr(self, "collective_title"):
-            if self.collective_title == "":
-                del self.collective_title
+        if hasattr(self, "collective_title") and self.collective_title == "":
+            del self.collective_title
 
     def _update_alt_structs_on_title_change(self):
         old_title = self.pkeys_orig_values["title"]
         new_title = self.nodes.primary_title("en")
+
         def change_alt_node_refs(node):
-            if 'wholeRef' in node:
-                node['wholeRef'] = node['wholeRef'].replace(old_title, new_title)
-            if 'refs' in node:
-                node['refs'] = [r.replace(old_title, new_title) for r in node['refs']]
-            if 'nodes' in node:
-                for n in node['nodes']:
+            if "wholeRef" in node:
+                node["wholeRef"] = node["wholeRef"].replace(old_title, new_title)
+            if "refs" in node:
+                node["refs"] = [r.replace(old_title, new_title) for r in node["refs"]]
+            if "nodes" in node:
+                for n in node["nodes"]:
                     change_alt_node_refs(n)
-        alts = getattr(self, 'alt_structs', None)
+
+        alts = getattr(self, "alt_structs", None)
         if alts and old_title != new_title:
             for alt in alts.values():
                 change_alt_node_refs(alt)
             self._set_struct_objs()
 
     def _validate(self):
-        assert super(Index, self)._validate()
+        assert super()._validate()
 
         # Keys that should be non empty lists
         non_empty = ["categories"]
 
         for key in non_empty:
             if not isinstance(getattr(self, key, None), list) or len(getattr(self, key, [])) == 0:
-                raise InputError("{} field must be a non empty list of strings.".format(key))
+                raise InputError(f"{key} field must be a non empty list of strings.")
 
-        #allow only ASCII in text titles
+        # allow only ASCII in text titles
         if not self.title.isascii():
             raise InputError("Text title may contain only simple English characters.")
 
         # Disallow special characters in text titles
-        if any((c in ':.-\\/') for c in self.title):
+        if any((c in ":.-\\/") for c in self.title):
             raise InputError("Text title may not contain periods, hyphens or slashes.")
 
         # Disallow special character in categories
         for cat in self.categories:
-            if any((c in '.-') for c in cat):
+            if any((c in ".-") for c in cat):
                 raise InputError("Categories may not contain periods or hyphens.")
 
         for btitle in getattr(self, "base_text_titles", []):
@@ -739,31 +788,38 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
         from sefaria.model import Category
+
         if not Category().load({"path": self.categories}):
             raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
 
-        for date_key in ['compDate', 'pubDate']:
+        for date_key in ["compDate", "pubDate"]:
             if hasattr(self, date_key):
                 val = getattr(self, date_key)
-                if not isinstance(val, list) or not all([isinstance(x, int) for x in val]):
+                if not isinstance(val, list) or not all(isinstance(x, int) for x in val):
                     raise InputError(f"Optional attribute '{date_key}' must be list of integers.")
 
-        '''
+        """
         for cat in self.categories:
             if not hebrew_term(cat):
                 raise InputError("You must add a hebrew translation Term for any new Category title: {}.".format(cat))
-        '''
+        """
 
         if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
-            raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(
-                self.collective_title))
+            raise InputError(
+                f"You must add a hebrew translation Term for any new Collective Title: {self.collective_title}.",
+            )
 
-        #complex style records- all records should now conform to this
+        # complex style records- all records should now conform to this
         if self.nodes:
             # Make sure that all primary titles match
             if self.title != self.nodes.primary_title("en") or self.title != self.nodes.key:
-                raise InputError("Primary titles mismatched in Index Record: {}, {}, {}"
-                                 .format(self.title, self.nodes.primary_title("en"), self.nodes.key))
+                raise InputError(
+                    "Primary titles mismatched in Index Record: {}, {}, {}".format(
+                        self.title,
+                        self.nodes.primary_title("en"),
+                        self.nodes.key,
+                    ),
+                )
 
             # Make sure all titles are unique
             for lang in ["en", "he"]:
@@ -779,35 +835,44 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 for title in all_titles:
                     existing = library.get_schema_node(title, lang)
                     existing_index = existing.index if existing else Index().load({"title": title})
-                    if existing_index and not self.same_record(existing_index) and existing_index.title != self.pkeys_orig_values.get("title"):
-                        raise InputError('A text called "{}" already exists.'.format(title))
+                    if (
+                        existing_index
+                        and not self.same_record(existing_index)
+                        and existing_index.title != self.pkeys_orig_values.get("title")
+                    ):
+                        raise InputError(f'A text called "{title}" already exists.')
 
             self.nodes.validate()
             for key, tree in list(self.get_alt_structures().items()):
                 tree.validate()
 
         else:  # old style commentator record are no longer supported
-            raise InputError('All new Index records must have a valid schema.')
+            raise InputError("All new Index records must have a valid schema.")
 
         if getattr(self, "authors", None):
-            from .topic import Topic, AuthorTopic
+            from .topic import AuthorTopic, Topic
+
             if not isinstance(self.authors, list):
-                raise InputError(f'{self.title} authors must be a list.')
+                raise InputError(f"{self.title} authors must be a list.")
             for author_slug in self.authors:
                 topic = Topic.init(author_slug)
-                assert isinstance(topic, AuthorTopic), f"Author with slug {author_slug} does not match any valid AuthorTopic instance. Make sure the slug exists in the topics collection and has the subclass 'author'."
+                assert isinstance(topic, AuthorTopic), (
+                    f"Author with slug {author_slug} does not match any valid AuthorTopic instance. Make sure the slug exists in the topics collection and has the subclass 'author'."
+                )
 
         return True
 
     def get_toc_index_order(self):
-        order = getattr(self, 'order', None)
+        order = getattr(self, "order", None)
         if order:
             return order[0]
         return None
 
     def get_base_text_order(self):
-        if getattr(self, 'base_text_titles', None):
-            base_orders = [a for a in filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])]
+        if getattr(self, "base_text_titles", None):
+            base_orders = list(
+                filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
+            )
             if len(base_orders) > 0:
                 return min(base_orders) or 10000
         return 10000
@@ -841,7 +906,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "categories": self.categories[:],
             "enShortDesc": getattr(self, "enShortDesc", ""),
             "heShortDesc": getattr(self, "heShortDesc", ""),
-            "primary_category" : self.get_primary_category(),
+            "primary_category": self.get_primary_category(),
         }
 
         if getattr(self, "dependence", False):
@@ -865,8 +930,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["order"] = order
 
         if hasattr(self, "collective_title"):
-            toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
-            toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title) # todo: deprecate Only used in s1 js code
+            toc_contents_dict["commentator"] = self.collective_title  # TODO: deprecate Only used in s1 js code
+            toc_contents_dict["heCommentator"] = hebrew_term(
+                self.collective_title,
+            )  # TODO: deprecate Only used in s1 js code
             toc_contents_dict["collectiveTitle"] = self.collective_title
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
 
@@ -878,7 +945,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     for author in authors
                 ]
 
-        if serialization_options.include_base_texts and hasattr(self, 'base_text_titles'):
+        if serialization_options.include_base_texts and hasattr(self, "base_text_titles"):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
             toc_contents_dict["base_text_order"] = self.get_base_text_order()
             if serialization_options.include_first_section:
@@ -886,38 +953,37 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if "collectiveTitle" not in toc_contents_dict:
                 toc_contents_dict["collectiveTitle"] = self.title
                 toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
-        elif hasattr(self, 'base_text_titles'):
+        elif hasattr(self, "base_text_titles"):
             toc_contents_dict["base_text_order"] = self.get_base_text_order()
 
-        if serialization_options.include_base_texts and hasattr(self, 'base_text_mapping'):
+        if serialization_options.include_base_texts and hasattr(self, "base_text_mapping"):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
-        if hasattr(self, 'hidden'):
+        if hasattr(self, "hidden"):
             toc_contents_dict["hidden"] = self.hidden
 
         return toc_contents_dict
 
-    #todo: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called.
+    # TODO: the next 3 functions seem to come at an unacceptable performance cost. Need to review performance or when they are called.
     def get_base_texts_and_first_refs(self):
         return {btitle: self.get_first_ref_in_base_text(btitle) for btitle in self.base_text_titles}
 
     def get_first_ref_in_base_text(self, base_text_title):
         from sefaria.model.link import Link
+
         orig_ref = Ref(self.title)
         base_text_ref = Ref(base_text_title)
         first_link = Link().load(
-            {'$and': [orig_ref.ref_regex_query(), base_text_ref.ref_regex_query()], 'is_first_comment': True}
+            {"$and": [orig_ref.ref_regex_query(), base_text_ref.ref_regex_query()], "is_first_comment": True},
         )
         if first_link:
             if orig_ref.contains(Ref(first_link.refs[0])):
                 return Ref(first_link.refs[0]).section_ref().normal()
-            else:
-                return Ref(first_link.refs[1]).section_ref().normal()
-        else:
-            firstSection = orig_ref.first_available_section_ref()
-            return firstSection.section_ref().normal() if firstSection else None
+            return Ref(first_link.refs[1]).section_ref().normal()
+        firstSection = orig_ref.first_available_section_ref()
+        return firstSection.section_ref().normal() if firstSection else None
 
-    def find_string(self, regex_str, cleaner=lambda x: x, strict=True, lang='he', vtitle=None):
+    def find_string(self, regex_str, cleaner=lambda x: x, strict=True, lang="he", vtitle=None):
         """
         See TextChunk.find_string
         :param regex_str:
@@ -929,7 +995,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         return self.nodes.find_string(regex_str, cleaner=cleaner, strict=strict, lang=lang, vtitle=vtitle)
 
-    def text_index_map(self, tokenizer=lambda x: re.split(r'\s+', x), strict=True, lang='he', vtitle=None):
+    def text_index_map(self, tokenizer=lambda x: re.split(r"\s+", x), strict=True, lang="he", vtitle=None):
         """
         See TextChunk.text_index_map
         :param tokenizer:
@@ -942,8 +1008,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def get_primary_category(self):
         if self.is_dependant_text():
             return self.dependence.capitalize()
-        else:
-            return self.categories[0]
+        return self.categories[0]
 
     def get_primary_corpus(self):
         """
@@ -982,6 +1047,7 @@ class IndexSet(abst.AbstractMongoSet):
     """
     A set of :class:`Index` objects.
     """
+
     recordClass = Index
 
     # Index changes behavior of load_from_dict, so this circumvents that changed behavior to call load_from_dict on the abstract superclass
@@ -996,7 +1062,8 @@ class IndexSet(abst.AbstractMongoSet):
                     -------------------
 """
 
-class AbstractSchemaContent(object):
+
+class AbstractSchemaContent:
     content_attr = "content"
 
     def get_content(self):
@@ -1024,7 +1091,7 @@ class AbstractSchemaContent(object):
         :param indx_list: The indexes of the subsection to get/set
         :param value: The value to set.  If present, the method acts as a setter.  If None, it acts as a getter.
         """
-        # todo check that the shape of value matches the shape of the piece being set
+        # TODO check that the shape of value matches the shape of the piece being set
 
         if not key_list:
             key_list = []
@@ -1034,32 +1101,35 @@ class AbstractSchemaContent(object):
         if indx_list:  # accessing/setting index with jagged array node
             if value is not None:
                 # NOTE: JaggedArrays modify their store in place, so this change will affect `self`
-                JaggedArray(node).set_element(indx_list, value, '')
+                JaggedArray(node).set_element(indx_list, value, "")
             return reduce(lambda a, i: a[i], indx_list, node)
-        else: # accessing/setting index in schema nodes
-            if value is not None:
-                if isinstance(value, list):  # we assume if value is a list, you want to modify the entire contents of the jagged array node
-                    node[:] = value
-                else:  # this change is to a schema node that's not a leaf. need to explicitly set contents on the parent so this change affects `self` 
-                    if len(key_list) == 0:
-                        setattr(self, self.content_attr, value)
-                    elif len(key_list) == 1:
-                        self.get_content()[key_list[0]] = value
-                    else:
-                        node_parent = reduce(lambda d, k: d[k], key_list[:-1], self.get_content())
-                        node_parent[key_list[-1]] = value
-            return node
+        # accessing/setting index in schema nodes
+        if value is not None:
+            if isinstance(
+                value,
+                list,
+            ):  # we assume if value is a list, you want to modify the entire contents of the jagged array node
+                node[:] = value
+            else:  # this change is to a schema node that's not a leaf. need to explicitly set contents on the parent so this change affects `self`
+                if len(key_list) == 0:
+                    setattr(self, self.content_attr, value)
+                elif len(key_list) == 1:
+                    self.get_content()[key_list[0]] = value
+                else:
+                    node_parent = reduce(lambda d, k: d[k], key_list[:-1], self.get_content())
+                    node_parent[key_list[-1]] = value
+        return node
 
 
-class AbstractTextRecord(object):
-    """
-    """
+class AbstractTextRecord:
+    """ """
+
     text_attr = "chapter"
-    ALLOWED_TAGS    = constants.ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
-    ALLOWED_ATTRS   = constants.ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD
+    ALLOWED_TAGS = constants.ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
+    ALLOWED_ATTRS = constants.ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD
 
     def word_count(self):
-        """ Returns the number of words in this text """
+        """Returns the number of words in this text"""
         try:
             wc = self.ja(remove_html=True).word_count()
         except AttributeError:
@@ -1067,14 +1137,17 @@ class AbstractTextRecord(object):
         return wc
 
     def char_count(self):
-        """ Returns the number of characters in this text """
+        """Returns the number of characters in this text"""
         return self.ja(remove_html=True).char_count()
 
     def verse_count(self):
-        """ Returns the number of verses in this text """
+        """Returns the number of verses in this text"""
         return self.ja().verse_count()
 
-    def ja(self, remove_html=False): #don't cache locally unless change is handled.  Pontential to cache on JA class level
+    def ja(
+        self,
+        remove_html=False,
+    ):  # don't cache locally unless change is handled.  Pontential to cache on JA class level
         base_text = getattr(self, self.text_attr, None)
         if base_text and remove_html:
             base_text = AbstractTextRecord.remove_html(base_text)
@@ -1082,7 +1155,7 @@ class AbstractTextRecord(object):
 
     def get_top_level_jas(self) -> tuple:
         """
-        Returns tuple with two items 
+        Returns tuple with two items
             1) ja_list: list of highest level JaggedArrays
             2) parent_key_list: list of tuples (parent, ja_key) where parent is the SchemaNode parent of the corresponding ja in ja_list and ja_key is the key of that ja in parent
         parent_key_list is helpful if you need to update each jagged array
@@ -1108,8 +1181,8 @@ class AbstractTextRecord(object):
             if curr_node is None:
                 return None, None, None
         return curr_node, parent, node_key
-    
-    def _get_top_level_jas_helper(self, item: Union[dict, list], parent=None, item_key=None) -> tuple:
+
+    def _get_top_level_jas_helper(self, item: dict | list, parent=None, item_key=None) -> tuple:
         """
         Helper function for get_top_level_jas to help with recursion
         """
@@ -1142,10 +1215,9 @@ class AbstractTextRecord(object):
         content = getattr(self, self.text_attr, None)
         if isinstance(content, str):
             return content
-        elif isinstance(content, list):
+        if isinstance(content, list):
             return self.ja().flatten_to_string()
-        else:
-            return ""
+        return ""
 
     def as_sized_string(self, min_char=240, max_char=360):
         """
@@ -1158,12 +1230,14 @@ class AbstractTextRecord(object):
         :param max_char:
         :return:
         """
-        balance = lambda doc: str(BeautifulSoup(doc, "html.parser"))
+
+        def balance(doc):
+            return str(BeautifulSoup(doc, "html.parser"))
 
         as_array = self.ja().flatten_to_array()
 
         previous_state = None
-        accumulator = ''
+        accumulator = ""
 
         for segment in as_array:
             segment = self.strip_itags(segment)
@@ -1178,12 +1252,10 @@ class AbstractTextRecord(object):
             if cur_len > max_char >= prev_len >= min_char:
                 if previous_state[-1] == ".":
                     return previous_state[:-1] + "…"
-                else:
-                    return previous_state + "…"
+                return previous_state + "…"
 
             # We're too big, and the previous chunk was too small.  Break on a signal character.
             if cur_len > max_char and min_char > prev_len:
-
                 # get target lengths
                 at_least = min_char - prev_len
                 at_most = max_char - prev_len
@@ -1191,7 +1263,6 @@ class AbstractTextRecord(object):
 
         # We've reached the end, it's not longer than max_char, and it's what we've got.
         return accumulator
-
 
     @classmethod
     def sanitize_text(cls, t):
@@ -1216,11 +1287,11 @@ class AbstractTextRecord(object):
         if isinstance(t, list):
             for i, v in enumerate(t):
                 if isinstance(v, str):
-                    t[i] = re.sub('<[^>]+>', conditional_replace, v)
+                    t[i] = re.sub("<[^>]+>", conditional_replace, v)
                 else:
                     t[i] = AbstractTextRecord.remove_html(v)
         elif isinstance(t, str):
-            t = re.sub('<[^>]+>', conditional_replace, t)
+            t = re.sub("<[^>]+>", conditional_replace, t)
         else:
             return False
         return t
@@ -1230,43 +1301,43 @@ class AbstractTextRecord(object):
         if isinstance(t, list):
             for i, v in enumerate(t):
                 if isinstance(v, str):
-                    t[i] = re.sub(r'<[^>]+>', " ", v)
-                    t[i] = re.sub(r'[ ]{2,}', " ", t[i])
-                    t[i] = re.sub(r'(\S) ([.?!,])', r"\1\2", t[i])  # Remove spaces preceding punctuation
+                    t[i] = re.sub(r"<[^>]+>", " ", v)
+                    t[i] = re.sub(r"[ ]{2,}", " ", t[i])
+                    t[i] = re.sub(r"(\S) ([.?!,])", r"\1\2", t[i])  # Remove spaces preceding punctuation
                     t[i] = t[i].strip()
                 else:
                     t[i] = AbstractTextRecord.remove_html_and_make_presentable(v)
         elif isinstance(t, str):
-            t = re.sub(r'<[^>]+>', " ", t)
-            t = re.sub(r'[ ]{2,}', " ", t)
-            t = re.sub(r'(\S) ([.?!,])', r"\1\2", t)  # Remove spaces preceding punctuation
+            t = re.sub(r"<[^>]+>", " ", t)
+            t = re.sub(r"[ ]{2,}", " ", t)
+            t = re.sub(r"(\S) ([.?!,])", r"\1\2", t)  # Remove spaces preceding punctuation
             t = t.strip()
         else:
             return False
         return t
-    
+
     @staticmethod
     def find_all_footnotes(s: str) -> list[str]:
-        fn_normalizer = NormalizerFactory.get('footnote')
+        fn_normalizer = NormalizerFactory.get("footnote")
         text_to_remove = fn_normalizer.find_text_to_remove(s)
         footnotes = []
-        for (start, end), repl in text_to_remove:
+        for (start, end), _repl in text_to_remove:
             footnotes.append(s[start:end])
         return footnotes
 
     @staticmethod
     def strip_imgs(s, sections=None):
-        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
-        imgs = soup.find_all('img')
+        soup = BeautifulSoup(f"<root>{s}</root>", "lxml")
+        imgs = soup.find_all("img")
         for img in imgs:
             img.decompose()
         return soup.root.encode_contents().decode()  # remove divs added
 
     @staticmethod
     def strip_itags(s, sections=None):
-        s = NormalizerFactory.get('footnote').normalize(s)
-        s = NormalizerFactory.get('other-itag').normalize(s)
-        s = NormalizerFactory.get('fn-marker').normalize(s)
+        s = NormalizerFactory.get("footnote").normalize(s)
+        s = NormalizerFactory.get("other-itag").normalize(s)
+        s = NormalizerFactory.get("fn-marker").normalize(s)
         return s
 
     def _get_text_after_modifications(self, text_modification_funcs, start_sections=None):
@@ -1281,13 +1352,16 @@ class AbstractTextRecord(object):
             for func in text_modification_funcs:
                 string = func(string, sections)
             return string
-        start_sections = None if start_sections is None else [s-1 for s in start_sections]  # zero-indexed for ja
+
+        start_sections = None if start_sections is None else [s - 1 for s in start_sections]  # zero-indexed for ja
         return self.ja().modify_by_function(modifier, start_sections)
 
     # Currently assumes that text is JA
     def _sanitize(self):
-        setattr(self, self.text_attr,
-                self.sanitize_text(getattr(self, self.text_attr, None))
+        setattr(
+            self,
+            self.text_attr,
+            self.sanitize_text(getattr(self, self.text_attr, None)),
         )
 
     def has_manually_wrapped_refs(self):
@@ -1311,23 +1385,24 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     For basic operations such as loading, saving, and updating existing versions, see abst.AbstractMongoRecord
     in abstract.py - the parent class for the Version class.
     """
-    history_noun = 'text'
-    collection = 'texts'
+
+    history_noun = "text"
+    collection = "texts"
     content_attr = "chapter"
     track_pkeys = True
     pkeys = ["title", "versionTitle"]
 
     required_attrs = [
         "language",
-        "title",    # FK to Index.title
+        "title",  # FK to Index.title
         "versionSource",
         "versionTitle",
         "chapter",  # required.  change to "content"?
         "actualLanguage",  # ISO language code
-        'languageFamilyName', # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
-        'isSource',  # bool, True if this version is not a translation
-        'isPrimary',  # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
-        'direction',  # 'rtl' or 'ltr'
+        "languageFamilyName",  # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
+        "isSource",  # bool, True if this version is not a translation
+        "isPrimary",  # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
+        "direction",  # 'rtl' or 'ltr'
     ]
 
     """
@@ -1356,28 +1431,30 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     ]
 
     def __str__(self):
-        return "Version: {} <{}>".format(self.title, self.versionTitle)
+        return f"Version: {self.title} <{self.versionTitle}>"
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return "{}().load({{'title': '{}', 'versionTitle': '{}'}})".format(self.__class__.__name__, self.title, self.versionTitle)
+        return f"{self.__class__.__name__}().load({{'title': '{self.title}', 'versionTitle': '{self.versionTitle}'}})"
 
     def _validate(self):
-        assert super(Version, self)._validate()
+        assert super()._validate()
         """
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
-        if getattr(self,"language", None) not in ["en", "he"]:
+        if getattr(self, "language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
         index = self.get_index()
         if index is None:
             raise InputError("Versions cannot be created for non existing Index records")
-        assert self._check_node_offsets(self.chapter, index.nodes), 'there are more sections than index_offsets_by_depth'
+        assert self._check_node_offsets(self.chapter, index.nodes), (
+            "there are more sections than index_offsets_by_depth"
+        )
         if getattr(self, "direction", None) not in ["rtl", "ltr"]:
             raise InputError("Version direction must be either 'rtl' or 'ltr'")
         assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
         assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
-        is_any_other_primary = any(v.isPrimary for v in index.versionSet() if v._id != getattr(self, '_id', None))
+        is_any_other_primary = any(v.isPrimary for v in index.versionSet() if v._id != getattr(self, "_id", None))
         if not self.isPrimary and not is_any_other_primary:  # if all are False, return true
             raise InputError("There must be at least one version that is primary.")
         return True
@@ -1392,15 +1469,14 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         return True
 
     def _check_node_offsets(self, content, node):
-        if isinstance(content, list) and hasattr(node, 'index_offsets_by_depth'):
+        if isinstance(content, list) and hasattr(node, "index_offsets_by_depth"):
             for depth, nums in node.index_offsets_by_depth.items():
                 if int(depth) > 1 and not self._check_arrays_lengths(nums, content):
                     return False
-                elif depth == '1':
-                    if not isinstance(nums, int):
-                        return False
+                if depth == "1" and not isinstance(nums, int):
+                    return False
             return True
-        elif isinstance(content, dict):
+        if isinstance(content, dict):
             for k, v in content.items():
                 if not self._check_node_offsets(v, node.get_child_by_key(k)):
                     return False
@@ -1416,18 +1492,20 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 actualLanguage = languageCode.group(1)
         self.actualLanguage = actualLanguage or self.language
 
-        if not hasattr(self, 'languageFamilyName'):
-            self.languageFamilyName = constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
-        self.isSource = getattr(self, "isSource", self.actualLanguage == 'he')
+        if not hasattr(self, "languageFamilyName"):
+            self.languageFamilyName = (
+                constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
+            )
+        self.isSource = getattr(self, "isSource", self.actualLanguage == "he")
         if not hasattr(self, "isPrimary"):
-            self.isPrimary = self.isSource or not VersionSet({'title': self.title}) #first version is primary
-        if not hasattr(self, 'direction'):
-            self.direction = 'rtl' if self.language == 'he' else 'ltr'
+            self.isPrimary = self.isSource or not VersionSet({"title": self.title})  # first version is primary
+        if not hasattr(self, "direction"):
+            self.direction = "rtl" if self.language == "he" else "ltr"
 
         if getattr(self, "priority", None):
             try:
                 self.priority = float(self.priority)
-            except ValueError as e:
+            except ValueError:
                 self.priority = None
         self._trim_ending_whitespace()
 
@@ -1436,7 +1514,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         pass
 
     def get_index(self):
-        return Index().load({'title': self.title})
+        return Index().load({"title": self.title})
 
     def first_section_ref(self):
         """
@@ -1454,14 +1532,16 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
             indx_array = ja.next_index()
             if indx_array:
-                oref = Ref(_obj={
-                    "index": index,
-                    "book": leaf.full_title("en"),
-                    "primary_category": index.get_primary_category(),
-                    "index_node": leaf,
-                    "sections": [i + 1 for i in indx_array],
-                    "toSections": [i + 1 for i in indx_array]
-                })
+                oref = Ref(
+                    _obj={
+                        "index": index,
+                        "book": leaf.full_title("en"),
+                        "primary_category": index.get_primary_category(),
+                        "index_node": leaf,
+                        "sections": [i + 1 for i in indx_array],
+                        "toSections": [i + 1 for i in indx_array],
+                    },
+                )
                 if index.is_complex() or index.nodes.depth != 1:
                     # For depth 1 texts, consider the first segment as the first section
                     oref = oref.section_ref()
@@ -1473,11 +1553,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         if isinstance(getattr(self, self.text_attr, None), dict):
             nodes = self.get_index().nodes.get_leaf_nodes()
             if remove_html:
-                return JaggedTextArray([AbstractTextRecord.remove_html(self.content_node(node)) for node in nodes if not node.is_virtual])
-            else:
-                return JaggedTextArray([self.content_node(node) for node in nodes])
-        else:
-            return super(Version, self).ja(remove_html=remove_html)
+                return JaggedTextArray(
+                    [AbstractTextRecord.remove_html(self.content_node(node)) for node in nodes if not node.is_virtual],
+                )
+            return JaggedTextArray([self.content_node(node) for node in nodes])
+        return super().ja(remove_html=remove_html)
 
     def is_copyrighted(self):
         return "Copyright" in getattr(self, "license", "")
@@ -1524,7 +1604,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             index = self.get_index()
             schema = index.schema
         if heTref is None:
-            heTref = index.get_title('he') if index else ""  # NOTE: heTref initialization is dependent on schema initialization
+            heTref = (
+                index.get_title("he") if index else ""
+            )  # NOTE: heTref initialization is dependent on schema initialization
         addressTypes = None
         index_offsets_by_depth = None
         section_indexes = []
@@ -1553,7 +1635,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             if node.get("default", False) or is_virtual_node:
                 node_title_en = node_title_he = ""
             elif node.get("sharedTitle", False):
-                titles = terms_dict[node["sharedTitle"]]["titles"] if terms_dict is not None else Term().load({"name": node["sharedTitle"]}).titles
+                titles = (
+                    terms_dict[node["sharedTitle"]]["titles"]
+                    if terms_dict is not None
+                    else Term().load({"name": node["sharedTitle"]}).titles
+                )
                 node_title_en = ", " + get_primary_title("en", titles)
                 node_title_he = ", " + get_primary_title("he", titles)
             else:
@@ -1562,15 +1648,45 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
             if is_virtual_node:
                 curr_ref = Ref(tref)
-                vnode = next(x for x in curr_ref.index_node.children if hasattr(x, 'nodeType') and x.nodeType == node.get("nodeType", "") and x.firstWord == node["firstWord"])
+                vnode = next(
+                    x
+                    for x in curr_ref.index_node.children
+                    if hasattr(x, "nodeType")
+                    and x.nodeType == node.get("nodeType", "")
+                    and x.firstWord == node["firstWord"]
+                )
                 for vchild in vnode.all_children():
                     vstring = " ".join(vchild.get_text())
                     vref = vchild.ref()
-                    self.__walk_thru_contents_recursive(action, vstring, vref.normal(), node, vref.he_normal(), *walk_thru_contents_args)
+                    self.__walk_thru_contents_recursive(
+                        action,
+                        vstring,
+                        vref.normal(),
+                        node,
+                        vref.he_normal(),
+                        *walk_thru_contents_args,
+                    )
             else:
-                self.__walk_thru_contents_recursive(action, item[node["key"]], tref + node_title_en, node, heTref + node_title_he, *walk_thru_contents_args)
+                self.__walk_thru_contents_recursive(
+                    action,
+                    item[node["key"]],
+                    tref + node_title_en,
+                    node,
+                    heTref + node_title_he,
+                    *walk_thru_contents_args,
+                )
 
-    def __walk_thru_jagged_array(self, action, item, tref, schema, heTref, addressTypes, index_offsets_by_depth, section_indexes):
+    def __walk_thru_jagged_array(
+        self,
+        action,
+        item,
+        tref,
+        schema,
+        heTref,
+        addressTypes,
+        index_offsets_by_depth,
+        section_indexes,
+    ):
         if schema is not None:
             if addressTypes is None:
                 addressTypes = schema.get("addressTypes", None)
@@ -1580,13 +1696,32 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         for section_index, ja in enumerate(item):
             try:
                 offset = JaggedArrayNode.get_index_offset(section_indexes, index_offsets_by_depth)
-                next_section_indexes = section_indexes + [section_index+offset]
-                self.__walk_thru_contents_recursive(action, ja, tref, {}, heTref, addressTypes, index_offsets_by_depth, next_section_indexes)
+                next_section_indexes = section_indexes + [section_index + offset]
+                self.__walk_thru_contents_recursive(
+                    action,
+                    ja,
+                    tref,
+                    {},
+                    heTref,
+                    addressTypes,
+                    index_offsets_by_depth,
+                    next_section_indexes,
+                )
             except IndexError as e:
                 print(str(e))
-                print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
+                print(f"index error for addressTypes {addressTypes} ref {tref} - vtitle {self.versionTitle}")
 
-    def __apply_action_to_segment(self, action, segment_str, tref, schema, heTref, addressTypes, index_offsets_by_depth, section_indexes):
+    def __apply_action_to_segment(
+        self,
+        action,
+        segment_str,
+        tref,
+        schema,
+        heTref,
+        addressTypes,
+        index_offsets_by_depth,
+        section_indexes,
+    ):
         segment_tref = self.__add_sections_to_tref(tref, "en", addressTypes, section_indexes)
         segment_heTref = self.__add_sections_to_tref(heTref, "he", addressTypes, section_indexes)
         action(segment_str, segment_tref, segment_heTref, self)
@@ -1594,7 +1729,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     @staticmethod
     def __add_sections_to_tref(tref, lang, addressTypes, section_indexes):
         for depth, section_index in enumerate(section_indexes):
-            section_str = AddressType.to_str_by_address_type(addressTypes[depth], lang, section_index+1)
+            section_str = AddressType.to_str_by_address_type(addressTypes[depth], lang, section_index + 1)
             tref += f"{' ' if depth == 0 else ':'}{section_str}"
         return tref
 
@@ -1607,12 +1742,17 @@ class VersionSet(abst.AbstractMongoSet):
     my_version_set = VersionSet(mongo-query-here)
 
     Even if it yields only a single result, the results will always be a list of the matching versions
-    that came up for the given query. 
+    that came up for the given query.
     """
+
     recordClass = Version
 
-    def __init__(self, query={}, page=0, limit=0, sort=[["priority", -1], ["_id", 1]], proj=None):
-        super(VersionSet, self).__init__(query, page, limit, sort, proj)
+    def __init__(self, query=None, page=0, limit=0, sort=None, proj=None):
+        if sort is None:
+            sort = [["priority", -1], ["_id", 1]]
+        if query is None:
+            query = {}
+        super().__init__(query, page, limit, sort, proj)
 
     def word_count(self):
         return sum([v.word_count() for v in self])
@@ -1630,20 +1770,26 @@ class VersionSet(abst.AbstractMongoSet):
         """
         for v in self:
             if not getattr(v, "versionTitle", None):
-                logger.error("No version title for Version: {}".format(vars(v)))
+                logger.error(f"No version title for Version: {vars(v)}")
         if node is None:
-            return merge_texts([getattr(v, "chapter", []) for v in self], [getattr(v, "versionTitle", None) for v in self])
+            return merge_texts(
+                [getattr(v, "chapter", []) for v in self],
+                [getattr(v, "versionTitle", None) for v in self],
+            )
         versions = self.array()
         if prioritized_vtitle:
             vindex = next((i for (i, v) in enumerate(versions) if v.versionTitle == prioritized_vtitle), None)
             if vindex is not None:
                 # move versions[vindex] to front of list
                 versions.insert(0, versions.pop(vindex))
-        return merge_texts([v.content_node(node) for v in versions], [getattr(v, "versionTitle", None) for v in versions])
+        return merge_texts(
+            [v.content_node(node) for v in versions],
+            [getattr(v, "versionTitle", None) for v in versions],
+        )
 
 
 # used in VersionSet.merge(), merge_text_versions(), and export.export_merged()
-# todo: move this to JaggedTextArray class?
+# TODO: move this to JaggedTextArray class?
 # Doesn't work for complex texts
 def merge_texts(text, sources):
     """
@@ -1659,9 +1805,12 @@ def merge_texts(text, sources):
     if depth > 2:
         results = []
         result_sources = []
-        for x in range(max(list(map(len, text)))):    # Let longest text determine how many times to iterate
-            translations = [_ for _ in itertools.zip_longest(*text)][x]  # transpose, and take section x
-            remove_nones = lambda x: x or []
+        for x in range(max(list(map(len, text)))):  # Let longest text determine how many times to iterate
+            translations = list(itertools.zip_longest(*text))[x]  # transpose, and take section x
+
+            def remove_nones(x):
+                return x or []
+
             result, source = merge_texts(list(map(remove_nones, translations)), sources)
             results.append(result)
             # NOTE - the below flattens the sources list, so downstream code can always expect
@@ -1699,15 +1848,11 @@ class TextFamilyDelegator(type):
     """
 
     def __call__(cls, *args, **kwargs):
-        if len(args) >= 1:
-            oref = args[0]
-        else:
-            oref = kwargs.get("oref")
+        oref = args[0] if len(args) >= 1 else kwargs.get("oref")
 
         if oref and oref.index_node.is_virtual:
             return VirtualTextChunk(*args, **kwargs)
-        else:
-            return super(TextFamilyDelegator, cls).__call__(*args, **kwargs)
+        return super().__call__(*args, **kwargs)
 
 
 class TextRange:
@@ -1719,9 +1864,12 @@ class TextRange:
     """
 
     def __init__(self, oref, lang, vtitle, merge_versions=False, versions=None):
-        if isinstance(oref.index_node, JaggedArrayNode) or isinstance(oref.index_node, DictionaryEntryNode): #text cannot be SchemaNode
+        if isinstance(oref.index_node, JaggedArrayNode) or isinstance(
+            oref.index_node,
+            DictionaryEntryNode,
+        ):  # text cannot be SchemaNode
             self.oref = oref
-        elif oref.has_default_child(): #use default child:
+        elif oref.has_default_child():  # use default child:
             self.oref = oref.default_child_ref()
         else:
             raise ComplexBookLevelRefError(book_ref=oref.normal())
@@ -1737,8 +1885,11 @@ class TextRange:
             self._validate_versions(versions)
             self._versions = versions
         else:
-            condition_query = self.oref.condition_query(self.lang) if self.merge_versions else \
-                {'title': self.oref.index.title, 'languageFamilyName': self.lang, 'versionTitle': self.vtitle}
+            condition_query = (
+                self.oref.condition_query(self.lang)
+                if self.merge_versions
+                else {"title": self.oref.index.title, "languageFamilyName": self.lang, "versionTitle": self.vtitle}
+            )
             self._versions = VersionSet(condition_query, proj=self.oref.part_projection())
 
     def _validate_versions(self, versions):
@@ -1755,15 +1906,21 @@ class TextRange:
         """
         part_projection trims only the upper level of the jagged array. this function trims its lower levels and get rid of 1 element arrays wrappings
         """
-        #TODO can we get the specific text directly from mongo?
+        # TODO can we get the specific text directly from mongo?
         text = copy.deepcopy(text)
-        for s, section in enumerate(self.oref.toSections[1:], 1): #start cut from end, for cutting from the start will change the indexes
+        for s, section in enumerate(
+            self.oref.toSections[1:],
+            1,
+        ):  # start cut from end, for cutting from the start will change the indexes
             subtext = reduce(lambda x, _: x[-1], range(s), text)
             del subtext[section:]
         for s, section in enumerate(self.oref.sections[1:], 1):
             subtext = reduce(lambda x, _: x[0], range(s), text)
-            del subtext[:section-1]
-        matching_sections = itertools.takewhile(lambda pair: pair[0] == pair[1], zip(self.oref.sections, self.oref.toSections))
+            del subtext[: section - 1]
+        matching_sections = itertools.takewhile(
+            lambda pair: pair[0] == pair[1],
+            zip(self.oref.sections, self.oref.toSections),
+        )
         redundant_depth = len(list(matching_sections))
         return reduce(lambda x, _: x[0], range(redundant_depth), text)
 
@@ -1778,7 +1935,9 @@ class TextRange:
             elif self.oref.index_node.is_virtual:
                 self._text = self.oref.index_node.get_text()
             else:
-                self._text = self._trim_text(self._versions[0].content_node(self.oref.index_node)) #todo if there is no version it will fail
+                self._text = self._trim_text(
+                    self._versions[0].content_node(self.oref.index_node),
+                )  # TODO if there is no version it will fail
         return self._text
 
 
@@ -1795,7 +1954,15 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
+    def __init__(
+        self,
+        oref,
+        lang="en",
+        vtitle=None,
+        exclude_copyrighted=False,
+        actual_lang=None,
+        fallback_on_default_version=False,
+    ):
         """
         :param oref:
         :type oref: Ref
@@ -1826,15 +1993,20 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
         if lang and vtitle and not fallback_on_default_version:
             self._saveable = True
-            v = Version().load({"title": self._oref.index.title, "language": lang, "versionTitle": vtitle}, self._oref.part_projection())
+            v = Version().load(
+                {"title": self._oref.index.title, "language": lang, "versionTitle": vtitle},
+                self._oref.part_projection(),
+            )
             if exclude_copyrighted and v.is_copyrighted():
-                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), vtitle, lang))
+                raise InputError(f"Can not provision copyrighted text. {oref.normal()} ({vtitle}/{lang})")
             if v:
                 self._versions += [v]
                 try:
                     self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
                 except TypeError:
-                    raise MissingKeyError(f'The version {vtitle} exists but has no key for the node {self._oref.index_node}')
+                    raise MissingKeyError(
+                        f"The version {vtitle} exists but has no key for the node {self._oref.index_node}",
+                    )
         elif lang:
             if actual_lang is not None:
                 self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang, prioritized_vtitle=vtitle)
@@ -1843,25 +2015,35 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         else:
             raise Exception("TextChunk requires a language.")
 
-    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang: str = None, prioritized_vtitle: str = None) -> None:
+    def _choose_version_by_lang(
+        self,
+        oref,
+        lang: str,
+        exclude_copyrighted: bool,
+        actual_lang: str = None,
+        prioritized_vtitle: str = None,
+    ) -> None:
         if prioritized_vtitle:
             actual_lang = None
         vset = VersionSet(self._oref.condition_query(lang, actual_lang), proj=self._oref.part_projection())
         if len(vset) == 0:
             if VersionSet({"title": self._oref.index.title}).count() == 0:
-                raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
+                raise NoVersionFoundError(f"No text record found for '{self._oref.index.title}'")
             return
         if len(vset) == 1:
             v = vset[0]
             if exclude_copyrighted and v.is_copyrighted():
-                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
+                raise InputError(f"Can not provision copyrighted text. {oref.normal()} ({v.versionTitle}/{v.language})")
             self._versions += [v]
             self.text = self.trim_text(v.content_node(self._oref.index_node))
-            #todo: Should this instance, and the non-merge below, be made saveable?
+            # TODO: Should this instance, and the non-merge below, be made saveable?
         else:  # multiple versions available, merge
             if exclude_copyrighted:
                 vset.remove(Version.is_copyrighted)
-            merged_text, sources = vset.merge(self._oref.index_node, prioritized_vtitle=prioritized_vtitle)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
+            merged_text, sources = vset.merge(
+                self._oref.index_node,
+                prioritized_vtitle=prioritized_vtitle,
+            )  # TODO: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
             self.text = self.trim_text(merged_text)
             if len(set(sources)) == 1:
                 for v in vset:
@@ -1874,21 +2056,21 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 self._versions = vset.array()
 
     def __str__(self):
-        args = "{}, {}".format(self._oref, self.lang)
+        args = f"{self._oref}, {self.lang}"
         if self.vtitle:
-            args += ", {}".format(self.vtitle)
+            args += f", {self.vtitle}"
         return args
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        args = "{}, {}".format(self._oref, self.lang)
+        args = f"{self._oref}, {self.lang}"
         if self.vtitle:
-            args += ", {}".format(self.vtitle)
-        return "{}({})".format(self.__class__.__name__, args)
+            args += f", {self.vtitle}"
+        return f"{self.__class__.__name__}({args})"
 
     def version_ids(self):
         if self._version_ids is None:
             if self._versions:
-                vtitle_query = [{'versionTitle': v.versionTitle} for v in self._versions]
+                vtitle_query = [{"versionTitle": v.versionTitle} for v in self._versions]
                 query = {"title": self._oref.index.title, "$or": vtitle_query}
                 self._version_ids = VersionSet(query).distinct("_id")
             else:
@@ -1901,8 +2083,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     def ja(self, remove_html=False):
         if remove_html:
             return JaggedTextArray(AbstractTextRecord.remove_html(self.text))
-        else:
-            return JaggedTextArray(self.text)
+        return JaggedTextArray(self.text)
 
     def save(self, force_save=False):
         """
@@ -1912,14 +2093,13 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         :param force_save: If set to True, will force a save even if no change was detected in the text.
         :return:
         """
-        assert self._saveable, "Tried to save a read-only text: {}".format(self._oref.normal())
-        assert not self._oref.is_range(), "Only non-range references can be saved: {}".format(self._oref.normal())
-        #may support simple ranges in the future.
-        #self._oref.is_range() and self._oref.range_index() == len(self._oref.sections) - 1
-        if not force_save:
-            if self.text == self._original_text:
-                logger.warning("Aborted save of {}. No change in text.".format(self._oref.normal()))
-                return False
+        assert self._saveable, f"Tried to save a read-only text: {self._oref.normal()}"
+        assert not self._oref.is_range(), f"Only non-range references can be saved: {self._oref.normal()}"
+        # may support simple ranges in the future.
+        # self._oref.is_range() and self._oref.range_index() == len(self._oref.sections) - 1
+        if not force_save and self.text == self._original_text:
+            logger.warning(f"Aborted save of {self._oref.normal()}. No change in text.")
+            return False
 
         self._validate()
         self._sanitize()
@@ -1932,18 +2112,24 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                     "versionTitle": self.vtitle,
                     "versionSource": self.versionSource,
                     "language": self.lang,
-                    "title": self._oref.index.title
-                }
+                    "title": self._oref.index.title,
+                },
             )
         else:
-            self.full_version = Version().load({"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle})
-            assert self.full_version, "Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
+            self.full_version = Version().load(
+                {"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle},
+            )
+            assert self.full_version, f"Failed to load Version record for {self._oref.normal()}, {self.vtitle}"
             if self.versionSource:
                 self.full_version.versionSource = self.versionSource  # hack
 
         content = self.full_version.sub_content(self._oref.index_node.version_address())
         self._pad(content)
-        self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
+        self.full_version.sub_content(
+            self._oref.index_node.version_address(),
+            [i - 1 for i in self._oref.sections],
+            self.text,
+        )
 
         self._check_available_text_pre_save()
 
@@ -1984,7 +2170,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         so that we can know if segments have been added or deleted overall.
         """
         self._available_text_pre_save = {}
-        langs_checked = [self.lang] # swtich to ["en", "he"] when global availability checks are needed
+        langs_checked = [self.lang]  # swtich to ["en", "he"] when global availability checks are needed
         for lang in langs_checked:
             try:
                 self._available_text_pre_save[lang] = self._oref.text(lang=lang).text
@@ -2055,6 +2241,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
         if len(changed):
             from . import link
+
             for change in changed:
                 link.update_link_language_availabiliy(change[0], self.lang, change[1])
 
@@ -2068,54 +2255,46 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         implied_depth = ref_depth + posted_depth
         if implied_depth != self._oref.index_node.depth:
             raise InputError(
-                "Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
-                .format(self._oref.index_node.full_title(), self._oref.index_node.depth, self._oref.normal(), implied_depth)
+                f"Text Structure Mismatch. The stored depth of {self._oref.index_node.full_title()} is {self._oref.index_node.depth}, but the text posted to {self._oref.normal()} implies a depth of {implied_depth}.",
             )
 
-        #validate that length of the array matches length of the ref
-        #todo: double check for depth >= 3
+        # validate that length of the array matches length of the ref
+        # TODO: double check for depth >= 3
         if self._oref.is_spanning():
             span_size = self._oref.span_size()
-            if posted_depth == 0: #possible?
+            if posted_depth == 0:  # possible?
                 raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted is a string."
-                        .format(self._oref.normal(), span_size)
+                    f"Text Structure Mismatch. {self._oref.normal()} implies a length of {span_size} sections, but the text posted is a string.",
                 )
-            elif posted_depth == 1: #possible?
+            if posted_depth == 1:  # possible?
                 raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted is a simple list."
-                        .format(self._oref.normal(), span_size)
+                    f"Text Structure Mismatch. {self._oref.normal()} implies a length of {span_size} sections, but the text posted is a simple list.",
                 )
-            else:
-                posted_length = len(self.text)
-                if posted_length != span_size:
-                    raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted has {} elements."
-                        .format(self._oref.normal(), span_size, posted_length)
-                    )
-                #todo: validate last section size if provided
+            posted_length = len(self.text)
+            if posted_length != span_size:
+                raise InputError(
+                    f"Text Structure Mismatch. {self._oref.normal()} implies a length of {span_size} sections, but the text posted has {posted_length} elements.",
+                )
+                # TODO: validate last section size if provided
 
         elif self._oref.is_range():
             range_length = self._oref.range_size()
             if posted_depth == 0:
                 raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {}, but the text posted is a string."
-                        .format(self._oref.normal(), range_length)
+                    f"Text Structure Mismatch. {self._oref.normal()} implies a length of {range_length}, but the text posted is a string.",
                 )
-            elif posted_depth == 1:
+            if posted_depth == 1:
                 posted_length = len(self.text)
                 if posted_length != range_length:
                     raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {}, but the text posted has {} elements."
-                        .format(self._oref.normal(), range_length, posted_length)
+                        f"Text Structure Mismatch. {self._oref.normal()} implies a length of {range_length}, but the text posted has {posted_length} elements.",
                     )
             else:  # this should never happen.  The depth check should catch it.
                 raise InputError(
-                    "Text Structure Mismatch. {} implies an simple array of length {}, but the text posted has depth {}."
-                    .format(self._oref.normal(), range_length, posted_depth)
+                    f"Text Structure Mismatch. {self._oref.normal()} implies an simple array of length {range_length}, but the text posted has depth {posted_depth}.",
                 )
 
-    #maybe use JaggedArray.subarray()?
+    # maybe use JaggedArray.subarray()?
     def trim_text(self, txt):
         """
         Trims a text loaded from Version record with self._oref.part_projection() to the specifications of self._oref
@@ -2131,11 +2310,11 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         if not sections:
             pass
         else:
-            for i in range(0, self._ref_depth):
+            for i in range(self._ref_depth):
                 if i == 0 == range_index:  # First level slice handled at DB level
                     pass
                 elif range_index > i:  # Either not range, or range begins later.  Return simple value.
-                    if i == 0 and len(txt):   # We already sliced the first level w/ Ref.part_projection()
+                    if i == 0 and len(txt):  # We already sliced the first level w/ Ref.part_projection()
                         txt = txt[0]
                     elif len(txt) >= sections[i]:
                         txt = txt[sections[i] - 1]
@@ -2150,8 +2329,8 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                     for _ in range(range_index, i - 1):
                         begin = begin[0]
                         end = end[-1]
-                    begin[0] = begin[0][sections[i] - 1:]
-                    end[-1] = end[-1][:toSections[i]]
+                    begin[0] = begin[0][sections[i] - 1 :]
+                    end[-1] = end[-1][: toSections[i]]
 
         return txt
 
@@ -2161,8 +2340,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         """
         if not self._oref.is_range() and self._ref_depth == self._oref.index_node.depth:
             return ""
-        else:
-            return []
+        return []
 
     def version(self):
         """
@@ -2174,12 +2352,11 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
             return None
         if len(self._versions) == 1:
             return self._versions[0]
-        else:
-            raise Exception("Called TextChunk.version() on merged TextChunk.")
+        raise Exception("Called TextChunk.version() on merged TextChunk.")
 
     def has_manually_wrapped_refs(self):
         try:
-            return getattr(self.version(), 'hasManuallyWrappedRefs', False)
+            return getattr(self.version(), "hasManuallyWrappedRefs", False)
         except:
             # merged version
             return False
@@ -2192,26 +2369,25 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         r = self._oref
         ref_list = []
 
-
-        if r.is_range():
-            input_refs = r.range_list()
-        else:
-            input_refs = [r]
+        input_refs = r.range_list() if r.is_range() else [r]
         for temp_ref in input_refs:
             temp_tc = temp_ref.text(lang=self.lang, vtitle=self.vtitle)
             ja = temp_tc.ja()
             jarray = ja.mask().array()
 
-            #TODO do I need to check if this ref exists for this version?
+            # TODO do I need to check if this ref exists for this version?
             if temp_ref.is_segment_level():
-                if jarray: #it's an int if ref is segment_level
+                if jarray:  # it's an int if ref is segment_level
                     ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
                 ref_list += [temp_ref.subref(i + 1) for i, v in enumerate(jarray) if v]
-            else: # higher than section level
-                ref_list += [temp_ref.subref([j + 1 for j in ne] + [i + 1])
-                             for ne in ja.non_empty_sections()
-                             for i, v in enumerate(ja.subarray(ne).mask().array()) if v]
+            else:  # higher than section level
+                ref_list += [
+                    temp_ref.subref([j + 1 for j in ne] + [i + 1])
+                    for ne in ja.non_empty_sections()
+                    for i, v in enumerate(ja.subarray(ne).mask().array())
+                    if v
+                ]
 
         return ref_list
 
@@ -2227,19 +2403,22 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         text_list = [x for x in self.ja().flatten_to_array() if len(x) > 0]
         if len(text_list) != len(ref_list):
             if strict:
-                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
-            else:
-                print("Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref)))
+                raise ValueError(
+                    f"The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(texts)={len(text_list)}",
+                )
+            print(
+                f"Warning: The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(texts)={len(text_list)} {str(self._oref)}",
+            )
 
         matches = []
         for r, t in zip(ref_list, text_list):
             cleaned = cleaner(t)
-            for m in re.finditer(regex_str,cleaned):
+            for m in re.finditer(regex_str, cleaned):
                 matches += [(r, m, cleaned)]
 
         return matches
 
-    def text_index_map(self, tokenizer=lambda x: re.split(r'\s+', x), strict=True, ret_ja=False):
+    def text_index_map(self, tokenizer=lambda x: re.split(r"\s+", x), strict=True, ret_ja=False):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
          indexes are the word index in word_list
@@ -2249,31 +2428,33 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         :param ret_ja: True if you want to return the flattened ja
         :return: (list,list) - index_list (0 based index of start word of each segment ref as compared with the text chunk ref), ref_list
         """
-        #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
+        # TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
         ind_list = []
         ref_list = self.nonempty_segment_refs()
 
         total_len = 0
         text_list = self.ja().flatten_to_array()
-        for i,segment in enumerate(text_list):
+        for _i, segment in enumerate(text_list):
             if len(segment) > 0:
                 ind_list.append(total_len)
                 total_len += len(tokenizer(segment))
 
         if len(ind_list) != len(ref_list):
             if strict:
-                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
+                raise ValueError(
+                    f"The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)}",
+                )
+            print(
+                f"Warning: The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)} {str(self._oref)}",
+            )
+            if len(ind_list) > len(ref_list):
+                ind_list = ind_list[: len(ref_list)]
             else:
-                print("Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref)))
-                if len(ind_list) > len(ref_list):
-                    ind_list = ind_list[:len(ref_list)]
-                else:
-                    ref_list = ref_list[:len(ind_list)]
+                ref_list = ref_list[: len(ind_list)]
 
         if ret_ja:
             return ind_list, ref_list, total_len, text_list
-        else:
-            return ind_list, ref_list, total_len
+        return ind_list, ref_list, total_len
 
 
 class VirtualTextChunk(AbstractTextRecord):
@@ -2284,7 +2465,15 @@ class VirtualTextChunk(AbstractTextRecord):
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
+    def __init__(
+        self,
+        oref,
+        lang="en",
+        vtitle=None,
+        exclude_copyrighted=False,
+        actual_lang=None,
+        fallback_on_default_version=False,
+    ):
 
         self._oref = oref
         self._ref_depth = len(self._oref.sections)
@@ -2306,11 +2495,14 @@ class VirtualTextChunk(AbstractTextRecord):
             self._versions = []
             return
 
-        v = Version().load({
-            "title": self._oref.index_node.get_index_title(),
-            "versionTitle": self._oref.index_node.get_version_title(self.lang),
-            "language": self.lang
-        }, {"chapter": 0})    # Currently vtitle is thrown out.  There's only one version of each lexicon.
+        v = Version().load(
+            {
+                "title": self._oref.index_node.get_index_title(),
+                "versionTitle": self._oref.index_node.get_version_title(self.lang),
+                "language": self.lang,
+            },
+            {"chapter": 0},
+        )  # Currently vtitle is thrown out.  There's only one version of each lexicon.
         self._versions = [v] if v else []
 
     def version(self):
@@ -2320,11 +2512,11 @@ class VirtualTextChunk(AbstractTextRecord):
         return [self._versions[0]._id] if self._versions else []
 
     def has_manually_wrapped_refs(self):
-        return not getattr(self._oref.index_node.parent.lexicon, 'needsRefsWrapping', False)
+        return not getattr(self._oref.index_node.parent.lexicon, "needsRefsWrapping", False)
 
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
-class TextFamily(object):
+class TextFamily:
     """
     A text with its translations and optionally the commentary on it.
 
@@ -2351,13 +2543,13 @@ class TextFamily(object):
     """
     text_attr_map = {
         "en": "text",
-        "he": "he"
+        "he": "he",
     }
 
     attr_map = {
         "versionTitle": {
             "en": "versionTitle",
-            "he": "heVersionTitle"
+            "he": "heVersionTitle",
         },
         "versionTitleInHebrew": {
             "en": "versionTitleInHebrew",
@@ -2373,23 +2565,23 @@ class TextFamily(object):
         },
         "versionSource": {
             "en": "versionSource",
-            "he": "heVersionSource"
+            "he": "heVersionSource",
         },
         "status": {
             "en": "versionStatus",
-            "he": "heVersionStatus"
+            "he": "heVersionStatus",
         },
         "versionNotes": {
             "en": "versionNotes",
-            "he": "heVersionNotes"
+            "he": "heVersionNotes",
         },
         "extendedNotes": {
             "en": "extendedNotes",
-            "he": "heExtendedNotes"
+            "he": "heExtendedNotes",
         },
         "extendedNotesHebrew": {
             "en": "extendedNotesHebrew",
-            "he": "heExtendedNotesHebrew"
+            "he": "heExtendedNotesHebrew",
         },
         "versionNotesInHebrew": {
             "en": "versionNotesInHebrew",
@@ -2403,22 +2595,35 @@ class TextFamily(object):
         "license": {
             "en": "license",
             "he": "heLicense",
-            "default": "unknown"
+            "default": "unknown",
         },
-        "formatAsPoetry": { # Setup for Fox translation. Perhaps we want in other places as well?
+        "formatAsPoetry": {  # Setup for Fox translation. Perhaps we want in other places as well?
             "he": "formatHeAsPoetry",
             "en": "formatEnAsPoetry",
             "default": False,
-        }
+        },
     }
     sourceMap = {
         "en": "sources",
-        "he": "heSources"
+        "he": "heSources",
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None,
-                 version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False,
-                 translationLanguagePreference=None, fallbackOnDefaultVersion=False):
+    def __init__(
+        self,
+        oref,
+        context=1,
+        commentary=True,
+        version=None,
+        lang=None,
+        version2=None,
+        lang2=None,
+        pad=True,
+        alts=False,
+        wrapLinks=False,
+        stripItags=False,
+        translationLanguagePreference=None,
+        fallbackOnDefaultVersion=False,
+    ):
         """
         :param oref:
         :param context:
@@ -2443,37 +2648,38 @@ class TextFamily(object):
         if version2:
             version2 = version2.replace("_", " ")
 
-        self.ref            = oref.normal()
-        self.heRef          = oref.he_normal()
-        self.isComplex      = oref.index.is_complex()
-        self.text           = None
-        self.he             = None
+        self.ref = oref.normal()
+        self.heRef = oref.he_normal()
+        self.isComplex = oref.index.is_complex()
+        self.text = None
+        self.he = None
         self._nonExistantVersions = {}
-        self._lang          = lang
+        self._lang = lang
         self._original_oref = oref
-        self._context_oref  = None
-        self._chunks        = {}
-        self._inode         = oref.index_node
-        self._alts          = []
+        self._context_oref = None
+        self._chunks = {}
+        self._inode = oref.index_node
+        self._alts = []
 
         if not isinstance(oref.index_node, JaggedArrayNode) and not oref.index_node.is_virtual:
             raise InputError("Unable to find text for that ref")
 
-        for i in range(0, context):
+        for _i in range(context):
             oref = oref.context_ref()
         self._context_oref = oref
 
         # processes "en" and "he" TextChunks, and puts the text in self.text and self.he, respectively.
-        for language, attr in list(self.text_attr_map.items()):
-            tc_kwargs = dict(oref=oref, lang=language, fallback_on_default_version=fallbackOnDefaultVersion)
-            if language == 'en': tc_kwargs['actual_lang'] = translationLanguagePreference
+        for language, _attr in list(self.text_attr_map.items()):
+            tc_kwargs = {"oref": oref, "lang": language, "fallback_on_default_version": fallbackOnDefaultVersion}
+            if language == "en":
+                tc_kwargs["actual_lang"] = translationLanguagePreference
             if language in {lang, lang2}:
                 curr_version = version if language == lang else version2
                 c = TextChunk(vtitle=curr_version, **tc_kwargs)
                 if len(c._versions) == 0:  # indicates `version` doesn't exist
-                    if tc_kwargs.get('actual_lang', False) and not curr_version:
+                    if tc_kwargs.get("actual_lang", False) and not curr_version:
                         # actual_lang is only used if curr_version is not passed
-                        tc_kwargs.pop('actual_lang', None)
+                        tc_kwargs.pop("actual_lang", None)
                         c = TextChunk(vtitle=curr_version, **tc_kwargs)
                     elif curr_version:
                         self._nonExistantVersions[language] = curr_version
@@ -2482,26 +2688,47 @@ class TextFamily(object):
             self._chunks[language] = c
             text_modification_funcs = []
             if stripItags:
-                text_modification_funcs += [lambda s, secs: c.strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
+                text_modification_funcs += [
+                    lambda s, secs: c.strip_itags(s),
+                    lambda s, secs: " ".join(s.split()).strip(),
+                ]
             if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
-                #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
-                #then count how many links came from that version. If any- do the wrapping.
+                # only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
+                # then count how many links came from that version. If any- do the wrapping.
                 from . import Link
+
                 query = oref.ref_regex_query()
                 query.update({"inline_citation": True})  # , "source_text_oid": {"$in": c.version_ids()}
                 if Link().load(query) is not None:
-                    link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(c.ja().flatten_to_string(), lang=language, citing_only=True)
-                    text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True, reg=link_wrapping_reg, title_nodes=title_nodes)]
+                    link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(
+                        c.ja().flatten_to_string(),
+                        lang=language,
+                        citing_only=True,
+                    )
+                    text_modification_funcs += [
+                        lambda s, secs: library.get_wrapped_refs_string(
+                            s,
+                            lang=language,
+                            citing_only=True,
+                            reg=link_wrapping_reg,
+                            title_nodes=title_nodes,
+                        ),
+                    ]
             padded_sections, _ = oref.get_padded_sections()
-            setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs, start_sections=padded_sections))
+            setattr(
+                self,
+                self.text_attr_map[language],
+                c._get_text_after_modifications(text_modification_funcs, start_sections=padded_sections),
+            )
 
         if oref.is_spanning():
             self.spanning = True
-        #// todo: should this parameter be renamed? it gets all links, not strictly commentary...
+        # // todo: should this parameter be renamed? it gets all links, not strictly commentary...
         if commentary:
             from sefaria.client.wrapper import get_links
+
             if not oref.is_spanning():
-                links = get_links(oref.normal())  #todo - have this function accept an object
+                links = get_links(oref.normal())  # TODO - have this function accept an object
             else:
                 links = [get_links(r.normal()) for r in oref.split_spanning_ref()]
             self.commentary = links if "error" not in links else []
@@ -2523,53 +2750,57 @@ class TextFamily(object):
         """
         d = {k: getattr(self, k) for k in list(vars(self).keys()) if k[0] != "_"}
 
-        d["textDepth"]       = getattr(self._inode, "depth", None)
-        d["sectionNames"]    = getattr(self._inode, "sectionNames", None)
-        d["addressTypes"]    = getattr(self._inode, "addressTypes", None)
+        d["textDepth"] = getattr(self._inode, "depth", None)
+        d["sectionNames"] = getattr(self._inode, "sectionNames", None)
+        d["addressTypes"] = getattr(self._inode, "addressTypes", None)
         if getattr(self._inode, "lengths", None):
-            d["lengths"]     = getattr(self._inode, "lengths")
+            d["lengths"] = self._inode.lengths
             if len(d["lengths"]):
-                d["length"]  = d["lengths"][0]
+                d["length"] = d["lengths"][0]
         elif getattr(self._inode, "length", None):
-            d["length"]      = getattr(self._inode, "length")
-        d["textDepth"]       = self._inode.depth
-        d["heTitle"]         = self._inode.full_title("he")
-        d["titleVariants"]   = self._inode.all_tree_titles("en")
+            d["length"] = self._inode.length
+        d["textDepth"] = self._inode.depth
+        d["heTitle"] = self._inode.full_title("he")
+        d["titleVariants"] = self._inode.all_tree_titles("en")
         d["heTitleVariants"] = self._inode.all_tree_titles("he")
-        d["type"]            = getattr(self._original_oref, "primary_category")
-        d["primary_category"] = getattr(self._original_oref, "primary_category")
-        d["book"]            = getattr(self._original_oref, "book")
+        d["type"] = self._original_oref.primary_category
+        d["primary_category"] = self._original_oref.primary_category
+        d["book"] = self._original_oref.book
 
         for attr in ["categories", "order"]:
             d[attr] = getattr(self._inode.index, attr, "")
         for attr in ["sections", "toSections"]:
             d[attr] = getattr(self._original_oref, attr)[:]
 
-        if getattr(self._inode.index, 'collective_title', None):
-            d["commentator"] = getattr(self._inode.index, 'collective_title', "") # todo: deprecate Only used in s1 js code
-            d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', "")) # todo: deprecate Only used in s1 js code
-            d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
-            d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
+        if getattr(self._inode.index, "collective_title", None):
+            d["commentator"] = getattr(
+                self._inode.index,
+                "collective_title",
+                "",
+            )  # TODO: deprecate Only used in s1 js code
+            d["heCommentator"] = hebrew_term(
+                getattr(self._inode.index, "collective_title", ""),
+            )  # TODO: deprecate Only used in s1 js code
+            d["collectiveTitle"] = getattr(self._inode.index, "collective_title", "")
+            d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, "collective_title", ""))
 
         if len(self._nonExistantVersions) > 0:
-            d['nonExistantVersions'] = self._nonExistantVersions
+            d["nonExistantVersions"] = self._nonExistantVersions
 
         if self._inode.index.is_dependant_text():
-            #d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
-            #d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', [])
-            d["baseTexTitles"] = getattr(self._inode.index, 'base_text_titles', [])
+            # d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
+            # d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', [])
+            d["baseTexTitles"] = getattr(self._inode.index, "base_text_titles", [])
 
-        d["isComplex"]    = self.isComplex
+        d["isComplex"] = self.isComplex
         d["isDependant"] = self._inode.index.is_dependant_text()
-        d["indexTitle"]   = self._inode.index.title
+        d["indexTitle"] = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
-        d["sectionRef"]   = self._original_oref.section_ref().normal()
-        try:
+        d["sectionRef"] = self._original_oref.section_ref().normal()
+        with contextlib.suppress(AttributeError):
             d["firstAvailableSectionRef"] = self._original_oref.first_available_section_ref().normal()
-        except AttributeError:
-            pass
         d["heSectionRef"] = self._original_oref.section_ref().he_normal()
-        d["isSpanning"]   = self._original_oref.is_spanning()
+        d["isSpanning"] = self._original_oref.is_spanning()
         if d["isSpanning"]:
             d["spanningRefs"] = [r.normal() for r in self._original_oref.split_spanning_ref()]
 
@@ -2604,9 +2835,10 @@ class TextFamily(object):
             d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])"""
 
         d["alts"] = self._alts
-        d['index_offsets_by_depth'] = self._index_offsets_by_depth
+        d["index_offsets_by_depth"] = self._index_offsets_by_depth
 
         return d
+
 
 """
                     -------------------
@@ -2624,16 +2856,14 @@ class RefCacheType(type):
     """
 
     def __init__(cls, name, parents, dct):
-        super(RefCacheType, cls).__init__(name, parents, dct)
+        super().__init__(name, parents, dct)
         cls.__tref_oref_map = OrderedDict()
         cls.__index_tref_map = {}
         cls._tref_oref_cache_limit = remoteConfigCache.get(REF_CACHE_LIMIT_KEY, 60000)
 
     def _touch_cache_key(cls, key):
-        try:
+        with contextlib.suppress(KeyError):
             cls.__tref_oref_map.move_to_end(key)
-        except KeyError:
-            pass
 
     def _set_cache_key(cls, key, value):
         cls.__tref_oref_map[key] = value
@@ -2651,6 +2881,7 @@ class RefCacheType(type):
 
     def cache_size_bytes(cls):
         from sefaria.utils.util import get_size
+
         return get_size(cls.__tref_oref_map)
 
     def cache_dump(cls):
@@ -2680,10 +2911,7 @@ class RefCacheType(type):
             pass
 
     def __call__(cls, *args, **kwargs):
-        if len(args) == 1:
-            tref = args[0]
-        else:
-            tref = kwargs.get("tref")
+        tref = args[0] if len(args) == 1 else kwargs.get("tref")
 
         obj_arg = kwargs.get("_obj")
 
@@ -2692,35 +2920,34 @@ class RefCacheType(type):
                 result = cls.__tref_oref_map[tref]
                 cls._touch_cache_key(tref)
                 return result
-            else:
-                result = super(RefCacheType, cls).__call__(*args, **kwargs)
-                uid = result.uid()
-                title = result.index.title
-                if uid in cls.__tref_oref_map:
-                    #del result  #  Do we need this to keep memory clean?
-                    cached = cls.__tref_oref_map[uid]
-                    cls._touch_cache_key(uid)
-                    cls._set_cache_key(tref, cached)
-                    try:
-                        cls.__index_tref_map[title] += [tref]
-                    except KeyError:
-                        cls.__index_tref_map[title] = [tref]
-                    return cached
-                cls._set_cache_key(uid, result)
-                cls._set_cache_key(tref, result)
+            result = super().__call__(*args, **kwargs)
+            uid = result.uid()
+            title = result.index.title
+            if uid in cls.__tref_oref_map:
+                # del result  #  Do we need this to keep memory clean?
+                cached = cls.__tref_oref_map[uid]
+                cls._touch_cache_key(uid)
+                cls._set_cache_key(tref, cached)
                 try:
                     cls.__index_tref_map[title] += [tref]
                 except KeyError:
                     cls.__index_tref_map[title] = [tref]
-                cls.__index_tref_map[title] += [uid]
+                return cached
+            cls._set_cache_key(uid, result)
+            cls._set_cache_key(tref, result)
+            try:
+                cls.__index_tref_map[title] += [tref]
+            except KeyError:
+                cls.__index_tref_map[title] = [tref]
+            cls.__index_tref_map[title] += [uid]
 
-                return result
-        elif obj_arg:
-            result = super(RefCacheType, cls).__call__(*args, **kwargs)
+            return result
+        if obj_arg:
+            result = super().__call__(*args, **kwargs)
             uid = result.uid()
             title = result.index.title
             if uid in cls.__tref_oref_map:
-                #del result  #  Do we need this to keep memory clean?
+                # del result  #  Do we need this to keep memory clean?
                 cached = cls.__tref_oref_map[uid]
                 cls._touch_cache_key(uid)
                 return cached
@@ -2730,30 +2957,48 @@ class RefCacheType(type):
             except KeyError:
                 cls.__index_tref_map[title] = [uid]
             return result
-        else:  # Default.  Shouldn't be used.
-            return super(RefCacheType, cls).__call__(*args, **kwargs)
+        # Default.  Shouldn't be used.
+        return super().__call__(*args, **kwargs)
 
 
-class Ref(object, metaclass=RefCacheType):
+class Ref(metaclass=RefCacheType):
     """
-        A Ref is a reference to a location. A location could be to a *book*, to a specific *segment* (e.g. verse or mishnah), to a *section* (e.g chapter), or to a *range*.
+    A Ref is a reference to a location. A location could be to a *book*, to a specific *segment* (e.g. verse or mishnah), to a *section* (e.g chapter), or to a *range*.
 
-        Instantiated with a string representation of the reference, e.g.:
+    Instantiated with a string representation of the reference, e.g.:
 
-        ::
+    ::
 
-            >>> Ref("Genesis 1:3")
-            >>> Ref("Rashi on Genesis 1:3")
-            >>> Ref("Genesis 1:3-2:4")
-            >>> Ref("Shabbat 4b")
-            >>> Ref("Rashi on Shabbat 4b-5a")
+        >>> Ref("Genesis 1:3")
+        >>> Ref("Rashi on Genesis 1:3")
+        >>> Ref("Genesis 1:3-2:4")
+        >>> Ref("Shabbat 4b")
+        >>> Ref("Rashi on Shabbat 4b-5a")
     """
 
     __slots__ = (
-        'index', 'book', 'primary_category', 'sections', 'toSections', 'index_node',
-        '_lang', 'tref', 'orig_tref', '_normal', '_he_normal', '_url', '_next', '_prev',
-        '_padded', '_context', '_first_spanned_ref', '_spanned_refs', '_ranged_refs',
-        '_range_depth', '_range_index', 'legacy_tref',
+        "index",
+        "book",
+        "primary_category",
+        "sections",
+        "toSections",
+        "index_node",
+        "_lang",
+        "tref",
+        "orig_tref",
+        "_normal",
+        "_he_normal",
+        "_url",
+        "_next",
+        "_prev",
+        "_padded",
+        "_context",
+        "_first_spanned_ref",
+        "_spanned_refs",
+        "_ranged_refs",
+        "_range_depth",
+        "_range_index",
+        "legacy_tref",
     )
 
     def __init__(self, tref=None, _obj=None):
@@ -2805,11 +3050,13 @@ class Ref(object, metaclass=RefCacheType):
         for check in checks:
             for c, che in enumerate(check):
                 if che < 1:
-                    raise InputError(f'{self.book} {"".join([str(x) for x in check[:c]])} starts at {1+self._get_offset([x-1 for x in check[:c]])}')
+                    raise InputError(
+                        f"{self.book} {''.join([str(x) for x in check[:c]])} starts at {1 + self._get_offset([x - 1 for x in check[:c]])}",
+                    )
             if getattr(self.index_node, "lengths", None) and len(check):
                 if check[0] > self.index_node.lengths[0]:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
-                    raise InputError("{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
+                    raise InputError(f"{self.book} ends at {self.index_node.sectionNames[0]} {display_size}.")
 
     def __validate_toSections(self):
         if len(self.sections) != len(self.toSections):
@@ -2819,7 +3066,7 @@ class Ref(object, metaclass=RefCacheType):
             if self.toSections[i] > self.sections[i]:
                 break
             if self.toSections[i] < self.sections[i]:
-                raise InputError("{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
+                raise InputError(f"{self.normal()} is an invalid range.  Ranges must end later than they begin.")
 
     @staticmethod
     def __clean_tref(tref, lang):
@@ -2840,7 +3087,7 @@ class Ref(object, metaclass=RefCacheType):
         return tref
 
     def __reinit_tref(self, new_tref):
-        logger.debug("__reinit_tref from {} to {}".format(self.tref, new_tref))
+        logger.debug(f"__reinit_tref from {self.tref} to {new_tref}")
         self.tref = self.__clean_tref(new_tref, self._lang)
         self._lang = "en"
         self.__init_tref()
@@ -2854,9 +3101,9 @@ class Ref(object, metaclass=RefCacheType):
         # Split ranges based on all '-' symbol, store in `parts` variable
         parts = [s.strip() for s in re.split("[-\u2010-\u2015]", self.tref)]
         if len(parts) > 2:
-            raise InputError("Couldn't understand ref '{}' (too many -'s).".format(self.tref))
-        if any([not p for p in parts]):
-            raise InputError("Couldn't understand ref '{}' (beginning or ending -)".format(self.tref))
+            raise InputError(f"Couldn't understand ref '{self.tref}' (too many -'s).")
+        if any(not p for p in parts):
+            raise InputError(f"Couldn't understand ref '{self.tref}' (beginning or ending -)")
 
         base = parts[0]
         title = None
@@ -2866,22 +3113,24 @@ class Ref(object, metaclass=RefCacheType):
 
         self.index_node = tndict.get(base)  # Match index node before term
         if not self.index_node:
-            new_tref = termdict.get(base)   # Check if there's a term match, reinit w/ term
+            new_tref = termdict.get(base)  # Check if there's a term match, reinit w/ term
             if new_tref:
                 self.__reinit_tref(new_tref)
                 return
 
         # Remove letter from end of base reference until TitleNode matched, set `title` variable with matched title
         for l in range(len(base), 0, -1):
-            if l != len(base) and base[l] not in ' ,.:_':
-                continue #do not stop in the middle of a word
+            if l != len(base) and base[l] not in " ,.:_":
+                continue  # do not stop in the middle of a word
 
             self.index_node = tndict.get(base[0:l])
 
             if self.index_node:
                 title = base[0:l]
-                if base[l - 1] == "." and l < len(base):   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
-                    title = base[0:l - 1]
+                if base[l - 1] == "." and l < len(
+                    base,
+                ):  # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
+                    title = base[0 : l - 1]
                 break
 
         # At this point, `title` is something like "Exodus" or "Rashi on Exodus" or "Pesach Haggadah, Magid, Four Sons"
@@ -2894,7 +3143,10 @@ class Ref(object, metaclass=RefCacheType):
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
                     check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
-                    assert isinstance(check_node, JaggedArrayNode)  # Initially used with Mishnah records.  Assumes JaggedArray.
+                    assert isinstance(
+                        check_node,
+                        JaggedArrayNode,
+                    )  # Initially used with Mishnah records.  Assumes JaggedArray.
                     reg = check_node.full_regex(title, self._lang, strict=True)
                     self.sections = self.__get_sections(reg, base, use_node=check_node)
                 except InputError:  # Regex doesn't work
@@ -2918,11 +3170,13 @@ class Ref(object, metaclass=RefCacheType):
             # Don't accept references like "Rashi" (deleted in commentary refactor)
 
         else:  # This may be a new version, try to build a schema node.
-            raise InputError("Could not find title in reference: {}".format(self.tref))
+            raise InputError(f"Could not find title in reference: {self.tref}")
 
         self.primary_category = self.index.get_primary_category()
         if title == base:  # Bare book, like "Genesis" or "Rashi on Genesis".
-            if self.index_node.is_default():  # Without any further specification, match the parent of the fall-through node
+            if (
+                self.index_node.is_default()
+            ):  # Without any further specification, match the parent of the fall-through node
                 self.index_node = self.index_node.parent
                 self.book = self.index_node.full_title("en")
             return
@@ -2939,14 +3193,14 @@ class Ref(object, metaclass=RefCacheType):
                 self.toSections = self.sections[:]
                 return
 
-            elif self.index.has_alt_structures():
+            if self.index.has_alt_structures():
                 # Give an opportunity for alt structure parsing, below
                 pass
 
             else:
                 # We matched a schema node followed by an illegal number. (Are there other cases here?)
                 matched = self.index_node.full_title(self._lang)
-                msg = "Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
+                msg = f"Partial reference match for '{self.tref}' - failed to find continuation for '{matched}'.\nValid continuations are:\n"
                 continuations = []
                 for child in self.index_node.children:
                     continuations += child.all_node_titles(self._lang)
@@ -2964,7 +3218,7 @@ class Ref(object, metaclass=RefCacheType):
                 reg = self.index_node.full_regex(title, self._lang, terminated=True)
             except InputError:
                 pass
-            #todo: ranges that cross structures
+            # TODO: ranges that cross structures
 
         # Numbered Structure node parsed - return. (Verify this comment.  Should this be indented?)
         if title == base:
@@ -2972,19 +3226,17 @@ class Ref(object, metaclass=RefCacheType):
 
         # Content node -  Match primary structure address (may be stage two of numbered structure parsing)
         if reg and not self.index_node.children and getattr(self.index_node, "_addressTypes", None):
-            try:
+            with contextlib.suppress(InputError):
                 self.sections = self.__get_sections(reg, base)
-            except InputError:
-                pass
 
         # Look for alternate structure
-        # todo: handle commentator on alt structure
+        # TODO: handle commentator on alt structure
         if not self.sections:
             alt_struct_regex = self.index.alt_titles_regex(self._lang)
             if alt_struct_regex:
                 match = alt_struct_regex.match(base)
                 if match:
-                    title = match.group('title')
+                    title = match.group("title")
                     alt_struct_node = self.index.get_alt_struct_node(title, self._lang)
 
                     # Exact match alt structure node
@@ -2995,7 +3247,10 @@ class Ref(object, metaclass=RefCacheType):
                             return
 
                     try:  # Some structure nodes don't have .regex() methods.
-                        reg = alt_struct_node.full_regex(title, self._lang)  # Not strict, since the array map portion will go beyond
+                        reg = alt_struct_node.full_regex(
+                            title,
+                            self._lang,
+                        )  # Not strict, since the array map portion will go beyond
                     except AttributeError:
                         pass
                     else:
@@ -3003,7 +3258,11 @@ class Ref(object, metaclass=RefCacheType):
                         if alt_struct_node.children and getattr(alt_struct_node, "_addressTypes", None):
                             try:
                                 struct_indexes = self.__get_sections(reg, base)
-                                alt_struct_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], alt_struct_node)
+                                alt_struct_node = reduce(
+                                    lambda a, i: a.children[i],
+                                    [s - 1 for s in struct_indexes],
+                                    alt_struct_node,
+                                )
                                 title = alt_struct_node.full_title("en")
                                 base = regex.sub(reg, title, base)
                                 reg = alt_struct_node.full_regex(title, self._lang, terminated=True)
@@ -3011,14 +3270,18 @@ class Ref(object, metaclass=RefCacheType):
                                 pass
 
                         # Alt struct map node -  (may be stage two of numbered structure parsing)
-                        if title == base:  # not a repetition of similar test above - title may have changed in numbered structure parsing
+                        if (
+                            title == base
+                        ):  # not a repetition of similar test above - title may have changed in numbered structure parsing
                             alt_struct_indexes = []
                         else:
                             alt_struct_indexes = self.__get_sections(reg, base, use_node=alt_struct_node)
                         try:
                             new_tref = alt_struct_node.get_ref_from_sections(alt_struct_indexes)
                         except IndexError:
-                            raise InputError("Sections {} not found in {}".format(alt_struct_indexes, alt_struct_node.full_title()))
+                            raise InputError(
+                                f"Sections {alt_struct_indexes} not found in {alt_struct_node.full_title()}",
+                            )
                         if new_tref:
                             self.__reinit_tref(new_tref)
                             return
@@ -3030,12 +3293,12 @@ class Ref(object, metaclass=RefCacheType):
         self.toSections = self.sections[:]
 
         # retrieve the address class of the last section in the ref
-        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections)-1])
+        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1])
 
         if hasattr(address_class, "parse_range_end"):
             base_wout_title = base.replace(title + " ", "")
             address_class.parse_range_end(self, parts, base_wout_title)
-        elif len(parts) == 2: # Parse range end portion, if it exists
+        elif len(parts) == 2:  # Parse range end portion, if it exists
             try:
                 second_part = Ref(parts[1])
                 assert second_part.book == self.book, "the two sides of the range have different books"
@@ -3043,23 +3306,28 @@ class Ref(object, metaclass=RefCacheType):
             except InputError:
                 self._parse_range_end(re.split("[.:, ]+", parts[1]))
             except AssertionError:
-                raise InputError("the two sides of the range have different books: '{}'.".format(self.tref))
-
+                raise InputError(f"the two sides of the range have different books: '{self.tref}'.")
 
     def _parse_range_end(self, range_parts):
         self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
         delta = len(self.sections) - len(range_parts)
         for i in range(delta, len(self.sections)):
-            offset = self._get_offset([x-1 for x in self.toSections[:i]])
+            offset = self._get_offset([x - 1 for x in self.toSections[:i]])
             try:
-                self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
-                                                                                range_parts[i - delta], sections=self.sections[i]) - offset
+                self.toSections[i] = (
+                    self.index_node._addressTypes[i].toNumber(
+                        self._lang,
+                        range_parts[i - delta],
+                        sections=self.sections[i],
+                    )
+                    - offset
+                )
             except (ValueError, IndexError):
-                raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+                raise InputError(f"Couldn't understand text sections: '{self.tref}'.")
 
     def _get_offset(self, section_indexes, use_node=None):
         use_node = use_node if use_node else self.index_node
-        index_offsets_by_depth = getattr(use_node, 'index_offsets_by_depth', None)
+        index_offsets_by_depth = getattr(use_node, "index_offsets_by_depth", None)
         return JaggedArrayNode.get_index_offset(section_indexes, index_offsets_by_depth)
 
     def __get_sections(self, reg, tref, use_node=None):
@@ -3067,21 +3335,20 @@ class Ref(object, metaclass=RefCacheType):
         sections = []
         ref_match = reg.match(tref)
         if not ref_match:
-            raise InputError("Can not parse sections from ref: {}".format(tref))
+            raise InputError(f"Can not parse sections from ref: {tref}")
 
         gs = ref_match.groupdict()
         indexes = []
-        for i in range(0, use_node.depth):
-            gname = "a{}".format(i)
+        for i in range(use_node.depth):
+            gname = f"a{i}"
             if gs.get(gname) is not None:
                 try:
                     offset = self._get_offset(indexes, use_node)
                 except IndexError:
                     raise InputError(f"Can not parse sections from ref: {tref}")
                 sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)) - offset)
-            indexes.append(sections[-1]-1)
+            indexes.append(sections[-1] - 1)
         return sections
-
 
     def __eq__(self, other):
         return isinstance(other, Ref) and self.uid() == other.uid()
@@ -3112,7 +3379,11 @@ class Ref(object, metaclass=RefCacheType):
 
         :return bool:
         """
-        return getattr(self.index_node, "addressTypes", None) and len(self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
+        return (
+            getattr(self.index_node, "addressTypes", None)
+            and len(self.index_node.addressTypes)
+            and self.index_node.addressTypes[0] == "Talmud"
+        )
 
     def is_bavli(self):
         """
@@ -3128,7 +3399,7 @@ class Ref(object, metaclass=RefCacheType):
         :return bool:
         """
         # TODO: -deprecate
-        return getattr(self.index, 'dependence', "").capitalize() == "Commentary"
+        return getattr(self.index, "dependence", "").capitalize() == "Commentary"
 
     def is_dependant(self):
         return self.index.is_dependant_text()
@@ -3157,7 +3428,7 @@ class Ref(object, metaclass=RefCacheType):
 
         :return int:
         """
-        #todo: rewrite with range_index to handle ranges across higher level sections
+        # TODO: rewrite with range_index to handle ranges across higher level sections
         return self.toSections[-1] - self.sections[-1] + 1
 
     def range_index(self):
@@ -3208,7 +3479,7 @@ class Ref(object, metaclass=RefCacheType):
             self._range_index = self.index_node.depth
 
         else:
-            for i in range(0, self.index_node.depth):
+            for i in range(self.index_node.depth):
                 if self.sections[i] != self.toSections[i]:
                     self._range_depth = self.index_node.depth - i
                     self._range_index = i
@@ -3216,12 +3487,12 @@ class Ref(object, metaclass=RefCacheType):
 
     def all_segment_refs(self):
         """
-        A function that returns all lowest level refs under this ref. 
-        TODO: This function was never adapted to serve for complex refs and only works for Refs that are themselves "section level". More specifically it only works for 
-        `supported_classes` and fails otherwise 
-        
+        A function that returns all lowest level refs under this ref.
+        TODO: This function was never adapted to serve for complex refs and only works for Refs that are themselves "section level". More specifically it only works for
+        `supported_classes` and fails otherwise
+
         Note: There is a similar function present on class sefaria.model.text.AbstractIndex
-        :return: list of all segment level refs under this Ref.  
+        :return: list of all segment level refs under this Ref.
         """
         supported_classes = (JaggedArrayNode, DictionaryEntryNode, SheetNode)
         assert self.index_node is not None
@@ -3232,10 +3503,7 @@ class Ref(object, metaclass=RefCacheType):
                     return child.ref().all_segment_refs()
             assert isinstance(self.index_node, supported_classes)
 
-        if self.is_range():
-            input_refs = self.range_list()
-        else:
-            input_refs = [self]
+        input_refs = self.range_list() if self.is_range() else [self]
 
         ref_list = []
         for temp_ref in input_refs:
@@ -3243,16 +3511,18 @@ class Ref(object, metaclass=RefCacheType):
                 ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
                 ref_list += temp_ref.all_subrefs()
-            else: # you're higher than section level
+            else:  # you're higher than section level
                 if self.index_node.is_virtual:
                     sub_refs = temp_ref.all_subrefs()
                     ref_list_list = [sub_ref.all_segment_refs() for sub_ref in sub_refs]
-                    ref_list += [refs for refs in ref_list_list]
+                    ref_list += list(ref_list_list)
                 else:
                     state_ja = self.get_state_ja("all")
                     sub_ja = state_ja.subarray_with_ref(temp_ref)
-                    ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
-                    ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs(state_ja=state_ja)]
+                    ref_list_sections = [temp_ref.subref([i + 1 for i in k]) for k in sub_ja.non_empty_sections()]
+                    ref_list += [
+                        ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs(state_ja=state_ja)
+                    ]
 
         return ref_list
 
@@ -3299,12 +3569,9 @@ class Ref(object, metaclass=RefCacheType):
             # can't be spanning if no sections set
             return 0
 
-        if len(self.sections) <= self.index_node.depth - 2:
-            point = len(self.sections) - 1
-        else:
-            point = self.index_node.depth - 2
+        point = len(self.sections) - 1 if len(self.sections) <= self.index_node.depth - 2 else self.index_node.depth - 2
 
-        for i in range(0, point + 1):
+        for i in range(point + 1):
             size = self.toSections[i] - self.sections[i] + 1
             if size > 1:
                 return size
@@ -3385,9 +3652,10 @@ class Ref(object, metaclass=RefCacheType):
             True
         :return bool:
         """
-        return self.index.title == 'Sheet'
+        return self.index.title == "Sheet"
 
     """ Methods to generate new Refs based on this Ref """
+
     def _core_dict(self):
         return {
             "index": self.index,
@@ -3395,7 +3663,7 @@ class Ref(object, metaclass=RefCacheType):
             "primary_category": self.primary_category,
             "index_node": self.index_node,
             "sections": self.sections[:],
-            "toSections": self.toSections[:]
+            "toSections": self.toSections[:],
         }
 
     def has_default_child(self):
@@ -3423,10 +3691,7 @@ class Ref(object, metaclass=RefCacheType):
         :return: :class:`Ref`
         """
 
-        if self.starting_ref().sections[-1] > size:
-            start = self.starting_ref().sections[-1] - size
-        else:
-            start = 1
+        start = self.starting_ref().sections[-1] - size if self.starting_ref().sections[-1] > size else 1
 
         ending_sections = self.ending_ref().sections
         ending_section_length = self.get_state_ja().sub_array_length([s - 1 for s in ending_sections[:-1]])
@@ -3465,33 +3730,32 @@ class Ref(object, metaclass=RefCacheType):
         d = self._core_dict()
 
         # create a temporary helper ref for finding the end of the range
-        if self.is_range():
-            current_ending_ref = self.ending_ref()
-        else:
-            current_ending_ref = self
+        current_ending_ref = self.ending_ref() if self.is_range() else self
 
-        max_depth = self.index_node.depth - len(self.sections)  # calculate the number of "paddings" required to get down to segment level
+        max_depth = self.index_node.depth - len(
+            self.sections,
+        )  # calculate the number of "paddings" required to get down to segment level
 
-        if len(d['sections']) == 0:
+        if len(d["sections"]) == 0:
             segment_refs = self.all_segment_refs()
             if segment_refs == []:
                 return self
             d["sections"] = segment_refs[0].sections
         else:
-            d['sections'] += [1] * max_depth
+            d["sections"] += [1] * max_depth
 
         state_ja = current_ending_ref.get_state_ja()
 
         for _ in range(max_depth):
             size = state_ja.sub_array_length([i - 1 for i in current_ending_ref.sections])
             if size and size > 0:
-                d['toSections'].append(size)
+                d["toSections"].append(size)
             else:
-                d['toSections'].append(1)
+                d["toSections"].append(1)
 
             # get the next level ending ref
             temp_d = current_ending_ref._core_dict()
-            temp_d['sections'] = temp_d['toSections'][:] = d['toSections'][:]
+            temp_d["sections"] = temp_d["toSections"][:] = d["toSections"][:]
             current_ending_ref = Ref(_obj=temp_d)
 
         return Ref(_obj=d)
@@ -3572,17 +3836,19 @@ class Ref(object, metaclass=RefCacheType):
             self._next = self._iter_text_section(vstate=vstate)
             if self._next is None and not self.index_node.children:
                 current_leaf = self.index_node
-                #we now need to iterate over the next leaves, finding the first available section
+                # we now need to iterate over the next leaves, finding the first available section
                 while True:
-                    next_leaf = current_leaf.next_leaf() #next schema/JANode
+                    next_leaf = current_leaf.next_leaf()  # next schema/JANode
                     if next_leaf and next_leaf.is_virtual:
                         if next_leaf.first_child():
                             return next_leaf.first_child().ref()
-                        else:
-                            return None
+                        return None
                     if next_leaf:
-                        next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
-                        potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1, vstate=vstate)
+                        next_node_ref = next_leaf.ref()  # get a ref so we can do the next lines
+                        potential_next = next_node_ref._iter_text_section(
+                            depth_up=0 if next_leaf.depth == 1 else 1,
+                            vstate=vstate,
+                        )
                         if potential_next:
                             self._next = potential_next
                             break
@@ -3614,11 +3880,14 @@ class Ref(object, metaclass=RefCacheType):
                     if prev_leaf and prev_leaf.is_virtual:
                         if prev_leaf.last_child():
                             return prev_leaf.last_child().ref()
-                        else:
-                            return None
+                        return None
                     if prev_leaf:
                         prev_node_ref = prev_leaf.ref()  # get a ref so we can do the next lines
-                        potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1, vstate=vstate)
+                        potential_prev = prev_node_ref._iter_text_section(
+                            forward=False,
+                            depth_up=0 if prev_leaf.depth == 1 else 1,
+                            vstate=vstate,
+                        )
                         if potential_prev:
                             self._prev = potential_prev
                             break
@@ -3658,14 +3927,13 @@ class Ref(object, metaclass=RefCacheType):
             d = r._core_dict()
             d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] - 1]
             return Ref(_obj=d)
-        else:
-            r = r.prev_section_ref(vstate=vstate)
-            if not r:
-                return None
-            last_index = r.get_subrefs_count(self.get_state_ja(vstate=vstate))
-            d = r._core_dict()
-            d["sections"] = d["toSections"] = r.sections + [last_index]
-            return Ref(_obj=d)
+        r = r.prev_section_ref(vstate=vstate)
+        if not r:
+            return None
+        last_index = r.get_subrefs_count(self.get_state_ja(vstate=vstate))
+        d = r._core_dict()
+        d["sections"] = d["toSections"] = r.sections + [last_index]
+        return Ref(_obj=d)
 
     def next_segment_ref(self, vstate=None):
         """
@@ -3685,12 +3953,11 @@ class Ref(object, metaclass=RefCacheType):
             d = r._core_dict()
             d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] + 1]
             return Ref(_obj=d)
-        else:
-            try:
-                return r.next_section_ref(vstate=vstate).subref(1)
-            except AttributeError:
-                # No next section
-                return None
+        try:
+            return r.next_section_ref(vstate=vstate).subref(1)
+        except AttributeError:
+            # No next section
+            return None
 
     def last_segment_ref(self):
         """
@@ -3725,7 +3992,7 @@ class Ref(object, metaclass=RefCacheType):
                     return None
                 try:
                     r = first_leaf.ref().padded_ref()
-                except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
+                except Exception:  # VirtualNodes dont have a .ref() function so fall back to VersionState
                     if self.is_book_level():
                         return self.index.versionSet().array()[0].first_section_ref()
         else:
@@ -3735,15 +4002,15 @@ class Ref(object, metaclass=RefCacheType):
             # r is depth 1. return first segment
             r = r.subref([1])
             return r.next_segment_ref(vstate=vstate) if r.is_empty(vstate=vstate) else r
-        else:
-            return r.next_section_ref(vstate=vstate) if r.is_empty(vstate=vstate) else r
+        return r.next_section_ref(vstate=vstate) if r.is_empty(vstate=vstate) else r
 
-    #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
+    # Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self, meta=None, hint=None):
         """
         :return: :class:`sefaria.model.version_state.StateNode`
         """
         from . import version_state
+
         return version_state.StateNode(snode=self.index_node, meta=meta, hint=hint)
 
     def get_state_ja(self, lang="all", vstate=None):
@@ -3753,10 +4020,10 @@ class Ref(object, metaclass=RefCacheType):
         :return: :class:`sefaria.datatype.jagged_array`
         """
         if self.index_node.is_virtual:
-            return
+            return None
         if vstate:
             return vstate.state_node(self.index_node).ja(lang)
-        #TODO: also does not work with complex texts...
+        # TODO: also does not work with complex texts...
         return self.get_state_node(hint=[(lang, "availableTexts")]).ja(lang)
 
     def is_text_fully_available(self, lang):
@@ -3818,11 +4085,10 @@ class Ref(object, metaclass=RefCacheType):
         # arrays are 0 based. text sections are 1 based. so shift the numbers back.
         if not forward:
             # Going backward, start from begginning of Ref
-            starting_points = [s - 1 for s in self.sections[:self.index_node.depth - depth_up]]
+            starting_points = [s - 1 for s in self.sections[: self.index_node.depth - depth_up]]
         else:
             # Going forward start form end of Ref
-            starting_points = [s - 1 for s in self.toSections[:self.index_node.depth - depth_up]]
-
+            starting_points = [s - 1 for s in self.toSections[: self.index_node.depth - depth_up]]
 
         # start from the next one
         if len(starting_points) > 0:
@@ -3832,7 +4098,7 @@ class Ref(object, metaclass=RefCacheType):
         if vstate:
             c = vstate.state_node(self.index_node).ja("all", "availableTexts")
         else:
-            c = self.get_state_node(hint=[("all","availableTexts")]).ja("all", "availableTexts")
+            c = self.get_state_node(hint=[("all", "availableTexts")]).ja("all", "availableTexts")
         new_section = c.next_index(starting_points) if forward else c.prev_index(starting_points)
 
         # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
@@ -3840,8 +4106,7 @@ class Ref(object, metaclass=RefCacheType):
             d = self._core_dict()
             d["toSections"] = d["sections"] = [(s + 1) for s in new_section[:-depth_up]]
             return Ref(_obj=d)
-        else:
-            return None
+        return None
 
     def pad_to_last_segment_ref(self):
         """
@@ -3858,7 +4123,7 @@ class Ref(object, metaclass=RefCacheType):
 
         r = self
         while not r.is_segment_level():
-            sublen = ja.sub_array_length([s-1 for s in r.toSections],until_last_nonempty=True)
+            sublen = ja.sub_array_length([s - 1 for s in r.toSections], until_last_nonempty=True)
             r = r.subref([sublen])
 
         return r
@@ -3874,13 +4139,11 @@ class Ref(object, metaclass=RefCacheType):
         d = self._core_dict()
         d["toSections"] = toref.toSections[:]
 
-
-        #pad sections and toSections so they're the same length. easier to just make them both segment level
-        if len(d['sections']) != len(d['toSections']):
+        # pad sections and toSections so they're the same length. easier to just make them both segment level
+        if len(d["sections"]) != len(d["toSections"]):
             if not self.is_segment_level():
-                d['sections'] = self.first_available_section_ref().sections + [1]
-            d['toSections'] = toref.pad_to_last_segment_ref().toSections
-
+                d["sections"] = self.first_available_section_ref().sections + [1]
+            d["toSections"] = toref.pad_to_last_segment_ref().toSections
 
         return Ref(_obj=d)
 
@@ -3895,18 +4158,19 @@ class Ref(object, metaclass=RefCacheType):
         if isinstance(subsections, int):
             subsections = [subsections]
         new_depth = len(self.sections) + len(subsections)
-        assert self.index_node.depth >= new_depth, "Tried to get subref of bottom level ref: {}".format(self.normal())
-        assert not self.is_range(), "Tried to get subref of ranged ref".format(self.normal())
+        assert self.index_node.depth >= new_depth, f"Tried to get subref of bottom level ref: {self.normal()}"
+        assert not self.is_range(), "Tried to get subref of ranged ref"
 
         d = self._core_dict()
 
-        if any([sec < 0 for sec in subsections]):
+        if any(sec < 0 for sec in subsections):
             # only load state_ja when a negative index exists
             ja = self.get_state_ja()
             ja_inds = [sec - 1 for sec in self.sections + subsections]
             for i, sec in enumerate(subsections):
-                if sec >= 0: continue
-                subsections[i] = ja.sub_array_length(ja_inds[:len(self.sections) + i]) + sec + 1
+                if sec >= 0:
+                    continue
+                subsections[i] = ja.sub_array_length(ja_inds[: len(self.sections) + i]) + sec + 1
         d["sections"] += subsections
         d["toSections"] += subsections
         return Ref(_obj=d)
@@ -3932,7 +4196,7 @@ class Ref(object, metaclass=RefCacheType):
             l.append(self.subref(i + 1))
         return l
 
-    def all_subrefs(self, lang='all', state_ja=None):
+    def all_subrefs(self, lang="all", state_ja=None):
         """
         Return a list of all the valid :class:`Ref` objects one level deeper than this :class:`Ref`.
 
@@ -3955,7 +4219,7 @@ class Ref(object, metaclass=RefCacheType):
             size = 0
         return self.subrefs(size)
 
-    def all_context_refs(self, include_self = True, include_book = False):
+    def all_context_refs(self, include_self=True, include_book=False):
         """
         :return: a list of more general refs that contain this one - out too, and including, the book level
         """
@@ -3963,7 +4227,7 @@ class Ref(object, metaclass=RefCacheType):
         refs = [self] if include_self else []
         try:
             current_level = self.index_node.depth - len(self.sections)
-            refs += [self.context_ref(n) for n in  range(current_level + 1, self.index_node.depth + 1)]
+            refs += [self.context_ref(n) for n in range(current_level + 1, self.index_node.depth + 1)]
         except AttributeError:  # If self is a Schema Node
             pass
 
@@ -4009,10 +4273,10 @@ class Ref(object, metaclass=RefCacheType):
                 return self
 
             if level > self.index_node.depth:
-                raise InputError("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index_node.depth))
+                raise InputError(f"Call to Ref.context_ref of {level} exceeds Ref depth of {self.index_node.depth}.")
             d = self._core_dict()
-            d["sections"] = d["sections"][:self.index_node.depth - level]
-            d["toSections"] = d["toSections"][:self.index_node.depth - level]
+            d["sections"] = d["sections"][: self.index_node.depth - level]
+            d["toSections"] = d["toSections"][: self.index_node.depth - level]
             self._context[level] = Ref(_obj=d)
         return self._context[level]
 
@@ -4035,27 +4299,25 @@ class Ref(object, metaclass=RefCacheType):
         """
         if not self._padded:
             if not getattr(self, "index_node", None):
-                raise Exception("No index_node found {}".format(vars(self)))
+                raise Exception(f"No index_node found {vars(self)}")
             try:
                 if len(self.sections) >= self.index_node.depth - 1:
                     return self
             except AttributeError:  # This is a schema node, try to get a default child
                 if self.has_default_child():
                     return self.default_child_ref().padded_ref()
-                elif self.is_book_level():
+                if self.is_book_level():
                     raise ComplexBookLevelRefError(book_ref=self.normal())
-                else:
-                    raise InputError("Cannot pad a schema node ref.")
+                raise InputError("Cannot pad a schema node ref.")
 
             d = self._core_dict()
-            if self.is_talmud():
-                if len(self.sections) == 0: #No daf specified
-                    section = 3 if "Bavli" in self.index.categories and "Rif" not in self.index.categories else 1
-                    d["sections"].append(section)
-                    d["toSections"].append(section)
-            for i in range(self.index_node.depth - len(d["sections"]) - 1):
+            if self.is_talmud() and len(self.sections) == 0:  # No daf specified
+                section = 3 if "Bavli" in self.index.categories and "Rif" not in self.index.categories else 1
+                d["sections"].append(section)
+                d["toSections"].append(section)
+            for _i in range(self.index_node.depth - len(d["sections"]) - 1):
                 d["sections"].append(1)
-                d["toSections"].append(1)  # todo: is this valid in all cases?
+                d["toSections"].append(1)  # TODO: is this valid in all cases?
             self._padded = Ref(_obj=d)
         return self._padded
 
@@ -4072,7 +4334,6 @@ class Ref(object, metaclass=RefCacheType):
         :return: :py:class:`Ref`
         """
         if not self._first_spanned_ref:
-
             if self._spanned_refs:
                 self._first_spanned_ref = self._spanned_refs[0]
 
@@ -4083,7 +4344,7 @@ class Ref(object, metaclass=RefCacheType):
                 ref_depth = len(self.sections)
 
                 d = self._core_dict()
-                d["toSections"] = self.sections[0:self.range_index() + 1]
+                d["toSections"] = self.sections[0 : self.range_index() + 1]
                 for i in range(self.range_index() + 1, ref_depth):
                     d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
 
@@ -4117,7 +4378,7 @@ class Ref(object, metaclass=RefCacheType):
 
         start = self.sections[level]
         end = self.toSections[level] + 1
-        for i, n in enumerate(range(start, end)):
+        for i, _n in enumerate(range(start, end)):
             d = self._core_dict()
             if i != 0:
                 d["sections"] = self.sections[0:level] + [self.sections[level] + i]
@@ -4148,35 +4409,38 @@ class Ref(object, metaclass=RefCacheType):
             for n in range(start, end + 1):
                 d = self._core_dict()
                 if n == start:
-                    d["toSections"] = self.sections[0:self.range_index() + 1]
+                    d["toSections"] = self.sections[0 : self.range_index() + 1]
 
                     for i in range(self.range_index() + 1, ref_depth):
-                        d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
+                        d["toSections"] += [
+                            self.get_state_ja().sub_array_length(
+                                [s - 1 for s in d["toSections"][0:i]],
+                                until_last_nonempty=True,
+                            ),
+                        ]
                 elif n == end:
-                    d["sections"] = self.toSections[0:self.range_index() + 1]
+                    d["sections"] = self.toSections[0 : self.range_index() + 1]
                     for _ in range(self.range_index() + 1, to_ref_depth):
                         d["sections"] += [1]
                 else:
-                    d["sections"] = self.sections[0:self.range_index()] + [n]
-                    d["toSections"] = self.sections[0:self.range_index()] + [n]
+                    d["sections"] = self.sections[0 : self.range_index()] + [n]
+                    d["toSections"] = self.sections[0 : self.range_index()] + [n]
 
-                    '''  If we find that we need to expand inner refs, add this arg.
+                    """  If we find that we need to expand inner refs, add this arg.
                     # It will require handling on cached ref and passing on the recursive call below.
                     if expand_middle:
                         for i in range(self.range_index() + 1, ref_depth):
                             d["sections"] += [1]
                             d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
-                    '''
+                    """
 
                 if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
-                    try:
+                    with contextlib.suppress(InputError):
                         refs.append(Ref(_obj=d))
-                    except InputError:
-                        pass
 
             if self.range_depth() == 2:
                 self._spanned_refs = refs
-            if self.range_depth() > 2: #recurse
+            if self.range_depth() > 2:  # recurse
                 expanded_refs = []
                 for ref in refs:
                     expanded_refs.extend(ref.split_spanning_ref())
@@ -4194,7 +4458,13 @@ class Ref(object, metaclass=RefCacheType):
             results = []
             if self.is_spanning():
                 for oref in self.split_spanning_ref():
-                    results += oref.range_list() if oref.is_range() else [oref] if oref.is_segment_level() else oref.all_subrefs()
+                    results += (
+                        oref.range_list()
+                        if oref.is_range()
+                        else [oref]
+                        if oref.is_segment_level()
+                        else oref.all_subrefs()
+                    )
             else:
                 for s in range(self.sections[-1], self.toSections[-1] + 1):
                     d = self._core_dict()
@@ -4211,7 +4481,7 @@ class Ref(object, metaclass=RefCacheType):
 
         E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
         """
-        # todo: move over to the regex methods of the index nodes
+        # TODO: move over to the regex methods of the index nodes
         patterns = []
 
         if self.is_range():
@@ -4224,30 +4494,27 @@ class Ref(object, metaclass=RefCacheType):
                 normals = [r.normal() for r in self.range_list()]
 
             for r in normals:
-                sections = re.sub(r"^%s" % re.escape(self.book), '', r)
-                patterns.append(r"%s$" % sections)   # exact match
-                patterns.append(r"%s:" % sections)   # more granular, exact match followed by :
-                patterns.append(r"%s \d" % sections) # extra granularity following space
+                sections = re.sub(r"^%s" % re.escape(self.book), "", r)
+                patterns.append(r"%s$" % sections)  # exact match
+                patterns.append(r"%s:" % sections)  # more granular, exact match followed by :
+                patterns.append(r"%s \d" % sections)  # extra granularity following space
         else:
-            sections = re.sub(r"^%s" % re.escape(self.book), '', self.normal())
-            patterns.append(r"%s$" % sections)   # exact match
+            sections = re.sub(r"^%s" % re.escape(self.book), "", self.normal())
+            patterns.append(r"%s$" % sections)  # exact match
             if self.index_node.has_titled_continuation():
                 patterns.append(r"{}({}).".format(sections, "|".join(self.index_node.title_separators)))
             if self.index_node.has_numeric_continuation():
-                patterns.append(r"%s:" % sections)   # more granualar, exact match followed by :
-                patterns.append(r"%s \d" % sections) # extra granularity following space
+                patterns.append(r"%s:" % sections)  # more granualar, exact match followed by :
+                patterns.append(r"%s \d" % sections)  # extra granularity following space
 
         escaped_book = re.escape(self.book)
         if anchored:
             if as_list:
-                return [r"^{}{}".format(escaped_book, p) for p in patterns]
-            else:
-                return r"^%s(%s)" % (escaped_book, "|".join(patterns))
-        else:
-            if as_list:
-                return [r"{}{}".format(escaped_book, p) for p in patterns]
-            else:
-                return r"%s(%s)" % (escaped_book, "|".join(patterns))
+                return [rf"^{escaped_book}{p}" for p in patterns]
+            return r"^%s(%s)" % (escaped_book, "|".join(patterns))
+        if as_list:
+            return [rf"{escaped_book}{p}" for p in patterns]
+        return r"%s(%s)" % (escaped_book, "|".join(patterns))
 
     def ref_regex_query(self):
         """
@@ -4272,6 +4539,7 @@ class Ref(object, metaclass=RefCacheType):
         return sections, toSections
 
     """ Comparisons """
+
     def contains(self, other):
         """
         Does this Ref completely contain ``other`` Ref?
@@ -4281,12 +4549,12 @@ class Ref(object, metaclass=RefCacheType):
         :return bool:
         """
         assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
+        if self.index_node != other.index_node:
             return self.index_node.is_ancestor_of(other.index_node)
 
-        if len(self.sections) > len(other.sections): # other is less specific than self
+        if len(self.sections) > len(other.sections):  # other is less specific than self
             if len(other.sections) == 0:  # other is a whole book
-                if any([x != 1 for x in self.sections]):  # self is not a whole book
+                if any(x != 1 for x in self.sections):  # self is not a whole book
                     return False  # performance optimization to avoid call to as_ranged_segment_ref
             # we need to get the true extent of other
             other = other.as_ranged_segment_ref()
@@ -4323,7 +4591,7 @@ class Ref(object, metaclass=RefCacheType):
         :return bool:
         """
         assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
+        if self.index_node != other.index_node:
             return self.index_node.is_ancestor_of(other.index_node)
 
         smallest_section_len = min([len(self.sections), len(other.sections)])
@@ -4357,7 +4625,7 @@ class Ref(object, metaclass=RefCacheType):
         :return bool:
         """
         assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
+        if self.index_node != other.index_node:
             return False
 
         my_end = self.ending_ref()
@@ -4377,10 +4645,7 @@ class Ref(object, metaclass=RefCacheType):
                 return False
 
         # Compare last significant section
-        if my_end.sections[smallest_section_len - 1] < other_start.sections[smallest_section_len - 1]:
-            return True
-
-        return False
+        return my_end.sections[smallest_section_len - 1] < other_start.sections[smallest_section_len - 1]
 
     def follows(self, other) -> bool:
         """
@@ -4390,7 +4655,7 @@ class Ref(object, metaclass=RefCacheType):
         :return bool:
         """
         assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
+        if self.index_node != other.index_node:
             return False
 
         my_start = self.starting_ref()
@@ -4410,10 +4675,7 @@ class Ref(object, metaclass=RefCacheType):
                 return False
 
         # Compare last significant section
-        if my_start.sections[smallest_section_len - 1] > other_end.sections[smallest_section_len - 1]:
-            return True
-
-        return False
+        return my_start.sections[smallest_section_len - 1] > other_end.sections[smallest_section_len - 1]
 
     def in_terms_of(self, other):
         """
@@ -4439,13 +4701,13 @@ class Ref(object, metaclass=RefCacheType):
 
         """
 
-        #What's best behavior for these cases?
+        # What's best behavior for these cases?
         assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
+        if self.index_node != other.index_node:
             return None
 
         if self.is_range():
-            raise Exception("Ref.in_terms_of() called on ranged Ref: {}".format(self))
+            raise Exception(f"Ref.in_terms_of() called on ranged Ref: {self}")
 
         if not other.contains(self):
             return None
@@ -4453,12 +4715,12 @@ class Ref(object, metaclass=RefCacheType):
         ret = []
 
         if not other.is_range():
-            ret = self.sections[len(other.sections):]
+            ret = self.sections[len(other.sections) :]
         else:
             for i in range(other.range_index(), self.index_node.depth):
                 ret.append(self.sections[i] + 1 - other.sections[i])
                 if other.sections[i] != self.sections[i] or len(other.sections) <= i + 1:
-                    ret += self.sections[i + 1:]
+                    ret += self.sections[i + 1 :]
                     break
         return ret
 
@@ -4479,17 +4741,18 @@ class Ref(object, metaclass=RefCacheType):
             base = library.category_id_dict()[key]
             if self.index.is_complex() and self.index_node.parent:
                 child_order = self.index.nodes.get_child_order(self.index_node)
-                base += str(format(child_order, '03')) if isinstance(child_order, int) else child_order
+                base += str(format(child_order, "03")) if isinstance(child_order, int) else child_order
 
-            res = reduce(lambda x, y: x + str(format(y, '04')), self.sections, base)
+            res = reduce(lambda x, y: x + str(format(y, "04")), self.sections, base)
             if self.is_range():
-                res = reduce(lambda x, y: x + str(format(y, '04')), self.toSections, res + "-")
+                res = reduce(lambda x, y: x + str(format(y, "04")), self.toSections, res + "-")
             return res
         except Exception as e:
-            logger.warning("Failed to execute order_id for {} : {}".format(self, e))
+            logger.warning(f"Failed to execute order_id for {self} : {e}")
             return "Z"
 
     """ Methods for working with Versions and VersionSets """
+
     def storage_address(self, format="string"):
         """
         Return the storage location within a Version for this Ref.
@@ -4497,7 +4760,8 @@ class Ref(object, metaclass=RefCacheType):
         :return string or list: if format == 'string' return string where each address is separated by period else return list of addresses
         """
         address_list = ["chapter"] + self.index_node.address()[1:]
-        if format == "list": return address_list
+        if format == "list":
+            return address_list
         return ".".join(address_list)
 
     def part_projection(self):
@@ -4516,13 +4780,13 @@ class Ref(object, metaclass=RefCacheType):
         A bit non-intuitive, but a huge savings of document size and time on the data transfer.
         http://stackoverflow.com/a/15798087/213042
         """
-        # todo: reimplement w/ aggregation pipeline (see above)
-        # todo: special case string 0?
+        # TODO: reimplement w/ aggregation pipeline (see above)
+        # TODO: special case string 0?
 
         if self.index_node.is_virtual:
-            return
+            return None
 
-        projection = {k: 1 for k in Version.required_attrs + Version.optional_attrs}
+        projection = dict.fromkeys(Version.required_attrs + Version.optional_attrs, 1)
         del projection[Version.content_attr]  # Version.content_attr == "chapter"
         projection["_id"] = 0
 
@@ -4566,51 +4830,63 @@ class Ref(object, metaclass=RefCacheType):
         }
         if actual_lang:
             import re as pyre  # pymongo can only encode re.compile objects, not regex or re2.
-            pattern = r"^(?!.*\[[a-z]{2}\]$).*" if actual_lang in {'en', 'he'} else fr"\[{actual_lang}\]$"
+
+            pattern = r"^(?!.*\[[a-z]{2}\]$).*" if actual_lang in {"en", "he"} else rf"\[{actual_lang}\]$"
             d.update({"versionTitle": pyre.compile(pattern)})
         if lang:
             d.update({"language": lang})
 
         if self.index_node.is_virtual:
-            try:
+            with contextlib.suppress(BaseException):
                 d.update({"versionTitle": self.index_node.parent.lexicon.version_title})
-            except:
-                pass
             return d
 
         condition_addr = self.storage_address()
         if not isinstance(self.index_node, JaggedArrayNode):
             # This will also return versions with no content in this Ref location - since on the version, there is a dictionary present.
             # We could enter the dictionary and check each array, but it's not clear that it's necessary.
-            d.update({
-                condition_addr: {"$exists": True}
-            })
+            d.update(
+                {
+                    condition_addr: {"$exists": True},
+                },
+            )
         elif not self.sections:
-            d.update({
-                condition_addr: {"$exists": True, "$elemMatch": {"$nin": ["", [], 0]}}  # any non-empty element will do
-            })
+            d.update(
+                {
+                    condition_addr: {
+                        "$exists": True,
+                        "$elemMatch": {"$nin": ["", [], 0]},
+                    },  # any non-empty element will do
+                },
+            )
         elif not self.is_spanning():
-            for s in range(0, len(self.sections) if not self.is_range() else len(self.sections) - 1):
-                condition_addr += ".{}".format(self.sections[s] - 1)
+            for s in range(len(self.sections) if not self.is_range() else len(self.sections) - 1):
+                condition_addr += f".{self.sections[s] - 1}"
             if len(self.sections) == self.index_node.depth and not self.is_range():
-                d.update({
-                    condition_addr: {"$exists": True, "$nin": ["", [], 0]}
-                })
+                d.update(
+                    {
+                        condition_addr: {"$exists": True, "$nin": ["", [], 0]},
+                    },
+                )
             else:
-                d.update({
-                    condition_addr: {"$exists": True, "$elemMatch": {"$nin": ["", [], 0]}}
-                })
+                d.update(
+                    {
+                        condition_addr: {"$exists": True, "$elemMatch": {"$nin": ["", [], 0]}},
+                    },
+                )
         else:
-            # todo: If this method gets cached, then copies need to be made before the del below.
+            # TODO: If this method gets cached, then copies need to be made before the del below.
             parts = []
             refs = self.split_spanning_ref()
             for r in refs:
                 q = r.condition_query()
                 del q["title"]
                 parts.append(q)
-                d.update({
-                    "$or": parts
-                })
+                d.update(
+                    {
+                        "$or": parts,
+                    },
+                )
 
         return d
 
@@ -4631,7 +4907,7 @@ class Ref(object, metaclass=RefCacheType):
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = Version.optional_attrs + Version.required_attrs
-        fields.remove('chapter') # not metadata
+        fields.remove("chapter")  # not metadata
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -4641,13 +4917,13 @@ class Ref(object, metaclass=RefCacheType):
                 version["firstSectionRef"] = oref.normal()
                 version_list.append(version)
             return version_list
-        else:
-            return [
-                {f: getattr(v, f, "") for f in fields}
-                for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
-            ]
+        return [
+            {f: getattr(v, f, "") for f in fields}
+            for v in VersionSet(self.condition_query(), proj=dict.fromkeys(fields, 1))
+        ]
 
     """ String Representations """
+
     def __str__(self):
         return self.uid()
 
@@ -4662,8 +4938,7 @@ class Ref(object, metaclass=RefCacheType):
         if not normal:
             if lang != "en":
                 return self.normal()
-            else:
-                raise InputError("Failed to get English normal form for ref")
+            raise InputError("Failed to get English normal form for ref")
 
         if len(self.sections) == 0:
             return normal
@@ -4671,15 +4946,15 @@ class Ref(object, metaclass=RefCacheType):
         normal += " "
 
         normal += ":".join(
-            [self.normal_section(i, lang) for i in range(len(self.sections))]
+            [self.normal_section(i, lang) for i in range(len(self.sections))],
         )
 
         for i in range(len(self.sections)):
-            if not self.sections[i] == self.toSections[i]:
+            if self.sections[i] != self.toSections[i]:
                 normal += "-{}".format(
                     ":".join(
-                        [self.normal_section(i + j, lang, 'toSections') for j in range(len(self.toSections[i:]))]
-                    )
+                        [self.normal_section(i + j, lang, "toSections") for j in range(len(self.toSections[i:]))],
+                    ),
                 )
                 break
 
@@ -4689,13 +4964,13 @@ class Ref(object, metaclass=RefCacheType):
         return [self.normal_section(i, lang) for i in range(len(self.sections))]
 
     def normal_toSections(self, lang="en"):
-        return [self.normal_section(i, lang, 'toSections') for i in range(len(self.toSections))]
+        return [self.normal_section(i, lang, "toSections") for i in range(len(self.toSections))]
 
-    def normal_section(self, section_index, lang='en', attr='sections', **kwargs):
+    def normal_section(self, section_index, lang="en", attr="sections", **kwargs):
         sections = getattr(self, attr)
         assert len(sections) > section_index
-        offset = self._get_offset([x-1 for x in sections[:section_index]])
-        return self.index_node.address_class(section_index).toStr(lang, sections[section_index]+offset, **kwargs)
+        offset = self._get_offset([x - 1 for x in sections[:section_index]])
+        return self.index_node.address_class(section_index).toStr(lang, sections[section_index] + offset, **kwargs)
 
     def normal_last_section(self, lang="en", **kwargs):
         """
@@ -4717,11 +4992,11 @@ class Ref(object, metaclass=RefCacheType):
         """
         :return string: Normal Hebrew string form
         """
-        '''
+        """
             18 June 2015: Removed the special casing for Hebrew Talmud sub daf numerals
             Previously, Talmud lines had been normalised as Arabic numerals
-        '''
-        return self.normal('he')
+        """
+        return self.normal("he")
 
     def uid(self):
         """
@@ -4730,16 +5005,25 @@ class Ref(object, metaclass=RefCacheType):
         """
         return self.normal() + ("<d>" if self.index_node.is_default() else "")
 
-    def normal(self, lang='en') -> str:
+    def normal(self, lang="en") -> str:
         """
         :return string: Normal English or Hebrew string form
         """
-        normal_attr = "_normal" if lang == 'en' else "_he_normal"
+        normal_attr = "_normal" if lang == "en" else "_he_normal"
         if not getattr(self, normal_attr, None):
-            #check if the second last section has function normal_range and the ref is a range. if true, parse
-            #using address_class's normal_range function.  this is necessary to return Shabbat 7a-8b as Shabbat 7-8
-            if len(self.sections) > 0 and hasattr(AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1]), "normal_range") and self.is_range():
-                address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1])
+            # check if the second last section has function normal_range and the ref is a range. if true, parse
+            # using address_class's normal_range function.  this is necessary to return Shabbat 7a-8b as Shabbat 7-8
+            if (
+                len(self.sections) > 0
+                and hasattr(
+                    AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1]),
+                    "normal_range",
+                )
+                and self.is_range()
+            ):
+                address_class = AddressType.to_class_by_address_type(
+                    self.index_node.addressTypes[len(self.sections) - 1],
+                )
                 normal_form = address_class.normal_range(self, lang)
             else:
                 normal_form = self._get_normal(lang)
@@ -4762,15 +5046,15 @@ class Ref(object, metaclass=RefCacheType):
         if not self._url or not encode_html:
             url = self.normal()
 
-            html_encoding_map = {'?': '%3F'}
-            pretty_url_map = {' ': '_', ':': '.'}
+            html_encoding_map = {"?": "%3F"}
+            pretty_url_map = {" ": "_", ":": "."}
             replace_map = pretty_url_map if not encode_html else pretty_url_map | html_encoding_map
             for key, value in replace_map.items():
                 url = url.replace(key, value)
 
             # Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
             if len(self.sections) > 0:
-                url = '.'.join(url.rsplit('_', 1))
+                url = ".".join(url.rsplit("_", 1))
 
             if not encode_html:
                 return url
@@ -4782,6 +5066,7 @@ class Ref(object, metaclass=RefCacheType):
         :return: :class:`NoteSet` for this Ref
         """
         from . import NoteSet
+
         if public and uid:
             query = {"ref": {"$regex": self.regex()}, "$or": [{"public": True}, {"owner": uid}]}
         elif public:
@@ -4798,10 +5083,12 @@ class Ref(object, metaclass=RefCacheType):
         :return: :class:`LinkSet` for this Ref
         """
         from . import LinkSet
+
         return LinkSet(self)
 
     def topiclinkset(self, with_char_level_links=False):
         from . import RefTopicLinkSet
+
         regex_list = self.regex(as_list=True)
         query = {"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]}
         if not with_char_level_links:
@@ -4815,10 +5102,10 @@ class Ref(object, metaclass=RefCacheType):
         :return:
         """
         from sefaria.helper.link import AutoLinkerFactory
-        if self.is_dependant() and getattr(self.index, 'base_text_mapping', None):
+
+        if self.is_dependant() and getattr(self.index, "base_text_mapping", None):
             return AutoLinkerFactory.instance_factory(self.index.base_text_mapping, self, **kwargs)
-        else:
-            return None
+        return None
 
     def distance(self, ref, max_dist=None):
         """
@@ -4838,11 +5125,10 @@ class Ref(object, metaclass=RefCacheType):
         for i in range(len(sec2)):
             sec2[i] -= 1
 
-        distance = self.get_state_ja().distance(sec1,sec2)
+        distance = self.get_state_ja().distance(sec1, sec2)
         if max_dist and distance > max_dist:
             return -1
-        else:
-            return distance
+        return distance
 
     def get_all_anchor_refs(self, expanded_self, document_tref_list, document_tref_expanded):
         """
@@ -4872,7 +5158,15 @@ class Ref(object, metaclass=RefCacheType):
             except InputError:
                 continue
         anchor_ref_list = list(filter(lambda document_ref: self.overlaps(document_ref), document_oref_list))
-        anchor_ref_expanded_list = [list(filter(lambda document_segment_ref: anchor_ref.overlaps(document_segment_ref), unique_anchor_ref_expanded_list)) for anchor_ref in anchor_ref_list]
+        anchor_ref_expanded_list = [
+            list(
+                filter(
+                    lambda document_segment_ref: anchor_ref.overlaps(document_segment_ref),
+                    unique_anchor_ref_expanded_list,
+                ),
+            )
+            for anchor_ref in anchor_ref_list
+        ]
         return anchor_ref_list, anchor_ref_expanded_list
 
     @staticmethod
@@ -4896,7 +5190,7 @@ class Ref(object, metaclass=RefCacheType):
         return list(expanded_set)
 
     @staticmethod
-    def instantiate_ref_with_legacy_parse_fallback(tref: str) -> 'Ref':
+    def instantiate_ref_with_legacy_parse_fallback(tref: str) -> "Ref":
         """
         Tries the following in order and returns the first that works
         - Instantiate `tref` as is
@@ -4906,13 +5200,13 @@ class Ref(object, metaclass=RefCacheType):
         @param tref: textual ref to parse
         @return: best `Ref` according to rules above
         """
-        from sefaria.helper.legacy_ref import legacy_ref_parser_handler, LegacyRefParserError
+        from sefaria.helper.legacy_ref import LegacyRefParserError, legacy_ref_parser_handler
 
         try:
             oref = Ref(tref)
             try:
                 # this field can be set if a legacy parsed ref is pulled from cache
-                delattr(oref, 'legacy_tref')
+                delattr(oref, "legacy_tref")
             except AttributeError:
                 pass
             return oref
@@ -4928,7 +5222,7 @@ class Ref(object, metaclass=RefCacheType):
                 return matched_ref
 
 
-class Library(object):
+class Library:
     """
     Operates as a singleton, through the instance called ``library``.
 
@@ -4959,10 +5253,10 @@ class Library(object):
         self.langs = ["en", "he"]
 
         # Maps, keyed by language, from index key to array of titles
-        self._index_title_maps = {lang:{} for lang in self.langs}
+        self._index_title_maps = {lang: {} for lang in self.langs}
 
         # Maps, keyed by language, from titles to schema nodes
-        self._title_node_maps = {lang:{} for lang in self.langs}
+        self._title_node_maps = {lang: {} for lang in self.langs}
 
         # Lists of full titles, keys are string generated from a combination of language code and "terms".  See method `full_title_list()`
         # Contains a list of only those titles from which citations are recognized in the auto-linker. Keyed by "citing-<lang>"
@@ -5019,8 +5313,8 @@ class Library(object):
         self._cross_lexicon_auto_completer_is_ready = False
         self._topic_auto_completer_is_ready = False
 
-        if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
-            self.get_simple_term_mapping() # this will implicitly call self.build_term_mappings() but also make sure its cached.
+        if not hasattr(sys, "_doc_build"):  # Can't build cache without DB
+            self.get_simple_term_mapping()  # this will implicitly call self.build_term_mappings() but also make sure its cached.
 
     def _build_index_maps(self):
         """
@@ -5033,17 +5327,27 @@ class Library(object):
         # raises) logs and is skipped rather than aborting the whole rebuild.
         self._index_map = {}
         for i in IndexSet():
-            with skip_bad_record("reset_cache,startup", "_build_index_maps index record", record=getattr(i, "_id", "<unknown>"), level="error"):
+            with skip_bad_record(
+                "reset_cache,startup",
+                "_build_index_maps index record",
+                record=getattr(i, "_id", "<unknown>"),
+                level="error",
+            ):
                 if i.nodes:
                     self._index_map[i.title] = i
         forest = [i.nodes for i in list(self._index_map.values())]
         self._title_node_maps = {lang: {} for lang in self.langs}
-        self._index_title_maps = {lang:{} for lang in self.langs}
+        self._index_title_maps = {lang: {} for lang in self.langs}
 
         for tree in forest:
             # IndexSchemaError is a subclass of InputError, so the guard's BAD_RECORD_EXCEPTIONS
             # catches it too; isolate a corrupt node to this tree instead of aborting the rebuild.
-            with skip_bad_record("reset_cache,startup", "_build_index_maps title dict", record=getattr(tree, "key", "<unknown>"), level="error"):
+            with skip_bad_record(
+                "reset_cache,startup",
+                "_build_index_maps title dict",
+                record=getattr(tree, "key", "<unknown>"),
+                level="error",
+            ):
                 for lang in self.langs:
                     tree_titles = tree.title_dict(lang)
                     self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
@@ -5059,7 +5363,7 @@ class Library(object):
         self._title_regexes = {}
         # TOC is handled separately since it can be edited in place
 
-    def rebuild(self, include_toc = False, include_auto_complete=False):
+    def rebuild(self, include_toc=False, include_auto_complete=False):
         self.get_simple_term_mapping_json(rebuild=True)
         self._build_topic_mapping()
         self._build_index_maps()
@@ -5086,7 +5390,7 @@ class Library(object):
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc_with_authors = None
-        scache.delete_shared_cache_elem('toc_with_authors')
+        scache.delete_shared_cache_elem("toc_with_authors")
         self._toc = self.get_toc(rebuild=True)
         self._toc_with_authors = self.get_toc_with_authors(rebuild=True)
         self._toc_json = self.get_toc_json(rebuild=True)
@@ -5099,8 +5403,8 @@ class Library(object):
         self._full_title_list_jsons = {}
 
     def init_shared_cache(self, rebuild=False):
-        from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
-        
+        from sefaria.helper.text import get_parasha_ref_set, get_talmud_perek_ref_set
+
         self.get_toc(rebuild=rebuild)
         self.get_toc_with_authors(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
@@ -5112,14 +5416,14 @@ class Library(object):
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
         self.get_virtual_books(rebuild=rebuild)
-        
+
         # functions backed by lru cache
         if rebuild:
             get_talmud_perek_ref_set.cache_clear()
             get_parasha_ref_set.cache_clear()
         get_talmud_perek_ref_set()
         get_parasha_ref_set()
-        
+
         if rebuild:
             scache.delete_shared_cache_elem("regenerating")
 
@@ -5131,7 +5435,9 @@ class Library(object):
         return self.last_cached
 
     def set_last_cached_time(self):
-        self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
+        self.last_cached = (
+            time.time()
+        )  # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
         scache.set_shared_cache_elem("last_cached", self.last_cached)
 
     def get_toc(self, rebuild=False, serialization_options=None):
@@ -5151,20 +5457,20 @@ class Library(object):
             return self.get_toc_tree().get_serialized_toc(serialization_options=serialization_options)
         if rebuild or not self._toc:
             if not rebuild:
-                self._toc = scache.get_shared_cache_elem('toc')
+                self._toc = scache.get_shared_cache_elem("toc")
             if rebuild or not self._toc:
                 self._toc = self.get_toc_tree().get_serialized_toc()  # update_table_of_contents()
-                scache.set_shared_cache_elem('toc', self._toc)
+                scache.set_shared_cache_elem("toc", self._toc)
                 self.set_last_cached_time()
         return self._toc
 
     def get_toc_with_authors(self, rebuild=False):
         if rebuild or not self._toc_with_authors:
             if not rebuild:
-                self._toc_with_authors = scache.get_shared_cache_elem('toc_with_authors')
+                self._toc_with_authors = scache.get_shared_cache_elem("toc_with_authors")
             if rebuild or not self._toc_with_authors:
                 self._toc_with_authors = self.get_toc_tree().get_serialized_toc_with_authors()
-                scache.set_shared_cache_elem('toc_with_authors', self._toc_with_authors)
+                scache.set_shared_cache_elem("toc_with_authors", self._toc_with_authors)
                 self.set_last_cached_time()
         return self._toc_with_authors
 
@@ -5175,10 +5481,10 @@ class Library(object):
         """
         if rebuild or not self._toc_json:
             if not rebuild:
-                self._toc_json = scache.get_shared_cache_elem('toc_json')
+                self._toc_json = scache.get_shared_cache_elem("toc_json")
             if rebuild or not self._toc_json:
                 self._toc_json = json.dumps(self.get_toc(), ensure_ascii=False)
-                scache.set_shared_cache_elem('toc_json', self._toc_json)
+                scache.set_shared_cache_elem("toc_json", self._toc_json)
                 self.set_last_cached_time()
         return self._toc_json
 
@@ -5190,6 +5496,7 @@ class Library(object):
         """
         if rebuild or not self._toc_tree:
             from sefaria.model.category import TocTree
+
             self._toc_tree = TocTree(self, mobile=mobile)
         self._toc_tree_is_ready = True
         return self._toc_tree
@@ -5197,13 +5504,13 @@ class Library(object):
     def get_topic_toc(self, rebuild=False):
         """
         Returns dictionary representation of Topics ToC.
-         """
+        """
         if rebuild or not self._topic_toc:
             if not rebuild:
-                self._topic_toc = scache.get_shared_cache_elem('topic_toc')
+                self._topic_toc = scache.get_shared_cache_elem("topic_toc")
             if rebuild or not self._topic_toc:
                 self._topic_toc = self.get_topic_toc_json_recursive()
-                scache.set_shared_cache_elem('topic_toc', self._topic_toc)
+                scache.set_shared_cache_elem("topic_toc", self._topic_toc)
                 self.set_last_cached_time()
         return self._topic_toc
 
@@ -5214,10 +5521,10 @@ class Library(object):
         """
         if rebuild or not self._topic_toc_json:
             if not rebuild:
-                self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
+                self._topic_toc_json = scache.get_shared_cache_elem("topic_toc_json")
             if rebuild or not self._topic_toc_json:
                 self._topic_toc_json = json.dumps(self.get_topic_toc(), ensure_ascii=False)
-                scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
+                scache.set_shared_cache_elem("topic_toc_json", self._topic_toc_json)
                 self.set_last_cached_time()
         return self._topic_toc_json
 
@@ -5228,10 +5535,11 @@ class Library(object):
         :param explored: Set
         :param with_descriptions: Boolean
         """
-        from .topic import Topic, TopicSet, IntraTopicLinkSet
+        from .topic import IntraTopicLinkSet, Topic, TopicSet
+
         explored = explored or set()
-        unexplored_top_level = False    # example would be the first case of 'Holidays' encountered as it is top level,
-                                        # this variable will allow us to force all top level categories to have children
+        unexplored_top_level = False  # example would be the first case of 'Holidays' encountered as it is top level,
+        # this variable will allow us to force all top level categories to have children
         if topic is None:
             ts = TopicSet({"isTopLevelDisplay": True})
             # This top-level call is outside the per-child guard below, so build the
@@ -5243,27 +5551,37 @@ class Library(object):
                     children.append(t.slug)
             topic_json = {}
         else:
-            children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
-            topic_json = topic.contents(minify=True, children=children, with_html=True, min_sources_for_display=constants.MIN_SOURCES_FOR_TOPIC_DISPLAY)
-            unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
-                                                                                          None) not in explored
+            children = (
+                []
+                if topic.slug in explored
+                else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
+            )
+            topic_json = topic.contents(
+                minify=True,
+                children=children,
+                with_html=True,
+                min_sources_for_display=constants.MIN_SOURCES_FOR_TOPIC_DISPLAY,
+            )
+            unexplored_top_level = (
+                getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug", None) not in explored
+            )
             explored.add(topic.slug)
         if len(children) > 0 or topic is None or unexplored_top_level:
             # make sure root gets children no matter what and make sure that unexplored top-level topics get children no matter what
-            topic_json['children'] = []
+            topic_json["children"] = []
         for child in children:
-            child_topic = Topic().load({'slug': child})
+            child_topic = Topic().load({"slug": child})
             if child_topic is None:
-                logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
+                logger.warning(f"While building topic TOC, encountered non-existant topic slug: {child}")
                 continue
             # One corrupt child topic (e.g. missing title_group) must not abort the whole TOC build.
             with skip_bad_record("reset_toc,startup", "topic TOC child", record=child):
-                topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
+                topic_json["children"] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
         if len(children) > 0:
             # A child topic missing 'displayOrder' must not abort startup; treat it as 0.
-            topic_json['children'].sort(key=lambda x: x.get('displayOrder', 0))
+            topic_json["children"].sort(key=lambda x: x.get("displayOrder", 0))
         if topic is None:
-            return topic_json['children']
+            return topic_json["children"]
         return topic_json
 
     def build_topic_toc_category_mapping(self) -> dict:
@@ -5274,21 +5592,32 @@ class Library(object):
         topic_toc_category_mapping = {}
         topic_toc = self.get_topic_toc()
         discovered_slugs = set()
-        topic_stack = [t for t in topic_toc]
+        topic_stack = list(topic_toc)
         while len(topic_stack) > 0:
             curr_topic = topic_stack.pop()
             # A topic-toc node missing 'slug' must not abort the mapping build.
-            curr_slug = curr_topic.get('slug')
+            curr_slug = curr_topic.get("slug")
             if curr_slug is None:
-                log_skip(logger, "reset_toc,startup", "build_topic_toc_category_mapping", "skipping topic-toc node with no slug.")
+                log_skip(
+                    logger,
+                    "reset_toc,startup",
+                    "build_topic_toc_category_mapping",
+                    "skipping topic-toc node with no slug.",
+                )
                 continue
-            if curr_slug in discovered_slugs: continue
+            if curr_slug in discovered_slugs:
+                continue
             discovered_slugs.add(curr_slug)
-            for child_topic in curr_topic.get('children', []):
+            for child_topic in curr_topic.get("children", []):
                 topic_stack += [child_topic]
-                child_slug = child_topic.get('slug')
+                child_slug = child_topic.get("slug")
                 if child_slug is None:
-                    log_skip(logger, "reset_toc,startup", "build_topic_toc_category_mapping", "child of '{}' has no slug; skipping mapping entry.".format(curr_slug))
+                    log_skip(
+                        logger,
+                        "reset_toc,startup",
+                        "build_topic_toc_category_mapping",
+                        f"child of '{curr_slug}' has no slug; skipping mapping entry.",
+                    )
                     continue
                 topic_toc_category_mapping[child_slug] = curr_slug
         return topic_toc_category_mapping
@@ -5300,10 +5629,10 @@ class Library(object):
         """
         if rebuild or not self._topic_toc_category_mapping:
             if not rebuild:
-                self._topic_toc_category_mapping = scache.get_shared_cache_elem('topic_toc_category_mapping')
+                self._topic_toc_category_mapping = scache.get_shared_cache_elem("topic_toc_category_mapping")
             if rebuild or not self._topic_toc_category_mapping:
                 self._topic_toc_category_mapping = self.build_topic_toc_category_mapping()
-                scache.set_shared_cache_elem('topic_toc_category_mapping', self._topic_toc_category_mapping)
+                scache.set_shared_cache_elem("topic_toc_category_mapping", self._topic_toc_category_mapping)
                 self.set_last_cached_time()
         return self._topic_toc_category_mapping
 
@@ -5311,8 +5640,9 @@ class Library(object):
         """
         Returns TOC, modified  according to `Category.searchRoot` flags to correspond to the filters
         """
-        from sefaria.model.category import TocTree, CategorySet, TocCategory
-        toctree = TocTree(self)     # Don't use the cached one.  We're going to rejigger it.
+        from sefaria.model.category import CategorySet, TocCategory, TocTree
+
+        toctree = TocTree(self)  # Don't use the cached one.  We're going to rejigger it.
         root = toctree.get_root()
         toc_roots = [x.lastPath for x in sorted(library.get_top_categories(full_records=True), key=lambda x: x.order)]
         reroots = CategorySet({"searchRoot": {"$exists": True}})
@@ -5343,7 +5673,7 @@ class Library(object):
             tocnode.detach()
             tocnode.append_to(new_roots[cat.searchRoot])
 
-        # todo: return 'thin' param when search toc is retired.
+        # TODO: return 'thin' param when search toc is retired.
         return [c.serialize(thin=True) for c in root.children]
 
     def get_topic_link_type(self, link_type):
@@ -5352,11 +5682,10 @@ class Library(object):
         :param link_type: String
         """
         from .topic import TopicLinkTypeSet
+
         if not self._topic_link_types:
             # pre-populate topic link types
-            self._topic_link_types = {
-                link_type.slug: link_type for link_type in TopicLinkTypeSet()
-            }
+            self._topic_link_types = {link_type.slug: link_type for link_type in TopicLinkTypeSet()}
         return self._topic_link_types.get(link_type, None)
 
     def get_topic_data_source(self, data_source):
@@ -5365,11 +5694,10 @@ class Library(object):
         :param data_source: String
         """
         from .topic import TopicDataSourceSet
+
         if not self._topic_data_sources:
             # pre-populate topic data sources
-            self._topic_data_sources = {
-                data_source.slug: data_source for data_source in TopicDataSourceSet()
-            }
+            self._topic_data_sources = {data_source.slug: data_source for data_source in TopicDataSourceSet()}
         return self._topic_data_sources.get(data_source, None)
 
     def get_collections_in_library(self):
@@ -5386,8 +5714,19 @@ class Library(object):
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
         from .autospell import AutoCompleter
+
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
+            lang: AutoCompleter(
+                lang,
+                library,
+                include_people=True,
+                include_topics=True,
+                include_categories=True,
+                include_parasha=False,
+                include_users=True,
+                include_collections=True,
+            )
+            for lang in self.langs
         }
 
         for lang in self.langs:
@@ -5402,8 +5741,9 @@ class Library(object):
         """
         from .autospell import LexiconTrie
         from .lexicon import LexiconSet
+
         self._lexicon_auto_completer = {
-            lexicon.name: LexiconTrie(lexicon.name) for lexicon in LexiconSet({'should_autocomplete': True})
+            lexicon.name: LexiconTrie(lexicon.name) for lexicon in LexiconSet({"should_autocomplete": True})
         }
         self._lexicon_auto_completer_is_ready = True
 
@@ -5413,9 +5753,9 @@ class Library(object):
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
         from .autospell import AutoCompleter
+
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
-
 
     def cross_lexicon_auto_completer(self):
         """
@@ -5439,18 +5779,18 @@ class Library(object):
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
-            logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
+            logger.warning(f"Failed to load {lexicon} auto completer, rebuilding.")
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
-            logger.warning("Built {} auto completer.".format(lexicon))
+            logger.warning(f"Built {lexicon} auto completer.")
             return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
-            logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
+            logger.warning(f"Failed to load full {lang} auto completer, rebuilding.")
             self.build_full_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built full {} auto completer.".format(lang))
+            logger.warning(f"Built full {lang} auto completer.")
             return self._full_auto_completer[lang]
 
     def recount_index_in_toc(self, indx, skip_toc_refresh=False):
@@ -5473,7 +5813,7 @@ class Library(object):
         if toc_node:
             self.get_toc_tree().remove_category(toc_node)
 
-    def delete_index_from_toc(self, indx, categories = None):
+    def delete_index_from_toc(self, indx, categories=None):
         """
         :param indx: The Index object.  When called remotely, in multiserver mode, the string title of the index
         :param categories: Only explicitly passed when called remotely, in multiserver mode
@@ -5516,22 +5856,22 @@ class Library(object):
 
         indx = self._index_map.get(bookname)
         if not indx:
-            bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  # todo: factor out method
+            bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  # TODO: factor out method
 
-            # todo: cache
+            # TODO: cache
             lang = "he" if has_hebrew(bookname) else "en"
             node = self._title_node_maps[lang].get(bookname)
             if node:
                 indx = node.index
 
             if not indx:
-                raise BookNameError("No book named '{}'.".format(bookname))
+                raise BookNameError(f"No book named '{bookname}'.")
 
             self._index_map[bookname] = indx
 
         return indx
 
-    def add_index_record_to_cache(self, index_object = None, rebuild = True):
+    def add_index_record_to_cache(self, index_object=None, rebuild=True):
         """
         Update library title dictionaries and caches with information from provided index.
         Index can be passed with primary title in `index_title` or as an object in `index_object`
@@ -5552,12 +5892,12 @@ class Library(object):
                 self._index_title_maps[lang][index_object.title] = list(title_dict.keys())
                 self._title_node_maps[lang].update(title_dict)
         except IndexSchemaError as e:
-            logger.error("Error in generating title node dictionary: {}".format(e))
+            logger.error(f"Error in generating title node dictionary: {e}")
 
         if rebuild:
             self._reset_index_derivative_objects()
 
-    def remove_index_record_from_cache(self, index_object=None, old_title=None, rebuild = True):
+    def remove_index_record_from_cache(self, index_object=None, old_title=None, rebuild=True):
         """
         Update provided index from library title dictionaries and caches
         :param index_object: In the local case - the index object to remove.  In the remote case, the name of the index object to remove.
@@ -5566,7 +5906,9 @@ class Library(object):
         :return:
         """
 
-        index_object_title = old_title if old_title else (index_object.title if isinstance(index_object, Index) else index_object)
+        index_object_title = (
+            old_title if old_title else (index_object.title if isinstance(index_object, Index) else index_object)
+        )
         Ref.remove_index_from_cache(index_object_title)
 
         for lang in self.langs:
@@ -5576,20 +5918,22 @@ class Library(object):
                     try:
                         del self._title_node_maps[lang][key]
                     except KeyError:
-                        logger.warning("Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_object_title))
-                    try:
+                        logger.warning(
+                            f"Tried to delete non-existent title '{key}' of index record '{index_object_title}' from title-node map",
+                        )
+                    with contextlib.suppress(KeyError):
                         del self._index_map[key]
-                    except KeyError:
-                        pass
                 del self._index_title_maps[lang][index_object_title]
             else:
-                logger.warning("Failed to remove '{}' from {} index-title and title-node cache: nothing to remove".format(index_object_title, lang))
+                logger.warning(
+                    f"Failed to remove '{index_object_title}' from {lang} index-title and title-node cache: nothing to remove",
+                )
                 return
 
         if rebuild:
             self._reset_index_derivative_objects()
 
-    def refresh_index_record_in_cache(self, index_object, old_title = None):
+    def refresh_index_record_in_cache(self, index_object, old_title=None):
         """
         Update library title dictionaries and caches for provided index
         :param index_object: In the local case - the index object to remove.  In the remote case, the name of the index object to remove.
@@ -5599,12 +5943,12 @@ class Library(object):
         index_object_title = index_object.title if isinstance(index_object, Index) else index_object
         self.remove_index_record_from_cache(index_object, old_title=old_title, rebuild=False)
         new_index = Index().load({"title": index_object_title})
-        assert new_index, "No Index record found for {}: {}".format(index_object.__class__.__name__, index_object_title)
+        assert new_index, f"No Index record found for {index_object.__class__.__name__}: {index_object_title}"
         self.add_index_record_to_cache(new_index, rebuild=True)
 
-    # todo: the for_js path here does not appear to be in use.
-    # todo: Rename, as method not gauraunteed to return all titles
-    def all_titles_regex_string(self, lang="en", with_terms=False, citing_only=False): #, for_js=False):
+    # TODO: the for_js path here does not appear to be in use.
+    # TODO: Rename, as method not gauraunteed to return all titles
+    def all_titles_regex_string(self, lang="en", with_terms=False, citing_only=False):  # , for_js=False):
         """
         :param lang: "en" or "he"
         :param with_terms: Include terms in regex.  (Will have no effect if citing_only is True)
@@ -5624,20 +5968,20 @@ class Library(object):
                 simple_books = list(map(re.escape, self.citing_title_list(lang)))
             else:
                 simple_books = list(map(re.escape, self.full_title_list(lang, with_terms=with_terms)))
-            simple_book_part = r'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
+            simple_book_part = r"|".join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
             # re_string += ur'(?:^|[ ([{>,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
             # re_string += ur'(?:\u05d5?(?:\u05d1|\u05de|\u05dc|\u05e9|\u05d8|\u05d8\u05e9)?)' if for_js and lang == "he" else u'' # likewise leading characters in Hebrew?
             # re_string += ur'(' if for_js else
-            re_string = r'(?P<title>'
+            re_string = r"(?P<title>"
             re_string += simple_book_part
-            re_string += r')'
-            re_string += r'($|[:., <]+)'
+            re_string += r")"
+            re_string += r"($|[:., <]+)"
             self._title_regex_strings[key] = re_string
 
         return re_string
 
-    #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
+    # WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
     def all_titles_regex(self, lang="en", with_terms=False, citing_only=False):
         """
         :return: A regular expression object that will match any known title in the library in the provided language
@@ -5672,7 +6016,9 @@ class Library(object):
             try:
                 section_refs += indx.all_section_refs()
             except Exception as e:
-                logger.warning("Failed to get section refs for {}: {}".format(getattr(indx, "title", "unknown index"), e))
+                logger.warning(
+                    "Failed to get section refs for {}: {}".format(getattr(indx, "title", "unknown index"), e),
+                )
         return section_refs
 
     def get_term_dict(self, lang="en"):
@@ -5691,19 +6037,25 @@ class Library(object):
 
     def build_term_mappings(self):
         """
-           Build simple and full term mappings
-           A full term mapping has the term name as the key, and the term as the value.
-           A simple term mapping has the term name as the key, and a dictionary containing the English and Hebrew
-           primary titles for the terms as the value.
+        Build simple and full term mappings
+        A full term mapping has the term name as the key, and the term as the value.
+        A simple term mapping has the term name as the key, and a dictionary containing the English and Hebrew
+        primary titles for the terms as the value.
         """
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         for term in TermSet():
             # One term with a missing/corrupt title_group must not abort startup.
-            with skip_bad_record("reset_cache,startup", "build_term_mappings term", record=getattr(term, "name", "<unknown>")):
+            with skip_bad_record(
+                "reset_cache,startup",
+                "build_term_mappings term",
+                record=getattr(term, "name", "<unknown>"),
+            ):
                 self._full_term_mapping[term.name] = term
-                self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
-                                                        "he": term.get_primary_title("he")}
+                self._simple_term_mapping[term.name] = {
+                    "en": term.get_primary_title("en"),
+                    "he": term.get_primary_title("he"),
+                }
                 if hasattr(term, "ref"):
                     for lang in self.langs:
                         for title in term.get_titles(lang):
@@ -5712,10 +6064,10 @@ class Library(object):
     def get_simple_term_mapping(self, rebuild=False):
         if rebuild or not self._simple_term_mapping:
             if not rebuild:
-                self._simple_term_mapping = scache.get_shared_cache_elem('term_mapping')
+                self._simple_term_mapping = scache.get_shared_cache_elem("term_mapping")
             if rebuild or not self._simple_term_mapping:
                 self.build_term_mappings()
-                scache.set_shared_cache_elem('term_mapping', self._simple_term_mapping)
+                scache.set_shared_cache_elem("term_mapping", self._simple_term_mapping)
                 self.set_last_cached_time()
         return self._simple_term_mapping
 
@@ -5725,10 +6077,13 @@ class Library(object):
         """
         if rebuild or not self._simple_term_mapping_json:
             if not rebuild:
-                self._simple_term_mapping_json = scache.get_shared_cache_elem('term_mapping_json')
+                self._simple_term_mapping_json = scache.get_shared_cache_elem("term_mapping_json")
             if rebuild or not self._simple_term_mapping_json:
-                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(rebuild=rebuild), ensure_ascii=False)
-                scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
+                self._simple_term_mapping_json = json.dumps(
+                    self.get_simple_term_mapping(rebuild=rebuild),
+                    ensure_ascii=False,
+                )
+                scache.set_shared_cache_elem("term_mapping_json", self._simple_term_mapping_json)
                 self.set_last_cached_time()
         return self._simple_term_mapping_json
 
@@ -5740,9 +6095,11 @@ class Library(object):
         """
         if not self._full_term_mapping:
             self.build_term_mappings()
-        return self._full_term_mapping.get(term_name) if term_name in self._full_term_mapping else Term().load({"name": term_name})
-
-
+        return (
+            self._full_term_mapping.get(term_name)
+            if term_name in self._full_term_mapping
+            else Term().load({"name": term_name})
+        )
 
     def get_topic(self, slug):
         """
@@ -5773,11 +6130,16 @@ class Library(object):
         value of the topic's Hebrew primary title.
         :returns: topic map for the given slug Dictionary
         """
-        from .topic import Topic, TopicSet
+        from .topic import TopicSet
+
         # One topic with a missing/corrupt title_group must not abort startup.
         self._topic_mapping = {}
         for t in TopicSet():
-            with skip_bad_record("reset_cache,startup", "_build_topic_mapping topic", record=getattr(t, "slug", "<unknown>")):
+            with skip_bad_record(
+                "reset_cache,startup",
+                "_build_topic_mapping topic",
+                record=getattr(t, "slug", "<unknown>"),
+            ):
                 self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
         return self._topic_mapping
 
@@ -5801,10 +6163,10 @@ class Library(object):
 
     @staticmethod
     def _build_named_entity_resolver(lang: str):
-        from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
+        from .linker.named_entity_resolver import NamedEntityResolver, TopicMatcher
 
         named_entity_types_to_topics = {
-            "PERSON": {"ontology_roots": ['people', 'group-of-people'], "single_slugs": ['god', 'the-tetragrammaton']},
+            "PERSON": {"ontology_roots": ["people", "group-of-people"], "single_slugs": ["god", "the-tetragrammaton"]},
         }
         return NamedEntityResolver(TopicMatcher(lang, named_entity_types_to_topics))
 
@@ -5815,23 +6177,27 @@ class Library(object):
         return LinkerEntityRecognizer(lang)
 
     def _build_category_resolver(self, lang: str):
-        from sefaria.model.category import CategorySet, Category
-        from .linker.category_resolver import CategoryResolver, CategoryMatcher
+        from sefaria.model.category import Category, CategorySet
+
+        from .linker.category_resolver import CategoryMatcher, CategoryResolver
+
         categories: list[Category] = CategorySet({"match_templates": {"$exists": True}}).array()
         return CategoryResolver(CategoryMatcher(lang, categories))
 
     def _build_ref_resolver(self, lang: str):
-        from .linker.match_template import MatchTemplateTrie
-        from .linker.ref_resolver import RefResolver, TermMatcher
         from sefaria.model.schema import NonUniqueTermSet
 
-        root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
+        from .linker.match_template import MatchTemplateTrie
+        from .linker.ref_resolver import RefResolver, TermMatcher
+
+        root_nodes = list(filter(lambda n: getattr(n, "match_templates", None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
 
         return RefResolver(
-           lang, MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone'),
-           TermMatcher(lang, non_unique_terms),
+            lang,
+            MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes), scope="alone"),
+            TermMatcher(lang, non_unique_terms),
         )
 
     def get_index_forest(self):
@@ -5854,7 +6220,13 @@ class Library(object):
         for k in list(self._index_title_maps["en"].keys()):
             # Deliberately narrow to KeyError (the title/nodes.key mismatch), not the full
             # bad-record family — per the BAD_RECORD_EXCEPTIONS decision for this site.
-            with skip_bad_record("reset_toc,startup", "all_index_records key (title/nodes.key mismatch)", record=k, level="error", exceptions=KeyError):
+            with skip_bad_record(
+                "reset_toc,startup",
+                "all_index_records key (title/nodes.key mismatch)",
+                record=k,
+                level="error",
+                exceptions=KeyError,
+            ):
                 records.append(self._index_map[k])
         return records
 
@@ -5867,7 +6239,7 @@ class Library(object):
         """
         return self._title_node_maps[lang]
 
-    # todo: handle terms
+    # TODO: handle terms
     def get_schema_node(self, title, lang=None):
         """
         :param string title:
@@ -5885,7 +6257,7 @@ class Library(object):
         :param lang: "he" or "en"
         :return: list of all titles that can be recognized as an inline citation
         """
-        key = "citing-{}".format(lang)
+        key = f"citing-{lang}"
         titles = self._full_title_lists.get(key)
         if not titles:
             titles = []
@@ -5929,13 +6301,13 @@ class Library(object):
         """
         if rebuild or not self._full_title_list_jsons.get(lang):
             if not rebuild:
-                self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
+                self._full_title_list_jsons[lang] = scache.get_shared_cache_elem("books_" + lang + "_json")
             if rebuild or not self._full_title_list_jsons.get(lang):
                 title_list = self.build_text_titles_json(lang=lang)
                 title_list_json = json.dumps(title_list, ensure_ascii=False)
                 self._full_title_list_jsons[lang] = title_list_json
-                scache.set_shared_cache_elem('books_' + lang, title_list)
-                scache.set_shared_cache_elem('books_'+lang+'_json', title_list_json)
+                scache.set_shared_cache_elem("books_" + lang, title_list)
+                scache.set_shared_cache_elem("books_" + lang + "_json", title_list_json)
                 self.set_last_cached_time()
         return self._full_title_list_jsons[lang]
 
@@ -5944,8 +6316,8 @@ class Library(object):
         Resets the text titles for all languages by clearing the existing titles from the cache.
         """
         for lang in self.langs:
-            scache.delete_shared_cache_elem('books_' + lang)
-            scache.delete_shared_cache_elem('books_' + lang + '_json')
+            scache.delete_shared_cache_elem("books_" + lang)
+            scache.delete_shared_cache_elem("books_" + lang + "_json")
 
     def get_text_categories(self):
         """
@@ -5962,33 +6334,33 @@ class Library(object):
         """
 
         if not include_dependant:
-            q = {"categories": category, 'dependence': {'$in': [False, None]}}
+            q = {"categories": category, "dependence": {"$in": [False, None]}}
         else:
             q = {"categories": category}
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    def get_indexes_in_category_path(self, path: list, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
+    def get_indexes_in_category_path(self, path: list, include_dependant=False, full_records=False) -> IndexSet | list:
         """
         :param list path: list of category names, starting from root.
         :param bool include_dependant: If true includes records of Commentary and Targum
         :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
         :return: :class:`IndexSet` of :class:`Index` records in the specified category path
         """
-        q = {} if include_dependant else {'dependence': {'$in': [False, None]}}
+        q = {} if include_dependant else {"dependence": {"$in": [False, None]}}
         for icat, cat in enumerate(path):
-            q[f'categories.{icat}'] = cat
+            q[f"categories.{icat}"] = cat
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    def get_indexes_in_corpus(self, corpus: str, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
-        q = {'corpora': corpus}
+    def get_indexes_in_corpus(self, corpus: str, include_dependant=False, full_records=False) -> IndexSet | list:
+        q = {"corpora": corpus}
         if not include_dependant:
-            q['dependence'] = {'$in': [False, None]}
+            q["dependence"] = {"$in": [False, None]}
         return IndexSet(q, sort="order.0") if full_records else IndexSet(q, sort="order.0").distinct("title")
 
     def get_indices_by_collective_title(self, collective_title, full_records=False):
-        q = {'collective_title': collective_title}
+        q = {"collective_title": collective_title}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     # TODO: add category filtering here or in another method?
@@ -6001,25 +6373,23 @@ class Library(object):
         :param full_records: If True, returns an IndexSet, if False returns list of titles.
         :return: IndexSet or List of titles.
         """
-        if dependence_type:
-            q = {'dependence': dependence_type}
-        else:
-            q = {'dependence': {'$exists': True}}
+        q = {"dependence": dependence_type} if dependence_type else {"dependence": {"$exists": True}}
         if book_title:
-            q['base_text_titles'] = book_title
+            q["base_text_titles"] = book_title
         if structure_match:  # get only indices who's "base_text_mapping" is one that indicates it has the similar underlying schema as the base
             from sefaria.helper.link import AbstractStructureAutoLinker
             from sefaria.utils.util import get_all_subclass_attribute
-            q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
+
+            q["base_text_mapping"] = {"$in": get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     def get_virtual_books(self, rebuild=False):
         if rebuild or not self._virtual_books:
             if not rebuild:
-                self._virtual_books = scache.get_shared_cache_elem('virtualBooks')
+                self._virtual_books = scache.get_shared_cache_elem("virtualBooks")
             if rebuild or not self._virtual_books:
                 self.build_virtual_books()
-                scache.set_shared_cache_elem('virtualBooks', self._virtual_books)
+                scache.set_shared_cache_elem("virtualBooks", self._virtual_books)
                 self.set_last_cached_time()
         return self._virtual_books
 
@@ -6027,7 +6397,7 @@ class Library(object):
         # Build record-by-record so one malformed dictionary index (e.g. accessing
         # .title raises) is logged-and-skipped rather than aborting startup.
         self._virtual_books = []
-        for index in IndexSet({'lexiconName': {'$exists': True}}):
+        for index in IndexSet({"lexiconName": {"$exists": True}}):
             with skip_bad_record("startup", "build_virtual_books index", record=getattr(index, "_id", "<unknown>")):
                 self._virtual_books.append(index.title)
         return self._virtual_books
@@ -6042,7 +6412,7 @@ class Library(object):
         """
         if not lang:
             lang = "he" if has_hebrew(s) else "en"
-        return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
+        return [m.group("title") for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
 
     def get_refs_in_string(self, st, lang=None, citing_only=False):
         """
@@ -6054,38 +6424,39 @@ class Library(object):
         :return: list of :class:`Ref` objects
             Order is not guaranteed
         """
-        # todo: only match titles of content nodes
+        # TODO: only match titles of content nodes
 
         refs = []
         if lang is None:
             lang = "he" if has_hebrew(st) else "en"
         if lang == "he":
             from sefaria.utils.hebrew import strip_nikkud
+
             st = strip_nikkud(st)
             unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
             for title in unique_titles:
                 try:
                     res = self._build_all_refs_from_string(title, st)
                     refs += res
-                except AssertionError as e:
-                    logger.info("Skipping Schema Node: {}".format(title))
-                except TypeError as e:
-                    logger.info("Error finding ref for {} in: {}".format(title, st))
+                except AssertionError:
+                    logger.info(f"Skipping Schema Node: {title}")
+                except TypeError:
+                    logger.info(f"Error finding ref for {title} in: {st}")
 
         else:  # lang == "en"
             for match in self.all_titles_regex(lang, citing_only=citing_only).finditer(st):
-                title = match.group('title')
+                title = match.group("title")
                 if not title:
                     continue
                 try:
-                    res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
+                    res = self._build_ref_from_string(title, st[match.start() :])  # Slice string from title start
                     refs += res
-                except AssertionError as e:
-                    logger.info("Skipping Schema Node: {}".format(title))
+                except AssertionError:
+                    logger.info(f"Skipping Schema Node: {title}")
                 except InputError as e:
-                    logger.info("Input Error searching for refs in string: {}".format(e))
-                except TypeError as e:
-                    logger.info("Error finding ref for {} in: {}".format(title, st))
+                    logger.info(f"Input Error searching for refs in string: {e}")
+                except TypeError:
+                    logger.info(f"Error finding ref for {title} in: {st}")
 
         return refs
 
@@ -6100,7 +6471,7 @@ class Library(object):
 
         """
         unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
-        title_nodes = {title: self.get_schema_node(title,lang) for title in unique_titles}
+        title_nodes = {title: self.get_schema_node(title, lang) for title in unique_titles}
         all_reg = self.get_multi_title_regex_string(unique_titles, lang)
         reg = regex.compile(all_reg, regex.VERBOSE) if all_reg else None
         return reg, title_nodes
@@ -6115,18 +6486,24 @@ class Library(object):
         :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
         :return: string:
         """
-        if '<a ' not in st:  # This is 30 times faster than re.split, and applies for most cases
+        if "<a " not in st:  # This is 30 times faster than re.split, and applies for most cases
             substrings = [st]
         else:
-            html_a_tag_reg = '(<a [^<>]*>.*?</a>)'  # Assuming no nested <a> within <a>
+            html_a_tag_reg = "(<a [^<>]*>.*?</a>)"  # Assuming no nested <a> within <a>
             substrings = re.split(html_a_tag_reg, st)
-        new_string = ''
+        new_string = ""
         for i, substring in enumerate(substrings):
             if i % 2 == 1:  # An <a> tag
                 new_string += substring
             elif i % 2 == 0 and substring:
-                new_string += self.apply_action_for_all_refs_in_string(substring, self._wrap_ref_match, lang,
-                                                                       citing_only, reg, title_nodes)
+                new_string += self.apply_action_for_all_refs_in_string(
+                    substring,
+                    self._wrap_ref_match,
+                    lang,
+                    citing_only,
+                    reg,
+                    title_nodes,
+                )
         return new_string
 
     def apply_action_for_all_refs_in_string(self, st, action, lang=None, citing_only=None, reg=None, title_nodes=None):
@@ -6140,7 +6517,7 @@ class Library(object):
         @param title_nodes:
         @return:
         """
-        # todo: only match titles of content nodes
+        # TODO: only match titles of content nodes
         if lang is None:
             lang = "he" if has_hebrew(st) else "en"
 
@@ -6151,10 +6528,9 @@ class Library(object):
             sub_action = partial(self._apply_action_for_ref_match, title_nodes, lang, action)
             if lang == "en":
                 return reg.sub(sub_action, st)
-            else:
-                outer_regex_str = r"[({\[].+?[)}\]]"
-                outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
-                return outer_regex.sub(lambda match: reg.sub(sub_action, match.group(0)), st)
+            outer_regex_str = r"[({\[].+?[)}\]]"
+            outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
+            return outer_regex.sub(lambda match: reg.sub(sub_action, match.group(0)), st)
         return st
 
     def get_multi_title_regex_string(self, titles, lang, for_js=False, anchored=False):
@@ -6173,35 +6549,53 @@ class Library(object):
             try:
                 node = self.get_schema_node(title, lang)
                 nodes_by_address_type[tuple(node.addressTypes)] += [(title, node)]
-            except AttributeError as e:
+            except AttributeError:
                 # This chatter fills up the logs:
                 # logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
                 continue
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
-            for address_tuple, title_node_tuples in list(nodes_by_address_type.items()):
+            for _address_tuple, title_node_tuples in list(nodes_by_address_type.items()):
                 node = title_node_tuples[0][1]
                 titles = "|".join([regex.escape(tup[0]) for tup in title_node_tuples])
-                regex_components += [node.full_regex(titles, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=True, escape_titles=False)]
+                regex_components += [
+                    node.full_regex(
+                        titles,
+                        lang,
+                        for_js=for_js,
+                        match_range=True,
+                        compiled=False,
+                        anchored=anchored,
+                        capture_title=True,
+                        escape_titles=False,
+                    ),
+                ]
             return "|".join(regex_components)
 
         if lang == "he":
             full_regex = ""
-            for address_tuple, title_node_tuples in list(nodes_by_address_type.items()):
+            for _address_tuple, title_node_tuples in list(nodes_by_address_type.items()):
                 node = title_node_tuples[0][1]
                 titles = "|".join([regex.escape(tup[0]) for tup in title_node_tuples])
 
-                regex_components += [r"(?:{}".format(r"(?P<title>{})".format(titles))  \
-                           + node.after_title_delimiter_re \
-                           + node.address_regex(lang, for_js=for_js, match_range=True) + ")"]
+                regex_components += [
+                    r"(?:{}".format(rf"(?P<title>{titles})")
+                    + node.after_title_delimiter_re
+                    + node.address_regex(lang, for_js=for_js, match_range=True)
+                    + ")",
+                ]
 
             all_interal = "|".join(regex_components)
             if all_interal:
-                full_regex = r"""(?:
-                    """ + all_interal + r"""
+                full_regex = (
+                    r"""(?:
+                    """
+                    + all_interal
+                    + r"""
                     )
                     (?=\W|$)                                        # look ahead for non-word char
                     """
+                )
             return full_regex
 
     # do we want to move this to the schema node? We'd still have to pass the title...
@@ -6224,42 +6618,62 @@ class Library(object):
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en" or for_js:
-            return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title, parentheses=parentheses)
-        elif lang == "he":
-            return r"""(?<=							# look behind for opening brace
+            return node.full_regex(
+                title,
+                lang,
+                for_js=for_js,
+                match_range=True,
+                compiled=False,
+                anchored=anchored,
+                capture_title=capture_title,
+                parentheses=parentheses,
+            )
+        if lang == "he":
+            return (
+                r"""(?<=							# look behind for opening brace
                     [({]										# literal '(', brace,
                     [^})]*										# anything but a closing ) or brace
                 )
-                """ + r"{}".format(r"(?P<title>{})".format(regex.escape(title)) if capture_title else regex.escape(title)) \
-                   + node.after_title_delimiter_re \
-                   + node.address_regex(lang, for_js=for_js, match_range=True) \
-                   + r"""
+                """
+                + r"{}".format(rf"(?P<title>{regex.escape(title)})" if capture_title else regex.escape(title))
+                + node.after_title_delimiter_re
+                + node.address_regex(lang, for_js=for_js, match_range=True)
+                + r"""
                 (?=\W|$)                                        # look ahead for non-word char
                 (?=												# look ahead for closing brace
                     [^({]*										# match of anything but an opening '(' or brace
                     [)}]										# zero-width: literal ')' or brace
                 )"""
+            )
 
     def _get_ref_from_match(self, ref_match, node, lang):
         sections = []
         toSections = []
         gs = ref_match.groupdict()
-        for i in range(0, node.depth):
-            gname = "a{}".format(i)
+        for i in range(node.depth):
+            gname = f"a{i}"
             if gs.get(gname) is not None:
                 sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
 
         curr_address_index = len(sections) - 1  # start from the lowest depth matched in `sections` and go backwards
-        for i in range(node.depth-1, -1, -1):
-            toGname = "ar{}".format(i)
+        for i in range(node.depth - 1, -1, -1):
+            toGname = f"ar{i}"
             if gs.get(toGname):
-                toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname), sections=sections[curr_address_index]))
+                toSections.append(
+                    node._addressTypes[curr_address_index].toNumber(
+                        lang,
+                        gs.get(toGname),
+                        sections=sections[curr_address_index],
+                    ),
+                )
                 curr_address_index -= 1
 
         if len(toSections) == 0:
             toSections = sections
         elif len(toSections) > len(sections):
-            raise InputError("Match {} invalid. Length of toSections is greater than length of sections: {} > {}".format(ref_match.group(0), len(toSections), len(sections)))
+            raise InputError(
+                f"Match {ref_match.group(0)} invalid. Length of toSections is greater than length of sections: {len(toSections)} > {len(sections)}",
+            )
         else:
             # pad toSections until it reaches the length of sections.
             while len(toSections) < len(sections):
@@ -6289,7 +6703,7 @@ class Library(object):
         """
         return self._internal_ref_from_string(title, st, lang)
 
-    def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
+    def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations=False):
         node = self.get_schema_node(title, lang)
         if not isinstance(node, JaggedArrayNode):
             # TODO fix when not JaggedArrayNode
@@ -6300,8 +6714,7 @@ class Library(object):
         try:
             re_string = self.get_regex_string(title, lang, anchored=stIsAnchored)
         except AttributeError as e:
-            logger.warning(
-                "Library._internal_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+            logger.warning(f"Library._internal_ref_from_string() failed to create regex for: {title}.  {e}")
             return refs
 
         reg = regex.compile(re_string, regex.VERBOSE)
@@ -6312,9 +6725,13 @@ class Library(object):
             matches = reg.finditer(st)
         for ref_match in matches:
             try:
-                res = (self._get_ref_from_match(ref_match, node, lang), ref_match.span()) if return_locations else self._get_ref_from_match(ref_match, node, lang)
+                res = (
+                    (self._get_ref_from_match(ref_match, node, lang), ref_match.span())
+                    if return_locations
+                    else self._get_ref_from_match(ref_match, node, lang)
+                )
                 refs.append(res)
-            except (InputError, ValueError) as e:
+            except (InputError, ValueError):
                 continue
         return refs
 
@@ -6334,15 +6751,15 @@ class Library(object):
                 return match.group(0)
             return replacement
         except (InputError, KeyError) as e:
-            logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
+            logger.warning(f"Wrap Ref Warning: Ref:({match.group(0)}) {str(e)}")
             return match.group(0)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         """Returns a dict of unique category ids based on the ToC, with the
-           values being the category IDs.
-            :param toc: ToC object (optional, default is None)
-            :param cat_head: String, (optional, default is "" - an empty string)
-            :param code_head: String, (optional, default is "" - an empty string)
+        values being the category IDs.
+         :param toc: ToC object (optional, default is None)
+         :param cat_head: String, (optional, default is "" - an empty string)
+         :param code_head: String, (optional, default is "" - an empty string)
         """
         if toc is None:
             if not self._category_id_dict:
@@ -6355,10 +6772,10 @@ class Library(object):
             name = c["category"] if "category" in c else c["title"]
             if cat_head:
                 key = "/".join([cat_head, name])
-                val = code_head + format(i, '03')
+                val = code_head + format(i, "03")
             else:
                 key = name
-                val = "A" + format(i, '03')
+                val = "A" + format(i, "03")
 
             d[key] = val
             if "contents" in c:
@@ -6382,7 +6799,7 @@ class Library(object):
             node_path = path + [node_name]
             simple_node = {
                 "name": node_name,
-                "path": node_path
+                "path": node_path,
             }
             if "category" in x:
                 if "contents" not in x:
@@ -6394,22 +6811,24 @@ class Library(object):
                 if lang:
                     query["language"] = lang
                 simple_node["type"] = "index"
-                simple_node["children"] = [{
-                    "name": "{} ({})".format(v.versionTitle, v.language),
-                    "path": node_path + ["{} ({})".format(v.versionTitle, v.language)],
-                    "size": v.word_count(),
-                    "type": "version"
-                } for v in VersionSet(query)]
+                simple_node["children"] = [
+                    {
+                        "name": f"{v.versionTitle} ({v.language})",
+                        "path": node_path + [f"{v.versionTitle} ({v.language})"],
+                        "size": v.word_count(),
+                        "type": "version",
+                    }
+                    for v in VersionSet(query)
+                ]
             simple_nodes.append(simple_node)
 
         if is_root:
             return {
                 "name": "Whole Library" + " ({})".format(lang if lang else ""),
                 "path": [],
-                "children": simple_nodes
+                "children": simple_nodes,
             }
-        else:
-            return simple_nodes
+        return simple_nodes
 
     def word_count(self, ref_or_cat, lang="he", dependents_regex=None):
         """
@@ -6425,7 +6844,7 @@ class Library(object):
         except InputError:
             if dependents_regex:
                 raw_ins = library.get_indexes_in_category(ref_or_cat, True)
-                ins = filter(lambda s: re.search(dependents_regex,s), raw_ins)
+                ins = filter(lambda s: re.search(dependents_regex, s), raw_ins)
             else:
                 ins = library.get_indexes_in_category(ref_or_cat)
             return sum([Ref(r).word_count(lang) for r in ins])
@@ -6443,21 +6862,31 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-        are_autocompleters_ready = self._full_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
+        are_autocompleters_ready = (
+            self._full_auto_completer_is_ready
+            and self._lexicon_auto_completer_is_ready
+            and self._cross_lexicon_auto_completer_is_ready
+        )
         is_initialized = self._toc_tree_is_ready and (DISABLE_AUTOCOMPLETER or are_autocompleters_ready)
         if not is_initialized:
-            logger.warning({"message": "Application not fully initialized", "Current State": {
-                "toc_tree_is_ready": self._toc_tree_is_ready,
-                "full_auto_completer_is_ready": self._full_auto_completer_is_ready,
-                "lexicon_auto_completer_is_ready": self._lexicon_auto_completer_is_ready,
-                "cross_lexicon_auto_completer_is_ready": self._cross_lexicon_auto_completer_is_ready,
-            }})
+            logger.warning(
+                {
+                    "message": "Application not fully initialized",
+                    "Current State": {
+                        "toc_tree_is_ready": self._toc_tree_is_ready,
+                        "full_auto_completer_is_ready": self._full_auto_completer_is_ready,
+                        "lexicon_auto_completer_is_ready": self._lexicon_auto_completer_is_ready,
+                        "cross_lexicon_auto_completer_is_ready": self._cross_lexicon_auto_completer_is_ready,
+                    },
+                },
+            )
         return is_initialized
 
     @staticmethod
     def get_top_categories(full_records=False):
         from sefaria.model.category import CategorySet
-        return CategorySet({'depth': 1}) if full_records else CategorySet({'depth': 1}).distinct('path')
+
+        return CategorySet({"depth": 1}) if full_records else CategorySet({"depth": 1}).distinct("path")
 
 
 library = Library()
@@ -6470,18 +6899,17 @@ def prepare_index_regex_for_dependency_process(index_object, as_list=False):
     Simplified version of Ref.regex()
     """
     patterns = []
-    patterns.append(r"$")   # exact match
+    patterns.append(r"$")  # exact match
     if index_object.nodes.has_titled_continuation():
         patterns.append(r"({}).".format(r"|".join(index_object.nodes.title_separators)))
     if index_object.nodes.has_numeric_continuation():
-        patterns.append(r":")   # more granualar, exact match followed by :
-        patterns.append(r" \d") # extra granularity following space
+        patterns.append(r":")  # more granualar, exact match followed by :
+        patterns.append(r" \d")  # extra granularity following space
 
     escaped_book = re.escape(index_object.title)
     if as_list:
-        return [r"^{}{}".format(escaped_book, p) for p in patterns]
-    else:
-        return r"^%s(%s)" % (escaped_book, "|".join(patterns))
+        return [rf"^{escaped_book}{p}" for p in patterns]
+    return r"^%s(%s)" % (escaped_book, "|".join(patterns))
 
 
 def process_index_title_change_in_versions(indx, **kwargs):
@@ -6499,21 +6927,31 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
         didx.base_text_titles.insert(pos, kwargs["new"])
         didx.save()
 
-def process_index_title_change_in_sheets(indx, **kwargs):
-    report_progress("Cascading refs in sheets {} to {}".format(kwargs['old'], kwargs['new']))
 
-    regex_list = [pattern.replace(re.escape(kwargs["new"]), re.escape(kwargs["old"]))
-                for pattern in Ref(kwargs["new"]).regex(as_list=True)]
+def process_index_title_change_in_sheets(indx, **kwargs):
+    report_progress("Cascading refs in sheets {} to {}".format(kwargs["old"], kwargs["new"]))
+
+    regex_list = [
+        pattern.replace(re.escape(kwargs["new"]), re.escape(kwargs["old"]))
+        for pattern in Ref(kwargs["new"]).regex(as_list=True)
+    ]
     ref_clauses = [{"includedRefs": {"$regex": r}} for r in regex_list]
-    query = {"$or": ref_clauses }
+    query = {"$or": ref_clauses}
     sheets = db.sheets.find(query)
     for sheet in sheets:
-        sheet["includedRefs"] = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), r) else r for r in sheet.get("includedRefs", [])]
+        sheet["includedRefs"] = [
+            r.replace(kwargs["old"], kwargs["new"], 1) if re.search("|".join(regex_list), r) else r
+            for r in sheet.get("includedRefs", [])
+        ]
         sheet["expandedRefs"] = Ref.expand_refs(sheet["includedRefs"])
         for source in sheet.get("sources", []):
             if "ref" in source:
-                source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), source["ref"]) else source["ref"]
-        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
+                source["ref"] = (
+                    source["ref"].replace(kwargs["old"], kwargs["new"], 1)
+                    if re.search("|".join(regex_list), source["ref"])
+                    else source["ref"]
+                )
+        db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
 
 
 def process_index_delete_in_versions(indx, **kwargs):
@@ -6530,6 +6968,7 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
     elif USE_VARNISH:
         from sefaria.system.varnish.wrapper import invalidate_title
+
         invalidate_title(old_title)
 
 
@@ -6549,11 +6988,12 @@ def process_index_change_in_core_cache(indx, **kwargs):
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
         elif USE_VARNISH:
             from sefaria.system.varnish.wrapper import invalidate_title
+
             invalidate_title(indx.title)
 
 
 def process_index_change_in_toc(indx, **kwargs):
-    old_ref = kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None
+    old_ref = kwargs.get("orig_vals").get("title") if kwargs.get("orig_vals") else None
     library.update_index_in_toc(indx, old_ref=old_ref)
 
     if MULTISERVER_ENABLED:
@@ -6575,6 +7015,7 @@ def process_index_delete_in_core_cache(indx, **kwargs):
         server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
     elif USE_VARNISH:
         from sefaria.system.varnish.wrapper import invalidate_title
+
         invalidate_title(indx.title)
 
 

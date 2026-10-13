@@ -4,10 +4,10 @@ Convert the printed output of monthly_registrations_with_signals() into a CSV.
 Usage:
     python scripts/registered_users_to_csv.py input.txt output.csv
 """
-import sys
+
 import csv
 import re
-
+import sys
 
 COLUMNS = [
     "month",
@@ -36,7 +36,7 @@ def parse(path):
             parts = line.split()
             if len(parts) != len(COLUMNS):
                 raise ValueError(
-                    f"Expected {len(COLUMNS)} fields, got {len(parts)} in line: {line!r}"
+                    f"Expected {len(COLUMNS)} fields, got {len(parts)} in line: {line!r}",
                 )
             rows.append(parts)
     return rows

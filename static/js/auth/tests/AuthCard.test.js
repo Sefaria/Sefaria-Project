@@ -11,18 +11,26 @@ let container = null;
 function mount(props) {
   container = document.createElement('div');
   document.body.appendChild(container);
-  act(() => { ReactDOM.render(React.createElement(AuthCard, props), container); });
+  act(() => {
+    ReactDOM.render(React.createElement(AuthCard, props), container);
+  });
 }
 
 function unmount() {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 }
 
 const realSefaria = global.Sefaria;
-beforeAll(() => { global.Sefaria = { _: (key) => key }; });
-afterAll(() => { global.Sefaria = realSefaria; });
+beforeAll(() => {
+  global.Sefaria = { _: (key) => key };
+});
+afterAll(() => {
+  global.Sefaria = realSefaria;
+});
 
 afterEach(() => {
   if (container) unmount();

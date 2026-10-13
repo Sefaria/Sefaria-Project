@@ -28,12 +28,7 @@ import { getCsrfToken } from '../sefaria/csrf';
  * SSO endpoints/flow differ by provider and mode — see `useSsoSignIn.jsx`. Email
  * login/register use JSON+session endpoints (/api/auth/login, /register).
  */
-const AuthPage = ({
-  initialPath = '/login',
-  authSource = null,
-  resetValid = null,
-  onNavigate,
-}) => {
+const AuthPage = ({ initialPath = '/login', authSource = null, resetValid = null, onNavigate }) => {
   const flow = pathToFlow(initialPath);
   const next = nextFromPath(initialPath);
   const [view, setView] = useState(() => {
@@ -55,7 +50,13 @@ const AuthPage = ({
   const csrf = getCsrfToken();
   const tracking = useSignUpTracking({ flow, source: authSource });
   const {
-    googleReady, appleReady, ssoLoading, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
+    googleReady,
+    appleReady,
+    ssoLoading,
+    overlayNode,
+    registerGoogleTarget,
+    setActiveErrorHandler,
+    triggerApple,
   } = useProviderTriggers({ next, tracking });
   const fieldsRef = useRef(fields);
   fieldsRef.current = fields;
@@ -72,10 +73,16 @@ const AuthPage = ({
   };
 
   // ---- views --------------------------------------------------------------
-  const onForgotClick = (e) => { e.preventDefault(); setView('forgot'); };
+  const onForgotClick = (e) => {
+    e.preventDefault();
+    setView('forgot');
+  };
   // The rare "link doesn't resolve to any account" fallback routes to the
   // existing manual-email-entry ForgotView rather than building a new one.
-  const requestNewLink = () => { setView('forgot'); onNavigate?.(flowToPath('login', next)); };
+  const requestNewLink = () => {
+    setView('forgot');
+    onNavigate?.(flowToPath('login', next));
+  };
   const onEmailClick = () => {
     tracking.chooseMethod(SIGNUP_METHOD.EMAIL);
     tracking.startProcess();
@@ -86,36 +93,52 @@ const AuthPage = ({
   if (view === 'email' && flow === 'register') {
     content = (
       <RegisterView
-        switchFlow={switchFlow} fields={fields} setField={setField}
+        switchFlow={switchFlow}
+        fields={fields}
+        setField={setField}
         onBack={() => setView('choose')}
         endProcess={tracking.endProcess}
-        next={next} csrf={csrf}
-        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        next={next}
+        csrf={csrf}
+        registerGoogleTarget={registerGoogleTarget}
+        triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
       />
     );
   } else if (view === 'email') {
     content = (
       <LoginView
-        switchFlow={switchFlow} fields={fields} setField={setField}
+        switchFlow={switchFlow}
+        fields={fields}
+        setField={setField}
         onBack={() => setView('choose')}
-        onForgotClick={onForgotClick} next={next} csrf={csrf}
-        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        onForgotClick={onForgotClick}
+        next={next}
+        csrf={csrf}
+        registerGoogleTarget={registerGoogleTarget}
+        triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
       />
     );
   } else if (view === 'forgot') {
     content = (
       <ForgotView
-        emailValue={fields.email} setField={setField} csrf={csrf}
-        onSuccess={() => setView('forgot-sent')} onBack={() => setView('email')}
+        emailValue={fields.email}
+        setField={setField}
+        csrf={csrf}
+        onSuccess={() => setView('forgot-sent')}
+        onBack={() => setView('email')}
       />
     );
   } else if (view === 'forgot-sent') {
     content = <MessageView heading="auth.reset_link_sent" sub="auth.check_your_email" />;
   } else if (view === 'reset') {
     content = (
-      <ResetView csrf={csrf} onLinkExpired={() => setView('reset-expired')} onSuccess={() => setView('reset-success')} />
+      <ResetView
+        csrf={csrf}
+        onLinkExpired={() => setView('reset-expired')}
+        onSuccess={() => setView('reset-success')}
+      />
     );
   } else if (view === 'reset-expired') {
     content = (
@@ -134,10 +157,14 @@ const AuthPage = ({
   } else {
     content = (
       <ChooseView
-        flow={flow} switchFlow={switchFlow}
+        flow={flow}
+        switchFlow={switchFlow}
         onEmailClick={onEmailClick}
-        googleReady={googleReady} appleReady={appleReady} ssoLoading={ssoLoading}
-        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        googleReady={googleReady}
+        appleReady={appleReady}
+        ssoLoading={ssoLoading}
+        registerGoogleTarget={registerGoogleTarget}
+        triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
       />
     );

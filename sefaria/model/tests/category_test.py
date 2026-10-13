@@ -1,17 +1,19 @@
-# -*- coding: utf-8 -*-
-import pytest
-import json
-from deepdiff import DeepDiff
 import copy
-from sefaria.system.exceptions import InputError
-from sefaria.model import *
-from sefaria import tracker
-import sefaria.model.category as c
-from sefaria.helper.category import update_order_of_category_children
 import datetime
-from sefaria.model.text import TocSerializationOptions
-class Test_Category_Editor(object):
-    @pytest.fixture(autouse=True, scope='module')
+import json
+
+import pytest
+from deepdiff import DeepDiff
+
+import sefaria.model.category as c
+from sefaria import tracker
+from sefaria.helper.category import update_order_of_category_children
+from sefaria.model import *
+from sefaria.system.exceptions import InputError
+
+
+class Test_Category_Editor:
+    @pytest.fixture(autouse=True, scope="module")
     def create_new_terms(self):
         terms = []
         for title in ["New Fake Category 1", "New Fake Category 2"]:
@@ -24,10 +26,12 @@ class Test_Category_Editor(object):
         for t in terms:
             t.delete()
 
-    @pytest.fixture(autouse=True, scope='module')
+    @pytest.fixture(autouse=True, scope="module")
     def create_new_cats(self, create_new_terms):
-        titles = {"New Fake Category 1": ["New Fake Category 1"],
-                  "New Fake Category 2": ["New Fake Category 1", "New Fake Category 2"]}
+        titles = {
+            "New Fake Category 1": ["New Fake Category 1"],
+            "New Fake Category 2": ["New Fake Category 1", "New Fake Category 2"],
+        }
         cats = []
         for title, path in titles.items():
             c = Category()
@@ -40,39 +44,39 @@ class Test_Category_Editor(object):
             c.delete()
             library.rebuild_toc()
 
-    @pytest.fixture(autouse=True, scope='module')
+    @pytest.fixture(autouse=True, scope="module")
     def create_fake_indices(self, create_new_cats):
         books = []
         paths_for_books = [create_new_cats[0].path, create_new_cats[0].path, create_new_cats[1].path]
-        for i, title in enumerate(['Fake Book One', 'Fake Book Two', 'Fake Book Three']):
+        for i, title in enumerate(["Fake Book One", "Fake Book Two", "Fake Book Three"]):
             data = {
                 "categories": list(paths_for_books[i]),
                 "title": title,
-                "order": [i*5],
+                "order": [i * 5],
                 "schema": {
                     "titles": [
                         {
                             "lang": "en",
                             "text": title,
-                            "primary": True
+                            "primary": True,
                         },
                         {
                             "lang": "he",
                             "text": title[::-1],
-                            "primary": True
-                        }
+                            "primary": True,
+                        },
                     ],
                     "nodeType": "JaggedArrayNode",
                     "depth": 2,
                     "sectionNames": [
                         "Section",
-                        "Line"
+                        "Line",
                     ],
                     "addressTypes": [
                         "Integer",
-                        "Integer"
+                        "Integer",
                     ],
-                    "key": title
+                    "key": title,
                 },
             }
             book = Index(data)
@@ -81,9 +85,9 @@ class Test_Category_Editor(object):
 
         yield books
         for b in books:
-            library.get_index(b.title).delete() # need to reload this due to caching
+            library.get_index(b.title).delete()  # need to reload this due to caching
 
-    @pytest.fixture(scope='module', autouse=True)
+    @pytest.fixture(scope="module", autouse=True)
     def create_new_main_cat_shared_title(self):
         t = Term()
         t.name = "New Shared Title for Main Cat"
@@ -92,14 +96,18 @@ class Test_Category_Editor(object):
         yield t
         t.delete()
 
-    @pytest.fixture(scope='module', autouse=True)
+    @pytest.fixture(scope="module", autouse=True)
     def create_new_collection(self, create_new_cats):
-        c = Collection({"name": "Fake Collection 123",
-                    "sheets": 1,
-                    "slug": "fake-collection",
-                    "lastModified": datetime.datetime(2021, 2, 5, 14, 57, 32, 336000),
-                    "admins": [1],
-                    "members": [1]})
+        c = Collection(
+            {
+                "name": "Fake Collection 123",
+                "sheets": 1,
+                "slug": "fake-collection",
+                "lastModified": datetime.datetime(2021, 2, 5, 14, 57, 32, 336000),
+                "admins": [1],
+                "members": [1],
+            },
+        )
         c.toc = {"categories": create_new_cats[0].path, "description": "", "heDescription": ""}
         c.save()
         yield c
@@ -108,8 +116,12 @@ class Test_Category_Editor(object):
     @staticmethod
     def change_cat(term, orig_categories, new_categories):
         # simulate category editor: change title, path and desc all at once
-        main_cat_new_dict = {"path": new_categories, "sharedTitle": term.get_primary_title('en'),
-                             "heSharedTitle": term.get_primary_title('he'), "origPath": orig_categories}
+        main_cat_new_dict = {
+            "path": new_categories,
+            "sharedTitle": term.get_primary_title("en"),
+            "heSharedTitle": term.get_primary_title("he"),
+            "origPath": orig_categories,
+        }
         return tracker.update(1, Category, main_cat_new_dict).contents()
 
     @staticmethod
@@ -119,14 +131,23 @@ class Test_Category_Editor(object):
     def test_reorder_editor(self, create_new_cats, create_fake_indices):
         first_book = create_fake_indices[0]
         second_book = create_fake_indices[1]
-        assert second_book.order[0] > first_book.order[0]   # confirm that second book follows first
+        assert second_book.order[0] > first_book.order[0]  # confirm that second book follows first
 
         reorderedBooks = [second_book.title, first_book.title]
         update_order_of_category_children(create_new_cats[0], 1, reorderedBooks)
-        assert library.get_index(second_book.title).order[0] < library.get_index(first_book.title).order[0]   # confirm that order has been reversed
+        assert (
+            library.get_index(second_book.title).order[0] < library.get_index(first_book.title).order[0]
+        )  # confirm that order has been reversed
 
     @staticmethod
-    def modify_and_reverse(new_categories, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices):
+    def modify_and_reverse(
+        new_categories,
+        create_new_main_cat_shared_title,
+        create_new_terms,
+        create_new_cats,
+        create_new_collection,
+        create_fake_indices,
+    ):
         # modify a category and then reverse the changes and confirm that everything is back in place
         main_cat_term = create_new_terms[0]
         main_cat = create_new_cats[0]
@@ -134,39 +155,81 @@ class Test_Category_Editor(object):
         orig_categories = orig_contents["path"]
         orig_toc = Test_Category_Editor.get_thin_toc(orig_categories)
 
-        first_run = {"term": create_new_main_cat_shared_title, "orig": orig_categories, "new": new_categories,
-                     "deep_diff": lambda orig, new: DeepDiff(orig, new, ignore_order=True)}
-        second_run = {"term": main_cat_term, "orig": new_categories, "new": orig_categories,
-                      "deep_diff": lambda orig, new: not DeepDiff(orig, new, ignore_order=True)}
+        first_run = {
+            "term": create_new_main_cat_shared_title,
+            "orig": orig_categories,
+            "new": new_categories,
+            "deep_diff": lambda orig, new: DeepDiff(orig, new, ignore_order=True),
+        }
+        second_run = {
+            "term": main_cat_term,
+            "orig": new_categories,
+            "new": orig_categories,
+            "deep_diff": lambda orig, new: not DeepDiff(orig, new, ignore_order=True),
+        }
         for run in [first_run, second_run]:
             Test_Category_Editor.change_cat(run["term"], run["orig"], run["new"])
-            assert Collection().load({'name': create_new_collection.name}).toc["categories"] == run["new"]  # need to reload this due to caching
+            assert (
+                Collection().load({"name": create_new_collection.name}).toc["categories"] == run["new"]
+            )  # need to reload this due to caching
 
-            index_cats = library.get_index(create_fake_indices[0].title).categories  # need to reload this due to caching
+            index_cats = library.get_index(
+                create_fake_indices[0].title,
+            ).categories  # need to reload this due to caching
             assert run["new"] == index_cats, f"{index_cats} should be the same as {new_categories}"
 
             new_toc = Test_Category_Editor.get_thin_toc(run["new"])
-            assert run["deep_diff"](orig_toc, new_toc), f"Deep Diff test failed for {run['term'].get_primary_title('en')}"
+            assert run["deep_diff"](orig_toc, new_toc), (
+                f"Deep Diff test failed for {run['term'].get_primary_title('en')}"
+            )
 
-
-    def test_title_change_and_parent_change(self, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices):
+    def test_title_change_and_parent_change(
+        self,
+        create_new_main_cat_shared_title,
+        create_new_terms,
+        create_new_cats,
+        create_new_collection,
+        create_fake_indices,
+    ):
         new_categories = ["Midrash", create_new_main_cat_shared_title.name]
-        Test_Category_Editor.modify_and_reverse(new_categories, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices)
+        Test_Category_Editor.modify_and_reverse(
+            new_categories,
+            create_new_main_cat_shared_title,
+            create_new_terms,
+            create_new_cats,
+            create_new_collection,
+            create_fake_indices,
+        )
 
-    def test_title_change_only(self, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices):
+    def test_title_change_only(
+        self,
+        create_new_main_cat_shared_title,
+        create_new_terms,
+        create_new_cats,
+        create_new_collection,
+        create_fake_indices,
+    ):
         main_cat = create_new_cats[0]
         orig_contents = copy.deepcopy(main_cat.contents())
         orig_categories = orig_contents["path"]
         new_categories = orig_categories[:-1] + [create_new_main_cat_shared_title.name]
-        Test_Category_Editor.modify_and_reverse(new_categories, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices)
+        Test_Category_Editor.modify_and_reverse(
+            new_categories,
+            create_new_main_cat_shared_title,
+            create_new_terms,
+            create_new_cats,
+            create_new_collection,
+            create_fake_indices,
+        )
 
 
-class Test_Categories(object):
+class Test_Categories:
     def test_index_save_with_bad_categories(self):
-        title = 'Test Bad Cat'
+        title = "Test Bad Cat"
         d = {
             "categories": [
-                "Liturgy", "Bobby McGee"
+                "Liturgy",
+                "Bobby McGee",
             ],
             "title": title,
             "schema": {
@@ -174,25 +237,25 @@ class Test_Categories(object):
                     {
                         "lang": "en",
                         "text": title,
-                        "primary": True
+                        "primary": True,
                     },
                     {
                         "lang": "he",
                         "text": "דוגמא ב",
-                        "primary": True
-                    }
+                        "primary": True,
+                    },
                 ],
                 "nodeType": "JaggedArrayNode",
                 "depth": 2,
                 "sectionNames": [
                     "Section",
-                    "Line"
+                    "Line",
                 ],
                 "addressTypes": [
                     "Integer",
-                    "Integer"
+                    "Integer",
                 ],
-                "key": title
+                "key": title,
             },
         }
         i = Index(d)
@@ -223,7 +286,7 @@ class Test_Categories(object):
                 i = child.get_index_object()
                 assert i.categories[1] == "Seder Moed"
             else:
-                raise Exception()
+                raise Exception
 
         # Now unwind it
         cat = toc_cat.get_category_object()
@@ -240,11 +303,14 @@ class Test_Categories(object):
         # that the round-trip didn't change anything by reference that would poison the deep test
         assert len(base_json) == len(new_json)
 
+
 """
 Are these tests necessary anymore?
 They were useful in validating 1st class categories against older forms. 
 """
-class Test_OO_Toc(object):
+
+
+class Test_OO_Toc:
     def test_round_trip(self):
         base_toc = library.get_toc()
         base_json = json.dumps(base_toc, sort_keys=True)

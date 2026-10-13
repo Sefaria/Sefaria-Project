@@ -6,7 +6,11 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import GoogleOneTap from '../GoogleOneTap.jsx';
 import {
-  fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded,
+  fireFlowStarted,
+  fireMethodChosen,
+  fireProcessStarted,
+  fireProcessEnded,
+  fireFlowEnded,
   SIGNUP_METHOD,
 } from '../signupAnalytics';
 import { makeUuid } from '../utils';
@@ -30,18 +34,24 @@ let container = null;
 function mount(props = { googleClientId: 'gid' }) {
   container = document.createElement('div');
   document.body.appendChild(container);
-  act(() => { ReactDOM.render(React.createElement(GoogleOneTap, props), container); });
+  act(() => {
+    ReactDOM.render(React.createElement(GoogleOneTap, props), container);
+  });
 }
 
 function unmount() {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 }
 
 // Fires the 1200ms internal delay before GoogleOneTap.jsx calls initialize()/prompt() at all.
 function flushInitialDelay() {
-  act(() => { jest.advanceTimersByTime(1200); });
+  act(() => {
+    jest.advanceTimersByTime(1200);
+  });
 }
 
 function getCredentialCallback() {
@@ -70,7 +80,9 @@ describe('handleCredential (fires on click — the credential callback — not o
     global.fetch = jest.fn(() => new Promise(() => {})); // never resolves within this test
     const credentialCallback = getCredentialCallback();
 
-    act(() => { credentialCallback({ credential: 'tok' }); });
+    act(() => {
+      credentialCallback({ credential: 'tok' });
+    });
 
     expect(fireFlowStarted).toHaveBeenCalledWith('id-1', 'one_tap');
     expect(fireMethodChosen).toHaveBeenCalledWith('id-1', 'id-2', SIGNUP_METHOD.GOOGLE_ONE_TAP);
@@ -84,7 +96,9 @@ describe('handleCredential (fires on click — the credential callback — not o
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => null });
     const credentialCallback = getCredentialCallback();
 
-    await act(async () => { await credentialCallback({ credential: 'tok' }); });
+    await act(async () => {
+      await credentialCallback({ credential: 'tok' });
+    });
 
     expect(fireProcessEnded).toHaveBeenCalledWith('id-1', 'id-2', 'success', null);
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'success', null);
@@ -96,7 +110,9 @@ describe('handleCredential (fires on click — the credential callback — not o
     global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({ error: 'invalid_token' }) });
     const credentialCallback = getCredentialCallback();
 
-    await act(async () => { await credentialCallback({ credential: 'tok' }); });
+    await act(async () => {
+      await credentialCallback({ credential: 'tok' });
+    });
 
     expect(fireProcessEnded).toHaveBeenCalledWith('id-1', 'id-2', 'failure', 'invalid_token');
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'invalid_token');
@@ -108,7 +124,9 @@ describe('handleCredential (fires on click — the credential callback — not o
     global.fetch = jest.fn().mockRejectedValue(new Error('offline'));
     const credentialCallback = getCredentialCallback();
 
-    await act(async () => { await credentialCallback({ credential: 'tok' }); });
+    await act(async () => {
+      await credentialCallback({ credential: 'tok' });
+    });
 
     expect(fireProcessEnded).toHaveBeenCalledWith('id-1', 'id-2', 'failure', 'network_error');
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'network_error');
@@ -129,7 +147,9 @@ describe('no engagement', () => {
 });
 
 describe('auth path guard', () => {
-  afterEach(() => { window.history.pushState({}, '', '/'); });
+  afterEach(() => {
+    window.history.pushState({}, '', '/');
+  });
 
   it('never shows One Tap if already on an auth path at mount (no timer even scheduled)', () => {
     window.history.pushState({}, '', '/login');
@@ -145,7 +165,9 @@ describe('auth path guard', () => {
     // remounting GoogleOneTap, so the mount-time-only check above can't catch this — the
     // pending timer has to re-check the path itself before it fires.
     mount();
-    act(() => { window.history.pushState({}, '', '/login'); });
+    act(() => {
+      window.history.pushState({}, '', '/login');
+    });
     flushInitialDelay();
 
     expect(window.google.accounts.id.initialize).not.toHaveBeenCalled();
@@ -154,7 +176,9 @@ describe('auth path guard', () => {
 
   it('still shows One Tap when navigation during the delay lands somewhere that is not an auth path', () => {
     mount();
-    act(() => { window.history.pushState({}, '', '/texts/Genesis'); });
+    act(() => {
+      window.history.pushState({}, '', '/texts/Genesis');
+    });
     flushInitialDelay();
 
     expect(window.google.accounts.id.prompt).toHaveBeenCalled();

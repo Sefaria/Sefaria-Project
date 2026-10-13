@@ -1,12 +1,15 @@
 # Topic Model
+
 > Source: `sefaria/model/topic.py`
 
 ## Purpose
+
 Defines the Topic hierarchy (Topic, PersonTopic, AuthorTopic), the two kinds of topic links (IntraTopicLink for topic-to-topic, RefTopicLink for topic-to-text/sheet), and supporting infrastructure for link types and data sources. Topics are the primary way Sefaria organizes thematic content, connecting texts, people, and concepts into a navigable graph. Topics live in a taxonomy defined by `is-a` and `displays-under` IntraTopicLinks.
 
 ## Key Classes
 
 ### Topic
+
 - **Inherits**: `SluggedAbstractMongoRecord`, `AbstractTitledObject`
 - **Collection**: `topics`
 - **Role**: Base class for all topics. Handles slug management, title groups, merging, pool membership, and the subclass dispatch system.
@@ -26,6 +29,7 @@ Defines the Topic hierarchy (Topic, PersonTopic, AuthorTopic), the two kinds of 
 - **Subclass dispatch**: `subclass_map = {'person': 'PersonTopic', 'author': 'AuthorTopic'}`. The `subclass` field in Mongo drives which Python class is instantiated.
 
 ### PersonTopic
+
 - **Inherits**: `Topic`
 - **Collection**: `topics` (same collection, discriminated by `subclass`)
 - **Role**: Topic representing a person (not necessarily an author). Adds time period and place annotation.
@@ -38,6 +42,7 @@ Defines the Topic hierarchy (Topic, PersonTopic, AuthorTopic), the two kinds of 
   - `get_person_by_key(key)` -- Loads by `alt_ids.old-person-key` (migration helper).
 
 ### AuthorTopic
+
 - **Inherits**: `PersonTopic`
 - **Collection**: `topics` (same collection, discriminated by `subclass`)
 - **Role**: Topic representing an author of texts. Used in `Index.authors` field. Adds works aggregation logic.
@@ -48,6 +53,7 @@ Defines the Topic hierarchy (Topic, PersonTopic, AuthorTopic), the two kinds of 
   - `is_author(slug)` -- Static. Returns True if slug loads as AuthorTopic.
 
 ### TopicLinkHelper
+
 - **Inherits**: `object`
 - **Collection**: N/A (utility class)
 - **Role**: Shared attributes and factory for IntraTopicLink / RefTopicLink. Both link types live in the same `topic_links` collection, discriminated by the `class` field.
@@ -56,6 +62,7 @@ Defines the Topic hierarchy (Topic, PersonTopic, AuthorTopic), the two kinds of 
   - `init_by_class(topic_link, context_slug)` -- Factory: returns IntraTopicLink or RefTopicLink based on `class` field.
 
 ### IntraTopicLink
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `topic_links` (shared with RefTopicLink)
 - **Role**: Topic-to-topic link (e.g., is-a, displays-under, related-to). Directional: `fromTopic` -> `toTopic`.
@@ -67,6 +74,7 @@ Defines the Topic hierarchy (Topic, PersonTopic, AuthorTopic), the two kinds of 
   - Properties: `is_inverse`, `topic`, `tfidf` -- computed based on `context_slug`.
 
 ### RefTopicLink
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `topic_links` (shared with IntraTopicLink)
 - **Role**: Links a topic to a text Ref or a source sheet. Direction is always ref -> topic (ref in `ref` field, topic in `toTopic`). No `fromTopic` field.
@@ -79,6 +87,7 @@ Defines the Topic hierarchy (Topic, PersonTopic, AuthorTopic), the two kinds of 
   - `contents()` -- Renames `toTopic` to `topic` when not `for_db`.
 
 ### TopicLinkType
+
 - **Inherits**: `SluggedAbstractMongoRecord`
 - **Collection**: `topic_link_types`
 - **Role**: Defines a type of link between topics (or topic-to-ref). Each type has a forward and inverse representation.
@@ -89,17 +98,20 @@ Defines the Topic hierarchy (Topic, PersonTopic, AuthorTopic), the two kinds of 
   - `slug_fields = ['slug', 'inverseSlug']` -- Both slugs are indexed; `validate_slug_exists(slug, index)` uses the index param to pick which slug field.
 
 ### TopicDataSource
+
 - **Inherits**: `SluggedAbstractMongoRecord`
 - **Collection**: `topic_data_sources`
 - **Role**: Provenance record for where topic data or links came from (e.g., `"sefaria"`, `"learning-team-editing-tool"`, `"sheet-topic-aggregator"`).
 - **Key fields**: `slug`, `displayName`, `url`, `description`
 
 ### TopicSet / PersonTopicSet / AuthorTopicSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Role**: Set classes that auto-filter by `subclass` field when instantiated from a subclass recordClass.
 - **Key behavior**: `_read_records()` casts each record to the correct Python subclass. `load_by_title(title)` searches across `titles.text`.
 
 ### TopicLinkSetHelper
+
 - **Role**: Utility for querying the shared `topic_links` collection. `init_query()` injects `class` filter. `find()` returns mixed IntraTopicLink/RefTopicLink instances.
 
 ## Non-Obvious Patterns

@@ -13,19 +13,20 @@ class ClearSsoNextCookieMiddlewareTest(TestCase):
     that adapter machinery) — so clearing it whenever these two specific endpoints
     respond, regardless of outcome, is sufficient; see ClearSsoNextCookieMiddleware.
     """
+
     def test_clears_cookie_on_google_redirect_path(self):
-        self.client.cookies['sefaria_sso_next'] = '/some/path'
-        res = self.client.post('/api/auth/google/redirect', data={})
-        self.assertIn('sefaria_sso_next', res.cookies)
-        self.assertEqual(res.cookies['sefaria_sso_next'].value, '')
+        self.client.cookies["sefaria_sso_next"] = "/some/path"
+        res = self.client.post("/api/auth/google/redirect", data={})
+        self.assertIn("sefaria_sso_next", res.cookies)
+        self.assertEqual(res.cookies["sefaria_sso_next"].value, "")
 
     def test_clears_cookie_on_apple_callback_finish_path(self):
-        self.client.cookies['sefaria_sso_next'] = '/some/path'
-        res = self.client.get('/accounts/apple/login/callback/finish/')
-        self.assertIn('sefaria_sso_next', res.cookies)
-        self.assertEqual(res.cookies['sefaria_sso_next'].value, '')
+        self.client.cookies["sefaria_sso_next"] = "/some/path"
+        res = self.client.get("/accounts/apple/login/callback/finish/")
+        self.assertIn("sefaria_sso_next", res.cookies)
+        self.assertEqual(res.cookies["sefaria_sso_next"].value, "")
 
     def test_does_not_touch_cookie_on_unrelated_path(self):
-        self.client.cookies['sefaria_sso_next'] = '/some/path'
-        res = self.client.get('/api/auth/login')
-        self.assertNotIn('sefaria_sso_next', res.cookies)
+        self.client.cookies["sefaria_sso_next"] = "/some/path"
+        res = self.client.get("/api/auth/login")
+        self.assertNotIn("sefaria_sso_next", res.cookies)

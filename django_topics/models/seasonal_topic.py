@@ -1,11 +1,14 @@
-from django.db import models
-from django_topics.models import Topic
-from django.core.exceptions import ValidationError
-from django.utils.timezone import now
 from datetime import datetime
 
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils.timezone import now
+
+from django_topics.models.topic import Topic
+
+
 class SeasonalTopicManager(models.Manager):
-    def get_seasonal_topic(self, lang: str, date: datetime = None) -> 'SeasonalTopic':
+    def get_seasonal_topic(self, lang: str, date: datetime = None) -> "SeasonalTopic":
         """
         Return seasonal topic for given date or closest date that is less than or equal to given date
         @param lang: language code, "en" or "he"
@@ -13,38 +16,37 @@ class SeasonalTopicManager(models.Manager):
         @return:
         """
         date = date or now().date()
-        return (
-            self.filter(start_date__lte=date, lang=lang)
-            .order_by('-start_date')
-            .first()
-        )
+        return self.filter(start_date__lte=date, lang=lang).order_by("-start_date").first()
+
 
 class SeasonalTopic(models.Model):
     topic = models.ForeignKey(
         Topic,
         on_delete=models.CASCADE,
-        related_name='seasonal_topic'
+        related_name="seasonal_topic",
     )
     secondary_topic = models.ForeignKey(
         Topic,
         on_delete=models.CASCADE,
-        related_name='seasonal_secondary_topic',
+        related_name="seasonal_secondary_topic",
         blank=True,
         null=True,
-        help_text="Secondary topic which will be displayed alongside `topic`. E.g. `topic` is 'Teshuva' then secondary topic could be 'Yom Kippur'."
+        help_text="Secondary topic which will be displayed alongside `topic`. E.g. `topic` is 'Teshuva' then secondary topic could be 'Yom Kippur'.",
     )
-    start_date = models.DateField(help_text="Start date of when this will appear. End date is implied by when the next Seasonal Topic is displayed.")
+    start_date = models.DateField(
+        help_text="Start date of when this will appear. End date is implied by when the next Seasonal Topic is displayed.",
+    )
     display_start_date_israel = models.DateField(blank=True, null=True)
     display_end_date_israel = models.DateField(blank=True, null=True)
     display_start_date_diaspora = models.DateField(blank=True, null=True)
     display_end_date_diaspora = models.DateField(blank=True, null=True)
     display_date_prefix = models.CharField(max_length=255, blank=True, null=True)
     display_date_suffix = models.CharField(max_length=255, blank=True, null=True)
-    lang = models.CharField(max_length=2, choices=[('en', 'English'), ('he', 'Hebrew')])
+    lang = models.CharField(max_length=2, choices=[("en", "English"), ("he", "Hebrew")])
     objects = SeasonalTopicManager()
 
     class Meta:
-        unique_together = ('topic', 'start_date', 'lang')
+        unique_together = ("topic", "start_date", "lang")
         verbose_name = "Landing Page - Calendar"
         verbose_name_plural = "Landing Page - Calendar"
 
@@ -62,14 +64,14 @@ class SeasonalTopic(models.Model):
             raise ValidationError(f"Start date field '{start_date_field}' cannot be after end date.")
 
     def clean(self):
-        self.populate_field_based_on_field('display_end_date_israel', 'display_start_date_israel')
-        self.populate_field_based_on_field('display_end_date_diaspora', 'display_start_date_diaspora')
-        self.populate_field_based_on_field('display_start_date_diaspora', 'display_start_date_israel')
-        self.populate_field_based_on_field('display_end_date_diaspora', 'display_end_date_israel')
-        if not getattr(self, 'display_start_date_israel') and getattr(self, 'display_start_date_diaspora'):
+        self.populate_field_based_on_field("display_end_date_israel", "display_start_date_israel")
+        self.populate_field_based_on_field("display_end_date_diaspora", "display_start_date_diaspora")
+        self.populate_field_based_on_field("display_start_date_diaspora", "display_start_date_israel")
+        self.populate_field_based_on_field("display_end_date_diaspora", "display_end_date_israel")
+        if not self.display_start_date_israel and self.display_start_date_diaspora:
             raise ValidationError("If diaspora date is defined, Israel date must also be defined.")
-        self.validate_start_end_dates('display_start_date_israel', 'display_end_date_israel')
-        self.validate_start_end_dates('display_start_date_diaspora', 'display_end_date_diaspora')
+        self.validate_start_end_dates("display_start_date_israel", "display_end_date_israel")
+        self.validate_start_end_dates("display_start_date_diaspora", "display_end_date_diaspora")
         if self.display_date_prefix:
             self.display_date_prefix = self.display_date_prefix.strip()
         if self.display_date_suffix:

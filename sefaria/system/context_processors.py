@@ -1,23 +1,21 @@
-# -*- coding: utf-8 -*-
-
 """
 Djagno Context Processors, for decorating all HTTP requests with common data.
 """
-import time
+
 import json
+import time
 from functools import wraps
 
-from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
-from reader.models import user_has_experiments
-from sefaria.helper import library_assistant
-from sefaria.settings import *
-from django.conf import settings
-from sefaria.site.site_settings import SITE_SETTINGS
-from sefaria.model import library
-
 import structlog
+from django.conf import settings
+from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 
+from sefaria.helper import library_assistant
+from sefaria.model import library
+from sefaria.settings import *
+from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.util import is_int
+
 logger = structlog.get_logger(__name__)
 
 
@@ -25,12 +23,13 @@ def builtin_only(view):
     """
     Marks processors only needed when using on Django builtin auth views.
     """
+
     @wraps(view)
     def wrapper(request):
         if request.path == "/login" or request.path.startswith("/password"):
             return view(request)
-        else:
-            return {}
+        return {}
+
     return wrapper
 
 
@@ -39,12 +38,13 @@ def data_only(view):
     Marks processors only needed when setting the data JS.
     Passed in Source Sheets which rely on S1 JS.
     """
+
     @wraps(view)
     def wrapper(request):
         if request.path == "/sefaria.js" or request.path.startswith("/data.") or request.path.startswith("/sheets/"):
             return view(request)
-        else:
-            return {}
+        return {}
+
     return wrapper
 
 
@@ -52,56 +52,63 @@ def user_only(view):
     """
     Marks processors only needed on user visible pages.
     """
+
     @wraps(view)
     def wrapper(request):
-        #exclude = ('/linker.js')
-        if request.path == '/linker.js' or request.path.startswith("/api/") or request.path.startswith("/data."):
+        # exclude = ('/linker.js')
+        if request.path == "/linker.js" or request.path.startswith("/api/") or request.path.startswith("/data."):
             return {}
-        else:
-            return view(request)
+        return view(request)
+
     return wrapper
 
 
 def global_settings(request):
     return {
         "SEARCH_INDEX_NAME_TEXT": SEARCH_INDEX_NAME_TEXT,
-        "SEARCH_INDEX_NAME_SHEET":SEARCH_INDEX_NAME_SHEET,
-        "SEARCH_INDEX_NAME_TOPIC":SEARCH_INDEX_NAME_TOPIC,
-        "SEARCH_INDEX_NAME_BOOK":SEARCH_INDEX_NAME_BOOK,
-        "SEARCH_INDEX_NAME_CATEGORY":SEARCH_INDEX_NAME_CATEGORY,
-        "STRAPI_LOCATION":        STRAPI_LOCATION,
-        "STRAPI_PORT":            STRAPI_PORT,
-        "GOOGLE_TAG_MANAGER_CODE":GOOGLE_TAG_MANAGER_CODE,
-        "GOOGLE_GTAG":            GOOGLE_GTAG,
-        "HOTJAR_ID":              HOTJAR_ID,
-        "DEBUG":                  DEBUG,
-        "OFFLINE":                OFFLINE,
-        "SITE_SETTINGS":          SITE_SETTINGS,
-        "CLIENT_SENTRY_DSN":      CLIENT_SENTRY_DSN,
-        "GOOGLE_SSO_CLIENT_ID":   getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
-        "APPLE_SSO_CLIENT_ID":    getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
-        "RECAPTCHA_PUBLIC_KEY":   getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None),
+        "SEARCH_INDEX_NAME_SHEET": SEARCH_INDEX_NAME_SHEET,
+        "SEARCH_INDEX_NAME_TOPIC": SEARCH_INDEX_NAME_TOPIC,
+        "SEARCH_INDEX_NAME_BOOK": SEARCH_INDEX_NAME_BOOK,
+        "SEARCH_INDEX_NAME_CATEGORY": SEARCH_INDEX_NAME_CATEGORY,
+        "STRAPI_LOCATION": STRAPI_LOCATION,
+        "STRAPI_PORT": STRAPI_PORT,
+        "GOOGLE_TAG_MANAGER_CODE": GOOGLE_TAG_MANAGER_CODE,
+        "GOOGLE_GTAG": GOOGLE_GTAG,
+        "HOTJAR_ID": HOTJAR_ID,
+        "DEBUG": DEBUG,
+        "OFFLINE": OFFLINE,
+        "SITE_SETTINGS": SITE_SETTINGS,
+        "CLIENT_SENTRY_DSN": CLIENT_SENTRY_DSN,
+        "GOOGLE_SSO_CLIENT_ID": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
+        "APPLE_SSO_CLIENT_ID": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        "RECAPTCHA_PUBLIC_KEY": getattr(
+            settings,
+            "RECAPTCHA_PUBLIC_KEY",
+            TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None,
+        ),
     }
 
 
 @builtin_only
 def base_props(request):
     from reader.views import base_props
+
     return {"propsJSON": json.dumps(base_props(request), ensure_ascii=False)}
 
 
 @user_only
 def module_context(request):
     return {
-        'active_module': request.active_module,
-        'domain_modules': DOMAIN_MODULES
+        "active_module": request.active_module,
+        "domain_modules": DOMAIN_MODULES,
     }
+
 
 @user_only
 def cache_timestamp(request):
     return {
         "last_cached": library.get_last_cached_time(),
-        "last_cached_short": round(library.get_last_cached_time())
+        "last_cached_short": round(library.get_last_cached_time()),
     }
 
 
@@ -114,8 +121,9 @@ def large_data(request):
         "topic_toc_json": library.get_topic_toc_json(),
         "titles_json": library.get_text_titles_json(),
         "terms_json": library.get_simple_term_mapping_json(),
-        'virtual_books': library.get_virtual_books()
+        "virtual_books": library.get_virtual_books(),
     }
+
 
 @user_only
 def body_flags(request):
@@ -135,7 +143,7 @@ def _chatbot_script_url_and_type(chatbot_version):
         )
     if settings.CHATBOT_USE_LOCAL_SCRIPT:
         return ("http://localhost:5173/src/main.js", "module")
-    
+
     if settings.CHATBOT_API_BASE_URL:
         chatbot_base = settings.CHATBOT_API_BASE_URL.replace("/api", "")
     else:
@@ -144,6 +152,7 @@ def _chatbot_script_url_and_type(chatbot_version):
         f"{chatbot_base}/static/js/lc-chatbot.umd.cjs",
         None,
     )
+
 
 @user_only
 def chatbot_user_token(request):

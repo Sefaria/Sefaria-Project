@@ -1,31 +1,26 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from 'react';
 import {
   SUPPORTED_LOCALES,
   LOCALIZED_FIELDS,
   mapLocales,
   groupByDocumentIdWithDiagnostics,
   buildInterfaceTextDoc,
-} from "./sefaria/strapiLocalization";
-import {
-  ContentType,
-  CONTENT_FIELDS,
-  selectContent,
-  buildViewerContext,
-} from "./sefaria/strapiSelection";
+} from './sefaria/strapiLocalization';
+import { ContentType, CONTENT_FIELDS, selectContent, buildViewerContext } from './sefaria/strapiSelection';
 
 const ReaderPanelContext = React.createContext({
-  language: "english",
+  language: 'english',
 });
-ReaderPanelContext.displayName = "ContentLanguageContext"; //This lets us see this name in the devtools
+ReaderPanelContext.displayName = 'ContentLanguageContext'; //This lets us see this name in the devtools
 
 const AdContext = React.createContext({});
-AdContext.displayName = "AdContext";
+AdContext.displayName = 'AdContext';
 
 const StrapiDataContext = React.createContext({});
-StrapiDataContext.displayName = "StrapiDataContext";
+StrapiDataContext.displayName = 'StrapiDataContext';
 
-// Each content type's fields, queried per locale (below) instead of a single default-locale query with a `localizations` child - 
-// that older shape could only ever discover documents that have an English version, since a Strapi collection query with no `locale` argument returns only the default locale. 
+// Each content type's fields, queried per locale (below) instead of a single default-locale query with a `localizations` child -
+// that older shape could only ever discover documents that have an English version, since a Strapi collection query with no `locale` argument returns only the default locale.
 // `documentId` is stable across every locale of a document (Strapi v5), so it's the join key used to recombine the per-locale rows after the fetch.
 const bannerFields = `
             documentId
@@ -126,8 +121,8 @@ const buildLocalizedQueryBlock = (contentType, filtersExpression, fieldsSelectio
           ) {
             ${fieldsSelection}
           }
-`,
-  ).join("\n");
+`
+  ).join('\n');
 
 // Gets data from a Strapi CMS instance to be used for displaying static content
 function StrapiDataProvider({ children }) {
@@ -136,11 +131,11 @@ function StrapiDataProvider({ children }) {
   const [modal, setModal] = useState(null);
   const [banner, setBanner] = useState(null);
   useEffect(() => {
-    if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+    if (typeof STRAPI_INSTANCE !== 'undefined' && STRAPI_INSTANCE) {
       const getStrapiData = async () => {
-        let getDateWithoutTime = (date) => date.toISOString().split("T")[0];
+        let getDateWithoutTime = (date) => date.toISOString().split('T')[0];
         let getJSONDateStringInLocalTimeZone = (date) => {
-          let parts = getDateWithoutTime(date).split("-");
+          let parts = getDateWithoutTime(date).split('-');
           return new Date(parts[0], parts[1] - 1, parts[2]).toJSON();
         };
         let [currentDate, twoWeeksAgo, twoWeeksFromNow] = Array(3)
@@ -158,40 +153,40 @@ function StrapiDataProvider({ children }) {
         const query = `
         query {
           ${buildLocalizedQueryBlock(
-            "banners",
+            'banners',
             `{
               bannerStartDate: { gte: "${startDate}" }
               and: [{ bannerEndDate: { lte: "${endDate}" } }]
             }`,
-            bannerFields,
+            bannerFields
           )}
           ${buildLocalizedQueryBlock(
-            "modals",
+            'modals',
             `{
               modalStartDate: { gte: "${startDate}" }
               and: [{ modalEndDate: { lte: "${endDate}" } }]
             }`,
-            modalFields,
+            modalFields
           )}
           ${buildLocalizedQueryBlock(
-            "sidebarAds",
+            'sidebarAds',
             `{
               startTime: { gte: "${startDate}" }
               and: [{ endTime: { lte: "${endDate}" } }]
             }`,
-            sidebarAdFields,
+            sidebarAdFields
           )}
         }
         `;
         // Use the new cache endpoint instead of calling Strapi directly to minimize API calls
-        const url = new URL("/api/strapi/graphql-cache", window.location.origin);
-        url.searchParams.append("start_date", startDate.split("T")[0]); // Only use date part
-        url.searchParams.append("end_date", endDate.split("T")[0]);
+        const url = new URL('/api/strapi/graphql-cache', window.location.origin);
+        url.searchParams.append('start_date', startDate.split('T')[0]); // Only use date part
+        url.searchParams.append('end_date', endDate.split('T')[0]);
 
         const result = fetch(url, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "text/plain",
+            'Content-Type': 'text/plain',
           },
           body: query,
         })
@@ -211,8 +206,8 @@ function StrapiDataProvider({ children }) {
             // OBJECT (with empty per-locale arrays), so it passes this check and proceeds.
             if (!result?.data || result.errors) {
               throw new Error(
-                "Strapi response carried no data" +
-                  (result?.errors ? `: ${JSON.stringify(result.errors).slice(0, 200)}` : ""),
+                'Strapi response carried no data' +
+                  (result?.errors ? `: ${JSON.stringify(result.errors).slice(0, 200)}` : '')
               );
             }
             setDataFromStrapiHasBeenReceived(true);
@@ -221,17 +216,11 @@ function StrapiDataProvider({ children }) {
             const rowsByLocale = (contentType) =>
               mapLocales((locale) => result.data?.[`${locale}_${contentType}`] || []);
 
-            const groupedModals = groupByDocumentIdWithDiagnostics(
-              rowsByLocale("modals"),
-              LOCALIZED_FIELDS.modal,
-            );
-            const groupedBanners = groupByDocumentIdWithDiagnostics(
-              rowsByLocale("banners"),
-              LOCALIZED_FIELDS.banner,
-            );
+            const groupedModals = groupByDocumentIdWithDiagnostics(rowsByLocale('modals'), LOCALIZED_FIELDS.modal);
+            const groupedBanners = groupByDocumentIdWithDiagnostics(rowsByLocale('banners'), LOCALIZED_FIELDS.banner);
             const groupedSidebarAds = groupByDocumentIdWithDiagnostics(
-              rowsByLocale("sidebarAds"),
-              LOCALIZED_FIELDS.sidebarAd,
+              rowsByLocale('sidebarAds'),
+              LOCALIZED_FIELDS.sidebarAd
             );
 
             // Promotions is the only consumer of strapiData; it iterates each grouped ad's `locales`/`byLocale` directly, so no InterfaceText normalization needed here.
@@ -273,7 +262,7 @@ function StrapiDataProvider({ children }) {
             setBanner(chooseContent(groupedBanners, ContentType.BANNER, LOCALIZED_FIELDS.banner));
           })
           .catch((error) => {
-            console.error("Failed to get strapi data: ", error);
+            console.error('Failed to get strapi data: ', error);
           });
       };
       getStrapiData();

@@ -1,23 +1,24 @@
-# -*- coding: utf-8 -*-
-
 """
 story.py
 """
 
+import structlog
+
 from sefaria.utils.util import strip_tags
+
 from . import user_profile
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 
-class Story(object):
-# Deprecated in Nov 2022.  Retained for static methods used in sheet and trend statistics
-# TODO: Refactor out of existence
+class Story:
+    # Deprecated in Nov 2022.  Retained for static methods used in sheet and trend statistics
+    # TODO: Refactor out of existence
 
     @staticmethod
     def sheet_metadata(sheet_id, return_id=False):
         from sefaria.sheets import get_sheet_metadata
+
         metadata = get_sheet_metadata(sheet_id)
         if not metadata:
             return None
@@ -29,7 +30,7 @@ class Story(object):
             "sheet_title": strip_tags(metadata["title"]),
             "sheet_summary": strip_tags(metadata["summary"]) if "summary" in metadata else "",
             "publisher_id": metadata["owner"],
-            "sheet_via": metadata.get("via", None)
+            "sheet_via": metadata.get("via", None),
         }
         if return_id:
             d["sheet_id"] = sheet_id
@@ -53,5 +54,6 @@ class Story(object):
     @staticmethod
     def sheet_metadata_bulk(sid_list, return_id=False, public=True):
         from sefaria.sheets import get_sheet_metadata_bulk
+
         metadata_list = get_sheet_metadata_bulk(sid_list, public=public)
-        return [Story.build_sheet_metadata_dict(metadata, metadata['id'], return_id) for metadata in metadata_list]
+        return [Story.build_sheet_metadata_dict(metadata, metadata["id"], return_id) for metadata in metadata_list]

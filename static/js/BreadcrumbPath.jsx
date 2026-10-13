@@ -22,22 +22,14 @@ function Breadcrumb({ label, hebrewLabel, href, onCrumbClick }) {
 }
 
 function CrumbSep() {
-  return (
-    <img
-      src={CHEVRON}
-      alt=""
-      aria-hidden="true"
-      className="searchResultCard-crumbChevron"
-    />
-  );
+  return <img src={CHEVRON} alt="" aria-hidden="true" className="searchResultCard-crumbChevron" />;
 }
 
 function CrumbList({ crumbs, onCrumbClick }) {
   return crumbs.map((crumb, i) => (
     <React.Fragment key={i}>
       {i > 0 && <CrumbSep />}
-      <Breadcrumb label={crumb.label} hebrewLabel={crumb.hebrewLabel} href={crumb.href}
-                  onCrumbClick={onCrumbClick} />
+      <Breadcrumb label={crumb.label} hebrewLabel={crumb.hebrewLabel} href={crumb.href} onCrumbClick={onCrumbClick} />
     </React.Fragment>
   ));
 }
@@ -60,12 +52,12 @@ function CrumbList({ crumbs, onCrumbClick }) {
  */
 function BreadcrumbPath({ crumbs, onCrumbClick }) {
   const containerRef = useRef(null);
-  const measureRef   = useRef(null);
+  const measureRef = useRef(null);
   const [isTruncated, setIsTruncated] = useState(false);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
-    const measure   = measureRef.current;
+    const measure = measureRef.current;
     if (!container || !measure) return;
 
     const check = () => {
@@ -81,18 +73,15 @@ function BreadcrumbPath({ crumbs, onCrumbClick }) {
   if (!crumbs || crumbs.length === 0) return null;
 
   const isHebrew = Sefaria.interfaceLang === 'hebrew';
-  const first    = crumbs[0];
-  const last     = crumbs[crumbs.length - 1];
-  const middle   = crumbs.slice(1, -1);
+  const first = crumbs[0];
+  const last = crumbs[crumbs.length - 1];
+  const middle = crumbs.slice(1, -1);
 
-  const tooltipText = middle
-    .map(c => (isHebrew && c.hebrewLabel) ? c.hebrewLabel : c.label)
-    .join(' > ');
+  const tooltipText = middle.map((c) => (isHebrew && c.hebrewLabel ? c.hebrewLabel : c.label)).join(' > ');
 
   const truncatedCrumbs = (
     <>
-      <Breadcrumb label={first.label} hebrewLabel={first.hebrewLabel} href={first.href}
-                  onCrumbClick={onCrumbClick} />
+      <Breadcrumb label={first.label} hebrewLabel={first.hebrewLabel} href={first.href} onCrumbClick={onCrumbClick} />
       {middle.length > 0 && (
         <>
           <CrumbSep />
@@ -107,8 +96,7 @@ function BreadcrumbPath({ crumbs, onCrumbClick }) {
       {crumbs.length > 1 && (
         <>
           <CrumbSep />
-          <Breadcrumb label={last.label} hebrewLabel={last.hebrewLabel} href={last.href}
-                      onCrumbClick={onCrumbClick} />
+          <Breadcrumb label={last.label} hebrewLabel={last.hebrewLabel} href={last.href} onCrumbClick={onCrumbClick} />
         </>
       )}
     </>
@@ -116,11 +104,7 @@ function BreadcrumbPath({ crumbs, onCrumbClick }) {
 
   return (
     <div ref={containerRef} className="searchResultCard-breadcrumbs">
-      <div
-        ref={measureRef}
-        className="searchResultCard-breadcrumbs-measure"
-        aria-hidden="true"
-      >
+      <div ref={measureRef} className="searchResultCard-breadcrumbs-measure" aria-hidden="true">
         <CrumbList crumbs={crumbs} onCrumbClick={onCrumbClick} />
       </div>
       <div className="searchResultCard-breadcrumbs-inner">
@@ -131,11 +115,13 @@ function BreadcrumbPath({ crumbs, onCrumbClick }) {
 }
 
 BreadcrumbPath.propTypes = {
-  crumbs: PropTypes.arrayOf(PropTypes.shape({
-    label:       PropTypes.string.isRequired,
-    hebrewLabel: PropTypes.string,
-    href:        PropTypes.string,
-  })),
+  crumbs: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      hebrewLabel: PropTypes.string,
+      href: PropTypes.string,
+    })
+  ),
   onCrumbClick: PropTypes.func,
 };
 

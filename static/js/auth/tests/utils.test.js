@@ -1,8 +1,19 @@
 /* Testing done using Jest */
 import {
-  safeNext, pathToFlow, flowToPath, withNext, nextFromPath,
-  checkPasswordsMatch, requiredFieldValidate, onBlurValidate, onChangeClear,
-  pickFirstError, authError, postJson, postForm, resolveInitialAuthState,
+  safeNext,
+  pathToFlow,
+  flowToPath,
+  withNext,
+  nextFromPath,
+  checkPasswordsMatch,
+  requiredFieldValidate,
+  onBlurValidate,
+  onChangeClear,
+  pickFirstError,
+  authError,
+  postJson,
+  postForm,
+  resolveInitialAuthState,
 } from '../utils.js';
 
 describe('safeNext', () => {
@@ -18,7 +29,7 @@ describe('safeNext', () => {
     expect(safeNext('https://evil.example.com')).toBe('/');
   });
 
-  it('allows a bare relative path (still same-origin, not this function\'s concern)', () => {
+  it("allows a bare relative path (still same-origin, not this function's concern)", () => {
     expect(safeNext('sheets/123')).toBe('sheets/123');
   });
 
@@ -199,13 +210,17 @@ describe('pickFirstError', () => {
 
 describe('authError', () => {
   const realSefaria = global.Sefaria;
-  beforeAll(() => { global.Sefaria = { _: (key) => `t:${key}` }; });
-  afterAll(() => { global.Sefaria = realSefaria; });
+  beforeAll(() => {
+    global.Sefaria = { _: (key) => `t:${key}` };
+  });
+  afterAll(() => {
+    global.Sefaria = realSefaria;
+  });
 
   it('localizes the picked error message and passes through _auth metadata', () => {
     const result = authError(
       { _auth: { code: 'sso_only_account', providers: ['google'] }, error: 'auth.generic_error' },
-      'auth.fallback',
+      'auth.fallback'
     );
     expect(result).toEqual({
       message: 't:auth.generic_error',
@@ -222,7 +237,10 @@ describe('authError', () => {
 
 describe('postJson / postForm', () => {
   const realFetch = global.fetch;
-  afterEach(() => { global.fetch = realFetch; jest.restoreAllMocks(); });
+  afterEach(() => {
+    global.fetch = realFetch;
+    jest.restoreAllMocks();
+  });
 
   it('postJson sends a JSON body and reports ok on a 2xx response', async () => {
     global.fetch = jest.fn().mockResolvedValue({
@@ -232,11 +250,14 @@ describe('postJson / postForm', () => {
 
     const result = await postJson('/api/auth/login', { email: 'a@test.com' }, 'csrf-token');
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/auth/login', expect.objectContaining({
-      method: 'POST',
-      headers: expect.objectContaining({ 'Content-Type': 'application/json', 'X-CSRFToken': 'csrf-token' }),
-      body: JSON.stringify({ email: 'a@test.com' }),
-    }));
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/auth/login',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ 'Content-Type': 'application/json', 'X-CSRFToken': 'csrf-token' }),
+        body: JSON.stringify({ email: 'a@test.com' }),
+      })
+    );
     expect(result).toEqual({ ok: true, data: { foo: 'bar' }, networkError: false });
   });
 
@@ -249,10 +270,13 @@ describe('postJson / postForm', () => {
 
     const result = await postForm('/api/auth/password/reset', body, 'csrf-token');
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/auth/password/reset', expect.objectContaining({
-      headers: expect.objectContaining({ 'Content-Type': 'application/x-www-form-urlencoded' }),
-      body: body.toString(),
-    }));
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/auth/password/reset',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+        body: body.toString(),
+      })
+    );
     expect(result).toEqual({ ok: false, data: { error: 'auth.invalid_email' }, networkError: false });
   });
 

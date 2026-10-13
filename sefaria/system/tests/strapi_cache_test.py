@@ -1,13 +1,10 @@
 import base64
 import json
-import pytest
 from unittest.mock import Mock, patch
 
-from django.test.client import Client
-from django.contrib.auth.models import User
-from django.test import override_settings
-from django.core.cache import cache
+import pytest
 from django.conf import settings
+from django.test.client import Client
 
 pytestmark = pytest.mark.django_db
 
@@ -15,12 +12,13 @@ pytestmark = pytest.mark.django_db
 def pytest_configure(config):
     validate_redis_cache_backend()
 
+
 def validate_redis_cache_backend():
     # Validate that the Django cache backend is using Redis
     # Fail all tests if Redis backend is not configured
-    cache_backend = settings.CACHES['default']['BACKEND']
+    cache_backend = settings.CACHES["default"]["BACKEND"]
 
-    if cache_backend != 'django_redis.cache.RedisCache':
+    if cache_backend != "django_redis.cache.RedisCache":
         error_message = f"""
 STRAPI CACHE TESTS REQUIRE REDIS BACKEND
 
@@ -34,6 +32,7 @@ Current cache backend: {cache_backend}
 def client():
     return Client()
 
+
 @pytest.fixture(autouse=True)
 def clear_cache(cache):
     # Clear cache before and after each test
@@ -45,6 +44,7 @@ def clear_cache(cache):
 
     # Cleanup after test
     cache.clear()
+
 
 def get_sample_graphql_query(start_date, end_date):
     # Sample GraphQL query for banners and modals
@@ -100,7 +100,7 @@ def get_sample_graphql_query(start_date, end_date):
 def test_strapi_graphql_cache_get_method_not_allowed(client):
     # Test that GET method returns 405, because only POST is supported
     response = client.get(
-        "/api/strapi/graphql-cache?start_date=2023-01-01&end_date=2023-01-31"
+        "/api/strapi/graphql-cache?start_date=2023-01-01&end_date=2023-01-31",
     )
     assert response.status_code == 405
     data = json.loads(response.content)
@@ -113,7 +113,9 @@ def test_strapi_graphql_cache_missing_dates(client):
 
     # Missing both dates
     response = client.post(
-        "/api/strapi/graphql-cache", data=query, content_type="text/plain"
+        "/api/strapi/graphql-cache",
+        data=query,
+        content_type="text/plain",
     )
     assert response.status_code == 400
     data = json.loads(response.content)
@@ -185,7 +187,7 @@ def test_strapi_graphql_cache_missing_strapi_config(client):
 
 def test_strapi_graphql_cache_functionality(client):
     # Test the complete flow for caching including cache hit and miss
-    from sefaria.system.cache import get_cache_elem, set_cache_elem
+    from sefaria.system.cache import get_cache_elem
 
     query = get_sample_graphql_query("2023-01-01T00:00:00Z", "2023-01-31T23:59:59Z")
     cache_key = "strapi_graphql_v5_2023-01-01_2023-01-31"
@@ -202,10 +204,14 @@ def test_strapi_graphql_cache_functionality(client):
     mock_response.json.return_value = response_body
 
     # Should this use actual environment variables since they're mocked anyway?
-    with patch("requests.post", return_value=mock_response), patch(
-        "django.conf.settings.STRAPI_LOCATION", "http://localhost"
-    ), patch("django.conf.settings.STRAPI_PORT", "1337"):
-
+    with (
+        patch("requests.post", return_value=mock_response),
+        patch(
+            "django.conf.settings.STRAPI_LOCATION",
+            "http://localhost",
+        ),
+        patch("django.conf.settings.STRAPI_PORT", "1337"),
+    ):
         # First request - cache miss
         response1 = client.post(
             "/api/strapi/graphql-cache?start_date=2023-01-01&end_date=2023-01-31",
@@ -249,10 +255,14 @@ def test_strapi_graphql_error_response_not_cached(client):
     mock_response.text = json.dumps(error_body)
     mock_response.json.return_value = error_body
 
-    with patch("requests.post", return_value=mock_response), patch(
-        "django.conf.settings.STRAPI_LOCATION", "http://localhost"
-    ), patch("django.conf.settings.STRAPI_PORT", "1337"):
-
+    with (
+        patch("requests.post", return_value=mock_response),
+        patch(
+            "django.conf.settings.STRAPI_LOCATION",
+            "http://localhost",
+        ),
+        patch("django.conf.settings.STRAPI_PORT", "1337"),
+    ):
         response = client.post(
             "/api/strapi/graphql-cache?start_date=2023-01-01&end_date=2023-01-31",
             data=query,
@@ -273,16 +283,22 @@ def test_strapi_cache_invalidate_get_method_not_allowed_with_auth(client):
     from django.conf import settings
 
     # Mock webhook credentials
-    with patch.object(settings, "WEBHOOK_USERNAME", "test_user", create=True), patch.object(
-        settings, "WEBHOOK_PASSWORD", "test_pass", create=True
+    with (
+        patch.object(settings, "WEBHOOK_USERNAME", "test_user", create=True),
+        patch.object(
+            settings,
+            "WEBHOOK_PASSWORD",
+            "test_pass",
+            create=True,
+        ),
     ):
-
         # Create Basic Auth header
         credentials = base64.b64encode(b"test_user:test_pass").decode("ascii")
         auth_header = f"Basic {credentials}"
 
         response = client.get(
-            "/api/strapi/cache-invalidate", HTTP_AUTHORIZATION=auth_header
+            "/api/strapi/cache-invalidate",
+            HTTP_AUTHORIZATION=auth_header,
         )
         assert response.status_code == 405
         data = json.loads(response.content)
@@ -290,9 +306,11 @@ def test_strapi_cache_invalidate_get_method_not_allowed_with_auth(client):
 
 
 def test_strapi_cache_invalidate_no_auth_redirects(client):
-   # Test cache invalidation without auth (302 redirect location)
+    # Test cache invalidation without auth (302 redirect location)
     response = client.post(
-        "/api/strapi/cache-invalidate", data="{}", content_type="application/json"
+        "/api/strapi/cache-invalidate",
+        data="{}",
+        content_type="application/json",
     )
     assert response.status_code == 302
 
@@ -302,10 +320,15 @@ def test_strapi_cache_invalidate_invalid_auth(client):
     from django.conf import settings
 
     # Mock webhook credentials
-    with patch.object(settings, "WEBHOOK_USERNAME", "correct_user", create=True), patch.object(
-        settings, "WEBHOOK_PASSWORD", "correct_pass", create=True
+    with (
+        patch.object(settings, "WEBHOOK_USERNAME", "correct_user", create=True),
+        patch.object(
+            settings,
+            "WEBHOOK_PASSWORD",
+            "correct_pass",
+            create=True,
+        ),
     ):
-
         # Create invalid Basic Auth header
         credentials = base64.b64encode(b"wrong_user:wrong_pass").decode("ascii")
         auth_header = f"Basic {credentials}"
@@ -324,29 +347,35 @@ def test_strapi_cache_invalidate_with_valid_webhook_auth(client):
     from django.conf import settings
 
     # Mock webhook credentials
-    with patch.object(settings, "WEBHOOK_USERNAME", "test_user", create=True), patch.object(
-        settings, "WEBHOOK_PASSWORD", "test_pass", create=True
+    with (
+        patch.object(settings, "WEBHOOK_USERNAME", "test_user", create=True),
+        patch.object(
+            settings,
+            "WEBHOOK_PASSWORD",
+            "test_pass",
+            create=True,
+        ),
+        patch("sefaria.system.cache.get_cache_factory") as mock_cache_factory,
     ):
+        mock_cache = Mock()
+        mock_cache_factory.return_value = mock_cache
 
-        with patch("sefaria.system.cache.get_cache_factory") as mock_cache_factory:
-            mock_cache = Mock()
-            mock_cache_factory.return_value = mock_cache
+        # Mock file-based cache (current setup)
+        mock_cache.delete_pattern = None  # File cache doesn't have delete_pattern
+        mock_cache.client = None  # File cache doesn't have client
 
-            # Mock file-based cache (current setup)
-            mock_cache.delete_pattern = None  # File cache doesn't have delete_pattern
-            mock_cache.client = None  # File cache doesn't have client
+        # Create valid Basic Auth header
+        credentials = base64.b64encode(b"test_user:test_pass").decode("ascii")
+        auth_header = f"Basic {credentials}"
 
-            # Create valid Basic Auth header
-            credentials = base64.b64encode(b"test_user:test_pass").decode("ascii")
-            auth_header = f"Basic {credentials}"
+        response = client.post(
+            "/api/strapi/cache-invalidate",
+            data="{}",
+            content_type="application/json",
+            HTTP_AUTHORIZATION=auth_header,
+        )
+        assert response.status_code == 200
 
-            response = client.post(
-                "/api/strapi/cache-invalidate",
-                data="{}",
-                content_type="application/json",
-                HTTP_AUTHORIZATION=auth_header,
-            )
-            assert response.status_code == 200
 
 def test_cache_key_generation():
     # Test that cache keys are generated consistently.
@@ -371,10 +400,14 @@ def test_strapi_request_timeout_handling(client):
 
     query = get_sample_graphql_query("2023-01-01T00:00:00Z", "2023-01-31T23:59:59Z")
 
-    with patch("requests.post", side_effect=Timeout()), patch(
-        "django.conf.settings.STRAPI_LOCATION", "http://localhost"
-    ), patch("django.conf.settings.STRAPI_PORT", "1337"):
-
+    with (
+        patch("requests.post", side_effect=Timeout()),
+        patch(
+            "django.conf.settings.STRAPI_LOCATION",
+            "http://localhost",
+        ),
+        patch("django.conf.settings.STRAPI_PORT", "1337"),
+    ):
         response = client.post(
             "/api/strapi/graphql-cache?start_date=2023-01-01&end_date=2023-01-31",
             data=query,
@@ -396,10 +429,14 @@ def test_strapi_non_200_response(client):
     mock_response.status_code = 500
     mock_response.text = "Internal Server Error"
 
-    with patch("requests.post", return_value=mock_response), patch(
-        "django.conf.settings.STRAPI_LOCATION", "http://localhost"
-    ), patch("django.conf.settings.STRAPI_PORT", "1337"):
-
+    with (
+        patch("requests.post", return_value=mock_response),
+        patch(
+            "django.conf.settings.STRAPI_LOCATION",
+            "http://localhost",
+        ),
+        patch("django.conf.settings.STRAPI_PORT", "1337"),
+    ):
         response = client.post(
             "/api/strapi/graphql-cache?start_date=2023-01-01&end_date=2023-01-31",
             data=query,

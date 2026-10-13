@@ -1,11 +1,13 @@
 """
 Process-local cache for remote configuration values.
 """
+
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import threading
+from typing import Any
+
 from django.db.utils import OperationalError, ProgrammingError
 
 logger = logging.getLogger(__name__)
@@ -18,7 +20,7 @@ class RemoteConfigCache:
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self._cache: Optional[dict[str, Any]] = None
+        self._cache: dict[str, Any] | None = None
 
     def _build_cache(self) -> dict[str, Any]:
         """
@@ -48,7 +50,11 @@ class RemoteConfigCache:
                     try:
                         self._cache = self._build_cache()
                     except (OperationalError, ProgrammingError, RuntimeError) as e:
-                        logger.warning("RemoteConfigCache: could not load from DB, using empty cache (%s: %s)", type(e).__name__, e)
+                        logger.warning(
+                            "RemoteConfigCache: could not load from DB, using empty cache (%s: %s)",
+                            type(e).__name__,
+                            e,
+                        )
                         self._cache = {}
         return self._cache
 

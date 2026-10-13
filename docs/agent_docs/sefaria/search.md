@@ -1,4 +1,5 @@
 # Search
+
 > Source: `sefaria/search.py`
 
 ## Purpose
@@ -98,23 +99,28 @@ Elasticsearch integration for Sefaria's full-text search. Manages two separate E
 ## Common Tasks
 
 ### Trigger a full reindex
+
 Call `index_all()`. This will create new indices, populate them, swap aliases, and clean up old indices. Expect it to take a long time for texts (walks every version of every text).
 
 ### Debug why a text isn't appearing in search
+
 1. Check if the version is in `excluded_from_search()`.
 2. Check if `(title, versionTitle, lang)` appears in the version priority map (versions not in the TOC are silently skipped).
 3. Check that the content is non-empty after `modify_text_in_doc()` processing.
 4. Check `_failed_versions` / `_skipped_versions` on `TextIndexer` after a reindex.
 
 ### Debug why a sheet isn't appearing in search
+
 1. Sheet must have `status: "public"`.
 2. `index_sheet()` validates: title, summary, datePublished, dateCreated, dateModified, owner, and owner profile data must all be non-null.
 3. Check `SEARCH_INDEX_ON_SAVE` setting.
 
 ### Add a new field to the search index
+
 1. Add the field to the appropriate mapping function (`put_text_mapping` or `put_sheet_mapping`).
 2. Add the field to the document construction (`make_text_index_document` or the doc dict in `index_sheet`).
 3. A full reindex is required for the new field to appear on existing documents.
 
 ### Incrementally index recent text changes
+
 Call `add_recent_to_queue(ndays)` followed by `index_from_queue()`. Or for sheets, use `index_sheets_by_timestamp(timestamp)`.

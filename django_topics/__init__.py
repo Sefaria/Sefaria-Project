@@ -1,1 +1,1 @@
-from .utils import get_topic_pool_name_for_module, get_active_module_for_pool
+from .utils import get_active_module_for_pool, get_topic_pool_name_for_module

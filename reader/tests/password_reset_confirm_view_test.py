@@ -20,6 +20,7 @@ same setup already proven by password_reset_urls_test.py in this directory —
 sefaria.urls_library pulls in urls_shared.shared_patterns, where both
 "password_reset_confirm" and "register" are defined.
 """
+
 import json
 
 from django.contrib.auth.models import User
@@ -37,7 +38,9 @@ INTERNAL_RESET_SESSION_TOKEN = "set-password"
 class CustomPasswordResetConfirmViewTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username="reset-confirm@test.com", email="reset-confirm@test.com", password="OldPassw0rd!",
+            username="reset-confirm@test.com",
+            email="reset-confirm@test.com",
+            password="OldPassw0rd!",
         )
         self.uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
         self.real_token = default_token_generator.make_token(self.user)
@@ -84,10 +87,13 @@ class CustomPasswordResetConfirmViewTest(TestCase):
     def test_valid_link_sets_new_password_and_clears_session_token(self):
         sentinel_url = self._reach_validlink_state()
 
-        res = self._post_json(sentinel_url, {
-            "new_password1": "Xk7mQ9zLp2!",
-            "new_password2": "Xk7mQ9zLp2!",
-        })
+        res = self._post_json(
+            sentinel_url,
+            {
+                "new_password1": "Xk7mQ9zLp2!",
+                "new_password2": "Xk7mQ9zLp2!",
+            },
+        )
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json(), {})
@@ -98,10 +104,13 @@ class CustomPasswordResetConfirmViewTest(TestCase):
     def test_valid_link_mismatched_passwords_returns_field_errors(self):
         sentinel_url = self._reach_validlink_state()
 
-        res = self._post_json(sentinel_url, {
-            "new_password1": "Xk7mQ9zLp2!",
-            "new_password2": "SomethingElse9!",
-        })
+        res = self._post_json(
+            sentinel_url,
+            {
+                "new_password1": "Xk7mQ9zLp2!",
+                "new_password2": "SomethingElse9!",
+            },
+        )
 
         self.assertEqual(res.status_code, 400)
         self.assertIn("new_password2", res.json())

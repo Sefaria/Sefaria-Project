@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Switch the Library Assistant from opt-in to opt-out.
 
@@ -35,7 +34,7 @@ sefaria):
 
 import argparse
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 import django
 
@@ -70,7 +69,7 @@ def _write(user_ids, value, cohort, run_id):
     """Set the setting for `user_ids`, archiving what was written. Returns the count."""
     written = 0
     for start in range(0, len(user_ids), BATCH_SIZE):
-        batch = user_ids[start:start + BATCH_SIZE]
+        batch = user_ids[start : start + BATCH_SIZE]
         # Re-read rather than trusting the scan, so the archive records exactly the
         # profiles this run changed and nothing else.
         # Deduplicated: a handful of ids own more than one profile document, and the count
@@ -82,16 +81,19 @@ def _write(user_ids, value, cohort, run_id):
         # profile that never received the setting, which rollback ignores — it only unsets
         # where the stored value matches. Writing first would instead leave written
         # profiles with no archive entry, and rollback would miss them permanently.
-        _archive(run_id, [
-            {
-                "run_id": run_id,
-                "uid": uid,
-                "value": value,
-                "cohort": cohort,
-                "written_at": datetime.now(timezone.utc),
-            }
-            for uid in pending
-        ])
+        _archive(
+            run_id,
+            [
+                {
+                    "run_id": run_id,
+                    "uid": uid,
+                    "value": value,
+                    "cohort": cohort,
+                    "written_at": datetime.now(UTC),
+                }
+                for uid in pending
+            ],
+        )
         db.profiles.update_many(
             _unmigrated({"id": {"$in": pending}}),
             {"$set": {SETTING_PATH: value}},

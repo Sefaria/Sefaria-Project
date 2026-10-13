@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-
 import pytest
-import pprint
+
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
-class Test_Schema(object):
+
+class Test_Schema:
     # This needs a bunch of hebrew titles to validate
 
     @classmethod
@@ -27,17 +26,17 @@ class Test_Schema(object):
                 {
                     "lang": "en",
                     "text": "Mishnah Torah Test",
-                    "primary": True
+                    "primary": True,
                 },
                 {
                     "lang": "en",
-                    "text": "Rambam Test"
+                    "text": "Rambam Test",
                 },
                 {
                     "lang": "he",
                     "text": "משנה תורה כאילו",
-                    "primary": True
-                }
+                    "primary": True,
+                },
             ],
             "nodes": [
                 {
@@ -46,93 +45,92 @@ class Test_Schema(object):
                         {
                             "lang": "en",
                             "text": "Introduction",
-                            "primary": True
+                            "primary": True,
                         },
                         {
                             "lang": "he",
                             "text": "הקדמה",
-                            "primary": True
-                        }
+                            "primary": True,
+                        },
                     ],
                     "nodes": [
                         {
                             "key": "Transmission",
                             "titles": [
                                 {
-                                "lang": "en",
-                                "text": "Transmission",
-                                "primary": True
-                                }
+                                    "lang": "en",
+                                    "text": "Transmission",
+                                    "primary": True,
+                                },
                             ],
                             "nodeType": "JaggedArrayNode",
                             "depth": 1,
                             "addressTypes": ["Integer"],
-                            "sectionNames": ["Paragraph"]
+                            "sectionNames": ["Paragraph"],
                         },
                         {
                             "key": "List of Positive Mitzvot",
                             "titles": [
                                 {
-                                "lang": "en",
-                                "text": "List of Positive Mitzvot",
-                                "primary": True
-                                }
+                                    "lang": "en",
+                                    "text": "List of Positive Mitzvot",
+                                    "primary": True,
+                                },
                             ],
                             "nodeType": "JaggedArrayNode",
                             "depth": 1,
                             "addressTypes": ["Integer"],
-                            "sectionNames": ["Mitzvah"]
+                            "sectionNames": ["Mitzvah"],
                         },
                         {
                             "key": "List of Negative Mitzvot",
                             "titles": [
                                 {
-                                "lang": "en",
-                                "text": "List of Negative Mitzvot",
-                                "primary": True
-                                }
+                                    "lang": "en",
+                                    "text": "List of Negative Mitzvot",
+                                    "primary": True,
+                                },
                             ],
                             "nodeType": "JaggedArrayNode",
                             "depth": 1,
                             "addressTypes": ["Integer"],
-                            "sectionNames": ["Mitzvah"]
-                        }
-                    ]
-
+                            "sectionNames": ["Mitzvah"],
+                        },
+                    ],
                 },
                 {
                     "key": "Sefer Mada",
                     "titles": [
                         {
-                        "lang": "en",
-                        "text": "Sefer Mada",
-                        "primary": True
-                        }
+                            "lang": "en",
+                            "text": "Sefer Mada",
+                            "primary": True,
+                        },
                     ],
                     "nodes": [
                         {
                             "key": "Foundations of the Torah",
                             "titles": [
                                 {
-                                "lang": "en",
-                                "text": "Foundations of the Torah",
-                                "primary": True
-                                }
+                                    "lang": "en",
+                                    "text": "Foundations of the Torah",
+                                    "primary": True,
+                                },
                             ],
                             "nodes": [
                                 {
                                     "key": "Introduction",
                                     "titles": [
                                         {
-                                        "lang": "en",
-                                        "text": "Introduction",
-                                        "primary": True
-                                        }
+                                            "lang": "en",
+                                            "text": "Introduction",
+                                            "primary": True,
+                                        },
                                     ],
                                     "nodeType": "JaggedArrayNode",
                                     "depth": 0,
                                     "addressTypes": [],
-                                    "sectionNames": []
+                                    "sectionNames": [],
                                 },
                                 {
                                     "key": "default",
@@ -140,33 +138,33 @@ class Test_Schema(object):
                                     "nodeType": "JaggedArrayNode",
                                     "depth": 2,
                                     "addressTypes": ["Integer", "Integer"],
-                                    "sectionNames": ["Chapter", "Law"]
-                                }
-                            ]
+                                    "sectionNames": ["Chapter", "Law"],
+                                },
+                            ],
                         },
                         {
                             "key": "Human Dispositions",
                             "titles": [
                                 {
-                                "lang": "en",
-                                "text": "Human Dispositions",
-                                "primary": True
-                                }
+                                    "lang": "en",
+                                    "text": "Human Dispositions",
+                                    "primary": True,
+                                },
                             ],
                             "nodes": [
                                 {
                                     "key": "Introduction",
                                     "titles": [
                                         {
-                                        "lang": "en",
-                                        "text": "Introduction",
-                                        "primary": True
-                                        }
+                                            "lang": "en",
+                                            "text": "Introduction",
+                                            "primary": True,
+                                        },
                                     ],
                                     "nodeType": "JaggedArrayNode",
                                     "depth": 0,
                                     "addressTypes": [],
-                                    "sectionNames": []
+                                    "sectionNames": [],
                                 },
                                 {
                                     "key": "default",
@@ -174,33 +172,33 @@ class Test_Schema(object):
                                     "nodeType": "JaggedArrayNode",
                                     "depth": 2,
                                     "addressTypes": ["Integer", "Integer"],
-                                    "sectionNames": ["Chapter", "Law"]
-                                }
-                            ]
+                                    "sectionNames": ["Chapter", "Law"],
+                                },
+                            ],
                         },
                         {
                             "key": "Torah Study",
                             "titles": [
                                 {
-                                "lang": "en",
-                                "text": "Torah Study",
-                                "primary": True
-                                }
+                                    "lang": "en",
+                                    "text": "Torah Study",
+                                    "primary": True,
+                                },
                             ],
                             "nodes": [
                                 {
                                     "key": "Introduction",
                                     "titles": [
                                         {
-                                        "lang": "en",
-                                        "text": "Introduction",
-                                        "primary": True
-                                        }
+                                            "lang": "en",
+                                            "text": "Introduction",
+                                            "primary": True,
+                                        },
                                     ],
                                     "nodeType": "JaggedArrayNode",
                                     "depth": 0,
                                     "addressTypes": [],
-                                    "sectionNames": []
+                                    "sectionNames": [],
                                 },
                                 {
                                     "key": "default",
@@ -208,33 +206,33 @@ class Test_Schema(object):
                                     "nodeType": "JaggedArrayNode",
                                     "depth": 2,
                                     "addressTypes": ["Integer", "Integer"],
-                                    "sectionNames": ["Chapter", "Law"]
-                                }
-                            ]
+                                    "sectionNames": ["Chapter", "Law"],
+                                },
+                            ],
                         },
                         {
                             "key": "Foreign Worship and Customs of the Nations",
                             "titles": [
                                 {
-                                "lang": "en",
-                                "text": "Foreign Worship and Customs of the Nations",
-                                "primary": True
-                                }
+                                    "lang": "en",
+                                    "text": "Foreign Worship and Customs of the Nations",
+                                    "primary": True,
+                                },
                             ],
                             "nodes": [
                                 {
                                     "key": "Introduction",
                                     "titles": [
                                         {
-                                        "lang": "en",
-                                        "text": "Introduction",
-                                        "primary": True
-                                        }
+                                            "lang": "en",
+                                            "text": "Introduction",
+                                            "primary": True,
+                                        },
                                     ],
                                     "nodeType": "JaggedArrayNode",
                                     "depth": 0,
                                     "addressTypes": [],
-                                    "sectionNames": []
+                                    "sectionNames": [],
                                 },
                                 {
                                     "key": "default",
@@ -242,38 +240,38 @@ class Test_Schema(object):
                                     "nodeType": "JaggedArrayNode",
                                     "depth": 2,
                                     "addressTypes": ["Integer", "Integer"],
-                                    "sectionNames": ["Chapter", "Law"]
-                                }
-                            ]
+                                    "sectionNames": ["Chapter", "Law"],
+                                },
+                            ],
                         },
                         {
                             "key": "Repentance",
                             "titles": [
                                 {
-                                "lang": "en",
-                                "text": "Repentance",
-                                "primary": True
+                                    "lang": "en",
+                                    "text": "Repentance",
+                                    "primary": True,
                                 },
                                 {
-                                "lang": "en",
-                                "text": "Hilchot TeshuvaX",
-                                "presentation": "alone"
-                                }
+                                    "lang": "en",
+                                    "text": "Hilchot TeshuvaX",
+                                    "presentation": "alone",
+                                },
                             ],
                             "nodes": [
                                 {
                                     "key": "Introduction",
                                     "titles": [
                                         {
-                                        "lang": "en",
-                                        "text": "Introduction",
-                                        "primary": True
-                                        }
+                                            "lang": "en",
+                                            "text": "Introduction",
+                                            "primary": True,
+                                        },
                                     ],
                                     "nodeType": "JaggedArrayNode",
                                     "depth": 0,
                                     "addressTypes": [],
-                                    "sectionNames": []
+                                    "sectionNames": [],
                                 },
                                 {
                                     "key": "default",
@@ -281,26 +279,28 @@ class Test_Schema(object):
                                     "nodeType": "JaggedArrayNode",
                                     "depth": 2,
                                     "addressTypes": ["Integer", "Integer"],
-                                    "sectionNames": ["Chapter", "Law"]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
+                                    "sectionNames": ["Chapter", "Law"],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
         }
 
-        i = Index({
-            "schema": schema,
-            "title": "Mishnah Torah Test",
-            "categories": ["Halakhah"]
-        })
+        i = Index(
+            {
+                "schema": schema,
+                "title": "Mishnah Torah Test",
+                "categories": ["Halakhah"],
+            },
+        )
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        schema["titles"] = sorted(schema["titles"], key=lambda x: x["text"])
         serialized = i.nodes.serialize()
-        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        serialized["titles"] = sorted(serialized["titles"], key=lambda x: x["text"])
         assert schema == serialized
 
         Ref("Mishnah Torah Test, Introduction, Transmission")
@@ -320,13 +320,13 @@ class Test_Schema(object):
                 {
                     "lang": "en",
                     "text": "Parshanut Test",
-                    "primary": True
+                    "primary": True,
                 },
                 {
                     "lang": "he",
-                    "text": 'כגכג',
-                    "primary": True
-                }
+                    "text": "כגכג",
+                    "primary": True,
+                },
             ],
             "nodes": [
                 {
@@ -335,7 +335,7 @@ class Test_Schema(object):
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
-                    "sectionNames": ["Torah"]
+                    "sectionNames": ["Torah"],
                 },
                 {
                     "key": "Noach",
@@ -343,7 +343,7 @@ class Test_Schema(object):
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
-                    "sectionNames": ["Torah"]
+                    "sectionNames": ["Torah"],
                 },
                 {
                     "key": "Lech Lecha",
@@ -351,21 +351,23 @@ class Test_Schema(object):
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
-                    "sectionNames": ["Torah"]
-                }
-            ]
+                    "sectionNames": ["Torah"],
+                },
+            ],
         }
-        i = Index({
-            "schema": schema,
-            "title": "Parshanut Test",
-            "categories": ["Chasidut"]
-        })
+        i = Index(
+            {
+                "schema": schema,
+                "title": "Parshanut Test",
+                "categories": ["Chasidut"],
+            },
+        )
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        schema["titles"] = sorted(schema["titles"], key=lambda x: x["text"])
         serialized = i.nodes.serialize()
-        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        serialized["titles"] = sorted(serialized["titles"], key=lambda x: x["text"])
         assert schema == serialized
         i.delete()
 
@@ -379,48 +381,48 @@ class Test_Schema(object):
                 {
                     "lang": "en",
                     "text": "Altstest",
-                    "primary": True
+                    "primary": True,
                 },
                 {
                     "lang": "he",
-                    "text": 'כגככגגגגג',
-                    "primary": True
-                }
+                    "text": "כגככגגגגג",
+                    "primary": True,
+                },
             ],
             "nodeType": "JaggedArrayNode",
             "depth": 2,
             "addressTypes": ["Integer", "Integer"],
-            "sectionNames": ["Chapter","Verse"]
+            "sectionNames": ["Chapter", "Verse"],
         }
 
         structs = {
             "parasha": {
                 "nodes": [
                     {
-                        'sharedTitle': 'Shemot',
+                        "sharedTitle": "Shemot",
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': 'Altstest 1:1-6:1',
-                        'refs': [
-                                "Altstest 1:1-1:17",
-                                "Altstest 1:18-2:10",
-                                "Altstest 2:11-2:25",
-                                "Altstest 3:1-3:15",
-                                "Altstest 3:16-4:17",
-                                "Altstest 4:18-4:31",
-                                "Altstest 5:1-6:1",
-                        ]
+                        "wholeRef": "Altstest 1:1-6:1",
+                        "refs": [
+                            "Altstest 1:1-1:17",
+                            "Altstest 1:18-2:10",
+                            "Altstest 2:11-2:25",
+                            "Altstest 3:1-3:15",
+                            "Altstest 3:16-4:17",
+                            "Altstest 4:18-4:31",
+                            "Altstest 5:1-6:1",
+                        ],
                     },
                     {
-                        'sharedTitle': 'Vaera',
+                        "sharedTitle": "Vaera",
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': 'Altstest 6:2-9:35',
-                        'refs': [
+                        "wholeRef": "Altstest 6:2-9:35",
+                        "refs": [
                             "Altstest 10:1-10:11",
                             "Altstest 10:12-10:23",
                             "Altstest 10:24-11:3",
@@ -428,30 +430,30 @@ class Test_Schema(object):
                             "Altstest 12:21-12:28",
                             "Altstest 12:29-12:51",
                             "Altstest 13:1-13:16",
-                        ]
+                        ],
                     },
-                ]
-            }
+                ],
+            },
         }
 
         creating_dict = {
             "schema": schema,
             "title": "Altstest",
             "categories": ["Chasidut"],
-            "alt_structs": structs
+            "alt_structs": structs,
         }
         i = Index(creating_dict)
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        schema["titles"] = sorted(schema["titles"], key=lambda x: x["text"])
         serialized = i.nodes.serialize()
-        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        serialized["titles"] = sorted(serialized["titles"], key=lambda x: x["text"])
         assert schema == serialized
 
-        contents =  i.contents(raw=True)
-        contents['schema']['titles'] = sorted(contents['schema']['titles'], key=lambda x: x['text'])
-        creating_dict['schema']['titles'] = sorted(creating_dict['schema']['titles'], key=lambda x: x['text'])
+        contents = i.contents(raw=True)
+        contents["schema"]["titles"] = sorted(contents["schema"]["titles"], key=lambda x: x["text"])
+        creating_dict["schema"]["titles"] = sorted(creating_dict["schema"]["titles"], key=lambda x: x["text"])
         assert contents == creating_dict
 
         assert Ref("Altstest, Vaera 3") == Ref("Altstest 10:24-11:3")
@@ -478,13 +480,13 @@ class Test_Schema(object):
                 {
                     "lang": "en",
                     "text": "CAtest",
-                    "primary": True
+                    "primary": True,
                 },
                 {
                     "lang": "he",
-                    "text": 'כגככג',
-                    "primary": True
-                }
+                    "text": "כגככג",
+                    "primary": True,
+                },
             ],
             "nodes": [
                 {
@@ -497,13 +499,13 @@ class Test_Schema(object):
                         {
                             "lang": "en",
                             "text": "Kid",
-                            "primary": True
+                            "primary": True,
                         },
                         {
                             "lang": "he",
-                            "text": 'ילד',
-                            "primary": True
-                        }
+                            "text": "ילד",
+                            "primary": True,
+                        },
                     ],
                 },
                 {
@@ -516,46 +518,46 @@ class Test_Schema(object):
                         {
                             "lang": "en",
                             "text": "Other Kid",
-                            "primary": True
+                            "primary": True,
                         },
                         {
                             "lang": "he",
-                            "text": 'ילד אחר',
-                            "primary": True
-                        }
+                            "text": "ילד אחר",
+                            "primary": True,
+                        },
                     ],
-                }
-            ]
+                },
+            ],
         }
 
         structs = {
             "parasha": {
                 "nodes": [
                     {
-                        'sharedTitle': 'Shemot',
+                        "sharedTitle": "Shemot",
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': 'CAtest, Kid 1:1-6:1',
-                        'refs': [
-                                "CAtest, Kid 1:1-1:17",
-                                "CAtest, Kid 1:18-2:10",
-                                "CAtest, Kid 2:11-2:25",
-                                "CAtest, Kid 3:1-3:15",
-                                "CAtest, Kid 3:16-4:17",
-                                "CAtest, Kid 4:18-4:31",
-                                "CAtest, Kid 5:1-6:1",
-                        ]
+                        "wholeRef": "CAtest, Kid 1:1-6:1",
+                        "refs": [
+                            "CAtest, Kid 1:1-1:17",
+                            "CAtest, Kid 1:18-2:10",
+                            "CAtest, Kid 2:11-2:25",
+                            "CAtest, Kid 3:1-3:15",
+                            "CAtest, Kid 3:16-4:17",
+                            "CAtest, Kid 4:18-4:31",
+                            "CAtest, Kid 5:1-6:1",
+                        ],
                     },
                     {
-                        'sharedTitle': 'Vaera',
+                        "sharedTitle": "Vaera",
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': 'CAtest, Kid 6:2-9:35',
-                        'refs': [
+                        "wholeRef": "CAtest, Kid 6:2-9:35",
+                        "refs": [
                             "CAtest, Kid 10:1-10:11",
                             "CAtest, Kid 10:12-10:23",
                             "CAtest, Kid 10:24-11:3",
@@ -563,30 +565,30 @@ class Test_Schema(object):
                             "CAtest, Kid 12:21-12:28",
                             "CAtest, Kid 12:29-12:51",
                             "CAtest, Kid 13:1-13:16",
-                        ]
+                        ],
                     },
-                ]
-            }
+                ],
+            },
         }
 
         creating_dict = {
             "schema": schema,
             "title": "CAtest",
             "categories": ["Chasidut"],
-            "alt_structs": structs
+            "alt_structs": structs,
         }
         i = Index(creating_dict)
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        schema["titles"] = sorted(schema["titles"], key=lambda x: x["text"])
         serialized = i.nodes.serialize()
-        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        serialized["titles"] = sorted(serialized["titles"], key=lambda x: x["text"])
         assert schema == serialized
 
         contents = i.contents(raw=True)
-        contents['schema']['titles'] = sorted(contents['schema']['titles'], key=lambda x: x['text'])
-        creating_dict['schema']['titles'] = sorted(creating_dict['schema']['titles'], key=lambda x: x['text'])
+        contents["schema"]["titles"] = sorted(contents["schema"]["titles"], key=lambda x: x["text"])
+        creating_dict["schema"]["titles"] = sorted(creating_dict["schema"]["titles"], key=lambda x: x["text"])
         assert contents == creating_dict
 
         assert Ref("CAtest, Vaera 3") == Ref("CAtest, Kid 10:24-11:3")
@@ -613,13 +615,13 @@ class Test_Schema(object):
                 {
                     "lang": "en",
                     "text": "NumbPrimeTest",
-                    "primary": True
+                    "primary": True,
                 },
                 {
                     "lang": "he",
-                    "text": 'כגכעגעגהכג',
-                    "primary": True
-                }
+                    "text": "כגכעגעגהכג",
+                    "primary": True,
+                },
             ],
             "nodeType": "JaggedArrayNode",
             "sectionNames": ["Parasha"],
@@ -628,7 +630,7 @@ class Test_Schema(object):
             "nodes": [
                 {
                     "key": "s1",
-                    'sharedTitle': 'Shemot',
+                    "sharedTitle": "Shemot",
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
@@ -636,7 +638,7 @@ class Test_Schema(object):
                 },
                 {
                     "key": "s2",
-                    'sharedTitle': 'Vaera',
+                    "sharedTitle": "Vaera",
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
@@ -644,7 +646,7 @@ class Test_Schema(object):
                 },
                 {
                     "key": "s3",
-                    'sharedTitle': 'Bo',
+                    "sharedTitle": "Bo",
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
@@ -652,13 +654,13 @@ class Test_Schema(object):
                 },
                 {
                     "key": "s4",
-                    'sharedTitle': 'Beshalach',
+                    "sharedTitle": "Beshalach",
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
                     "sectionNames": ["Vort"],
                 },
-            ]
+            ],
         }
 
         creating_dict = {
@@ -670,13 +672,13 @@ class Test_Schema(object):
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        schema["titles"] = sorted(schema["titles"], key=lambda x: x["text"])
         serialized = i.nodes.serialize()
-        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        serialized["titles"] = sorted(serialized["titles"], key=lambda x: x["text"])
         assert schema == serialized
         contents = i.contents(raw=True)
-        contents['schema']['titles'] = sorted(contents['schema']['titles'], key=lambda x: x['text'])
-        creating_dict['schema']['titles'] = sorted(creating_dict['schema']['titles'], key=lambda x: x['text'])
+        contents["schema"]["titles"] = sorted(contents["schema"]["titles"], key=lambda x: x["text"])
+        creating_dict["schema"]["titles"] = sorted(creating_dict["schema"]["titles"], key=lambda x: x["text"])
         assert contents == creating_dict
 
         assert Ref("NumbPrimeTest 3:5") == Ref("NumbPrimeTest, Bo 5")
@@ -700,18 +702,18 @@ class Test_Schema(object):
                 {
                     "lang": "en",
                     "text": "Stest",
-                    "primary": True
+                    "primary": True,
                 },
                 {
                     "lang": "he",
-                    "text": 'כגככג',
-                    "primary": True
-                }
+                    "text": "כגככג",
+                    "primary": True,
+                },
             ],
             "nodeType": "JaggedArrayNode",
             "depth": 2,
             "addressTypes": ["Integer", "Integer"],
-            "sectionNames": ["Chapter", "Verse"]
+            "sectionNames": ["Chapter", "Verse"],
         }
 
         structs = {
@@ -722,30 +724,30 @@ class Test_Schema(object):
                 "depth": 1,
                 "nodes": [
                     {
-                        'sharedTitle': 'Shemot',
+                        "sharedTitle": "Shemot",
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': 'Stest 1:1-6:1',
-                        'refs': [
-                                "Stest 1:1-1:17",
-                                "Stest 1:18-2:10",
-                                "Stest 2:11-2:25",
-                                "Stest 3:1-3:15",
-                                "Stest 3:16-4:17",
-                                "Stest 4:18-4:31",
-                                "Stest 5:1-6:1",
-                        ]
+                        "wholeRef": "Stest 1:1-6:1",
+                        "refs": [
+                            "Stest 1:1-1:17",
+                            "Stest 1:18-2:10",
+                            "Stest 2:11-2:25",
+                            "Stest 3:1-3:15",
+                            "Stest 3:16-4:17",
+                            "Stest 4:18-4:31",
+                            "Stest 5:1-6:1",
+                        ],
                     },
                     {
-                        'sharedTitle': 'Vaera',
+                        "sharedTitle": "Vaera",
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': 'Stest 6:2-9:35',
-                        'refs': [
+                        "wholeRef": "Stest 6:2-9:35",
+                        "refs": [
                             "Stest 10:1-10:11",
                             "Stest 10:12-10:23",
                             "Stest 10:24-11:3",
@@ -753,29 +755,29 @@ class Test_Schema(object):
                             "Stest 12:21-12:28",
                             "Stest 12:29-12:51",
                             "Stest 13:1-13:16",
-                        ]
+                        ],
                     },
-                ]
-            }
+                ],
+            },
         }
 
         creating_dict = {
             "schema": schema,
             "title": "Stest",
             "categories": ["Chasidut"],
-            "alt_structs": structs
+            "alt_structs": structs,
         }
         i = Index(creating_dict)
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        schema["titles"] = sorted(schema["titles"], key=lambda x: x["text"])
         serialized = i.nodes.serialize()
-        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        serialized["titles"] = sorted(serialized["titles"], key=lambda x: x["text"])
         assert schema == serialized
-        contents =  i.contents(raw=True)
-        contents['schema']['titles'] = sorted(contents['schema']['titles'], key=lambda x: x['text'])
-        creating_dict['schema']['titles'] = sorted(creating_dict['schema']['titles'], key=lambda x: x['text'])
+        contents = i.contents(raw=True)
+        contents["schema"]["titles"] = sorted(contents["schema"]["titles"], key=lambda x: x["text"])
+        creating_dict["schema"]["titles"] = sorted(creating_dict["schema"]["titles"], key=lambda x: x["text"])
         assert contents == creating_dict
 
         assert Ref("Stest Perek 2:3") == Ref("Stest, Vaera 3")
@@ -785,27 +787,28 @@ class Test_Schema(object):
 
     def test_quick_initialization(self):
         old_style = JaggedArrayNode()
-        old_style.add_title('Title', 'en', primary=True)
-        old_style.add_title('כותרת', 'he', primary=True)
-        old_style.key = 'Title'
-        old_style.sectionNames = ['Chapter', 'Verse']
-        old_style.addressTypes = ['Integer', 'Integer']
+        old_style.add_title("Title", "en", primary=True)
+        old_style.add_title("כותרת", "he", primary=True)
+        old_style.key = "Title"
+        old_style.sectionNames = ["Chapter", "Verse"]
+        old_style.addressTypes = ["Integer", "Integer"]
         old_style.depth = 2
 
         quick_way = JaggedArrayNode()
-        quick_way.add_primary_titles('Title', 'כותרת')
-        quick_way.add_structure(['Chapter', 'Verse'])
+        quick_way.add_primary_titles("Title", "כותרת")
+        quick_way.add_structure(["Chapter", "Verse"])
 
         assert quick_way.serialize() == old_style.serialize()
 
-class Test_Default_Nodes(object):
+
+class Test_Default_Nodes:
     @classmethod
     def setup_class(cls):
         pass
 
     @classmethod
     def teardown_class(cls):
-        v = Version().load({"title":"Chofetz Chaim", "versionTitle": "test_default_node"})
+        v = Version().load({"title": "Chofetz Chaim", "versionTitle": "test_default_node"})
         if v:
             v.delete()
 
@@ -822,7 +825,6 @@ class Test_Default_Nodes(object):
         dnode = sn.get_default_child()
         assert dnode.is_default()
 
-
     def test_default_in_leaf_nodes(self):
         sn = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1").index_node
         assert isinstance(sn, SchemaNode)
@@ -836,10 +838,10 @@ class Test_Default_Nodes(object):
         ref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1")
         TextChunk(ref)
 
-    def test_load_default_text_chunk(self):
+    def test_load_default_text_chunk_with_save(self):
         ref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1")
         tc = TextChunk(ref, "en", "test_default_node")
-        tc.text = [["Foo", "Bar", "Blitz"],["Glam", "Blam", "Flam"]]
+        tc.text = [["Foo", "Bar", "Blitz"], ["Glam", "Blam", "Flam"]]
         tc.save()
         subref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1.2.3")
         assert TextChunk(subref, "en", "test_default_node").text == "Flam"

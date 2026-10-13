@@ -1,25 +1,23 @@
-# encoding=utf-8
-import unicodecsv as csv
 import io
-import re
+from functools import lru_cache, reduce
 
 import pymongo
+import regex as re
+import unicodecsv as csv
+from diff_match_patch import diff_match_patch
 
+from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.model import *
 from sefaria.system.database import db
-from sefaria.datatype.jagged_array import JaggedTextArray
-from diff_match_patch import diff_match_patch
-from functools import reduce, lru_cache
 from sefaria.system.exceptions import InputError
 
-import regex as re
-import pprint
 try:
-    import xml.etree.cElementTree as ET
+    import xml.etree.ElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
 from sefaria.model import *
 from sefaria.utils.hebrew import has_hebrew
+
 
 def add_spelling(category, old, new, lang="en"):
     """
@@ -51,7 +49,7 @@ def rename_category(old, new):
     """
     indices = IndexSet({"categories": old})
 
-    assert len(indices), "No categories named {}".format(old)
+    assert len(indices), f"No categories named {old}"
 
     for i in indices:
         i.categories = [new if cat == old else cat for cat in i.categories]
@@ -62,7 +60,7 @@ def rename_category(old, new):
 
 
 def resize_text(title, new_structure, upsize_in_place=False):
-    # todo: Needs to be converted to objects, but no usages seen in the wild.
+    # TODO: Needs to be converted to objects, but no usages seen in the wild.
     """
     Change text structure for text named 'title'
     to 'new_structure' (a list of strings naming section names)
@@ -95,7 +93,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
     for text in texts:
         if delta > 0 and upsize_in_place:
             resized = text["chapter"]
-            for i in range(delta):
+            for _i in range(delta):
                 resized = [resized]
         else:
             resized = JaggedTextArray(text["chapter"]).resize(delta).array()
@@ -115,16 +113,16 @@ def merge_indices(title1, title2):
     """
     Merges two similar index records
     """
-    #merge the index,
-    #merge history refsscript to compare mishnah vers
-    #TODO: needs more error checking that the indices and versions are of the same shape. Look nto comparing two (new format) index records
-    idx1 = Index().load({"title":title1})
+    # merge the index,
+    # merge history refsscript to compare mishnah vers
+    # TODO: needs more error checking that the indices and versions are of the same shape. Look nto comparing two (new format) index records
+    idx1 = Index().load({"title": title1})
     if not idx1:
-        return {"error": "Index not found: %s" % title1 }
-    idx2 = Index().load({"title":title2})
+        return {"error": "Index not found: %s" % title1}
+    idx2 = Index().load({"title": title2})
     if not idx2:
-        return {"error": "Index not found: %s" % title2 }
-    #we're just going to trash idx2, but make sure all it's related objects move to idx1
+        return {"error": "Index not found: %s" % title2}
+    # we're just going to trash idx2, but make sure all it's related objects move to idx1
     text.process_index_title_change_in_versions(idx1, old=title2, new=title1)
     link.process_index_title_change_in_links(idx1, old=title2, new=title1)
     history.process_index_title_change_in_history(idx1, old=title2, new=title1)
@@ -147,13 +145,13 @@ def merge_text_versions(version1, version2, text_title, language, warn=False):
     """
     v1 = Version().load({"title": text_title, "versionTitle": version1, "language": language})
     if not v1:
-        return {"error": "Version not found: %s" % version1 }
+        return {"error": "Version not found: %s" % version1}
     v2 = Version().load({"title": text_title, "versionTitle": version2, "language": language})
     if not v2:
-        return {"error": "Version not found: %s" % version2 }
+        return {"error": "Version not found: %s" % version2}
 
     if isinstance(v1.chapter, dict) or isinstance(v2.chapter, dict):
-        #raise Exception("merge_text_versions doesn't yet handle complex records")
+        # raise Exception("merge_text_versions doesn't yet handle complex records")
         i1 = v1.get_index()
         i2 = v2.get_index()
         assert i1 == i2
@@ -167,13 +165,13 @@ def merge_text_versions(version1, version2, text_title, language, warn=False):
             """
             assert len(contents) == 2
             if warn and JaggedTextArray(contents[0]).overlaps(JaggedTextArray(contents[1])):
-                raise Exception("WARNING - overlapping content in {}".format(snode.full_title()))
+                raise Exception(f"WARNING - overlapping content in {snode.full_title()}")
             merged_text, sources = merge_texts([contents[0], contents[1]], kwargs.get("sources"))
             return merged_text
 
         merged_text = i1.nodes.visit_content(content_node_merger, v1.chapter, v2.chapter, sources=[version1, version2])
 
-    else:  #this could be handled with the visitor and callback, above.
+    else:  # this could be handled with the visitor and callback, above.
         if warn and v1.ja().overlaps(v2.ja()):
             print("WARNING - %s & %s have overlapping content. Aborting." % (version1, version2))
 
@@ -236,7 +234,15 @@ def merge_text(a, b):
     return out
 
 
-def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_rewrite_function=lambda x: True, **kwargs):
+def modify_text_by_function(
+    title,
+    vtitle,
+    lang,
+    rewrite_function,
+    uid,
+    needs_rewrite_function=lambda x: True,
+    **kwargs,
+):
     """
     Walks ever segment contained in title, calls rewrite_function on the text and saves the result.
     rewrite_function should accept two parameters: 1) text of current segment 2) zero-indexed indices of segment
@@ -263,6 +269,7 @@ def modify_many_texts_and_make_report(rewrite_function, versions_query=None, ret
     :param return_zeros - bool whether you want cases of 0 replaces in report
     :returns a csv writer with index title, versionTitle, and number of replacements
     """
+
     def replace_in_text_object(text_obj):
         total = 0
         if isinstance(text_obj, dict):
@@ -276,21 +283,24 @@ def modify_many_texts_and_make_report(rewrite_function, versions_query=None, ret
         elif isinstance(text_obj, str):
             return rewrite_function(text_obj)
         return text_obj, total
+
     texts_collection = db.texts
     versions_to_change = texts_collection.find(versions_query)
     bulk_operations = []
     output = io.BytesIO()
     report = csv.writer(output)
-    report.writerow(['index', 'versionTitle', 'replaces number'])
+    report.writerow(["index", "versionTitle", "replaces number"])
     for version in versions_to_change:
-        new_text, replaces = replace_in_text_object(version['chapter'])
+        new_text, replaces = replace_in_text_object(version["chapter"])
         if replaces or return_zeros:
-            report.writerow([version['title'], version['versionTitle'], replaces])
+            report.writerow([version["title"], version["versionTitle"], replaces])
         if replaces:
-            bulk_operations.append(pymongo.UpdateOne(
-                {'_id': version['_id']},
-                {'$set': {'chapter': new_text}}
-            ))
+            bulk_operations.append(
+                pymongo.UpdateOne(
+                    {"_id": version["_id"]},
+                    {"$set": {"chapter": new_text}},
+                ),
+            )
     if bulk_operations:
         texts_collection.bulk_write(bulk_operations)
     return output.getvalue()
@@ -299,7 +309,7 @@ def modify_many_texts_and_make_report(rewrite_function, versions_query=None, ret
 def split_text_section(oref, lang, old_version_title, new_version_title):
     """
     Splits the text in `old_version_title` so that the content covered by `oref` now appears in `new_version_title`.
-    Rewrites history for affected content. 
+    Rewrites history for affected content.
 
     NOTE: `oref` cannot be ranging (until we implement saving ranging refs on TextChunk). Spanning refs are handled recursively.
     """
@@ -317,7 +327,9 @@ def split_text_section(oref, lang, old_version_title, new_version_title):
     new_chunk.save()
 
     # Rewrite History
-    ref_regex_queries = [{"ref": {"$regex": r}, "version": old_version_title, "language": lang} for r in oref.regex(as_list=True)]
+    ref_regex_queries = [
+        {"ref": {"$regex": r}, "version": old_version_title, "language": lang} for r in oref.regex(as_list=True)
+    ]
     query = {"$or": ref_regex_queries}
     # Note: update() deprecated in PyMongo 4.x, use update_many() instead
     db.history.update_many(query, {"$set": {"version": new_version_title}})
@@ -330,8 +342,9 @@ def split_text_section(oref, lang, old_version_title, new_version_title):
 def find_and_replace_in_text(title, vtitle, lang, find_string, replace_string, uid):
     """
     Replaces all instances of `find_string` with `replace_string` in the text specified by `title` / `vtitle` / `lang`.
-    Changes are attributed to the user with `uid`. 
+    Changes are attributed to the user with `uid`.
     """
+
     def replacer(text, sections):
         return text.replace(find_string, replace_string)
 
@@ -345,26 +358,28 @@ def replace_roman_numerals(text, allow_lowercase=False, only_lowercase=False):
     e.g. (Isa. Iv. 10) --> (Isa. 4:10)
 
     WARNING: we've seen e.g., "(v. 15)" used to mean "Verse 15". If run with allow_lowercase=True, this will
-    be rewritten as "(5:15)". 
+    be rewritten as "(5:15)".
     """
     import roman
+
     if only_lowercase:
         regex = re.compile(r"((^|[{\[( ])[{\[( ]*)(m{0,4}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3}))(\. ?)(\d)?")
     else:
         flag = re.I if allow_lowercase else 0
-        regex = re.compile(r"((^|[{\[( ])[{\[( ]*)(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))($|[.,;\])}: ]+)(\d)?", flag)
+        regex = re.compile(
+            r"((^|[{\[( ])[{\[( ]*)(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))($|[.,;\])}: ]+)(\d)?",
+            flag,
+        )
 
     def replace_roman_numerals_in_match(m):
         s = m.group(3)
         s = s.upper()
         try:
             if s:
-                if m.group(8):    
-                    return "{}{}:{}".format(m.group(1), roman.fromRoman(s), m.group(8))
-                else:
-                    return "{}{}{}".format(m.group(1), roman.fromRoman(s), m.group(7))
-            else:
-                return m.group(0)
+                if m.group(8):
+                    return f"{m.group(1)}{roman.fromRoman(s)}:{m.group(8)}"
+                return f"{m.group(1)}{roman.fromRoman(s)}{m.group(7)}"
+            return m.group(0)
         except:
             return m.group(0)
 
@@ -397,7 +412,7 @@ def make_versions_csv():
         "method",
     ]
     writer.writerow(fields)
-    vs = VersionSet(proj={f: 1 for f in fields})
+    vs = VersionSet(proj=dict.fromkeys(fields, 1))
     for v in vs:
         writer.writerow([str(getattr(v, f, "")).encode("utf-8") for f in fields])
 
@@ -406,12 +421,13 @@ def make_versions_csv():
 
 def get_core_link_stats():
     from sefaria.model.link import get_category_category_linkset
+
     output = io.BytesIO()
     writer = csv.writer(output)
     titles = [
         "Category 1",
         "Category 2",
-        "Count"
+        "Count",
     ]
     writer.writerow(titles)
     sets = [
@@ -424,7 +440,7 @@ def get_core_link_stats():
         ("Bavli", "Mishneh Torah"),
         ("Bavli", "Shulchan Arukh"),
         ("Bavli", "Midrash"),
-        ("Bavli", "Mishnah")
+        ("Bavli", "Mishnah"),
     ]
     for set in sets:
         writer.writerow([set[0], set[1], get_category_category_linkset(set[0], set[1]).count()])
@@ -440,37 +456,60 @@ def get_library_stats():
             node_path = path + [node_name]
             simple_node = {
                 "name": node_name,
-                "path": " ".join(node_path)
+                "path": " ".join(node_path),
             }
             if "category" in x:
                 simple_node["type"] = "category"
                 simple_node["children"] = aggregate_stats(x["contents"], node_path)
-                simple_node["en_version_count"] = reduce(lambda x, v: x + v["en_version_count"], simple_node["children"], 0)
-                simple_node["he_version_count"] = reduce(lambda x, v: x + v["he_version_count"], simple_node["children"], 0)
+                simple_node["en_version_count"] = reduce(
+                    lambda x, v: x + v["en_version_count"],
+                    simple_node["children"],
+                    0,
+                )
+                simple_node["he_version_count"] = reduce(
+                    lambda x, v: x + v["he_version_count"],
+                    simple_node["children"],
+                    0,
+                )
                 simple_node["en_index_count"] = reduce(lambda x, v: x + v["en_index_count"], simple_node["children"], 0)
                 simple_node["he_index_count"] = reduce(lambda x, v: x + v["he_index_count"], simple_node["children"], 0)
                 simple_node["en_word_count"] = reduce(lambda x, v: x + v["en_word_count"], simple_node["children"], 0)
                 simple_node["he_word_count"] = reduce(lambda x, v: x + v["he_word_count"], simple_node["children"], 0)
-                simple_node["all_index_count"] = reduce(lambda x, v: x + v["all_index_count"], simple_node["children"], 0)
+                simple_node["all_index_count"] = reduce(
+                    lambda x, v: x + v["all_index_count"],
+                    simple_node["children"],
+                    0,
+                )
                 simple_node["all_word_count"] = simple_node["en_word_count"] + simple_node["he_word_count"]
                 simple_node["all_version_count"] = simple_node["en_version_count"] + simple_node["he_version_count"]
 
             elif "title" in x:
                 query = {"title": x["title"]}
                 simple_node["type"] = "index"
-                simple_node["children"] = [{
-                       "name": "{} ({})".format(v.versionTitle, v.language),
-                       "path": " ".join(node_path + ["{} ({})".format(v.versionTitle, v.language)]),
-                       "size": v.word_count(),
-                       "type": "version",
-                       "language": v.language,
-                       "en_version_count": 1 if v.language == "en" else 0,
-                       "he_version_count": 1 if v.language == "he" else 0,
-                       "en_word_count": v.word_count() if v.language == "en" else 0,
-                       "he_word_count": v.word_count() if v.language == "he" else 0,
-                   } for v in VersionSet(query)]
-                simple_node["en_version_count"] = reduce(lambda x, v: x + v["en_version_count"], simple_node["children"], 0)
-                simple_node["he_version_count"] = reduce(lambda x, v: x + v["he_version_count"], simple_node["children"], 0)
+                simple_node["children"] = [
+                    {
+                        "name": f"{v.versionTitle} ({v.language})",
+                        "path": " ".join(node_path + [f"{v.versionTitle} ({v.language})"]),
+                        "size": v.word_count(),
+                        "type": "version",
+                        "language": v.language,
+                        "en_version_count": 1 if v.language == "en" else 0,
+                        "he_version_count": 1 if v.language == "he" else 0,
+                        "en_word_count": v.word_count() if v.language == "en" else 0,
+                        "he_word_count": v.word_count() if v.language == "he" else 0,
+                    }
+                    for v in VersionSet(query)
+                ]
+                simple_node["en_version_count"] = reduce(
+                    lambda x, v: x + v["en_version_count"],
+                    simple_node["children"],
+                    0,
+                )
+                simple_node["he_version_count"] = reduce(
+                    lambda x, v: x + v["he_version_count"],
+                    simple_node["children"],
+                    0,
+                )
                 simple_node["en_index_count"] = 1 if any(v["language"] == "en" for v in simple_node["children"]) else 0
                 simple_node["he_index_count"] = 1 if any(v["language"] == "he" for v in simple_node["children"]) else 0
                 simple_node["en_word_count"] = reduce(lambda x, v: x + v["en_word_count"], simple_node["children"], 0)
@@ -481,9 +520,11 @@ def get_library_stats():
 
             simple_nodes.append(simple_node)
         return simple_nodes
+
     tree = aggregate_stats(library.get_toc(), [])
 
     from operator import sub
+
     output = io.BytesIO()
     writer = csv.writer(output)
     titles = [
@@ -496,7 +537,7 @@ def get_library_stats():
         "#Versions (en)",
         "#Words (all)",
         "#Words (he)",
-        "#Words (en)"
+        "#Words (en)",
     ]
     writer.writerow(titles)
     fields = [
@@ -548,6 +589,7 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
      will set an inline style tag.
     :return: (str, str)
     """
+
     def side_by_side_diff(diffs, change_from=True):
         """
         Used to render an html display of a diff from the diff_match_patch library
@@ -564,16 +606,15 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
         else:
             ins, dell = 'style="background:#e6ffe6;"', 'style="background:#ffe6e6;"'
 
-        for (op, data) in diffs:
-            my_text = (data.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "&para;<br>"))
+        for op, data in diffs:
+            my_text = data.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "&para;<br>")
             if op == diff_insert:
                 if change_from:
                     continue
-                else:
-                    html.append("<span {}>{}</span>".format(ins, my_text))
+                html.append(f"<span {ins}>{my_text}</span>")
             elif op == diff_delete:
                 if change_from:
-                    html.append("<span {}>{}</span>".format(dell, my_text))
+                    html.append(f"<span {dell}>{my_text}</span>")
                 else:
                     continue
             elif op == diff_equal:
@@ -588,19 +629,21 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
 
 def word_frequency_for_text(title, lang="en"):
     """
-    Returns an ordered list of word/count tuples for occurences of words inside the 
+    Returns an ordered list of word/count tuples for occurences of words inside the
     text `title`.
     """
     import string
     from collections import defaultdict
+
     from sefaria.export import make_text, prepare_merged_text_for_export
-    from sefaria.utils.util import strip_tags 
+    from sefaria.utils.util import strip_tags
+
     text = make_text(prepare_merged_text_for_export(title, lang=lang))
 
     text = strip_tags(text)
     text = text.lower()
-    text = re.sub(r'[^a-z ]', " ", text)
-    text = re.sub(r' +', " ", text)
+    text = re.sub(r"[^a-z ]", " ", text)
+    text = re.sub(r" +", " ", text)
     text = text.translate(str.maketrans(dict.fromkeys(string.punctuation)))
 
     count = defaultdict(int)
@@ -611,6 +654,7 @@ def word_frequency_for_text(title, lang="en"):
     counts = sorted(iter(count.items()), key=lambda x: -x[1])
 
     return counts
+
 
 @lru_cache(maxsize=1)
 def get_talmud_perek_ref_set() -> frozenset[str]:
@@ -649,7 +693,9 @@ def get_parasha_ref_set() -> frozenset[str]:
                 continue
 
     parasha_refs: set[str] = set()
-    for index in library.get_indexes_in_category_path(["Tanakh", "Torah"], include_dependant=False, full_records=True) or []:
+    for index in (
+        library.get_indexes_in_category_path(["Tanakh", "Torah"], include_dependant=False, full_records=True) or []
+    ):
         try:
             alt_leaves = index.get_alt_struct_leaves()
         except Exception:
@@ -675,11 +721,10 @@ def get_parasha_ref_set() -> frozenset[str]:
     return frozenset(parasha_refs)
 
 
-class WorkflowyParser(object):
-
+class WorkflowyParser:
     title_lang_delim = r"/"
     alt_title_delim = r"|"
-    comment_delim = r'#'
+    comment_delim = r"#"
     categories_delim = "%"
 
     def __init__(self, schema_file, uid, term_scheme=None, c_index=False, c_version=False, delims=None):
@@ -690,8 +735,7 @@ class WorkflowyParser(object):
         self._c_version = c_version
         tree = ET.parse(self._schema_outline_file)
         self.outline = tree.getroot().find("./body/outline/outline")
-        self.comment_strip_re = re.compile(r"</b>|<b>|" + self.comment_delim + ".*" + self.comment_delim,
-                                           re.UNICODE)
+        self.comment_strip_re = re.compile(r"</b>|<b>|" + self.comment_delim + ".*" + self.comment_delim, re.UNICODE)
         self.parsed_schema = None
         self.version_info = None
         self.categories = None
@@ -706,13 +750,13 @@ class WorkflowyParser(object):
         # for element in tree.iter('outline'):
         #     print parse_titles(element)["enPrim"]
         self.categories = self.extract_categories_from_title()
-        self.version_info = {'info': self.extract_version_info(), 'text': []}
+        self.version_info = {"info": self.extract_version_info(), "text": []}
         self.parsed_schema = self.build_index_schema(self.outline)
         self.parsed_schema.validate()
         idx = self.create_index_from_schema()
         if self._c_index:
             idx_obj = Index(idx).save()
-            res = "Index record [{}] created.".format(self.parsed_schema.primary_title())
+            res = f"Index record [{self.parsed_schema.primary_title()}] created."
             if self._c_version:
                 self.save_version_from_outline_notes()
                 res += " Version record created."
@@ -732,14 +776,14 @@ class WorkflowyParser(object):
         titles = self.parse_titles(element)  # an array of titles
         if len(element) == 0:  # length of child nodes
             n = JaggedArrayNode()
-            n.depth = len(ja_sections['section_names']) if ja_sections else 1
-            n.sectionNames = ja_sections['section_names'] if ja_sections else ['Paragraph']
-            n.addressTypes = ja_sections['address_types'] if ja_sections else ['Integer']
+            n.depth = len(ja_sections["section_names"]) if ja_sections else 1
+            n.sectionNames = ja_sections["section_names"] if ja_sections else ["Paragraph"]
+            n.addressTypes = ja_sections["address_types"] if ja_sections else ["Integer"]
             if titles:
                 n.key = titles["enPrim"]
                 n = self.add_titles_to_node(n, titles)
             else:
-                n.key = 'default'
+                n.key = "default"
                 n.default = True
         else:  # yes child nodes >> schema node
             n = SchemaNode()
@@ -754,13 +798,13 @@ class WorkflowyParser(object):
         if self._c_version and element != self.outline:  # get the text in the notes and store it with the proper Ref
             text = self.parse_text(element)
             if text:
-                self.version_info['text'].append({'node': n, 'text': text})
+                self.version_info["text"].append({"node": n, "text": text})
         return n
 
     # en & he titles for each element > dict
     def parse_titles(self, element):
         title = element.get("text")
-        if '**default**' in title:
+        if "**default**" in title:
             return None
         # print title
         # title = re.sub(ur"</b>|<b>|#.*#|'", u"", title)
@@ -787,17 +831,17 @@ class WorkflowyParser(object):
             n.add_shared_term(titles["enPrim"])
 
         else:  # manual add if not a shared term
-            n.add_title(titles["enPrim"], 'en', primary=True)
+            n.add_title(titles["enPrim"], "en", primary=True)
             # print titles["enPrim"]
             if "hePrim" in titles:
-                n.add_title(titles["hePrim"], 'he', primary=True)
+                n.add_title(titles["hePrim"], "he", primary=True)
                 # print titles["hePrim"]
             if "enAltList" in titles:
                 for title in titles["enAltList"]:
-                    n.add_title(title, 'en')
+                    n.add_title(title, "en")
             if "heAltList" in titles:
                 for title in titles["heAltList"]:
-                    n.add_title(title, 'he')
+                    n.add_title(title, "he")
         return n
 
     def extract_categories_from_title(self):
@@ -806,54 +850,53 @@ class WorkflowyParser(object):
         category_str = re.search(category_pattern, title)
         if category_str:
             categories = [s.strip() for s in category_str.group(1).split(",")]
-            self.outline.set('text', re.sub(category_pattern, "", title))
+            self.outline.set("text", re.sub(category_pattern, "", title))
             return categories
         raise InputError("Categories must be supplied on the Workflowy outline according to specifications")
 
     def parse_implied_depth(self, element):
         ja_depth_pattern = r"\[(\d)\]$"
         ja_sections_pattern = r"\[(.*)\]$"
-        title_str = element.get('text').strip()
+        title_str = element.get("text").strip()
 
         depth_match = re.search(ja_depth_pattern, title_str)
         if depth_match:
             depth = int(depth_match.group(1))
-            placeholder_sections = ['Volume', 'Chapter', 'Section', 'Paragraph']
-            element.set('text', re.sub(ja_depth_pattern, "", title_str))
-            return {'section_names': placeholder_sections[(-1 * depth):], 'address_types': ['Integer'] * depth}
+            placeholder_sections = ["Volume", "Chapter", "Section", "Paragraph"]
+            element.set("text", re.sub(ja_depth_pattern, "", title_str))
+            return {"section_names": placeholder_sections[(-1 * depth) :], "address_types": ["Integer"] * depth}
 
         sections_match = re.search(ja_sections_pattern, title_str)
         if sections_match:
             sections = [s.strip() for s in sections_match.group(1).split(",")]
-            element.set('text', re.sub(ja_sections_pattern, "", title_str))
+            element.set("text", re.sub(ja_sections_pattern, "", title_str))
             section_names = []
             address_types = []
             for s in sections:
                 tpl = s.split(":")
                 section_names.append(tpl[0])
-                address_types.append(tpl[1] if len(tpl) > 1 else 'Integer')
+                address_types.append(tpl[1] if len(tpl) > 1 else "Integer")
 
-            return {'section_names': section_names, 'address_types': address_types}
-        else:
-            return None
+            return {"section_names": section_names, "address_types": address_types}
+        return None
 
     def extract_version_info(self):
         vinfo_str = self.outline.get("_note")
         if vinfo_str:
-            vinfo_dict = {elem.split(":", 1)[0].strip(): elem.split(":", 1)[1].strip() for elem in
-                          vinfo_str.split(",")}
+            vinfo_dict = {elem.split(":", 1)[0].strip(): elem.split(":", 1)[1].strip() for elem in vinfo_str.split(",")}
         else:
-            vinfo_dict = {'language': 'he',
-                          'versionSource': 'not available',
-                          'versionTitle': 'pending'
-                          }
+            vinfo_dict = {
+                "language": "he",
+                "versionSource": "not available",
+                "versionTitle": "pending",
+            }
         return vinfo_dict
 
     def create_index_from_schema(self):
         return {
             "title": self.parsed_schema.primary_title(),
             "categories": self.categories,
-            "schema": self.parsed_schema.serialize()
+            "schema": self.parsed_schema.serialize(),
         }
 
     def create_term_scheme(self):
@@ -877,10 +920,10 @@ class WorkflowyParser(object):
     # divides text into paragraphs and sentences > list
     def parse_text(self, element):
         if "_note" in element.attrib:
-            n = (element.attrib["_note"])
-            n = re.sub(r'[/]', '<br>', n)
-            n = re.sub(r'[(]', '<em><small>', n)
-            n = re.sub(r'[)]', '</small></em>', n)
+            n = element.attrib["_note"]
+            n = re.sub(r"[/]", "<br>", n)
+            n = re.sub(r"[(]", "<em><small>", n)
+            n = re.sub(r"[)]", "</small></em>", n)
             text = n.strip().splitlines()
             return text
         return None
@@ -888,24 +931,24 @@ class WorkflowyParser(object):
     # builds and posts text to api
     def save_version_from_outline_notes(self):
         from sefaria.tracker import modify_text
-        for text_ref in self.version_info['text']:
-            node = text_ref['node']
+
+        for text_ref in self.version_info["text"]:
+            node = text_ref["node"]
             ref = Ref(node.full_title(force_update=True))
-            text = text_ref['text']
+            text = text_ref["text"]
             user = self._uid
-            vtitle = self.version_info['info']['versionTitle']
-            lang = self.version_info['info']['language']
-            vsource = self.version_info['info']['versionSource']
+            vtitle = self.version_info["info"]["versionTitle"]
+            lang = self.version_info["info"]["language"]
+            vsource = self.version_info["info"]["versionSource"]
             modify_text(user, ref, vtitle, lang, text, vsource)
 
     def save_version_default(self, idx):
         Version(
             {
                 "chapter": idx.nodes.create_skeleton(),
-                "versionTitle": self.version_info['info']['versionTitle'],
-                "versionSource": self.version_info['info']['versionSource'],
-                "language": self.version_info['info']['language'],
-                "title": idx.title
-            }
+                "versionTitle": self.version_info["info"]["versionTitle"],
+                "versionSource": self.version_info["info"]["versionSource"],
+                "language": self.version_info["info"]["language"],
+                "title": idx.title,
+            },
         ).save()
-

@@ -1,64 +1,72 @@
-# -*- coding: utf-8 -*-
 """
 Override of Django forms for new users and password reset.
 
 Includes logic for subscribing to mailing list on register and for
 "User Seeds" -- pre-creating accounts that may already be in a Group.
 """
+
 import structlog
-
+from allauth.socialaccount.models import SocialAccount
 from django import forms
-from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
+from django.contrib.auth.models import Group, User
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
-
-from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
-from emailusernames.utils import get_user, user_exists
 from django_recaptcha.fields import ReCaptchaField
 from django_recaptcha.widgets import ReCaptchaV2Checkbox
 
-from allauth.socialaccount.models import SocialAccount
+from emailusernames.forms import EmailAuthenticationForm, EmailUserCreationForm
+from emailusernames.utils import get_user, user_exists
 from sefaria.helper.crm.crm_mediator import CrmMediator
-from sefaria.settings import DEBUG
 from sefaria.settings import MOBILE_APP_KEY
-from django.utils.translation import get_language
+
 logger = structlog.get_logger(__name__)
 
 SEED_GROUP = "User Seeds"
 
 
 class SefariaDeleteUserForm(EmailAuthenticationForm):
-    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address to delete")}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Admin Password")}))
+    email = forms.EmailField(
+        max_length=75,
+        widget=forms.EmailInput(attrs={"placeholder": _("Email Address to delete")}),
+    )
+    password = forms.CharField(widget=forms.PasswordInput(attrs={"placeholder": _("Admin Password")}))
+
 
 class SefariaDeleteSheet(forms.Form):
-    sid = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'placeholder': _("Sheet ID to delete")}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Admin Password")}))
+    sid = forms.CharField(max_length=20, widget=forms.TextInput(attrs={"placeholder": _("Sheet ID to delete")}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={"placeholder": _("Admin Password")}))
 
 
 class SefariaLoginForm(EmailAuthenticationForm):
-    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address")}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password")}))
+    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={"placeholder": _("Email Address")}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={"placeholder": _("Password")}))
 
 
 class SefariaNewUserForm(EmailUserCreationForm):
-    email = forms.EmailField(max_length=75,
-                             widget=forms.EmailInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
-    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
-    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
-    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
-    subscribe_educator = forms.BooleanField(label=_("I am an educator"), help_text=_("I am an educator"), initial=False,
-                                            required=False)
+    email = forms.EmailField(
+        max_length=75,
+        widget=forms.EmailInput(attrs={"placeholder": _("Email Address"), "autocomplete": "off"}),
+    )
+    first_name = forms.CharField(widget=forms.TextInput(attrs={"placeholder": _("First Name"), "autocomplete": "off"}))
+    last_name = forms.CharField(widget=forms.TextInput(attrs={"placeholder": _("Last Name"), "autocomplete": "off"}))
+    password1 = forms.CharField(widget=forms.PasswordInput(attrs={"placeholder": _("Password"), "autocomplete": "off"}))
+    subscribe_educator = forms.BooleanField(
+        label=_("I am an educator"),
+        help_text=_("I am an educator"),
+        initial=False,
+        required=False,
+    )
 
-    captcha_lang = "iw" if get_language() == 'he' else "en"
+    captcha_lang = "iw" if get_language() == "he" else "en"
     captcha = ReCaptchaField(
         widget=ReCaptchaV2Checkbox(
             attrs={
-                'data-theme': 'white'
+                "data-theme": "white",
                 # 'data-size': 'compact',
             },
             # api_params={'hl': captcha_lang}
-        )
+        ),
     )
 
     class Meta:
@@ -67,7 +75,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
-        self.fields.pop('password2', None)
+        self.fields.pop("password2", None)
         # order_fields preserves any field not listed (placed at the end) and goes through
         # Django's form internals — safer than reassigning self.fields to a new dict.
         self.order_fields(["email", "first_name", "last_name", "password1", "captcha", "subscribe_educator"])
@@ -79,12 +87,17 @@ class SefariaNewUserForm(EmailUserCreationForm):
             if not user.groups.filter(name=SEED_GROUP).exists():
                 social = SocialAccount.objects.filter(user=user)
                 # Not wrapped in _(): register_api (Mobile's AuthPage.js) still text-matches these verbatim.
-                if social.filter(provider='google').exists():
-                    raise forms.ValidationError("This email address is already registered via Google Sign-In.", code='sso_google_exists')
-                elif social.filter(provider='apple').exists():
-                    raise forms.ValidationError("This email address is already registered via Apple Sign-In.", code='sso_apple_exists')
-                else:
-                    raise forms.ValidationError("An account with this email address already exists.", code='email_exists')
+                if social.filter(provider="google").exists():
+                    raise forms.ValidationError(
+                        "This email address is already registered via Google Sign-In.",
+                        code="sso_google_exists",
+                    )
+                if social.filter(provider="apple").exists():
+                    raise forms.ValidationError(
+                        "This email address is already registered via Apple Sign-In.",
+                        code="sso_apple_exists",
+                    )
+                raise forms.ValidationError("An account with this email address already exists.", code="email_exists")
         return email
 
     def save(self, commit=True):
@@ -96,7 +109,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
             seed_group = Group.objects.get(name=SEED_GROUP)
             user.groups.remove(seed_group)
         else:
-            user = super(SefariaNewUserForm, self).save(commit=False)
+            user = super().save(commit=False)
 
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
@@ -106,9 +119,13 @@ class SefariaNewUserForm(EmailUserCreationForm):
 
         try:
             crm_mediator = CrmMediator()
-            crm_mediator.create_crm_user(user.email, first_name=user.first_name,
-                                     last_name=user.last_name, lang=get_language(),
-                                     educator=self.cleaned_data["subscribe_educator"])
+            crm_mediator.create_crm_user(
+                user.email,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                lang=get_language(),
+                educator=self.cleaned_data["subscribe_educator"],
+            )
         except Exception as e:
             logger.error(f"failed to add user to CRM: {e}")
 
@@ -122,7 +139,7 @@ class SefariaNewUserFormAPI(SefariaNewUserForm):
         super(SefariaNewUserForm, self).__init__(*args, **kwargs)
         # don't require captcha on API form
         # instead, require that the correct app_key is sent
-        self.fields.pop('captcha')
+        self.fields.pop("captcha")
 
     def clean_mobile_app_key(self):
         mobile_app_key = self.cleaned_data["mobile_app_key"]
@@ -135,19 +152,21 @@ class SefariaNewUserFormAPI(SefariaNewUserForm):
 # but I'm not 100% convinced anything coded here actually sends the email template outside of the django defaults (rmn)
 #
 class SefariaPasswordResetForm(PasswordResetForm):
-    email = forms.EmailField(max_length=75,
-                             widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
+    email = forms.EmailField(
+        max_length=75,
+        widget=forms.TextInput(attrs={"placeholder": _("Email Address"), "autocomplete": "off"}),
+    )
 
 
 class SefariaSetPasswordForm(SetPasswordForm):
     new_password1 = forms.CharField(
         label=_("New password"),
-        widget=forms.PasswordInput(attrs={'placeholder': _("Enter New Password")}),
+        widget=forms.PasswordInput(attrs={"placeholder": _("Enter New Password")}),
         strip=False,
         help_text=password_validation.password_validators_help_text_html(),
     )
     new_password2 = forms.CharField(
         label=_("New password confirmation"),
         strip=False,
-        widget=forms.PasswordInput(attrs={'placeholder': _("Repeat New Password")}),
+        widget=forms.PasswordInput(attrs={"placeholder": _("Repeat New Password")}),
     )

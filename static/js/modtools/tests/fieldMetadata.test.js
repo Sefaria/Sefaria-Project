@@ -4,22 +4,31 @@
  * These constants define the schema for bulk editing operations.
  * Tests ensure the structure is correct and validation functions work.
  */
-import {
-  INDEX_FIELD_METADATA,
-  VERSION_FIELD_METADATA,
-  BASE_TEXT_MAPPING_OPTIONS
-} from '../constants/fieldMetadata';
+import { INDEX_FIELD_METADATA, VERSION_FIELD_METADATA, BASE_TEXT_MAPPING_OPTIONS } from '../constants/fieldMetadata';
 
 describe('INDEX_FIELD_METADATA', () => {
   describe('structure validation', () => {
     it('has all expected fields', () => {
       const expectedFields = [
-        'enDesc', 'enShortDesc', 'heDesc', 'heShortDesc',
-        'categories', 'authors', 'compDate', 'compPlace', 'heCompPlace',
-        'pubDate', 'pubPlace', 'hePubPlace', 'toc_zoom',
-        'dependence', 'base_text_titles', 'collective_title', 'he_collective_title'
+        'enDesc',
+        'enShortDesc',
+        'heDesc',
+        'heShortDesc',
+        'categories',
+        'authors',
+        'compDate',
+        'compPlace',
+        'heCompPlace',
+        'pubDate',
+        'pubPlace',
+        'hePubPlace',
+        'toc_zoom',
+        'dependence',
+        'base_text_titles',
+        'collective_title',
+        'he_collective_title',
       ];
-      expectedFields.forEach(field => {
+      expectedFields.forEach((field) => {
         expect(INDEX_FIELD_METADATA).toHaveProperty(field);
       });
     });
@@ -45,7 +54,7 @@ describe('INDEX_FIELD_METADATA', () => {
 
     it('Hebrew fields have rtl direction', () => {
       const hebrewFields = ['heDesc', 'heShortDesc', 'heCompPlace', 'hePubPlace', 'he_collective_title'];
-      hebrewFields.forEach(field => {
+      hebrewFields.forEach((field) => {
         expect(INDEX_FIELD_METADATA[field].dir).toBe('rtl');
       });
     });
@@ -107,13 +116,22 @@ describe('VERSION_FIELD_METADATA', () => {
   describe('structure validation', () => {
     it('has all expected fields', () => {
       const expectedFields = [
-        'versionTitle', 'versionTitleInHebrew', 'versionSource',
-        'license', 'status', 'priority',
-        'digitizedBySefaria', 'isPrimary', 'isSource',
-        'versionNotes', 'versionNotesInHebrew',
-        'purchaseInformationURL', 'purchaseInformationImage', 'direction'
+        'versionTitle',
+        'versionTitleInHebrew',
+        'versionSource',
+        'license',
+        'status',
+        'priority',
+        'digitizedBySefaria',
+        'isPrimary',
+        'isSource',
+        'versionNotes',
+        'versionNotesInHebrew',
+        'purchaseInformationURL',
+        'purchaseInformationImage',
+        'direction',
       ];
-      expectedFields.forEach(field => {
+      expectedFields.forEach((field) => {
         expect(VERSION_FIELD_METADATA).toHaveProperty(field);
       });
     });
@@ -141,7 +159,7 @@ describe('VERSION_FIELD_METADATA', () => {
     const licenseOptions = VERSION_FIELD_METADATA.license.options;
 
     it('includes common Creative Commons licenses', () => {
-      const values = licenseOptions.map(o => o.value);
+      const values = licenseOptions.map((o) => o.value);
       expect(values).toContain('CC-BY');
       expect(values).toContain('CC-BY-SA');
       expect(values).toContain('CC-BY-NC');
@@ -149,7 +167,7 @@ describe('VERSION_FIELD_METADATA', () => {
     });
 
     it('includes Public Domain option', () => {
-      const values = licenseOptions.map(o => o.value);
+      const values = licenseOptions.map((o) => o.value);
       expect(values).toContain('Public Domain');
     });
   });
@@ -158,21 +176,21 @@ describe('VERSION_FIELD_METADATA', () => {
     const statusOptions = VERSION_FIELD_METADATA.status.options;
 
     it('has empty value for editable', () => {
-      expect(statusOptions.find(o => o.value === '')).toBeDefined();
+      expect(statusOptions.find((o) => o.value === '')).toBeDefined();
     });
 
     it('has locked value for staff-only', () => {
-      expect(statusOptions.find(o => o.value === 'locked')).toBeDefined();
+      expect(statusOptions.find((o) => o.value === 'locked')).toBeDefined();
     });
   });
 
   describe('boolean-like select fields', () => {
     const booleanFields = ['digitizedBySefaria', 'isPrimary', 'isSource'];
 
-    booleanFields.forEach(fieldName => {
+    booleanFields.forEach((fieldName) => {
       it(`${fieldName} has true/false string options`, () => {
         const options = VERSION_FIELD_METADATA[fieldName].options;
-        const values = options.map(o => o.value);
+        const values = options.map((o) => o.value);
         expect(values).toContain('true');
         expect(values).toContain('false');
       });
@@ -187,14 +205,14 @@ describe('BASE_TEXT_MAPPING_OPTIONS', () => {
   });
 
   it('each option has value and label', () => {
-    BASE_TEXT_MAPPING_OPTIONS.forEach(option => {
+    BASE_TEXT_MAPPING_OPTIONS.forEach((option) => {
       expect(option).toHaveProperty('value');
       expect(option).toHaveProperty('label');
     });
   });
 
   it('includes many_to_one_default_only for Mishnah/Tanakh', () => {
-    const option = BASE_TEXT_MAPPING_OPTIONS.find(o => o.value === 'many_to_one_default_only');
+    const option = BASE_TEXT_MAPPING_OPTIONS.find((o) => o.value === 'many_to_one_default_only');
     expect(option).toBeDefined();
     expect(option.label).toContain('Mishnah');
   });

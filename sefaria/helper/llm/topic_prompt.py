@@ -1,34 +1,46 @@
-from typing import List, Callable, Any, Optional, Dict, Tuple
-from collections import defaultdict
 import re
-from sefaria.model.text import Ref, library, TextChunk
-from sefaria.model.passage import Passage
-from sefaria.model.topic import Topic, RefTopicLink
+from collections import defaultdict
+from collections.abc import Callable
+from typing import Any
+
+from sefaria_llm_interface import Topic as LLMTopic
+from sefaria_llm_interface.topic_prompt import (
+    TopicPromptCommentary,
+    TopicPromptGenerationOutput,
+    TopicPromptInput,
+    TopicPromptSource,
+)
+
 from sefaria.client.wrapper import get_links
 from sefaria.datatype.jagged_array import JaggedTextArray
-from sefaria_llm_interface.topic_prompt import TopicPromptGenerationOutput, TopicPromptInput, TopicPromptSource, TopicPromptCommentary
-from sefaria_llm_interface import Topic as LLMTopic
+from sefaria.model.passage import Passage
+from sefaria.model.text import Ref, TextChunk, library
+from sefaria.model.topic import RefTopicLink, Topic
 from sefaria.utils.util import deep_update
 
 
-def _lang_dict_by_func(func: Callable[[str], Any]) -> Dict[str, Any]:
-    return {lang: func(lang) for lang in ('en', 'he')}
+def _lang_dict_by_func(func: Callable[[str], Any]) -> dict[str, Any]:
+    return {lang: func(lang) for lang in ("en", "he")}
 
 
-def _get_commentary_from_link_dict(link_dict: dict) -> Optional[TopicPromptCommentary]:
-    if link_dict['category'] not in {'Commentary'}:
-        return
-    if not link_dict['sourceHasEn']:
-        return
-    commentary_text = _lang_dict_by_func(lambda lang: JaggedTextArray(link_dict.get('text' if lang == 'en' else 'he', '')).flatten_to_string())
-    commentary_text = _lang_dict_by_func(lambda lang: re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(commentary_text[lang])))
+def _get_commentary_from_link_dict(link_dict: dict) -> TopicPromptCommentary | None:
+    if link_dict["category"] not in {"Commentary"}:
+        return None
+    if not link_dict["sourceHasEn"]:
+        return None
+    commentary_text = _lang_dict_by_func(
+        lambda lang: JaggedTextArray(link_dict.get("text" if lang == "en" else "he", "")).flatten_to_string(),
+    )
+    commentary_text = _lang_dict_by_func(
+        lambda lang: re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(commentary_text[lang])),
+    )
     return TopicPromptCommentary(
-        ref=link_dict['sourceRef'],
-        text=commentary_text
+        ref=link_dict["sourceRef"],
+        text=commentary_text,
     )
 
 
-def _get_commentary_for_tref(tref: str) -> List[TopicPromptCommentary]:
+def _get_commentary_for_tref(tref: str) -> list[TopicPromptCommentary]:
     """
     Return list of commentary for tref. Currently only considers English commentary.
     :param tref:
@@ -40,12 +52,13 @@ def _get_commentary_for_tref(tref: str) -> List[TopicPromptCommentary]:
 
     for link_dict in get_links(tref, with_text=True):
         temp_commentary = _get_commentary_from_link_dict(link_dict)
-        if not temp_commentary: continue
+        if not temp_commentary:
+            continue
         commentary += [temp_commentary]
     return commentary
 
 
-def _get_context_ref(segment_oref: Ref) -> Optional[Ref]:
+def _get_context_ref(segment_oref: Ref) -> Ref | None:
     """
     Decide if `segment_oref` requires a context ref and if so, return it.
     A context ref is a ref which contains `segment_oref` and provides more context for it.
@@ -55,7 +68,7 @@ def _get_context_ref(segment_oref: Ref) -> Optional[Ref]:
     """
     if segment_oref.primary_category == "Tanakh":
         return segment_oref.section_ref()
-    elif segment_oref.index.get_primary_corpus() == "Bavli":
+    if segment_oref.index.get_primary_corpus() == "Bavli":
         try:
             passage = Passage.containing_segment(segment_oref)
             return passage.ref()
@@ -64,7 +77,7 @@ def _get_context_ref(segment_oref: Ref) -> Optional[Ref]:
     return None
 
 
-def _get_surrounding_text(oref: Ref) -> Optional[Dict[str, str]]:
+def _get_surrounding_text(oref: Ref) -> dict[str, str] | None:
     """
     Get the surrounding context text for `oref`. See _get_context_ref() for an explanation of what a context ref is.
     :param oref:
@@ -84,8 +97,8 @@ def make_llm_topic(sefaria_topic: Topic) -> LLMTopic:
     """
     return LLMTopic(
         slug=sefaria_topic.slug,
-        description=getattr(sefaria_topic, 'description', {}),
-        title=_lang_dict_by_func(sefaria_topic.get_primary_title)
+        description=getattr(sefaria_topic, "description", {}),
+        title=_lang_dict_by_func(sefaria_topic.get_primary_title),
     )
 
 
@@ -99,11 +112,13 @@ def make_topic_prompt_source(oref: Ref, context: str, with_commentary=True, norm
     """
 
     index = oref.index
+
     def get_text_by_lang(lang: str) -> str:
         s = oref.text(lang).as_string()
         if normalize_text:
             s = re.sub(r"<[^>]+>", "", TextChunk.strip_itags(s))
         return s
+
     text = _lang_dict_by_func(get_text_by_lang)
     book_description = _lang_dict_by_func(lambda lang: getattr(index, f"{lang}Desc", "N/A"))
     book_title = _lang_dict_by_func(index.get_title)
@@ -133,7 +148,7 @@ def make_topic_prompt_source(oref: Ref, context: str, with_commentary=True, norm
     )
 
 
-def make_topic_prompt_input(lang: str, sefaria_topic: Topic, orefs: List[Ref], contexts: List[str]) -> TopicPromptInput:
+def make_topic_prompt_input(lang: str, sefaria_topic: Topic, orefs: list[Ref], contexts: list[str]) -> TopicPromptInput:
     """
     Return a dict that can be instantiated as `sefaria_interface.TopicPromptInput` in the LLM repo.
     This represents the full input required for the LLM repo to generate topic prompts.
@@ -146,7 +161,7 @@ def make_topic_prompt_input(lang: str, sefaria_topic: Topic, orefs: List[Ref], c
     return TopicPromptInput(
         lang=lang,
         topic=make_llm_topic(sefaria_topic),
-        sources=[make_topic_prompt_source(oref, context) for oref, context in zip(orefs, contexts)]
+        sources=[make_topic_prompt_source(oref, context) for oref, context in zip(orefs, contexts)],
     )
 
 
@@ -162,16 +177,21 @@ def save_topic_prompt_output(output: TopicPromptGenerationOutput) -> None:
         if link is None:
             link = RefTopicLink(query)
         curr_descriptions = getattr(link, "descriptions", {})
-        description_edits = {output.lang: {
-            "title": prompt.title, "ai_title": prompt.title,
-            "prompt": prompt.prompt, "ai_prompt": prompt.prompt,
-            "published": False, "review_state": "not reviewed"
-        }}
-        setattr(link, "descriptions", deep_update(curr_descriptions, description_edits))
+        description_edits = {
+            output.lang: {
+                "title": prompt.title,
+                "ai_title": prompt.title,
+                "prompt": prompt.prompt,
+                "ai_prompt": prompt.prompt,
+                "published": False,
+                "review_state": "not reviewed",
+            },
+        }
+        link.descriptions = deep_update(curr_descriptions, description_edits)
         link.save()
 
 
-def get_ref_context_hints_by_lang(ref_topic_links: List[dict]) -> Dict[str, List[Tuple[Ref, str]]]:
+def get_ref_context_hints_by_lang(ref_topic_links: list[dict]) -> dict[str, list[tuple[Ref, str]]]:
     """
     Helper function for topic generation API
     Returns dict where keys are the languages of ref_topic_links that should be generated and the values are the Refs
@@ -181,11 +201,11 @@ def get_ref_context_hints_by_lang(ref_topic_links: List[dict]) -> Dict[str, List
     """
     ref__context_hints_by_lang = defaultdict(list)
     for ref_topic_link in ref_topic_links:
-        oref = Ref(ref_topic_link['ref'])
-        description = ref_topic_link.get('descriptions', {})
+        oref = Ref(ref_topic_link["ref"])
+        description = ref_topic_link.get("descriptions", {})
         for lang, prompt_dict in description.items():
-            context_hint = prompt_dict.get('ai_context', '')
-            curr_prompt = prompt_dict.get('prompt', '')
+            context_hint = prompt_dict.get("ai_context", "")
+            curr_prompt = prompt_dict.get("prompt", "")
             if context_hint and not curr_prompt:
                 ref__context_hints_by_lang[lang] += [(oref, context_hint)]
     return ref__context_hints_by_lang

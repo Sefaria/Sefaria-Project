@@ -1,7 +1,8 @@
+import sentry_sdk
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.http import Http404
-import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+
 from remote_config import remoteConfigCache
 from remote_config.keys import SENTRY_CONFIG_JSON
 

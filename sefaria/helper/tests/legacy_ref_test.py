@@ -1,9 +1,13 @@
-# -*- coding: utf-8 -*-
-
 import pytest
-import re
+
+from sefaria.helper.legacy_ref import (
+    LegacyRefParserMappingKeyError,
+    LegacyRefParsingData,
+    MappingLegacyRefParser,
+    NoLegacyRefParserError,
+    legacy_ref_parser_handler,
+)
 from sefaria.model import *
-from sefaria.helper.legacy_ref import legacy_ref_parser_handler, MappingLegacyRefParser, NoLegacyRefParserError, LegacyRefParsingData, LegacyRefParserMappingKeyError
 from sefaria.system.exceptions import PartialRefInputError
 
 
@@ -20,22 +24,22 @@ def test_zohar_index(test_index_title):
             {
                 "lang": "en",
                 "text": en_title,
-                "primary": True
+                "primary": True,
             },
             {
                 "lang": "en",
-                "text": "Alt Title Yo yo"
+                "text": "Alt Title Yo yo",
             },
             {
                 "lang": "he",
-                "text": 'זהר לא אמיתי',
-                "primary": True
-            }
+                "text": "זהר לא אמיתי",
+                "primary": True,
+            },
         ],
         "nodeType": "JaggedArrayNode",
         "depth": 2,
         "addressTypes": ["Integer", "Integer"],
-        "sectionNames": ["Chapter","Verse"]
+        "sectionNames": ["Chapter", "Verse"],
     }
     index_dict = {
         "schema": schema,
@@ -52,16 +56,18 @@ def test_zohar_index(test_index_title):
 
 @pytest.fixture(scope="module", autouse=True)
 def test_zohar_mapping_data(test_index_title, url_test_index_title):
-    lrpd = LegacyRefParsingData({
-        "index_title": test_index_title,
-        "data": {
-            "mapping": {
-                f"{url_test_index_title}.1.15a.1": f"{url_test_index_title}.1.42",
-                f"{url_test_index_title}.1.15a.2": f"{url_test_index_title}.1.42",
-                f"{url_test_index_title}.1.15a.3": f"{url_test_index_title}.1.43",
+    lrpd = LegacyRefParsingData(
+        {
+            "index_title": test_index_title,
+            "data": {
+                "mapping": {
+                    f"{url_test_index_title}.1.15a.1": f"{url_test_index_title}.1.42",
+                    f"{url_test_index_title}.1.15a.2": f"{url_test_index_title}.1.42",
+                    f"{url_test_index_title}.1.15a.3": f"{url_test_index_title}.1.43",
+                },
             },
         },
-    })
+    )
     lrpd.save()
 
     yield lrpd
@@ -98,17 +104,20 @@ def get_partial_ref_error(tref):
         return err
 
 
-@pytest.mark.parametrize("old_and_new_trefs", [
-    ["1.15a.1", "1.42"],
-    ["1.15a.2", "1.42"],
-    ["1.15a.3", "1.43"],
-    ["1.15a.1-2", "1.42"],
-    ["1.15a.1-3", "1.42-43"],
-    ["123.456.789", None],
-    ["1.15a.1-4", None],
-], indirect=True)
+@pytest.mark.parametrize(
+    "old_and_new_trefs",
+    [
+        ["1.15a.1", "1.42"],
+        ["1.15a.2", "1.42"],
+        ["1.15a.3", "1.43"],
+        ["1.15a.1-2", "1.42"],
+        ["1.15a.1-3", "1.42-43"],
+        ["123.456.789", None],
+        ["1.15a.1-4", None],
+    ],
+    indirect=True,
+)
 class TestLegacyRefsTestIndex:
-
     def test_old_zohar_ref_fail(self, old_and_new_trefs):
         """
         old Zohar ref fails
@@ -158,10 +167,13 @@ class TestLegacyRefsTestIndex:
         instantiate_legacy_refs_tester(url_test_index_title, old_tref, new_tref)
 
 
-@pytest.mark.parametrize(('url_index_title', 'input_title', 'input_sections', 'output_tref'), [
-    ["Test_Zohar", "Alt Title Yo yo", "1:15a:1", "Test_Zohar.1.42"],
-    ["Test_Zohar", "Alt_Title_Yo_yo", "1:15a:1", "Test_Zohar.1.42"],
-])
+@pytest.mark.parametrize(
+    ("url_index_title", "input_title", "input_sections", "output_tref"),
+    [
+        ["Test_Zohar", "Alt Title Yo yo", "1:15a:1", "Test_Zohar.1.42"],
+        ["Test_Zohar", "Alt_Title_Yo_yo", "1:15a:1", "Test_Zohar.1.42"],
+    ],
+)
 def test_instantiate_legacy_refs_parametrized(url_index_title, input_title, input_sections, output_tref):
     old_tref = f"{input_title}.{input_sections}"
     instantiate_legacy_refs_tester(url_index_title, old_tref, output_tref, old_title=input_title)
@@ -171,10 +183,10 @@ def instantiate_legacy_refs_tester(url_index_title, old_tref, new_tref, old_titl
     oref = Ref.instantiate_ref_with_legacy_parse_fallback(old_tref)
     if new_tref is None:
         assert oref.url() == url_index_title
-        assert getattr(oref, 'legacy_tref', None) is None
+        assert getattr(oref, "legacy_tref", None) is None
     else:
         assert oref.url() == new_tref
-        expected_legacy_tref = old_tref.replace(':', '.')
+        expected_legacy_tref = old_tref.replace(":", ".")
         if old_title:
             expected_legacy_tref = expected_legacy_tref.replace(old_title, url_index_title)
         assert oref.legacy_tref == expected_legacy_tref
@@ -182,11 +194,10 @@ def instantiate_legacy_refs_tester(url_index_title, old_tref, new_tref, old_titl
     if new_tref is not None:
         oref = Ref.instantiate_ref_with_legacy_parse_fallback(new_tref)
         assert oref.url() == new_tref
-        assert getattr(oref, 'legacy_tref', None) is None
+        assert getattr(oref, "legacy_tref", None) is None
 
 
 class TestLegacyRefsRandomIndex:
-
     @pytest.fixture
     def tref_no_legacy_parser(self):
         return "Genesis, Vayelech 3"

@@ -1,16 +1,18 @@
-
-import sefaria.system.database as d
 import pymongo
-import sefaria.model.lock as lock
-from sefaria.settings import *
 import pytest
 
-#This one is purposefully circumvented on Travis, to speed up build time.
+import sefaria.model.lock as lock
+import sefaria.system.database as d
+from sefaria.settings import *
+
+
+# This one is purposefully circumvented on Travis, to speed up build time.
 @pytest.mark.xfail(reason="unknown")
 def test_db_name():
     assert d.db.name == d.TEST_DB
 
-#todo: why failing?
+
+# TODO: why failing?
 @pytest.mark.xfail(reason="unknown")
 def test_test_db():
     """
@@ -25,7 +27,7 @@ def test_test_db():
     lock_query = {
         "ref": ref,
         "lang": lang,
-        "version": version
+        "version": version,
     }
 
     lock.release_lock(ref, lang, version)

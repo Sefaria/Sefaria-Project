@@ -1,14 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
-import PropTypes from "prop-types";
-import {
-  InterfaceText,
-  CloseButton,
-  Arrow,
-  LoadingMessage,
-  replaceNewLinesWithLinebreaks,
-} from "./Misc";
-import Sefaria from "./sefaria/sefaria";
-import Cookies from "js-cookie";
+import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
+import { InterfaceText, CloseButton, Arrow, LoadingMessage, replaceNewLinesWithLinebreaks } from './Misc';
+import Sefaria from './sefaria/sefaria';
+import Cookies from 'js-cookie';
 
 const localize = (str) => Sefaria._(str);
 
@@ -17,7 +11,7 @@ const localize = (str) => Sefaria._(str);
  */
 const getBaseAnalyticsParams = (guideType) => {
   return {
-    project: "Quick Start Guide",
+    project: 'Quick Start Guide',
     feature_name: `Quick Start Guide - ${guideType}`,
   };
 };
@@ -28,10 +22,7 @@ const getCurrentCardParams = (guideData, currentCardIndex) => {
   }
 
   const currentCard = guideData.cards[currentCardIndex];
-  const cardTitle =
-    typeof currentCard.title === "object"
-      ? currentCard.title.en
-      : currentCard.title; // Always use English for analytics consistency
+  const cardTitle = typeof currentCard.title === 'object' ? currentCard.title.en : currentCard.title; // Always use English for analytics consistency
 
   return {
     panel_name: cardTitle,
@@ -42,7 +33,7 @@ const getCurrentCardParams = (guideData, currentCardIndex) => {
 const trackGuideEvent = (eventName, guideType, additionalParams = {}) => {
   const baseParams = getBaseAnalyticsParams(guideType);
   const allParams = { ...baseParams, ...additionalParams };
-  gtag("event", eventName, allParams);
+  gtag('event', eventName, allParams);
 };
 
 /**
@@ -120,12 +111,7 @@ GuideFooter.propTypes = {
  * @param {boolean} props.forceShow - Force the overlay to show regardless of cookie state
  * @param {number} props.timeoutLength - Timeout length in seconds - After this time, the overlay will be closed and the user will be alerted that the guide is taking too long to load.
  */
-const GuideOverlay = ({
-  onClose,
-  guideType,
-  forceShow = false,
-  timeoutLength = 7,
-}) => {
+const GuideOverlay = ({ onClose, guideType, forceShow = false, timeoutLength = 7 }) => {
   const cookieName = `guide_overlay_seen_${guideType}`;
 
   const [isVisible, setIsVisible] = useState(false);
@@ -151,12 +137,7 @@ const GuideOverlay = ({
       if (isComponentMounted) {
         handleClose();
         // It would be great to also trigger some sort of analytics here. It wasn't in the current spec.
-        alert(
-          Sefaria._(
-            "Something went wrong. Try refreshing the page",
-            "EditorSaveIndicator"
-          )
-        );
+        alert(Sefaria._('Something went wrong. Try refreshing the page', 'EditorSaveIndicator'));
       }
     }, timeoutLength * 1000);
 
@@ -175,12 +156,7 @@ const GuideOverlay = ({
         if (isComponentMounted) {
           clearTimeout(timeoutId); // Clear the timeout if there is an error
           handleClose();
-          alert(
-            Sefaria._(
-              "Something went wrong. Try refreshing the page",
-              "EditorSaveIndicator"
-            )
-          );
+          alert(Sefaria._('Something went wrong. Try refreshing the page', 'EditorSaveIndicator'));
         }
       } finally {
         if (isComponentMounted) {
@@ -202,7 +178,7 @@ const GuideOverlay = ({
   useEffect(() => {
     if (!Cookies.get(cookieName) && !isVisible) {
       // Auto view fires when guide shows without being forced (no cookie exists)
-      trackGuideEvent("guide_view_auto", guideType);
+      trackGuideEvent('guide_view_auto', guideType);
       setIsVisible(true);
       loadGuideData();
       setCookie(); // Guide should only show once, so we set the cookie when it shows
@@ -212,7 +188,7 @@ const GuideOverlay = ({
   // ForceShow effect - responds to prop changes for manual guide display (guide button click)
   useEffect(() => {
     if (forceShow && !isVisible) {
-      trackGuideEvent("guide_view_manual", guideType);
+      trackGuideEvent('guide_view_manual', guideType);
       setIsVisible(true);
       loadGuideData();
     }
@@ -222,17 +198,15 @@ const GuideOverlay = ({
   const setCookie = () => {
     // Store the current date when user dismisses the overlay
     const currentDate = new Date().toISOString();
-    Cookies.set(cookieName, currentDate, { path: "/", expires: 20 * 365 }); // 20 year expiration
+    Cookies.set(cookieName, currentDate, { path: '/', expires: 20 * 365 }); // 20 year expiration
   };
 
   const handleClose = () => {
     // Calculate duration in seconds (how long overlay was open)
-    const durationMs = overlayStartTimeRef.current
-      ? Date.now() - overlayStartTimeRef.current
-      : 0;
+    const durationMs = overlayStartTimeRef.current ? Date.now() - overlayStartTimeRef.current : 0;
     const durationSeconds = Math.floor(durationMs / 1000); // Round down to the second
 
-    trackGuideEvent("guide_close", guideType, {
+    trackGuideEvent('guide_close', guideType, {
       ...getCurrentCardParams(guideData, currentCardIndex),
       duration: durationSeconds,
     });
@@ -242,20 +216,20 @@ const GuideOverlay = ({
   };
 
   const handleFooterLinkClick = (link, index) => {
-    const linkText = typeof link.text === "object" ? link.text.en : link.text; // Always use English for analytics consistency
-    trackGuideEvent("guide_click", guideType, {
+    const linkText = typeof link.text === 'object' ? link.text.en : link.text; // Always use English for analytics consistency
+    trackGuideEvent('guide_click', guideType, {
       ...getCurrentCardParams(guideData, currentCardIndex),
       text: linkText,
     });
   };
 
   const handleTextContentClick = (event) => {
-    const link = event.target.closest("a");
+    const link = event.target.closest('a');
     if (!link) return;
 
-    trackGuideEvent("guide_click", guideType, {
+    trackGuideEvent('guide_click', guideType, {
       ...getCurrentCardParams(guideData, currentCardIndex),
-      text: link.textContent || "",
+      text: link.textContent || '',
     });
   };
 
@@ -267,20 +241,20 @@ const GuideOverlay = ({
     if (!guideData || !guideData.cards.length) return;
 
     // Validate direction parameter
-    if (direction !== "next" && direction !== "previous") {
+    if (direction !== 'next' && direction !== 'previous') {
       return;
     }
 
     const cardsLength = guideData.cards.length;
     let newIndex;
 
-    if (direction === "next") {
+    if (direction === 'next') {
       newIndex = currentCardIndex >= cardsLength - 1 ? 0 : currentCardIndex + 1;
     } else {
       newIndex = currentCardIndex <= 0 ? cardsLength - 1 : currentCardIndex - 1;
     }
 
-    trackGuideEvent("guide_nav", guideType, {
+    trackGuideEvent('guide_nav', guideType, {
       ...getCurrentCardParams(guideData, currentCardIndex),
       text: direction,
     });
@@ -313,29 +287,22 @@ const GuideOverlay = ({
         {/* Header with title on left, pagination in center, close button on right */}
         <div className="guideOverlayHeader">
           <div className="guideOverlayTitleSection">
-            <TitleWithPrefix
-              prefix={guideData.titlePrefix}
-              title={currentCard.title}
-            />
+            <TitleWithPrefix prefix={guideData.titlePrefix} title={currentCard.title} />
           </div>
 
           {showNavigation && (
             <div className="guideOverlayPagination">
               <Arrow
                 direction="previous"
-                onClick={() => navigateCard("previous")}
-                altText={localize("guide.previous_card")}
+                onClick={() => navigateCard('previous')}
+                altText={localize('guide.previous_card')}
               />
               <span className="cardsPaginationNumber">
-                <InterfaceText>{`${currentCardIndex + 1} ${localize("guide.of")} ${
+                <InterfaceText>{`${currentCardIndex + 1} ${localize('guide.of')} ${
                   guideData.cards.length
                 }`}</InterfaceText>
               </span>
-              <Arrow
-                direction="next"
-                onClick={() => navigateCard("next")}
-                altText={localize("guide.next_card")}
-              />
+              <Arrow direction="next" onClick={() => navigateCard('next')} altText={localize('guide.next_card')} />
             </div>
           )}
 
@@ -354,29 +321,23 @@ const GuideOverlay = ({
                   src={Sefaria._v(card.videoUrl)}
                   preload="auto"
                   style={{
-                    display: index === currentCardIndex ? "block" : "none",
+                    display: index === currentCardIndex ? 'block' : 'none',
                   }}
                   className="guideOverlayVideo"
                   controls
                   loop
                   autoPlay
-                  defaultMuted // Added to avoid autoplay issues with browsers - specifically Safari
-                  muted // Added to avoid autoplay issues with browsers
+                  muted // Added to avoid autoplay issues with browsers - specifically Safari
                   playsInline // Added to avoid autoplay issues on mobile (even though we will likely not show this on mobile)
                 >
-                  <InterfaceText>
-                    {localize("guide.your_browser_does_not_support_the_video_tag")}
-                  </InterfaceText>
+                  <InterfaceText>{localize('guide.your_browser_does_not_support_the_video_tag')}</InterfaceText>
                 </video>
               ))}
             </div>
 
             {/* Scrollable text content - narrower width */}
             <div className="guideOverlayTextContainer">
-              <div
-                className="guideOverlayText"
-                onClick={handleTextContentClick}
-              >
+              <div className="guideOverlayText" onClick={handleTextContentClick}>
                 <InterfaceText
                   markdown={replaceNewLinesWithLinebreaks(currentCard.text)}
                   disallowedMarkdownElements={[]}
@@ -386,10 +347,7 @@ const GuideOverlay = ({
           </div>
 
           {/* Footer with consistent links */}
-          <GuideFooter
-            links={guideData.footerLinks}
-            onLinkClick={handleFooterLinkClick}
-          />
+          <GuideFooter links={guideData.footerLinks} onLinkClick={handleFooterLinkClick} />
         </div>
       </div>
     </div>

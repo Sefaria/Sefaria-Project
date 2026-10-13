@@ -1,36 +1,43 @@
 import django
-django.setup()
-from sefaria.model import *
-from scripts.linker_books.stats import linker_supported_indexes, indexes_with_alt_struct, indexes_with_keyword, get_simple_indexes
-from sefaria.helper.schema import merge_default_into_parent
-from sefaria.utils.hebrew import is_mostly_hebrew
-from sefaria.model.linker.match_template import MatchTemplate
-from tqdm import tqdm
-from sefaria.helper.linker_index_converter import LinkerIndexConverter, ReusableTermManager, LinkerCategoryConverter
-import re
-import csv
 
+django.setup()
+import csv
+import re
+
+from tqdm import tqdm
+
+from scripts.linker_books.stats import (
+    get_simple_indexes,
+    linker_supported_indexes,
+)
+from sefaria.helper.linker_index_converter import LinkerIndexConverter, ReusableTermManager
+from sefaria.helper.schema import merge_default_into_parent
+from sefaria.model import *
+from sefaria.model.linker.match_template import MatchTemplate
+from sefaria.utils.hebrew import is_mostly_hebrew
 
 RTM = ReusableTermManager()
 
 
 def hard_complex_term_import_helper():
     part_map = {}
-    with open("../../data/private/linker books to convert - hard_complex_nodes.csv", "r") as fin:
+    with open("../../data/private/linker books to convert - hard_complex_nodes.csv") as fin:
         cin = csv.DictReader(fin)
         for row in cin:
-            parts = [row[f'Part {i}'] for i in range(1, 4) if row[f'Part {i}'].strip()]
+            parts = [row[f"Part {i}"] for i in range(1, 4) if row[f"Part {i}"].strip()]
             part1b = row.get("Part 1b", "").strip()
-            if part1b: parts.append(part1b)
+            if part1b:
+                parts.append(part1b)
             if len(parts) == 1 and parts[0] == row["Node Title"]:
                 continue
             for part in parts:
-                if part[0].islower(): continue
+                if part[0].islower():
+                    continue
                 part_map[part] = row["Ref"]
     out_rows = []
     all_term_en = set()
     max_parts = 0
-    with open("../../data/private/linker books to convert - hard_complex_terms.csv", "r") as fin:
+    with open("../../data/private/linker books to convert - hard_complex_terms.csv") as fin:
         cin = csv.DictReader(fin)
         for row in cin:
             term_en = row["Primary English"]
@@ -40,19 +47,21 @@ def hard_complex_term_import_helper():
             except KeyError:
                 print("No ref for", term_en)
                 continue
-            out_rows.append({
-                "Primary English": term_en,
-            })
+            out_rows.append(
+                {
+                    "Primary English": term_en,
+                },
+            )
             titles = ref.index_node.get_titles()
             if len(titles) > max_parts:
                 max_parts = len(titles)
             for i, title in enumerate(titles):
-                out_rows[-1][f"Alt {i+1}"] = title
+                out_rows[-1][f"Alt {i + 1}"] = title
     parts_that_dont_exist = set(part_map.keys()) - all_term_en
     for part in parts_that_dont_exist:
         print("Part doesn't exist:", part)
     with open("../../data/private/hard_complex_terms_out.csv", "w") as fout:
-        cout = csv.DictWriter(fout, fieldnames=["Primary English"] + [f"Alt {i+1}" for i in range(max_parts)])
+        cout = csv.DictWriter(fout, fieldnames=["Primary English"] + [f"Alt {i + 1}" for i in range(max_parts)])
         cout.writeheader()
         cout.writerows(out_rows)
 
@@ -73,25 +82,40 @@ def modify_hard_complex():
     ref_optional_map = {}
     titles = set()
 
-    with open("../../data/private/linker books to convert - hard_complex_nodes.csv", "r") as fin:
+    with open("../../data/private/linker books to convert - hard_complex_nodes.csv") as fin:
         cin = csv.DictReader(fin)
         rows = list(cin)
         for row in rows:
             oref = Ref(row["Ref"].replace("<d>", ""))
             titles.add(oref.index.title)
             ref_optional_map[row["Ref"]] = row.get("Optional", "").strip() == "y"
-            parts = [row[f'Part {i}'] for i in range(1, 4) if row[f'Part {i}'].strip()]
+            parts = [row[f"Part {i}"] for i in range(1, 4) if row[f"Part {i}"].strip()]
             part1b = row.get("Part 1b", "").strip()
             for ipart, part in enumerate(parts):
-                if part[0].islower() and (" " not in part): continue
+                if part[0].islower() and (" " not in part):
+                    continue
                 try:
-                    parts[ipart] = NonUniqueTermSet({"titles": {"$elemMatch": {"text": part.strip(), "primary": True}}}, sort=[["_id", -1]]).array()[0].slug
+                    parts[ipart] = (
+                        NonUniqueTermSet(
+                            {"titles": {"$elemMatch": {"text": part.strip(), "primary": True}}},
+                            sort=[["_id", -1]],
+                        )
+                        .array()[0]
+                        .slug
+                    )
                 except IndexError:
                     assert part == row["Node Title"], f"Part {part} does not match node title"
                     new_term = RTM.get_or_create_term_for_titled_obj(Ref(row["Ref"]).index_node)
                     parts[ipart] = new_term.slug
             if part1b and part1b[0].isupper():
-                part1b = NonUniqueTermSet({"titles": {"$elemMatch": {"text": part1b.strip(), "primary": True}}}, sort=[["_id", -1]]).array()[0].slug
+                part1b = (
+                    NonUniqueTermSet(
+                        {"titles": {"$elemMatch": {"text": part1b.strip(), "primary": True}}},
+                        sort=[["_id", -1]],
+                    )
+                    .array()[0]
+                    .slug
+                )
             ref_part_map[row["Ref"]] = []
             if len(parts):
                 ref_part_map[row["Ref"]].append(parts)
@@ -103,9 +127,11 @@ def modify_hard_complex():
         #         print("\t", ", ".join(part))
         for title in tqdm(titles):
             print(title)
+
             def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
                 nonlocal ref_part_map
-                if is_alt_node: return
+                if is_alt_node:
+                    return None
 
                 if not node.is_default():
                     print(node.ref().normal())
@@ -114,14 +140,19 @@ def modify_hard_complex():
 
             def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
                 nonlocal ref_optional_map
-                if is_alt_node: return
+                if is_alt_node:
+                    return None
                 is_optional = ref_optional_map[node.ref().normal()]
                 if is_optional:
                     return {
-                       "referenceable": "optional"
+                        "referenceable": "optional",
                     }
 
-            converter = LinkerIndexConverter(title, get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+            converter = LinkerIndexConverter(
+                title,
+                get_match_templates=get_match_templates,
+                get_other_fields=get_other_fields,
+            )
             converter.convert()
 
 
@@ -129,12 +160,13 @@ def modify_small_complex():
     with open("linker books to convert - small_complex_parts.csv") as fin:
         cin = csv.DictReader(fin)
         for row in tqdm(list(cin)):
-            title = row['Title']
+            title = row["Title"]
             print(title)
             parts = []
             for i in range(1, 4):
                 part = row.get(f"Part {i}", "").strip()
-                if not part: continue
+                if not part:
+                    continue
                 if part[0].isupper():
                     # looks like a title
                     term_set = NonUniqueTermSet({"titles.text": part})
@@ -147,10 +179,11 @@ def modify_small_complex():
 
             def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
                 nonlocal row
-                if is_alt_node: return
+                if is_alt_node:
+                    return None
                 if node.is_root():
                     return [MatchTemplate(parts)]
-                elif not node.is_default():
+                if not node.is_default():
                     term_slug = row.get("Non-Default Node Part", "").strip()
                     if not term_slug:
                         term = RTM.get_or_create_term_for_titled_obj(node)
@@ -168,11 +201,11 @@ def import_new_terms():
     First Hebrew title is the primary hebrew title
     @return:
     """
-    with open("../../data/private/linker books to convert - Sheet15.csv", "r") as fin:
+    with open("../../data/private/linker books to convert - Sheet15.csv") as fin:
         cin = csv.DictReader(fin)
         for row in tqdm(list(cin)):
-            primary_english = row['Primary English'].strip()
-            term = NonUniqueTerm({"slug": primary_english })
+            primary_english = row["Primary English"].strip()
+            term = NonUniqueTerm({"slug": primary_english})
             term.add_title(primary_english, "en", primary=True)
             found_primary_hebrew = False
             for i in range(1, 25):
@@ -192,35 +225,38 @@ def import_new_terms():
 def export_new_terms():
     new_term_rows = []
     seen = set()
-    with open("../../data/private/linker books to convert - Sheet10.csv", "r") as fin:
+    with open("../../data/private/linker books to convert - Sheet10.csv") as fin:
         cin = csv.DictReader(fin)
         for row in tqdm(list(cin)):
-            index = library.get_index(row['Title'])
+            index = library.get_index(row["Title"])
             for i in range(1, 4):
                 part = row.get(f"Part {i}", "").strip()
-                if part in seen: continue
+                if part in seen:
+                    continue
                 seen.add(part)
                 if part and part != "N/A" and part[0].isupper():
                     row = {"Primary English": part}
                     for j, title in enumerate(index.nodes.title_group.titles):
-                        row[f"Alt {j+1}"] = title['text']
+                        row[f"Alt {j + 1}"] = title["text"]
                     new_term_rows.append(row)
     with open("../../data/private/small_complex_terms.csv", "w") as fout:
-        cout = csv.DictWriter(fout, fieldnames=["Primary English"] + [f"Alt {i+1}" for i in range(25)])
+        cout = csv.DictWriter(fout, fieldnames=["Primary English"] + [f"Alt {i + 1}" for i in range(25)])
         cout.writeheader()
         cout.writerows(new_term_rows)
 
 
 def merge_default_nodes():
-    with open("linker books to convert - small_complex.csv", "r") as fin:
+    with open("linker books to convert - small_complex.csv") as fin:
         cin = csv.DictReader(fin)
         for row in tqdm(list(cin)):
-            title = row['Title']
+            title = row["Title"]
             index = library.get_index(title)
             total_nodes = 0
+
             def traverse_callback(node):
                 nonlocal total_nodes
                 total_nodes += 1
+
             index.nodes.traverse_tree(traverse_callback)
             if total_nodes == 2:
                 print(f"Merging default node for {title}")
@@ -231,9 +267,7 @@ def guess_part_slug(part):
     term_set = NonUniqueTermSet({"titles": {"$elemMatch": {"text": part.strip(), "primary": True}}})
     if len(term_set) >= 1:
         return term_set.array()[0].slug
-    elif part in ("Introduction", "Petichta"):
-        return "introduction"
-    elif re.match(r'Mishnah .+, Introduction', part):
+    if part in ("Introduction", "Petichta") or re.match(r"Mishnah .+, Introduction", part):
         return "introduction"
 
     return None
@@ -244,7 +278,7 @@ def get_potential_parts(title):
     for start_text in (("Sefer", "sefer"), ("Teshuvot", "teshuvot")):
         if title.startswith(start_text[0]):
             potential_parts.append(start_text[1])
-            title = title[len(start_text[0]):]
+            title = title[len(start_text[0]) :]
     special_parts = []
     for match, slug in (("on Mishnah ", "mishnah"), ("on Tosefta ", "tosefta"), ("on Jerusalem Talmud ", "yerushalmi")):
         if match in title:
@@ -278,29 +312,34 @@ def simple_complex():
     """
     out_rows = []
     max_parts = 0
-    with open("../../data/private/linker books to convert - small_complex.csv", "r") as fin:
+    with open("../../data/private/linker books to convert - small_complex.csv") as fin:
         cin = csv.DictReader(fin)
         for row in cin:
-            title = row['Title']
+            title = row["Title"]
             print(title)
             index = library.get_index(title)
             potential_parts = get_potential_parts(title)
-            out_row = {"Title": row['Title']}
+            out_row = {"Title": row["Title"]}
             if len(potential_parts) > max_parts:
                 max_parts = len(potential_parts)
             for i, part in enumerate(potential_parts):
-                out_row[f"Part {i+1}"] = part
+                out_row[f"Part {i + 1}"] = part
             if len(index.nodes.children) == 2:
                 for node in index.nodes.children:
-                    if node.is_default(): continue
-                    node_title = node.get_primary_title('en')
+                    if node.is_default():
+                        continue
+                    node_title = node.get_primary_title("en")
                     out_row["Non-Default Node Title"] = node_title
                     node_slug = guess_part_slug(node_title)
                     if node_slug:
                         out_row["Non-Default Node Part"] = node_slug
             out_rows.append(out_row)
     with open("../../data/private/simple_complex_out.csv", "w") as fout:
-        fieldnames = ["Title"] + [f"Part {i+1}" for i in range(max_parts)] + ["Non-Default Node Title", "Non-Default Node Part"]
+        fieldnames = (
+            ["Title"]
+            + [f"Part {i + 1}" for i in range(max_parts)]
+            + ["Non-Default Node Title", "Non-Default Node Part"]
+        )
         cout = csv.DictWriter(fout, fieldnames=fieldnames)
         cout.writeheader()
         cout.writerows(out_rows)
@@ -308,11 +347,11 @@ def simple_complex():
 
 def get_hard_complex_books_to_add():
     to_add = []
-    with open("../../data/private/linker books to convert - complex.csv", "r") as fin:
+    with open("../../data/private/linker books to convert - complex.csv") as fin:
         cin = csv.DictReader(fin)
         for row in cin:
-            if row['To Add'].strip() == 'y':
-                to_add.append(row['Title'])
+            if row["To Add"].strip() == "y":
+                to_add.append(row["Title"])
     return to_add
 
 
@@ -323,23 +362,25 @@ def export_hard_complex_books():
     def traverse_callback(node):
         nonlocal out_rows, max_parts
         potential_parts = get_potential_parts(node.get_primary_title("en"))
-        out_rows.append({
-            "Title": node.root().get_primary_title("en"),
-            "Node Title": node.get_primary_title("en"),
-            "Ref": node.ref(),
-        })
+        out_rows.append(
+            {
+                "Title": node.root().get_primary_title("en"),
+                "Node Title": node.get_primary_title("en"),
+                "Ref": node.ref(),
+            },
+        )
         if len(potential_parts) > max_parts:
             max_parts = len(potential_parts)
         for i, part in enumerate(potential_parts):
-            out_rows[-1][f"Part {i+1}"] = part
+            out_rows[-1][f"Part {i + 1}"] = part
 
-    with open("../../data/private/hard_complex.csv", "r") as fin:
+    with open("../../data/private/hard_complex.csv") as fin:
         cin = csv.DictReader(fin)
         for row in cin:
-            index = library.get_index(row['Title'])
+            index = library.get_index(row["Title"])
             index.nodes.traverse_tree(traverse_callback)
     with open("../../data/private/hard_complex_out.csv", "w") as fout:
-        cout = csv.DictWriter(fout, fieldnames=list(out_rows[0].keys()) + [f"Part {i+1}" for i in range(max_parts)])
+        cout = csv.DictWriter(fout, fieldnames=list(out_rows[0].keys()) + [f"Part {i + 1}" for i in range(max_parts)])
         cout.writeheader()
         cout.writerows(out_rows)
 
@@ -356,9 +397,11 @@ def scan_commentaries():
     for x in tqdm(indexes):
         try:
             total_nodes = 0
+
             def traverse_callback(node):
                 nonlocal total_nodes
                 total_nodes += 1
+
             x.nodes.traverse_tree(traverse_callback)
             simple_has_default = total_nodes == 3 and x.nodes.has_default_child()
             row = {
@@ -380,7 +423,7 @@ def scan_commentaries():
             assert default_node is not None
             row["Address Types"] = ",".join(default_node.addressTypes)
             node2rows.append(row)
-        elif row['Title'] in hard_to_add:
+        elif row["Title"] in hard_to_add:
             hardcomplex.append(row)
     with open("../../data/private/complex.csv", "w") as fout:
         cout = csv.DictWriter(fout, fieldnames=list(rows[0].keys()) + ["Address Types"])
@@ -398,7 +441,7 @@ def scan_commentaries():
         cout.writerows(hardcomplex)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # scan_commentaries()
     # simple_complex()
     # merge_default_nodes()

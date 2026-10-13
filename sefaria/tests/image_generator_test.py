@@ -1,9 +1,8 @@
 import io
 
-from PIL import Image, ImageChops, ImageStat
-
 import pytest
 from bidi.algorithm import get_display
+from PIL import Image, ImageChops, ImageStat
 
 from sefaria import image_generator
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE

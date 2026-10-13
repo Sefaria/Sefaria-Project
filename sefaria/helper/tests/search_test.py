@@ -1,14 +1,15 @@
-# encoding=utf-8
 import json
+
 import pytest
+
 from sefaria.helper.search import *
 from sefaria.helper.search import (
+    _ENTITY_CATEGORY_AGG_NAME,
     _author_works_response,
+    _category_counts_from_response,
     _category_response,
     _category_row,
     _query_matches_entity_title,
-    _category_counts_from_response,
-    _ENTITY_CATEGORY_AGG_NAME,
 )
 
 
@@ -52,28 +53,109 @@ def test_normalize_filters_with_linked_refs():
 
 def test_query_obj():
     # stam query
-    s = get_query_obj("moshe", "text", "exact", False, 0, 0, 10, [], [], [], "sort", ['comp_date', 'order'])
-    t = json.loads("""{"_source": false, "from":0,"size":10,"highlight":{"fields":{"exact":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"sort":["comp_date","order"],"query":{"match_phrase":{"exact":{"query":"moshe","slop":0}}}}""")
+    s = get_query_obj("moshe", "text", "exact", False, 0, 0, 10, [], [], [], "sort", ["comp_date", "order"])
+    t = json.loads(
+        """{"_source": false, "from":0,"size":10,"highlight":{"fields":{"exact":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"sort":["comp_date","order"],"query":{"match_phrase":{"exact":{"query":"moshe","slop":0}}}}""",
+    )
     assert ordered(t) == ordered(s.to_dict())
     # text query sorted by pagerank and non-exact
-    s = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10, [], [], [], "score", ['pagesheetrank'], sort_score_missing=0.04)
-    t = json.loads("""{"_source": false, "size":10,"from":0,"highlight":{"fields":{"naive_lemmatizer":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"query":{"function_score":{"functions":[{"field_value_factor":{"field":"pagesheetrank","missing":0.04}}],"query":{"match_phrase":{"naive_lemmatizer":{"query":"moshe","slop":10}}}}}}""")
+    s = get_query_obj(
+        "moshe",
+        "text",
+        "naive_lemmatizer",
+        False,
+        10,
+        0,
+        10,
+        [],
+        [],
+        [],
+        "score",
+        ["pagesheetrank"],
+        sort_score_missing=0.04,
+    )
+    t = json.loads(
+        """{"_source": false, "size":10,"from":0,"highlight":{"fields":{"naive_lemmatizer":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"query":{"function_score":{"functions":[{"field_value_factor":{"field":"pagesheetrank","missing":0.04}}],"query":{"match_phrase":{"naive_lemmatizer":{"query":"moshe","slop":10}}}}}}""",
+    )
     assert ordered(t) == ordered(s.to_dict())
     # text query sorted by pagerank, non-exact and with aggs
-    s = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10, [], [], ["path"], "score", ['pagesheetrank'], sort_score_missing=0.04)
-    t = json.loads("""{"_source": false, "size":10,"from":0,"highlight":{"fields":{"naive_lemmatizer":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"query":{"function_score":{"functions":[{"field_value_factor":{"field":"pagesheetrank","missing":0.04}}],"query":{"match_phrase":{"naive_lemmatizer":{"query":"moshe","slop":10}}}}},"aggs":{"path":{"terms":{"field":"path","size":10000}}}}""")
+    s = get_query_obj(
+        "moshe",
+        "text",
+        "naive_lemmatizer",
+        False,
+        10,
+        0,
+        10,
+        [],
+        [],
+        ["path"],
+        "score",
+        ["pagesheetrank"],
+        sort_score_missing=0.04,
+    )
+    t = json.loads(
+        """{"_source": false, "size":10,"from":0,"highlight":{"fields":{"naive_lemmatizer":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"query":{"function_score":{"functions":[{"field_value_factor":{"field":"pagesheetrank","missing":0.04}}],"query":{"match_phrase":{"naive_lemmatizer":{"query":"moshe","slop":10}}}}},"aggs":{"path":{"terms":{"field":"path","size":10000}}}}""",
+    )
     assert ordered(t) == ordered(s.to_dict())
     # sheet query sorted by views and with multiple aggs
-    s = get_query_obj("moshe", "sheet", "content", False, 10, 0, 10, [], [], ['collections', 'tags'], "sort", ['views'], sort_reverse=True)
-    t = json.loads("""{"_source": false, "from": 0, "size":10,"highlight":{"fields":{"content":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"sort":[{"views":{"order":"desc"}}],"aggs":{"collections":{"terms":{"field":"collections","size":10000}},"tags":{"terms":{"field":"tags","size":10000}}},"query":{"match_phrase":{"content":{"query":"moshe","slop":10}}}}""")
+    s = get_query_obj(
+        "moshe",
+        "sheet",
+        "content",
+        False,
+        10,
+        0,
+        10,
+        [],
+        [],
+        ["collections", "tags"],
+        "sort",
+        ["views"],
+        sort_reverse=True,
+    )
+    t = json.loads(
+        """{"_source": false, "from": 0, "size":10,"highlight":{"fields":{"content":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"sort":[{"views":{"order":"desc"}}],"aggs":{"collections":{"terms":{"field":"collections","size":10000}},"tags":{"terms":{"field":"tags","size":10000}}},"query":{"match_phrase":{"content":{"query":"moshe","slop":10}}}}""",
+    )
     assert ordered(t) == ordered(s.to_dict())
     # text query sorted by pagerank and with multiple applied filters
-    s = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10, ["Tanakh/Targum/Targum Jonathan", "Mishnah/Seder Zeraim/Mishnah Peah", "Talmud/Bavli/Seder Moed/Pesachim"], ["path", "path", "path"], [], "score", ['pagesheetrank'], sort_score_missing=0.04)
-    t = json.loads("""{"_source": false, "from":0,"size":10,"highlight":{"fields":{"naive_lemmatizer":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"query":{"function_score":{"functions":[{"field_value_factor":{"field":"pagesheetrank","missing":0.04}}],"query":{"bool":{"must":[{"match_phrase":{"naive_lemmatizer":{"query":"moshe","slop":10}}}],"filter":[{"bool":{"must":[{"bool":{"should":[{"regexp":{"path":"Tanakh/Targum/Targum\\\\ Jonathan|Tanakh/Targum/Targum\\\\ Jonathan/.*"}},{"regexp":{"path":"Mishnah/Seder\\\\ Zeraim/Mishnah\\\\ Peah|Mishnah/Seder\\\\ Zeraim/Mishnah\\\\ Peah/.*"}},{"regexp":{"path":"Talmud/Bavli/Seder\\\\ Moed/Pesachim|Talmud/Bavli/Seder\\\\ Moed/Pesachim/.*"}}]}}]}}]}}}}}""")
+    s = get_query_obj(
+        "moshe",
+        "text",
+        "naive_lemmatizer",
+        False,
+        10,
+        0,
+        10,
+        ["Tanakh/Targum/Targum Jonathan", "Mishnah/Seder Zeraim/Mishnah Peah", "Talmud/Bavli/Seder Moed/Pesachim"],
+        ["path", "path", "path"],
+        [],
+        "score",
+        ["pagesheetrank"],
+        sort_score_missing=0.04,
+    )
+    t = json.loads(
+        """{"_source": false, "from":0,"size":10,"highlight":{"fields":{"naive_lemmatizer":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"query":{"function_score":{"functions":[{"field_value_factor":{"field":"pagesheetrank","missing":0.04}}],"query":{"bool":{"must":[{"match_phrase":{"naive_lemmatizer":{"query":"moshe","slop":10}}}],"filter":[{"bool":{"must":[{"bool":{"should":[{"regexp":{"path":"Tanakh/Targum/Targum\\\\ Jonathan|Tanakh/Targum/Targum\\\\ Jonathan/.*"}},{"regexp":{"path":"Mishnah/Seder\\\\ Zeraim/Mishnah\\\\ Peah|Mishnah/Seder\\\\ Zeraim/Mishnah\\\\ Peah/.*"}},{"regexp":{"path":"Talmud/Bavli/Seder\\\\ Moed/Pesachim|Talmud/Bavli/Seder\\\\ Moed/Pesachim/.*"}}]}}]}}]}}}}}""",
+    )
     assert ordered(t) == ordered(s.to_dict())
     # sheet query sorted by relevance, with a collections agg and collections/tag filters
-    s = get_query_obj("moshe", "sheet", "content", False, 10, 0, 10, ["", "Moses", "Passover"], ["collections", "tags", "tags"], ['collections'], "score", [])
-    t = json.loads("""{"_source": false, "size":10,"from":0,"highlight":{"fields":{"content":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"aggs":{"collections":{"terms":{"field":"collections","size":10000}}},"query":{"bool":{"must":[{"match_phrase":{"content":{"query":"moshe","slop":10}}}],"filter":[{"bool":{"must":[{"bool":{"must":[{"term":{"tags":"Moses"}},{"term":{"tags":"Passover"}}]}},{"bool":{"must":[{"term":{"collections":""}}]}}]}}]}}}""")
+    s = get_query_obj(
+        "moshe",
+        "sheet",
+        "content",
+        False,
+        10,
+        0,
+        10,
+        ["", "Moses", "Passover"],
+        ["collections", "tags", "tags"],
+        ["collections"],
+        "score",
+        [],
+    )
+    t = json.loads(
+        """{"_source": false, "size":10,"from":0,"highlight":{"fields":{"content":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"aggs":{"collections":{"terms":{"field":"collections","size":10000}}},"query":{"bool":{"must":[{"match_phrase":{"content":{"query":"moshe","slop":10}}}],"filter":[{"bool":{"must":[{"bool":{"must":[{"term":{"tags":"Moses"}},{"term":{"tags":"Passover"}}]}},{"bool":{"must":[{"term":{"collections":""}}]}}]}}]}}}""",
+    )
     assert ordered(t) == ordered(s.to_dict())
 
 
@@ -81,17 +163,53 @@ def test_text_filter_default_agg_type():
     # Regression test for sc-44603: a text path filter applied from a URL (or via the
     # documented `filter_fields = [None]` "use the default field" contract) must produce a
     # `path` regexp filter, not crash with `Term(**{None: ...})` -> TypeError -> HTTP 500.
-    expected = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10,
-                             ["Tanakh/Writings/Psalms"], ["path"], [], "score",
-                             ['pagesheetrank'], sort_score_missing=0.04)
+    expected = get_query_obj(
+        "moshe",
+        "text",
+        "naive_lemmatizer",
+        False,
+        10,
+        0,
+        10,
+        ["Tanakh/Writings/Psalms"],
+        ["path"],
+        [],
+        "score",
+        ["pagesheetrank"],
+        sort_score_missing=0.04,
+    )
     # explicit None agg_type (what the search page sends for URL-applied text filters)
-    none_agg = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10,
-                             ["Tanakh/Writings/Psalms"], [None], [], "score",
-                             ['pagesheetrank'], sort_score_missing=0.04)
+    none_agg = get_query_obj(
+        "moshe",
+        "text",
+        "naive_lemmatizer",
+        False,
+        10,
+        0,
+        10,
+        ["Tanakh/Writings/Psalms"],
+        [None],
+        [],
+        "score",
+        ["pagesheetrank"],
+        sort_score_missing=0.04,
+    )
     # empty filter_fields, which get_filter_obj fills with [None] * len(filters)
-    empty_agg = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10,
-                              ["Tanakh/Writings/Psalms"], [], [], "score",
-                              ['pagesheetrank'], sort_score_missing=0.04)
+    empty_agg = get_query_obj(
+        "moshe",
+        "text",
+        "naive_lemmatizer",
+        False,
+        10,
+        0,
+        10,
+        ["Tanakh/Writings/Psalms"],
+        [],
+        [],
+        "score",
+        ["pagesheetrank"],
+        sort_score_missing=0.04,
+    )
     assert ordered(none_agg.to_dict()) == ordered(expected.to_dict())
     assert ordered(empty_agg.to_dict()) == ordered(expected.to_dict())
 
@@ -146,7 +264,7 @@ def test_entity_query_obj_category_filter():
         "bool": {
             "should": [{"regexp": {"path": "Tanakh/Torah|Tanakh/Torah/.*"}}],
             "minimum_should_match": 1,
-        }
+        },
     }
     # the text query itself is unchanged — the filter clause is non-scoring
     unfiltered = get_entity_query_obj("torah", "book").to_dict()
@@ -201,22 +319,29 @@ class _FakeAgg:
 
 class _FakeAggResponse:
     """Stands in for an elasticsearch_dsl response carrying only the category aggregation."""
+
     def __init__(self, buckets=None, sum_other_doc_count=0):
         if buckets is not None:
-            self.aggregations = type("Aggs", (), {
-                _ENTITY_CATEGORY_AGG_NAME: _FakeAgg(buckets, sum_other_doc_count)
-            })()
+            self.aggregations = type(
+                "Aggs",
+                (),
+                {
+                    _ENTITY_CATEGORY_AGG_NAME: _FakeAgg(buckets, sum_other_doc_count),
+                },
+            )()
 
 
 def test_category_counts_roll_up_every_ancestor():
     # One bucket per matching book (`path` is unique per book). A book counts toward every
     # category above it, so the sidebar's parent rows total their children.
-    response = _FakeAggResponse([
-        _FakeBucket("Tanakh/Torah/Genesis", 1),
-        _FakeBucket("Tanakh/Torah/Exodus", 1),
-        _FakeBucket("Tanakh/Prophets/Isaiah", 1),
-        _FakeBucket("Halakhah/Mishneh Torah/Sefer Madda", 1),
-    ])
+    response = _FakeAggResponse(
+        [
+            _FakeBucket("Tanakh/Torah/Genesis", 1),
+            _FakeBucket("Tanakh/Torah/Exodus", 1),
+            _FakeBucket("Tanakh/Prophets/Isaiah", 1),
+            _FakeBucket("Halakhah/Mishneh Torah/Sefer Madda", 1),
+        ],
+    )
     assert _category_counts_from_response(response) == {
         "Tanakh": 3,
         "Tanakh/Torah": 2,
@@ -259,11 +384,12 @@ class _DummyAuthorNames:
     That helper reads them to stamp `author_names` onto individual works, so every dummy needs
     them; each test's subclass supplies only the aggregation rows it cares about.
     """
-    name_en = "Rambam"
-    name_he = "רמב\"ם"
 
-    def get_primary_title(self, lang='en', with_disambiguation=True):
-        return self.name_en if lang == 'en' else self.name_he
+    name_en = "Rambam"
+    name_he = 'רמב"ם'
+
+    def get_primary_title(self, lang="en", with_disambiguation=True):
+        return self.name_en if lang == "en" else self.name_he
 
 
 def test_author_works_response_row_shape():
@@ -316,18 +442,29 @@ def test_author_works_response_stamps_author_on_individual_works_only():
 
         def get_aggregated_urls_for_authors_indexes(self):
             return [
-                {"url": "/texts/Halakhah/Mishneh Torah", "title": {"en": "Mishneh Torah", "he": "משנה תורה"},
-                 "description": {"en": "", "he": ""}, "isCategory": True,
-                 "categoryLabel": {"en": "Mishneh Torah", "he": "משנה תורה"},
-                 "categories": None, "compDate": 1178},
-                {"url": "/Guide_for_the_Perplexed", "title": {"en": "Guide for the Perplexed", "he": "מורה נבוכים"},
-                 "description": {"en": "", "he": ""}, "isCategory": False,
-                 "categoryLabel": {"en": None, "he": None}, "categories": ["Jewish Thought"], "compDate": 1190},
+                {
+                    "url": "/texts/Halakhah/Mishneh Torah",
+                    "title": {"en": "Mishneh Torah", "he": "משנה תורה"},
+                    "description": {"en": "", "he": ""},
+                    "isCategory": True,
+                    "categoryLabel": {"en": "Mishneh Torah", "he": "משנה תורה"},
+                    "categories": None,
+                    "compDate": 1178,
+                },
+                {
+                    "url": "/Guide_for_the_Perplexed",
+                    "title": {"en": "Guide for the Perplexed", "he": "מורה נבוכים"},
+                    "description": {"en": "", "he": ""},
+                    "isCategory": False,
+                    "categoryLabel": {"en": None, "he": None},
+                    "categories": ["Jewish Thought"],
+                    "compDate": 1190,
+                },
             ]
 
     category_row, work_row = _author_works_response(_DummyAuthor(), "rambam")["hits"]
     # EN before HE: the card builder picks a name per language out of this one flat list.
-    assert work_row["author_names"] == ["Rambam", "רמב\"ם"]
+    assert work_row["author_names"] == ["Rambam", 'רמב"ם']
     assert work_row["authors"] == ["rambam"]
     # A category row collapses many books into one entry, so an author line there would label
     # the grouping rather than a book. The keys are absent entirely, not empty.
@@ -341,15 +478,21 @@ def test_author_works_response_omits_disambiguation_from_author_names():
     class _DummyAuthor(_DummyAuthorNames):
         slug = "yehuda-ben-yakar"
 
-        def get_primary_title(self, lang='en', with_disambiguation=True):
+        def get_primary_title(self, lang="en", with_disambiguation=True):
             suffix = " (Rishon)" if with_disambiguation else ""
-            return ("Yehuda ben Yakar" if lang == 'en' else "יהודה בן יקר") + suffix
+            return ("Yehuda ben Yakar" if lang == "en" else "יהודה בן יקר") + suffix
 
         def get_aggregated_urls_for_authors_indexes(self):
             return [
-                {"url": "/w", "title": {"en": "Perush HaTefillot", "he": ""},
-                 "description": {"en": "", "he": ""}, "isCategory": False,
-                 "categoryLabel": {"en": None, "he": None}, "categories": ["Liturgy"], "compDate": 1200},
+                {
+                    "url": "/w",
+                    "title": {"en": "Perush HaTefillot", "he": ""},
+                    "description": {"en": "", "he": ""},
+                    "isCategory": False,
+                    "categoryLabel": {"en": None, "he": None},
+                    "categories": ["Liturgy"],
+                    "compDate": 1200,
+                },
             ]
 
     work_row = _author_works_response(_DummyAuthor(), "yehuda ben yakar")["hits"][0]
@@ -365,9 +508,15 @@ def test_author_works_response_drops_missing_author_name():
 
         def get_aggregated_urls_for_authors_indexes(self):
             return [
-                {"url": "/w", "title": {"en": "Some Work", "he": ""},
-                 "description": {"en": "", "he": ""}, "isCategory": False,
-                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1900},
+                {
+                    "url": "/w",
+                    "title": {"en": "Some Work", "he": ""},
+                    "description": {"en": "", "he": ""},
+                    "isCategory": False,
+                    "categoryLabel": {"en": None, "he": None},
+                    "categories": ["Halakhah"],
+                    "compDate": 1900,
+                },
             ]
 
     assert _author_works_response(_DummyAuthor(), "q")["hits"][0]["author_names"] == ["Rambam"]
@@ -379,16 +528,33 @@ def test_author_works_response_surfaces_eponymous_work():
 
         def get_aggregated_urls_for_authors_indexes(self):
             return [
-                {"url": "/c", "title": {"en": "Mishnah Berurah", "he": "משנה ברורה"},
-                 "description": {"en": "", "he": ""}, "isCategory": True,
-                 "categoryLabel": {"en": "Mishnah Berurah", "he": "משנה ברורה"},
-                 "categories": None, "compDate": 1900},
-                {"url": "/w1", "title": {"en": "Chafetz Chaim on Sifra", "he": ""},
-                 "description": {"en": "", "he": ""}, "isCategory": False,
-                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1873},
-                {"url": "/w2", "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
-                 "description": {"en": "", "he": ""}, "isCategory": False,
-                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1873},
+                {
+                    "url": "/c",
+                    "title": {"en": "Mishnah Berurah", "he": "משנה ברורה"},
+                    "description": {"en": "", "he": ""},
+                    "isCategory": True,
+                    "categoryLabel": {"en": "Mishnah Berurah", "he": "משנה ברורה"},
+                    "categories": None,
+                    "compDate": 1900,
+                },
+                {
+                    "url": "/w1",
+                    "title": {"en": "Chafetz Chaim on Sifra", "he": ""},
+                    "description": {"en": "", "he": ""},
+                    "isCategory": False,
+                    "categoryLabel": {"en": None, "he": None},
+                    "categories": ["Halakhah"],
+                    "compDate": 1873,
+                },
+                {
+                    "url": "/w2",
+                    "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                    "description": {"en": "", "he": ""},
+                    "isCategory": False,
+                    "categoryLabel": {"en": None, "he": None},
+                    "categories": ["Halakhah"],
+                    "compDate": 1873,
+                },
             ]
 
     # The eponymous work (exact title match) leads, above the category row and the longer
@@ -404,9 +570,15 @@ def test_author_works_response_paginates_with_full_total():
 
         def get_aggregated_urls_for_authors_indexes(self):
             return [
-                {"url": f"/w{i}", "title": {"en": f"Work {i:02d}", "he": ""},
-                 "description": {"en": "", "he": ""}, "isCategory": False,
-                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1000 + i}
+                {
+                    "url": f"/w{i}",
+                    "title": {"en": f"Work {i:02d}", "he": ""},
+                    "description": {"en": "", "he": ""},
+                    "isCategory": False,
+                    "categoryLabel": {"en": None, "he": None},
+                    "categories": ["Halakhah"],
+                    "compDate": 1000 + i,
+                }
                 for i in range(5)
             ]
 
@@ -427,11 +599,12 @@ def test_entity_query_obj_exact_tier_is_case_insensitive():
     # query like "chafetz chaim" never fires the decisive boost against a stored title
     # "Chafetz Chaim" and the "exact match ranks first" guarantee breaks.
     s = get_entity_query_obj("moshe", "book").to_dict()
-    term_clauses = [c["constant_score"]["filter"]["term"]
-                    for c in s["query"]["bool"]["should"] if "constant_score" in c]
+    term_clauses = [
+        c["constant_score"]["filter"]["term"] for c in s["query"]["bool"]["should"] if "constant_score" in c
+    ]
     assert term_clauses, "expected Tier-1 constant_score term clauses"
     for term in term_clauses:
-        (field, spec), = term.items()
+        ((field, spec),) = term.items()
         assert spec["case_insensitive"] is True, f"{field} exact-match tier must be case-insensitive"
 
 
@@ -450,13 +623,15 @@ def test_entity_query_obj_all_words_is_and():
     # Torah" -> author_names + title_en) as long as all of them match somewhere.
     for entity_type in ("topic", "author", "book"):
         shoulds = _entity_should_clauses("Or Chaim", entity_type)
-        all_words = [c["multi_match"] for c in shoulds
-                     if "multi_match" in c and c["multi_match"].get("operator") == "and"]
+        all_words = [
+            c["multi_match"] for c in shoulds if "multi_match" in c and c["multi_match"].get("operator") == "and"
+        ]
         assert len(all_words) == 1, "expected exactly one AND multi_match tier"
         assert all_words[0]["type"] == "cross_fields"
         # the AND tier must outweigh the any-word tier by a wide margin
-        any_word = [c["multi_match"] for c in shoulds
-                    if "multi_match" in c and c["multi_match"].get("type") == "best_fields"]
+        any_word = [
+            c["multi_match"] for c in shoulds if "multi_match" in c and c["multi_match"].get("type") == "best_fields"
+        ]
         assert len(any_word) == 1, "expected exactly one any-word (OR) multi_match tier"
         assert all_words[0]["boost"] > any_word[0]["boost"] * 10
 
@@ -506,13 +681,24 @@ def test_author_works_response_eponymous_beats_matching_category():
 
         def get_aggregated_urls_for_authors_indexes(self):
             return [
-                {"url": "/cat", "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
-                 "description": {"en": "", "he": ""}, "isCategory": True,
-                 "categoryLabel": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
-                 "categories": None, "compDate": 1873},
-                {"url": "/work", "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
-                 "description": {"en": "", "he": ""}, "isCategory": False,
-                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1873},
+                {
+                    "url": "/cat",
+                    "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                    "description": {"en": "", "he": ""},
+                    "isCategory": True,
+                    "categoryLabel": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                    "categories": None,
+                    "compDate": 1873,
+                },
+                {
+                    "url": "/work",
+                    "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                    "description": {"en": "", "he": ""},
+                    "isCategory": False,
+                    "categoryLabel": {"en": None, "he": None},
+                    "categories": ["Halakhah"],
+                    "compDate": 1873,
+                },
             ]
 
     response = _author_works_response(_DummyAuthor(), "Chafetz Chaim")
@@ -529,22 +715,23 @@ def test_query_matches_entity_title_exact_only():
     # The full name (or an exact variant) still matches, keeping the author-works trigger.
     assert _query_matches_entity_title("Shalom Buzaglo", author)
     assert _query_matches_entity_title("shalom buzaglo", author)  # case-insensitive
-    assert _query_matches_entity_title("Chafetz Chaim",
-                                       {"title_en": "Israel Meir Kagan",
-                                        "titleVariants": ["Chafetz Chaim"]})
+    assert _query_matches_entity_title(
+        "Chafetz Chaim",
+        {"title_en": "Israel Meir Kagan", "titleVariants": ["Chafetz Chaim"]},
+    )
 
 
 # --------------------------------------------------------------------------- #
 #  Category results on the Books tab                                          #
 # --------------------------------------------------------------------------- #
 
+
 def test_entity_query_obj_category_exclusion():
-    s = get_entity_query_obj("mishneh torah", "book",
-                             exclude_category_paths=["Halakhah/Mishneh Torah"]).to_dict()
+    s = get_entity_query_obj("mishneh torah", "book", exclude_category_paths=["Halakhah/Mishneh Torah"]).to_dict()
     # The exclusion is a must_not, so it removes documents without touching relevance.
     # The path is regex-escaped by make_path_filter, hence the backslash before the space.
     assert s["query"]["bool"]["must_not"] == [
-        {"regexp": {"path": r"Halakhah/Mishneh\ Torah|Halakhah/Mishneh\ Torah/.*"}}
+        {"regexp": {"path": r"Halakhah/Mishneh\ Torah|Halakhah/Mishneh\ Torah/.*"}},
     ]
     # ...and the text query underneath is byte-identical to the unexcluded one.
     unexcluded = get_entity_query_obj("mishneh torah", "book").to_dict()
@@ -553,8 +740,13 @@ def test_entity_query_obj_category_exclusion():
 
 def test_entity_query_obj_category_exclusion_multiple_paths():
     # "Seder Moed" names five categories; every one of them must be excluded.
-    paths = ["Mishnah/Seder Moed", "Talmud/Bavli/Seder Moed", "Talmud/Yerushalmi/Seder Moed",
-             "Tosefta/Lieberman Edition/Seder Moed", "Tosefta/Vilna Edition/Seder Moed"]
+    paths = [
+        "Mishnah/Seder Moed",
+        "Talmud/Bavli/Seder Moed",
+        "Talmud/Yerushalmi/Seder Moed",
+        "Tosefta/Lieberman Edition/Seder Moed",
+        "Tosefta/Vilna Edition/Seder Moed",
+    ]
     s = get_entity_query_obj("seder moed", "book", exclude_category_paths=paths).to_dict()
     must_not = s["query"]["bool"]["must_not"]
     assert len(must_not) == 5
@@ -566,8 +758,13 @@ def test_entity_query_obj_category_exclusion_composes_with_filter_and_sort():
     # query, so the dropped books leave `total` as well as the hits. The filter goes in the
     # post filter, so the sidebar's aggregation still spans the unfiltered match set — putting
     # it in the query alongside the exclusion would zero out every unselected category's count.
-    s = get_entity_query_obj("torah", "book", sort="year_asc", category_paths=["Tanakh"],
-                             exclude_category_paths=["Tanakh/Targum"]).to_dict()
+    s = get_entity_query_obj(
+        "torah",
+        "book",
+        sort="year_asc",
+        category_paths=["Tanakh"],
+        exclude_category_paths=["Tanakh/Targum"],
+    ).to_dict()
     assert s["sort"][0] == {"compDate": {"order": "asc", "missing": "_last"}}
     assert s["post_filter"]["bool"]["should"] == [{"regexp": {"path": "Tanakh|Tanakh/.*"}}]
     assert s["query"]["bool"]["must_not"] == [{"regexp": {"path": "Tanakh/Targum|Tanakh/Targum/.*"}}]
@@ -581,15 +778,17 @@ def test_entity_query_obj_category_exclusion_books_only():
 
 
 def test_category_row_shape():
-    row = _category_row({
-        "title_en": "Mishneh Torah",
-        "title_he": "משנה תורה",
-        "categories": ["Halakhah"],
-        "path": "Halakhah/Mishneh Torah",
-        "description_en": "desc",
-        "description_he": "תיאור",
-        "depth": 2,
-    })
+    row = _category_row(
+        {
+            "title_en": "Mishneh Torah",
+            "title_he": "משנה תורה",
+            "categories": ["Halakhah"],
+            "path": "Halakhah/Mishneh Torah",
+            "description_en": "desc",
+            "description_he": "תיאור",
+            "depth": 2,
+        },
+    )
     # Same contract as an aggregated author-works row, so the existing card renders it.
     assert row["isCategory"] is True
     assert row["url"] == "/texts/Halakhah/Mishneh Torah"
@@ -602,8 +801,7 @@ def test_category_row_shape():
 
 
 def test_category_row_top_level_has_no_breadcrumb():
-    row = _category_row({"title_en": "Tanakh", "title_he": 'תנ"ך', "categories": [],
-                         "path": "Tanakh", "depth": 1})
+    row = _category_row({"title_en": "Tanakh", "title_he": 'תנ"ך', "categories": [], "path": "Tanakh", "depth": 1})
     assert row["categories"] == []
     assert "categoryLabel_en" not in row
 
@@ -637,6 +835,7 @@ class _FakeAggs:
     It records nothing: the aggregation is asserted directly in the query-shape tests above,
     and `_category_response` reads its counts from a separate search entirely.
     """
+
     def bucket(self, *args, **kwargs):
         return self
 
@@ -646,6 +845,7 @@ class _FakeSearch:
     Minimal stand-in for elasticsearch_dsl's Search, recording the slice it was given so
     the pagination assertions can check what was actually asked of Elasticsearch.
     """
+
     def __init__(self, book_hits, total):
         self._book_hits = book_hits
         self._total = total
@@ -665,7 +865,7 @@ class _FakeSearch:
         return self
 
     def execute(self):
-        page = self._book_hits[self.start:self.start + self.size]
+        page = self._book_hits[self.start : self.start + self.size]
         return _FakeResponse([_FakeHit(h) for h in page], self._total)
 
 
@@ -677,25 +877,26 @@ class _FakeHit:
         return self._doc
 
 
-def _category_response_with_fakes(monkeypatch, categories, book_hits, book_total,
-                                  eponymous=(), counts=None, **kwargs):
+def _category_response_with_fakes(monkeypatch, categories, book_hits, book_total, eponymous=(), counts=None, **kwargs):
     search = _FakeSearch(list(book_hits), book_total)
     monkeypatch.setattr("sefaria.helper.search.Search", lambda **kw: search)
-    monkeypatch.setattr("sefaria.helper.search._eponymous_books_in_categories",
-                        lambda q, paths, client: list(eponymous))
+    monkeypatch.setattr(
+        "sefaria.helper.search._eponymous_books_in_categories",
+        lambda q, paths, client: list(eponymous),
+    )
     # Stubbed rather than exercised: the sidebar counts come from a *second* search, which
     # here would be handed this same fake and overwrite the slice it recorded — destroying
     # the very thing the pagination assertions read. What that search asks for is covered by
     # the _book_category_counts tests; this helper is about the rows.
-    monkeypatch.setattr("sefaria.helper.search._book_category_counts",
-                        lambda q, client: dict(counts or {}))
+    monkeypatch.setattr("sefaria.helper.search._book_category_counts", lambda q, client: dict(counts or {}))
     response = _category_response(categories, "q", es_client=None, **kwargs)
     return response, search
 
 
 def test_category_response_leads_with_categories_and_excludes_their_books(monkeypatch):
-    categories = [{"title_en": "Mishneh Torah", "path": "Halakhah/Mishneh Torah",
-                   "categories": ["Halakhah"], "depth": 2}]
+    categories = [
+        {"title_en": "Mishneh Torah", "path": "Halakhah/Mishneh Torah", "categories": ["Halakhah"], "depth": 2},
+    ]
     books = [{"title_en": "Other Book"}]
     response, search = _category_response_with_fakes(monkeypatch, categories, books, 1, size=10)
 
@@ -712,11 +913,17 @@ def test_category_response_lifts_eponymous_book_above_the_category(monkeypatch):
     # pulled back out and shown first, mirroring the author-works eponymous lift.
     categories = [{"title_en": "Zohar", "path": "Kabbalah/Zohar", "categories": ["Kabbalah"], "depth": 2}]
     response, _ = _category_response_with_fakes(
-        monkeypatch, categories, [], 0, eponymous=[{"title_en": "Zohar", "path": "Kabbalah/Zohar/Zohar"}], size=10)
+        monkeypatch,
+        categories,
+        [],
+        0,
+        eponymous=[{"title_en": "Zohar", "path": "Kabbalah/Zohar/Zohar"}],
+        size=10,
+    )
 
     assert response["hits"][0]["title_en"] == "Zohar"
-    assert not response["hits"][0].get("isCategory")   # the book
-    assert response["hits"][1]["isCategory"] is True   # then the category
+    assert not response["hits"][0].get("isCategory")  # the book
+    assert response["hits"][1]["isCategory"] is True  # then the category
     assert response["total"] == 2
 
 
@@ -727,14 +934,27 @@ def test_category_response_paginates_across_the_leading_rows(monkeypatch):
     categories = [
         {"title_en": "Seder Moed", "path": "Mishnah/Seder Moed", "categories": ["Mishnah"], "depth": 2},
         {"title_en": "Seder Moed", "path": "Talmud/Bavli/Seder Moed", "categories": ["Talmud", "Bavli"], "depth": 3},
-        {"title_en": "Seder Moed", "path": "Talmud/Yerushalmi/Seder Moed", "categories": ["Talmud", "Yerushalmi"], "depth": 3},
-        {"title_en": "Seder Moed", "path": "Tosefta/Vilna Edition/Seder Moed", "categories": ["Tosefta", "Vilna Edition"], "depth": 3},
+        {
+            "title_en": "Seder Moed",
+            "path": "Talmud/Yerushalmi/Seder Moed",
+            "categories": ["Talmud", "Yerushalmi"],
+            "depth": 3,
+        },
+        {
+            "title_en": "Seder Moed",
+            "path": "Tosefta/Vilna Edition/Seder Moed",
+            "categories": ["Tosefta", "Vilna Edition"],
+            "depth": 3,
+        },
     ]
     books = [{"title_en": "Book A"}, {"title_en": "Book B"}]
 
     page1, search1 = _category_response_with_fakes(monkeypatch, categories, books, 2, start=0, size=3)
     assert [h["path"] for h in page1["hits"]] == [
-        "Mishnah/Seder Moed", "Talmud/Bavli/Seder Moed", "Talmud/Yerushalmi/Seder Moed"]
+        "Mishnah/Seder Moed",
+        "Talmud/Bavli/Seder Moed",
+        "Talmud/Yerushalmi/Seder Moed",
+    ]
     # Page 1 was filled by category rows alone, so ES was only asked for the count.
     assert search1.size == 0
     # total counts leading rows *and* the excluded-set book total
@@ -755,10 +975,17 @@ def test_category_response_carries_category_counts_for_the_sidebar(monkeypatch):
     # The sidebar is shown in category mode too, so this response has to carry the same
     # `categoryCounts` key every other book response does — otherwise the counts the page
     # cleared on the new query never get refilled and every category reads zero.
-    categories = [{"title_en": "Mishneh Torah", "path": "Halakhah/Mishneh Torah",
-                   "categories": ["Halakhah"], "depth": 2}]
+    categories = [
+        {"title_en": "Mishneh Torah", "path": "Halakhah/Mishneh Torah", "categories": ["Halakhah"], "depth": 2},
+    ]
     response, _ = _category_response_with_fakes(
-        monkeypatch, categories, [], 0, size=10, counts={"Halakhah": 36, "Tanakh": 2})
+        monkeypatch,
+        categories,
+        [],
+        0,
+        size=10,
+        counts={"Halakhah": 36, "Tanakh": 2},
+    )
 
     assert response["categoryCounts"] == {"Halakhah": 36, "Tanakh": 2}
 
@@ -777,5 +1004,4 @@ def ordered(obj):
         return sorted((str(k), ordered(v)) for k, v in list(obj.items()))
     if isinstance(obj, list):
         return sorted(ordered(x) for x in obj)
-    else:
-        return obj
+    return obj

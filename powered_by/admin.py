@@ -29,50 +29,62 @@ class ProjectAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
 
     fieldsets = (
-        ("Submission", {
-            "fields": (
-                "submission_source",
-                "submission_date",
-                ("created_at", "updated_at"),
-                "salesforce_id",
-            ),
-        }),
-        ("Creator", {
-            "fields": (
-                ("creator", "creator_email"),
-                "submitter",
-                "is_developer",
-                "job_title",
-                "technical_experience",
-                "found_sefaria",
-                "sefaria_tools_used",
-                "tech_used_raw",
-            ),
-        }),
-        ("Project", {
-            "fields": (
-                "project_name",
-                "project_link",
-                "project_source_code",
-                "project_desc",
-                "project_why",
-                "project_category",
-                "project_reach",
-                "vibe_coded",
-                "image_url",
-                "has_pbs_logo",
-            ),
-        }),
-        ("Editorial & staff", {
-            "fields": (
-                "tags",
-                "status",
-                "last_checked",
-                "is_buggy",
-                "consent_to_display",
-                "is_published",
-                "featured",
-                "notes",
-            ),
-        }),
+        (
+            "Submission",
+            {
+                "fields": (
+                    "submission_source",
+                    "submission_date",
+                    ("created_at", "updated_at"),
+                    "salesforce_id",
+                ),
+            },
+        ),
+        (
+            "Creator",
+            {
+                "fields": (
+                    ("creator", "creator_email"),
+                    "submitter",
+                    "is_developer",
+                    "job_title",
+                    "technical_experience",
+                    "found_sefaria",
+                    "sefaria_tools_used",
+                    "tech_used_raw",
+                ),
+            },
+        ),
+        (
+            "Project",
+            {
+                "fields": (
+                    "project_name",
+                    "project_link",
+                    "project_source_code",
+                    "project_desc",
+                    "project_why",
+                    "project_category",
+                    "project_reach",
+                    "vibe_coded",
+                    "image_url",
+                    "has_pbs_logo",
+                ),
+            },
+        ),
+        (
+            "Editorial & staff",
+            {
+                "fields": (
+                    "tags",
+                    "status",
+                    "last_checked",
+                    "is_buggy",
+                    "consent_to_display",
+                    "is_published",
+                    "featured",
+                    "notes",
+                ),
+            },
+        ),
     )

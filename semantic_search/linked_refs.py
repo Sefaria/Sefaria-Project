@@ -1,7 +1,7 @@
-from collections import Counter
-from dataclasses import dataclass
 import statistics
-from typing import Callable
+from collections import Counter
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from semantic_search.models import SemanticTextChunk
 
@@ -51,11 +51,7 @@ def linked_refs_for(ref: str) -> list[str]:
     if _is_dictionary_oref(oref):
         return []
 
-    return [
-        linked_ref.normal()
-        for linked_ref in LinkSet(oref).refs_from(oref)
-        if not _is_dictionary_oref(linked_ref)
-    ]
+    return [linked_ref.normal() for linked_ref in LinkSet(oref).refs_from(oref) if not _is_dictionary_oref(linked_ref)]
 
 
 def get_linked_ref_enhancements(
@@ -78,11 +74,7 @@ def get_linked_ref_enhancements(
         linked_refs_for_func=linked_refs_for_func,
         normalize_ref_func=normalize_ref_func,
     )
-    appended_refs = [
-        ref
-        for ref, count in counts.most_common()
-        if count >= min_link_count
-    ]
+    appended_refs = [ref for ref, count in counts.most_common() if count >= min_link_count]
     return LinkedRefEnhancement(
         appended_refs=appended_refs,
         ref_counts={ref: counts[ref] for ref in appended_refs},
@@ -123,11 +115,7 @@ def get_mean_std_linked_ref_enhancements(
     std_count = statistics.pstdev(values) if len(values) > 1 else 0
     threshold = max(min_count, mean_count + std_threshold * std_count)
 
-    appended_refs = [
-        ref
-        for ref, count in counts.most_common()
-        if count >= threshold
-    ]
+    appended_refs = [ref for ref, count in counts.most_common() if count >= threshold]
     return LinkedRefEnhancement(
         appended_refs=appended_refs,
         ref_counts={ref: counts[ref] for ref in appended_refs},
@@ -181,10 +169,7 @@ def get_linked_ref_counts(
         for ref in current_refs:
             if not ref:
                 continue
-            source_linked_refs = {
-                normalize(linked_ref)
-                for linked_ref in linked_refs_for_func(ref)
-            }
+            source_linked_refs = {normalize(linked_ref) for linked_ref in linked_refs_for_func(ref)}
             for linked_ref in source_linked_refs:
                 if not linked_ref or linked_ref in original_refs:
                     continue

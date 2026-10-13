@@ -14,10 +14,9 @@ Usage (quick-edit mode):
         # run_on_ref(tref=tref, force_update=False)
 """
 
-from sefaria.helper.llm.sheet_scoring_tools import _find_sheets_for_ref, _already_scored, _dispatch, run_on_single_sheet
 import logging
 
-
+from sefaria.helper.llm.sheet_scoring_tools import _already_scored, _dispatch, _find_sheets_for_ref
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,11 +40,14 @@ def run_on_ref(tref: str, force_update: bool = False) -> None:
             logger.debug("Skipping sheet %s (already scored)", sid)
             continue
 
-        logger.info("Scoring sheet %s — title=%r", sid, sheet.get('title', ''))
+        logger.info("Scoring sheet %s — title=%r", sid, sheet.get("title", ""))
         _dispatch(sheet)
         scored += 1
 
     logger.info(
         "Finished tref=%r: total=%d, scored/dispatched=%d, skipped=%d",
-        tref, count, scored, skipped
+        tref,
+        count,
+        scored,
+        skipped,
     )

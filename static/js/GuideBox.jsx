@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
-import Sefaria from "./sefaria/sefaria";
-import TextRange from "./TextRange";
-import {AiInfoTooltip, InterfaceText} from './Misc';
+import Sefaria from './sefaria/sefaria';
+import TextRange from './TextRange';
+import { AiInfoTooltip, InterfaceText } from './Misc';
 
 // Constants for different prompt states
-const QUESTIONS = "questions";
-const SUMMARIES = "summaries";
-const COMMENTARIES = "commentaries";
+const QUESTIONS = 'questions';
+const SUMMARIES = 'summaries';
+const COMMENTARIES = 'commentaries';
 
 /**
  * Renders the question prompts in a box.
@@ -17,27 +17,24 @@ const COMMENTARIES = "commentaries";
  * @returns {JSX.Element} The QuestionBox component.
  */
 const QuestionBox = ({ prompt, onClick }) => {
-
   const questionHelperText = (p) => {
     return `${p.commentaries.length} ${p.commentaries.length > 0 ? 'Answers' : 'Answer'}`;
-  }
+  };
 
   return (
     <div>
-      <div className="guideTitle">
-        Key Questions
-      </div>
+      <div className="guideTitle">Key Questions</div>
       {prompt.map((p, i) => {
         return (
           <div key={i} className="guidePromptBox" onClick={() => onClick(p, i)}>
             <p>{p.question}</p>
             <span>{questionHelperText(p)}</span>
           </div>
-        )
+        );
       })}
     </div>
   );
-}
+};
 
 /**
  * Renders the summary prompts in a box.
@@ -48,26 +45,23 @@ const QuestionBox = ({ prompt, onClick }) => {
 const SummaryBox = ({ prompt, onClick }) => {
   const title = (commentaryRef) => {
     const index = Sefaria.parseRef(commentaryRef)?.index;
-    return index ? index : commentaryRef; //todo: handle removal of "on Y" from "X on Y" when the base text is Y. 
-  }
+    return index ? index : commentaryRef; //todo: handle removal of "on Y" from "X on Y" when the base text is Y.
+  };
 
   return (
     <div>
-      <div className="guideTitle">
-        {prompt.question}
-      </div>
+      <div className="guideTitle">{prompt.question}</div>
       {prompt.commentaries.map((p, i) => {
         return (
           <div key={i} className="guidePromptBox" onClick={() => onClick(p.commentaryRef, i)}>
             <p>{p.summaryText}</p>
             <span>{title(p.commentaryRef)}</span>
           </div>
-        )
+        );
       })}
     </div>
   );
-}
-
+};
 
 class GuideBox extends Component {
   constructor(props) {
@@ -80,7 +74,7 @@ class GuideBox extends Component {
       livePrompt: guide.questions,
       questionPosition: 0,
       promptState: QUESTIONS,
-      commentaryRef: ""
+      commentaryRef: '',
     };
     this.stateHistory = [];
   }
@@ -104,7 +98,7 @@ class GuideBox extends Component {
   setState(newState) {
     this.stateHistory.push(this.state);
     super.setState(newState);
-    this.props.setPreviousSettings({onClick: this.popState, url: "", backText: newState.backText});
+    this.props.setPreviousSettings({ onClick: this.popState, url: '', backText: newState.backText });
   }
 
   /**
@@ -123,59 +117,57 @@ class GuideBox extends Component {
     super.setState(lastState);
     if (this.stateHistory.length === 0) {
       this.props.setPreviousSettings(null);
-    }
-    else {
-      this.props.setPreviousSettings({onClick: this.popState, url: "", backText: lastState.backText});
+    } else {
+      this.props.setPreviousSettings({ onClick: this.popState, url: '', backText: lastState.backText });
     }
   }
 
   onClickQuestion = (p, i) => {
     const parsedRef = Sefaria.parseRef(this.props.sref);
-    gtag("event", "guide_question_clicked", {
-      panel_type: "sidebar",
-      panel_number: 1.5,  // Theoretically, this could be 2.5, 3.5, etc.
-      panel_name: "Learning Guide",
-      panel_category: "Resources | Guide",
+    gtag('event', 'guide_question_clicked', {
+      panel_type: 'sidebar',
+      panel_number: 1.5, // Theoretically, this could be 2.5, 3.5, etc.
+      panel_name: 'Learning Guide',
+      panel_category: 'Resources | Guide',
       ref: this.props.sref,
       position: i + 1,
       experiment: true,
       text: p.question,
-      feature_name: "Key Questions",
-      engagement_type: "consult",
+      feature_name: 'Key Questions',
+      engagement_type: 'consult',
       engagement_value: 1,
-      item_id: parsedRef.index
+      item_id: parsedRef.index,
       // version
       // A_alef
       // content_type
     });
-    this.setState({ promptState: SUMMARIES, livePrompt: p, questionPosition: i+1, backText: "Questions" });
-  }
-
+    this.setState({ promptState: SUMMARIES, livePrompt: p, questionPosition: i + 1, backText: 'Questions' });
+  };
 
   onClickSummary = (commentaryRef, i) => {
     const parsedRef = Sefaria.parseRef(this.props.sref);
-    gtag("event", "guide_answer_clicked", {
-      panel_type: "sidebar",
-      panel_number: 1.5,  // Theoretically, this could be 2.5, 3.5, etc.
-      panel_name: "Learning Guide",
-      panel_category: "Resources | Guide",
+    gtag('event', 'guide_answer_clicked', {
+      panel_type: 'sidebar',
+      panel_number: 1.5, // Theoretically, this could be 2.5, 3.5, etc.
+      panel_name: 'Learning Guide',
+      panel_category: 'Resources | Guide',
       ref: this.props.sref,
-      position:  Number(this.state.questionPosition + "." + (i + 1)),  // Question position + decimal point + answer position, cast to number
+      position: Number(this.state.questionPosition + '.' + (i + 1)), // Question position + decimal point + answer position, cast to number
       experiment: true,
       text: commentaryRef,
-      feature_name: "Key Questions",
-      engagement_type: "consult",
+      feature_name: 'Key Questions',
+      engagement_type: 'consult',
       engagement_value: 1,
-      item_id: parsedRef.index
+      item_id: parsedRef.index,
       // version
       // A_alef
       // content_type
     });
-    this.setState({ promptState: COMMENTARIES, commentaryRef: commentaryRef, backText: "Summary" });
-  }
+    this.setState({ promptState: COMMENTARIES, commentaryRef: commentaryRef, backText: 'Summary' });
+  };
 
   render() {
-    const DISPLAY_TEXT = "ai_info_tooltip.the_questions_and_answers_in_this_learning_guide"
+    const DISPLAY_TEXT = 'ai_info_tooltip.the_questions_and_answers_in_this_learning_guide';
     return (
       <section className="guideBox">
         <h2 className="guideHeader">
@@ -184,11 +176,21 @@ class GuideBox extends Component {
           </div>
           <div className="guideHeaderTags">
             <span className="experimentLabel">Experiment</span>
-            {this.state.promptState !== COMMENTARIES && <AiInfoTooltip displayText={DISPLAY_TEXT} variant="outline" size={18}/>}
+            {this.state.promptState !== COMMENTARIES && (
+              <AiInfoTooltip displayText={DISPLAY_TEXT} variant="outline" size={18} />
+            )}
           </div>
         </h2>
-        {this.state.promptState === QUESTIONS && <QuestionBox prompt={this.state.livePrompt} onClick={this.onClickQuestion} />}
-        {this.state.promptState === SUMMARIES && <SummaryBox prompt={this.state.livePrompt} questionPosition={this.state.questionPosition} onClick={this.onClickSummary} />}
+        {this.state.promptState === QUESTIONS && (
+          <QuestionBox prompt={this.state.livePrompt} onClick={this.onClickQuestion} />
+        )}
+        {this.state.promptState === SUMMARIES && (
+          <SummaryBox
+            prompt={this.state.livePrompt}
+            questionPosition={this.state.questionPosition}
+            onClick={this.onClickSummary}
+          />
+        )}
         {this.state.promptState === COMMENTARIES && <TextRange sref={this.state.commentaryRef} />}
       </section>
     );
@@ -196,7 +198,7 @@ class GuideBox extends Component {
 }
 
 GuideBox.propTypes = {
-  masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
+  masterPanelLanguage: PropTypes.oneOf(['english', 'hebrew', 'bilingual']),
   sref: PropTypes.string.isRequired,
 };
 

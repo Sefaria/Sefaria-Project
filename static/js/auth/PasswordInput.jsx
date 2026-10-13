@@ -2,9 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Input from '../common/Input.jsx';
 
-const PasswordInput = ({
-  label, name, autoComplete, value, onChange, onBlur, trailingLink, error,
-}) => (
+const PasswordInput = ({ label, name, autoComplete, value, onChange, onBlur, trailingLink, error }) => (
   <Input
     label={label}
     type="password"

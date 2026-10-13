@@ -1,10 +1,14 @@
 # Django settings for sefaria project.
 
 import os.path
+
 from django.utils.translation import gettext_lazy as _
 
-relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
-                               os.path.realpath(__file__)), *x)
+
+def relative_to_abs_path(*x):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), *x)
+
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -12,15 +16,15 @@ relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Halifax'
+TIME_ZONE = "America/Halifax"
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en'
+LANGUAGE_CODE = "en"
 
 LANGUAGES = (
-    ('en', _("English")),
-    ('he', _("Hebrew")),
+    ("en", _("English")),
+    ("he", _("Hebrew")),
 )
 
 SITE_ID = 1
@@ -37,159 +41,161 @@ USE_TZ = True
 
 # Django 3.2+: preserve existing integer PKs on legacy Django apps.
 # Avoids auto-generating BigAutoField migrations against existing tables.
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = ""
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = ''
+MEDIA_URL = ""
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = '/app/static-collected'
+STATIC_ROOT = "/app/static-collected"
+
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 def get_static_url():
-    if os.getenv('FRONT_END_URL'):
-        return os.getenv('FRONT_END_URL').replace('http://', 'https://') + '/static/'
-    else:
-        return '/static/'
+    if os.getenv("FRONT_END_URL"):
+        return os.getenv("FRONT_END_URL").replace("http://", "https://") + "/static/"
+    return "/static/"
+
+
 STATIC_URL = get_static_url()
 
 
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
     #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 STATICFILES_DIRS = [
-    relative_to_abs_path('../static/'),
+    relative_to_abs_path("../static/"),
 ]
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
-CHATBOT_USER_ID_SECRET = 'secret'
-SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
+SECRET_KEY = ""
+CHATBOT_USER_ID_SECRET = "secret"
+SESSION_ID_AUTH_HEADER = "HTTP_X_SESSION_ID"
 CHATBOT_USE_LOCAL_SCRIPT = False
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            relative_to_abs_path('../templates/'),
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [
+            relative_to_abs_path("../templates/"),
         ],
-        'OPTIONS': {
-            'context_processors': [
-                    # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
-                    # list if you haven't customized them:
-                    "django.contrib.auth.context_processors.auth",
-                    "django.template.context_processors.debug",
-                    "django.template.context_processors.i18n",
-                    "django.template.context_processors.media",
-                    "django.template.context_processors.static",
-                    "django.template.context_processors.tz",
-                    "django.contrib.messages.context_processors.messages",
-                    "django.template.context_processors.request",
-                    "sefaria.system.context_processors.global_settings",
-                    "sefaria.system.context_processors.cache_timestamp",
-                    "sefaria.system.context_processors.large_data",
-                    "sefaria.system.context_processors.body_flags",
-                    "sefaria.system.context_processors.chatbot_user_token",
-                    "sefaria.system.context_processors.base_props",
-                    "sefaria.system.context_processors.module_context",
+        "OPTIONS": {
+            "context_processors": [
+                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                # list if you haven't customized them:
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.request",
+                "sefaria.system.context_processors.global_settings",
+                "sefaria.system.context_processors.cache_timestamp",
+                "sefaria.system.context_processors.large_data",
+                "sefaria.system.context_processors.body_flags",
+                "sefaria.system.context_processors.chatbot_user_token",
+                "sefaria.system.context_processors.base_props",
+                "sefaria.system.context_processors.module_context",
             ],
-            'loaders': [
-                'django.template.loaders.filesystem.Loader',
-                'django.template.loaders.app_directories.Loader',
-            ]
+            "loaders": [
+                "django.template.loaders.filesystem.Loader",
+                "django.template.loaders.app_directories.Loader",
+            ],
         },
     },
 ]
 
 MIDDLEWARE = [
-    'django_hosts.middleware.HostsRequestMiddleware',  # must be first
-    'sefaria.system.middleware.SessionCookieDomainMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'sefaria.system.middleware.SessionIDAuthMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django_user_agents.middleware.UserAgentMiddleware',
-    'sefaria.system.middleware.ModuleMiddleware',
-    'sefaria.system.middleware.LocationSettingsMiddleware',
-    'sefaria.system.middleware.LanguageCookieMiddleware',
-    'sefaria.system.middleware.LanguageSettingsMiddleware',
-    'sefaria.system.middleware.ProfileMiddleware',
-    'sefaria.system.middleware.CORSDebugMiddleware',
-    'sefaria.system.middleware.SharedCacheMiddleware',
-    'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
-    'django_structlog.middlewares.RequestMiddleware',
-    *(['sefaria.system.middleware.MaxRSSMiddleware'] if os.environ.get('ENABLE_MAXRSS_MIDDLEWARE') else []),
+    "django_hosts.middleware.HostsRequestMiddleware",  # must be first
+    "sefaria.system.middleware.SessionCookieDomainMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "sefaria.system.middleware.SessionIDAuthMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django_user_agents.middleware.UserAgentMiddleware",
+    "sefaria.system.middleware.ModuleMiddleware",
+    "sefaria.system.middleware.LocationSettingsMiddleware",
+    "sefaria.system.middleware.LanguageCookieMiddleware",
+    "sefaria.system.middleware.LanguageSettingsMiddleware",
+    "sefaria.system.middleware.ProfileMiddleware",
+    "sefaria.system.middleware.CORSDebugMiddleware",
+    "sefaria.system.middleware.SharedCacheMiddleware",
+    "sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware",
+    "django_structlog.middlewares.RequestMiddleware",
+    *(["sefaria.system.middleware.MaxRSSMiddleware"] if os.environ.get("ENABLE_MAXRSS_MIDDLEWARE") else []),
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
-    'sefaria.system.middleware.ClearSsoNextCookieMiddleware',
-    'django_hosts.middleware.HostsResponseMiddleware',  # must be last
+    "allauth.account.middleware.AccountMiddleware",
+    "sefaria.system.middleware.ClearSsoNextCookieMiddleware",
+    "django_hosts.middleware.HostsResponseMiddleware",  # must be last
 ]
 
-ROOT_URLCONF = 'sefaria.urls'
+ROOT_URLCONF = "sefaria.urls"
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'sefaria.wsgi.application'
+WSGI_APPLICATION = "sefaria.wsgi.application"
 
 INSTALLED_APPS = (
-    'adminsortable',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'django.contrib.messages',
-    'reader',
-    'django.contrib.staticfiles',
-    'django.contrib.humanize',
-    'emailusernames',
-    'guides',
-    'sefaria.gauth',
-    'django_topics.apps.DjangoTopicsAppConfig',
-    'powered_by.apps.PoweredByAppConfig',
-    'dedications.apps.DedicationsAppConfig',
-    'django_recaptcha',
-    'django.contrib.admin',
-    'anymail',
-    'webpack_loader',
-    'django_user_agents',
-    'rest_framework',
-    'remote_config.apps.RemoteConfigConfig',
+    "adminsortable",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.sites",
+    "django.contrib.messages",
+    "reader",
+    "django.contrib.staticfiles",
+    "django.contrib.humanize",
+    "emailusernames",
+    "guides",
+    "sefaria.gauth",
+    "django_topics.apps.DjangoTopicsAppConfig",
+    "powered_by.apps.PoweredByAppConfig",
+    "dedications.apps.DedicationsAppConfig",
+    "django_recaptcha",
+    "django.contrib.admin",
+    "anymail",
+    "webpack_loader",
+    "django_user_agents",
+    "rest_framework",
+    "remote_config.apps.RemoteConfigConfig",
     #'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-    'django_hosts',
-    'pgvector.django',
-    'semantic_search',
-    'django.contrib.postgres',
-    'sso.apps.SsoConfig',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.apple',
-    'allauth.headless',
+    "django_hosts",
+    "pgvector.django",
+    "semantic_search",
+    "django.contrib.postgres",
+    "sso.apps.SsoConfig",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.apple",
+    "allauth.headless",
 )
 
-DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
+DATABASE_ROUTERS = ["semantic_search.router.SemanticSearchRouter"]
 
 SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
 
@@ -200,32 +206,32 @@ APP_VERSION = os.environ.get("APP_VERSION", "")
 # TLS terminates at the ingress/load balancer; without this, request.is_secure()
 # (and anything built from request.build_absolute_uri(), e.g. allauth's OAuth2
 # callback URLs) incorrectly reports 'http' behind the proxy.
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-LOGIN_URL = 'login'
+LOGIN_URL = "login"
 
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = "home"
 
-LOGOUT_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = "home"
 
 AUTHENTICATION_BACKENDS = (
-    'emailusernames.backends.EmailAuthBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
+    "emailusernames.backends.EmailAuthBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 )
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    )
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
 }
 
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
-
-LOCALE_PATHS = (
-    relative_to_abs_path('../locale'),
+SESSION_SERIALIZER = (
+    "django.contrib.sessions.serializers.JSONSerializer"  # this is the default anyway right now, but make sure
 )
+
+LOCALE_PATHS = (relative_to_abs_path("../locale"),)
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -249,100 +255,98 @@ logger.debug()
 """
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'standard': {
-            'format': '%(asctime)s - %(levelname)s %(name)s: %(message)s'
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {
+            "format": "%(asctime)s - %(levelname)s %(name)s: %(message)s",
         },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
+        "simple": {
+            "format": "%(levelname)s %(message)s",
         },
-        'verbose': {
-            'format': '%(asctime)s - %(levelname)s: [%(name)s] %(process)d %(thread)d %(message)s'
+        "verbose": {
+            "format": "%(asctime)s - %(levelname)s: [%(name)s] %(process)d %(thread)d %(message)s",
         },
-
     },
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
+    "filters": {
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse",
         },
-        'require_debug_true': {
-            '()': 'sefaria.utils.log.RequireDebugTrue'
+        "require_debug_true": {
+            "()": "sefaria.utils.log.RequireDebugTrue",
         },
-        'exclude_errors' : {
-            '()': 'sefaria.utils.log.ErrorTypeFilter',
-            'error_types' : ['BookNameError'],
-            'exclude' : True
+        "exclude_errors": {
+            "()": "sefaria.utils.log.ErrorTypeFilter",
+            "error_types": ["BookNameError"],
+            "exclude": True,
         },
-        'filter_book_name_errors' : {
-            '()': 'sefaria.utils.log.ErrorTypeFilter',
-            'error_types' : ['BookNameError', 'InputError'],
-            'exclude' : False
-        }
+        "filter_book_name_errors": {
+            "()": "sefaria.utils.log.ErrorTypeFilter",
+            "error_types": ["BookNameError", "InputError"],
+            "exclude": False,
+        },
     },
-    'handlers': {
-        'default': {
-            'level':'WARNING',
-            'filters': ['exclude_errors'],
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/sefaria.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 20,
-            'formatter':'verbose',
+    "handlers": {
+        "default": {
+            "level": "WARNING",
+            "filters": ["exclude_errors"],
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": relative_to_abs_path("../log/sefaria.log"),
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 20,
+            "formatter": "verbose",
         },
-        'book_name_errors': {
-            'level':'ERROR',
-            'filters': ['filter_book_name_errors'],
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/sefaria_book_errors.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 20,
-            'formatter':'verbose',
+        "book_name_errors": {
+            "level": "ERROR",
+            "filters": ["filter_book_name_errors"],
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": relative_to_abs_path("../log/sefaria_book_errors.log"),
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 20,
+            "formatter": "verbose",
         },
-        'null': {
-            'level':'INFO',
-            'class':'logging.NullHandler',
+        "null": {
+            "level": "INFO",
+            "class": "logging.NullHandler",
         },
-
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+        "mail_admins": {
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "class": "django.utils.log.AdminEmailHandler",
         },
-        'request_handler': {
-            'level':'WARNING',
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/django_request.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 20,
-            'formatter':'standard',
-        }
+        "request_handler": {
+            "level": "WARNING",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": relative_to_abs_path("../log/django_request.log"),
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 20,
+            "formatter": "standard",
+        },
     },
-    'loggers': {
-        '': {
-            'handlers': ['default', 'book_name_errors'],
-            'level': 'INFO',
-            'propagate': True
+    "loggers": {
+        "": {
+            "handlers": ["default", "book_name_errors"],
+            "level": "INFO",
+            "propagate": True,
         },
-        'django': {
-            'handlers': ['null'],
-            'propagate': False,
-            'level': 'INFO',
+        "django": {
+            "handlers": ["null"],
+            "propagate": False,
+            "level": "INFO",
         },
-        'django.request': {
-            'handlers': ['mail_admins', 'request_handler'],
-            'level': 'INFO',
-            'propagate': True,
+        "django.request": {
+            "handlers": ["mail_admins", "request_handler"],
+            "level": "INFO",
+            "propagate": True,
         },
-    }
+    },
 }
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
-    }
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": "/var/tmp/django_cache",
+    },
 }
 
 
@@ -352,18 +356,18 @@ CACHES = {
 # (sefaria/system/context_processors.py) raises NameError on *every* page render — a far
 # worse failure than an unused index name. local_settings.py overrides these below when it
 # defines them.
-SEARCH_INDEX_NAME_TEXT = 'text'
-SEARCH_INDEX_NAME_SHEET = 'sheet'
-SEARCH_INDEX_NAME_TOPIC = 'topic'
-SEARCH_INDEX_NAME_BOOK = 'book'
-SEARCH_INDEX_NAME_CATEGORY = 'category'
+SEARCH_INDEX_NAME_TEXT = "text"
+SEARCH_INDEX_NAME_SHEET = "sheet"
+SEARCH_INDEX_NAME_TOPIC = "topic"
+SEARCH_INDEX_NAME_BOOK = "book"
+SEARCH_INDEX_NAME_CATEGORY = "category"
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):
     from sefaria.local_settings_ci import *
 else:
-    if os.path.isfile(os.path.join(os.path.dirname(__file__), 'local_settings.py')):
+    if os.path.isfile(os.path.join(os.path.dirname(__file__), "local_settings.py")):
         from sefaria.local_settings import *
     else:
         from sefaria.local_settings_example import *
@@ -373,28 +377,27 @@ if os.getenv("COOLIFY"):
 # Listed after local settings are imported so CACHE can depend on DEBUG
 
 WEBPACK_LOADER = {
-    'DEFAULT': {
-        'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
-        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.client.json'),
-        'POLL_INTERVAL': 0.1,
-        'TIMEOUT': None,
-        'CACHE': not DEBUG,
+    "DEFAULT": {
+        "BUNDLE_DIR_NAME": "bundles/client/",  # must end with slash
+        "STATS_FILE": relative_to_abs_path("../node/webpack-stats.client.json"),
+        "POLL_INTERVAL": 0.1,
+        "TIMEOUT": None,
+        "CACHE": not DEBUG,
     },
-    'SEFARIA_JS': {
-        'BUNDLE_DIR_NAME': 'bundles/sefaria/',  # must end with slash
-        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.sefaria.json'),
-        'POLL_INTERVAL': 0.1,
-        'TIMEOUT': None,
-        'CACHE': not DEBUG,
+    "SEFARIA_JS": {
+        "BUNDLE_DIR_NAME": "bundles/sefaria/",  # must end with slash
+        "STATS_FILE": relative_to_abs_path("../node/webpack-stats.sefaria.json"),
+        "POLL_INTERVAL": 0.1,
+        "TIMEOUT": None,
+        "CACHE": not DEBUG,
     },
-    'LINKER': {
-        'BUNDLE_DIR_NAME': 'bundles/linker.v3/',  # must end with slash
-        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.linker.v3.json'),
-        'POLL_INTERVAL': 0.1,
-        'TIMEOUT': None,
-        'CACHE': not DEBUG,
-    }
-
+    "LINKER": {
+        "BUNDLE_DIR_NAME": "bundles/linker.v3/",  # must end with slash
+        "STATS_FILE": relative_to_abs_path("../node/webpack-stats.linker.v3.json"),
+        "POLL_INTERVAL": 0.1,
+        "TIMEOUT": None,
+        "CACHE": not DEBUG,
+    },
 }
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
@@ -402,42 +405,42 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # django-allauth configuration (local_settings must be imported first for SSO vars)
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_ADAPTER = 'sso.adapters.SefariaAccountAdapter'
-SOCIALACCOUNT_ADAPTER = 'sso.adapters.SefariaSocialAccountAdapter'
+ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_ADAPTER = "sso.adapters.SefariaAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "sso.adapters.SefariaSocialAccountAdapter"
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 # Env vars take precedence (production injects these via the deploy environment);
 # fall back to the local_settings values imported above (used in local dev).
-_APPLE_WEB_CLIENT_ID = os.environ.get('APPLE_SSO_CLIENT_ID') or APPLE_SSO_CLIENT_ID
-_APPLE_NATIVE_BUNDLE_ID = os.environ.get('APPLE_SSO_IOS_BUNDLE_ID') or APPLE_SSO_IOS_BUNDLE_ID
+_APPLE_WEB_CLIENT_ID = os.environ.get("APPLE_SSO_CLIENT_ID") or APPLE_SSO_CLIENT_ID
+_APPLE_NATIVE_BUNDLE_ID = os.environ.get("APPLE_SSO_IOS_BUNDLE_ID") or APPLE_SSO_IOS_BUNDLE_ID
 SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {'client_id': os.environ.get('GOOGLE_SSO_CLIENT_ID') or GOOGLE_SSO_CLIENT_ID, 'secret': '', 'key': ''},
-        'SCOPE': ['profile', 'email'],
+    "google": {
+        "APP": {"client_id": os.environ.get("GOOGLE_SSO_CLIENT_ID") or GOOGLE_SSO_CLIENT_ID, "secret": "", "key": ""},
+        "SCOPE": ["profile", "email"],
     },
-    'apple': {
-        'APP': {
+    "apple": {
+        "APP": {
             # allauth reads the accepted 'aud's from a comma-separated
             # client_id (AppleProvider.get_auds); there is no 'audience'
             # setting. Web ID first -- api calls use client_id.split(",")[0].
-            'client_id': ','.join(filter(None, (_APPLE_WEB_CLIENT_ID, _APPLE_NATIVE_BUNDLE_ID))),
+            "client_id": ",".join(filter(None, (_APPLE_WEB_CLIENT_ID, _APPLE_NATIVE_BUNDLE_ID))),
             # allauth's Apple client signs its own client-secret JWT from these:
             # 'secret' -> Key ID (JWT 'kid' header), 'key' -> Team ID (JWT 'iss' claim).
-            'secret': os.environ.get('APPLE_SSO_KEY_ID') or APPLE_SSO_KEY_ID,
-            'key': os.environ.get('APPLE_SSO_TEAM_ID') or APPLE_SSO_TEAM_ID,
-            'settings': {
-                'certificate_key': os.environ.get('APPLE_SSO_PRIVATE_KEY') or APPLE_SSO_PRIVATE_KEY,
+            "secret": os.environ.get("APPLE_SSO_KEY_ID") or APPLE_SSO_KEY_ID,
+            "key": os.environ.get("APPLE_SSO_TEAM_ID") or APPLE_SSO_TEAM_ID,
+            "settings": {
+                "certificate_key": os.environ.get("APPLE_SSO_PRIVATE_KEY") or APPLE_SSO_PRIVATE_KEY,
             },
         },
     },
 }
 SOCIALACCOUNT_LOGIN_ON_GET = True
 HEADLESS_ONLY = False
-HEADLESS_FRONTEND_URLS = {'account_confirm_email': '/'}
+HEADLESS_FRONTEND_URLS = {"account_confirm_email": "/"}
 
-ROOT_HOSTCONF = 'sefaria.hosts'
-DEFAULT_HOST = 'library'
+ROOT_HOSTCONF = "sefaria.hosts"
+DEFAULT_HOST = "library"

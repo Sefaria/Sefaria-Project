@@ -3,10 +3,10 @@ import io
 import uuid
 from unittest import mock
 
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, RequestFactory
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import RequestFactory, TestCase
 
 from reader.admin import UserExperimentSettingsAdmin
 from reader.conftest import create_test_user, purge_test_profiles
@@ -83,8 +83,8 @@ def _build_post_request(admin_user, csv_bytes):
     request.user = admin_user
     # Django messages middleware isn't available in RequestFactory, so wire up
     # the fallback storage manually.
-    setattr(request, "session", "session")
-    setattr(request, "_messages", FallbackStorage(request))
+    request.session = "session"
+    request._messages = FallbackStorage(request)
     return request
 
 
@@ -105,7 +105,8 @@ class TestUploadCsvView(TestCase):
         ]
 
         self.model_admin = UserExperimentSettingsAdmin(
-            model=UserExperimentSettings, admin_site=AdminSite()
+            model=UserExperimentSettings,
+            admin_site=AdminSite(),
         )
 
     def tearDown(self):
@@ -136,7 +137,8 @@ class TestUploadCsvView(TestCase):
 
     def test_nonexistent_emails_reported_as_warnings(self, _mock_dispatch):
         request = _build_post_request(
-            self.admin_user, _make_csv_bytes(self.nonexistent_emails)
+            self.admin_user,
+            _make_csv_bytes(self.nonexistent_emails),
         )
 
         response = self.model_admin.upload_csv_view(request)
@@ -177,20 +179,21 @@ class TestUploadCsvView(TestCase):
 
     def test_blank_rows_and_whitespace_are_skipped(self, _mock_dispatch):
         email = self.existing_users[0].email
-        csv_content = f"\n  {email}  \n\n  \n".encode("utf-8")
+        csv_content = f"\n  {email}  \n\n  \n".encode()
         uploaded = SimpleUploadedFile("emails.csv", csv_content, content_type="text/csv")
         factory = RequestFactory()
         request = factory.post("/fake-url/", {"csv_file": uploaded})
         request.user = self.admin_user
-        setattr(request, "session", "session")
-        setattr(request, "_messages", FallbackStorage(request))
+        request.session = "session"
+        request._messages = FallbackStorage(request)
 
         response = self.model_admin.upload_csv_view(request)
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(
             UserExperimentSettings.objects.filter(
-                user=self.existing_users[0], experiments=True
+                user=self.existing_users[0],
+                experiments=True,
             ).exists(),
         )
         msgs = self._get_messages(request)
@@ -212,7 +215,8 @@ class TestUploadCsvView(TestCase):
         user = self.existing_users[0]
         upper_email = user.email.upper()
         request = _build_post_request(
-            self.admin_user, _make_csv_bytes([upper_email])
+            self.admin_user,
+            _make_csv_bytes([upper_email]),
         )
 
         response = self.model_admin.upload_csv_view(request)
@@ -221,4 +225,3 @@ class TestUploadCsvView(TestCase):
         self.assertTrue(
             UserExperimentSettings.objects.filter(user=user, experiments=True).exists(),
         )
-

@@ -15,6 +15,7 @@ Reads `linker_disambiguation_tmp` to find which documents were touched by the di
 ```
 
 Output files:
+
 - `links.json` — link objects from the `links` collection
 - `linker_output.json` — linker output docs from the `linker_output` collection
 - `marked_up_text_chunks.json` — marked-up text chunk docs from `marked_up_text_chunks`
@@ -78,8 +79,8 @@ Edit the variables at the top of the script rather than passing CLI flags:
 
 ```python
 INPUT_REF_OR_URL = "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem 37:26"
-VERSION_TITLE = None          # optional, to narrow to one version
-BASE_URL_OVERRIDE = None      # e.g. "https://www.sefaria.org"
+VERSION_TITLE = None  # optional, to narrow to one version
+BASE_URL_OVERRIDE = None  # e.g. "https://www.sefaria.org"
 ```
 
 Then run:

@@ -2,19 +2,22 @@
 Analyze the linker_disambiguation_tmp collection.
 All outputs are CSV files in disambiguator_analysis/.
 """
+
 import csv
 import os
-import sys
+
 import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
 django.setup()
 
-from sefaria.model import library, Ref
-from sefaria.system.database import db
-from sefaria.helper.linker.disambiguator import _normalize_for_llm
-from collections import Counter, defaultdict
+from collections import Counter
+
 import tqdm
+
+from sefaria.helper.linker.disambiguator import _normalize_for_llm
+from sefaria.model import Ref, library
+from sefaria.system.database import db
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "../disambiguator_analysis")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -32,8 +35,7 @@ mutc_pairs = set()  # {(source_ref, target_ref)}
 mutc_total = coll.count_documents({"type": "mutc"})
 cursor = coll.find(
     {"type": "mutc"},
-    {"ref": 1, "resolution_type": 1,
-     "llm_resolved_ref_non_segment": 1, "llm_resolved_ref_ambiguous": 1},
+    {"ref": 1, "resolution_type": 1, "llm_resolved_ref_non_segment": 1, "llm_resolved_ref_ambiguous": 1},
 )
 for doc in tqdm.tqdm(cursor, total=mutc_total, desc="mutc docs"):
     source = doc.get("ref", "")
@@ -54,6 +56,7 @@ target_counter = Counter(t for _, t in mutc_pairs)
 
 
 CAULDRON = "https://disambig3.cauldron.sefaria.org"
+
 
 def cauldron_url(ref_str: str) -> str:
     try:

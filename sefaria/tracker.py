@@ -3,17 +3,20 @@ Object history tracker
 Accepts change requests for model objects, passes the changes to the models, and records the changes in history
 
 """
+
 from functools import reduce
 
 import structlog
+
 logger = structlog.get_logger(__name__)
 
 import sefaria.model as model
-from sefaria.system.exceptions import InputError
 from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
-from sefaria.settings import USE_VARNISH, CELERY_ENABLED
+from sefaria.settings import CELERY_ENABLED, USE_VARNISH
+from sefaria.system.exceptions import InputError
+
 if USE_VARNISH:
-    from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
+    from sefaria.system.varnish.wrapper import invalidate_ref
 
 
 def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
@@ -34,13 +37,24 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     old_text = chunk.text
     chunk.text = text
     if vsource:
-        chunk.versionSource = vsource  # todo: log this change
+        chunk.versionSource = vsource  # TODO: log this change
     if chunk.save():
-        skip_links = kwargs.pop('skip_links', False) or chunk.has_manually_wrapped_refs()
+        skip_links = kwargs.pop("skip_links", False) or chunk.has_manually_wrapped_refs()
         count_after = kwargs.pop("count_after", 1)
         version_id = str(chunk.full_version._id)
 
-        _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, text, version_id, skip_links=skip_links, **kwargs)
+        _post_modify_changed_segments(
+            user,
+            action,
+            oref,
+            lang,
+            vtitle,
+            old_text,
+            text,
+            version_id,
+            skip_links=skip_links,
+            **kwargs,
+        )
 
         count_and_index(oref, lang, vtitle, to_count=count_after)
 
@@ -55,14 +69,16 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
     vsource: optional parameter to set the version source of the version. not sure why this is here. I copied it from modify_text.
     skip_toc_refresh: if True, refresh the persisted VersionState and the in-memory ToC node for this index but skip the global `library.rebuild_toc` (which re-serializes the full ToC and rebuilds the topic ToC). Use this when the caller will trigger a single `library.rebuild_toc` at the end of a batch of edits.
     """
-    skip_toc_refresh = kwargs.pop('skip_toc_refresh', False)
+    skip_toc_refresh = kwargs.pop("skip_toc_refresh", False)
+
     def populate_change_map(old_text, en_tref, he_tref, _):
         nonlocal change_map, existing_tref_set
         existing_tref_set.add(en_tref)
-        new_text = text_map.get(en_tref, None)
+        new_text = text_map.get(en_tref)
         if new_text is None or new_text == old_text:
             return
         change_map[en_tref] = (old_text, new_text, model.Ref(en_tref))
+
     change_map = {}
     existing_tref_set = set()
     version.walk_thru_contents(populate_change_map)
@@ -72,10 +88,10 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
             # this ref doesn't exist for this version. probably exists in a different version
             # no reason to add to change_map if it has not content
             continue
-        change_map[new_tref] = ('', text_map[new_tref], model.Ref(new_tref))
+        change_map[new_tref] = ("", text_map[new_tref], model.Ref(new_tref))
 
     if vsource:
-        version.versionSource = vsource  # todo: log this change
+        version.versionSource = vsource  # TODO: log this change
 
     # modify version in place
     error_map = {}
@@ -86,12 +102,25 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
             error_map[oref.normal()] = f"Ref doesn't match schema of version. Exception: {repr(e)}"
     version.save()
 
-    skip_links = kwargs.pop('skip_links', False) or getattr(version, 'hasManuallyWrappedRefs', False)
+    skip_links = kwargs.pop("skip_links", False) or getattr(version, "hasManuallyWrappedRefs", False)
     for old_text, new_text, oref in change_map.values():
-        if oref.normal() in error_map: continue
+        if oref.normal() in error_map:
+            continue
         # hard-code `count_after` to False here. It will be called later on the whole index once
         # (which is all that's necessary)
-        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, str(version._id), skip_links=skip_links, count_after=False, **kwargs)
+        post_modify_text(
+            user,
+            kwargs.get("type"),
+            oref,
+            version.language,
+            version.versionTitle,
+            old_text,
+            new_text,
+            str(version._id),
+            skip_links=skip_links,
+            count_after=False,
+            **kwargs,
+        )
 
     count_segments(version.get_index(), skip_toc_refresh=skip_toc_refresh)
     return error_map
@@ -101,11 +130,8 @@ def modify_version(user: int, version_dict: dict, patch=True, **kwargs):
 
     def modify_node(jagged_array_node):
         address = jagged_array_node.address()[1:]  # first element is the index name
-        new_content = reduce(lambda x, y: x.get(y, {}), address, version_dict['chapter'])
-        if is_version_new:
-            old_content = []
-        else:
-            old_content = reduce(lambda x, y: x.setdefault(y, {}), address, version.chapter) or []
+        new_content = reduce(lambda x, y: x.get(y, {}), address, version_dict["chapter"])
+        old_content = [] if is_version_new else reduce(lambda x, y: x.setdefault(y, {}), address, version.chapter) or []
         if (patch and new_content == {}) or old_content == new_content:
             return
         new_content = new_content or []
@@ -114,25 +140,26 @@ def modify_version(user: int, version_dict: dict, patch=True, **kwargs):
                 reduce(lambda x, y: x[y], address[:-1], version.chapter)[address[-1]] = new_content
             else:
                 version.chapter = new_content
-        action = 'add' if not old_content else 'edit'
-        changing_texts.append({'action': action, 'oref': jagged_array_node.ref(), 'old_text': old_content, 'curr_text': new_content})
+        action = "add" if not old_content else "edit"
+        changing_texts.append(
+            {"action": action, "oref": jagged_array_node.ref(), "old_text": old_content, "curr_text": new_content},
+        )
 
-    index_title = version_dict['title']
-    lang = version_dict['language']
-    version_title = version_dict['versionTitle']
-    version = model.Version().load({'title': index_title, 'versionTitle': version_title, 'language': lang})
+    index_title = version_dict["title"]
+    lang = version_dict["language"]
+    version_title = version_dict["versionTitle"]
+    version = model.Version().load({"title": index_title, "versionTitle": version_title, "language": lang})
     changing_texts = []
     if version:
         is_version_new = False
         if not patch:
             for attr in model.Version.required_attrs + model.Version.optional_attrs:
-                if hasattr(version, attr) and attr != 'chapter':
+                if hasattr(version, attr) and attr != "chapter":
                     delattr(version, attr)
         for key, value in version_dict.items():
-            if key == 'chapter':
+            if key == "chapter":
                 continue
-            else:
-                setattr(version, key, value)
+            setattr(version, key, value)
     else:
         is_version_new = True
         version = model.Version(version_dict)
@@ -140,7 +167,17 @@ def modify_version(user: int, version_dict: dict, patch=True, **kwargs):
     version.save()
 
     for change in changing_texts:
-        post_modify_text(user, change['action'], change['oref'], lang, version_title, change['old_text'], change['curr_text'], str(version._id), **kwargs)
+        post_modify_text(
+            user,
+            change["action"],
+            change["oref"],
+            lang,
+            version_title,
+            change["old_text"],
+            change["curr_text"],
+            str(version._id),
+            **kwargs,
+        )
     count_segments(version.get_index())
 
 
@@ -162,7 +199,7 @@ def update_version_metadata(user: int, version: model.Version, updates: dict, **
         The updated Version object
     """
     old_dict = version.contents()
-    old_dict.pop('chapter', None)  # don't log text itself, just log the metadata
+    old_dict.pop("chapter", None)  # don't log text itself, just log the metadata
 
     for field_name, field_value in updates.items():
         if field_value is None:
@@ -174,12 +211,24 @@ def update_version_metadata(user: int, version: model.Version, updates: dict, **
 
     version.save()
     new_dict = version.contents()
-    new_dict.pop('chapter', None)  # again,don't log text itself, just log the metadata
+    new_dict.pop("chapter", None)  # again,don't log text itself, just log the metadata
     model.log_version_metadata(user, old_dict, new_dict, **kwargs)
     return version
 
 
-def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, skip_links=False, count_after=1, **kwargs) -> None:
+def post_modify_text(
+    user,
+    action,
+    oref,
+    lang,
+    vtitle,
+    old_text,
+    curr_text,
+    version_id,
+    skip_links=False,
+    count_after=1,
+    **kwargs,
+) -> None:
     model.log_text(user, action, oref, lang, vtitle, old_text, curr_text, **kwargs)
     if USE_VARNISH:
         invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
@@ -199,7 +248,18 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
     count_and_index(oref, lang, vtitle, to_count=count_after)
 
 
-def _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, new_text, version_id, skip_links=False, **kwargs):
+def _post_modify_changed_segments(
+    user,
+    action,
+    oref,
+    lang,
+    vtitle,
+    old_text,
+    new_text,
+    version_id,
+    skip_links=False,
+    **kwargs,
+):
     """Recursively walk old_text/new_text and call post_modify_text only for changed segments."""
     if isinstance(new_text, list):
         if not isinstance(old_text, list):
@@ -207,11 +267,34 @@ def _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, ne
         padded_old = old_text + [""] * max(0, len(new_text) - len(old_text))
         for i in range(len(new_text)):
             if padded_old[i] != new_text[i]:
-                _post_modify_changed_segments(user, action, oref.subref(i + 1), lang, vtitle, padded_old[i], new_text[i], version_id, skip_links=skip_links, **kwargs)
+                _post_modify_changed_segments(
+                    user,
+                    action,
+                    oref.subref(i + 1),
+                    lang,
+                    vtitle,
+                    padded_old[i],
+                    new_text[i],
+                    version_id,
+                    skip_links=skip_links,
+                    **kwargs,
+                )
     else:
         # Segment level — call post_modify_text if changed
         if old_text != new_text:
-            post_modify_text(user, action, oref, lang, vtitle, old_text, new_text, version_id, skip_links=skip_links, count_after=False, **kwargs)
+            post_modify_text(
+                user,
+                action,
+                oref,
+                lang,
+                vtitle,
+                old_text,
+                new_text,
+                version_id,
+                skip_links=skip_links,
+                count_after=False,
+                **kwargs,
+            )
 
 
 def count_and_index(oref, lang, vtitle, to_count=1):
@@ -220,14 +303,16 @@ def count_and_index(oref, lang, vtitle, to_count=1):
     # count available segments of text
     if to_count:
         count_segments(oref.index)
-    
+
     if SEARCH_INDEX_ON_SAVE:
-        model.IndexQueue({
-            "ref": oref.normal(),
-            "lang": lang,
-            "version": vtitle,
-            "type": "ref",
-        }).save()
+        model.IndexQueue(
+            {
+                "ref": oref.normal(),
+                "lang": lang,
+                "version": vtitle,
+                "type": "ref",
+            },
+        ).save()
 
 
 def count_segments(index, skip_toc_refresh=False):
@@ -296,7 +381,7 @@ def delete(user, klass, _id, **kwargs):
     """
     obj = klass().load_by_id(_id)
     if obj is None:
-        return {'error': 'item with id: {} not found'.format(_id)}
+        return {"error": f"item with id: {_id} not found"}
     if kwargs.get("callback"):
         kwargs.get("callback")(obj)
         del kwargs["callback"]
@@ -304,4 +389,3 @@ def delete(user, klass, _id, **kwargs):
     obj.delete()
     model.log_delete(user, klass, old_dict, **kwargs)
     return {"response": "ok"}
-

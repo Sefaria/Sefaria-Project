@@ -1,25 +1,22 @@
-# -*- coding: utf-8 -*-
-
 """
 notifications.py - handle user event notifications
 
 Writes to MongoDB Collection: notifications
 """
-import re
-from datetime import datetime
-import json
 
-from django.template.loader import render_to_string
+from datetime import datetime
+
+import structlog
+
+from sefaria.constants.model import VOICES_MODULE
+from sefaria.model.collection import Collection
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+from sefaria.utils.util import strip_tags
 
 from . import abstract as abst
 from . import user_profile
-from sefaria.model.collection import Collection
-from sefaria.utils.util import strip_tags
-from sefaria.system.database import db
-from sefaria.system.exceptions import InputError
-from sefaria.constants.model import VOICES_MODULE
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 
@@ -42,8 +39,9 @@ class GlobalNotification(abst.AbstractMongoRecord):
         "en"        : english long description (optional)
 
     """
-    collection   = 'global_notification'
-    history_noun = 'global notification'
+
+    collection = "global_notification"
+    history_noun = "global notification"
 
     required_attrs = [
         "type",
@@ -51,17 +49,18 @@ class GlobalNotification(abst.AbstractMongoRecord):
         "date",
     ]
 
-    optional_attrs = [
-    ]
+    optional_attrs = []
 
     def _normalize(self):
         from sefaria.model.text import library
+
         if self.type == "index" or self.type == "version":
             i = library.get_index(self.content.get("index"))
             self.content["index"] = i.title
 
     def _validate(self):
-        from sefaria.model.text import library, Version
+        from sefaria.model.text import Version, library
+
         if self.type == "index":
             assert self.content.get("index")
             assert library.get_index(self.content.get("index"))
@@ -72,21 +71,23 @@ class GlobalNotification(abst.AbstractMongoRecord):
 
             assert i and v and l
 
-            version = Version().load({
-                "title": i,
-                "versionTitle": v,
-                "language": l,
-            })
-            assert version, "No Version Found: {}/{}/{}".format(i, v, l)
+            version = Version().load(
+                {
+                    "title": i,
+                    "versionTitle": v,
+                    "language": l,
+                },
+            )
+            assert version, f"No Version Found: {i}/{v}/{l}"
         elif self.type == "general":
             assert self.content.get("en"), "Please provide an English message."
             assert self.content.get("he"), "Please provide a Hebrew message."
         else:
-            raise InputError("Unknown type for GlobalNotification: {}".format(self.type))
+            raise InputError(f"Unknown type for GlobalNotification: {self.type}")
 
     def _init_defaults(self):
         self.content = {}
-        self.type    = "general"
+        self.type = "general"
         self.date = datetime.now()
 
     @staticmethod
@@ -121,14 +122,14 @@ class GlobalNotification(abst.AbstractMongoRecord):
         return self
 
     def contents(self):
-        d = super(GlobalNotification, self).contents()
+        d = super().contents()
         d["_id"] = self.id
         d["date"] = d["date"].isoformat()
 
         return d
 
     def client_contents(self):
-        n = super(GlobalNotification, self).contents(with_string_id=True)
+        n = super().contents(with_string_id=True)
         n["date"] = n["date"].timestamp()
         return n
 
@@ -140,8 +141,10 @@ class GlobalNotification(abst.AbstractMongoRecord):
 class GlobalNotificationSet(abst.AbstractMongoSet):
     recordClass = GlobalNotification
 
-    def __init__(self, query=None, page=0, limit=0, sort=[["_id", -1]]):
-        super(GlobalNotificationSet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+    def __init__(self, query=None, page=0, limit=0, sort=None):
+        if sort is None:
+            sort = [["_id", -1]]
+        super().__init__(query=query, page=page, limit=limit, sort=sort)
 
     def register_for_user(self, uid):
         for global_note in self:
@@ -155,8 +158,8 @@ class GlobalNotificationSet(abst.AbstractMongoSet):
 
 
 class Notification(abst.AbstractMongoRecord):
-    collection   = 'notifications'
-    history_noun = 'notification'
+    collection = "notifications"
+    history_noun = "notification"
 
     required_attrs = [
         "type",
@@ -169,22 +172,22 @@ class Notification(abst.AbstractMongoRecord):
     optional_attrs = [
         "read_via",
         "global_id",
-        "suspected_spam"
+        "suspected_spam",
     ]
 
     sheets_notification_types = [
         "collection add",
         "follow",
         "sheet like",
-        "sheet publish"
+        "sheet publish",
     ]
 
     def _init_defaults(self):
-        self.read      = False
-        self.read_via  = None
-        self.type      = "unset"
-        self.content   = {}
-        self.date      = datetime.now()
+        self.read = False
+        self.read_via = None
+        self.type = "unset"
+        self.content = {}
+        self.date = datetime.now()
         self.is_global = False
 
     def _set_derived_attributes(self):
@@ -193,17 +196,17 @@ class Notification(abst.AbstractMongoRecord):
 
         gnote = GlobalNotification().load({"_id": self.global_id})
         if gnote is None:
-            logger.error("Tried to load non-existent global notification: {}".format(self.global_id))
+            logger.error(f"Tried to load non-existent global notification: {self.global_id}")
         else:
             self.content = gnote.content
-            self.type    = gnote.type
+            self.type = gnote.type
 
     def register_global_notification(self, global_note, user_id):
-        self.is_global  = True
-        self.global_id  = global_note._id
-        self.uid        = user_id
-        self.type       = global_note.type
-        self.date       = global_note.date
+        self.is_global = True
+        self.global_id = global_note._id
+        self.uid = user_id
+        self.type = global_note.type
+        self.date = global_note.date
         return self
 
     @staticmethod
@@ -213,39 +216,39 @@ class Notification(abst.AbstractMongoRecord):
 
     def make_sheet_like(self, liker_id=None, sheet_id=None):
         """Make this Notification for a sheet like event"""
-        self.type                = "sheet like"
-        self.content["liker"]    = liker_id
+        self.type = "sheet like"
+        self.content["liker"] = liker_id
         self.content["sheet_id"] = sheet_id
         return self
 
     def make_sheet_publish(self, publisher_id=None, sheet_id=None):
-        self.type                 = "sheet publish"
+        self.type = "sheet publish"
         self.content["publisher"] = publisher_id
-        self.content["sheet_id"]  = sheet_id
+        self.content["sheet_id"] = sheet_id
         return self
 
     def make_follow(self, follower_id=None):
         """Make this Notification for a new Follow event"""
-        self.type                = "follow"
+        self.type = "follow"
         self.content["follower"] = follower_id
         return self
 
     def make_collection_add(self, adder_id, collection_slug):
         """Make this Notification for being added to a collection"""
-        self.type                       = "collection add"
-        self.content["adder"]           = adder_id
+        self.type = "collection add"
+        self.content["adder"] = adder_id
         self.content["collection_slug"] = collection_slug
         return self
 
     def make_discuss(self, adder_id=None, discussion_path=None):
         """Make this Notification for a new note added to a conversation event"""
-        self.type                         = "discuss"
-        self.content["adder"]             = adder_id
-        self.content["discussion_path"]   = discussion_path
+        self.type = "discuss"
+        self.content["adder"] = adder_id
+        self.content["discussion_path"] = discussion_path
         return self
 
     def mark_read(self, via="site"):
-        self.read     = True
+        self.read = True
         self.read_via = via
         return self
 
@@ -257,11 +260,11 @@ class Notification(abst.AbstractMongoRecord):
     def actor_id(self):
         """The id of the user who acted in this notification"""
         keys = {
-            "sheet like":     "liker",
-            "sheet publish":  "publisher",
-            "follow":         "follower",
+            "sheet like": "liker",
+            "sheet publish": "publisher",
+            "follow": "follower",
             "collection add": "adder",
-            "discuss":        "adder",
+            "discuss": "adder",
         }
         return self.content[keys[self.type]]
 
@@ -270,21 +273,23 @@ class Notification(abst.AbstractMongoRecord):
         Returns contents of notification in format usable by client, including needed merged
         data from profiles, sheets, etc
         """
-        from sefaria.sheets import get_sheet_metadata
         from sefaria.model.following import FollowRelationship
+        from sefaria.sheets import get_sheet_metadata
 
-        n = super(Notification, self).contents(with_string_id=True)
+        n = super().contents(with_string_id=True)
         n["date"] = n["date"].timestamp()
         if "global_id" in n:
             n["global_id"] = str(n["global_id"])
 
         def annotate_user(n, uid):
             user_data = user_profile.public_user_data(uid)
-            n["content"].update({
-                "name":       user_data["name"],
-                "profileUrl": user_data["profileUrl"],
-                "imageUrl":   user_data["imageUrl"],
-            })
+            n["content"].update(
+                {
+                    "name": user_data["name"],
+                    "profileUrl": user_data["profileUrl"],
+                    "imageUrl": user_data["imageUrl"],
+                },
+            )
 
         def annotate_sheet(n, sheet_id):
             sheet_data = get_sheet_metadata(id=sheet_id)
@@ -299,11 +304,11 @@ class Notification(abst.AbstractMongoRecord):
 
         def annotate_collection(n, collection_slug):
             try:
-               c = Collection().load({"slug": collection_slug})
-               n["content"]["collection_name"] = c.name
+                c = Collection().load({"slug": collection_slug})
+                n["content"]["collection_name"] = c.name
             except:
-               c = Collection().load({"privateSlug": collection_slug})
-               n["content"]["collection_name"] = c.name
+                c = Collection().load({"privateSlug": collection_slug})
+                n["content"]["collection_name"] = c.name
 
         def annotate_follow(n, potential_followee):
             """
@@ -334,8 +339,10 @@ class Notification(abst.AbstractMongoRecord):
 class NotificationSet(abst.AbstractMongoSet):
     recordClass = Notification
 
-    def __init__(self, query=None, page=0, limit=0, sort=[["date", -1]]):
-        super(NotificationSet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+    def __init__(self, query=None, page=0, limit=0, sort=None):
+        if sort is None:
+            sort = [["date", -1]]
+        super().__init__(query=query, page=page, limit=limit, sort=sort)
 
     def _add_global_messages(self, uid):
         """
@@ -349,7 +356,7 @@ class NotificationSet(abst.AbstractMongoSet):
             else:
                 GlobalNotificationSet({"_id": {"$gt": latest_id_for_user}}, limit=10).register_for_user(uid)
 
-    def _build_query_with_scope(self, uid, read=None, is_global=None, suspected_spam=None, scope='library'):
+    def _build_query_with_scope(self, uid, read=None, is_global=None, suspected_spam=None, scope="library"):
         """
         Helper method to build a query with the given parameters and scope.
         """
@@ -363,7 +370,7 @@ class NotificationSet(abst.AbstractMongoSet):
         query["type"] = {"$in" if scope == VOICES_MODULE else "$nin": Notification.sheets_notification_types}
         return query
 
-    def unread_for_user(self, uid, scope='library'):
+    def unread_for_user(self, uid, scope="library"):
         """
         Loads the unread notifications for uid.
         """
@@ -372,15 +379,21 @@ class NotificationSet(abst.AbstractMongoSet):
         self.__init__(query=query)
         return self
 
-    def unread_personal_for_user(self, uid, scope='library'):
+    def unread_personal_for_user(self, uid, scope="library"):
         """
         Loads the unread personal notifications for uid.
         """
-        query = self._build_query_with_scope(uid, read=False, is_global=False, suspected_spam={'$in': [False, None]}, scope=scope)
+        query = self._build_query_with_scope(
+            uid,
+            read=False,
+            is_global=False,
+            suspected_spam={"$in": [False, None]},
+            scope=scope,
+        )
         self.__init__(query=query)
         return self
 
-    def recent_for_user(self, uid, page=0, limit=10, scope='library'):
+    def recent_for_user(self, uid, page=0, limit=10, scope="library"):
         """
         Loads recent notifications for uid.
         """
@@ -400,7 +413,7 @@ class NotificationSet(abst.AbstractMongoSet):
 
     def actors_list(self):
         """Returns a unique list of user ids who acted in this notification set excluding likes"""
-        return list(set([n.actor_id for n in self if not n.type == "sheet like"]))
+        return list({n.actor_id for n in self if n.type != "sheet like"})
 
     def actors_string(self):
         """

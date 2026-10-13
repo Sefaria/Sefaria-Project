@@ -1,20 +1,22 @@
 import json
 import time
 
-from sefaria.settings import MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
-
 import structlog
+
+from sefaria.settings import MULTISERVER_REDIS_CONFIRM_CHANNEL, MULTISERVER_REDIS_EVENT_CHANNEL
+
 logger = structlog.get_logger(__name__)
 
-from .messaging import MessagingNode
 from sefaria.system.varnish.thin_wrapper import invalidate_title
+
+from .messaging import MessagingNode
 
 
 class MultiServerMonitor(MessagingNode):
     subscription_channels = [MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL]
 
     def __init__(self):
-        super(MultiServerMonitor, self).__init__()
+        super().__init__()
         self.connect()
         self.events = {}
         self.event_order = []
@@ -38,7 +40,7 @@ class MultiServerMonitor(MessagingNode):
             return
 
         if msg["type"] != "message":
-            logger.error("Surprising redis message type: {}".format(msg))
+            logger.error(f"Surprising redis message type: {msg}")
 
         elif msg["channel"] == MULTISERVER_REDIS_EVENT_CHANNEL:
             data = json.loads(msg["data"])
@@ -60,7 +62,7 @@ class MultiServerMonitor(MessagingNode):
         """
         event_id = data["id"]
         try:
-            (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
+            (_, subscribers) = self.redis_client.execute_command("PUBSUB", "NUMSUB", MULTISERVER_REDIS_EVENT_CHANNEL)
         except Exception:
             logger.error("Failed to connect to Redis instance while getting subscriber count")
             return
@@ -70,10 +72,10 @@ class MultiServerMonitor(MessagingNode):
             "expected": expected,
             "confirmed": 0,
             "confirmations": [],
-            "complete": False}
+            "complete": False,
+        }
         self.event_order += [event_id]
-        logger.info("Received new event: {} - expecting {} confirmations".format(
-            self.event_description(data), expected))
+        logger.info(f"Received new event: {self.event_description(data)} - expecting {expected} confirmations")
 
     def _process_confirm(self, data):
         """
@@ -82,23 +84,27 @@ class MultiServerMonitor(MessagingNode):
         :return:
         """
 
-        # todo: check status - success/error
+        # TODO: check status - success/error
         event_id = data["event_id"]
         event_record = self.events.get(event_id)
 
         if not event_record:
-            logger.error("Got confirmation of unknown event. {}".format(data))
+            logger.error(f"Got confirmation of unknown event. {data}")
             return
 
         event_record["confirmed"] += 1
         event_record["confirmations"] += [data]
-        logger.info("Received {} of {} confirmations for {}".format(
-            event_record["confirmed"], event_record["expected"], data["event_id"]))
+        logger.info(
+            "Received {} of {} confirmations for {}".format(
+                event_record["confirmed"],
+                event_record["expected"],
+                data["event_id"],
+            ),
+        )
 
         if event_record["confirmed"] == event_record["expected"]:
             event_record["complete"] = True
-            logger.info("Received all {} responses for {}".format(
-                event_record["confirmed"], data["event_id"]))
+            logger.info("Received all {} responses for {}".format(event_record["confirmed"], data["event_id"]))
             self._process_completion(event_record["data"])
 
     def _process_completion(self, data):
@@ -112,15 +118,12 @@ class MultiServerMonitor(MessagingNode):
         :return:
         """
         if data["obj"] == "library":
-
             if data["method"] == "refresh_index_record_in_cache":
                 title = data["args"][-1]  # Sometimes this is first arg, sometimes second.  Always last.
-                logger.info("Invalidating {} in Varnish".format(title))
+                logger.info(f"Invalidating {title} in Varnish")
                 invalidate_title(title)
 
             if data["method"] == "remove_index_record_from_cache":
                 title = data["args"][0]
-                logger.info("Invalidating {} in Varnish".format(title))
+                logger.info(f"Invalidating {title} in Varnish")
                 invalidate_title(title)
-
-

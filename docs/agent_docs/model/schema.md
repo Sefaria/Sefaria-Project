@@ -1,7 +1,9 @@
 # schema.py
+
 > Source: `sefaria/model/schema.py`
 
 ## Purpose
+
 Defines the tree-node structure that describes how every text in the Sefaria library is organized (books, sections, chapters, segments). The schema tree is owned by an `Index` object and determines both the storage layout in MongoDB and the regex-based reference parsing system. This module also provides the `AddressType` hierarchy for handling diverse section-numbering systems (integers, Talmud daf, folio, perek, etc.) and the `TitleGroup`/`Term` system for managing multilingual titles.
 
 ## Class Hierarchy (inheritance tree)
@@ -46,6 +48,7 @@ object
 ## Key Classes
 
 ### TitleGroup
+
 - **Inherits**: object
 - **Collection**: N/A (in-memory only)
 - **Role**: Holds a list of title dicts (`{"text": ..., "lang": ..., "primary": True/False, ...}`). Used both by schema nodes and by `Term` objects.
@@ -56,6 +59,7 @@ object
 - **Validation quirk**: Primary English title must be pure ASCII and may not contain hyphens.
 
 ### Term
+
 - **Inherits**: AbstractMongoRecord, AbstractTitledObject
 - **Collection**: `term`
 - **Role**: A shared, globally-unique titled vocabulary item. Nodes reference Terms via `sharedTitle` to reuse title sets (e.g., parsha names like "Noah" used across multiple Index schemas).
@@ -66,12 +70,14 @@ object
 - **Non-obvious**: `name` MUST equal `get_primary_title()` -- validated on save.
 
 ### NonUniqueTerm
+
 - **Inherits**: SluggedAbstractMongoRecord, AbstractTitledObject
 - **Collection**: `non_unique_terms`
 - **Role**: Successor to `Term` that relaxes the global uniqueness constraint on titles. Used by the topic system.
 - **Key fields**: `slug`, `titles`
 
 ### TreeNode
+
 - **Inherits**: object
 - **Collection**: N/A (never persisted directly)
 - **Role**: Pure tree mechanics -- parent/child relationships, traversal, serialization.
@@ -87,6 +93,7 @@ object
 - **Non-obvious**: `_leaf_nodes` is lazily cached and never invalidated. Mutating the tree after calling `get_leaf_nodes()` will produce stale results.
 
 ### TitledTreeNode
+
 - **Inherits**: TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin
 - **Collection**: N/A
 - **Role**: A tree node with multilingual titles. Handles combined/full titles, "default" child cascading, and the `title_dict()` used for ref parsing.
@@ -99,6 +106,7 @@ object
 - **Non-obvious**: The `title_separators` class attribute (`[", "]`) defines how parent and child titles are joined. The `presentation` attribute on individual titles in TitleGroup controls whether a title is `"combined"` (prepended with ancestors), `"alone"` (standalone), or `"both"`.
 
 ### NumberedTitledTreeNode
+
 - **Inherits**: TitledTreeNode
 - **Collection**: N/A
 - **Role**: Adds numeric addressing (depth, addressTypes, sectionNames) and regex generation for reference parsing.
@@ -111,6 +119,7 @@ object
 - **Non-obvious**: The `_init_address_classes()` lookup uses `globals()` -- address type classes MUST be defined in this module (or injected via `additional_classes` in `deserialize_tree`). The first address type receives `lengths[0]` if available (used by AddressTalmud to enforce max daf).
 
 ### SchemaNode
+
 - **Inherits**: TitledTreeNode
 - **Collection**: N/A (serialized as part of Index document)
 - **Role**: THE core node for Index schema trees. Defines storage structure via `key` (used as dict keys in Version documents). Structure nodes have children; content nodes are leaves.
@@ -127,6 +136,7 @@ object
 - **Non-obvious**: `key` must not contain `.` (MongoDB restriction). Default nodes must have `key = "default"`. Equality is based on `address()`, not identity.
 
 ### JaggedArrayNode
+
 - **Inherits**: SchemaNode, NumberedTitledTreeNode (diamond inheritance)
 - **Collection**: N/A
 - **Role**: The most common leaf node type. Defines a jagged array of text content addressable by integers or other address types. For example, a book with chapters and verses is `depth=2, addressTypes=["Integer","Integer"], sectionNames=["Chapter","Verse"]`.
@@ -138,12 +148,14 @@ object
 - **Non-obvious**: `index_offsets_by_depth` is a dict keyed by depth number (as string), containing nested arrays of offsets. Used for texts where section numbering doesn't start at 1. The diamond inheritance between SchemaNode and NumberedTitledTreeNode is carefully managed with explicit `__init__` calls rather than cooperative `super()`.
 
 ### StringNode
+
 - **Inherits**: JaggedArrayNode
 - **Collection**: N/A
 - **Role**: A depth-0 JaggedArrayNode, effectively storing a single string value.
 - **Non-obvious**: `serialize()` outputs `nodeType: "JaggedArrayNode"` (not "StringNode") so deserialization treats it as a JaggedArrayNode.
 
 ### ArrayMapNode
+
 - **Inherits**: NumberedTitledTreeNode
 - **Collection**: N/A
 - **Role**: Leaf node of alternate structures (like Parsha divisions of Torah). Contains `wholeRef` and optionally `refs` (a jagged array of ref strings) that map to locations in the primary structure.
@@ -154,6 +166,7 @@ object
 - **Non-obvious**: `has_key = False` means this node is NOT used as schema for content storage -- it's purely a mapping structure. Depth 0 ArrayMapNodes skip NumberedTitledTreeNode validation (they have no addressTypes/sectionNames).
 
 ### VirtualNode
+
 - **Inherits**: TitledTreeNode
 - **Collection**: N/A
 - **Role**: Abstract base for nodes not backed by Version storage (dictionaries, sheets). Sets `is_virtual = True`.
@@ -163,6 +176,7 @@ object
   - `address()` -- Returns PARENT's address (virtual nodes don't add to the address path).
 
 ### DictionaryNode
+
 - **Inherits**: VirtualNode
 - **Collection**: N/A
 - **Role**: Schema node for dictionary-type texts (e.g., Jastrow). Children are `DictionaryEntryNode` instances created on-the-fly from lexicon data.
@@ -170,6 +184,7 @@ object
 - **Non-obvious**: `all_children()` is a generator that yields `DictionaryEntryNode` for every entry in the lexicon -- potentially thousands of nodes.
 
 ### DictionaryEntryNode
+
 - **Inherits**: TitledTreeNode
 - **Collection**: N/A
 - **Role**: Virtual node representing a single dictionary entry. Created dynamically by `DictionaryNode`.
@@ -177,11 +192,13 @@ object
 - **Non-obvious**: Can be instantiated three ways: (title+tref), (word), or (lexicon_entry). Navigation (`next_leaf`/`prev_leaf`) follows `next_hw`/`prev_hw` links on the lexicon entry. Raises `DictionaryEntryNotFoundError` if word not in lexicon.
 
 ### SheetLibraryNode / SheetNode
+
 - **Inherits**: VirtualNode / NumberedTitledTreeNode
 - **Role**: Virtual nodes for user-created source sheets. `SheetLibraryNode` is the container; `SheetNode` is created per-sheet on the fly.
 - **Non-obvious**: SheetNode loads the sheet document directly from `db.sheets` at init time. It has `depth=2` with sectionNames `["Sheet", "Segment"]`.
 
 ### AddressType (and subclasses)
+
 - **Inherits**: object
 - **Collection**: N/A
 - **Role**: Defines how a single level of a jagged array is addressed (numbered). Each subclass provides regex patterns for matching references in English and Hebrew, and conversion between string and numeric forms.
@@ -253,6 +270,7 @@ object
 ## Common Tasks
 
 ### Create a simple JaggedArrayNode for a new text
+
 ```python
 node = JaggedArrayNode()
 node.add_primary_titles("My Book", "ספר שלי")
@@ -263,6 +281,7 @@ node.validate()
 ```
 
 ### Navigate a schema tree to find a specific node
+
 ```python
 # From an Index object:
 root = index.nodes  # The root SchemaNode
@@ -271,12 +290,14 @@ node = root.get_child_by_key("Introduction")  # Direct child by key
 ```
 
 ### Build a title-to-node map for reference parsing
+
 ```python
 title_dict = root.title_dict("en")  # {"Genesis": node, "Bereishit": node, ...}
 title_dict_he = root.title_dict("he")
 ```
 
 ### Reconstruct a schema tree from a serialized dict
+
 ```python
 tree = deserialize_tree(serial_dict, index=my_index)
 # Or with custom classes:
@@ -284,21 +305,24 @@ tree = deserialize_tree(serial_dict, struct_class=SchemaNode, leaf_class=JaggedA
 ```
 
 ### Convert between Talmud daf notation and internal numbering
+
 ```python
 addr = AddressTalmud(0)
-num = addr.toNumber("en", "2a")   # returns 3
+num = addr.toNumber("en", "2a")  # returns 3
 s = AddressTalmud.toStr("en", 3)  # returns "2a"
 s = AddressTalmud.toStr("he", 3)  # returns "ב א" (daf 2 amud alef)
 ```
 
 ### Get a Ref from a schema node
+
 ```python
-ref = node.ref()                  # Ref to the entire node
-ref = node.first_section_ref()    # Padded ref to first section
-ref = node.last_section_ref()     # Uses StateNode to find last content
+ref = node.ref()  # Ref to the entire node
+ref = node.first_section_ref()  # Padded ref to first section
+ref = node.last_section_ref()  # Uses StateNode to find last content
 ```
 
 ### Traverse a schema tree and build content
+
 ```python
 # Create empty content skeleton:
 skeleton = root.create_skeleton()  # {"NodeA": [], "NodeB": {"SubNode": []}}

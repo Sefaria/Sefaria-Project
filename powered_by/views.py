@@ -1,7 +1,8 @@
 from django.views.decorators.http import require_GET
 
-from sefaria.system.decorators import catch_error_as_json
 from sefaria.client.util import jsonResponse
+from sefaria.system.decorators import catch_error_as_json
+
 from .models import Project
 
 

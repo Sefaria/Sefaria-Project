@@ -1,11 +1,12 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
-from datetime import timedelta
-import sys
-import structlog
-import sefaria.system.logging as sefaria_logging
 import os
-import json
+import sys
+from datetime import timedelta
+
+import structlog
+
+import sefaria.system.logging as sefaria_logging
 
 # These are things you need to change!
 
@@ -16,21 +17,21 @@ import json
 # (you do not need to create the empty db.sqlite file, as Django will handle that later)
 # ########################################
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '/path/to/Sefaria-Project/db.sqlite', # Path to where you would like the database to be created including a file name, or path to an existing database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        "NAME": "/path/to/Sefaria-Project/db.sqlite",  # Path to where you would like the database to be created including a file name, or path to an existing database file if using sqlite3.
+        "USER": "",  # Not used with sqlite3.
+        "PASSWORD": "",  # Not used with sqlite3.
+        "HOST": "",  # Set to empty string for localhost. Not used with sqlite3.
+        "PORT": "",  # Set to empty string for default. Not used with sqlite3.
     },
-    'vector_db': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pgvector',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '5432',
+    "vector_db": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "pgvector",
+        "USER": "",
+        "PASSWORD": "",
+        "HOST": "localhost",
+        "PORT": "5432",
     },
 }
 
@@ -48,7 +49,7 @@ DATABASES = {
 
 
 ################ User-defined Settings ###########################################################################
-#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+# SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
 DOMAIN_MODULES = {
     "en": {
@@ -58,36 +59,34 @@ DOMAIN_MODULES = {
     "he": {
         "library": "http://localhost:8000",
         "voices": "http://voices.localhost:8000",
-    }
+    },
 }
-ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
+ALLOWED_HOSTS = ["127.0.0.1", "0.0.0.0", "[::1]", "localhost", "voices.localhost"]
 CSRF_TRUSTED_ORIGINS = ["https://*.sefaria.org"]
 
-ADMINS = (
-     'you@example.com',
-)
-ADMIN_PATH = 'somethingsomething' #This will be the path to the admin site, locally it can also be 'admin'
+ADMINS = ("you@example.com",)
+ADMIN_PATH = "somethingsomething"  # This will be the path to the admin site, locally it can also be 'admin'
 
-PINNED_IPCOUNTRY = "IL" # Sets request.country_code when no cf-ipcountry header is present; drives parashat hashavua diaspora/Israel schedule and location-targeted Strapi banners/modals.
+PINNED_IPCOUNTRY = "IL"  # Sets request.country_code when no cf-ipcountry header is present; drives parashat hashavua diaspora/Israel schedule and location-targeted Strapi banners/modals.
 
-MONGO_REPLICASET_NAME = None # If the below is a list, this should be set to something other than None. 
+MONGO_REPLICASET_NAME = None  # If the below is a list, this should be set to something other than None.
 # This can be either a string of one mongo host server or a list of `host:port` string pairs. So either e.g "localhost" of ["localhost:27017","localhost2:27017" ]
 MONGO_HOST = "localhost"
-MONGO_PORT = 27017 # Not used if the above is a list
+MONGO_PORT = 27017  # Not used if the above is a list
 # Name of the MongoDB database to use.
-SEFARIA_DB = 'sefaria' # Change if you named your db something else
-SEFARIA_DB_USER = '' # Leave user and password blank if not using Mongo Auth
-SEFARIA_DB_PASSWORD = ''
+SEFARIA_DB = "sefaria"  # Change if you named your db something else
+SEFARIA_DB_USER = ""  # Leave user and password blank if not using Mongo Auth
+SEFARIA_DB_PASSWORD = ""
 APSCHEDULER_NAME = "apscheduler"
 
 
 """ These are some examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 CACHES = {
     "shared": {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
     },
     "default": {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
     },
 }
 """
@@ -104,8 +103,8 @@ CACHES = {
 """
 
 SESSION_CACHE_ALIAS = "default"
-USER_AGENTS_CACHE = 'default'
-SHARED_DATA_CACHE_ALIAS = 'shared'
+USER_AGENTS_CACHE = "default"
+SHARED_DATA_CACHE_ALIAS = "shared"
 
 """THIS CACHE DEFINITION IS FOR USE WITH NODE AND SERVER SIDE RENDERING"""
 """
@@ -135,11 +134,6 @@ CACHES = {
 SITE_PACKAGE = "sites.sefaria"
 
 
-
-
-
-
-
 ################ Default Settings (Don't change these unless you know what you are doing) ###############################
 DEBUG = True
 OFFLINE = False
@@ -154,13 +148,13 @@ STRAPI_PORT = None
 
 MANAGERS = ADMINS
 
-SECRET_KEY = 'insert your long random secret key here !'
-CHATBOT_USER_ID_SECRET = 'insert your chatbot user id secret here'
+SECRET_KEY = "insert your long random secret key here !"
+CHATBOT_USER_ID_SECRET = "insert your chatbot user id secret here"
 
 
-EMAIL_HOST = 'localhost'
+EMAIL_HOST = "localhost"
 EMAIL_PORT = 1025
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 # Example using anymail, replaces block above
 # EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
@@ -177,24 +171,24 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 SEARCH_URL = "http://localhost:9200"
 
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
-SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
-SEARCH_INDEX_NAME_SHEET = 'sheet'
-SEARCH_INDEX_NAME_TOPIC = 'topic'  # topics and authors (authors are a subtype of topic) - powers /api/entity-search
-SEARCH_INDEX_NAME_BOOK = 'book'  # Index (book) records - powers /api/entity-search
-SEARCH_INDEX_NAME_CATEGORY = 'category'  # searchable TOC categories - powers category results on the Books tab
+SEARCH_INDEX_NAME_TEXT = "text"  # name of the ElasticSearch index to use
+SEARCH_INDEX_NAME_SHEET = "sheet"
+SEARCH_INDEX_NAME_TOPIC = "topic"  # topics and authors (authors are a subtype of topic) - powers /api/entity-search
+SEARCH_INDEX_NAME_BOOK = "book"  # Index (book) records - powers /api/entity-search
+SEARCH_INDEX_NAME_CATEGORY = "category"  # searchable TOC categories - powers category results on the Books tab
 
 # Node Server
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
-FAIL_IF_NODE_SSR_UNAVAILABLE = False   # set to True for debugging purposes only if USE_NODE
+FAIL_IF_NODE_SSR_UNAVAILABLE = False  # set to True for debugging purposes only if USE_NODE
 
-SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
-SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
+SEFARIA_DATA_PATH = "/path/to/your/Sefaria-Data"  # used for Data
+SEFARIA_EXPORT_PATH = "/path/to/your/Sefaria-Data/export"  # used for exporting texts
 
 
-GOOGLE_GTAG = 'your gtag id here'
-GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
+GOOGLE_GTAG = "your gtag id here"
+GOOGLE_TAG_MANAGER_CODE = "you tag manager code here"
 
 HOTJAR_ID = None
 
@@ -215,7 +209,7 @@ SALESFORCE_CLIENT_SECRET = ""
 # Issue bans to Varnish on update.
 USE_VARNISH = False
 FRONT_END_URL = "http://localhost:8000"  # This one wants the http://
-VARNISH_ADM_ADDR = "localhost:6082" # And this one doesn't
+VARNISH_ADM_ADDR = "localhost:6082"  # And this one doesn't
 VARNISH_HOST = "localhost"
 VARNISH_FRNT_PORT = 8040
 VARNISH_SECRET = "/etc/varnish/secret"
@@ -242,8 +236,8 @@ MULTISERVER_ENABLED = False
 MULTISERVER_REDIS_SERVER = "127.0.0.1"
 MULTISERVER_REDIS_PORT = 6379
 MULTISERVER_REDIS_DB = 0
-MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
-MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
+MULTISERVER_REDIS_EVENT_CHANNEL = "msync"  # Message queue on Redis
+MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"  # Message queue on Redis
 
 # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
 GOOGLE_OAUTH2_CLIENT_ID = ""
@@ -253,9 +247,9 @@ GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
 
 GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
 
-GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
-GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
-GPU_SERVER_URL = 'http://localhost:5000'
+GEOIP_DATABASE = "data/geoip/GeoLiteCity.dat"
+GEOIPV6_DATABASE = "data/geoip/GeoLiteCityv6.dat"
+GPU_SERVER_URL = "http://localhost:5000"
 
 # SSO (Google + Apple Sign In via django-allauth)
 GOOGLE_SSO_CLIENT_ID = ""
@@ -267,10 +261,10 @@ APPLE_SSO_PRIVATE_KEY = ""
 
 # Simple JWT
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
-    'ROTATE_REFRESH_TOKENS': True,
-    'SIGNING_KEY': 'a signing key: at least 256 bits',
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
+    "ROTATE_REFRESH_TOKENS": True,
+    "SIGNING_KEY": "a signing key: at least 256 bits",
 }
 
 # Celery - the following section defines variables to connect to the celery broker. This can be either redis or redis sentinel
@@ -289,42 +283,42 @@ CELERY_QUEUES = {}
 CELERY_ENABLED = False
 # END Celery
 
-#Slack
-SLACK_URL = ''
+# Slack
+SLACK_URL = ""
 
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
         "json_formatter": {
             "()": structlog.stdlib.ProcessorFormatter,
             "processor": structlog.processors.JSONRenderer(),
         },
     },
-    'handlers': {
-        'default': {
+    "handlers": {
+        "default": {
             "class": "logging.StreamHandler",
             "formatter": "json_formatter",
         },
     },
-    'loggers': {
-        '': {
-            'handlers': ['default'],
-            'propagate': False,
+    "loggers": {
+        "": {
+            "handlers": ["default"],
+            "propagate": False,
         },
-        'django': {
-            'handlers': ['default'],
-            'propagate': False,
+        "django": {
+            "handlers": ["default"],
+            "propagate": False,
         },
-        'django.request': {
-            'handlers': ['default'],
-            'propagate': False,
+        "django.request": {
+            "handlers": ["default"],
+            "propagate": False,
         },
-    }
+    },
 }
 
 structlog.configure(
@@ -359,19 +353,21 @@ WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
 
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
+SESSION_SERIALIZER = (
+    "django.contrib.sessions.serializers.JSONSerializer"  # this is the default anyway right now, but make sure
+)
 
 # Session cookie settings for cross-subdomain support
 # Set this to your top-level domain (e.g., '.example.com') to allow session cookies
 # to work across all subdomains. The leading dot is important!
-SESSION_COOKIE_DOMAIN = '.example.com'  # Change this to your actual domain
+SESSION_COOKIE_DOMAIN = ".example.com"  # Change this to your actual domain
 SESSION_COOKIE_SECURE = True  # Set to True if using HTTPS
 SESSION_COOKIE_HTTPONLY = True  # Recommended for security
-SESSION_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
+SESSION_COOKIE_SAMESITE = "Lax"  # Modern browsers require this
 
 CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaScript
-CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
+CSRF_COOKIE_SAMESITE = "Lax"  # Modern browsers require this
 
 CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
 # Use the local Vite dev server script instead of the hosted UMD bundle.

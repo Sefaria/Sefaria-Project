@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The Library Assistant setting's decision logic: how a profile reads and how a posted
 value is coerced.
@@ -12,7 +11,7 @@ from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
 
 
-class FakeProfile(object):
+class FakeProfile:
     """
     Enough of a UserProfile for the read rules: an id, a settings dict, the legacy
     `experiments` flag, and the Django user the whitelist lookup keys on.
@@ -30,23 +29,26 @@ def whitelisted(has_row):
     return mock.patch("reader.models.user_has_experiments", return_value=has_row)
 
 
-@pytest.mark.parametrize("value,expected", [
-    (True, True),
-    (1, True),
-    ("true", True),
-    ("True", True),
-    ("on", True),
-    (False, False),
-    (0, False),
-    ("false", False),
-    ("False", False),
-    (" FALSE ", False),
-    ("0", False),
-    ("off", False),
-    ("no", False),
-    ("", False),
-    (None, False),
-])
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (True, True),
+        (1, True),
+        ("true", True),
+        ("True", True),
+        ("on", True),
+        (False, False),
+        (0, False),
+        ("false", False),
+        ("False", False),
+        (" FALSE ", False),
+        ("0", False),
+        ("off", False),
+        ("no", False),
+        ("", False),
+        (None, False),
+    ],
+)
 def test_normalize(value, expected):
     assert library_assistant.normalize(value) is expected
 
@@ -74,12 +76,15 @@ def test_posted_string_false_in_a_stored_setting_is_not_truthy():
         assert library_assistant.is_enabled(FakeProfile(settings={SETTING_KEY: "false"})) is False
 
 
-@pytest.mark.parametrize("has_row,experiments,expected", [
-    (True, True, True),      # on the whitelist and opted in — the only legacy "on"
-    (True, False, False),    # deliberate opt-out
-    (False, True, False),    # never enrolled; the stray Mongo flag means nothing
-    (False, False, False),
-])
+@pytest.mark.parametrize(
+    "has_row,experiments,expected",
+    [
+        (True, True, True),  # on the whitelist and opted in — the only legacy "on"
+        (True, False, False),  # deliberate opt-out
+        (False, True, False),  # never enrolled; the stray Mongo flag means nothing
+        (False, False, False),
+    ],
+)
 def test_absent_key_falls_back_to_the_legacy_rule(has_row, experiments, expected):
     with whitelisted(has_row):
         profile = FakeProfile(settings={}, experiments=experiments)

@@ -1,9 +1,9 @@
-#encoding=utf-8
 import django
+
 django.setup()
 from sefaria.model import *
 
-#create new terms and categories
+# create new terms and categories
 t = Term()
 t.name = "English Explanation of Mishnah"
 t.add_primary_titles(t.name, "ביאור אנגלי על המשנה")
@@ -21,16 +21,16 @@ for mishnah in mishnayot:
     c.save()
 
 
-#change index titles and version titles
+# change index titles and version titles
 pre_new_he = "ביאור אנגלי על "
 pre_new_en = "English Explanation of "
 indices = library.get_indices_by_collective_title("Mishnah Yomit")
-for i, index in enumerate(indices):
-    print("CHANGING INDEX TITLE for {}".format(index))
+for _i, index in enumerate(indices):
+    print(f"CHANGING INDEX TITLE for {index}")
     print(index)
     index = library.get_index(index)
     mishnah_en = index.base_text_titles[0]
-    mishnah_he = library.get_index(mishnah_en).get_title('he')
+    mishnah_he = library.get_index(mishnah_en).get_title("he")
     new_en = pre_new_en + mishnah_en
     new_he = pre_new_he + mishnah_he
     index.set_title(new_he, "he")
@@ -49,9 +49,10 @@ for i, index in enumerate(indices):
     v.versionTitle = "Mishnah Yomit by Dr. Joshua Kulp"
     v.save()
 
-#delete old categories
+# delete old categories
 library.rebuild(include_toc=True)
 from sefaria.model.category import TocCategory
+
 c = Category().load({"path": ["Modern Works", "Mishnah Yomit"]})
 for toc_obj in c.get_toc_object().all_children():
     if isinstance(toc_obj, TocCategory):

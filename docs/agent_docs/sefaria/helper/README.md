@@ -1,18 +1,20 @@
 # Sefaria Helper Layer
+
 > Source: `sefaria/helper/`
 
 ## Purpose
+
 The helper layer sits between raw models and the view/API layer. It contains the "business logic" — text manipulation, schema editing, topic serving, linking orchestration, LLM integrations, CRM connectors. When an operation is too complex for a single model method but shouldn't live in a view, it lives here.
 
 ## Navigation
 
-| Doc | Covers | Load when... |
-|-----|--------|-------------|
-| [text_and_schema.md](./text_and_schema.md) | `text.py`, `schema.py`, `link.py`, `normalization.py`, `category.py`, `legacy_ref.py` | Editing text structure, resizing schemas, autolinkers, text normalization, category operations |
-| [linker_and_llm.md](./linker_and_llm.md) | `linker/*.py`, `llm/*.py`, `marked_up_text_chunk_generator.py` | Find-refs API, LLM-powered disambiguation, sheet scoring, topic prompt generation |
-| [topic_and_community.md](./topic_and_community.md) | `topic.py`, `community_page.py`, `descriptions.py`, `trend_manager.py` | Topic page API, community page (parashah/calendar/featured), author data import, user engagement trends |
-| [crm.md](./crm.md) | `crm/*.py` | Salesforce/NationBuilder integration, chatbot opt-in webhook |
-| [utilities.md](./utilities.md) | `search.py`, `slack/`, `texts/`, `file.py`, `webpages.py`, `linker_index_converter.py` | ES query building, Slack webhooks, file/image utilities, URL normalization, legacy Index → linker term migration |
+| Doc                                                | Covers                                                                                 | Load when...                                                                                                     |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| [text_and_schema.md](./text_and_schema.md)         | `text.py`, `schema.py`, `link.py`, `normalization.py`, `category.py`, `legacy_ref.py`  | Editing text structure, resizing schemas, autolinkers, text normalization, category operations                   |
+| [linker_and_llm.md](./linker_and_llm.md)           | `linker/*.py`, `llm/*.py`, `marked_up_text_chunk_generator.py`                         | Find-refs API, LLM-powered disambiguation, sheet scoring, topic prompt generation                                |
+| [topic_and_community.md](./topic_and_community.md) | `topic.py`, `community_page.py`, `descriptions.py`, `trend_manager.py`                 | Topic page API, community page (parashah/calendar/featured), author data import, user engagement trends          |
+| [crm.md](./crm.md)                                 | `crm/*.py`                                                                             | Salesforce/NationBuilder integration, chatbot opt-in webhook                                                     |
+| [utilities.md](./utilities.md)                     | `search.py`, `slack/`, `texts/`, `file.py`, `webpages.py`, `linker_index_converter.py` | ES query building, Slack webhooks, file/image utilities, URL normalization, legacy Index → linker term migration |
 
 ## File Layout
 

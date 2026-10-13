@@ -1,5 +1,6 @@
-from django.db import models
 from enum import Enum
+
+from django.db import models
 
 
 class PoolType(Enum):

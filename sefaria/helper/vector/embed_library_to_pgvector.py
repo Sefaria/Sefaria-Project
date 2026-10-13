@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Embed Library to pgvector
 
@@ -26,25 +25,28 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 import django
+
 django.setup()
 
+import tqdm as _tqdm_module
+import tqdm.auto as _tqdm_auto_module
 from django.conf import settings as django_settings
+from tqdm import tqdm
+
 from sefaria.model import *
 from sefaria.search import setup_logging
 from semantic_search.embedder import GeminiEmbedder
 from semantic_search.models import SemanticTextChunk
 
-import tqdm as _tqdm_module
-import tqdm.auto as _tqdm_auto_module
-from tqdm import tqdm
-
 # Patot's internal tqdm bars hardcode disable=False and ignore TQDM_DISABLE.
 # Patch the class before patot is imported so all tqdm instances respect the env var.
 if os.environ.get("TQDM_DISABLE"):
     _orig_tqdm_init = _tqdm_module.tqdm.__init__
+
     def _patched_tqdm_init(self, *args, **kwargs):
         kwargs["disable"] = True
         _orig_tqdm_init(self, *args, **kwargs)
+
     _tqdm_module.tqdm.__init__ = _patched_tqdm_init
     _tqdm_auto_module.tqdm.__init__ = _patched_tqdm_init
 
@@ -54,12 +56,15 @@ if os.environ.get("TQDM_DISABLE"):
 # the runtime case.
 try:
     from patot import ChunkerConfig, PatotChunker
-    from patot.records import SegmentRecord
     from patot.analytics import ChunkingRuntimeAnalytics
+    from patot.records import SegmentRecord
 except ModuleNotFoundError:
     ChunkerConfig = PatotChunker = SegmentRecord = ChunkingRuntimeAnalytics = None
 
-_slugify = lambda text: re.sub(r"[^A-Za-z0-9]+", "_", text).strip("_").lower()
+
+def _slugify(text):
+    return re.sub(r"[^A-Za-z0-9]+", "_", text).strip("_").lower()
+
 
 logger = logging.getLogger(__name__)
 
@@ -88,16 +93,18 @@ class EmbeddingResult:
 
     def record_failure(self, index_title, lang, vtitle, section_ref, error):
         with self._lock:
-            self.failures.append({
-                "index_title": index_title,
-                "language": lang,
-                "version_title": vtitle,
-                "ref": section_ref,
-                "error": str(error),
-            })
+            self.failures.append(
+                {
+                    "index_title": index_title,
+                    "language": lang,
+                    "version_title": vtitle,
+                    "ref": section_ref,
+                    "error": str(error),
+                },
+            )
         logger.error(
             f"Failed section - index: {index_title}, lang: {lang}, version: {vtitle}, "
-            f"ref: {section_ref}, error: {error}"
+            f"ref: {section_ref}, error: {error}",
         )
 
     def is_success(self) -> bool:
@@ -122,7 +129,7 @@ class EmbeddingResult:
             for failure in self.failures[:20]:
                 lines.append(
                     f"  - {failure['index_title']} {failure['ref']} "
-                    f"({failure['language']}/{failure['version_title']}): {failure['error']}"
+                    f"({failure['language']}/{failure['version_title']}): {failure['error']}",
                 )
             if len(self.failures) > 20:
                 lines.append(f"  ... and {len(self.failures) - 20} more")
@@ -133,16 +140,21 @@ class EmbeddingResult:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Chunk and embed the Sefaria library into pgvector.")
     parser.add_argument(
-        "--limit-indexes", type=int, default=None,
+        "--limit-indexes",
+        type=int,
+        default=None,
         help="Process only the first N indexes (for smoke testing).",
     )
     parser.add_argument(
-        "--threads", type=int,
+        "--threads",
+        type=int,
         default=int(os.environ.get("EMBED_THREADS", 10)),
         help="Number of parallel threads for index processing (defaults to EMBED_THREADS env var, or 10).",
     )
     parser.add_argument(
-        "--max-versions", type=int, default=None,
+        "--max-versions",
+        type=int,
+        default=None,
         help="Skip indexes with more than N versions (debug flag to avoid high-version bottlenecks).",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging.")
@@ -155,7 +167,7 @@ def is_passage_based(index) -> bool:
 
 def get_passages_for_index(index) -> list:
     prefix = re.escape(index.title)
-    return list(PassageSet({"full_ref": {"$regex": fr"^{prefix} \d"}}))
+    return list(PassageSet({"full_ref": {"$regex": rf"^{prefix} \d"}}))
 
 
 def collect_segment_records_by_section(version) -> dict:
@@ -176,7 +188,7 @@ def collect_segment_records_by_section(version) -> dict:
         section_counters[section_normal] = segment_index + 1
         if segment_str and segment_str.strip():
             segment_records_by_section.setdefault(section_normal, []).append(
-                SegmentRecord(tref=oref.normal(), text=segment_str, segment_index=segment_index)
+                SegmentRecord(tref=oref.normal(), text=segment_str, segment_index=segment_index),
             )
 
     version.walk_thru_contents(collect)
@@ -281,6 +293,7 @@ def chunk_ref_from_segments(source_segment_refs: list):
     Footnote pseudo-refs (containing '::fn:') are not parseable by Sefaria's Ref
     class, so we strip them — using only the base segment part of the ref string.
     """
+
     def to_base_ref(r: str) -> str:
         return r.split("::fn:")[0] if "::fn:" in r else r
 
@@ -298,8 +311,16 @@ def chunk_ref_from_segments(source_segment_refs: list):
     return Ref(unique_refs[0]).to(Ref(unique_refs[-1]))
 
 
-def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedder: GeminiEmbedder,
-                     result, index_context: dict, version_context: dict) -> list[SemanticTextChunk]:
+def build_chunk_data(
+    unit_ref,
+    lang: str,
+    vtitle: str,
+    index_title: str,
+    embedder: GeminiEmbedder,
+    result,
+    index_context: dict,
+    version_context: dict,
+) -> list[SemanticTextChunk]:
     unit_normal = unit_ref.normal()
     unit_slug = _slugify(unit_normal)
     vtitle_slug = _slugify(vtitle)
@@ -308,51 +329,59 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedde
     for chunk_index, chunk in enumerate(result.chunks, start=1):
         vector = embedder.embed_text(chunk.text, "RETRIEVAL_DOCUMENT")
         chunk_hash = hashlib.sha256(
-            f"{unit_normal}|{lang}|{vtitle}|{chunk_index}|{chunk.text}".encode("utf-8")
+            f"{unit_normal}|{lang}|{vtitle}|{chunk_index}|{chunk.text}".encode(),
         ).hexdigest()[:12]
         doc_id = f"chunk_{lang}_{unit_slug}_{vtitle_slug}_{chunk_index}_{chunk_hash}"
 
         chunk_ref = chunk_ref_from_segments(chunk.source_segment_refs)
         chunk_context = get_chunk_context(chunk_ref)
 
-        chunks.append(SemanticTextChunk(
-            doc_id=doc_id,
-            index_title=index_title,
-            ref=chunk_ref.normal(),
-            url=chunk_ref.url(),
-            chunked_from_ref=unit_normal,
-            language=version_context["language"],
-            version_title=vtitle,
-            direction=version_context["direction"],
-            text=chunk.text,
-            embedding=vector,
-            primary_category=index_context["primary_category"],
-            all_categories=index_context["all_categories"],
-            is_primary=version_context["is_primary"],
-            is_source=version_context["is_source"],
-            composition_date=index_context["composition_date"],
-            composition_place=index_context["composition_place"],
-            era_name=index_context["era_name"],
-            pagerank=chunk_context["pagerank"],
-            author_names=index_context["author_names"],
-            author_slugs=index_context["author_slugs"],
-            associated_topic_names=chunk_context["associated_topic_names"],
-            associated_topic_slugs=chunk_context["associated_topic_slugs"],
-            linked_refs=chunk_context["linked_refs"],
-            chunker_metadata={
-                "source_segment_refs": chunk.source_segment_refs,
-                "chunk_kind": chunk.kind,
-                "chunk_pass_number": chunk.pass_number,
-                "chunk_token_count": chunk.token_count,
-                "chunk_triggered": chunk.triggered,
-                "chunk_score": chunk.score,
-            },
-        ))
+        chunks.append(
+            SemanticTextChunk(
+                doc_id=doc_id,
+                index_title=index_title,
+                ref=chunk_ref.normal(),
+                url=chunk_ref.url(),
+                chunked_from_ref=unit_normal,
+                language=version_context["language"],
+                version_title=vtitle,
+                direction=version_context["direction"],
+                text=chunk.text,
+                embedding=vector,
+                primary_category=index_context["primary_category"],
+                all_categories=index_context["all_categories"],
+                is_primary=version_context["is_primary"],
+                is_source=version_context["is_source"],
+                composition_date=index_context["composition_date"],
+                composition_place=index_context["composition_place"],
+                era_name=index_context["era_name"],
+                pagerank=chunk_context["pagerank"],
+                author_names=index_context["author_names"],
+                author_slugs=index_context["author_slugs"],
+                associated_topic_names=chunk_context["associated_topic_names"],
+                associated_topic_slugs=chunk_context["associated_topic_slugs"],
+                linked_refs=chunk_context["linked_refs"],
+                chunker_metadata={
+                    "source_segment_refs": chunk.source_segment_refs,
+                    "chunk_kind": chunk.kind,
+                    "chunk_pass_number": chunk.pass_number,
+                    "chunk_token_count": chunk.token_count,
+                    "chunk_triggered": chunk.triggered,
+                    "chunk_score": chunk.score,
+                },
+            ),
+        )
     return chunks
 
 
-def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
-                   chunk_store: SemanticTextChunk, version_pbar=None):
+def _process_index(
+    index,
+    chunker,
+    result_tracker: EmbeddingResult,
+    get_units_for_version,
+    chunk_store: SemanticTextChunk,
+    version_pbar=None,
+):
     """
     Core per-index loop shared by section-based and passage-based processing.
 
@@ -381,8 +410,16 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
                     if not chunk_result.chunks:
                         result_tracker.increment("sections_skipped_empty")
                     else:
-                        chunk_data = build_chunk_data(unit_ref, lang, vtitle, index.title, thread_local.embedder,
-                                                      chunk_result, index_context, version_context)
+                        chunk_data = build_chunk_data(
+                            unit_ref,
+                            lang,
+                            vtitle,
+                            index.title,
+                            thread_local.embedder,
+                            chunk_result,
+                            index_context,
+                            version_context,
+                        )
                         chunk_store.upsert(chunk_data)
                         result_tracker.increment("sections_embedded")
                         result_tracker.increment("chunks_written", len(chunk_data))
@@ -395,8 +432,7 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
             version_pbar.set_postfix(index=index.title[:30], lang=lang)
 
 
-def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: SemanticTextChunk,
-                  version_pbar=None):
+def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: SemanticTextChunk, version_pbar=None):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
         if not passages:
@@ -409,14 +445,23 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
                 return [
                     (
                         Ref(passage.full_ref),
-                        [SegmentRecord(tref=r, text=segment_text_by_ref[r], segment_index=i)
-                         for i, r in enumerate(passage.ref_list) if r in segment_text_by_ref],
+                        [
+                            SegmentRecord(tref=r, text=segment_text_by_ref[r], segment_index=i)
+                            for i, r in enumerate(passage.ref_list)
+                            if r in segment_text_by_ref
+                        ],
                     )
                     for passage in passages
                 ]
 
-            _process_index(index, chunker, result_tracker, get_units_for_version,
-                           chunk_store=chunk_store, version_pbar=version_pbar)
+            _process_index(
+                index,
+                chunker,
+                result_tracker,
+                get_units_for_version,
+                chunk_store=chunk_store,
+                version_pbar=version_pbar,
+            )
             return
 
     section_refs = index.all_section_refs()
@@ -428,8 +473,14 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
         segment_records_by_section = collect_segment_records_by_section(version)
         return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
 
-    _process_index(index, chunker, result_tracker, get_units_for_version,
-                   chunk_store=chunk_store, version_pbar=version_pbar)
+    _process_index(
+        index,
+        chunker,
+        result_tracker,
+        get_units_for_version,
+        chunk_store=chunk_store,
+        version_pbar=version_pbar,
+    )
 
 
 def thread_init(api_key: str, config):
@@ -445,7 +496,7 @@ def main():
     if PatotChunker is None:
         raise SystemExit(
             "patot[chunking] extras are not installed (transformers/semantic-chunkers/semantic-router "
-            "missing) - PatotChunker is unavailable. See requirements.txt for the patot dependency."
+            "missing) - PatotChunker is unavailable. See requirements.txt for the patot dependency.",
         )
 
     api_key = django_settings.GEMINI_API_KEY
@@ -472,20 +523,22 @@ def main():
     logger.info(f"Total indexes: {len(all_indexes)}")
 
     if args.limit_indexes is not None:
-        all_indexes = all_indexes[:args.limit_indexes]
+        all_indexes = all_indexes[: args.limit_indexes]
         logger.info(f"--limit-indexes set: processing only {len(all_indexes)} index(es)")
 
     if args.max_versions is not None:
         before = len(all_indexes)
-        all_indexes = [idx for idx in all_indexes
-                       if VersionSet({"title": idx.title}).count() <= args.max_versions]
-        logger.info(f"--max-versions={args.max_versions}: excluded {before - len(all_indexes)} index(es), "
-                    f"{len(all_indexes)} remaining")
+        all_indexes = [idx for idx in all_indexes if VersionSet({"title": idx.title}).count() <= args.max_versions]
+        logger.info(
+            f"--max-versions={args.max_versions}: excluded {before - len(all_indexes)} index(es), "
+            f"{len(all_indexes)} remaining",
+        )
 
     total_versions = sum(VersionSet({"title": idx.title}).count() for idx in all_indexes)
     logger.info(f"Total versions: {total_versions}")
 
     with tqdm(total=total_versions, desc="versions", unit="ver", file=sys.stderr, disable=None) as version_pbar:
+
         def run_index(index):
             logger.info(f"Processing index: {index.title}")
             try:

@@ -10,8 +10,15 @@ import LegalText from './LegalText.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
 
 const ChooseView = ({
-  flow, switchFlow, onEmailClick,
-  googleReady, appleReady, ssoLoading, registerGoogleTarget, triggerApple, setActiveErrorHandler,
+  flow,
+  switchFlow,
+  onEmailClick,
+  googleReady,
+  appleReady,
+  ssoLoading,
+  registerGoogleTarget,
+  triggerApple,
+  setActiveErrorHandler,
 }) => {
   const [error, setError] = useState(null);
   const { googleClientId, appleClientId } = Sefaria;
@@ -22,34 +29,29 @@ const ChooseView = ({
   }, [setActiveErrorHandler]);
 
   const isLogin = flow === 'login';
-  const heading = isLogin
-    ? <InterfaceText>header.log_in</InterfaceText>
-    : <InterfaceText>auth.create_account</InterfaceText>;
-  const sub = isLogin
-    ? (
-      <>
-        <InterfaceText>auth.dont_have_an_account</InterfaceText>
-        {' '}
-        <a href="/register" data-signup-source="login_crosslink" onClick={switchFlow('register')}>
-          <InterfaceText>header.sign_up</InterfaceText>
-        </a>
-      </>
-    ) : (
-      <>
-        <InterfaceText>auth.already_have_an_account</InterfaceText>
-        {' '}
-        <a href="/login" onClick={switchFlow('login')}>
-          <InterfaceText>auth.log_in_link</InterfaceText>
-        </a>
-      </>
-    );
+  const heading = isLogin ? (
+    <InterfaceText>header.log_in</InterfaceText>
+  ) : (
+    <InterfaceText>auth.create_account</InterfaceText>
+  );
+  const sub = isLogin ? (
+    <>
+      <InterfaceText>auth.dont_have_an_account</InterfaceText>{' '}
+      <a href="/register" data-signup-source="login_crosslink" onClick={switchFlow('register')}>
+        <InterfaceText>header.sign_up</InterfaceText>
+      </a>
+    </>
+  ) : (
+    <>
+      <InterfaceText>auth.already_have_an_account</InterfaceText>{' '}
+      <a href="/login" onClick={switchFlow('login')}>
+        <InterfaceText>auth.log_in_link</InterfaceText>
+      </a>
+    </>
+  );
 
   return (
-    <AuthCard
-      className="sefaria-auth-card--choose"
-      heading={heading}
-      sub={ssoLoading ? <LoadingSub /> : sub}
-    >
+    <AuthCard className="sefaria-auth-card--choose" heading={heading} sub={ssoLoading ? <LoadingSub /> : sub}>
       <ErrorBanner error={error} registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple} />
       <div className="sefaria-auth-choose">
         <div className="sefaria-auth-sso-group">
@@ -74,7 +76,7 @@ const ChooseView = ({
             )}
           </div>
         </div>
-        <Divider/>
+        <Divider />
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={onEmailClick}>
           <InterfaceText>auth.continue_with_email</InterfaceText>
         </Button>

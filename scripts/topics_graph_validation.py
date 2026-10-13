@@ -1,10 +1,13 @@
 import django
+
 django.setup()
-from sefaria.model import *
-from tqdm import tqdm
-from sefaria.system.exceptions import DuplicateRecordError, InputError
-import regex as re
 import json
+
+import regex as re
+from tqdm import tqdm
+
+from sefaria.model import *
+from sefaria.system.exceptions import DuplicateRecordError, InputError
 
 # This script runs over the collections related to Topics:
 # and validates that the data is logical with the model and consistent
@@ -28,7 +31,7 @@ def refTopicLink_validation():
         except DuplicateRecordError as e:
             print(e)
             rtl.delete()
-            print("deleted link from {} to {} was deleted".format(rtl.ref, rtl.Totopic))
+            print(f"deleted link from {rtl.ref} to {rtl.Totopic} was deleted")
         except InputError as e:
             print(e)
 
@@ -44,12 +47,12 @@ def intraTopicLink_validation():
             match = re.search("fromTopic '(.*?)' does not exist", e.args[0])
             if match:
                 missing_topics.add(match.group(1))
-        except DuplicateRecordError as e:
+        except DuplicateRecordError:
             deleted_data.append(itl.contents())
             itl.delete()
 
     print(missing_topics)
-    with open('./deleted_duplicate_links.txt', 'w') as outfile:
+    with open("./deleted_duplicate_links.txt", "w") as outfile:
         json.dump(deleted_data, outfile)
 
 

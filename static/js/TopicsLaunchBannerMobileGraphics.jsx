@@ -15,7 +15,7 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           fill="#fff"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -28,7 +28,7 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           fill="#97b386"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -36,17 +36,17 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath180)"
         >
           <tspan x={311.02701} y={110.102}>
-            {"Kidneys"}
+            {'Kidneys'}
           </tspan>
           <tspan x={74.074203} y={138.10201}>
-            {"Pearls"}
+            {'Pearls'}
           </tspan>
         </text>
         <text
           fill="#594176"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -54,20 +54,20 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath179)"
         >
           <tspan x={4.0664101} y={82.101601}>
-            {"Kodesh"}
+            {'Kodesh'}
           </tspan>
           <tspan x={360.715} y={96.101601}>
-            {"Deserts"}
+            {'Deserts'}
           </tspan>
           <tspan x={356.039} y={124.102}>
-            {"Violence"}
+            {'Violence'}
           </tspan>
         </text>
         <text
           fill="#7c416f"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -75,23 +75,23 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath178)"
         >
           <tspan x={-46.605499} y={82.101601}>
-            {"Incense"}
+            {'Incense'}
           </tspan>
           <tspan x={361.98001} y={110.102}>
-            {"Matzah"}
+            {'Matzah'}
           </tspan>
           <tspan x={149.76601} y={124.102}>
-            {"Secrets"}
+            {'Secrets'}
           </tspan>
           <tspan x={209.379} y={152.10201}>
-            {"Yom Tov"}
+            {'Yom Tov'}
           </tspan>
         </text>
         <text
           fill="#d4896c"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -100,23 +100,23 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           display="inline"
         >
           <tspan x={-83.378899} y={82.101601}>
-            {"Stars"}
+            {'Stars'}
           </tspan>
           <tspan x={208.312} y={82.101601}>
-            {"Haggadah"}
+            {'Haggadah'}
           </tspan>
           <tspan x={354.129} y={82.101601}>
-            {"Converts"}
+            {'Converts'}
           </tspan>
           <tspan x={-65.167999} y={124.102}>
-            {"Heavens"}
+            {'Heavens'}
           </tspan>
         </text>
         <text
           fill="#cb6158"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -124,20 +124,20 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath176)"
         >
           <tspan x={360.035} y={68.101601}>
-            {"Science"}
+            {'Science'}
           </tspan>
           <tspan x={255.105} y={110.102}>
-            {"Curiosity"}
+            {'Curiosity'}
           </tspan>
           <tspan x={264.375} y={152.10201}>
-            {"Naomi"}
+            {'Naomi'}
           </tspan>
         </text>
         <text
           fill="#802f3e"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -145,26 +145,26 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath175)"
         >
           <tspan x={107.883} y={68.101601}>
-            {"Physicality"}
+            {'Physicality'}
           </tspan>
           <tspan x={309.48001} y={68.101601}>
-            {"Lioness"}
+            {'Lioness'}
           </tspan>
           <tspan x={118.09} y={96.101601}>
-            {"Grace"}
+            {'Grace'}
           </tspan>
           <tspan x={343.88699} y={138.10201}>
-            {"Priesthood"}
+            {'Priesthood'}
           </tspan>
           <tspan x={91.136703} y={152.10201}>
-            {"Poetry"}
+            {'Poetry'}
           </tspan>
         </text>
         <text
           fill="#004e5f"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -172,32 +172,32 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath174)"
         >
           <tspan x={-79.347702} y={54.101601}>
-            {"Azazel"}
+            {'Azazel'}
           </tspan>
           <tspan x={165} y={54.101601}>
-            {"Genesis"}
+            {'Genesis'}
           </tspan>
           <tspan x={-85.453102} y={68.101601}>
-            {"Dirt"}
+            {'Dirt'}
           </tspan>
           <tspan x={59.578098} y={68.101601}>
-            {"Fasting"}
+            {'Fasting'}
           </tspan>
           <tspan x={145.73399} y={82.101601}>
-            {"Sanhedrin"}
+            {'Sanhedrin'}
           </tspan>
           <tspan x={272.25} y={82.101601}>
-            {"Courage"}
+            {'Courage'}
           </tspan>
           <tspan x={116.25} y={124.102}>
-            {"Ants"}
+            {'Ants'}
           </tspan>
         </text>
         <text
           fill="#7f85a9"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -205,20 +205,20 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath173)"
         >
           <tspan x={325.336} y={40.101601}>
-            {"Constellations"}
+            {'Constellations'}
           </tspan>
           <tspan x={-43.441399} y={110.102}>
-            {"Synagogues"}
+            {'Synagogues'}
           </tspan>
           <tspan x={14.0625} y={152.10201}>
-            {"Anointing Oil"}
+            {'Anointing Oil'}
           </tspan>
         </text>
         <text
           fill="#5d956f"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -227,26 +227,26 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           display="inline"
         >
           <tspan x={245.94099} y={40.101601}>
-            {"Eishes Chayil"}
+            {'Eishes Chayil'}
           </tspan>
           <tspan x={12.7852} y={54.101601}>
-            {"Manna"}
+            {'Manna'}
           </tspan>
           <tspan x={4.4296899} y={68.101601}>
-            {"Sacrifice"}
+            {'Sacrifice'}
           </tspan>
           <tspan x={-81.492203} y={96.101601}>
-            {"The Nile River "}
+            {'The Nile River '}
           </tspan>
           <tspan x={-71.953102} y={152.10201}>
-            {"Vegetarianism"}
+            {'Vegetarianism'}
           </tspan>
         </text>
         <text
           fill="#b8d4d3"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -254,23 +254,23 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath171)"
         >
           <tspan x={168.293} y={40.101601}>
-            {"Compromise"}
+            {'Compromise'}
           </tspan>
           <tspan x={342.31601} y={54.101601}>
-            {"Welcoming"}
+            {'Welcoming'}
           </tspan>
           <tspan x={116.566} y={138.10201}>
-            {"Cymbals"}
+            {'Cymbals'}
           </tspan>
           <tspan x={308.68399} y={152.10201}>
-            {"Honoring Parents"}
+            {'Honoring Parents'}
           </tspan>
         </text>
         <text
           fill="#ccb479"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -279,35 +279,35 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
         >
           <tspan x={-11.6602} y={40.101601} />
           <tspan x={27.1875} y={40.101601}>
-            {"Etrog"}
+            {'Etrog'}
           </tspan>
           <tspan x={112.922} y={54.101601}>
-            {"Stealing"}
+            {'Stealing'}
           </tspan>
           <tspan x={219.57401} y={68.101601}>
-            {"Four Questions"}
+            {'Four Questions'}
           </tspan>
           <tspan x={55.5117} y={96.101601}>
-            {"Scorpions"}
+            {'Scorpions'}
           </tspan>
           <tspan x={291.85501} y={124.102}>
-            {"Protection"}
+            {'Protection'}
           </tspan>
           <tspan x={0.72656202} y={138.10201}>
-            {"Generations"}
+            {'Generations'}
           </tspan>
           <tspan x={171.90199} y={138.10201}>
-            {"Stones"}
+            {'Stones'}
           </tspan>
           <tspan x={311.60199} y={138.10201}>
-            {" Sun"}
+            {' Sun'}
           </tspan>
         </text>
         <text
           fill="#00827f"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -315,23 +315,23 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath169)"
         >
           <tspan x={306.07001} y={54.101601}>
-            {"Birds"}
+            {'Birds'}
           </tspan>
           <tspan x={158.203} y={96.101601}>
-            {"Golems"}
+            {'Golems'}
           </tspan>
           <tspan x={197.27299} y={110.102}>
-            {"Elections"}
+            {'Elections'}
           </tspan>
           <tspan x={-12.9258} y={124.102}>
-            {" Book of Life"}
+            {' Book of Life'}
           </tspan>
         </text>
         <text
           fill="#4b71b7"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -339,32 +339,32 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath168)"
         >
           <tspan x={64.394501} y={40.101601}>
-            {"Women in Tanakh "}
+            {'Women in Tanakh '}
           </tspan>
           <tspan x={-34.898399} y={54.101601}>
-            {"Ravens"}
+            {'Ravens'}
           </tspan>
           <tspan x={213.80901} y={54.101601}>
-            {" The Matriarchs"}
+            {' The Matriarchs'}
           </tspan>
           <tspan x={277.043} y={96.101601}>
-            {"Rome"}
+            {'Rome'}
           </tspan>
           <tspan x={30.960899} y={110.102}>
-            {"Sapphires"}
+            {'Sapphires'}
           </tspan>
           <tspan x={140.508} y={110.102}>
-            {"Roosters"}
+            {'Roosters'}
           </tspan>
           <tspan x={198.90199} y={124.102}>
-            {"Seder"}
+            {'Seder'}
           </tspan>
         </text>
         <text
           fill="#fff"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -450,7 +450,7 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           fill="#ab4e66"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -458,23 +458,23 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath166)"
         >
           <tspan x={-8.6835899} y={40.101601}>
-            {"Unity"}
+            {'Unity'}
           </tspan>
           <tspan x={58.5117} y={54.101601}>
-            {"Donkeys"}
+            {'Donkeys'}
           </tspan>
           <tspan x={93.058601} y={110.102}>
-            {"Wolves"}
+            {'Wolves'}
           </tspan>
           <tspan x={62.976601} y={124.102}>
-            {"Ramban"}
+            {'Ramban'}
           </tspan>
         </text>
         <text
           fill="#c6a7b4"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -482,29 +482,29 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath165)"
         >
           <tspan x={-57.445301} y={68.101601}>
-            {"Gemorrah"}
+            {'Gemorrah'}
           </tspan>
           <tspan x={53.1562} y={82.101601}>
-            {"Hearts"}
+            {'Hearts'}
           </tspan>
           <tspan x={208.16} y={96.101601}>
-            {"Showbread"}
+            {'Showbread'}
           </tspan>
           <tspan x={317.09799} y={96.101601}>
-            {"Colors"}
+            {'Colors'}
           </tspan>
           <tspan x={238.52299} y={124.102}>
-            {"Clothing"}
+            {'Clothing'}
           </tspan>
           <tspan x={134.543} y={152.10201}>
-            {"Mindfulness"}
+            {'Mindfulness'}
           </tspan>
         </text>
         <text
           fill="#5a99b7"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           fontFamily="Roboto"
           fontSize="12px"
@@ -513,33 +513,33 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           display="inline"
         >
           <tspan x={-80.695297} y={40.101601}>
-            {"Kin"}
+            {'Kin'}
           </tspan>
           <tspan x={-54.679699} y={40.101601}>
-            {"Kippah"}
+            {'Kippah'}
           </tspan>
           <tspan x={174.047} y={68.101601}>
-            {"Beauty"}
+            {'Beauty'}
           </tspan>
           <tspan x={98.027298} y={82.101601}>
-            {"Minyan"}
+            {'Minyan'}
           </tspan>
           <tspan x={325.922} y={82.101601}>
-            {"Elul"}
+            {'Elul'}
           </tspan>
           <tspan x={0.76171899} y={96.101601}>
-            {"Sadness"}
+            {'Sadness'}
           </tspan>
           <tspan x={-37.066399} y={138.10201}>
-            {"Wells"}
+            {'Wells'}
           </tspan>
           <tspan x={217.80499} y={138.10201}>
-            {"Covenant of Salt"}
+            {'Covenant of Salt'}
           </tspan>
         </text>
         <g
           style={{
-            mixBlendMode: "screen",
+            mixBlendMode: 'screen',
           }}
           transform="matrix(1 0 0 .64645 0 34.98)"
           clipPath="url(#clipPath163)"
@@ -565,7 +565,7 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
               fill="#594176"
               xmlSpace="preserve"
               style={{
-                whiteSpace: "pre",
+                whiteSpace: 'pre',
               }}
               fontFamily="Roboto"
               fontSize="12px"
@@ -574,7 +574,7 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
               clipPath="url(#clipPath161)"
             >
               <tspan x={152} y={111.102}>
-                {"EXPLORE TOPICS"}
+                {'EXPLORE TOPICS'}
               </tspan>
             </text>
           </a>
@@ -583,7 +583,7 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           fill="#594176"
           xmlSpace="preserve"
           style={{
-            whiteSpace: "pre",
+            whiteSpace: 'pre',
           }}
           className="serif"
           fontSize="24px"
@@ -591,7 +591,7 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           clipPath="url(#clipPath160)"
         >
           <tspan x={67} y={67.008003}>
-            {"What are you curious about?"}
+            {'What are you curious about?'}
           </tspan>
         </text>
       </g>

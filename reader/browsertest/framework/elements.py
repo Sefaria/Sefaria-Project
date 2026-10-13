@@ -1,39 +1,48 @@
-
-# -*- coding: utf-8 -*-
-
-from .config import TEMPER, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, LOCAL_URL, LOCAL_SELENIUM_CAPS
-from sefaria.model import *
-from pathos.multiprocessing import ProcessingPool as Pool
-import os
+import contextlib
 import inspect
-import traceback
+import os
 import sys
 
-import urllib.parse
-from urllib3.exceptions import MaxRetryError
-
-from selenium import webdriver
-from appium import webdriver as appium_webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, \
-    element_to_be_clickable, _find_element, visibility_of_element_located, visibility_of_any_elements_located
-from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, TimeoutException, WebDriverException, \
-    ElementClickInterceptedException, StaleElementReferenceException
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
+import time  # import stand library below name collision in sefaria.model
+import traceback
+import urllib.parse
 
-import time # import stand library below name collision in sefaria.model
+from appium import webdriver as appium_webdriver
+from pathos.multiprocessing import ProcessingPool as Pool
+from selenium import webdriver
+from selenium.common.exceptions import (
+    ElementClickInterceptedException,
+    NoSuchElementException,
+    StaleElementReferenceException,
+    TimeoutException,
+    WebDriverException,
+)
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.expected_conditions import (
+    _find_element,
+    element_to_be_clickable,
+    presence_of_element_located,
+    title_contains,
+    visibility_of_element_located,
+)
+from selenium.webdriver.support.ui import WebDriverWait
+from urllib3.exceptions import MaxRetryError
+
+from sefaria.model import *
+
+from .config import LOCAL_SELENIUM_CAPS, LOCAL_URL, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, TEMPER
 
 
-class AbstractTest(object):
-    every_build = False     # Run this test on every build?
-    daily = False           # Run this test daily?
-    weekly = False          # Run this test weekly?
+class AbstractTest:
+    every_build = False  # Run this test on every build?
+    daily = False  # Run this test daily?
+    weekly = False  # Run this test weekly?
 
-    single_panel = True     # Run this test on mobile?
-    multi_panel = True      # Run this test on desktop?
+    single_panel = True  # Run this test on mobile?
+    multi_panel = True  # Run this test on desktop?
 
     # Only use one of the below.
     include = []  # List of platforms (using cap_to_short_string) to include.  If this is present, only these platforms are included
@@ -63,7 +72,7 @@ class AbstractTest(object):
             raise Exception("Only one of the 'include' and 'exclude' parameters can be used in a given test")
 
     def name(self):
-        return"{} / {}".format(Trial.cap_to_string(self.cap), self.__class__.__name__)
+        return f"{Trial.cap_to_string(self.cap)} / {self.__class__.__name__}"
 
     def __str__(self):
         return self.name()
@@ -73,9 +82,7 @@ class AbstractTest(object):
             return False
         if len(self.include) and Trial.cap_to_short_string(self.cap) not in self.include:
             return False
-        if len(self.exclude) and Trial.cap_to_short_string(self.cap) in self.exclude:
-            return False
-        return True
+        return not (len(self.exclude) and Trial.cap_to_short_string(self.cap) in self.exclude)
 
     def fail(self, msg):
         self.carp(msg, always=True)
@@ -85,26 +92,26 @@ class AbstractTest(object):
         return SingleTestResult(self.__class__, self.cap, True)
 
     def run(self):
-        self.carp("\n{}\n".format(str(self)), always=True)
-        self.driver.execute_script('"**** Enter {} ****"'.format(self.name()))
+        self.carp(f"\n{str(self)}\n", always=True)
+        self.driver.execute_script(f'"**** Enter {self.name()} ****"')
 
         try:
             self.setup()
         except Exception:
-            return self.fail("Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc()))
+            return self.fail(f"Exception in {self.name()}.setup()\n{traceback.format_exc()}")
         try:
             self.body()
         except Exception as e:
             try:
                 self.recover_exception(e)
             except Exception:
-                return self.fail("Exception in {}.body()\n{}".format(self.name(), traceback.format_exc()))
+                return self.fail(f"Exception in {self.name()}.body()\n{traceback.format_exc()}")
         # this code is unreachable -- should it be deleted?
         try:
-            self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
+            self.driver.execute_script(f'"**** Exit {self.name()} ****"')
             self.teardown()
         except Exception:
-            return self.fail("Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc()))
+            return self.fail(f"Exception in {self.name()}.teardown()\n{traceback.format_exc()}")
 
         return self.succeed()
 
@@ -141,7 +148,7 @@ class SefariaTest(AbstractTest):
     def recover_exception(self, e):
         if isinstance(e, ElementClickInterceptedException):
             if self.close_modal_popup():
-                self.carp("{} - Closed modal. Restarting\n".format(self.name()))
+                self.carp(f"{self.name()} - Closed modal. Restarting\n")
                 self.body()
             else:
                 raise e
@@ -153,28 +160,28 @@ class SefariaTest(AbstractTest):
         Runs before body of test is run
         :return:
         """
-        #self.driver.maximize_window()
-        #todo: don't try to resize on mobile.  It errors.
-        try:
+        # self.driver.maximize_window()
+        # TODO: don't try to resize on mobile.  It errors.
+        with contextlib.suppress(WebDriverException):
             self.driver.set_window_size(900, 1100)
-        except WebDriverException:
-            pass
         self.driver.get(self.base_url + self.initial_url)
         self.close_modal_popup()
         self.click_accept_cookies()
 
     def is_element_visible_in_viewport(self, element) -> bool:
-        return self.driver.execute_script("var elem = arguments[0],            " 
-                                     "  box = elem.getBoundingClientRect(),    " 
-                                     "  cx = box.left + box.width / 2,         " 
-                                     "  cy = box.top + box.height / 2,         " 
-                                     "  e = document.elementFromPoint(cx, cy); " 
-                                     "  for (; e; e = e.parentElement) {       " 
-                                     "    if (e === elem)                      " 
-                                     "      return true;                       " 
-                                     "  }                                      " 
-                                     "return false;                            "
-                                     , element)
+        return self.driver.execute_script(
+            "var elem = arguments[0],            "
+            "  box = elem.getBoundingClientRect(),    "
+            "  cx = box.left + box.width / 2,         "
+            "  cy = box.top + box.height / 2,         "
+            "  e = document.elementFromPoint(cx, cy); "
+            "  for (; e; e = e.parentElement) {       "
+            "    if (e === elem)                      "
+            "      return true;                       "
+            "  }                                      "
+            "return false;                            ",
+            element,
+        )
 
     def catch_js_error(self):
         error_strings = [
@@ -192,8 +199,8 @@ class SefariaTest(AbstractTest):
 
         for msg in js_console:
             if any(error in msg["message"] for error in error_strings):
-                raise Exception(f'JavaScript Error: {msg["message"]}')
-    
+                raise Exception(f"JavaScript Error: {msg['message']}")
+
     #  Shortcuts
     ############
 
@@ -224,7 +231,7 @@ class SefariaTest(AbstractTest):
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, selector)))
         return self.driver.find_element_by_css_selector(selector)
 
-    def wait_for_connections(self, temper=TEMPER*2):
+    def wait_for_connections(self, temper=TEMPER * 2):
         WebDriverWait(self.driver, temper).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
 
     def wait_until_title_contains(self, text):
@@ -246,7 +253,6 @@ class SefariaTest(AbstractTest):
         return self
 
     def load_toc(self, my_temper=None):
-        temper = my_temper or TEMPER  # This is used at startup, which can be sluggish on iPhone.
         self.load_url("/texts", ".navBlockTitle")
         return self
 
@@ -254,7 +260,7 @@ class SefariaTest(AbstractTest):
         self.driver.execute_script("scroll(250, 0)")
         self.driver.execute_script("scroll(0, 250)")
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.LINK_TEXT, link_txt))
+            element_to_be_clickable((By.LINK_TEXT, link_txt)),
         )
         obj_to_click = self.driver.find_element_by_link_text(link_txt)
         obj_to_click.click()
@@ -265,23 +271,23 @@ class SefariaTest(AbstractTest):
     def scroll_to_css_selector(self, selector):
         # This scrolls forward.  Do we need to test and try to scroll back also?
         self.driver.execute_script(
-            "var a = document.querySelector('{}'); a.scrollIntoView({{block: 'center', inline: 'nearest'}});".format(selector)
+            f"var a = document.querySelector('{selector}'); a.scrollIntoView({{block: 'center', inline: 'nearest'}});",
         )
-        time.sleep(.5)
+        time.sleep(0.5)
         return self
 
     def scroll_to_css_selector_and_click(self, selector):
         self.scroll_to_css_selector(selector)
         self.click(selector)
-        time.sleep(.5)    # Takes some time to reload, and not sure what next page is
+        time.sleep(0.5)  # Takes some time to reload, and not sure what next page is
         return self
 
     def scroll_window_down(self, pixels):
-        self.driver.execute_script("window.scrollBy(0,{});".format(pixels))
+        self.driver.execute_script(f"window.scrollBy(0,{pixels});")
         return self
 
     def scroll_window_up(self, pixels):
-        self.driver.execute_script("window.scrollBy(0,{});".format(-pixels))
+        self.driver.execute_script(f"window.scrollBy(0,{-pixels});")
         return self
 
     def scroll_window_to_bottom(self):
@@ -289,38 +295,38 @@ class SefariaTest(AbstractTest):
         return self
 
     def scroll_reader_panel_down(self, pixels):
-        # todo: untested
-        # todo: handle multiple panels
+        # TODO: untested
+        # TODO: handle multiple panels
         self.driver.execute_script(
-            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop + {};".format(pixels)
+            f"var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop + {pixels};",
         )
         return self
 
     def scroll_reader_panel_up(self, pixels):
-        # todo: untested
-        # todo: handle multiple panels
+        # TODO: untested
+        # TODO: handle multiple panels
         self.driver.execute_script(
-            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop - {};".format(pixels)
+            f"var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollTop - {pixels};",
         )
         return self
 
     def scroll_reader_panel_to_bottom(self):
-        # todo: untested
-        # todo: handle multiple panels
+        # TODO: untested
+        # TODO: handle multiple panels
         # jiggle the screen after scrolling to coerce the next section to load
         self.driver.execute_script(
-            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight; setTimeout(function() { a.scrollTop = a.scrollHeight - 1000; }, 100); setTimeout(function() { a.scrollTop = a.scrollHeight - 400; }, 100);"
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight; setTimeout(function() { a.scrollTop = a.scrollHeight - 1000; }, 100); setTimeout(function() { a.scrollTop = a.scrollHeight - 400; }, 100);",
         )
         return self
 
     def scroll_reader_panel_to_top(self):
         """Scrolls the first text panel to the top"""
-        # todo
+        # TODO
         return self
 
     def scroll_content_to_position(self, pixels):
         self.driver.execute_script(
-            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = {}".format(pixels)
+            f"var a = document.getElementsByClassName('content')[0]; a.scrollTop = {pixels}",
         )
         return self
 
@@ -331,13 +337,13 @@ class SefariaTest(AbstractTest):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        # todo
+        # TODO
         return self
 
     def scroll_nav_panel_to_bottom(self):
-        # todo: handle multiple panels
+        # TODO: handle multiple panels
         self.driver.execute_script(
-            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = a.scrollHeight;"
+            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = a.scrollHeight;",
         )
         return self
 
@@ -348,7 +354,7 @@ class SefariaTest(AbstractTest):
         # set cookie to avoid popup interruption
         # We now longer set the welcomeToS2LoggedOut message by default.
         # TODO is this method still needed?
-        self.driver.add_cookie({"name": "cookiesNotificationAccepted", "value": "1", 'path' : '/'})
+        self.driver.add_cookie({"name": "cookiesNotificationAccepted", "value": "1", "path": "/"})
 
     def click_accept_cookies(self):
         try:
@@ -387,7 +393,9 @@ class SefariaTest(AbstractTest):
 
     def is_logged_in(self):
         try:
-            self.driver.find_element_by_css_selector('.accountLinks .my-profile, .mobileAccountLinks a[href="/my/profile"]')
+            self.driver.find_element_by_css_selector(
+                '.accountLinks .my-profile, .mobileAccountLinks a[href="/my/profile"]',
+            )
             return True
         except NoSuchElementException:
             return False
@@ -399,8 +407,8 @@ class SefariaTest(AbstractTest):
         if not self.is_logged_in():
             self.login_user()
         self.open_mobile_navigation_menu_if_needed()
-        try: 
-            self.click('.accountLinks .my-profile')
+        try:
+            self.click(".accountLinks .my-profile")
             self.wait_until_clickable("#my-profile-link")
             self.click("#my-profile-link")
         except:
@@ -427,31 +435,34 @@ class SefariaTest(AbstractTest):
         It tries a few different things to get out of the current state, back to a dependable base toc.
         :return:
         """
-        if self.driver.current_url == urllib.parse.urljoin(self.base_url, "/texts") or self.driver.current_url.startswith(urllib.parse.urljoin(self.base_url,"/texts") + "?"):
+        if self.driver.current_url == urllib.parse.urljoin(
+            self.base_url,
+            "/texts",
+        ) or self.driver.current_url.startswith(urllib.parse.urljoin(self.base_url, "/texts") + "?"):
             return self
 
         # If text options are open, close them
         try:
-            mask = self.driver.find_element_by_css_selector('.mask')
+            mask = self.driver.find_element_by_css_selector(".mask")
             self.driver.execute_script("arguments[0].click();", mask)
         except NoSuchElementException:
             pass
 
         try:
-            self.click('.header .home')
-        except (TimeoutException, NoSuchElementException): # mobile
+            self.click(".header .home")
+        except (TimeoutException, NoSuchElementException):  # mobile
             try:
                 self.open_mobile_navigation_menu()
             except:
                 try:
                     # Mobile browsers could be in a state where a window needs to be closed.
-                    self.click('.readerNavMenuCloseButton').click('.readerNavMenuMenuButton').click(".textsPageLink")
+                    self.click(".readerNavMenuCloseButton").click(".readerNavMenuMenuButton").click(".textsPageLink")
                 except NoSuchElementException:
                     # Mobile browsers could be in a state where commentary panel is open
-                    self.click('.segment').click('.readerNavMenuMenuButton').click(".textsPageLink")
+                    self.click(".segment").click(".readerNavMenuMenuButton").click(".textsPageLink")
                 finally:
                     self.open_mobile_navigation_menu()
-            self.click('.mobileNavMenu .textsPageLink')
+            self.click(".mobileNavMenu .textsPageLink")
         self.wait_until_clickable(".navBlockTitle")
         return self
 
@@ -469,11 +480,11 @@ class SefariaTest(AbstractTest):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self.type_in_search_box(ref.normal())
-        time.sleep(.5)  # Old page may have an element that matches the selector below.  Wait for it to go away.
+        time.sleep(0.5)  # Old page may have an element that matches the selector below.  Wait for it to go away.
         self.wait_until_clickable(".textColumn .textRange .segment")
         self.wait_for_connections()
-        #WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
-        time.sleep(.5)  # Something takes a moment here.  Not sure what to wait for.
+        # WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
+        time.sleep(0.5)  # Something takes a moment here.  Not sure what to wait for.
         return self
 
     def browse_to_ref(self, ref):
@@ -495,29 +506,31 @@ class SefariaTest(AbstractTest):
 
     def click_toc_category(self, category_name):
         # Assume that category link is already present on screen (or soon will be)
-        self.wait_until_visible('.navBlockTitle[data-cat="{}"]'.format(category_name))
-        self.scroll_to_css_selector_and_click('.navBlockTitle[data-cat="{}"]'.format(category_name))
+        self.wait_until_visible(f'.navBlockTitle[data-cat="{category_name}"]')
+        self.scroll_to_css_selector_and_click(f'.navBlockTitle[data-cat="{category_name}"]')
         elem = self.driver.find_element_by_css_selector("h1 > span.en")
-        assert elem.get_attribute('innerHTML') == category_name, f"elem innerHTML == {elem.get_attribute('innerHTML')} != {category_name}"  # use get_attribute in case element is visible due to hebrew interface
+        assert elem.get_attribute("innerHTML") == category_name, (
+            f"elem innerHTML == {elem.get_attribute('innerHTML')} != {category_name}"
+        )  # use get_attribute in case element is visible due to hebrew interface
         return self
 
     def click_toc_text(self, text_name):
         # Assume that text link is already present on screen (or soon will be)
-        selector = '.navBlockTitle[href="/{}"]'.format(Ref(text_name).url())
+        selector = f'.navBlockTitle[href="/{Ref(text_name).url()}"]'
         self.scroll_to_css_selector_and_click(selector)
         self.wait_until_visible(".tocContent")
         return self
 
     def click_history_item(self, tref):
         # Assume that text link is already present on screen (or soon will be)
-        self.click('.savedHistoryList a[href="/{}"]'.format(Ref(tref).url()))
-        self.wait_until_clickable('.segment')
+        self.click(f'.savedHistoryList a[href="/{Ref(tref).url()}"]')
+        self.wait_until_clickable(".segment")
 
     def click_resources_on_sidebar(self):
-        self.click('.connectionsHeaderTitle')
+        self.click(".connectionsHeaderTitle")
 
     def click_sidebar_button(self, name):
-        self.click('a.toolsButton[data-name="{}"]'.format(name))
+        self.click(f'a.toolsButton[data-name="{name}"]')
 
     def click_sidebar_nth_version_button(self, n):
         self.get_sidebar_nth_version_button(n).click()
@@ -526,18 +539,20 @@ class SefariaTest(AbstractTest):
         return self.get_sidebar_nth_version_button(n).text
 
     def get_sidebar_nth_version_button(self, n):
-        slctr = f"#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) >div:nth-child({n+1}) > div.versionSelect > a.selectButton"
+        slctr = f"#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) >div:nth-child({n + 1}) > div.versionSelect > a.selectButton"
         return self.get_element(slctr)
 
-    def click_ivrit_link(self): # Named '..ivrit..' as the link's in Hebrew. Below - a method with '..hebrew..' (that calls this one), in case it's easier to locate that way
+    def click_ivrit_link(
+        self,
+    ):  # Named '..ivrit..' as the link's in Hebrew. Below - a method with '..hebrew..' (that calls this one), in case it's easier to locate that way
         try:
             # if logged out, first click to open dropdown
-            self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
-            self.click('.header a.interfaceLinks-button')
-            self.click_element_by_link_text('עברית')
+            self.driver.find_element_by_css_selector(".header a.interfaceLinks-button")
+            self.click(".header a.interfaceLinks-button")
+            self.click_element_by_link_text("עברית")
         except NoSuchElementException:
             # must be logged in
-            self.click('#siteLanguageHebrew')
+            self.click("#siteLanguageHebrew")
 
     def click_hebrew_link(self):
         self.click_ivrit_link()
@@ -545,12 +560,12 @@ class SefariaTest(AbstractTest):
     def click_english_link(self):
         try:
             # if logged out, first click to open dropdown
-            self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
-            self.click('.header a.interfaceLinks-button')
-            self.click_element_by_link_text('English')
+            self.driver.find_element_by_css_selector(".header a.interfaceLinks-button")
+            self.click(".header a.interfaceLinks-button")
+            self.click_element_by_link_text("English")
         except NoSuchElementException:
             # must be logged in
-            self.click('#siteLanguageEnglish')
+            self.click("#siteLanguageEnglish")
 
     def open_mobile_navigation_menu(self):
         self.click(".menuButton, .readerNavMenuMenuButton")
@@ -563,94 +578,102 @@ class SefariaTest(AbstractTest):
             pass
 
     def toggle_on_text_settings(self):
-        self.click('#panel-0 .readerControls .readerOptions')
+        self.click("#panel-0 .readerControls .readerOptions")
 
     def toggle_language_english(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.english')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.english")
 
     def toggle_language_bilingual(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.bilingual')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.bilingual")
 
     def toggle_language_hebrew(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.hebrew')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.hebrew")
 
     def toggle_bilingual_layout_stacked(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.stacked')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.stacked")
 
     def toggle_bilingual_layout_heLeft(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.heLeft')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.heLeft")
 
     def toggle_bilingual_layout_heRight(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.heRight')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.heRight")
 
     def toggle_fontSize_smaller(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.fontSize div.toggleOption.smaller')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.fontSize div.toggleOption.smaller")
 
     def toggle_fontSize_larger(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.fontSize div.toggleOption.larger')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.fontSize div.toggleOption.larger")
 
     def toggle_aliyotTorah_aliyotOn(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.aliyotTorah div.toggleOption.aliyotOn')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.aliyotTorah div.toggleOption.aliyotOn")
 
     def toggle_aliyotTorah_aliyotOff(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.aliyotTorah div.toggleOption.aliyotOff')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.aliyotTorah div.toggleOption.aliyotOff")
 
     def toggle_vowels_none(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.none')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.none")
 
     def toggle_vowels_partial(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.partial')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.partial")
 
     def toggle_vowels_all(self):
-        self.click('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.all')
+        self.click("#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.all")
 
     def get_nth_section_english(self, n):
-        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') .segmentText > span.en'
+        selector = (
+            "#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child("
+            + str(n)
+            + ") .segmentText > span.en"
+        )
         return self.get_element(selector)
 
     def get_nth_section_hebrew(self, n):
-        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') .segmentText > span.he'
+        selector = (
+            "#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child("
+            + str(n)
+            + ") .segmentText > span.he"
+        )
         return self.get_element(selector)
 
     def has_hebrew_text(self):
-        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text .segmentText > span.he'
+        selector = "#panel-0 > div.readerContent div.textRange.basetext > div.text .segmentText > span.he"
         return len(self.driver.find_elements_by_css_selector(selector)) > 0
 
     def has_english_text(self):
-        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text .segmentText > span.en'
+        selector = "#panel-0 > div.readerContent div.textRange.basetext > div.text .segmentText > span.en"
         return len(self.driver.find_elements_by_css_selector(selector)) > 0
 
     def get_content_layout_direction(self):
         panel = self.get_content_panel()
-        panel_class = panel.get_attribute('class')
-        if 'Right' in panel_class:
-            return 'right'
-        elif 'Left' in panel_class:
-            return 'left'
-        elif 'stacked' in panel_class:
-            return 'stacked'
+        panel_class = panel.get_attribute("class")
+        if "Right" in panel_class:
+            return "right"
+        if "Left" in panel_class:
+            return "left"
+        if "stacked" in panel_class:
+            return "stacked"
 
     def get_content_language(self):
         content_lang = self.get_content_panel()
-        content_lang_class = content_lang.get_attribute('class')
-        if 'bilingual' in content_lang_class:
-            return 'bilingual'
-        elif 'hebrew' in content_lang_class:
-            return 'hebrew'
-        elif 'english' in content_lang_class:
-            return 'english'
+        content_lang_class = content_lang.get_attribute("class")
+        if "bilingual" in content_lang_class:
+            return "bilingual"
+        if "hebrew" in content_lang_class:
+            return "hebrew"
+        if "english" in content_lang_class:
+            return "english"
 
     def get_font_size(self):
         size = self.get_nth_section_hebrew(1).value_of_css_property("font-size")
-        return float(size.replace('px',''))
+        return float(size.replace("px", ""))
 
     def get_current_url(self):
         return self.driver.current_url
 
     def is_object_displayed(self, css_selector):
         try:
-            aliyot = self.driver.find_element_by_css_selector(css_selector)
-            return True # would through an exception otherwise, handled below
+            self.driver.find_element_by_css_selector(css_selector)
+            return True  # would through an exception otherwise, handled below
         except NoSuchElementException:
             return False
 
@@ -678,7 +701,7 @@ class SefariaTest(AbstractTest):
 
     def get_newly_opened_tab_url(self):
         self.driver.switch_to_window(self.driver.window_handles[1])
-        time.sleep(2)#page needs to load, as this should work for any page - no specific element to wait on
+        time.sleep(2)  # page needs to load, as this should work for any page - no specific element to wait on
         new_url = self.driver.current_url
         self.driver.switch_to_window(self.driver.window_handles[0])
         return new_url
@@ -706,7 +729,7 @@ class SefariaTest(AbstractTest):
 
         return click_cats
 
-    # Todo: handle the case when the loaded page has different URL - because of scroll
+    # TODO: handle the case when the loaded page has different URL - because of scroll
     def load_ref(self, ref, filter=None, lang=None, wait_for_connections=False):
         """
         takes string ref or object Ref
@@ -720,9 +743,9 @@ class SefariaTest(AbstractTest):
         url = urllib.parse.urljoin(self.base_url, ref.url())
 
         if filter is not None:
-            url += "&with={}".format(filter)
+            url += f"&with={filter}"
         if lang is not None:
-            url += "&lang={}".format(lang)
+            url += f"&lang={lang}"
 
         self.driver.get(url.replace("&", "?", 1))
 
@@ -733,7 +756,7 @@ class SefariaTest(AbstractTest):
             self.wait_until_clickable(".filterSet > .textRange")
         else:
             self.wait_until_clickable(".textColumn .textRange .segment")
-        
+
         if wait_for_connections:
             self.wait_for_connections()
 
@@ -766,15 +789,15 @@ class SefariaTest(AbstractTest):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = urllib.parse.quote(ref.url())
-        self.scroll_to_css_selector_and_click('.sectionLink[href="/{}"], .schema-node-toc[href="/{}"]'.format(url, url))
-        self.wait_until_clickable('.segment')
+        self.scroll_to_css_selector_and_click(f'.sectionLink[href="/{url}"], .schema-node-toc[href="/{url}"]')
+        self.wait_until_clickable(".segment")
         return self
 
     def click_text_toc_schema_node(self, ref):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        self.scroll_to_css_selector_and_click('.schema-node-toc[href="/{}"] > span'.format(urllib.parse.quote(ref.url())))
+        self.scroll_to_css_selector_and_click(f'.schema-node-toc[href="/{urllib.parse.quote(ref.url())}"] > span')
         return self
 
     def click_segment(self, ref):
@@ -782,13 +805,13 @@ class SefariaTest(AbstractTest):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self._perform_segment_click(ref)
-        # Todo: put a data-* attribute on .filterSet, for the multi-panel case
+        # TODO: put a data-* attribute on .filterSet, for the multi-panel case
         # Note below will fail if there are no connections
-        self.wait_until_clickable(".categoryFilter", temper=TEMPER*2),
+        (self.wait_until_clickable(".categoryFilter", temper=TEMPER * 2),)
         return self
 
     def _perform_segment_click(self, ref):
-        selector = '.segment[data-ref="{}"]'.format(ref.normal())
+        selector = f'.segment[data-ref="{ref.normal()}"]'
         self.click(selector)
 
     def click_segment_to_close_commentary(self, ref):
@@ -798,7 +821,7 @@ class SefariaTest(AbstractTest):
         self._perform_segment_click(ref)
 
     def find_category_filter(self, name):
-        selector = '.categoryFilter[data-name="{}"]'.format(name)
+        selector = f'.categoryFilter[data-name="{name}"]'
         try:
             self.wait_until_clickable(selector)
         except:
@@ -807,28 +830,28 @@ class SefariaTest(AbstractTest):
         return self.driver.find_element_by_css_selector(selector)
 
     def find_text_filter(self, name):
-        selector = '.textFilter[data-name="{}"]'.format(name)
+        selector = f'.textFilter[data-name="{name}"]'
         self.wait_until_clickable(selector)
         return self.driver.find_element_by_css_selector(selector)
 
     def click_category_filter(self, name):
         f = self.find_category_filter(name)
-        assert f, "Can not find text filter {}".format(name)
+        assert f, f"Can not find text filter {name}"
         f.click()
-        self.wait_until_clickable('.categoryFilterGroup.withBooks')
+        self.wait_until_clickable(".categoryFilterGroup.withBooks")
         return self
 
     def click_text_filter(self, name):
         f = self.find_text_filter(name)
-        assert f, "Can not find text filter {}".format(name)
+        assert f, f"Can not find text filter {name}"
         f.click()
-        self.wait_until_clickable('.recentFilterSet')
+        self.wait_until_clickable(".recentFilterSet")
         return self
 
     def load_search_url(self, query=None):
         url = "/search"
         if query is not None:
-            url += "?q={}".format(query)
+            url += f"?q={query}"
         self.load_url(url, ".type-button-title")
         self.set_modal_cookie()
         return self
@@ -840,11 +863,11 @@ class SefariaTest(AbstractTest):
         elem = self.driver.find_element_by_css_selector("#searchInput")
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
-        # todo: does this work for a second search?
+        # TODO: does this work for a second search?
         self.wait_until_clickable(".result")
         return self
 
-    # todo: the #searchInput isn't always present on mobile.  The button to open it isn't always predsent either.  Probably need to nav to toc in that case.
+    # TODO: the #searchInput isn't always present on mobile.  The button to open it isn't always predsent either.  Probably need to nav to toc in that case.
     def type_in_search_box(self, query):
         self.open_mobile_navigation_menu_if_needed()
         self.wait_until_clickable("#searchInput")
@@ -899,8 +922,8 @@ class SefariaTest(AbstractTest):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
- 
-        self.load_url("/add/{}".format(ref.url()), "#newVersion")
+
+        self.load_url(f"/add/{ref.url()}", "#newVersion")
         return self
 
     def enable_new_editor(self):
@@ -932,20 +955,20 @@ class SefariaTest(AbstractTest):
     def type_lorem_ipsum_text(self, language):
         paragraph = {
             "en": "Proin elit arcu, rutrum commodo, vehicula tempus, commodo a, risus. Curabitur nec arcu. Donec sollicitudin mi sit amet mauris. Nam elementum quam ullamcorper ante. Etiam aliquet massa et lorem. Mauris dapibus lacus auctor risus. Aenean tempor ullamcorper leo. Vivamus sed magna quis ligula eleifend adipiscing. Duis orci. Aliquam sodales tortor vitae ipsum. Aliquam nulla. Duis aliquam molestie erat. Ut et mauris vel pede varius sollicitudin. Sed ut dolor nec orci tincidunt interdum. Phasellus ipsum. Nunc tristique tempus lectus.",
-            "he": " לורם איפסום דולור סיט אמט, קונסקטורר אדיפיסינג אלית קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף סחטיר בלובק. תצטנפל בלינדו למרקל אס לכימפו, דול, צוט ומעיוט - לפתיעם ברשג - ולתיעם גדדיש. קוויז דומור ליאמום בלינך רוגצה. לפמעט מוסן מנת. קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף גולר מונפרר סוברט לורם שבצק יהול, לכנוץ בעריר גק ליץ, ושבעגט ליבם סולגק. בראיט ולחת צורק מונחף, בגורמי מגמש. תרבנך וסתעד לכנו סתשם השמה - לתכי מורגם בורק? לתיג ישבעס."
+            "he": " לורם איפסום דולור סיט אמט, קונסקטורר אדיפיסינג אלית קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף סחטיר בלובק. תצטנפל בלינדו למרקל אס לכימפו, דול, צוט ומעיוט - לפתיעם ברשג - ולתיעם גדדיש. קוויז דומור ליאמום בלינך רוגצה. לפמעט מוסן מנת. קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף גולר מונפרר סוברט לורם שבצק יהול, לכנוץ בעריר גק ליץ, ושבעגט ליבם סולגק. בראיט ולחת צורק מונחף, בגורמי מגמש. תרבנך וסתעד לכנו סתשם השמה - לתכי מורגם בורק? לתיג ישבעס.",
         }
         elem = self.driver.switch_to.active_element
         elem.send_keys(paragraph[language])
         elem.send_keys(Keys.RETURN)
         elem.send_keys(Keys.RETURN)
-        time.sleep(1) #sheet won't save until there's a brief pause
+        time.sleep(1)  # sheet won't save until there's a brief pause
         return self
 
     def add_source(self, ref):
         elem = self.driver.switch_to.active_element
         elem.send_keys(ref)
         elem.send_keys(Keys.RETURN)
-        time.sleep(1) #sheet won't save until there's a brief pause
+        time.sleep(1)  # sheet won't save until there's a brief pause
         return self
 
     def toggle_sheet_edit_view(self):
@@ -955,9 +978,9 @@ class SefariaTest(AbstractTest):
         return self
 
     def get_sheet_html(self):
-        sheet_selector = '.editorContent'
+        sheet_selector = ".editorContent"
         sheet = self.driver.find_element_by_css_selector(sheet_selector)
-        sheet_html = sheet.get_attribute('innerHTML')
+        sheet_html = sheet.get_attribute("innerHTML")
         return sheet_html
 
 
@@ -974,7 +997,8 @@ class SefariaTest(AbstractTest):
 
 """
 
-class AbstractTestResult(object):
+
+class AbstractTestResult:
     def word_status(self):
         pass
 
@@ -1010,7 +1034,7 @@ class SingleTestResult(AbstractTestResult):
             self.word_status(),
             self.className,
             Trial.cap_to_string(self.cap),
-            ": \n{}".format(self.message) if self.message else ""
+            f": \n{self.message}" if self.message else "",
         )
 
     def word_status(self):
@@ -1060,8 +1084,7 @@ class TestResultSet(AbstractTestResult):
         # Use carefully
         if len(self._test_results):
             return self._test_results[0].cap
-        else:
-            return ""
+        return ""
 
     def include(self, result):
         self._aggregated = False
@@ -1079,24 +1102,22 @@ class TestResultSet(AbstractTestResult):
         f = self.number_failed()
         if p and f:
             return "Mixed"
-        elif p:
+        if p:
             return "Passed"
-        elif f:
+        if f:
             return "Failed"
-        else:
-            return "Empty"
+        return "Empty"
 
     def letter_status(self):
         p = self.number_passed()
         f = self.number_failed()
         if p and f:
             return "/"
-        elif p:
+        if p:
             return "."
-        elif f:
+        if f:
             return "F"
-        else:
-            return "0"
+        return "0"
 
     def number_passed(self):
         return len([t for t in self._test_results if t.success])
@@ -1126,8 +1147,7 @@ class TestResultSet(AbstractTestResult):
             if res.success is False:
                 return "Fail"
 
-        results = [[""] * (len(caps) + 1)] + \
-                  [[" ** "] + caps]
+        results = [[""] * (len(caps) + 1)] + [[" ** "] + caps]
         for test in test_classes:
             results += [[test.__name__] + [text_result(test, cap) for cap in caps]]
 
@@ -1140,14 +1160,14 @@ class TestResultSet(AbstractTestResult):
         matrix = self._results_as_matrix()
         s = [[str(e) for e in row] for row in matrix]
         lens = [max(list(map(len, col))) for col in zip(*s)]
-        fmt = ' '.join('{{:{}}}'.format(x) for x in lens)
+        fmt = " ".join(f"{{:{x}}}" for x in lens)
         table = [fmt.format(*row) for row in s]
-        ret += '\n'.join(table)
+        ret += "\n".join(table)
 
         total_tests = len(self._test_results)
         passed_tests = self.number_passed()
         percentage_passed = (float(passed_tests) / total_tests) * 100 if total_tests > 0 else 0
-        ret += "\n\n{}/{} - {:.0f}% passed\n".format(passed_tests, total_tests, percentage_passed)
+        ret += f"\n\n{passed_tests}/{total_tests} - {percentage_passed:.0f}% passed\n"
 
         # if passed_tests < total_tests:
         #     for failed_test in [t for t in self._test_results if not t.success]:
@@ -1160,13 +1180,23 @@ SAUCE_USERNAME = ""
 SAUCE_ACCESS_KEY = ""
 
 
-class Trial(object):
-    global SAUCE_USERNAME, SAUCE_ACCESS_KEY 
+class Trial:
+    global SAUCE_USERNAME, SAUCE_ACCESS_KEY
     default_local_driver = webdriver.Chrome
     # default_local_driver = webdriver.Firefox
     # default_local_driver = webdriver.Safari
 
-    def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False, seleniumServerHostname="", targetApplicationUrl=""):
+    def __init__(
+        self,
+        platform="local",
+        build=None,
+        tests=None,
+        caps=None,
+        parallel=None,
+        verbose=False,
+        seleniumServerHostname="",
+        targetApplicationUrl="",
+    ):
         """
         :param caps: If local: webdriver classes, if remote, dictionaries of capabilities
         :param platform: "sauce", "local", "travis"
@@ -1176,12 +1206,12 @@ class Trial(object):
         global SAUCE_USERNAME, SAUCE_ACCESS_KEY
         assert platform in ["sauce", "local", "travis", "githubnew", "localselenium"]
         if platform == "travis":
-            SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
-            SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
+            SAUCE_USERNAME = os.getenv("SAUCE_USERNAME")
+            SAUCE_ACCESS_KEY = os.getenv("SAUCE_ACCESS_KEY")
             self.BASE_URL = LOCAL_URL
             self.caps = caps if caps else SAUCE_CORE_CAPS
             for cap in self.caps:
-                cap["tunnelIdentifier"] = os.getenv('TRAVIS_JOB_NUMBER')
+                cap["tunnelIdentifier"] = os.getenv("TRAVIS_JOB_NUMBER")
             self.is_local = False
             platform = "sauce"  # After this initial setup - use the sauce platform
         elif platform == "local":
@@ -1189,29 +1219,29 @@ class Trial(object):
             self.BASE_URL = LOCAL_URL
             self.caps = caps if caps else [self.default_local_driver]
         elif platform == "sauce":
-            SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
-            SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
+            SAUCE_USERNAME = os.getenv("SAUCE_USERNAME")
+            SAUCE_ACCESS_KEY = os.getenv("SAUCE_ACCESS_KEY")
             self.is_local = False
-            self.BASE_URL = os.getenv('CI_URL')
+            self.BASE_URL = os.getenv("CI_URL")
             self.caps = caps if caps else SAUCE_CORE_CAPS
         elif platform == "githubnew":
-            SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
-            SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
-            self.BASE_URL = os.getenv('CI_URL')
+            SAUCE_USERNAME = os.getenv("SAUCE_USERNAME")
+            SAUCE_ACCESS_KEY = os.getenv("SAUCE_ACCESS_KEY")
+            self.BASE_URL = os.getenv("CI_URL")
             self.caps = caps if caps else SAUCE_CORE_CAPS
             self.is_local = False
             platform = "sauce"
-        elif platform == "localselenium": # local selenium, remote application
-            self.BASE_URL = os.getenv('CI_URL')
+        elif platform == "localselenium":  # local selenium, remote application
+            self.BASE_URL = os.getenv("CI_URL")
             self.caps = caps if caps else LOCAL_SELENIUM_CAPS
-            self.is_local = True # 'is_local' refers to the application location
+            self.is_local = True  # 'is_local' refers to the application location
 
         self.isVerbose = verbose
         self.platform = platform
         self.build = build
         self.tests = get_every_build_tests(get_all_tests()) if tests is None else tests
         self._results = TestResultSet()
-        self.parallel = parallel if parallel is not None else False if self.is_local else True
+        self.parallel = parallel if parallel is not None else not self.is_local
         if self.parallel:
             self.thread_count = SAUCE_MAX_THREADS
 
@@ -1236,12 +1266,14 @@ class Trial(object):
                 try:
                     if cap.get("appiumVersion") is not None:
                         driver = appium_webdriver.Remote(
-                            command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
-                            desired_capabilities=cap)
+                            command_executor=f"https://{SAUCE_USERNAME}:{SAUCE_ACCESS_KEY}@ondemand.us-west-1.saucelabs.com:443/wd/hub",
+                            desired_capabilities=cap,
+                        )
                     else:
                         driver = webdriver.Remote(
-                            command_executor='https://{}:{}@ondemand.us-west-1.saucelabs.com:443/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
-                            desired_capabilities=cap)
+                            command_executor=f"https://{SAUCE_USERNAME}:{SAUCE_ACCESS_KEY}@ondemand.us-west-1.saucelabs.com:443/wd/hub",
+                            desired_capabilities=cap,
+                        )
                     break
                 except MaxRetryError:
                     attempt += 1
@@ -1257,10 +1289,10 @@ class Trial(object):
             command_executor = os.getenv("LOCAL_SELENIUM_URL")
             driver = webdriver.Remote(
                 command_executor=command_executor,
-                desired_capabilities=cap
+                desired_capabilities=cap,
             )
         else:
-            raise Exception("Unrecognized platform: {}".format(self.platform))
+            raise Exception(f"Unrecognized platform: {self.platform}")
 
         return driver
 
@@ -1280,9 +1312,9 @@ class Trial(object):
                 mode = "multi_panel"  # Assuming that local isn't single panel
         else:
             mode = cap.get("sefaria_mode")
-            cap['sauce:options'] = {
+            cap["sauce:options"] = {
                 "build": self.build,
-                "name": "{} on {}".format(test_class.__name__, self.cap_to_string(cap)),
+                "name": f"{test_class.__name__} on {self.cap_to_string(cap)}",
                 #  "tags": ["tag1", "tag2", "tag3"]
             }
 
@@ -1292,7 +1324,7 @@ class Trial(object):
             while (result is None or not result.success) and tries < MAX_TEST_RUNS:
                 tries += 1
                 if tries > 1:
-                    self.carp("Retrying {}/{}  ({}/{})".format(test_class.__name__,  Trial.cap_to_string(cap), tries, MAX_TEST_RUNS))
+                    self.carp(f"Retrying {test_class.__name__}/{Trial.cap_to_string(cap)}  ({tries}/{MAX_TEST_RUNS})")
 
                 test_instance = test_class(self.BASE_URL, cap, mode=mode, verbose=self.isVerbose)
                 if not test_instance.should_run(mode):
@@ -1305,10 +1337,10 @@ class Trial(object):
                 if self.platform == "sauce":
                     try:
                         self.set_sauce_result(driver, result.success)
-                    except WebDriverException:      # Sometimes an earlier test infrastructure fail makes this throw
+                    except WebDriverException:  # Sometimes an earlier test infrastructure fail makes this throw
                         pass
-                if not self.is_local:   # driver will not restart locally                       
-                    driver.quit()       
+                if not self.is_local:  # driver will not restart locally
+                    driver.quit()
 
             return result
 
@@ -1318,15 +1350,13 @@ class Trial(object):
             print(e)
             msg = traceback.format_exc()
             if self.isVerbose:
-                self.carp("{} / {} - Aborted\n{}\n".format(test_class.__name__, Trial.cap_to_string(cap), msg))
+                self.carp(f"{test_class.__name__} / {Trial.cap_to_string(cap)} - Aborted\n{msg}\n")
             else:
                 self.carp("A")
 
             if driver is not None:
-                try:
+                with contextlib.suppress(Exception):
                     driver.quit()
-                except Exception as e2:
-                    pass
             return SingleTestResult(test_class, cap, False, msg)
 
     def _test_on_all(self, test_class, _caps=None):
@@ -1338,18 +1368,18 @@ class Trial(object):
         """
         result_set = TestResultSet()
         caps = _caps or self.caps
-        self.carp("\n{}: ".format(test_class.__name__))
+        self.carp(f"\n{test_class.__name__}: ")
 
         tresults = []  # list of SingleTestResult instances
         if self.parallel:
             p = Pool(self.thread_count)
             l = len(caps)
             try:
-                self.carp("[_test_on_all] current class {}".format(test_class))
+                self.carp(f"[_test_on_all] current class {test_class}")
                 tresults = p.map(_test_one_worker, list(zip([self] * l, [test_class] * l, caps)))
             except Exception:
                 msg = traceback.format_exc()
-                self.carp("{} - Exception\n{}\n".format(test_class.__name__, msg), always=True)
+                self.carp(f"{test_class.__name__} - Exception\n{msg}\n", always=True)
                 tresults += [SingleTestResult(test_class, caps[0], False, msg)]
         else:
             for cap in caps:
@@ -1373,7 +1403,7 @@ class Trial(object):
     @staticmethod
     def set_sauce_result(driver, result):
         sauce_result = "passed" if result else "failed"
-        driver.execute_script("sauce:job-result={}".format(sauce_result))
+        driver.execute_script(f"sauce:job-result={sauce_result}")
 
         """
         base64string = base64.encodebytes(b'%s:%s' % (SAUCE_USERNAME, SAUCE_ACCESS_KEY))[:-1]
@@ -1397,8 +1427,10 @@ class Trial(object):
             return cap.__module__.split(".")[-2]
         if isinstance(cap, webdriver.Remote):
             cap = cap.capabilities
-        return (cap.get("deviceName") or  # sauce mobile
-                "{} {} on {}".format(cap.get('browserName'), cap.get("browserVersion"), cap.get('platform')))  # sauce desktop
+        return (
+            cap.get("deviceName")  # sauce mobile
+            or "{} {} on {}".format(cap.get("browserName"), cap.get("browserVersion"), cap.get("platform"))
+        )  # sauce desktop
 
     @staticmethod
     def cap_to_short_string(cap):
@@ -1427,7 +1459,6 @@ def get_all_tests():
     return get_subclasses(AbstractTest)
 
 
-
 # Not used
 def get_mobile_tests(tests):
     return [t for t in tests if t.mobile]
@@ -1447,8 +1478,6 @@ def get_every_build_tests(tests):
     return [t for t in tests if t.every_build]
 
 
-
-
 # The following util method highlights (blinks) a Webdriver on the page, helpful for figuring out what a code line does.
 # A relevant use case would be to recognize an element on browser-1 when it can't be found on browser-2. Just switch locally to
 # the other browser (by changing the value of default_local_driver above), run up to the point of failure (using a breakpoint), and from the Evaluate Expression
@@ -1456,16 +1485,18 @@ def get_every_build_tests(tests):
 #           highlight(self.driver.find_element_by_css_selector('.categoryFilter'))
 def highlight(element):
     driver = element._parent
+
     def apply_style(s):
-        driver.execute_script("arguments[0].setAttribute('style', arguments[1]);",
-                              element, s)
-    original_style = element.get_attribute('style')
+        driver.execute_script("arguments[0].setAttribute('style', arguments[1]);", element, s)
+
+    original_style = element.get_attribute("style")
     apply_style("background: yellow; border: 2px solid red;")
-    time.sleep(.3)
+    time.sleep(0.3)
     apply_style(original_style)
 
-class one_of_these_texts_present_in_element(object):
-    """ An expectation for checking if the given text is present in the
+
+class one_of_these_texts_present_in_element:
+    """An expectation for checking if the given text is present in the
     specified element.
     locator, text
     """
@@ -1478,6 +1509,6 @@ class one_of_these_texts_present_in_element(object):
     def __call__(self, driver):
         try:
             element_text = _find_element(driver, self.locator).text
-            return any([t in element_text for t in self.text])
+            return any(t in element_text for t in self.text)
         except StaleElementReferenceException:
             return False

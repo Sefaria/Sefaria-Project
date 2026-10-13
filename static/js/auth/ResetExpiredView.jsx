@@ -23,9 +23,13 @@ const ResetExpiredView = ({ csrf, onResendSuccess, onRequestNewLink }) => {
     setError(null);
     setResending(true);
     const { ok, data } = await postJson(window.location.pathname, { action: 'resend' }, csrf);
-    if (ok) { onResendSuccess(); }
-    else if (data?._auth?.code === 'no_account_for_link') { setNoAccountForLink(true); }
-    else { setError(authError(data, 'auth.generic_error')); }
+    if (ok) {
+      onResendSuccess();
+    } else if (data?._auth?.code === 'no_account_for_link') {
+      setNoAccountForLink(true);
+    } else {
+      setError(authError(data, 'auth.generic_error'));
+    }
     setResending(false);
   };
 
@@ -40,7 +44,12 @@ const ResetExpiredView = ({ csrf, onResendSuccess, onRequestNewLink }) => {
         <>
           <ErrorBanner error={error} />
           <div className="sefaria-auth-stack">
-            <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={handleResend} disabled={resending}>
+            <Button
+              variant="sefaria-common-button auth-primary"
+              size="fullwidth"
+              onClick={handleResend}
+              disabled={resending}
+            >
               <InterfaceText>auth.request_new_link</InterfaceText>
             </Button>
           </div>

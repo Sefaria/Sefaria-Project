@@ -1,7 +1,9 @@
 import logging
-from typing import Any, Dict
-from sefaria.system.database import db
+from typing import Any
+
 from sefaria_llm_interface.sheet_scoring import SheetScoringInput, SheetScoringOutput
+
+from sefaria.system.database import db
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +20,12 @@ KEYS_TO_STORE_IN_DB = (
 )
 
 
-def _prepare_sheet_payload(result: SheetScoringOutput) -> Dict[str, Any]:
+def _prepare_sheet_payload(result: SheetScoringOutput) -> dict[str, Any]:
     """
     Build the object to store under `llm_scoring.sheet` with ONLY the whitelisted fields.
     Excludes None values.
     """
-    payload: Dict[str, Any] = {}
+    payload: dict[str, Any] = {}
     for key in KEYS_TO_STORE_IN_DB:
         val = getattr(result, key, None)
         if val is not None:
@@ -36,8 +38,7 @@ def save_sheet_scoring_output(result: SheetScoringOutput) -> bool:
     Save sheet scoring output under llm_scoring.sheet with a narrow payload.
     """
     if result.request_status == 0:
-        logger.error(getattr(result, "request_status_message",
-                             "LLM scoring failed"))
+        logger.error(getattr(result, "request_status_message", "LLM scoring failed"))
         return False
     sheet_id = result.sheet_id
     try:
@@ -46,7 +47,7 @@ def save_sheet_scoring_output(result: SheetScoringOutput) -> bool:
             "$set": {
                 SHEET_FIELD: payload,
                 UPDATED_AT_FIELD: result.processed_datetime,
-            }
+            },
         }
         update_result = db.sheets.update_one({"id": int(sheet_id)}, update_doc)
         success = update_result.matched_count > 0
@@ -63,11 +64,13 @@ def save_sheet_scoring_output(result: SheetScoringOutput) -> bool:
         return False
 
 
-def make_sheet_scoring_input(sheet_content: Dict[str, Any]) -> SheetScoringInput:
+def make_sheet_scoring_input(sheet_content: dict[str, Any]) -> SheetScoringInput:
     """
     Create SheetScoringInput from sheet content dictionary.
     """
-    return SheetScoringInput(sheet_id=str(sheet_content["id"]),
-                             title=sheet_content['title'],
-                             expanded_refs=sheet_content['expandedRefs'],
-                             sources=sheet_content['sources'])
+    return SheetScoringInput(
+        sheet_id=str(sheet_content["id"]),
+        title=sheet_content["title"],
+        expanded_refs=sheet_content["expandedRefs"],
+        sources=sheet_content["sources"],
+    )

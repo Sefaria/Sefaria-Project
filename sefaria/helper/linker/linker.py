@@ -1,16 +1,17 @@
 import dataclasses
 import json
+
+import structlog
 from cerberus import Validator
 from ne_span import RefPartType
+
+from api.api_errors import APIInvalidInputException
+from sefaria.model import library, text
 from sefaria.model.linker.ref_part import TermContext
 from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
-from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.model.webpage_text import WebPageText
 from sefaria.system.cache import django_cache
-from api.api_errors import APIInvalidInputException
-from typing import List, Optional, Tuple
-import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -55,12 +56,14 @@ FIND_REFS_POST_SCHEMA = {
 }
 
 
-def make_find_refs_response(find_refs_input: 'FindRefsInput') -> dict:
+def make_find_refs_response(find_refs_input: "FindRefsInput") -> dict:
     metadata = find_refs_input.metadata
     if metadata:
         _add_webpage_hit_for_url(metadata.get("url", None))
     return _make_find_refs_response_with_cache(
-        find_refs_input.text, find_refs_input.options, metadata
+        find_refs_input.text,
+        find_refs_input.options,
+        metadata,
     )
 
 
@@ -103,15 +106,16 @@ def unpack_find_refs_request(request):
     post_body = json.loads(request.body)
     if not validator.validate(post_body):
         raise APIInvalidInputException(validator.errors)
-    meta_data = post_body.get('metaDataForTracking')
+    meta_data = post_body.get("metaDataForTracking")
     return _create_find_refs_text(post_body), _create_find_refs_options(request.GET, post_body), meta_data
 
 
 def _create_find_refs_text(post_body) -> _FindRefsText:
     from sefaria.utils.hebrew import is_mostly_hebrew
-    title = post_body['text']['title']
-    body = post_body['text']['body']
-    lang = post_body['lang'] if 'lang' in post_body else 'he' if is_mostly_hebrew(body) else 'en'
+
+    title = post_body["text"]["title"]
+    body = post_body["text"]["body"]
+    lang = post_body["lang"] if "lang" in post_body else "he" if is_mostly_hebrew(body) else "en"
     return _FindRefsText(title, body, lang)
 
 
@@ -124,23 +128,28 @@ def _create_find_refs_options(get_body: dict, post_body: dict) -> _FindRefsTextO
 
 
 def _add_webpage_hit_for_url(url):
-    if url is None: return
+    if url is None:
+        return
     webpage = WebPage().load(url)
-    if not webpage: return
+    if not webpage:
+        return
     webpage.add_hit()
     webpage.save()
 
 
-def _save_webpage_from_linker_metadata(meta_data: dict, response: dict) -> Optional[WebPage]:
+def _save_webpage_from_linker_metadata(meta_data: dict, response: dict) -> WebPage | None:
     url = meta_data.get("url")
     if not url:
         return None
-    _, webpage = WebPage.add_or_update_from_linker({
-        "url": url,
-        "title": meta_data.get("title", ""),
-        "description": meta_data.get("description", ""),
-        "refs": _get_trefs_from_response(response),
-    }, add_hit=False)
+    _, webpage = WebPage.add_or_update_from_linker(
+        {
+            "url": url,
+            "title": meta_data.get("title", ""),
+            "description": meta_data.get("description", ""),
+            "refs": _get_trefs_from_response(response),
+        },
+        add_hit=False,
+    )
     return webpage
 
 
@@ -148,15 +157,21 @@ def _save_webpage_text_from_linker_request(meta_data: dict, request_text: _FindR
     url = meta_data.get("url")
     if not url:
         return
-    WebPageText.add_or_update({
-        "url": url,
-        "title": request_text.title,
-        "body": request_text.body,
-    })
+    WebPageText.add_or_update(
+        {
+            "url": url,
+            "title": request_text.title,
+            "body": request_text.body,
+        },
+    )
 
 
 @django_cache(cache_type="persistent")
-def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _FindRefsTextOptions, meta_data: dict) -> dict:
+def _make_find_refs_response_with_cache(
+    request_text: _FindRefsText,
+    options: _FindRefsTextOptions,
+    meta_data: dict,
+) -> dict:
     response = _make_find_refs_response_linker_v3(request_text, options)
 
     if not meta_data:
@@ -164,7 +179,7 @@ def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _F
 
     webpage = _save_webpage_from_linker_metadata(meta_data, response)
     if webpage:
-        response['url'] = webpage.url
+        response["url"] = webpage.url
     try:
         _save_webpage_text_from_linker_request(meta_data, request_text)
     except Exception:
@@ -174,11 +189,11 @@ def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _F
 
 def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
     linker = library.get_linker(request_text.lang)
-    title_doc = linker.link(request_text.title, type_filter='citation')
+    title_doc = linker.link(request_text.title, type_filter="citation")
     context_ref = None
     if len(title_doc.resolved_refs) == 1 and not title_doc.resolved_refs[0].is_ambiguous:
         context_ref = title_doc.resolved_refs[0].ref
-    body_doc = linker.link_by_paragraph(request_text.body, context_ref, with_failures=True, type_filter='citation')
+    body_doc = linker.link_by_paragraph(request_text.body, context_ref, with_failures=True, type_filter="citation")
 
     response = {
         "title": _make_find_refs_response_inner(title_doc.resolved_refs, options),
@@ -198,42 +213,45 @@ def _make_find_refs_response_linker_v2(request_text: _FindRefsText, options: _Fi
 
 def _make_find_refs_response_inner_linker_v2(lang, text, options: _FindRefsTextOptions):
     import re
+
     ref_results = []
     ref_data = {}
 
     def _find_refs_action(ref, match: re.Match):
         nonlocal ref_results, ref_data
         tref = ref.normal()
-        ref_results += [{
-            "startChar": match.start(0),
-            "endChar": match.end(0),
-            "text": match.group(0),
-            "linkFailed": False,
-            "refs": [tref]
-        }]
+        ref_results += [
+            {
+                "startChar": match.start(0),
+                "endChar": match.end(0),
+                "text": match.group(0),
+                "linkFailed": False,
+                "refs": [tref],
+            },
+        ]
         ref_data[tref] = _make_ref_response_for_linker(ref, options)
 
     library.apply_action_for_all_refs_in_string(text, _find_refs_action, lang, citing_only=True)
     response = {
         "results": ref_results,
-        "refData": ref_data
+        "refData": ref_data,
     }
     if options.debug:
         # debugData has no meaning for linker v2 since there are no ref parts
-        response['debugData'] = []
+        response["debugData"] = []
 
     return response
 
 
 def _get_trefs_from_response(response):
     trefs = []
-    for key, value in response.items():
-        if isinstance(value, dict) and 'refData' in value:
-            trefs += list(value['refData'].keys())
+    for _key, value in response.items():
+        if isinstance(value, dict) and "refData" in value:
+            trefs += list(value["refData"].keys())
     return trefs
 
 
-def _make_find_refs_response_inner(resolved_ref_list: List[PossiblyAmbigResolvedRef], options: _FindRefsTextOptions):
+def _make_find_refs_response_inner(resolved_ref_list: list[PossiblyAmbigResolvedRef], options: _FindRefsTextOptions):
     ref_results = []
     ref_data = {}
     debug_data = []
@@ -242,66 +260,77 @@ def _make_find_refs_response_inner(resolved_ref_list: List[PossiblyAmbigResolved
         start_char, end_char = resolved_ref.raw_entity.char_indices
         text = resolved_ref.pretty_text
         link_failed = resolved_refs[0].ref is None
-        if not link_failed and resolved_refs[0].ref.is_book_level(): continue
-        ref_results += [{
-            "startChar": start_char,
-            "endChar": end_char,
-            "text": text,
-            "linkFailed": link_failed,
-            "refs": None if link_failed else [rr.ref.normal() for rr in resolved_refs]
-        }]
+        if not link_failed and resolved_refs[0].ref.is_book_level():
+            continue
+        ref_results += [
+            {
+                "startChar": start_char,
+                "endChar": end_char,
+                "text": text,
+                "linkFailed": link_failed,
+                "refs": None if link_failed else [rr.ref.normal() for rr in resolved_refs],
+            },
+        ]
         for rr in resolved_refs:
-            if rr.ref is None: continue
+            if rr.ref is None:
+                continue
             tref = rr.ref.normal()
-            if tref in ref_data: continue
+            if tref in ref_data:
+                continue
             ref_data[tref] = _make_ref_response_for_linker(rr.ref, options)
         if options.debug:
             debug_data += [[_make_debug_response_for_linker(rr) for rr in resolved_refs]]
 
     response = {
         "results": ref_results,
-        "refData": ref_data
+        "refData": ref_data,
     }
     if options.debug:
-        response['debugData'] = debug_data
+        response["debugData"] = debug_data
 
     return response
 
 
 def _make_ref_response_for_linker(oref: text.Ref, options: _FindRefsTextOptions) -> dict:
     res = {
-        'heRef': oref.he_normal(),
-        'url': oref.url(),
-        'primaryCategory': oref.primary_category,
+        "heRef": oref.he_normal(),
+        "url": oref.url(),
+        "primaryCategory": oref.primary_category,
     }
     if options.with_text:
         he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
         en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
-        res.update({
-            'he': he,
-            'en': en,
-            'isTruncated': he_truncated or en_truncated,
-        })
+        res.update(
+            {
+                "he": he,
+                "en": en,
+                "isTruncated": he_truncated or en_truncated,
+            },
+        )
 
     return res
 
 
-def _get_preferred_vtitle(oref: text.Ref, lang: str, version_preferences_by_corpus: dict) -> Optional[str]:
+def _get_preferred_vtitle(oref: text.Ref, lang: str, version_preferences_by_corpus: dict) -> str | None:
     vprefs = version_preferences_by_corpus
     corpus = oref.index.get_primary_corpus()
     # Make sure ref's corpus and current lang are specified in version_preferences_by_corpus.
     # If not, use default version
     if vprefs is None or corpus not in vprefs or lang not in vprefs[corpus]:
-        return
+        return None
     return vprefs[corpus][lang]
 
 
-def _get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: _FindRefsTextOptions) -> Tuple[List[str], bool]:
+def _get_ref_text_by_lang_for_linker(
+    oref: text.Ref,
+    lang: str,
+    options: _FindRefsTextOptions,
+) -> tuple[list[str], bool]:
     vtitle = _get_preferred_vtitle(oref, lang, options.version_preferences_by_corpus)
     chunk = text.TextChunk(oref, lang=lang, vtitle=vtitle, fallback_on_default_version=True)
     as_array = [chunk.strip_itags(s) for s in chunk.ja().flatten_to_array()]
     was_truncated = 0 < options.max_segments < len(as_array)
-    return as_array[:options.max_segments or None], was_truncated
+    return as_array[: options.max_segments or None], was_truncated
 
 
 def _make_debug_response_for_linker(resolved_ref: PossiblyAmbigResolvedRef) -> dict:
@@ -310,16 +339,20 @@ def _make_debug_response_for_linker(resolved_ref: PossiblyAmbigResolvedRef) -> d
         "orig_part_types": [p.type.name for p in resolved_ref.raw_entity.raw_ref_parts],
         "final_part_strs": [p.text for p in resolved_ref.raw_entity.parts_to_match],
         "final_part_types": [p.type.name for p in resolved_ref.raw_entity.parts_to_match],
-        "resolved_part_strs": [p.term.slug if isinstance(p, TermContext) else p.text for p in resolved_ref.resolved_parts],
+        "resolved_part_strs": [
+            p.term.slug if isinstance(p, TermContext) else p.text for p in resolved_ref.resolved_parts
+        ],
         "resolved_part_types": [p.type.name for p in resolved_ref.resolved_parts],
         "resolved_part_classes": [p.__class__.__name__ for p in resolved_ref.resolved_parts],
         "context_ref": resolved_ref.context_ref.normal() if resolved_ref.context_ref else None,
         "context_type": resolved_ref.context_type.name if resolved_ref.context_type else None,
     }
-    if RefPartType.RANGE.name in debug_data['final_part_types']:
+    if RefPartType.RANGE.name in debug_data["final_part_types"]:
         range_part = next((p for p in resolved_ref.raw_entity.parts_to_match if p.type == RefPartType.RANGE), None)
-        debug_data.update({
-            'input_range_sections': [p.text for p in range_part.sections],
-            'input_range_to_sections': [p.text for p in range_part.toSections]
-        })
+        debug_data.update(
+            {
+                "input_range_sections": [p.text for p in range_part.sections],
+                "input_range_to_sections": [p.text for p in range_part.toSections],
+            },
+        )
     return debug_data

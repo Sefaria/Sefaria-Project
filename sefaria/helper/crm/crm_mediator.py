@@ -1,9 +1,10 @@
-from sefaria.helper.crm.crm_factory import CrmFactory
-from sefaria.helper.crm.crm_info_store import CrmInfoStore
 from django.conf import settings as sls
 
+from sefaria.helper.crm.crm_factory import CrmFactory
+from sefaria.helper.crm.crm_info_store import CrmInfoStore
 
-# todo: task queue, async
+# TODO: task queue, async
+
 
 class CrmMediator:
     def __init__(self):
@@ -15,8 +16,7 @@ class CrmMediator:
             if crm_id:
                 CrmInfoStore.save_crm_id(crm_id, email, sls.CRM_TYPE)
                 return True
-            else:
-                return False
+            return False
         except:
             return False
 
@@ -50,10 +50,7 @@ class CrmMediator:
         Marks user as spam in CRM if user exists
         """
         crm_id = CrmInfoStore.get_crm_id(uid, email, profile)
-        if crm_id:
-            if self._crm_connection.mark_for_review_in_crm(crm_id):
-                return True
-        return False
+        return bool(crm_id and self._crm_connection.mark_for_review_in_crm(crm_id))
 
     def update_user_email(self, new_email, uid=None, email=None, profile=None):
         """
@@ -62,8 +59,7 @@ class CrmMediator:
         crm_id = CrmInfoStore.get_crm_id(uid, email, profile)
         if crm_id:
             return self._crm_connection.change_user_email(crm_id, new_email)
-        else:
-            return False
+        return False
 
     def get_and_save_crm_id(self, email=None):
         crm_id = self._crm_connection.find_crm_id(email)

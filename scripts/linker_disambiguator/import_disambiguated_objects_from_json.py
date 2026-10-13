@@ -9,14 +9,16 @@ For each document, checks whether it already exists using the natural key for th
 
 Overwrites existing documents; inserts new ones. Reports new/updated counts per collection.
 """
+
 import argparse
 import json
 import os
 import sys
+
+import django
 from bson import ObjectId
 from tqdm import tqdm
 
-import django
 django.setup()
 
 from sefaria.system.database import db
@@ -29,8 +31,10 @@ def _iter_json_array(path, desc=None):
     decoder = json.JSONDecoder()
     buf = ""
     prev_tell = 0
-    with open(path, encoding="utf-8") as f, \
-         tqdm(total=os.path.getsize(path), unit="B", unit_scale=True, desc=desc) as bar:
+    with (
+        open(path, encoding="utf-8") as f,
+        tqdm(total=os.path.getsize(path), unit="B", unit_scale=True, desc=desc) as bar,
+    ):
 
         def _read():
             nonlocal prev_tell
@@ -45,7 +49,7 @@ def _iter_json_array(path, desc=None):
             if not chunk:
                 return
             buf += chunk
-        buf = buf[buf.index("[") + 1:]
+        buf = buf[buf.index("[") + 1 :]
         while True:
             buf = buf.lstrip(" \n\r\t,")
             if not buf:
@@ -84,9 +88,8 @@ def _upsert_links(collection, path, label):
         id_match = collection.find_one({"_id": oid})
         refs_match = None
         if len(refs) == 2:
-            refs_match = (
-                collection.find_one({"refs.0": refs[0], "refs.1": refs[1]}) or
-                collection.find_one({"refs.0": refs[1], "refs.1": refs[0]})
+            refs_match = collection.find_one({"refs.0": refs[0], "refs.1": refs[1]}) or collection.find_one(
+                {"refs.0": refs[1], "refs.1": refs[0]},
             )
         if id_match and refs_match and id_match["_id"] != refs_match["_id"]:
             # _id and refs point to different docs — delete the stale _id doc, leave the refs doc
@@ -100,7 +103,9 @@ def _upsert_links(collection, path, label):
         else:
             collection.insert_one(doc)
             new_count += 1
-    print(f"{label}: {new_count} new, {updated_count} updated, {skipped_count} skipped, {deleted_count} deleted (stale _id with duplicate refs)")
+    print(
+        f"{label}: {new_count} new, {updated_count} updated, {skipped_count} skipped, {deleted_count} deleted (stale _id with duplicate refs)",
+    )
     return new_count, updated_count
 
 
@@ -129,7 +134,9 @@ def _upsert_by_ref_key(collection, path, label):
         else:
             collection.insert_one(doc)
             new_count += 1
-    print(f"{label}: {new_count} new, {updated_count} updated, {skipped_count} skipped, {deleted_count} deleted (stale _id with duplicate ref key)")
+    print(
+        f"{label}: {new_count} new, {updated_count} updated, {skipped_count} skipped, {deleted_count} deleted (stale _id with duplicate ref key)",
+    )
     return new_count, updated_count
 
 

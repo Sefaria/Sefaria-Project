@@ -1,8 +1,5 @@
-# encoding=utf-8
-
-
-from sefaria.model import *
 from sefaria.helper.schema import change_node_title
+from sefaria.model import *
 
 
 def get_all_node_titles(index):
@@ -11,6 +8,7 @@ def get_all_node_titles(index):
     :param Index index:
     :return: list of primary titles
     """
+
     def get_primary_titles(node, title_list=None):
         """
         Get all the English primary titles for a node and all it's children(if any)
@@ -21,7 +19,7 @@ def get_all_node_titles(index):
         if title_list is None:
             title_list = []
 
-        title_list.append(node.primary_title('en'))
+        title_list.append(node.primary_title("en"))
 
         if node.has_children():
             for child in node.children:
@@ -33,8 +31,7 @@ def get_all_node_titles(index):
     if root_node:
         titles = get_primary_titles(root_node)
         return titles
-    else:
-        return [index.title]
+    return [index.title]
 
 
 def is_ascii(s):
@@ -58,21 +55,21 @@ def fix_node_titles():
         """
         :param TitledTreeNode node:
         """
-        old_title = node.primary_title('en')
+        old_title = node.primary_title("en")
         if is_ascii(old_title):
             return
         things_to_replace = {
-            '\xa0': '',
-            '\u015b': 's',
-            '\u2018': "'",
-            '\u2019': "'"
+            "\xa0": "",
+            "\u015b": "s",
+            "\u2018": "'",
+            "\u2019": "'",
         }
         new_title = multiple_replace(old_title, things_to_replace)
         if old_title == new_title:
-            print("Can't fix {}".format(node.full_title('en')))
+            print("Can't fix {}".format(node.full_title("en")))
             return
-        print("Changing '{}' to '{}'".format(old_title, new_title))
-        change_node_title(node, old_title, 'en', new_title)
+        print(f"Changing '{old_title}' to '{new_title}'")
+        change_node_title(node, old_title, "en", new_title)
 
     def run_on_nodes(node):
         if node is None:

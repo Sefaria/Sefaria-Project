@@ -1,101 +1,124 @@
 import io
+import json
 import os
 import zipfile
-import json
-import re
-import bleach
-import requests
-from datetime import datetime, timedelta
-from typing import Optional, Union, List, Any
 from dataclasses import asdict
-from urllib.parse import urlparse, urlencode, parse_qsl, urlunparse
-from collections import defaultdict
-from random import choice
-from celery.result import AsyncResult
+from datetime import datetime, timedelta
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
-from django.utils.translation import gettext as _
+import requests
+from celery.result import AsyncResult
 from django.conf import settings
-from django.shortcuts import render, redirect, resolve_url
-from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest, HttpRequest
-from django.template.loader import render_to_string
-from django.template.response import TemplateResponse
-from django.utils.http import url_has_allowed_host_and_scheme
-from django.utils.cache import patch_cache_control
-from django.contrib.auth import authenticate
-from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
-from django.contrib.auth.decorators import login_required
-from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import (
+    INTERNAL_RESET_SESSION_TOKEN,
+    LoginView,
+    LogoutView,
+    PasswordResetCompleteView,
+    PasswordResetConfirmView,
+    PasswordResetDoneView,
+    PasswordResetView,
+)
 from django.db import transaction
-from django.views.decorators.debug import sensitive_post_parameters
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.shortcuts import redirect, render, resolve_url
+from django.template.loader import render_to_string
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
+from django.utils.cache import patch_cache_control
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext as _
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from functools import wraps
 
-from remote_config.keys import CURRENT_LINKER_VERSION
-from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
+from reader.views import base_props, render_template
+from remote_config import remoteConfigCache
+from remote_config.keys import CURRENT_LINKER_VERSION
+from sefaria import tracker
+from sefaria.celery_setup.config import CeleryQueue
+from sefaria.clean import remove_old_counts
+from sefaria.client.util import celeryResponse, jsonResponse, read_webpack_bundle, read_webpack_bundle_map, send_email
+from sefaria.datatype.jagged_array import JaggedTextArray
+from sefaria.decorators import webhook_auth_or_staff_required
+from sefaria.export import export_all as start_export_all
+from sefaria.forms import (
+    SefariaDeleteSheet,
+    SefariaDeleteUserForm,
+    SefariaLoginForm,
+    SefariaNewUserForm,
+    SefariaNewUserFormAPI,
+    SefariaPasswordResetForm,
+    SefariaSetPasswordForm,
+)
+from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.helper import library_assistant
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
-from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
-from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED
-from sefaria.celery_setup.config import CeleryQueue
-from sefaria.model.user_profile import UserProfile, user_link
-from sso.adapters import import_gravatar
-from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
+from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
+from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
+from sefaria.helper.text import get_core_link_stats, get_library_stats, make_versions_csv
+from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
+from sefaria.helper.webpages import domain_for_url as webpage_domain_for_url
+from sefaria.helper.webpages import normalize_url as normalize_webpage_url
+from sefaria.model import *
+from sefaria.model.collection import process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
-from sefaria.export import export_all as start_export_all
-from sefaria.datatype.jagged_array import JaggedTextArray
-# noinspection PyUnresolvedReferences
-from sefaria.system.exceptions import InputError, NoVersionFoundError
-from api.api_errors import APIInvalidInputException
+from sefaria.model.user_profile import UserProfile, user_link
+from sefaria.model.webpage import *
+from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
+from sefaria.settings import CELERY_ENABLED, MAINTENANCE_MESSAGE, MULTISERVER_ENABLED, USE_VARNISH
+from sefaria.sheets import get_sheet_categorization_info
+from sefaria.system.cache import (
+    get_cache_elem,
+    get_shared_cache_elem,
+    in_memory_cache,
+    invalidate_cache_by_pattern,
+    set_cache_elem,
+    set_shared_cache_elem,
+)
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http, cors_allow_all
-from sefaria.utils.hebrew import has_hebrew, strip_nikkud
-from sefaria.utils.util import strip_tags
-from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
-from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
-from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
-from sefaria.clean import remove_old_counts
-from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
-from sefaria.model import *
-from sefaria.model.webpage import *
-from sefaria import tracker
-from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
+
+# noinspection PyUnresolvedReferences
+from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.system.multiserver.coordinator import server_coordinator
-from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.sheets import get_sheet_categorization_info
-from reader.views import base_props, render_template
-from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
-from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
-from remote_config import remoteConfigCache
+from sefaria.utils.hebrew import has_hebrew
+from sefaria.utils.util import strip_tags
+from sso.adapters import import_gravatar
 
 if USE_VARNISH:
-    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_linked, invalidate_counts, invalidate_all
+    from sefaria.system.varnish.wrapper import (
+        invalidate_all,
+        invalidate_counts,
+        invalidate_index,
+        invalidate_linked,
+        invalidate_ref,
+        invalidate_title,
+    )
+
+import structlog
 
 from sefaria.history import record_version_deletion
 
-import structlog
 logger = structlog.get_logger(__name__)
+
 
 class StaticViewMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['renderStatic'] = True
+        context["renderStatic"] = True
         return context
+
 
 class CustomLoginView(LoginView):
     authentication_form = SefariaLoginForm
-    template_name = 'base.html'
+    template_name = "base.html"
 
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -104,13 +127,17 @@ class CustomLoginView(LoginView):
 
     def render_to_response(self, context, **response_kwargs):
         return render_template(
-            self.request, "base.html",
+            self.request,
+            "base.html",
             {"headerMode": False},
             {
-                'title': _('Log in to Sefaria'),
-                'desc': _('Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users.'),
-            }
+                "title": _("Log in to Sefaria"),
+                "desc": _(
+                    "Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users.",
+                ),
+            },
         )
+
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
     http_method_names = ["get", "post", "options"]
@@ -121,7 +148,7 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
         return self.post(request, *args, **kwargs)
 
     def get_next_page(self):
-        next_page = self.request.GET.get('next')
+        next_page = self.request.GET.get("next")
         if next_page:
             # Validate ?next= against the request host before redirecting. Django's stock
             # LogoutView.get_next_page does this; this override previously skipped it,
@@ -140,21 +167,23 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
 class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
     pass
 
+
 class CustomPasswordResetCompleteView(StaticViewMixin, PasswordResetCompleteView):
     pass
 
+
 class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
     form_class = SefariaPasswordResetForm
-    email_template_name = 'registration/password_reset_email.txt'
-    html_email_template_name = 'registration/password_reset_email.html'
-    
+    email_template_name = "registration/password_reset_email.txt"
+    html_email_template_name = "registration/password_reset_email.html"
+
     def form_valid(self, form):
         """
         Override form_valid to set the correct domain for the email context.
         """
         # Get the current domain from the request
         current_domain = self.request.get_host()
-        
+
         # Call form.save with domain override - this sends the email
         form.save(
             request=self.request,
@@ -169,48 +198,58 @@ class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
         # Don't call super().form_valid(form) as it would send the email again
         return HttpResponseRedirect(self.get_success_url())
 
+
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
-    template_name = 'base.html'
+    template_name = "base.html"
 
     def render_to_response(self, context, **response_kwargs):
         # dispatch() calls this directly (bypassing get()/post()) whenever the
         # link is invalid/expired — for BOTH GET and POST. Branch on method so
         # an invalid-link POST still gets JSON, not an HTML page.
-        if self.request.method == 'POST':
+        if self.request.method == "POST":
             try:
                 data = json.loads(self.request.body)
             except (json.JSONDecodeError, ValueError):
                 data = {}
-            if data.get('action') == 'resend':
+            if data.get("action") == "resend":
                 # dispatch() already resolved self.user from the URL's uidb64
                 # before checking token validity, so the account is known
                 # even though the link itself has expired.
                 if self.user is None:
-                    return jsonResponse({
-                        "error": "We couldn't find an account for this link.",
-                        "_auth": {"code": "no_account_for_link"},
-                    }, status=400)
-                form = SefariaPasswordResetForm(data={'email': self.user.email})
+                    return jsonResponse(
+                        {
+                            "error": "We couldn't find an account for this link.",
+                            "_auth": {"code": "no_account_for_link"},
+                        },
+                        status=400,
+                    )
+                form = SefariaPasswordResetForm(data={"email": self.user.email})
                 if form.is_valid():
                     form.save(
-                        request=self.request, domain_override=self.request.get_host(), use_https=self.request.is_secure(),
-                        email_template_name='registration/password_reset_email.txt',
-                        html_email_template_name='registration/password_reset_email.html',
+                        request=self.request,
+                        domain_override=self.request.get_host(),
+                        use_https=self.request.is_secure(),
+                        email_template_name="registration/password_reset_email.txt",
+                        html_email_template_name="registration/password_reset_email.html",
                     )
                 return jsonResponse({})
-            return jsonResponse({
-                "error": "This password reset link is no longer valid.",
-                "_auth": {"code": "invalid_reset_link"},
-            }, status=400)
+            return jsonResponse(
+                {
+                    "error": "This password reset link is no longer valid.",
+                    "_auth": {"code": "invalid_reset_link"},
+                },
+                status=400,
+            )
         return render_template(
-            self.request, "base.html",
+            self.request,
+            "base.html",
             {
                 "headerMode": False,
                 "authResetUid": self.kwargs.get("uidb64", ""),
                 "authResetValid": bool(context.get("validlink")),
             },
-            {'title': _('Reset Your Password'), 'desc': _('Reset your Sefaria account password.')},
+            {"title": _("Reset Your Password"), "desc": _("Reset your Sefaria account password.")},
         )
 
     def post(self, request, *args, **kwargs):
@@ -219,24 +258,27 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             data = json.loads(request.body)
         except (json.JSONDecodeError, ValueError):
             return jsonResponse({"error": "Invalid JSON"}, status=400)
-        form = self.form_class(user=self.user, data={
-            "new_password1": data.get("new_password1", ""),
-            "new_password2": data.get("new_password2", ""),
-        })
+        form = self.form_class(
+            user=self.user,
+            data={
+                "new_password1": data.get("new_password1", ""),
+                "new_password2": data.get("new_password2", ""),
+            },
+        )
         if not form.is_valid():
             return jsonResponse({k: v[0] for k, v in form.errors.items()}, status=400)
         form.save()
         request.session.pop(INTERNAL_RESET_SESSION_TOKEN, None)
         return jsonResponse({})
 
-def process_register_form(request, auth_method='session'):
-    form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
+
+def process_register_form(request, auth_method="session"):
+    form = SefariaNewUserForm(request.POST) if auth_method == "session" else SefariaNewUserFormAPI(request.POST)
     token_dict = None
     if form.is_valid():
         with transaction.atomic():
-            new_user = form.save()
-            user = authenticate(email=form.cleaned_data['email'],
-                                password=form.cleaned_data['password1'])
+            form.save()
+            user = authenticate(email=form.cleaned_data["email"], password=form.cleaned_data["password1"])
             p = UserProfile(id=user.id, user_registration=True)
             p.assign_slug()
             p.join_invited_collections()
@@ -251,18 +293,18 @@ def process_register_form(request, auth_method='session'):
         import_gravatar(p)
         p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
 
-        if auth_method == 'session':
+        if auth_method == "session":
             auth_login(request, user)
-        elif auth_method == 'jwt':
-            token_dict = TokenObtainPairSerializer().validate({"username": form.cleaned_data['email'], "password": form.cleaned_data['password1']})
-    return {
-        k: v[0] if len(v) > 0 else str(v) for k, v in list(form.errors.items())
-    }, token_dict, form
+        elif auth_method == "jwt":
+            token_dict = TokenObtainPairSerializer().validate(
+                {"username": form.cleaned_data["email"], "password": form.cleaned_data["password1"]},
+            )
+    return {k: v[0] if len(v) > 0 else str(v) for k, v in list(form.errors.items())}, token_dict, form
 
 
 @api_view(["POST"])
 def register_api(request):
-    errors, token_dict, _ = process_register_form(request, auth_method='jwt')
+    errors, token_dict, _ = process_register_form(request, auth_method="jwt")
     if len(errors) == 0:
         return jsonResponse(token_dict)
 
@@ -295,9 +337,9 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("/")
 
-    next_url = request.GET.get('next', '')
+    next_url = request.GET.get("next", "")
 
-    if request.method == 'POST':
+    if request.method == "POST":
         errors, __, form = process_register_form(request)
         if len(errors) == 0:
             if "new?assignment=" in request.POST.get("next", ""):
@@ -305,30 +347,41 @@ def register(request):
             else:
                 next_url = request.POST.get("next", "/")
                 parsed = urlparse(next_url)
-                next_url = urlunparse(parsed._replace(query=urlencode(parse_qsl(parsed.query) + [('welcome', 'to-sefaria')])))
-            if not url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+                next_url = urlunparse(
+                    parsed._replace(query=urlencode(parse_qsl(parsed.query) + [("welcome", "to-sefaria")])),
+                )
+            if not url_has_allowed_host_and_scheme(
+                url=next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
                 next_url = "/"
             if "noredirect" in request.POST:
                 return jsonResponse({"redirect": next_url})
             return HttpResponseRedirect(next_url)
-        elif "noredirect" in request.POST:
+        if "noredirect" in request.POST:
             return jsonResponse(_web_register_errors(form))
     else:
-        if request.GET.get('educator', ''):
-            form = SefariaNewUserForm(initial={'subscribe_educator': True})
+        if request.GET.get("educator", ""):
+            form = SefariaNewUserForm(initial={"subscribe_educator": True})
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "base.html", {"headerMode": False}, {
-        'form': form,
-        'next': next_url,
-        'title': _('Create an Account'),
-        'desc': _('Create an account on Sefaria to make source sheets, take notes and follow other people.'),
-    })
+    return render_template(
+        request,
+        "base.html",
+        {"headerMode": False},
+        {
+            "form": form,
+            "next": next_url,
+            "title": _("Create an Account"),
+            "desc": _("Create an account on Sefaria to make source sheets, take notes and follow other people."),
+        },
+    )
 
 
 def maintenance_message(request):
-    resp = render_template(request,"static/maintenance.html", None, {"message": MAINTENANCE_MESSAGE}, status=503)
+    resp = render_template(request, "static/maintenance.html", None, {"message": MAINTENANCE_MESSAGE}, status=503)
     return resp
 
 
@@ -352,9 +405,8 @@ def generic_subscribe_to_newsletter_api(request, org, email):
             return jsonResponse({"error": f"Organization '{org}' not recognized."})
         if subscribe(request, email, first_name, last_name):
             return jsonResponse({"status": "ok"})
-        else:
-            logger.error(f"Failed to subscribe to list")
-            return jsonResponse({"error": _("Sorry, there was an error.")})
+        logger.error("Failed to subscribe to list")
+        return jsonResponse({"error": _("Sorry, there was an error.")})
     except ValueError as e:
         logger.error(f"Failed to subscribe to list: {e}")
         return jsonResponse({"error": _("Sorry, there was an error.")})
@@ -362,7 +414,7 @@ def generic_subscribe_to_newsletter_api(request, org, email):
 
 @csrf_exempt
 def subscribe_sefaria_newsletter_view(request, email):
-    return generic_subscribe_to_newsletter_api(request, 'sefaria', email)
+    return generic_subscribe_to_newsletter_api(request, "sefaria", email)
 
 
 def subscribe_sefaria_newsletter(request, email, first_name, last_name):
@@ -378,7 +430,15 @@ def subscribe_sefaria_newsletter(request, email, first_name, last_name):
     educator = body.get("educator", False)
     mailing_lists = body.get("lists", [])
     crm_mediator = CrmMediator()
-    return crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language, mailing_lists=mailing_lists)
+    return crm_mediator.subscribe_to_lists(
+        email,
+        first_name,
+        last_name,
+        educator=educator,
+        lang=language,
+        mailing_lists=mailing_lists,
+    )
+
 
 @csrf_exempt
 def get_available_newsletter_mailing_lists(request):
@@ -388,6 +448,7 @@ def get_available_newsletter_mailing_lists(request):
         return jsonResponse({"error": str(e)}, status=502)
     except:
         return jsonResponse({"error": "Unknown error occurred"}, status=500)
+
 
 def subscribe_steinsaltz(request, email, first_name, last_name):
     """
@@ -400,9 +461,8 @@ def subscribe_steinsaltz(request, email, first_name, last_name):
         "last_name": last_name,
         "email": email,
     }
-    headers = {'Content-Type': 'application/json'}
-    response = requests.post('https://steinsaltz-center.org/api/mailer',
-                             data=json.dumps(data), headers=headers)
+    headers = {"Content-Type": "application/json"}
+    response = requests.post("https://steinsaltz-center.org/api/mailer", data=json.dumps(data), headers=headers)
     return response.ok
 
 
@@ -415,38 +475,39 @@ def unlink_gauth(request):
         redir = bool(int(request.GET.get("redirect", True)))
         if redir:
             return redirect(f"/profile/{profile.slug}")
-        else:
-            return jsonResponse({"status": "ok"})
+        return jsonResponse({"status": "ok"})
     except:
         return jsonResponse({"error": "Failed to delete Google account"})
 
 
 def generate_feedback(request):
 
-    data = json.loads(request.POST.get('json', {}))
+    data = json.loads(request.POST.get("json", {}))
 
-    fb_type = data.get('type', None)
-    refs = data.get('refs', None)
-    url = data.get('url', None)
-    versions = data.get('currVersions', None)
-    uid = data.get('uid', None)
-    from_email = data.get('email', None)
-    msg = data.get('msg', None)
+    fb_type = data.get("type", None)
+    refs = data.get("refs", None)
+    url = data.get("url", None)
+    versions = data.get("currVersions", None)
+    uid = data.get("uid", None)
+    from_email = data.get("email", None)
+    msg = data.get("msg", None)
 
     if not from_email:
         from_email = model.user_profile.UserProfile(id=uid).email
 
     if fb_type == "content_issue":
         to_email = "corrections@sefaria.org"
-        subject = "Correction from website - " + ' / '.join(refs)
-        message_html = msg + "\n\n" + "refs: " + ' / '.join(refs) + "\n" + "versions: " + str(versions) + "\n\n" + "URL: " + url
+        subject = "Correction from website - " + " / ".join(refs)
+        message_html = (
+            msg + "\n\n" + "refs: " + " / ".join(refs) + "\n" + "versions: " + str(versions) + "\n\n" + "URL: " + url
+        )
     elif fb_type == "user_testing":
         to_email = "gabriel@sefaria.org"
         subject = "User Testing Sign Up"
         message_html = "Hi! I want to sign up for user testing!"
     else:
         to_email = "hello@sefaria.org"
-        subject = "Feedback from website - " + fb_type.replace("_"," ")
+        subject = "Feedback from website - " + fb_type.replace("_", " ")
         message_html = msg + "\n\n" + "URL: " + url
 
     try:
@@ -479,7 +540,7 @@ def sefaria_js(request):
         "sefaria_js": sefaria_js,
     }
 
-    return render(request, "js/sefaria.js", attrs, content_type= "text/javascript; charset=utf-8")
+    return render(request, "js/sefaria.js", attrs, content_type="text/javascript; charset=utf-8")
 
 
 def linker_js(request, linker_version=None):
@@ -495,11 +556,13 @@ def linker_js(request, linker_version=None):
     linker_link = "js/linker.v" + linker_version + ".js"
 
     attrs = {
-        "book_titles": json.dumps(model.library.citing_title_list("en")
-                      + model.library.citing_title_list("he"), ensure_ascii=False)
+        "book_titles": json.dumps(
+            model.library.citing_title_list("en") + model.library.citing_title_list("he"),
+            ensure_ascii=False,
+        ),
     }
 
-    return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
+    return render(request, linker_link, attrs, content_type="text/javascript; charset=utf-8")
 
 
 def linker_js_map(request):
@@ -509,21 +572,23 @@ def linker_js_map(request):
 @api_view(["POST"])
 def find_refs_report_api(request):
     from sefaria.system.database import db
+
     post = json.loads(request.body)
     db.linker_feedback.insert_one(post)
-    return jsonResponse({'ok': True})
+    return jsonResponse({"ok": True})
 
 
 @cors_allow_all
 @api_view(["POST", "OPTIONS"])
 def find_refs_api(request):
-    from sefaria.helper.linker.linker import unpack_find_refs_request, FindRefsInput
+    from sefaria.helper.linker.linker import FindRefsInput, unpack_find_refs_request
     from sefaria.helper.linker.tasks import find_refs_api_task
+
     request_text, options, metadata = unpack_find_refs_request(request)
     find_refs_input = FindRefsInput(request_text, options, metadata)
     async_result = find_refs_api_task.apply_async(
         args=(asdict(find_refs_input),),
-        queue=CeleryQueue.TASKS.value
+        queue=CeleryQueue.TASKS.value,
     )
     logger.info(
         "find_refs_api:enqueued",
@@ -560,7 +625,7 @@ def async_task_status_api(request, task_id: str):
     if result.failed():
         # result.result is the exception instance
         payload["error"] = str(result.result)
-        logger.error("async_task_status_api:failed", task_id=task_id, state=state, error=payload["error"]) 
+        logger.error("async_task_status_api:failed", task_id=task_id, state=state, error=payload["error"])
         return jsonResponse(payload, status=500)
 
     if result.successful():
@@ -568,8 +633,12 @@ def async_task_status_api(request, task_id: str):
         # summarize result shape if dict-like
         try:
             result_dict = result.result if isinstance(result.result, dict) else {}
-            title_results = len(result_dict.get("title", {}).get("results", []) if isinstance(result_dict.get("title"), dict) else [])
-            body_results = len(result_dict.get("body", {}).get("results", []) if isinstance(result_dict.get("body"), dict) else [])
+            title_results = len(
+                result_dict.get("title", {}).get("results", []) if isinstance(result_dict.get("title"), dict) else [],
+            )
+            body_results = len(
+                result_dict.get("body", {}).get("results", []) if isinstance(result_dict.get("body"), dict) else [],
+            )
         except Exception:
             title_results, body_results = None, None
         logger.info(
@@ -607,13 +676,16 @@ def linker_data_api(request, titles):
         url = request.GET.get("url", "")
         domain = webpage_domain_for_url(normalize_webpage_url(url))
 
-        website_match = WebSiteSet({"domains": domain})  # we know there can only be 0 or 1 matches found because of a constraint
-                                                         # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py
-        res["exclude_from_tracking"] = getattr(website_match[0], "exclude_from_tracking", "") if website_match.count() == 1 else ""
+        website_match = WebSiteSet(
+            {"domains": domain},
+        )  # we know there can only be 0 or 1 matches found because of a constraint
+        # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py
+        res["exclude_from_tracking"] = (
+            getattr(website_match[0], "exclude_from_tracking", "") if website_match.count() == 1 else ""
+        )
         resp = jsonResponse(res, cb)
         return resp
-    else:
-        return jsonResponse({"error": "Unsupported HTTP method."})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 def title_regex_api(request, titles, json_response=True):
@@ -627,55 +699,80 @@ def title_regex_api(request, titles, json_response=True):
         for title in titles:
             lang = "he" if has_hebrew(title) else "en"
             try:
-                re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True, parentheses=parentheses)
+                re_string = model.library.get_regex_string(
+                    title,
+                    lang,
+                    anchored=False,
+                    for_js=True,
+                    parentheses=parentheses,
+                )
                 res[title] = re_string
             except (AttributeError, AssertionError) as e:
                 # There are normal errors here, when a title matches a schema node, the chatter fills up the logs.
                 # logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-                errors.append("{} : {}".format(title, e))
+                errors.append(f"{title} : {e}")
         if len(errors):
             res["error"] = errors
         resp = jsonResponse(res, cb)
         return resp if json_response else res
-    else:
-        return jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
+    return (
+        jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
+    )
 
 
-def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None, english_version=None, hebrew_version=None):
+def bundle_many_texts(
+    refs,
+    use_text_family=False,
+    as_sized_string=False,
+    min_char=None,
+    max_char=None,
+    translation_language_preference=None,
+    english_version=None,
+    hebrew_version=None,
+):
     res = {}
     for tref in refs:
         try:
             oref = model.Ref(tref)
             lang = "he" if has_hebrew(tref) else "en"
             if use_text_family:
-                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
-                                            lang="he", version=hebrew_version,
-                                            lang2="en", version2=english_version)
+                text_fam = model.TextFamily(
+                    oref,
+                    commentary=0,
+                    context=0,
+                    pad=False,
+                    translationLanguagePreference=translation_language_preference,
+                    stripItags=True,
+                    lang="he",
+                    version=hebrew_version,
+                    lang2="en",
+                    version2=english_version,
+                )
                 he = text_fam.he
                 en = text_fam.text
                 res[tref] = {
-                    'he': he,
-                    'en': en,
-                    'lang': lang,
-                    'ref': oref.normal(),
-                    'primary_category': text_fam.contents()['primary_category'],
-                    'heRef': oref.he_normal(),
-                    'url': oref.url()
+                    "he": he,
+                    "en": en,
+                    "lang": lang,
+                    "ref": oref.normal(),
+                    "primary_category": text_fam.contents()["primary_category"],
+                    "heRef": oref.he_normal(),
+                    "url": oref.url(),
                 }
             else:
                 he_tc = model.TextChunk(oref, "he", vtitle=hebrew_version)
                 en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference, vtitle=english_version)
                 if hebrew_version and he_tc.is_empty():
-                  raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
+                    raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
                 if english_version and en_tc.is_empty():
-                  raise NoVersionFoundError(f"{oref.normal()} does not have the English version: {english_version}")
+                    raise NoVersionFoundError(f"{oref.normal()} does not have the English version: {english_version}")
 
                 if as_sized_string:
                     kwargs = {}
                     if min_char:
-                        kwargs['min_char'] = min_char
+                        kwargs["min_char"] = min_char
                     if max_char:
-                        kwargs['max_char'] = max_char
+                        kwargs["max_char"] = max_char
                     he_text = he_tc.as_sized_string(**kwargs)
                     en_text = en_tc.as_sized_string(**kwargs)
                 else:
@@ -686,14 +783,14 @@ def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_ch
                     en_text = en if isinstance(en, str) else JaggedTextArray(en).flatten_to_string()
 
                 res[tref] = {
-                    'he': he_text,
-                    'en': en_text,
-                    'lang': lang,
-                    'ref': oref.normal(),
-                    'heRef': oref.he_normal(),
-                    'url': oref.url()
+                    "he": he_text,
+                    "en": en_text,
+                    "lang": lang,
+                    "ref": oref.normal(),
+                    "heRef": oref.he_normal(),
+                    "url": oref.url(),
                 }
-        except (InputError, ValueError, AttributeError, KeyError) as e:
+        except (InputError, ValueError, AttributeError, KeyError):
             # referer = request.META.get("HTTP_REFERER", "unknown page")
             # This chatter fills up the logs.  todo: put in it's own file
             # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
@@ -711,11 +808,23 @@ def bulktext_api(request, refs):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
         refs = set(refs.split("|"))
-        g = lambda x: request.GET.get(x, None)
+
+        def g(x):
+            return request.GET.get(x, None)
+
         min_char = int(g("minChar")) if g("minChar") else None
         max_char = int(g("maxChar")) if g("maxChar") else None
-        use_text_family = True if g("useTextFamily") == "1" else False
-        res = bundle_many_texts(refs, use_text_family, g("asSizedString"), min_char, max_char, g("transLangPref"), g("ven"), g("vhe"))
+        use_text_family = g("useTextFamily") == "1"
+        res = bundle_many_texts(
+            refs,
+            use_text_family,
+            g("asSizedString"),
+            min_char,
+            max_char,
+            g("transLangPref"),
+            g("ven"),
+            g("vhe"),
+        )
         resp = jsonResponse(res, cb)
         return resp
 
@@ -751,7 +860,7 @@ def passages_api(request, refs):
         cb = request.GET.get("callback", None)
         refs = set(refs.split("|"))
 
-        # todo: Use PassageSet, so that it can be packaged as one query
+        # TODO: Use PassageSet, so that it can be packaged as one query
         for tref in refs:
             try:
                 oref = Ref(tref)
@@ -769,16 +878,17 @@ def passages_api(request, refs):
 
 @login_required
 def collections_image_upload(request, resize_image=True):
-    from PIL import Image
-    from tempfile import NamedTemporaryFile
-    from sefaria.google_storage_manager import GoogleStorageManager
-    from io import BytesIO
     import uuid
+    from io import BytesIO
+    from tempfile import NamedTemporaryFile
+
+    from PIL import Image
+
     if request.method == "POST":
         MAX_FILE_MB = 2
         MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
         MAX_FILE_DIMENSIONS = (1048, 1048)
-        uploaded_file = request.FILES['file']
+        uploaded_file = request.FILES["file"]
         if uploaded_file.size > MAX_FILE_SIZE:
             return jsonResponse({"error": "Uploaded files must be smaller than %dMB." % MAX_FILE_MB})
         name, extension = os.path.splitext(uploaded_file.name)
@@ -799,6 +909,7 @@ def collections_image_upload(request, resize_image=True):
                 return jsonResponse({"error": "There was an error uploading your file."})
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
+
 
 @staff_member_required
 def reset_cache(request):
@@ -850,6 +961,7 @@ def view_cached_elem(request, title):
     return HttpResponse(get_template_cache('texts_list'), status=200)
 """
 
+
 @staff_member_required
 def reset_cached_api(request, apiurl):
     """
@@ -859,27 +971,27 @@ def reset_cached_api(request, apiurl):
     :return:
     """
     from undecorated import undecorated
+
     # from importlib import import_module
     try:
-        match = resolve("/api/{}".format(apiurl))
-        #mod = import_module(".".join(match.view_name.split(".")[:-1])) Dont actually need this, resolve gets us the func itself
-        #func = mod.__getattribute__(match.func.func_name)
+        match = resolve(f"/api/{apiurl}")
+        # mod = import_module(".".join(match.view_name.split(".")[:-1])) Dont actually need this, resolve gets us the func itself
+        # func = mod.__getattribute__(match.func.func_name)
 
         if "django_cache" in match.func.__dict__:
             api_view = undecorated(match.func)
             redecorated_api_view = scache.django_cache(action="reset")(api_view)
             redecorated_api_view(request, *match.args, **match.kwargs)
 
-            return HttpResponseRedirect("/api/{}".format(apiurl))
-        else:
-            raise Http404("API not in cache")
+            return HttpResponseRedirect(f"/api/{apiurl}")
+        raise Http404("API not in cache")
 
-    except Resolver404 as re:
+    except Resolver404:
         logger.warn("Attempted to reset invalid url")
-        raise Http404()
-    except Exception as e:
-        logger.warn("Unable to reset cache for {}".format(apiurl))
-        raise Http404()
+        raise Http404
+    except Exception:
+        logger.warn(f"Unable to reset cache for {apiurl}")
+        raise Http404
 
 
 @staff_member_required
@@ -893,13 +1005,12 @@ def reset_counts(request, title=None):
         vs.refresh()
 
         return HttpResponseRedirect("/%s?m=Counts-Rebuilt" % model.Ref(i.title).url())
-    else:
-        model.refresh_all_states()
+    model.refresh_all_states()
 
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "rebuild_toc")
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "rebuild_toc")
 
-        return HttpResponseRedirect("/?m=Counts-Rebuilt")
+    return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
 
 @staff_member_required
@@ -946,7 +1057,7 @@ def reset_varnish(request, tref):
             invalidate_index(oref.index)
             invalidate_counts(oref.index)
         invalidate_ref(oref)
-        return HttpResponseRedirect("/?m=Varnish-Reset-For-{}".format(oref.url()))
+        return HttpResponseRedirect(f"/?m=Varnish-Reset-For-{oref.url()}")
     return HttpResponseRedirect("/?m=Varnish-Not-Enabled")
 
 
@@ -977,19 +1088,19 @@ def reset_ref(request, tref):
         elif USE_VARNISH:
             invalidate_title(oref.index.title)
 
-        return HttpResponseRedirect("/{}?m=Reset-Index".format(oref.url()))
+        return HttpResponseRedirect(f"/{oref.url()}?m=Reset-Index")
 
-    elif USE_VARNISH:
+    if USE_VARNISH:
         invalidate_ref(oref)
-        return HttpResponseRedirect("/{}?m=Reset-Ref".format(oref.url()))
+        return HttpResponseRedirect(f"/{oref.url()}?m=Reset-Ref")
 
-    else:
-        return HttpResponseRedirect("/?m=Nothing-to-Reset")
+    return HttpResponseRedirect("/?m=Nothing-to-Reset")
 
 
 @staff_member_required
 def rebuild_auto_links(request, title):
     from sefaria.helper.link import rebuild_links_for_title as rebuild
+
     rebuild(title, request.user.id)
     return HttpResponseRedirect("/?m=Automatic-Links-Rebuilt-on-%s" % title)
 
@@ -997,8 +1108,10 @@ def rebuild_auto_links(request, title):
 @staff_member_required
 def rebuild_citation_links(request, title):
     from sefaria.helper.link import rebuild_links_from_text as rebuild
+
     rebuild(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Rebuilt-on-%s" % title)
+
 
 @csrf_exempt
 @webhook_auth_or_staff_required
@@ -1010,6 +1123,7 @@ def rebuild_shared_cache(request):
         library.init_shared_cache(rebuild=True)
     return jsonResponse({"status": status})
 
+
 @staff_member_required
 def delete_citation_links(request, title):
     delete_links_from_text(title, request.user.id)
@@ -1019,40 +1133,40 @@ def delete_citation_links(request, title):
 @staff_member_required
 def cache_stats(request):
     import resource
-    from sefaria.utils.util import get_size
+
+    from reader.templatetags.sefaria_tags import he_ref_link_cache, ref_link_cache
     from sefaria.model.user_profile import public_user_data_cache
-    from sefaria.model import library
-    from reader.templatetags.sefaria_tags import ref_link_cache, he_ref_link_cache
+    from sefaria.utils.util import get_size
     # from sefaria.sheets import last_updated
-    
+
     index_tref_map = model.Ref._RefCacheType__index_tref_map
-    
+
     resp = {
-        'ref_cache_size': f'{model.Ref.cache_size():,}',
-        'index_tref_map_size': f'{len(index_tref_map):,}',
-        'public_user_data_size': f'{len(public_user_data_cache):,}',
-        'ref_link_cache_size': f'{len(ref_link_cache):,}',
-        'he_ref_link_cache_size': f'{len(he_ref_link_cache):,}',
-        'memory_usage': f'{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}',
+        "ref_cache_size": f"{model.Ref.cache_size():,}",
+        "index_tref_map_size": f"{len(index_tref_map):,}",
+        "public_user_data_size": f"{len(public_user_data_cache):,}",
+        "ref_link_cache_size": f"{len(ref_link_cache):,}",
+        "he_ref_link_cache_size": f"{len(he_ref_link_cache):,}",
+        "memory_usage": f"{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}",
         "library_cache_stats": {
             name: {
-                'size': f'{len(cache):,}',
+                "size": f"{len(cache):,}",
             }
             for name, cache in model.library.__dict__.items()
             if isinstance(cache, dict)
-        }
+        },
     }
 
     if request.GET.get("bytes") == "1":
-        resp['ref_cache_bytes'] = model.Ref.cache_size_bytes()
-        resp['index_tref_map_bytes'] = f'{get_size(index_tref_map):,}'
-        resp['he_ref_link_cache_bytes'] = f'{get_size(he_ref_link_cache):,}'
-        resp['ref_link_cache_bytes'] = f'{get_size(ref_link_cache):,}'
-        resp['public_user_data_bytes'] = f'{get_size(public_user_data_cache):,}'
+        resp["ref_cache_bytes"] = model.Ref.cache_size_bytes()
+        resp["index_tref_map_bytes"] = f"{get_size(index_tref_map):,}"
+        resp["he_ref_link_cache_bytes"] = f"{get_size(he_ref_link_cache):,}"
+        resp["ref_link_cache_bytes"] = f"{get_size(ref_link_cache):,}"
+        resp["public_user_data_bytes"] = f"{get_size(public_user_data_cache):,}"
 
         for name, cache in model.library.__dict__.items():
-            if (resp["library_cache_stats"].get(name)):
-                resp["library_cache_stats"][name]['bytes'] = f'{get_size(cache):,}'
+            if resp["library_cache_stats"].get(name):
+                resp["library_cache_stats"][name]["bytes"] = f"{get_size(cache):,}"
 
     return jsonResponse(resp)
 
@@ -1060,7 +1174,7 @@ def cache_stats(request):
 @staff_member_required
 def cache_dump(request):
     resp = {
-        'ref_cache_dump': model.Ref.cache_dump()
+        "ref_cache_dump": model.Ref.cache_dump(),
     }
     return jsonResponse(resp)
 
@@ -1096,10 +1210,7 @@ def memory_summary(request):
     if limit is not None:
         summarized = summarized[:limit]
 
-    data = [
-        {"type": type_name, "count": int(count), "size": int(size)}
-        for type_name, count, size in summarized
-    ]
+    data = [{"type": type_name, "count": int(count), "size": int(size)} for type_name, count, size in summarized]
     return jsonResponse({"memory_summary": data})
 
 
@@ -1111,7 +1222,7 @@ def export_all(request):
         resp = {"status": "ok"}
     except Exception as e:
         resp = {"error": str(e)}
-    resp["time"] = (datetime.now()-start).seconds
+    resp["time"] = (datetime.now() - start).seconds
     return jsonResponse(resp)
 
 
@@ -1120,19 +1231,20 @@ def cause_error(request):
     resp = {}
     logger.error("This is a simple error")
     try:
-        erorr = excepting
-    except Exception as e:
-        logger.exception('An Exception has ocurred in the code')
-    erorr = error
+        pass
+    except Exception:
+        logger.exception("An Exception has ocurred in the code")
     return jsonResponse(resp)
+
 
 @staff_member_required
 def account_stats(request):
     from django.contrib.auth.models import User
+
     from sefaria.stats import account_creation_stats
 
     html = account_creation_stats()
-    html += "\n\nTotal Accounts: {}".format(User.objects.count())
+    html += f"\n\nTotal Accounts: {User.objects.count()}"
 
     return HttpResponse("<pre>" + html + "<pre>")
 
@@ -1140,46 +1252,46 @@ def account_stats(request):
 @staff_member_required
 def sheet_stats(request):
     from dateutil.relativedelta import relativedelta
-    html  = ""
+
+    html = ""
 
     html += "Total Sheets: %d\n" % len(list(db.sheets.find()))
     html += "Public Sheets: %d\n" % len(list(db.sheets.find({"status": "public"})))
 
-
     html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
     today = datetime.today()
-    start = today.replace(year=today.year+1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    start = today.replace(year=today.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
     years = 5
-    for i in range(years):
-        end      = start
-        start    = end - relativedelta(years=1)
-        query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
-        cursor   = db.sheets.find(query)
-        total    = len(list(cursor.clone()))
+    for _i in range(years):
+        end = start
+        start = end - relativedelta(years=1)
+        query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+        cursor = db.sheets.find(query)
+        total = len(list(cursor.clone()))
         creators = len(cursor.distinct("owner"))
-        query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}, "status": "public"}
-        ptotal   = len(list(db.sheets.find(query)))
+        query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}, "status": "public"}
+        ptotal = len(list(db.sheets.find(query)))
         html += "{}: {} / {} / {}\n".format(start.strftime("%Y"), total, ptotal, creators)
 
     html += "\n\nUnique Source Sheet creators per month:\n\n"
     start = datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     months = 30
-    for i in range(months):
-        end   = start
+    for _i in range(months):
+        end = start
         start = end - relativedelta(months=1)
         query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
         n = db.sheets.find(query).distinct("owner")
         html += "%s: %d\n" % (start.strftime("%b %y"), len(n))
 
     html += "\n\nUnique Source Sheet creators per year:\n\n"
-    end   = datetime.today()
+    end = datetime.today()
     start = datetime.today().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
     query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
     n = db.sheets.find(query).distinct("owner")
     html += "%s YTD: %d\n" % (start.strftime("%Y"), len(n))
     years = 3
-    for i in range(years):
-        end   = start
+    for _i in range(years):
+        end = start
         start = end - relativedelta(years=1)
         query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
         n = db.sheets.find(query).distinct("owner")
@@ -1188,8 +1300,8 @@ def sheet_stats(request):
     html += "\n\nAll time contributors:\n\n"
     all_sheet_makers = db.sheets.distinct("owner")
     public_sheet_makers = db.sheets.find({"status": "public"}).distinct("owner")
-    public_contributors = set(db.history.distinct("user")+public_sheet_makers)
-    all_contributors = set(db.history.distinct("user")+all_sheet_makers)
+    public_contributors = set(db.history.distinct("user") + public_sheet_makers)
+    all_contributors = set(db.history.distinct("user") + all_sheet_makers)
 
     html += "Public Sheet Makers: %d\n" % len(public_sheet_makers)
     html += "All Sheet Makers: %d\n" % len(all_sheet_makers)
@@ -1204,13 +1316,16 @@ def untagged_sheets(request):
     html = ""
     page = int(request.GET.get("page", 0))
     page_size = 100
-    sheets = db.sheets.find({"status": "public", "tags": []}, {"id": 1, "title": 1}).limit(page_size).skip(page_size*page)
+    sheets = (
+        db.sheets.find({"status": "public", "tags": []}, {"id": 1, "title": 1}).limit(page_size).skip(page_size * page)
+    )
 
     for sheet in sheets:
         html += "<li><a href='/sheets/%d' target='_blank'>%s</a></li>" % (sheet["id"], strip_tags(sheet["title"]))
     html += "<br><a href='/admin/untagged-sheets?page=%d'>More ›</a>" % (page + 1)
 
     return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
+
 
 @staff_member_required
 def categorize_sheets(request):
@@ -1221,105 +1336,140 @@ def categorize_sheets(request):
     context = {
         "title": "Categorize Sheets",
         "description": "Retrieve the latest uncategorized, public sheet and allow user to tag",
-        "propsJSON": propsJSON
+        "propsJSON": propsJSON,
     }
     return render(request, "static/categorize-sheets.html", context)
+
 
 @staff_member_required
 def sheet_spam_dashboard(request):
 
     from django.contrib.auth.models import User
 
-    if request.method == 'POST':
-        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+    if request.method == "POST":
+        return jsonResponse({"error": f"Unsupported Method: {request.method}"})
 
-    else:
-        date = request.GET.get("date", None)
+    date = request.GET.get("date", None)
 
-        if date:
-            date = datetime.strptime(date, '%Y-%m-%d')
+    date = datetime.strptime(date, "%Y-%m-%d") if date else request.GET.get("date", datetime.now() - timedelta(days=30))
 
-        else:
-            date = request.GET.get("date", datetime.now() - timedelta(days=30))
+    earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by("date_joined")[0].id
 
-        earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by('date_joined')[0].id
+    regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
+    sheets = db.sheets.find(
+        {
+            "sources.ref": {"$exists": False},
+            "dateCreated": {"$gt": date.strftime("%Y-%m-%dT%H:%M:%S.%f")},
+            "owner": {"$gt": earliest_new_user_id},
+            "includedRefs": {"$size": 0},
+            "reviewed": {"$ne": True},
+            "$or": [
+                {"sources.outsideText": {"$regex": regex}},
+                {"sources.comment": {"$regex": regex}},
+                {"sources.outsideBiText.en": {"$regex": regex}},
+                {"sources.outsideBiText.he": {"$regex": regex}},
+            ],
+        },
+    )
 
-        regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
-        sheets = db.sheets.find({"sources.ref": {"$exists": False}, "dateCreated": {"$gt": date.strftime("%Y-%m-%dT%H:%M:%S.%f")}, "owner": {"$gt": earliest_new_user_id}, "includedRefs": {"$size": 0}, "reviewed": {"$ne": True}, "$or": [{"sources.outsideText": {"$regex": regex}}, {"sources.comment": {"$regex": regex}}, {"sources.outsideBiText.en": {"$regex": regex}}, {"sources.outsideBiText.he": {"$regex": regex}}]})
+    sheets_list = []
 
-        sheets_list = []
+    for sheet in sheets:
+        sheets_list.append({"id": sheet["id"], "title": strip_tags(sheet["title"]), "owner": user_link(sheet["owner"])})
 
-        for sheet in sheets:
-            sheets_list.append({"id": sheet["id"], "title": strip_tags(sheet["title"]), "owner": user_link(sheet["owner"])})
-
-        return render_template(request, 'spam_dashboard.html', None, {
+    return render_template(
+        request,
+        "spam_dashboard.html",
+        None,
+        {
             "title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
             "sheets": sheets_list,
             "type": "sheet",
-        })
+        },
+    )
+
 
 @staff_member_required
 def profile_spam_dashboard(request):
 
     from django.contrib.auth.models import User
 
-    if request.method == 'POST':
-        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+    if request.method == "POST":
+        return jsonResponse({"error": f"Unsupported Method: {request.method}"})
 
-    else:
-        date = request.GET.get("date", None)
+    date = request.GET.get("date", None)
 
-        if date:
-            date = datetime.strptime(date, '%Y-%m-%d')
+    date = datetime.strptime(date, "%Y-%m-%d") if date else request.GET.get("date", datetime.now() - timedelta(days=30))
 
-        else:
-            date = request.GET.get("date", datetime.now() - timedelta(days=30))
+    earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by("date_joined")[0].id
 
-        earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by('date_joined')[0].id
+    regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
 
-        regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
+    spam_keywords_regex = r"(?i).*support.*|.*coin.*|.*helpline.*|.*base.*"
 
-        spam_keywords_regex = r'(?i).*support.*|.*coin.*|.*helpline.*|.*base.*'
+    users_to_check = db.profiles.find(
+        {
+            "$and": [
+                {
+                    "id": {"$gt": earliest_new_user_id},
+                    "reviewed": {"$ne": True},
+                    "settings.reading_history": {"$ne": False},
+                },
+                {
+                    "$or": [
+                        {"website": {"$ne": ""}},
+                        {"facebook": {"$ne": ""}},
+                        {"twitter": {"$ne": ""}},
+                        {"youtube": {"$ne": ""}},
+                        {"linkedin": {"$ne": ""}},
+                        {"bio": {"$regex": regex}},
+                        {"slug": {"$regex": spam_keywords_regex}},
+                    ],
+                },
+            ],
+        },
+    )
 
-        users_to_check = db.profiles.find(
-            {'$and': [
-                {"id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}, "settings.reading_history": {"$ne": False}},
-                {'$or': [
-                    {'website': {"$ne": ""}},
-                    {'facebook': {"$ne": ""}},
-                    {'twitter': {"$ne": ""}},
-                    {'youtube': {"$ne": ""}},
-                    {'linkedin': {"$ne": ""}},
-                    {'bio': {"$regex": regex}},
-                    {'slug': {"$regex": spam_keywords_regex}}
-            ]
-        }]})
+    profiles_list = []
 
+    for user in users_to_check:
+        history_count = len(list(db.user_history.find({"uid": user["id"], "book": {"$ne": "Sheet"}})))
+        if history_count < 10:
+            profile = model.user_profile.UserProfile(id=user["id"])
 
+            profiles_list.append(
+                {
+                    "name": f"{profile.first_name} {profile.last_name}",
+                    "email": profile.email,
+                    "id": user["id"],
+                    "slug": user["slug"],
+                    "bio": strip_tags(user["bio"][0:250]),
+                    "website": user["website"][0:50],
+                },
+            )
 
-        profiles_list = []
-
-        for user in users_to_check:
-            history_count = len(list(db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}})))
-            if history_count < 10:
-                profile = model.user_profile.UserProfile(id=user["id"])
-
-                profiles_list.append({"name": f"{profile.first_name} {profile.last_name}", "email": profile.email, "id": user["id"], "slug": user["slug"], "bio": strip_tags(user["bio"][0:250]), "website": user["website"][0:50]})
-
-        return render_template(request, 'spam_dashboard.html', None, {
+    return render_template(
+        request,
+        "spam_dashboard.html",
+        None,
+        {
             "title": "Potential Spam Profiles since %s" % date.strftime("%Y-%m-%d"),
             "profiles": profiles_list,
             "type": "profile",
-        })
+        },
+    )
+
 
 @staff_member_required
 def delete_user_by_email(request):
     from django.contrib.auth.models import User
+
     from sefaria.utils.user import delete_user_account
-    if request.method == 'GET':
+
+    if request.method == "GET":
         form = SefariaDeleteUserForm()
-        return render_template(request, "registration/delete_user_account.html", None, {'form': form, 'next': next})
-    elif request.method == 'POST':
+        return render_template(request, "registration/delete_user_account.html", None, {"form": form, "next": next})
+    if request.method == "POST":
         user = User.objects.get(id=request.user.id)
         email = request.POST.get("email")
         password = request.POST.get("password")
@@ -1332,22 +1482,20 @@ def delete_user_by_email(request):
             id_to_delete = UserProfile(email=email)
             if delete_user_account(id_to_delete.id, False):
                 return jsonResponse({"success": f"deleted user {email}"})
-            else:
-                return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
+            return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
         except:
             return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
-
 
 
 @staff_member_required
 def delete_sheet_by_id(request):
 
     from django.contrib.auth.models import User
-    from sefaria.utils.user import delete_user_account
-    if request.method == 'GET':
+
+    if request.method == "GET":
         form = SefariaDeleteSheet()
-        return render_template(request, "delete-sheet.html", None, {'form': form, 'next': next})
-    elif request.method == 'POST':
+        return render_template(request, "delete-sheet.html", None, {"form": form, "next": next})
+    if request.method == "POST":
         user = User.objects.get(id=request.user.id)
         sheet_id = request.POST.get("sid")
         password = request.POST.get("password")
@@ -1357,8 +1505,8 @@ def delete_sheet_by_id(request):
         except:
             return jsonResponse({"failure": "incorrect password"})
         try:
-
             import sefaria.search as search
+
             id = int(sheet_id)
             sheet = db.sheets.find_one({"id": id})
             if not sheet:
@@ -1369,13 +1517,12 @@ def delete_sheet_by_id(request):
             process_sheet_deletion_in_notifications(id)
 
             try:
-                es_index_name = search.get_new_and_current_index_names("sheet")['current']
+                es_index_name = search.get_new_and_current_index_names("sheet")["current"]
                 search.delete_sheet(es_index_name, id)
-            except NewConnectionError as e:
+            except NewConnectionError:
                 logger.warn("Failed to connect to elastic search server on sheet delete.")
-            except AuthorizationException as e:
+            except AuthorizationException:
                 logger.warn("Failed to connect to elastic search server on sheet delete.")
-
 
             return jsonResponse({"success": f"deleted sheet {sheet_id}"})
 
@@ -1383,15 +1530,9 @@ def delete_sheet_by_id(request):
             return jsonResponse({"failure": "sheet not deleted: try again or contact a developer"})
 
 
-
-
-
-
-
-
-
 def purge_spammer_account_data(spammer_id, delete_from_crm=True):
     from django.contrib.auth.models import User
+
     # Delete from Nationbuilder
     profile = db.profiles.find_one({"id": spammer_id})
     if delete_from_crm:
@@ -1399,14 +1540,14 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
             crm_connection_manager = CrmMediator().get_connection_manager()
             crm_connection_manager.mark_as_spam_in_crm(profile)
         except Exception as e:
-            logger.error(f'Failed to mark user as spam: {e}')
+            logger.error(f"Failed to mark user as spam: {e}")
     sheets = db.sheets.find({"owner": spammer_id})
     for sheet in sheets:
         sheet["spam_sheet_quarantine"] = datetime.now()
         sheet["datePublished"] = None
         sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
-        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
+        db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
     # Delete Notes
     db.notes.delete_many({"owner": spammer_id})
     # Delete Notifcations
@@ -1424,7 +1565,7 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
 
 @staff_member_required
 def spam_dashboard(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         req_type = request.POST.get("type")
 
         if req_type == "sheet":
@@ -1440,14 +1581,19 @@ def spam_dashboard(request):
                 except:
                     continue
 
-            return render_template(request, 'spam_dashboard.html', None, {
-                "deleted": len(spam_sheet_ids),
-                "ids": spam_sheet_ids,
-                "reviewed": len(reviewed_sheet_ids),
-                "spammers_deactivated": len(spammers)
-            })
+            return render_template(
+                request,
+                "spam_dashboard.html",
+                None,
+                {
+                    "deleted": len(spam_sheet_ids),
+                    "ids": spam_sheet_ids,
+                    "reviewed": len(reviewed_sheet_ids),
+                    "spammers_deactivated": len(spammers),
+                },
+            )
 
-        elif req_type == "profile":
+        if req_type == "profile":
             spam_profile_ids = list(map(int, request.POST.getlist("spam_profiles[]", [])))
             reviewed_profile_ids = list(map(int, request.POST.getlist("reviewed_profiles[]", [])))
             db.profiles.update_many({"id": {"$in": reviewed_profile_ids}}, {"$set": {"reviewed": True}})
@@ -1458,22 +1604,27 @@ def spam_dashboard(request):
                 except:
                     continue
 
-            return render_template(request, 'spam_dashboard.html', None, {
-                "deleted": len(spam_profile_ids),
-                "ids": spam_profile_ids,
-                "reviewed": len(reviewed_profile_ids),
-                "spammers_deactivated": len(spam_profile_ids)
-            })
+            return render_template(
+                request,
+                "spam_dashboard.html",
+                None,
+                {
+                    "deleted": len(spam_profile_ids),
+                    "ids": spam_profile_ids,
+                    "reviewed": len(reviewed_profile_ids),
+                    "spammers_deactivated": len(spam_profile_ids),
+                },
+            )
 
-        else:
-            return jsonResponse({"error": "Unknown post type."})
+        return jsonResponse({"error": "Unknown post type."})
 
-    else:
-        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+    return jsonResponse({"error": f"Unsupported Method: {request.method}"})
+
 
 @staff_member_required
 def versions_csv(request):
     return HttpResponse(make_versions_csv(), content_type="text/csv")
+
 
 @csrf_exempt
 def index_sheets_by_timestamp(request):
@@ -1490,17 +1641,19 @@ def index_sheets_by_timestamp(request):
     if not user.is_staff:
         return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
 
-    timestamp = request.POST.get('timestamp')
+    timestamp = request.POST.get("timestamp")
     try:
         dateutil.parser.parse(timestamp)
     except ValueError:
-        return jsonResponse({"error": "Timestamp {} not valid".format(timestamp)})
+        return jsonResponse({"error": f"Timestamp {timestamp} not valid"})
     response_str = search_index_sheets_by_timestamp(timestamp)
     return jsonResponse({"success": response_str})
+
 
 # Change this whenever the GraphQL query/response shape changes in a way that is not backwards compatible (e.g. the Strapi v4 -> v5 flattening)
 # It's part of the cache key so queries from a newly deployed frontend cannot collide with payloads cached under the previous schema
 STRAPI_SCHEMA_VERSION = "v5"
+
 
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
@@ -1518,20 +1671,21 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         return jsonResponse({"error": "Only POST method supported"}, status=405)
 
     try:
-
         # Parse request parameters from URL query string
         # Request parameters are used, because the parameters act as cache configuration for the request
-        start_date_raw: Union[str, List[str], None] = request.GET.get("start_date")
-        end_date_raw: Union[str, List[str], None] = request.GET.get("end_date")
+        start_date_raw: str | list[str] | None = request.GET.get("start_date")
+        end_date_raw: str | list[str] | None = request.GET.get("end_date")
 
         # Validate that parameters are single strings, not lists or None
         if not start_date_raw or isinstance(start_date_raw, list):
             return jsonResponse(
-                {"error": "start_date parameter must be a single value"}, status=400
+                {"error": "start_date parameter must be a single value"},
+                status=400,
             )
         if not end_date_raw or isinstance(end_date_raw, list):
             return jsonResponse(
-                {"error": "end_date parameter must be a single value"}, status=400
+                {"error": "end_date parameter must be a single value"},
+                status=400,
             )
 
         # They are strings!
@@ -1544,13 +1698,15 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
             end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
         except ValueError:
             return jsonResponse(
-                {"error": "Dates must be in YYYY-MM-DD format"}, status=400
+                {"error": "Dates must be in YYYY-MM-DD format"},
+                status=400,
             )
 
         # Validate that start_date is less than end_date
         if start_date_obj >= end_date_obj:
             return jsonResponse(
-                {"error": "start_date must be less than end_date"}, status=400
+                {"error": "start_date must be less than end_date"},
+                status=400,
             )
 
         # Get GraphQL query from request body
@@ -1558,16 +1714,17 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         query: str = request.body.decode("utf-8")
         if not query:
             return jsonResponse(
-                {"error": "GraphQL query required in request body"}, status=400
+                {"error": "GraphQL query required in request body"},
+                status=400,
             )
 
-        # Create cache key from the schema version and the specified dates. The query structure is static apart from the dates in its body. 
+        # Create cache key from the schema version and the specified dates. The query structure is static apart from the dates in its body.
         # Including the schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
         cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}"
 
         # Try to get from cache first
         # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage
-        cached_result: Optional[str] = get_cache_elem(cache_key, cache_type="default")
+        cached_result: str | None = get_cache_elem(cache_key, cache_type="default")
         if cached_result:
             return HttpResponse(cached_result, content_type="application/json")
 
@@ -1575,10 +1732,10 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
 
         if settings.STRAPI_LOCATION is None or settings.STRAPI_PORT is None:
             return jsonResponse(
-                {"error": "Strapi environment variables are not configured"}, status=500
+                {"error": "Strapi environment variables are not configured"},
+                status=500,
             )
-        else:
-            strapi_url = f"{settings.STRAPI_LOCATION}:{settings.STRAPI_PORT}"
+        strapi_url = f"{settings.STRAPI_LOCATION}:{settings.STRAPI_PORT}"
 
         # Make request to Strapi GraphQL endpoint
         response = requests.post(
@@ -1590,8 +1747,7 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
 
         if response.status_code != 200:
             logger.error(
-                f"Strapi returned HTTP {response.status_code} for graphql-cache. "
-                f"Response body: {response.text[:500]}"
+                f"Strapi returned HTTP {response.status_code} for graphql-cache. Response body: {response.text[:500]}",
             )
             return jsonResponse(
                 {"error": f"Strapi request failed with status {response.status_code}"},
@@ -1604,7 +1760,7 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         parsed = response.json()
         if parsed.get("errors"):
             logger.error(
-                f"Strapi GraphQL query returned errors: {parsed['errors']}"
+                f"Strapi GraphQL query returned errors: {parsed['errors']}",
             )
             # Do not cache error responses.
             # Otherwise, a transient error (or a query/schema mismatch) would be served from the cache for the full TTL.
@@ -1613,7 +1769,10 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
 
         # Cache the result for 7 days - this will be invalidated by webhook when there is a change in Strapi
         set_cache_elem(
-            cache_key, result_json, timeout=7 * 24 * 60 * 60, cache_type="default"
+            cache_key,
+            result_json,
+            timeout=7 * 24 * 60 * 60,
+            cache_type="default",
         )
 
         return HttpResponse(result_json, content_type="application/json")
@@ -1645,21 +1804,21 @@ def strapi_cache_invalidate(request: HttpRequest) -> HttpResponse:
 
         if result["success"]:
             if "warning" in result:
-                return jsonResponse({
-                    "success": result["message"],
-                    "warning": result["warning"]
-                })
-            else:
-                return jsonResponse({"success": result["message"]})
-        else:
-            if result["method"] == "critical_error":
-                return jsonResponse({"error": result["message"]}, status=500)
-            else:
-                return jsonResponse({"success": result["message"]})
+                return jsonResponse(
+                    {
+                        "success": result["message"],
+                        "warning": result["warning"],
+                    },
+                )
+            return jsonResponse({"success": result["message"]})
+        if result["method"] == "critical_error":
+            return jsonResponse({"error": result["message"]}, status=500)
+        return jsonResponse({"success": result["message"]})
 
     except Exception as e:
         logger.error(f"Error in strapi_cache_invalidate: {str(e)}")
         return jsonResponse({"error": "Internal server error"}, status=500)
+
 
 def library_stats(request):
     return HttpResponse(get_library_stats(), content_type="text/csv")
@@ -1668,11 +1827,14 @@ def library_stats(request):
 def core_link_stats(request):
     return HttpResponse(get_core_link_stats(), content_type="text/csv")
 
+
 @staff_member_required
 def run_tests(request):
     # This was never fully developed, methinks
     from subprocess import call
+
     from .settings import DEBUG
+
     if not DEBUG:
         return
     call(["/var/bin/run_tests.sh"])
@@ -1687,7 +1849,7 @@ def text_download_api(request, format, title, lang, versionTitle):
         "json": "application/json; charset=utf-8",
         "csv": "text/csv; charset=utf-8",
         "txt": "text/plain; charset=utf-8",
-        "plain.txt": "text/plain; charset=utf-8"
+        "plain.txt": "text/plain; charset=utf-8",
     }
     response = HttpResponse(content, content_type=content_types[format])
     response["Content-Disposition"] = "attachment"
@@ -1728,20 +1890,32 @@ def bulk_download_versions_api(request):
     with zipfile.ZipFile(file_like_object, "a", zipfile.ZIP_DEFLATED) as zfile:
         for version in vs:
             filebytes = _get_text_version_file(format, version.title, version.language, version.versionTitle)
-            name = '{} - {} - {}.{}'.format(version.title, version.language, version.versionTitle, format)
+            name = f"{version.title} - {version.language} - {version.versionTitle}.{format}"
             zfile.writestr(name, filebytes)
 
     content = file_like_object.getvalue()
     response = HttpResponse(content, content_type="application/zip")
-    filename = "{}-{}-{}-{}.zip".format(''.join(list(filter(str.isalnum, str(title_pattern)))), ''.join(list(filter(str.isalnum, str(version_title_pattern)))), language, format)
-    response["Content-Disposition"] = 'attachment; filename="{}"'.format(filename)
-    response["charset"] = 'utf-8'
+    filename = "{}-{}-{}-{}.zip".format(
+        "".join(list(filter(str.isalnum, str(title_pattern)))),
+        "".join(list(filter(str.isalnum, str(version_title_pattern)))),
+        language,
+        format,
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response["charset"] = "utf-8"
     return response
 
 
-
 def _get_text_version_file(format, title, lang, versionTitle):
-    from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
+    from sefaria.export import (
+        export_merged_csv,
+        export_version_csv,
+        make_json,
+        make_text,
+        prepare_merged_text_for_export,
+        prepare_text_for_export,
+        text_is_copyright,
+    )
 
     assert lang in ["en", "he"]
     assert format in ["json", "csv", "txt", "plain.txt"]
@@ -1766,12 +1940,12 @@ def _get_text_version_file(format, title, lang, versionTitle):
 
         if format == "csv":
             version = Version().load(version_query)
-            assert version, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+            assert version, f"Can not find version of {title} in {lang}: {versionTitle}"
             assert not version.is_copyrighted(), "Cowardly refusing to export copyrighted text."
             content = export_version_csv(index, [version])
         else:
             version_object = db.texts.find_one(version_query)
-            assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+            assert version_object, f"Can not find version of {title} in {lang}: {versionTitle}"
             assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
 
             if format == "json":
@@ -1789,23 +1963,22 @@ def _get_text_version_file(format, title, lang, versionTitle):
 @staff_member_required
 def text_upload_api(request):
     if request.method != "POST":
-        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+        return jsonResponse({"error": f"Unsupported Method: {request.method}"})
 
     from sefaria.export import import_versions_from_stream
-    skip_toc_refresh = request.POST.get('defer_toc_refresh', '').lower() in ('1', 'true', 'yes')
+
+    skip_toc_refresh = request.POST.get("defer_toc_refresh", "").lower() in ("1", "true", "yes")
     message = ""
     files = request.FILES.getlist("texts[]")
     for f in files:
         try:
             import_versions_from_stream(f, [1], request.user.id, skip_toc_refresh=skip_toc_refresh)
-            message += "Imported: {}.  ".format(f.name)
+            message += f"Imported: {f.name}.  "
         except Exception as e:
             return jsonResponse({"error": str(e), "message": message})
 
-    message = "Successfully imported {} versions".format(len(files))
+    message = f"Successfully imported {len(files)} versions"
     return jsonResponse({"status": "ok", "message": message})
-
-
 
 
 @staff_member_required
@@ -1836,7 +2009,7 @@ def version_indices_api(request):
     for index_title in sorted_indices:
         try:
             index = library.get_index(index_title)
-            metadata[index_title] = {"categories": getattr(index, 'categories', [])}
+            metadata[index_title] = {"categories": getattr(index, "categories", [])}
         except Exception:
             metadata[index_title] = {"categories": []}
 
@@ -1846,10 +2019,21 @@ def version_indices_api(request):
 # Allowed fields for version bulk edit - prevents arbitrary attribute injection
 # Note: versionTitle is excluded - it's the search key used to find versions, not editable
 VERSION_BULK_EDIT_ALLOWED_FIELDS = {
-    "versionTitleInHebrew", "versionSource", "license", "status",
-    "priority", "digitizedBySefaria", "isPrimary", "isSource", "versionNotes",
-    "versionNotesInHebrew", "purchaseInformationURL", "purchaseInformationImage", "direction"
+    "versionTitleInHebrew",
+    "versionSource",
+    "license",
+    "status",
+    "priority",
+    "digitizedBySefaria",
+    "isPrimary",
+    "isSource",
+    "versionNotes",
+    "versionNotesInHebrew",
+    "purchaseInformationURL",
+    "purchaseInformationImage",
+    "direction",
 }
+
 
 @staff_member_required
 def version_bulk_edit_api(request):
@@ -1892,10 +2076,12 @@ def version_bulk_edit_api(request):
     for index_title in indices:
         try:
             # title + versionTitle uniquely identifies a version (pkeys in Version model)
-            version = Version().load({
-                "title": index_title,
-                "versionTitle": version_title,
-            })
+            version = Version().load(
+                {
+                    "title": index_title,
+                    "versionTitle": version_title,
+                },
+            )
             if not version:
                 failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
                 continue
@@ -1911,7 +2097,7 @@ def version_bulk_edit_api(request):
     result = {
         "status": "ok" if not failures else "partial" if successes else "error",
         "successes": successes,
-        "failures": failures
+        "failures": failures,
     }
     return jsonResponse(result)
 
@@ -2049,7 +2235,7 @@ def version_bulk_delete_api(request):
     result = {
         "status": "ok" if not failures else "partial" if successes else "error",
         "successes": successes,
-        "failures": failures
+        "failures": failures,
     }
     return jsonResponse(result)
 
@@ -2074,7 +2260,10 @@ def check_index_dependencies_api(request, title):
         version_count = db.texts.count_documents({"title": title})
 
         # Get link count (approximate)
-        from sefaria.model.text import prepare_index_regex_for_dependency_process    # Inline import: this specific function is not exported via sefaria.model wildcard
+        from sefaria.model.text import (
+            prepare_index_regex_for_dependency_process,  # Inline import: this specific function is not exported via sefaria.model wildcard
+        )
+
         try:
             index = library.get_index(title)
             pattern = prepare_index_regex_for_dependency_process(index)
@@ -2083,44 +2272,54 @@ def check_index_dependencies_api(request, title):
             logger.debug(f"Failed to get link count for {title}: {e}")
             link_count = 0
 
-        return jsonResponse({
-            "title": title,
-            "dependent_indices": dependent_indices,
-            "version_count": version_count,
-            "link_count": link_count,
-            "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0
-        })
+        return jsonResponse(
+            {
+                "title": title,
+                "dependent_indices": dependent_indices,
+                "version_count": version_count,
+                "link_count": link_count,
+                "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0,
+            },
+        )
 
     except Exception as e:
         return jsonResponse({"error": str(e)})
 
+
 @staff_member_required
 def update_authors_from_sheet(request):
     from sefaria.helper.descriptions import update_authors_data
+
     res_text = update_authors_data()
     return HttpResponse("\n".join(res_text), content_type="text/plain")
+
 
 @staff_member_required
 def update_categories_from_sheet(request):
     from sefaria.helper.descriptions import update_categories_data
+
     res_text = update_categories_data()
     return HttpResponse("\n".join(res_text), content_type="text/plain")
+
 
 @staff_member_required
 def update_texts_from_sheet(request):
     from sefaria.helper.descriptions import update_texts_data
+
     res_text = update_texts_data()
     return HttpResponse("\n".join(res_text), content_type="text/plain")
+
 
 @staff_member_required
 def modtools_upload_workflowy(request):
     from sefaria.helper.text import WorkflowyParser
+
     if request.method != "POST":
-        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+        return jsonResponse({"error": f"Unsupported Method: {request.method}"})
 
     # Handle both single and multiple file uploads
     files = []
-    if 'workflowys[]' in request.FILES:
+    if "workflowys[]" in request.FILES:
         files = request.FILES.getlist("workflowys[]")
     else:
         return jsonResponse({"error": "No files provided. Use 'workflowys[]' for multiple files."})
@@ -2140,31 +2339,41 @@ def modtools_upload_workflowy(request):
 
     for file in files:
         try:
-            wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+            wfparser = WorkflowyParser(
+                file,
+                uid,
+                term_scheme=term_scheme,
+                c_index=c_index,
+                c_version=c_version,
+                delims=delims,
+            )
             res = wfparser.parse()
             if res.get("error"):
-                raise InputError(res['error'])
+                raise InputError(res["error"])
             successes.append(file.name)
         except Exception as e:
             failures.append({"file": file.name, "error": str(e)})
 
-    return jsonResponse({
-        "successes": successes,
-        "failures": failures
-    })
+    return jsonResponse(
+        {
+            "successes": successes,
+            "failures": failures,
+        },
+    )
+
 
 @staff_member_required
 def links_upload_api(request):
     if request.method != "POST":
-        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
-    file = request.FILES['csv_file']
+        return jsonResponse({"error": f"Unsupported Method: {request.method}"})
+    file = request.FILES["csv_file"]
     uid = request.user.id
-    if request.POST.get('action') == "DELETE":
+    if request.POST.get("action") == "DELETE":
         func = remove_links_from_csv
         args = (file, uid)
     else:
         linktype = request.POST.get("linkType")
-        generated_by = request.POST.get("projectName") + ' csv upload'
+        generated_by = request.POST.get("projectName") + " csv upload"
         func = add_links_from_csv
         args = (file, linktype, generated_by, uid)
     try:
@@ -2172,14 +2381,16 @@ def links_upload_api(request):
     except Exception as e:
         return HttpResponseBadRequest(e)
 
+
 def get_csv_links_by_refs_api(request, tref1, tref2, by_segment=False):
     try:
-        file = get_csv_links_by_refs([tref1, tref2], by_segment=by_segment, **{k: v for k, v in request.GET.items()})
+        file = get_csv_links_by_refs([tref1, tref2], by_segment=by_segment, **dict(request.GET.items()))
     except Exception as e:
         return HttpResponseBadRequest(e)
     response = HttpResponse(file, content_type="text/csv; charset=utf-8")
-    response['Content-Disposition'] = f'attachment; filename="{tref1}-{tref2} links.csv"'
+    response["Content-Disposition"] = f'attachment; filename="{tref1}-{tref2} links.csv"'
     return response
+
 
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
     print(comp_ref)
@@ -2200,11 +2411,19 @@ def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
     if v2:
         v2 = v2.replace("_", " ")
 
-    return render_template(request,'compare.html', None, {
-        "JSON_PROPS": json.dumps({
-            'secRef': sec_ref,
-            'v1': v1, 'v2': v2,
-            'lang': lang,
-            'refArray': ref_array,
-        })
-    })
+    return render_template(
+        request,
+        "compare.html",
+        None,
+        {
+            "JSON_PROPS": json.dumps(
+                {
+                    "secRef": sec_ref,
+                    "v1": v1,
+                    "v2": v2,
+                    "lang": lang,
+                    "refArray": ref_array,
+                },
+            ),
+        },
+    )

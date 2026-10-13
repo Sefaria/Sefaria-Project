@@ -1,7 +1,7 @@
 import os
+
 import pytest
 import requests
-
 
 API_BASE_URL = os.environ.get("API_BASE_URL", "https://www.sefaria.org")
 

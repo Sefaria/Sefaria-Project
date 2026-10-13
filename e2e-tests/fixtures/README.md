@@ -5,6 +5,7 @@ This directory contains test fixtures used by the Playwright E2E tests.
 ## Image Testing Strategy
 
 ### Test Images
+
 - `test-image.jpg` - A small test image for testing image upload functionality
 - Source: Copied from `static/img/logo/icon.jpg` (existing project asset)
 
@@ -16,11 +17,13 @@ This directory contains test fixtures used by the Playwright E2E tests.
 4. **Version Control**: Include test images in git so they're available in CI/CD
 
 ### Local Development
+
 - Test images are stored in `e2e-tests/fixtures/`
 - Path resolution uses `path.join(__dirname, '../fixtures/test-image.jpg')`
 - This ensures the path works regardless of where the test is run from
 
 ### CI/CD (GitHub Actions)
+
 - Test images are included in the repository
 - No additional setup required - images are available during CI/CD runs
 - Same path resolution works in both local and CI environments
@@ -32,7 +35,8 @@ This directory contains test fixtures used by the Playwright E2E tests.
 3. **External URLs**: Use publicly accessible image URLs (less reliable for CI/CD)
 
 ### Adding New Test Images
+
 1. Add the image file to `e2e-tests/fixtures/`
 2. Update the path in the test file
 3. Ensure the image is committed to git
-4. Document any special requirements in this README 
+4. Document any special requirements in this README

@@ -1,4 +1,5 @@
 # Tracker and History
+
 > Sources: `sefaria/tracker.py` (~267 lines), `sefaria/history.py` (~390 lines)
 
 ## Purpose
@@ -76,33 +77,43 @@ These two modules form the change-tracking system for Sefaria. `tracker.py` is t
 ## Common Tasks
 
 **Log a text edit (happens automatically through tracker):**
+
 ```python
 from sefaria.tracker import modify_text
+
 chunk = modify_text(user_id, oref, "Version Title", "en", "New text content")
 ```
 
 **Bulk update many segments at once:**
+
 ```python
 from sefaria.tracker import modify_bulk_text
+
 text_map = {"Genesis 1:1": "New text", "Genesis 1:2": "More text"}
 error_map = modify_bulk_text(user_id, version_obj, text_map)
 ```
 
 **Query the activity feed:**
+
 ```python
 from sefaria.history import get_activity, collapse_activity
+
 activity = get_activity(query={"user": user_id}, page_size=50, page=1)
 collapsed = collapse_activity(activity)
 ```
 
 **Reconstruct text at a past revision:**
+
 ```python
 from sefaria.history import text_at_revision
+
 old_text = text_at_revision("Genesis 1:1", "Tanakh: The Holy Scriptures", "en", revision=42)
 ```
 
 **Add/update a generic model object with tracking:**
+
 ```python
 from sefaria.tracker import add
+
 link = add(user_id, model.Link, {"refs": ["Gen.1.1", "Rashi on Gen.1.1"], "type": "commentary"})
 ```

@@ -8,15 +8,15 @@ This README is the **handbook for humans**. Read it cover-to-cover when you join
 
 ## Which doc do I read?
 
-| If you are… | Read |
-| --- | --- |
-| A **human** joining the team or writing/running tests | **This file** — the full handbook |
-| An **AI agent** operating in this directory | [CLAUDE.md](CLAUDE.md) — the same conventions, compressed into prescriptive rules, plus agent-specific patterns (FA-icon clicks, jQuery URL encoding, dialog ordering, network interception) |
-| Understanding / running the **release-gate** suite | [Sanity/README.md](Sanity/README.md) — what a sanity test is + the `@sanity` tag |
-| Testing the **Library Assistant** chatbot | [assistant/README.md](assistant/README.md) |
-| Testing the **Resource Panel** (RP-NNN) | [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) |
-| Testing **Voices Topics** (TOV-NNN) | [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md) |
-| Testing the **mobile** hamburger drawer (HAM-NNN) | [mobile web/README.md](mobile%20web/README.md) |
+| If you are…                                           | Read                                                                                                                                                                                         |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A **human** joining the team or writing/running tests | **This file** — the full handbook                                                                                                                                                            |
+| An **AI agent** operating in this directory           | [CLAUDE.md](CLAUDE.md) — the same conventions, compressed into prescriptive rules, plus agent-specific patterns (FA-icon clicks, jQuery URL encoding, dialog ordering, network interception) |
+| Understanding / running the **release-gate** suite    | [Sanity/README.md](Sanity/README.md) — what a sanity test is + the `@sanity` tag                                                                                                             |
+| Testing the **Library Assistant** chatbot             | [assistant/README.md](assistant/README.md)                                                                                                                                                   |
+| Testing the **Resource Panel** (RP-NNN)               | [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md)                                                                                 |
+| Testing **Voices Topics** (TOV-NNN)                   | [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md)                                                                                   |
+| Testing the **mobile** hamburger drawer (HAM-NNN)     | [mobile web/README.md](mobile%20web/README.md)                                                                                                                                               |
 
 > **README vs. CLAUDE.md:** they overlap by design. The README is the narrative handbook for people; CLAUDE.md is the rule list auto-loaded into AI-agent context. When the two ever disagree, treat **CLAUDE.md as the authority on prescriptive test-writing rules** and this file as the authority on setup, running, and onboarding. If you change a convention, update both.
 
@@ -88,16 +88,16 @@ If step 4 is green, you're set up. If it isn't, jump to [Troubleshooting](#troub
 
 All variables live in `e2e-tests/.env` (gitignored). Copy [example.env](example.env) and fill it in.
 
-| Variable | What it does |
-| --- | --- |
-| `SANDBOX_URL` | Base URL for the English sandbox (e.g. `https://modularization.cauldron.sefaria.org/`). `MODULE_URLS.EN.LIBRARY` and `.VOICES` are derived from this domain. |
-| `SANDBOX_URL_IL` | Base URL for the Hebrew/IL sandbox. `MODULE_URLS.HE.LIBRARY` and `.VOICES` are derived from it. |
-| `PLAYWRIGHT_USER_EMAIL` / `PLAYWRIGHT_USER_PASSWORD` | Standard test user (`testUser`). Used by `BROWSER_SETTINGS.enUser` / `.heUser`. |
-| `PLAYWRIGHT_SUPERUSER_EMAIL` / `PLAYWRIGHT_SUPERUSER_PASSWORD` | Admin / superuser (`testAdminUser`). Used by `BROWSER_SETTINGS.enAdmin` / `.heAdmin` and Django admin endpoints (e.g. the trending-tags reset). |
-| `PLAYWRIGHT_LA_USER_EMAIL` / `PLAYWRIGHT_LA_USER_PASSWORD` | Library Assistant whitelisted user (`testLAUser`). Used by `BROWSER_SETTINGS.enLAUser` — `<lc-chatbot>` only mounts for this account. |
-| `TIMEOUT_MULTIPLIER` | Scales every timeout in the suite. Range `0.1–3.0`, default `1.0`. Set to `2` or `3` on a slow runner or while debugging. See [Timeouts](#timeouts-and-the-t-wrapper). |
-| `CI` | When truthy, Playwright runs with `forbidOnly`, `retries: 2`, `workers: 1`, and the GitHub reporter. |
-| `GENERATE_REPORTS` | When truthy (and not CI), emits HTML + JUnit + `list` reporters to `e2e-tests/e2e-test-logs/`. |
+| Variable                                                       | What it does                                                                                                                                                           |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SANDBOX_URL`                                                  | Base URL for the English sandbox (e.g. `https://modularization.cauldron.sefaria.org/`). `MODULE_URLS.EN.LIBRARY` and `.VOICES` are derived from this domain.           |
+| `SANDBOX_URL_IL`                                               | Base URL for the Hebrew/IL sandbox. `MODULE_URLS.HE.LIBRARY` and `.VOICES` are derived from it.                                                                        |
+| `PLAYWRIGHT_USER_EMAIL` / `PLAYWRIGHT_USER_PASSWORD`           | Standard test user (`testUser`). Used by `BROWSER_SETTINGS.enUser` / `.heUser`.                                                                                        |
+| `PLAYWRIGHT_SUPERUSER_EMAIL` / `PLAYWRIGHT_SUPERUSER_PASSWORD` | Admin / superuser (`testAdminUser`). Used by `BROWSER_SETTINGS.enAdmin` / `.heAdmin` and Django admin endpoints (e.g. the trending-tags reset).                        |
+| `PLAYWRIGHT_LA_USER_EMAIL` / `PLAYWRIGHT_LA_USER_PASSWORD`     | Library Assistant whitelisted user (`testLAUser`). Used by `BROWSER_SETTINGS.enLAUser` — `<lc-chatbot>` only mounts for this account.                                  |
+| `TIMEOUT_MULTIPLIER`                                           | Scales every timeout in the suite. Range `0.1–3.0`, default `1.0`. Set to `2` or `3` on a slow runner or while debugging. See [Timeouts](#timeouts-and-the-t-wrapper). |
+| `CI`                                                           | When truthy, Playwright runs with `forbidOnly`, `retries: 2`, `workers: 1`, and the GitHub reporter.                                                                   |
+| `GENERATE_REPORTS`                                             | When truthy (and not CI), emits HTML + JUnit + `list` reporters to `e2e-tests/e2e-test-logs/`.                                                                         |
 
 ---
 
@@ -171,41 +171,41 @@ e2e-tests/
 
 Each test folder is run by three browser-specific Playwright projects defined in [../playwright.config.ts](../playwright.config.ts) (21 desktop projects total). When you run `npx playwright test`, every desktop project runs. The two mobile projects run only under the mobile config.
 
-| Folder | Chromium project | Firefox project | WebKit project | baseURL |
-| --- | --- | --- | --- | --- |
-| `library/` | `chrome-library` | `firefox-library` | `safari-library` | `www.<domain>` |
-| `voices/` | `chrome-voices` | `firefox-voices` | `safari-voices` | `voices.<domain>` |
-| `Misc/` | `chrome-misc` | `firefox-misc` | `safari-misc` | `www.<domain>` |
-| `tests/` (Strapi content: HAR replay + synthetic payloads) | `chrome-strapi` | — | — | `SANDBOX_URL` verbatim |
-| `assistant/` | `chrome-assistant` | `firefox-assistant` | `safari-assistant` | `www.<domain>` |
-| `Full testing by Feature/Resource Panel/` | `chrome-resource-panel` | `firefox-resource-panel` | `safari-resource-panel` | `www.<domain>` |
-| `Full testing by Feature/Voices Topics/` | `chrome-voices-topics` | `firefox-voices-topics` | `safari-voices-topics` | `voices.<domain>` |
-| `Full testing by Feature/Search/` | `chrome-search` | `firefox-search` | `safari-search` | `www.<domain>` |
-| `Full testing by Feature/User Menu/` | `chrome-user-menu` | `firefox-user-menu` | `safari-user-menu` | `www.<domain>` |
-| `Full testing by Feature/Cross-Module/` | `chrome-cross-module` | `firefox-cross-module` | `safari-cross-module` | `www.<domain>` |
-| `mobile web/` *(separate config — [`playwright.mobileweb.config.ts`](../playwright.mobileweb.config.ts))* | `chrome-mobile-library` (Pixel 5) | — | `safari-mobile-library` (iPhone 13) | `www.<domain>` |
+| Folder                                                                                                    | Chromium project                  | Firefox project          | WebKit project                      | baseURL                |
+| --------------------------------------------------------------------------------------------------------- | --------------------------------- | ------------------------ | ----------------------------------- | ---------------------- |
+| `library/`                                                                                                | `chrome-library`                  | `firefox-library`        | `safari-library`                    | `www.<domain>`         |
+| `voices/`                                                                                                 | `chrome-voices`                   | `firefox-voices`         | `safari-voices`                     | `voices.<domain>`      |
+| `Misc/`                                                                                                   | `chrome-misc`                     | `firefox-misc`           | `safari-misc`                       | `www.<domain>`         |
+| `tests/` (Strapi content: HAR replay + synthetic payloads)                                                | `chrome-strapi`                   | —                        | —                                   | `SANDBOX_URL` verbatim |
+| `assistant/`                                                                                              | `chrome-assistant`                | `firefox-assistant`      | `safari-assistant`                  | `www.<domain>`         |
+| `Full testing by Feature/Resource Panel/`                                                                 | `chrome-resource-panel`           | `firefox-resource-panel` | `safari-resource-panel`             | `www.<domain>`         |
+| `Full testing by Feature/Voices Topics/`                                                                  | `chrome-voices-topics`            | `firefox-voices-topics`  | `safari-voices-topics`              | `voices.<domain>`      |
+| `Full testing by Feature/Search/`                                                                         | `chrome-search`                   | `firefox-search`         | `safari-search`                     | `www.<domain>`         |
+| `Full testing by Feature/User Menu/`                                                                      | `chrome-user-menu`                | `firefox-user-menu`      | `safari-user-menu`                  | `www.<domain>`         |
+| `Full testing by Feature/Cross-Module/`                                                                   | `chrome-cross-module`             | `firefox-cross-module`   | `safari-cross-module`               | `www.<domain>`         |
+| `mobile web/` _(separate config — [`playwright.mobileweb.config.ts`](../playwright.mobileweb.config.ts))_ | `chrome-mobile-library` (Pixel 5) | —                        | `safari-mobile-library` (iPhone 13) | `www.<domain>`         |
 
 The `*-sanity` projects are **not** in the table because they are **tag-scoped, not folder-scoped** (`testDir: './e2e-tests'` + `grep: /@sanity/`): they run every test tagged `@sanity` anywhere in the tree. The tagged specs live in their feature folders; `Sanity/` itself is **docs only**. See [Sanity/README.md](Sanity/README.md).
 
-Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are derived from `SANDBOX_URL_IL` and are used *inside* tests when asserting Hebrew-site behavior — they are not separate Playwright projects.
+Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are derived from `SANDBOX_URL_IL` and are used _inside_ tests when asserting Hebrew-site behavior — they are not separate Playwright projects.
 
 ---
 
 ## Where does my test go?
 
-| What your test exercises | Put it in |
-| --- | --- |
-| Library-specific UI (reader, texts, topics, library header/sidebar) | `library/` |
-| Voices-specific UI (sheet editor, trending, chiburim pages) | `voices/` |
-| Library Assistant chatbot (`<lc-chatbot>`) | `assistant/` |
-| Connections sidebar / Resource Panel (RP-NNN tests) | `Full testing by Feature/Resource Panel/` |
-| Voices topic pages or `/topics` landing (TOV-NNN tests) | `Full testing by Feature/Voices Topics/` |
-| Header search — autocomplete / results / dropdown (SRCH-NNN) | `Full testing by Feature/Search/` |
-| User-menu flows — profile / account / language / switcher / logout (UMN-NNN) | `Full testing by Feature/User Menu/` |
-| Cross-module integration — auth persistence + Library→Voices redirects (XMOD-NNN) | `Full testing by Feature/Cross-Module/` |
-| Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow) | `mobile web/` *(run via `--config=playwright.mobileweb.config.ts`)* |
-| Platform-level invariants, help-sheet redirects, static-route assertions | `Misc/` |
-| Release-gate smoke | **no folder — tag the test `{ tag: '@sanity' }`** in its feature folder (see [Sanity/README.md](Sanity/README.md)) |
+| What your test exercises                                                          | Put it in                                                                                                          |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Library-specific UI (reader, texts, topics, library header/sidebar)               | `library/`                                                                                                         |
+| Voices-specific UI (sheet editor, trending, chiburim pages)                       | `voices/`                                                                                                          |
+| Library Assistant chatbot (`<lc-chatbot>`)                                        | `assistant/`                                                                                                       |
+| Connections sidebar / Resource Panel (RP-NNN tests)                               | `Full testing by Feature/Resource Panel/`                                                                          |
+| Voices topic pages or `/topics` landing (TOV-NNN tests)                           | `Full testing by Feature/Voices Topics/`                                                                           |
+| Header search — autocomplete / results / dropdown (SRCH-NNN)                      | `Full testing by Feature/Search/`                                                                                  |
+| User-menu flows — profile / account / language / switcher / logout (UMN-NNN)      | `Full testing by Feature/User Menu/`                                                                               |
+| Cross-module integration — auth persistence + Library→Voices redirects (XMOD-NNN) | `Full testing by Feature/Cross-Module/`                                                                            |
+| Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow)              | `mobile web/` _(run via `--config=playwright.mobileweb.config.ts`)_                                                |
+| Platform-level invariants, help-sheet redirects, static-route assertions          | `Misc/`                                                                                                            |
+| Release-gate smoke                                                                | **no folder — tag the test `{ tag: '@sanity' }`** in its feature folder (see [Sanity/README.md](Sanity/README.md)) |
 
 **Rule of thumb:** if a feature ships in one module only and has its own deep test matrix, it earns its own folder under `Full testing by Feature/`. Otherwise, if it ships in one module only, use that module's folder; if it crosses modules, use `Full testing by Feature/Cross-Module/`; if it's a platform-level invariant, use `Misc/`. Release-gate status is orthogonal to location — it's the `@sanity` **tag**, applied wherever the test lives.
 
@@ -245,7 +245,7 @@ These eight rules govern every new test and page object. Violations are the most
 
 1. **Always go through `PageManager`.** In a `.spec.ts` file, prefer `pm.onX().someAction()` over raw `page.locator(...)`. Raw locators belong inside a page object.
 2. **Always wrap timeouts with `t()`** from [globals.ts](globals.ts). No hardcoded `5000`, `10000`, etc. Example: `await expect(x).toBeVisible({ timeout: t(10000) })`.
-3. **Overlay suppression is two layers.** Layer 1 is `installOverlaySuppression(context)`, called inside `goToPageWithLang` / `goToPageWithUser` *before* `context.newPage()`. It patches `localStorage.getItem` so every `modal_*` / `banner_*` key reads `"true"` (short-circuiting `InterruptingMessage.shouldShow()` and `Banner.shouldShow()` in `Misc.jsx` at lines 2100 and 2282) and short-circuits `/api/strapi/graphql-cache` with an empty payload — killing the Strapi "Sustainer" interrupting message at the React level before its `showDelay` timer even arms. Layer 2 is `hideAllModalsAndPopups(page)`, which click-dismisses the residual non-Strapi survivors (cookies banner, UseBounce widget, GuideOverlay, `#bannerMessage`, SiteWideBanner). The entry-point helpers call layer 2 after the first navigation; **call it again after any subsequent in-test `page.goto`, module switch, or login redirect** — a survivor can mount mid-test.
+3. **Overlay suppression is two layers.** Layer 1 is `installOverlaySuppression(context)`, called inside `goToPageWithLang` / `goToPageWithUser` _before_ `context.newPage()`. It patches `localStorage.getItem` so every `modal_*` / `banner_*` key reads `"true"` (short-circuiting `InterruptingMessage.shouldShow()` and `Banner.shouldShow()` in `Misc.jsx` at lines 2100 and 2282) and short-circuits `/api/strapi/graphql-cache` with an empty payload — killing the Strapi "Sustainer" interrupting message at the React level before its `showDelay` timer even arms. Layer 2 is `hideAllModalsAndPopups(page)`, which click-dismisses the residual non-Strapi survivors (cookies banner, UseBounce widget, GuideOverlay, `#bannerMessage`, SiteWideBanner). The entry-point helpers call layer 2 after the first navigation; **call it again after any subsequent in-test `page.goto`, module switch, or login redirect** — a survivor can mount mid-test.
 4. **Always enter via `goToPageWithLang` or `goToPageWithUser`** for the first navigation in `test.beforeEach`. Do not start a test with a bare `page.goto(...)`.
 5. **Locator priority:** `getByRole` > `getByLabel` > `getByText` > `getByTestId` > CSS. Avoid brittle CSS like `.react-tags__search-input` in new code. In a bilingual app, prefer English-stable attributes (`data-name`) over visible text — see the Resource Panel POM for the canonical pattern.
 6. **Never use `page.waitForTimeout(ms)` to wait for state.** Use web-first assertions (`await expect(locator).toBeVisible()`) — they auto-retry. `waitForTimeout` is acceptable only for deliberate pacing (e.g. after dismissing a modal) and must still be wrapped with `t()`.
@@ -258,14 +258,14 @@ These eight rules govern every new test and page object. Violations are the most
 
 [utils.ts](utils.ts) exposes two entry points. Every test's first navigation must go through one of them — do not use raw `page.goto` for the initial visit.
 
-| Scenario | Helper |
-| --- | --- |
-| Anonymous user, English UI | `goToPageWithLang(context, url, LANGUAGES.EN)` |
-| Anonymous user, Hebrew UI | `goToPageWithLang(context, url, LANGUAGES.HE)` |
-| Logged-in primary user, EN | `goToPageWithUser(context, url, BROWSER_SETTINGS.enUser)` |
-| Logged-in primary user, HE | `goToPageWithUser(context, url, BROWSER_SETTINGS.heUser)` |
-| Logged-in admin, EN | `goToPageWithUser(context, url, BROWSER_SETTINGS.enAdmin)` |
-| Logged-in admin, HE | `goToPageWithUser(context, url, BROWSER_SETTINGS.heAdmin)` |
+| Scenario                           | Helper                                                      |
+| ---------------------------------- | ----------------------------------------------------------- |
+| Anonymous user, English UI         | `goToPageWithLang(context, url, LANGUAGES.EN)`              |
+| Anonymous user, Hebrew UI          | `goToPageWithLang(context, url, LANGUAGES.HE)`              |
+| Logged-in primary user, EN         | `goToPageWithUser(context, url, BROWSER_SETTINGS.enUser)`   |
+| Logged-in primary user, HE         | `goToPageWithUser(context, url, BROWSER_SETTINGS.heUser)`   |
+| Logged-in admin, EN                | `goToPageWithUser(context, url, BROWSER_SETTINGS.enAdmin)`  |
+| Logged-in admin, HE                | `goToPageWithUser(context, url, BROWSER_SETTINGS.heAdmin)`  |
 | Library Assistant whitelisted user | `goToPageWithUser(context, url, BROWSER_SETTINGS.enLAUser)` |
 
 **What they handle for you:**
@@ -298,18 +298,18 @@ The `language` parameter propagates into every page object so methods can branch
 
 **Available accessors** (all of them, from [pages/pageManager.ts](pages/pageManager.ts)):
 
-| Accessor | Page object | Accessor | Page object |
-| --- | --- | --- | --- |
-| `navigateFromBannerTo()` | banner / header nav | `onModuleHeader()` | module header |
-| `onTextsPage()` | texts browse | `onModuleSidebar()` | sticky nav sidebar |
-| `onTopicsPage()` | topics | `onProfilePage()` | public profile |
-| `onCommunityPage()` | community | `onEditProfilePage()` | edit profile |
-| `onDonatePage()` | donate | `onAccountSettingsPage()` | account settings |
-| `onLoginPage()` | login form | `onLibraryAssistant()` | `<lc-chatbot>` chatbot |
-| `onSignUpPage()` | sign-up form | `onResourcePanel()` | ConnectionsPanel sidebar |
-| `onSearchPage()` | search | `onMobileHamburger()` | mobile hamburger drawer |
-| `onUserMenu()` | user dropdown | `onVoicesTopic()` | Voices topic page |
-| `onSourceTextPage()` | reader source text | `onSourceSheetEditorPage()` | sheet editor |
+| Accessor                 | Page object         | Accessor                    | Page object              |
+| ------------------------ | ------------------- | --------------------------- | ------------------------ |
+| `navigateFromBannerTo()` | banner / header nav | `onModuleHeader()`          | module header            |
+| `onTextsPage()`          | texts browse        | `onModuleSidebar()`         | sticky nav sidebar       |
+| `onTopicsPage()`         | topics              | `onProfilePage()`           | public profile           |
+| `onCommunityPage()`      | community           | `onEditProfilePage()`       | edit profile             |
+| `onDonatePage()`         | donate              | `onAccountSettingsPage()`   | account settings         |
+| `onLoginPage()`          | login form          | `onLibraryAssistant()`      | `<lc-chatbot>` chatbot   |
+| `onSignUpPage()`         | sign-up form        | `onResourcePanel()`         | ConnectionsPanel sidebar |
+| `onSearchPage()`         | search              | `onMobileHamburger()`       | mobile hamburger drawer  |
+| `onUserMenu()`           | user dropdown       | `onVoicesTopic()`           | Voices topic page        |
+| `onSourceTextPage()`     | reader source text  | `onSourceSheetEditorPage()` | sheet editor             |
 
 **When to extend vs. create:** most new tests add methods to existing page objects rather than creating new ones. Only create a new page object when the feature area doesn't fit cleanly into any existing one. After creating one, **register it in [pages/pageManager.ts](pages/pageManager.ts)** (import, add a `private readonly` field, instantiate in the constructor, expose an `onX()` accessor).
 
@@ -418,6 +418,7 @@ Conventions:
 **Step 2 — pick a filename.** Kebab-case, descriptive: `sidebar-help-link.spec.ts`.
 
 **Step 3 — inventory what exists.**
+
 - `pm.onModuleSidebar()` already exposes `clickAndVerifyLink(spec)`. No new page-object method needed.
 - [constants.ts](constants.ts) already has `EXTERNAL_URLS.HELP` — a regex matching the Zendesk URL. Use it.
 
@@ -528,7 +529,7 @@ When code-reviewing a PR that touches tests, verify each of:
 - [ ] **Page object extends `HelperBase`?** If not, flag it unless the file is on the [legacy list](#legacy-patterns-to-recognise).
 - [ ] **Test isolation?** Unless explicitly `serial`, each test works independently from a fresh `beforeEach`.
 - [ ] **Credentials hardcoded?** Must come via `testUser` / `testAdminUser` / `testLAUser` / `BROWSER_SETTINGS`.
-- [ ] **Mode anchor vs. data-loaded?** If a test asserts on per-item content, it must wait for a *specific child*, not just the outer container.
+- [ ] **Mode anchor vs. data-loaded?** If a test asserts on per-item content, it must wait for a _specific child_, not just the outer container.
 - [ ] **`test.skip` justified?** Skips for missing production data are a smell — verify via the Sefaria API and adapt the test instead (see CLAUDE.md §2A).
 - [ ] **Destructive APIs / auth intercepted?** Tests that mutate user state should route-intercept the endpoint; destructive-auth tests must use a throwaway profile (see [§18 Destructive-auth](#destructive-auth-tests)).
 - [ ] **`console.log` / research specs left in?** Remove debug output; `__research__*.spec.ts` files must not be committed.
@@ -624,18 +625,18 @@ The `<lc-chatbot>` element only mounts for the whitelisted account. Enter via `B
 
 [globals.ts](globals.ts) exposes storage-state profiles keyed by name. Each has a `lang`, an `auth_*.json` file path, and a `user`.
 
-| Profile | Logged in as | Purpose |
-| --- | --- | --- |
-| `BROWSER_SETTINGS.enUser` / `.heUser` | Standard test user (`testUser`) | Default profile for any logged-in test |
-| `BROWSER_SETTINGS.enAdmin` / `.heAdmin` | Admin / superuser (`testAdminUser`) | Moderator / editor flows (e.g. create topic, edit text). Also the de-facto destructive-auth throwaway — see below. |
-| `BROWSER_SETTINGS.enLAUser` | Library Assistant whitelisted user (`testLAUser`) | English LA — `<lc-chatbot>` only mounts for a whitelisted account |
-| `BROWSER_SETTINGS.heLAUser` | Separate Hebrew-preference LA account (`testHeLAUser`, `PLAYWRIGHT_LA_USER_HE_*`) | Hebrew LA — logged in natively on `www.*.il`; see [assistant/README.md](assistant/README.md) §12 |
+| Profile                                 | Logged in as                                                                      | Purpose                                                                                                            |
+| --------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `BROWSER_SETTINGS.enUser` / `.heUser`   | Standard test user (`testUser`)                                                   | Default profile for any logged-in test                                                                             |
+| `BROWSER_SETTINGS.enAdmin` / `.heAdmin` | Admin / superuser (`testAdminUser`)                                               | Moderator / editor flows (e.g. create topic, edit text). Also the de-facto destructive-auth throwaway — see below. |
+| `BROWSER_SETTINGS.enLAUser`             | Library Assistant whitelisted user (`testLAUser`)                                 | English LA — `<lc-chatbot>` only mounts for a whitelisted account                                                  |
+| `BROWSER_SETTINGS.heLAUser`             | Separate Hebrew-preference LA account (`testHeLAUser`, `PLAYWRIGHT_LA_USER_HE_*`) | Hebrew LA — logged in natively on `www.*.il`; see [assistant/README.md](assistant/README.md) §12                   |
 
 > The pre-refactor `BROWSER_SETTINGS.english` / `.hebrew` profiles **no longer exist**. Anonymous tests use `goToPageWithLang(...)`; logged-in tests use the profiles above.
 
 **How the flow works** — a one-time global setup, read-only thereafter (the textbook parallel-safe Playwright pattern):
 
-1. **Before any worker starts**, Playwright invokes [global-setup.ts](global-setup.ts). It wipes every `auth_*.json` from the previous run, logs in each *unique account* exactly once (`testUser`, `testAdminUser`, `testLAUser`, plus the Hebrew-preference `testHeLAUser`), calls `fixCookieDomainsForCrossSubdomain` so `sessionid` lives on the parent domain and authenticates both `www.*` and `voices.*`, and writes one `auth_<lang>_<role>.json` per profile. For the standard user/admin, the EN and HE variants are **stamped from one captured login** (one login per account), differing only by the `interfaceLang` cookie. The Hebrew Library-Assistant account logs in separately on the `www.*.il` domain (`site: 'IL'`), because the LA needs a logged-in session on the Hebrew domain.
+1. **Before any worker starts**, Playwright invokes [global-setup.ts](global-setup.ts). It wipes every `auth_*.json` from the previous run, logs in each _unique account_ exactly once (`testUser`, `testAdminUser`, `testLAUser`, plus the Hebrew-preference `testHeLAUser`), calls `fixCookieDomainsForCrossSubdomain` so `sessionid` lives on the parent domain and authenticates both `www.*` and `voices.*`, and writes one `auth_<lang>_<role>.json` per profile. For the standard user/admin, the EN and HE variants are **stamped from one captured login** (one login per account), differing only by the `interfaceLang` cookie. The Hebrew Library-Assistant account logs in separately on the `www.*.il` domain (`site: 'IL'`), because the LA needs a logged-in session on the Hebrew domain.
 2. **Each worker** (a separate Node process) calls `goToPageWithUser(...)`, which reads the file (throws with a clear pointer if it's missing), re-applies the cookie fixups defensively, opens a page, navigates once, and hides modals.
 3. **Anonymous tests** use `goToPageWithLang(...)` — no file, no login.
 
@@ -646,13 +647,13 @@ In practice: you never manually delete `auth_*.json`; per-test login cost is zer
 ```ts
 import { LANGUAGES, SOURCE_LANGUAGES } from '../globals';
 
-LANGUAGES.EN   // 'english'
-LANGUAGES.HE   // 'hebrew'
+LANGUAGES.EN; // 'english'
+LANGUAGES.HE; // 'hebrew'
 
 // Source-text language regexes (for source-text-page UI):
-SOURCE_LANGUAGES.EN   // /^(תרגום|Translation)$/
-SOURCE_LANGUAGES.HE   // /^(מקור|Source)$/
-SOURCE_LANGUAGES.BI   // /^(מקור ותרגום|Source with Translation)$/
+SOURCE_LANGUAGES.EN; // /^(תרגום|Translation)$/
+SOURCE_LANGUAGES.HE; // /^(מקור|Source)$/
+SOURCE_LANGUAGES.BI; // /^(מקור ותרגום|Source with Translation)$/
 ```
 
 - **Mid-test switching:** `changeLanguage(page, LANGUAGES.HE)` from [utils.ts](utils.ts) — tries the UI dropdown, falls back to cookie-based switching with a reload.
@@ -666,11 +667,11 @@ Global timeouts in [playwright.config.ts](../playwright.config.ts): per-test `t(
 ```ts
 import { t } from '../globals';
 
-await expect(element).toBeVisible({ timeout: t(10000) });  // ✅ scales
+await expect(element).toBeVisible({ timeout: t(10000) }); // ✅ scales
 test.setTimeout(t(120000));
-await page.waitForTimeout(t(500));   // only for deliberate pacing
+await page.waitForTimeout(t(500)); // only for deliberate pacing
 
-await expect(element).toBeVisible({ timeout: 10000 });     // ❌ ignores multiplier
+await expect(element).toBeVisible({ timeout: 10000 }); // ❌ ignores multiplier
 ```
 
 When a test is flaky on CI but passes locally, turn the `TIMEOUT_MULTIPLIER=2` knob first. For polling conditions prefer `await expect(locator).toPass({ timeout: t(...) })` over manual loops.
@@ -691,20 +692,20 @@ In the bilingual app, prefer an **English-stable `data-name`** or English-keyed 
 
 [constants.ts](constants.ts) centralises every site-wide string, regex, and selector. Before inlining a magic string, check whether it already lives here.
 
-| Export | Reach for it when |
-| --- | --- |
-| `MODULE_URLS.EN.LIBRARY` / `.VOICES` / `MODULE_URLS.HE.*` | You need a base URL for a module × language |
-| `MODULE_SELECTORS` | Interacting with the module header (logo, icons, dropdowns) |
-| `READER_SELECTORS` | Asserting on reader-page DOM structure |
-| `SHEET_EDITOR_SELECTORS`, `SaveStates` | Sheet-editor flows (publish / save / unpublish / delete) |
-| `SIDEBAR_SELECTORS` | Navigating the sticky nav sidebar |
-| `TOPIC_SELECTORS` | Topic pages, trending blocks, autocomplete |
-| `EXTERNAL_URLS.DONATE` / `.HELP` / `.DEVELOPERS` | Asserting a link opens an external destination |
-| `SEARCH_DROPDOWN` | Search autocomplete sections, icons, test terms per module |
-| `VALID_TOPICS` | Voices trending-topic workflows — pick a known-valid slug |
-| `SITE_CONFIGS.LIBRARY` / `.VOICES` | Tab order, main nav links per module (header / a11y tests) |
-| `MODULE_SWITCHER`, `MODULE_TEXTS` | Cross-module switcher menu validation |
-| `MOBILE_HAMBURGER`, `MOBILE_PAGE_URLS` | Mobile hamburger drawer selectors and destinations |
+| Export                                                    | Reach for it when                                           |
+| --------------------------------------------------------- | ----------------------------------------------------------- |
+| `MODULE_URLS.EN.LIBRARY` / `.VOICES` / `MODULE_URLS.HE.*` | You need a base URL for a module × language                 |
+| `MODULE_SELECTORS`                                        | Interacting with the module header (logo, icons, dropdowns) |
+| `READER_SELECTORS`                                        | Asserting on reader-page DOM structure                      |
+| `SHEET_EDITOR_SELECTORS`, `SaveStates`                    | Sheet-editor flows (publish / save / unpublish / delete)    |
+| `SIDEBAR_SELECTORS`                                       | Navigating the sticky nav sidebar                           |
+| `TOPIC_SELECTORS`                                         | Topic pages, trending blocks, autocomplete                  |
+| `EXTERNAL_URLS.DONATE` / `.HELP` / `.DEVELOPERS`          | Asserting a link opens an external destination              |
+| `SEARCH_DROPDOWN`                                         | Search autocomplete sections, icons, test terms per module  |
+| `VALID_TOPICS`                                            | Voices trending-topic workflows — pick a known-valid slug   |
+| `SITE_CONFIGS.LIBRARY` / `.VOICES`                        | Tab order, main nav links per module (header / a11y tests)  |
+| `MODULE_SWITCHER`, `MODULE_TEXTS`                         | Cross-module switcher menu validation                       |
+| `MOBILE_HAMBURGER`, `MOBILE_PAGE_URLS`                    | Mobile hamburger drawer selectors and destinations          |
 
 **Rule of thumb:** if a string or regex feels site-wide, add it to `constants.ts` instead of inlining.
 
@@ -712,23 +713,23 @@ In the bilingual app, prefer an **English-stable `data-name`** or English-keyed 
 
 [utils.ts](utils.ts) holds the shared helpers below the page-object layer. The entry-point and overlay helpers are covered above; these are the rest worth knowing about.
 
-| Helper | Use it for |
-| --- | --- |
-| `goToPageWithLang` / `goToPageWithUser` | Entry-point navigation (anonymous / logged-in) — see [§8](#entry-point-helpers) |
-| `installOverlaySuppression` / `hideAllModalsAndPopups` | The two-layer overlay suppression — see [rule 3](#core-conventions) |
-| `changeLanguage` / `toggleLanguage` | Mid-test interface-language switch |
-| `fixCookieDomainsForCrossSubdomain` | Rewrite `sessionid` onto the parent domain so `www.*` and `voices.*` share auth |
-| `switchModule` | Navigate between Library and Voices in-test |
-| `logout` / `expireLogoutCookie` / `isUserLoggedIn` | Auth-state manipulation and checks |
-| `createNewSheet` | Create a sheet and return its id (Voices flows) |
-| `gotoOrThrow` | `page.goto` that throws on an error status instead of silently continuing |
-| `normalizeUrl` / `urlMatches` / `assertUrlMatches` | Tolerant URL comparison (ignore query / trailing slash) |
-| `assertStatusNotError` | Assert a response status isn't 404/5xx |
-| `simulateOfflineMode` / `simulateOnlineMode` | Toggle network conditions |
-| `waitForSegment` | Wait for a reader segment to render |
-| `isIsraelIp` / `getCountryByIp` | Geo checks (see the [geo caveat](#multi-language-testing)) |
-| `getModuleFromUrl` / `getPathAndParams` | Parse module / path out of a URL |
-| `isClickable` | Boolean actionability check |
+| Helper                                                 | Use it for                                                                      |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `goToPageWithLang` / `goToPageWithUser`                | Entry-point navigation (anonymous / logged-in) — see [§8](#entry-point-helpers) |
+| `installOverlaySuppression` / `hideAllModalsAndPopups` | The two-layer overlay suppression — see [rule 3](#core-conventions)             |
+| `changeLanguage` / `toggleLanguage`                    | Mid-test interface-language switch                                              |
+| `fixCookieDomainsForCrossSubdomain`                    | Rewrite `sessionid` onto the parent domain so `www.*` and `voices.*` share auth |
+| `switchModule`                                         | Navigate between Library and Voices in-test                                     |
+| `logout` / `expireLogoutCookie` / `isUserLoggedIn`     | Auth-state manipulation and checks                                              |
+| `createNewSheet`                                       | Create a sheet and return its id (Voices flows)                                 |
+| `gotoOrThrow`                                          | `page.goto` that throws on an error status instead of silently continuing       |
+| `normalizeUrl` / `urlMatches` / `assertUrlMatches`     | Tolerant URL comparison (ignore query / trailing slash)                         |
+| `assertStatusNotError`                                 | Assert a response status isn't 404/5xx                                          |
+| `simulateOfflineMode` / `simulateOnlineMode`           | Toggle network conditions                                                       |
+| `waitForSegment`                                       | Wait for a reader segment to render                                             |
+| `isIsraelIp` / `getCountryByIp`                        | Geo checks (see the [geo caveat](#multi-language-testing))                      |
+| `getModuleFromUrl` / `getPathAndParams`                | Parse module / path out of a URL                                                |
+| `isClickable`                                          | Boolean actionability check                                                     |
 
 ### Destructive-auth tests
 
@@ -747,13 +748,13 @@ The shared-session model has a sharp edge: tests that destroy or rotate the serv
 
 These files **work** but don't reflect current conventions. Don't copy their shape; don't refactor them as part of unrelated work.
 
-| File | What's different | What to do |
-| --- | --- | --- |
-| [pages/banner.ts](pages/banner.ts) | Does not extend `HelperBase` | New page objects extend `HelperBase` |
-| [pages/sheetEditorPage.ts](pages/sheetEditorPage.ts) | Uses `locator = () => page.locator(...)` arrow-function fields | Use private `get` accessors |
-| [pages/accountSettingsPage.ts](pages/accountSettingsPage.ts), [pages/profilePage.ts](pages/profilePage.ts), [pages/editProfilePage.ts](pages/editProfilePage.ts) | Public `get foo()` getters — acceptable but not canonical | Prefer private `get` |
-| [pages/moduleHeaderPage.ts](pages/moduleHeaderPage.ts) | Leaks selector strings to callers; some dead code | Model new POMs on `resourcePanelPage.ts` / `voicesTopicPage.ts` instead |
-| [library/texts-tree-traversal.spec.ts](library/texts-tree-traversal.spec.ts) | Bypasses `PageManager`; raw `page.getByRole()` throughout | All new specs go through `pm.onX()` |
+| File                                                                                                                                                             | What's different                                               | What to do                                                              |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [pages/banner.ts](pages/banner.ts)                                                                                                                               | Does not extend `HelperBase`                                   | New page objects extend `HelperBase`                                    |
+| [pages/sheetEditorPage.ts](pages/sheetEditorPage.ts)                                                                                                             | Uses `locator = () => page.locator(...)` arrow-function fields | Use private `get` accessors                                             |
+| [pages/accountSettingsPage.ts](pages/accountSettingsPage.ts), [pages/profilePage.ts](pages/profilePage.ts), [pages/editProfilePage.ts](pages/editProfilePage.ts) | Public `get foo()` getters — acceptable but not canonical      | Prefer private `get`                                                    |
+| [pages/moduleHeaderPage.ts](pages/moduleHeaderPage.ts)                                                                                                           | Leaks selector strings to callers; some dead code              | Model new POMs on `resourcePanelPage.ts` / `voicesTopicPage.ts` instead |
+| [library/texts-tree-traversal.spec.ts](library/texts-tree-traversal.spec.ts)                                                                                     | Bypasses `PageManager`; raw `page.getByRole()` throughout      | All new specs go through `pm.onX()`                                     |
 
 **Cleanup candidates** (document only — not deleted in this pass): `pages/sourceSheetEditor.page.ts` and `pages/sheetReaderPage.ts` are not registered on `PageManager`; [fixtures.ts](fixtures.ts) is an empty placeholder; `archived-tests/` holds retired specs run by no project.
 

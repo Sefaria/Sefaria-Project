@@ -2,62 +2,65 @@
 collections.py
 Writes to MongoDB Collection: groups
 """
-import bleach
+
 import re
 import secrets
 from datetime import datetime
 
+import bleach
 from django.utils import translation
 from django.utils.translation import gettext as _
 
-from . import abstract as abst
-from sefaria.model.user_profile import public_user_data
 from sefaria.system.exceptions import InputError
 from sefaria.utils import hebrew
+
+from . import abstract as abst
+
 
 class Collection(abst.AbstractMongoRecord):
     """
     A collection of source sheets
     """
-    collection = 'groups'
-    history_noun = 'group'
+
+    collection = "groups"
+    history_noun = "group"
 
     track_pkeys = True
     pkeys = ["name", "slug", "listed", "headerUrl", "imageUrl", "coverUrl"]
 
     required_attrs = [
-        "name",          # string name of collection
-        "sheets",        # list of sheet ids included in this collection
-        "slug",          # string of url slug
+        "name",  # string name of collection
+        "sheets",  # list of sheet ids included in this collection
+        "slug",  # string of url slug
         "lastModified",  # Datetime of the last time this collection changed
-        "admins",        # list of uids
-        "members",       # list of uids
+        "admins",  # list of uids
+        "members",  # list of uids
     ]
     optional_attrs = [
-        "privateSlug",   # string of url slug that was previously used when collection was private
-        "publishers",       # list of uids TODO remove post collections launch
-        "invitations",      # list of dictionaries representing outstanding invitations
-        "description",      # string text of short description
-        "websiteUrl",       # url of a website displayed on this collection
-        "headerUrl",        # url of an image to use in header
-        "imageUrl",         # url of an image to use as icon
-        "coverUrl",         # url of an image to use as cover
-        "pinned_sheets",    # list of sheet ids, pinned to top
-        "listed",           # Bool, whether to list collection publicly
-        "moderationStatus", # string status code for moderator-set statuses
-        "pinnedTags",       # list of strings, display order for sheet tags
-        "showTagsByDefault",# Bool, whether to default to opening tags list
-        "toc",              # object signaling inclusion in TOC with fields
-                                # `categories` - list
-                                # `title` - string
-                                # `heTitle` - string
-                                # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
-                                # `desscription` - string
-                                # `heDescription` - string
-                                # `enShortDesc` - string
-                                # `heShortDesc` - string
-                                # `dependence` - string - "Commentary" or "Targum"
-                                # These fields will override `name` and `description` for display
+        "privateSlug",  # string of url slug that was previously used when collection was private
+        "publishers",  # list of uids TODO remove post collections launch
+        "invitations",  # list of dictionaries representing outstanding invitations
+        "description",  # string text of short description
+        "websiteUrl",  # url of a website displayed on this collection
+        "headerUrl",  # url of an image to use in header
+        "imageUrl",  # url of an image to use as icon
+        "coverUrl",  # url of an image to use as cover
+        "pinned_sheets",  # list of sheet ids, pinned to top
+        "listed",  # Bool, whether to list collection publicly
+        "moderationStatus",  # string status code for moderator-set statuses
+        "pinnedTags",  # list of strings, display order for sheet tags
+        "showTagsByDefault",  # Bool, whether to default to opening tags list
+        "toc",  # object signaling inclusion in TOC with fields
+        # `categories` - list
+        # `title` - string
+        # `heTitle` - string
+        # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
+        # `desscription` - string
+        # `heDescription` - string
+        # `enShortDesc` - string
+        # `heShortDesc` - string
+        # `dependence` - string - "Commentary" or "Targum"
+        # These fields will override `name` and `description` for display
     ]
 
     def _normalize(self):
@@ -87,7 +90,7 @@ class Collection(abst.AbstractMongoRecord):
             toc["heDescription"] = bleach.clean(toc["heDescription"], tags=tags, attributes=attrs)
 
     def _validate(self):
-        assert super(Collection, self)._validate()
+        assert super()._validate()
 
         if len(self.name) == 0:
             raise InputError(_("Please set a name for your collection."))
@@ -110,16 +113,21 @@ class Collection(abst.AbstractMongoRecord):
 
         if new_status and not old_status:
             # At moment of publishing, make checks for special requirements on public collections
-            # Don't make these checks on every save so a collection can't get stuck in a state where 
-            # it can't be change even to add a new public sheet. 
+            # Don't make these checks on every save so a collection can't get stuck in a state where
+            # it can't be change even to add a new public sheet.
             if self.name_taken():
                 # Require public collections to have a unique name
-                raise InputError(_("A public collection with this name already exists. Please choose a different name before publishing."))
+                raise InputError(
+                    _(
+                        "A public collection with this name already exists. Please choose a different name before publishing.",
+                    ),
+                )
             if not getattr(self, "imageUrl", False):
-                raise InputError(_("Public Collections are required to include a collection image (a square image will work best)."))
+                raise InputError(
+                    _("Public Collections are required to include a collection image (a square image will work best)."),
+                )
             if self.public_sheet_count() < 3:
                 raise InputError(_("Public Collections are required to have at least 3 public sheets."))
-
 
         image_fields = ("imageUrl", "headerUrl", "coverUrl")
         for field in image_fields:
@@ -129,7 +137,7 @@ class Collection(abst.AbstractMongoRecord):
 
     def assign_slug(self):
         """
-        Assign a slug for the collection. For public collections based on the collection 
+        Assign a slug for the collection. For public collections based on the collection
         name, for private collections a random string.
         """
         if getattr(self, "listed", False):
@@ -171,16 +179,17 @@ class Collection(abst.AbstractMongoRecord):
         return self.name if (hebrew.has_hebrew(self.name) == (lang == "he")) else None
 
     def contents(self, with_content=False, authenticated=False):
-        from sefaria.sheets import sheet_topics_counts
-        contents = super(Collection, self).contents()
+        contents = super().contents()
         if with_content:
-            contents["sheets"]       = self.sheet_contents(authenticated=authenticated)
-            contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
-            contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
+            from sefaria.model.user_profile import public_user_data
+
+            contents["sheets"] = self.sheet_contents(authenticated=authenticated)
+            contents["admins"] = [public_user_data(uid) for uid in contents["admins"]]
+            contents["members"] = [public_user_data(uid) for uid in contents["members"]]
             contents["lastModified"] = str(self.lastModified)
-            contents["invitations"]  = getattr(self, "invitations", []) if authenticated else []
+            contents["invitations"] = getattr(self, "invitations", []) if authenticated else []
             contents["pinnedSheets"] = getattr(self, "pinned_sheets", [])
-            contents["pinnedTags"]   = getattr(self, "pinnedTags", [])
+            contents["pinnedTags"] = getattr(self, "pinnedTags", [])
         return contents
 
     def listing_contents(self, uid=None):
@@ -201,6 +210,7 @@ class Collection(abst.AbstractMongoRecord):
 
     def sheet_contents(self, authenticated=False):
         from sefaria.sheets import sheet_list
+
         if authenticated is False and getattr(self, "listed", False):
             query = {"status": "public", "id": {"$in": self.sheets}}
         else:
@@ -236,7 +246,7 @@ class Collection(abst.AbstractMongoRecord):
         """
         Remove `uid` from this collection.
         """
-        self.admins  = [user_id for user_id in self.admins if user_id != uid]
+        self.admins = [user_id for user_id in self.admins if user_id != uid]
         self.members = [user_id for user_id in self.members if user_id != uid]
         self.save()
 
@@ -267,23 +277,26 @@ class Collection(abst.AbstractMongoRecord):
         """
         from django.core.mail import EmailMultiAlternatives
         from django.template.loader import render_to_string
+
         from sefaria.model import UserProfile
 
-        inviter       = UserProfile(id=inviter_id)
-        curr_lang     = translation.get_language()
+        inviter = UserProfile(id=inviter_id)
+        curr_lang = translation.get_language()
         try:
             translation.activate(inviter.settings["interface_language"][0:2])
-            message_html  = render_to_string("email/collection_signup_invitation_email.html",
-                                            {
-                                                "inviter": inviter.full_name,
-                                                "collection_slug": self.slug,
-                                                "registerUrl": "/register?next=%s" % self.url
-                                            })
+            message_html = render_to_string(
+                "email/collection_signup_invitation_email.html",
+                {
+                    "inviter": inviter.full_name,
+                    "collection_slug": self.slug,
+                    "registerUrl": "/register?next=%s" % self.url,
+                },
+            )
         finally:
             translation.activate(curr_lang)
-        subject       = _("%(name)s invited you to a collection on Sefaria") % {'name': inviter.full_name}
-        from_email    = "Sefaria <hello@sefaria.org>"
-        to            = email
+        subject = _("%(name)s invited you to a collection on Sefaria") % {"name": inviter.full_name}
+        from_email = "Sefaria <hello@sefaria.org>"
+        to = email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
         msg.content_subtype = "html"  # Main content is now text/html
@@ -293,7 +306,7 @@ class Collection(abst.AbstractMongoRecord):
         """
         Returns a list of all collection members, regardless of sole
         """
-        return (self.admins + self.members)
+        return self.admins + self.members
 
     def is_member(self, uid):
         """
@@ -312,12 +325,13 @@ class Collection(abst.AbstractMongoRecord):
     def public_sheet_count(self):
         """Returns the number of public sheets in this collection"""
         from sefaria.sheets import SheetSet
-        return SheetSet({"id": {"$in": self.sheets}, "status": "public"}).count()      
+
+        return SheetSet({"id": {"$in": self.sheets}, "status": "public"}).count()
 
     @property
     def url(self):
         """Returns the URL path for this collection"""
-        return "/collections/{}".format(self.slug)
+        return f"/collections/{self.slug}"
 
     def pin_sheet(self, sheet_id):
         """
@@ -336,10 +350,13 @@ class Collection(abst.AbstractMongoRecord):
         delete images that are no longer referenced
         """
         from sefaria.google_storage_manager import GoogleStorageManager
-        bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
-        if isinstance(old_url, str) and re.search(r"^https?://storage\.googleapis\.com/", old_url):  # only try to delete images in google cloud storage
-            GoogleStorageManager.delete_filename(old_url, bucket_name)
 
+        bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
+        if isinstance(old_url, str) and re.search(
+            r"^https?://storage\.googleapis\.com/",
+            old_url,
+        ):  # only try to delete images in google cloud storage
+            GoogleStorageManager.delete_filename(old_url, bucket_name)
 
 
 class CollectionSet(abst.AbstractMongoSet):
@@ -356,8 +373,10 @@ class CollectionSet(abst.AbstractMongoSet):
     def get_collection_listing(cls, userid):
         return {
             "private": [g.listing_contents() for g in cls().for_user(userid)],
-            "public": [g.listing_contents() for g in
-                       CollectionSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
+            "public": [
+                g.listing_contents()
+                for g in CollectionSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])
+            ],
         }
 
 
@@ -377,6 +396,7 @@ def process_collection_delete_in_sheets(collection, **kwargs):
     When a collection deleted, move any sheets out of the collection.
     """
     from sefaria.system.database import db
+
     db.sheets.update_many({"displayedCollection": collection.slug}, {"$set": {"displayedCollection": ""}})
 
 
@@ -384,7 +404,7 @@ def process_sheet_deletion_in_collections(sheet_id):
     """
     When a sheet is deleted remove it from any collections.
     Note: this function is not tied through dependencies.py (since Sheet mongo model isn't generlly used),
-    but is called directly from sheet deletion view in sourcesheets/views.py. 
+    but is called directly from sheet deletion view in sourcesheets/views.py.
     """
     cs = CollectionSet({"sheets": sheet_id})
     for c in cs:

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 hebrew.py - functions relating to reading and generating Hebrew numerals.
 
@@ -7,29 +6,206 @@ Issues:
    Number like 2000 is ambiguous
    Okay to construct 15/16 and then make tet-vav/etc?
 """
+
+import contextlib
 import dataclasses
-import re
-import regex
-import math
-from typing import List, Callable
 import itertools
-from sefaria.system.decorators import memoized
-from sefaria.helper.normalization import NormalizerFactory
+import math
+import re
+from collections.abc import Callable
+
+import regex
 import structlog
+
+from sefaria.helper.normalization import NormalizerFactory
+from sefaria.system.decorators import memoized
+
 logger = structlog.get_logger(__name__)
 
 
 ### Change to all caps for constants
-GERESH = "\u05F3"
-GERSHAYIM = "\u05F4"
+GERESH = "\u05f3"
+GERSHAYIM = "\u05f4"
 ALPHABET_22 = "אבגדהוזחטיכלמנסעפצקרשת"
 FINAL_LETTERS = "םןץףך"
 ALPHABET_27 = ALPHABET_22 + FINAL_LETTERS
 
-H2E_KEYBOARD_MAP = {"/": "q", "׳": "w", "ק": "e", "ר": "r", "א": "t", "ט": "y", "ו": "u", "ן": "i", "ם": "o", "פ": "p", "ש": "a", "ד": "s", "ג": "d", "כ": "f", "ע": "g", "י": "h", "ח": "j", "ל": "k", "ך": "l", "ף": ";", ",": "'", "ז": "z", "ס": "x", "ב": "c", "ה": "v", "נ": "b", "מ": "n", "צ": "m", "ת": ",", "ץ": ".", ".": "/"}
-E2H_KEYBOARD_MAP = {"'": ',', ',': '\u05ea', '.': '\u05e5', '/': '.', ';': '\u05e3', 'A': '\u05e9', 'B': '\u05e0', 'C': '\u05d1', 'D': '\u05d2', 'E': '\u05e7', 'F': '\u05db', 'G': '\u05e2', 'H': '\u05d9', 'I': '\u05df', 'J': '\u05d7', 'K': '\u05dc', 'L': '\u05da', 'M': '\u05e6', 'N': '\u05de', 'O': '\u05dd', 'P': '\u05e4', 'Q': '/', 'R': '\u05e8', 'S': '\u05d3', 'T': '\u05d0', 'U': '\u05d5', 'V': '\u05d4', 'W': '\u05f3', 'X': '\u05e1', 'Y': '\u05d8', 'Z': '\u05d6', 'a': '\u05e9', 'b': '\u05e0', 'c': '\u05d1', 'd': '\u05d2', 'e': '\u05e7', 'f': '\u05db', 'g': '\u05e2', 'h': '\u05d9', 'i': '\u05df', 'j': '\u05d7', 'k': '\u05dc', 'l': '\u05da', 'm': '\u05e6', 'n': '\u05de', 'o': '\u05dd', 'p': '\u05e4', 'q': '/', 'r': '\u05e8', 's': '\u05d3', 't': '\u05d0', 'u': '\u05d5', 'v': '\u05d4', 'w': '\u05f3', 'x': '\u05e1', 'y': '\u05d8', 'z': '\u05d6'}
-KEYBOARD_SWAP_MAP = {"/": "q", "׳": "w", "ק": "e", "ר": "r", "א": "t", "ט": "y", "ו": "u", "ן": "i", "ם": "o", "פ": "p", "ש": "a", "ד": "s", "ג": "d", "כ": "f", "ע": "g", "י": "h", "ח": "j", "ל": "k", "ך": "l", "ף": ";", ",": "'", "ז": "z", "ס": "x", "ב": "c", "ה": "v", "נ": "b", "מ": "n", "צ": "m", "ת": ",", "ץ": ".", ".": "/",
-                    "'": ',', ',': '\u05ea', '.': '\u05e5', '/': '.', ';': '\u05e3', 'A': '\u05e9', 'B': '\u05e0', 'C': '\u05d1', 'D': '\u05d2', 'E': '\u05e7', 'F': '\u05db', 'G': '\u05e2', 'H': '\u05d9', 'I': '\u05df', 'J': '\u05d7', 'K': '\u05dc', 'L': '\u05da', 'M': '\u05e6', 'N': '\u05de', 'O': '\u05dd', 'P': '\u05e4', 'Q': '/', 'R': '\u05e8', 'S': '\u05d3', 'T': '\u05d0', 'U': '\u05d5', 'V': '\u05d4', 'W': '\u05f3', 'X': '\u05e1', 'Y': '\u05d8', 'Z': '\u05d6', 'a': '\u05e9', 'b': '\u05e0', 'c': '\u05d1', 'd': '\u05d2', 'e': '\u05e7', 'f': '\u05db', 'g': '\u05e2', 'h': '\u05d9', 'i': '\u05df', 'j': '\u05d7', 'k': '\u05dc', 'l': '\u05da', 'm': '\u05e6', 'n': '\u05de', 'o': '\u05dd', 'p': '\u05e4', 'q': '/', 'r': '\u05e8', 's': '\u05d3', 't': '\u05d0', 'u': '\u05d5', 'v': '\u05d4', 'w': '\u05f3', 'x': '\u05e1', 'y': '\u05d8', 'z': '\u05d6'}
+H2E_KEYBOARD_MAP = {
+    "׳": "w",
+    "ק": "e",
+    "ר": "r",
+    "א": "t",
+    "ט": "y",
+    "ו": "u",
+    "ן": "i",
+    "ם": "o",
+    "פ": "p",
+    "ש": "a",
+    "ד": "s",
+    "ג": "d",
+    "כ": "f",
+    "ע": "g",
+    "י": "h",
+    "ח": "j",
+    "ל": "k",
+    "ך": "l",
+    "ף": ";",
+    "ז": "z",
+    "ס": "x",
+    "ב": "c",
+    "ה": "v",
+    "נ": "b",
+    "מ": "n",
+    "צ": "m",
+    "ת": ",",
+    "ץ": ".",
+}
+E2H_KEYBOARD_MAP = {
+    "'": ",",
+    ",": "\u05ea",
+    ".": "\u05e5",
+    "/": ".",
+    ";": "\u05e3",
+    "A": "\u05e9",
+    "B": "\u05e0",
+    "C": "\u05d1",
+    "D": "\u05d2",
+    "E": "\u05e7",
+    "F": "\u05db",
+    "G": "\u05e2",
+    "H": "\u05d9",
+    "I": "\u05df",
+    "J": "\u05d7",
+    "K": "\u05dc",
+    "L": "\u05da",
+    "M": "\u05e6",
+    "N": "\u05de",
+    "O": "\u05dd",
+    "P": "\u05e4",
+    "Q": "/",
+    "R": "\u05e8",
+    "S": "\u05d3",
+    "T": "\u05d0",
+    "U": "\u05d5",
+    "V": "\u05d4",
+    "W": "\u05f3",
+    "X": "\u05e1",
+    "Y": "\u05d8",
+    "Z": "\u05d6",
+    "a": "\u05e9",
+    "b": "\u05e0",
+    "c": "\u05d1",
+    "d": "\u05d2",
+    "e": "\u05e7",
+    "f": "\u05db",
+    "g": "\u05e2",
+    "h": "\u05d9",
+    "i": "\u05df",
+    "j": "\u05d7",
+    "k": "\u05dc",
+    "l": "\u05da",
+    "m": "\u05e6",
+    "n": "\u05de",
+    "o": "\u05dd",
+    "p": "\u05e4",
+    "q": "/",
+    "r": "\u05e8",
+    "s": "\u05d3",
+    "t": "\u05d0",
+    "u": "\u05d5",
+    "v": "\u05d4",
+    "w": "\u05f3",
+    "x": "\u05e1",
+    "y": "\u05d8",
+    "z": "\u05d6",
+}
+KEYBOARD_SWAP_MAP = {
+    "׳": "w",
+    "ק": "e",
+    "ר": "r",
+    "א": "t",
+    "ט": "y",
+    "ו": "u",
+    "ן": "i",
+    "ם": "o",
+    "פ": "p",
+    "ש": "a",
+    "ד": "s",
+    "ג": "d",
+    "כ": "f",
+    "ע": "g",
+    "י": "h",
+    "ח": "j",
+    "ל": "k",
+    "ך": "l",
+    "ף": ";",
+    "ז": "z",
+    "ס": "x",
+    "ב": "c",
+    "ה": "v",
+    "נ": "b",
+    "מ": "n",
+    "צ": "m",
+    "ת": ",",
+    "ץ": ".",
+    "'": ",",
+    ",": "\u05ea",
+    ".": "\u05e5",
+    "/": ".",
+    ";": "\u05e3",
+    "A": "\u05e9",
+    "B": "\u05e0",
+    "C": "\u05d1",
+    "D": "\u05d2",
+    "E": "\u05e7",
+    "F": "\u05db",
+    "G": "\u05e2",
+    "H": "\u05d9",
+    "I": "\u05df",
+    "J": "\u05d7",
+    "K": "\u05dc",
+    "L": "\u05da",
+    "M": "\u05e6",
+    "N": "\u05de",
+    "O": "\u05dd",
+    "P": "\u05e4",
+    "Q": "/",
+    "R": "\u05e8",
+    "S": "\u05d3",
+    "T": "\u05d0",
+    "U": "\u05d5",
+    "V": "\u05d4",
+    "W": "\u05f3",
+    "X": "\u05e1",
+    "Y": "\u05d8",
+    "Z": "\u05d6",
+    "a": "\u05e9",
+    "b": "\u05e0",
+    "c": "\u05d1",
+    "d": "\u05d2",
+    "e": "\u05e7",
+    "f": "\u05db",
+    "g": "\u05e2",
+    "h": "\u05d9",
+    "i": "\u05df",
+    "j": "\u05d7",
+    "k": "\u05dc",
+    "l": "\u05da",
+    "m": "\u05e6",
+    "n": "\u05de",
+    "o": "\u05dd",
+    "p": "\u05e4",
+    "q": "/",
+    "r": "\u05e8",
+    "s": "\u05d3",
+    "t": "\u05d0",
+    "u": "\u05d5",
+    "v": "\u05d4",
+    "w": "\u05f3",
+    "x": "\u05e1",
+    "y": "\u05d8",
+    "z": "\u05d6",
+}
 
 
 @memoized
@@ -37,40 +213,39 @@ def heb_to_int(unicode_char):
     """Converts a single Hebrew unicode character into its Hebrew numerical equivalent."""
 
     hebrew_numerals = {
-        "\u05D0": 1,
-        "\u05D1": 2,
-        "\u05D2": 3,
-        "\u05D3": 4,
-        "\u05D4": 5,
-        "\u05D5": 6,
-        "\u05D6": 7,
-        "\u05D7": 8,
-        "\u05D8": 9,
-        "\u05D9": 10,
-        "\u05DB": 20,
-        "\u05DC": 30,
-        "\u05DE": 40,
-        "\u05E0": 50,
-        "\u05E1": 60,
-        "\u05E2": 70,
-        "\u05E4": 80,
-        "\u05E6": 90,
-        "\u05E7": 100,
-        "\u05E8": 200,
-        "\u05E9": 300,
-        "\u05EA": 400,  	# u"\u05F3": "'", # Hebrew geresh  # u"\u05F4": '"', # Hebrew gershayim  # u"'":	   "'",
-        "\u05DA": 20,		# khaf sofit
-        "\u05DD": 40,		# mem sofit
-        "\u05DF": 50, 		# nun sofit
-        "\u05E3": 80, 		# peh sofit
-        "\u05E5": 90, 		# tzadi sofit
+        "\u05d0": 1,
+        "\u05d1": 2,
+        "\u05d2": 3,
+        "\u05d3": 4,
+        "\u05d4": 5,
+        "\u05d5": 6,
+        "\u05d6": 7,
+        "\u05d7": 8,
+        "\u05d8": 9,
+        "\u05d9": 10,
+        "\u05db": 20,
+        "\u05dc": 30,
+        "\u05de": 40,
+        "\u05e0": 50,
+        "\u05e1": 60,
+        "\u05e2": 70,
+        "\u05e4": 80,
+        "\u05e6": 90,
+        "\u05e7": 100,
+        "\u05e8": 200,
+        "\u05e9": 300,
+        "\u05ea": 400,  # u"\u05F3": "'", # Hebrew geresh  # u"\u05F4": '"', # Hebrew gershayim  # u"'":	   "'",
+        "\u05da": 20,  # khaf sofit
+        "\u05dd": 40,  # mem sofit
+        "\u05df": 50,  # nun sofit
+        "\u05e3": 80,  # peh sofit
+        "\u05e5": 90,  # tzadi sofit
     }
 
     if unicode_char not in list(hebrew_numerals.keys()):
-        raise KeyError("Invalid Hebrew numeral character {}".format(unicode_char))
+        raise KeyError(f"Invalid Hebrew numeral character {unicode_char}")
 
-    else:
-        return hebrew_numerals[unicode_char]
+    return hebrew_numerals[unicode_char]
 
 
 def split_thousands(n, littleendian=True):
@@ -87,27 +262,31 @@ def split_thousands(n, littleendian=True):
     if n[-1] == GERESH or n[-1] == "'" or n[-1] == "\u2018" or n[-1] == "\u2019":
         n = n[:-1]
 
-    #assume that two single quotes in a row should be a double quote. '' -> "
-    n = n.replace(GERESH, "'").replace("''", "\"")
+    # assume that two single quotes in a row should be a double quote. '' -> "
+    n = n.replace(GERESH, "'").replace("''", '"')
 
     ret = n.split("'")
     if littleendian:
         return reversed(ret)
-    else:
-        return ret
+    return ret
 
 
 def heb_string_to_int(n):
-    '''
+    """
     Takes a single thousands block of Hebrew characters, and returns the integer value of
     that set of characters, ignoring thousands order of magnitude.
 
     >>> heb_string_to_int(u'\\u05ea\\u05e9\\u05e1\\u05d3') # = u'תשסד'
     764
-    '''
+    """
 
-    n = re.sub('[\u05F4"\u201c\u201d\u200e]', '', n)  # remove gershayim, double quote, fancy double quote, LTR Control Character
+    n = re.sub(
+        '[\u05f4"\u201c\u201d\u200e]',
+        "",
+        n,
+    )  # remove gershayim, double quote, fancy double quote, LTR Control Character
     return sum(map(heb_to_int, n))
+
 
 @memoized
 def decode_hebrew_numeral(numeral: str):
@@ -125,12 +304,14 @@ def decode_hebrew_numeral(numeral: str):
 
 ########## ENCODING #############
 
+
 def chunks(l, n):
     """
     Yield successive n-sized chunks from l.
     """
     for i in range(0, len(l), n):
-        yield l[i:i + n]
+        yield l[i : i + n]
+
 
 @memoized
 def int_to_heb(integer):
@@ -148,30 +329,30 @@ def int_to_heb(integer):
 
     hebrew_numerals = {
         0: "",
-        1: "\u05D0",
-        2: "\u05D1",
-        3: "\u05D2",
-        4: "\u05D3",
-        5: "\u05D4",
-        6: "\u05D5",
-        7: "\u05D6",
-        8: "\u05D7",
-        9: "\u05D8",
-        10: "\u05D9",
-        15: "\u05D8\u05D5",  # Will not be hit when used with break_int_magnitudes
-        16: "\u05D8\u05D6",  # Will not be hit when used with break_int_magnitudes
-        20: "\u05DB",
-        30: "\u05DC",
-        40: "\u05DE",
-        50: "\u05E0",
-        60: "\u05E1",
-        70: "\u05E2",
-        80: "\u05E4",
-        90: "\u05E6",
-        100: "\u05E7",
-        200: "\u05E8",
-        300: "\u05E9",
-        400: "\u05EA",
+        1: "\u05d0",
+        2: "\u05d1",
+        3: "\u05d2",
+        4: "\u05d3",
+        5: "\u05d4",
+        6: "\u05d5",
+        7: "\u05d6",
+        8: "\u05d7",
+        9: "\u05d8",
+        10: "\u05d9",
+        15: "\u05d8\u05d5",  # Will not be hit when used with break_int_magnitudes
+        16: "\u05d8\u05d6",  # Will not be hit when used with break_int_magnitudes
+        20: "\u05db",
+        30: "\u05dc",
+        40: "\u05de",
+        50: "\u05e0",
+        60: "\u05e1",
+        70: "\u05e2",
+        80: "\u05e4",
+        90: "\u05e6",
+        100: "\u05e7",
+        200: "\u05e8",
+        300: "\u05e9",
+        400: "\u05ea",
     }
 
     # Fill in hebrew_numeral mappings up to 1100
@@ -179,10 +360,9 @@ def int_to_heb(integer):
         hebrew_numerals[num] = hebrew_numerals[400] * (num // 400) + hebrew_numerals[num % 400]
 
     if integer > 1100:
-        raise KeyError("Asked to convert individual integer {} above 1100; too large.".format(integer))
+        raise KeyError(f"Asked to convert individual integer {integer} above 1100; too large.")
 
-    else:
-        return hebrew_numerals[integer]
+    return hebrew_numerals[integer]
 
 
 def break_int_magnitudes(n, start=None):
@@ -206,7 +386,7 @@ def break_int_magnitudes(n, start=None):
     """
 
     if type(n) is not int:
-        raise TypeError("Argument 'n' must be int, {} provided.".format(type(n)))
+        raise TypeError(f"Argument 'n' must be int, {type(n)} provided.")
 
     # if n == 0:
     # 	return [0]
@@ -214,14 +394,13 @@ def break_int_magnitudes(n, start=None):
     # Set a default for 'start' if none specified
     if start is not None:
         if not (start % 10 == 0 or start == 1):
-            raise TypeError("Argument 'start' must be 1 or divisible by 10, {} provided.".format(start))
+            raise TypeError(f"Argument 'start' must be 1 or divisible by 10, {start} provided.")
     else:
         start = 10 ** int(math.log10(n))
 
     if start == 1:
         return [n]
-    else:
-        return [n // start * start] + break_int_magnitudes(n - n // start * start, start=start // 10)
+    return [n // start * start] + break_int_magnitudes(n - n // start * start, start=start // 10)
 
 
 @memoized
@@ -248,11 +427,11 @@ def sanitize(input_string, punctuation=True):
     # This takes care of all instances of 15/16, even in the thousands
 
     replacement_pairs = (
-        ('\u05d9\u05d4', '\u05d8\u05d5'),  #15
-        ('\u05d9\u05d5', '\u05d8\u05d6'),  #16
-        ('\u05e8\u05e2\u05d4', '\u05e2\u05e8\u05d4'),  #275
-        ('\u05e8\u05e2\u05d1', '\u05e2\u05e8\u05d1'),  #272
-        ('\u05e8\u05e2', '\u05e2\u05e8'),  #270
+        ("\u05d9\u05d4", "\u05d8\u05d5"),  # 15
+        ("\u05d9\u05d5", "\u05d8\u05d6"),  # 16
+        ("\u05e8\u05e2\u05d4", "\u05e2\u05e8\u05d4"),  # 275
+        ("\u05e8\u05e2\u05d1", "\u05e2\u05e8\u05d1"),  # 272
+        ("\u05e8\u05e2", "\u05e2\u05e8"),  # 270
     )
 
     for wrong, right in replacement_pairs:
@@ -271,55 +450,57 @@ def sanitize(input_string, punctuation=True):
 
 
 def decompose_presentation_forms(orig_char):
-    decomp_map = {'יִ': '\u05d9\u05b4',
-        'ﬞ ' : '\u05bf',
-        'ײַ': '\u05f2\u05b7',
-        'ﬠ': '\u05e2',
-        'ﬡ': '\u05d0',
-        'ﬢ': '\u05d3',
-        'ﬣ': '\u05d4',
-        'ﬤ': '\u05db',
-        'ﬥ': '\u05dc',
-        'ﬦ': '\u05dd',
-        'ﬧ': '\u05e8',
-        'ﬨ': '\u05ea',
-        'שׁ': '\u05e9\u05c1',
-        'שׂ': '\u05e9\u05c2',
-        'שּׁ': '\u05e9\u05bc\u05c1',
-        'שּׂ': '\u05e9\u05bc\u05c2',
-        'אַ': '\u05d0\u05b7',
-        'אָ': '\u05d0\u05b8',
-        'אּ': '\u05d0\u05bc',
-        'בּ': '\u05d1\u05bc',
-        'גּ': '\u05d2\u05bc',
-        'דּ': '\u05d3\u05bc',
-        'הּ': '\u05d4\u05bc',
-        'וּ': '\u05d5\u05bc',
-        'זּ': '\u05d6\u05bc',
-        'טּ': '\u05d8\u05bc',
-        'יּ': '\u05d9\u05bc',
-        'ךּ': '\u05da\u05bc',
-        'כּ': '\u05db\u05bc',
-        'לּ': '\u05dc\u05bc',
-        'מּ': '\u05de\u05bc',
-        'נּ': '\u05e0\u05bc',
-        'סּ': '\u05e1\u05bc',
-        'ףּ': '\u05e3\u05bc',
-        'פּ': '\u05e4\u05bc',
-        'צּ': '\u05e6\u05bc',
-        'קּ': '\u05e7\u05bc',
-        'רּ': '\u05e8\u05bc',
-        'שּ': '\u05e9\u05bc',
-        'תּ': '\u05ea\u05bc',
-        'וֹ': '\u05d5\u05b9',
-        'בֿ': '\u05d1\u05bf',
-        'כֿ': '\u05db\u05bf',
-        'פֿ': '\u05e4\u05bf',
-        'ﭏ': '\u05d0\u05dc'
+    decomp_map = {
+        "יִ": "\u05d9\u05b4",
+        "ﬞ ": "\u05bf",
+        "ײַ": "\u05f2\u05b7",
+        "ﬠ": "\u05e2",
+        "ﬡ": "\u05d0",
+        "ﬢ": "\u05d3",
+        "ﬣ": "\u05d4",
+        "ﬤ": "\u05db",
+        "ﬥ": "\u05dc",
+        "ﬦ": "\u05dd",
+        "ﬧ": "\u05e8",
+        "ﬨ": "\u05ea",
+        "שׁ": "\u05e9\u05c1",
+        "שׂ": "\u05e9\u05c2",
+        "שּׁ": "\u05e9\u05bc\u05c1",
+        "שּׂ": "\u05e9\u05bc\u05c2",
+        "אַ": "\u05d0\u05b7",
+        "אָ": "\u05d0\u05b8",
+        "אּ": "\u05d0\u05bc",
+        "בּ": "\u05d1\u05bc",
+        "גּ": "\u05d2\u05bc",
+        "דּ": "\u05d3\u05bc",
+        "הּ": "\u05d4\u05bc",
+        "וּ": "\u05d5\u05bc",
+        "זּ": "\u05d6\u05bc",
+        "טּ": "\u05d8\u05bc",
+        "יּ": "\u05d9\u05bc",
+        "ךּ": "\u05da\u05bc",
+        "כּ": "\u05db\u05bc",
+        "לּ": "\u05dc\u05bc",
+        "מּ": "\u05de\u05bc",
+        "נּ": "\u05e0\u05bc",
+        "סּ": "\u05e1\u05bc",
+        "ףּ": "\u05e3\u05bc",
+        "פּ": "\u05e4\u05bc",
+        "צּ": "\u05e6\u05bc",
+        "קּ": "\u05e7\u05bc",
+        "רּ": "\u05e8\u05bc",
+        "שּ": "\u05e9\u05bc",
+        "תּ": "\u05ea\u05bc",
+        "וֹ": "\u05d5\u05b9",
+        "בֿ": "\u05d1\u05bf",
+        "כֿ": "\u05db\u05bf",
+        "פֿ": "\u05e4\u05bf",
+        "ﭏ": "\u05d0\u05dc",
     }
     # if isinstance(orig_char, str): #needs to be unicode
-    #	orig_char = str(orig_char, 'utf-8')
-    return decomp_map.get(orig_char, '')
+    # 	orig_char = str(orig_char, 'utf-8')
+    return decomp_map.get(orig_char, "")
+
 
 presentation_re = re.compile(r"[\uFB1D-\uFB4F]")
 
@@ -331,16 +512,17 @@ def decompose_presentation_forms_in_str(orig_str):
 def normalize_final_letters(orig_char):
 
     decomp_map = {
-        "\u05DA": "\u05DB",		# khaf sofit
-        "\u05DD": "\u05DE",		# mem sofit
-        "\u05DF": "\u05E0", 		# nun sofit
-        "\u05E3": "\u05E4", 		# peh sofit
-        "\u05E5": "\u05E6", 		# tzadi sofit
+        "\u05da": "\u05db",  # khaf sofit
+        "\u05dd": "\u05de",  # mem sofit
+        "\u05df": "\u05e0",  # nun sofit
+        "\u05e3": "\u05e4",  # peh sofit
+        "\u05e5": "\u05e6",  # tzadi sofit
     }
 
     # if isinstance(orig_char, str): #needs to be unicode
-    #	orig_char = str(orig_char, 'utf-8')
-    return decomp_map.get(orig_char, '')
+    # 	orig_char = str(orig_char, 'utf-8')
+    return decomp_map.get(orig_char, "")
+
 
 final_letter_re = re.compile("[" + FINAL_LETTERS + "]")
 
@@ -351,12 +533,13 @@ def normalize_final_letters_in_str(orig_str):
 
 def swap_keyboards_for_letter(orig_char):
     # if isinstance(orig_char, str):  # needs to be unicode
-    #	orig_char = str(orig_char, 'utf-8')
+    # 	orig_char = str(orig_char, 'utf-8')
     return KEYBOARD_SWAP_MAP.get(orig_char, orig_char)
 
 
 def swap_keyboards_for_string(orig_str):
     return re.sub(r".", lambda match: swap_keyboards_for_letter(match.group()), orig_str)
+
 
 @memoized
 def encode_small_hebrew_numeral(n):
@@ -366,8 +549,8 @@ def encode_small_hebrew_numeral(n):
 
     if n >= 1200:
         raise ValueError("Tried to encode small numeral >= 1200.")
-    else:
-        return ''.join(map(int_to_heb, break_int_magnitudes(n, 100)))
+    return "".join(map(int_to_heb, break_int_magnitudes(n, 100)))
+
 
 @memoized
 def encode_hebrew_numeral(n, punctuation=True):
@@ -388,7 +571,6 @@ def encode_hebrew_numeral(n, punctuation=True):
     if n < 1200:
         ret = encode_small_hebrew_numeral(n)
     else:
-
         # Break into magnitudes, then break into thousands buckets, big-endian
         ret = list(chunks(list(reversed(break_int_magnitudes(n))), 3))
 
@@ -417,7 +599,7 @@ def strip_nikkud(rawString):
     return regex.sub(r"[\u0591-\u05C7]", "", rawString)
 
 
-#todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
+# TODO: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
 
 any_hebrew = regex.compile(r"\p{Hebrew}")
 any_english = regex.compile(r"[a-zA-Z]")
@@ -441,7 +623,7 @@ def is_mostly_hebrew(s: str, len_to_check: int = 300):
     s = regex.sub(r"(?:[0-9.,'\"?!;:\-=@\#$%^&*()/<>]|\s)", "", s)  # remove punctuation/spaces/numbers
     s = s[:len_to_check]
     he_count = len(any_hebrew.findall(s))
-    return he_count > len(s)/2
+    return he_count > len(s) / 2
 
 
 def strip_cantillation(text, strip_vowels=False):
@@ -449,7 +631,7 @@ def strip_cantillation(text, strip_vowels=False):
         strip_regex = re.compile(r"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
     else:
         strip_regex = re.compile(r"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
-    return strip_regex.sub('', text)
+    return strip_regex.sub("", text)
 
 
 def has_cantillation(text, detect_vowels=False):
@@ -464,10 +646,8 @@ def gematria(string):
     """Returns the gematria of `str`, ignore any characters in string that have now gematria (like spaces)"""
     total = 0
     for letter in string:
-        try:
+        with contextlib.suppress(BaseException):
             total += heb_to_int(letter)
-        except:
-            pass
     return total
 
 
@@ -476,27 +656,27 @@ def hebrew_plural(s):
     Hebrew friendly plurals
     """
     known = {
-        "Daf":      "Dappim",
-        "Mitzvah":  "Mitzvot",
+        "Daf": "Dappim",
+        "Mitzvah": "Mitzvot",
         "Negative Mitzvah": "Negative Mitzvot",
         "Positive Mitzvah": "Positive Mitzvot",
-        "Mitsva":   "Mitzvot",
+        "Mitsva": "Mitzvot",
         "Mesechet": "Mesechtot",
-        "Perek":    "Perokim",
-        "Siman":    "Simanim",
-        "Seif":     "Seifim",
-        "Se'if":    "Se'ifim",
+        "Perek": "Perokim",
+        "Siman": "Simanim",
+        "Seif": "Seifim",
+        "Se'if": "Se'ifim",
         "Seif Katan": "Seifim Katanim",
-        "Mishnah":  "Mishnayot",
-        "Mishna":   "Mishnayot",
-        "Chelek":   "Chelekim",
-        "Parasha":  "Parshiot",
-        "Parsha":   "Parshiot",
-        "Pasuk":    "Psukim",
-        "Midrash":  "Midrashim",
-        "Teshuva":  "Teshuvot",
-        "Aliyah":   "Aliyot",
-        "Tikun":    "Tikunim",
+        "Mishnah": "Mishnayot",
+        "Mishna": "Mishnayot",
+        "Chelek": "Chelekim",
+        "Parasha": "Parshiot",
+        "Parsha": "Parshiot",
+        "Pasuk": "Psukim",
+        "Midrash": "Midrashim",
+        "Teshuva": "Teshuvot",
+        "Aliyah": "Aliyot",
+        "Tikun": "Tikunim",
     }
 
     return known[s] if s in known else str(s) + "s"
@@ -512,65 +692,68 @@ def hebrew_term(s):
     term = library.get_simple_term_mapping().get(s)
     if term:
         return term["he"]
-    else:
-        try:
-            # If s is a text title, look for a stored Hebrew title
-            i = library.get_index(s)
-            return i.get_title("he")
-        except BookNameError:
-            return ''
+    try:
+        # If s is a text title, look for a stored Hebrew title
+        i = library.get_index(s)
+        return i.get_title("he")
+    except BookNameError:
+        return ""
 
 
 def hebrew_parasha_name(value):
     """
     Returns a Hebrew ref for the english ref passed in.
     """
-    from sefaria.model import Term, library
+    from sefaria.model import library
+
     if not value:
         return ""
     if "-" in value:
         if value == "Lech-Lecha":
             return hebrew_parasha_name(value.replace("-", " "))
-        else:
-            names = value.split("-")
-            return ("-").join(map(hebrew_parasha_name, names))
-    else:
-        try:
-            parasha = library.get_simple_term_mapping().get(value)["he"]
-        except Exception as e:
-            logger.error(str(e))
-            parasha = value
-        return parasha
+        names = value.split("-")
+        return ("-").join(map(hebrew_parasha_name, names))
+    try:
+        parasha = library.get_simple_term_mapping().get(value)["he"]
+    except Exception as e:
+        logger.error(str(e))
+        parasha = value
+    return parasha
 
 
 ########
 # Hebrew Abbrev Matching
 ########
 
-def get_he_key(key):
-    return 'he' + key[0].upper() + key[1:]  # birthPlace => heBirthPlace
 
-def get_abbr(abbr: str, unabbr: List[str], match=lambda x, y: x.startswith(y), lang='he'):
-    abbr = re.sub('[^א-ת]', '', abbr) if lang == 'he' else re.sub('[^a-z]', '', abbr)
+def get_he_key(key):
+    return "he" + key[0].upper() + key[1:]  # birthPlace => heBirthPlace
+
+
+def get_abbr(abbr: str, unabbr: list[str], match=lambda x, y: x.startswith(y), lang="he"):
+    abbr = re.sub("[^א-ת]", "", abbr) if lang == "he" else re.sub("[^a-z]", "", abbr)
     indexes = [[index for index, letter in enumerate(abbr) if word[0] == letter] for w, word in enumerate(unabbr)]
     first_empty_ind = None
     for i in range(len(indexes)):
         if len(indexes[i]) == 0:
-            if i == 0: return None  # nothing matched
+            if i == 0:
+                return None  # nothing matched
             first_empty_ind = i
             break
     indexes = indexes[:first_empty_ind]
     choices = itertools.product(*indexes)
     for choice in choices:
-        if choice[0] != 0: continue
+        if choice[0] != 0:
+            continue
         longest_desc_choice = []
         for i, j in zip(choice, choice[1:] + (None,)):
             longest_desc_choice += [i]
-            if j is None or i >= j: break
+            if j is None or i >= j:
+                break
         choice = longest_desc_choice
-        temp_unabbr = unabbr[:len(choice)]
+        temp_unabbr = unabbr[: len(choice)]
         choice += [None]
-        if all(match(temp_unabbr[n], abbr[choice[n]:choice[n + 1]]) for n in range(len(temp_unabbr))):
+        if all(match(temp_unabbr[n], abbr[choice[n] : choice[n + 1]]) for n in range(len(temp_unabbr))):
             return temp_unabbr
     return None
 
@@ -578,7 +761,7 @@ def get_abbr(abbr: str, unabbr: List[str], match=lambda x, y: x.startswith(y), l
 @dataclasses.dataclass
 class Abbrev:
     abbr: str
-    unabbr: List[str]
+    unabbr: list[str]
     iabbr: int
     unabbr_slice: slice
 
@@ -586,45 +769,44 @@ class Abbrev:
 def is_abbr(word):
     if re.search(r'\w"\w', word):
         return True
-    if re.search(r"\w'$", word):
-        return True
-    return False
+    return bool(re.search(r"\w'$", word))
 
 
-def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
+def get_all_abbrs(abbr_words, unabbr_words) -> list[Abbrev]:
     """
     Get all abbreviations in `abbr_words`
     """
     abbrevs = []
     for iabbr, abbr in enumerate(abbr_words):
-        if not is_abbr(abbr): continue
+        if not is_abbr(abbr):
+            continue
         for iother in range(len(unabbr_words)):
             unabbr = get_abbr(abbr, unabbr_words[iother:])
             if unabbr:
-                unabbr_slice = slice(iother, iother+len(unabbr))
+                unabbr_slice = slice(iother, iother + len(unabbr))
                 abbrevs += [Abbrev(abbr, unabbr, iabbr, unabbr_slice)]
     return abbrevs
 
 
 _unidecode = NormalizerFactory.get("unidecode")
 
-_INWORD_HYPHENS = '[-—–־]'  # ASCII hyphen, em dash, en dash, Hebrew maqaf
+_INWORD_HYPHENS = "[-—–־]"  # ASCII hyphen, em dash, en dash, Hebrew maqaf
 
 
 def _strip_word_edges(w):
     """
     Strip all non-word chars at the start and end of `w` excluding single quote which can indicate an abbreviation at the end of a word.
-    :param w: 
-    :return: 
+    :param w:
+    :return:
     """
-    return re.sub(r"^\W+|[^\w']+$", '', w)
+    return re.sub(r"^\W+|[^\w']+$", "", w)
 
 
 def _normalize_hebrew_punctuation(s):
     s = _unidecode.normalize(s)
-    s = re.sub(r'(?<=\w)' + _INWORD_HYPHENS + r'(?=\w)', ' ', s)
+    s = re.sub(r"(?<=\w)" + _INWORD_HYPHENS + r"(?=\w)", " ", s)
     words = [_strip_word_edges(w) for w in s.split()]
-    return ' '.join(w for w in words if w)
+    return " ".join(w for w in words if w)
 
 
 def hebrew_starts_with(he: str, other_he: str) -> False:
@@ -666,12 +848,25 @@ def hebrew_starts_with(he: str, other_he: str) -> False:
 ########
 
 PREFIXES = {
-    'כ', 'ש', 'ב', 'ד', 'ה', 'ו', 'ל', 'מ', 'ע',   # single letter
-    'דב', 'וב', 'וה', 'כד', 'מה', 'שב',  # double letter
+    "כ",
+    "ש",
+    "ב",
+    "ד",
+    "ה",
+    "ו",
+    "ל",
+    "מ",
+    "ע",  # single letter
+    "דב",
+    "וב",
+    "וה",
+    "כד",
+    "מה",
+    "שב",  # double letter
 }  # careful of Ayin prefix...
 
 
-def get_prefixless_inds(st: str, prefix_exclusion_set: set = None) -> List[int]:
+def get_prefixless_inds(st: str, prefix_exclusion_set: set = None) -> list[int]:
     """
     get possible indices of start of string `st` with prefixes stripped
     :param st: string to check for prefixes
@@ -679,14 +874,23 @@ def get_prefixless_inds(st: str, prefix_exclusion_set: set = None) -> List[int]:
     """
     starti_list = []
     for prefix in PREFIXES:
-        if not st.startswith(prefix): continue
-        if prefix_exclusion_set and prefix in prefix_exclusion_set: continue
-        if len(prefix) == len(st): continue  # would leave empty string
+        if not st.startswith(prefix):
+            continue
+        if prefix_exclusion_set and prefix in prefix_exclusion_set:
+            continue
+        if len(prefix) == len(st):
+            continue  # would leave empty string
         starti_list += [len(prefix)]
     return starti_list
 
 
-def get_matches_with_prefixes(text, lang: str = None, matches_map: dict = None, get_matches_func: Callable = None, prefix_exclusion_set: set = None) -> list:
+def get_matches_with_prefixes(
+    text,
+    lang: str = None,
+    matches_map: dict = None,
+    get_matches_func: Callable = None,
+    prefix_exclusion_set: set = None,
+) -> list:
     """
     Get matches for text including possible prefix-stripped versions
     :param text: Text to match. Possible prefixes will be stripped
@@ -697,7 +901,7 @@ def get_matches_with_prefixes(text, lang: str = None, matches_map: dict = None, 
     :return: list of all possible matches when considering all possible prefixes to strip
     """
     starti_inds = [0]
-    if lang is None or lang == 'he':
+    if lang is None or lang == "he":
         starti_inds += get_prefixless_inds(text, prefix_exclusion_set)
     matches = []
     for starti in starti_inds:
@@ -706,5 +910,3 @@ def get_matches_with_prefixes(text, lang: str = None, matches_map: dict = None, 
         else:
             matches += get_matches_func(text[starti:])
     return matches
-
-  

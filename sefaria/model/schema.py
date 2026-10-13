@@ -1,23 +1,29 @@
-# -*- coding: utf-8 -*-
 import copy
-import dataclasses
-from typing import Optional, List
-
-import structlog
 from functools import reduce
+
 import re2 as re
+import structlog
+
 from sefaria.system.decorators import conditional_graceful_exception
 
 logger = structlog.get_logger(__name__)
 
 import regex
-from . import abstract as abst
-from sefaria.system.database import db
+
 from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.model.linker.has_match_template import MatchTemplateMixin
-from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
-from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
-from sefaria.utils.talmud import daf_to_section
+from sefaria.system.database import db
+from sefaria.system.exceptions import DictionaryEntryNotFoundError, IndexSchemaError, InputError, SheetNotFoundError
+from sefaria.utils.hebrew import (
+    decode_hebrew_numeral,
+    encode_hebrew_daf,
+    encode_hebrew_numeral,
+    encode_small_hebrew_numeral,
+    hebrew_term,
+    sanitize,
+)
+
+from . import abstract as abst
 
 """
                 -----------------------------------------
@@ -26,16 +32,17 @@ from sefaria.utils.talmud import daf_to_section
 """
 
 
-class TitleGroup(object):
+class TitleGroup:
     """
     A collection of titles.  Used for titles of SchemaNodes and for Terms
     """
+
     langs = ["en", "he"]
 
     # Attributes required in each title
     required_attrs = [
         "lang",
-        "text"
+        "text",
     ]
 
     # Attributes optional in each title
@@ -43,8 +50,8 @@ class TitleGroup(object):
         "primary",
         "presentation",
         "transliteration",  # bool flag to indicate if title is transliteration
-        "disambiguation",   # str to help disambiguate this title from other similar titles (often on other objects)
-        "fromTerm"          # bool flag to indicate if title originated from term (used in topics)
+        "disambiguation",  # str to help disambiguate this title from other similar titles (often on other objects)
+        "fromTerm",  # bool flag to indicate if title originated from term (used in topics)
     ]
 
     def __init__(self, serial=None):
@@ -56,13 +63,17 @@ class TitleGroup(object):
     def validate(self):
         for lang in self.langs:
             if not self.primary_title(lang):
-                raise InputError("Title Group must have a {} primary title".format(lang))
+                raise InputError(f"Title Group must have a {lang} primary title")
         if len(self.all_titles()) > len(list(set(self.all_titles()))):
             raise InputError("There are duplicate titles in this object's title group")
         for title in self.titles:
-            if not set(title.keys()) == set(self.required_attrs) and not set(title.keys()) <= set(self.required_attrs+self.optional_attrs):
-                raise InputError("Title Group titles must only contain the following keys: {}".format(self.required_attrs+self.optional_attrs))
-        if '-' in self.primary_title("en"):
+            if not set(title.keys()) == set(self.required_attrs) and not set(title.keys()) <= set(
+                self.required_attrs + self.optional_attrs,
+            ):
+                raise InputError(
+                    f"Title Group titles must only contain the following keys: {self.required_attrs + self.optional_attrs}",
+                )
+        if "-" in self.primary_title("en"):
             raise InputError("Primary English title may not contain hyphens.")
         if not all(ord(c) < 128 for c in self.primary_title("en")):
             raise InputError("Primary English title may not contain non-ascii characters")
@@ -100,7 +111,7 @@ class TitleGroup(object):
         :return: value of attribute `attr`
         """
         for t in self.titles:
-            if t.get('lang') == lang and t.get('text') == title:
+            if t.get("lang") == lang and t.get("text") == title:
                 return t.get(attr, None)
 
     def all_titles(self, lang=None):
@@ -118,7 +129,7 @@ class TitleGroup(object):
         return [t for t in self.all_titles(lang) if t != self.primary_title(lang)]
 
     def remove_title(self, text, lang):
-        is_primary = len([t for t in self.titles if (t["lang"] == lang and t["text"] == text and t.get('primary'))])
+        is_primary = len([t for t in self.titles if (t["lang"] == lang and t["text"] == text and t.get("primary"))])
         if is_primary:
             self._primary_title[lang] = None
         self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
@@ -136,14 +147,14 @@ class TitleGroup(object):
             "both" - this node is addressable both in a combined and a alone form.
         :return: the object
         """
-        if any([t for t in self.titles if t["text"] == text and t["lang"] == lang]):  #already there
+        if any(t for t in self.titles if t["text"] == text and t["lang"] == lang):  # already there
             if not replace_primary:
-                return
-            else:  #update this title as primary: remove it, then re-add below
-                self.remove_title(text, lang)
+                return None
+            # update this title as primary: remove it, then re-add below
+            self.remove_title(text, lang)
         d = {
-                "text": text,
-                "lang": lang
+            "text": text,
+            "lang": lang,
         }
 
         if primary:
@@ -152,10 +163,10 @@ class TitleGroup(object):
         if presentation == "alone" or presentation == "both":
             d["presentation"] = presentation
 
-        has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
+        has_primary = any(x for x in self.titles if x["lang"] == lang and x.get("primary"))
         if has_primary and primary:
             if not replace_primary:
-                raise IndexSchemaError("Node {} already has a primary title.".format(self.primary_title()))
+                raise IndexSchemaError(f"Node {self.primary_title()} already has a primary title.")
 
             old_primary = self.primary_title(lang)
             self.titles = [t for t in self.titles if t["lang"] != lang or not t.get("primary")]
@@ -166,11 +177,10 @@ class TitleGroup(object):
         return self
 
 
-class AbstractTitledObject(object):
-
+class AbstractTitledObject:
     def add_primary_titles(self, en_title, he_title):
-        self.add_title(en_title, 'en', primary=True)
-        self.add_title(he_title, 'he', primary=True)
+        self.add_title(en_title, "en", primary=True)
+        self.add_title(he_title, "he", primary=True)
 
     def add_title(self, text, lang, primary=False, replace_primary=False):
         """
@@ -191,7 +201,7 @@ class AbstractTitledObject(object):
     def get_titles(self, lang=None):
         return self.title_group.all_titles(lang)
 
-    def get_primary_title(self, lang='en'):
+    def get_primary_title(self, lang="en"):
         return self.title_group.primary_title(lang)
 
     def has_title(self, title, lang="en"):
@@ -220,7 +230,7 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
             try:
                 self.title_group = term.title_group
             except AttributeError:
-                raise IndexError("Failed to load term named {}.".format(self.sharedTitle))
+                raise IndexError(f"Failed to load term named {self.sharedTitle}.")
 
     def add_shared_term(self, term):
         self.sharedTitle = term
@@ -239,7 +249,8 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     Examples:  Noah, HaChovel
     Terms that use the same TermScheme can be ordered.
     """
-    collection = 'term'
+
+    collection = "term"
     track_pkeys = True
     pkeys = ["name"]
     title_group = None
@@ -247,7 +258,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
 
     required_attrs = [
         "name",
-        "titles"
+        "titles",
     ]
     optional_attrs = [
         "scheme",
@@ -255,11 +266,11 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "ref",
         "good_to_promote",
         "category",
-        "description"
+        "description",
     ]
 
     def load_by_title(self, title):
-        query = {'titles.text': title}
+        query = {"titles.text": title}
         return self.load(query=query)
 
     def _set_derived_attributes(self):
@@ -272,20 +283,20 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         self.titles = self.title_group.titles
 
     def _validate(self):
-        super(Term, self)._validate()
+        super()._validate()
         # do not allow duplicates:
         for title in self.get_titles():
             other_term = Term().load_by_title(title)
             if other_term and not self.same_record(other_term):
-                raise InputError("A Term with the title {} in it already exists".format(title))
+                raise InputError(f"A Term with the title {title} in it already exists")
         self.title_group.validate()
         if self.name != self.get_primary_title():
-            raise InputError("Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
+            raise InputError(f"Term name {self.name} does not match primary title {self.get_primary_title()}")
 
     @staticmethod
     def normalize(term, lang="en"):
-        """ Returns the primary title for of 'term' if it exists in the terms collection
-        otherwise return 'term' unchanged """
+        """Returns the primary title for of 'term' if it exists in the terms collection
+        otherwise return 'term' unchanged"""
         t = Term().load_by_title(term)
         return t.get_primary_title(lang=lang) if t else term
 
@@ -299,16 +310,15 @@ class TermScheme(abst.AbstractMongoRecord):
     A TermScheme is a category of terms.
     Example: Parasha, Perek
     """
-    collection = 'term_scheme'
+
+    collection = "term_scheme"
     track_pkeys = True
     pkeys = ["name"]
 
     required_attrs = [
-        "name"
+        "name",
     ]
-    optional_attrs = [
-
-    ]
+    optional_attrs = []
 
     def get_terms(self):
         return TermSet({"scheme": self.name})
@@ -323,13 +333,14 @@ class NonUniqueTerm(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     The successor of the old `Term` class
     Doesn't require titles to be globally unique
     """
+
     cacheable = True
     collection = "non_unique_terms"
     required_attrs = [
         "slug",
-        "titles"
+        "titles",
     ]
-    slug_fields = ['slug']
+    slug_fields = ["slug"]
     title_group = None
 
     def _normalize(self):
@@ -388,24 +399,26 @@ def deserialize_tree(serial=None, **kwargs):
         except KeyError:
             raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
 
-    if serial.get(kwargs.get("children_attr", "nodes")) or (kwargs.get("struct_title_attr") and serial.get(kwargs.get("struct_title_attr"))):
+    if serial.get(kwargs.get("children_attr", "nodes")) or (
+        kwargs.get("struct_title_attr") and serial.get(kwargs.get("struct_title_attr"))
+    ):
         # Structure class - use explicitly defined 'nodeType', code overide 'struct_class', or default SchemaNode
         struct_class = klass or kwargs.get("struct_class", SchemaNode)
         return struct_class(serial, **kwargs)
-    elif klass:
+    if klass:
         return klass(serial, **kwargs)
-    elif kwargs.get("leaf_class"):
+    if kwargs.get("leaf_class"):
         return kwargs.get("leaf_class")(serial, **kwargs)
-    else:
-        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType' and 'leaf_class' not provided: {}".format(serial))
+    raise IndexSchemaError(f"Schema node has neither 'nodes' nor 'nodeType' and 'leaf_class' not provided: {serial}")
 
 
-class TreeNode(object):
+class TreeNode:
     """
     A single node in a tree.
     These trees are hierarchies - each node can have 1 or 0 parents.
     In this class, node relationships, node navigation, and general serialization are handled.
     """
+
     required_param_keys = []
     optional_param_keys = []
     default_children_attr = "nodes"
@@ -429,7 +442,7 @@ class TreeNode(object):
     def validate(self):
         for k in self.required_param_keys:
             if getattr(self, k, None) is None:
-                raise IndexSchemaError("Missing Parameter '{}' in {}".format(k, self.__class__.__name__))
+                raise IndexSchemaError(f"Missing Parameter '{k}' in {self.__class__.__name__}")
         for c in self.children:
             c.validate()
 
@@ -472,14 +485,14 @@ class TreeNode(object):
         node.append(self)
         return self
 
-    # todo: replace with a direct call to self.children for speed
+    # TODO: replace with a direct call to self.children for speed
     def has_children(self):
         """
         :return bool: True if this node has children
         """
         return bool(self.children)
 
-    # todo: replace with a direct call to `not self.children for speed`
+    # TODO: replace with a direct call to `not self.children for speed`
     def is_leaf(self):
         return not self.children
 
@@ -489,8 +502,7 @@ class TreeNode(object):
         """
         if self.parent:
             return [x for x in self.parent.children if x is not self]
-        else:
-            return None
+        return None
 
     def root(self):
         if not self.parent:
@@ -508,12 +520,12 @@ class TreeNode(object):
         return self.children[-1]
 
     def first_leaf(self):
-        if not self.children: # is leaf
+        if not self.children:  # is leaf
             return self
         return self.first_child().first_leaf()
 
     def last_leaf(self):
-        if not self.children: # is leaf
+        if not self.children:  # is leaf
             return self
         return self.last_child().last_leaf()
 
@@ -591,13 +603,17 @@ class TreeNode(object):
     def traverse_to_json(self, callback, depth=0, **kwargs):
         js = callback(self, depth, **kwargs)
         if self.children:
-            js[getattr(self, "children_attr")] = [child.traverse_to_json(callback, depth + 1, **kwargs) for child in self.children]
+            js[self.children_attr] = [child.traverse_to_json(callback, depth + 1, **kwargs) for child in self.children]
         return js
 
     def traverse_to_list(self, callback, depth=0, **kwargs):
         listy = callback(self, depth, **kwargs)
         if self.children:
-            listy += reduce(lambda a, b: a + b, [child.traverse_to_list(callback, depth + 1, **kwargs) for child in self.children], [])
+            listy += reduce(
+                lambda a, b: a + b,
+                [child.traverse_to_list(callback, depth + 1, **kwargs) for child in self.children],
+                [],
+            )
         return listy
 
     def serialize(self, **kwargs):
@@ -606,7 +622,11 @@ class TreeNode(object):
             d[self.children_attr] = [n.serialize(**kwargs) for n in self.children]
 
         # Only output nodeType and nodeParameters if there is at least one param. This seems like it may not remain a good measure.
-        params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
+        params = {
+            k: getattr(self, k)
+            for k in self.required_param_keys + self.optional_param_keys
+            if getattr(self, k, None) is not None
+        }
         if any(params):
             d["nodeType"] = self.__class__.__name__
             d.update(params)
@@ -628,7 +648,7 @@ class TreeNode(object):
     def all_children(self):
         return self.traverse_to_list(lambda n, i: [n])[1:]
 
-    def get_leaf_nodes_to_depth(self, max_depth = None):
+    def get_leaf_nodes_to_depth(self, max_depth=None):
         """
         :param max_depth: How many levels below this one to traverse.
         1 returns only this node's children, 0 returns only this node.
@@ -638,7 +658,7 @@ class TreeNode(object):
 
         if not self.children:
             return [self]
-        elif max_depth > 0:
+        if max_depth > 0:
             for node in self.children:
                 if not node.children:
                     leaves += [node]
@@ -683,11 +703,11 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
     title_separators = [", "]
 
     def __init__(self, serial=None, **kwargs):
-        super(TitledTreeNode, self).__init__(serial, **kwargs)
+        super().__init__(serial, **kwargs)
         self._load_title_group()
 
     def _init_defaults(self):
-        super(TitledTreeNode, self)._init_defaults()
+        super()._init_defaults()
         self.default = False
         self._primary_title = {}
         self._full_title = {}
@@ -717,20 +737,33 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
         title_dict = {}
         thisnode = self
 
-        this_node_titles = [title["text"] for title in self.get_titles_object() if title["lang"] == lang and title.get("presentation") != "alone"]
+        this_node_titles = [
+            title["text"]
+            for title in self.get_titles_object()
+            if title["lang"] == lang and title.get("presentation") != "alone"
+        ]
         if (not len(this_node_titles)) and (not self.is_default()):
-            error = 'No "{}" title found for schema node: "{}"'.format(lang, self.key)
+            error = f'No "{lang}" title found for schema node: "{self.key}"'
             error += ', child of "{}"'.format(self.parent.full_title("en")) if self.parent else ""
             raise IndexSchemaError(error)
         if baselist:
             if self.is_default():
                 node_title_list = baselist  # doesn't add any titles of its own
             else:
-                node_title_list = [baseName + sep + title for baseName in baselist for sep in self.title_separators for title in this_node_titles]
+                node_title_list = [
+                    baseName + sep + title
+                    for baseName in baselist
+                    for sep in self.title_separators
+                    for title in this_node_titles
+                ]
         else:
             node_title_list = this_node_titles
 
-        alone_node_titles = [title["text"] for title in self.get_titles_object() if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
+        alone_node_titles = [
+            title["text"]
+            for title in self.get_titles_object()
+            if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"
+        ]
         node_title_list += alone_node_titles
 
         for child in self.children:
@@ -746,10 +779,12 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
     def full_titles(self, lang="en"):
         if not self._full_titles.get(lang):
             if self.parent:
-                self._full_titles[lang] = [parent + sep + local
-                                           for parent in self.parent.full_titles(lang)
-                                           for sep in self.title_separators
-                                           for local in self.all_node_titles(lang)]
+                self._full_titles[lang] = [
+                    parent + sep + local
+                    for parent in self.parent.full_titles(lang)
+                    for sep in self.title_separators
+                    for local in self.all_node_titles(lang)
+                ]
             else:
                 self._full_titles[lang] = self.all_node_titles(lang)
         return self._full_titles[lang]
@@ -768,7 +803,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
                 self._full_title[lang] = self.primary_title(lang)
         return self._full_title[lang]
 
-    # todo: replace with a direct call to self.default for speed
+    # TODO: replace with a direct call to self.default for speed
     def is_default(self):
         """
         Is this node a default node, meaning, do references to its parent cascade to this node?
@@ -777,7 +812,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
         return self.default
 
     def has_default_child(self):
-        return any([c for c in self.children if c.is_default()])
+        return any(c for c in self.children if c.is_default())
 
     def get_default_child(self):
         for child in self.children:
@@ -787,14 +822,14 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
 
     def get_child_by_key(self, key):
         for child in self.children:
-            if hasattr(child, 'key') and child.key == key:
+            if hasattr(child, "key") and child.key == key:
                 return child
 
     def has_titled_continuation(self):
         """
         :return: True if any normal forms of this node continue with a title.  Used in regex building.
         """
-        return any([c for c in self.children if not c.is_default()])
+        return any(c for c in self.children if not c.is_default())
 
     def has_numeric_continuation(self):
         """
@@ -804,9 +839,8 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
         """
         # overidden in subclasses
         for child in self.children:
-            if child.is_default():
-                if child.has_numeric_continuation():
-                    return True
+            if child.is_default() and child.has_numeric_continuation():
+                return True
         return False
 
     def primary_title(self, lang="en"):
@@ -841,45 +875,44 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
     def validate(self):
-        super(TitledTreeNode, self).validate()
+        super().validate()
 
         if not self.default and not self.sharedTitle and not self.get_titles_object():
-            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self))
+            raise IndexSchemaError(f"Schema node {self} must have titles, a shared title node, or be default")
 
         if self.default and (self.get_titles_object() or self.sharedTitle):
-            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self))
+            raise IndexSchemaError(f"Schema node {self} - default nodes can not have titles")
 
         if not self.default:
             try:
                 self.title_group.validate()
             except InputError as e:
-                raise IndexSchemaError("Schema node {} has invalid titles: {}".format(self, e))
+                raise IndexSchemaError(f"Schema node {self} has invalid titles: {e}")
 
         if self.children and len([c for c in self.children if c.default]) > 1:
-            raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
+            raise IndexSchemaError(f"Schema Structure Node {self.key} has more than one default child.")
 
         if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles_object():
-            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self))
+            raise IndexSchemaError(f"Schema node {self} with sharedTitle can not have explicit titles")
 
         # disable this check while data is still not conforming to validation
-        if not self.sharedTitle and False:
+        if False:
             special_book_cases = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Judges"]
             for title in self.title_group.titles:
                 title = title["text"]
                 if self.get_primary_title() in special_book_cases:
                     break
                 term = Term().load_by_title(title)
-                if term:
-                    if "scheme" in list(vars(term).keys()):
-                        if vars(term)["scheme"] == "Parasha":
-                            raise InputError(
-                                "Nodes that represent Parashot must contain the corresponding sharedTitles.")
+                if term and "scheme" in list(vars(term).keys()) and vars(term)["scheme"] == "Parasha":
+                    raise InputError(
+                        "Nodes that represent Parashot must contain the corresponding sharedTitles.",
+                    )
 
         # if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
 
     def serialize(self, **kwargs):
-        d = super(TitledTreeNode, self).serialize(**kwargs)
+        d = super().serialize(**kwargs)
         if self.default:
             d["default"] = True
         else:
@@ -906,6 +939,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
         return alone_nodes
 
     """ String Representations """
+
     def __str__(self):
         return self.full_title("en")
 
@@ -926,6 +960,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
     """
     A :class:`TreeNode` that can address its :class:`TreeNode` children by Integer, or other :class:`AddressType`.
     """
+
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
     optional_param_keys = ["lengths"]
 
@@ -942,7 +977,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
           "lengths": [12, 122]
         }
         """
-        super(NumberedTitledTreeNode, self).__init__(serial, **kwargs)
+        super().__init__(serial, **kwargs)
 
         # Anything else in this __init__ needs to be reflected in JaggedArrayNode.__init__
         self._regexes = {}
@@ -954,7 +989,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             try:
                 klass = globals()["Address" + atype]
             except KeyError:
-                raise IndexSchemaError("No matching class for addressType {}".format(atype))
+                raise IndexSchemaError(f"No matching class for addressType {atype}")
 
             if i == 0 and getattr(self, "lengths", None) and len(self.lengths) > 0:
                 self._addressTypes.append(klass(i, self.lengths[i]))
@@ -962,13 +997,15 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 self._addressTypes.append(klass(i))
 
     def validate(self):
-        super(NumberedTitledTreeNode, self).validate()
+        super().validate()
         for p in ["addressTypes", "sectionNames"]:
             if len(getattr(self, p)) != self.depth:
-                raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
+                raise IndexSchemaError(
+                    f"Parameter {p} in {self.__class__.__name__} {self.key} does not have depth {self.depth}",
+                )
 
-        for sec in getattr(self, 'sectionNames', []):
-            if any((c in '.-\\/') for c in sec):
+        for sec in getattr(self, "sectionNames", []):
+            if any((c in ".-\\/") for c in sec):
                 raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
 
     def address_class(self, depth):
@@ -1015,20 +1052,35 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
         """
         parentheses = kwargs.get("parentheses", False)
-        prefixes = 'בכ|וב|וה|וכ|ול|ומ|וש|כב|ככ|כל|כמ|כש|לכ|מב|מה|מכ|מל|מש|שב|שה|שכ|של|שמ|ב|כ|ל|מ|ש|ה|ו|ד' if lang == 'he' else ''
-        prefix_group = rf'(?:{prefixes})?'
-        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"), parentheses)
+        prefixes = (
+            "בכ|וב|וה|וכ|ול|ומ|וש|כב|ככ|כל|כמ|כש|לכ|מב|מה|מכ|מל|מש|שב|שה|שכ|של|שמ|ב|כ|ל|מ|ש|ה|ו|ד"
+            if lang == "he"
+            else ""
+        )
+        prefix_group = rf"(?:{prefixes})?"
+        key = (
+            title,
+            lang,
+            anchored,
+            compiled,
+            kwargs.get("for_js"),
+            kwargs.get("match_range"),
+            kwargs.get("strict"),
+            kwargs.get("terminated"),
+            kwargs.get("escape_titles"),
+            parentheses,
+        )
         if not self._regexes.get(key):
             if anchored:
                 reg = r"^"
             elif parentheses:
-                parens_lookbehind = r'(?<=[(\[](?:[^)\]]*?\s)?'
+                parens_lookbehind = r"(?<=[(\[](?:[^)\]]*?\s)?"
                 if kwargs.get("for_js"):
                     reg = rf"{parens_lookbehind}){prefix_group}"  # prefix group should be outside lookbehind in js to be consistent with when parentheses == False
                 else:
                     reg = rf"{parens_lookbehind}{prefix_group})"
             else:
-                word_break_group = r'(?:^|\s|\(|\[|-|/)' # r'(?:^|\s|\(|\[)'
+                word_break_group = r"(?:^|\s|\(|\[|-|/)"  # r'(?:^|\s|\(|\[)'
                 if kwargs.get("for_js"):
                     reg = rf"{word_break_group}{prefix_group}"  # safari still does not support lookbehinds (although this issue shows they're working on it https://bugs.webkit.org/show_bug.cgi?id=174931)
                 else:
@@ -1039,14 +1091,21 @@ class NumberedTitledTreeNode(TitledTreeNode):
             reg += r"(?P<title>" + title_block + r")" if capture_title else title_block
             reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
-            reg += r'(?:(?:' + addr_regex + r')|(?:[\[({]' + addr_regex + r'[\])}]))'  # Match expressions with internal parentheses around the address portion
+            reg += (
+                r"(?:(?:" + addr_regex + r")|(?:[\[({]" + addr_regex + r"[\])}]))"
+            )  # Match expressions with internal parentheses around the address portion
             if kwargs.get("for_js"):
                 reg += r")"  # use capture group to distinguish prefixes from captured ref
             if parentheses:
                 reg += r"(?=(?:[)\]])|(?:[.,:;?!\s<][^\])]*?[)\]]))"
             else:
-                reg += r"(?=[-/.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else r"(?=\W|$)" if not kwargs.get(
-                    "terminated") else r"$"
+                reg += (
+                    r"(?=[-/.,:;?!\s})\]<]|$)"
+                    if kwargs.get("for_js")
+                    else r"(?=\W|$)"
+                    if not kwargs.get("terminated")
+                    else r"$"
+                )
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 
@@ -1054,7 +1113,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         group = "a0"
         reg = self._addressTypes[0].regex(lang, group, **kwargs)
         for i in range(1, self.depth):
-            group = "a{}".format(i)
+            group = f"a{i}"
             reg += "(" + self.after_address_delimiter_ref + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
             if not kwargs.get("strict", False):
                 reg += "?"
@@ -1071,7 +1130,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             reg += "?"
             for i in range(1, self.depth):
                 reg += r"(?:(?:" + self.after_address_delimiter_ref + r")?"
-                group = "ar{}".format(i)
+                group = f"ar{i}"
                 reg += "(" + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
                 # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
                 reg += ")?"
@@ -1096,18 +1155,18 @@ class NumberedTitledTreeNode(TitledTreeNode):
         self.depth = len(section_names)
         self.sectionNames = section_names
         if address_types is None:
-            self.addressTypes = [sec if globals().get("Address{}".format(sec), None) else 'Integer' for sec in section_names]
+            self.addressTypes = [sec if globals().get(f"Address{sec}", None) else "Integer" for sec in section_names]
         else:
             self.addressTypes = address_types
 
     def serialize(self, **kwargs):
-        d = super(NumberedTitledTreeNode, self).serialize(**kwargs)
+        d = super().serialize(**kwargs)
         if kwargs.get("translate_sections"):
-                d["heSectionNames"] = list(map(hebrew_term, self.sectionNames))
+            d["heSectionNames"] = list(map(hebrew_term, self.sectionNames))
         return d
 
     def is_segment_level_dibur_hamatchil(self) -> bool:
-        return getattr(self, 'isSegmentLevelDiburHamatchil', False)
+        return getattr(self, "isSegmentLevelDiburHamatchil", False)
 
 
 class AltStructNode(TitledTreeNode):
@@ -1117,7 +1176,8 @@ class AltStructNode(TitledTreeNode):
     Note, these nodes can't be the end of a reference since they themselves don't map to a `Ref`. But they are helpful
     being intermediate nodes in a longer reference.
     """
-    optional_param_keys = ["match_templates", "numeric_equivalent", 'referenceable']
+
+    optional_param_keys = ["match_templates", "numeric_equivalent", "referenceable"]
 
     def ref(self):
         return None
@@ -1129,8 +1189,25 @@ class ArrayMapNode(NumberedTitledTreeNode):
     Used as the leaf node of alternate structures of Index records.
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
+
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'referenceable', "addresses", "skipped_addresses", "isMapReferenceable"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = [
+        "lengths",
+        "addressTypes",
+        "sectionNames",
+        "refs",
+        "includeSections",
+        "startingAddress",
+        "match_templates",
+        "numeric_equivalent",
+        "referenceableSections",
+        "isSegmentLevelDiburHamatchil",
+        "diburHamatchilRegexes",
+        "referenceable",
+        "addresses",
+        "skipped_addresses",
+        "isMapReferenceable",
+    ]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -1139,15 +1216,15 @@ class ArrayMapNode(NumberedTitledTreeNode):
         return reduce(lambda a, i: a[i], [s - 1 for s in sections], self.refs)
 
     def serialize(self, **kwargs):
-        d = super(ArrayMapNode, self).serialize(**kwargs)
+        d = super().serialize(**kwargs)
         if kwargs.get("expand_refs"):
             if getattr(self, "includeSections", False):
                 # We assume that with "includeSections", we're going from depth 0 to depth 1, and expanding "wholeRef"
                 from . import text
 
-                refs         = text.Ref(self.wholeRef).split_spanning_ref()
-                first, last  = refs[0], refs[-1]
-                offset       = first.sections[-2] - 1 if first.is_segment_level() else first.sections[-1] - 1
+                refs = text.Ref(self.wholeRef).split_spanning_ref()
+                first, _last = refs[0], refs[-1]
+                offset = first.sections[-2] - 1 if first.is_segment_level() else first.sections[-1] - 1
 
                 d["refs"] = [r.normal() for r in refs]
                 d["addressTypes"] = first.index_node.addressTypes[-2:-1]
@@ -1156,8 +1233,12 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 d["offset"] = offset
             elif getattr(self, "startingAddress", False):
                 d["offset"] = self.address_class(0).toIndex("en", self.startingAddress)
-            if (kwargs.get("include_previews", False)):
-                d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
+            if kwargs.get("include_previews", False):
+                d["wholeRefPreview"] = self.expand_ref(
+                    self.wholeRef,
+                    kwargs.get("he_text_ja"),
+                    kwargs.get("en_text_ja"),
+                )
                 if d.get("refs"):
                     d["refsPreview"] = []
                     for r in d["refs"]:
@@ -1167,9 +1248,10 @@ class ArrayMapNode(NumberedTitledTreeNode):
         return d
 
     # Move this over to Ref and cache it?
-    def expand_ref(self, tref, he_text_ja = None, en_text_ja = None):
-        from . import text
+    def expand_ref(self, tref, he_text_ja=None, en_text_ja=None):
         from sefaria.utils.util import text_preview
+
+        from . import text
 
         oref = text.Ref(tref)
         if oref.is_spanning():
@@ -1178,23 +1260,29 @@ class ArrayMapNode(NumberedTitledTreeNode):
             t = text.TextFamily(oref, context=0, pad=False, commentary=False)
             preview = text_preview(t.text, t.he) if (t.text or t.he) else []
         else:
-            preview = text_preview(en_text_ja.subarray_with_ref(oref).array(), he_text_ja.subarray_with_ref(oref).array())
+            preview = text_preview(
+                en_text_ja.subarray_with_ref(oref).array(),
+                he_text_ja.subarray_with_ref(oref).array(),
+            )
 
         return preview
 
     def validate(self):
         if getattr(self, "depth", None) is None:
-            raise IndexSchemaError("Missing Parameter 'depth' in {}".format(self.__class__.__name__))
+            raise IndexSchemaError(f"Missing Parameter 'depth' in {self.__class__.__name__}")
         if self.depth == 0:
-            TitledTreeNode.validate(self)  # Skip over NumberedTitledTreeNode validation, which requires fields we don't have
+            TitledTreeNode.validate(
+                self,
+            )  # Skip over NumberedTitledTreeNode validation, which requires fields we don't have
         elif self.depth > 0:
             for k in ["addressTypes", "sectionNames", "refs"]:
                 if getattr(self, k, None) is None:
-                    raise IndexSchemaError("Missing Parameter '{}' in {}".format(k, self.__class__.__name__))
-            super(ArrayMapNode, self).validate()
+                    raise IndexSchemaError(f"Missing Parameter '{k}' in {self.__class__.__name__}")
+            super().validate()
 
     def ref(self):
         from . import text
+
         return text.Ref(self.wholeRef)
 
 
@@ -1216,8 +1304,9 @@ class SchemaNode(TitledTreeNode):
     The two are both handled by this class, with calls to "if self.children" to distinguishing behavior.
 
     """
+
     is_virtual = False
-    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_mutations", 'referenceable']
+    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_mutations", "referenceable"]
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -1226,17 +1315,17 @@ class SchemaNode(TitledTreeNode):
         :param kwargs: "index": The Index object that this tree is rooted in.
         :return:
         """
-        super(SchemaNode, self).__init__(serial, **kwargs)
-        self.index = kwargs.get("index", None)
+        super().__init__(serial, **kwargs)
+        self.index = kwargs.get("index")
 
     def _init_defaults(self):
-        super(SchemaNode, self)._init_defaults()
+        super()._init_defaults()
         self.key = None
         self.checkFirst = None
         self._address = []
 
     def validate(self):
-        super(SchemaNode, self).validate()
+        super().validate()
 
         if not all(ord(c) < 128 for c in self.title_group.primary_title("en")):
             raise InputError("Primary English title may not contain non-ascii characters")
@@ -1261,10 +1350,11 @@ class SchemaNode(TitledTreeNode):
 
         if not isinstance(mutations, list):
             raise IndexSchemaError(
-                f"ref_resolver_context_mutations on {full_title} must be a list"
+                f"ref_resolver_context_mutations on {full_title} must be a list",
             )
 
         from sefaria.model.linker.context_mutation import ContextMutation, ContextMutationOp
+
         allowed_ops = {op.value for op in ContextMutationOp}
 
         def err(idx, msg: str) -> None:
@@ -1299,6 +1389,7 @@ class SchemaNode(TitledTreeNode):
                 ContextMutation(op, input_terms, output_terms)
             except ValueError as exc:
                 err(idx, f"is invalid: {exc}")
+
     def concrete_children(self):
         return [c for c in self.children if not c.is_virtual]
 
@@ -1311,17 +1402,16 @@ class SchemaNode(TitledTreeNode):
         """
         if self.concrete_children():
             return {node.key: node.create_content(callback, *args, **kwargs) for node in self.concrete_children()}
-        else:
-            if not callback:
-                return None
-            return callback(self, *args, **kwargs)
+        if not callback:
+            return None
+        return callback(self, *args, **kwargs)
 
     def create_skeleton(self):
         return self.create_content(lambda n: [])
 
     def add_primary_titles(self, en_title, he_title, key_as_title=True):
-        self.add_title(en_title, 'en', primary=True)
-        self.add_title(he_title, 'he', primary=True)
+        self.add_title(en_title, "en", primary=True)
+        self.add_title(he_title, "he", primary=True)
         if key_as_title:
             self.key = en_title
 
@@ -1337,12 +1427,11 @@ class SchemaNode(TitledTreeNode):
         if self.children:
             dict = {}
             for node in self.concrete_children():
-                # todo: abstract out or put in helper the below reduce
+                # TODO: abstract out or put in helper the below reduce
                 c = [tree[node.key] for tree in contents]
                 dict[node.key] = node.visit_content(callback, *c, **kwargs)
             return dict
-        else:
-            return self.create_content(callback, *contents, **kwargs)
+        return self.create_content(callback, *contents, **kwargs)
 
     def visit_structure(self, callback, content, **kwargs):
         """
@@ -1361,23 +1450,30 @@ class SchemaNode(TitledTreeNode):
 
     def as_index_contents(self):
         res = self.index.contents(raw=True)
-        res["title"]   = self.full_title("en")
+        res["title"] = self.full_title("en")
         res["heTitle"] = self.full_title("he")
-        res['schema']  = self.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
+        res["schema"] = self.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
         res["titleVariants"] = self.full_titles("en")
         if self.all_node_titles("he"):
             res["heTitleVariants"] = self.full_titles("he")
         if self.index.has_alt_structures():
-            res['alts'] = {}
-            if not self.children: # preload text and pass it down to the preview generation
+            res["alts"] = {}
+            if not self.children:  # preload text and pass it down to the preview generation
                 from . import text
+
                 he_text_ja = text.TextChunk(self.ref(), "he").ja()
                 en_text_ja = text.TextChunk(self.ref(), "en").ja()
             else:
                 he_text_ja = en_text_ja = None
             for key, struct in self.index.get_alt_structures().items():
-                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, he_text_ja=he_text_ja, en_text_ja=en_text_ja, expand_titles=True)
-            del res['alt_structs']
+                res["alts"][key] = struct.serialize(
+                    expand_shared=True,
+                    expand_refs=True,
+                    he_text_ja=he_text_ja,
+                    en_text_ja=en_text_ja,
+                    expand_titles=True,
+                )
+            del res["alt_structs"]
         return res
 
     def serialize(self, **kwargs):
@@ -1385,7 +1481,7 @@ class SchemaNode(TitledTreeNode):
         :param callback: function applied to dictionary before it's returned.  Invoked on concrete nodes, not the abstract level.
         :return string: serialization of the subtree rooted in this node
         """
-        d = super(SchemaNode, self).serialize(**kwargs)
+        d = super().serialize(**kwargs)
         d["key"] = self.key
         if getattr(self, "checkFirst", None) is not None:
             d["checkFirst"] = self.checkFirst
@@ -1415,13 +1511,14 @@ class SchemaNode(TitledTreeNode):
 
     def ref(self, force_update=False):
         from . import text
+
         d = {
             "index": self.index,
             "book": self.full_title("en", force_update=force_update),
             "primary_category": self.index.get_primary_category(),
             "index_node": self,
             "sections": [],
-            "toSections": []
+            "toSections": [],
         }
         return text.Ref(_obj=d)
 
@@ -1434,8 +1531,7 @@ class SchemaNode(TitledTreeNode):
         if self.children:
             return self.ref()
 
-        from . import version_state
-        from . import text
+        from . import text, version_state
 
         sn = version_state.StateNode(snode=self)
         sections = [i + 1 for i in sn.ja("all").last_index(self.depth - 1)]
@@ -1445,7 +1541,7 @@ class SchemaNode(TitledTreeNode):
         d["toSections"] = sections
         return text.Ref(_obj=d)
 
-    def find_string(self, regex_str, cleaner=lambda x: x, strict=True, lang='he', vtitle=None):
+    def find_string(self, regex_str, cleaner=lambda x: x, strict=True, lang="he", vtitle=None):
         """
         See TextChunk.text_index_map
         :param regex_str:
@@ -1455,6 +1551,7 @@ class SchemaNode(TitledTreeNode):
         :param vtitle:
         :return:
         """
+
         def traverse(node):
             matches = []
             if node.children:
@@ -1466,7 +1563,7 @@ class SchemaNode(TitledTreeNode):
 
         return traverse(self)
 
-    def text_index_map(self, tokenizer=lambda x: re.split(r'\s+',x), strict=True, lang='he', vtitle=None):
+    def text_index_map(self, tokenizer=lambda x: re.split(r"\s+", x), strict=True, lang="he", vtitle=None):
         """
         See TextChunk.text_index_map
         :param tokenizer:
@@ -1474,6 +1571,7 @@ class SchemaNode(TitledTreeNode):
         :param lang:
         :return:
         """
+
         def traverse(node, callback, offset=0):
             index_list, ref_list, temp_offset = callback(node)
             if node.children:
@@ -1489,10 +1587,11 @@ class SchemaNode(TitledTreeNode):
 
         def callback(node):
             if not node.children:
-                index_list, ref_list, total_len = node.ref().text(lang=lang, vtitle=vtitle).text_index_map(tokenizer,strict=strict)
+                index_list, ref_list, total_len = (
+                    node.ref().text(lang=lang, vtitle=vtitle).text_index_map(tokenizer, strict=strict)
+                )
                 return index_list, ref_list, total_len
-            else:
-                return [],[], 0
+            return [], [], 0
 
         index_list, ref_list, _ = traverse(self, callback)
         return index_list, ref_list
@@ -1505,19 +1604,17 @@ class SchemaNode(TitledTreeNode):
         all three are missing content, only the parent SchemaNode will be in the list.
         """
         if self.is_leaf():
-            if self.ref().text('en').is_empty() and self.ref().text('he').is_empty():
+            if self.ref().text("en").is_empty() and self.ref().text("he").is_empty():
                 return True, [self]
-            else:
-                return False, []
+            return False, []
 
         children_results = [child.nodes_missing_content() for child in self.children]
 
         # If all my children are empty nodes, I am an empty node. Since I am the root of an empty tree, I add myself
         # to the list of empty nodes instead of my children
-        if all([result[0] for result in children_results]):
+        if all(result[0] for result in children_results):
             return True, [self]
-        else:
-            return False, reduce(lambda x, y: x+y, [result[1] for result in children_results])
+        return False, reduce(lambda x, y: x + y, [result[1] for result in children_results])
 
     def all_children(self):
         return self.traverse_to_list(lambda n, i: list(n.all_children()) if n.is_virtual else [n])[1:]
@@ -1540,7 +1637,15 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
-    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'index_offsets_by_depth']
+
+    optional_param_keys = SchemaNode.optional_param_keys + [
+        "lengths",
+        "toc_zoom",
+        "referenceableSections",
+        "isSegmentLevelDiburHamatchil",
+        "diburHamatchilRegexes",
+        "index_offsets_by_depth",
+    ]
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
@@ -1557,22 +1662,24 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         self.check_index_offsets_by_depth()
 
     def check_index_offsets_by_depth(self):
-        if hasattr(self, 'index_offsets_by_depth'):
+        if hasattr(self, "index_offsets_by_depth"):
             assert all(int(num) <= self.depth for num in self.index_offsets_by_depth)
+
             def check_offsets(to_check, depth=0):
                 if depth == 0:
                     assert isinstance(to_check, int)
                 else:
                     for array in to_check:
-                        check_offsets(array, depth-1)
+                        check_offsets(array, depth - 1)
+
             for k, v in self.index_offsets_by_depth.items():
-                check_offsets(v, int(k)-1)
+                check_offsets(v, int(k) - 1)
 
     def has_numeric_continuation(self):
         return True
 
     def as_index_contents(self):
-        res = super(JaggedArrayNode, self).as_index_contents()
+        res = super().as_index_contents()
         res["sectionNames"] = self.sectionNames
         res["depth"] = self.depth
         return res
@@ -1592,19 +1699,19 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         @param depths:
         @return:
         """
-        index_offsets_by_depth = copy.deepcopy(getattr(self, 'index_offsets_by_depth', {}))
+        index_offsets_by_depth = copy.deepcopy(getattr(self, "index_offsets_by_depth", {}))
         if index_offsets_by_depth and sections:
             if not depths:
-                depths = sorted([int(x) for x in index_offsets_by_depth.keys()])
+                depths = sorted([int(x) for x in index_offsets_by_depth])
             for depth in depths:
                 if depth == 1:
                     continue
                 if len(sections) > depth - 2:
-                    for d in range(depth, max(depths)+1):
-                        last = reduce(lambda x, _: x[-1], range(depth-2), index_offsets_by_depth[str(d)])
-                        del last[toSections[depth-2]:]
-                        first = reduce(lambda x, _: x[0], range(depth-2), index_offsets_by_depth[str(d)])
-                        del first[:sections[depth-2]-1]
+                    for d in range(depth, max(depths) + 1):
+                        last = reduce(lambda x, _: x[-1], range(depth - 2), index_offsets_by_depth[str(d)])
+                        del last[toSections[depth - 2] :]
+                        first = reduce(lambda x, _: x[0], range(depth - 2), index_offsets_by_depth[str(d)])
+                        del first[: sections[depth - 2] - 1]
         return index_offsets_by_depth
 
 
@@ -1612,16 +1719,18 @@ class StringNode(JaggedArrayNode):
     """
     A :class:`JaggedArrayNode` with depth 0 - effectively defining a string.
     """
+
     def __init__(self, serial=None, **kwargs):
-        super(StringNode, self).__init__(serial, **kwargs)
+        super().__init__(serial, **kwargs)
         self.depth = 0
         self.addressTypes = []
         self.sectionNames = []
 
     def serialize(self, **kwargs):
-        d = super(StringNode, self).serialize(**kwargs)
+        d = super().serialize(**kwargs)
         d["nodeType"] = "JaggedArrayNode"
         return d
+
 
 """
                 -------------------------------------
@@ -1631,8 +1740,7 @@ class StringNode(JaggedArrayNode):
 
 
 class VirtualNode(TitledTreeNode):
-
-    is_virtual = True    # False on SchemaNode
+    is_virtual = True  # False on SchemaNode
     entry_class = None
 
     def __init__(self, serial=None, **kwargs):
@@ -1641,11 +1749,11 @@ class VirtualNode(TitledTreeNode):
         :param serial:
         :param kwargs:
         """
-        super(VirtualNode, self).__init__(serial, **kwargs)
-        self.index = kwargs.get("index", None)
+        super().__init__(serial, **kwargs)
+        self.index = kwargs.get("index")
 
     def _init_defaults(self):
-        super(VirtualNode, self)._init_defaults()
+        super()._init_defaults()
         self.index = None
 
     def address(self):
@@ -1662,6 +1770,7 @@ class VirtualNode(TitledTreeNode):
 
     def supports_language(self, lang):
         raise Exception("supports_language needs to be overriden by subclasses")
+
 
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
@@ -1689,32 +1798,43 @@ class DictionaryEntryNode(TitledTreeNode):
             self.has_word_match = bool(self.lexicon_entry)
             self.word = self.lexicon_entry.headword
 
-        super(DictionaryEntryNode, self).__init__({
-            "titles": [{
-                "lang": "he",
-                "text": self.word,
-                "primary": True
+        super().__init__(
+            {
+                "titles": [
+                    {
+                        "lang": "he",
+                        "text": self.word,
+                        "primary": True,
+                    },
+                    {
+                        "lang": "en",
+                        "text": self.word,
+                        "primary": True,
+                    },
+                ],
             },
-                {
-                "lang": "en",
-                "text": self.word,
-                "primary": True
-            }]
-        })
+        )
 
         self.parent = parent
         self.index = self.parent.index
-        self.sectionNames = ["Line"]    # Hacky hack
+        self.sectionNames = ["Line"]  # Hacky hack
         self.depth = 1
         self.addressTypes = ["Integer"]
         self._addressTypes = [AddressInteger(0)]
 
         if self.word:
-            self.lexicon_entry = self.parent.dictionaryClass().load({"parent_lexicon": self.parent.lexiconName, "headword": self.word})
+            self.lexicon_entry = self.parent.dictionaryClass().load(
+                {"parent_lexicon": self.parent.lexiconName, "headword": self.word},
+            )
             self.has_word_match = bool(self.lexicon_entry)
 
         if not self.word or not self.has_word_match:
-            raise DictionaryEntryNotFoundError("Word not found in {}".format(self.parent.full_title()), self.parent.lexiconName, self.parent.full_title(), self.word)
+            raise DictionaryEntryNotFoundError(
+                f"Word not found in {self.parent.full_title()}",
+                self.parent.lexiconName,
+                self.parent.full_title(),
+                self.word,
+            )
 
     def __eq__(self, other):
         return self.address() == other.address()
@@ -1743,7 +1863,7 @@ class DictionaryEntryNode(TitledTreeNode):
 
     def get_text(self):
         if not self.has_word_match:
-            return ["No Entry for {}".format(self.word)]
+            return [f"No Entry for {self.word}"]
 
         return self.lexicon_entry.as_strings()
 
@@ -1777,13 +1897,14 @@ class DictionaryEntryNode(TitledTreeNode):
     # This is identical to SchemaNode.ref().  Inherit?
     def ref(self):
         from . import text
+
         d = {
             "index": self.index,
             "book": self.full_title("en"),
             "primary_category": self.index.get_primary_category(),
             "index_node": self,
             "sections": [],
-            "toSections": []
+            "toSections": [],
         }
         return text.Ref(_obj=d)
 
@@ -1793,6 +1914,7 @@ class DictionaryNode(VirtualNode):
     A schema node corresponding to the entirety of a dictionary.
     The parent of DictionaryEntryNode objects, which represent individual entries
     """
+
     required_param_keys = ["lexiconName", "firstWord", "lastWord"]
     optional_param_keys = ["headwordMap"]
     entry_class = DictionaryEntryNode
@@ -1804,9 +1926,9 @@ class DictionaryNode(VirtualNode):
         :param kwargs: "index": The Index object that this tree is rooted in.
         :return:
         """
-        super(DictionaryNode, self).__init__(serial, **kwargs)
+        super().__init__(serial, **kwargs)
 
-        from .lexicon import LexiconEntrySubClassMapping, Lexicon
+        from .lexicon import Lexicon, LexiconEntrySubClassMapping
 
         self.lexicon = Lexicon().load({"name": self.lexiconName})
 
@@ -1814,13 +1936,13 @@ class DictionaryNode(VirtualNode):
             self.dictionaryClass = LexiconEntrySubClassMapping.lexicon_class_map[self.lexiconName]
 
         except KeyError:
-            raise IndexSchemaError("No matching class for {} in DictionaryNode".format(self.lexiconName))
+            raise IndexSchemaError(f"No matching class for {self.lexiconName} in DictionaryNode")
 
     def _init_defaults(self):
-        super(DictionaryNode, self)._init_defaults()
+        super()._init_defaults()
 
     def validate(self):
-        super(DictionaryNode, self).validate()
+        super().validate()
 
     def first_child(self):
         try:
@@ -1843,7 +1965,7 @@ class DictionaryNode(VirtualNode):
         """
         :return string: serialization of the subtree rooted in this node
         """
-        d = super(DictionaryNode, self).serialize(**kwargs)
+        d = super().serialize(**kwargs)
         d["nodeType"] = "DictionaryNode"
         d["lexiconName"] = self.lexiconName
         d["headwordMap"] = self.headwordMap
@@ -1855,21 +1977,20 @@ class DictionaryNode(VirtualNode):
         if isinstance(child, DictionaryEntryNode):
             if hasattr(child.lexicon_entry, "rid"):
                 return str(child.lexicon_entry.rid)
-            else:
-                return child.word
-        else:
-            return ""
+            return child.word
+        return ""
 
     # This is identical to SchemaNode.ref() and DictionaryEntryNode.ref().  Inherit?
     def ref(self):
         from . import text
+
         d = {
             "index": self.index,
             "book": self.full_title("en"),
             "primary_category": self.index.get_primary_category(),
             "index_node": self,
             "sections": [],
-            "toSections": []
+            "toSections": [],
         }
         return text.Ref(_obj=d)
 
@@ -1898,12 +2019,19 @@ class SheetNode(NumberedTitledTreeNode):
         self.sectionNames = ["Sheet", "Segment"]
         self.addressTypes = ["Integer", "Integer"]
         self.index = sheet_library_node.index
-        super(SheetNode, self).__init__(None)
+        super().__init__(None)
 
         self._sheetLibraryNode = sheet_library_node
         self.title_group = sheet_library_node.title_group
 
-        self._ref_regex = regex.compile("^" + regex.escape(title) + self.after_title_delimiter_re + "([0-9]+)(?:" + self.after_address_delimiter_ref + "([0-9]+)|$)")
+        self._ref_regex = regex.compile(
+            "^"
+            + regex.escape(title)
+            + self.after_title_delimiter_re
+            + "([0-9]+)(?:"
+            + self.after_address_delimiter_ref
+            + "([0-9]+)|$)",
+        )
         self._match = self._ref_regex.match(tref)
         if not self._match:
             raise InputError("Could not find sheet ID in sheet ref")
@@ -1935,15 +2063,15 @@ class SheetNode(NumberedTitledTreeNode):
 
     def return_text_from_sheet_source(self, source):
         if source.get("text"):
-            return (source.get("text"))
-        elif source.get("outsideText"):
-            return (source.get("outsideText"))
-        elif source.get("outsideBiText"):
-            return (source.get("outsideBiText"))
-        elif source.get("comment"):
-            return (source.get("comment"))
-        elif source.get("media"):
-            return (source.get("media"))
+            return source.get("text")
+        if source.get("outsideText"):
+            return source.get("outsideText")
+        if source.get("outsideBiText"):
+            return source.get("outsideBiText")
+        if source.get("comment"):
+            return source.get("comment")
+        if source.get("media"):
+            return source.get("media")
 
     def get_text(self):
         text = []
@@ -1974,13 +2102,14 @@ class SheetNode(NumberedTitledTreeNode):
 
     def ref(self):
         from . import text
+
         d = {
             "index": self.index,
             "book": self.full_title("en"),
             "primary_category": self.index.get_primary_category(),
             "index_node": self,
             "sections": self._sections,
-            "toSections": self._sections[:]
+            "toSections": self._sections[:],
         }
         return text.Ref(_obj=d)
 
@@ -2005,12 +2134,13 @@ class SheetLibraryNode(VirtualNode):
         """
         :return string: serialization of the subtree rooted in this node
         """
-        d = super(SheetLibraryNode, self).serialize(**kwargs)
+        d = super().serialize(**kwargs)
         d["nodeType"] = "SheetLibraryNode"
         return d
 
     def supports_language(self, lang):
         return True
+
 
 """
 {
@@ -2039,9 +2169,6 @@ class SheetLibraryNode(VirtualNode):
 """
 
 
-
-
-
 """
                 ------------------------------------
                  Index Schema Trees - Address Types
@@ -2049,15 +2176,16 @@ class SheetLibraryNode(VirtualNode):
 """
 
 
-class AddressType(object):
+class AddressType:
     """
     Defines a scheme for referencing and addressing a level of a Jagged Array.
     Used by :class:`NumberedTitledTreeNode`
     """
+
     special_cases = {}
     section_patterns = {
-        'he': None,
-        'en': None
+        "he": None,
+        "en": None,
     }
     reish_samekh_reg = "(?:\u05e1(?:\u05d9\u05e9\\s+)?|\u05e8(?:\u05d5\u05e3\\s+)?)?"  # matches letters reish or samekh or words reish or sof. these are common prefixes for many address types
 
@@ -2081,10 +2209,9 @@ class AddressType(object):
                     reg += "?"
                 reg += self._core_regex(lang, group_id, **kwargs)
                 return reg
-            else:
-                return self._core_regex(lang, group_id, **kwargs)
+            return self._core_regex(lang, group_id, **kwargs)
         except KeyError:
-            raise Exception("Unknown Language passed to AddressType: {}".format(lang))
+            raise Exception(f"Unknown Language passed to AddressType: {lang}")
 
     def _core_regex(self, lang, group_id=None, **kwargs):
         """
@@ -2093,7 +2220,6 @@ class AddressType(object):
         :param group_id: The id of the regular expression group the this match will be captured in
         :return string: regex component
         """
-        pass
 
     @staticmethod
     def hebrew_number_regex():
@@ -2123,7 +2249,6 @@ class AddressType(object):
         :param lang: "en" or "he"
         :return int:
         """
-        pass
 
     def is_special_case(self, s):
         return s in self.special_cases
@@ -2165,33 +2290,42 @@ class AddressType(object):
         toSections = []
         addr_classes = []
         starti_list = [0]
-        if strip_prefixes and lang == 'he':
+        if strip_prefixes and lang == "he":
             starti_list += get_prefixless_inds(s)
         for starti in starti_list:
             curr_s = s[starti:]
             for SuperClass in cls.__mro__:  # mro gives all super classes
-                if SuperClass == AddressType: break
-                if SuperClass in {AddressInteger, AddressTalmud} and starti > 0: continue  # prefixes don't really make sense on AddressInteger or Talmud (in my opinion)
-                addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
+                if SuperClass == AddressType:
+                    break
+                if SuperClass in {AddressInteger, AddressTalmud} and starti > 0:
+                    continue  # prefixes don't really make sense on AddressInteger or Talmud (in my opinion)
+                addr = SuperClass(
+                    0,
+                )  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
                 section_str = None
                 if addr.is_special_case(curr_s):
                     section_str = curr_s
                 else:
-                    strict = SuperClass not in {AddressAmud, AddressTalmud, AddressFolio}  # HACK: these address types don't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
-                    regex_str = addr.regex(lang, strict=strict, group_id='section', with_roman_numerals=True) + "$"  # must match entire string
-                    if regex_str is None: continue
+                    strict = (
+                        SuperClass not in {AddressAmud, AddressTalmud, AddressFolio}
+                    )  # HACK: these address types don't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
+                    regex_str = (
+                        addr.regex(lang, strict=strict, group_id="section", with_roman_numerals=True) + "$"
+                    )  # must match entire string
+                    if regex_str is None:
+                        continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
                     match = reg.match(curr_s)
                     if match:
-                        section_str = match.group('section')
+                        section_str = match.group("section")
                 if section_str:
                     temp_sections = addr.to_numeric_possibilities(lang, section_str, fromSections=fromSections)
                     temp_toSections = temp_sections[:]
                     if hasattr(cls, "lacks_amud") and cls.lacks_amud(section_str, lang) and not fromSections:
-                        temp_toSections = [sec+1 for sec in temp_toSections]
+                        temp_toSections = [sec + 1 for sec in temp_toSections]
                     sections += temp_sections
                     toSections += temp_toSections
-                    addr_classes += [SuperClass]*len(temp_sections)
+                    addr_classes += [SuperClass] * len(temp_sections)
 
         if len(sections) > 0:
             # make sure section, toSection pairs are unique. prefer higher level address_types since these are more generic
@@ -2205,9 +2339,13 @@ class AddressType(object):
     def toStr(cls, lang, i, **kwargs):
         if lang == "en":
             return str(i)
-        elif lang == "he":
+        if lang == "he":
             punctuation = kwargs.get("punctuation", True)
-            return sanitize(encode_small_hebrew_numeral(i), punctuation) if i < 1200 else encode_hebrew_numeral(i, punctuation=punctuation)
+            return (
+                sanitize(encode_small_hebrew_numeral(i), punctuation)
+                if i < 1200
+                else encode_hebrew_numeral(i, punctuation=punctuation)
+            )
 
     @staticmethod
     def to_str_by_address_type(atype, lang, i):
@@ -2219,7 +2357,7 @@ class AddressType(object):
         try:
             klass = globals()["Address" + atype]
         except KeyError:
-            raise IndexSchemaError("No matching class for addressType {}".format(atype))
+            raise IndexSchemaError(f"No matching class for addressType {atype}")
         return klass(0).toStr(lang, i)
 
     @staticmethod
@@ -2232,7 +2370,7 @@ class AddressType(object):
         try:
             klass = globals()["Address" + atype]
         except KeyError:
-            raise IndexSchemaError("No matching class for addressType {}".format(atype))
+            raise IndexSchemaError(f"No matching class for addressType {atype}")
         return klass(0)
 
     # Is this used?
@@ -2243,10 +2381,7 @@ class AddressType(object):
 class AddressDictionary(AddressType):
     # Important here is language of the dictionary, not of the text where the reference is.
     def _core_regex(self, lang, group_id=None, **kwargs):
-        if group_id:
-            reg = r"(?P<" + group_id + r">"
-        else:
-            reg = r"("
+        reg = r"(?P<" + group_id + r">" if group_id else r"("
 
         reg += r".+"
         return reg
@@ -2261,7 +2396,7 @@ class AddressDictionary(AddressType):
 class AddressAmud(AddressType):
     section_patterns = {
         "en": r"""(?:[Aa]mud(?:im)?\s+)""",
-        "he": f'''(?:{AddressType.reish_samekh_reg}\u05e2(?:"|\u05f4|”|''|\u05de\u05d5\u05d3\\s+))''' #+ (optional: (optional: samekh or reish for sof/reish) Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
+        "he": f"""(?:{AddressType.reish_samekh_reg}\u05e2(?:"|\u05f4|”|''|\u05de\u05d5\u05d3\\s+))""",  # + (optional: (optional: samekh or reish for sof/reish) Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
     }
 
     section_num_patterns = {
@@ -2270,10 +2405,7 @@ class AddressAmud(AddressType):
     }
 
     def _core_regex(self, lang, group_id=None, **kwargs):
-        if group_id:
-            reg = r"(?P<" + group_id + r">"
-        else:
-            reg = r"("
+        reg = r"(?P<" + group_id + r">" if group_id else r"("
 
         reg += self.section_num_patterns[lang] + r")"
 
@@ -2281,8 +2413,8 @@ class AddressAmud(AddressType):
 
     def toNumber(self, lang, s, **kwargs):
         if lang == "en":
-            return 1 if s in {'a', 'A'} else 2
-        elif lang == "he":
+            return 1 if s in {"a", "A"} else 2
+        if lang == "he":
             return decode_hebrew_numeral(s)
 
 
@@ -2290,15 +2422,16 @@ class AddressTalmud(AddressType):
     """
     :class:`AddressType` for Talmud style Daf + Amud addresses
     """
+
     section_patterns = {
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": "((\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\\s+)|(?:\u05e1|\u05e8)?\u05d3\"?)"			# (Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote) OR daled prefix
+        "he": '((\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019\'"״]\\s+)|(?:\u05e1|\u05e8)?\u05d3"?)',  # (Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote) OR daled prefix
     }
     _can_match_out_of_order_patterns = None
-    he_amud_pattern = AddressAmud(0).regex('he')
+    he_amud_pattern = AddressAmud(0).regex("he")
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
-        "he": '''([.:]|[,\\s]+{})'''.format(he_amud_pattern)  # Either (1) period / colon (2) some separator + AddressAmud.section_patterns["he"]
+        "he": f"""([.:]|[,\\s]+{he_amud_pattern})""",  # Either (1) period / colon (2) some separator + AddressAmud.section_patterns["he"]
     }
     special_cases = {
         "B": [None],
@@ -2313,8 +2446,7 @@ class AddressTalmud(AddressType):
         This may have undesirable affect if `ref` doesn't end in a Talmud address
         """
         normal_form = ref._get_normal(lang)
-        return re.sub(f"{cls.amud_patterns[lang]}$", '', normal_form)
-
+        return re.sub(f"{cls.amud_patterns[lang]}$", "", normal_form)
 
     @classmethod
     def normal_range(cls, ref, lang):
@@ -2323,29 +2455,27 @@ class AddressTalmud(AddressType):
             end_daf = AddressTalmud.oref_to_amudless_tref(ref.ending_ref(), lang)
             if start_daf == end_daf:
                 return start_daf
-            else:
-                range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(ref, lang)
-                # looking for rest of ref after dash
-                end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
-                return f"{start_daf}-{end_range}"
-        else: # range is in the form Shabbat 7b-8a, Shabbat 7a-8a, or Shabbat 7b-8b.  no need to special case it
-            return ref._get_normal(lang)
+            range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(ref, lang)
+            # looking for rest of ref after dash
+            end_range = re.search("-(.+)$", range_wo_last_amud).group(1)
+            return f"{start_daf}-{end_range}"
+        # range is in the form Shabbat 7b-8a, Shabbat 7a-8a, or Shabbat 7b-8b.  no need to special case it
+        return ref._get_normal(lang)
 
     @classmethod
     def lacks_amud(cls, part, lang: str):
         if lang == "he":
             return re.search(cls.amud_patterns["he"], part) is None
-        else:
-            return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
-        
+        return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
+
     @classmethod
-    def sections_lack_amud(cls, section:int, toSection:int) -> bool:
+    def sections_lack_amud(cls, section: int, toSection: int) -> bool:
         """
         Given section and toSection integers, return whether together they represent a range that lacks amud.
         For example, section=3 (daf 2b) and toSection=4 (daf 2b) represent a daf 2 which lacks amud.
-        :param section: 
-        :param toSection: 
-        :return: 
+        :param section:
+        :param toSection:
+        :return:
         """
         return section % 2 == 1 and toSection % 2 == 0 and toSection == section + 1
 
@@ -2368,7 +2498,10 @@ class AddressTalmud(AddressType):
         elif len(parts) == 2:
             range_parts = parts[1].split(".")  # this was converting space to '.', for some reason.
 
-            he_bet_reg_ex = "^"+cls.he_amud_pattern.replace('[\u05d0\u05d1]', '\u05d1')  # don't want to look for Aleph
+            he_bet_reg_ex = "^" + cls.he_amud_pattern.replace(
+                "[\u05d0\u05d1]",
+                "\u05d1",
+            )  # don't want to look for Aleph
 
             if re.search(he_bet_reg_ex, range_parts[-1]):
                 # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
@@ -2376,57 +2509,55 @@ class AddressTalmud(AddressType):
             else:
                 if cls.lacks_amud(parts[0], ref._lang) and cls.lacks_amud(parts[1], ref._lang):
                     # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
-                    range_parts[-1] = range_parts[-1] + ('b' if ref._lang == 'en' else ' ב')
+                    range_parts[-1] = range_parts[-1] + ("b" if ref._lang == "en" else " ב")
                 ref._parse_range_end(range_parts)
 
         # below code makes sure toSections doesn't go pass end of section/book
         if getattr(ref.index_node, "lengths", None):
-            end = ref.index_node.lengths[len(ref.sections)-1]
+            end = ref.index_node.lengths[len(ref.sections) - 1]
             while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
                 ref.toSections[-1] -= 1
 
     def _core_regex(self, lang, group_id=None, **kwargs):
-        if group_id and kwargs.get("for_js", False) == False:
-            reg = r"(?P<" + group_id + r">"
-        else:
-            reg = r"("
+        reg = r"(?P<" + group_id + r">" if group_id and not kwargs.get("for_js", False) else r"("
 
         if lang == "en":
-            reg += r"\d*" if group_id == "ar0" else r"\d+" # if ref is Berakhot 2a:1-3a:4, "ar0" is 3a when group_id == "ar0", we don't want to require digit, as ref could be Berakhot 2a-b
+            reg += (
+                r"\d*" if group_id == "ar0" else r"\d+"
+            )  # if ref is Berakhot 2a:1-3a:4, "ar0" is 3a when group_id == "ar0", we don't want to require digit, as ref could be Berakhot 2a-b
             reg += r"{}?)".format(self.amud_patterns["en"])
         elif lang == "he":
-            reg += self.hebrew_number_regex() + r'''{}?)'''.format(self.amud_patterns["he"])
-
+            reg += self.hebrew_number_regex() + r"""{}?)""".format(self.amud_patterns["he"])
 
         return reg
 
     def toNumber(self, lang, s, **kwargs):
-        amud_b_list = ['b', 'B', 'ᵇ']
+        amud_b_list = ["b", "B", "ᵇ"]
         if lang == "en":
             try:
-                if re.search(self.amud_patterns["en"]+"{1}$", s):
+                if re.search(self.amud_patterns["en"] + "{1}$", s):
                     amud = s[-1]
-                    s = self.toStr(lang, kwargs['sections']) if s in amud_b_list else s
+                    s = self.toStr(lang, kwargs["sections"]) if s in amud_b_list else s
                     daf = int(s[:-1])
                 else:
                     amud = "a"
                     daf = int(s)
             except ValueError:
-                raise InputError("Couldn't parse Talmud reference: {}".format(s))
+                raise InputError(f"Couldn't parse Talmud reference: {s}")
 
             if self.length and daf > self.length:
-                # todo: Catch this above and put the book name on it.  Proably change Exception type.
-                raise InputError("{} exceeds max of {} dafs.".format(daf, self.length))
+                # TODO: Catch this above and put the book name on it.  Proably change Exception type.
+                raise InputError(f"{daf} exceeds max of {self.length} dafs.")
 
             indx = daf * 2
             if amud in ["A", "a", "ᵃ"]:
                 indx -= 1
             return indx
-        elif lang == "he":
+        if lang == "he":
             num = re.split(r"[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
             amud_match = re.search(self.amud_patterns["he"] + "$", s)
-            if s[-1] == ':' or (amud_match is not None and amud_match.group("amud_letter") == 'ב'):
+            if s[-1] == ":" or (amud_match is not None and amud_match.group("amud_letter") == "ב"):
                 return daf  # amud B
             return daf - 1
 
@@ -2438,10 +2569,7 @@ class AddressTalmud(AddressType):
         daf_num = i // 2
         daf = ""
 
-        if i > daf_num * 2:
-            en_daf = "%db" % daf_num
-        else:
-            en_daf = "%da" % daf_num
+        en_daf = "%db" % daf_num if i > daf_num * 2 else "%da" % daf_num
 
         if lang == "en":
             daf = en_daf
@@ -2453,9 +2581,17 @@ class AddressTalmud(AddressType):
             else:
                 punctuation = kwargs.get("punctuation", True)
                 if i > daf_num * 2:
-                    daf = ("%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation) if daf_num < 1200 else encode_hebrew_numeral(daf_num, punctuation=punctuation)) + "\u05d1"
+                    daf = (
+                        "%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation)
+                        if daf_num < 1200
+                        else encode_hebrew_numeral(daf_num, punctuation=punctuation)
+                    ) + "\u05d1"
                 else:
-                    daf = ("%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation) if daf_num < 1200 else encode_hebrew_numeral(daf_num, punctuation=punctuation)) + "\u05d0"
+                    daf = (
+                        "%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation)
+                        if daf_num < 1200
+                        else encode_hebrew_numeral(daf_num, punctuation=punctuation)
+                    ) + "\u05d0"
 
         return daf
 
@@ -2463,10 +2599,10 @@ class AddressTalmud(AddressType):
         if name == "Daf":
             return {
                 "Amud": number,
-                "Daf": number / 2
+                "Daf": number / 2,
             }
-        else: # shouldn't get here
-            return {name: number}
+        # shouldn't get here
+        return {name: number}
 
     def storage_offset(self):
         return 2
@@ -2479,16 +2615,16 @@ class AddressTalmud(AddressType):
         @param kwargs:
         @return:
         """
-        fromSections = kwargs['fromSections']
+        fromSections = kwargs["fromSections"]
         if s in self.special_cases and fromSections:
             # currently assuming only special case is 'b'
-            return [fromSec[-1]+1 for fromSec in fromSections]
+            return [fromSec[-1] + 1 for fromSec in fromSections]
         addr_num = self.toNumber(lang, s)
         possibilities = []
-        if fromSections and s == 'ב':
+        if fromSections and s == "ב":
             for fromSec in fromSections:
                 if addr_num < fromSec[-1]:
-                    possibilities += [fromSec[-1]+1]
+                    possibilities += [fromSec[-1] + 1]
                 else:
                     possibilities += [addr_num]
         else:
@@ -2497,7 +2633,7 @@ class AddressTalmud(AddressType):
 
     @staticmethod
     def _get_can_match_out_of_order_pattern(lang):
-        regex_str = AddressInteger(0).regex(lang, strict=True, group_id='section') + "$"
+        regex_str = AddressInteger(0).regex(lang, strict=True, group_id="section") + "$"
         return regex.compile(regex_str, regex.VERBOSE)
 
     @classmethod
@@ -2515,40 +2651,38 @@ class AddressFolio(AddressType):
     """
     :class:`AddressType` for Folio style #[abcd] addresses
     """
+
     section_patterns = {
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
+        "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)",  # Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
 
     def _core_regex(self, lang, group_id=None, **kwargs):
-        if group_id:
-            reg = r"(?P<" + group_id + r">"
-        else:
-            reg = r"("
+        reg = r"(?P<" + group_id + r">" if group_id else r"("
 
         if lang == "en":
             reg += r"\d+[abcdᵃᵇᶜᵈ]?)"
         elif lang == "he":
             # either dots for amud (add dots from amud gimmel and dalet) or ayin followed by some type of quote followed by alef, bet, gimmel, or dalet
-            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:ע(?:"|״|''))?[א-ד])?)'''
+            reg += self.hebrew_number_regex() + r"""([.:]|[,\s]+(?:ע(?:"|״|''))?[א-ד])?)"""
 
         return reg
 
     def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             try:
-                if s[-1] in ["a", "b", "c", "d", 'ᵃ', 'ᵇ', 'ᶜ', 'ᵈ']:
+                if s[-1] in ["a", "b", "c", "d", "ᵃ", "ᵇ", "ᶜ", "ᵈ"]:
                     amud = s[-1]
                     daf = int(s[:-1])
                 else:
                     amud = "a"
                     daf = int(s)
             except ValueError:
-                raise InputError("Couldn't parse Talmud reference: {}".format(s))
+                raise InputError(f"Couldn't parse Talmud reference: {s}")
 
             if self.length and daf > self.length:
-                # todo: Catch this above and put the book name on it.  Proably change Exception type.
-                raise InputError("{} exceeds max of {} dafs.".format(daf, self.length))
+                # TODO: Catch this above and put the book name on it.  Proably change Exception type.
+                raise InputError(f"{daf} exceeds max of {self.length} dafs.")
 
             indx = daf * 4
             if amud == "a" or amud == "ᵃ":
@@ -2558,21 +2692,20 @@ class AddressFolio(AddressType):
             if amud == "c" or amud == "ᶜ":
                 indx -= 1
             return indx
-        elif lang == "he":
+        if lang == "he":
             num = re.split(r"[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 4
-            rest = s[len(num):]
+            rest = s[len(num) :]
 
             # check for each amud letter in reverse order (dalet, gimmel, bet, alef)
             # note: amud_dots for gimmel and dalet are a best guess at what might be used. should be refined as real examples are found.
             # if the amud matches that amud letter, subtract the appropriate offset
             quotes = "(?:''|\"|״)"
             for amud_offset, (amud_letter, amud_dots) in enumerate((("ד", "⁘"), ("ג", "∵"), ("ב", ":"), ("א", "."))):
-                if re.search(fr"^(?:{amud_dots}|,?\s?(?:{amud_letter}|ע{quotes}{amud_letter}))$", rest):
+                if re.search(rf"^(?:{amud_dots}|,?\s?(?:{amud_letter}|ע{quotes}{amud_letter}))$", rest):
                     return daf - amud_offset
             # no match
             raise ValueError(f"Couldn't parse Folio address: {s} for lang {lang}")
-
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):
@@ -2593,7 +2726,7 @@ class AddressFolio(AddressType):
         folio = "a" if mod == 1 else "b" if mod == 2 else "c" if mod == 3 else "d"
         daf = str(daf_num) + folio
 
-        # todo
+        # TODO
         if lang == "he":
             dotted = kwargs.get("dotted")
             if dotted:
@@ -2601,9 +2734,17 @@ class AddressFolio(AddressType):
             else:
                 punctuation = kwargs.get("punctuation", True)
                 if i > daf_num * 2:
-                    daf = ("%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation) if daf_num < 1200 else encode_hebrew_numeral(daf_num, punctuation=punctuation)) + "\u05d1"
+                    daf = (
+                        "%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation)
+                        if daf_num < 1200
+                        else encode_hebrew_numeral(daf_num, punctuation=punctuation)
+                    ) + "\u05d1"
                 else:
-                    daf = ("%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation) if daf_num < 1200 else encode_hebrew_numeral(daf_num, punctuation=punctuation)) + "\u05d0"
+                    daf = (
+                        "%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation)
+                        if daf_num < 1200
+                        else encode_hebrew_numeral(daf_num, punctuation=punctuation)
+                    ) + "\u05d0"
 
         return daf
 
@@ -2611,10 +2752,10 @@ class AddressFolio(AddressType):
         if name == "Daf":
             return {
                 "Amud": number,
-                "Daf": number / 2
+                "Daf": number / 2,
             }
-        else:  # shouldn't get here
-            return {name: number}
+        # shouldn't get here
+        return {name: number}
 
     def storage_offset(self):
         return 0
@@ -2624,14 +2765,12 @@ class AddressInteger(AddressType):
     """
     :class:`AddressType` for Integer addresses
     """
+
     def _core_regex(self, lang, group_id=None, **kwargs):
-        if group_id:
-            reg = r"(?P<" + group_id + r">"
-        else:
-            reg = r"("
+        reg = r"(?P<" + group_id + r">" if group_id else r"("
 
         if lang == "en":
-            if kwargs.get('with_roman_numerals', False):
+            if kwargs.get("with_roman_numerals", False):
                 # any char valid in roman numerals (I, V, X, L, C, D, M) + optional trailing period
                 reg += r"(?:\d+|[ivxlcdmIVXLCDM]+(?:\s?\.)?))"
             else:
@@ -2644,7 +2783,7 @@ class AddressInteger(AddressType):
     def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             return int(s)
-        elif lang == "he":
+        if lang == "he":
             return decode_hebrew_numeral(s)
 
     def to_numeric_possibilities(self, lang, s, **kwargs):
@@ -2656,7 +2795,7 @@ class AddressInteger(AddressType):
             try:
                 s = re.sub(r"\.$", "", s).strip()  # remove trailing period
                 possibilities.append(roman.fromRoman(s.upper()))
-            except InvalidRomanNumeralError as e:
+            except InvalidRomanNumeralError:
                 pass
         return possibilities
 
@@ -2714,9 +2853,9 @@ class AddressPerek(AddressInteger):
     }
     section_patterns = {
         "en": r"""(?:(?:[Cc]h(apters?|\.)|[Pp]erek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": fr"""(?:\u05d1?{AddressType.reish_samekh_reg}\u05e4((?:"|\u05f4|''|'\s|\s)|(?=[\u05d0-\u05ea]+(?:"|\u05f4|''|'\s)))   # Peh (for 'perek') maybe followed by a quote of some sort OR lookahead for some letters followed by a quote (e.g. פי״א for chapter 11)
+        "he": rf"""(?:\u05d1?{AddressType.reish_samekh_reg}\u05e4((?:"|\u05f4|''|'\s|\s)|(?=[\u05d0-\u05ea]+(?:"|\u05f4|''|'\s)))   # Peh (for 'perek') maybe followed by a quote of some sort OR lookahead for some letters followed by a quote (e.g. פי״א for chapter 11)
         |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
-        )"""
+        )""",
     }
 
 
@@ -2726,7 +2865,7 @@ class AddressPasuk(AddressInteger):
         "he": r"""(?:\u05d1?(?:                                        # optional ב in front
             (?:\u05e4\u05b8?\u05bc?\u05e1\u05d5\u05bc?\u05e7(?:\u05d9\u05dd)?\s*)|    #pasuk spelled out, with a space after
             (?:\u05e4\u05e1['\u2018\u2019\u05f3]?\s+)
-        ))"""
+        ))""",
     }
 
 
@@ -2736,7 +2875,7 @@ class AddressMishnah(AddressInteger):
         "he": r"""(?:\u05d1?                                                   # optional ב in front
             (?:\u05de\u05b4?\u05e9\u05b0?\u05c1?\u05e0\u05b8?\u05d4\s)			# Mishna spelled out, with a space after
             |(?:\u05de(?:["\u05f4]|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
-        )"""
+        )""",
     }
 
 
@@ -2751,8 +2890,9 @@ class AddressVolume(AddressInteger):
         (?:\u05d7\u05b5?(?:\u05dc\u05b6?\u05e7|'|\u05f3|\u2018|\u2019)\s+)  # Helek - spelled out with nikkud possibly or followed by a ' or a geresh - followed by space
          |(?:\u05d7["\u05f4])                     # chet followed by gershayim or double quote
         )
-        """
+        """,
     }
+
 
 class AddressSiman(AddressInteger):
     section_patterns = {
@@ -2761,7 +2901,7 @@ class AddressSiman(AddressInteger):
             (?:[\u05e1\u05e8](?:"|\u05f4|'')\u05e1\s+)  # (reish or samekh) gershayim samekh. (start or end of siman)
             |(?:\u05e1\u05b4?\u05d9\u05de\u05b8?\u05df\s+)			# Siman spelled out with optional nikud, with a space after
             |(?:\u05e1\u05d9(?:["\u05f4'\u05f3\u2018\u2019](?:['\u05f3\u2018\u2019]|\s+)))		# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
-        )"""
+        )""",
     }
 
 
@@ -2769,12 +2909,13 @@ class AddressHalakhah(AddressInteger):
     """
     :class:`AddressType` for Halakhah/הלכה addresses
     """
+
     section_patterns = {
         "en": r"""(?:(?:[Hh]ala[ck]hah?)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?
             (?:\u05d4\u05bb?\u05dc\u05b8?\u05db(?:\u05b8?\u05d4|\u05d5\u05b9?\u05ea)\s+)			# Halakhah spelled out, with a space after
             |(?:\u05d4\u05dc?(?:["\u05f4'\u05f3\u2018\u2019](?:['\u05f3\u2018\u2019\u05db]|\s+)?)?)		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
-        )"""
+        )""",
     }
 
 
@@ -2784,7 +2925,7 @@ class AddressSeif(AddressInteger):
         "he": r"""(?:\u05d1?
             (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+)			# Seif spelled out, with a space after
             |(?:\u05e1(?:\u05e2\u05d9)?(?:['\u2018\u2019\u05f3"\u05f4](?:['\u2018\u2019\u05f3]|\s+)?)?)	# or trie of first three letters followed by a quote of some sort
-        )"""
+        )""",
     }
 
 
@@ -2794,12 +2935,12 @@ class AddressSeifKatan(AddressInteger):
         "he": r"""(?:\u05d1?
             (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+\u05e7\u05d8\u05df\s+)			# Seif katan spelled out with or without nikud
             |(?:\u05e1(?:['\u2018\u2019\u05f3"\u05f4](?:['\u2018\u2019\u05f3])?)?\u05e7)(?:['\u2018\u2019\u05f3"\u05f4]['\u2018\u2019\u05f3]?|\s+)?	# or trie of first three letters followed by a quote of some sort
-        )"""
+        )""",
     }
 
 
 class AddressSection(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:([Ss]ections?|§)?\s*))""",  #  the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r""""""
+        "he": r"""""",
     }

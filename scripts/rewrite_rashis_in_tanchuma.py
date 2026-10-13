@@ -1,13 +1,13 @@
-__author__ = 'stevenkaplan'
+__author__ = "stevenkaplan"
 
-from sefaria.model import *
-from sefaria.helper.text import *
-from sefaria.tracker import *
-from sefaria.helper.schema import *
-import csv
 import codecs
+import csv
 import io
 
+from sefaria.helper.schema import *
+from sefaria.helper.text import *
+from sefaria.model import *
+from sefaria.tracker import *
 
 
 class UnicodeWriter:
@@ -41,7 +41,7 @@ class UnicodeWriter:
 
 
 def needs_rewrite(text):
-    finds = re.findall("Midrash Tanchuma \d.*?[\s|\)|;|,|\]]", text)
+    finds = re.findall(r"Midrash Tanchuma \d.*?[\s|\)|;|,|\]]", text)
     for i in range(len(finds)):
         if finds[i][-1] in [" ", ",", ";", ")"]:
             finds[i] = finds[i][0:-1]
@@ -64,16 +64,15 @@ def rewrite(tc, mappings, finds):
             replace_dict[find] = mappings[process_ref(find)]
             found = True
         else:
-            not_found.append("In {}, there is the following reference: {}".format(ref.normal(), find))
+            not_found.append(f"In {ref.normal()}, there is the following reference: {find}")
 
     if type(text) is list and type(text[0]) is not list:
-        for i, line in enumerate(text):
+        for i, _line in enumerate(text):
             for key in replace_dict:
                 text[i] = text[i].replace(key, replace_dict[key])
-    elif type(text) is not list:
-        if len(finds) > 0:
-            for key in replace_dict:
-                text = text.replace(key, replace_dict[key])
+    elif type(text) is not list and len(finds) > 0:
+        for key in replace_dict:
+            text = text.replace(key, replace_dict[key])
     return text, not_found, found
 
 
@@ -87,9 +86,8 @@ def get_mappings(file):
     return mappings
 
 
-
 def execute():
-    results = codecs.open("data/tanchuma_ref_results.csv", 'r', 'utf-8')
+    results = codecs.open("data/tanchuma_ref_results.csv", "r", "utf-8")
     reader = csv.reader(results)
     lines = []
     info = []
@@ -103,23 +101,23 @@ def execute():
 
     for count, line in enumerate(lines):
         print(count)
-        line = line.decode('utf-8')
+        line = line.decode("utf-8")
         other_ref, vtitle = info[count]
         # modify_text(15399, Ref(other_ref), vtitle, 'en', line.strip())
         tc = TextChunk(Ref(other_ref), vtitle=vtitle, lang="en")
         tc.text = tc.text.strip()
         tc.save()
 
+
 def write():
     mappings = get_mappings("data/tanchuma_map.csv")
     ls = LinkSet(Ref("Midrash Tanchuma"))
-    section_refs = {}
     not_found_arr = []
     input_errors = 0
-    results = codecs.open("data/tanchuma_ref_results.csv", 'w', 'utf-8')
-    text_results = codecs.open("data/tanchuma_text_results.txt", 'w', 'utf-8')
+    results = codecs.open("data/tanchuma_ref_results.csv", "w", "utf-8")
+    text_results = codecs.open("data/tanchuma_text_results.txt", "w", "utf-8")
     writer = UnicodeWriter(results)
-    for count, l in enumerate(ls):
+    for _count, l in enumerate(ls):
         refs = [ref for ref in l.refs if not ref.startswith("Midrash Tanchuma")]
         try:
             other_ref = Ref(refs[0])
@@ -128,30 +126,29 @@ def write():
             continue
 
         title = other_ref.book
-        vtitles = [version.versionTitle for version in library.get_index(title).versionSet() if version.language == 'en']
-        TCs = []
+        vtitles = [
+            version.versionTitle for version in library.get_index(title).versionSet() if version.language == "en"
+        ]
         for vtitle in vtitles:
-            tc = TextChunk(other_ref, vtitle=vtitle, lang='en')
+            tc = TextChunk(other_ref, vtitle=vtitle, lang="en")
             finds = needs_rewrite(tc.as_string())
             if len(finds) > 0:
                 text, not_found, found = rewrite(tc, mappings, finds)
                 not_found_arr += not_found
                 if found:
                     try:
-                        print("writing... {}".format(other_ref.normal()))
+                        print(f"writing... {other_ref.normal()}")
                         writer.writerow([other_ref.normal(), vtitle])
-                        text_results.write(text+"\n")
+                        text_results.write(text + "\n")
                     except:
                         print(other_ref)
 
-    #print "INPUT ERRORS = {}".format(input_errors)
-    print("NOT FOUND BAD REF = {}".format(len(not_found_arr)))
+    # print "INPUT ERRORS = {}".format(input_errors)
+    print(f"NOT FOUND BAD REF = {len(not_found_arr)}")
     for each in not_found_arr:
         print(each)
     results.close()
 
+
 if __name__ == "__main__":
     execute()
-
-
-    

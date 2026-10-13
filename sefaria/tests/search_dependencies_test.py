@@ -12,22 +12,21 @@ Two layers:
   sefaria/tests/search_test.py). These exercise the notify wiring, subscription
   ordering, and cascade suppression that the commit relies on.
 """
-import pytest
+
 from unittest.mock import MagicMock
 
+import pytest
 from elasticsearch.exceptions import NotFoundError
-
-from django_topics.models import Topic as DjangoTopic, TopicPool, PoolType
 
 import sefaria.model.dependencies as dependencies
 import sefaria.search as search_module
-from sefaria.model import Index, IndexSet, Version, Ref, TextChunk, VersionState, library
+from django_topics.models import PoolType, TopicPool
+from django_topics.models import Topic as DjangoTopic
+from sefaria.model import Index, Ref, TextChunk, Version, VersionState, library
 from sefaria.model.category import Category
 from sefaria.model.schema import Term
-from sefaria.model.topic import Topic, PersonTopic, AuthorTopic, TopicSet
+from sefaria.model.topic import AuthorTopic, PersonTopic, Topic, TopicSet
 from sefaria.search import TextIndexer, make_text_doc_id
-from sefaria.system.exceptions import BookNameError
-
 
 # --------------------------------------------------------------------------- #
 #  Shared scaffolding                                                          #
@@ -37,8 +36,7 @@ TEXT_INDEX = "text-test"
 TOPIC_INDEX = "topic-test"
 BOOK_INDEX = "book-test"
 FAKE_INDEX_NAMES = {
-    t: {"new": f"{t}-test-new", "current": f"{t}-test", "alias": t}
-    for t in ("text", "sheet", "topic", "book")
+    t: {"new": f"{t}-test-new", "current": f"{t}-test", "alias": t} for t in ("text", "sheet", "topic", "book")
 }
 
 
@@ -47,9 +45,9 @@ class FakeES:
     Every call is appended to an ordered log so tests can assert sequencing."""
 
     def __init__(self):
-        self.store = {}             # (index_name, id) -> document
-        self.log = []               # ordered ("index"|"delete", index_name, id)
-        self.fail_index_ids = set() # ids for which .index() raises
+        self.store = {}  # (index_name, id) -> document
+        self.log = []  # ordered ("index"|"delete", index_name, id)
+        self.fail_index_ids = set()  # ids for which .index() raises
 
     def index(self, index, document=None, id=None, **kwargs):
         self.log.append(("index", index, id))
@@ -86,11 +84,13 @@ def fake_es(monkeypatch):
     fake = FakeES()
     monkeypatch.setattr(search_module, "es_client", fake)
     monkeypatch.setattr(
-        search_module, "get_new_and_current_index_names",
+        search_module,
+        "get_new_and_current_index_names",
         lambda type, debug=False: dict(FAKE_INDEX_NAMES[type]),
     )
     monkeypatch.setattr(
-        search_module, "bulk",
+        search_module,
+        "bulk",
         lambda client, actions, **kwargs: fake.apply_bulk(actions),
     )
     return fake
@@ -108,8 +108,10 @@ def search_on(monkeypatch, fake_es):
     by copying the module, so the two are separate holders of the same value and patching
     one does not move the other.
     """
-    import sefaria.settings as sefaria_settings
     from django.conf import settings as django_settings
+
+    import sefaria.settings as sefaria_settings
+
     monkeypatch.setattr(sefaria_settings, "SEARCH_INDEX_ON_SAVE", True, raising=False)
     monkeypatch.setattr(django_settings, "SEARCH_INDEX_ON_SAVE", True, raising=False)
     return fake_es
@@ -212,10 +214,7 @@ def test_book(search_on):
 
 
 def _segment_doc_ids(title, vtitle=TEST_VTITLE, lang="en"):
-    return {
-        make_text_doc_id(r.normal(), vtitle, lang)
-        for r in library.get_index(title).all_segment_refs()
-    }
+    return {make_text_doc_id(r.normal(), vtitle, lang) for r in library.get_index(title).all_segment_refs()}
 
 
 def _seed_segment_docs(fake, title, vtitle=TEST_VTITLE, lang="en"):
@@ -231,13 +230,14 @@ def _seed_segment_docs(fake, title, vtitle=TEST_VTITLE, lang="en"):
 #  Layer 0 — pure unit tests (no Mongo, no ES)                                 #
 # --------------------------------------------------------------------------- #
 
-class TestUnitGuards:
 
+class TestUnitGuards:
     def test_index_book_docs_builds_actions_and_skips_failures(self, monkeypatch):
         """One good record -> exactly one bulk action with the right _id;
         a raising builder and a None builder are skipped without aborting."""
         monkeypatch.setattr(
-            search_module, "get_new_and_current_index_names",
+            search_module,
+            "get_new_and_current_index_names",
             lambda type, debug=False: dict(FAKE_INDEX_NAMES[type]),
         )
 
@@ -267,11 +267,11 @@ class TestUnitGuards:
 
     def test_index_book_docs_skips_bulk_when_no_actions(self, monkeypatch):
         monkeypatch.setattr(
-            search_module, "get_new_and_current_index_names",
+            search_module,
+            "get_new_and_current_index_names",
             lambda type, debug=False: dict(FAKE_INDEX_NAMES[type]),
         )
-        monkeypatch.setattr(search_module, "make_book_index_document",
-                            lambda index, author_name_cache=None: None)
+        monkeypatch.setattr(search_module, "make_book_index_document", lambda index, author_name_cache=None: None)
         bulk_spy = MagicMock()
         monkeypatch.setattr(search_module, "bulk", bulk_spy)
         search_module.index_book_docs(["a", "b"])
@@ -285,29 +285,32 @@ class TestUnitGuards:
 
         class _FakeIndexRecord:
             categories = ["Liturgy"]
+
             def best_time_period(self):
                 return None
 
         class _FakeOref:
             index = _FakeIndexRecord()
+
             def normal(self):
                 return "Fake Book 1:1"
+
             def he_normal(self):
                 return "ספר 1:1"
 
         class _FakeChunk:
             def __init__(self, *args, **kwargs):
                 pass
+
             def ja(self):
                 return self
+
             def flatten_to_string(self):
                 return ""
 
         monkeypatch.setattr(search_module, "TextChunk", _FakeChunk)
-        monkeypatch.setattr(TextIndexer, "get_ref_version_list",
-                            classmethod(lambda cls, oref: []))
-        monkeypatch.setattr(TextIndexer, "make_text_index_document",
-                            classmethod(lambda cls, *args, **kwargs: False))
+        monkeypatch.setattr(TextIndexer, "get_ref_version_list", classmethod(lambda cls, oref: []))
+        monkeypatch.setattr(TextIndexer, "make_text_index_document", classmethod(lambda cls, *args, **kwargs: False))
 
         TextIndexer.index_ref(TEXT_INDEX, _FakeOref(), TEST_VTITLE, "en", None, False)
 
@@ -315,8 +318,7 @@ class TestUnitGuards:
 
     @pytest.mark.parametrize("bad_names", [None, {}, {"current": None}])
     def test_entity_helpers_bail_when_index_name_unresolvable(self, monkeypatch, bad_names):
-        monkeypatch.setattr(search_module, "get_new_and_current_index_names",
-                            lambda type, debug=False: bad_names)
+        monkeypatch.setattr(search_module, "get_new_and_current_index_names", lambda type, debug=False: bad_names)
         fake = FakeES()
         monkeypatch.setattr(search_module, "es_client", fake)
         bulk_spy = MagicMock()
@@ -333,14 +335,20 @@ class TestUnitGuards:
 
     def test_hooks_noop_when_search_index_on_save_off(self, monkeypatch):
         """Prod default is off: with the flag off, no hook may touch sefaria.search."""
-        import sefaria.settings as sefaria_settings
         from django.conf import settings as django_settings
+
+        import sefaria.settings as sefaria_settings
+
         monkeypatch.setattr(sefaria_settings, "SEARCH_INDEX_ON_SAVE", False, raising=False)
         monkeypatch.setattr(django_settings, "SEARCH_INDEX_ON_SAVE", False, raising=False)
 
         spied = [
-            "index_book_doc", "delete_book_doc", "index_topic_doc",
-            "delete_topic_doc", "index_book_docs", "delete_version",
+            "index_book_doc",
+            "delete_book_doc",
+            "index_topic_doc",
+            "delete_topic_doc",
+            "index_book_docs",
+            "delete_version",
             "get_new_and_current_index_names",
         ]
         spies = {}
@@ -377,8 +385,8 @@ class TestUnitGuards:
 #  Layer 1 — hook integration tests (real Mongo, fake ES)                      #
 # --------------------------------------------------------------------------- #
 
-class TestBookHooks:
 
+class TestBookHooks:
     def test_book_save_and_delete(self, django_db_setup, django_db_blocker, search_on):
         """T2: creating an Index upserts its book doc (id = English title);
         deleting the Index removes it. Includes author_names denormalization."""
@@ -386,13 +394,15 @@ class TestBookHooks:
         with django_db_blocker.unblock():
             _delete_book_records(TEST_BOOK, TEST_BOOK_RENAMED)
             _delete_topic_records(TEST_AUTHOR_SLUG)
-            author = AuthorTopic({
-                "slug": TEST_AUTHOR_SLUG,
-                "titles": [{"text": "Test ES Cascade Author", "primary": True, "lang": "en"}],
-            })
+            author = AuthorTopic(
+                {
+                    "slug": TEST_AUTHOR_SLUG,
+                    "titles": [{"text": "Test ES Cascade Author", "primary": True, "lang": "en"}],
+                },
+            )
             author.save()
             try:
-                book = _make_book(authors=[author.slug])
+                _make_book(authors=[author.slug])
                 try:
                     doc = fake.get(BOOK_INDEX, TEST_BOOK)
                     assert doc is not None
@@ -442,10 +452,8 @@ class TestBookHooks:
         assert new_doc["path"] == f"Liturgy/{TEST_BOOK_RENAMED}"
 
         # Ordering: stale book-doc delete precedes the new book-doc upsert
-        delete_pos = max(i for i, op in enumerate(fake.log)
-                         if op == ("delete", BOOK_INDEX, TEST_BOOK))
-        index_pos = max(i for i, op in enumerate(fake.log)
-                        if op == ("index", BOOK_INDEX, TEST_BOOK_RENAMED))
+        delete_pos = max(i for i, op in enumerate(fake.log) if op == ("delete", BOOK_INDEX, TEST_BOOK))
+        index_pos = max(i for i, op in enumerate(fake.log) if op == ("index", BOOK_INDEX, TEST_BOOK_RENAMED))
         assert delete_pos < index_pos
 
     def test_version_rename_reindexes_segments(self, search_on, test_book):
@@ -492,20 +500,21 @@ class TestBookHooks:
                 assert doc_id in text_ids, f"segment {tref} should have indexed despite the failure"
 
         assert logger_spy.warning.called
-        summary_calls = [c for c in logger_spy.error.call_args_list
-                         if c.kwargs.get("failed_count") == 1]
+        summary_calls = [c for c in logger_spy.error.call_args_list if c.kwargs.get("failed_count") == 1]
         assert summary_calls, "expected a summary error naming the one failed segment"
-        assert failing_ref in [ref for ref in summary_calls[0].kwargs["failed_refs"]]
+        assert failing_ref in list(summary_calls[0].kwargs["failed_refs"])
 
 
 @pytest.mark.django_db
 class TestTopicHooks:
-
-    @pytest.mark.parametrize("klass, expected_subtype", [
-        (Topic, "topic"),
-        (PersonTopic, "topic"),
-        (AuthorTopic, "author"),
-    ])
+    @pytest.mark.parametrize(
+        "klass, expected_subtype",
+        [
+            (Topic, "topic"),
+            (PersonTopic, "topic"),
+            (AuthorTopic, "author"),
+        ],
+    )
     def test_topic_save_and_delete(self, search_on, klass, expected_subtype):
         """T3: save -> doc present (id = slug, correct subtype); delete -> gone.
         Parametrized over all three concrete classes to pin the exact-type
@@ -516,10 +525,12 @@ class TestTopicHooks:
         slug = f"test-es-cascade-{klass.__name__.lower()}"
         _delete_topic_records(slug)
         _put_in_library_pool(slug)
-        t = klass({
-            "slug": slug,
-            "titles": [{"text": f"Test ES Cascade {klass.__name__}", "primary": True, "lang": "en"}],
-        })
+        t = klass(
+            {
+                "slug": slug,
+                "titles": [{"text": f"Test ES Cascade {klass.__name__}", "primary": True, "lang": "en"}],
+            },
+        )
         try:
             t.save()
             doc = fake.get(TOPIC_INDEX, t.slug)
@@ -537,10 +548,12 @@ class TestTopicHooks:
         slug = "test-es-cascade-missing-doc"
         _delete_topic_records(slug)
         _put_in_library_pool(slug)
-        t = Topic({
-            "slug": slug,
-            "titles": [{"text": "Test ES Cascade Missing Doc", "primary": True, "lang": "en"}],
-        })
+        t = Topic(
+            {
+                "slug": slug,
+                "titles": [{"text": "Test ES Cascade Missing Doc", "primary": True, "lang": "en"}],
+            },
+        )
         t.save()
         fake.store.clear()  # simulate: doc never indexed
 
@@ -558,10 +571,12 @@ class TestTopicHooks:
         slug = "test-es-cascade-unpooled"
         _delete_topic_records(slug)
         # deliberately NOT added to the library pool
-        t = Topic({
-            "slug": slug,
-            "titles": [{"text": "Test ES Cascade Unpooled", "primary": True, "lang": "en"}],
-        })
+        t = Topic(
+            {
+                "slug": slug,
+                "titles": [{"text": "Test ES Cascade Unpooled", "primary": True, "lang": "en"}],
+            },
+        )
         try:
             t.save()
             assert fake.get(TOPIC_INDEX, slug) is None
@@ -577,10 +592,12 @@ class TestTopicHooks:
         slug = "test-es-cascade-depooled"
         _delete_topic_records(slug)
         django_topic = _put_in_library_pool(slug)
-        t = Topic({
-            "slug": slug,
-            "titles": [{"text": "Test ES Cascade Depooled", "primary": True, "lang": "en"}],
-        })
+        t = Topic(
+            {
+                "slug": slug,
+                "titles": [{"text": "Test ES Cascade Depooled", "primary": True, "lang": "en"}],
+            },
+        )
         try:
             t.save()
             assert fake.get(TOPIC_INDEX, slug) is not None, "precondition: indexed while pooled"
@@ -602,10 +619,12 @@ class TestTopicHooks:
         _delete_topic_records(slug)
         _put_in_library_pool(slug)
         real_lookup = search_module.is_library_pool_topic  # bound before try: the finally needs it
-        t = Topic({
-            "slug": slug,
-            "titles": [{"text": "Test ES Cascade Pool Lookup Down", "primary": True, "lang": "en"}],
-        })
+        t = Topic(
+            {
+                "slug": slug,
+                "titles": [{"text": "Test ES Cascade Pool Lookup Down", "primary": True, "lang": "en"}],
+            },
+        )
         try:
             t.save()
             existing = fake.get(TOPIC_INDEX, slug)
@@ -614,6 +633,7 @@ class TestTopicHooks:
 
             def boom(_slug):
                 raise Exception("simulated Postgres outage")
+
             monkeypatch.setattr(search_module, "is_library_pool_topic", boom)
 
             t.save()  # must not raise
@@ -629,7 +649,6 @@ class TestTopicHooks:
 
 
 class TestCategoryHooks:
-
     def test_category_path_change_reindexes_books(self, search_on, monkeypatch):
         """T5: renaming a category re-upserts its books' docs with the new
         categories/path — via the category hook ALONE. The cascaded Index saves
@@ -683,4 +702,3 @@ class TestCategoryHooks:
             library.rebuild_toc()
             for term in terms:
                 term.delete()
-

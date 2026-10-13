@@ -18,10 +18,11 @@ Test Coverage:
 """
 
 import pytest
-from django.test import RequestFactory, override_settings
 from django.contrib.auth.models import AnonymousUser
-from sefaria.system.middleware import LanguageSettingsMiddleware, LanguageCookieMiddleware
+from django.test import RequestFactory, override_settings
+
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+from sefaria.system.middleware import LanguageSettingsMiddleware
 
 # ============================================================================
 # TEST CONFIGURATIONS
@@ -31,73 +32,73 @@ from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 TESTING_CONFIG = {
     "en": {
         "library": "https://www.modularization.testing.sefaria.org",
-        "voices": "https://voices.modularization.testing.sefaria.org"
+        "voices": "https://voices.modularization.testing.sefaria.org",
     },
     "he": {
         "library": "https://www.modularization.testing.sefaria.org",
-        "voices": "https://voices.modularization.testing.sefaria.org"
-    }
+        "voices": "https://voices.modularization.testing.sefaria.org",
+    },
 }
 
 # NOTE: these are mock urls to mimic staging
 STAGING_CONFIG = {
     "en": {
         "library": "https://www.sef-stage.org",
-        "voices": "https://voices.sef-stage.org"
+        "voices": "https://voices.sef-stage.org",
     },
     "he": {
         "library": "https://www.sef-stage-il.org",
-        "voices": "https://chiburim.sef-stage-il.org"
-    }
+        "voices": "https://chiburim.sef-stage-il.org",
+    },
 }
 
 PRODUCTION_CONFIG = {
     "en": {
         "library": "https://www.sefaria.org",
-        "voices": "https://voices.sefaria.org"
+        "voices": "https://voices.sefaria.org",
     },
     "he": {
         "library": "https://www.sefaria.org.il",
-        "voices": "https://chiburim.sefaria.org.il"
-    }
+        "voices": "https://chiburim.sefaria.org.il",
+    },
 }
 
 # Extract allowed hosts from configs
 
 # Note: These are mocked URLS to mimic our testing environment
 TESTING_HOSTS = [
-    'www.modularization.testing.sefaria.org',
-    'voices.modularization.testing.sefaria.org'
+    "www.modularization.testing.sefaria.org",
+    "voices.modularization.testing.sefaria.org",
 ]
 
 STAGING_HOSTS = [
-    'www.sef-stage.org',
-    'voices.sef-stage.org',
-    'www.sef-stage-il.org',
-    'chiburim.sef-stage-il.org'
+    "www.sef-stage.org",
+    "voices.sef-stage.org",
+    "www.sef-stage-il.org",
+    "chiburim.sef-stage-il.org",
 ]
 
 PRODUCTION_HOSTS = [
-    'www.sefaria.org',
-    'voices.sefaria.org',
-    'www.sefaria.org.il',
-    'chiburim.sefaria.org.il'
+    "www.sefaria.org",
+    "voices.sefaria.org",
+    "www.sefaria.org.il",
+    "chiburim.sefaria.org.il",
 ]
 
 # Create reusable decorators
 testing_settings = override_settings(
     DOMAIN_MODULES=TESTING_CONFIG,
-    ALLOWED_HOSTS=TESTING_HOSTS
+    ALLOWED_HOSTS=TESTING_HOSTS,
 )
 
 staging_settings = override_settings(
     DOMAIN_MODULES=STAGING_CONFIG,
-    ALLOWED_HOSTS=STAGING_HOSTS
+    ALLOWED_HOSTS=STAGING_HOSTS,
 )
 
 production_settings = override_settings(
     DOMAIN_MODULES=PRODUCTION_CONFIG,
-    ALLOWED_HOSTS=PRODUCTION_HOSTS
+    ALLOWED_HOSTS=PRODUCTION_HOSTS,
 )
 
 
@@ -105,14 +106,15 @@ production_settings = override_settings(
 # TESTS
 # ============================================================================
 
+
 class TestLanguageModuleSwitching:
     """Test language and module switching behavior"""
-    
+
     @pytest.fixture
     def factory(self):
         """Provides RequestFactory for creating mock requests"""
         return RequestFactory()
-    
+
     @pytest.fixture
     def language_middleware(self):
         """Provides LanguageSettingsMiddleware instance"""
@@ -136,17 +138,17 @@ class TestLanguageModuleSwitching:
         Then: Should NOT redirect (domain is same for both languages)
               Language should be set to 'english' based on cookie
         """
-        request = factory.get('/', HTTP_HOST='www.modularization.testing.sefaria.org')
-        request.COOKIES = {'interfaceLang': 'english'}
+        request = factory.get("/", HTTP_HOST="www.modularization.testing.sefaria.org")
+        request.COOKIES = {"interfaceLang": "english"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = LIBRARY_MODULE
 
         response = language_middleware.process_request(request)
 
         # Should NOT redirect since domain is the same for both languages
         assert response is None, "Should not redirect on non-language-pinned domain"
-        assert request.interfaceLang == 'english', "Interface language should be set to English"
+        assert request.interfaceLang == "english", "Interface language should be set to English"
 
     # SCENARIO 2: Library - Hebrew language preference (cookie-based)
     @testing_settings
@@ -157,17 +159,17 @@ class TestLanguageModuleSwitching:
         Then: Should NOT redirect (domain is same for both languages)
               Language should be set to 'hebrew' based on cookie
         """
-        request = factory.get('/', HTTP_HOST='www.modularization.testing.sefaria.org')
-        request.COOKIES = {'interfaceLang': 'hebrew'}
+        request = factory.get("/", HTTP_HOST="www.modularization.testing.sefaria.org")
+        request.COOKIES = {"interfaceLang": "hebrew"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = LIBRARY_MODULE
 
         response = language_middleware.process_request(request)
 
         # Should NOT redirect since domain is the same for both languages
         assert response is None, "Should not redirect on non-language-pinned domain"
-        assert request.interfaceLang == 'hebrew', "Interface language should be set to Hebrew"
+        assert request.interfaceLang == "hebrew", "Interface language should be set to Hebrew"
 
     # SCENARIO 3: Voices - English language preference (cookie-based)
     @testing_settings
@@ -178,17 +180,17 @@ class TestLanguageModuleSwitching:
         Then: Should NOT redirect (domain is same for both languages)
               Language should be set to 'english' based on cookie
         """
-        request = factory.get('/', HTTP_HOST='voices.modularization.testing.sefaria.org')
-        request.COOKIES = {'interfaceLang': 'english'}
+        request = factory.get("/", HTTP_HOST="voices.modularization.testing.sefaria.org")
+        request.COOKIES = {"interfaceLang": "english"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = VOICES_MODULE
 
         response = language_middleware.process_request(request)
 
         # Should NOT redirect since domain is the same for both languages
         assert response is None, "Should not redirect on non-language-pinned domain"
-        assert request.interfaceLang == 'english', "Interface language should be set to English"
+        assert request.interfaceLang == "english", "Interface language should be set to English"
 
     # SCENARIO 4: Voices - Hebrew language preference (cookie-based)
     @testing_settings
@@ -199,17 +201,17 @@ class TestLanguageModuleSwitching:
         Then: Should NOT redirect (domain is same for both languages)
               Language should be set to 'hebrew' based on cookie
         """
-        request = factory.get('/', HTTP_HOST='voices.modularization.testing.sefaria.org')
-        request.COOKIES = {'interfaceLang': 'hebrew'}
+        request = factory.get("/", HTTP_HOST="voices.modularization.testing.sefaria.org")
+        request.COOKIES = {"interfaceLang": "hebrew"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = VOICES_MODULE
 
         response = language_middleware.process_request(request)
 
         # Should NOT redirect since domain is the same for both languages
         assert response is None, "Should not redirect on non-language-pinned domain"
-        assert request.interfaceLang == 'hebrew', "Interface language should be set to Hebrew"
+        assert request.interfaceLang == "hebrew", "Interface language should be set to Hebrew"
 
     # ========================================================================
     # STAGING TESTS - Language Switching Only
@@ -224,19 +226,19 @@ class TestLanguageModuleSwitching:
         Then: User should be redirected to Hebrew Library (www.sef-stage-il.org)
               with ?set-language-cookie parameter
         """
-        request = factory.get('/', HTTP_HOST='www.sef-stage.org')
-        request.COOKIES = {'interfaceLang': 'hebrew'}
+        request = factory.get("/", HTTP_HOST="www.sef-stage.org")
+        request.COOKIES = {"interfaceLang": "hebrew"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = LIBRARY_MODULE
 
         response = language_middleware.process_request(request)
 
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
-        assert 'www.sef-stage-il.org' in response.url, "Should redirect to Hebrew domain"
-        assert 'set-language-cookie' in response.url, "Should include cookie parameter"
-    
+        assert "www.sef-stage-il.org" in response.url, "Should redirect to Hebrew domain"
+        assert "set-language-cookie" in response.url, "Should include cookie parameter"
+
     # SCENARIO 2: Hebrew-Library → English (Language Switch)
     @staging_settings
     def test_hebrew_library_switch_to_english(self, factory, language_middleware):
@@ -246,19 +248,18 @@ class TestLanguageModuleSwitching:
         Then: User should be redirected to English Library (www.sef-stage.org)
               with ?set-language-cookie parameter
         """
-        request = factory.get('/', HTTP_HOST='www.sef-stage-il.org')
-        request.COOKIES = {'interfaceLang': 'english'}
+        request = factory.get("/", HTTP_HOST="www.sef-stage-il.org")
+        request.COOKIES = {"interfaceLang": "english"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = LIBRARY_MODULE
 
         response = language_middleware.process_request(request)
 
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
-        assert 'www.sef-stage.org' in response.url, "Should redirect to English domain"
-        assert 'set-language-cookie' in response.url, "Should include cookie parameter"
-
+        assert "www.sef-stage.org" in response.url, "Should redirect to English domain"
+        assert "set-language-cookie" in response.url, "Should include cookie parameter"
 
     # SCENARIO 3: English-Voices → Hebrew (Language Switch)
     @staging_settings
@@ -269,19 +270,18 @@ class TestLanguageModuleSwitching:
         Then: User should be redirected to Hebrew Voices (chiburim.sef-stage-il.org)
               with ?set-language-cookie parameter
         """
-        request = factory.get('/', HTTP_HOST='voices.sef-stage.org')
-        request.COOKIES = {'interfaceLang': 'hebrew'}
+        request = factory.get("/", HTTP_HOST="voices.sef-stage.org")
+        request.COOKIES = {"interfaceLang": "hebrew"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = VOICES_MODULE
 
         response = language_middleware.process_request(request)
 
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
-        assert 'chiburim.sef-stage-il.org' in response.url, "Should redirect to Hebrew domain"
-        assert 'set-language-cookie' in response.url, "Should include cookie parameter"
-
+        assert "chiburim.sef-stage-il.org" in response.url, "Should redirect to Hebrew domain"
+        assert "set-language-cookie" in response.url, "Should include cookie parameter"
 
     # SCENARIO 4: Hebrew-Voices → English (Language Switch)
     @staging_settings
@@ -292,20 +292,18 @@ class TestLanguageModuleSwitching:
         Then: User should be redirected to English Voices (voices.sef-stage.org)
               with ?set-language-cookie parameter
         """
-        request = factory.get('/', HTTP_HOST='chiburim.sef-stage-il.org')
-        request.COOKIES = {'interfaceLang': 'english'}
+        request = factory.get("/", HTTP_HOST="chiburim.sef-stage-il.org")
+        request.COOKIES = {"interfaceLang": "english"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = VOICES_MODULE
 
         response = language_middleware.process_request(request)
 
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
-        assert 'voices.sef-stage.org' in response.url, "Should redirect to English domain"
-        assert 'set-language-cookie' in response.url, "Should include cookie parameter"
-
-
+        assert "voices.sef-stage.org" in response.url, "Should redirect to English domain"
+        assert "set-language-cookie" in response.url, "Should include cookie parameter"
 
     # ========================================================================
     # PRODUCTION TESTS - Language Switching Only
@@ -320,18 +318,18 @@ class TestLanguageModuleSwitching:
         Then: User should be redirected to Hebrew Library (www.sefaria.org.il)
               with ?set-language-cookie parameter
         """
-        request = factory.get('/', HTTP_HOST='www.sefaria.org')
-        request.COOKIES = {'interfaceLang': 'hebrew'}
+        request = factory.get("/", HTTP_HOST="www.sefaria.org")
+        request.COOKIES = {"interfaceLang": "hebrew"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = LIBRARY_MODULE
 
         response = language_middleware.process_request(request)
 
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
-        assert 'www.sefaria.org.il' in response.url, "Should redirect to Hebrew domain"
-        assert 'set-language-cookie' in response.url, "Should include cookie parameter"
+        assert "www.sefaria.org.il" in response.url, "Should redirect to Hebrew domain"
+        assert "set-language-cookie" in response.url, "Should include cookie parameter"
 
     # SCENARIO 2: Hebrew-Library → English (Language Switch)
     @production_settings
@@ -342,18 +340,18 @@ class TestLanguageModuleSwitching:
         Then: User should be redirected to English Library (www.sefaria.org)
               with ?set-language-cookie parameter
         """
-        request = factory.get('/', HTTP_HOST='www.sefaria.org.il')
-        request.COOKIES = {'interfaceLang': 'english'}
+        request = factory.get("/", HTTP_HOST="www.sefaria.org.il")
+        request.COOKIES = {"interfaceLang": "english"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = LIBRARY_MODULE
 
         response = language_middleware.process_request(request)
 
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
-        assert 'www.sefaria.org' in response.url, "Should redirect to English domain"
-        assert 'set-language-cookie' in response.url, "Should include cookie parameter"
+        assert "www.sefaria.org" in response.url, "Should redirect to English domain"
+        assert "set-language-cookie" in response.url, "Should include cookie parameter"
 
     # SCENARIO 3: English-Voices → Hebrew (Language Switch)
     @production_settings
@@ -364,18 +362,18 @@ class TestLanguageModuleSwitching:
         Then: User should be redirected to Hebrew Voices (chiburim.sefaria.org.il)
               with ?set-language-cookie parameter
         """
-        request = factory.get('/', HTTP_HOST='voices.sefaria.org')
-        request.COOKIES = {'interfaceLang': 'hebrew'}
+        request = factory.get("/", HTTP_HOST="voices.sefaria.org")
+        request.COOKIES = {"interfaceLang": "hebrew"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = VOICES_MODULE
 
         response = language_middleware.process_request(request)
 
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
-        assert 'chiburim.sefaria.org.il' in response.url, "Should redirect to Hebrew domain"
-        assert 'set-language-cookie' in response.url, "Should include cookie parameter"
+        assert "chiburim.sefaria.org.il" in response.url, "Should redirect to Hebrew domain"
+        assert "set-language-cookie" in response.url, "Should include cookie parameter"
 
     # SCENARIO 4: Hebrew-Voices → English (Language Switch)
     @production_settings
@@ -386,15 +384,15 @@ class TestLanguageModuleSwitching:
         Then: User should be redirected to English Voices (voices.sefaria.org)
               with ?set-language-cookie parameter
         """
-        request = factory.get('/', HTTP_HOST='chiburim.sefaria.org.il')
-        request.COOKIES = {'interfaceLang': 'english'}
+        request = factory.get("/", HTTP_HOST="chiburim.sefaria.org.il")
+        request.COOKIES = {"interfaceLang": "english"}
         request.user = AnonymousUser()
-        request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
+        request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
         request.active_module = VOICES_MODULE
 
         response = language_middleware.process_request(request)
 
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
-        assert 'voices.sefaria.org' in response.url, "Should redirect to English domain"
-        assert 'set-language-cookie' in response.url, "Should include cookie parameter"
+        assert "voices.sefaria.org" in response.url, "Should redirect to English domain"
+        assert "set-language-cookie" in response.url, "Should include cookie parameter"

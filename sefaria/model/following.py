@@ -3,17 +3,18 @@ following.py - handle following relationships between users
 
 Writes to MongoDB Collection: following
 """
+
 from datetime import datetime
 
-from sefaria.system.database import db
-from sefaria.system.cache import django_cache
-
 import structlog
+
+from sefaria.system.cache import django_cache
+from sefaria.system.database import db
 
 logger = structlog.get_logger(__name__)
 
 
-class FollowRelationship(object):
+class FollowRelationship:
     def __init__(self, follower=None, followee=None):
         self.follower = follower
         self.followee = followee
@@ -38,10 +39,9 @@ class FollowRelationship(object):
         db.following.delete_one({"follower": self.follower, "followee": self.followee})
 
 
-class FollowSet(object):
+class FollowSet:
     def __init__(self):
         self.uids = []
-        return self
 
     @property
     def count(self):
@@ -63,27 +63,32 @@ def aggregate_profiles(lang="english", limit=None):
     match_stage = {"status": "public"} if lang == "english" else {"status": "public", "sheetLanguage": "hebrew"}
     pipeline = [
         {"$match": match_stage},  # get all the sheets matching the criteria
-        {"$sortByCount": "$owner"}  # group them by owner and count how many each owner has
+        {"$sortByCount": "$owner"},  # group them by owner and count how many each owner has
     ]
 
     if limit is not None:
         pipeline += [
-            {"$match": {"count": {"$gte": limit}}}
+            {"$match": {"count": {"$gte": limit}}},
             # limit to owners with 3 or more sheets ("count" field is a result of the previous stage) that matched the first match
         ]
 
     pipeline += [
-        {"$lookup": {
-            # perform a "left join", use the "_id" field from the last stage, which contains the user/owner id of sheets, to look up corresponding profile obj
-            "from": "profiles",
-            "localField": "_id",
-            "foreignField": "id",
-            "as": "user"}},
-        {"$unwind": {
-            # not sure this does anything, if there are accidental multiple user profiles for one user id, it unwinds them
-            "path": "$user",
-            "preserveNullAndEmptyArrays": True
-        }}
+        {
+            "$lookup": {
+                # perform a "left join", use the "_id" field from the last stage, which contains the user/owner id of sheets, to look up corresponding profile obj
+                "from": "profiles",
+                "localField": "_id",
+                "foreignField": "id",
+                "as": "user",
+            },
+        },
+        {
+            "$unwind": {
+                # not sure this does anything, if there are accidental multiple user profiles for one user id, it unwinds them
+                "path": "$user",
+                "preserveNullAndEmptyArrays": True,
+            },
+        },
     ]
     results = db.sheets.aggregate(pipeline)
     try:
@@ -102,8 +107,8 @@ def general_follow_recommendations(lang="english", n=4):
     Recommend people to follow without any information about the person we're recommending for.
     """
     from random import choices
+
     from django.contrib.auth.models import User
-    from sefaria.system.database import db
 
     global creators
     if not creators:

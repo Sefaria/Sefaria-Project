@@ -8,29 +8,29 @@ download. Access to the handler is restricted to authenticated Django staff memb
 via the @staff_member_required decorator to prevent accidental or unauthorized triggering
 of heap dumps.
 """
+
 from __future__ import annotations
 
-import io
 import gc
+import io
 import logging
 import os
-import signal
 import threading
 import time
 import tracemalloc
 import zipfile
+from collections.abc import Sequence
 from datetime import datetime
-from typing import List, Optional, Sequence
 
-from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
-
-from pympler import muppy, summary as pympler_summary
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from pympler import muppy
+from pympler import summary as pympler_summary
 
 logger = logging.getLogger(__name__)
 
 _SNAPSHOT_LOCK = threading.Lock()
-_LAST_SNAPSHOT: Optional[tracemalloc.Snapshot] = None
+_LAST_SNAPSHOT: tracemalloc.Snapshot | None = None
 
 
 def _ensure_tracemalloc_running() -> None:
@@ -51,7 +51,7 @@ def _take_snapshot() -> tracemalloc.Snapshot:
     return tracemalloc.take_snapshot()
 
 
-def _format_pympler_summary(limit: int = 20) -> List[str]:
+def _format_pympler_summary(limit: int = 20) -> list[str]:
     """
     Collect all objects tracked by Pympler and return a formatted summary of
     the largest object types.
@@ -68,7 +68,7 @@ def _format_pympler_summary(limit: int = 20) -> List[str]:
         return [f"Failed to generate Pympler summary: {exc}"]
 
 
-def _format_tracemalloc_stats(snapshot: tracemalloc.Snapshot, key_type: str = "lineno", limit: int = 20) -> List[str]:
+def _format_tracemalloc_stats(snapshot: tracemalloc.Snapshot, key_type: str = "lineno", limit: int = 20) -> list[str]:
     """
     Produce a list of human readable lines describing the heaviest allocations
     in the provided snapshot.
@@ -83,7 +83,7 @@ def _format_tracemalloc_stats(snapshot: tracemalloc.Snapshot, key_type: str = "l
     return formatted
 
 
-def _format_growth(previous: Optional[tracemalloc.Snapshot], current: tracemalloc.Snapshot, limit: int = 20) -> List[str]:
+def _format_growth(previous: tracemalloc.Snapshot | None, current: tracemalloc.Snapshot, limit: int = 20) -> list[str]:
     """
     Compare the current snapshot with the previous one and return the largest
     growth entries.
@@ -108,13 +108,13 @@ def _write_summary_file(
     pid: int,
     timestamp: str,
     snapshot: tracemalloc.Snapshot,
-    previous_snapshot: Optional[tracemalloc.Snapshot],
+    previous_snapshot: tracemalloc.Snapshot | None,
     elapsed_seconds: float,
 ) -> None:
     """
     Persist a human-readable summary of the captured heap information to disk.
     """
-    lines: List[str] = [
+    lines: list[str] = [
         f"Heap dump generated at {timestamp}Z",
         f"Worker PID: {pid}",
         f"Elapsed collection time: {elapsed_seconds:.3f}s",
@@ -126,14 +126,14 @@ def _write_summary_file(
         [
             "",
             "Allocation growth since previous snapshot:",
-        ]
+        ],
     )
     lines.extend(_format_growth(previous_snapshot, snapshot, limit=20))
     lines.extend(
         [
             "",
             "Top allocation locations (tracemalloc):",
-        ]
+        ],
     )
     lines.extend(_format_tracemalloc_stats(snapshot, key_type="lineno", limit=20))
     lines.append("")
@@ -146,9 +146,9 @@ def _persist_heap_files(
     pid: int,
     timestamp: str,
     snapshot: tracemalloc.Snapshot,
-    previous_snapshot: Optional[tracemalloc.Snapshot],
+    previous_snapshot: tracemalloc.Snapshot | None,
     elapsed_seconds: float,
-) -> List[str]:
+) -> list[str]:
     """
     Write both the human readable summary and the tracemalloc snapshot to /tmp.
     """
@@ -186,7 +186,7 @@ def heapdump_view(request: HttpRequest) -> HttpResponse:
 
     pid = os.getpid()
     timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
-    file_paths: List[str] = []
+    file_paths: list[str] = []
 
     try:
         start_time = time.perf_counter()

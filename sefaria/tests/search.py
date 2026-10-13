@@ -1,11 +1,9 @@
-import pytest
-import re
-from sefaria.search import TextIndexer as TI
 from sefaria.model import *
-from sefaria.utils.hebrew import strip_cantillation
+from sefaria.search import TextIndexer as TI
+
 
 def test_make_text_index_document():
-    oref = Ref('Genesis 1')
+    oref = Ref("Genesis 1")
     tref = oref.normal()
     he_ref = oref.he_normal()
     vtitle = "Tanach with Ta'amei Hamikra"
@@ -39,8 +37,5 @@ def test_make_text_index_document():
         "comp_date": comp_date,
         "exact": content,
         "naive_lemmatizer": content,
-        'hebrew_version_title': heVtitle,
-
+        "hebrew_version_title": heVtitle,
     }
-
-

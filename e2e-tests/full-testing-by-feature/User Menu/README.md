@@ -10,15 +10,15 @@ New here? Read the root [handbook](../../README.md) first — it covers setup, t
 
 ## What it covers
 
-| Test ID | Test | `@sanity`? |
-| --- | --- | --- |
-| `UMN-001` | UI login (open menu → login → credentials); profile pic appears | **No** — exercised end-to-end but not part of the release-gate set |
-| `UMN-002` | View profile via the Voices user menu; name/position/org/image; edit button on own profile | Yes |
-| `UMN-003` | Edit profile (position/org/location) on Voices; save persists | Yes |
-| `UMN-004` | Edit account settings via Library; toggle notifications/reading-history/customs; save | Yes |
-| `UMN-005` | Change language EN↔HE; `body` class + UI text update; round-trips | Yes |
-| `UMN-006` | Module switcher reaches Voices, Developers, More-from-Sefaria, and back | Yes |
-| `UMN-007` | UI logout terminates the session; logged-out UI | Yes |
+| Test ID   | Test                                                                                       | `@sanity`?                                                         |
+| --------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `UMN-001` | UI login (open menu → login → credentials); profile pic appears                            | **No** — exercised end-to-end but not part of the release-gate set |
+| `UMN-002` | View profile via the Voices user menu; name/position/org/image; edit button on own profile | Yes                                                                |
+| `UMN-003` | Edit profile (position/org/location) on Voices; save persists                              | Yes                                                                |
+| `UMN-004` | Edit account settings via Library; toggle notifications/reading-history/customs; save      | Yes                                                                |
+| `UMN-005` | Change language EN↔HE; `body` class + UI text update; round-trips                          | Yes                                                                |
+| `UMN-006` | Module switcher reaches Voices, Developers, More-from-Sefaria, and back                    | Yes                                                                |
+| `UMN-007` | UI logout terminates the session; logged-out UI                                            | Yes                                                                |
 
 The `@sanity`-tagged subset (`UMN-002` … `UMN-007`) is part of the release-gate suite (see [../../Sanity/README.md](../../Sanity/README.md)).
 

@@ -40,7 +40,6 @@ import BulkVersionEditor from './modtools/components/BulkVersionEditor';
 // import AutoLinkCommentaryTool from './modtools/components/AutoLinkCommentaryTool';
 // import NodeTitleEditor from './modtools/components/NodeTitleEditor';
 
-
 /**
  * ModeratorToolsPanel - Main container component
  *
@@ -57,9 +56,7 @@ function ModeratorToolsPanel() {
   if (!Sefaria.is_moderator) {
     return (
       <div className="modTools">
-        <div className="message error">
-          Tools are only available to logged-in moderators.
-        </div>
+        <div className="message error">Tools are only available to logged-in moderators.</div>
       </div>
     );
   }

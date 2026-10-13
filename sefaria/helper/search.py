@@ -1,17 +1,19 @@
+import re
+import unicodedata
 from functools import wraps
+
+import structlog
 from django.conf import settings
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Bool, Regexp, Term
-from sefaria.system.exceptions import InputError
+
 from remote_config import remoteConfigCache
 from remote_config.keys import (
-    SEARCH_ENTITY_FIELD_BOOSTS_TOPIC,
     SEARCH_ENTITY_FIELD_BOOSTS_AUTHOR,
     SEARCH_ENTITY_FIELD_BOOSTS_BOOK,
+    SEARCH_ENTITY_FIELD_BOOSTS_TOPIC,
 )
-import structlog
-import re
-import unicodedata
+from sefaria.system.exceptions import InputError
 
 # This module must not import sefaria.model at module level: it is imported by
 # sefaria/model/dependencies.py while sefaria.model's own __init__ is still running
@@ -43,7 +45,7 @@ def param_fixer(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        func_params = func.__code__.co_varnames[:func.__code__.co_argcount]
+        func_params = func.__code__.co_varnames[: func.__code__.co_argcount]
         extra_params = set(kwargs.keys()) - set(func_params)
         for extra in extra_params:
             kwargs.pop(extra)
@@ -55,7 +57,7 @@ def param_fixer(func):
             "aggs": default_list,
             "sort_fields": default_list,
             "sort_reverse": default_bool,
-            "search_obj": default_search
+            "search_obj": default_search,
         }
         for param, setter in list(params_with_defaults.items()):
             i = func_params.index(param)
@@ -64,28 +66,30 @@ def param_fixer(func):
                 args[i] = setter(args[i])
             else:
                 # maybe in kwargs
-                kwargs[param] = setter(kwargs.get(param, None))
+                kwargs[param] = setter(kwargs.get(param))
         return func(*args, **kwargs)
+
     return wrapper
 
 
 @param_fixer
 def get_query_obj(
-        query,
-        type="text",
-        field="exact",
-        source_proj=False,
-        slop=0,
-        start=0,
-        size=100,
-        filters=None,
-        filter_fields=None,
-        aggs=None,
-        sort_method="sort",
-        sort_fields=None,
-        sort_reverse=False,
-        sort_score_missing=0,
-        search_obj=None):
+    query,
+    type="text",
+    field="exact",
+    source_proj=False,
+    slop=0,
+    start=0,
+    size=100,
+    filters=None,
+    filter_fields=None,
+    aggs=None,
+    sort_method="sort",
+    sort_fields=None,
+    sort_reverse=False,
+    sort_score_missing=0,
+    search_obj=None,
+):
     """
 
     :param query :str:
@@ -133,14 +137,14 @@ def get_query_obj(
                 "query": inner_query.to_dict(),
                 "field_value_factor": {
                     "field": sort_fields[0],
-                    "missing": sort_score_missing
-                }
-            }
+                    "missing": sort_score_missing,
+                },
+            },
         }
     else:
         search_obj.query = inner_query
     search_obj = search_obj.highlight(field, fragment_size=200, pre_tags=["<b>"], post_tags=["</b>"])
-    return search_obj[start:start + size]
+    return search_obj[start : start + size]
 
 
 def normalize_filters(filters, filter_fields):
@@ -202,7 +206,9 @@ def get_filter_obj(type, filters, filter_fields):
     outer_bools = []
     for agg_type in unique_fields:
         type_filters = [x for x in zip(filters, filter_fields) if x[1] == agg_type]
-        bool_type = 'should' if type == 'text' else 'must'  # in general we want filters to be AND (union) but for text filters, we want them to be OR (intersection)
+        bool_type = (
+            "should" if type == "text" else "must"
+        )  # in general we want filters to be AND (union) but for text filters, we want them to be OR (intersection)
         inner_bool = Bool(**{bool_type: [make_filter(type, agg_type, f) for f, t in type_filters]})
         outer_bools += [inner_bool]
     return Bool(must=outer_bools)
@@ -215,7 +221,7 @@ def make_path_filter(path):
     text search path filters and the entity (book) category filter — the book index's
     `path` field deliberately mirrors the text index's "Category/Subcategory/Title" shape.
     """
-    path = re.escape(path.rstrip('/'))
+    path = re.escape(path.rstrip("/"))
     return Regexp(path=f"{path}|{path}/.*")
 
 
@@ -226,8 +232,7 @@ def make_filter(type, agg_type, agg_key):
         # which get_filter_obj normalises to [None] (see line 129).
         # filters with '/' might be leading to books. also, very unlikely they'll match any false positives
         return make_path_filter(agg_key)
-    else:
-        return Term(**{agg_type: agg_key})
+    return Term(**{agg_type: agg_key})
 
 
 # --------------------------------------------------------------------------- #
@@ -240,7 +245,7 @@ def make_filter(type, agg_type, agg_key):
 #  category instead of a flat list.                                           #
 # --------------------------------------------------------------------------- #
 
-from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK, SEARCH_INDEX_NAME_CATEGORY
+from sefaria.settings import SEARCH_INDEX_NAME_BOOK, SEARCH_INDEX_NAME_CATEGORY, SEARCH_INDEX_NAME_TOPIC
 
 # The entity types the API accepts, one per tab. "category" is deliberately absent: it is
 # not a tab of its own, it is a kind of *row* the Books tab can return (see
@@ -308,8 +313,7 @@ _ENTITY_CATEGORY_AGG_SIZE = 10000
 # e.g. a misspelled "titel_en" — is ignored, never added to the query.
 _DEFAULT_ENTITY_FIELD_BOOSTS = {
     "topic": {"title_en": 3, "title_he": 3, "titleVariants": 2},
-    "author": {"title_en": 3, "title_he": 3, "titleVariants": 2,
-               "authored_titles_en": 1.5, "authored_titles_he": 1.5},
+    "author": {"title_en": 3, "title_he": 3, "titleVariants": 2, "authored_titles_en": 1.5, "authored_titles_he": 1.5},
     "book": {"title_en": 3, "title_he": 3, "titleVariants": 2, "author_names": 1.5},
     "category": {"title_en": 3, "title_he": 3, "titleVariants": 2},
 }
@@ -355,7 +359,11 @@ def _resolve_entity_field_boosts(type):
             boosts[field] = boost
     elif overrides is not None:
         # note: `type` is the entity-type param here, so use __class__ for the value's type name
-        logger.warning("entity search: ignoring non-object boost config for type %r (got %s)", type, overrides.__class__.__name__)
+        logger.warning(
+            "entity search: ignoring non-object boost config for type %r (got %s)",
+            type,
+            overrides.__class__.__name__,
+        )
 
     # A boost of 1 is the ES default, so render the bare field name (matches the hardcoded defaults).
     return [field if boost == 1 else f"{field}^{boost}" for field, boost in boosts.items()]
@@ -450,8 +458,16 @@ def _entity_sort_clauses(type, sort):
     return [{field: {"order": order, "missing": "_last"}}, {"_score": {"order": "desc"}}]
 
 
-def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20, sort="relevance",
-                         category_paths=None, exclude_category_paths=None):
+def get_entity_query_obj(
+    query,
+    type="topic",
+    search_obj=None,
+    start=0,
+    size=20,
+    sort="relevance",
+    category_paths=None,
+    exclude_category_paths=None,
+):
     """
     Build the Elasticsearch DSL for a flat entity search over the `topic` or `book`
     index. Layers match-type tiers as `should` clauses with descending boosts
@@ -531,19 +547,28 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     # exact variant hit can never outrank an exact primary hit (the bug this replaces).
     # The `.keyword` sub-fields are raw (un-normalized), so match case-insensitively at
     # query time — otherwise "chafetz chaim" would miss the stored "Chafetz Chaim".
-    tier1_primary = [Q("constant_score", filter=Q("term", **{kf: {"value": query, "case_insensitive": True}}),
-                       boost=_ENTITY_EXACT_PRIMARY_BOOST)
-                     for kf in _ENTITY_PRIMARY_KEYWORD_FIELDS]
-    tier1_variant = [Q("constant_score", filter=Q("term", **{kf: {"value": query, "case_insensitive": True}}),
-                       boost=_ENTITY_EXACT_SECONDARY_BOOST)
-                     for kf in secondary_kw]
+    tier1_primary = [
+        Q(
+            "constant_score",
+            filter=Q("term", **{kf: {"value": query, "case_insensitive": True}}),
+            boost=_ENTITY_EXACT_PRIMARY_BOOST,
+        )
+        for kf in _ENTITY_PRIMARY_KEYWORD_FIELDS
+    ]
+    tier1_variant = [
+        Q(
+            "constant_score",
+            filter=Q("term", **{kf: {"value": query, "case_insensitive": True}}),
+            boost=_ENTITY_EXACT_SECONDARY_BOOST,
+        )
+        for kf in secondary_kw
+    ]
     # Tier 2 — exact phrase over the (analyzed) title fields.
     tier2_phrase = Q("multi_match", query=query, fields=title_fields, type="phrase", boost=4)
     # Tier 3 — ALL query words must match (operator "and"), not any one of them. cross_fields
     # lets the words land in different fields ("Rambam Torah": author_names + title_en) as
     # long as every word matches somewhere; per-field ^N boosts still apply inside `fields`.
-    tier3_all_words = Q("multi_match", query=query, fields=fields, type="cross_fields",
-                        operator="and", boost=2)
+    tier3_all_words = Q("multi_match", query=query, fields=fields, type="cross_fields", operator="and", boost=2)
     # Tier 4 — every word as a prefix, all within a single title field. `prefix` runs against
     # the analyzed (lowercased) tokens and each prefix hit scores a constant 1, so a field's
     # bool-must totals the token count; dis_max keeps the best field instead of summing fields.
@@ -551,9 +576,10 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     tokens = _entity_query_tokens(query)
     tier4_all_prefix = None
     if len(tokens) > 1:
-        per_field = [Q("bool", must=[Q("prefix", **{f: {"value": t, "case_insensitive": True}})
-                                     for t in tokens])
-                     for f in title_fields]
+        per_field = [
+            Q("bool", must=[Q("prefix", **{f: {"value": t, "case_insensitive": True}}) for t in tokens])
+            for f in title_fields
+        ]
         tier4_all_prefix = Q("dis_max", queries=per_field, boost=1.5)
     # Tier 5 — prefix / begins-with on titles only.
     tier5_prefix = Q("multi_match", query=query, fields=title_fields, type="phrase_prefix", boost=1)
@@ -574,8 +600,7 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
         # so relevance is untouched. Unlike the category *filter* below this belongs in query
         # context, because the excluded books must not be counted in `total` either — this is
         # what lets a category row stand in for its books (see _category_response).
-        base_query = Q("bool", must=[text_query],
-                       must_not=[make_path_filter(p) for p in exclude_category_paths])
+        base_query = Q("bool", must=[text_query], must_not=[make_path_filter(p) for p in exclude_category_paths])
     else:
         base_query = text_query
 
@@ -585,8 +610,7 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     if type == "book":
         # Per-category counts for the Books sidebar, over the whole match set — see
         # _ENTITY_CATEGORY_AGG_NAME and _category_counts_from_response.
-        search_obj.aggs.bucket(_ENTITY_CATEGORY_AGG_NAME, "terms", field="path",
-                               size=_ENTITY_CATEGORY_AGG_SIZE)
+        search_obj.aggs.bucket(_ENTITY_CATEGORY_AGG_NAME, "terms", field="path", size=_ENTITY_CATEGORY_AGG_SIZE)
 
     if category_paths:
         # Category filter: hits restricted to books at/under any given path (OR). Applied as
@@ -595,11 +619,12 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
         # selecting "Tanakh" would zero out every other category's count and collapse the
         # sidebar to a single row. Non-scoring either way, so ranking is untouched.
         search_obj = search_obj.post_filter(
-            Bool(should=[make_path_filter(p) for p in category_paths], minimum_should_match=1))
+            Bool(should=[make_path_filter(p) for p in category_paths], minimum_should_match=1),
+        )
 
     if sort_clauses is not None:
         search_obj = search_obj.sort(*sort_clauses)
-    return search_obj[start:start + size]
+    return search_obj[start : start + size]
 
 
 def _total_from_response(response):
@@ -631,8 +656,12 @@ def _category_counts_from_response(response):
     # low without any other signal. Not worth failing the search over, but never silent.
     dropped = getattr(agg, "sum_other_doc_count", 0)
     if dropped:
-        logger.warning("entity search: category count aggregation truncated, %s book(s) uncounted "
-                       "(raise _ENTITY_CATEGORY_AGG_SIZE, currently %s)", dropped, _ENTITY_CATEGORY_AGG_SIZE)
+        logger.warning(
+            "entity search: category count aggregation truncated, %s book(s) uncounted "
+            "(raise _ENTITY_CATEGORY_AGG_SIZE, currently %s)",
+            dropped,
+            _ENTITY_CATEGORY_AGG_SIZE,
+        )
     counts = {}
     for bucket in agg.buckets:
         parts = [p for p in bucket.key.split("/") if p]
@@ -713,8 +742,12 @@ def _resolve_categories(query, es_client):
     would let "Mod" or "Tal" hijack the whole Books tab.
     """
     search_obj = Search(using=es_client, index=SEARCH_INDEX_NAME_CATEGORY).params(request_timeout=5)
-    search_obj = get_entity_query_obj(query, type="category", search_obj=search_obj,
-                                      size=_CATEGORY_RESOLUTION_CANDIDATES)
+    search_obj = get_entity_query_obj(
+        query,
+        type="category",
+        search_obj=search_obj,
+        size=_CATEGORY_RESOLUTION_CANDIDATES,
+    )
     response = search_obj.execute()
     if not response.success():
         return []
@@ -766,10 +799,11 @@ def _eponymous_books_in_categories(query, category_paths, es_client):
     else was never excluded, and the flat query's exact-match tier already floats it to #1.
     """
     path_filter = Bool(should=[make_path_filter(p) for p in category_paths], minimum_should_match=1)
-    exact_title = Q("bool",
-                    should=[Q("term", **{kf: {"value": query, "case_insensitive": True}})
-                            for kf in _ENTITY_PRIMARY_KEYWORD_FIELDS],
-                    minimum_should_match=1)
+    exact_title = Q(
+        "bool",
+        should=[Q("term", **{kf: {"value": query, "case_insensitive": True}}) for kf in _ENTITY_PRIMARY_KEYWORD_FIELDS],
+        minimum_should_match=1,
+    )
     search_obj = Search(using=es_client, index=SEARCH_INDEX_NAME_BOOK).params(request_timeout=5)
     search_obj.query = Q("bool", must=[exact_title], filter=[path_filter])
     response = search_obj[0:_MAX_EPONYMOUS_BOOKS].execute()
@@ -811,7 +845,7 @@ def _category_response(categories, query, es_client, start=0, size=20, sort="rel
     lead_rows += category_rows
 
     lead_count = len(lead_rows)
-    rows = lead_rows[start:start + size] if start < lead_count else []
+    rows = lead_rows[start : start + size] if start < lead_count else []
     remaining = size - len(rows)
     es_start = 0 if start < lead_count else start - lead_count
 
@@ -820,12 +854,18 @@ def _category_response(categories, query, es_client, start=0, size=20, sort="rel
     # still has to count the excluded set or the tab badge and the "more to load" check would
     # both read as "nothing further", silently stranding the remaining books.
     search_obj = Search(using=es_client, index=SEARCH_INDEX_NAME_BOOK).params(request_timeout=5)
-    search_obj = get_entity_query_obj(query, type="book", search_obj=search_obj, start=es_start,
-                                      size=remaining, sort=sort,
-                                      exclude_category_paths=category_paths)
+    search_obj = get_entity_query_obj(
+        query,
+        type="book",
+        search_obj=search_obj,
+        start=es_start,
+        size=remaining,
+        sort=sort,
+        exclude_category_paths=category_paths,
+    )
     response = search_obj.execute()
     if not response.success():
-        raise IOError("Elasticsearch entity search failed.")
+        raise OSError("Elasticsearch entity search failed.")
     rows += [hit.to_dict() for hit in response.hits]
 
     # The sidebar's counts come from a *separate* flat search, not from the aggregation riding
@@ -833,9 +873,12 @@ def _category_response(categories, query, es_client, start=0, size=20, sort="rel
     # context, so its buckets would read low for exactly the categories the query is about.
     # Same rule as the author path — the number next to a category is how many results
     # selecting it returns, and selecting one drops back to the flat book list.
-    return {"hits": rows, "total": lead_count + _total_from_response(response),
-            "category_paths": category_paths,
-            "categoryCounts": _book_category_counts(query, es_client)}
+    return {
+        "hits": rows,
+        "total": lead_count + _total_from_response(response),
+        "category_paths": category_paths,
+        "categoryCounts": _book_category_counts(query, es_client),
+    }
 
 
 def _author_work_matches_query(query, hit):
@@ -885,8 +928,9 @@ def _author_works_response(author, query, sort="relevance", start=0, size=None):
     # Disambiguation suffixes are suppressed to match _resolve_author_names in sefaria/search.py,
     # which builds the flat path's `author_names`; otherwise the same author could render as
     # "Yehuda ben Yakar" on one path and "Yehuda ben Yakar (Rishon)" on the other.
-    author_names = [name for name in (author.get_primary_title(lang, with_disambiguation=False)
-                                      for lang in ("en", "he")) if name]
+    author_names = [
+        name for name in (author.get_primary_title(lang, with_disambiguation=False) for lang in ("en", "he")) if name
+    ]
     hits = []
     for agg in author.get_aggregated_urls_for_authors_indexes():
         hit = {
@@ -913,8 +957,7 @@ def _author_works_response(author, query, sort="relevance", start=0, size=None):
         def year_key(h):
             date = h.get("compDate")
             missing = date is None
-            return (missing, 0 if missing else (-date if descending else date),
-                    (h.get("title_en") or "").lower())
+            return (missing, 0 if missing else (-date if descending else date), (h.get("title_en") or "").lower())
 
         hits.sort(key=year_key)
     else:
@@ -923,12 +966,14 @@ def _author_works_response(author, query, sort="relevance", start=0, size=None):
         # category rows so that a category whose title happens to equal the query can't sort
         # ahead of the actual eponymous work. Stable sort preserves the original aggregation
         # order within each group.
-        hits.sort(key=lambda h: (
-            0 if (_author_work_matches_query(query, h) and not h.get("isCategory")) else 1,
-            0 if h.get("isCategory") else 1,
-        ))
+        hits.sort(
+            key=lambda h: (
+                0 if (_author_work_matches_query(query, h) and not h.get("isCategory")) else 1,
+                0 if h.get("isCategory") else 1,
+            ),
+        )
     total = len(hits)
-    hits = hits[start:] if size is None else hits[start:start + size]
+    hits = hits[start:] if size is None else hits[start : start + size]
     return {"hits": hits, "total": total, "author_slug": author.slug}
 
 
@@ -1012,11 +1057,18 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
         index_name = SEARCH_INDEX_NAME_TOPIC
 
     search_obj = Search(using=es_client, index=index_name).params(request_timeout=5)
-    search_obj = get_entity_query_obj(query, type=type, search_obj=search_obj, start=start, size=size, sort=sort,
-                                      category_paths=category_paths)
+    search_obj = get_entity_query_obj(
+        query,
+        type=type,
+        search_obj=search_obj,
+        start=start,
+        size=size,
+        sort=sort,
+        category_paths=category_paths,
+    )
     response = search_obj.execute()
     if not response.success():
-        raise IOError("Elasticsearch entity search failed.")
+        raise OSError("Elasticsearch entity search failed.")
     hits = [hit.to_dict() for hit in response.hits]
     results = {"hits": hits, "total": _total_from_response(response)}
     if type == "book":
@@ -1026,14 +1078,18 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
 
 def get_elasticsearch_client():
     from elasticsearch import Elasticsearch
+
     from sefaria.settings import SEARCH_URL
+
     return Elasticsearch(SEARCH_URL)
 
 
 def get_elasticsearch_client_for_indexer():
     """Must NOT be used on the online request path."""
     from elasticsearch import Elasticsearch
+
     from sefaria.settings import SEARCH_URL
+
     return Elasticsearch(
         SEARCH_URL,
         request_timeout=60,
@@ -1050,10 +1106,12 @@ def get_elasticsearch_client_for_indexer():
 #  by SEARCH_INDEX_ON_SAVE; single-doc helpers live in sefaria/search.py.     #
 # --------------------------------------------------------------------------- #
 
+
 def process_index_title_change_in_search(indx, **kwargs):
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.model import library, text
-        from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
+        from sefaria.search import TextIndexer, delete_version, get_new_and_current_index_names
+
         index_names = get_new_and_current_index_names("text")
         search_index_name = index_names.get("current") if index_names else None
         if not search_index_name:
@@ -1080,8 +1138,14 @@ def process_index_title_change_in_search(indx, **kwargs):
                 # so one bad segment must not abort the rest. Collect failures and surface
                 # them so search can be re-synced.
                 try:
-                    TextIndexer.index_ref(search_index_name, ref, ver.versionTitle, ver.language,
-                                          getattr(ver, 'languageFamilyName', None), getattr(ver, 'isPrimary', False))
+                    TextIndexer.index_ref(
+                        search_index_name,
+                        ref,
+                        ver.versionTitle,
+                        ver.language,
+                        getattr(ver, "languageFamilyName", None),
+                        getattr(ver, "isPrimary", False),
+                    )
                 except Exception as e:
                     failed.append((ref.normal(), ver.versionTitle))
                     logger.warning(
@@ -1109,36 +1173,42 @@ def process_index_title_change_in_search(indx, **kwargs):
 # here — the weekly full rebuild reconciles them. (The one such field these indices
 # carried, numSources, is no longer indexed at all.)
 
+
 def process_index_title_change_in_book_search(indx, **kwargs):
     # A rename changes the book doc's ES id. Only the stale doc is deleted here:
     # save() emits attributeChange notifications before the "save" notification,
     # so process_index_save_in_book_search upserts the new-id doc right after.
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_book_doc
+
         delete_book_doc(kwargs.get("old"))
 
 
 def process_index_save_in_book_search(indx, **kwargs):
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import index_book_doc
+
         index_book_doc(indx)
 
 
 def process_index_delete_in_book_search(indx, **kwargs):
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_book_doc
+
         delete_book_doc(indx.title)
 
 
 def process_topic_save_in_topic_search(topic_obj, **kwargs):
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import index_topic_doc
+
         index_topic_doc(topic_obj)
 
 
 def process_topic_delete_in_topic_search(topic_obj, **kwargs):
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_topic_doc
+
         delete_topic_doc(topic_obj.slug)
 
 
@@ -1151,6 +1221,7 @@ def process_category_path_change_in_book_search(cat, **kwargs):
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.model import text
         from sefaria.search import index_book_docs
+
         new_path = kwargs.get("new") or []
         if not new_path:  # an empty path would match every book in the library
             return
@@ -1170,4 +1241,5 @@ def process_category_change_in_category_search(cat, **kwargs):
     """
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import resync_category_docs
+
         resync_category_docs()

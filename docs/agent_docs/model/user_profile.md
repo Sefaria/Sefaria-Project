@@ -1,12 +1,15 @@
 # User Profile
+
 > Source: `sefaria/model/user_profile.py`
 
 ## Purpose
+
 Manages user identity (profile data, social links, settings) and reading history (what a user has read, saved, or bookmarked). UserProfile is a hybrid object that bridges Django's `auth.User` (Postgres) with a MongoDB `profiles` document, while UserHistory is a pure Mongo record tracking individual page-view and save events.
 
 ## Key Classes
 
 ### UserHistory
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `user_history`
 - **Role**: Tracks each ref a user views or saves. One record per (uid, ref, versions, secondary) tuple. Also tracks "last place" per book and saved/bookmarked items.
@@ -20,17 +23,20 @@ Manages user identity (profile data, social links, settings) and reading history
   - `_validate()` -- Enforces that `secondary` and `saved` cannot both be True.
 
 ### UserHistorySet
+
 - **Inherits**: `AbstractMongoSet`
 - **Collection**: `user_history`
 - **Role**: Set class for UserHistory.
 - **Key methods**: `hits()` -- Sums `num_times_read` across the set (used in legacy migration).
 
 ### UserWrapper
+
 - **Inherits**: `object`
 - **Collection**: N/A (Django ORM only)
 - **Role**: Thin wrapper around Django User for changing a user's primary email address safely. Validates uniqueness and format before saving.
 
 ### UserProfile
+
 - **Inherits**: `object` (NOT AbstractMongoRecord)
 - **Collection**: `profiles` (direct pymongo, not via abstract framework)
 - **Role**: The main user identity object. Combines Django User fields (first_name, last_name, email) with MongoDB profile fields (slug, bio, settings, social links, version preferences). Manages followers/followees, notifications, and delegates to UserHistory for reading history.
@@ -53,11 +59,12 @@ Manages user identity (profile data, social links, settings) and reading history
 - **History gating.** When `settings.reading_history` is False, `process_history_item` silently drops non-save history events, and `get_history` returns empty. Toggling it from True to False triggers bulk deletion of existing history (excluding saved items).
 - **last_place tracking.** Each new (non-secondary) history save marks the item as `last_place=True` and clears the previous `last_place` for that book. This is done in `__init__` of UserHistory via `update_last_place`.
 - **load_existing dedup.** When `load_existing=True`, UserHistory's `__init__` queries Mongo for an existing record matching (uid, ref, versions, secondary) and merges `field_updates` into it, preventing duplicate records for save/unsave toggling.
-- **_normalize derives fields at write time.** `context_refs`, `categories`, `authors`, and `is_sheet` are computed from the ref during `_normalize()` and stored denormalized for fast downstream queries.
+- **\_normalize derives fields at write time.** `context_refs`, `categories`, `authors`, and `is_sheet` are computed from the ref during `_normalize()` and stored denormalized for fast downstream queries.
 - **Module-level cache.** `public_user_data_cache` is a module-level dict (not TTL-managed) that caches basic profile info by uid. It persists for the lifetime of the process.
 - **settings deep merge.** `update()` deep-merges `settings` and `version_preferences_by_corpus` rather than replacing them, so partial updates are safe.
 
 ## Relationships
+
 - **Depends on**: `abstract` (AbstractMongoRecord/Set), `text` (Ref, TextChunk), `following` (FollowersSet, FolloweesSet), `blocking` (BlockersSet, BlockeesSet), `notification` (NotificationSet), `sefaria.sheets` (get_sheet_listing_data), `sefaria.system.database` (db), Django `auth.User`
 - **Depended on by**: `reader/views.py`, `sefaria/views.py`, `sefaria/model/notification.py`, `sefaria/model/trend.py`, `sefaria/model/story.py`, `sefaria/model/garden.py`, `sefaria/sheets.py`, `sefaria/search.py`, `sefaria/client/wrapper.py`, `sefaria/system/middleware.py`, `sefaria/system/context_processors.py`, `sourcesheets/views.py`
 - **Dependency subscriptions**: `Index` title change -> `process_index_title_change_in_user_history` (updates `ref` field in all matching UserHistory records)

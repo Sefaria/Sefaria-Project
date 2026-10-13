@@ -4,18 +4,14 @@ import Sefaria from './sefaria/sefaria';
 import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
 import SearchState from './sefaria/searchState';
-import classNames  from 'classnames';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
-import {
-  InterfaceText,
-  LoadingMessage,
-  CloseButton,
-} from './Misc';
+import { InterfaceText, LoadingMessage, CloseButton } from './Misc';
 
-const SortRadioList = ({options, value, onChange}) => (
+const SortRadioList = ({ options, value, onChange }) => (
   <ul className="sortRadioList">
-    {options.map(opt => (
+    {options.map((opt) => (
       <li key={opt.type} className="sortRadioItem">
         <label>
           <input
@@ -26,17 +22,17 @@ const SortRadioList = ({options, value, onChange}) => (
             onChange={() => onChange(opt.type)}
           />
           <span className="sortRadioLabel">
-            {opt.heName
-              ? <InterfaceText text={{en: opt.name, he: opt.heName}} />
-              : <InterfaceText>{opt.name}</InterfaceText>
-            }
+            {opt.heName ? (
+              <InterfaceText text={{ en: opt.name, he: opt.heName }} />
+            ) : (
+              <InterfaceText>{opt.name}</InterfaceText>
+            )}
           </span>
         </label>
       </li>
     ))}
   </ul>
 );
-
 
 class SearchFilters extends Component {
   getSelectedTitles(lang) {
@@ -48,23 +44,23 @@ class SearchFilters extends Component {
     return results;
   }
   render() {
-    const filters = (this.props.type === 'text' ?
-      <TextSearchFilters
-        updateAppliedFilter={this.props.updateAppliedFilter}
-        availableFilters={this.props.searchState.availableFilters}
-      /> :
-      <SheetSearchFilters
-        updateAppliedFilter={this.props.updateAppliedFilter}
-        availableFilters={this.props.searchState.availableFilters}
-      />
-    );
+    const filters =
+      this.props.type === 'text' ? (
+        <TextSearchFilters
+          updateAppliedFilter={this.props.updateAppliedFilter}
+          availableFilters={this.props.searchState.availableFilters}
+        />
+      ) : (
+        <SheetSearchFilters
+          updateAppliedFilter={this.props.updateAppliedFilter}
+          availableFilters={this.props.searchState.availableFilters}
+        />
+      );
 
-    const {searchState, type, updateAppliedOptionSort} = this.props;
+    const { searchState, type, updateAppliedOptionSort } = this.props;
 
     return Sefaria.multiPanel && !this.props.compare ? (
-      <div className="searchFilters navSidebarModule">
-        {filters}
-      </div>
+      <div className="searchFilters navSidebarModule">{filters}</div>
     ) : (
       <>
         <div className="mobileSearchFiltersHeader sans-serif">
@@ -97,16 +93,15 @@ class SearchFilters extends Component {
   }
 }
 SearchFilters.propTypes = {
-  query:                   PropTypes.string,
-  searchState:             PropTypes.object,
-  total:                   PropTypes.number,
-  updateAppliedFilter:     PropTypes.func,
+  query: PropTypes.string,
+  searchState: PropTypes.object,
+  total: PropTypes.number,
+  updateAppliedFilter: PropTypes.func,
   updateAppliedOptionSort: PropTypes.func,
-  topSection:              PropTypes.node,
-  isQueryRunning:          PropTypes.bool,
-  type:                    PropTypes.string,
+  topSection: PropTypes.node,
+  isQueryRunning: PropTypes.bool,
+  type: PropTypes.string,
 };
-
 
 class TextSearchFilters extends Component {
   render() {
@@ -117,34 +112,50 @@ class TextSearchFilters extends Component {
           searchable={true}
           filters={this.props.availableFilters}
           updateSelected={this.props.updateAppliedFilter}
-          expandable={true} />
+          expandable={true}
+        />
       </div>
     );
   }
 }
 TextSearchFilters.propTypes = {
-  availableFilters:    PropTypes.array,
+  availableFilters: PropTypes.array,
   updateAppliedFilter: PropTypes.func,
 };
 
-
-const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable, preserveOrder, searchPlaceholder, hideEmpty, checkOnPartial}) => {
-const SEARCH_FILTER_GROUP_IDS = {
-  "Texts": "search_filters.title",
-  "Topics": "common.topics",
-  "Collections": "search_filters.collections",
-};
-  if (!filters || !filters.length) { return null; }
-
-  useEffect(() => {
-    const filterValue = document.getElementById(`filter${name}`)?.value ? document.getElementById(`filter${name}`)?.value : "";
-    updateFilters(filterValue);
-  }, [filters])
+const SearchFilterGroup = ({
+  name,
+  filters,
+  updateSelected,
+  expandable,
+  paged,
+  searchable,
+  preserveOrder,
+  searchPlaceholder,
+  hideEmpty,
+  checkOnPartial,
+}) => {
+  const SEARCH_FILTER_GROUP_IDS = {
+    Texts: 'search_filters.title',
+    Topics: 'common.topics',
+    Collections: 'search_filters.collections',
+  };
 
   const [displayedFilters, setFilters] = useState(filters);
-  const [showClearInputButton, setShowClearInputButton] = useState(false)
+  const [showClearInputButton, setShowClearInputButton] = useState(false);
 
-  let content = displayedFilters.map(filter => (
+  useEffect(() => {
+    const filterValue = document.getElementById(`filter${name}`)?.value
+      ? document.getElementById(`filter${name}`)?.value
+      : '';
+    updateFilters(filterValue);
+  }, [filters]);
+
+  if (!filters || !filters.length) {
+    return null;
+  }
+
+  let content = displayedFilters.map((filter) => (
     <SearchFilter
       filter={filter}
       updateSelected={updateSelected}
@@ -152,52 +163,73 @@ const SEARCH_FILTER_GROUP_IDS = {
       hideEmpty={hideEmpty}
       checkOnPartial={checkOnPartial}
       filterSearchValue={document.getElementById(`filter${name}`)?.value}
-      key={filter.aggKey}/>
+      key={filter.aggKey}
+    />
   ));
 
-  if (name === 'Collections') {content.sort((a,b) => {
-    const title = Sefaria.interfaceLang==='english' ? 'title' : 'heTitle';
-    return !a.props.filter[title] - !b.props.filter[title]; //first the collections with title in the interface's language
-  })}
+  if (name === 'Collections') {
+    content.sort((a, b) => {
+      const title = Sefaria.interfaceLang === 'english' ? 'title' : 'heTitle';
+      return !a.props.filter[title] - !b.props.filter[title]; //first the collections with title in the interface's language
+    });
+  }
 
   if (paged) {
-    content = <PagedList items={content} />
+    content = <PagedList items={content} />;
   }
 
   const hasWordStartingWithOrSelected = (item, filterValue) => {
-    let escapedFilterValue = filterValue.replace("-", "\-");
-    escapedFilterValue = escapedFilterValue.replace(/[^\w\s\-]/g, "");
-    if (item.selected || item.title.match(new RegExp(`(?:^|.+\\s)${escapedFilterValue}.*`, "i")) || item.heTitle.match(new RegExp(`(?:^|.+\\s)${escapedFilterValue}.*`, "i"))) {
+    let escapedFilterValue = filterValue.replace('-', '-');
+    escapedFilterValue = escapedFilterValue.replace(/[^\w\s-]/g, '');
+    if (
+      item.selected ||
+      item.title.match(new RegExp(`(?:^|.+\\s)${escapedFilterValue}.*`, 'i')) ||
+      item.heTitle.match(new RegExp(`(?:^|.+\\s)${escapedFilterValue}.*`, 'i'))
+    ) {
       return true;
-    } else if (item.children.filter(x => hasWordStartingWithOrSelected(x, escapedFilterValue)).length > 0) {
+    } else if (item.children.filter((x) => hasWordStartingWithOrSelected(x, escapedFilterValue)).length > 0) {
       return true;
-    }
-    else {
+    } else {
       return false;
     }
-  }
-  
-  const sortFiltersBySelected = (filter1, filter2) => {
-   return filter2.selected - filter1.selected;
-  }
+  };
 
-  const updateFilters = text => {
-    if (text && text !== "") {
-      const matched = filters.filter(x => hasWordStartingWithOrSelected(x, text));
+  const sortFiltersBySelected = (filter1, filter2) => {
+    return filter2.selected - filter1.selected;
+  };
+
+  const updateFilters = (text) => {
+    if (text && text !== '') {
+      const matched = filters.filter((x) => hasWordStartingWithOrSelected(x, text));
       setFilters(!expandable && !preserveOrder ? [...matched].sort(sortFiltersBySelected) : matched);
       setShowClearInputButton(true);
     } else {
       setFilters(!expandable && !preserveOrder ? [...filters].sort(sortFiltersBySelected) : filters);
       setShowClearInputButton(false);
     }
-  }
+  };
   const clearInput = () => {
-    document.getElementById(`filter${name}`).value = "";
-    updateFilters("");
-  }
+    document.getElementById(`filter${name}`).value = '';
+    updateFilters('');
+  };
   // need hebrew for placeholder/title
-  const clearInputButton = <button aria-label={Sefaria._("search_filters.clear_input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
-  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={searchPlaceholder || Sefaria._(`search_filters.search_${name.toLowerCase()}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
+  const clearInputButton = (
+    <button aria-label={Sefaria._('search_filters.clear_input')} onClick={clearInput}>
+      <img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img>
+    </button>
+  );
+  const search = searchable ? (
+    <div className="searchBox">
+      <input
+        id={`filter${name}`}
+        className="searchFiltersInput"
+        placeholder={searchPlaceholder || Sefaria._(`search_filters.search_${name.toLowerCase()}`)}
+        title={`Type to Filter ${name} Shown`}
+        onChange={(e) => updateFilters(e.target.value)}
+      ></input>
+      {showClearInputButton ? clearInputButton : null}
+    </div>
+  ) : null;
 
   return (
     <div className="searchFilterGroup">
@@ -210,122 +242,140 @@ const SEARCH_FILTER_GROUP_IDS = {
   );
 };
 SearchFilterGroup.propTypes = {
-  name:              PropTypes.string.isRequired,
-  filters:           PropTypes.array.isRequired,
-  updateSelected:    PropTypes.func.isRequired,
-  expandable:        PropTypes.bool,
-  paged:             PropTypes.bool,
-  searchable:        PropTypes.bool,
-  preserveOrder:     PropTypes.bool,
+  name: PropTypes.string.isRequired,
+  filters: PropTypes.array.isRequired,
+  updateSelected: PropTypes.func.isRequired,
+  expandable: PropTypes.bool,
+  paged: PropTypes.bool,
+  searchable: PropTypes.bool,
+  preserveOrder: PropTypes.bool,
   searchPlaceholder: PropTypes.string,
-  hideEmpty:         PropTypes.bool,
-  checkOnPartial:    PropTypes.bool,
+  hideEmpty: PropTypes.bool,
+  checkOnPartial: PropTypes.bool,
 };
-
 
 class SearchFilter extends Component {
   constructor(props) {
     super(props);
     this.state = {
       expanded: false,
-      selected: props.filter.selected
+      selected: props.filter.selected,
     };
   }
   componentWillReceiveProps(newProps) {
     if (newProps.filter.selected != this.state.selected) {
-      this.setState({selected: newProps.filter.selected});
+      this.setState({ selected: newProps.filter.selected });
     }
   }
   componentDidMount() {
     // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
     const isPartial = this.props.filter.isPartial();
-    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = isPartial && !this.props.checkOnPartial;
+    ReactDOM.findDOMNode(this).querySelector('input').indeterminate = isPartial && !this.props.checkOnPartial;
     if (isPartial && !this.props.checkOnPartial) {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
-    }
-    else {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected >= 1);
+      ReactDOM.findDOMNode(this).querySelector('label').setAttribute('aria-checked', 'mixed');
+    } else {
+      ReactDOM.findDOMNode(this)
+        .querySelector('label')
+        .setAttribute('aria-checked', this.state.selected >= 1);
     }
   }
   componentDidUpdate() {
     const isPartial = this.props.filter.isPartial();
-    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = isPartial && !this.props.checkOnPartial;
+    ReactDOM.findDOMNode(this).querySelector('input').indeterminate = isPartial && !this.props.checkOnPartial;
     if (isPartial && !this.props.checkOnPartial) {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
-    }
-    else {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected >= 1);
+      ReactDOM.findDOMNode(this).querySelector('label').setAttribute('aria-checked', 'mixed');
+    } else {
+      ReactDOM.findDOMNode(this)
+        .querySelector('label')
+        .setAttribute('aria-checked', this.state.selected >= 1);
     }
   }
   handleFilterClick(evt) {
-    this.props.updateSelected(this.props.filter)
+    this.props.updateSelected(this.props.filter);
   }
   toggleExpanded() {
-    this.props.expandable && this.setState({expanded: !this.state.expanded});    
+    this.props.expandable && this.setState({ expanded: !this.state.expanded });
   }
   autoExpand(filter) {
-    return this.props.filterSearchValue !== undefined && this.props.filterSearchValue !== null && this.props.filterSearchValue !== "" && this.props.expandable && filter.getLeafNodes(this.props.filterSearchValue).length > 0;
+    return (
+      this.props.filterSearchValue !== undefined &&
+      this.props.filterSearchValue !== null &&
+      this.props.filterSearchValue !== '' &&
+      this.props.expandable &&
+      filter.getLeafNodes(this.props.filterSearchValue).length > 0
+    );
   }
   render() {
     const { filter, expandable, hideEmpty, checkOnPartial } = this.props;
-    const toggleMessage = "Press enter to toggle search filter for " + filter.title + ".";
-    const expandMessage = "Press enter to toggle the list of specific books within " + filter.title + " to filter by."
+    const toggleMessage = 'Press enter to toggle search filter for ' + filter.title + '.';
+    const expandMessage = 'Press enter to toggle the list of specific books within ' + filter.title + ' to filter by.';
 
     const leafNodes = filter.getLeafNodes(this.props.filterSearchValue);
-    const visibleLeafNodes = hideEmpty ? leafNodes.filter(c => (c.docCount || 0) > 0) : leafNodes;
+    const visibleLeafNodes = hideEmpty ? leafNodes.filter((c) => (c.docCount || 0) > 0) : leafNodes;
     const isExpandable = expandable && visibleLeafNodes.length > 0;
 
     return (
       <>
         <li>
           <div className="checkboxAndText">
-            <input type="checkbox" id={filter.aggKey} className="filter" checked={checkOnPartial ? this.state.selected >= 1 : this.state.selected == 1} onChange={this.handleFilterClick}/>
+            <input
+              type="checkbox"
+              id={filter.aggKey}
+              className="filter"
+              checked={checkOnPartial ? this.state.selected >= 1 : this.state.selected == 1}
+              onChange={this.handleFilterClick}
+            />
             <label
               onClick={this.handleFilterClick}
-              id={"label-for-"+this.props.filter.aggKey}
+              id={'label-for-' + this.props.filter.aggKey}
               tabIndex="0"
               onKeyDown={Util.handleEnterKey(this.handleFilterClick)}
-              aria-label={toggleMessage}>
+              aria-label={toggleMessage}
+            >
               <span></span>
             </label>
             <span
               className="searchFilterTitle"
               onClick={isExpandable ? this.toggleExpanded : this.handleFilterClick}
-              onKeyDown={isExpandable ? Util.handleEnterKey(this.toggleExpanded) : Util.handleEnterKey(this.handleFilterClick)}
-              tabIndex={isExpandable ? "0" : null}
-              aria-label={isExpandable ? expandMessage : toggleMessage} >
-              <InterfaceText text={{en: filter.title, he: filter.heTitle}} />&nbsp;
-              {filter.docCount !== undefined ?
-                <span className="filter-count"><InterfaceText>{`(${filter.docCount})`}</InterfaceText></span> : null}
+              onKeyDown={
+                isExpandable ? Util.handleEnterKey(this.toggleExpanded) : Util.handleEnterKey(this.handleFilterClick)
+              }
+              tabIndex={isExpandable ? '0' : null}
+              aria-label={isExpandable ? expandMessage : toggleMessage}
+            >
+              <InterfaceText text={{ en: filter.title, he: filter.heTitle }} />
+              &nbsp;
+              {filter.docCount !== undefined ? (
+                <span className="filter-count">
+                  <InterfaceText>{`(${filter.docCount})`}</InterfaceText>
+                </span>
+              ) : null}
             </span>
           </div>
           {isExpandable ? <i className="fa fa-angle-down" onClick={this.toggleExpanded} /> : null}
         </li>
-        {this.state.expanded || this.autoExpand(filter) ?
-        <li>
-          <div className="searchFilterBooks">
-            {visibleLeafNodes.map(subFilter => (
-              <SearchFilter
-                filter={subFilter}
-                updateSelected={this.props.updateSelected}
-                key={subFilter.aggKey} />
-            ))}
-          </div>
-        </li> : null}
+        {this.state.expanded || this.autoExpand(filter) ? (
+          <li>
+            <div className="searchFilterBooks">
+              {visibleLeafNodes.map((subFilter) => (
+                <SearchFilter filter={subFilter} updateSelected={this.props.updateSelected} key={subFilter.aggKey} />
+              ))}
+            </div>
+          </li>
+        ) : null}
       </>
     );
   }
 }
 SearchFilter.propTypes = {
-  filter:         PropTypes.object.isRequired,
-  expandable:     PropTypes.bool,
-  hideEmpty:      PropTypes.bool,
+  filter: PropTypes.object.isRequired,
+  expandable: PropTypes.bool,
+  hideEmpty: PropTypes.bool,
   checkOnPartial: PropTypes.bool,
   updateSelected: PropTypes.func.isRequired,
 };
 
-
-const BookSearchFilters = ({filters, updateSelected, mobileSortProps, hideEmpty}) => {
+const BookSearchFilters = ({ filters, updateSelected, mobileSortProps, hideEmpty }) => {
   const filterContent = (
     <div className="searchFilterBoxes">
       <SearchFilterGroup
@@ -337,19 +387,15 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps, hideEmpty}
         expandable={true}
         hideEmpty={hideEmpty}
         checkOnPartial={true}
-        />
+      />
     </div>
   );
 
   if (!mobileSortProps) {
-    return (
-      <div className="searchFilters navSidebarModule">
-        {filterContent}
-      </div>
-    );
+    return <div className="searchFilters navSidebarModule">{filterContent}</div>;
   }
 
-  const {sortOptions, sortType, onSortChange, onClose} = mobileSortProps;
+  const { sortOptions, sortType, onSortChange, onClose } = mobileSortProps;
   return (
     <>
       <div className="mobileSearchFiltersHeader sans-serif">
@@ -359,7 +405,9 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps, hideEmpty}
       </div>
       <div className="searchFilters navSidebarModule">
         <div className="searchFilterGroup">
-          <h2><InterfaceText>common.sort_by</InterfaceText></h2>
+          <h2>
+            <InterfaceText>common.sort_by</InterfaceText>
+          </h2>
           <SortRadioList options={sortOptions} value={sortType} onChange={onSortChange} />
         </div>
         {filterContent}
@@ -373,17 +421,20 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps, hideEmpty}
   );
 };
 BookSearchFilters.propTypes = {
-  filters:         PropTypes.array.isRequired,
-  updateSelected:  PropTypes.func.isRequired,
+  filters: PropTypes.array.isRequired,
+  updateSelected: PropTypes.func.isRequired,
   mobileSortProps: PropTypes.object,
-  hideEmpty:       PropTypes.bool,
+  hideEmpty: PropTypes.bool,
 };
-
 
 class SheetSearchFilters extends Component {
   render() {
-    const collectionFilters = this.props.availableFilters.filter(filter => filter.aggType === 'collections' && (filter.title || filter.heTitle));
-    const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/) && (filter.title || filter.heTitle));
+    const collectionFilters = this.props.availableFilters.filter(
+      (filter) => filter.aggType === 'collections' && (filter.title || filter.heTitle)
+    );
+    const tagFilters = this.props.availableFilters.filter(
+      (filter) => filter.aggType.match(/^topics/) && (filter.title || filter.heTitle)
+    );
 
     return (
       <div className="searchFilterBoxes" role="dialog">
@@ -391,41 +442,46 @@ class SheetSearchFilters extends Component {
           name="Topics"
           filters={tagFilters}
           updateSelected={this.props.updateAppliedFilter}
-          paged={true} 
+          paged={true}
           searchable={true}
-          />
+        />
 
         <SearchFilterGroup
           name="Collections"
           filters={collectionFilters}
           updateSelected={this.props.updateAppliedFilter}
-          paged={true} />
+          paged={true}
+        />
       </div>
     );
   }
 }
 SheetSearchFilters.propTypes = {
   updateAppliedFilter: PropTypes.func.isRequired,
-  availableFilters:    PropTypes.array.isRequired,
+  availableFilters: PropTypes.array.isRequired,
 };
 
-
-const PagedList = ({items, initial=8, pageSize=20}) => {
+const PagedList = ({ items, initial = 8, pageSize = 20 }) => {
   const [cutoff, setCutoff] = useState(initial);
   return (
     <>
       {items.slice(0, cutoff)}
-      {items.length > cutoff ?
-      <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}} aria-label={Sefaria._("search_filters.see_more")}>
-        <InterfaceText>search_filters.see_more</InterfaceText>
-      </button>
-      : null}
+      {items.length > cutoff ? (
+        <button
+          className="showMore sans-serif"
+          onClick={() => {
+            setCutoff(cutoff + pageSize);
+          }}
+          aria-label={Sefaria._('search_filters.see_more')}
+        >
+          <InterfaceText>search_filters.see_more</InterfaceText>
+        </button>
+      ) : null}
     </>
   );
 };
 
-
-const EntitySortPanel = ({sortOptions, sortType, onSortChange, onClose}) => (
+const EntitySortPanel = ({ sortOptions, sortType, onSortChange, onClose }) => (
   <>
     <div className="mobileSearchFiltersHeader sans-serif">
       <CloseButton onClick={onClose} />
@@ -434,7 +490,9 @@ const EntitySortPanel = ({sortOptions, sortType, onSortChange, onClose}) => (
     </div>
     <div className="searchFilters navSidebarModule">
       <div className="searchFilterGroup">
-        <h2><InterfaceText>common.sort_by</InterfaceText></h2>
+        <h2>
+          <InterfaceText>common.sort_by</InterfaceText>
+        </h2>
         <SortRadioList options={sortOptions} value={sortType} onChange={onSortChange} />
       </div>
     </div>
@@ -446,12 +504,11 @@ const EntitySortPanel = ({sortOptions, sortType, onSortChange, onClose}) => (
   </>
 );
 EntitySortPanel.propTypes = {
-  sortOptions:  PropTypes.array.isRequired,
-  sortType:     PropTypes.string.isRequired,
+  sortOptions: PropTypes.array.isRequired,
+  sortType: PropTypes.string.isRequired,
   onSortChange: PropTypes.func.isRequired,
-  onClose:      PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
-
 
 export default SearchFilters;
 export { BookSearchFilters, EntitySortPanel };

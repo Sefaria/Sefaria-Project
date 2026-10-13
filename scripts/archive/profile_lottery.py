@@ -1,16 +1,15 @@
-from random import randrange
-from pprint import pprint
-import urllib.request, urllib.parse, urllib.error
 import hashlib
+import urllib.error
+import urllib.parse
+import urllib.request
+from random import randrange
 
-from django.contrib.auth.models import User
-
-from sefaria.system.database import db
 from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
 
 contenders = db.profiles.find({"bio": {"$ne": ""}, "jewish_education": {"$ne": []}})
 points = {}
-users  = {}
+users = {}
 for contender in contenders:
     user = UserProfile(id=contender["id"])
     users[user.id] = user
@@ -29,6 +28,6 @@ for i in range(contenders.count()):
     for person in points:
         count += points[person]
         if count > winner:
-            print("%d. %s, %s" % (i+1, "www.sefaria.org/profile/" + users[person].slug, users[person].email))
+            print("%d. %s, %s" % (i + 1, "www.sefaria.org/profile/" + users[person].slug, users[person].email))
             del points[person]
             break

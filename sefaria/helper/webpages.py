@@ -1,5 +1,5 @@
-# coding=utf-8
 from urllib.parse import urlparse
+
 import regex as re
 
 from sefaria.system.cache import in_memory_cache
@@ -41,7 +41,7 @@ def normalize_url(url):
         "remove www": lambda u: re.sub(r"^(https?://)?www\.", r"\1", u),
         "remove mediawiki params": lambda u: re.sub(r"&amp;.+", "", u),
         "remove sort param": lambda u: re.sub(r"\?sort=.+", "", u),
-        "remove all params after id": lambda u: re.sub(r"(\?id=\d+).+$", r"\1", u)
+        "remove all params after id": lambda u: re.sub(r"(\?id=\d+).+$", r"\1", u),
     }
     global_rules = ["remove hash", "remove utm params", "remove fbclid param", "remove www", "use https"]
     domain = domain_for_url(url)

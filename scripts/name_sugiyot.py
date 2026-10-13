@@ -1,23 +1,19 @@
-# encoding=utf-8
-
 import csv
 import re
-
 from optparse import OptionParser
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.decomposition import NMF, LatentDirichletAllocation
+
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 from sefaria.model import *
-
 
 n_topics = 10
 n_top_words = 20
 
 
 def tokenizer(s):
-    s = re.sub(r'<.+?>', '', s)
-    s = re.sub(r'\(.+?\)', '', s).strip()
-    return re.split('\s+', s)
+    s = re.sub(r"<.+?>", "", s)
+    s = re.sub(r"\(.+?\)", "", s).strip()
+    return re.split(r"\s+", s)
 
 
 def _word_ngrams(tokens, stop_words=None, min_n=2, max_n=4):
@@ -31,10 +27,9 @@ def _word_ngrams(tokens, stop_words=None, min_n=2, max_n=4):
         original_tokens = tokens
         tokens = []
         n_original_tokens = len(original_tokens)
-        for n in range(min_n,
-                        min(max_n + 1, n_original_tokens + 1)):
+        for n in range(min_n, min(max_n + 1, n_original_tokens + 1)):
             for i in range(n_original_tokens - n + 1):
-                tokens.append(" ".join(original_tokens[i: i + n]))
+                tokens.append(" ".join(original_tokens[i : i + n]))
 
     return tokens
 
@@ -53,9 +48,8 @@ def analyzer(doc):
 
 def print_top_words(model, feature_names, n_top_words):
     for topic_idx, topic in enumerate(model.components_):
-        print(("Topic #%d:" % topic_idx))
-        print((" ".join([feature_names[i]
-                        for i in topic.argsort()[:-n_top_words - 1:-1]])))
+        print("Topic #%d:" % topic_idx)
+        print(" ".join([feature_names[i] for i in topic.argsort()[: -n_top_words - 1 : -1]]))
     print()
 
 
@@ -79,12 +73,10 @@ def derive_names(rows):
     for sugnum in range(len(dense)):
         print(sugyah_refs[sugnum])
         sug = dense[sugnum].tolist()[0]
-        phrase_scores = [pair for pair in zip(list(range(0, len(sug))), sug) if pair[1] > 0]
+        phrase_scores = [pair for pair in zip(list(range(len(sug))), sug) if pair[1] > 0]
         sorted_phrase_scores = sorted(phrase_scores, key=lambda t: t[1] * -1)
         for phrase, score in [(tfidf_feature_names[word_id], score) for (word_id, score) in sorted_phrase_scores][:3]:
-            print(('{0: <20} {1}'.format(phrase, score)))
-
-
+            print(f"{phrase: <20} {score}")
 
     """
     # http://scikit-learn.org/stable/auto_examples/applications/topics_extraction_with_nmf_lda.html#sphx-glr-auto-examples-applications-topics-extraction-with-nmf-lda-py
@@ -109,23 +101,46 @@ def derive_names(rows):
     """
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = OptionParser()
-    parser.add_option("-t", "--tractate", dest="tractate", help="Name of tractate to parse. Input 'all' to parse everything")
+    parser.add_option(
+        "-t",
+        "--tractate",
+        dest="tractate",
+        help="Name of tractate to parse. Input 'all' to parse everything",
+    )
 
     options, user_args = parser.parse_args()
 
     if options.tractate:
         mesechtot = [options.tractate]
     else:
-        mesechtot = ["Sukkah", "Beitzah", "Chagigah", "Gittin", "Ketubot", "Kiddushin",
-                     "Megillah", "Moed Katan", "Nazir", "Nedarim", "Rosh Hashanah", "Sotah", "Taanit",
-                     "Yevamot", "Yoma", "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin"]
+        mesechtot = [
+            "Sukkah",
+            "Beitzah",
+            "Chagigah",
+            "Gittin",
+            "Ketubot",
+            "Kiddushin",
+            "Megillah",
+            "Moed Katan",
+            "Nazir",
+            "Nedarim",
+            "Rosh Hashanah",
+            "Sotah",
+            "Taanit",
+            "Yevamot",
+            "Yoma",
+            "Bava Kamma",
+            "Bava Metzia",
+            "Bava Batra",
+            "Sanhedrin",
+        ]
     rows = []
 
     for m in mesechtot:
         print(m)
-        with open('../data/sugyot/{}.csv'.format(m), 'r') as csvfile:
+        with open(f"../data/sugyot/{m}.csv") as csvfile:
             reader = csv.DictReader(csvfile)
-            rows += [row for row in reader]
+            rows += list(reader)
     derive_names(rows)

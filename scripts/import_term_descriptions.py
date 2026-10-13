@@ -1,13 +1,13 @@
-# -*- coding: utf-8 -*-
 import django
-django.setup()
 
-from sefaria.model import *
+django.setup()
 
 import unicodecsv as csv
 
-holidays_filename = './Topic Descriptions - Holidays.tsv'
-parshiot_filename = './Topic Descriptions - Parshiyot.tsv'
+from sefaria.model import *
+
+holidays_filename = "./Topic Descriptions - Holidays.tsv"
+parshiot_filename = "./Topic Descriptions - Parshiyot.tsv"
 
 # HOLIDAYS
 # 0 Category
@@ -24,11 +24,11 @@ parshiot_filename = './Topic Descriptions - Parshiyot.tsv'
 def set_descriptions(topic, en, he):
     term = Term().load_by_title(topic)
     if not term:
-        print("No {}".format(topic))
+        print(f"No {topic}")
         return
     term.description = {
         "en": en,
-        "he": he
+        "he": he,
     }
     # print u"{}, {}, {}".format(topic,en,he)
     term.save()
@@ -37,13 +37,13 @@ def set_descriptions(topic, en, he):
 with open(holidays_filename) as tsvfile:
     next(tsvfile)
     next(tsvfile)
-    reader = csv.reader(tsvfile, delimiter='\t')
+    reader = csv.reader(tsvfile, delimiter="\t")
     for row in reader:
-        set_descriptions(row[1],row[2],row[3])
+        set_descriptions(row[1], row[2], row[3])
 
 with open(parshiot_filename) as tsvfile:
     next(tsvfile)
     next(tsvfile)
-    reader = csv.reader(tsvfile, delimiter='\t')
+    reader = csv.reader(tsvfile, delimiter="\t")
     for row in reader:
-        set_descriptions(row[0],row[1],row[2])
+        set_descriptions(row[0], row[1], row[2])

@@ -1,88 +1,106 @@
-import React, {useState} from "react";
-import Sefaria  from './sefaria/sefaria';
-import $  from './sefaria/sefariaJquery';
-import {
-    CloseButton, InterfaceText, EnglishText, HebrewText
-} from './Misc';
+import React, { useState } from 'react';
+import Sefaria from './sefaria/sefaria';
+import $ from './sefaria/sefariaJquery';
+import { CloseButton, InterfaceText, EnglishText, HebrewText } from './Misc';
 
 const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
 const { translation_language_preference_suggestion } = Sefaria;
 
-export const TextColumnBannerChooser = ({ setTranslationLanguagePreference, openTranslations, openTransBannerApplies }) => {
-    const [transLangPrefAccepted, setTransLangPrefAccepted] = useState(false);
-    const shouldTransPrefBannerRender = () => {
-        // we haven't suggested yet and we have a suggestion
-        return transLangPrefAccepted || (!cookie("translation_language_preference_suggested") && translation_language_preference_suggestion);
-    };
-    const shouldOpenTransBannerRender = () => {
-        return openTransBannerApplies() && !cookie("open_trans_banner_shown"); // && textMode in (bilingual, english) && category in (Tanakh, Mishnah, Bavli)
-    }
+export const TextColumnBannerChooser = ({
+  setTranslationLanguagePreference,
+  openTranslations,
+  openTransBannerApplies,
+}) => {
+  const [transLangPrefAccepted, setTransLangPrefAccepted] = useState(false);
+  const shouldTransPrefBannerRender = () => {
+    // we haven't suggested yet and we have a suggestion
+    return (
+      transLangPrefAccepted ||
+      (!cookie('translation_language_preference_suggested') && translation_language_preference_suggestion)
+    );
+  };
+  const shouldOpenTransBannerRender = () => {
+    return openTransBannerApplies() && !cookie('open_trans_banner_shown'); // && textMode in (bilingual, english) && category in (Tanakh, Mishnah, Bavli)
+  };
 
-    if (shouldTransPrefBannerRender())  {
-        return (
-            <TransLangPrefBanner
-                accepted={transLangPrefAccepted}
-                setAccepted={setTransLangPrefAccepted}
-                setTranslationLanguagePreference={setTranslationLanguagePreference}
-            />
-        );
-    }
-    else if (shouldOpenTransBannerRender()) {
-        return <OpenTransBanner openTranslations={openTranslations} />;
-    }
-    return null;
+  if (shouldTransPrefBannerRender()) {
+    return (
+      <TransLangPrefBanner
+        accepted={transLangPrefAccepted}
+        setAccepted={setTransLangPrefAccepted}
+        setTranslationLanguagePreference={setTranslationLanguagePreference}
+      />
+    );
+  } else if (shouldOpenTransBannerRender()) {
+    return <OpenTransBanner openTranslations={openTranslations} />;
+  }
+  return null;
 };
 
+const TransLangPrefBanner = ({ accepted, setAccepted, setTranslationLanguagePreference }) => {
+  if (accepted) {
+    return <TransLangPrefAcceptedBanner />;
+  }
 
-const TransLangPrefBanner = ({accepted, setAccepted, setTranslationLanguagePreference}) => {
-    if (accepted) {
-        return <TransLangPrefAcceptedBanner />;
-    }
-
-    return (
-        <TransLangPrefAskBanner
-            setAccepted={setAccepted}
-            setTranslationLanguagePreference={setTranslationLanguagePreference}
-        />
-    );
-}
-
+  return (
+    <TransLangPrefAskBanner
+      setAccepted={setAccepted}
+      setTranslationLanguagePreference={setTranslationLanguagePreference}
+    />
+  );
+};
 
 const TransLangPrefAcceptedBanner = () => {
-    const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
-    return (
-        <TextColumnBanner>
-            <InterfaceText>
-                <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
-                <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria.translateISOLanguageName(translation_language_preference_suggestion)}</span> כאשר אלו יהיו זמינים. </HebrewText>
-            </InterfaceText>
-        </TextColumnBanner>
-    );
-}
-
+  const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
+  return (
+    <TextColumnBanner>
+      <InterfaceText>
+        <EnglishText>
+          {" Thanks! We'll show you "}
+          {lang}
+          {' translations first when we have them. '}
+        </EnglishText>
+        <HebrewText>
+          תודה! כשנוכל, נציג לכם תרגומים בשפה ה
+          <span className="bold">{Sefaria.translateISOLanguageName(translation_language_preference_suggestion)}</span>{' '}
+          כאשר אלו יהיו זמינים.{' '}
+        </HebrewText>
+      </InterfaceText>
+    </TextColumnBanner>
+  );
+};
 
 const TransLangPrefAskBanner = ({ setAccepted, setTranslationLanguagePreference }) => {
-    const reject = () => {
-        cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
-        Sefaria.editProfileAPI({settings: {translation_language_preference_suggested: true}});
-    }
-    const accept = () => {
-        setAccepted(true);
-        setTranslationLanguagePreference(translation_language_preference_suggestion);
-    }
-    const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
-    const buttons = [{text: "Yes", textId: "text_column_banner.yes", onClick: accept}, {text: "No", textId: "text_column_banner.no", onClick: reject, sideEffect: "close" }];
+  const reject = () => {
+    cookie('translation_language_preference_suggested', JSON.stringify(1), { path: '/' });
+    Sefaria.editProfileAPI({ settings: { translation_language_preference_suggested: true } });
+  };
+  const accept = () => {
+    setAccepted(true);
+    setTranslationLanguagePreference(translation_language_preference_suggestion);
+  };
+  const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
+  const buttons = [
+    { text: 'Yes', textId: 'text_column_banner.yes', onClick: accept },
+    { text: 'No', textId: 'text_column_banner.no', onClick: reject, sideEffect: 'close' },
+  ];
 
-    return (
-        <TextColumnBanner buttons={buttons} onClose={reject}>
-            <InterfaceText>
-                <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
-                <HebrewText>האם תעדיפו לראות תרגומים בשפה ה<span className="bold">{Sefaria.translateISOLanguageName(translation_language_preference_suggestion)}</span> כאשר הם זמינים?</HebrewText>
-            </InterfaceText>
-        </TextColumnBanner>
-    );
-}
-
+  return (
+    <TextColumnBanner buttons={buttons} onClose={reject}>
+      <InterfaceText>
+        <EnglishText>
+          {' '}
+          Prefer to see <span className="bold"> {lang} </span> translations when available?{' '}
+        </EnglishText>
+        <HebrewText>
+          האם תעדיפו לראות תרגומים בשפה ה
+          <span className="bold">{Sefaria.translateISOLanguageName(translation_language_preference_suggestion)}</span>{' '}
+          כאשר הם זמינים?
+        </HebrewText>
+      </InterfaceText>
+    </TextColumnBanner>
+  );
+};
 
 /**
  *
@@ -91,23 +109,30 @@ const TransLangPrefAskBanner = ({ setAccepted, setTranslationLanguagePreference 
  * @constructor
  */
 const OpenTransBanner = ({ openTranslations }) => {
-    const buttons = [{
-        text: "Go to translations",
-        textId: "text_column_banner.go_to_translations",
-        onClick: () => { openTranslations(); },
-        sideEffect: "close",
-    }];
-    const onClose = () => {
-        cookie("open_trans_banner_shown", JSON.stringify(1), {path: "/"});
-    };
-    return (
-        <TextColumnBanner buttons={buttons} onClose={onClose}>
-            <InterfaceText>
-                <EnglishText> Want to <span className="bold">change</span> the translation?</EnglishText>
-                <HebrewText> מעוניינים בתרגום אחר?</HebrewText>
-            </InterfaceText>
-        </TextColumnBanner>
-    );
+  const buttons = [
+    {
+      text: 'Go to translations',
+      textId: 'text_column_banner.go_to_translations',
+      onClick: () => {
+        openTranslations();
+      },
+      sideEffect: 'close',
+    },
+  ];
+  const onClose = () => {
+    cookie('open_trans_banner_shown', JSON.stringify(1), { path: '/' });
+  };
+  return (
+    <TextColumnBanner buttons={buttons} onClose={onClose}>
+      <InterfaceText>
+        <EnglishText>
+          {' '}
+          Want to <span className="bold">change</span> the translation?
+        </EnglishText>
+        <HebrewText> מעוניינים בתרגום אחר?</HebrewText>
+      </InterfaceText>
+    </TextColumnBanner>
+  );
 };
 
 /**
@@ -119,35 +144,41 @@ const OpenTransBanner = ({ openTranslations }) => {
  * @constructor
  */
 const TextColumnBanner = ({ children, buttons, onClose }) => {
-    const [closed, setClosed] = useState(false);
-    const closeBanner = () => {
-        setClosed(true);
-        onClose?.();
-    };
-    if (closed) { return null; }
-    return (
-        <div className="readerControls transLangPrefSuggBann">
-            <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
-                <div className="transLangPrefCentered">
-                    { children }
-                    <div className="yesNoGroup">
-                        { buttons?.map(button => <TextColumnBannerButton key={button.text} button={button} closeBanner={closeBanner}/>) }
-                    </div>
-                </div>
-                <CloseButton onClick={closeBanner} />
-            </div>
+  const [closed, setClosed] = useState(false);
+  const closeBanner = () => {
+    setClosed(true);
+    onClose?.();
+  };
+  if (closed) {
+    return null;
+  }
+  return (
+    <div className="readerControls transLangPrefSuggBann">
+      <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
+        <div className="transLangPrefCentered">
+          {children}
+          <div className="yesNoGroup">
+            {buttons?.map((button) => (
+              <TextColumnBannerButton key={button.text} button={button} closeBanner={closeBanner} />
+            ))}
+          </div>
         </div>
-    );
-}
+        <CloseButton onClick={closeBanner} />
+      </div>
+    </div>
+  );
+};
 
 const TextColumnBannerButton = ({ button, closeBanner }) => {
-    const onClick = () => {
-        button.onClick();
-        if (button.sideEffect === "close") { closeBanner(true); }
+  const onClick = () => {
+    button.onClick();
+    if (button.sideEffect === 'close') {
+      closeBanner(true);
     }
-    return (
-        <button tabIndex="0" className="yesNoButton" aria-label={button.text} onClick={onClick}>
-            <InterfaceText>{button.textId}</InterfaceText>
-        </button>
-    );
-}
+  };
+  return (
+    <button tabIndex="0" className="yesNoButton" aria-label={button.text} onClick={onClick}>
+      <InterfaceText>{button.textId}</InterfaceText>
+    </button>
+  );
+};

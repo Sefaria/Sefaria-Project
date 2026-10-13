@@ -1,8 +1,9 @@
 import pytest
+
 from sefaria.model.portal import Portal  # Replace with your actual validation function
 from sefaria.model.topic import Topic
-from sefaria.system.exceptions import SluggedMongoRecordMissingError
 from sefaria.system.database import db
+from sefaria.system.exceptions import SluggedMongoRecordMissingError
 
 valids = [
     {
@@ -11,41 +12,41 @@ valids = [
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
+                "he": "Hebrew Title",
             },
             "title_url": "https://example.com",
             "image_uri": "gs://your-bucket/image.jpg",
             "description": {
                 "en": "English Description",
-                "he": "Hebrew Description"
-            }
+                "he": "Hebrew Description",
+            },
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
+                "he": "Mobile Hebrew Title",
             },
             "android_link": "https://android-link.com",
-            "ios_link": "https://ios-link.com"
+            "ios_link": "https://ios-link.com",
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "description": {
                 "en": "Newsletter English Description",
-                "he": "Newsletter Hebrew Description"
+                "he": "Newsletter Hebrew Description",
             },
             "api_schema": {
                 "http_method": "POST",
                 "payload": {
                     "first_name_key": "fname",
                     "last_name_key": "lname",
-                    "email_key": "email"
-                }
-            }
-        }
+                    "email_key": "email",
+                },
+            },
+        },
     },
     {
         "slug": "English Title",
@@ -53,70 +54,70 @@ valids = [
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
+                "he": "Hebrew Title",
             },
             "description": {
                 "en": "English Description",
-                "he": "Hebrew Description"
-            }
+                "he": "Hebrew Description",
+            },
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
-            }
+                "he": "Mobile Hebrew Title",
+            },
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "api_schema": {
-                "http_method": "GET"
-            }
-        }
+                "http_method": "GET",
+            },
+        },
     },
-{
+    {
         "slug": "English Title",
         "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
+                "he": "Hebrew Title",
             },
             "title_url": "https://example.com",
             "image_uri": "gs://your-bucket/image.jpg",
             "description": {
                 "en": "English Description",
-                "he": "Hebrew Description"
-            }
+                "he": "Hebrew Description",
+            },
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
+                "he": "Mobile Hebrew Title",
             },
             "android_link": "https://android-link.com",
-            "ios_link": "https://ios-link.com"
+            "ios_link": "https://ios-link.com",
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "description": {
                 "en": "Newsletter English Description",
-                "he": "Newsletter Hebrew Description"
+                "he": "Newsletter Hebrew Description",
             },
             "api_schema": {
                 "http_method": "POST",
                 "payload": {
                     "first_name_key": "fname",
                     "last_name_key": "lname",
-                    "email_key": "email"
-                }
-            }
-        }
+                    "email_key": "email",
+                },
+            },
+        },
     },
     {
         "slug": "English Title",
@@ -124,24 +125,24 @@ valids = [
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
-            }
+                "he": "Hebrew Title",
+            },
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
-            }
+                "he": "Mobile Hebrew Title",
+            },
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "api_schema": {
-                "http_method": "GET"
-            }
-        }
+                "http_method": "GET",
+            },
+        },
     },
     {
         "slug": "English Title",
@@ -149,22 +150,22 @@ valids = [
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
-            }
+                "he": "Hebrew Title",
+            },
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
+                "he": "Mobile Hebrew Title",
             },
-            "android_link": "https://android-link.com"
+            "android_link": "https://android-link.com",
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
-            }
-        }
+                "he": "Newsletter Hebrew Title",
+            },
+        },
     },
     {
         "slug": "English Title",
@@ -172,41 +173,41 @@ valids = [
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
+                "he": "Hebrew Title",
             },
             "title_url": "https://example.com",
             "image_uri": "gs://your-bucket/image.jpg",
             "description": {
                 "en": "English Description",
-                "he": "Hebrew Description"
-            }
+                "he": "Hebrew Description",
+            },
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
+                "he": "Mobile Hebrew Title",
             },
             "android_link": "https://android-link.com",
-            "ios_link": "https://ios-link.com"
+            "ios_link": "https://ios-link.com",
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "description": {
                 "en": "Newsletter English Description",
-                "he": "Newsletter Hebrew Description"
+                "he": "Newsletter Hebrew Description",
             },
             "api_schema": {
                 "http_method": "POST",
                 "payload": {
                     "first_name_key": "fname",
                     "last_name_key": "lname",
-                    "email_key": "email"
-                }
-            }
-        }
+                    "email_key": "email",
+                },
+            },
+        },
     },
     {
         "slug": "English Title",
@@ -214,24 +215,24 @@ valids = [
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
-            }
+                "he": "Hebrew Title",
+            },
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
-            }
+                "he": "Mobile Hebrew Title",
+            },
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "api_schema": {
-                "http_method": "GET"
-            }
-        }
+                "http_method": "GET",
+            },
+        },
     },
     {
         "slug": "English Title",
@@ -239,30 +240,30 @@ valids = [
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
+                "he": "Hebrew Title",
             },
-            "image_uri": "gs://your-bucket/image.jpg"
+            "image_uri": "gs://your-bucket/image.jpg",
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
-            }
+                "he": "Mobile Hebrew Title",
+            },
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "api_schema": {
                 "http_method": "POST",
                 "payload": {
                     "first_name_key": "fname",
                     "last_name_key": "lname",
-                    "email_key": "email"
-                }
-            }
-        }
+                    "email_key": "email",
+                },
+            },
+        },
     },
     {
         "slug": "English Title",
@@ -270,10 +271,10 @@ valids = [
         "about": {
             "title": {
                 "en": "About Us",
-                "he": "עלינו"
-            }
-        }
-    }
+                "he": "עלינו",
+            },
+        },
+    },
 ]
 
 invalids = [
@@ -284,25 +285,25 @@ invalids = [
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
+                "he": "Mobile Hebrew Title",
             },
             "android_link": "https://android-link.com",
-            "ios_link": "https://ios-link.com"
+            "ios_link": "https://ios-link.com",
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "api_schema": {
                 "http_method": "POST",
                 "payload": {
                     "first_name_key": "fname",
                     "last_name_key": "lname",
-                    "email_key": "email"
-                }
-            }
-        }
+                    "email_key": "email",
+                },
+            },
+        },
     },
     # Invalid "about.title_url" (not a URL)
     {
@@ -311,41 +312,41 @@ invalids = [
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
+                "he": "Hebrew Title",
             },
             "title_url": "invalid-url",
             "image_uri": "gs://your-bucket/image.jpg",
             "description": {
                 "en": "English Description",
-                "he": "Hebrew Description"
-            }
+                "he": "Hebrew Description",
+            },
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
+                "he": "Mobile Hebrew Title",
             },
             "android_link": "https://android-link.com",
-            "ios_link": "https://ios-link.com"
+            "ios_link": "https://ios-link.com",
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "description": {
                 "en": "Newsletter English Description",
-                "he": "Newsletter Hebrew Description"
+                "he": "Newsletter Hebrew Description",
             },
             "api_schema": {
                 "http_method": "POST",
                 "payload": {
                     "first_name_key": "fname",
                     "last_name_key": "lname",
-                    "email_key": "email"
-                }
-            }
-        }
+                    "email_key": "email",
+                },
+            },
+        },
     },
     # Including invalid field "newsletter.description.fr"
     {
@@ -354,40 +355,40 @@ invalids = [
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
+                "he": "Hebrew Title",
             },
             "title_url": "https://example.com",
             "image_uri": "gs://your-bucket/image.jpg",
             "description": {
                 "en": "English Description",
-                "he": "Hebrew Description"
-            }
+                "he": "Hebrew Description",
+            },
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
+                "he": "Mobile Hebrew Title",
             },
-            "android_link": "https://android-link.com"
+            "android_link": "https://android-link.com",
         },
         "newsletter": {
             "title": {
                 "fr": "Titre de la newsletter",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "description": {
                 "en": "Newsletter English Description",
-                "he": "Newsletter Hebrew Description"
+                "he": "Newsletter Hebrew Description",
             },
             "api_schema": {
                 "http_method": "POST",
                 "payload": {
                     "first_name_key": "fname",
                     "last_name_key": "lname",
-                    "email_key": "email"
-                }
-            }
-        }
+                    "email_key": "email",
+                },
+            },
+        },
     },
     # Invalid "newsletter.api_schema.http_method" (not a valid HTTP method)
     {
@@ -396,40 +397,40 @@ invalids = [
         "about": {
             "title": {
                 "en": "English Title",
-                "he": "Hebrew Title"
+                "he": "Hebrew Title",
             },
             "image_uri": "gs://your-bucket/image.jpg",
             "description": {
                 "en": "English Description",
-                "he": "Hebrew Description"
-            }
+                "he": "Hebrew Description",
+            },
         },
         "mobile": {
             "title": {
                 "en": "Mobile Title",
-                "he": "Mobile Hebrew Title"
+                "he": "Mobile Hebrew Title",
             },
             "android_link": "https://android-link.com",
-            "ios_link": "https://ios-link.com"
+            "ios_link": "https://ios-link.com",
         },
         "newsletter": {
             "title": {
                 "en": "Newsletter Title",
-                "he": "Newsletter Hebrew Title"
+                "he": "Newsletter Hebrew Title",
             },
             "description": {
                 "en": "Newsletter English Description",
-                "he": "Newsletter Hebrew Description"
+                "he": "Newsletter Hebrew Description",
             },
             "api_schema": {
                 "http_method": "INVALID_METHOD",
                 "payload": {
                     "first_name_key": "fname",
                     "last_name_key": "lname",
-                    "email_key": "email"
-                }
-            }
-        }
+                    "email_key": "email",
+                },
+            },
+        },
     },
     # Invalid data types:
     {
@@ -438,47 +439,48 @@ invalids = [
         "about": {
             "title": {
                 "en": "About Us",
-                "he": "עלינו"
+                "he": "עלינו",
             },
             "image_uri": 67890,
             "description": {
                 "en": "Description in English",
-                "he": "תיאור בעברית"
-            }
-        }
-    },
-{
-    # Incorrect field names
-    "slug": "English Title",
-    "name": {"en": "a", "he": "b"},
-    "about": {
-        "title": {
-            "en": "About Us",
-            "he": "עלינו"
+                "he": "תיאור בעברית",
+            },
         },
-        "image_uri": "gs://bucket/image.jpg",
-        "description": {
-            "en": "Description in English",
-            "he": "תיאור בעברית"
-        }
     },
-    "mobile": {
-        "title": {
-            "en": "Mobile App",
-            "he": "אפליקציה ניידת"
+    {
+        # Incorrect field names
+        "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
+        "about": {
+            "title": {
+                "en": "About Us",
+                "he": "עלינו",
+            },
+            "image_uri": "gs://bucket/image.jpg",
+            "description": {
+                "en": "Description in English",
+                "he": "תיאור בעברית",
+            },
         },
-        "android_link": "https://play.google.com/store/apps/details?id=com.example.app",
-        "ios_link": "https://apps.apple.com/us/app/example-app/id1234567890",
-        "invalid_field": "This field should not be here"
-    }
-}
-
-
+        "mobile": {
+            "title": {
+                "en": "Mobile App",
+                "he": "אפליקציה ניידת",
+            },
+            "android_link": "https://play.google.com/store/apps/details?id=com.example.app",
+            "ios_link": "https://apps.apple.com/us/app/example-app/id1234567890",
+            "invalid_field": "This field should not be here",
+        },
+    },
 ]
+
+
 @pytest.mark.parametrize("data", valids)
 def test_valid_schema(data):
     p = Portal(data)
-    assert p._validate() == True
+    assert p._validate()
+
 
 @pytest.mark.parametrize("invalid_case", invalids)
 def test_invalid_schema(invalid_case):
@@ -487,7 +489,7 @@ def test_invalid_schema(invalid_case):
         p._validate()
 
 
-@pytest.fixture()
+@pytest.fixture
 def simple_portal():
     raw_portal = valids[0]
     portal = Portal(raw_portal)
@@ -498,7 +500,7 @@ def simple_portal():
     portal.delete()
 
 
-@pytest.fixture()
+@pytest.fixture
 def simple_portal_saved_directly_to_mongo():
     raw_portal = valids[0]
     inserted_result = db.portals.insert_one(raw_portal)
@@ -508,14 +510,16 @@ def simple_portal_saved_directly_to_mongo():
     db.portals.delete_one({"_id": inserted_result.inserted_id})
 
 
-@pytest.fixture()
+@pytest.fixture
 def simple_topic(simple_portal, django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        topic = Topic({
-            "slug": "blah",
-            "titles": [{"text": "Blah", "lang": "en", "primary": True}],
-            "portal_slug": simple_portal.slug,
-        })
+        topic = Topic(
+            {
+                "slug": "blah",
+                "titles": [{"text": "Blah", "lang": "en", "primary": True}],
+                "portal_slug": simple_portal.slug,
+            },
+        )
         topic.save()
 
         yield topic
@@ -536,11 +540,13 @@ def test_topic_validates_portal_exists(simple_topic):
 
 def test_topic_validation_fails_for_non_existent_portal():
     with pytest.raises(SluggedMongoRecordMissingError):
-        topic = Topic({
-            "slug": "blah",
-            "titles": [{"text": "Blah", "lang": "en", "primary": True}],
-            "portal_slug": "non-existent-portal",
-        })
+        topic = Topic(
+            {
+                "slug": "blah",
+                "titles": [{"text": "Blah", "lang": "en", "primary": True}],
+                "portal_slug": "non-existent-portal",
+            },
+        )
         topic.save()
 
 

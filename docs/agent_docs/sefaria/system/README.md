@@ -1,16 +1,18 @@
 # Sefaria System Infrastructure
+
 > Source: `sefaria/system/`
 
 ## Purpose
+
 The infrastructure layer: MongoDB connections, multi-tier caching, request middleware, exception handling, multi-server coordination via Redis pub/sub, and Varnish HTTP cache invalidation. This is the plumbing that keeps the app running across multiple processes and servers.
 
 ## Navigation
 
-| Doc | Covers | Load when... |
-|-----|--------|-------------|
-| [database_and_caching.md](./database_and_caching.md) | `database.py`, `cache.py`, `caches.py`, `cloudflare.py`, `serializers.py` | MongoDB connection setup, Django cache wrappers, Cloudflare CDN purges |
-| [middleware_and_request.md](./middleware_and_request.md) | `middleware.py`, `decorators.py`, `context_processors.py`, `exceptions.py`, `validators.py`, `logging.py` | Request pipeline — language/location detection, error handling, template contexts, the `InputError` hierarchy |
-| [multiserver_and_varnish.md](./multiserver_and_varnish.md) | `multiserver/*`, `varnish/*` | Cross-server event coordination, Varnish cache invalidation on data changes |
+| Doc                                                        | Covers                                                                                                    | Load when...                                                                                                  |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| [database_and_caching.md](./database_and_caching.md)       | `database.py`, `cache.py`, `caches.py`, `cloudflare.py`, `serializers.py`                                 | MongoDB connection setup, Django cache wrappers, Cloudflare CDN purges                                        |
+| [middleware_and_request.md](./middleware_and_request.md)   | `middleware.py`, `decorators.py`, `context_processors.py`, `exceptions.py`, `validators.py`, `logging.py` | Request pipeline — language/location detection, error handling, template contexts, the `InputError` hierarchy |
+| [multiserver_and_varnish.md](./multiserver_and_varnish.md) | `multiserver/*`, `varnish/*`                                                                              | Cross-server event coordination, Varnish cache invalidation on data changes                                   |
 
 ## File Layout
 

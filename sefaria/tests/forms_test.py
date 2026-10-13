@@ -7,12 +7,13 @@ rather than through full form validation, since is_valid() would also
 require a real reCAPTCHA response — the "no existing user" short-circuit
 above this branching isn't retested here.
 """
-from django.contrib.auth.models import User, Group
+
+from allauth.socialaccount.models import SocialAccount
+from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from allauth.socialaccount.models import SocialAccount
 
-from sefaria.forms import SefariaNewUserForm, SEED_GROUP
+from sefaria.forms import SEED_GROUP, SefariaNewUserForm
 
 
 class CleanEmailTest(TestCase):
@@ -31,14 +32,20 @@ class CleanEmailTest(TestCase):
     def test_existing_email_linked_to_google_gets_google_message(self):
         user = User.objects.create_user(username="g@test.com", email="g@test.com", password="x")
         SocialAccount.objects.create(user=user, provider="google", uid="123")
-        with self.assertRaisesMessage(ValidationError, "This email address is already registered via Google Sign-In.") as ctx:
+        with self.assertRaisesMessage(
+            ValidationError,
+            "This email address is already registered via Google Sign-In.",
+        ) as ctx:
             self._clean("g@test.com")
         self.assertEqual(ctx.exception.code, "sso_google_exists")
 
     def test_existing_email_linked_to_apple_gets_apple_message(self):
         user = User.objects.create_user(username="a@test.com", email="a@test.com", password="x")
         SocialAccount.objects.create(user=user, provider="apple", uid="456")
-        with self.assertRaisesMessage(ValidationError, "This email address is already registered via Apple Sign-In.") as ctx:
+        with self.assertRaisesMessage(
+            ValidationError,
+            "This email address is already registered via Apple Sign-In.",
+        ) as ctx:
             self._clean("a@test.com")
         self.assertEqual(ctx.exception.code, "sso_apple_exists")
 

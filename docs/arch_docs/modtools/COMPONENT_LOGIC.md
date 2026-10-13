@@ -25,6 +25,7 @@ This document provides detailed logic flows, decision trees, and implementation 
 **Purpose**: Unified wrapper providing consistent section styling, collapsible behavior, and integrated help.
 
 **State Machine**:
+
 ```
 [COLLAPSED] <--toggle--> [EXPANDED]
      |                        |
@@ -34,18 +35,20 @@ This document provides detailed logic flows, decision trees, and implementation 
 ```
 
 **Key Logic**:
+
 ```javascript
 // Default state: collapsed for cleaner initial page
-const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed = true);
+const [isCollapsed, setIsCollapsed] = useState((defaultCollapsed = true));
 
 // Toggle on header click or keyboard
-const toggleCollapse = () => setIsCollapsed(prev => !prev);
+const toggleCollapse = () => setIsCollapsed((prev) => !prev);
 
 // Help button click must NOT toggle collapse
 const handleHelpClick = (e) => e.stopPropagation();
 ```
 
 **Layout Structure**:
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ [▼/▶] Title  ................................  [?]      │  <- sectionHeader
@@ -65,19 +68,19 @@ const handleHelpClick = (e) => e.stopPropagation();
 **Purpose**: Card-based grid for selecting indices with search filtering and bulk selection.
 
 **State**:
+
 ```javascript
 const [searchFilter, setSearchFilter] = useState('');
 
 // Computed: filter indices by search term (title OR category match)
 const filteredIndices = useMemo(() => {
   if (!searchFilter.trim()) return indices;
-  return indices.filter(idx =>
-    titleMatches(idx, search) || categoryMatches(idx, search)
-  );
+  return indices.filter((idx) => titleMatches(idx, search) || categoryMatches(idx, search));
 }, [indices, searchFilter, indexMetadata]);
 ```
 
 **Selection Logic**:
+
 ```
 User Action          | Result
 ---------------------|------------------------------------------
@@ -91,6 +94,7 @@ Clear search         | Reset filter, selection unchanged
 **Important**: Select All operates on FILTERED items only, not all items. This allows users to filter and bulk-select subsets.
 
 **Card Display**:
+
 ```
 ┌──────────────────────────┐
 │ [✓] Genesis              │
@@ -105,6 +109,7 @@ Clear search         | Reset filter, selection unchanged
 **Purpose**: Modal dialog with detailed tool documentation.
 
 **State Machine**:
+
 ```
 [CLOSED] <--click button--> [OPEN]
     ^                          |
@@ -127,6 +132,7 @@ Clear search         | Reset filter, selection unchanged
 **Purpose**: Auto-formatted status display based on emoji prefix.
 
 **Detection Logic**:
+
 ```javascript
 // Prefix detection for message type
 if (message.startsWith('✅')) return 'success';
@@ -184,6 +190,7 @@ This pattern allows components to simply set a message string like `"✅ Updated
 ### Key Decision Points
 
 #### 1. URL Validation
+
 ```javascript
 const URL_FIELDS = ['versionSource', 'purchaseInformationURL', 'purchaseInformationImage'];
 
@@ -199,31 +206,41 @@ const isValidUrl = (string) => {
 ```
 
 #### 2. Boolean Field Conversion
+
 The API expects actual booleans, but HTML selects return strings:
+
 ```javascript
-['digitizedBySefaria', 'isPrimary', 'isSource'].forEach(field => {
+['digitizedBySefaria', 'isPrimary', 'isSource'].forEach((field) => {
   if (processedUpdates[field] === 'true') processedUpdates[field] = true;
   else if (processedUpdates[field] === 'false') processedUpdates[field] = false;
 });
 ```
 
 #### 3. Field Grouping
+
 Fields are organized into logical groups for UX:
+
 ```javascript
 const FIELD_GROUPS = [
-  { id: 'identification', header: 'Version Identification',
-    fields: ['versionTitle', 'versionTitleInHebrew'] },
-  { id: 'source', header: 'Source & License',
-    fields: ['versionSource', 'license', 'purchaseInformationURL', 'purchaseInformationImage'] },
-  { id: 'metadata', header: 'Metadata',
-    fields: ['status', 'priority', 'digitizedBySefaria', 'isPrimary', 'isSource', 'direction'] },
-  { id: 'notes', header: 'Notes',
-    fields: ['versionNotes', 'versionNotesInHebrew'] }
+  { id: 'identification', header: 'Version Identification', fields: ['versionTitle', 'versionTitleInHebrew'] },
+  {
+    id: 'source',
+    header: 'Source & License',
+    fields: ['versionSource', 'license', 'purchaseInformationURL', 'purchaseInformationImage'],
+  },
+  {
+    id: 'metadata',
+    header: 'Metadata',
+    fields: ['status', 'priority', 'digitizedBySefaria', 'isPrimary', 'isSource', 'direction'],
+  },
+  { id: 'notes', header: 'Notes', fields: ['versionNotes', 'versionNotesInHebrew'] },
 ];
 ```
 
 #### 4. Soft Delete Implementation
+
 Versions are NOT deleted immediately. Instead, a note is added:
+
 ```javascript
 const deletionNote = `[MARKED FOR DELETION - ${new Date().toISOString().split('T')[0]}]`;
 // This note is searchable in MongoDB for cleanup scripts
@@ -232,12 +249,14 @@ const deletionNote = `[MARKED FOR DELETION - ${new Date().toISOString().split('T
 ### API Interaction
 
 **Load Indices**:
+
 ```
 GET /api/version-indices?versionTitle=X&language=Y
 Response: { indices: [...], metadata: { indexTitle: { categories: [...] } } }
 ```
 
 **Save Changes**:
+
 ```
 POST /api/version-bulk-edit
 Body: { versionTitle, language, indices: [...], updates: {...} }
@@ -245,11 +264,13 @@ Response: { status: "ok"|"partial"|"error", count, total, successes, failures }
 ```
 
 **Delete Versions** (hard delete):
+
 ```
 POST /api/version-bulk-delete
 Body: { versionTitle, language (optional), indices: [...] }
 Response: { status: "ok"|"partial"|"error", successes, failures }
 ```
+
 Performs a real `Version.delete()` per index, which triggers the cascade-delete listeners
 (notifications, search index, version_state, etc.) and records `rev_type: "delete text"`
 in `db.history`. The frontend requires the user to retype the exact `versionTitle` before
@@ -290,8 +311,8 @@ const detectCommentaryPattern = (title) => {
   const match = title.match(/^(.+?)\s+on\s+(.+)$/);
   if (match) {
     return {
-      commentaryName: match[1].trim(),  // e.g., "Rashi"
-      baseText: match[2].trim()          // e.g., "Genesis"
+      commentaryName: match[1].trim(), // e.g., "Rashi"
+      baseText: match[2].trim(), // e.g., "Genesis"
     };
   }
   return null;
@@ -299,6 +320,7 @@ const detectCommentaryPattern = (title) => {
 ```
 
 **Usage in auto-detection**:
+
 ```javascript
 // If user enters 'auto' for a field:
 if (indexSpecificUpdates.dependence === 'auto') {
@@ -331,10 +353,10 @@ const createTermIfNeeded = async (enTitle, heTitle) => {
         json: JSON.stringify({
           name: enTitle,
           titles: [
-            { lang: "en", text: enTitle, primary: true },
-            { lang: "he", text: heTitle, primary: true }
-          ]
-        })
+            { lang: 'en', text: enTitle, primary: true },
+            { lang: 'he', text: heTitle, primary: true },
+          ],
+        }),
       });
     }
   }
@@ -352,8 +374,8 @@ if ('toc_zoom' in indexSpecificUpdates) {
 
   // Apply to all JaggedArrayNode nodes in schema
   if (existingIndexData.schema?.nodes) {
-    existingIndexData.schema.nodes.forEach(node => {
-      if (node.nodeType === "JaggedArrayNode") {
+    existingIndexData.schema.nodes.forEach((node) => {
+      if (node.nodeType === 'JaggedArrayNode') {
         node.toc_zoom = tocZoomValue;
       }
     });
@@ -393,16 +415,17 @@ if ('toc_zoom' in indexSpecificUpdates) {
 
 ### Mapping Algorithm Selection
 
-| Algorithm | Use Case | Structure |
-|-----------|----------|-----------|
-| `many_to_one_default_only` | Most commentaries | Rashi 1:1:1, 1:1:2, 1:1:3 → Genesis 1:1 |
-| `many_to_one` | With alt structures | Same + alternate verse numberings |
-| `one_to_one_default_only` | Translations | Chapter 1:1 = Chapter 1:1 |
-| `one_to_one` | Translations + alts | Same + alternate structures |
+| Algorithm                  | Use Case            | Structure                               |
+| -------------------------- | ------------------- | --------------------------------------- |
+| `many_to_one_default_only` | Most commentaries   | Rashi 1:1:1, 1:1:2, 1:1:3 → Genesis 1:1 |
+| `many_to_one`              | With alt structures | Same + alternate verse numberings       |
+| `one_to_one_default_only`  | Translations        | Chapter 1:1 = Chapter 1:1               |
+| `one_to_one`               | Translations + alts | Same + alternate structures             |
 
 ### Idempotency
 
 The tool is idempotent - running it multiple times is safe:
+
 ```javascript
 if (!raw.base_text_titles || !raw.base_text_mapping) {
   // Only patch if fields are missing
@@ -432,11 +455,11 @@ const extractNodes = (schema, path = []) => {
       const nodePath = [...path, index];
       nodes.push({
         path: nodePath,
-        pathStr: nodePath.join('.'),  // "0.1.2" for nodes[0].nodes[1].nodes[2]
+        pathStr: nodePath.join('.'), // "0.1.2" for nodes[0].nodes[1].nodes[2]
         node: node,
         sharedTitle: node.sharedTitle,
         title: node.title,
-        heTitle: node.heTitle
+        heTitle: node.heTitle,
       });
 
       // Recurse into children
@@ -478,6 +501,7 @@ if (edits.removeSharedTitle) {
 ### Dependency Warning
 
 Before editing, the tool checks what depends on this index:
+
 ```javascript
 const checkDependencies = async (title) => {
   const response = await $.get(`/api/check-index-dependencies/${title}`);
@@ -495,21 +519,21 @@ All tools follow this pattern:
 
 ```javascript
 // 1. Search/Filter State
-const [vtitle, setVtitle] = useState("");
-const [lang, setLang] = useState("");
+const [vtitle, setVtitle] = useState('');
+const [lang, setLang] = useState('');
 const [searched, setSearched] = useState(false);
 
 // 2. Results State
 const [indices, setIndices] = useState([]);
 const [indexMetadata, setIndexMetadata] = useState({});
-const [pick, setPick] = useState(new Set());  // Selected items
+const [pick, setPick] = useState(new Set()); // Selected items
 
 // 3. Edit State
 const [updates, setUpdates] = useState({});
 const [validationErrors, setValidationErrors] = useState({});
 
 // 4. UI State
-const [msg, setMsg] = useState("");
+const [msg, setMsg] = useState('');
 const [loading, setLoading] = useState(false);
 const [saving, setSaving] = useState(false);
 ```
@@ -532,7 +556,7 @@ const toggleOne = (index, checked) => {
 const selectAll = () => setPick(new Set([...pick, ...filteredIndices]));
 const deselectAll = () => {
   const newSet = new Set(pick);
-  filteredIndices.forEach(idx => newSet.delete(idx));
+  filteredIndices.forEach((idx) => newSet.delete(idx));
   setPick(newSet);
 };
 ```
@@ -545,10 +569,7 @@ const deselectAll = () => {
 
 ```javascript
 const extractErrorMessage = (xhr) => {
-  return xhr.responseJSON?.error ||
-         xhr.responseText ||
-         xhr.statusText ||
-         "Unknown error";
+  return xhr.responseJSON?.error || xhr.responseText || xhr.statusText || 'Unknown error';
 };
 ```
 
@@ -556,10 +577,10 @@ const extractErrorMessage = (xhr) => {
 
 ```javascript
 // API returns detailed status
-if (d.status === "ok") {
+if (d.status === 'ok') {
   setMsg(`✅ Successfully updated ${d.count} versions`);
-} else if (d.status === "partial") {
-  const failures = d.failures.map(f => `${f.index}: ${f.error}`).join("; ");
+} else if (d.status === 'partial') {
+  const failures = d.failures.map((f) => `${f.index}: ${f.error}`).join('; ');
   setMsg(`⚠️ Updated ${d.count}/${d.total}. Failures: ${failures}`);
 } else {
   setMsg(`❌ All updates failed`);
@@ -572,19 +593,19 @@ if (d.status === "ok") {
 const save = () => {
   // 1. Check selections exist
   if (!pick.size) {
-    setMsg("❌ No indices selected");
+    setMsg('❌ No indices selected');
     return;
   }
 
   // 2. Check changes exist
   if (!Object.keys(updates).length) {
-    setMsg("❌ No fields to update");
+    setMsg('❌ No fields to update');
     return;
   }
 
   // 3. Check validation errors
   if (Object.keys(validationErrors).length > 0) {
-    setMsg("❌ Please fix validation errors before saving");
+    setMsg('❌ Please fix validation errors before saving');
     return;
   }
 

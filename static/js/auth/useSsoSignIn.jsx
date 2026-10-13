@@ -70,42 +70,45 @@ export function useProviderTriggers({ next, tracking }) {
 
   const { googleClientId } = Sefaria;
 
-  const onGoogleResult = useCallback(async (resp) => {
-    // click_listener (onGoogleButtonClicked below) now fires chooseMethod/startProcess
-    // synchronously at click time — this callback only fires on a real credential, so it
-    // must not call them again (that would end the click-time attempt as
-    // "abandoned_for_new_attempt" and open a second one for the same login).
-    // Google's own callback just fired, so a real fetch to our backend is now in flight —
-    // the popup-abandonment watch below must not treat this as "closed without a credential".
-    googlePopupStateRef.current = 'processing';
-    setSsoLoading(true);
-    try {
-      const res = await fetch(ALLAUTH_PROVIDER_TOKEN_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-        body: JSON.stringify({
-          provider: 'google',
-          process: 'login',
-          token: { client_id: googleClientId, id_token: resp.credential },
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      googlePopupStateRef.current = 'done';
-      if (res.ok) {
-        trackingRef.current.endProcess('success', null);
-        window.location.href = safeNext(nextRef.current);
-      } else {
+  const onGoogleResult = useCallback(
+    async (resp) => {
+      // click_listener (onGoogleButtonClicked below) now fires chooseMethod/startProcess
+      // synchronously at click time — this callback only fires on a real credential, so it
+      // must not call them again (that would end the click-time attempt as
+      // "abandoned_for_new_attempt" and open a second one for the same login).
+      // Google's own callback just fired, so a real fetch to our backend is now in flight —
+      // the popup-abandonment watch below must not treat this as "closed without a credential".
+      googlePopupStateRef.current = 'processing';
+      setSsoLoading(true);
+      try {
+        const res = await fetch(ALLAUTH_PROVIDER_TOKEN_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+          body: JSON.stringify({
+            provider: 'google',
+            process: 'login',
+            token: { client_id: googleClientId, id_token: resp.credential },
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        googlePopupStateRef.current = 'done';
+        if (res.ok) {
+          trackingRef.current.endProcess('success', null);
+          window.location.href = safeNext(nextRef.current);
+        } else {
+          setSsoLoading(false);
+          trackingRef.current.endProcess('failure', authError(data, 'auth.generic_error').message);
+          activeErrorHandlerRef.current(authError(data, 'auth.generic_error'));
+        }
+      } catch (e) {
+        googlePopupStateRef.current = 'done';
         setSsoLoading(false);
-        trackingRef.current.endProcess('failure', authError(data, 'auth.generic_error').message);
-        activeErrorHandlerRef.current(authError(data, 'auth.generic_error'));
+        trackingRef.current.endProcess('failure', 'network_error');
+        activeErrorHandlerRef.current(authError(null, 'auth.generic_error'));
       }
-    } catch (e) {
-      googlePopupStateRef.current = 'done';
-      setSsoLoading(false);
-      trackingRef.current.endProcess('failure', 'network_error');
-      activeErrorHandlerRef.current(authError(null, 'auth.generic_error'));
-    }
-  }, [googleClientId]);
+    },
+    [googleClientId]
+  );
 
   // Mirrors triggerApple below: click is now a real, observable signal for Google too (GIS's
   // click_listener, see renderButton config), so method_chosen/process_started fire
@@ -181,14 +184,21 @@ export function useProviderTriggers({ next, tracking }) {
           el.innerHTML = '';
           const width = Math.max(200, Math.min(400, el.offsetWidth || 360));
           window.google.accounts.id.renderButton(el, {
-            type: 'standard', theme: 'outline', size: 'large',
-            text: 'continue_with', shape: 'rectangular', logo_alignment: 'center', width,
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            text: 'continue_with',
+            shape: 'rectangular',
+            logo_alignment: 'center',
+            width,
             locale: Sefaria.interfaceLang === 'hebrew' ? 'iw' : 'en',
             click_listener: onGoogleButtonClicked,
           });
           setGoogleReady(true);
-        } catch (e) { /* ignore */ }
-      },
+        } catch (e) {
+          /* ignore */
+        }
+      }
     );
     return () => {
       stopWaiting();
@@ -213,8 +223,8 @@ export function useProviderTriggers({ next, tracking }) {
       return undefined;
     }
     const onOk = async (ev) => {
-      const a = (ev.detail?.authorization) || {};
-      const u = (ev.detail?.user) || {};
+      const a = ev.detail?.authorization || {};
+      const u = ev.detail?.user || {};
       const n = u.name || {};
       setSsoLoading(true);
       try {
@@ -222,7 +232,10 @@ export function useProviderTriggers({ next, tracking }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
           body: JSON.stringify({
-            id_token: a.id_token, first_name: n.firstName || '', last_name: n.lastName || '', email: u.email || '',
+            id_token: a.id_token,
+            first_name: n.firstName || '',
+            last_name: n.lastName || '',
+            email: u.email || '',
           }),
         });
         if (res.ok) {
@@ -260,8 +273,10 @@ export function useProviderTriggers({ next, tracking }) {
             usePopup: true,
           });
           setAppleReady(true);
-        } catch (e) { /* ignore */ }
-      },
+        } catch (e) {
+          /* ignore */
+        }
+      }
     );
     return () => {
       stopWaiting();
@@ -297,14 +312,22 @@ export function useProviderTriggers({ next, tracking }) {
     }
   }, [appleReady, failApple]);
 
-  const overlayNode = targetEl && createPortal(
-    <div className="sefaria-provider-sdk-overlay" style={{ pointerEvents: googleReady ? 'auto' : 'none' }}>
-      <div ref={googleBtnRef} />
-    </div>,
-    targetEl,
-  );
+  const overlayNode =
+    targetEl &&
+    createPortal(
+      <div className="sefaria-provider-sdk-overlay" style={{ pointerEvents: googleReady ? 'auto' : 'none' }}>
+        <div ref={googleBtnRef} />
+      </div>,
+      targetEl
+    );
 
   return {
-    googleReady, appleReady, ssoLoading, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
+    googleReady,
+    appleReady,
+    ssoLoading,
+    overlayNode,
+    registerGoogleTarget,
+    setActiveErrorHandler,
+    triggerApple,
   };
 }

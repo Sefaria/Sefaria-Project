@@ -8,27 +8,33 @@ import {
   InterfaceText,
   LanguageToggleButton,
   DonateLink,
-  useOnceFullyVisible
+  useOnceFullyVisible,
 } from './Misc';
-import { ProfilePic } from "./ProfilePic";
-import { HeaderAutocomplete } from './HeaderAutocomplete'
+import { ProfilePic } from './ProfilePic';
+import { HeaderAutocomplete } from './HeaderAutocomplete';
 import {
   DropdownMenu,
   DropdownMenuSeparator,
   DropdownMenuItem,
   DropdownModuleItem,
   DropdownLanguageToggle,
-  NextRedirectAnchor
+  NextRedirectAnchor,
 } from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
 
-const AuthNavLink = ({flow, openURL, close, children}) => {
+const AuthNavLink = ({ flow, openURL, close, children }) => {
   const href = `/${flow}`;
   return (
-    <a className='interfaceLinks-option int-bi dropdownItem'
-       href={href}
-       onClick={(e) => { e.preventDefault(); openURL(href, undefined, undefined, undefined, 'nav_bar'); close?.(); }}>
+    <a
+      className="interfaceLinks-option int-bi dropdownItem"
+      href={href}
+      onClick={(e) => {
+        e.preventDefault();
+        openURL(href, undefined, undefined, undefined, 'nav_bar');
+        close?.();
+      }}
+    >
       {children}
     </a>
   );
@@ -40,72 +46,74 @@ AuthNavLink.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-const LoggedOutDropdown = ({module, openURL}) => {
+const LoggedOutDropdown = ({ module, openURL }) => {
   return (
-    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
-      <Button
-        variant="icon-only"
-        icon="profile_loggedout_mdl"
-        ariaLabel={Sefaria._("header.account_menu")}
-      />
-    }>
-      <div className='dropdownLinks-options'>
-        <AuthNavLink flow='login' openURL={openURL}>
-          <InterfaceText text={{ 'en': 'Log in', 'he': 'התחברות' }} />
+    <DropdownMenu
+      positioningClass="headerDropdownMenu"
+      buttonComponent={
+        <Button variant="icon-only" icon="profile_loggedout_mdl" ariaLabel={Sefaria._('header.account_menu')} />
+      }
+    >
+      <div className="dropdownLinks-options">
+        <AuthNavLink flow="login" openURL={openURL}>
+          <InterfaceText text={{ en: 'Log in', he: 'התחברות' }} />
         </AuthNavLink>
-        <AuthNavLink flow='register' openURL={openURL}>
-          <InterfaceText text={{ 'en': 'Sign up', 'he': 'להרשמה' }} />
+        <AuthNavLink flow="register" openURL={openURL}>
+          <InterfaceText text={{ en: 'Sign up', he: 'להרשמה' }} />
         </AuthNavLink>
         <DropdownMenuSeparator />
         <DropdownLanguageToggle />
         <DropdownMenuSeparator />
-        {module === Sefaria.LIBRARY_MODULE &&
+        {module === Sefaria.LIBRARY_MODULE && (
           <DropdownMenuItem url={'/updates'}>
-            <InterfaceText text={{ 'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא' }} />
+            <InterfaceText text={{ en: 'New Additions', he: 'חידושים בארון הספרים של ספריא' }} />
           </DropdownMenuItem>
-        }
-        <DropdownMenuItem url={Sefaria._v({
-          he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
-          en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
-        })} newTab={true}>
-          <InterfaceText text={{ 'en': 'Help', 'he': 'עזרה' }} />
+        )}
+        <DropdownMenuItem
+          url={Sefaria._v({
+            he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
+            en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US,
+          })}
+          newTab={true}
+        >
+          <InterfaceText text={{ en: 'Help', he: 'עזרה' }} />
         </DropdownMenuItem>
       </div>
     </DropdownMenu>
   );
-}
+};
 
 const LoggedInDropdown = ({ module }) => {
   return (
-    <DropdownMenu positioningClass="headerDropdownMenu"
-      buttonComponent={<ProfilePic url={Sefaria.profile_pic_url}
-        name={Sefaria.full_name}
-        len={24} />}>
-      <div className='dropdownLinks-options'>
-        {module === Sefaria.LIBRARY_MODULE &&
+    <DropdownMenu
+      positioningClass="headerDropdownMenu"
+      buttonComponent={<ProfilePic url={Sefaria.profile_pic_url} name={Sefaria.full_name} len={24} />}
+    >
+      <div className="dropdownLinks-options">
+        {module === Sefaria.LIBRARY_MODULE && (
           <DropdownMenuItem preventClose={true}>
             <strong>{Sefaria.full_name}</strong>
           </DropdownMenuItem>
-        }
-        {module === Sefaria.VOICES_MODULE &&
+        )}
+        {module === Sefaria.VOICES_MODULE && (
           <DropdownMenuItem url={`/profile/${Sefaria.slug}`} preventClose={true} targetModule={Sefaria.VOICES_MODULE}>
             <strong>{Sefaria.full_name}</strong>
           </DropdownMenuItem>
-        }
+        )}
         <DropdownMenuSeparator />
 
-        {module === Sefaria.LIBRARY_MODULE &&
+        {module === Sefaria.LIBRARY_MODULE && (
           <>
             <DropdownMenuItem url={'/settings/account'} targetModule={Sefaria.LIBRARY_MODULE}>
               <InterfaceText>header.account_settings</InterfaceText>
             </DropdownMenuItem>
             <DropdownMenuItem url={'/torahtracker'}>
-              <InterfaceText text={{ 'en': 'Torah Tracker', 'he': 'לימוד במספרים' }} />
+              <InterfaceText text={{ en: 'Torah Tracker', he: 'לימוד במספרים' }} />
             </DropdownMenuItem>
           </>
-        }
+        )}
 
-        {module === Sefaria.VOICES_MODULE &&
+        {module === Sefaria.VOICES_MODULE && (
           <>
             <DropdownMenuItem url={`/profile/${Sefaria.slug}`} targetModule={Sefaria.VOICES_MODULE}>
               <InterfaceText>header.profile</InterfaceText>
@@ -120,165 +128,186 @@ const LoggedInDropdown = ({ module }) => {
               <InterfaceText>header.account_settings</InterfaceText>
             </DropdownMenuItem>
           </>
-        }
+        )}
 
         <DropdownMenuSeparator />
         <DropdownLanguageToggle />
         <DropdownMenuSeparator />
 
-        {module === Sefaria.LIBRARY_MODULE &&
+        {module === Sefaria.LIBRARY_MODULE && (
           <DropdownMenuItem url={'/updates'}>
-            <InterfaceText text={{ 'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא' }} />
+            <InterfaceText text={{ en: 'New Additions', he: 'חידושים בארון הספרים של ספריא' }} />
           </DropdownMenuItem>
-        }
+        )}
 
-        <DropdownMenuItem url={Sefaria._v({
-          he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
-          en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
-        })} newTab={true}>
-          <InterfaceText text={{ 'en': 'Help', 'he': 'עזרה' }} />
+        <DropdownMenuItem
+          url={Sefaria._v({
+            he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
+            en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US,
+          })}
+          newTab={true}
+        >
+          <InterfaceText text={{ en: 'Help', he: 'עזרה' }} />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem url={Sefaria.getLogoutUrl()}>
-          <InterfaceText text={{ 'en': 'Log Out', 'he': 'ניתוק' }} />
+          <InterfaceText text={{ en: 'Log Out', he: 'ניתוק' }} />
         </DropdownMenuItem>
       </div>
     </DropdownMenu>
   );
-}
+};
 
 const ModuleSwitcher = () => {
-  const logoPath = Sefaria.interfaceLang === "hebrew" ? "/static/img/logo-hebrew.png" : "/static/img/logo.svg";
-  const button = (<Button
-                    variant="icon-only"
-                    icon="moduleswitcher_mdl"
-                    ariaLabel={Sefaria._("header.library")}
-                  />);
+  const logoPath = Sefaria.interfaceLang === 'hebrew' ? '/static/img/logo-hebrew.png' : '/static/img/logo.svg';
+  const button = <Button variant="icon-only" icon="moduleswitcher_mdl" ariaLabel={Sefaria._('header.library')} />;
 
   const handleClose = (event) => {
     if (event?.type === 'passive') {
-      gtag("event", "modswitch_close", {
-        feature_name: "module_switcher"
+      gtag('event', 'modswitch_close', {
+        feature_name: 'module_switcher',
       });
     }
   };
 
   return (
-    <DropdownMenu positioningClass="headerDropdownMenu"
-                  analyticsFeatureName="module_switcher"
-                  buttonComponent={button}
-                  onClose={handleClose}>
-      <div className='dropdownLinks-options moduleDropdown'>
-        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="About Sefaria">
-          <img src={logoPath} alt={Sefaria._("common.site_name")} className='dropdownLogo' />
+    <DropdownMenu
+      positioningClass="headerDropdownMenu"
+      analyticsFeatureName="module_switcher"
+      buttonComponent={button}
+      onClose={handleClose}
+    >
+      <div className="dropdownLinks-options moduleDropdown">
+        <DropdownMenuItem
+          url={'/about'}
+          newTab={false}
+          customCSS="dropdownItem dropdownLogoItem"
+          analyticsEventName="modswitch_item_click:click"
+          analyticsEventText="About Sefaria"
+        >
+          <img src={logoPath} alt={Sefaria._('common.site_name')} className="dropdownLogo" />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownModuleItem
-          url={"/"}
+          url={'/'}
           newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE}
           targetModule={Sefaria.LIBRARY_MODULE}
           dotColor={'--sefaria-blue'}
-          text={{ en: "Library", he: Sefaria._("header.library") }} />
+          text={{ en: 'Library', he: Sefaria._('header.library') }}
+        />
         <DropdownMenuSeparator />
         <DropdownModuleItem
-          url={"/"}
+          url={'/'}
           newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE}
           targetModule={Sefaria.VOICES_MODULE}
           dotColor={'--sheets-green'}
-          text={{ en: "Voices", he: Sefaria._("header.voices") }} />
+          text={{ en: 'Voices', he: Sefaria._('header.voices') }}
+        />
         <DropdownMenuSeparator />
         <DropdownModuleItem
           url={'https://developers.sefaria.org'}
           newTab={true}
           dotColor={'--devportal-purple'}
-          text={{ en: "Developers", he: Sefaria._("header.developers") }} />
+          text={{ en: 'Developers', he: Sefaria._('header.developers') }}
+        />
         <DropdownMenuSeparator />
-        <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="More">
-          <InterfaceText text={{ en: 'More from Sefaria' + ' ›', he: Sefaria._("header.more_from_sefaria") + ' ›' }} />
+        <DropdownMenuItem
+          url={'/products'}
+          newTab={true}
+          customCSS="dropdownItem dropdownMoreItem"
+          analyticsEventName="modswitch_item_click:click"
+          analyticsEventText="More"
+        >
+          <InterfaceText text={{ en: 'More from Sefaria' + ' ›', he: Sefaria._('header.more_from_sefaria') + ' ›' }} />
         </DropdownMenuItem>
       </div>
     </DropdownMenu>
   );
-}
+};
 
 const Header = (props) => {
-
   useEffect(() => {
     const handleFirstTab = (e) => {
-      if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
+      if (e.keyCode === 9) {
+        // tab (i.e. I'm using a keyboard)
         document.body.classList.add('user-is-tabbing');
         window.removeEventListener('keydown', handleFirstTab);
       }
-    }
+    };
 
     window.addEventListener('keydown', handleFirstTab);
 
     return () => {
       window.removeEventListener('keydown', handleFirstTab);
-    }
+    };
   }, []);
-  
+
   const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
-  
+
   const shouldHide = () => {
-    // Determines whether or not this component should be displayed or not. 
+    // Determines whether or not this component should be displayed or not.
     // When the component is hidden, there are two cases: (1) the ReaderControls component is displayed instead of this component, essentially
     // functioning as the header.  This case occurs when viewing a library text in mode "Text"
-    // and (2) there is simply no header at all.  This case occurs when viewing a library text in mode "TextAndConnections".    
+    // and (2) there is simply no header at all.  This case occurs when viewing a library text in mode "TextAndConnections".
     // shouldHide() returns true when the header should be hidden (a) on mobile (b) while viewing library texts (c) when the mobile nav menu is not open.
-    const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
+    const isViewingTextContent =
+      !props.firstPanel?.menuOpen &&
+      (props.firstPanel?.mode === 'Text' || props.firstPanel?.mode === 'TextAndConnections');
     const hidden = mobile && !props.mobileNavMenuOpen && isViewingTextContent;
     return hidden;
-  }
+  };
 
-  const hasUnreadNotifications = !!(props.notificationCount);
+  const hasUnreadNotifications = !!props.notificationCount;
 
-  const logo = (
-    <a href='/' className="home" aria-label={Sefaria._(`header.sefaria_${Sefaria.activeModule}_logo`)}/>
+  const logo = <a href="/" className="home" aria-label={Sefaria._(`header.sefaria_${Sefaria.activeModule}_logo`)} />;
+
+  const librarySavedIcon = (
+    <Button
+      variant="icon-only"
+      icon="bookmarkset_outline_mdl"
+      ariaLabel={Sefaria._('Saved items')}
+      href="/saved"
+      targetModule={Sefaria.LIBRARY_MODULE}
+    />
   );
 
-  const librarySavedIcon = <Button
-                                  variant="icon-only"
-                                  icon="bookmarkset_outline_mdl"
-                                  ariaLabel={Sefaria._('Saved items')}
-                                  href="/saved"
-                                  targetModule={Sefaria.LIBRARY_MODULE}
-                                />;
-
-  const voicesNotificationIcon = <Button
-                                variant="icon-only"
-                                icon={hasUnreadNotifications ? "notifications-1_mdl" : "notifications_mdl"}
-                                ariaLabel={Sefaria._("common.notifications")}
-                                href="/notifications"
-                                targetModule={Sefaria.VOICES_MODULE}
-                              />;
-
+  const voicesNotificationIcon = (
+    <Button
+      variant="icon-only"
+      icon={hasUnreadNotifications ? 'notifications-1_mdl' : 'notifications_mdl'}
+      ariaLabel={Sefaria._('common.notifications')}
+      href="/notifications"
+      targetModule={Sefaria.VOICES_MODULE}
+    />
+  );
 
   const headerRef = useOnceFullyVisible(() => {
-    sa_event("header_viewed", { impression_type: "regular_header" });
-    gtag("event", "header_viewed", { impression_type: "regular_header" });
-    if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
-  }, "sa.header_viewed");
+    sa_event('header_viewed', { impression_type: 'regular_header' });
+    gtag('event', 'header_viewed', { impression_type: 'regular_header' });
+    if (Sefaria._debug) console.log('sa: we got a view event! (regular header)');
+  }, 'sa.header_viewed');
 
+  const links = props.module === Sefaria.LIBRARY_MODULE ? ['Texts', 'Topics'] : ['Topics', 'Collections'];
+  const linkIds = { Topics: 'common.topics', Collections: 'common.collections' }; // 'Texts' translates via the terms dictionary
+  const textLinks = (
+    <div className="textLinks">
+      {links.map((link) => (
+        <a
+          key={link}
+          href={`/${link.toLowerCase()}`}
+          data-target-module={Sefaria.activeModule}
+          className="textLink"
+          onKeyDown={Util.handleKeyboardClick}
+        >
+          <InterfaceText>{linkIds[link] || link}</InterfaceText>
+        </a>
+      ))}
+      <DonateLink classes={'textLink donate'} source={'Header'}>
+        <InterfaceText>header.donate</InterfaceText>
+      </DonateLink>
+    </div>
+  );
 
-  const links = props.module === Sefaria.LIBRARY_MODULE ? ['Texts', 'Topics'] : ['Topics', 'Collections']
-  const linkIds = {'Topics': 'common.topics', 'Collections': 'common.collections'};  // 'Texts' translates via the terms dictionary
-  const textLinks = <div className="textLinks">
-    {links.map((link) => (
-      <a
-        key={link}
-        href={`/${link.toLowerCase()}`}
-        data-target-module={Sefaria.activeModule}
-        className="textLink"
-        onKeyDown={Util.handleKeyboardClick}
-      >
-        <InterfaceText>{linkIds[link] || link}</InterfaceText>
-      </a>
-    ))}
-    <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>
-  </div>
-
-  
   if (shouldHide()) return null;
 
   const headerContent = (
@@ -295,70 +324,72 @@ const Header = (props) => {
           openTopic={props.openTopic}
           openURL={props.openURL}
         />
-        
+
         {!Sefaria._uid && props.module === Sefaria.LIBRARY_MODULE && <SignUpButton />}
         {props.module === Sefaria.VOICES_MODULE && <CreateButton />}
-        <div className={"header-icons"}>
+        <div className={'header-icons'}>
           {Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
 
-          {!Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
+          {!Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? (
             <InterfaceLanguageMenu
               currentLang={Sefaria.interfaceLang}
               translationLanguagePreference={props.translationLanguagePreference}
-              setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
+              setTranslationLanguagePreference={props.setTranslationLanguagePreference}
+            />
+          ) : null}
 
           {Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon : voicesNotificationIcon)}
 
           <ModuleSwitcher />
 
-          {Sefaria._uid ?
+          {Sefaria._uid ? (
             <LoggedInDropdown module={props.module} />
-            : <LoggedOutDropdown module={props.module} openURL={props.openURL} />
-          }
+          ) : (
+            <LoggedOutDropdown module={props.module} openURL={props.openURL} />
+          )}
         </div>
       </div>
     </>
   );
 
   // Language toggle logic - show on mobile for specific menu pages
-  const languageToggleMenus = ["navigation", "saved", "history", "notes"];
-  const hasLanguageToggle = Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props?.firstPanel?.menuOpen);
+  const languageToggleMenus = ['navigation', 'saved', 'history', 'notes'];
+  const hasLanguageToggle =
+    Sefaria.interfaceLang !== 'hebrew' && languageToggleMenus.includes(props?.firstPanel?.menuOpen);
 
   const mobileHeaderContent = (
     <>
       <div>
-        <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("header.menu")} className="menuButton">
+        <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._('header.menu')} className="menuButton">
           <i className="fa fa-bars"></i>
         </button>
       </div>
 
-      <div className="mobileHeaderCenter">
-        {Sefaria._siteSettings.TORAH_SPECIFIC && logo}
-      </div>
+      <div className="mobileHeaderCenter">{Sefaria._siteSettings.TORAH_SPECIFIC && logo}</div>
 
-      {hasLanguageToggle ?
-        <div className={props.firstPanel?.settings?.language + " mobileHeaderLanguageToggle"}>
+      {hasLanguageToggle ? (
+        <div className={props.firstPanel?.settings?.language + ' mobileHeaderLanguageToggle'}>
           <LanguageToggleButton toggleLanguage={props.toggleLanguage} />
-        </div> :
-        <div></div>}
-    </>  
+        </div>
+      ) : (
+        <div></div>
+      )}
+    </>
   );
 
   // In "book toc" mode, we want to show a color line below the header.  In all other cases, we want to show a box shadow.
-  const hasColorLine = props?.firstPanel?.menuOpen === "book toc";
+  const hasColorLine = props?.firstPanel?.menuOpen === 'book toc';
   const hasBoxShadow = !hasColorLine;
   const headerInnerClasses = classNames({
     headerInner: 1,
     boxShadow: hasBoxShadow,
-    mobile: mobile
+    mobile: mobile,
   });
   return (
     <div className="header" role="banner" ref={headerRef}>
-      <div className={headerInnerClasses}>
-        {mobile ? mobileHeaderContent : headerContent}
-      </div>
+      <div className={headerInnerClasses}>{mobile ? mobileHeaderContent : headerContent}</div>
 
-      {mobile &&
+      {mobile && (
         <MobileNavMenu
           visible={props.mobileNavMenuOpen}
           onRefClick={props.onRefClick}
@@ -368,12 +399,12 @@ const Header = (props) => {
           close={props.onMobileMenuButtonClick}
           module={props.module}
           hasUnreadNotifications={hasUnreadNotifications}
-          />
-      }
+        />
+      )}
       <GlobalWarningMessage />
     </div>
   );
-}
+};
 
 Header.propTypes = {
   multiPanel: PropTypes.bool.isRequired,
@@ -386,8 +417,8 @@ Header.propTypes = {
     menuOpen: PropTypes.string,
     mode: PropTypes.string,
     settings: PropTypes.shape({
-      language: PropTypes.string
-    })
+      language: PropTypes.string,
+    }),
   }),
   module: PropTypes.string.isRequired,
   mobileNavMenuOpen: PropTypes.bool,
@@ -399,35 +430,46 @@ Header.propTypes = {
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
-  const classes = classNames({accountLinks: !mobile, anon: !mobile});
+  const classes = classNames({ accountLinks: !mobile, anon: !mobile });
 
   return (
     <div className={classes}>
       {loginOnly && (
-        <AuthNavLink flow='login' openURL={openURL} close={close}>
-          {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
+        <AuthNavLink flow="login" openURL={openURL} close={close}>
+          {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._('header.login')} /> : null}
           <InterfaceText>header.log_in</InterfaceText>
-        </AuthNavLink>)}
-      {loginOnly ? null :
+        </AuthNavLink>
+      )}
+      {loginOnly ? null : (
         <span>
-          <AuthNavLink flow='register' openURL={openURL} close={close}>
-            {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
+          <AuthNavLink flow="register" openURL={openURL} close={close}>
+            {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._('header.login')} /> : null}
             <InterfaceText>header.sign_up</InterfaceText>
           </AuthNavLink>
-          <AuthNavLink flow='login' openURL={openURL} close={close}>
+          <AuthNavLink flow="login" openURL={openURL} close={close}>
             <InterfaceText>header.log_in</InterfaceText>
           </AuthNavLink>
-        </span>}
+        </span>
+      )}
     </div>
   );
-}
+};
 
-const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications }) => {
+const MobileNavMenu = ({
+  onRefClick,
+  showSearch,
+  openTopic,
+  openURL,
+  close,
+  visible,
+  module,
+  hasUnreadNotifications,
+}) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
   });
-      
+
   return (
     <nav className={classes} aria-label="Mobile navigation menu">
       <div className="searchLine">
@@ -440,56 +482,56 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           hideHebrewKeyboard={true}
         />
       </div>
-      {module === Sefaria.LIBRARY_MODULE &&
+      {module === Sefaria.LIBRARY_MODULE && (
         <>
           <a href="/texts" onClick={close} className="textsPageLink">
-            <img src="/static/icons/book.svg" alt={Sefaria._("Texts")} />
+            <img src="/static/icons/book.svg" alt={Sefaria._('Texts')} />
             <InterfaceText>header.texts</InterfaceText>
           </a>
-          <a href={"/topics"} onClick={close}>
-            <img src="/static/icons/topic.svg" alt={Sefaria._("common.topics")} />
+          <a href={'/topics'} onClick={close}>
+            <img src="/static/icons/topic.svg" alt={Sefaria._('common.topics')} />
             <InterfaceText>common.topics</InterfaceText>
           </a>
           <a href="/calendars" onClick={close}>
-            <img src="/static/icons/calendar.svg" alt={Sefaria._("header.learning_schedules")} />
+            <img src="/static/icons/calendar.svg" alt={Sefaria._('header.learning_schedules')} />
             <InterfaceText>header.learning_schedules</InterfaceText>
           </a>
         </>
-      }
-      {module === Sefaria.VOICES_MODULE &&
+      )}
+      {module === Sefaria.VOICES_MODULE && (
         <>
           <a href="/topics" data-target-module={Sefaria.VOICES_MODULE} onClick={close}>
-            <img src="/static/icons/topic.svg" alt={Sefaria._("common.topics")} />
+            <img src="/static/icons/topic.svg" alt={Sefaria._('common.topics')} />
             <InterfaceText>common.topics</InterfaceText>
           </a>
           <a href="/collections" onClick={close} className="textsPageLink" data-target-module={Sefaria.VOICES_MODULE}>
-            <img src="/static/icons/collection.svg" alt={Sefaria._("common.collections")} />
+            <img src="/static/icons/collection.svg" alt={Sefaria._('common.collections')} />
             <InterfaceText>common.collections</InterfaceText>
           </a>
         </>
-      }
-      <DonateLink classes={"blue"} source="MobileNavMenu">
-        <img src="/static/img/heart.png" alt={Sefaria._("common.donation_icon")} />
+      )}
+      <DonateLink classes={'blue'} source="MobileNavMenu">
+        <img src="/static/img/heart.png" alt={Sefaria._('common.donation_icon')} />
         <InterfaceText>header.donate</InterfaceText>
       </DonateLink>
       <div className="mobileAccountLinks">
-
-        {Sefaria._uid &&
+        {Sefaria._uid && (
           <>
-            {module === Sefaria.LIBRARY_MODULE &&
+            {module === Sefaria.LIBRARY_MODULE && (
               <>
                 <Button
                   variant="secondary"
                   icon="bookmarkset_outline_mdl"
-                  alt={Sefaria._("header.bookmarks")}
+                  alt={Sefaria._('header.bookmarks')}
                   href="/saved"
                   onClick={close}
                   targetModule={Sefaria.LIBRARY_MODULE}
                 >
                   <InterfaceText>header.saved_history_and_notes</InterfaceText>
                 </Button>
-              </>}
-            {module === Sefaria.VOICES_MODULE &&
+              </>
+            )}
+            {module === Sefaria.VOICES_MODULE && (
               <>
                 <a href={`/profile/${Sefaria.slug}`} onClick={close} data-target-module={Sefaria.VOICES_MODULE}>
                   <div className="mobileProfileFlexContainer">
@@ -500,7 +542,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                 <Button
                   variant="secondary"
                   icon="bookmarkset_outline_mdl"
-                  alt={Sefaria._("header.bookmarks")}
+                  alt={Sefaria._('header.bookmarks')}
                   href="/saved"
                   onClick={close}
                   targetModule={Sefaria.VOICES_MODULE}
@@ -509,25 +551,27 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                 </Button>
                 <Button
                   variant="secondary"
-                  icon={hasUnreadNotifications ? "notifications-1_mdl" : "notifications_mdl"}
-                  alt={Sefaria._("common.notifications")}
+                  icon={hasUnreadNotifications ? 'notifications-1_mdl' : 'notifications_mdl'}
+                  alt={Sefaria._('common.notifications')}
                   href="/notifications"
                   onClick={close}
                   targetModule={Sefaria.VOICES_MODULE}
                 >
                   <InterfaceText>common.notifications</InterfaceText>
                 </Button>
-              </>}
-          </>}
+              </>
+            )}
+          </>
+        )}
 
-        {Sefaria._uid &&
+        {Sefaria._uid && (
           <>
             <a href="/settings/account" data-target-module={Sefaria.LIBRARY_MODULE}>
-              <img src="/static/icons/settings.svg" alt={Sefaria._("header.settings")} />
+              <img src="/static/icons/settings.svg" alt={Sefaria._('header.settings')} />
               <InterfaceText>header.account_settings</InterfaceText>
             </a>
           </>
-        }
+        )}
 
         <MobileInterfaceLanguageToggle />
 
@@ -538,7 +582,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           icon="help_mdl"
           href={Sefaria._v({
             he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
-            en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+            en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US,
           })}
           target="_blank"
         >
@@ -546,45 +590,46 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
         </Button>
 
         <a href="/mobile-about-menu">
-          <img src="/static/icons/info.svg" alt={Sefaria._("common.about")} />
+          <img src="/static/icons/info.svg" alt={Sefaria._('common.about')} />
           <InterfaceText>header.about_sefaria</InterfaceText>
         </a>
 
         <hr />
 
-        {module === Sefaria.LIBRARY_MODULE &&
+        {module === Sefaria.LIBRARY_MODULE && (
           <a href="/" className="mobileModuleSwitcher" data-target-module={Sefaria.VOICES_MODULE}>
-            <span className="dropdownDot" style={{backgroundColor: `var(--sheets-green)`}}></span>
+            <span className="dropdownDot" style={{ backgroundColor: `var(--sheets-green)` }}></span>
             <InterfaceText>header.voices_on_sefaria</InterfaceText>
           </a>
-        }
+        )}
 
-        {module === Sefaria.VOICES_MODULE &&
+        {module === Sefaria.VOICES_MODULE && (
           <a href="/texts" className="mobileModuleSwitcher" data-target-module={Sefaria.LIBRARY_MODULE}>
-            <span className="dropdownDot" style={{backgroundColor: `var(--sefaria-blue)`}}></span>
+            <span className="dropdownDot" style={{ backgroundColor: `var(--sefaria-blue)` }}></span>
             <InterfaceText>common.library_name</InterfaceText>
           </a>
-        }
+        )}
 
-        <a href="https://developers.sefaria.org" className="mobileModuleSwitcher" target="_blank">
-          <span className="dropdownDot" style={{backgroundColor: `var(--devportal-purple)`}}></span>
+        <a href="https://developers.sefaria.org" className="mobileModuleSwitcher" target="_blank" rel="noreferrer">
+          <span className="dropdownDot" style={{ backgroundColor: `var(--devportal-purple)` }}></span>
           <InterfaceText>header.developers_on_sefaria</InterfaceText>
         </a>
 
         <a href="/products" data-target-module={Sefaria.LIBRARY_MODULE}>
-          <img className="chevron" src="/static/icons/chevron-right.svg"/>
+          <img className="chevron" src="/static/icons/chevron-right.svg" />
           <InterfaceText>header.more_from_sefaria</InterfaceText>
         </a>
 
         <hr />
 
-        {Sefaria._uid ?
+        {Sefaria._uid ? (
           <a href={Sefaria.getLogoutUrl()} className="logout">
-            <img src="/static/icons/logout.svg" alt={Sefaria._("header.logout")} />
+            <img src="/static/icons/logout.svg" alt={Sefaria._('header.logout')} />
             <InterfaceText>header.logout</InterfaceText>
           </a>
-          :
-          <LoggedOutButtons mobile={true} loginOnly={false} openURL={openURL} close={close} />}
+        ) : (
+          <LoggedOutButtons mobile={true} loginOnly={false} openURL={openURL} close={close} />
+        )}
 
         <hr />
       </div>
@@ -592,40 +637,48 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
   );
 };
 
-
 const MobileInterfaceLanguageToggle = () => {
-  const links = Sefaria.interfaceLang == "hebrew" ?
-    <>
-      <NextRedirectAnchor url="/interface/hebrew" className="int-he">עברית</NextRedirectAnchor>
-      <span className="separator">•</span>
-      <NextRedirectAnchor url="/interface/english" className="int-en inactive">English</NextRedirectAnchor>
-    </>
-    :
-    <>
-      <NextRedirectAnchor url="/interface/english" className="int-en">English</NextRedirectAnchor>
-      <span className="separator">•</span>
-      <NextRedirectAnchor url="/interface/hebrew" className="int-he inactive">עברית</NextRedirectAnchor>
-    </>;
+  const links =
+    Sefaria.interfaceLang == 'hebrew' ? (
+      <>
+        <NextRedirectAnchor url="/interface/hebrew" className="int-he">
+          עברית
+        </NextRedirectAnchor>
+        <span className="separator">•</span>
+        <NextRedirectAnchor url="/interface/english" className="int-en inactive">
+          English
+        </NextRedirectAnchor>
+      </>
+    ) : (
+      <>
+        <NextRedirectAnchor url="/interface/english" className="int-en">
+          English
+        </NextRedirectAnchor>
+        <span className="separator">•</span>
+        <NextRedirectAnchor url="/interface/hebrew" className="int-he inactive">
+          עברית
+        </NextRedirectAnchor>
+      </>
+    );
 
   return (
     <div className="mobileInterfaceLanguageToggle">
-      <img src="/static/icons/globallanguageswitcher_mdl.svg" alt={Sefaria._("header.language")} />
+      <img src="/static/icons/globallanguageswitcher_mdl.svg" alt={Sefaria._('header.language')} />
       {links}
     </div>
   );
 };
 
-
 const HelpButton = () => {
   const url = Sefaria._v({
     he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
-    en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+    en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US,
   });
   return (
     <Button
       variant="icon-only"
       icon="help_mdl"
-      ariaLabel={Sefaria._("header.help")}
+      ariaLabel={Sefaria._('header.help')}
       href={url}
       targetModule={Sefaria.VOICES_MODULE}
     />
@@ -640,16 +693,14 @@ const SignUpButton = () => {
       </Button>
     </span>
   );
-}
+};
 
 const CreateButton = () => {
-
   return (
     <Button className="auto-width-button" href="/sheets/new" targetModule={Sefaria.VOICES_MODULE}>
-      <InterfaceText text={{ 'en': 'Create', 'he': 'דף חדש' }} />
+      <InterfaceText text={{ en: 'Create', he: 'דף חדש' }} />
     </Button>
   );
 };
-
 
 export { Header };

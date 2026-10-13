@@ -9,13 +9,19 @@ import { authError, postJson } from './utils.js';
 const ForgotView = ({ emailValue, setField, csrf, onSuccess, onBack }) => {
   const onSubmit = async () => {
     const { ok, data } = await postJson('/api/auth/password/reset', { email: emailValue }, csrf);
-    if (ok) { onSuccess(); return; }
+    if (ok) {
+      onSuccess();
+      return;
+    }
     return { error: authError(data, 'auth.generic_error') };
   };
 
   return (
-    <FormView onBack={onBack} heading={<InterfaceText>auth.forgot_password</InterfaceText>}
-      formId="forgot-form" onSubmit={onSubmit}
+    <FormView
+      onBack={onBack}
+      heading={<InterfaceText>auth.forgot_password</InterfaceText>}
+      formId="forgot-form"
+      onSubmit={onSubmit}
     >
       {({ submitting }) => (
         <>

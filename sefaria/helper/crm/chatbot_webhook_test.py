@@ -1,7 +1,7 @@
 import json
 import uuid
 from unittest import mock
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
@@ -10,14 +10,14 @@ from django.test import Client
 
 from sefaria.helper.crm.tasks import (
     dispatch_chatbot_opt_in_webhook,
-    send_chatbot_opt_in_webhook,
     extract_error_detail,
+    send_chatbot_opt_in_webhook,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_mock_response(status_code=200, json_body=None, text=""):
     resp = MagicMock(spec=requests.Response)
@@ -42,6 +42,7 @@ def make_http_error(status_code=500, json_body=None, text=""):
 # extract_error_detail
 # ---------------------------------------------------------------------------
 
+
 def test_extract_error_detail_json_error_key():
     _, err = make_http_error(422, json_body={"success": False, "error": "Bad email"})
     assert extract_error_detail(err) == "Bad email"
@@ -61,6 +62,7 @@ def test_extract_error_detail_generic_exception():
 # send_chatbot_opt_in_webhook
 # ---------------------------------------------------------------------------
 
+
 @patch("sefaria.helper.crm.tasks.requests.post")
 def test_webhook_success(mock_post):
     mock_post.return_value = make_mock_response(200, json_body={"success": True})
@@ -79,7 +81,8 @@ def test_webhook_success(mock_post):
 @patch("sefaria.helper.crm.tasks.requests.post")
 def test_webhook_success_false_triggers_retry(mock_post):
     mock_post.return_value = make_mock_response(
-        200, json_body={"success": False, "error": "invalid email"}
+        200,
+        json_body={"success": False, "error": "invalid email"},
     )
 
     send_chatbot_opt_in_webhook.apply(args=["user@example.com", True, "english"])
@@ -142,7 +145,8 @@ def test_webhook_opt_out_sends_false(mock_post):
 def test_webhook_rejects_get_with_400(mock_post, mock_capture):
     """Salesforce returns 400 Bad Request on GET — verify error handling path."""
     resp = make_mock_response(
-        400, json_body={"success": False, "error": "GET not supported"}
+        400,
+        json_body={"success": False, "error": "GET not supported"},
     )
     resp.raise_for_status.side_effect = requests.HTTPError(response=resp)
     mock_post.return_value = resp
@@ -156,6 +160,7 @@ def test_webhook_rejects_get_with_400(mock_post, mock_capture):
 # ---------------------------------------------------------------------------
 # dispatch_chatbot_opt_in_webhook
 # ---------------------------------------------------------------------------
+
 
 @patch("sefaria.helper.crm.tasks.send_chatbot_opt_in_webhook")
 @patch("sefaria.helper.crm.tasks.requests.post")
@@ -172,6 +177,7 @@ def test_dispatch_is_deactivated(mock_post, mock_task):
 
 # The tests below flip the deactivation flag off: the machinery is kept as a working
 # reference, and these prove it still works for the next experiment that needs it.
+
 
 @patch("sefaria.helper.crm.tasks.CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED", False)
 @patch("sefaria.helper.crm.tasks.send_chatbot_opt_in_webhook")
@@ -206,6 +212,7 @@ def test_dispatch_empty_email_is_noop():
 # Integration tests: full Django request → view → webhook dispatch
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def client():
     return Client()
@@ -220,7 +227,7 @@ def test_user():
         email=email,
         password="testpass123",
     )
-    yield user
+    return user
 
 
 @pytest.fixture
@@ -232,18 +239,19 @@ def test_user_with_profile(test_user):
     UserExperimentSettings.objects.create(user=test_user, experiments=True)
 
     db.profiles.delete_many({"id": test_user.id})
-    db.profiles.insert_one({
-        "id": test_user.id,
-        "slug": f"test-{test_user.id}",
-        "experiments": True,
-    })
+    db.profiles.insert_one(
+        {
+            "id": test_user.id,
+            "slug": f"test-{test_user.id}",
+            "experiments": True,
+        },
+    )
     yield test_user
     db.profiles.delete_many({"id": test_user.id})
 
 
 @pytest.mark.django_db
 class TestExperimentsOptInWebhook:
-
     @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
     def test_opt_in_fires_webhook(self, mock_dispatch, client, test_user):
         client.login(email=test_user.email, password="testpass123")
@@ -273,7 +281,6 @@ class TestExperimentsOptInWebhook:
 
 @pytest.mark.django_db
 class TestProfileExperimentsToggleWebhook:
-
     @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
     def test_toggle_off_fires_webhook(self, mock_dispatch, client, test_user_with_profile):
         user = test_user_with_profile

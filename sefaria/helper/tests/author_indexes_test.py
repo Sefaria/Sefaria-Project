@@ -3,7 +3,17 @@ from sefaria.system.exceptions import InputError
 
 
 class _DummyIndex:
-    def __init__(self, title, he_title, categories=None, dependence=None, en_desc=None, he_desc=None, en_short_desc=None, he_short_desc=None):
+    def __init__(
+        self,
+        title,
+        he_title,
+        categories=None,
+        dependence=None,
+        en_desc=None,
+        he_desc=None,
+        en_short_desc=None,
+        he_short_desc=None,
+    ):
         self.title = title
         self._he_title = he_title
         self.categories = categories or []
@@ -40,7 +50,15 @@ def test_get_author_indexes_from_topic_serializes_flat_indexes(monkeypatch):
     monkeypatch.setattr(topic, "Ref", _DummyRef)
     author_topic = _DummyAuthorTopic(
         indexes=[
-            _DummyIndex("Book One", "ספר אחד", categories=["Tanakh"], dependence=None, en_desc="Long EN", he_desc="Long HE", en_short_desc="Short EN"),
+            _DummyIndex(
+                "Book One",
+                "ספר אחד",
+                categories=["Tanakh"],
+                dependence=None,
+                en_desc="Long EN",
+                he_desc="Long HE",
+                en_short_desc="Short EN",
+            ),
             _DummyIndex("Book Two", "ספר שתיים", categories=["Halakhah"], dependence="Commentary"),
         ],
         aggregations=[],
@@ -70,7 +88,7 @@ def test_get_author_indexes_from_topic_includes_aggregations_when_requested(monk
             return self.title
 
     monkeypatch.setattr(topic, "Ref", _DummyRef)
-    aggregations = [{"url": "/Tanakh/Rashi", "title": {"en": "Rashi on Tanakh", "he": "רש\"י"}}]
+    aggregations = [{"url": "/Tanakh/Rashi", "title": {"en": "Rashi on Tanakh", "he": 'רש"י'}}]
     author_topic = _DummyAuthorTopic(indexes=[_DummyIndex("Book", "ספר")], aggregations=aggregations)
 
     response = topic._get_author_indexes_from_topic(author_topic, include_aggregations=True)

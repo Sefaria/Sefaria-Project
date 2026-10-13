@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for scripts/embed_library_to_pgvector.py.
 
@@ -8,12 +7,13 @@ get_section_context, collect_segment_records_by_section) hit Mongo, so they're t
 against existing, stable library records (Genesis, Mishneh Torah Sabbath, Mishnah
 Berakhot) rather than fixtures.
 """
+
 from types import SimpleNamespace
 
-from sefaria.model import *
-import sefaria.helper.vector.embed_library_to_pgvector as pgv
-
 import pytest
+
+import sefaria.helper.vector.embed_library_to_pgvector as pgv
+from sefaria.model import *
 
 # Temporarily disabled: these tests depend on the pgvector/vector_db integration
 # which is not yet provisioned in CI. Re-enable once pgvector is reachable.

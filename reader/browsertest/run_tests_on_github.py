@@ -4,23 +4,29 @@ __package__ = "reader.browsertest"
 
 
 import sys
-from selenium import webdriver
 from optparse import OptionParser
 
 import django
+
 django.setup()
 
-from .framework import Trial
-from . import basic_tests    # This is in fact needed - to register subclasses Trial, etc.
-import sys
 import os
+
+from . import basic_tests  # This is in fact needed - to register subclasses Trial, etc.
+from .framework import Trial
 
 build = os.getenv("GITHUB_SHA_SHORT", "deadbeef")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-t", "--tests", dest="tests", help="Comma separated list of tests to run")
-    parser.add_option("-p", "--parallel", dest="parallel", action='store_true', help="Run multiple platforms in parallel")
+    parser.add_option(
+        "-p",
+        "--parallel",
+        dest="parallel",
+        action="store_true",
+        help="Run multiple platforms in parallel",
+    )
 
     options, user_args = parser.parse_args()
 

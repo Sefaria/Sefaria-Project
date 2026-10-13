@@ -1,18 +1,19 @@
 from collections import defaultdict
+
 import structlog
+
+from sefaria.helper.skip_tracking import bad_record_guard, log_skip
 from sefaria.model.category import Category
-from sefaria.model.linker.ref_part import RawRef
 from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
+from sefaria.model.linker.ref_part import RawRef
 from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.utils.hebrew import get_matches_with_prefixes
-from sefaria.helper.skip_tracking import log_skip, bad_record_guard
 
 logger = structlog.get_logger(__name__)
 skip_bad_record = bad_record_guard(logger)
 
 
 class ResolvedCategory(AbstractResolvedEntity):
-
     def __init__(self, raw_ref: RawRef, categories: list[Category]) -> None:
         self._raw_entity = raw_ref
         self.categories = categories
@@ -24,11 +25,11 @@ class ResolvedCategory(AbstractResolvedEntity):
     @property
     def resolution_failed(self):
         return len(self.categories) == 0
-    
+
     @property
     def raw_entity(self):
         return self._raw_entity
-    
+
     def get_debug_spans(self) -> list[dict]:
         span = self._get_base_debug_span()
         span["type"] = MUTCSpanType.CATEGORY.value
@@ -46,17 +47,27 @@ class ResolvedCategory(AbstractResolvedEntity):
 
 
 class CategoryMatcher:
-
     def __init__(self, lang: str, category_registry: list[Category]) -> None:
         self._title_to_cat: dict[str, list[Category]] = defaultdict(list)
         for cat in category_registry:
             # One category whose match_template references a nonexistent/corrupt term
             # (term.get_terms() yields None, or term.get_titles() raises) must not abort startup.
-            with skip_bad_record("startup", "CategoryMatcher category", record="/".join(getattr(cat, "path", []) or [])):
+            with skip_bad_record(
+                "startup",
+                "CategoryMatcher category",
+                record="/".join(getattr(cat, "path", []) or []),
+            ):
                 for match_template in cat.get_match_templates():
                     for term in match_template.get_terms():
                         if term is None:
-                            log_skip(logger, "startup", "CategoryMatcher category match_template", "category '{}' references a nonexistent term slug; skipping.".format("/".join(getattr(cat, "path", []) or [])))
+                            log_skip(
+                                logger,
+                                "startup",
+                                "CategoryMatcher category match_template",
+                                "category '{}' references a nonexistent term slug; skipping.".format(
+                                    "/".join(getattr(cat, "path", []) or []),
+                                ),
+                            )
                             continue
                         for title in term.get_titles(lang):
                             self._title_to_cat[title] += [cat]
@@ -66,7 +77,6 @@ class CategoryMatcher:
 
 
 class CategoryResolver:
-
     def __init__(self, category_matcher: CategoryMatcher) -> None:
         self._matcher = category_matcher
 

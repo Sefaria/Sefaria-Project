@@ -22,12 +22,13 @@ class Dedication(models.Model):
     slug = models.SlugField(
         max_length=100,
         unique=True,
-        validators=[RegexValidator(
-            r"^[\w-]+$",
-            "Slug may only contain letters, numbers, underscores, and hyphens.",
-        )],
-        help_text="URL identifier. The page is served at /dedication/<slug> "
-                  "(e.g. 'hirsch' -> /dedication/hirsch).",
+        validators=[
+            RegexValidator(
+                r"^[\w-]+$",
+                "Slug may only contain letters, numbers, underscores, and hyphens.",
+            ),
+        ],
+        help_text="URL identifier. The page is served at /dedication/<slug> (e.g. 'hirsch' -> /dedication/hirsch).",
     )
     en_title = models.CharField(max_length=255, help_text="Page title (English).")
     he_title = models.CharField(max_length=255, help_text="Page title (Hebrew).")

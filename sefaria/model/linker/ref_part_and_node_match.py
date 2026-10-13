@@ -20,7 +20,7 @@ class RefPartAndNodeMatch:
     @property
     def node(self) -> ReferenceableBookNode:
         return self._node
-    
+
     def set_node(self, node: ReferenceableBookNode):
         self._node = node
 

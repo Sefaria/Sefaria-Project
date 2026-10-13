@@ -1,18 +1,15 @@
-# coding=utf-8
-
+import contextlib
 import copy
 from itertools import groupby
-from sefaria.system.exceptions import InputError
-from sefaria.system.database import db
-from . import abstract as abst
-from . import text
-from . import place
-from . import timeperiod
-from . import topic
-from . import link
-from . import user_profile
 
 import structlog
+
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+
+from . import abstract as abst
+from . import link, place, text, timeperiod, topic, user_profile
+
 logger = structlog.get_logger(__name__)
 
 
@@ -20,19 +17,20 @@ class Garden(abst.AbstractMongoRecord):
     """
     https://saravanamudaliar.files.wordpress.com/2014/03/102_5996.jpg
     """
-    collection = 'garden'
+
+    collection = "garden"
     track_pkeys = True
     pkeys = ["key"]
 
     required_attrs = [
-        'key',
-        'title',
-        'heTitle',
-        'config'
+        "key",
+        "title",
+        "heTitle",
+        "config",
     ]
     optional_attrs = [
         "subtitle",
-        "heSubtitle"
+        "heSubtitle",
     ]
 
     default_config = {
@@ -45,17 +43,17 @@ class Garden(abst.AbstractMongoRecord):
                 "en": "Tags",
                 "he": "תגיות",
                 "logic": "AND",  # AND / OR
-                "position": "SIDE"  # SIDE / TOP
-            }
+                "position": "SIDE",  # SIDE / TOP
+            },
         },
         "sorts": {
             "start": {
                 "en": "Date",
                 "he": "תאריך",
-                "datatype": "Int",  #Int, Str
-                "default": "ASC"
-            }
-        }
+                "datatype": "Int",  # Int, Str
+                "default": "ASC",
+            },
+        },
     }
 
     def _set_derived_attributes(self):
@@ -72,19 +70,15 @@ class Garden(abst.AbstractMongoRecord):
             self.config["filters"][filterkey] = filterdict
 
     def removeFilter(self, filterkey):
-        try:
+        with contextlib.suppress(KeyError):
             del self.config["filters"][filterkey]
-        except KeyError:
-            pass
 
     def updateSort(self, field, sortdict):
         self.config["sorts"][field] = sortdict
 
     def removeSort(self, field):
-        try:
+        with contextlib.suppress(KeyError):
             del self.config["sorts"][field]
-        except KeyError:
-            pass
 
     def stopSet(self, sort=None):
         if not sort:
@@ -154,15 +148,19 @@ class Garden(abst.AbstractMongoRecord):
         # Check for existing stop, based on Ref.
         if attrs.get("ref"):
             if attrs.get("enText") is None:
-                try:
-                    attrs["enText"] = text.TextChunk(text.Ref(attrs["ref"]), "en", attrs.get("enVersionTitle")).as_string()
-                except Exception:
-                    pass
+                with contextlib.suppress(Exception):
+                    attrs["enText"] = text.TextChunk(
+                        text.Ref(attrs["ref"]),
+                        "en",
+                        attrs.get("enVersionTitle"),
+                    ).as_string()
             if attrs.get("heText") is None:
-                try:
-                    attrs["heText"] = text.TextChunk(text.Ref(attrs["ref"]), "he", attrs.get("heVersionTitle")).as_string()
-                except Exception:
-                    pass
+                with contextlib.suppress(Exception):
+                    attrs["heText"] = text.TextChunk(
+                        text.Ref(attrs["ref"]),
+                        "he",
+                        attrs.get("heVersionTitle"),
+                    ).as_string()
 
             existing = GardenStop().load({"ref": attrs["ref"], "garden": self.key})
             if existing:
@@ -195,7 +193,7 @@ class Garden(abst.AbstractMongoRecord):
         try:
             gs.save()
         except Exception as e:
-            logger.warning("Failed to add stop to Garden {}. {}".format(self.title, e))
+            logger.warning(f"Failed to add stop to Garden {self.title}. {e}")
 
     def add_relationship(self, attrs):
         gs = GardenStopRelation(attrs)
@@ -203,7 +201,7 @@ class Garden(abst.AbstractMongoRecord):
         try:
             gs.save()
         except Exception as e:
-            logger.warning("Failed to add relationship to Garden {}. {}".format(self.title, e))
+            logger.warning(f"Failed to add relationship to Garden {self.title}. {e}")
 
     def import_sheets_by_user(self, user_id):
         self.updateSort("weight", {"type": "Int", "en": "Weight", "he": "משקל"})
@@ -220,7 +218,7 @@ class Garden(abst.AbstractMongoRecord):
         for sheet in sheet_list:
             self.import_sheet(sheet["id"], remove_tags=[tag])
 
-    # todo: this is way too slow.
+    # TODO: this is way too slow.
     def get_links(self):
         """
         Given the current Ref set of the Garden, looks for Links in the core repository, and turns them into GardenStopRelations
@@ -241,13 +239,14 @@ class Garden(abst.AbstractMongoRecord):
             refClauses += [{"refs.1": {"$regex": rgx}}]
 
         for rgx in regexes:
-            print("Garden.get_links() - {}".format(rgx))
-            links += [l for l in link.LinkSet({"$and": [{"refs.0": {"$regex": rgx}}, {"$or": refClauses}]})]
+            print(f"Garden.get_links() - {rgx}")
+            links += list(link.LinkSet({"$and": [{"refs.0": {"$regex": rgx}}, {"$or": refClauses}]}))
 
         return links
 
     def import_search(self, q):
         from sefaria.search import query
+
         res = query(q)
 
         self.updateFilter("default", {"en": "Categories", "he": "קטגוריות"})
@@ -258,7 +257,7 @@ class Garden(abst.AbstractMongoRecord):
                 "type": "inside_source",
                 "ref": hit["_source"]["ref"],
                 "enVersionTitle": hit["_source"]["version"],
-                "tags": tags
+                "tags": tags,
             }
             if hit["_source"]["lang"] == "en":
                 stop["enText"] = " ".join(hit["highlight"]["content"])
@@ -272,22 +271,20 @@ class Garden(abst.AbstractMongoRecord):
         self.updateFilter("default", {"en": "Categories", "he": "קטגוריות"})
         for ref in reflist:
             if isinstance(ref, str):
-                try:
+                with contextlib.suppress(BaseException):
                     ref = text.Ref(ref)
-                except:
-                    pass
             if not isinstance(ref, text.Ref):
                 continue
 
             stop_dict = {
                 "type": "inside_source",
                 "ref": ref.normal(),
-                "tags": {"default": ref.index.categories}
+                "tags": {"default": ref.index.categories},
             }
 
             if defaults.get("tags") is not None:
                 stop_dict["tags"].update(defaults["tags"])
-            stop_dict.update({k:v for k,v in list(defaults.items()) if k != "tags"})
+            stop_dict.update({k: v for k, v in list(defaults.items()) if k != "tags"})
 
             self.add_stop(stop_dict)
         return self
@@ -297,7 +294,7 @@ class Garden(abst.AbstractMongoRecord):
 
         sheet = Sheet().load({"id": sheet_id})
         if not sheet:
-            logger.warning("Failed to load sheet {}".format(sheet_id))
+            logger.warning(f"Failed to load sheet {sheet_id}")
 
         def process_sources(sources, tags):
             for source in sources:
@@ -305,32 +302,40 @@ class Garden(abst.AbstractMongoRecord):
                     text = source.get("text", {}).get("he", None)
                     ref = refine_ref_by_text(source["ref"], text) if text else source["ref"]
 
-                    self.add_stop({
-                        "type": "inside_source",
-                        "ref": ref,
-                        "enText": source['text'].get("en"),
-                        "heText": source['text'].get("he"),
-                        "tags": tags
-                    })
+                    self.add_stop(
+                        {
+                            "type": "inside_source",
+                            "ref": ref,
+                            "enText": source["text"].get("en"),
+                            "heText": source["text"].get("he"),
+                            "tags": tags,
+                        },
+                    )
                 elif "outsideBiText" in source:
-                    self.add_stop({
-                        "type": "outside_source",
-                        "enText": source['outsideBiText'].get("en"),
-                        "heText": source['outsideBiText'].get("he"),
-                        "tags": tags
-                    })
+                    self.add_stop(
+                        {
+                            "type": "outside_source",
+                            "enText": source["outsideBiText"].get("en"),
+                            "heText": source["outsideBiText"].get("he"),
+                            "tags": tags,
+                        },
+                    )
                 elif "outsideText" in source:
-                    self.add_stop({
-                        "type": "outside_source",
-                        "enText": source['outsideText'],
-                        "tags": tags
-                    })
+                    self.add_stop(
+                        {
+                            "type": "outside_source",
+                            "enText": source["outsideText"],
+                            "tags": tags,
+                        },
+                    )
                 elif "comment" in sources:
-                    self.add_stop({
-                        "type": "blob",
-                        "enText": source['comment'],
-                        "tags": tags
-                    })
+                    self.add_stop(
+                        {
+                            "type": "blob",
+                            "enText": source["comment"],
+                            "tags": tags,
+                        },
+                    )
 
                 if "subsources" in source:
                     process_sources(source["subsources"], tags)
@@ -347,55 +352,54 @@ class GardenSet(abst.AbstractMongoSet):
 
 
 class GardenStop(abst.AbstractMongoRecord):
-    collection = 'garden_stop'
+    collection = "garden_stop"
     track_pkeys = True
     pkeys = ["ref"]
 
     required_attrs = [
-        'garden',
-        'type'  # inside_source, outside_source, blob
-                # todo: Subclass these?
+        "garden",
+        "type",  # inside_source, outside_source, blob
+        # TODO: Subclass these?
     ]
     optional_attrs = [
-        'ref',
-        'heRef',
-        'weight',
-        'title',
-        'heTitle',
-        'enVersionTitle',
-        'heVersionTitle',  # will we use this?
-        'enSubtitle',
-        'heSubtitle',
-        'enText',
-        'heText',
-        'tags',  # dictionary of lists
+        "ref",
+        "heRef",
+        "weight",
+        "title",
+        "heTitle",
+        "enVersionTitle",
+        "heVersionTitle",  # will we use this?
+        "enSubtitle",
+        "heSubtitle",
+        "enText",
+        "heText",
+        "tags",  # dictionary of lists
         "start",
         "startIsApprox",
         "end",
         "endIsApprox",
-        'placeKey',
-        'placeNameEn',
-        'placeNameHe',
-        'placeGeo',  # keep this here?  Break into point and area?  "area or point"?
-        'authors',
-        'authorsEn',
-        'authorsHe',
-        'indexTitle',
-        'timePeriodEn',
-        'timePeriodHe'
+        "placeKey",
+        "placeNameEn",
+        "placeNameHe",
+        "placeGeo",  # keep this here?  Break into point and area?  "area or point"?
+        "authors",
+        "authorsEn",
+        "authorsHe",
+        "indexTitle",
+        "timePeriodEn",
+        "timePeriodHe",
     ]
 
     def hasCustomText(self, lang):
         assert lang, "hasCustomText() requires a language code"
         if lang == "en":
-            return bool(getattr(self, 'enText', False))
-        elif lang == "he":
-            return bool(getattr(self, 'heText', False))
-        else:
-            return bool(getattr(self, 'enText', False)) or bool(getattr(self, 'heText', False))
+            return bool(getattr(self, "enText", False))
+        if lang == "he":
+            return bool(getattr(self, "heText", False))
+        return bool(getattr(self, "enText", False)) or bool(getattr(self, "heText", False))
 
     # on initial value of ref, and change of ref, derive metadata.
-    # todo: do we have to support override of this info?
+    # TODO: do we have to support override of this info?
 
     def _derive_metadata(self):
         # Get index from ref
@@ -429,19 +433,26 @@ class GardenStop(abst.AbstractMongoRecord):
 
         # Place
         # The "" result is import to have here, for CrossFilter correctness on the frontend
-        self.placeKey = getattr(self, "placeKey", "") or getattr(i, "compPlace", "") or getattr(author, "deathPlace", "") or getattr(author, "birthPlace", "")
+        self.placeKey = (
+            getattr(self, "placeKey", "")
+            or getattr(i, "compPlace", "")
+            or getattr(author, "deathPlace", "")
+            or getattr(author, "birthPlace", "")
+        )
         if self.placeKey:
             pobj = place.Place().load({"key": self.placeKey})
             if not pobj:
-                raise InputError("Failed to find place with key {} while resolving metadata for {}".format(self.placeKey, self.ref))
+                raise InputError(
+                    f"Failed to find place with key {self.placeKey} while resolving metadata for {self.ref}",
+                )
             self.placeNameEn = pobj.primary_name("en")
             self.placeNameHe = pobj.primary_name("he")
-            #self.placeGeo = pobj.get_location()
+            # self.placeGeo = pobj.get_location()
 
         # Time
         # This is similar to logic on Index.composition_time_period() refactor
         if getattr(self, "start", None) is None or getattr(self, "end", None) is None:
-            years = getattr(i, 'compDate', [])
+            years = getattr(i, "compDate", [])
             if years and len(years) > 0:
                 self.startIsApprox = self.endIsApprox = getattr(i, "hasErrorMargin", False)
                 if len(years) > 1:
@@ -475,12 +486,14 @@ class GardenStop(abst.AbstractMongoRecord):
     def time_period(self):
         if not getattr(self, "start", False):
             return None
-        return timeperiod.TimePeriod({
-            "start": self.start,
-            "startIsApprox": getattr(self, "startIsApprox", False),
-            "end": self.end,
-            "endIsApprox": getattr(self, "endIsApprox", False)
-        })
+        return timeperiod.TimePeriod(
+            {
+                "start": self.start,
+                "startIsApprox": getattr(self, "startIsApprox", False),
+                "end": self.end,
+                "endIsApprox": getattr(self, "endIsApprox", False),
+            },
+        )
 
     def place(self):
         return place.Place().load({"key": self.placeKey})
@@ -501,22 +514,21 @@ class GardenStop(abst.AbstractMongoRecord):
     def get_all_tags(self):
         return self.tags
 
+
 class GardenStopSet(abst.AbstractMongoSet):
     recordClass = GardenStop
 
 
 class GardenStopRelation(abst.AbstractMongoRecord):
-    collection = 'garden_rel'
+    collection = "garden_rel"
     required_attrs = [
-        'garden'
+        "garden",
     ]
-    optional_attrs = [
+    optional_attrs = []
 
-    ]
 
 class GardenStopRelationSet(abst.AbstractMongoSet):
     recordClass = GardenStopRelation
-
 
 
 r"""

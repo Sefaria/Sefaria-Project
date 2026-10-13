@@ -1,5 +1,6 @@
 """Tests that the ES reindex job survives transient connection failures
 instead of aborting the entire multi-hour run."""
+
 import pytest
 from elastic_transport import ApiError, ConnectionTimeout
 
@@ -19,6 +20,7 @@ class _FakeIndex:
     def best_time_period(self):
         class _TP:
             start = 0
+
         return _TP()
 
 
@@ -45,31 +47,36 @@ def test_index_all_continues_past_bulk_connection_timeout(monkeypatch):
 
     # Stub heavyweight setup so we only exercise the per-book flush loop
     monkeypatch.setattr(
-        TextIndexer, "create_version_priority_map",
+        TextIndexer,
+        "create_version_priority_map",
         classmethod(lambda cls: None),
     )
     monkeypatch.setattr(
-        TextIndexer, "create_terms_dict",
+        TextIndexer,
+        "create_terms_dict",
         classmethod(lambda cls: None),
     )
     monkeypatch.setattr(
-        TextIndexer, "get_all_versions",
+        TextIndexer,
+        "get_all_versions",
         classmethod(lambda cls: list(all_versions)),
     )
     TextIndexer.version_priority_map = {
-        (v.title, v.versionTitle, v.language): (i, None)
-        for i, v in enumerate(all_versions)
+        (v.title, v.versionTitle, v.language): (i, None) for i, v in enumerate(all_versions)
     }
     monkeypatch.setattr(
-        TextIndexer, "excluded_from_search",
+        TextIndexer,
+        "excluded_from_search",
         classmethod(lambda cls, v: False),
     )
     monkeypatch.setattr("sefaria.search.Ref.clear_cache", lambda: None)
 
     def fake_index_version(cls, version, tries=0, action=None):
         cls._bulk_actions.append({"_op_type": "index", "_id": version.title})
+
     monkeypatch.setattr(
-        TextIndexer, "index_version",
+        TextIndexer,
+        "index_version",
         classmethod(fake_index_version),
     )
 
@@ -82,6 +89,7 @@ def test_index_all_continues_past_bulk_connection_timeout(monkeypatch):
         if len(bulk_calls) == 2:
             raise ConnectionTimeout("Connection timed out")
         return (len(actions), [])
+
     monkeypatch.setattr("sefaria.search.bulk", flaky_bulk)
 
     TextIndexer.index_all(index_name="text-b", debug=False, for_es=True)
@@ -99,6 +107,7 @@ def test_index_all_continues_past_bulk_connection_timeout(monkeypatch):
 
 class _FakeAuthoredIndex:
     """An Index as seen by the authored_titles denormalization: primary titles + EN variants."""
+
     def __init__(self, title_en, title_he=None, variants_en=None, authors=None):
         self._title_en = title_en
         self._title_he = title_he
@@ -122,10 +131,12 @@ class _FakeAuthoredIndex:
     def get_title(self, lang="en"):
         return self._title_he if lang == "he" else self._title_en
 
+
 def test_authored_index_titles_include_english_variants():
     """An author must be findable by every title its book is findable by — incl. variants."""
     index = _FakeAuthoredIndex(
-        "Guide for the Perplexed", "מורה נבוכים",
+        "Guide for the Perplexed",
+        "מורה נבוכים",
         variants_en=["Moreh Nevukhim", "The Guide to the Perplexed"],
     )
     en, he = _authored_index_titles(index)
@@ -141,10 +152,13 @@ def test_authored_index_titles_missing_hebrew():
 
 def test_build_authored_titles_map_collects_variants_per_author(monkeypatch):
     indexes = [
-        _FakeAuthoredIndex("Guide for the Perplexed", "מורה נבוכים",
-                           variants_en=["Moreh Nevukhim"], authors=["rambam"]),
-        _FakeAuthoredIndex("Mishneh Torah", "משנה תורה",
-                           variants_en=["Yad HaChazakah"], authors=["rambam"]),
+        _FakeAuthoredIndex(
+            "Guide for the Perplexed",
+            "מורה נבוכים",
+            variants_en=["Moreh Nevukhim"],
+            authors=["rambam"],
+        ),
+        _FakeAuthoredIndex("Mishneh Torah", "משנה תורה", variants_en=["Yad HaChazakah"], authors=["rambam"]),
         _FakeAuthoredIndex("Unattributed Book"),  # no authors -> ignored
     ]
     monkeypatch.setattr(sefaria.search, "IndexSet", lambda *a, **k: iter(indexes))
@@ -152,7 +166,10 @@ def test_build_authored_titles_map_collects_variants_per_author(monkeypatch):
     titles_map = _build_authored_titles_map()
 
     assert titles_map["rambam"]["en"] == [
-        "Guide for the Perplexed", "Moreh Nevukhim", "Mishneh Torah", "Yad HaChazakah",
+        "Guide for the Perplexed",
+        "Moreh Nevukhim",
+        "Mishneh Torah",
+        "Yad HaChazakah",
     ]
     assert titles_map["rambam"]["he"] == ["מורה נבוכים", "משנה תורה"]
     assert list(titles_map.keys()) == ["rambam"]
@@ -168,7 +185,7 @@ class _FakeAuthorTopic:
     numSources = 100
 
     def get_primary_title(self, lang):
-        return "רמב\"ם" if lang == "he" else "Rambam"
+        return 'רמב"ם' if lang == "he" else "Rambam"
 
     def get_titles(self, lang, with_disambiguation=False):
         return ["Rambam", "Maimonides"]
@@ -180,8 +197,11 @@ class _FakeAuthorTopic:
 def test_make_topic_index_document_authored_titles_include_variants(monkeypatch):
     """The per-topic fallback path (no precomputed map) must carry book title variants too."""
     indexes = [
-        _FakeAuthoredIndex("Guide for the Perplexed", "מורה נבוכים",
-                           variants_en=["Moreh Nevukhim", "Guide for the Perplexed"]),
+        _FakeAuthoredIndex(
+            "Guide for the Perplexed",
+            "מורה נבוכים",
+            variants_en=["Moreh Nevukhim", "Guide for the Perplexed"],
+        ),
     ]
     monkeypatch.setattr(sefaria.search, "IndexSet", lambda *a, **k: iter(indexes))
 
@@ -193,8 +213,7 @@ def test_make_topic_index_document_authored_titles_include_variants(monkeypatch)
 
 
 def test_make_topic_index_document_authored_titles_from_map():
-    titles_map = {"rambam": {"en": ["Mishneh Torah", "Yad HaChazakah", "Mishneh Torah"],
-                             "he": ["משנה תורה"]}}
+    titles_map = {"rambam": {"en": ["Mishneh Torah", "Yad HaChazakah", "Mishneh Torah"], "he": ["משנה תורה"]}}
     doc = make_topic_index_document(_FakeAuthorTopic(), titles_map)
     assert doc["authored_titles_en"] == ["Mishneh Torah", "Yad HaChazakah"]
     assert doc["authored_titles_he"] == ["משנה תורה"]
@@ -225,6 +244,7 @@ class _FakeYearAuthorTopic(_FakeAuthorTopic):
 
 class _FakePlainTopic:
     """A non-author topic: no year properties, so no sortYear."""
+
     slug = "prayer"
     subclass = "topic"
     description = {"en": "", "he": ""}
@@ -239,22 +259,25 @@ class _FakePlainTopic:
         return None
 
 
-@pytest.mark.parametrize("properties, expected", [
-    # the ordinary case: a death year wins outright
-    ({"birthYear": 1138, "deathYear": 1204}, 1204),
-    # the bug this field exists to fix — a birth-year-only author used to sort on a missing
-    # deathYear and land in the undated tail, even though their card displays 1138
-    ({"birthYear": 1138}, 1138),
-    ({"deathYear": 1204}, 1204),
-    # years are free-form Topic properties, so numeric strings must coerce...
-    ({"birthYear": "1138", "deathYear": "1204"}, 1204),
-    # ...and unusable values must fall through to the next candidate rather than poison the sort
-    ({"birthYear": 1138, "deathYear": ""}, 1138),
-    ({"birthYear": 1138, "deathYear": "c. 1204"}, 1138),
-    # BCE years are negative and year 0 is a real value: both must survive a truthiness-free check
-    ({"deathYear": -50}, -50),
-    ({"deathYear": 0}, 0),
-])
+@pytest.mark.parametrize(
+    "properties, expected",
+    [
+        # the ordinary case: a death year wins outright
+        ({"birthYear": 1138, "deathYear": 1204}, 1204),
+        # the bug this field exists to fix — a birth-year-only author used to sort on a missing
+        # deathYear and land in the undated tail, even though their card displays 1138
+        ({"birthYear": 1138}, 1138),
+        ({"deathYear": 1204}, 1204),
+        # years are free-form Topic properties, so numeric strings must coerce...
+        ({"birthYear": "1138", "deathYear": "1204"}, 1204),
+        # ...and unusable values must fall through to the next candidate rather than poison the sort
+        ({"birthYear": 1138, "deathYear": ""}, 1138),
+        ({"birthYear": 1138, "deathYear": "c. 1204"}, 1138),
+        # BCE years are negative and year 0 is a real value: both must survive a truthiness-free check
+        ({"deathYear": -50}, -50),
+        ({"deathYear": 0}, 0),
+    ],
+)
 def test_make_topic_index_document_sort_year(properties, expected):
     """
     sortYear is the single derived year the chronological sort keys on: deathYear, falling
@@ -262,8 +285,7 @@ def test_make_topic_index_document_sort_year(properties, expected):
     deathYear field sort, so it only ever happened client-side (and only within one page of
     hits). Deriving it at index time makes the server sort agree with the displayed year.
     """
-    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties),
-                                    {"rambam": {"en": [], "he": []}})
+    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties), {"rambam": {"en": [], "he": []}})
     assert doc["sortYear"] == expected
 
 
@@ -274,22 +296,24 @@ def test_make_topic_index_document_omits_unusable_sort_year(properties):
     rather than a null or a 0 that would sort as year zero. Such authors then trail via the
     sort clause's `missing: "_last"`, in both directions.
     """
-    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties),
-                                    {"rambam": {"en": [], "he": []}})
+    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties), {"rambam": {"en": [], "he": []}})
     assert "sortYear" not in doc
 
 
-@pytest.mark.parametrize("properties, expected", [
-    # already ints: passed through untouched
-    ({"birthYear": 1138, "deathYear": 1204}, {"birthYear": 1138, "deathYear": 1204}),
-    # numeric strings coerce to the ints the `integer` mapping expects
-    ({"birthYear": "1138", "deathYear": "1204"}, {"birthYear": 1138, "deathYear": 1204}),
-    # unusable values are dropped entirely rather than sent as-is
-    ({"birthYear": 1138, "deathYear": ""}, {"birthYear": 1138}),
-    ({"birthYear": "c. 1138", "deathYear": "c. 1204"}, {}),
-    # BCE years are negative and year 0 is real: neither may be dropped as falsy
-    ({"birthYear": -100, "deathYear": 0}, {"birthYear": -100, "deathYear": 0}),
-])
+@pytest.mark.parametrize(
+    "properties, expected",
+    [
+        # already ints: passed through untouched
+        ({"birthYear": 1138, "deathYear": 1204}, {"birthYear": 1138, "deathYear": 1204}),
+        # numeric strings coerce to the ints the `integer` mapping expects
+        ({"birthYear": "1138", "deathYear": "1204"}, {"birthYear": 1138, "deathYear": 1204}),
+        # unusable values are dropped entirely rather than sent as-is
+        ({"birthYear": 1138, "deathYear": ""}, {"birthYear": 1138}),
+        ({"birthYear": "c. 1138", "deathYear": "c. 1204"}, {}),
+        # BCE years are negative and year 0 is real: neither may be dropped as falsy
+        ({"birthYear": -100, "deathYear": 0}, {"birthYear": -100, "deathYear": 0}),
+    ],
+)
 def test_make_topic_index_document_coerces_display_years(properties, expected):
     """
     birthYear/deathYear are mapped as `integer` (put_topic_mapping) but come from free-form
@@ -297,8 +321,7 @@ def test_make_topic_index_document_coerces_display_years(properties, expected):
     *entire document* on a type mismatch, which silently dropped those authors from the
     index. They must be coerced like sortYear, and omitted when unparseable.
     """
-    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties),
-                                    {"rambam": {"en": [], "he": []}})
+    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties), {"rambam": {"en": [], "he": []}})
     for field in ("birthYear", "deathYear"):
         if field in expected:
             assert doc[field] == expected[field]
@@ -312,10 +335,13 @@ def test_make_topic_index_document_no_sort_year_on_plain_topics():
     assert "sortYear" not in doc
 
 
-@pytest.mark.parametrize("bad_exc", [
-    TypeError("programming bug"),
-    ApiError("400 mapping_parser_exception", meta=None, body=None),
-])
+@pytest.mark.parametrize(
+    "bad_exc",
+    [
+        TypeError("programming bug"),
+        ApiError("400 mapping_parser_exception", meta=None, body=None),
+    ],
+)
 def test_flush_propagates_non_connection_errors(monkeypatch, bad_exc):
     """Programming errors and ES API errors must NOT be silently absorbed."""
     TextIndexer._failed_versions = []
@@ -323,6 +349,7 @@ def test_flush_propagates_non_connection_errors(monkeypatch, bad_exc):
 
     def boom(*args, **kwargs):
         raise bad_exc
+
     monkeypatch.setattr("sefaria.search.bulk", boom)
 
     versions = [_FakeVersion("BookA", "v1", "en")]

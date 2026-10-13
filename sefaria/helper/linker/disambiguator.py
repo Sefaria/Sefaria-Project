@@ -4,15 +4,16 @@ Based on LLM resolver that uses Dicta API and Sefaria search API.
 """
 
 import json
-import structlog
 import os
 import re
-import requests
-import Levenshtein
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from functools import lru_cache
-from typing import Dict, Any, Optional, List, Tuple
 from html import unescape
+from typing import Any
+
+import Levenshtein
+import requests
+import structlog
 
 # Configure LangSmith integration BEFORE any LangChain imports
 os.environ["LANGSMITH_TRACING_V2"] = "false"
@@ -20,15 +21,15 @@ os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGSMITH_PROJECT"] = "citation-disambiguator"
 # LANGSMITH_API_KEY should be set in your environment
 
-from sefaria.settings import SEARCH_URL
-
 from langchain_anthropic import ChatAnthropic
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langsmith import traceable
-from sefaria.model.text import Ref
-from sefaria.model.schema import AddressType
+
 from sefaria.helper.normalization import NormalizerComposer, NormalizerFactory
+from sefaria.model.schema import AddressType
+from sefaria.model.text import Ref
+from sefaria.settings import SEARCH_URL
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
@@ -39,8 +40,9 @@ _MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite cr
 # Public payload / result dataclasses (stable API — used by tasks.py & tests)
 # ---------------------------------------------------------------------------
 
+
 class DictaAPIError(RuntimeError):
-    def __init__(self, info: Dict[str, Any]):
+    def __init__(self, info: dict[str, Any]):
         super().__init__("Dicta API returned non-200")
         self.info = info
 
@@ -67,25 +69,28 @@ class NonSegmentResolutionPayload:
 
 @dataclass(frozen=True)
 class AmbiguousResolutionResult:
-    resolved_ref: Optional[str] = None
-    matched_segment: Optional[str] = None
-    method: Optional[str] = None
-    llm_resolved_phrase: Optional[str] = None
+    resolved_ref: str | None = None
+    matched_segment: str | None = None
+    method: str | None = None
+    llm_resolved_phrase: str | None = None
 
 
 @dataclass(frozen=True)
 class NonSegmentResolutionResult:
-    resolved_ref: Optional[str] = None
-    method: Optional[str] = None
-    llm_resolved_phrase: Optional[str] = None
-    rejected_ref: Optional[str] = None
+    resolved_ref: str | None = None
+    method: str | None = None
+    llm_resolved_phrase: str | None = None
+    rejected_ref: str | None = None
 
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-DICTA_URL = os.getenv("DICTA_PARALLELS_URL", "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus")
+DICTA_URL = os.getenv(
+    "DICTA_PARALLELS_URL",
+    "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus",
+)
 SEFARIA_SEARCH_URL = f"{SEARCH_URL}/text/_search"
 MIN_THRESHOLD = 1.0
 MAX_DISTANCE = 10.0
@@ -93,18 +98,19 @@ REQUEST_TIMEOUT = 30
 WINDOW_WORDS = 120
 
 # LLM role → (env_var_for_model, default_model, provider)
-_LLM_CONFIGS: Dict[str, Tuple[str, str, str]] = {
-    "default":            ("ANTHROPIC_MODEL",         "claude-sonnet-4-6",      "anthropic"),
-    "confirmation":       ("ANTHROPIC_CONFIRM_MODEL",  "claude-sonnet-4-6",      "anthropic"),
-    "prior":              ("ANTHROPIC_CONFIRM_MODEL",  "claude-sonnet-4-6",      "anthropic"),
-    "keyword":            ("LLM_KEYWORD_MODEL",        "gpt-4o-mini",            "openai"),
-    "high_score_verify":  ("GEMINI_HIGH_SCORE_MODEL",  "claude-sonnet-4-6", "anthropic"),
+_LLM_CONFIGS: dict[str, tuple[str, str, str]] = {
+    "default": ("ANTHROPIC_MODEL", "claude-sonnet-4-6", "anthropic"),
+    "confirmation": ("ANTHROPIC_CONFIRM_MODEL", "claude-sonnet-4-6", "anthropic"),
+    "prior": ("ANTHROPIC_CONFIRM_MODEL", "claude-sonnet-4-6", "anthropic"),
+    "keyword": ("LLM_KEYWORD_MODEL", "gpt-4o-mini", "openai"),
+    "high_score_verify": ("GEMINI_HIGH_SCORE_MODEL", "claude-sonnet-4-6", "anthropic"),
 }
 
 
 # ---------------------------------------------------------------------------
 # Candidate dataclass — replaces loose Dict[str, Any] throughout
 # ---------------------------------------------------------------------------
+
 
 def _best_substring_by_levenshtein(long_text: str, target: str) -> str:
     """Find the substring of long_text with minimum Levenshtein distance to target.
@@ -114,7 +120,7 @@ def _best_substring_by_levenshtein(long_text: str, target: str) -> str:
     in normalized space is then mapped back to original positions so the returned
     string is always a true substring of long_text.
     """
-    normalizer = _get_normalizer(lang='he')
+    normalizer = _get_normalizer(lang="he")
     norm_long = normalizer.normalize(long_text)
     norm_target = normalizer.normalize(target)
 
@@ -122,14 +128,15 @@ def _best_substring_by_levenshtein(long_text: str, target: str) -> str:
     if target_len == 0 or target_len >= len(norm_long):
         return long_text
 
-    best_start, best_dist = 0, float('inf')
+    best_start, best_dist = 0, float("inf")
     for i in range(len(norm_long) - target_len + 1):
-        dist = Levenshtein.distance(norm_long[i:i + target_len], norm_target)
+        dist = Levenshtein.distance(norm_long[i : i + target_len], norm_target)
         if dist < best_dist:
             best_dist, best_start = dist, i
 
     orig_start, orig_end = normalizer.norm_to_unnorm_indices(
-        long_text, [(best_start, best_start + target_len)]
+        long_text,
+        [(best_start, best_start + target_len)],
     )[0]
     return long_text[orig_start:orig_end]
 
@@ -137,17 +144,17 @@ def _best_substring_by_levenshtein(long_text: str, target: str) -> str:
 @dataclass
 class Candidate:
     resolved_ref: str
-    score: Optional[float] = None
-    source: Optional[str] = None
+    score: float | None = None
+    source: str | None = None
     raw: Any = None
-    query: Optional[str] = None
-    queries: List[str] = field(default_factory=list)
+    query: str | None = None
+    queries: list[str] = field(default_factory=list)
     # Only used in ambiguous flow: the top-level candidate ref that contains resolved_ref
-    parent_ref: Optional[str] = None
-    llm_choice_reason: Optional[str] = None
-    highlight: Optional[str] = None
+    parent_ref: str | None = None
+    llm_choice_reason: str | None = None
+    highlight: str | None = None
 
-    def resolution_phrase(self) -> Optional[str]:
+    def resolution_phrase(self) -> str | None:
         """Extract a key phrase used to resolve this candidate."""
         if self.queries:
             unique = list(dict.fromkeys(q for q in self.queries if q))
@@ -169,7 +176,7 @@ class Candidate:
 
     def merge_queries_from(self, other: "Candidate") -> None:
         """Merge query lists from another candidate into this one."""
-        merged: List[str] = list(self.queries)
+        merged: list[str] = list(self.queries)
         if other.queries:
             merged.extend(other.queries)
         if other.query and other.query not in merged:
@@ -177,9 +184,9 @@ class Candidate:
         self.queries = sorted({q for q in merged if q})
 
 
-def _dedupe_candidates(candidates: List[Candidate]) -> List[Candidate]:
+def _dedupe_candidates(candidates: list[Candidate]) -> list[Candidate]:
     """Deduplicate candidates by resolved_ref, keeping highest score and merging queries."""
-    seen: Dict[str, Candidate] = {}
+    seen: dict[str, Candidate] = {}
     for cand in candidates:
         ref = cand.resolved_ref
         if not ref:
@@ -201,6 +208,7 @@ def _dedupe_candidates(candidates: List[Candidate]) -> List[Candidate]:
 # Helpers — LLM, text, formatting
 # ---------------------------------------------------------------------------
 
+
 def _get_llm(role: str = "default"):
     """Get a configured LLM instance by role."""
     env_var, default_model, provider = _LLM_CONFIGS[role]
@@ -211,7 +219,7 @@ def _get_llm(role: str = "default"):
         if not api_key:
             raise RuntimeError("OPENAI_API_KEY environment variable is required")
         return ChatOpenAI(model=model, temperature=0, max_tokens=1024, api_key=api_key)
-    elif provider == "anthropic":
+    if provider == "anthropic":
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
@@ -227,26 +235,26 @@ def _system_content(instruction: str, base_block: str) -> list:
 
 
 @lru_cache(maxsize=2)
-def _citation_is_in_footnote(citing_text: str, char_range: Tuple[int, int]) -> bool:
+def _citation_is_in_footnote(citing_text: str, char_range: tuple[int, int]) -> bool:
     """Return True if the citation span falls inside a footnote block."""
-    footnote_normalizer = NormalizerFactory.get('footnote')
+    footnote_normalizer = NormalizerFactory.get("footnote")
     for (fn_start, fn_end), _ in footnote_normalizer.find_text_to_remove(citing_text):
         if fn_start <= char_range[0] and char_range[1] <= fn_end:
             return True
     return False
 
 
-def _get_normalizer(lang: str = 'he', strip_footnotes: bool = False) -> NormalizerComposer:
+def _get_normalizer(lang: str = "he", strip_footnotes: bool = False) -> NormalizerComposer:
     """Build the same normalizer used by LinkerEntityRecognizer to reduce token usage."""
-    steps = ['unidecode', 'fn-marker', 'html', 'double-space']
+    steps = ["unidecode", "fn-marker", "html", "double-space"]
     if strip_footnotes:
-        steps = ['footnote'] + steps
-    if lang == 'he':
-        steps += ['maqaf', 'cantillation']
+        steps = ["footnote"] + steps
+    if lang == "he":
+        steps += ["maqaf", "cantillation"]
     return NormalizerComposer(steps)
 
 
-def _normalize_for_llm(text: Optional[str], lang: str = 'he') -> Optional[str]:
+def _normalize_for_llm(text: str | None, lang: str = "he") -> str | None:
     """Normalize text for LLM prompts (removes cantillation, HTML, footnotes, etc.)."""
     if not text:
         return text
@@ -255,10 +263,10 @@ def _normalize_for_llm(text: Optional[str], lang: str = 'he') -> Optional[str]:
 
 def _normalize_citing_input(
     citing_text: str,
-    char_range: List[int],
+    char_range: list[int],
     text_snippet: str,
-    lang: str = 'he',
-) -> Tuple[str, List[int], str]:
+    lang: str = "he",
+) -> tuple[str, list[int], str]:
     """Normalize the citing text and map charRange from original to normalized coordinates.
 
     If the citation is outside footnotes, strips footnote blocks so they don't inflate
@@ -269,7 +277,9 @@ def _normalize_citing_input(
     strip_footnotes = not _citation_is_in_footnote(citing_text, tuple(char_range))
     normalizer = _get_normalizer(lang, strip_footnotes=strip_footnotes)
     mapped = normalizer.norm_to_unnorm_indices(
-        citing_text, [(char_range[0], char_range[1])], reverse=True,
+        citing_text,
+        [(char_range[0], char_range[1])],
+        reverse=True,
     )
     norm_start, norm_end = mapped[0]
     return (
@@ -279,7 +289,7 @@ def _normalize_citing_input(
     )
 
 
-def _format_base_block(base_ref: Optional[str], base_text: Optional[str]) -> str:
+def _format_base_block(base_ref: str | None, base_text: str | None) -> str:
     """Build the 'Base text (...):\\n...' block used in multiple LLM prompts."""
     if not base_ref or not base_text:
         return ""
@@ -287,14 +297,14 @@ def _format_base_block(base_ref: Optional[str], base_text: Optional[str]) -> str
 
 
 def _format_citing_passage_label(
-    citing_ref: Optional[str] = None,
+    citing_ref: str | None = None,
     detail: str = "the citation span is wrapped in <citation ...></citation>",
 ) -> str:
     ref_part = f" ({citing_ref})" if citing_ref else ""
     return f"Citing passage{ref_part} ({detail}):"
 
 
-def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> Optional[str]:
+def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> str | None:
     """Get text for a reference, falling back to the other language."""
     try:
         oref = Ref(ref_str)
@@ -311,12 +321,12 @@ def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> Optiona
         return None
 
 
-def _window_around_span(text: str, span: dict, window_words: int) -> Tuple[str, dict]:
+def _window_around_span(text: str, span: dict, window_words: int) -> tuple[str, dict]:
     """Extract a window of text around a span."""
     if not text or not span:
         return text, span
 
-    char_range = span.get('charRange')
+    char_range = span.get("charRange")
     if not char_range or len(char_range) != 2:
         return text, span
 
@@ -324,7 +334,7 @@ def _window_around_span(text: str, span: dict, window_words: int) -> Tuple[str, 
     if start < 0 or end > len(text) or start >= end:
         return text, span
 
-    tokens = [(m.start(), m.end()) for m in re.finditer(r'\S+', text)]
+    tokens = [(m.start(), m.end()) for m in re.finditer(r"\S+", text)]
     if not tokens:
         return text, span
 
@@ -348,7 +358,7 @@ def _window_around_span(text: str, span: dict, window_words: int) -> Tuple[str, 
     windowed_text = text[w_start:w_end]
 
     new_span = dict(span)
-    new_span['charRange'] = [start - w_start, end - w_start]
+    new_span["charRange"] = [start - w_start, end - w_start]
     return windowed_text, new_span
 
 
@@ -357,7 +367,7 @@ def _mark_citation(text: str, span: dict) -> str:
     if not span or not text:
         return text
 
-    char_range = span.get('charRange')
+    char_range = span.get("charRange")
     if not char_range or len(char_range) != 2:
         return text
 
@@ -381,12 +391,12 @@ def _prepare_citing_context(
     char_range: list,
     text_snippet: str,
     window_words: int = WINDOW_WORDS,
-) -> Tuple[str, str, dict]:
+) -> tuple[str, str, dict]:
     """Build windowed text + marked text from full citing text and span info.
 
     Returns (windowed_text, marked_text, windowed_span).
     """
-    span = {'charRange': char_range, 'text': text_snippet}
+    span = {"charRange": char_range, "text": text_snippet}
     windowed_text, windowed_span = _window_around_span(citing_text_full, span, window_words)
     marked_text = _mark_citation(windowed_text, windowed_span)
     return windowed_text, marked_text, windowed_span
@@ -397,24 +407,24 @@ def _prepare_citing_context(
 # ---------------------------------------------------------------------------
 
 _DICTA_HEADERS = {
-    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    'Origin': 'https://parallels.dicta.org.il',
-    'Referer': 'https://parallels.dicta.org.il/',
+    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    "Origin": "https://parallels.dicta.org.il",
+    "Referer": "https://parallels.dicta.org.il/",
 }
 
 _SEARCH_HEADERS = {
-    'Content-Type': 'application/json; charset=UTF-8',
-    'Accept': 'application/json',
-    'Origin': 'https://www.sefaria.org',
-    'Referer': 'https://www.sefaria.org/texts',
+    "Content-Type": "application/json; charset=UTF-8",
+    "Accept": "application/json",
+    "Origin": "https://www.sefaria.org",
+    "Referer": "https://www.sefaria.org/texts",
 }
 
 
-def _normalize_dicta_url_to_ref(url: str) -> Optional[str]:
+def _normalize_dicta_url_to_ref(url: str) -> str | None:
     """Convert Dicta URL to normalized Sefaria ref."""
     if not url:
         return None
-    match = re.search(r'/([^/]+)$', url)
+    match = re.search(r"/([^/]+)$", url)
     if not match:
         return None
     try:
@@ -423,39 +433,41 @@ def _normalize_dicta_url_to_ref(url: str) -> Optional[str]:
         return None
 
 
-def _dicta_post(query_text: str) -> List[dict]:
+def _dicta_post(query_text: str) -> list[dict]:
     """Low-level Dicta HTTP call. Returns the raw 'results' list."""
-    params = {'minthreshold': int(MIN_THRESHOLD), 'maxdistance': int(MAX_DISTANCE)}
+    params = {"minthreshold": int(MIN_THRESHOLD), "maxdistance": int(MAX_DISTANCE)}
     try:
         resp = requests.post(
             DICTA_URL,
             params=params,
-            data=f"text={query_text}".encode('utf-8'),
+            data=f"text={query_text}".encode(),
             headers=_DICTA_HEADERS,
             timeout=REQUEST_TIMEOUT,
         )
         if resp.status_code != 200:
-            raise DictaAPIError({
-                "status_code": resp.status_code,
-                "url": resp.url,
-                "query_text": query_text,
-                "response_text": resp.text,
-            })
-        data = json.loads(resp.content.decode('utf-8-sig'))
+            raise DictaAPIError(
+                {
+                    "status_code": resp.status_code,
+                    "url": resp.url,
+                    "query_text": query_text,
+                    "response_text": resp.text,
+                },
+            )
+        data = json.loads(resp.content.decode("utf-8-sig"))
     except DictaAPIError:
         raise
     except Exception as e:
         logger.warning(f"Dicta API request failed: {e}")
         return []
-    return data.get('results', [])
+    return data.get("results", [])
 
 
-def _parse_dicta_results(raw_results: List[dict], target_oref: Optional[Ref] = None) -> List[Candidate]:
+def _parse_dicta_results(raw_results: list[dict], target_oref: Ref | None = None) -> list[Candidate]:
     """Parse Dicta raw results into Candidates, optionally filtering by target ref."""
-    candidates: List[Candidate] = []
+    candidates: list[Candidate] = []
     for entry in raw_results:
-        for cand in entry.get('data', []):
-            url = cand.get('url') or cand.get('compUrl') or ''
+        for cand in entry.get("data", []):
+            url = cand.get("url") or cand.get("compUrl") or ""
             normalized = _normalize_dicta_url_to_ref(url)
             if not normalized:
                 continue
@@ -465,19 +477,21 @@ def _parse_dicta_results(raw_results: List[dict], target_oref: Optional[Ref] = N
                     continue
                 if target_oref and not target_oref.contains(oref):
                     continue
-                raw_score = cand.get('score')
-                candidates.append(Candidate(
-                    resolved_ref=normalized,
-                    source='dicta',
-                    score=float(raw_score) if raw_score is not None else None,
-                    raw=cand,
-                ))
+                raw_score = cand.get("score")
+                candidates.append(
+                    Candidate(
+                        resolved_ref=normalized,
+                        source="dicta",
+                        score=float(raw_score) if raw_score is not None else None,
+                        raw=cand,
+                    ),
+                )
             except Exception:
                 continue
     return candidates
 
 
-def _dicta_phrase_distance(windowed_text: str, windowed_span: dict, candidate: "Candidate") -> Optional[int]:
+def _dicta_phrase_distance(windowed_text: str, windowed_span: dict, candidate: "Candidate") -> int | None:
     """
     Return the minimum character distance between the citation and the Dicta-matched
     phrase within the windowed text, or None if the phrase cannot be located.
@@ -492,7 +506,7 @@ def _dicta_phrase_distance(windowed_text: str, windowed_span: dict, candidate: "
     pos = windowed_text.find(key)
     if pos == -1:
         return None
-    c_start, c_end = windowed_span.get('charRange', [0, 0])
+    c_start, c_end = windowed_span.get("charRange", [0, 0])
     phrase_start = pos
     phrase_end = pos + len(phrase)
     if phrase_end <= c_start:
@@ -503,7 +517,7 @@ def _dicta_phrase_distance(windowed_text: str, windowed_span: dict, candidate: "
 
 
 @traceable(run_type="tool", name="query_dicta", tags=[LANGSMITH_DEBUG_TAG])
-def _query_dicta(query_text: str, target_ref: str = None) -> List[Candidate]:
+def _query_dicta(query_text: str, target_ref: str = None) -> list[Candidate]:
     """Query Dicta parallels API, optionally filtering by target ref."""
     target_oref = None
     if target_ref:
@@ -517,36 +531,36 @@ def _query_dicta(query_text: str, target_ref: str = None) -> List[Candidate]:
     return _parse_dicta_results(raw_results, target_oref)
 
 
-def _build_search_payload(query_text: str, path_filters: Optional[List[str]] = None, slop: int = 20) -> dict:
+def _build_search_payload(query_text: str, path_filters: list[str] | None = None, slop: int = 20) -> dict:
     """Build an Elasticsearch payload for Sefaria search."""
-    bool_query: Dict[str, Any] = {
-        'must': {'match_phrase': {'naive_lemmatizer': {'query': query_text, 'slop': slop}}}
+    bool_query: dict[str, Any] = {
+        "must": {"match_phrase": {"naive_lemmatizer": {"query": query_text, "slop": slop}}},
     }
     if path_filters:
-        bool_query['filter'] = {
-            'bool': {'should': [{'regexp': {'path': regex}} for regex in path_filters]}
+        bool_query["filter"] = {
+            "bool": {"should": [{"regexp": {"path": regex}} for regex in path_filters]},
         }
     return {
-        'from': 0,
-        'size': 500,
-        'highlight': {
-            'pre_tags': ['<b>'],
-            'post_tags': ['</b>'],
-            'fields': {'naive_lemmatizer': {'fragment_size': 200}},
+        "from": 0,
+        "size": 500,
+        "highlight": {
+            "pre_tags": ["<b>"],
+            "post_tags": ["</b>"],
+            "fields": {"naive_lemmatizer": {"fragment_size": 200}},
         },
-        'query': {
-            'function_score': {
-                'field_value_factor': {'field': 'pagesheetrank', 'missing': 0.04},
-                'query': {'bool': bool_query},
-            }
+        "query": {
+            "function_score": {
+                "field_value_factor": {"field": "pagesheetrank", "missing": 0.04},
+                "query": {"bool": bool_query},
+            },
         },
     }
 
 
-def _extract_ref_from_search_hit(hit: Dict[str, Any]) -> Optional[str]:
+def _extract_ref_from_search_hit(hit: dict[str, Any]) -> str | None:
     """Extract ref from search API hit."""
-    for source in (hit, hit.get('_source', {})):
-        for key in ('ref', 'he_ref', 'sourceRef'):
+    for source in (hit, hit.get("_source", {})):
+        for key in ("ref", "he_ref", "sourceRef"):
             val = source.get(key)
             if not val:
                 continue
@@ -558,12 +572,12 @@ def _extract_ref_from_search_hit(hit: Dict[str, Any]) -> Optional[str]:
 
 
 def _parse_search_hits(
-    hits: List[dict],
-    target_oref: Optional[Ref] = None,
-    query_text: Optional[str] = None,
-) -> List[Candidate]:
+    hits: list[dict],
+    target_oref: Ref | None = None,
+    query_text: str | None = None,
+) -> list[Candidate]:
     """Parse Elasticsearch hits into Candidates, optionally filtering by target ref."""
-    candidates: List[Candidate] = []
+    candidates: list[Candidate] = []
     for entry in hits:
         normalized = _extract_ref_from_search_hit(entry)
         if not normalized:
@@ -574,16 +588,18 @@ def _parse_search_hits(
                 continue
             if target_oref and not target_oref.contains(cand_oref):
                 continue
-            highlight_fragments = (entry.get('highlight') or {}).get('naive_lemmatizer') or []
+            highlight_fragments = (entry.get("highlight") or {}).get("naive_lemmatizer") or []
             highlight = " ... ".join(highlight_fragments) if highlight_fragments else None
-            candidates.append(Candidate(
-                resolved_ref=normalized,
-                source='sefaria_search',
-                query=query_text,
-                queries=[query_text] if query_text else [],
-                raw=entry,
-                highlight=highlight,
-            ))
+            candidates.append(
+                Candidate(
+                    resolved_ref=normalized,
+                    source="sefaria_search",
+                    query=query_text,
+                    queries=[query_text] if query_text else [],
+                    raw=entry,
+                    highlight=highlight,
+                ),
+            )
         except Exception:
             continue
     return candidates
@@ -593,9 +609,9 @@ def _parse_search_hits(
 def _query_sefaria_search(
     query_text: str,
     target_ref: str = None,
-    path_filters: Optional[List[str]] = None,
+    path_filters: list[str] | None = None,
     slop: int = 20,
-) -> List[Candidate]:
+) -> list[Candidate]:
     """Query Sefaria search API with optional target-ref or path filters."""
     target_oref = None
     if target_ref:
@@ -616,11 +632,11 @@ def _query_sefaria_search(
         logger.warning(f"Sefaria search API request failed: {e}")
         return []
 
-    hits = (data.get('hits') or {}).get('hits', [])
+    hits = (data.get("hits") or {}).get("hits", [])
     return _parse_search_hits(hits, target_oref, query_text)
 
 
-def _path_filters_for_ref(ref_str: str) -> Optional[List[str]]:
+def _path_filters_for_ref(ref_str: str) -> list[str] | None:
     """Generate path regex filters for Sefaria search."""
     try:
         book = Ref(ref_str).index.title
@@ -629,7 +645,7 @@ def _path_filters_for_ref(ref_str: str) -> Optional[List[str]]:
         return None
 
 
-def _path_filters_for_books(books: List[str]) -> List[str]:
+def _path_filters_for_books(books: list[str]) -> list[str]:
     """Generate path regex filters for a list of book titles."""
     return [f".*{re.escape(book)}.*" for book in books]
 
@@ -638,44 +654,49 @@ def _path_filters_for_books(books: List[str]) -> List[str]:
 # LLM-powered steps
 # ---------------------------------------------------------------------------
 
+
 @lru_cache(maxsize=4)
 def _llm_form_prior_cached(
     marked_text: str,
-    base_ref: Optional[str] = None,
-    base_text: Optional[str] = None,
-    citing_ref: Optional[str] = None,
+    base_ref: str | None = None,
+    base_text: str | None = None,
+    citing_ref: str | None = None,
 ) -> str:
     """Cached inner implementation of _llm_form_prior."""
     llm = _get_llm("prior")
     base_block = _format_base_block(base_ref, base_text)
 
     prompt = [
-        SystemMessage(content=_system_content(
-            "You form a prior expectation about what the target text likely contains, "
-            "based only on the citing passage and any base text. Do NOT guess a specific ref.",
-            base_block,
-        )),
-        HumanMessage(content=[
-            {
-                "type": "text",
-                "text": f"{_format_citing_passage_label(citing_ref)}\n"
-                        f"{marked_text}\n\n"
-                        "Describe what the target segment should be about, key themes or phrases to expect, "
-                        "and any constraints implied by the citation. If base text is provided, summarize only "
-                        "the parts of that base text that are relevant for resolving the citation, especially focusing on key phrases from the base text that may be relevant. Keep it concise "
-                        "and concrete.\n"
-                        "Look out for edge cases like:\n"
-                        "- citation is about a whole book and isn't referencing a particular part in the book\n"
-                        "- citation is discussing a chapter as a whole and not a particular place in the chapter\n"
-                        "In either edge case, the output should be (keep all caps): WARNING: CITATION SEEMS TO NOT HAVE A SPECIFIC TARGET\n"
-                        "In normal cases, return 2-3 bullet points.",
-            }
-        ]),
+        SystemMessage(
+            content=_system_content(
+                "You form a prior expectation about what the target text likely contains, "
+                "based only on the citing passage and any base text. Do NOT guess a specific ref.",
+                base_block,
+            ),
+        ),
+        HumanMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": f"{_format_citing_passage_label(citing_ref)}\n"
+                    f"{marked_text}\n\n"
+                    "Describe what the target segment should be about, key themes or phrases to expect, "
+                    "and any constraints implied by the citation. If base text is provided, summarize only "
+                    "the parts of that base text that are relevant for resolving the citation, especially focusing on key phrases from the base text that may be relevant. Keep it concise "
+                    "and concrete.\n"
+                    "Look out for edge cases like:\n"
+                    "- citation is about a whole book and isn't referencing a particular part in the book\n"
+                    "- citation is discussing a chapter as a whole and not a particular place in the chapter\n"
+                    "In either edge case, the output should be (keep all caps): WARNING: CITATION SEEMS TO NOT HAVE A SPECIFIC TARGET\n"
+                    "In normal cases, return 2-3 bullet points.",
+                },
+            ],
+        ),
     ]
 
     try:
         response = llm.invoke(prompt)
-        return getattr(response, 'content', '').strip()
+        return getattr(response, "content", "").strip()
     except Exception as e:
         logger.warning(f"LLM prior formation failed: {e}")
         return ""
@@ -686,7 +707,7 @@ def _llm_form_prior(
     marked_text: str,
     base_ref: str = None,
     base_text: str = None,
-    citing_ref: Optional[str] = None,
+    citing_ref: str | None = None,
 ) -> str:
     """Use LLM to form a prior about what the target segment should contain."""
     return _llm_form_prior_cached(marked_text, base_ref, base_text, citing_ref)
@@ -697,9 +718,9 @@ def _llm_form_search_query(
     marked_text: str,
     base_ref: str = None,
     base_text: str = None,
-    prior: Optional[str] = None,
-    citing_ref: Optional[str] = None,
-) -> List[str]:
+    prior: str | None = None,
+    citing_ref: str | None = None,
+) -> list[str]:
     """Use LLM to generate search queries from marked citing text."""
     llm = _get_llm("keyword")
 
@@ -707,42 +728,46 @@ def _llm_form_search_query(
         prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text, citing_ref=citing_ref)
 
     prompt = [
-        SystemMessage(content="You extract concise search phrases that are likely to appear verbatim in the target text."),
-        HumanMessage(content=[
-            {
-                "type": "text",
-                "text": f"{_format_citing_passage_label(citing_ref, 'citation wrapped in <citation ...></citation>')}\n{marked_text}\n\n"
-                        f"Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
-                        "Return 5-6 short lexical search queries (<=6 words each), taken from surrounding context "
-                        "outside the citation span.\n"
-                        "- Prefer phrases that you expect to appear verbatim in the target text.\n"
-                        "- If the prior includes base-text clues, prefer keywords that appear in those clues.\n"
-                        "- If the context contains distinctive Hebrew content words (especially nouns), prefer them verbatim.\n"
-                        "- Do NOT translate Hebrew into English. Avoid paraphrases.\n"
-                        "- Prefer specific/rare tokens over generic ones.\n"
-                        "- Include at least one single-word query (preferably a distinctive Hebrew noun).\n"
-                        "- Include at least one 2-3 word query.\n"
-                        "- Do NOT copy words that appear inside <citation>...</citation>.\n"
-                        "- You may slightly alter spelling of keywords to more standard spelling (e.g. text says ירושלם you can change to ירושלים). HOWEVER, when you do, still include the original spelling as a separate query, because the target may use that exact non-standard spelling.\n"
-                        "Strict output: one per line, numbered 1) ... through 6) ... or a single line 'NONE'.",
-            }
-        ]),
+        SystemMessage(
+            content="You extract concise search phrases that are likely to appear verbatim in the target text.",
+        ),
+        HumanMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": f"{_format_citing_passage_label(citing_ref, 'citation wrapped in <citation ...></citation>')}\n{marked_text}\n\n"
+                    f"Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
+                    "Return 5-6 short lexical search queries (<=6 words each), taken from surrounding context "
+                    "outside the citation span.\n"
+                    "- Prefer phrases that you expect to appear verbatim in the target text.\n"
+                    "- If the prior includes base-text clues, prefer keywords that appear in those clues.\n"
+                    "- If the context contains distinctive Hebrew content words (especially nouns), prefer them verbatim.\n"
+                    "- Do NOT translate Hebrew into English. Avoid paraphrases.\n"
+                    "- Prefer specific/rare tokens over generic ones.\n"
+                    "- Include at least one single-word query (preferably a distinctive Hebrew noun).\n"
+                    "- Include at least one 2-3 word query.\n"
+                    "- Do NOT copy words that appear inside <citation>...</citation>.\n"
+                    "- You may slightly alter spelling of keywords to more standard spelling (e.g. text says ירושלם you can change to ירושלים). HOWEVER, when you do, still include the original spelling as a separate query, because the target may use that exact non-standard spelling.\n"
+                    "Strict output: one per line, numbered 1) ... through 6) ... or a single line 'NONE'.",
+                },
+            ],
+        ),
     ]
 
     try:
         response = llm.invoke(prompt)
-        content = getattr(response, 'content', '')
+        content = getattr(response, "content", "")
 
-        if content.strip().upper() == 'NONE':
+        if content.strip().upper() == "NONE":
             logger.info("LLM returned NONE - no suitable queries found")
             return []
 
         queries = []
-        for line in content.split('\n'):
+        for line in content.split("\n"):
             line = line.strip()
             if not line:
                 continue
-            match = re.match(r'^\d+[\)\.]\s*(.+)$', line)
+            match = re.match(r"^\d+[\)\.]\s*(.+)$", line)
             if match:
                 query = match.group(1).strip()
                 if query:
@@ -760,9 +785,9 @@ def _llm_confirm_candidate(
     candidate_text: str,
     base_ref: str = None,
     base_text: str = None,
-    prior: Optional[str] = None,
-    citing_ref: Optional[str] = None,
-) -> Tuple[bool, str]:
+    prior: str | None = None,
+    citing_ref: str | None = None,
+) -> tuple[bool, str]:
     """Use LLM to confirm if a candidate is the correct resolution."""
     llm = _get_llm("confirmation")
     if prior is None:
@@ -770,15 +795,17 @@ def _llm_confirm_candidate(
     candidate_text_normalized = _normalize_for_llm(candidate_text)
 
     prompt = [
-        SystemMessage(content=(
-            "You verify whether one Jewish text is genuinely citing or closely paraphrasing a specific "
-            "target segment. Be strict in your evaluation. There's an edge case where the citation is to a whole book and it's referring to reading that book (as opposed to quoting a specific passage from the book). In this case, reject."
-        )),
-        HumanMessage(content=[
-            {
-                "type": "text",
-                "text":
-                    f"{_format_citing_passage_label(citing_ref)}\n"
+        SystemMessage(
+            content=(
+                "You verify whether one Jewish text is genuinely citing or closely paraphrasing a specific "
+                "target segment. Be strict in your evaluation. There's an edge case where the citation is to a whole book and it's referring to reading that book (as opposed to quoting a specific passage from the book). In this case, reject."
+            ),
+        ),
+        HumanMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": f"{_format_citing_passage_label(citing_ref)}\n"
                     f"{marked_text}\n\n"
                     f"Prior expectations (formed without seeing the candidate):\n{prior}\n\n"
                     f"Candidate segment ref (retrieved by similarity):\n{candidate_ref}\n\n"
@@ -788,14 +815,15 @@ def _llm_confirm_candidate(
                     "Answer in exactly two lines (no preamble):\n"
                     "Reason: <brief rationale>\n"
                     "Verdict: YES or NO",
-            }
-        ])
+                },
+            ],
+        ),
     ]
 
     try:
         response = llm.invoke(prompt)
-        content = getattr(response, 'content', '')
-        verdict = "YES" if re.search(r'\bYES\b', content, re.IGNORECASE) else "NO"
+        content = getattr(response, "content", "")
+        verdict = "YES" if re.search(r"\bYES\b", content, re.IGNORECASE) else "NO"
         return verdict == "YES", content
     except Exception as e:
         logger.warning(f"LLM confirmation failed: {e}")
@@ -809,34 +837,38 @@ def _llm_choose_base_vs_commentary(
     base_text: str,
     commentary_ref: str,
     commentary_text: str,
-    lang: str = 'he',
-    citing_ref: Optional[str] = None,
-) -> Optional[str]:
+    lang: str = "he",
+    citing_ref: str | None = None,
+) -> str | None:
     """Choose whether the citation refers to the base text or the commentary."""
     llm = _get_llm("default")
 
     base_text_normalized = _normalize_for_llm(base_text, lang)
     commentary_text_normalized = _normalize_for_llm(commentary_text, lang)
     prompt = [
-        SystemMessage(content="You decide whether a citation is referring to the base text itself or to a commentary on that base text. "
-                              "Be strict and choose the most likely target."),
-        HumanMessage(content=[
-            {
-                "type": "text",
-                "text": f"{_format_citing_passage_label(citing_ref)}\n"
-                        f"{marked_text}\n\n"
-                        f"Option A (Base text): {base_ref}\n{base_text_normalized}\n\n"
-                        f"Option B (Commentary): {commentary_ref}\n{commentary_text_normalized}\n\n"
-                        "Which is more likely being referred to? Answer in exactly two lines:\n"
-                        "Reason: <brief rationale>\n"
-                        "Choice: BASE or COMMENTARY",
-            }
-        ]),
+        SystemMessage(
+            content="You decide whether a citation is referring to the base text itself or to a commentary on that base text. "
+            "Be strict and choose the most likely target.",
+        ),
+        HumanMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": f"{_format_citing_passage_label(citing_ref)}\n"
+                    f"{marked_text}\n\n"
+                    f"Option A (Base text): {base_ref}\n{base_text_normalized}\n\n"
+                    f"Option B (Commentary): {commentary_ref}\n{commentary_text_normalized}\n\n"
+                    "Which is more likely being referred to? Answer in exactly two lines:\n"
+                    "Reason: <brief rationale>\n"
+                    "Choice: BASE or COMMENTARY",
+                },
+            ],
+        ),
     ]
 
     try:
         response = llm.invoke(prompt)
-        content = getattr(response, 'content', '')
+        content = getattr(response, "content", "")
         if re.search(r"\bBASE\b", content, re.IGNORECASE):
             return "BASE"
         if re.search(r"\bCOMMENTARY\b", content, re.IGNORECASE):
@@ -857,9 +889,9 @@ def _get_prefixless_forms(word: str) -> set:
     return forms
 
 
-def _strip_imot_qria(word: str) -> Optional[str]:
+def _strip_imot_qria(word: str) -> str | None:
     """Remove אמות קריאה (vav and yud used as vowel letters) from a word."""
-    stripped = word.replace('ו', '').replace('י', '')
+    stripped = word.replace("ו", "").replace("י", "")
     if len(stripped) >= 2:
         return stripped
     return None
@@ -894,7 +926,7 @@ def _bag_of_words_score(citation_text: str, candidate_text: str) -> int:
     cand_words = candidate_text.split()
 
     # Build a multiset (Counter) of all normalized forms from the candidate
-    cand_form_counts: Dict[str, int] = {}
+    cand_form_counts: dict[str, int] = {}
     for forms in _normalize_tokens(cand_words):
         for f in forms:
             cand_form_counts[f] = cand_form_counts.get(f, 0) + 1
@@ -913,16 +945,13 @@ def _bag_of_words_score(citation_text: str, candidate_text: str) -> int:
 
 def _rank_candidates_by_bow(
     marked_text: str,
-    candidates: List[Candidate],
-    lang: Optional[str] = None,
-) -> List[Candidate]:
+    candidates: list[Candidate],
+    lang: str | None = None,
+) -> list[Candidate]:
     """Reduce candidates to top _MAX_LLM_CANDIDATES using bag-of-words overlap with citation text."""
-    scored: List[Tuple[int, Candidate]] = []
+    scored: list[tuple[int, Candidate]] = []
     for cand in candidates:
-        if cand.highlight:
-            preview = cand.highlight
-        else:
-            preview = _get_ref_text(cand.resolved_ref, lang=lang) or ""
+        preview = cand.highlight or (_get_ref_text(cand.resolved_ref, lang=lang) or "")
         score = _bag_of_words_score(marked_text, preview)
         scored.append((score, cand))
 
@@ -930,7 +959,7 @@ def _rank_candidates_by_bow(
     top = [cand for _, cand in scored[:_MAX_LLM_CANDIDATES]]
     logger.info(
         f"BoW filtering: {len(candidates)} candidates -> top {len(top)} "
-        f"(scores: {[s for s, _ in scored[:_MAX_LLM_CANDIDATES]]})"
+        f"(scores: {[s for s, _ in scored[:_MAX_LLM_CANDIDATES]]})",
     )
     return top
 
@@ -938,13 +967,13 @@ def _rank_candidates_by_bow(
 @traceable(run_type="llm", name="llm_choose_best_candidate", tags=[LANGSMITH_DEBUG_TAG])
 def _llm_choose_best_candidate(
     marked_text: str,
-    candidates: List[Candidate],
-    base_ref: Optional[str] = None,
-    base_text: Optional[str] = None,
-    lang: Optional[str] = None,
-    prior: Optional[str] = None,
-    citing_ref: Optional[str] = None,
-) -> Optional[Candidate]:
+    candidates: list[Candidate],
+    base_ref: str | None = None,
+    base_text: str | None = None,
+    lang: str | None = None,
+    prior: str | None = None,
+    citing_ref: str | None = None,
+) -> Candidate | None:
     """Use LLM to choose the best candidate from multiple options."""
     if not candidates:
         return None
@@ -960,8 +989,8 @@ def _llm_choose_best_candidate(
         deduped = _rank_candidates_by_bow(marked_text, deduped, lang=lang)
 
     # Build numbered candidate list with text previews
-    numbered: List[str] = []
-    payloads: List[Tuple[int, Candidate]] = []
+    numbered: list[str] = []
+    payloads: list[tuple[int, Candidate]] = []
 
     for i, cand in enumerate(deduped, 1):
         if cand.highlight:
@@ -977,24 +1006,28 @@ def _llm_choose_best_candidate(
         prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text, citing_ref=citing_ref)
     llm = _get_llm("default")
     prompt = [
-        SystemMessage(content=(
-            "You choose the single best candidate ref that the citing text most directly quotes/paraphrases. "
-            "Use the prior as compact context, including any relevant base-text summary it contains. "
-            "You must respond with an actual number, not a placeholder or variable."
-        )),
-        HumanMessage(content=[
-            {
-                "type": "text",
-                "text": f"{_format_citing_passage_label(citing_ref, 'citation wrapped in <citation ...></citation>')}\n{marked_text}\n\n"
-                        f"Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
-                        f"Candidate refs:\n{candidates_text}\n\n"
-                        "Pick exactly ONE number from the list above (e.g., 1, 2, 3, etc.).\n\n"
-                        "Output format (replace with actual content, do NOT use placeholders):\n"
-                        "Reason: Your brief explanation here\n"
-                        "Choice: 1\n\n"
-                        "Now provide your answer:",
-            }
-        ]),
+        SystemMessage(
+            content=(
+                "You choose the single best candidate ref that the citing text most directly quotes/paraphrases. "
+                "Use the prior as compact context, including any relevant base-text summary it contains. "
+                "You must respond with an actual number, not a placeholder or variable."
+            ),
+        ),
+        HumanMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": f"{_format_citing_passage_label(citing_ref, 'citation wrapped in <citation ...></citation>')}\n{marked_text}\n\n"
+                    f"Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
+                    f"Candidate refs:\n{candidates_text}\n\n"
+                    "Pick exactly ONE number from the list above (e.g., 1, 2, 3, etc.).\n\n"
+                    "Output format (replace with actual content, do NOT use placeholders):\n"
+                    "Reason: Your brief explanation here\n"
+                    "Choice: 1\n\n"
+                    "Now provide your answer:",
+                },
+            ],
+        ),
     ]
 
     try:
@@ -1028,7 +1061,7 @@ def _llm_choose_best_candidate(
 # ---------------------------------------------------------------------------
 # Shared pipeline helpers
 # ---------------------------------------------------------------------------
-def _get_commentary_base_ref(citing_ref: Optional[str], section_ref: Ref = None) -> Optional[str]:
+def _get_commentary_base_ref(citing_ref: str | None, section_ref: Ref = None) -> str | None:
     if not citing_ref:
         return None
     try:
@@ -1058,14 +1091,14 @@ def _get_commentary_base_ref(citing_ref: Optional[str], section_ref: Ref = None)
                 base_path.insert(0, path_node)
                 path_node = path_node.parent
             for node in base_path:
-                if not getattr(node, 'default', False):
+                if not getattr(node, "default", False):
                     base_title += f", {node.primary_title('en')}"
             # Navigate to content leaf (follow default/first child through any SchemaNodes)
             content_node = base_node
             while content_node.has_children():
                 content_node = next(
-                    (c for c in content_node.children if getattr(c, 'default', False)),
-                    content_node.children[0]
+                    (c for c in content_node.children if getattr(c, "default", False)),
+                    content_node.children[0],
                 )
             # Build ref at section level of the base leaf (one above segment)
             section_ref = section_ref or citing_oref.section_ref()
@@ -1076,7 +1109,7 @@ def _get_commentary_base_ref(citing_ref: Optional[str], section_ref: Ref = None)
             if Ref(base_title).is_book_level():
                 return None
             return base_ref
-        elif base_oref.index.is_complex() ^ citing_oref.index.is_complex():
+        if base_oref.index.is_complex() ^ citing_oref.index.is_complex():
             # one complex and one isn't
             return None
         section_ref = section_ref or citing_oref.section_ref()
@@ -1093,7 +1126,7 @@ def _get_commentary_base_ref(citing_ref: Optional[str], section_ref: Ref = None)
         return None
 
 
-def _get_commentary_base_context(citing_ref: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
+def _get_commentary_base_context(citing_ref: str | None) -> tuple[str | None, str | None]:
     """Get the base text context if citing ref is a commentary."""
     try:
         base_ref = _get_commentary_base_ref(citing_ref)
@@ -1103,7 +1136,7 @@ def _get_commentary_base_context(citing_ref: Optional[str]) -> Tuple[Optional[st
         return None, None
 
 
-def _get_candidate_text_for_confirmation(ref_str: str, lang: str) -> Optional[str]:
+def _get_candidate_text_for_confirmation(ref_str: str, lang: str) -> str | None:
     candidate_text = _get_ref_text(ref_str, lang)
     if not candidate_text or len(candidate_text.split()) >= 100:
         return candidate_text
@@ -1128,12 +1161,12 @@ def _confirm_candidate(
     candidate: Candidate,
     marked_text: str,
     lang: str,
-    base_ref: Optional[str] = None,
-    base_text: Optional[str] = None,
-    auto_approve_prefix: Optional[str] = None,
-    citing_ref: Optional[str] = None,
-    prior: Optional[str] = None,
-) -> Tuple[bool, Optional[str]]:
+    base_ref: str | None = None,
+    base_text: str | None = None,
+    auto_approve_prefix: str | None = None,
+    citing_ref: str | None = None,
+    prior: str | None = None,
+) -> tuple[bool, str | None]:
     """Confirm a candidate with LLM, with optional auto-approve for specific citing refs.
 
     Returns (approved, reason_if_rejected).
@@ -1145,8 +1178,13 @@ def _confirm_candidate(
 
     candidate_text = _get_candidate_text_for_confirmation(resolved_ref, lang)
     ok, reason = _llm_confirm_candidate(
-        marked_text, resolved_ref, candidate_text,
-        base_ref=base_ref, base_text=base_text, prior=prior, citing_ref=citing_ref,
+        marked_text,
+        resolved_ref,
+        candidate_text,
+        base_ref=base_ref,
+        base_text=base_text,
+        prior=prior,
+        citing_ref=citing_ref,
     )
     if ok:
         logger.info(f"Candidate {resolved_ref} confirmed by LLM")
@@ -1160,9 +1198,9 @@ def _verify_high_score(
     marked_text: str,
     candidate_ref: str,
     candidate_text: str,
-    matched_text: Optional[str] = None,
-    citing_ref: Optional[str] = None,
-) -> Tuple[bool, str]:
+    matched_text: str | None = None,
+    citing_ref: str | None = None,
+) -> tuple[bool, str]:
     """Extra verification for high-score Dicta matches using Gemini.
 
     Dicta's high-score path skips normal LLM confirmation, but can still produce
@@ -1174,11 +1212,8 @@ def _verify_high_score(
     llm = _get_llm("high_score_verify")
     candidate_text_normalized = _normalize_for_llm(candidate_text)
 
-    def _fmt_question(citing: str, dicta_match: Optional[str], ref: str, text: str) -> str:
-        match_block = (
-            f"Text matched by Dicta:\n{dicta_match}\n\n"
-            if dicta_match else ""
-        )
+    def _fmt_question(citing: str, dicta_match: str | None, ref: str, text: str) -> str:
+        match_block = f"Text matched by Dicta:\n{dicta_match}\n\n" if dicta_match else ""
         return (
             f"{_format_citing_passage_label(citing_ref, 'citation span wrapped in <citation>')}\n{citing}\n\n"
             f"{match_block}"
@@ -1190,27 +1225,29 @@ def _verify_high_score(
         )
 
     prompt = [
-        SystemMessage(content=[
-            {
-                "type": "text",
-                "text": (
-                    "You verify whether a Jewish text citation is a genuine direct quote or close paraphrase "
-                    "of a specific candidate passage. There is high textual similarity between the source "
-                    "text and the candidate — but be extra careful that the similarity actually reflects a "
-                    "direct quote related to the highlighted citation. Look out for: (1) cases where the "
-                    "citation is general (e.g. just a book title or vague reference) with no actual quote "
-                    "from the candidate text; (2) cases where the citation appears to be to a different text "
-                    "entirely and the similarity is incidental."
-                ),
-            },
-        ]),
+        SystemMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": (
+                        "You verify whether a Jewish text citation is a genuine direct quote or close paraphrase "
+                        "of a specific candidate passage. There is high textual similarity between the source "
+                        "text and the candidate — but be extra careful that the similarity actually reflects a "
+                        "direct quote related to the highlighted citation. Look out for: (1) cases where the "
+                        "citation is general (e.g. just a book title or vague reference) with no actual quote "
+                        "from the candidate text; (2) cases where the citation appears to be to a different text "
+                        "entirely and the similarity is incidental."
+                    ),
+                },
+            ],
+        ),
         HumanMessage(content=_fmt_question(marked_text, matched_text, candidate_ref, candidate_text_normalized)),
     ]
 
     try:
         response = llm.invoke(prompt)
-        content = getattr(response, 'content', '')
-        verdict = "YES" if re.search(r'\bYES\b', content, re.IGNORECASE) else "NO"
+        content = getattr(response, "content", "")
+        verdict = "YES" if re.search(r"\bYES\b", content, re.IGNORECASE) else "NO"
         return verdict == "YES", content
     except Exception as e:
         logger.warning(f"Gemini high-score verification failed, failing open: {e}")
@@ -1220,23 +1257,26 @@ def _verify_high_score(
 def _fallback_search_pipeline(
     marked_citing_text: str,
     citing_text: str,
-    span: Optional[dict],
+    span: dict | None,
     non_segment_ref: str,
-    citing_ref: Optional[str] = None,
-    lang: Optional[str] = None,
-    vtitle: Optional[str] = None,
-    base_ref: Optional[str] = None,
-    base_text: Optional[str] = None,
-    prior: Optional[str] = None,
-) -> Optional[Candidate]:
+    citing_ref: str | None = None,
+    lang: str | None = None,
+    vtitle: str | None = None,
+    base_ref: str | None = None,
+    base_text: str | None = None,
+    prior: str | None = None,
+) -> Candidate | None:
     searched: set = set()
-    candidates: List[Candidate] = []
+    candidates: list[Candidate] = []
     if prior is None:
         prior = _llm_form_prior(
-            marked_citing_text, base_ref=base_ref, base_text=base_text, citing_ref=citing_ref,
+            marked_citing_text,
+            base_ref=base_ref,
+            base_text=base_text,
+            citing_ref=citing_ref,
         )
 
-    def run_queries(queries: List[str], label: str) -> None:
+    def run_queries(queries: list[str], label: str) -> None:
         for q in queries:
             q = (q or "").strip()
             if not q or q in searched:
@@ -1270,8 +1310,12 @@ def _fallback_search_pipeline(
         logger.info("Stage B: Base-text seeded queries")
         run_queries(
             _llm_form_search_query(
-                marked_citing_text, base_ref=base_ref, prior=prior, citing_ref=citing_ref,
-            ) or [],
+                marked_citing_text,
+                base_ref=base_ref,
+                prior=prior,
+                citing_ref=citing_ref,
+            )
+            or [],
             label="(base-seeded)",
         )
 
@@ -1288,8 +1332,12 @@ def _fallback_search_pipeline(
 
     logger.info(f"Multiple candidates ({len(deduped)}), using LLM to choose best")
     chosen = _llm_choose_best_candidate(
-        marked_citing_text, deduped,
-        base_ref=base_ref, lang=lang, prior=prior, citing_ref=citing_ref,
+        marked_citing_text,
+        deduped,
+        base_ref=base_ref,
+        lang=lang,
+        prior=prior,
+        citing_ref=citing_ref,
     )
 
     if chosen:
@@ -1303,10 +1351,11 @@ def _fallback_search_pipeline(
 # Ambiguous-ref helpers
 # ---------------------------------------------------------------------------
 
+
 def _is_base_vs_commentary_ambiguous(
     citing_ref: str,
-    base_ref: Optional[str],
-    valid_candidates: List[Dict[str, Any]],
+    base_ref: str | None,
+    valid_candidates: list[dict[str, Any]],
 ) -> bool:
     """Detect base-text vs commentary ambiguity when citing ref is the commentary."""
     if not base_ref or len(valid_candidates) != 2:
@@ -1331,32 +1380,34 @@ def _is_base_vs_commentary_ambiguous(
 
 def _try_dicta_for_candidates(
     query_text: str,
-    candidates: List[Dict[str, Any]],
-    marked_text: Optional[str] = None,
-    lang: Optional[str] = None,
-    base_ref: Optional[str] = None,
-    base_text: Optional[str] = None,
-    prior: Optional[str] = None,
-    citing_ref: Optional[str] = None,
-) -> Optional[Candidate]:
+    candidates: list[dict[str, Any]],
+    marked_text: str | None = None,
+    lang: str | None = None,
+    base_ref: str | None = None,
+    base_text: str | None = None,
+    prior: str | None = None,
+    citing_ref: str | None = None,
+) -> Candidate | None:
     """Query Dicta and check if any results match the ambiguous candidates."""
     dicta_results = _query_dicta(query_text)  # no target filter — match against candidate list
     if not dicta_results:
         return None
 
-    matching: List[Candidate] = []
+    matching: list[Candidate] = []
     for result in dicta_results:
         try:
             result_oref = Ref(result.resolved_ref)
             for cand in candidates:
-                if cand['oref'].contains(result_oref):
+                if cand["oref"].contains(result_oref):
                     logger.info(f"Dicta result {result.resolved_ref} matches candidate {cand['ref']}")
-                    matching.append(Candidate(
-                        resolved_ref=result.resolved_ref,
-                        parent_ref=cand['ref'],
-                        score=result.score,
-                        raw=result.raw,
-                    ))
+                    matching.append(
+                        Candidate(
+                            resolved_ref=result.resolved_ref,
+                            parent_ref=cand["ref"],
+                            score=result.score,
+                            raw=result.raw,
+                        ),
+                    )
                     break
         except Exception:
             continue
@@ -1372,8 +1423,12 @@ def _try_dicta_for_candidates(
     if marked_text:
         logger.info(f"Dicta found {len(deduped)} unique segments, using LLM to choose best")
         chosen = _llm_choose_best_candidate(
-            marked_text, deduped,
-            base_ref=base_ref, lang=lang, prior=prior, citing_ref=citing_ref,
+            marked_text,
+            deduped,
+            base_ref=base_ref,
+            lang=lang,
+            prior=prior,
+            citing_ref=citing_ref,
         )
         if chosen:
             return chosen
@@ -1384,13 +1439,13 @@ def _try_dicta_for_candidates(
 
 def _try_search_for_candidates(
     marked_text: str,
-    candidates: List[Dict[str, Any]],
+    candidates: list[dict[str, Any]],
     lang: str,
     base_ref: str = None,
     base_text: str = None,
-    prior: Optional[str] = None,
-    citing_ref: Optional[str] = None,
-) -> Optional[Candidate]:
+    prior: str | None = None,
+    citing_ref: str | None = None,
+) -> Candidate | None:
     """Generate search queries and check if results match ambiguous candidates."""
     if prior is None:
         prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text, citing_ref=citing_ref)
@@ -1404,7 +1459,7 @@ def _try_search_for_candidates(
     candidate_books = set()
     for cand in candidates:
         try:
-            oref = cand.get('oref')
+            oref = cand.get("oref")
             if oref:
                 candidate_books.add(oref.index.title)
         except Exception:
@@ -1415,7 +1470,7 @@ def _try_search_for_candidates(
 
     path_filters = _path_filters_for_books(list(candidate_books)) if candidate_books else None
 
-    matching: List[Candidate] = []
+    matching: list[Candidate] = []
     seen_refs: set = set()
 
     for query in queries:
@@ -1428,19 +1483,23 @@ def _try_search_for_candidates(
                 if not result_oref.is_segment_level():
                     continue
                 for cand in candidates:
-                    if cand['oref'].contains(result_oref):
+                    if cand["oref"].contains(result_oref):
                         logger.info(
                             "Search result %s matches candidate %s for query: %s",
-                            result.resolved_ref, cand["ref"], query,
+                            result.resolved_ref,
+                            cand["ref"],
+                            query,
                         )
                         seen_refs.add(result.resolved_ref)
-                        matching.append(Candidate(
-                            resolved_ref=result.resolved_ref,
-                            parent_ref=cand['ref'],
-                            query=query,
-                            queries=[query],
-                            raw=result.raw,
-                        ))
+                        matching.append(
+                            Candidate(
+                                resolved_ref=result.resolved_ref,
+                                parent_ref=cand["ref"],
+                                query=query,
+                                queries=[query],
+                                raw=result.raw,
+                            ),
+                        )
                         break
             except Exception:
                 continue
@@ -1455,8 +1514,12 @@ def _try_search_for_candidates(
 
     logger.info(f"Search found {len(deduped)} unique segments, using LLM to choose best")
     chosen = _llm_choose_best_candidate(
-        marked_text, deduped,
-        base_ref=base_ref, lang=lang, prior=prior, citing_ref=citing_ref,
+        marked_text,
+        deduped,
+        base_ref=base_ref,
+        lang=lang,
+        prior=prior,
+        citing_ref=citing_ref,
     )
     if chosen:
         return chosen
@@ -1469,10 +1532,11 @@ def _try_search_for_candidates(
 # Public entry points
 # ---------------------------------------------------------------------------
 
+
 @traceable(run_type="chain", name="disambiguate_non_segment_ref", tags=[LANGSMITH_DEBUG_TAG])
 def disambiguate_non_segment_ref(
     resolution_data: NonSegmentResolutionPayload,
-) -> Optional[NonSegmentResolutionResult]:
+) -> NonSegmentResolutionResult | None:
     """
     Disambiguate a non-segment-level reference to a specific segment.
 
@@ -1511,27 +1575,36 @@ def disambiguate_non_segment_ref(
             logger.info(f"Auto-resolved single segment: {resolved_ref}")
             return NonSegmentResolutionResult(
                 resolved_ref=resolved_ref,
-                method='auto_single_segment',
+                method="auto_single_segment",
             )
 
         # Normalize citing text and map charRange to normalized coordinates
         citing_text_norm, char_range_norm, text_snippet_norm = _normalize_citing_input(
-            citing_text_full, resolution_data.charRange, citing_text_snippet, citing_lang,
+            citing_text_full,
+            resolution_data.charRange,
+            citing_text_snippet,
+            citing_lang,
         )
 
         # Case 2: 2-3 segments — LLM picks directly from text previews
         if len(segment_refs) in (2, 3):
             return _resolve_small_range(
-                segment_refs, citing_text_norm, char_range_norm, text_snippet_norm, citing_ref=citing_ref,
+                segment_refs,
+                citing_text_norm,
+                char_range_norm,
+                text_snippet_norm,
+                citing_ref=citing_ref,
             )
 
         # Case 3: Many segments — Hebrew only
-        if citing_lang != 'he':
+        if citing_lang != "he":
             logger.info(f"Non-Hebrew text with {len(segment_refs)} segments - not supported")
             return None
 
         windowed_text, marked_text, windowed_span = _prepare_citing_context(
-            citing_text_norm, char_range_norm, text_snippet_norm,
+            citing_text_norm,
+            char_range_norm,
+            text_snippet_norm,
         )
 
         rejected_ref = None
@@ -1547,8 +1620,11 @@ def disambiguate_non_segment_ref(
                 candidate = dicta_candidates[0]
             else:
                 candidate = _llm_choose_best_candidate(
-                    marked_text, dicta_candidates,
-                    base_ref=base_ref, lang=citing_lang, citing_ref=citing_ref,
+                    marked_text,
+                    dicta_candidates,
+                    base_ref=base_ref,
+                    lang=citing_lang,
+                    citing_ref=citing_ref,
                 )
 
             if candidate:
@@ -1559,24 +1635,32 @@ def disambiguate_non_segment_ref(
                 score = candidate.score or 0
                 dist = _dicta_phrase_distance(windowed_text, windowed_span, candidate)
                 # rule determined by analyzing 3,000 Dicta queries
-                if (citation_is_section_level and score >= 5 and dist is not None and dist <= 10) \
-                        or (score >= 15 and dist is not None and dist <= 5):
-                    logger.info(f"Dicta auto-accepted: section_level={citation_is_section_level}, score={score}, dist={dist}")
+                if (citation_is_section_level and score >= 5 and dist is not None and dist <= 10) or (
+                    score >= 15 and dist is not None and dist <= 5
+                ):
+                    logger.info(
+                        f"Dicta auto-accepted: section_level={citation_is_section_level}, score={score}, dist={dist}",
+                    )
                     return NonSegmentResolutionResult(
                         resolved_ref=candidate.resolved_ref,
-                        method='dicta_high_score',
+                        method="dicta_high_score",
                         llm_resolved_phrase=candidate.resolution_phrase(),
                     )
                 # Note: Dicta confirmation intentionally omits base context
                 # to avoid false positives on adjacent verses
                 ok, _ = _confirm_candidate(
-                    candidate, marked_text, citing_lang,
-                    auto_approve_prefix="Metzudat Zion", citing_ref=citing_ref,
+                    candidate,
+                    marked_text,
+                    citing_lang,
+                    auto_approve_prefix="Metzudat Zion",
+                    citing_ref=citing_ref,
                 )
                 if ok:
                     return NonSegmentResolutionResult(
                         resolved_ref=candidate.resolved_ref,
-                        method='dicta_auto_approved' if citing_ref.startswith("Metzudat Zion") else 'dicta_llm_confirmed',
+                        method="dicta_auto_approved"
+                        if citing_ref.startswith("Metzudat Zion")
+                        else "dicta_llm_confirmed",
                         llm_resolved_phrase=candidate.resolution_phrase(),
                         rejected_ref=rejected_ref,
                     )
@@ -1587,7 +1671,7 @@ def disambiguate_non_segment_ref(
         search_result = _fallback_search_pipeline(
             marked_citing_text=marked_text,
             citing_text=citing_text_norm,
-            span={'charRange': char_range_norm, 'text': text_snippet_norm},
+            span={"charRange": char_range_norm, "text": text_snippet_norm},
             non_segment_ref=non_segment_ref_str,
             citing_ref=citing_ref,
             lang=citing_lang,
@@ -1598,14 +1682,17 @@ def disambiguate_non_segment_ref(
 
         if search_result:
             ok, _ = _confirm_candidate(
-                search_result, marked_text, citing_lang,
+                search_result,
+                marked_text,
+                citing_lang,
                 base_ref=base_ref,
-                auto_approve_prefix="Metzudat Zion", citing_ref=citing_ref,
+                auto_approve_prefix="Metzudat Zion",
+                citing_ref=citing_ref,
             )
             if ok:
                 return NonSegmentResolutionResult(
                     resolved_ref=search_result.resolved_ref,
-                    method='search_auto_approved' if citing_ref.startswith("Metzudat Zion") else 'search_llm_confirmed',
+                    method="search_auto_approved" if citing_ref.startswith("Metzudat Zion") else "search_llm_confirmed",
                     llm_resolved_phrase=search_result.resolution_phrase(),
                     rejected_ref=rejected_ref,
                 )
@@ -1622,22 +1709,24 @@ def disambiguate_non_segment_ref(
 
 
 def _resolve_small_range(
-    segment_refs: List[Ref],
+    segment_refs: list[Ref],
     citing_text_full: str,
     char_range: list,
     text_snippet: str,
-    citing_ref: Optional[str] = None,
-) -> Optional[NonSegmentResolutionResult]:
+    citing_ref: str | None = None,
+) -> NonSegmentResolutionResult | None:
     """Resolve when there are only 2-3 segment candidates by asking LLM directly."""
     candidates = []
     for i, seg_ref in enumerate(segment_refs, 1):
         seg_text = _get_ref_text(seg_ref.normal(), lang="he") or _get_ref_text(seg_ref.normal(), lang="en")
         if seg_text:
-            candidates.append({
-                'index': i,
-                'resolved_ref': seg_ref.normal(),
-                'preview': _normalize_for_llm(seg_text),
-            })
+            candidates.append(
+                {
+                    "index": i,
+                    "resolved_ref": seg_ref.normal(),
+                    "preview": _normalize_for_llm(seg_text),
+                },
+            )
 
     if not candidates:
         logger.warning("Could not load text for any segments")
@@ -1646,20 +1735,19 @@ def _resolve_small_range(
     _, marked_text, _ = _prepare_citing_context(citing_text_full, char_range, text_snippet)
 
     llm = _get_llm("default")
-    candidate_list = "\n\n".join([
-        f"{c['index']}) {c['resolved_ref']}\n   {c['preview']}"
-        for c in candidates
-    ])
+    candidate_list = "\n\n".join([f"{c['index']}) {c['resolved_ref']}\n   {c['preview']}" for c in candidates])
 
     prompt = [
         SystemMessage(content="Choose the segment being cited."),
-        HumanMessage(content=[
-            {
-                "type": "text",
-                "text": f"{_format_citing_passage_label(citing_ref)}\n{marked_text}\n\nSegments:\n{candidate_list}\n\n"
-                        "Format: Reason: <explanation>\nChoice: <number>",
-            }
-        ]),
+        HumanMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": f"{_format_citing_passage_label(citing_ref)}\n{marked_text}\n\nSegments:\n{candidate_list}\n\n"
+                    "Format: Reason: <explanation>\nChoice: <number>",
+                },
+            ],
+        ),
     ]
 
     response = llm.invoke(prompt)
@@ -1669,11 +1757,11 @@ def _resolve_small_range(
     if match:
         choice = int(match.group(1))
         for cand in candidates:
-            if cand['index'] == choice:
+            if cand["index"] == choice:
                 logger.info(f"LLM resolved to: {cand['resolved_ref']}")
                 return NonSegmentResolutionResult(
-                    resolved_ref=cand['resolved_ref'],
-                    method='llm_small_range',
+                    resolved_ref=cand["resolved_ref"],
+                    method="llm_small_range",
                 )
 
     logger.warning(f"Could not parse LLM response: {content}")
@@ -1683,7 +1771,7 @@ def _resolve_small_range(
 @traceable(run_type="chain", name="disambiguate_ambiguous_ref", tags=[LANGSMITH_DEBUG_TAG])
 def disambiguate_ambiguous_ref(
     resolution_data: AmbiguousResolutionPayload,
-) -> Optional[AmbiguousResolutionResult]:
+) -> AmbiguousResolutionResult | None:
     """
     Disambiguate between multiple possible reference resolutions.
 
@@ -1707,7 +1795,7 @@ def disambiguate_ambiguous_ref(
             logger.warning("Less than 2 ambiguous refs provided")
             return None
 
-        if citing_lang != 'he':
+        if citing_lang != "he":
             logger.info(f"Non-Hebrew ambiguous resolution not supported (lang={citing_lang})")
             return None
 
@@ -1718,7 +1806,10 @@ def disambiguate_ambiguous_ref(
 
         # Normalize citing text and map charRange to normalized coordinates
         citing_text_norm, char_range_norm, text_snippet_norm = _normalize_citing_input(
-            citing_text_full, resolution_data.charRange, citing_text_snippet, citing_lang,
+            citing_text_full,
+            resolution_data.charRange,
+            citing_text_snippet,
+            citing_lang,
         )
 
         # Normalize candidates
@@ -1726,7 +1817,7 @@ def disambiguate_ambiguous_ref(
         for ref_str in ambiguous_refs:
             try:
                 oref = Ref(ref_str)
-                valid_candidates.append({'ref': oref.normal(), 'oref': oref})
+                valid_candidates.append({"ref": oref.normal(), "oref": oref})
             except Exception as e:
                 logger.warning(f"Invalid ambiguous ref: {ref_str}, error: {e}")
 
@@ -1737,7 +1828,9 @@ def disambiguate_ambiguous_ref(
         logger.info(f"Valid candidates: {[c['ref'] for c in valid_candidates]}")
 
         windowed_text, marked_text, _ = _prepare_citing_context(
-            citing_text_norm, char_range_norm, text_snippet_norm,
+            citing_text_norm,
+            char_range_norm,
+            text_snippet_norm,
         )
 
         base_ref, base_text = _get_commentary_base_context(citing_ref)
@@ -1745,7 +1838,11 @@ def disambiguate_ambiguous_ref(
         # Special case: base text vs commentary ambiguity
         if _is_base_vs_commentary_ambiguous(citing_ref, base_ref, valid_candidates):
             result = _resolve_base_vs_commentary(
-                citing_ref, base_ref, valid_candidates, marked_text, citing_lang,
+                citing_ref,
+                base_ref,
+                valid_candidates,
+                marked_text,
+                citing_lang,
             )
             if result:
                 return result
@@ -1753,14 +1850,22 @@ def disambiguate_ambiguous_ref(
         # Step 1: Try Dicta
         logger.info("Trying Dicta to find match among ambiguous candidates...")
         dicta_match = _try_dicta_for_candidates(
-            windowed_text, valid_candidates,
-            marked_text=marked_text, lang=citing_lang, base_ref=base_ref, citing_ref=citing_ref,
+            windowed_text,
+            valid_candidates,
+            marked_text=marked_text,
+            lang=citing_lang,
+            base_ref=base_ref,
+            citing_ref=citing_ref,
         )
 
         if dicta_match:
             result = _confirm_ambiguous_candidate(
-                dicta_match, marked_text, citing_lang, base_ref,
-                method='dicta_llm_confirmed', citing_ref=citing_ref,
+                dicta_match,
+                marked_text,
+                citing_lang,
+                base_ref,
+                method="dicta_llm_confirmed",
+                citing_ref=citing_ref,
             )
             if result:
                 return result
@@ -1768,13 +1873,21 @@ def disambiguate_ambiguous_ref(
         # Step 2: Try Sefaria search
         logger.info("Trying Sefaria search to find match among ambiguous candidates...")
         search_match = _try_search_for_candidates(
-            marked_text, valid_candidates, citing_lang, base_ref, citing_ref=citing_ref,
+            marked_text,
+            valid_candidates,
+            citing_lang,
+            base_ref,
+            citing_ref=citing_ref,
         )
 
         if search_match:
             result = _confirm_ambiguous_candidate(
-                search_match, marked_text, citing_lang, base_ref,
-                method='search_llm_confirmed', citing_ref=citing_ref,
+                search_match,
+                marked_text,
+                citing_lang,
+                base_ref,
+                method="search_llm_confirmed",
+                citing_ref=citing_ref,
             )
             if result:
                 return result
@@ -1793,11 +1906,11 @@ def _confirm_ambiguous_candidate(
     candidate: Candidate,
     marked_text: str,
     lang: str,
-    base_ref: Optional[str],
+    base_ref: str | None,
     method: str,
-    prior: Optional[str] = None,
-    citing_ref: Optional[str] = None,
-) -> Optional[AmbiguousResolutionResult]:
+    prior: str | None = None,
+    citing_ref: str | None = None,
+) -> AmbiguousResolutionResult | None:
     """Confirm an ambiguous candidate with LLM, returning a result or None."""
     match_ref = candidate.resolved_ref
     parent_ref = candidate.parent_ref or match_ref
@@ -1805,8 +1918,12 @@ def _confirm_ambiguous_candidate(
 
     candidate_text = _get_candidate_text_for_confirmation(match_ref, lang)
     ok, reason = _llm_confirm_candidate(
-        marked_text, match_ref, candidate_text,
-        base_ref=base_ref, prior=prior, citing_ref=citing_ref,
+        marked_text,
+        match_ref,
+        candidate_text,
+        base_ref=base_ref,
+        prior=prior,
+        citing_ref=citing_ref,
     )
 
     if ok:
@@ -1824,14 +1941,15 @@ def _confirm_ambiguous_candidate(
 def _resolve_base_vs_commentary(
     citing_ref: str,
     base_ref: str,
-    valid_candidates: List[Dict[str, Any]],
+    valid_candidates: list[dict[str, Any]],
     marked_text: str,
     citing_lang: str,
-) -> Optional[AmbiguousResolutionResult]:
+) -> AmbiguousResolutionResult | None:
     """Handle the special case where ambiguity is between base text and its commentary."""
     logger.info(
         "Detected ambiguous base-text vs commentary case",
-        citing_ref=citing_ref, base_ref=base_ref,
+        citing_ref=citing_ref,
+        base_ref=base_ref,
         options=[c["ref"] for c in valid_candidates],
     )
 
@@ -1864,16 +1982,23 @@ def _resolve_base_vs_commentary(
         return None
 
     choice = _llm_choose_base_vs_commentary(
-        marked_text, base_cand["ref"], base_text_full, comm_cand["ref"], comm_text_full,
-        lang=citing_lang, citing_ref=citing_ref,
+        marked_text,
+        base_cand["ref"],
+        base_text_full,
+        comm_cand["ref"],
+        comm_text_full,
+        lang=citing_lang,
+        citing_ref=citing_ref,
     )
 
     if choice == "BASE":
         return AmbiguousResolutionResult(
-            resolved_ref=base_cand["ref"], method="llm_base_vs_commentary",
+            resolved_ref=base_cand["ref"],
+            method="llm_base_vs_commentary",
         )
     if choice == "COMMENTARY":
         return AmbiguousResolutionResult(
-            resolved_ref=comm_cand["ref"], method="llm_base_vs_commentary",
+            resolved_ref=comm_cand["ref"],
+            method="llm_base_vs_commentary",
         )
     return None

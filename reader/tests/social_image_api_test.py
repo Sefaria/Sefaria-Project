@@ -7,6 +7,7 @@ static fallback image, and unsupported module pages use the module fallback.
 They also cover lang parameter normalization so missing, empty, bilingual, or
 unrecognized lang values still produce an image in the expected language.
 """
+
 from django.test import RequestFactory, override_settings
 
 from reader import views
@@ -84,7 +85,7 @@ def _capture_social_image_call(monkeypatch, path, active_module=None, host="loca
                 "lang": lang,
                 "platform": platform,
                 "module": module,
-            }
+            },
         )
         captured["text_family_kwargs"] = DummyTextFamily.captured_kwargs
         return captured
@@ -99,7 +100,7 @@ def _capture_social_image_call(monkeypatch, path, active_module=None, host="loca
                 "lang": lang,
                 "platform": platform,
                 "module": module,
-            }
+            },
         )
         return captured
 
@@ -111,7 +112,7 @@ def _capture_social_image_call(monkeypatch, path, active_module=None, host="loca
                 "category": "Static",
                 "ref_str": None,
                 "platform": platform,
-            }
+            },
         )
         return captured
 
@@ -395,10 +396,7 @@ def test_social_image_api_voices_topic_page_uses_voices_fallback(monkeypatch):
 
 
 def test_social_image_api_extracts_translation_version_title_from_ven(monkeypatch):
-    path = (
-        "/api/img-gen/Genesis.1.1?"
-        "lang=en&ven=english%7CThe_Contemporary_Torah,_Jewish_Publication_Society,_2006"
-    )
+    path = "/api/img-gen/Genesis.1.1?lang=en&ven=english%7CThe_Contemporary_Torah,_Jewish_Publication_Society,_2006"
     result = _capture_social_image_call(monkeypatch, path, tref="Genesis.1.1")
 
     assert result["text_family_kwargs"]["version"] == "The Contemporary Torah, Jewish Publication Society, 2006"

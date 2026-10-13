@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Roll back the Library Assistant opt-out flip.
 
@@ -60,7 +59,7 @@ def rollback(dry_run=False, run_id=None):
         print(
             f"Refusing to run: the legacy fallback is gone, so unsetting {SETTING_KEY} "
             f"would turn the assistant off rather than restore what each user had.\n"
-            f"Undoing the flip now means writing values, not removing them."
+            f"Undoing the flip now means writing values, not removing them.",
         )
         return
 
@@ -82,7 +81,7 @@ def rollback(dry_run=False, run_id=None):
     kept = 0
     for value, uids in by_value.items():
         for start in range(0, len(uids), BATCH_SIZE):
-            batch = uids[start:start + BATCH_SIZE]
+            batch = uids[start : start + BATCH_SIZE]
             # Only where the stored value still matches what the migration wrote.
             unchanged = {"id": {"$in": batch}, SETTING_PATH: value}
             # Count users, not documents: a handful of ids own more than one profile

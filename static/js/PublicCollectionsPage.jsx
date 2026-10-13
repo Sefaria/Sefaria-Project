@@ -1,27 +1,23 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import PropTypes  from 'prop-types';
-import classNames  from 'classnames';
-import Sefaria  from './sefaria/sefaria';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import Sefaria from './sefaria/sefaria';
 import Component from 'react-class';
 import { NavSidebar, SidebarModules } from './NavSidebar';
-import {
-  InterfaceText,
-  LoadingMessage,
-  ResponsiveNBox
-} from './Misc';
+import { InterfaceText, LoadingMessage, ResponsiveNBox } from './Misc';
 
-const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
+const PublicCollectionsPage = ({ multiPanel, initialWidth }) => {
   const [collectionsList, setCollectionsList] = useState(Sefaria.getCollectionsListFromCache());
-  
-  const sortCollectionList = d => {
+
+  const sortCollectionList = (d) => {
     // Sort alphabetically, ignoring punctuation, putting numbers at the end, with collections in the current interface lang first.
     d.public.sort((a, b) => {
-      const [strippedA, strippedB] = [a.name, b.name].map(x => x.stripPunctuation());
+      const [strippedA, strippedB] = [a.name, b.name].map((x) => x.stripPunctuation());
       const [aHe, bHe] = [strippedA, strippedB].map(Sefaria.hebrew.isHebrew);
-      const [aNum, bNum] = [strippedA, strippedB].map(x => /^\d/.test(x));
+      const [aNum, bNum] = [strippedA, strippedB].map((x) => /^\d/.test(x));
 
       if (aHe !== bHe) {
-        return (Sefaria.interfaceLang === "hebrew" ? aHe : bHe) ? -1 : 1; 
+        return (Sefaria.interfaceLang === 'hebrew' ? aHe : bHe) ? -1 : 1;
       } else if (aNum !== bNum) {
         return aNum ? 1 : -1;
       } else {
@@ -37,25 +33,25 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
 
   useEffect(() => {
     Sefaria.getCollectionsList()
-      .then(d => sortCollectionList(d))
-      .then(d => setCollectionsList(d));
+      .then((d) => sortCollectionList(d))
+      .then((d) => setCollectionsList(d));
   });
 
-  const sidebarModules = [
-    multiPanel ? {type: "AboutCollections"} : {type: null},
-    {type: "StayConnected"},
-  ];
+  const sidebarModules = [multiPanel ? { type: 'AboutCollections' } : { type: null }, { type: 'StayConnected' }];
 
-  let enCollections, heCollections, enCollBox, heCollBox;  
+  let enCollections, heCollections, enCollBox, heCollBox;
   if (collectionsList) {
-    enCollections = collectionsList.public.filter(c => !Sefaria.hebrew.isHebrew(c.name));
-    heCollections = collectionsList.public.filter(c => Sefaria.hebrew.isHebrew(c.name));
+    enCollections = collectionsList.public.filter((c) => !Sefaria.hebrew.isHebrew(c.name));
+    heCollections = collectionsList.public.filter((c) => Sefaria.hebrew.isHebrew(c.name));
 
-    [enCollBox, heCollBox] = [enCollections, heCollections].map(coll => (
-      <ResponsiveNBox 
-        content={coll.map(item => 
-          <CollectionBlockListing data={item} key={item.name} />)}
-        initialWidth={initialWidth} />
+    [enCollBox, heCollBox] = [enCollections, heCollections].map((coll, i) => (
+      <ResponsiveNBox
+        key={i}
+        content={coll.map((item) => (
+          <CollectionBlockListing data={item} key={item.name} />
+        ))}
+        initialWidth={initialWidth}
+      />
     ));
   }
 
@@ -68,24 +64,28 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
               <InterfaceText>common.collections</InterfaceText>
             </h1>
 
-            {multiPanel ? null :
-            <SidebarModules type={"AboutCollections"} props={{hideTitle: true}} /> }
+            {multiPanel ? null : <SidebarModules type={'AboutCollections'} props={{ hideTitle: true }} />}
 
             <div className="collectionsList">
-              { !!collectionsList ?
-              (collectionsList.public.length ?
-                (Sefaria.interfaceLang === "hebrew" ?
-                <>
-                  <div className="heCollections">{heCollBox}</div>
-                  <div className="enCollections">{enCollBox}</div>
-                </>
-                :
-                <>
-                  <div className="enCollections">{enCollBox}</div>
-                  <div className="heCollections">{heCollBox}</div>
-                </>)
-                : <InterfaceText>public_collections_page.there_are_no_public_collections_yet</InterfaceText>)
-              : <LoadingMessage /> }
+              {collectionsList ? (
+                collectionsList.public.length ? (
+                  Sefaria.interfaceLang === 'hebrew' ? (
+                    <>
+                      <div className="heCollections">{heCollBox}</div>
+                      <div className="enCollections">{enCollBox}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="enCollections">{enCollBox}</div>
+                      <div className="heCollections">{heCollBox}</div>
+                    </>
+                  )
+                ) : (
+                  <InterfaceText>public_collections_page.there_are_no_public_collections_yet</InterfaceText>
+                )
+              ) : (
+                <LoadingMessage />
+              )}
             </div>
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
@@ -93,25 +93,24 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
       </div>
     </div>
   );
-}
+};
 
-
-const CollectionBlockListing = ({data}) => {
+const CollectionBlockListing = ({ data }) => {
   return (
     <div className="navBlock">
       <a href={`/collections/${data.slug}`} className="navBlockTitle" data-target-module={Sefaria.VOICES_MODULE}>
         <div className="collectionListingImageBox">
-          <img className="collectionListingImage" src={data.imageUrl} alt={Sefaria._("common.collection_logo")}/>
+          <img className="collectionListingImage" src={data.imageUrl} alt={Sefaria._('common.collection_logo')} />
         </div>
         <InterfaceText>{data.name}</InterfaceText>
       </a>
-      {data.description ?
-      <div className="navBlockDescription clamped clamped5">
-        <InterfaceText>{data.description.stripHtml()}</InterfaceText>
-      </div> : null }
+      {data.description ? (
+        <div className="navBlockDescription clamped clamped5">
+          <InterfaceText>{data.description.stripHtml()}</InterfaceText>
+        </div>
+      ) : null}
     </div>
   );
-}
+};
 
-
-export default PublicCollectionsPage
+export default PublicCollectionsPage;
