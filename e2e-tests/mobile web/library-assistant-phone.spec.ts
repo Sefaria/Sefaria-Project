@@ -148,9 +148,11 @@ test.describe('Library Assistant phone — hamburger menu item', () => {
 // Width / orientation decides the layout
 // ---------------------------------------------------------------------------
 
+// For the assistant, "phone" means a window 600px wide or less, or 500px tall or less.
+// (Sefaria's own mobile header switches at a different line: 842px wide or less.)
 const widthExamples = [
-  { width: 842, layout: 'a full-screen sheet' },
-  { width: 843, layout: 'a floating panel' },
+  { width: 600, layout: 'a full-screen sheet' },
+  { width: 601, layout: 'a floating panel' },
 ];
 
 for (const { width, layout } of widthExamples) {
