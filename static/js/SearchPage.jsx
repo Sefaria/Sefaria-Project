@@ -584,12 +584,16 @@ class SearchPage extends Component {
     if (this._userSelectedTab || !this.props.query || this.props.searchInBook) { return; }
     const decisionKey = `${this.props.query}||${this.props.correctedQuery || ""}`;
     if (this._autoSwitchDecidedFor === decisionKey) { return; }
-    if (this.props.isQueryRunning) { return; }  // Sources result not in yet
 
-    // Sources first, then the entity tabs; null means that tab's count hasn't arrived.
-    const countOf = id => id === "sources"
-      ? this.props.totalResults?.getValue()
-      : this.state.entityData[ENTITY_TABS.find(t => t.id === id).type]?.total ?? null;
+    // Sources first, then the entity tabs. null means no count yet for the search on screen.
+    const searchedText = this.props.correctedQuery || this.props.query;
+    const countOf = id => {
+      if (id === "sources") {
+        return this.props.totalsFor === searchedText ? this.props.totalResults?.getValue() : null;
+      }
+      const entry = this.state.entityData[ENTITY_TABS.find(t => t.id === id).type];
+      return entry?.forKey === this.entityResultsKey() ? entry.total : null;
+    };
     const current = this.activeTab();
     const currentCount = countOf(current);
     if (currentCount === null || currentCount === undefined) { return; }
@@ -612,6 +616,7 @@ class SearchPage extends Component {
   fetchEntityResults(types = ENTITY_TABS.map(t => t.type)) {
     const query = this.props.query;
     if (!query || this.props.searchInBook) { return; }
+    const forKey = this.entityResultsKey();
     types.forEach(type => {
       const token = ++this._entityFetchTokens[type];
       // Analytics: each entity search is one of the four APIs whose return
@@ -627,7 +632,7 @@ class SearchPage extends Component {
           .then(data => {
             if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
             if (!this.props.compare) { SearchAnalytics.recordApiResult(type + 's', data.total); }
-            this.setState(prev => this.withCategoryCounts({...prev.entityData, [type]: this.makeEntityEntry(data)}, data));
+            this.setState(prev => this.withCategoryCounts({...prev.entityData, [type]: this.makeEntityEntry(data, [], forKey)}, data));
           })
           .catch((err) => {
             if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
@@ -644,7 +649,7 @@ class SearchPage extends Component {
             }
             // Show the empty state rather than leaving the panel on the loading message.
             this.setState(prev => ({
-              entityData: {...prev.entityData, [type]: {hits: [], total: 0, moreToLoad: false, isLoadingMore: false}},
+              entityData: {...prev.entityData, [type]: {hits: [], total: 0, moreToLoad: false, isLoadingMore: false, forKey}},
               ...(type === 'book' ? {bookCategoryCounts: null} : {}),
             }));
           });
@@ -654,12 +659,18 @@ class SearchPage extends Component {
   // Normalize an API page into the paging entry the tab panels read. `total` is the full
   // match count (so the badge and "more to load" stay correct), `moreToLoad` compares it to
   // how many hits we've accumulated so far.
-  makeEntityEntry(data, prevHits = []) {
+  makeEntityEntry(data, prevHits = [], forKey = this.entityResultsKey()) {
     const hits = prevHits.concat(data.hits);
     // Cap at ES's default max_result_window so infinite scroll stops before sending an offset
     // that ES would reject. `total` is kept intact for the count badge.
     const loadableTotal = Math.min(data.total, ES_MAX_RESULT_WINDOW);
-    return {hits, total: data.total, moreToLoad: hits.length < loadableTotal, isLoadingMore: false};
+    return {hits, total: data.total, moreToLoad: hits.length < loadableTotal, isLoadingMore: false, forKey};
+  }
+
+  // Identifies the search the entity tabs show; stamped on each entityData entry so counts
+  // from a previous search aren't mistaken for the current one.
+  entityResultsKey() {
+    return `${this.props.query}||${this.props.disableAutoCorrect ? 1 : 0}`;
   }
 
   // Book responses carry `categoryCounts` for the sidebar; every other response leaves the
@@ -674,6 +685,7 @@ class SearchPage extends Component {
     const query = this.props.query;
     const cur = this.state.entityData[type];
     if (!cur || cur.isLoadingMore || !cur.moreToLoad) { return; }
+    const forKey = cur.forKey;
     // Not bumped, only captured: this extends the current result set rather than replacing
     // it, so the page is dropped if a sort/filter/query change intervenes.
     const token = this._entityFetchTokens[type];
@@ -691,7 +703,7 @@ class SearchPage extends Component {
             const prevEntry = prev.entityData[type];
             if (!prevEntry) { return null; }  // results were reset while this page was in flight
             return this.withCategoryCounts(
-                {...prev.entityData, [type]: this.makeEntityEntry(data, prevEntry.hits)}, data);
+                {...prev.entityData, [type]: this.makeEntityEntry(data, prevEntry.hits, forKey)}, data);
           });
         })
         .catch(() => {
@@ -1007,6 +1019,7 @@ SearchPage.propTypes = {
   moreToLoad:               PropTypes.bool,
   topics:                   PropTypes.array,
   totalResults:             PropTypes.object,
+  totalsFor:                PropTypes.string,
   sortTypeArray:            PropTypes.array,
 };
 

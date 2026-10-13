@@ -100,6 +100,8 @@ class ElasticSearchQuerier extends Component {
         isQueryRunning: false,
         moreToLoad:     true,
         totals:         new SearchTotal(),
+        // The searched text `totals` was counted for; null while `totals` is the empty placeholder.
+        totalsFor:      null,
         pagesLoaded:    0,
         hits:           [],
         error:          false,
@@ -130,6 +132,8 @@ class ElasticSearchQuerier extends Component {
           //console.log(args);
           this.state.hits = this.state.hits.concat(cachedQuery.hits.hits);
           this.state.totals = cachedQuery.hits.total;
+          // Only final once the correction is known.
+          if (cachedCorrection || props.disableAutoCorrect || !props.query) { this.state.totalsFor = args.query; }
           this.state.pagesLoaded += 1;
           args.start = this.state.pagesLoaded * this.querySize[this.props.searchState.type];
           if (this.props.searchState.type === "text") {
@@ -252,7 +256,7 @@ class ElasticSearchQuerier extends Component {
     _rerunState() {
         // Also drops the old Sources total, which SearchPage's empty-tab auto-switch reads.
         return {hits: [], pagesLoaded: 0, moreToLoad: true, correctedQuery: null, suggestedQueries: null,
-                totals: new SearchTotal(), isQueryRunning: true};
+                totals: new SearchTotal(), totalsFor: null, isQueryRunning: true};
     }
     async _executeTopicQuery(query) {
         const topicQuerier = new TopicQuerier();
@@ -370,6 +374,7 @@ class ElasticSearchQuerier extends Component {
                 let state = {
                   hits: data.hits.hits,
                   totals: currTotal,
+                  totalsFor: args.query,
                   pagesLoaded: 1,
                   moreToLoad: currTotal.getValue() > this.querySize[this.props.searchState.type],
                 };
@@ -506,6 +511,7 @@ class ElasticSearchQuerier extends Component {
                     sortTypeArray={SearchState.metadataByType[this.props.searchState.type].sortTypeArray}
                     hits={this.normalizeHitsMetaData()}
                     totalResults={this.state.totals}
+                    totalsFor={this.state.totalsFor}
                     type={this.props.searchState.type}
                     searchState={this.props.searchState}
                     settings={this.props.settings}
