@@ -23,7 +23,7 @@ setup('log in every seeded api-keys account', async ({ browser }, testInfo) => {
     );
   }
 
-  setup.setTimeout(Math.max(120000, manifest.accounts.length * 45000));
+  setup.setTimeout(Math.max(180000, manifest.accounts.length * 30000));
   fs.rmSync(AUTH_DIR, { recursive: true, force: true });
   fs.mkdirSync(AUTH_DIR, { recursive: true });
 
@@ -31,9 +31,8 @@ setup('log in every seeded api-keys account', async ({ browser }, testInfo) => {
   const status: AuthStatus = {};
   const lang = (role: string) => (/hebrew/i.test(role) ? 'hebrew' : 'english') as 'hebrew' | 'english';
 
-  for (const account of manifest.accounts) {
+  const logInOne = async (account: typeof manifest.accounts[number]) => {
     const key = accountKey(account);
-    if (account.suite === 'stack') continue;
     const context = await browser.newContext({ baseURL, ignoreHTTPSErrors: target === 'cauldron' });
     try {
       await prepareContext(context, baseURL, 'english');
@@ -50,7 +49,13 @@ setup('log in every seeded api-keys account', async ({ browser }, testInfo) => {
     } finally {
       await context.close();
     }
-  }
+  };
+
+  const queue = manifest.accounts.filter(a => a.suite !== 'stack');
+  const lanes = Array.from({ length: workersFor(target) }, async () => {
+    for (let next = queue.shift(); next; next = queue.shift()) await logInOne(next);
+  });
+  await Promise.all(lanes);
 
   fs.writeFileSync(AUTH_STATUS_FILE, JSON.stringify(status, null, 2));
   const ok = Object.values(status).filter(s => s.ok).length;
