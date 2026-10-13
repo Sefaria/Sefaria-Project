@@ -158,7 +158,8 @@ test.describe('caller replays', () => {
       '/api/v2/topics/shabbat',
     ];
     for (const path of calls) {
-      const r = await rawRequest({ target: target.name, path, headers: { 'user-agent': ua } });
+      // /api/links is slow on a cold local Django (about 20 s); the gateway decision is not.
+      const r = await rawRequest({ target: target.name, path, headers: { 'user-agent': ua }, timeoutMs: 120000 });
       expectPassedGateway(r, path);
       expect(r.status, `${path}: ${brief(r)}`).toBe(200);
     }
