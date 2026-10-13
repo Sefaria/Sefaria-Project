@@ -39,7 +39,8 @@ services:
 
   echo:
     image: ealen/echo-server:0.9.2
-    environment: { PORT: "8080" }
+    # Its request log would carry x-api-key values; tests read the echoed body instead.
+    environment: { PORT: "8080", LOGS__LEVEL: fatal }
 
   nginx:
     image: opentracing/nginx-opentracing:nginx-1.23.3
