@@ -223,18 +223,20 @@ def version_link(v):
 	"""
 	Return an <a> tag linking to the first available text of a particular version.
 	"""
+	# Use the query form rather than the legacy /<ref>/<lang>/<version> path: once
+	# an escaped slash in the ref is decoded, that path can no longer be split.
+	version_param = urllib.parse.quote(v.versionTitle.replace(" ", "_"), safe="_")
 	try:
 		section_ref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
 	except IndexError:
 		try:
 			section_ref = v.get_index().nodes.first_leaf().first_section_ref()
 		except:  # Better if we knew how this may fail...
-			return mark_safe('<a href="/{}.1?v{}={}">{}</a>'.format(Ref(v.title).url(), v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_"), safe="_"), v.versionTitle))
+			ref_url = Ref(v.title).url()
+			return mark_safe(f'<a href="/{ref_url}.1?v{v.language}={version_param}">{v.versionTitle}</a>')
 
-	# Use the query form rather than the legacy /<ref>/<lang>/<version> path: once
-	# an escaped slash in the ref is decoded, that path can no longer be split.
-	link = '<a href="/{}?v{}={}">{}</a>'.format(section_ref.url(), v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_"), safe="_"), v.versionTitle)
-	return mark_safe(link)
+	ref_url = section_ref.url()
+	return mark_safe(f'<a href="/{ref_url}?v{v.language}={version_param}">{v.versionTitle}</a>')
 
 
 @register.filter(is_safe=True)
