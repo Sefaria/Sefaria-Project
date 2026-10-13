@@ -24,7 +24,7 @@ import { NotificationsPanel } from './NotificationsPanel';
 import { UserProfile }  from './UserProfile';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
-import SettingsPage, { EmailConfirmedPage } from './SettingsPage';
+import { MockEmailLandingPage, MockSettingsPage } from './DeveloperSettingsMockPages';
 import PoweredByFormPage from './poweredBy/PoweredByFormPage';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import LinkerEditorPage from './LinkerEditorPage';
@@ -1103,7 +1103,7 @@ class ReaderPanel extends Component {
       );
     }
     else if (this.state.menuOpen === "developerEmailConfirmed") {
-      menu = (<EmailConfirmedPage />);
+      menu = (<MockEmailLandingPage />);
     }
     else if (this.state.menuOpen === "poweredByForm") {
       menu = (<PoweredByFormPage />);
@@ -1113,11 +1113,11 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "settings") {
       menu = (
-        <SettingsPage
+        <MockSettingsPage
           tab={this.state.settingsTab}
           projectId={this.state.developerProjectId}
           accountSettings={this.state.accountSettings}
-          initialDeveloperPoc={this.state.developerPoc}
+          developerPoc={this.state.developerPoc}
           setTab={this.setSettingsTab.bind(this)}
           setProjectId={this.setDeveloperProjectId.bind(this)} />
       );
