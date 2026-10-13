@@ -1739,6 +1739,46 @@ class TestUpdateUserPreferencesImpl:
         assert "1" in remove_list
         assert "3" in remove_list
 
+    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service.update_list_memberships")
+    @mock.patch("api.newsletter_service.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service.find_or_create_contact")
+    def test_opt_out_account_without_profile_document(
+        self,
+        mock_find,
+        mock_get_all_ids,
+        mock_get_memberships,
+        mock_update_memberships,
+        mock_profile_class,
+    ):
+        """Opting out with an account but no profile document only updates AC, so no slugless profile is created"""
+        # A Django user exists (id is set) but there's no Mongo profile document
+        # (_id is None), e.g. after spam cleanup deleted it. Saving this profile
+        # would insert a document with an empty slug.
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile._id = None
+        mock_profile_class.return_value = mock_profile
+
+        mock_find.return_value = {"id": "100", "email": "cleanedup@example.com"}
+        mock_get_all_ids.return_value = ["1", "3", "99"]
+        mock_get_memberships.return_value = ["1", "99"]
+
+        result = newsletter_service.update_user_preferences_impl(
+            "cleanedup@example.com",
+            "Clean",
+            "Up",
+            [],
+            [{"stringid": "sefaria_news", "id": "1"}],
+            marketing_opt_out=True,
+        )
+
+        mock_profile.save.assert_not_called()
+        mock_update_memberships.assert_called_once()
+        assert set(mock_update_memberships.call_args[0][2]) == {"1", "99"}
+        assert result["subscribed_newsletters"] == []
+
 
 # ============================================================================
 # Tests for Learning Level Management
@@ -1898,6 +1938,30 @@ class TestUpdateLearningLevelImpl:
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
             newsletter_service.update_learning_level_impl("test@example.com", 1)
+
+    @mock.patch("api.newsletter_service.update_learning_level_in_ac")
+    @mock.patch("api.newsletter_service.UserProfile")
+    def test_update_learning_level_account_without_profile_document(
+        self, mock_profile_class, mock_ac_update
+    ):
+        """An account with no profile document is only updated in AC, so no slugless profile is created"""
+        # A Django user exists (id is set) but there's no Mongo profile document
+        # (_id is None), e.g. after spam cleanup deleted it. Saving this profile
+        # would insert a document with an empty slug.
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile._id = None
+        mock_profile_class.return_value = mock_profile
+
+        mock_ac_update.return_value = {"success": True}
+
+        result = newsletter_service.update_learning_level_impl(
+            "cleanedup@example.com", 3
+        )
+
+        mock_profile.save.assert_not_called()
+        mock_ac_update.assert_called_once_with("cleanedup@example.com", 3)
+        assert result["user_id"] is None
 
 
 class TestIsValidLearningLevel:

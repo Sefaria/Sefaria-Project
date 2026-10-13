@@ -1351,14 +1351,20 @@ def update_user_preferences_impl(
 
 def _load_user_profile(email: str) -> UserProfile | None:
     """
-    Look up a UserProfile by email without constructor-side auto-save.
+    Look up the UserProfile for an email, but only if its Mongo profile document exists.
 
-    `user_registration=True` prevents UserProfile.__init__ from immediately
-    creating a Mongo profile document when a Django user exists but no profile
-    document exists yet. It can still return a user-backed UserProfile object;
-    if a caller mutates and saves that object, a missing Mongo profile document
-    will be created then. Returns None only when no Django user can be resolved
-    for `email`.
+    Returns None when there's no Django user for `email`, and also when there is
+    a Django user but no profile document (spam cleanup deletes the document and
+    keeps the user, for example). Callers treat both the same way: they skip the
+    profile and only update ActiveCampaign.
+
+    Why not return a profile for that second case: `user_registration=True`
+    stops UserProfile.__init__ from repairing a missing document, and that repair
+    is what assigns the slug. Registration passes the flag too, but then calls
+    assign_slug() itself. Saving the unrepaired profile here would insert a
+    document with an empty slug, and nothing assigns one later because every
+    future load finds the document. The newsletter endpoints can be used without
+    logging in, so they shouldn't create profile documents anyway.
 
     Why this exists as a separate helper: the MongoDB lookup happens exactly
     once per call to the parent service function. Explicit loading at the
@@ -1366,7 +1372,9 @@ def _load_user_profile(email: str) -> UserProfile | None:
     """
     try:
         profile = UserProfile(email=email, user_registration=True)
-        return profile if profile.id is not None else None
+        # `_id` is the Mongo document's id; it's None when no document was found.
+        has_profile_document: bool = profile.id is not None and profile._id is not None
+        return profile if has_profile_document else None
     except Exception as e:
         logger.warning(f"Could not load UserProfile for {email}: {e}")
         return None
