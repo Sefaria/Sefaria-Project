@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import Callable
+from enum import Enum
 from functools import wraps
 from typing import Any, ParamSpec, cast
 
@@ -41,6 +42,15 @@ P = ParamSpec("P")
 AUTHENTICATION_REQUIRED_CODE: str = "authentication_required"
 
 
+class NewsletterViewAction(Enum):
+    """What a newsletter view was doing when it failed. The value goes in the log message."""
+    GET_LISTS = "getting newsletter lists"
+    SUBSCRIBE = "during subscription"
+    FETCH_SUBSCRIPTIONS = "fetching subscriptions"
+    UPDATE_PREFERENCES = "updating preferences"
+    UPDATE_LEARNING_LEVEL = "during learning level update"
+
+
 def parse_selected_newsletters(body: dict[str, Any]) -> list[str]:
     """
     Return the stringids of the newsletters marked true in body["newsletters"].
@@ -64,7 +74,7 @@ def parse_selected_newsletters(body: dict[str, Any]) -> list[str]:
 
 
 def handle_newsletter_view_errors(
-    action: str,
+    action: NewsletterViewAction,
 ) -> Callable[[Callable[P, HttpResponse]], Callable[P, HttpResponse]]:
     """Convert newsletter view exceptions into consistent JSON responses."""
 
@@ -78,7 +88,7 @@ def handle_newsletter_view_errors(
                     {"error": "Invalid JSON in request body"}, status=400
                 )
             except InputError as e:
-                logger.warning(f"Validation error {action}: {e}")
+                logger.warning(f"Validation error {action.value}: {e}")
                 body: dict[str, str] = {"error": str(e)}
                 # Errors the person can fix (like InvalidEmailError) carry a code, so
                 # the page can show a translated message instead of this English text
@@ -87,13 +97,13 @@ def handle_newsletter_view_errors(
                     body["code"] = code
                 return jsonResponse(body, status=400)
             except NewsletterListUnavailableError as e:
-                logger.warning(f"Newsletter list unavailable {action}: {e}")
+                logger.warning(f"Newsletter list unavailable {action.value}: {e}")
                 return jsonResponse({"error": str(e)}, status=503)
             except ActiveCampaignError as e:
-                logger.warning(f"ActiveCampaign error {action}: {e}")
+                logger.warning(f"ActiveCampaign error {action.value}: {e}")
                 return jsonResponse({"error": str(e)}, status=500)
             except Exception as e:
-                logger.exception(f"Unexpected error {action}: {e}")
+                logger.exception(f"Unexpected error {action.value}: {e}")
                 return jsonResponse(
                     {"error": "An unexpected error occurred"}, status=500
                 )
@@ -103,7 +113,7 @@ def handle_newsletter_view_errors(
     return decorator
 
 
-@handle_newsletter_view_errors("getting newsletter lists")
+@handle_newsletter_view_errors(NewsletterViewAction.GET_LISTS)
 def get_newsletter_lists(request: HttpRequest) -> HttpResponse:
     """
     GET /api/newsletter/lists
@@ -153,7 +163,7 @@ def get_newsletter_lists(request: HttpRequest) -> HttpResponse:
 
 
 @csrf_protect
-@handle_newsletter_view_errors("during subscription")
+@handle_newsletter_view_errors(NewsletterViewAction.SUBSCRIBE)
 def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/subscribe
@@ -279,7 +289,7 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
 # ============================================================================
 
 
-@handle_newsletter_view_errors("fetching subscriptions")
+@handle_newsletter_view_errors(NewsletterViewAction.FETCH_SUBSCRIPTIONS)
 def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
     """
     GET /api/newsletter/subscriptions
@@ -347,7 +357,7 @@ def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
 
 
 @csrf_protect
-@handle_newsletter_view_errors("updating preferences")
+@handle_newsletter_view_errors(NewsletterViewAction.UPDATE_PREFERENCES)
 def update_user_preferences(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/preferences
@@ -475,7 +485,7 @@ LEARNING_LEVEL_TOKEN_INVALID_CODE: str = "learning_level_token_invalid"
 
 
 @csrf_protect
-@handle_newsletter_view_errors("during learning level update")
+@handle_newsletter_view_errors(NewsletterViewAction.UPDATE_LEARNING_LEVEL)
 def update_learning_level(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/learning-level
