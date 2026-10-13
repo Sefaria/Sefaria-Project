@@ -384,6 +384,11 @@ CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
 CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
 # Use the local Vite dev server script instead of the hosted UMD bundle.
 CHATBOT_USE_LOCAL_SCRIPT = True
+# Where the ai-chatbot repo (the <lc-chatbot> Library Assistant widget) is checked out on this machine.
+# A relative path is resolved from the Sefaria-Project folder. Django does not read this today; the
+# Playwright e2e tests read the same-named environment variable (see e2e-tests/example.env) to load the
+# assistant's translation files from <AI_CHATBOT_REPO_PATH>/src/i18n/locales/{en,he}.json.
+AI_CHATBOT_REPO_PATH = os.getenv("AI_CHATBOT_REPO_PATH", "../ai-chatbot")
 
 GEMINI_API_KEY = ""  # API key for Gemini embedding model (used by semantic search)
 SEMANTIC_SEARCH_API_TOKEN = ""  # Bearer token for the /api/knn-search endpoint

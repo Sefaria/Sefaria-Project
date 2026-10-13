@@ -239,3 +239,6 @@ POWERED_BY_FORMSTACK_HMAC_SECRET = os.getenv("POWERED_BY_FORMSTACK_HMAC_SECRET")
 
 GEMINI_API_KEY = ""
 SEMANTIC_SEARCH_API_TOKEN = ""
+
+# Where the ai-chatbot repo is checked out. Not read by Django; used by the Playwright e2e tests.
+AI_CHATBOT_REPO_PATH = os.getenv("AI_CHATBOT_REPO_PATH", "../ai-chatbot")
