@@ -188,3 +188,25 @@ probe_last() { awk -v s="$2" '$2 == s {t = $1} END {printf "%.3f\n", t + 0}' "$D
 probe_first_after() { awk -v s="$2" -v a="$3" '$2 == s && $1 >= a {print $1; exit}' "$D11_DIR/probe/$1.log"; }
 probe_total() { wc -l <"$D11_DIR/probe/$1.log" | tr -d ' '; }
 fsub() { python3 -c "print('%.1f' % ($1 - $2))"; }
+
+# --- temporary worktrees (removed by the caller's trap) -----------------------------------------------------------
+
+# tmp_worktree NAME REF [BRANCH] -> prints the path of a fresh worktree of REF under /private/tmp; with BRANCH, on
+# that local branch (reset to REF), otherwise detached
+tmp_worktree() {
+  local wt="/private/tmp/apikeys-d11-$1"
+  git -C "$REPO" worktree remove --force "$wt" >/dev/null 2>&1 || rm -rf "$wt"
+  git -C "$REPO" worktree prune
+  if [ -n "${3:-}" ]; then
+    git -C "$REPO" worktree add -B "$3" "$wt" "$2" >/dev/null 2>&1 || die "worktree add $2 failed"
+  else
+    git -C "$REPO" worktree add --detach "$wt" "$2" >/dev/null 2>&1 || die "worktree add $2 failed"
+  fi
+  echo "$wt"
+}
+drop_worktree() { git -C "$REPO" worktree remove --force "$1" >/dev/null 2>&1 || rm -rf "$1"; git -C "$REPO" worktree prune; }
+# npm_ci DIR -> installs from the lockfile without lifecycle scripts (husky's prepare would rewrite the shared
+# repository's core.hooksPath), then applies patch-package as postinstall would
+npm_ci() {
+  (cd "$1" && npm ci --ignore-scripts --no-audit --no-fund && npx --no-install patch-package) >"$1/.d11-npm.log" 2>&1
+}
