@@ -3,7 +3,9 @@ N-M5: deleting an account (sefaria.utils.user.delete_user_account) with and with
 projects, and when the powered_by deletion hook fails.
 
 Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
-the `failing` marker, so the default CI run (-m "not failing") leaves them out.
+the `failing` marker, so the default CI run (-m "not failing") leaves them out. The whole class
+is `deep`: delete_user_account updates every sheet that lists the user in `likes`, a scan of the
+full sheets collection that can outlast pymongo's socket timeout on a loaded Mongo.
 """
 from unittest.mock import MagicMock, patch
 
@@ -20,6 +22,7 @@ from sefaria.system.database import db
 from sefaria.utils.user import delete_user_account
 
 
+@pytest.mark.deep
 @patch("sefaria.utils.user.CrmMediator", MagicMock())
 class DeleteAccountTest(TestCase):
     databases = "__all__"
