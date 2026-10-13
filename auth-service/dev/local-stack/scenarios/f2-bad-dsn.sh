@@ -17,7 +17,8 @@ sleep 3
 check F2 "/readyz is 503" "$(readyz)" 503
 errs="$(metric 'authsvc_reload_total{result="error"}')"
 [ "$errs" -ge 1 ] && pass "F2 authsvc_reload_total{result=\"error\"} counts the failed load ($errs)" || fail "F2 no reload error metric ($errs)"
-dcompose logs --no-log-prefix authsvc 2>&1 | grep -q 'initial load failed' && pass "F2 the log says the initial load failed" \
+load_failed_logged() { dcompose logs --no-log-prefix authsvc 2>&1 | grep -q 'initial load failed'; }
+[ "$(wait_for 12 load_failed_logged)" != timeout ] && pass "F2 the log says the initial load failed" \
   || fail "F2 no 'initial load failed' log line"
 t_unhealthy="$(wait_for 20 '! authsvc_endpoint_healthy')"
 info "F2 envoy marked the auth service unhealthy ${t_unhealthy}s after it was recreated"
