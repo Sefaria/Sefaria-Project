@@ -9,6 +9,7 @@ from sefaria.helper.entity_alt_index import (
     _normalize_phrase,
     _add_entry,
     build_entity_alt_index,
+    build_entity_alt_tables,
 )
 
 
@@ -183,3 +184,23 @@ def test_min_topic_sources_default_matches_autocompleter_threshold():
     # the same "keep low-signal topics out of anything query-facing" reason; this index
     # mirrors it rather than picking its own number.
     assert MIN_TOPIC_SOURCES == 10
+
+
+def test_build_entity_alt_tables_records_every_entity_carrying_a_title(monkeypatch):
+    class Named(_FakeTopic):
+        def __init__(self, slug, titles_by_lang, num_sources):
+            super().__init__(titles_by_lang, num_sources)
+            self.slug = slug
+
+    topics = [Named("jacob", {"en": ["Yaakov", "Yakov"]}, 2000), Named("yaakov", {"en": ["Yaakov"]}, 50)]
+
+    import sefaria.model as sefaria_model
+    import sefaria.model.topic as sefaria_topic
+    monkeypatch.setattr(sefaria_model, "IndexSet", lambda *a, **k: [], raising=False)
+    monkeypatch.setattr(sefaria_topic, "TopicSet", lambda *a, **k: topics)
+    monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: [])
+
+    _, owners = build_entity_alt_tables(langs=("en",))
+
+    assert owners["yaakov"] == {("topic", "jacob"), ("topic", "yaakov")}
+    assert owners["yakov"] == {("topic", "jacob")}

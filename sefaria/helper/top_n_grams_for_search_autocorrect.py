@@ -21,7 +21,7 @@ import tempfile
 import time
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Dict, FrozenSet, Hashable, Iterable, List, Mapping, Optional, Sequence, Set, Tuple, Union
 
 import datrie
 import requests
@@ -391,6 +391,26 @@ def _substitute_window(words: List[str], normalized: List[str], start: int, end:
     return " ".join(corrected_words)
 
 
+def _one_title_per_entity(ranked: List[Tuple[str, float]],
+                          entity_owners: Optional[Mapping[str, FrozenSet[Hashable]]]) -> List[Tuple[str, float]]:
+    """
+    Drops a candidate whose entities are all already represented by a higher-ranked one: alt
+    titles of one entity (Yaakov, Yakov) aren't competing guesses. Candidates that
+    aren't entity titles are always kept.
+    """
+    if not entity_owners:
+        return ranked
+    covered: Set[Hashable] = set()
+    kept = []
+    for candidate, score in ranked:
+        owners = entity_owners.get(candidate)
+        if owners and owners <= covered:
+            continue
+        covered |= owners or set()
+        kept.append((candidate, score))
+    return kept
+
+
 @dataclass(frozen=True)
 class AmbiguousCandidates:
     """Full queries for each competing candidate, with scores, best first."""
@@ -399,7 +419,8 @@ class AmbiguousCandidates:
 
 def _try_window(words: List[str], normalized: List[str], start: int, end: int,
                  top_n_grams: PhraseTable,
-                 entity_alt_index: Optional[PhraseTable] = None) -> Union[str, AmbiguousCandidates, None]:
+                 entity_alt_index: Optional[PhraseTable] = None,
+                 entity_owners: Optional[Mapping[str, FrozenSet[Hashable]]] = None) -> Union[str, AmbiguousCandidates, None]:
     """
     Correct `normalized[start:end]` as one phrase. Returns the full corrected query,
     AmbiguousCandidates if every candidate within AMBIGUITY_LOG_GAP of the best (not just the
@@ -409,7 +430,7 @@ def _try_window(words: List[str], normalized: List[str], start: int, end: int,
     if phrase in top_n_grams or (entity_alt_index is not None and phrase in entity_alt_index):
         return None
 
-    ranked = _ranked_candidates(phrase, top_n_grams, entity_alt_index)
+    ranked = _one_title_per_entity(_ranked_candidates(phrase, top_n_grams, entity_alt_index), entity_owners)
     if not ranked:
         return None
 
@@ -436,7 +457,8 @@ class AutocorrectResult:
 
 
 def autocorrect_query(query: str, top_n_grams: PhraseTable,
-                       entity_alt_index: Optional[PhraseTable] = None) -> Optional[AutocorrectResult]:
+                       entity_alt_index: Optional[PhraseTable] = None,
+                       entity_owners: Optional[Mapping[str, FrozenSet[Hashable]]] = None) -> Optional[AutocorrectResult]:
     """
     None means search `query` as typed.
 
@@ -466,18 +488,19 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
         return AutocorrectResult(original_query=query, corrected_query=result)
 
     if n <= MAX_PHRASE_WORDS:
-        return finish(_try_window(words, normalized, 0, n, top_n_grams, entity_alt_index))
+        return finish(_try_window(words, normalized, 0, n, top_n_grams, entity_alt_index, entity_owners))
 
     if entity_alt_index is not None:
-        whole = finish(_try_window(words, normalized, 0, n, {}, entity_alt_index))
+        whole = finish(_try_window(words, normalized, 0, n, {}, entity_alt_index, entity_owners))
         if whole:
             return whole
 
-    return _correct_long_query_by_trigrams(query, words, normalized, top_n_grams, entity_alt_index)
+    return _correct_long_query_by_trigrams(query, words, normalized, top_n_grams, entity_alt_index, entity_owners)
 
 
 def _correct_long_query_by_trigrams(query: str, words: List[str], normalized: List[str], top_n_grams: PhraseTable,
-                                     entity_alt_index: Optional[PhraseTable]) -> Optional[AutocorrectResult]:
+                                     entity_alt_index: Optional[PhraseTable],
+                                     entity_owners: Optional[Mapping[str, FrozenSet[Hashable]]] = None) -> Optional[AutocorrectResult]:
     """
     Tries every MAX_PHRASE_WORDS-word window -- never shorter ones, whose one-edit "fixes" too
     often turn a rare real word into a common one -- and allows one edit in the whole query.
@@ -489,7 +512,7 @@ def _correct_long_query_by_trigrams(query: str, words: List[str], normalized: Li
     """
     confident, ambiguous = set(), {}
     for start in range(len(normalized) - MAX_PHRASE_WORDS + 1):
-        result = _try_window(words, normalized, start, start + MAX_PHRASE_WORDS, top_n_grams, entity_alt_index)
+        result = _try_window(words, normalized, start, start + MAX_PHRASE_WORDS, top_n_grams, entity_alt_index, entity_owners)
         if isinstance(result, AmbiguousCandidates):
             for q, score in result.scored_queries:
                 _keep_max(ambiguous, q, score)

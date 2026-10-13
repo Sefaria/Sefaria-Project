@@ -13,6 +13,7 @@ from sefaria.helper.top_n_grams_for_search_autocorrect import (
     _ranked_candidates,
     _tie_break_score,
     _try_window,
+    _one_title_per_entity,
     AmbiguousCandidates,
     AutocorrectResult,
     autocorrect_query,
@@ -181,6 +182,41 @@ def test_try_window_returns_ambiguous_candidates_when_scores_are_close():
     result = _try_window(words, normalized, 0, 1, top_n_grams)
     assert isinstance(result, AmbiguousCandidates)
     assert [q for q, _ in result.scored_queries] == ["cot", "cap"]  # most likely first
+
+
+def test_try_window_corrects_when_close_candidates_are_titles_of_one_entity():
+    # Both spellings name the same entity, so they aren't competing guesses.
+    entity_alt_index = {"yaakov": 3.0, "yakov": 2.8}
+    owners = {"yaakov": frozenset({"jacob"}), "yakov": frozenset({"jacob"})}
+    words = ["yaekov"]
+    assert _try_window(words, words, 0, 1, {}, entity_alt_index, owners) == "yaakov"
+
+
+def test_try_window_stays_ambiguous_when_close_candidates_are_different_entities():
+    entity_alt_index = {"yaakov": 3.0, "yakov": 2.8}
+    owners = {"yaakov": frozenset({"jacob"}), "yakov": frozenset({"yakov the baker"})}
+    words = ["yaekov"]
+    result = _try_window(words, words, 0, 1, {}, entity_alt_index, owners)
+    assert [q for q, _ in result.scored_queries] == ["yaakov", "yakov"]
+
+
+def test_one_title_per_entity_keeps_titles_of_different_entities():
+    ranked = [("yaakov", 3.0), ("yakov", 2.8)]
+    owners = {"yaakov": frozenset({"jacob"}), "yakov": frozenset({"yakov the baker"})}
+    assert _one_title_per_entity(ranked, owners) == ranked
+
+
+def test_one_title_per_entity_drops_a_title_only_when_all_its_entities_are_covered():
+    owners = {"a": frozenset({1, 2}), "b": frozenset({1}), "c": frozenset({1, 3})}
+    ranked = [("a", 3.0), ("b", 2.9), ("c", 2.8)]
+    # "b" belongs only to entity 1, already shown via "a"; "c" also names entity 3.
+    assert _one_title_per_entity(ranked, owners) == [("a", 3.0), ("c", 2.8)]
+
+
+def test_one_title_per_entity_keeps_titles_with_no_entity():
+    ranked = [("cot", 3.0), ("cap", 2.9)]
+    assert _one_title_per_entity(ranked, {"other": frozenset({1})}) == ranked
+    assert _one_title_per_entity(ranked, None) == ranked
 
 
 def test_try_window_confident_when_disparity_is_large():

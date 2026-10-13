@@ -4515,6 +4515,7 @@ class Library(object):
         # autocompleters are (the name service), empty elsewhere.
         self._top_n_grams_for_search_autocorrect = {}
         self._entity_alt_index = {}
+        self._entity_owners = {}
 
         # Maps, keyed by language, from index key to array of titles
         self._index_title_maps = {lang:{} for lang in self.langs}
@@ -4614,7 +4615,8 @@ class Library(object):
     def autocorrect_query(self, query):
         """See sefaria.helper.top_n_grams_for_search_autocorrect.autocorrect_query."""
         from sefaria.helper.top_n_grams_for_search_autocorrect import autocorrect_query
-        return autocorrect_query(query, self._top_n_grams_for_search_autocorrect, self._entity_alt_index)
+        return autocorrect_query(query, self._top_n_grams_for_search_autocorrect, self._entity_alt_index,
+                                 self._entity_owners)
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
         """
@@ -5023,7 +5025,7 @@ class Library(object):
         from sefaria.helper.entity_alt_index import build_entity_alt_trie
         with build_pathway("build_search_autocorrect_tables"):
             self._top_n_grams_for_search_autocorrect = load_top_n_grams()
-            self._entity_alt_index = build_entity_alt_trie()
+            self._entity_alt_index, self._entity_owners = build_entity_alt_trie()
 
     def cross_lexicon_auto_completer(self):
         """
