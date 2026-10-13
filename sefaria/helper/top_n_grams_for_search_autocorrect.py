@@ -47,6 +47,9 @@ MAX_PHRASE_WORDS = 3
 # the runner-up. Under that, the candidates are treated as competing (e.g. "mari" vs "maariv").
 AMBIGUITY_LOG_GAP = 1.0
 
+# Most "did you mean" suggestions offered for one ambiguous query, best first.
+MAX_SUGGESTIONS = 3
+
 # Longer queries are searched as typed. Candidate generation is pure-Python CPU on the
 # single-worker name service: a 5,000-char query took seconds.
 MAX_QUERY_CHARS = 100
@@ -484,7 +487,7 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
         if result is None:
             return None
         if isinstance(result, AmbiguousCandidates):
-            return AutocorrectResult(original_query=query, suggested_queries=[q for q, _ in result.scored_queries])
+            return AutocorrectResult(original_query=query, suggested_queries=[q for q, _ in result.scored_queries[:MAX_SUGGESTIONS]])
         return AutocorrectResult(original_query=query, corrected_query=result)
 
     if n <= MAX_PHRASE_WORDS:
@@ -521,5 +524,5 @@ def _correct_long_query_by_trigrams(query: str, words: List[str], normalized: Li
     if len(confident) == 1 and not ambiguous:
         return AutocorrectResult(original_query=query, corrected_query=next(iter(confident)))
     if ambiguous and not confident:
-        return AutocorrectResult(original_query=query, suggested_queries=[q for q, _ in _by_score(ambiguous)])
+        return AutocorrectResult(original_query=query, suggested_queries=[q for q, _ in _by_score(ambiguous)[:MAX_SUGGESTIONS]])
     return None
