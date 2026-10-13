@@ -1130,7 +1130,7 @@ def fetch_user_subscriptions_impl(
         dict: {
             'subscribed_newsletters': [...],  # Array of stringids
             'learning_level': None,
-            'wants_marketing_emails': bool  # From UserProfile, corrected if AC has active memberships
+            'wants_marketing_emails': bool  # From UserProfile; a stale opt-out is corrected and saved if AC has active memberships
         }
 
     Raises:
@@ -1171,6 +1171,12 @@ def fetch_user_subscriptions_impl(
     # If the user previously opted out, but AC now shows any active membership,
     # the local opt-out flag is stale. Opt-out removes all AC lists, so any later
     # active list means the user opted back in through another channel.
+    #
+    # This has to happen here, not in the frontend: the list they joined may be
+    # one this form doesn't manage, and only managed lists are sent to the
+    # browser. It's saved, even though this is a read, so the profile records
+    # that the user wants marketing emails again. The write only ever goes from
+    # False to True, so repeating the request does no harm.
     if profile is not None and not wants_marketing_emails and existing_list_ids:
         logger.info(
             f"Correcting stale wants_marketing_emails=False for {email}; "
