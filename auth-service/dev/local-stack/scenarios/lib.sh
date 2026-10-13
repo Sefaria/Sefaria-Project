@@ -168,3 +168,23 @@ drill_reset() {
   dcompose restart envoy >/dev/null 2>&1
   authsvc_recreate
 }
+
+# --- steady request loops ------------------------------------------------------------------------------------------
+
+# probe_start NAME PORT PATH [KEYNAME] -> a background loop logging to $D11_DIR/probe/NAME.log (10 requests/s)
+probe_start() {
+  mkdir -p "$D11_DIR/probe"; rm -f "$D11_DIR/probe/$1.stop"
+  local key=(); [ -n "${4:-}" ] && key=(--key-file "$KEYS_DIR/$4.hdr")
+  python3 "$SCEN_DIR/probe.py" --port "$2" --path "$3" ${key[@]+"${key[@]}"} --interval "${PROBE_INTERVAL:-0.1}" \
+    --out "$D11_DIR/probe/$1.log" --stop-file "$D11_DIR/probe/$1.stop" &
+}
+probe_stop() { touch "$D11_DIR/probe/$1.stop"; sleep 0.3; }
+# probe_count NAME STATUS [FROM_TS] [TO_TS] -> number of logged requests with that status in the window
+probe_count() {
+  awk -v s="$2" -v a="${3:-0}" -v b="${4:-9e12}" '$2 == s && $1 >= a && $1 <= b {n++} END {print n + 0}' "$D11_DIR/probe/$1.log"
+}
+# probe_last NAME STATUS -> timestamp of the last request with that status, or 0
+probe_last() { awk -v s="$2" '$2 == s {t = $1} END {print t + 0}' "$D11_DIR/probe/$1.log"; }
+probe_first_after() { awk -v s="$2" -v a="$3" '$2 == s && $1 >= a {print $1; exit}' "$D11_DIR/probe/$1.log"; }
+probe_total() { wc -l <"$D11_DIR/probe/$1.log" | tr -d ' '; }
+fsub() { python3 -c "print('%.1f' % ($1 - $2))"; }
