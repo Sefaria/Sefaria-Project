@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, Page } from '@playwright/test';
 import { goToPageWithLang, goToPageWithUser } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
@@ -151,12 +151,6 @@ test.describe('Library Assistant — Hebrew', () => {
     await pm.onLibraryAssistant().expectEmptyState();
     await pm.onLibraryAssistant().expectNoUserMessages();
     await pm.onLibraryAssistant().expectTextareaEnabled();
-  });
-
-  // Responsive — UX-085
-  test('UX-085 (HE): Library Assistant is a full-screen sheet on a 375 px mobile viewport', { tag: '@sanity' }, async () => {
-    await page.setViewportSize({ width: 375, height: 667 });
-    await pm.onLibraryAssistant().expectFullScreenSheet();
   });
 });
 

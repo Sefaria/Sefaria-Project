@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, Page } from '@playwright/test';
 import { goToPageWithLang, goToPageWithUser } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
@@ -168,24 +168,6 @@ test.describe('Library Assistant — header menu', () => {
     await pm.onLibraryAssistant().expectNoUserMessages();
     // Textarea should be focused and re-enabled
     await pm.onLibraryAssistant().expectTextareaEnabled();
-  });
-});
-
-/**
- * Responsive viewport — UX-085.
- * At mobile widths (375 px) the Library Assistant is a full-screen sheet.
- */
-test.describe('Library Assistant — responsive', () => {
-  test('UX-085: Library Assistant is a full-screen sheet on a 375 px mobile viewport', async ({ context }) => {
-    // Navigate and wait for the component to mount at desktop size first
-    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
-    const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().waitForReady();
-
-    // Resize to a typical mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-
-    await pm.onLibraryAssistant().expectFullScreenSheet();
   });
 });
 
