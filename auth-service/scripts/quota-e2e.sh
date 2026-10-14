@@ -29,8 +29,19 @@ c=$(curl -s -o /dev/null -w '%{http_code}' "http://www.authpoc.cauldron.sefaria.
 
 # --- mint stub tokens -----------------------------------------------------------------------------------------------
 PORT=$((18100 + RANDOM % 800))
+PF=""; RESTORE_REPLICAS=""
+cleanup() {
+  # The drill scales the auth service to 0: put it back however the script ends.
+  if [ -n "$RESTORE_REPLICAS" ]; then
+    $K scale deploy/authpoc-auth-service --replicas="$RESTORE_REPLICAS" >/dev/null
+    $K rollout status deploy/authpoc-auth-service --timeout=180s >/dev/null 2>&1
+  fi
+  [ -n "$PF" ] && kill "$PF" 2>/dev/null
+  rm -rf "$TMP"
+}
+trap cleanup EXIT
+trap 'exit 130' INT TERM
 $K port-forward svc/mint-authpoc "$PORT":8081 >/dev/null 2>&1 & PF=$!
-trap 'kill $PF 2>/dev/null; rm -rf "$TMP"' EXIT
 sleep 3
 tok() { curl -s "http://127.0.0.1:$PORT/token?sub=$1&tier=$2" | python3 -c 'import json,sys;print(json.load(sys.stdin)["token"])'; }
 
@@ -57,7 +68,7 @@ T2=$(tok "e2e-quota2-$TS" developer); c=$(code -H "authorization: Bearer $T2" "$
   && ok "Q3 another project on the same tier -> 200 (counted per project)" || bad "Q3 other project -> $c"
 T3=$(tok "e2e-quota3-$TS" internal); codes=""
 for i in 1 2 3 4 5 6 7 8; do codes="$codes $(code -H "authorization: Bearer $T3" "$H/api/shape/Genesis")"; done
-echo "$codes" | grep -q 429 && bad "Q4 tier internal hit a limit:$codes" || ok "Q4 tier internal: 8 x 200, no monthly rule"
+[ "$codes" = " 200 200 200 200 200 200 200 200" ] && ok "Q4 tier internal: 8 x 200, no monthly rule" || bad "Q4 tier internal:$codes"
 
 # --- policies -------------------------------------------------------------------------------------------------------
 acc=$($K get clienttrafficpolicy authpoc -o jsonpath='{range .status.ancestors[*]}{.ancestorRef.sectionName}={.conditions[?(@.type=="Accepted")].status} {end}')
@@ -66,15 +77,23 @@ echo "$acc" | grep -q "=False" || [ -z "$acc" ] && bad "P1 ClientTrafficPolicy: 
 
 # --- header strip under fail-open (drill: auth service at 0 replicas) -------------------------------------------------
 if [ "$DRILL" = 1 ]; then
+  RESTORE_REPLICAS=$($K get deploy authpoc-auth-service -o jsonpath='{.spec.replicas}')
+  [ -n "$RESTORE_REPLICAS" ] && [ "$RESTORE_REPLICAS" != 0 ] || RESTORE_REPLICAS=1
   $K scale deploy/authpoc-auth-service --replicas=0 >/dev/null
   for i in $(seq 1 20); do [ -z "$($K get pods -l app=auth-service-authpoc -o name 2>/dev/null)" ] && break; sleep 3; done
   c=$(code -A "e2e-spoof-$TS" -H "x-sefaria-tier: internal" -H "x-sefaria-project: spoofed" -H "x-sefaria-meter: none" \
     -H "x-sefaria-auth-result: ok" "$H/api/shape/Numbers"); sleep 4
   L=$(nginx_line "e2e-spoof-$TS")
-  $K scale deploy/authpoc-auth-service --replicas=1 >/dev/null; $K rollout status deploy/authpoc-auth-service --timeout=180s >/dev/null 2>&1
-  if [ "$c" = 200 ] && ! echo "$L" | grep -qE 'internal|spoofed'; then
-    ok "S1 auth service down: fail-open 200, spoofed x-sefaria-* stripped at the listener"
-  else bad "S1 strip under fail-open -> $c; nginx: ${L:0:400}"; fi
+  $K scale deploy/authpoc-auth-service --replicas="$RESTORE_REPLICAS" >/dev/null
+  $K rollout status deploy/authpoc-auth-service --timeout=180s >/dev/null 2>&1; RESTORE_REPLICAS=""
+  # With the auth service down nothing stamps identity, so all four fields must be empty in this request's log line.
+  fields=$(printf '%s' "$L" | python3 -c 'import json,sys
+try: d=json.loads(sys.stdin.read())
+except Exception: print("no-log-line"); sys.exit()
+print(" ".join("%s=%s" % (k, d.get(k, "<missing>")) for k in ("sefariaTier","sefariaProject","sefariaMeter","sefariaAuthResult")))')
+  if [ "$c" = 200 ] && [ "$fields" = "sefariaTier= sefariaProject= sefariaMeter= sefariaAuthResult=" ]; then
+    ok "S1 auth service down: fail-open 200, all four spoofed x-sefaria-* headers stripped at the listener"
+  else bad "S1 strip under fail-open -> $c; nginx fields: $fields"; fi
   $K get deploy authpoc-auth-service -o jsonpath='{.status.readyReplicas}' | grep -q 1 && ok "S2 auth service restored (1/1)" \
     || bad "S2 auth service not ready after the drill"
 else
