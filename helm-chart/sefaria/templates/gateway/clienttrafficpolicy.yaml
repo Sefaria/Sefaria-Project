@@ -20,6 +20,6 @@ spec:
   # any filter, so a fail-open pass (auth service down or slow) cannot carry a spoofed tier or project upstream.
   headers:
     earlyRequestHeaders:
-      remove: [x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result]
+      remove: [x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result, x-sefaria-meter]
   {{- end }}
 {{- end }}
