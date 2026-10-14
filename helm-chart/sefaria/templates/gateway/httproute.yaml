@@ -7,7 +7,7 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   parentRefs:
-    {{- if .Values.gateway.redirectHttpToHttps }}
+    {{- if include "sefaria.httpsOnly" . }}
     # The app is served on HTTPS only; port 80 answers with redirects (httproute-http-redirect.yaml).
     {{- range splitList "," (include "sefaria.gatewayListenerNames" (dict "root" $ "proto" "https")) }}
     - name: {{ $.Values.deployEnv }}

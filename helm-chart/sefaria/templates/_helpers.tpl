@@ -287,6 +287,14 @@ Gateway listener names for one protocol ("http" or "https"), comma-separated, in
 Policies and routes that must reach only some listeners take their sectionNames from here, so they cannot drift from
 the Gateway. Call with (dict "root" $ "proto" "https").
 */}}
+{{/*
+"true" when the app must be served on HTTPS only (port 80 answers with a redirect): gateway.redirectHttpToHttps, or
+automatically whenever authService.enabled, so spoofed x-sefaria-* headers cannot reach the app over plain HTTP.
+*/}}
+{{- define "sefaria.httpsOnly" -}}
+{{- if or .Values.gateway.redirectHttpToHttps .Values.authService.enabled }}true{{- end -}}
+{{- end }}
+
 {{- define "sefaria.gatewayListenerNames" -}}
 {{- $root := .root -}}
 {{- $proto := .proto -}}
