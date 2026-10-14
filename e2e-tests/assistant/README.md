@@ -88,7 +88,7 @@ All locators pierce the open shadow root. Use role/label over CSS when possible.
 | Send button | `getByRole('button', { name: <send> })` | disabled when textarea is empty |
 | User message bubble | `page.locator('.message.user')` | use `.last()` for the most recent |
 | Assistant message bubble | `page.locator('.message.assistant')` | use `.last()` for the most recent |
-| Thinking indicator | `page.locator('.thinking-content')` | visible while request is in-flight; text is `Thinking` in both languages |
+| Thinking indicator | `page.locator('.lc-thinking-block')` | visible while request is in-flight; its text rotates through several messages (see §11) |
 | Container (mode class) | `page.locator('lc-chatbot .lc-chatbot-container')` | `mode-floating`/`mode-docked` + `is-open`; `interface-hebrew` class in HE |
 
 `<name>` placeholders above are the per-language strings from §11. If you ever need something the role/label approach can't reach, fall back to `page.evaluate(() => document.querySelector('lc-chatbot').shadowRoot.querySelector(...))`. Don't add brittle CSS to the page object for it.
@@ -112,7 +112,7 @@ Method map by UX ID:
 | UX-023 (send enabled when has text) | `ensureOpen()`, `typeMessage()`, `expectSendEnabled()` |
 | UX-024 (Enter sends) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectUserMessageShown()`, `expectInputCleared()`, `waitForResponse()` |
 | UX-026 (send button sends) | `ensureOpen()`, `typeMessage()`, `sendViaButton()`, `expectUserMessageShown()`, `expectInputCleared()`, `waitForResponse()` |
-| UX-027 (input disabled during send) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectInputDisabledDuringSend()`, `waitForResponse()` |
+| UX-027 (input disabled, Send replaced by Stop during send) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectInputDisabledAndStopShownDuringSend()`, `waitForResponse()` |
 | UX-036 (thinking indicator appears then clears) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectThinkingVisible()`, `waitForResponse()`, `expectThinkingGone()` |
 | UX-057 (header menu opens with expected items) | `openHeaderMenu()`, `expectMenuVisible()`, `expectMenuItemTexts([...])` |
 | UX-058 (outside click closes menu) | `openHeaderMenu()`, `clickOutsideMenu()`, `expectMenuHidden()` |
@@ -278,10 +278,11 @@ The component runs a `svelte-i18n` build (`interface-lang="en"` / `"he"`) and re
 | More options | `assistant.header.moreOptions` | `More options` |
 | Prompt input (`aria`) | `assistant.input.aria` | `Prompt input` |
 | Send (`aria`) | `assistant.input.send.tooltip` | `Send` |
+| Stop (`aria`), replaces Send while an answer is being written | `assistant.stop.aria` | `Stop` |
 | Menu items, panel floating (in order) | `assistant.history.header.new.tooltip`, `assistant.menu.dock`, `assistant.menu.feedback`, `assistant.menu.help`, `assistant.menu.optout` | `New chat` / `Maximize & move to sidebar` / `Give feedback` / `Help` / `Disable in settings` |
 | Settings menu item (moderator-only) | `assistant.menu.settings` | `Settings` |
 | Restart menu item (`aria`) | `assistant.menu.restart.aria` | `Restart convo` |
-| Thinking indicator text | — | `Thinking` *(English in both languages; `expectThinkingVisible()` is intentionally language-invariant)* |
+| Thinking indicator text (`.lc-thinking-block`) | `assistant.loading.initial`, then `assistant.thinking.array.NN` in turn, then `assistant.thinking.final` | `Thinking`, then `Interpreting your question`, `Searching the library`, … `Synthesizing response` *(`expectThinkingVisible()` accepts any of them)* |
 
 **Menu & moderator status.** The `Settings` item renders only for Django-**staff** accounts (the chatbot's `is-moderator` branch) — so the menu is **5 items** for a normal account, **6** (Settings first) for staff. The dock item names the *other* mode (`assistant.menu.dock` while floating, `assistant.menu.undock` while docked), so call `ensureFloating()` before checking the list. `expectedMenuTexts(isModerator)` builds the floating-mode list; pass `BROWSER_SETTINGS.<profile>.isModerator`. `enLAUser` is staff (`true`); `heLAUser` tracks the real `qa+automationLAHebrew` account — flip its `isModerator` flag in [../globals.ts](../globals.ts) if that account's staff status changes.
 

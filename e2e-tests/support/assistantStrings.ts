@@ -64,6 +64,17 @@ export function assistantString(key: string, language: string): string {
   );
 }
 
+/**
+ * Every `assistant.*` key in ai-chatbot's English locale file that matches `pattern`,
+ * sorted. For lists the widget builds from numbered keys (e.g. the rotating thinking
+ * messages, `assistant.thinking.array.NN`), so a new key added in Weblate is picked up.
+ */
+export function assistantKeys(pattern: RegExp): string[] {
+  const file = path.join(AI_CHATBOT_REPO_PATH, 'src', 'i18n', 'locales', 'en.json');
+  const catalog = loadCatalog(file, 'Set AI_CHATBOT_REPO_PATH in e2e-tests/.env to the folder where the ai-chatbot repo is checked out.');
+  return Object.keys(catalog).filter((key) => pattern.test(key)).sort();
+}
+
 /** Text for a Sefaria interface key (static/js/sefaria/i18n/interface/*.json). */
 export function sefariaString(key: string, language: string): string {
   const dir = path.join(SEFARIA_PROJECT_ROOT, 'static', 'js', 'sefaria', 'i18n', 'interface');

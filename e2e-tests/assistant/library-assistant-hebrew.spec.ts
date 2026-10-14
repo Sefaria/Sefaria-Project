@@ -90,12 +90,12 @@ test.describe('Library Assistant — Hebrew', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-027 (HE): Input and send button are disabled while awaiting a response', async () => {
+  test('UX-027 (HE): Input is disabled and Send is replaced by Stop while awaiting a response', async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> תן לי ברכה קצרה');
     await pm.onLibraryAssistant().sendViaEnter();
-    await pm.onLibraryAssistant().expectInputDisabledDuringSend();
+    await pm.onLibraryAssistant().expectInputDisabledAndStopShownDuringSend();
     await pm.onLibraryAssistant().waitForResponse();
   });
 

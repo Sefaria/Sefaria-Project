@@ -860,7 +860,15 @@ export class LibraryAssistantQ4Page extends HelperBase {
   async expectHistoryFillsSheetAndConversationHidden(): Promise<void> {
     await expect(this.historyPanel).toBeVisible({ timeout: t(5000) });
     await this.expectFillsSheet(this.historyPanel, 'chat history');
-    await expect(this.conversation).toBeHidden({ timeout: t(5000) });
+    // On phones the history is laid over the conversation (which keeps its scroll
+    // position underneath), so the conversation is covered rather than hidden, and
+    // Playwright's toBeHidden() doesn't count covered as hidden.
+    const panel = await this.historyPanel.elementHandle();
+    await expect.poll(() => this.conversation.evaluate((log, historyEl) => {
+      const r = log.getBoundingClientRect();
+      const top = (log.getRootNode() as ShadowRoot).elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      return !!top && !!historyEl && historyEl.contains(top);
+    }, panel), { timeout: t(5000), message: 'the chat history should cover the conversation' }).toBe(true);
   }
 
   async pickSavedChat(title: string): Promise<void> {
@@ -1001,13 +1009,35 @@ export class LibraryAssistantQ4Page extends HelperBase {
     return (await this.box(this.cookieBanner)).height;
   }
 
-  /** LA-COOKIE-1 / LA-COOKIE-3: the Ask button's bottom edge is `gap` px above the banner's top edge. */
+  /**
+   * LA-COOKIE-1: make the banner's text wrap onto more lines at the story's 393px width
+   * by adding words to it, the way a longer translation or a copy edit would. At 393px
+   * today's text fits on three lines, so it never wraps further on its own.
+   */
+  async lengthenCookieBannerText(): Promise<void> {
+    await this.cookieBanner.evaluate((banner) => {
+      // The banner holds one span per interface language; only the shown one has a size.
+      const shown = Array.from(banner.children).find((c) => (c as HTMLElement).offsetHeight > 0) ?? banner;
+      shown.insertBefore(document.createTextNode('Extra words standing in for a longer version of this message. '.repeat(3)), shown.firstChild);
+    });
+  }
+
+  /**
+   * LA-COOKIE-1 / LA-COOKIE-3: the Ask button's bottom edge is `gap` px above the banner's top edge.
+   * The button slides into place over 0.2s (and appears at the bottom edge after the sheet
+   * closes), so keep measuring until it has settled rather than reading it mid-slide.
+   */
   async expectAskButtonAboveCookieBanner(gap: number): Promise<void> {
     await expect(this.askButton).toBeVisible({ timeout: t(5000) });
-    const banner = await this.box(this.cookieBanner);
-    const button = await this.box(this.askButton);
-    const measured = banner.y - (button.y + button.height);
-    expect(Math.abs(measured - gap), `gap between Ask button and banner is ${measured}px`).toBeLessThanOrEqual(PX);
+    let measured = NaN;
+    await expect.poll(async () => {
+      const banner = await this.box(this.cookieBanner);
+      const button = await this.box(this.askButton);
+      measured = banner.y - (button.y + button.height);
+      return Math.abs(measured - gap);
+    }, { timeout: t(3000), message: `the Ask button should settle ${gap}px above the cookie banner` })
+      .toBeLessThanOrEqual(PX)
+      .catch((e) => { throw new Error(`gap between Ask button and banner is ${measured}px\n${e.message}`); });
   }
 
   /** LA-COOKIE-2: tap OK and record how the Ask button moves down. */

@@ -59,18 +59,24 @@ export function analyzeBounces(samples: RectSample[]): BounceReport {
   });
   report.riseCount = riseStarts.length;
 
+  // Walk back from a big rise to the moment it left its resting place.
+  const leaveRest = (idx: number) => {
+    while (idx > 0 && pts[idx - 1].up > 0.5) idx--;
+    return idx;
+  };
+
   riseStarts.forEach((startIdx, k) => {
-    const nextRise = k + 1 < riseStarts.length ? riseStarts[k + 1] : pts.length;
-    // Walk back to the moment it left its resting place.
-    let leave = startIdx;
-    while (leave > 0 && pts[leave - 1].up > 0.5) leave--;
+    // Stop where the next bounce leaves rest, not where it reaches 4px: the climb up to
+    // 4px belongs to the next bounce and would otherwise be counted as this one's hop.
+    const nextLeave = k + 1 < riseStarts.length ? leaveRest(riseStarts[k + 1]) : pts.length;
+    const leave = leaveRest(startIdx);
     // Past the big peak: first time it comes back down below 1px.
     let i = startIdx;
-    while (i < nextRise && pts[i].up >= 1) i++;
-    // Then the hop: the highest point before the next big rise.
+    while (i < nextLeave && pts[i].up >= 1) i++;
+    // Then the hop: the highest point before the next bounce starts.
     let hop = 0;
     let hopIdx = -1;
-    for (let j = i; j < nextRise; j++) {
+    for (let j = i; j < nextLeave; j++) {
       if (pts[j].up > hop) { hop = pts[j].up; hopIdx = j; }
     }
     report.hopHeights.push(hop >= 1 ? hop : 0);

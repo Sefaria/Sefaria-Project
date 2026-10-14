@@ -46,8 +46,12 @@ const CHROMIUM_ONLY = 'Harness limitation: Playwright can only send touch drags 
 
 const QUESTION = 'Where does the Talmud discuss Hanukkah lights?';
 const ANSWER_WITH_LINK = `The main discussion is in [Shabbat 23b](${SHABBAT_23B}).`;
+// Real answers arrive as HTML with these classes (ai-chatbot prompts/prompt_text/response_format.md),
+// and the widget's heading size and spacing hang off them, so markdown `###` would not do.
 const ANSWER_WITH_HEADING =
-  'Here is some text before the heading.\n\n### Heading for the test\n\nHere is some text under the heading.';
+  '<p class="response-generic">Here is some text before the heading.</p>' +
+  '<h3 class="response-title">Heading for the test</h3>' +
+  '<p class="response-generic">Here is some text under the heading.</p>';
 const LATE_ANSWER = 'Hanukkah lights are discussed in the Talmud (late answer).';
 const SAVED_CHAT: SavedChat = {
   sessionId: 'sess_mock_saved_1',
@@ -319,9 +323,9 @@ test.describe('Library Assistant phone — cookie banner', () => {
   test('LA-COOKIE-1: The Ask button floats 16px above the banner, even when the banner text wraps', PHONE_TAGS, async () => {
     await la.expectAskButtonAboveCookieBanner(16);
 
-    // A narrower phone makes the banner's text wrap onto more lines.
+    // Longer banner text wraps onto more lines, still at the story's 393px width.
     const heightBefore = await la.cookieBannerHeight();
-    await page.setViewportSize({ width: 320, height: PHONE.height });
+    await la.lengthenCookieBannerText();
     await expect.poll(() => la.cookieBannerHeight(), { timeout: t(5000), message: 'the banner text should wrap to more lines' })
       .toBeGreaterThan(heightBefore);
     await la.expectAskButtonAboveCookieBanner(16);

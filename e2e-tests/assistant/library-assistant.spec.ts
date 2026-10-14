@@ -87,12 +87,12 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-027: Input and send button are disabled while awaiting a response', { tag: '@sanity' }, async () => {
+  test('UX-027: Input is disabled and Send is replaced by Stop while awaiting a response', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Give me a short greeting');
     await pm.onLibraryAssistant().sendViaEnter();
-    await pm.onLibraryAssistant().expectInputDisabledDuringSend();
+    await pm.onLibraryAssistant().expectInputDisabledAndStopShownDuringSend();
     await pm.onLibraryAssistant().waitForResponse();
   });
 
