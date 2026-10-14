@@ -32,9 +32,12 @@ def main():
         parser.error('query must be a JSON object')
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sefaria.settings')
+    from django.conf import settings
+    # Keep bootstrap identical across fixture sizes; measured LinkSet queries below
+    # use the requested visibility mode. This does not test public library startup.
+    settings.SHOW_ADMIN_ONLY_BOOKS = True
     import django
     django.setup()
-    from django.conf import settings
     from bson import BSON
     from sefaria.model import LinkSet
     from sefaria.model import text
