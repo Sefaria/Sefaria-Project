@@ -993,7 +993,7 @@ $(function() {
   var indent_img = (sjs.interfaceLang == "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
 
   var ownerControls = "<div id='sourceControls' class='sideControls'>" +
-              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/icons/copy.svg'></div>" +
               "<div class='removeSource' title='"+_("collection_page.remove")+"'><img src='/static/img/remove.png'></div>" +
               "<div class='moveSourceRight' title='"+_("sheets.indent_source")+"'><img src='"+indent_img+"'></div>" +
               "<div class='moveSourceLeft' title='"+_("sheets.outdent_source")+"'><img src='"+outdent_img+"'></div>" +
@@ -1002,16 +1002,16 @@ $(function() {
             "</div>";
 
   var adderControls = "<div id='sourceControls' class='sideControls'>" +
-              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/icons/copy.svg'></div>" +
               "<div class='moveSourceRight' title='"+_("sheets.indent_source")+"'><img src='"+indent_img+"'></div>" +
               "<div class='moveSourceLeft' title='"+_("sheets.outdent_source")+"'><img src='"+outdent_img+"'></div>" +
             "</div>";
   var viewerControls = "<div id='sourceControls' class='sideControls'>" +
-              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/icons/copy.svg'></div>" +
             "</div>";
 
   var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
-              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/icons/copy.svg'></div>" +
               "<div class='removeSource' title='"+_("collection_page.remove")+"'><img src='/static/img/remove.png'></div>" +
               "<div class='moveSourceRight' title='"+_("sheets.indent_source")+"'><img src='"+indent_img+"'></div>" +
               "<div class='moveSourceLeft' title='"+_("sheets.outdent_source")+"'><img src='"+outdent_img+"'></div>" +

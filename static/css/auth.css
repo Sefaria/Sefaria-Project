@@ -266,9 +266,9 @@
   color: var(--medium-grey-legacy);
 }
 .sefaria-provider-button-icon {
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
 }
 
 .sefaria-provider-sdk-overlay {

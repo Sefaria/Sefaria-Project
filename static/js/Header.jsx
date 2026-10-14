@@ -469,7 +469,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
         </>
       }
       <DonateLink classes={"blue"} source="MobileNavMenu">
-        <img src="/static/img/heart.png" alt={Sefaria._("common.donation_icon")} />
+        <img src="/static/icons/heart.svg" alt={Sefaria._("common.donation_icon")} />
         <InterfaceText>header.donate</InterfaceText>
       </DonateLink>
       <div className="mobileAccountLinks">
