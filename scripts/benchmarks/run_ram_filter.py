@@ -45,15 +45,22 @@ worker = 'TEST_SOURCE = ' + repr((ROOT/'sefaria/model/tests/ram_link_set_test.py
 (a.output/'worker.py').write_text(worker)
 (a.output/'experiment.json').write_text(json.dumps({'counts':a.counts, 'titles':config['BOOK_TITLES'], 'pod':pod['metadata']['name'], 'containers':pod['status']['containerStatuses'], 'source_sha256':{k:hashlib.sha256(v.encode()).hexdigest() for k,v in sources.items()}, 'timing':'construction + fetch + decode + RAM filtering if selected + hydration; cache refresh separate; median of 6 after warm-up'}, indent=2))
 def run(name, source, options=()):
+    events = []
     with (a.output/(name+'.jsonl')).open('w') as out, (a.output/(name+'.stderr')).open('w') as err:
         proc = subprocess.Popen(command + list(options), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=err, text=True)
         proc.stdin.write(source); proc.stdin.close()
         for line in proc.stdout:
             out.write(line); out.flush()
             if line.startswith('BENCH='):
+                events.append(json.loads(line[6:]))
                 print(name, line[6:].strip(), flush=True)
         if proc.wait():
             raise RuntimeError(f'{name} failed; see {a.output/(name+".stderr")}')
+    if name.startswith('count-'):
+        # A successful transport exit alone does not establish a complete run.
+        assert sum(r['kind'] == 'trial' for r in events) == 63, 'Incomplete trial stream: ' + name
+        assert sum(r['kind'] == 'summary' for r in events) == 9, 'Incomplete summaries: ' + name
+        assert any(r['kind'] == 'pagination_tests' and r['passed'] for r in events), 'Missing correctness checks: ' + name
 fixture = (a.fixture_dir/'set_hidden_books_fixture.py').read_text()
 try:
     for count in a.counts:
