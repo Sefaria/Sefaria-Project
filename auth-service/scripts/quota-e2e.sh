@@ -84,9 +84,15 @@ if [ "$DRILL" = 1 ]; then
   c=$(code -A "e2e-spoof-$TS" -H "x-sefaria-tier: internal" -H "x-sefaria-project: spoofed" -H "x-sefaria-meter: none" \
     -H "x-sefaria-auth-result: ok" "$H/api/shape/Numbers"); sleep 4
   L=$(nginx_line "e2e-spoof-$TS")
-  $K scale deploy/authpoc-auth-service --replicas="$RESTORE_REPLICAS" >/dev/null
-  $K rollout status deploy/authpoc-auth-service --timeout=180s >/dev/null 2>&1; RESTORE_REPLICAS=""
-  # With the auth service down nothing stamps identity, so all four fields must be empty in this request's log line.
+  # Clear the restore marker only once the auth service is back; otherwise the EXIT trap retries it.
+  if $K scale deploy/authpoc-auth-service --replicas="$RESTORE_REPLICAS" >/dev/null \
+     && $K rollout status deploy/authpoc-auth-service --timeout=180s >/dev/null 2>&1; then
+    RESTORE_REPLICAS=""
+  else
+    bad "S0 could not restore the auth service to $RESTORE_REPLICAS replicas; retrying on exit"
+  fi
+  # With the auth service down nothing stamps identity, so all four fields must be empty in this request's log line
+  # (the log format uses escape=json, which writes an absent header as "", not "-").
   fields=$(printf '%s' "$L" | python3 -c 'import json,sys
 try: d=json.loads(sys.stdin.read())
 except Exception: print("no-log-line"); sys.exit()
