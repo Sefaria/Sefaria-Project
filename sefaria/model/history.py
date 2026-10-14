@@ -29,6 +29,17 @@ from sefaria.system.database import db
 from sefaria.system.progress_context import report_progress
 
 
+def diff_strings(old_string, new_string):
+    """Returns (diff_html, revert_patch) for two plain/HTML strings: an HTML-rendered
+    forward diff for display, and a patch that turns new_string back into old_string."""
+    backwards_diff = dmp.diff_main(new_string, old_string)
+    revert_patch = dmp.patch_toText(dmp.patch_make(backwards_diff))
+    forwards_diff = dmp.diff_main(old_string, new_string)
+    dmp.diff_cleanupSemantic(forwards_diff)
+    diff_html = dmp.diff_prettyHtml(forwards_diff)
+    return diff_html, revert_patch
+
+
 def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
 
     if isinstance(new_text, list):
@@ -45,13 +56,7 @@ def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
     if old_text == new_text:
         return
 
-    # create a patch that turns the new version back into the old
-    backwards_diff = dmp.diff_main(new_text, old_text)
-    patch = dmp.patch_toText(dmp.patch_make(backwards_diff))
-    # get html displaying edits in this change.
-    forwards_diff = dmp.diff_main(old_text, new_text)
-    dmp.diff_cleanupSemantic(forwards_diff)
-    diff_html = dmp.diff_prettyHtml(forwards_diff)
+    diff_html, patch = diff_strings(old_text, new_text)
 
     log = {
         "ref": oref.normal(),
@@ -139,6 +144,12 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
 
     if kind == "index":
         log['title'] = new_dict["title"]
+
+    if kind == "lexicon_entry":
+        log['method'] = kwargs.get("method", "Site")
+        for key in ("ref", "diff_html", "revert_patch", "version", "language"):
+            if kwargs.get(key):
+                log[key] = kwargs[key]
 
     return History(log).save()
 
