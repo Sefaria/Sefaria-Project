@@ -68,24 +68,36 @@ export class AccountSettingsPage extends HelperBase {
     await expect(option).toHaveClass(/on/);
   }
 
+  async selectLibraryAssistant(enabled: boolean) {
+    const option = this.page.locator(`#libraryAssistantSetting .toggleOption[data-value="${enabled}"]`);
+    await option.click();
+    await expect(option).toHaveClass(/on/);
+  }
+
   async selectTextualCustom(custom: 'sephardi' | 'ashkenazi') {
     const option = this.textualCustomSection.locator(`.toggleOption[data-value="${custom}"]`);
     await option.click();
     await expect(option).toHaveClass(/on/);
   }
 
+  /**
+   * Saves with the last Save button and accepts the "Settings Saved" alert. The dialog listener
+   * is registered before the click: Playwright dismisses a dialog nobody listens for, so a
+   * listener added afterwards never sees it.
+   */
   async saveSettings() {
-    // Click the last save button (there are multiple)
+    const saved = this.page.waitForResponse(
+      r => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/profile',
+      { timeout: t(30000) },
+    );
+    const dialog = this.page.waitForEvent('dialog', { timeout: t(30000) });
     await this.saveButtons.last().click();
-
-    // Wait for alert dialog to appear and handle it
-    this.page.once('dialog', async dialog => {
-      expect(dialog.message()).toMatch(/Settings Saved|הגדרות נשמרו/i);
-      await dialog.accept();
-    });
-
-    // Wait a bit for the save operation to complete
-    await this.page.waitForTimeout(t(1000));
+    const response = await saved;
+    expect(response.status()).toBe(200);
+    const alert = await dialog;
+    const message = alert.message();
+    await alert.accept();
+    expect(message).toMatch(/Settings Saved|הגדרות נשמרו/i);
   }
 
   async verifyPageLoaded() {

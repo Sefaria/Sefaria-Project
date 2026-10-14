@@ -7,7 +7,15 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   parentRefs:
+    {{- if include "sefaria.httpsOnly" . }}
+    # The app is served on HTTPS only; port 80 answers with redirects (httproute-http-redirect.yaml).
+    {{- range splitList "," (include "sefaria.gatewayListenerNames" (dict "root" $ "proto" "https")) }}
+    - name: {{ $.Values.deployEnv }}
+      sectionName: {{ . }}
+    {{- end }}
+    {{- else }}
     - name: {{ .Values.deployEnv }}
+    {{- end }}
   hostnames:
     {{- range .Values.domains.root }}
     {{- $code := .code }}
@@ -95,6 +103,16 @@ spec:
       backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
+    {{- if and .Values.authService.enabled .Values.authService.legacyBodyArm.enabled }}
+    - name: legacy-body-auth
+      matches:
+        - path:
+            type: PathPrefix
+            value: {{ .Values.authService.legacyBodyArm.pathPrefix }}
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    {{- end }}
     - backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
