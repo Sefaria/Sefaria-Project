@@ -3,7 +3,7 @@
  *
  * The breakpoint is unknown during SSR, so the server must render both the mobile and the desktop headers
  * and let CSS media queries pick one. Otherwise narrow screens briefly show the desktop header before the
- * client renders (sc-47529).
+ * client renders.
  */
 import React from "react";
 import ReactDOMServer from "react-dom/server";

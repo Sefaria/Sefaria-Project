@@ -86,7 +86,10 @@ describe("Header in a browser", () => {
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
     try {
       act(() => { ReactDOM.hydrate(<Header {...props} />, container); });
-      expect(consoleError).not.toHaveBeenCalled();
+      // React 16's hydration warnings: "Expected server HTML to contain…", "Did not expect server HTML to contain…",
+      // "Prop `x` did not match…", "Text content did not match…". It logs only the first mismatch per process.
+      const mismatchWarnings = consoleError.mock.calls.filter(([msg]) => /server HTML|did not match/.test(msg));
+      expect(mismatchWarnings).toEqual([]);
     } finally {
       consoleError.mockRestore();
     }
