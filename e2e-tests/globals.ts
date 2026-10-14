@@ -38,6 +38,15 @@ export const testHeLAUser = {
     password: process.env.PLAYWRIGHT_LA_USER_HE_PASSWORD ?? '',
 };
 
+export const testLAOffUser = {
+    // An account that has turned the Library Assistant OFF in its settings. Used by
+    // the story tests (e2e-tests/stories) for "assistant turned off" scenarios, so no
+    // test ever has to flip a real account's setting. Optional: without credentials
+    // global-setup skips it and only those scenarios fail, with a clear message.
+    email: process.env.PLAYWRIGHT_LA_OFF_USER_EMAIL ?? '',
+    password: process.env.PLAYWRIGHT_LA_OFF_USER_PASSWORD ?? '',
+};
+
 export const AUTH_PATHS = {
     enAdminFile: `auth_english_admin.json`,
     heAdminFile: `auth_hebrew_admin.json`,
@@ -45,6 +54,7 @@ export const AUTH_PATHS = {
     heUserFile: `auth_hebrew_user.json`,
     enLAUserFile: `auth_english_la_user.json`,
     heLAUserFile: `auth_hebrew_la_user.json`,
+    enLAOffUserFile: `auth_english_la_off_user.json`,
 }
 
 export const BROWSER_SETTINGS = {
@@ -95,6 +105,12 @@ export const BROWSER_SETTINGS = {
         // now staff, so the LA More-options menu renders the extra "Settings" item
         // first (5 items total, like enLAUser) — the chatbot's `is-moderator` branch.
         isModerator: true,
+    },
+    // Library Assistant turned off in the account's settings (see testLAOffUser).
+    enLAOffUser: {
+        file: AUTH_PATHS.enLAOffUserFile,
+        lang: LANGUAGES.EN,
+        user: testLAOffUser,
     },
 };
 

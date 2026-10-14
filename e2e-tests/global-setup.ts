@@ -38,6 +38,7 @@ const userGroups: { credentials: Credentials; profiles: Profile[]; label: string
   { label: 'testAdminUser', credentials: creds('PLAYWRIGHT_SUPERUSER_EMAIL', 'PLAYWRIGHT_SUPERUSER_PASSWORD'), profiles: [BROWSER_SETTINGS.enAdmin,  BROWSER_SETTINGS.heAdmin], site: 'EN' },
   { label: 'testLAUser',    credentials: creds('PLAYWRIGHT_LA_USER_EMAIL', 'PLAYWRIGHT_LA_USER_PASSWORD'),     profiles: [BROWSER_SETTINGS.enLAUser], site: 'EN' },
   { label: 'testHeLAUser',  credentials: creds('PLAYWRIGHT_LA_USER_HE_EMAIL', 'PLAYWRIGHT_LA_USER_HE_PASSWORD'), profiles: [BROWSER_SETTINGS.heLAUser], site: 'IL' },
+  { label: 'testLAOffUser', credentials: creds('PLAYWRIGHT_LA_OFF_USER_EMAIL', 'PLAYWRIGHT_LA_OFF_USER_PASSWORD'), profiles: [BROWSER_SETTINGS.enLAOffUser], site: 'EN' },
 ];
 
 async function loginAndCaptureState(baseURL: string, credentials: Credentials) {

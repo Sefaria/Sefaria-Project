@@ -1,0 +1,44 @@
+name: Story tests guard
+# Product's stories (.feature) and their step definitions are locked while a
+# feature is implemented (e2e-tests/stories/README.md). A PR that changes them
+# needs the `test-amendment` label (or `story-tests`, for the PRs that write the
+# tests in the first place). Removing or adding status tags (@fail, @manual) in
+# .feature files is always allowed, so implementers can mark scenarios green.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    paths:
+      - 'e2e-tests/stories/features/**'
+      - 'e2e-tests/stories/steps/**'
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check story test changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          if [[ ",$LABELS," == *",test-amendment,"* || ",$LABELS," == *",story-tests,"* ]]; then
+            echo "Labelled ($LABELS): story test changes allowed; a CODEOWNER must approve."
+            exit 0
+          fi
+          fail=0
+          if git diff --name-only "$BASE_SHA"...HEAD -- 'e2e-tests/stories/steps/' | grep -q .; then
+            echo "::error::Step definitions changed. These say what each story checks and are locked during implementation. Add the 'test-amendment' label with a reason (story ambiguous, story wrong, cannot be tested, step bug) and get a CODEOWNER's approval."
+            fail=1
+          fi
+          # In .feature files, only whole lines of tags may change.
+          bad=$(git diff -U0 "$BASE_SHA"...HEAD -- 'e2e-tests/stories/features/' \
+            | grep -E '^[+-]' | grep -vE '^(\+\+\+|---) ' \
+            | grep -vE '^[+-][[:space:]]*(@[A-Za-z0-9_:-]+[[:space:]]*)+$' || true)
+          if [[ -n "$bad" ]]; then
+            echo "::error::Story text changed. Only tag lines (e.g. removing @fail) may change without the 'test-amendment' label:"
+            echo "$bad"
+            fail=1
+          fi
+          exit $fail
