@@ -503,7 +503,8 @@ def parse_metadata_from_variable(
         variable (dict): Personalization variable object with 'content' field
 
     Returns:
-        dict or None: Parsed metadata object, or None if parsing fails
+        dict or None: Parsed metadata object, or None if parsing fails or the
+        JSON isn't an object
     """
     if not variable or "content" not in variable:
         return None
@@ -512,13 +513,19 @@ def parse_metadata_from_variable(
     if not content:
         return None
 
+    tag: str = variable.get("tag", "UNKNOWN")
     try:
-        metadata: dict[str, Any] = json.loads(content)
-        return metadata
+        metadata: Any = json.loads(content)
     except json.JSONDecodeError as e:
-        tag: str = variable.get("tag", "UNKNOWN")
         logger.warning(f"Failed to parse JSON content for variable '{tag}': {e}")
         return None
+    # The content is typed by hand in ActiveCampaign. Valid JSON that isn't an
+    # object ([], "x", 5, true) would make get_newsletter_list fail for every
+    # list when it calls .get() on it, so skip just this one.
+    if not isinstance(metadata, dict):
+        logger.warning(f"JSON content for variable '{tag}' is not an object")
+        return None
+    return metadata
 
 
 def get_all_ac_list_ids() -> list[str]:

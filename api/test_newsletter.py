@@ -68,6 +68,12 @@ class TestParseMetadataFromVariable:
         variable = {"tag": "list_1_meta", "content": "not valid json"}
         assert newsletter_service.parse_metadata_from_variable(variable) is None
 
+    @pytest.mark.parametrize("content", ["[]", '"x"', "5", "true"])
+    def test_parse_json_that_is_not_an_object(self, content):
+        """Return None for valid JSON that isn't an object, since callers read it as a dict"""
+        variable = {"tag": "list_1_meta", "content": content}
+        assert newsletter_service.parse_metadata_from_variable(variable) is None
+
     def test_parse_missing_content_field(self):
         """Return None when content field is missing"""
         assert (
@@ -369,6 +375,31 @@ class TestGetNewsletterList:
                 "tag": "list_2_meta",
                 "name": "Bad JSON",
                 "content": "not valid json at all",
+            },
+        ]
+        newsletters = newsletter_service.get_newsletter_list()
+
+        assert len(newsletters) == 1
+        assert newsletters[0]["id"] == "1"
+
+    @mock.patch("api.newsletter_service.get_all_lists")
+    @mock.patch("api.newsletter_service.get_all_personalization_variables")
+    def test_skips_lists_whose_metadata_is_not_an_object(self, mock_variables, mock_lists):
+        """One list whose metadata is a JSON array is skipped, and the other lists still load"""
+        mock_lists.return_value = [
+            {"id": "1", "stringid": "sefaria_news", "name": "Sefaria News"},
+            {"id": "2", "stringid": "array_metadata", "name": "Array Metadata"},
+        ]
+        mock_variables.return_value = [
+            {
+                "tag": "list_1_meta",
+                "name": "Sefaria News",
+                "content": '{"icon": "news-and-resources.svg", "language": "english"}',
+            },
+            {
+                "tag": "list_2_meta",
+                "name": "Array Metadata",
+                "content": "[]",
             },
         ]
         newsletters = newsletter_service.get_newsletter_list()
