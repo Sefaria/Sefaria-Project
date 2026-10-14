@@ -539,13 +539,13 @@ class ReaderApp extends Component {
           case "book toc":
             var bookTitle = state.bookRef;
             hist.title = Sefaria.getPageTitle(bookTitle);
-            hist.url = bookTitle.replace(/ /g, "_");
+            hist.url = Sefaria.util.encodeTitleForUrl(bookTitle);
             hist.mode = "book toc";
             break;
           case "extended notes":
             var bookTitle = state.mode==="Connections" ?Sefaria.parseRef(state.currentlyVisibleRef).index : state.bookRef;
             hist.currVersions = state.currVersions;
-            hist.url = `${bookTitle}&notes${i>1 ? i : ''}=1`.replace(/ /g, "_");
+            hist.url = `${Sefaria.util.encodeTitleForUrl(bookTitle)}&notes${i>1 ? i : ''}=1`;
             hist.mode = "extended notes";
             break;
           case "search":
