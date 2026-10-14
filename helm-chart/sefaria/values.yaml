@@ -245,6 +245,23 @@ authService:
     issuer: ""              # "" -> https://mint-<env>.<namespace>.svc.cluster.local
   mintStub:
     enabled: false          # POC token issuer; never in a real environment
+  rateLimit:
+    enabled: false          # needs the controller's rateLimit.backend (infrastructure repo)
+    testLimitsMultiplier: 1  # POC: raise to 10000 for latency runs
+    retryAfterSeconds: 60
+    # Per-rule x-ratelimit-* response headers (DraftVersion03). Needs Envoy Gateway >= 1.9 (dev has 1.9.1, prod 1.8.0,
+    # which rejects the field), and overrides the listener-level setting in ClientTrafficPolicy for these rules only.
+    headers: false
+    # test-sized limits per minute; production numbers come from Phase 0, not from here
+    developerPerProject: 10
+    partnerPerProject: 30
+    firstpartyPerSub: 60
+    embedPerOrigin: 15
+    anonymousPerIP: 20
+    anonymousShared: 40
+  # Adds sefariaProject, sefariaTier and sefariaAuthResult (and the meter) to the nginx access log, next to the
+  # caller-classification fields.
+  nginxLogFields: true
   # Rule-scoped bodyToExtAuth on the HTTPRoute's legacy-body-auth rule: measures whether Envoy can hand a body-borne
   # legacy apikey to the auth service. The decision is unchanged; only the key's presence and prefix are logged.
   legacyBodyArm:
