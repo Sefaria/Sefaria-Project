@@ -1941,6 +1941,25 @@ class TestUpdateLearningLevelImpl:
 
     @mock.patch("api.newsletter_service.update_learning_level_in_ac")
     @mock.patch("api.newsletter_service.UserProfile")
+    def test_update_learning_level_ac_error_leaves_profile_unchanged(
+        self, mock_profile_class, mock_ac_update
+    ):
+        """When the AC write fails, the profile isn't saved, so the error doesn't hide a half-applied change"""
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile_class.return_value = mock_profile
+
+        mock_ac_update.side_effect = newsletter_service.ActiveCampaignError(
+            "AC API failed"
+        )
+
+        with pytest.raises(newsletter_service.ActiveCampaignError):
+            newsletter_service.update_learning_level_impl("existing@example.com", 4)
+
+        mock_profile.save.assert_not_called()
+
+    @mock.patch("api.newsletter_service.update_learning_level_in_ac")
+    @mock.patch("api.newsletter_service.UserProfile")
     def test_update_learning_level_account_without_profile_document(
         self, mock_profile_class, mock_ac_update
     ):

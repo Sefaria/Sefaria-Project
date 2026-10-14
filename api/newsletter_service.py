@@ -1548,7 +1548,19 @@ def update_learning_level_impl(
     user_id: int | None = profile.id if profile is not None else None
     updated_profile: bool = False
 
-    # Step 2: If account exists, update the UserProfile
+    # Step 2: Always update in ActiveCampaign (for logged-out users or consistency)
+    # This ensures learning level is available in the newsletter system even without an account.
+    #
+    # AC goes first so that a failed AC write leaves nothing changed and the error is accurate.
+    # If AC succeeds and the profile save below fails, AC is ahead of the profile, which
+    # fetch_user_subscriptions_impl already handles: it reads AC and lets AC's value win.
+    try:
+        update_learning_level_in_ac(email, learning_level)
+    except Exception as e:
+        logger.exception(f"Error updating learning level in AC for {email}: {e}")
+        raise
+
+    # Step 3: If account exists, update the UserProfile
     if profile is not None:
         logger.info(f"Found existing user account for {email} (ID: {user_id})")
 
@@ -1559,18 +1571,10 @@ def update_learning_level_impl(
             logger.info(f"Updated UserProfile for user {user_id}")
         except Exception as e:
             logger.exception(f"Error updating UserProfile for {email}: {e}")
-            # Don't raise - we can still update AC
+            # Don't raise - AC already has the new value
 
     else:
         logger.info(f"No existing user account for {email}")
-
-    # Step 3: Always update in ActiveCampaign (for logged-out users or consistency)
-    # This ensures learning level is available in the newsletter system even without an account
-    try:
-        update_learning_level_in_ac(email, learning_level)
-    except Exception as e:
-        logger.exception(f"Error updating learning level in AC for {email}: {e}")
-        raise
 
     message: str = "Learning level updated successfully"
     if updated_profile:
