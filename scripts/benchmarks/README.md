@@ -68,12 +68,21 @@ links preserved separately, especially for overlapping title prefixes.
 
 ## Run interactively from your laptop
 
+Install the same Rich version used by Self-Consistency Playground once:
+
 ```sh
-python3 scripts/benchmarks/run_hidden_books.py
+python3 -m venv .venv-benchmark
+.venv-benchmark/bin/pip install -r scripts/benchmarks/requirements-terminal.txt
+```
+
+Then run:
+
+```sh
+.venv-benchmark/bin/python scripts/benchmarks/run_hidden_books.py
 ```
 
 **No arguments needed.** This runs the three configured queries at **0, 1, 10, 100,
-and 1000** hidden indexes. Each case compares baseline/filtered modes with six measured
+and 1000** hidden indexes. Both cauldrons are tested sequentially for every case, with six measured
 rounds and one excluded warm-up. It temporarily changes Index flags in the dedicated
 PR cauldron and restores the fixture's original values afterward.
 
@@ -90,8 +99,17 @@ All defaults are in **`hidden_books_experiment.py`**:
   the original regex error is the 43rd entry.
 - `REPEATS`, `LIMIT`, `MAX_TIME_MS`: measurement settings.
 
-The runner prints selected titles, complete generated queries, live measurements,
-and summaries. Unknown or duplicate book titles are rejected. The experiment config,
+The Rich dashboard has two panels: master on the left and PR #3784 on the right.
+It shows the source and generated query, latest/median MongoDB execution, raw-fetch and
+ORM-hydration times, error counts, returned/examined records, expanded title count,
+query size, and PR/master median ratios. PR baseline rows are filtering-disabled controls
+inside that cauldron; filtered rows enable the actual implementation. Warm-ups are excluded.
+
+Long query expressions are explicitly labelled previews; complete commands are saved as
+`query` events in each JSONL log. Selected titles are saved with the fixture rather than
+flooding the display. `comparison.json` contains each completed case's compact summary.
+Below 100 terminal columns the panels stack. `--plain`, redirected output, or missing Rich
+uses concise streaming text. Use the configured virtualenv for Rich panels. Unknown or duplicate book titles are rejected. The experiment config,
 selected titles and raw JSONL measurements are saved locally under `hidden-books-runs/`.
 Use `--output /path/to/new-directory` to choose another results directory.
 
@@ -131,7 +149,7 @@ A killed launcher, network failure, or second Ctrl-C can interrupt recovery; use
 `--restore-only` afterward. Do not run simultaneous fixture-changing benchmarks against
 this same database. The control environment is always read-only.
 
-For execution entirely on your machine, use `--execution local` from a configured Sefaria
+For execution entirely on your machine, use `--execution local --environment pr` from a configured Sefaria
 Python environment with dependencies and a disposable local MongoDB copy. The checkout's
 Django settings determine the connection; the DB must be named `sefaria-hidden-links-pr`
 (or `sefaria-hidden-links-control`). The launcher does not provision a database.
@@ -144,6 +162,6 @@ round zero is warm-up and excluded from summaries. Failed queries are counted as
 never zero-millisecond successes. The runner continues after measured query failures,
 so the original regex-size errors at 100/1000 do not prevent subsequent cases running.
 
-Printed find/explain documents describe benchmark operations, not a wire-protocol trace
+Displayed/saved find/explain documents describe benchmark operations, not a wire-protocol trace
 of driver session fields, getMore requests or bootstrap queries. Each measurement is
-printed when its operation completes; the query is printed before it starts.
+printed when its operation completes; the query event is emitted before execution.

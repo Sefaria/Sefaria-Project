@@ -113,6 +113,8 @@ def main():
             command = {'find': 'links', 'filter': effective_query, 'maxTimeMS': args.max_time_ms}
             if not args.full_scan:
                 command['limit'] = args.limit
+            emit(kind='query', **common, command=command)
+            emit(kind='start', **common, operation='explain')
             describe('START MongoDB explain (server execution, no result hydration):', {'explain': command, 'verbosity': 'executionStats', 'maxTimeMS': args.max_time_ms})
             try:
                 result = db.command('explain', command, verbosity='executionStats', maxTimeMS=args.max_time_ms)
@@ -124,6 +126,7 @@ def main():
                 del linkset
                 continue
             # Fully consume cursor: timing find() alone measures almost no database work.
+            emit(kind='start', **common, operation='raw_stream')
             describe('START raw cursor (fully consumed; includes transfer and BSON decoding):', dict(command, batchSize=1000))
             started = time.perf_counter()
             count = 0
@@ -139,6 +142,7 @@ def main():
             finally:
                 cursor.close()
             # The actual LinkSet materializes all returned objects; keep this bounded.
+            emit(kind='start', **common, operation='orm_hydration')
             describe('START actual LinkSet hydration (always bounded):', {'find': 'links', 'filter': effective_query, 'limit': args.limit, 'maxTimeMS': args.max_time_ms})
             gc.collect()
             started = time.perf_counter()
