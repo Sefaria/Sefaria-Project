@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
-# Boss-facing progress demo for the API auth POC.
-# Read-only except sections 6 and 7 (and section 8 spends this minute's rate-limit budget for your IP and proj_alpha), which change the dev key registry on purpose: a project's tier is flipped and
-# restored (restored even if the demo fails), and the auth service's own listener connection is dropped. --read-only
-# skips both.
+# Boss-facing progress demo for the API auth POC, against the Django-backed registry (tables powered_by_project and
+# powered_by_apikey in database sefaria_auth on the cluster's shared postgres-18).
+# Section 6 is skipped (the auth service role cannot write the registry). Section 7 drops the authpoc auth service's own
+# listener connection; section 8 spends this minute's rate-limit budget for your IP and the demo key's project.
+# --read-only skips 7 (cluster calls are get/describe/logs and read-only psql only).
+#
+# Sections that need a real key read it from the environment (the registry holds no fixed demo keys). When a variable is
+# unset, that check prints an "unavailable:" line instead of a result. Keys are masked to 12 characters in all output.
+#   DEMO_KEY               a valid developer-tier key: section 3 valid-key probe, section 4 log check, section 8 burst
+#   DEMO_KEY_LIMIT         requests per minute that key's tier allows (default 10), for the section 8 burst
+#   DEMO_RESTRICTED_KEY    a valid key whose allowed origins are limited
+#   DEMO_RESTRICTED_ORIGIN an origin that key allows (the probe with it expects 200; evil.example.org expects 403)
 set -uo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -14,14 +22,15 @@ PAUSE=false
 OFFLINE=false
 READ_ONLY=false
 CLUSTER_OK=true
-RESTORE_TIER=''
-DEMO_PROJECT=${DEMO_PROJECT:-proj_alpha}
 TMP_FILES=()
 
-DEV_KEY='sfr_alpha000000000000000000000000001'
+DEV_KEY=${DEMO_KEY:-}
+DEV_KEY_LIMIT=${DEMO_KEY_LIMIT:-10}
+BETA_KEY=${DEMO_RESTRICTED_KEY:-}
+RESTRICTED_ORIGIN=${DEMO_RESTRICTED_ORIGIN:-}
+# Never valid: shapes that no registry row can hold.
 REVOKED_KEY='sfr_revoked00000000000000000000001'
 UNKNOWN_KEY='sfr_nope0000000000000000000000000001'
-BETA_KEY='sfr_beta0000000000000000000000000001'
 
 readonly RESET=$'\033[0m'
 readonly BLUE=$'\033[1;34m'
@@ -33,17 +42,13 @@ readonly RED=$'\033[1;31m'
 cleanup() {
   local file
   (( BASH_SUBSHELL == 0 )) || return 0   # pipeline subshells inherit this trap (bash 3.2 has no BASHPID); only the main shell cleans up
-  if [[ -n "$RESTORE_TIER" ]]; then
-    printf '%srestoring %s tier to %s%s\n' "$YELLOW" "$DEMO_PROJECT" "$RESTORE_TIER" "$RESET"
-    keyadmin set-tier --project "$DEMO_PROJECT" --tier "$RESTORE_TIER" >/dev/null 2>&1 || unavailable "could not restore $DEMO_PROJECT tier to $RESTORE_TIER"
-  fi
   for file in "${TMP_FILES[@]-}"; do
     [[ -n "$file" ]] || continue
     rm -f "$file"
   done
 }
 trap cleanup EXIT
-trap 'exit 130' INT TERM   # route signals through the EXIT trap so a changed tier is always restored
+trap 'exit 130' INT TERM   # route signals through the EXIT trap so temp files are removed
 
 usage() {
   printf 'Usage: %s [--pause] [--offline] [--read-only]\n' "$0"
@@ -83,10 +88,10 @@ show_command() {
   printf '%s$' "$CYAN"
   for arg in "$@"; do
     case "$arg" in
-      "$DEV_KEY"|"REDACTED_DEV_KEY") printf ' %s' "$(mask_key "$DEV_KEY")" ;;
+      "${DEV_KEY:-REDACTED_DEV_KEY}"|"REDACTED_DEV_KEY") printf ' %s' "$(mask_key "$DEV_KEY")" ;;
       "$REVOKED_KEY"|"REDACTED_REVOKED_KEY") printf ' %s' "$(mask_key "$REVOKED_KEY")" ;;
       "$UNKNOWN_KEY"|"REDACTED_UNKNOWN_KEY") printf ' %s' "$(mask_key "$UNKNOWN_KEY")" ;;
-      "$BETA_KEY"|"REDACTED_BETA_KEY") printf ' %s' "$(mask_key "$BETA_KEY")" ;;
+      "${BETA_KEY:-REDACTED_BETA_KEY}"|"REDACTED_BETA_KEY") printf ' %s' "$(mask_key "$BETA_KEY")" ;;
       *) printf ' %q' "$arg" ;;
     esac
   done
@@ -245,7 +250,11 @@ section_enforced() {
   section '3. Enforced live' 'Real HTTPS requests show anonymous access, valid-key access, invalid-key rejection, gated-route enforcement, origin policy, and Varnish visibility.'
   printf 'Host: %s   path: /api/texts/Genesis.1\n' "$HOST"
   http_probe 'anonymous' 200 '-' '' '' '/api/texts/Genesis.1'
-  http_probe 'developer key' 200 '-' "$DEV_KEY" '' '/api/texts/Genesis.1'
+  if [[ -n "$DEV_KEY" ]]; then
+    http_probe 'developer key' 200 '-' "$DEV_KEY" '' '/api/texts/Genesis.1'
+  else
+    unavailable 'developer key probe: set DEMO_KEY to a valid developer-tier key'
+  fi
   http_probe 'revoked key' 401 'api_key_invalid' "$REVOKED_KEY" '' '/api/texts/Genesis.1'
   http_probe 'unknown key' 401 'api_key_invalid' "$UNKNOWN_KEY" '' '/api/texts/Genesis.1'
 
@@ -263,7 +272,16 @@ section_enforced() {
   fi
 
   http_probe 'knn-search no key' 401 'api_key_required' '' '' '/api/knn-search'
-  http_probe 'partner + evil Origin' 403 'origin_not_allowed' "$BETA_KEY" 'https://evil.example.org' '/api/texts/Genesis.1'
+  if [[ -n "$BETA_KEY" ]]; then
+    http_probe 'restricted + evil Origin' 403 'origin_not_allowed' "$BETA_KEY" 'https://evil.example.org' '/api/texts/Genesis.1'
+    if [[ -n "$RESTRICTED_ORIGIN" ]]; then
+      http_probe 'restricted + own Origin' 200 '-' "$BETA_KEY" "$RESTRICTED_ORIGIN" '/api/texts/Genesis.1'
+    else
+      unavailable 'allowed-origin probe: set DEMO_RESTRICTED_ORIGIN to an origin DEMO_RESTRICTED_KEY allows'
+    fi
+  else
+    unavailable 'origin-restriction probes: set DEMO_RESTRICTED_KEY (and DEMO_RESTRICTED_ORIGIN) for a key with limited origins'
+  fi
 }
 
 section_safe() {
@@ -284,13 +302,17 @@ section_safe() {
   fi
 
   output=$(new_tmp)
-  printf '%s$ kubectl --context %q -n %q logs -l app=auth-service-authpoc --all-containers=true --tail=1000 | grep -F -c %s%s\n' "$CYAN" "$CTX" "$NS" "$(mask_key "$DEV_KEY")" "$RESET"
-  if kubectl --context "$CTX" -n "$NS" logs -l app=auth-service-authpoc --all-containers=true --tail=1000 >"$output" 2>&1; then
+  if [[ -z "$DEV_KEY" ]]; then
+    unavailable 'log check for a full key: set DEMO_KEY'
+  else
+    printf '%s$ kubectl --context %q -n %q logs -l app=auth-service-authpoc --all-containers=true --tail=1000 | grep -F -c %s%s\n' "$CYAN" "$CTX" "$NS" "$(mask_key "$DEV_KEY")" "$RESET"
+  fi
+  if [[ -n "$DEV_KEY" ]] && kubectl --context "$CTX" -n "$NS" logs -l app=auth-service-authpoc --all-containers=true --tail=1000 >"$output" 2>&1; then
     grep -F -c "$DEV_KEY" "$output" >"$output.count" || true
     log_output=$(cat "$output.count")
     printf 'full developer key log matches: %s  %s\n' "$log_output" "$([[ "$log_output" == 0 ]] && printf '[OK]' || printf '[MISMATCH expected 0]')"
     TMP_FILES+=("$output.count")
-  else
+  elif [[ -n "$DEV_KEY" ]]; then
     unavailable 'auth-service logs or selector are unavailable'
   fi
 
@@ -313,11 +335,6 @@ pg() {
   kubectl --context "$CTX" -n "$NS" exec postgres-18-0 -- sh -c "psql -qtA -v ON_ERROR_STOP=1 -U \"\${POSTGRES_USER:-postgres}\" -d $1 -c \"$2\""
 }
 
-# keyadmin <args>: the registry writer. The auth service pod's role is read-only, so this only works with a writer DSN.
-keyadmin() {
-  kubectl --context "$CTX" -n "$NS" exec deploy/authpoc-auth-service -- /keyadmin "$@"
-}
-
 # age_under_1s <go-duration>: true when a Go duration such as 1.35ms or 850µs is below one second.
 age_under_1s() {
   awk -v a="$1" 'BEGIN { if (!match(a, /^[0-9.]+/)) exit 1; n = substr(a, 1, RLENGTH); u = substr(a, RLENGTH + 1)
@@ -329,9 +346,23 @@ auth_pods() {
   kubectl --context "$CTX" -n "$NS" get pods -l app=auth-service-authpoc -o name
 }
 
+# authpoc_pod_ips: the auth-service pods' IPs as a SQL list ('10.0.0.1','10.0.0.2'), '' when there are none. postgres-18
+# is shared: other cauldrons' auth services listen on the same channel, so connections are attributed by client address.
+authpoc_pod_ips() {
+  kubectl --context "$CTX" -n "$NS" get pods -l app=auth-service-authpoc -o 'jsonpath={range .items[*]}{.status.podIP}{"\n"}{end}' | awk 'NF { printf "%s'"'"'%s'"'"'", sep, $1; sep = "," }'
+}
+
+# listener_count: authsvc-listener connections that come from authpoc's auth-service pods.
+listener_count() {
+  local ips
+  ips=$(authpoc_pod_ips)
+  [[ -n "$ips" ]] || { printf 0; return 0; }
+  pg postgres "select count(*) from pg_stat_activity where application_name = 'authsvc-listener' and client_addr in ($ips)"
+}
+
 section_registry() {
   local -a k=(kubectl --context "$CTX" -n "$NS")
-  local out n pods replicas
+  local out n pods replicas expected
   section '5. One key registry per cluster (read-only)' 'The auth service has no Postgres of its own: it reads the cluster registry (database sefaria_auth inside the shared postgres-18) through one Secret, listens for changes on it, and no longer uses the app Redis.'
   show_command "${k[@]}" get deploy,svc -o name
   if ! out=$("${k[@]}" get deploy,svc -o name 2>/dev/null); then
@@ -351,13 +382,16 @@ section_registry() {
 
   printf '%s$ psql sefaria_auth: triggers, and keys per project (counts only)%s\n' "$CYAN" "$RESET"
   pg sefaria_auth "select tgname || ' on ' || tgrelid::regclass from pg_trigger where tgname like 'apikeys_notify%' order by 1"
-  n=$(pg sefaria_auth "select count(*) from pg_trigger where tgname like 'apikeys_notify%'")
-  ok_if "notify triggers: $n" test "$n" = 2
-  pg sefaria_auth "select p.id || ' tier=' || p.tier || ' active=' || count(k.id) filter (where k.revoked_at is null) || ' revoked=' || count(k.id) filter (where k.revoked_at is not null) from powered_by_project p left join powered_by_apikey k on k.project_id = p.id group by p.id, p.tier order by 1"
+  # Expected: the distinct triggers the Django migrations create (0004 creates four, 0005 only recreates one of them).
+  expected=$(cat "$ROOT"/powered_by/migrations/000[45]_*.py | awk '/^CREATE TRIGGER /{ print $3 }' | sort -u | grep -c .)
+  n=$(pg sefaria_auth "select count(*) from pg_trigger where tgname like 'apikeys_notify%' and not tgisinternal")
+  ok_if "notify triggers: $n (migrations 0004/0005 define $expected)" test "$n" = "$expected"
+  pg sefaria_auth "select 'projects by tier: ' || coalesce(string_agg(tier || '=' || c, ' ' order by tier), 'none') from (select tier, count(*) c from powered_by_project group by tier) t"
+  pg sefaria_auth "select 'keys: active=' || count(*) filter (where revoked_at is null) || ' revoked=' || count(*) filter (where revoked_at is not null) from powered_by_apikey"
 
   pods=$(auth_pods); replicas=$(printf '%s\n' "$pods" | grep -c .)
-  n=$(pg postgres "select count(*) from pg_stat_activity where application_name = 'authsvc-listener'")
-  ok_if "listener connections on postgres-18: $n (auth-service pods: $replicas)" test "$n" = "$replicas"
+  n=$(listener_count)
+  ok_if "authpoc listener connections on postgres-18: $n (authpoc auth-service pods: $replicas)" test "$n" = "$replicas"
   n=$(pg postgres "select pg_notification_queue_usage()")
   ok_if "notification queue usage: $n" test "$n" = 0
   for pod in $pods; do
@@ -387,8 +421,8 @@ section_listener_drill() {
   local since n pod replicas
   section '7. Listener connection dropped (drops only the auth service'"'"'s own connection)' 'NOTIFY is not stored: anything sent while a listener is disconnected is lost. So on every reconnect the auth service LISTENs again and reloads the full key set.'
   since=$(date -u +%Y-%m-%dT%H:%M:%SZ); sleep 1
-  printf '%s$ psql postgres: select pg_terminate_backend(pid) from pg_stat_activity where application_name = '"'"'authsvc-listener'"'"'%s\n' "$CYAN" "$RESET"
-  n=$(pg postgres "select count(pg_terminate_backend(pid)) from pg_stat_activity where application_name = 'authsvc-listener'")
+  printf '%s$ psql postgres: select pg_terminate_backend(pid) ... where application_name = '"'"'authsvc-listener'"'"' and client_addr in (authpoc pod IPs)%s\n' "$CYAN" "$RESET"
+  n=$(pg postgres "select count(pg_terminate_backend(pid)) from pg_stat_activity where application_name = 'authsvc-listener' and client_addr in ($(authpoc_pod_ips))")
   printf 'terminated listener connections: %s\n' "$n"
   sleep 5
   for pod in $(auth_pods); do
@@ -396,8 +430,8 @@ section_listener_drill() {
     ok_if "  ${pod#pod/} re-established and reloaded" bash -c "kubectl --context '$CTX' -n '$NS' logs '$pod' --since-time='$since' 2>/dev/null | grep -q 'postgres listener established'"
   done
   replicas=$(auth_pods | grep -c .)
-  n=$(pg postgres "select count(*) from pg_stat_activity where application_name = 'authsvc-listener'")
-  ok_if "listener connections after the drill: $n" test "$n" = "$replicas"
+  n=$(listener_count)
+  ok_if "authpoc listener connections after the drill: $n" test "$n" = "$replicas"
 }
 
 # burst <label> <key or empty> <count> <limit>: sequential requests in one window; prints each status with the
@@ -433,11 +467,15 @@ burst() {
 
 section_ratelimit() {
   local s wait
-  section '8. Rate limits block requests (POC limits: API key 10/min per project, anonymous 5/min per IP)' 'Envoy asks the rate-limit service after the auth service has stamped the tier and project. Over the limit, the caller gets the product-spec 429 with Retry-After and x-ratelimit headers. The counters are per minute, so this starts at a fresh window.'
+  section '8. Rate limits block requests (API key: per-minute limit of its tier per project, anonymous 5/min per IP)' 'Envoy asks the rate-limit service after the auth service has stamped the tier and project. Over the limit, the caller gets the product-spec 429 with Retry-After and x-ratelimit headers. The counters are per minute, so this starts at a fresh window.'
   s=$(date +%S); wait=$((62 - 10#$s))
   printf 'waiting %ss for a fresh one-minute window…\n' "$wait"
   sleep "$wait"
-  burst 'developer key' "$DEV_KEY" 15 10
+  if [[ -n "$DEV_KEY" ]]; then
+    burst 'developer key' "$DEV_KEY" $((DEV_KEY_LIMIT + 5)) "$DEV_KEY_LIMIT"
+  else
+    unavailable 'developer-key rate-limit burst: set DEMO_KEY (and DEMO_KEY_LIMIT if its tier is not 10/min)'
+  fi
   burst 'anonymous' '' 8 5
 }
 
