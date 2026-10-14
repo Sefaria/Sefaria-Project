@@ -5,6 +5,7 @@ from copy import deepcopy
 
 import sefaria.model as model
 from sefaria.system.database import db
+from sefaria.model.text import public_query
 from sefaria.utils.util import rtrim_jagged_string_array
 from sefaria.system.exceptions import BookNameError
 
@@ -79,7 +80,8 @@ def remove_old_counts():
     # But in this code instantiation happens in the line 'for count in counts'
     # How do we catch that? Additionally, we need access to the bad title after
     # The error has occurred. How would we get that? Reverting to direct DB call for now.
-    counts = db.vstate.find({}, {"title": 1})
+    # Public processes cannot resolve admin_only books, so they would look orphaned: never touch them.
+    counts = db.vstate.find(public_query(title_fields=("title",)), {"title": 1})
     for count in counts:
         if count.get("title", None):
             print("Checking " + count["title"])
