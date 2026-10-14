@@ -50,6 +50,13 @@ spec:
             - { name: HELP_URL, value: {{ .Values.authService.helpURL | quote }} }
             - { name: RELOAD_INTERVAL, value: {{ .Values.authService.reloadInterval | quote }} }
             - { name: PG_NOTIFY_CHANNEL, value: {{ .Values.authService.push.pgChannel | quote }} }
+            {{- if .Values.authService.jwt.enabled }}
+            - { name: JWT_MODE, value: {{ .Values.authService.jwt.mode | quote }} }
+            - { name: JWKS_URL, value: {{ include "sefaria.authService.jwksURL" . | quote }} }
+            - { name: JWT_ISSUER, value: {{ include "sefaria.authService.issuer" . | quote }} }
+            - { name: JWT_AUDIENCE, value: {{ .Values.authService.jwt.audience | quote }} }
+            - { name: JWT_COOKIE_NAME, value: {{ .Values.authService.jwt.cookieName | quote }} }
+            {{- end }}
             - name: PG_DSN
               valueFrom:
                 secretKeyRef:

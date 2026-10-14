@@ -25,6 +25,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/authz"
+	"github.com/Sefaria/Sefaria-Project/auth-service/internal/jwtverify"
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
 )
 
@@ -56,8 +57,9 @@ func main() {
 	promReg.MustRegister(keysGauge, versionGauge, reloads, notifyReloads, startup)
 
 	cfg := authz.Config{
-		Mode:    authz.Mode(envOr("AUTH_MODE", "enforce")),
-		HelpURL: envOr("HELP_URL", "https://developers.sefaria.org/help/"),
+		Mode:          authz.Mode(envOr("AUTH_MODE", "enforce")),
+		HelpURL:       envOr("HELP_URL", "https://developers.sefaria.org/help/"),
+		JWTCookieName: envOr("JWT_COOKIE_NAME", "sefaria_jwt"),
 	}
 	if gp := os.Getenv("GATED_PATHS"); gp != "" {
 		cfg.GatedPaths = strings.Split(gp, ",")
@@ -158,6 +160,16 @@ func main() {
 	})
 
 	opts := authz.Options{Cfg: cfg}
+	// JWT_MODE=authsvc verifies bearer tokens here; otherwise tokens stay jwt_pending (anonymous tier) or are
+	// settled by Envoy's jwt_authn.
+	if envOr("JWT_MODE", "envoy") == "authsvc" {
+		v, err := jwtverify.New(ctx, os.Getenv("JWKS_URL"), envOr("JWT_ISSUER", "https://mint-authpoc.default.svc.cluster.local"), envOr("JWT_AUDIENCE", "sefaria-api"))
+		if err != nil {
+			slog.Error("jwks init failed; JWT_MODE=authsvc disabled, tokens deferred to Envoy", "err", err)
+		} else {
+			opts.Verifier = v
+		}
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
@@ -175,6 +187,7 @@ func main() {
 			"version":   reg.Version(),
 			"loaded_at": reg.LoadedAt(),
 			"mode":      cfg.Mode,
+			"jwt_mode":  envOr("JWT_MODE", "envoy"),
 		})
 	})
 
@@ -194,7 +207,7 @@ func main() {
 
 	hs := &http.Server{Addr: envOr("HTTP_ADDR", ":8080"), Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 	go func() {
-		slog.Info("http listening", "addr", hs.Addr, "reload_interval", interval, "pg_notify", os.Getenv("PG_NOTIFY_CHANNEL") != "")
+		slog.Info("http listening", "addr", hs.Addr, "reload_interval", interval, "pg_notify", os.Getenv("PG_NOTIFY_CHANNEL") != "", "jwt_verifier", opts.Verifier != nil)
 		if err := hs.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(err)
 		}

@@ -7,8 +7,15 @@ import (
 	pathpkg "path"
 	"strings"
 
+	"github.com/Sefaria/Sefaria-Project/auth-service/internal/jwtverify"
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
 )
+
+type Claims = jwtverify.Claims
+
+type JWTVerifier interface {
+	Verify(token string) (jwtverify.Claims, error)
+}
 
 type Mode string
 
@@ -18,12 +25,14 @@ const (
 )
 
 const (
-	TierAnonymous = "anonymous"
-	TierEmbed     = "embed"
+	TierAnonymous  = "anonymous"
+	TierEmbed      = "embed"
+	TierFirstParty = "firstparty"
 
 	CodeKeyRequired      = "api_key_required"
 	CodeKeyInvalid       = "api_key_invalid"
 	CodeOriginNotAllowed = "origin_not_allowed"
+	CodeRateLimited      = "rate_limited"
 )
 
 type Lookup interface {
@@ -31,7 +40,7 @@ type Lookup interface {
 }
 
 type Request struct {
-	Method, Path, APIKey, Authorization, Origin string
+	Method, Path, APIKey, Authorization, Cookie, Origin string
 }
 
 type Decision struct {
@@ -45,9 +54,10 @@ type Decision struct {
 }
 
 type Config struct {
-	Mode       Mode
-	GatedPaths []string
-	HelpURL    string
+	Mode          Mode
+	GatedPaths    []string
+	HelpURL       string
+	JWTCookieName string
 }
 
 func allow(project, tier, result string) Decision {
@@ -100,7 +110,7 @@ func Decide(l Lookup, cfg Config, r Request) Decision {
 	if gated(cfg, r.Path) {
 		return deny(cfg, 401, CodeKeyRequired, "This route requires an x-api-key header.")
 	}
-	// Phase 1 verifies no tokens: a bearer token rides the anonymous tier, marked for the log.
+	// A bearer token rides the anonymous tier, marked for the log, unless decideRequest has a verifier to settle it.
 	if _, ok := BearerToken(r.Authorization); ok {
 		return allow("", TierAnonymous, "jwt_pending")
 	}
@@ -137,4 +147,34 @@ func contains(list []string, v string) bool {
 		}
 	}
 	return false
+}
+
+// DecideJWT never denies: invalid or missing first-party tokens ride the anonymous tier.
+func DecideJWT(v JWTVerifier, authorization string) Decision {
+	tok, ok := BearerToken(authorization)
+	if !ok {
+		return allow("", TierAnonymous, "jwt_missing")
+	}
+	c, err := v.Verify(tok)
+	if err != nil {
+		return allow("", TierAnonymous, "jwt_invalid")
+	}
+	return allow(c.Sub, c.Tier, "ok")
+}
+
+// JWTAuthorization returns the Authorization value to verify: the bearer header when present, else the named cookie.
+func JWTAuthorization(authorization, cookie, cookieName string) string {
+	if _, ok := BearerToken(authorization); ok {
+		return authorization
+	}
+	if cookieName == "" {
+		cookieName = "sefaria_jwt"
+	}
+	for _, part := range strings.Split(cookie, ";") {
+		name, value, ok := strings.Cut(strings.TrimSpace(part), "=")
+		if ok && name == cookieName && strings.TrimSpace(value) != "" {
+			return "Bearer " + strings.TrimSpace(value)
+		}
+	}
+	return authorization
 }

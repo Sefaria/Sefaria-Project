@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: mintstub
-          image: "{{ .Values.authService.containerImage.imageRegistry }}:{{ .Values.authService.containerImage.tag }}"
+          image: "{{ required "authService.image.repository is required" .Values.authService.image.repository }}:{{ required "authService.image.tag is required when authService.enabled (an immutable sha tag from CI, not latest)" .Values.authService.image.tag }}"
           command: ["/mintstub"]
           env:
             - { name: JWT_ISSUER, value: {{ include "sefaria.authService.issuer" . | quote }} }

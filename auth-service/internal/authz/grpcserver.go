@@ -22,7 +22,17 @@ type NopRecorder struct{}
 func (NopRecorder) Observe(string, bool, time.Duration) {}
 
 type Options struct {
-	Cfg Config
+	Cfg      Config
+	Verifier JWTVerifier
+}
+
+// decideRequest settles a bearer token with the verifier when there is one; without it the token stays jwt_pending.
+func decideRequest(l Lookup, o Options, r Request) Decision {
+	d := Decide(l, o.Cfg, r)
+	if d.Result == "jwt_pending" && o.Verifier != nil {
+		d = DecideJWT(o.Verifier, r.Authorization)
+	}
+	return d
 }
 
 type GRPCServer struct {
@@ -52,8 +62,9 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 	if i := strings.IndexByte(path, '?'); i >= 0 {
 		path = path[:i]
 	}
-	r := Request{Method: httpReq.GetMethod(), Path: path, APIKey: h["x-api-key"], Authorization: h["authorization"], Origin: h["origin"]}
-	d := Decide(s.l, s.o.Cfg, r)
+	r := Request{Method: httpReq.GetMethod(), Path: path, APIKey: h["x-api-key"], Authorization: h["authorization"], Cookie: h["cookie"], Origin: h["origin"]}
+	r.Authorization = JWTAuthorization(r.Authorization, r.Cookie, s.o.Cfg.JWTCookieName)
+	d := decideRequest(s.l, s.o, r)
 	s.rec.Observe(d.Result, d.Allow, time.Since(t0))
 	if d.Allow {
 		return &authv3.CheckResponse{
