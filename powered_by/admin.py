@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import Project
+from .models import ApiKey, Project
+
+
+class ApiKeyInline(admin.TabularInline):
+    model = ApiKey
+    extra = 0
+    can_delete = False
+    fields = ("label", "key", "allowed_origins", "created_at", "revoked_at", "last_used_at")
+    readonly_fields = ("key", "created_at", "last_used_at")
 
 
 @admin.register(Project)
@@ -26,6 +34,8 @@ class ProjectAdmin(admin.ModelAdmin):
     )
     search_fields = ("project_name", "creator", "creator_email", "submitter")
     readonly_fields = ("created_at", "updated_at")
+    raw_id_fields = ("owner",)
+    inlines = (ApiKeyInline,)
     date_hierarchy = "created_at"
 
     fieldsets = (
@@ -73,6 +83,15 @@ class ProjectAdmin(admin.ModelAdmin):
                 "is_published",
                 "featured",
                 "notes",
+            ),
+        }),
+        ("Developer settings", {
+            "fields": (
+                "owner",
+                "tier",
+                "organization",
+                "consent_withdrawn_at",
+                "deleted_at",
             ),
         }),
     )

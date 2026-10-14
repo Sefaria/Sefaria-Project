@@ -11,6 +11,7 @@ import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
 import SearchAnalytics from './sefaria/searchAnalytics';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
+import { classifyPanels } from './sefaria/pageTypes';
 import {
   ContestLandingPage,
   PBSC2020LandingPage,
@@ -44,7 +45,7 @@ import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
-import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
+import { resumePendingAuthAttempt } from './auth/authAnalytics.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -87,6 +88,11 @@ class ReaderApp extends Component {
         translationsSlug:        props.initialTranslationsSlug,
         collectionData:          props.initialCollectionData,
         linkerEditorBook:        props.initialLinkerEditorBook,
+        settingsTab:             props.initialSettingsTab,
+        developerProjectId:      props.initialDeveloperProjectId,
+        accountSettings:         props.initialAccountSettings,
+        developer:               props.initialDeveloper,
+        developerEmailLink:      props.initialDeveloperEmailLink,
       };
     }
 
@@ -176,6 +182,11 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
       collectionData:          state.collectionData          || null,
+      settingsTab:             state.settingsTab             || "account",
+      developerProjectId:      state.developerProjectId      || null,
+      accountSettings:         state.accountSettings         || null,
+      developer:               state.developer               || null,
+      developerEmailLink:      state.developerEmailLink      || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
@@ -242,7 +253,7 @@ class ReaderApp extends Component {
       Sefaria.markUserAsNewVisitor();
     }
 
-    resumePendingSignUpAttempt();
+    resumePendingAuthAttempt();
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
@@ -452,6 +463,8 @@ class ReaderApp extends Component {
           (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.tab !== next.tab) ||
+          (prev.settingsTab !== next.settingsTab) ||
+          (next.menuOpen === "settings" && prev.developerProjectId !== next.developerProjectId) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
@@ -624,6 +637,16 @@ class ReaderApp extends Component {
             hist.url = "calendars";
             hist.mode = "calendars";
             break;
+          case "settings":
+            if (state.settingsTab === "developer") {
+              hist.title = Sefaria.getPageTitle("Developer Settings");
+              hist.url = "settings/developer" + (state.developerProjectId ? "/projects/" + state.developerProjectId : "");
+            } else {
+              hist.title = Sefaria.getPageTitle("Account Settings");
+              hist.url = "settings/account";
+            }
+            hist.mode = "settings";
+            break;
           case "sheets":
             hist.url = "";
             hist.mode = "sheets";
@@ -646,6 +669,21 @@ class ReaderApp extends Component {
             if (state.linkerEditorBook) {
               hist.url += "&book=" + encodeURIComponent(state.linkerEditorBook);
             }
+            break;
+          case "developerEmailConfirmed":
+            hist.title = Sefaria.getPageTitle("Email confirmed");
+            hist.url = "settings/developer/email-confirmed";
+            hist.mode = "developerEmailConfirmed";
+            break;
+          case "developerEmailLink":
+            hist.title = Sefaria.getPageTitle("Email confirmation");
+            hist.url = "settings/developer/confirm-email/" + (state.developerEmailLink ? state.developerEmailLink.key : "");
+            hist.mode = "developerEmailLink";
+            break;
+          case "poweredByForm":
+            hist.title = Sefaria.getPageTitle("Powered by Sefaria Submission Form");
+            hist.url = "powered-by/form";
+            hist.mode = "poweredByForm";
             break;
           case "user_stats":
             hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");
@@ -2373,7 +2411,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
-      keywordTargets: refs ? deDupedTriggers : []
+      keywordTargets: refs ? deDupedTriggers : [],
+      // The KINDS of page open across all panels (a union, like keywordTargets above), for
+      // sidebar ads that target a page type rather than a keyword. A topic panel showing a
+      // specific topic classifies to nothing here — whether it's an author page needs fetched
+      // topic data, so TopicPage supplies the answer via Promotions' pageTypeOverride prop.
+      pageTypes: classifyPanels(this.state.panels)
     };
     return context
   }

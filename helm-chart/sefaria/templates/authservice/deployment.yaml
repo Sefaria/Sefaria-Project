@@ -26,13 +26,22 @@ spec:
         stackRole: auth-service
         {{- include "sefaria.selectorLabels" . | nindent 8 }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
       affinity:
         nodeAffinity:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
         - name: auth-service
-          image: "{{ .Values.authService.containerImage.imageRegistry }}:{{ .Values.authService.containerImage.tag }}"
-          imagePullPolicy: Always
+          image: "{{ required "authService.image.repository is required" .Values.authService.image.repository }}:{{ required "authService.image.tag is required when authService.enabled (an immutable sha tag from CI, not latest)" .Values.authService.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
           env:
             - { name: HTTP_ADDR, value: ":8080" }
             - { name: GRPC_ADDR, value: ":9090" }
@@ -41,15 +50,6 @@ spec:
             - { name: HELP_URL, value: {{ .Values.authService.helpURL | quote }} }
             - { name: RELOAD_INTERVAL, value: {{ .Values.authService.reloadInterval | quote }} }
             - { name: PG_NOTIFY_CHANNEL, value: {{ .Values.authService.push.pgChannel | quote }} }
-            {{- if .Values.authService.push.redis }}
-            - { name: REDIS_ADDR, value: "redis-{{ .Values.deployEnv }}:6379" }
-            - { name: PUSH_CHANNEL, value: {{ .Values.authService.push.channel | quote }} }
-            {{- end }}
-            - { name: JWT_MODE, value: {{ .Values.authService.jwt.mode | quote }} }
-            - { name: JWKS_URL, value: {{ include "sefaria.authService.jwksURL" . | quote }} }
-            - { name: JWT_ISSUER, value: {{ include "sefaria.authService.issuer" . | quote }} }
-            - { name: JWT_AUDIENCE, value: {{ .Values.authService.jwt.audience | quote }} }
-            - { name: JWT_COOKIE_NAME, value: {{ .Values.authService.jwt.cookieName | quote }} }
             - name: PG_DSN
               valueFrom:
                 secretKeyRef:

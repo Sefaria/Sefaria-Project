@@ -13,6 +13,18 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
+type Recorder interface {
+	Observe(result string, allow bool, d time.Duration)
+}
+
+type NopRecorder struct{}
+
+func (NopRecorder) Observe(string, bool, time.Duration) {}
+
+type Options struct {
+	Cfg Config
+}
+
 type GRPCServer struct {
 	authv3.UnimplementedAuthorizationServer
 	l   Lookup
@@ -40,17 +52,8 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 	if i := strings.IndexByte(path, '?'); i >= 0 {
 		path = path[:i]
 	}
-	r := Request{Method: httpReq.GetMethod(), Path: path, APIKey: h["x-api-key"], Authorization: h["authorization"], Cookie: h["cookie"], Origin: h["origin"]}
-	r.Authorization = JWTAuthorization(r.Authorization, r.Cookie, s.o.Cfg.JWTCookieName)
-	if body := httpReq.GetRawBody(); len(body) > 0 || httpReq.GetBody() != "" {
-		if len(body) == 0 {
-			body = []byte(httpReq.GetBody())
-		}
-		// Presence only (follow-up F8): the decision is unchanged and only the 12-character prefix is logged.
-		k := LegacyBodyKey(h["content-type"], body)
-		slog.Info("legacy body key", "present", k != "", "key_prefix", Prefix(k), "header_key", r.APIKey != "", "path", path)
-	}
-	d := decideRequest(s.l, s.o, r)
+	r := Request{Method: httpReq.GetMethod(), Path: path, APIKey: h["x-api-key"], Authorization: h["authorization"], Origin: h["origin"]}
+	d := Decide(s.l, s.o.Cfg, r)
 	s.rec.Observe(d.Result, d.Allow, time.Since(t0))
 	if d.Allow {
 		return &authv3.CheckResponse{

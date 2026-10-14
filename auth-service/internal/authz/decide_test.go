@@ -2,11 +2,9 @@ package authz
 
 import (
 	"encoding/json"
-	"errors"
 	"strings"
 	"testing"
 
-	"github.com/Sefaria/Sefaria-Project/auth-service/internal/jwtverify"
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
 )
 
@@ -44,11 +42,13 @@ func TestDecideEnforce(t *testing.T) {
 		{"revoked key", Request{Path: "/x", APIKey: revoked}, false, 401, "api_key_invalid", "", "", "api_key_invalid"},
 		{"registered origin ok", Request{Path: "/x", APIKey: beta, Origin: "https://beta.example.org"}, true, 200, "", "proj_beta", "partner", "ok"},
 		{"registered origin mismatch", Request{Path: "/x", APIKey: beta, Origin: "https://evil.example.org"}, false, 403, "origin_not_allowed", "", "", "origin_not_allowed"},
-		{"registered origin, server call without Origin", Request{Path: "/x", APIKey: beta}, true, 200, "", "proj_beta", "partner", "ok"},
+		{"registered origin, call without Origin refused", Request{Path: "/x", APIKey: beta}, false, 403, "origin_not_allowed", "", "", "origin_not_allowed"},
 		{"anonymous", Request{Path: "/api/texts/Genesis.1"}, true, 200, "", "", "anonymous", "anonymous"},
 		{"embed by Origin", Request{Path: "/api/texts/Genesis.1", Origin: "https://embed-one.example.org"}, true, 200, "", "", "embed", "embed"},
 		{"bearer without key defers to Envoy", Request{Path: "/x", Authorization: "Bearer abc.def.ghi"}, true, 200, "", "", "anonymous", "jwt_pending"},
 		{"gated path without key", Request{Path: "/api/knn-search", Method: "POST"}, false, 401, "api_key_required", "", "", "api_key_required"},
+		{"gated preflight without key", Request{Path: "/api/knn-search", Method: "OPTIONS", Origin: "https://embed.example.org"}, true, 200, "", "", "embed", "preflight"},
+		{"OPTIONS without Origin on gated path", Request{Path: "/api/knn-search", Method: "OPTIONS"}, false, 401, "api_key_required", "", "", "api_key_required"},
 		{"gated path with key", Request{Path: "/api/knn-search", Method: "POST", APIKey: alpha}, true, 200, "", "proj_alpha", "developer", "ok"},
 	}
 	for _, c := range cases {
@@ -56,6 +56,24 @@ func TestDecideEnforce(t *testing.T) {
 			d := Decide(reg, enforce, c.r)
 			if d.Allow != c.allow || d.Status != c.status || d.Code != c.code || d.Project != c.project || d.Tier != c.tier || d.Result != c.result {
 				t.Fatalf("got %+v", d)
+			}
+		})
+	}
+}
+
+func TestDecidePreflight(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		r    Request
+		want Decision
+	}{
+		{"preflight", Request{Method: "OPTIONS", Path: "/x", Origin: "https://embed.example.org"}, allow("", TierEmbed, "preflight")},
+		{"key takes precedence", Request{Method: "OPTIONS", Path: "/api/knn-search", Origin: "https://embed.example.org", APIKey: alpha}, allow("proj_alpha", "developer", "ok")},
+		{"other method is not preflight", Request{Method: "GET", Path: "/api/knn-search", Origin: "https://embed.example.org"}, deny(enforce, 401, CodeKeyRequired, "This route requires an x-api-key header.")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := Decide(reg, enforce, tc.r); got != tc.want {
+				t.Fatalf("got %+v want %+v", got, tc.want)
 			}
 		})
 	}
@@ -110,42 +128,6 @@ func TestPrefixAndBearer(t *testing.T) {
 	}
 	if _, ok := BearerToken("Basic abc"); ok {
 		t.Fatal("non-bearer accepted")
-	}
-}
-
-type fakeVerifier struct{ err error }
-
-func (f fakeVerifier) Verify(string) (jwtverify.Claims, error) {
-	if f.err != nil {
-		return jwtverify.Claims{}, f.err
-	}
-	return jwtverify.Claims{Sub: "sefaria-web", Tier: "firstparty"}, nil
-}
-
-func TestDecideJWT(t *testing.T) {
-	d := DecideJWT(fakeVerifier{}, "Bearer abc")
-	if !d.Allow || d.Tier != "firstparty" || d.Project != "sefaria-web" || d.Result != "ok" {
-		t.Fatalf("%+v", d)
-	}
-	d = DecideJWT(fakeVerifier{err: errors.New("expired")}, "Bearer abc")
-	if !d.Allow || d.Tier != "anonymous" || d.Project != "" || d.Result != "jwt_invalid" {
-		t.Fatalf("%+v", d)
-	}
-	d = DecideJWT(fakeVerifier{}, "")
-	if !d.Allow || d.Tier != "anonymous" || d.Result != "jwt_missing" {
-		t.Fatalf("%+v", d)
-	}
-}
-
-func TestJWTAuthorizationPrefersBearerAndExtractsConfiguredCookie(t *testing.T) {
-	if got := JWTAuthorization("Bearer header-token", "sefaria_jwt=cookie-token", "sefaria_jwt"); got != "Bearer header-token" {
-		t.Fatalf("got %q", got)
-	}
-	if got := JWTAuthorization("", "other=x; custom_jwt=cookie-token; tail=y", "custom_jwt"); got != "Bearer cookie-token" {
-		t.Fatalf("got %q", got)
-	}
-	if got := JWTAuthorization("", "other=x", "custom_jwt"); got != "" {
-		t.Fatalf("got %q", got)
 	}
 }
 

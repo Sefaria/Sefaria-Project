@@ -81,6 +81,7 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
+from powered_by.developer import developer_state, settings_enabled as developer_settings_enabled
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -4553,29 +4554,61 @@ def edit_profile(request):
     })
 
 
-@login_required
-@ensure_csrf_cookie
-def account_settings(request):
+def _account_settings_props(request, profile):
     """
-    Page for managing a user's account settings.
+    The values the account tab of the settings page renders.
     """
-    profile = UserProfile(id=request.user.id)
-    # TEMPORARY (goes with the experiments framework): only gates the parked
-    # Experiments toggle in the template, not the Library Assistant one.
-    experiments_available = user_has_experiments(request.user)
-    return render_template(request,'account_settings.html', {"headerMode": True}, {
-        'user': request.user,
-        'profile': profile,
-        'experiments_available': experiments_available,
-        'social_providers': list(request.user.socialaccount_set.values_list('provider', flat=True)),
+    translation_languages = [
+        {"code": lang, "name": Locale(lang).languages[lang].capitalize()}
+        for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']
+    ]
+    return {
+        "emailNotifications": profile.settings.get("email_notifications"),
+        "interfaceLanguage": profile.settings.get("interface_language"),
+        "translationLanguagePreference": profile.settings.get("translation_language_preference")
+            or request.COOKIES.get("translation_language_preference", None),
+        "translationLanguages": translation_languages,
+        "readingHistory": profile.settings.get("reading_history", True),
+        "textualCustom": profile.settings.get("textual_custom"),
         # The toggle must render the *effective* value: a user who is on through the
         # legacy rule has no setting key yet, and must still see "On".
-        'library_assistant_enabled': library_assistant.is_enabled(profile),
-        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
-        'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
-        'diaspora': request.diaspora,
-        "renderStatic": True
-    })
+        "libraryAssistantEnabled": library_assistant.is_enabled(profile),
+        # TEMPORARY (goes with the experiments framework): only gates the parked
+        # Experiments toggle.
+        "experimentsAvailable": user_has_experiments(request.user),
+        "email": request.user.email,
+        "socialProviders": list(request.user.socialaccount_set.values_list('provider', flat=True)),
+        "sheetsExport": {"gauthEmail": profile.gauth_email or None},
+        "torahSpecific": SITE_SETTINGS["TORAH_SPECIFIC"],
+        "diaspora": request.diaspora,
+    }
+
+
+@login_required
+@ensure_csrf_cookie
+def settings_page(request, tab="account", project_id=None):
+    """
+    Account and developer settings, as one React page. Without DEVELOPER_SETTINGS_ENABLED
+    there is no developer tab: its URLs are a 404 (gated in urls_library.py, before the login
+    check) and the page gets no developer state.
+    """
+    developer_on = developer_settings_enabled()
+    profile = UserProfile(id=request.user.id)
+    props = {
+        "initialSettingsTab": tab,
+        "initialDeveloperProjectId": project_id,
+        "initialAccountSettings": _account_settings_props(request, profile),
+        "initialDeveloper": developer_state(request) if developer_on else None,
+    }
+    titles = {
+        "account": "Account Settings",
+        "developer": "Developer Settings",
+    }
+    descs = {
+        "account": "Manage your Sefaria account settings.",
+        "developer": "Register your projects and manage keys for the Sefaria API.",
+    }
+    return menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
 
 
 @ensure_csrf_cookie

@@ -7,15 +7,8 @@ import (
 	pathpkg "path"
 	"strings"
 
-	"github.com/Sefaria/Sefaria-Project/auth-service/internal/jwtverify"
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
 )
-
-type Claims = jwtverify.Claims
-
-type JWTVerifier interface {
-	Verify(token string) (jwtverify.Claims, error)
-}
 
 type Mode string
 
@@ -25,14 +18,12 @@ const (
 )
 
 const (
-	TierAnonymous  = "anonymous"
-	TierEmbed      = "embed"
-	TierFirstParty = "firstparty"
+	TierAnonymous = "anonymous"
+	TierEmbed     = "embed"
 
 	CodeKeyRequired      = "api_key_required"
 	CodeKeyInvalid       = "api_key_invalid"
 	CodeOriginNotAllowed = "origin_not_allowed"
-	CodeRateLimited      = "rate_limited"
 )
 
 type Lookup interface {
@@ -40,7 +31,7 @@ type Lookup interface {
 }
 
 type Request struct {
-	Method, Path, APIKey, Authorization, Cookie, Origin string
+	Method, Path, APIKey, Authorization, Origin string
 }
 
 type Decision struct {
@@ -54,10 +45,9 @@ type Decision struct {
 }
 
 type Config struct {
-	Mode          Mode
-	GatedPaths    []string
-	HelpURL       string
-	JWTCookieName string
+	Mode       Mode
+	GatedPaths []string
+	HelpURL    string
 }
 
 func allow(project, tier, result string) Decision {
@@ -93,14 +83,24 @@ func Decide(l Lookup, cfg Config, r Request) Decision {
 		if !ok || k.Revoked {
 			return deny(cfg, 401, CodeKeyInvalid, "The x-api-key is not valid for this project.")
 		}
-		if r.Origin != "" && len(k.AllowedOrigins) > 0 && !contains(k.AllowedOrigins, r.Origin) {
-			return deny(cfg, 403, CodeOriginNotAllowed, fmt.Sprintf("This key's project restricts browser origins and %s is not registered. Turn the restriction off if your project has its own server.", r.Origin))
+		if len(k.AllowedOrigins) > 0 && !contains(k.AllowedOrigins, r.Origin) {
+			origin := r.Origin
+			if origin == "" {
+				origin = "a request without an Origin header"
+			}
+			return deny(cfg, 403, CodeOriginNotAllowed, fmt.Sprintf("This key only accepts requests from its registered website, and %s is not one. Turn the restriction off for keys used from a server, script, app or agent.", origin))
 		}
 		return allow(k.ProjectID, k.Tier, "ok")
+	}
+	// Browser CORS preflights do not carry application credentials. Let Envoy
+	// answer OPTIONS requests with an Origin header before applying path gates.
+	if r.Method == "OPTIONS" && r.Origin != "" {
+		return allow("", TierEmbed, "preflight")
 	}
 	if gated(cfg, r.Path) {
 		return deny(cfg, 401, CodeKeyRequired, "This route requires an x-api-key header.")
 	}
+	// Phase 1 verifies no tokens: a bearer token rides the anonymous tier, marked for the log.
 	if _, ok := BearerToken(r.Authorization); ok {
 		return allow("", TierAnonymous, "jwt_pending")
 	}
@@ -137,33 +137,4 @@ func contains(list []string, v string) bool {
 		}
 	}
 	return false
-}
-
-// DecideJWT never denies: invalid or missing first-party tokens ride the anonymous tier.
-func DecideJWT(v JWTVerifier, authorization string) Decision {
-	tok, ok := BearerToken(authorization)
-	if !ok {
-		return allow("", TierAnonymous, "jwt_missing")
-	}
-	c, err := v.Verify(tok)
-	if err != nil {
-		return allow("", TierAnonymous, "jwt_invalid")
-	}
-	return allow(c.Sub, c.Tier, "ok")
-}
-
-func JWTAuthorization(authorization, cookie, cookieName string) string {
-	if _, ok := BearerToken(authorization); ok {
-		return authorization
-	}
-	if cookieName == "" {
-		cookieName = "sefaria_jwt"
-	}
-	for _, part := range strings.Split(cookie, ";") {
-		name, value, ok := strings.Cut(strings.TrimSpace(part), "=")
-		if ok && name == cookieName && strings.TrimSpace(value) != "" {
-			return "Bearer " + strings.TrimSpace(value)
-		}
-	}
-	return authorization
 }

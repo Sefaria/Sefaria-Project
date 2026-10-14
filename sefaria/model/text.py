@@ -4586,10 +4586,14 @@ class Library(object):
         with build_pathway("_build_index_maps"):
             # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
             # simple texts
-            # Build the map record-by-record so one corrupt Index (e.g. accessing .title/.nodes
-            # raises) logs and is skipped rather than aborting the whole rebuild.
+            # Build the map record-by-record so one corrupt Index logs and is skipped rather than
+            # aborting the whole rebuild. TWO guards, covering two different failures: the
+            # with_skip_guard() call guards CONSTRUCTING each Index (a bad `schema` or missing
+            # `categories` raises inside IndexSet's own materialization, before this loop body ever
+            # runs), and the inner `with` guards USING it (.title/.nodes raising).
             self._index_map = {}
-            for i in IndexSet():
+            for i in IndexSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
+                                                "_build_index_maps index record", level="error"):
                 with skip_bad_record("reset_cache,startup", "_build_index_maps index record", record=getattr(i, "_id", None), level="error"):
                     if i.nodes:
                         self._index_map[i.title] = i
@@ -4801,10 +4805,8 @@ class Library(object):
         unexplored_top_level = False    # example would be the first case of 'Holidays' encountered as it is top level,
                                         # this variable will allow us to force all top level categories to have children
         if topic is None:
-            ts = TopicSet({"isTopLevelDisplay": True})
-            # This top-level call is outside the per-child guard below, so build the
-            # top-level slug list record-by-record: one malformed top-level topic must
-            # not abort the whole topic-ToC build.
+            ts = TopicSet({"isTopLevelDisplay": True}).with_skip_guard(
+                skip_bad_record, "reset_toc,startup", "get_topic_toc_json_recursive top-level topic")
             children = []
             for t in ts:
                 with skip_bad_record("reset_toc,startup", "get_topic_toc_json_recursive top-level topic",
@@ -5310,7 +5312,8 @@ class Library(object):
         with build_pathway("build_term_mappings"):
             self._simple_term_mapping = {}
             self._full_term_mapping = {}
-            for term in TermSet():
+            for term in TermSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
+                                                  "build_term_mappings term"):
                 # One term with a missing/corrupt title_group must not abort startup.
                 with skip_bad_record("reset_cache,startup", "build_term_mappings term", record=getattr(term, "name", None)):
                     self._full_term_mapping[term.name] = term
@@ -5391,7 +5394,8 @@ class Library(object):
             from .topic import Topic, TopicSet
             # One topic with a missing/corrupt title_group must not abort startup.
             self._topic_mapping = {}
-            for t in TopicSet():
+            for t in TopicSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
+                                                "_build_topic_mapping topic"):
                 with skip_bad_record("reset_cache,startup", "_build_topic_mapping topic", record=getattr(t, "slug", None)):
                     self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
         return self._topic_mapping
@@ -5664,7 +5668,8 @@ class Library(object):
             # Build record-by-record so one malformed dictionary index (e.g. accessing
             # .title raises) is logged-and-skipped rather than aborting startup.
             self._virtual_books = []
-            for index in IndexSet({'lexiconName': {'$exists': True}}):
+            for index in IndexSet({'lexiconName': {'$exists': True}}).with_skip_guard(
+                    skip_bad_record, "startup", "build_virtual_books index"):
                 with skip_bad_record("startup", "build_virtual_books index", record=getattr(index, "_id", None)):
                     self._virtual_books.append(index.title)
         return self._virtual_books

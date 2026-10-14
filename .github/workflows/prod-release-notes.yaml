@@ -1,43 +1,16 @@
 name: "Prod Release Notes"
 
-# Fires when the prod rollout-complete AnalysisTemplate (see
-# helm-chart/sefaria/templates/analysistemplate/rollout-complete.yaml) confirms
-# Argo Rollouts' post-promotion analysis passed for prod — i.e. the new
-# revision's pods are up and its health checks are green. That job relays a
-# repository_dispatch here, carrying the deployed `version` and `chartVersion`.
-#
-# From there this workflow is a strict pipeline of deterministic scripts, with
-# exactly one step handed to an LLM:
-#   1. build/ci/shipped_stories.py resolves the prod/* tag range for that
-#      version (chartVersion disambiguates a chart-only rollout, where several
-#      tags share the same app version), walks git log between the tags, and
-#      hydrates the Shortcut stories those commits reference.
-#   2. build/ci/mark_stories_deployed.py moves each of those stories from
-#      Deploy Ready -> Done via the Shortcut API. A failure here (missing
-#      token, API error, nothing to move) is surfaced as a warning but never
-#      blocks steps 3-4 — see "Mark shipped stories as deployed" below.
-#   3. The sefaria-release-notes skill (.claude/skills/sefaria-release-notes/)
-#      reads that JSON and writes prose only — it does not talk to GitHub or
-#      Shortcut.
-#   4. scripts/post_to_slack.py posts both generated files to Slack.
-#
-# Manual setup this depends on: see build/ci/README-prod-release-notes.md
+# Fires when the prod rollout-complete AnalysisTemplate confirms the
+# post-promotion analysis passed, via repository_dispatch carrying
+# `version` and `chartVersion`. See build/ci/README-prod-release-notes.md.
 
 on:
   repository_dispatch:
     types: [prod-rollout-succeeded]
-  # repository_dispatch only ever runs the DEFAULT branch's copy of a
-  # workflow, so without workflow_dispatch there is no way to exercise this
-  # path at all before a change here merges, and no way to re-run it for a
-  # past release (e.g. after fixing a bug in one of the scripts below).
+  # workflow_dispatch lets this be re-run manually / tested off the default branch.
   workflow_dispatch:
     inputs:
-      # rollout-complete.yaml strips a leading "v" before building the
-      # repository_dispatch payload, so `inputs.version` is expected bare
-      # too (e.g. 6.111.0-prod.2, not v6.111.0-prod.2) -- both so the
-      # concurrency group below dedupes correctly across the two trigger
-      # paths, and for consistency with the dispatch payload. The Resolve
-      # step still strips a leading "v" defensively if one sneaks in.
+      # inputs.version is expected bare (no leading "v"), matching the dispatch payload.
       version:
         description: "Deployed prod version, e.g. 6.111.0-prod.2 (bare, no leading v)"
         required: true
@@ -51,18 +24,13 @@ on:
         required: false
         type: boolean
         default: true
+      explain_triage:
+        description: "Opt-in: run the headless triage explainer over the reconcile sweep's triage bucket only (requires ANTHROPIC_API_KEY; never mutates Shortcut)"
+        required: false
+        type: boolean
+        default: false
 
-# A pod retry (the AnalysisTemplate Job has backoffLimit: 1) can re-fire the
-# repository_dispatch for the same version, and a manual workflow_dispatch
-# re-run could race a real dispatch for that same version. Serialize on
-# version so duplicate runs queue instead of double-posting to Slack.
-#
-# This group key is built from the RAW trigger value, before the Resolve
-# step below can strip a leading "v" -- GitHub Actions expressions have no
-# string-replace function, so normalization has to happen at the source
-# instead (rollout-complete.yaml strips "v" in the dispatch payload) for
-# repository_dispatch and workflow_dispatch to actually dedupe against each
-# other for the same release.
+# Serializes on version so a retry or manual re-run doesn't double-post to Slack.
 concurrency:
   group: prod-release-notes-${{ github.event.client_payload.version || inputs.version }}
   cancel-in-progress: false
@@ -78,10 +46,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # shipped_stories.py resolves the shipped commit range from prod/*
-          # git tags, so the checkout needs the tags themselves, not just full
-          # commit history.
+          # Needed for shipped_stories.py's prod/* tag resolution.
           fetch-tags: true
+
+      # Shared by both the release-notes and triage-explainer Claude Code steps.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code@2.1.263
 
       - name: Resolve version
         id: resolve
@@ -99,11 +74,7 @@ jobs:
             CHART_VERSION="$DISPATCH_CHART_VERSION"
           fi
 
-          # rollout-complete.yaml's `version` arg is expected bare (it strips
-          # a leading "v" before building the dispatch payload -- see the
-          # concurrency.group comment above), but this strip stays as a
-          # defensive fallback in case a leading "v" ever sneaks in (e.g. a
-          # manual workflow_dispatch typo).
+          # Defensive fallback in case a leading "v" sneaks in.
           VERSION="${RAW_VERSION#v}"
 
           if [[ -z "$VERSION" ]]; then
@@ -131,12 +102,7 @@ jobs:
 
       - name: Mark shipped stories as deployed
         id: mark_deployed
-        # A Shortcut bookkeeping failure (missing token, API error, or the
-        # silent-no-op guard's sys.exit(2)) must never skip release-notes
-        # generation and Slack posting for an otherwise healthy rollout --
-        # moving stories to Done and announcing the release are independent
-        # concerns. continue-on-error surfaces the failure via
-        # steps.mark_deployed.outcome below instead of failing the job.
+        # A bookkeeping failure must never block release-notes generation and Slack posting.
         continue-on-error: true
         env:
           SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
@@ -149,28 +115,135 @@ jobs:
           fi
           python3 build/ci/mark_stories_deployed.py "${ARGS[@]}"
 
-      - name: Warn if Shortcut bookkeeping failed
-        if: steps.mark_deployed.outcome == 'failure'
+      - name: Reconcile Deploy Ready backlog
+        id: reconcile
+        # Report goes to $RUNNER_TEMP, not the checkout, so it can't leak into the prose step below.
+        continue-on-error: true
+        env:
+          SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
         run: |
-          echo "::warning::mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done for this release. Release notes generation is continuing anyway. Check this run's 'Mark shipped stories as deployed' step and move the affected stories manually."
+          CURRENT_TAG=$(python3 -c "import json; print(json.load(open('shipped-stories.json'))['range']['current_tag'])")
+          ARGS=(--out "$RUNNER_TEMP/reconcile-deploy-ready-report.json" --prod-tag "$CURRENT_TAG")
+          if [[ "$EVENT_NAME" != "workflow_dispatch" || "$DRY_RUN_INPUT" != "true" ]]; then
+            ARGS+=(--apply)
+          fi
+          python3 build/ci/reconcile_deploy_ready.py "${ARGS[@]}"
+
+      - name: Merge current-release backfill into shipped-stories.json
+        id: merge_backfill
+        # Must run after "Reconcile Deploy Ready backlog" and before "Generate release notes".
+        continue-on-error: true
+        run: |
+          REPORT_FILE="$RUNNER_TEMP/reconcile-deploy-ready-report.json"
+          if [[ ! -s "$REPORT_FILE" ]]; then
+            echo "No reconcile report found at $REPORT_FILE (the reconcile step may have failed or produced nothing) -- nothing to merge."
+            exit 0
+          fi
+          python3 build/ci/merge_release_backfill.py \
+            --shipped-stories-out shipped-stories.json \
+            --reconcile-report "$REPORT_FILE"
+
+      - name: Warn if Shortcut bookkeeping failed
+        if: steps.mark_deployed.outcome == 'failure' || steps.reconcile.outcome == 'failure' || steps.merge_backfill.outcome == 'failure'
+        env:
+          MARK_DEPLOYED_OUTCOME: ${{ steps.mark_deployed.outcome }}
+          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
+          MERGE_BACKFILL_OUTCOME: ${{ steps.merge_backfill.outcome }}
+        run: |
+          if [[ "$MARK_DEPLOYED_OUTCOME" == "failure" ]]; then
+            echo "::warning::mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done for this release. Release notes generation is continuing anyway. Check this run's 'Mark shipped stories as deployed' step and move the affected stories manually."
+          fi
+          if [[ "$RECONCILE_OUTCOME" == "failure" ]]; then
+            echo "::warning::reconcile_deploy_ready.py failed -- the org-wide Deploy Ready backlog sweep did not complete. Release notes generation is continuing anyway. Check this run's 'Reconcile Deploy Ready backlog' step; the backlog will be retried on the next release."
+          fi
+          if [[ "$MERGE_BACKFILL_OUTCOME" == "failure" ]]; then
+            echo "::warning::merge_release_backfill.py failed -- a backfilled story that shipped in this release may be missing from the announcement. Check this run's 'Merge current-release backfill into shipped-stories.json' step."
+          fi
 
       - name: Alert Slack if Shortcut bookkeeping failed
-        if: steps.mark_deployed.outcome == 'failure'
+        if: steps.mark_deployed.outcome == 'failure' || steps.reconcile.outcome == 'failure' || steps.merge_backfill.outcome == 'failure'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
           VERSION: ${{ steps.resolve.outputs.version }}
+          MARK_DEPLOYED_OUTCOME: ${{ steps.mark_deployed.outcome }}
+          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
+          MERGE_BACKFILL_OUTCOME: ${{ steps.merge_backfill.outcome }}
         run: |
+          FAILURES=""
+          if [[ "$MARK_DEPLOYED_OUTCOME" == "failure" ]]; then
+            FAILURES="${FAILURES}mark_stories_deployed.py failed (this release's shipped stories NOT moved Deploy Ready -> Done). "
+          fi
+          if [[ "$RECONCILE_OUTCOME" == "failure" ]]; then
+            FAILURES="${FAILURES}reconcile_deploy_ready.py failed (org-wide Deploy Ready backlog sweep did not complete). "
+          fi
+          if [[ "$MERGE_BACKFILL_OUTCOME" == "failure" ]]; then
+            FAILURES="${FAILURES}merge_release_backfill.py failed (a backfilled story may be missing from the announcement). "
+          fi
           curl -s -X POST -H 'Content-type: application/json' \
-            --data "{\"text\": \":warning: Prod release notes for version ${VERSION:-unknown}: mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done. Release notes generation is continuing. Check the workflow run and move the affected stories manually.\"}" \
+            --data "{\"text\": \":warning: Prod release notes for version ${VERSION:-unknown}: ${FAILURES}Release notes generation is continuing. Check the workflow run and move the affected stories manually.\"}" \
             "$SLACK_WEBHOOK_URL" || true
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+      - name: Resolve triage explainer opt-in
+        id: triage_opt_in
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EXPLAIN_TRIAGE_INPUT: ${{ inputs.explain_triage }}
+          # Repo-level Actions variable, not a secret.
+          ENABLE_TRIAGE_EXPLAINER_VAR: ${{ vars.ENABLE_TRIAGE_EXPLAINER }}
+        run: |
+          ENABLED=$(python3 build/ci/triage_explainer.py resolve-enabled \
+            --event-name "$EVENT_NAME" \
+            --explain-triage-input "$EXPLAIN_TRIAGE_INPUT" \
+            --enable-var "$ENABLE_TRIAGE_EXPLAINER_VAR")
+          echo "enabled=${ENABLED}" >> "$GITHUB_OUTPUT"
 
-      - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Explain Deploy Ready triage backlog (optional)
+        id: explain_triage
+        if: steps.triage_opt_in.outputs.enabled == 'true'
+        # Opt-in and best-effort; never blocks the release announcement.
+        continue-on-error: true
+        # Input is contributor-controlled text; cwd here (not the checkout)
+        # is what actually bounds the step's Write grant.
+        working-directory: ${{ runner.temp }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [[ -z "$ANTHROPIC_API_KEY" ]]; then
+            echo "ANTHROPIC_API_KEY is empty -- skipping the triage explainer. This is an opt-in convenience feature and degrades cleanly without a key; it never blocks the release announcement."
+            exit 0
+          fi
+
+          REPORT_FILE="$RUNNER_TEMP/reconcile-deploy-ready-report.json"
+          if [[ ! -s "$REPORT_FILE" ]]; then
+            echo "No reconcile report found at $REPORT_FILE (the reconcile step may have failed or produced nothing) -- skipping the triage explainer."
+            exit 0
+          fi
+
+          TRIAGE_ONLY_FILE="$RUNNER_TEMP/reconcile-triage-only.json"
+          python3 "$GITHUB_WORKSPACE/build/ci/triage_explainer.py" extract --report "$REPORT_FILE" --out "$TRIAGE_ONLY_FILE"
+
+          TRIAGE_COUNT=$(python3 -c "import json; print(json.load(open('$TRIAGE_ONLY_FILE'))['triage_count'])")
+          if [[ "$TRIAGE_COUNT" == "0" ]]; then
+            echo "No triage stories this run -- nothing for the explainer to explain."
+            exit 0
+          fi
+
+          ANNOTATED_FILE="$RUNNER_TEMP/reconcile-triage-annotated.json"
+          # --allowedTools, not --dangerously-skip-permissions: the input embeds
+          # contributor-controlled text, a prompt-injection path. No Bash/network tools.
+          claude -p "Read the JSON file at ${TRIAGE_ONLY_FILE}. It lists Shortcut stories an automated Deploy Ready reconciliation sweep could not classify as shipped or pending ('triage'), each with: name, description, comments, and (for a story with a linked PR that didn't qualify) linked_prs -- the PR number and exactly which shipping-evidence guard(s) it failed (not merged / wrong repo / wrong target branch), or (for a story on the wrong Shortcut workflow) its workflow_id/workflow_state_id. For EACH story in the 'triage' array, propose (a) a short hypothesis for why it is stuck, grounded ONLY in the fields given -- e.g. 'a linked PR targets preprod, not master -- likely a promotion PR was linked instead of the real feature PR', 'no PR is linked at all -- may have shipped via an unlinked PR, or a PR may still need to be opened', 'workflow/state ids do not match Standard -- this story may belong to a different team or process entirely', and (b) a short suggested next action for a human, e.g. 'search for the real feature PR and re-link it', 'no code artifact found -- consider closing manually', 'may belong to another repo's release train -- verify with that PR's author'. Do not invent PR numbers, dates, names, or any fact not present in the input. Do not recommend or imply any automatic action, transition, or comment -- every output is an unverified hypothesis for a human to check, never a finding. Prefix every hypothesis string with the literal text '[AI hypothesis, unverified] ' so it can never be mistaken for a verified cause. Write your ONLY output as JSON to ${ANNOTATED_FILE}: a list of objects, one per input triage story, each shaped {id, hypothesis, suggested_next_action}. Do not ask any clarifying questions -- proceed directly." \
+            --allowedTools "Read,Write,Glob,Grep"
+
+          if [[ -s "$ANNOTATED_FILE" ]]; then
+            echo "----- Triage explainer output (hypotheses only -- NOT verified findings) -----"
+            cat "$ANNOTATED_FILE"
+            echo "--------------------------------------------------------------------------------"
+          else
+            echo "Triage explainer produced no output file -- treating as a soft failure. Opt-in feature; this never blocks the run."
+          fi
 
       - name: Generate release notes (headless Claude Code)
         id: generate
@@ -183,12 +256,8 @@ jobs:
           fi
 
           mkdir -p release-notes-output
-          # --allowedTools instead of --dangerously-skip-permissions: the
-          # input (shipped-stories.json) embeds contributor-controlled text
-          # (commit subjects, branch names, Shortcut free text), which is a
-          # prompt-injection path. This agent must never hold Bash or
-          # network tools, so the fix is least-privilege tool scoping at the
-          # provisioning layer, not content filtering.
+          # --allowedTools, not --dangerously-skip-permissions: shipped-stories.json
+          # embeds contributor-controlled text, a prompt-injection path. No Bash/network tools.
           claude -p "Use the sefaria-release-notes skill (.claude/skills/sefaria-release-notes/SKILL.md). Generate release notes from the shipped-stories JSON file at shipped-stories.json. Output directory: release-notes-output/. Do not ask any clarifying questions — proceed with defaults documented in the skill's Edge Cases table." \
             --allowedTools "Read,Write,Glob,Grep"
 
@@ -210,11 +279,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_PRODUCT_WEBHOOK }}
         run: |
-          # Guarded in the script body, not in `if:` — a step's own `env` block
-          # is not reliably visible to that same step's `if` expression, so
-          # `env.SLACK_PRODUCT_WEBHOOK != ''` there silently evaluates empty and
-          # the step never runs. Until the second webhook exists this is a
-          # deliberate no-op that must not fail the workflow.
+          # Guarded here, not in `if:` — a step's own `env` isn't reliably visible to its own `if`.
           if [[ -z "$SLACK_WEBHOOK_URL" ]]; then
             echo "SLACK_PRODUCT_WEBHOOK is not set — skipping the release announcement post."
             exit 0

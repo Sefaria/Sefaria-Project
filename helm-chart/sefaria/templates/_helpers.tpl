@@ -173,6 +173,9 @@ Setup complete tasks queue info
 */}}
 {{- define "sefaria.tasks.internalQueues" }}
 tasks: {{ .Values.deployEnv }}-tasks
+{{- if .Values.tasks.findRefs.enabled }}
+findRefs: {{ .Values.deployEnv }}-find-refs
+{{- end }}
 {{- end }}
 {{- define "sefaria.tasks.queues" }}
 {{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}
@@ -268,13 +271,4 @@ spec:
 
 {{- define "sefaria.secrets.authServicePg" }}
 {{- required "authService.postgres.secrets.dsn.ref: the cluster key-registry Secret" .Values.authService.postgres.secrets.dsn.ref }}
-{{- end }}
-
-{{- define "sefaria.authService.jwksURL" -}}
-{{- $svc := default (printf "mint-%s" .Values.deployEnv) .Values.authService.jwt.jwks.service -}}
-http://{{ $svc }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.authService.jwt.jwks.port }}{{ .Values.authService.jwt.jwks.path }}
-{{- end }}
-
-{{- define "sefaria.authService.issuer" -}}
-{{- default (printf "https://mint-%s.%s.svc.cluster.local" .Values.deployEnv .Release.Namespace) .Values.authService.jwt.issuer -}}
 {{- end }}

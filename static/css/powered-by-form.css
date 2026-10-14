@@ -1,0 +1,256 @@
+/* The Powered by Sefaria form, styled after the Formstack form it replaces. */
+
+.pbfForm {
+  --pbf-text: #595d64;
+  --pbf-border-optional: #455560;
+  --pbf-border-required: #cfd4d8;
+  --pbf-focus: #017cc2;
+  --pbf-error: #ff3c3c;
+  --pbf-error-bg: #fae9e9;
+  --pbf-button: #1c2f3a;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0 20px;
+  background: #ffffff;
+  color: var(--pbf-text);
+  font-family: "Roboto", "Helvetica Neue", Arial, "Lucida Grande", Tahoma, Verdana, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-align: start;
+}
+.pbfForm *, .pbfForm *::before, .pbfForm *::after { box-sizing: border-box; }
+.pbfForm[lang="he"] { font-family: "Roboto", "Heebo", Arial, sans-serif; }
+
+.readerNavMenu.poweredByFormPage .content .contentInner { width: 100%; max-width: 840px; }
+.readerNavMenu.poweredByFormPage { background: #ffffff; }
+
+.pbfHeader {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+  margin-bottom: 30px;
+}
+.pbfHeader img { width: 300px; height: 96px; object-fit: contain; max-width: 100%; }
+
+.pbfGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 20px;
+}
+.pbfField-full, .pbfSectionHeading { grid-column: 1 / -1; }
+.pbfField-half { grid-column: span 1; }
+
+.pbfField {
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.pbfRichText {
+  margin: 0 0 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 18px;
+  line-height: 1.38;
+  color: #000000;
+}
+.pbfRichText p { margin: 0; }
+.pbfRichText p + p { margin-top: 1.38em; }
+.pbfRichText a { color: inherit; text-decoration: underline; }
+.pbfMode-public .pbfRichText:not(.pbfIntro):not(.pbfDiscord) {
+  font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  color: var(--pbf-text);
+}
+.pbfDiscord { text-align: center; margin-top: 10px; }
+.pbfIntro { margin-bottom: 30px; }
+
+.pbfSectionHeading {
+  margin: 10px 0 60px;
+  font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 28px;
+  text-align: center;
+  color: var(--pbf-text);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.pbfLabel {
+  display: block;
+  padding: 0;
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--pbf-text);
+}
+
+.pbfControl { position: relative; }
+
+.pbfInput {
+  display: block;
+  width: 100%;
+  height: 42px;
+  padding: 7px;
+  margin: 0;
+  border: 1px solid var(--pbf-border-optional);
+  border-radius: 0;
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--pbf-text);
+  box-shadow: none;
+}
+.pbfRequired .pbfInput { border-color: var(--pbf-border-required); }
+.pbfInput:focus {
+  outline: 1px solid var(--pbf-focus);
+  border-color: var(--pbf-focus);
+}
+.pbfTextarea { height: auto; min-height: 88px; resize: vertical; }
+select.pbfInput { appearance: auto; }
+
+.pbfCounter {
+  margin-top: 4px;
+  font-size: 12px;
+  text-align: end;
+}
+
+.pbfOptions { display: flex; flex-direction: column; }
+.pbfOption {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding-inline-start: 2px;
+  font-size: 14px;
+  line-height: 28px;
+  color: var(--pbf-text);
+  cursor: pointer;
+}
+.pbfOption input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  margin-inline-end: 7px;
+  flex: none;
+}
+.pbfOtherInput { margin-top: 4px; }
+
+.pbfHelp { margin-top: 6px; font-size: 12px; }
+
+.pbfErrorNote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--pbf-error);
+  background: var(--pbf-error-bg);
+  font-size: 12px;
+  color: #333333;
+}
+.pbfErrorIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--pbf-error);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+.pbfHasError .pbfInput { border-color: var(--pbf-error); padding-inline-end: 30px; }
+.pbfInputIcon {
+  position: absolute;
+  top: 13px;
+  inset-inline-end: 9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--pbf-error);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
+
+.pbfPageError {
+  margin: 0 0 30px;
+  padding: 18px 28px;
+  border: 1px solid var(--pbf-error);
+  background: var(--pbf-error-bg);
+  color: #222222;
+  outline: none;
+}
+.pbfPageErrorTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.pbfPageError ul { list-style: none; margin: 0; padding: 0; }
+.pbfPageError li { font-size: 12px; line-height: 1.8; }
+.pbfPageError a { color: inherit; text-decoration: underline; }
+
+.pbfButtons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 40px 0 20px;
+}
+.pbfButton {
+  padding: 10px;
+  border: 0;
+  border-radius: 0;
+  background: var(--pbf-button);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+}
+.pbfButton:disabled { opacity: 0.7; cursor: default; }
+.pbfButton:focus-visible { outline: 2px solid var(--pbf-focus); outline-offset: 2px; }
+
+.pbfSrOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.pbfThanks, .pbfDuplicate { padding-top: 40px; }
+.pbfThanks .pbfSectionHeading, .pbfDuplicate .pbfSectionHeading { margin-bottom: 30px; }
+.pbfPlaceholderTag {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 2px 8px;
+  border: 1px dashed #b06d00;
+  background: #fff6e5;
+  color: #7a4b00;
+  font-size: 12px;
+}
+.pbfApiKey { font-size: 16px; }
+.pbfApiKey a { color: var(--pbf-focus); text-decoration: underline; }
+.pbfSaveFailed { color: var(--pbf-error); margin-bottom: 0; }
+
+@media (max-width: 600px) {
+  .pbfForm { padding: 0 16px; margin-top: 10px; }
+  .pbfGrid { grid-template-columns: minmax(0, 1fr); }
+  .pbfField-half { grid-column: 1 / -1; }
+  .pbfSectionHeading { margin-bottom: 30px; }
+  .pbfHeader img { width: 220px; height: 70px; }
+  .pbfPageError { padding: 14px 16px; }
+}

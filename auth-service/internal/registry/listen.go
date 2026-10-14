@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// Notice is one change broadcast by the registry's triggers (schema.sql). It says what changed, never which key.
+// Notice is one change broadcast by the registry's triggers (Django migrations in powered_by/). It says what changed, never which key.
 type Notice struct {
 	Table string
 	Op    string

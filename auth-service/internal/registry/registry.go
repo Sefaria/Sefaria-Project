@@ -2,7 +2,6 @@ package registry
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -20,37 +19,40 @@ type Key struct {
 
 var ErrEmptyReload = errors.New("registry: refusing to replace a non-empty key set with an empty one")
 
-type ChangeEvent struct {
-	Op  string    `json:"op"`
-	Key Key       `json:"key"`
-	TS  time.Time `json:"ts"`
-}
-
 type snapshot struct {
 	byKey map[string]Key
-	byID  map[string]Key
 }
 
 type Registry struct {
-	snap     atomic.Pointer[snapshot]
-	writeMu  sync.Mutex
-	version  atomic.Uint64
-	loadedAt atomic.Int64
+	snap         atomic.Pointer[snapshot]
+	writeMu      sync.Mutex
+	pendingEmpty bool
+	firstEmptyAt time.Time
+	minGap       time.Duration
+	now          func() time.Time
+	version      atomic.Uint64
+	loadedAt     atomic.Int64
 }
 
 func New() *Registry {
-	r := &Registry{}
-	r.snap.Store(&snapshot{byKey: map[string]Key{}, byID: map[string]Key{}})
+	r := &Registry{now: time.Now}
+	r.snap.Store(&snapshot{byKey: map[string]Key{}})
 	return r
 }
 
+// SetEmptyReloadGap sets the minimum time between the first empty load and the empty load that
+// confirms it. Two empties closer together than this (a NOTIFY reload and a periodic reload) are
+// treated as one observation. Zero means any second consecutive empty confirms.
+func (r *Registry) SetEmptyReloadGap(d time.Duration) {
+	r.writeMu.Lock()
+	r.minGap = d
+	r.writeMu.Unlock()
+}
+
 func build(keys []Key) *snapshot {
-	s := &snapshot{byKey: make(map[string]Key, len(keys)), byID: make(map[string]Key, len(keys))}
+	s := &snapshot{byKey: make(map[string]Key, len(keys))}
 	for _, k := range keys {
 		s.byKey[k.Key] = k
-		if k.ID != "" {
-			s.byID[k.ID] = k
-		}
 	}
 	return s
 }
@@ -58,60 +60,43 @@ func build(keys []Key) *snapshot {
 func (r *Registry) Replace(keys []Key) {
 	r.writeMu.Lock()
 	defer r.writeMu.Unlock()
+	r.pendingEmpty = false
+	r.replaceLocked(keys)
+}
+
+func (r *Registry) replaceLocked(keys []Key) {
 	r.snap.Store(build(keys))
-	r.loadedAt.Store(time.Now().UnixNano())
+	r.loadedAt.Store(r.now().UnixNano())
 	r.version.Add(1)
 }
 
 func (r *Registry) ReplaceGuarded(keys []Key) error {
-	if len(keys) == 0 && r.Len() > 0 {
+	r.writeMu.Lock()
+	defer r.writeMu.Unlock()
+	if len(keys) > 0 || r.Len() == 0 {
+		r.pendingEmpty = false
+	} else if !r.pendingEmpty {
+		r.pendingEmpty = true
+		r.firstEmptyAt = r.now()
 		return ErrEmptyReload
+	} else if r.now().Sub(r.firstEmptyAt) < r.minGap {
+		return ErrEmptyReload
+	} else {
+		r.pendingEmpty = false
 	}
-	r.Replace(keys)
+	r.replaceLocked(keys)
 	return nil
 }
 
-func (r *Registry) Apply(ev ChangeEvent) error {
-	if ev.Op != "upsert" && ev.Op != "delete" {
-		return fmt.Errorf("registry: unknown op %q", ev.Op)
-	}
+// ResetEmptyReloadGuard clears a pending first empty result after a failed load.
+func (r *Registry) ResetEmptyReloadGuard() {
 	r.writeMu.Lock()
-	defer r.writeMu.Unlock()
-	old := r.snap.Load()
-	next := &snapshot{byKey: make(map[string]Key, len(old.byKey)+1), byID: make(map[string]Key, len(old.byID)+1)}
-	for k, v := range old.byKey {
-		next.byKey[k] = v
-	}
-	for k, v := range old.byID {
-		next.byID[k] = v
-	}
-	switch ev.Op {
-	case "upsert":
-		next.byKey[ev.Key.Key] = ev.Key
-		if ev.Key.ID != "" {
-			next.byID[ev.Key.ID] = ev.Key
-		}
-	case "delete":
-		if prev, ok := next.byKey[ev.Key.Key]; ok {
-			delete(next.byID, prev.ID)
-		}
-		delete(next.byKey, ev.Key.Key)
-		if ev.Key.ID != "" {
-			delete(next.byID, ev.Key.ID)
-		}
-	}
-	r.snap.Store(next)
-	r.version.Add(1)
-	return nil
+	r.pendingEmpty = false
+	r.writeMu.Unlock()
 }
 
 func (r *Registry) Lookup(key string) (Key, bool) {
 	k, ok := r.snap.Load().byKey[key]
-	return k, ok
-}
-
-func (r *Registry) LookupID(id string) (Key, bool) {
-	k, ok := r.snap.Load().byID[id]
 	return k, ok
 }
 

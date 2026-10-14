@@ -8,6 +8,9 @@ from enum import Enum
 class CeleryQueue(Enum):
     TASKS = CELERY_QUEUES.get('tasks', 'TASK QUEUE UNDEFINED')
     LLM = CELERY_QUEUES.get('llm', 'LLM QUEUE UNDEFINED')
+    # Interactive find-refs API requests get their own queue so bulk linking jobs can't starve them.
+    # Falls back to the shared tasks queue in environments that don't run dedicated find-refs workers.
+    FIND_REFS = CELERY_QUEUES.get('findRefs') or CELERY_QUEUES.get('tasks', 'TASK QUEUE UNDEFINED')
 
 
 def generate_config_from_env() -> tuple[dict, RedisConfig, SentinelConfig]:

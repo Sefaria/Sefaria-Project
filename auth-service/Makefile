@@ -4,13 +4,13 @@ ENV     ?= authpoc
 NS      ?= default
 KUBECTL  = kubectl --context $(CTX) -n $(NS)
 CHART    = ../helm-chart/sefaria
-RENDER   = helm template $(ENV) $(CHART) --set deployEnv=$(ENV) --set authService.enabled=true --set authService.mintStub.enabled=true --set authService.rateLimit.enabled=true
+RENDER   = helm template $(ENV) $(CHART) --set deployEnv=$(ENV) --set gateway.enabled=true --set authService.enabled=true --set authService.image.tag=test
 
-.PHONY: test build helm-lint helm-render crd-gate shellcheck
+.PHONY: test build helm-lint helm-render helm-matrix crd-gate shellcheck
 test:
 	go vet ./... && go test -race -count=1 ./...
 build:
-	mkdir -p bin && for b in authsvc keyadmin mintstub; do CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o bin/$$b ./cmd/$$b; done
+	mkdir -p bin && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o bin/authsvc ./cmd/authsvc
 helm-lint:
 	cd .. && ct lint --charts helm-chart/sefaria --validate-maintainers=false
 helm-render:
@@ -22,15 +22,12 @@ shellcheck:
 	bash scripts/test-policy-gate.sh
 helm-matrix:
 	@set -e; C=../helm-chart/sefaria; \
-	echo "== flag off: no auth objects"; helm template x $$C --set deployEnv=x | yq 'select(.kind == "SecurityPolicy" or (.metadata.name | test("auth-service|mint"))) | .kind' | grep -c . | grep -qx 0; \
-	echo "== one replica: no PDB"; helm template x $$C --set deployEnv=x --set authService.enabled=true | yq 'select(.kind=="PodDisruptionBudget" and (.metadata.name | test("auth-service"))) | .kind' | grep -c . | grep -qx 0; \
-	echo "== two replicas: PDB minAvailable 1"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.replicaCount=2 | yq 'select(.kind=="PodDisruptionBudget" and (.metadata.name | test("auth-service"))) | .spec.minAvailable' | grep -qx 1; \
-	echo "== push: postgres channel, no app Redis by default"; [ "$$(helm template x $$C --set deployEnv=x --set authService.enabled=true | yq 'select(.kind=="Deployment" and .metadata.name=="x-auth-service") | .spec.template.spec.containers[0].env[] | .name' | grep -cx PG_NOTIFY_CHANNEL)" = 1 ]; [ "$$(helm template x $$C --set deployEnv=x --set authService.enabled=true | grep -c REDIS_ADDR)" = 0 ]; \
-	echo "== push.redis=true adds REDIS_ADDR"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.push.redis=true | grep -q 'name: REDIS_ADDR'; \
-	echo "== grpc"; helm template x $$C --set deployEnv=x --set authService.enabled=true | yq 'select(.kind=="SecurityPolicy") | .spec.extAuth.grpc.backendRefs[0].port' | grep -qx 9090; \
-	echo "== http"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.transport=http | yq 'select(.kind=="SecurityPolicy") | .spec.extAuth.http.headersToBackend | length' | grep -qx 3; \
-	echo "== jwt authsvc"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.jwt.mode=authsvc | yq 'select(.kind=="SecurityPolicy") | .spec.jwt' | grep -qx null; \
-	echo "== jwt failOpen"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.jwt.failOpen=true | yq 'select(.kind=="SecurityPolicy") | .spec.jwt | has("optional")' | grep -qx false; \
-	echo "== ratelimit multiplier"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.rateLimit.enabled=true --set authService.rateLimit.testLimitsMultiplier=100 | yq 'select(.kind=="BackendTrafficPolicy") | .spec.rateLimit.global.rules[0].limit.requests' | grep -qx 1000; \
-	echo "== ratelimit headers only with the flag (prod EG 1.8 lacks the field)"; [ "$$(helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.rateLimit.enabled=true --set authService.rateLimit.headers=true | grep -c 'xRateLimitHeaders: DraftVersion03')" = 6 ]; [ "$$(helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.rateLimit.enabled=true | grep -c xRateLimitHeaders)" = 0 ]; \
+	echo "== flag off: no auth objects"; helm template x $$C --set deployEnv=x | yq 'select(.kind == "SecurityPolicy" or (.metadata.name | test("auth-service"))) | .kind' | grep -c . | grep -qx 0; \
+	echo "== one replica: no PDB"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="PodDisruptionBudget" and (.metadata.name | test("auth-service"))) | .kind' | grep -c . | grep -qx 0; \
+	echo "== two replicas: PDB minAvailable 1"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.image.tag=test --set authService.replicaCount=2 | yq 'select(.kind=="PodDisruptionBudget" and (.metadata.name | test("auth-service"))) | .spec.minAvailable' | grep -qx 1; \
+	echo "== postgres NOTIFY channel wired"; [ "$$(helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="Deployment" and .metadata.name=="x-auth-service") | .spec.template.spec.containers[0].env[] | .name' | grep -cx PG_NOTIFY_CHANNEL)" = 1 ]; \
+	echo "== grpc"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="SecurityPolicy") | .spec.extAuth.grpc.backendRefs[0].port' | grep -qx 9090; \
+	echo "== no jwt block"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="SecurityPolicy") | .spec.jwt' | grep -qx null; \
+	echo "== enabled without an image tag fails"; ! helm template x $$C --set deployEnv=x --set authService.enabled=true >/dev/null 2>&1; \
+	echo "== client x-sefaria-* stripped only when enabled"; helm template x $$C --set deployEnv=x --set gateway.enabled=true --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="ClientTrafficPolicy") | .spec.headers.earlyRequestHeaders.remove | length' | grep -qx 3; [ "$$(helm template x $$C --set deployEnv=x --set gateway.enabled=true | grep -c earlyRequestHeaders)" = 0 ]; \
 	echo "helm-matrix OK"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# scripts/policy-gate.sh — follow-up F5: exits 0 only when the environment's auth policies are Accepted on every
-# ancestor. Envoy Gateway does not fail open on a rejected policy: a rejected BackendTrafficPolicy (or a JWT policy with
-# no JWKS endpoints) turns the whole route into a 500. Run it after every rollout that touches the auth policies.
+# scripts/policy-gate.sh — exits 0 only when the environment's auth SecurityPolicy is Accepted on every ancestor.
+# Envoy Gateway does not fail open on a rejected policy: a rejected policy turns the whole route into a 500.
+# Run it after every rollout that touches the auth policy.
 #   CTX=… NS=… ENV=authpoc scripts/policy-gate.sh
 set -uo pipefail
 CTX=${CTX:-gke_development-205018_us-east1-b_cluster-1}
@@ -20,6 +20,4 @@ check() {
   echo "ok   $1/$2: Accepted=[$statuses]"
 }
 check securitypolicy "$ENV-auth" required
-check securitypolicy "$ENV-auth-legacy-body" optional
-check backendtrafficpolicy "$ENV-auth-ratelimit" optional
 exit $rc
