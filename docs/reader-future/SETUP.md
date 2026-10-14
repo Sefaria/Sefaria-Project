@@ -3,25 +3,36 @@
 What has to be set up once, in Slack and in claude.ai admin, so Claude Tag can keep this specification. Everything in the repository
 (this folder, the skill, the generator) is already in place on `reader-next`.
 
-## 1. Admin (a claude.ai Team or Enterprise owner)
+## 1. Admin (a Claude organization Owner, Team or Enterprise plan)
 
-1. **Claude Tag** is enabled for the Sefaria Slack workspace: claude.ai → Admin settings → Claude Tag.
-2. **GitHub**: the Claude GitHub App is installed on `Sefaria/Sefaria-Project`, and the repository is granted to the
-   #reader-future channel's scope. Claude needs to clone, push branches and open pull requests; it never needs to merge.
-3. **Routines**: Admin → Capabilities → *Remote sessions* is on (routines run as remote sessions).
-4. **The skill**: upload `claude-tag/capture-future-spec.zip` as a plugin (Admin → Claude Tag → Plugins), and attach it to the
-   #reader-future channel. Rebuild the zip when the skill changes (section 7).
-5. **Spend**: set a limit for the channel. The daily digest and weekly pass are each one session; captures are one each.
-6. **Branch protection** on `reader-next` should require a review, so every change is a pull request someone approves.
+Admin pages live under claude.ai/admin-settings. Steps follow the Claude Tag docs, https://claude.com/docs/claude-tag.
+
+1. **Pair the Slack workspace** (once, if not done): a Slack workspace admin sends `@Claude connect` in any channel; the Owner pastes
+   the code at claude.ai/admin-settings/claude-tag → **Pair your Slack workspace** → **Pair workspace**.
+2. **Routines**: claude.ai/admin-settings/capabilities → **Remote sessions** → **Routines** on. Without it Claude answers every
+   mention with an "unavailable" notice.
+3. **The skill**: claude.ai/admin-settings/skills?tab=inventory → **Add** → **Upload a plugin** →
+   `claude-tag/capture-future-spec.zip`. Uploading only adds it to the catalogue; attach it in step 5.
+4. **GitHub**: link the Sefaria GitHub organisation at claude.ai/admin-settings/source-control (needs a GitHub org owner who is also
+   a Claude Owner).
+5. **Attach to the channel**: claude.ai/admin-settings/claude-tag → **Claude's access** → **Channels** → #reader-future →
+   **Add** → **Plugin** → `capture-future-spec` → **Add**; then **Add** → **Repository** → `Sefaria/Sefaria-Project` → **Add**.
+   Claude needs to clone, push branches and open pull requests; it never needs to merge.
+6. **Spend**: claude.ai/admin-settings/usage/claude-tag → set a limit on #reader-future's row in the per-channel table. Warnings post
+   in Slack at 75% and 90%. The daily digest and weekly pass are each one session; captures are one each.
+7. **Branch protection** on `reader-next` should require a review, so every change is a pull request someone approves.
 
 ## 2. The channel
 
-1. Create **#reader-future** (public, so the team can read it) and invite **@Claude**; run `@Claude connect` if asked.
-2. In the channel's Claude settings, set **Respond automatically: off**. Claude answers when mentioned and when the routines run;
-   it does not reply to every message.
-3. Paste the **custom instructions** (section 3).
-4. Send the **memory** lines (section 4), one message each.
-5. Post and pin the **welcome message** (section 6).
+#reader-future exists (public, channel ID `C0C9EGTL468`, created 2026-10-14) and its welcome message is posted.
+
+1. **Pin** the welcome message (section 6).
+2. **Invite Claude**: send `/invite @Claude` in the channel. It posts its own welcome.
+3. **Configure**: send `@Claude !configure` and open the link it replies with (or use the admin page in 1.5 → **General** tab).
+   Paste the custom instructions (section 3) into **Channel instructions**, switch **Respond automatically** off, and **Save** (the
+   field does not auto-save). Claude then answers only when mentioned and when the routines run.
+4. **Memory**: send the lines in section 4, one message each. Check with `@Claude what do you remember about this channel?`.
+5. **Routines**: send the two messages in section 5.
 
 ## 3. Channel custom instructions
 
@@ -59,21 +70,19 @@ Send each as a message to @Claude in the channel:
 
 ## 5. Routines
 
-Create both in the channel (`@Claude create a routine …`) or from claude.ai; each runs in this channel with the skill attached.
+Routines are created by asking in the channel (there is no form for creating them). Name the timezone, or Claude uses the sender's
+Slack timezone. `@Claude !routines` lists them; pause or change them by asking in plain words.
 
-**Daily digest** — every weekday at 18:00 Israel time:
-
-```
-Run the capture-future-spec daily digest for #reader-future: follow references/digest.md "Daily". Read everything since the last
-spec digest pull request, update docs/reader-future on reader-next, run tools/seed.py, open or refresh the "spec digest <today>"
-pull request, and post one summary message here. If nothing needs recording, post nothing.
-```
-
-**Weekly consistency pass** — Sundays at 09:00 Israel time:
+**Daily digest:**
 
 ```
-Run the capture-future-spec weekly pass for #reader-future: follow references/digest.md "Weekly". Fix mechanical inconsistencies
-in one "spec weekly <today>" pull request, and post this week's summary, what needs a person, and the suggested focus areas.
+@Claude every weekday at 18:00 Israel time, run the capture-future-spec daily digest for #reader-future: follow references/digest.md "Daily". Read everything since the last spec digest pull request, update docs/reader-future on reader-next, run tools/seed.py, open or refresh the "spec digest <today>" pull request, and post one summary message here. If nothing needs recording, post nothing.
+```
+
+**Weekly consistency pass:**
+
+```
+@Claude every Sunday at 09:00 Israel time, run the capture-future-spec weekly pass for #reader-future: follow references/digest.md "Weekly". Fix mechanical inconsistencies in one "spec weekly <today>" pull request, and post this week's summary, what needs a person, and the suggested focus areas.
 ```
 
 Claude Tag stops following a channel after about 100 top-level messages, or ten days, without being mentioned. The daily
@@ -96,7 +105,7 @@ How to use the channel
 
 ## 7. Changing the skill
 
-The skill is `claude-tag/capture-future-spec/`. After editing it, rebuild the zip and upload it again (section 1.4):
+The skill is `claude-tag/capture-future-spec/`. After editing it, rebuild the zip and upload it again (section 1.3):
 
 ```bash
 cd docs/reader-future/claude-tag && rm -f capture-future-spec.zip && (cd capture-future-spec && zip -qr ../capture-future-spec.zip .claude-plugin skills)
