@@ -52,6 +52,39 @@ class NewsletterViewAction(Enum):
     UPDATE_LEARNING_LEVEL = "during learning level update"
 
 
+def parse_json_object(request: HttpRequest) -> dict[str, Any]:
+    """
+    Parse the request body, which must be a JSON object.
+
+    Text that isn't JSON raises json.JSONDecodeError, which the views already turn
+    into a 400. Valid JSON that isn't an object ([], "x", 5, null) would otherwise
+    crash on the first body.get() and show up as a 500.
+
+    Raises:
+        InputError: If the body is valid JSON but not an object
+    """
+    body: Any = json.loads(cast(bytes, request.body))
+    if not isinstance(body, dict):
+        raise InputError("Request body must be a JSON object.")
+    return body
+
+
+def read_text_field(body: dict[str, Any], name: str) -> str:
+    """
+    Return body[name] with surrounding whitespace removed, or "" if it's missing.
+
+    The default in body.get(name, "") only covers a missing key. A null or a
+    number would crash on .strip() and show up as a 500, so those are rejected.
+
+    Raises:
+        InputError: If the value is present but isn't a string
+    """
+    value: Any = body.get(name, "")
+    if not isinstance(value, str):
+        raise InputError(f"{name} must be a string.")
+    return value.strip()
+
+
 def parse_selected_newsletters(body: dict[str, Any]) -> list[str]:
     """
     Return the stringids of the newsletters marked true in body["newsletters"].
@@ -253,10 +286,10 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
         return jsonResponse({"error": "Only POST method is supported"}, status=405)
 
     # Parse request body
-    body: dict[str, Any] = json.loads(cast(bytes, request.body))
-    first_name: str = body.get("firstName", "").strip()
-    last_name: str = body.get("lastName", "").strip()
-    email: str = body.get("email", "").strip()
+    body: dict[str, Any] = parse_json_object(request)
+    first_name: str = read_text_field(body, "firstName")
+    last_name: str = read_text_field(body, "lastName")
+    email: str = read_text_field(body, "email")
 
     # Validate required fields
     if not first_name or not last_name or not email:
@@ -442,7 +475,7 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
         )
 
     # Parse request body
-    body: dict[str, Any] = json.loads(cast(bytes, request.body))
+    body: dict[str, Any] = parse_json_object(request)
 
     # Extract selected newsletter stringids
     selected_newsletters: list[str] = parse_selected_newsletters(body)
@@ -565,7 +598,7 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
     user: Any = getattr(request, "user")
 
     # Parse request body
-    body: dict[str, Any] = json.loads(cast(bytes, request.body))
+    body: dict[str, Any] = parse_json_object(request)
 
     # Get learning level from request body
     learning_level: int | None = body.get("learningLevel")

@@ -1384,6 +1384,62 @@ class TestRequestBodyTypeChecks:
         assert_error(response, 400, "Learning level must be")
         mock_update.assert_not_called()
 
+    @pytest.mark.parametrize("value", [None, 5, ["John"]])
+    @pytest.mark.parametrize("field", ["firstName", "lastName", "email"])
+    @mock.patch("api.newsletter_views.subscribe_with_union")
+    def test_subscribe_rejects_non_string_text_fields(
+        self, mock_subscribe, client, field, value
+    ):
+        """
+        A default in body.get(field, "") only covers a missing key. null or a
+        number would crash on .strip() and show up as a 500.
+        """
+        response = client.post(
+            "/api/newsletter/subscribe",
+            json.dumps(valid_subscribe_body(**{field: value})),
+            content_type="application/json",
+        )
+
+        data = assert_error(response, 400, f"{field} must be a string.")
+        assert "code" not in data
+        mock_subscribe.assert_not_called()
+
+    @pytest.mark.parametrize("raw_body", ["[]", '"x"', "5", "null"])
+    @pytest.mark.parametrize(
+        "url, client_fixture",
+        [
+            ("/api/newsletter/subscribe", "client"),
+            ("/api/newsletter/preferences", "logged_in_client"),
+            (LEARNING_LEVEL_URL, "logged_in_client"),
+        ],
+    )
+    @mock.patch("api.newsletter_views.update_learning_level_impl")
+    @mock.patch("api.newsletter_views.update_user_preferences_impl")
+    @mock.patch("api.newsletter_views.subscribe_with_union")
+    def test_rejects_body_that_is_not_an_object(
+        self,
+        mock_subscribe,
+        mock_update_preferences,
+        mock_update_learning_level,
+        request,
+        url,
+        client_fixture,
+        raw_body,
+    ):
+        """
+        Valid JSON that isn't an object would crash on body.get() and show up as a
+        500. Text that isn't JSON at all already gets a 400.
+        """
+        http_client = request.getfixturevalue(client_fixture)
+
+        response = http_client.post(url, raw_body, content_type="application/json")
+
+        data = assert_error(response, 400, "Request body must be a JSON object.")
+        assert "code" not in data
+        mock_subscribe.assert_not_called()
+        mock_update_preferences.assert_not_called()
+        mock_update_learning_level.assert_not_called()
+
 
 @pytest.mark.django_db
 class TestSubscribeDoesNotRevealExistingSubscriptions:
