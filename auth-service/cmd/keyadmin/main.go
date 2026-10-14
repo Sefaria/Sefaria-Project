@@ -104,10 +104,11 @@ func main() {
 		}
 		id, err := projectID(ctx, db, *project)
 		if errors.Is(err, sql.ErrNoRows) {
-			err = db.QueryRowContext(ctx, `INSERT INTO powered_by_project(project_name, tier) VALUES ($1, $2) RETURNING id`, *project, *tier).Scan(&id)
+			// Django owns project rows: the real table has required columns only Django fills.
+			err = fmt.Errorf("project %q not found; create it in Django (admin or the developer settings page) first", *project)
 		}
 		fail(err)
-		_, err = db.ExecContext(ctx, `INSERT INTO powered_by_apikey(key, project_id, label, allowed_origins) VALUES ($1, $2, $3, $4::jsonb)`,
+		_, err = db.ExecContext(ctx, `INSERT INTO powered_by_apikey(id, key, project_id, label, allowed_origins, created_at) VALUES (gen_random_uuid(), $1, $2, $3, $4::jsonb, now())`,
 			k, id, *label, originsJSON(*origins))
 		fail(err)
 		fmt.Fprintln(os.Stderr, "created key", safePrefix(k), "on project", id)
@@ -130,13 +131,14 @@ func main() {
 	case "seed":
 		id, err := projectID(ctx, db, *project)
 		if errors.Is(err, sql.ErrNoRows) {
-			err = db.QueryRowContext(ctx, `INSERT INTO powered_by_project(project_name, tier) VALUES ($1, $2) RETURNING id`, *project, *tier).Scan(&id)
+			// Django owns project rows: the real table has required columns only Django fills.
+			err = fmt.Errorf("project %q not found; create it in Django (admin or the developer settings page) first", *project)
 		}
 		fail(err)
 		tx, err := db.BeginTx(ctx, nil)
 		fail(err)
 		for i := 0; i < *count; i++ {
-			_, err = tx.ExecContext(ctx, `INSERT INTO powered_by_apikey(key, project_id, label) VALUES ($1, $2, $3)`, newKey(), id, *label)
+			_, err = tx.ExecContext(ctx, `INSERT INTO powered_by_apikey(id, key, project_id, label, created_at) VALUES (gen_random_uuid(), $1, $2, $3, now())`, newKey(), id, *label)
 			fail(err)
 		}
 		fail(tx.Commit())
