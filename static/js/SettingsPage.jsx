@@ -919,7 +919,21 @@ const CharacterCount = ({id, length}) => (
    project linked to the listing; nothing is linked without that answer. */
 const YourListingDialog = ({listing, onYes, onNo, onLater}) => {
   const yesRef = useRef(null);
+  const busy = useRef(false);
+  const [pending, setPending] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
   useDialogKeys(yesRef, onLater);
+  /* One answer at a time: the buttons are disabled until the server replies. */
+  const answer = (send) => () => {
+    if (busy.current) { return; }
+    busy.current = true;
+    setPending(true);
+    Promise.resolve(send()).finally(() => {
+      busy.current = false;
+      if (mounted.current) { setPending(false); }
+    });
+  };
   return (
     <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocYourListingTitle">
       <section className="devPocDialog">
@@ -938,10 +952,10 @@ const YourListingDialog = ({listing, onYes, onNo, onLater}) => {
           }} />
         </p>
         <div className="devPocActions">
-          <button type="button" className="button small blue" ref={yesRef} data-agent-action="claim-listing" onClick={onYes}>
+          <button type="button" className="button small blue" ref={yesRef} data-agent-action="claim-listing" aria-disabled={pending} onClick={answer(onYes)}>
             <InterfaceText text={{en: "Yes, add it", he: "כן, להוסיף"}} />
           </button>
-          <button type="button" className="button small white" data-agent-action="not-my-listing" onClick={onNo}>
+          <button type="button" className="button small white" data-agent-action="not-my-listing" aria-disabled={pending} onClick={answer(onNo)}>
             <InterfaceText text={{en: "No, it's not mine", he: "לא, זה לא שלי"}} />
           </button>
           <button type="button" className="button small transparent" data-agent-action="listing-not-now" onClick={onLater}>
@@ -1080,16 +1094,31 @@ const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, 
   const [askWebsite, setAskWebsite] = useState(false);
   const [previewPublic, setPreviewPublic] = useState(false);
   const [askPrivate, setAskPrivate] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
   const formRef = useRef(null);
   const set = (key, value) => { setFields(f => ({...f, [key]: value})); setError(""); };
 
-  const save = () => Promise.resolve(onSave({
-    ...fields, name: fields.name.trim(), description: fields.description.trim(),
-    organization: fields.organization.trim(), websiteUrl: parseWebsite(fields.websiteUrl).url,
-  })).catch(err => setError(err.message || Sefaria._v(SAVE_FAILED)));
+  /* One request at a time, so a double click saves once. */
+  const save = () => {
+    if (savingRef.current) { return; }
+    savingRef.current = true;
+    setSaving(true);
+    Promise.resolve(onSave({
+      ...fields, name: fields.name.trim(), description: fields.description.trim(),
+      organization: fields.organization.trim(), websiteUrl: parseWebsite(fields.websiteUrl).url,
+    })).catch(err => { if (mounted.current) { setError(err.message || Sefaria._v(SAVE_FAILED)); } })
+      .finally(() => {
+        savingRef.current = false;
+        if (mounted.current) { setSaving(false); }
+      });
+  };
 
   const submit = (e) => {
     e.preventDefault();
+    if (savingRef.current) { return; }
     if (!fields.name.trim()) { setError(Sefaria._v({en: "Enter a project name.", he: "נא להזין שם לפרויקט."})); return; }
     if (!fields.description.trim()) { setError(Sefaria._v({en: "Enter a short description.", he: "נא להזין תיאור קצר."})); return; }
     if (fields.description.trim().length > MAX_DESCRIPTION_LENGTH) {
@@ -1145,7 +1174,7 @@ const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, 
         </p>
         {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
         <div className="devPocActions">
-          <button type="submit" className="button small blue" data-agent-action={onDelete ? "save-project" : "create-project"}>
+          <button type="submit" className="button small blue" aria-disabled={saving} data-agent-action={onDelete ? "save-project" : "create-project"}>
             <InterfaceText text={submitLabel} />
           </button>
           <button type="button" className="button small transparent" onClick={onCancel}>
@@ -1368,6 +1397,7 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
   const [newKeyId, setNewKeyId] = useState(null);
   const mounted = useRef(true);
   const highlightTimer = useRef(null);
+  const headingRef = useRef(null);
 
   useEffect(() => () => { mounted.current = false; clearTimeout(highlightTimer.current); }, []);
 
@@ -1403,14 +1433,17 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
       he: "המפתח יפסיק לעבוד מיד, וכל מה שמשתמש בו יפסיק לעבוד גם כן. אי אפשר לבטל את הפעולה.",
     }),
     actionLabel: Sefaria._v({en: "Delete key", he: "מחיקת המפתח"}),
-    onConfirm: () => run(deleteKey(apiKey.id)).catch(() => {}),
+    /* The deleted key's row takes its buttons with it, so focus lands on the section. */
+    onConfirm: () => run(deleteKey(apiKey.id)).then(() => {
+      if (mounted.current && headingRef.current) { headingRef.current.focus(); }
+    }, () => {}),
   });
 
   return (
     <section className="devPocSection">
       <div className="devPocHeading">
         <div>
-          <h3>
+          <h3 tabIndex={-1} ref={headingRef}>
             <InterfaceText text={{en: "API keys", he: "מפתחות API"}} />
           </h3>
           <FieldNote fieldId={keysNoteField}>
@@ -1535,7 +1568,7 @@ const listingStatus = (project) => {
 };
 
 
-const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm, onToggleExpand, notice}) => {
+const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm, onToggleExpand, onDeleted, notice}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
 
@@ -1576,7 +1609,7 @@ const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm
       ? <React.Fragment>{keysText} <PublishedCopiesWarning /></React.Fragment>
       : keysText,
     actionLabel: Sefaria._v({en: "Delete project", he: "מחיקת הפרויקט"}),
-    onConfirm: () => run(deleteProject(project.id)).catch(() => {}),
+    onConfirm: () => run(deleteProject(project.id)).then(onDeleted, () => {}),
   });
 
   const keyCount = project.keys.length;
@@ -1670,13 +1703,20 @@ const ConfirmDialog = ({confirm, onClose}) => {
 const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, setNotice,
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
                        setShowNewProject, onCreateProject, expandedProjectId, expandProject, onStart,
-                       settingUp}) => {
+                       settingUp, active}) => {
   const profileName = accountName() || (state.profile ? state.profile.developerName : "");
   const canCreate = accountVerified(state);
   const [askLaterListingId, setAskLaterListingId] = useState(null);
   const yourListing = state.yourListing;
-  const askAboutListing = yourListing && developerOn && state.profile && !showNewProject
+  const projectsHeadingRef = useRef(null);
+  /* The listing question is a modal, so it waits until this tab is the one showing. */
+  const askAboutListing = active && yourListing && developerOn && state.profile && !showNewProject
     && askLaterListingId !== yourListing.id;
+
+  const projectDeleted = () => {
+    expandProject(null);
+    if (projectsHeadingRef.current) { projectsHeadingRef.current.focus(); }
+  };
 
   const toggleExpand = (project) => expandProject(expandedProjectId === project.id ? null : project.id);
 
@@ -1774,7 +1814,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
             />}
 
           <div className="devPocSectionHeading">
-            <h2><InterfaceText text={{en: "Projects", he: "פרויקטים"}} /></h2>
+            <h2 tabIndex={-1} ref={projectsHeadingRef}><InterfaceText text={{en: "Projects", he: "פרויקטים"}} /></h2>
             {state.projects.length && !showNewProject && canCreate ? newProjectButton({en: "New project", he: "פרויקט חדש"}, "white") : null}
           </div>
 
@@ -1806,15 +1846,17 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
               setConfirm={setConfirm}
               notice={setNotice}
               onToggleExpand={() => toggleExpand(p)}
+              onDeleted={projectDeleted}
             />
           ))}
         </React.Fragment>}
 
       {askAboutListing ?
         <YourListingDialog
+          key={yourListing.id}
           listing={yourListing}
-          onYes={() => run(claimListing(yourListing.id)).then(data => expandProject(data.projectId), () => {})}
-          onNo={() => run(dismissListing(yourListing.id)).catch(() => {})}
+          onYes={() => run(claimListing(yourListing.id), {refresh: true}).then(data => expandProject(data.projectId), () => {})}
+          onNo={() => run(dismissListing(yourListing.id), {refresh: true}).catch(() => {})}
           onLater={() => setAskLaterListingId(yourListing.id)}
         /> : null}
     </div>
@@ -1871,13 +1913,21 @@ const MockEmailDialog = ({confirmationKey, onCancel}) => {
 
 /* ---- Account settings tab ---- */
 
+/* Switching tabs or opening a project adds history entries, so Cancel steps back until it
+   leaves settings. */
+const SETTINGS_PATH = /^\/settings(\/|$)/;
 const navigateBack = () => {
-  if (window.history.length > 2) {
-    window.history.back();
-  } else {
+  if (window.history.length <= 2) {
     window.history.replaceState(null, null, '/texts');
     window.location.reload();
+    return;
   }
+  const onPop = () => {
+    if (SETTINGS_PATH.test(window.location.pathname)) { window.history.back(); return; }
+    window.removeEventListener("popstate", onPop);
+  };
+  window.addEventListener("popstate", onPop);
+  window.history.back();
 };
 
 /* Arrow keys move between the options of one toggle and pick the one they land on. */
@@ -2302,12 +2352,16 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
 
   /* Every API call answers with the whole developer state, which replaces the page's copy. A
      failure leaves a notice, unless the caller shows the error itself ({quiet: true}); either
-     way the promise rejects, so callers can tell. */
-  const run = (request, {quiet} = {}) => request.then(data => {
+     way the promise rejects, so callers can tell. With {refresh: true} a failure also reloads
+     the state, for answers to something the server may no longer offer. */
+  const run = (request, {quiet, refresh} = {}) => request.then(data => {
     if (pageMounted.current) { setDeveloperState(data); }
     return data;
   }, err => {
     if (!quiet && pageMounted.current) { setNotice(err.message || Sefaria._v(SAVE_FAILED)); }
+    if (refresh) {
+      readState().then(server => { if (pageMounted.current) { setDeveloperState(server); } }, () => {});
+    }
     throw err;
   });
 
@@ -2315,6 +2369,9 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
     setExpandedProjectId(id);
     setProjectId(id);
   };
+
+  /* Back and forward change the project in the URL, and the open card follows it. */
+  useEffect(() => { setExpandedProjectId(projectId || null); }, [projectId]);
 
   /* Set up once, developer settings stay open: an account whose email changed since keeps its
      projects and keys, and confirms the new address before creating more. */
@@ -2410,6 +2467,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
         expandProject={expandProject}
         onStart={startDeveloper}
         settingUp={settingUp}
+        active={tab === "developer"}
       />
     ),
   };

@@ -210,34 +210,6 @@ describe('errors before setup', () => {
   });
 });
 
-describe('the Account tab of a developer with an unclaimed listing', () => {
-  const mountAccountWithListing = () => mount('account', {
-    ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING,
-  });
-
-  it('leaves Tab to the browser on the Account tab @known-gap N-C6', () => {
-    mountAccountWithListing();
-    const changeEmail = container.querySelector('#change-email');
-    act(() => { changeEmail.focus(); });
-    const tab = pressOn(changeEmail, 'Tab');
-    expect(tab.defaultPrevented).toBe(false);
-  });
-
-  it('does not move focus into the hidden developer panel on load @known-gap N-C6', () => {
-    mountAccountWithListing();
-    expect(developerPanel().contains(document.activeElement)).toBe(false);
-  });
-
-  it('does not answer the hidden listing question when Escape is pressed on the Account tab @known-gap N-C6', () => {
-    mountAccountWithListing();
-    const changeEmail = container.querySelector('#change-email');
-    act(() => { changeEmail.focus(); });
-    pressOn(changeEmail, 'Escape');
-    render({ tab: 'developer' });
-    expect(yourListingDialog()).toBeTruthy();
-  });
-});
-
 describe('a restricted key on an http:// website', () => {
   it('names the origin the gateway checks, with its real scheme @known-gap N-C11', () => {
     const httpProject = project({ websiteUrl: 'http://example.org', keys: [key(1, { restrictToWebsite: true })] });
@@ -360,38 +332,5 @@ describe('changing the email in the Account tab', () => {
     render({ tab: 'developer' });
     expect(developerPanel().querySelector('[aria-label="Confirm your new email"]')).toBeTruthy();
     expect(developerPanel().querySelector('[data-agent-action="new-project"]')).toBeNull();
-  });
-});
-
-describe('double clicks', () => {
-  const never = () => { global.fetch = jest.fn(() => new Promise(() => {})); };
-
-  it('creates one project from a double-clicked "Create project" @known-gap N-C9', () => {
-    openNewProject();
-    fillProject({ website: 'daftracker.org' });
-    never();
-    const submit = container.querySelector('[data-agent-action="create-project"]');
-    act(() => { submit.click(); });
-    act(() => { submit.click(); });
-    expect(calls('POST projects')).toBe(1);
-  });
-
-  it('claims a listing once from a double-clicked "Yes, add it" @known-gap N-C9', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING });
-    never();
-    const yes = container.querySelector('[data-agent-action="claim-listing"]');
-    act(() => { yes.click(); });
-    act(() => { yes.click(); });
-    expect(calls('POST listings/42/claim')).toBe(1);
-  });
-});
-
-describe('Back from a project URL', () => {
-  it('collapses the project card when the URL no longer names it @known-gap N-C13', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [project()] }, { projectId: 'proj01' });
-    const toggle = () => container.querySelector('.devPocProjectToggle');
-    expect(toggle().getAttribute('aria-expanded')).toBe('true');
-    render({ projectId: null });
-    expect(toggle().getAttribute('aria-expanded')).toBe('false');
   });
 });

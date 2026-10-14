@@ -7,6 +7,13 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def mark_developer_settings_projects_manual(apps, schema_editor):
+    """The schema before this migration has no developer_settings source, so those projects
+    become manual ones. Deleted and private projects are already unpublished."""
+    Project = apps.get_model('powered_by', 'Project')
+    Project.objects.filter(submission_source='developer_settings').update(submission_source='manual')
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -35,6 +42,7 @@ class Migration(migrations.Migration):
             model_name='project',
             name='powered_by_project_submission_source_valid',
         ),
+        migrations.RunPython(migrations.RunPython.noop, mark_developer_settings_projects_manual),
         migrations.AddField(
             model_name='project',
             name='consent_withdrawn_at',
