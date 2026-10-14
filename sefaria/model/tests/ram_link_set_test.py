@@ -23,6 +23,10 @@ class Cursor:
     def __iter__(self):
         return iter(self.docs)
 
+    def batch_size(self, n):
+        self.batch = n
+        return self
+
     def close(self):
         self.closed = True
 

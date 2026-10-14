@@ -46,6 +46,9 @@ class RAMFilteredLinkSet(LinkSet):
         self._hidden_titles = hidden_title_set(tuple(text.admin_only_titles())) if not text.show_admin_only_books() else frozenset()
         self._original_query = query_or_ref if query_or_ref is not None else {}
         super().__init__(self._original_query, page=0, limit=0)
+        # Without a Mongo limit, the default getMore batch can transfer far more
+        # than a visible page needs. Bound overfetch while still filling pages.
+        self.raw_records = self.raw_records.batch_size(min(limit, 1000) if limit else 1000)
         self.skip = page * limit
         self.limit = limit
         self.candidates_examined = 0
