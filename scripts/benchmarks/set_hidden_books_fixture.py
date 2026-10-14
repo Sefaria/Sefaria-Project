@@ -13,10 +13,22 @@ import os
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--expected-db', required=True)
-    parser.add_argument('--count', type=int, required=True)
+    selection = parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument('--count', type=int, help='Legacy hash-ordered fixture size; zero restores original flags.')
+    selection.add_argument('--titles-json', help='Explicit JSON list of exact Index titles.')
     args = parser.parse_args()
-    if args.count < 0:
+    if args.count is not None and args.count < 0:
         parser.error('count must be nonnegative')
+    requested = None
+    if args.titles_json is not None:
+        try:
+            requested = json.loads(args.titles_json)
+        except ValueError as exc:
+            parser.error(str(exc))
+        if not isinstance(requested, list) or any(not isinstance(t, str) or not t for t in requested):
+            parser.error('titles-json must be a list of nonempty strings')
+        if len(set(requested)) != len(requested):
+            parser.error('Duplicate titles are not allowed')
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sefaria.settings')
     from django.conf import settings
     # Keep library bootstrap stable after previous rounds have flagged base texts.
@@ -37,11 +49,21 @@ def main():
         state = {'_id': 'original-index-flags-v1', 'rows': rows}
         ledger.insert_one(state)
     rows = state['rows']
-    if args.count > len(rows):
+    if args.count is not None and args.count > len(rows):
         raise SystemExit(f'Only {len(rows)} indexes available')
+    selected = requested if requested is not None else [r['title'] for r in rows[:args.count]]
+    selected_set = set(selected)
+    current = list(db.index.find({}, {'title': 1}))
+    if {r['_id'] for r in current} != {r['_id'] for r in rows}:
+        raise SystemExit('Index population changed since fixture snapshot; refusing to write')
+    missing = selected_set - {r['title'] for r in current}
+    if missing:
+        raise SystemExit('Unknown Index titles; no flags changed: ' + json.dumps(sorted(missing)))
+    if {r['_id']: r['title'] for r in current} != {r['_id']: r['title'] for r in rows}:
+        raise SystemExit('Index titles changed since fixture snapshot; refusing to write')
     operations = []
-    for position, row in enumerate(rows):
-        if position < args.count:
+    for row in rows:
+        if row['title'] in selected_set:
             update = {'$set': {'admin_only': True}}
         elif 'admin_only' in row:
             update = {'$set': {'admin_only': row['admin_only']}}
@@ -53,10 +75,9 @@ def main():
         if result.matched_count != len(rows):
             raise SystemExit('Index population changed since fixture snapshot; inspect before benchmarking')
     count = db.index.count_documents({'admin_only': True})
-    if count != args.count:
+    if count != len(selected):
         raise SystemExit(f'Unexpected hidden count: {count}')
-    selected = [r['title'] for r in rows[:args.count]]
-    print(json.dumps({'database': db.name, 'hidden_indexes': count,
+    print(json.dumps({'database': db.name, 'hidden_indexes': count, 'selected_titles': selected,
                       'selection_sha256': hashlib.sha256(json.dumps(selected).encode()).hexdigest()}))
 
 

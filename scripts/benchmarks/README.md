@@ -15,9 +15,10 @@ Experimental branch for PR #3784. Do not merge it into production.
 
 ## Fixture
 
-Use `set_hidden_books_fixture.py` only on the PR database. It picks existing Index
-records in a stable SHA-256 title order, and flags nested samples of size
-0, 1, 10, 100, and 1000. It never modifies links or versions, so topology is preserved.
+Use `set_hidden_books_fixture.py` only on the PR database. The launcher supplies exact
+titles from the editable `BOOK_TITLES` list in `hidden_books_experiment.py`, hiding its
+first 0, 1, 10, 100, and 1000 entries. That explicit ordering preserves the original
+experiment's SHA-256 selection; future runs do not compute a new selection. It never modifies links or versions, so topology is preserved.
 It records original flag values in a separate ledger. `--count 0` restores them.
 The exact database name must be supplied and must end in `-hidden-links-pr`.
 No model save hooks run: this is deliberately a fixture edit on a disposable copy.
@@ -67,56 +68,82 @@ links preserved separately, especially for overlapping title prefixes.
 
 ## Run interactively from your laptop
 
-The launcher needs Python 3, `kubectl`, and working Google Cloud/Kubernetes credentials.
-It discovers the current ready pod; no pod name or local project dependencies are needed.
-Run from this checkout:
-
 ```sh
-python3 scripts/benchmarks/run_hidden_books.py --query '{"refs":"Genesis 1:1"}' --repeats 3
+python3 scripts/benchmarks/run_hidden_books.py
 ```
 
-This default is read-only. It launches locally but executes the ORM inside the experimental
-cauldron. It prints complete, untruncated query filters before each operation, immediate
-results afterward, expanded-title counts, BSON query sizes, cache-refresh/query-building
-times, and a final median/range summary. JSONL results are saved under `hidden-books-runs/`
-in your current directory; `--output /path/to/new-directory` overrides that location.
-Application initialization may take a while before the first measured query.
-The printed find/explain documents describe the benchmark operations; driver session fields,
-getMore requests, and bootstrap queries are not a wire-protocol trace.
+**No arguments needed.** This runs the three configured queries at **0, 1, 10, 100,
+and 1000** hidden indexes. Each case compares baseline/filtered modes with six measured
+rounds and one excluded warm-up. It temporarily changes Index flags in the dedicated
+PR cauldron and restores the fixture's original values afterward.
 
-Compare different hidden-book counts (changes only the dedicated PR database):
+### Edit the experiment
+
+All defaults are in **`hidden_books_experiment.py`**:
+
+- `FLAG_COUNTS`: the successive sizes, currently `[0, 1, 10, 100, 1000]`.
+- `QUERIES`: exact passage, Genesis book, and any 10,000 links. The full-library
+  server-only query is present as a commented example you can enable.
+- `BOOK_TITLES`: 1,000 explicit exact Index titles, ordered exactly as in the original
+  experiment. Each step hides the first N. Reorder/add/replace entries to change the
+  selection; make sure the largest count fits the list. The complex book that triggered
+  the original regex error is the 43rd entry.
+- `REPEATS`, `LIMIT`, `MAX_TIME_MS`: measurement settings.
+
+The runner prints selected titles, complete generated queries, live measurements,
+and summaries. Unknown or duplicate book titles are rejected. The experiment config,
+selected titles and raw JSONL measurements are saved locally under `hidden-books-runs/`.
+Use `--output /path/to/new-directory` to choose another results directory.
+
+The local launcher requires Python 3, `kubectl`, and working Google Cloud/Kubernetes
+credentials. It discovers the ready cauldron web pod and uses `kubectl exec` to stream
+in the benchmark script. Actual ORM queries execute in the container using its Django
+settings and MongoDB connection; no port forwarding or local project dependencies are
+needed. Initialization may take a while before the first measurement.
+
+### Optional overrides
 
 ```sh
-python3 scripts/benchmarks/run_hidden_books.py --counts 0 1 10 100 --query '{}' --limit 10000 --repeats 6
-```
+# Inspect the full configuration without connecting or changing flags:
+python3 scripts/benchmarks/run_hidden_books.py --show-plan
 
-The launcher restores the fixture's original flag values in `finally`, including after a
-normal Ctrl-C or child-process failure. A killed launcher, network failure, or second Ctrl-C
-can interrupt recovery. Retry recovery with `--counts 0 --repeats 1 --limit 1`.
-Do not run simultaneous fixture-changing benchmarks against this same database.
+# Smaller trial of all configured queries:
+python3 scripts/benchmarks/run_hidden_books.py --counts 0 1 10 --repeats 2
 
-Full-library MongoDB execution (no transfer or hydration of millions of records):
+# One query instead of the suite, retaining configured flag counts:
+python3 scripts/benchmarks/run_hidden_books.py --query '{"refs":"Genesis 1:1"}'
 
-```sh
+# Full-library server execution only:
 python3 scripts/benchmarks/run_hidden_books.py --counts 0 1 10 --query '{}' --full-scan
+
+# Read-only: use existing flags, no fixture changes:
+python3 scripts/benchmarks/run_hidden_books.py --read-only
+
+# Master control: all configured queries, baseline only, no flag changes:
+python3 scripts/benchmarks/run_hidden_books.py --environment control
+
+# Recovery if a prior run was interrupted before restoring flags:
+python3 scripts/benchmarks/run_hidden_books.py --restore-only
 ```
 
-Master control (read-only; baseline only):
-
-```sh
-python3 scripts/benchmarks/run_hidden_books.py --environment control --query '{}' --limit 10000
-```
+Restoration runs in `finally`, including after a normal Ctrl-C or child-process failure.
+A killed launcher, network failure, or second Ctrl-C can interrupt recovery; use
+`--restore-only` afterward. Do not run simultaneous fixture-changing benchmarks against
+this same database. The control environment is always read-only.
 
 For execution entirely on your machine, use `--execution local` from a configured Sefaria
-Python environment with the project's dependencies and a disposable local MongoDB copy.
-The checkout's Django settings determine the connection. The exact DB name must remain
-`sefaria-hidden-links-pr` (or `sefaria-hidden-links-control` for control), enforced by the
-worker; the launcher does not provision a database or alter connection settings.
+Python environment with dependencies and a disposable local MongoDB copy. The checkout's
+Django settings determine the connection; the DB must be named `sefaria-hidden-links-pr`
+(or `sefaria-hidden-links-control`). The launcher does not provision a database.
 
 Each mode performs three separate queries: explain executionStats (server work), a fully
 consumed raw cursor (server + transfer + decoding), and actual LinkSet hydration (also
 Python objects). Do not add these times together as if they were one request. Full-scan
-launcher mode performs only explain. Baseline/filtered order is shuffled deterministically;
-round zero is warm-up and excluded from summaries. A failed query is counted as an error,
-never a zero-millisecond success. Errors are printed live; a completed runner can therefore
-contain measured query failures—inspect its summaries.
+mode performs only explain. Baseline/filtered order is shuffled deterministically;
+round zero is warm-up and excluded from summaries. Failed queries are counted as errors,
+never zero-millisecond successes. The runner continues after measured query failures,
+so the original regex-size errors at 100/1000 do not prevent subsequent cases running.
+
+Printed find/explain documents describe benchmark operations, not a wire-protocol trace
+of driver session fields, getMore requests or bootstrap queries. Each measurement is
+printed when its operation completes; the query is printed before it starts.
