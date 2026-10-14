@@ -23,6 +23,7 @@ def main():
     parser.add_argument('--repeats', type=int, default=6)
     parser.add_argument('--max-time-ms', type=int, default=30000)
     parser.add_argument('--mode', choices=['baseline', 'paired'], default='paired')
+    parser.add_argument('--explain-only', action='store_true', help='Measure server execution without transferring/hydrating results.')
     parser.add_argument('--full-scan', action='store_true', help='Allow unlimited raw cursor scans; ORM still bounded.')
     args = parser.parse_args()
     if args.limit <= 0 or args.repeats <= 0 or args.max_time_ms <= 0:
@@ -90,6 +91,10 @@ def main():
                 emit(kind='explain', **common, stats=result.get('executionStats'), planner=result.get('queryPlanner'))
             except Exception as exc:
                 emit(kind='explain', **common, error=type(exc).__name__, message=str(exc))
+            if args.explain_only:
+                linkset.raw_records.close()
+                del linkset
+                continue
             # Fully consume cursor: timing find() alone measures almost no database work.
             started = time.perf_counter()
             count = 0

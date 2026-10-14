@@ -39,7 +39,7 @@ Start with a single smoke-test repeat, then six measured repeats plus a labelled
 1. Exact passage: `{"refs":"Genesis 1:1"}`.
 2. Whole book: `{"refs":{"$regex":"^Genesis(?:[ ,]|$)"}}`.
 3. Broad set: `{}`, bounded to 10,000 documents.
-4. Full collection: `{}` with `--full-scan`; only after assessing bounded runs.
+4. Full collection: `{}` with `--full-scan --explain-only`; only after assessing bounded runs. This measures server execution without transferring the entire collection.
 
 The fixture may select Genesis at a larger count: record this as changed selectivity,
 not an equivalent-output latency comparison. Include a stable public book confirmed
