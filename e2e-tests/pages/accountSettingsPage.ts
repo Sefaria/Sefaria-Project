@@ -48,20 +48,34 @@ export class AccountSettingsPage extends HelperBase {
     return this.page.getByRole('button', { name: this.language === LANGUAGES.EN ? 'Cancel' : 'ביטול' });
   }
 
+  /**
+   * Waits until React has hydrated the server-rendered page. With server rendering on, the
+   * controls are in the DOM before their handlers are, and an early click does nothing.
+   */
+  async waitForHydration() {
+    await this.page.waitForFunction(() => {
+      const el = document.querySelector('#accountSettingsPage .saveAccountSettingsBtn');
+      return !!el && Object.keys(el).some(k => /^__react(Props|EventHandlers|Fiber|InternalInstance)\$/.test(k));
+    }, null, { timeout: t(45000) });
+  }
+
   // Actions
   async selectEmailNotificationFrequency(frequency: 'daily' | 'weekly' | 'never') {
+    await this.waitForHydration();
     const option = this.emailNotificationsSection.locator(`.toggleOption[data-value="${frequency}"]`);
     await option.click();
     await expect(option).toHaveClass(/on/);
   }
 
   async selectSiteLanguage(language: 'english' | 'hebrew') {
+    await this.waitForHydration();
     const option = this.siteLanguageSection.locator(`.toggleOption[data-value="${language}"]`);
     await option.click();
     await expect(option).toHaveClass(/on/);
   }
 
   async selectReadingHistory(enabled: boolean) {
+    await this.waitForHydration();
     const value = enabled ? 'true' : 'false';
     const option = this.readingHistorySection.locator(`.toggleOption[data-value="${value}"]`);
     await option.click();
@@ -69,12 +83,14 @@ export class AccountSettingsPage extends HelperBase {
   }
 
   async selectLibraryAssistant(enabled: boolean) {
+    await this.waitForHydration();
     const option = this.page.locator(`#libraryAssistantSetting .toggleOption[data-value="${enabled}"]`);
     await option.click();
     await expect(option).toHaveClass(/on/);
   }
 
   async selectTextualCustom(custom: 'sephardi' | 'ashkenazi') {
+    await this.waitForHydration();
     const option = this.textualCustomSection.locator(`.toggleOption[data-value="${custom}"]`);
     await option.click();
     await expect(option).toHaveClass(/on/);
@@ -86,6 +102,7 @@ export class AccountSettingsPage extends HelperBase {
    * listener added afterwards never sees it.
    */
   async saveSettings() {
+    await this.waitForHydration();
     const saved = this.page.waitForResponse(
       r => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/profile',
       { timeout: t(30000) },

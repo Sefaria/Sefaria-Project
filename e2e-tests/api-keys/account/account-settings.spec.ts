@@ -139,7 +139,7 @@ test.describe('account settings: password account', () => {
         if (target.name === 'local') expect(savedSettings(PASSWORD).interface_language).toBe('hebrew');
       } finally {
         if (await page.locator('#siteLanguage .toggleOption[data-value="english"]').getAttribute('aria-checked') !== 'true') {
-          await page.locator('#siteLanguage .toggleOption[data-value="english"]').click();
+          await settingsPage.selectSiteLanguage('english');
           await saveAndReload(page);
         }
       }
