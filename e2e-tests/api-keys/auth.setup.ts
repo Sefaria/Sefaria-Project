@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { test as setup } from '@playwright/test';
 import {
   AUTH_DIR, AUTH_STATUS_FILE, accountKey, authFile, baseURLFor, loadManifest, maskSecrets, readPassword,
@@ -24,8 +25,11 @@ setup('log in every seeded api-keys account', async ({ browser }, testInfo) => {
   }
 
   setup.setTimeout(Math.max(180000, manifest.accounts.length * 30000));
-  fs.rmSync(AUTH_DIR, { recursive: true, force: true });
-  fs.mkdirSync(AUTH_DIR, { recursive: true });
+  // Sessions are written to a private directory and swapped in at the end, so a run that is
+  // already reading AUTH_DIR never sees it empty or half-written.
+  fs.mkdirSync(path.dirname(AUTH_DIR), { recursive: true });
+  const staging = fs.mkdtempSync(`${AUTH_DIR}.tmp-`);
+  const stagedFile = (file: string) => path.join(staging, path.basename(file));
 
   const password = readPassword();
   const status: AuthStatus['accounts'] = {};
@@ -46,7 +50,7 @@ setup('log in every seeded api-keys account', async ({ browser }, testInfo) => {
       await logIn(page, baseURL, account.email, password, account.id);
       const state = await context.storageState();
       state.cookies = state.cookies.map(c => (c.name === 'interfaceLang' ? { ...c, value: lang(account.role) } : c));
-      fs.writeFileSync(authFile(account.suite, account.role), JSON.stringify(state, null, 2));
+      fs.writeFileSync(stagedFile(authFile(account.suite, account.role)), JSON.stringify(state, null, 2));
       status[key] = { ok: true, at: new Date().toISOString() };
     } catch (e: any) {
       const reason = maskSecrets(String(e?.message || e).replace(/\x1b\[[0-9;]*m/g, '').split('\n')[0]);
@@ -63,7 +67,11 @@ setup('log in every seeded api-keys account', async ({ browser }, testInfo) => {
   });
   await Promise.all(lanes);
 
-  fs.writeFileSync(AUTH_STATUS_FILE, JSON.stringify({ runId: manifest.runId, accounts: status } as AuthStatus, null, 2));
+  fs.writeFileSync(stagedFile(AUTH_STATUS_FILE), JSON.stringify({ runId: manifest.runId, accounts: status } as AuthStatus, null, 2));
+  const retired = `${staging}.old`;
+  if (fs.existsSync(AUTH_DIR)) fs.renameSync(AUTH_DIR, retired);
+  fs.renameSync(staging, AUTH_DIR);
+  fs.rmSync(retired, { recursive: true, force: true });
   const ok = Object.values(status).filter(s => s.ok).length;
   const failed = Object.entries(status).filter(([, s]) => !s.ok).map(([k]) => k);
   console.log(`[apikeys-setup] ${target} ${manifest.runId}: ${ok} logged in, ${failed.length} failed${failed.length ? ` (${failed.join(', ')})` : ''}`);

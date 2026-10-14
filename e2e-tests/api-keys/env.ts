@@ -13,7 +13,10 @@ export type TargetName = 'local' | 'cauldron';
 
 export const REPO_ROOT = path.resolve(__dirname, '..', '..');
 export const SUITE_DIR = __dirname;
-export const AUTH_DIR = path.join(SUITE_DIR, '.auth');
+/** Logged-in storage states. APIKEYS_AUTH_DIR gives a run its own directory, so runs against different targets never share one. */
+export const AUTH_DIR = process.env.APIKEYS_AUTH_DIR
+  ? path.resolve(REPO_ROOT, process.env.APIKEYS_AUTH_DIR)
+  : path.join(SUITE_DIR, '.auth');
 export const RESULTS_DIR = path.join(SUITE_DIR, 'results');
 
 export const LOCAL_PORTS = {

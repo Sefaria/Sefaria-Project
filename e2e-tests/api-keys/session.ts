@@ -13,8 +13,17 @@ import { AUTH_STATUS_FILE, authFile, baseURLFor, loadManifest, TargetName } from
 
 export type InterfaceLang = 'english' | 'hebrew';
 
-/** Cookies and init scripts that keep first-visit overlays and the language redirect out of the way. */
-export async function prepareContext(context: BrowserContext, baseURL: string, lang: InterfaceLang = 'english') {
+/**
+ * Cookies and init scripts that keep first-visit overlays and the language redirect out of the way.
+ * `stubStrapi: false` skips the Strapi route: while any route is active, Playwright answers CORS
+ * preflights itself, so tests that depend on real cross-origin behaviour must not install one.
+ */
+export async function prepareContext(
+  context: BrowserContext,
+  baseURL: string,
+  lang: InterfaceLang = 'english',
+  { stubStrapi = true }: { stubStrapi?: boolean } = {},
+) {
   await context.addInitScript(() => {
     const original = Storage.prototype.getItem;
     Storage.prototype.getItem = function (key: string) {
@@ -26,6 +35,7 @@ export async function prepareContext(context: BrowserContext, baseURL: string, l
     { name: 'cookiesNotificationAccepted', value: '1', url: baseURL },
     { name: 'interfaceLang', value: lang, url: baseURL },
   ]);
+  if (!stubStrapi) return;
   await context.route('**/api/strapi/graphql-cache*', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
@@ -116,7 +126,9 @@ export async function contextAs(
   target: TargetName,
   suite: string,
   role: string,
-  { host, lang = 'english', options = {} }: { host?: string; lang?: InterfaceLang; options?: Parameters<Browser['newContext']>[0] } = {},
+  { host, lang = 'english', options = {}, stubStrapi = true }: {
+    host?: string; lang?: InterfaceLang; options?: Parameters<Browser['newContext']>[0]; stubStrapi?: boolean;
+  } = {},
 ): Promise<BrowserContext> {
   const state = JSON.parse(fs.readFileSync(storageStateFor(suite, role), 'utf-8'));
   if (host) {
@@ -133,6 +145,6 @@ export async function contextAs(
     ...options,
     storageState: state,
   });
-  await prepareContext(context, baseURL, lang);
+  await prepareContext(context, baseURL, lang, { stubStrapi });
   return context;
 }

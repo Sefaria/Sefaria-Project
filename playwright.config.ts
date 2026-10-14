@@ -244,7 +244,7 @@ export default defineConfig({
         name: 'apikeys-setup',
         testDir: './e2e-tests/api-keys',
         testMatch: /auth\.setup\.ts/,
-        outputDir: `${RESULTS_DIR}/setup`,
+        outputDir: `${RESULTS_DIR}/setup-${APIKEYS_TARGET}`,
         retries: 0,
         use: { ...devices['Desktop Chrome'], ...APIKEYS_USE, trace: 'off' as const },
       },

@@ -17,8 +17,8 @@ const SETTINGS_PAGES = ['/settings/account', '/settings/developer'];
 async function anonymousContext(browser: any, target: 'local' | 'cauldron', lang: InterfaceLang): Promise<BrowserContext> {
   const baseURL = baseURLFor(target);
   const context = await browser.newContext({ baseURL, ignoreHTTPSErrors: target === 'cauldron', locale: lang === 'hebrew' ? 'he-IL' : 'en-US' });
-  await prepareContext(context, baseURL, lang);
-  await prepareContext(context, voicesBase(target), lang);
+  await prepareContext(context, baseURL, lang, { stubStrapi: false });
+  await prepareContext(context, voicesBase(target), lang, { stubStrapi: false });
   return context;
 }
 
@@ -47,7 +47,7 @@ test.describe('website through the gateway', () => {
     });
 
     test(`B1: logged in, ${lang}: library, reader, search, settings and voices get no 401 or 403`, async ({ account, target }) => {
-      const { page, account: who } = await account('callers', 'eval', { lang });
+      const { page, account: who } = await account('callers', 'eval', { lang, stubStrapi: false });
       const refusals = watchRefusals(page, target.name);
       for (const path of [...LIBRARY_PAGES, ...SETTINGS_PAGES]) await visit(page, path);
       expect(await page.evaluate(() => (window as any).Sefaria._uid)).toBe(who.id);

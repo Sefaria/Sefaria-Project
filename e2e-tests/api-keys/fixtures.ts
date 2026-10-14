@@ -54,7 +54,7 @@ type Fixtures = {
    * Opens a logged-in context for one of the manifest's accounts. Contexts are closed after
    * the test. Use only your own suite's accounts.
    */
-  account: (suite: string, role: string, opts?: { host?: string; lang?: InterfaceLang }) => Promise<AccountSession>;
+  account: (suite: string, role: string, opts?: { host?: string; lang?: InterfaceLang; stubStrapi?: boolean }) => Promise<AccountSession>;
 };
 
 export const test = base.extend<Fixtures>({

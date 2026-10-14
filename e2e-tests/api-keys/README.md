@@ -18,6 +18,10 @@ APIKEYS_TARGET=local npx playwright test --project=apikeys e2e-tests/api-keys/_s
 APIKEYS_TARGET=local npx playwright test --project=apikeys --grep-invert @known-gap            # only what should pass today
 ```
 
+Two runs at once (say local and cauldron) must not share a session directory: give each its own with
+`APIKEYS_AUTH_DIR=e2e-tests/api-keys/.auth-local` (any path; relative to the repo root). The setup writes into a
+temporary directory and swaps it in at the end, so a run already in progress never reads a half-written one.
+
 The seed script and the setup both read the shared password from `APIKEYS_E2E_PASSWORD_FILE` (default
 `.claude/scratch/api-keys-e2e/password`). On the cauldron, use `e2e-tests/api-keys/cauldron/run.sh`, which
 preflights, seeds through the web pod, runs with at most 2 workers and always tears down.
@@ -55,5 +59,5 @@ Import `test` and `expect` from `./fixtures` (or `../fixtures`).
 ## Files
 
 `env.ts` (targets, manifest, masking), `fixtures.ts`, `session.ts` (login, contexts), `gateway.ts`, `registry.ts`,
-`mail.ts`, `infra.ts`, `auth.setup.ts`, `_smoke.spec.ts`. Git-ignored: `.auth/`, `results/`, and the manifest
+`mail.ts`, `infra.ts`, `auth.setup.ts`, `_smoke.spec.ts`. Git-ignored: `.auth*/`, `results/`, and the manifest
 `e2e-tests/.apikeys-e2e.json`.
