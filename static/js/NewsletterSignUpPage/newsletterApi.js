@@ -20,6 +20,7 @@ export const SERVER_ERROR_CODE = Object.freeze({
   LEARNING_LEVEL_TOKEN_INVALID: "learning_level_token_invalid",
   INVALID_EMAIL: "invalid_email",
   AUTHENTICATION_REQUIRED: "authentication_required",
+  PREFERENCES_UPDATE_INCOMPLETE: "preferences_update_incomplete",
 });
 
 // TODO: Use Sefaria.apiRequestWithBody in the future by adjusting it

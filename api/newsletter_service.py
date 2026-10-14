@@ -131,6 +131,17 @@ class NewsletterServiceNotConfiguredError(ActiveCampaignError):
     pass
 
 
+class NewsletterUpdateIncompleteError(ActiveCampaignError):
+    """
+    Raised when an update was only partly applied: a list change or the profile
+    save failed after the other steps were tried. Submitting again finishes it,
+    so the views send `code` with the error and the page shows a translated
+    "please try again" message instead of this English text.
+    """
+
+    code: str = "preferences_update_incomplete"
+
+
 class InvalidEmailError(InputError):
     """
     Raised when an email address isn't valid. The person can fix this by correcting
@@ -1009,7 +1020,7 @@ def update_list_memberships(
         remove_list_ids (list): List IDs to unsubscribe from
 
     Raises:
-        ActiveCampaignError: If any list couldn't be updated, after all were tried
+        NewsletterUpdateIncompleteError: If any list couldn't be updated, after all were tried
     """
     logger.info(
         f"Updating list memberships for contact {contact_id}: adding {add_list_ids}, removing {remove_list_ids}"
@@ -1034,7 +1045,7 @@ def update_list_memberships(
             failed.append(f"add to {list_id}")
 
     if failed:
-        raise ActiveCampaignError(
+        raise NewsletterUpdateIncompleteError(
             f"Failed to update list memberships for contact {contact_id}: {', '.join(failed)}"
         )
 
@@ -1357,7 +1368,7 @@ def update_user_preferences_impl(
         update_list_memberships(contact_id, [], list(lists_to_remove))
 
         if not _update_wants_marketing_emails(profile, False):
-            raise ActiveCampaignError(
+            raise NewsletterUpdateIncompleteError(
                 f"Unsubscribed {email} from all lists, but couldn't save the opt-out to their profile"
             )
 

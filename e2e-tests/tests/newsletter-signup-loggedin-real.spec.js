@@ -395,6 +395,42 @@ test.describe("Newsletter Signup - Real Authenticated Flow", () => {
     await expectFooterVisible(page);
   });
 
+  test("should ask to try again and keep No selected when opting out only partly worked", async ({ page }) => {
+    // Fake the answer the server gives when some lists couldn't be removed. The
+    // code tells the page to show its own translated message instead of the
+    // server's English text. We keep the request body to check what was sent.
+    let preferencesRequestBody = null;
+    await page.route("**/api/newsletter/preferences", (route) => {
+      preferencesRequestBody = route.request().postDataJSON();
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({
+          error: "Failed to update list memberships for contact 100: remove from 1",
+          code: "preferences_update_incomplete",
+        }),
+      });
+    });
+
+    // The saved recording already has this user opted out, so clicking No alone
+    // wouldn't be a change and the page wouldn't send anything. Ticking a
+    // newsletter first makes it a change, like the opt-out test above.
+    await page.locator("label.selectableOptionLabel").nth(0).click();
+    const noOption = page.locator(".marketingToggleWrapper .toggleOption.no");
+    await noOption.click();
+    await page.locator('button:has-text("Update Preferences")').first().click();
+
+    const errorBanner = page.locator(".newsletterErrorMessage");
+    await expect(errorBanner).toBeVisible({ timeout: 10000 });
+    await expect(errorBanner).toContainText("Not all of your changes were saved. Please try again.");
+    await expect(errorBanner).not.toContainText("list memberships");
+    expect(preferencesRequestBody?.marketingOptOut).toBe(true);
+
+    // The page stays on the form with No still selected, so the person can just submit again
+    await expect(page.locator(".newsletterConfirmationView")).toHaveCount(0);
+    await expect(noOption).toHaveClass(/\bon\b/);
+  });
+
   test("should show pre-existing subscriptions as checked", async ({ page }) => {
     // The form checks the boxes for whatever /api/newsletter/subscriptions returns.
     // That response comes from the saved recording, which has no subscriptions,

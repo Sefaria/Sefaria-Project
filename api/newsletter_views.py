@@ -107,7 +107,13 @@ def handle_newsletter_view_errors(
                 return jsonResponse({"error": "newsletter_service_not_configured"}, status=503)
             except ActiveCampaignError as e:
                 logger.warning(f"ActiveCampaign error {action.value}: {e}")
-                return jsonResponse({"error": str(e)}, status=500)
+                ac_body: dict[str, str] = {"error": str(e)}
+                # Failures that submitting again would fix (NewsletterUpdateIncompleteError)
+                # carry a code, so the page can show a translated "please try again"
+                ac_code: str | None = getattr(e, "code", None)
+                if ac_code:
+                    ac_body["code"] = ac_code
+                return jsonResponse(ac_body, status=500)
             except Exception as e:
                 logger.exception(f"Unexpected error {action.value}: {e}")
                 return jsonResponse(

@@ -715,6 +715,7 @@
     "newsletter_sign_up_page.marketing_email_preference": "העדפת דוא\"ל שיווקי",
     "newsletter_sign_up_page.newsletter_unavailable": "ההרשמה לניוזלטר אינה זמינה כרגע.",
     "newsletter_sign_up_page.preferences_unavailable": "לא ניתן לעדכן את העדפות הניוזלטר שלך כרגע. יש לנסות שוב מאוחר יותר.",
+    "newsletter_sign_up_page.preferences_update_incomplete": "לא כל השינויים שלך נשמרו. יש לנסות שוב.",
     "newsletter_sign_up_page.learning_level_1.label": "מתחיל",
     "newsletter_sign_up_page.learning_level_1.description": "אני צריך הנחיה משמעותית ותרגום כדי לנווט ללמוד טקסטים בספרייה היהודית.",
     "newsletter_sign_up_page.learning_level_2.label": "חדש",

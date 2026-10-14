@@ -438,6 +438,43 @@ class TestUpdateUserPreferencesIntegration:
         call_kwargs = mock_update.call_args[1]
         assert call_kwargs["marketing_opt_out"] is True
 
+    @mock.patch("api.newsletter_service._load_user_profile", return_value=None)
+    @mock.patch("api.newsletter_service.remove_contact_from_list")
+    @mock.patch("api.newsletter_service.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_views.get_cached_newsletter_list")
+    def test_opt_out_with_failed_list_removal_returns_incomplete_code(
+        self,
+        mock_get_list,
+        mock_find,
+        mock_get_all_ids,
+        mock_get_memberships,
+        mock_remove,
+        mock_load_profile,
+        logged_in_client,
+        mock_newsletters,
+    ):
+        """A list removal that fails during opt-out returns a code, so the page can say "please try again" """
+        from api import newsletter_service
+        mock_get_list.return_value = mock_newsletters
+        mock_find.return_value = {"id": "100", "email": "testuser@sefaria.org"}
+        mock_get_all_ids.return_value = ["1", "99"]
+        mock_get_memberships.return_value = ["1", "99"]
+        mock_remove.side_effect = [newsletter_service.ActiveCampaignError("AC API failed"), None]
+
+        response = logged_in_client.post(
+            "/api/newsletter/preferences",
+            json.dumps({"newsletters": {}, "marketingOptOut": True}),
+            content_type="application/json",
+        )
+
+        assert response.status_code == 500
+        data = json.loads(response.content)
+        assert data["code"] == "preferences_update_incomplete"
+        # The other list was still tried
+        assert mock_remove.call_count == 2
+
 
 # ============================================================================
 # Get User Subscriptions Integration Tests (Authenticated, GET)

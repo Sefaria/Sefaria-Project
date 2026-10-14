@@ -715,6 +715,7 @@
     "newsletter_sign_up_page.marketing_email_preference": "Marketing email preference",
     "newsletter_sign_up_page.newsletter_unavailable": "Newsletter sign-up is not available right now.",
     "newsletter_sign_up_page.preferences_unavailable": "Your newsletter preferences can't be updated right now. Please try again later.",
+    "newsletter_sign_up_page.preferences_update_incomplete": "Not all of your changes were saved. Please try again.",
     "newsletter_sign_up_page.learning_level_1.label": "Newcomer",
     "newsletter_sign_up_page.learning_level_1.description": "I need significant guidance and translation to navigate and study the texts in the Jewish library.",
     "newsletter_sign_up_page.learning_level_2.label": "Beginner",

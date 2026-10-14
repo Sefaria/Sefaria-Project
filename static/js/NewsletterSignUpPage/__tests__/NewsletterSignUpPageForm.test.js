@@ -570,6 +570,26 @@ describe('NewsletterSignUpPageForm', () => {
       expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.ERROR);
       expect(lastFormViewProps.formStatus.errorMessage).toBe(TEXT_KEYS.SESSION_ENDED);
     });
+
+    it('logged in: shows the translated "try again" message and keeps the opt-out when the update was incomplete', async () => {
+      Sefaria._uid = 1;
+      Sefaria._email = 'user@example.com';
+      updatePreferences.mockRejectedValueOnce(
+        Object.assign(new Error('Failed to update list memberships for contact 100: remove from 1'), {
+          code: SERVER_ERROR_CODE.PREFERENCES_UPDATE_INCOMPLETE,
+        })
+      );
+
+      await renderForm();
+      act(() => { lastFormViewProps.onMarketingEmailToggle(false); });
+      await act(async () => { lastFormViewProps.onSubmit(); });
+
+      expect(updatePreferences).toHaveBeenCalledWith(expect.anything(), { marketingOptOut: true });
+      expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.ERROR);
+      expect(lastFormViewProps.formStatus.errorMessage).toBe(TEXT_KEYS.PREFERENCES_UPDATE_INCOMPLETE);
+      // The choice is kept, so submitting again sends the opt-out again
+      expect(lastFormViewProps.formData.wantsMarketingEmails).toBe(false);
+    });
   });
 
   // ---------- Suite 7: Logged-in — no newsletter validation ----------

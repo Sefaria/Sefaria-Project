@@ -57,6 +57,7 @@ export const TEXT_KEYS = {
   MARKETING_EMAIL_PREFERENCE: "newsletter_sign_up_page.marketing_email_preference",
   NEWSLETTER_UNAVAILABLE: "newsletter_sign_up_page.newsletter_unavailable",
   PREFERENCES_UNAVAILABLE: "newsletter_sign_up_page.preferences_unavailable",
+  PREFERENCES_UPDATE_INCOMPLETE: "newsletter_sign_up_page.preferences_update_incomplete",
 };
 
 // "analyticsName" is the stable English label sent to analytics; it is not shown to users.

@@ -53,6 +53,9 @@ const ERROR_CODE_MESSAGES = Object.freeze({
   // A logged-in user's session can end while the page is open (for example, they
   // logged out in another tab).
   [SERVER_ERROR_CODE.AUTHENTICATION_REQUIRED]: TEXT_KEYS.SESSION_ENDED,
+  // Some list changes (or saving an opt-out) failed after the rest were tried. The
+  // form keeps the person's choices, so submitting again finishes the update.
+  [SERVER_ERROR_CODE.PREFERENCES_UPDATE_INCOMPLETE]: TEXT_KEYS.PREFERENCES_UPDATE_INCOMPLETE,
 });
 
 function errorToMessage(error) {

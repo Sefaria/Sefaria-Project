@@ -1867,6 +1867,36 @@ class TestUpdateUserPreferencesImpl:
     @mock.patch("api.newsletter_service.get_contact_list_memberships")
     @mock.patch("api.newsletter_service.get_all_ac_list_ids")
     @mock.patch("api.newsletter_service.find_or_create_contact")
+    def test_opt_out_profile_save_fails_raises_incomplete_error(
+        self,
+        mock_find,
+        mock_get_all_ids,
+        mock_get_memberships,
+        mock_update_memberships,
+        mock_load_profile,
+    ):
+        """A failed opt-out save raises the error that tells the page to say "please try again" """
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.save.side_effect = Exception("MongoDB unavailable")
+        mock_load_profile.return_value = mock_profile
+
+        mock_find.return_value = {"id": "100", "email": "user@example.com"}
+        mock_get_all_ids.return_value = ["1"]
+        mock_get_memberships.return_value = ["1"]
+
+        with pytest.raises(newsletter_service.NewsletterUpdateIncompleteError) as excinfo:
+            newsletter_service.update_user_preferences_impl(
+                "user@example.com", "Opt", "Out", [], [], marketing_opt_out=True,
+            )
+
+        assert excinfo.value.code == "preferences_update_incomplete"
+
+    @mock.patch("api.newsletter_service._load_user_profile")
+    @mock.patch("api.newsletter_service.update_list_memberships")
+    @mock.patch("api.newsletter_service.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service.find_or_create_contact")
     def test_opt_out_failed_removal_leaves_profile_unchanged(
         self,
         mock_find,
