@@ -334,7 +334,7 @@ class AbstractMongoSet(collections.abc.Iterable):
     recordClass = AbstractMongoRecord
 
     def __init__(self, query=None, page=0, limit=0, sort=None, proj=None, skip=None, hint=None, record_kwargs=None):   # default sort used to be =[("_id", 1)]
-        self.query = merge_queries(query, self.recordClass.visibility_filter())
+        self.query = merge_queries(query, self._visibility_filter())
         self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
         self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj)
         if sort:
@@ -350,6 +350,9 @@ class AbstractMongoSet(collections.abc.Iterable):
         self.current = 0
         self.max = None
         self._local_iter = None
+
+    def _visibility_filter(self):
+        return self.recordClass.visibility_filter()
 
     def __iter__(self):
         self._read_records()
