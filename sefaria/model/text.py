@@ -24,6 +24,7 @@ from collections import defaultdict, OrderedDict
 from bs4 import BeautifulSoup
 import re2 as re
 from . import abstract as abst
+from .hidden_book_regex import hidden_book_ref_patterns
 from django_topics.models.topic import Topic as DjangoTopic
 from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
@@ -236,8 +237,12 @@ def hidden_records_filter(title_fields=(), ref_fields=()):
     if not titles:
         return None
     clauses = [{f: {"$in": titles}} for f in title_fields]
-    ref_pattern = "^(?:{})(?:[ ,]|$)".format("|".join(re.escape(t) for t in titles))
-    clauses += [{f: {"$regex": ref_pattern}} for f in ref_fields]
+    # A parent prefix already covers its descendants. Split the remaining union
+    # across bounded expressions; $nor preserves exclusion on either array endpoint.
+    if ref_fields:
+        clauses += [{f: {"$regex": pattern}}
+                    for pattern in hidden_book_ref_patterns(tuple(titles))
+                    for f in ref_fields]
     return {"$nor": clauses}
 
 
