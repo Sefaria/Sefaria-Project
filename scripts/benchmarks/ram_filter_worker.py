@@ -23,7 +23,7 @@ new_class = next(n for n in ast.parse(SOURCES['sefaria.model.abstract']).body if
 methods = [n for n in new_class.body if isinstance(n, ast.FunctionDef) and n.name in ('__init__', '_visibility_filter')]
 old_init = inspect.getsource(abstract.AbstractMongoSet.__init__).replace('self.recordClass.visibility_filter()', 'self._visibility_filter()')
 assert ast.dump(ast.parse(textwrap.dedent(old_init)).body[0]) == ast.dump(next(n for n in methods if n.name == '__init__')), 'Unexpected deployed constructor drift'
-namespace = dict(abstract.__dict__)
+namespace = abstract.__dict__
 exec(compile(ast.Module(body=methods, type_ignores=[]), '<exact-pr-methods>', 'exec'), namespace)
 for method in methods:
     setattr(abstract.AbstractMongoSet, method.name, namespace[method.name])
