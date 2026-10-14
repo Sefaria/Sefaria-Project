@@ -4,7 +4,7 @@ python -m scripts.benchmarks.hidden_books_links --expected-db <exact-name> \
     --query '{"refs": "Genesis 1:1"}' --limit 1000 --repeats 6
 
 Requires the PR implementation for filtered mode. Baseline mode also runs on master.
-Outputs JSONL without text/ref contents. No database writes or API cache involved.
+Outputs JSONL measurements; verbose mode also prints complete query filters. No database writes or API cache involved.
 """
 import argparse
 import gc
@@ -12,12 +12,15 @@ import json
 import os
 import random
 import subprocess
+import sys
+import statistics
 import time
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--expected-db', required=True)
+    parser.add_argument('--verbose', action='store_true', help='Print complete queries and live operation timings to stderr; JSONL remains on stdout.')
     parser.add_argument('--query', default='{}')
     parser.add_argument('--limit', type=int, default=10000)
     parser.add_argument('--repeats', type=int, default=6)
@@ -50,8 +53,27 @@ def main():
     if args.mode == 'paired' and not has_filter:
         raise SystemExit('Paired mode requires PR #3784')
 
+    measurements = []
+
+    def say(message):
+        if args.verbose:
+            print(message, file=sys.stderr, flush=True)
+
+    def describe(label, value):
+        say(label + "\n" + json.dumps(value, indent=2, ensure_ascii=False, default=str))
+
     def emit(**row):
         print(json.dumps(row, default=str), flush=True)
+        if row.get('error'):
+            say(f"  FAILED {row['kind']}: {row['message']}")
+        elif row.get('kind') == 'explain':
+            stats = row['stats']
+            say(f"  DONE server: {stats['executionTimeMillis']} ms; returned={stats['nReturned']:,}; docs examined={stats['totalDocsExamined']:,}; keys examined={stats['totalKeysExamined']:,}")
+        elif 'elapsed_ms' in row:
+            say(f"  DONE {row['kind']}: {row['elapsed_ms']:.2f} ms; returned={row['returned']:,}")
+        if row.get('kind') in ('explain', 'raw_stream', 'orm_hydration'):
+            measurements.append(row)
+
 
     try:
         commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
@@ -61,6 +83,8 @@ def main():
          link_estimate=db.links.estimated_document_count(), indexes=list(db.links.list_indexes()),
          max_time_ms=args.max_time_ms, limit=args.limit, full_scan=args.full_scan,
          mongo_version=db.command('buildInfo')['version'])
+    say(f'Connected to {db.name}; MongoDB {db.command("buildInfo")["version"]}. Bootstrap excluded from timings.')
+    describe('Requested source query:', query)
     modes = ['baseline', 'filtered'] if args.mode == 'paired' else ['baseline']
     rng = random.Random(3784)
     # Round zero is a warm-up and is explicitly labelled. No server cache flushing.
@@ -68,10 +92,12 @@ def main():
         order = modes[:]
         rng.shuffle(order)
         for mode in order:
+            say(f"\n=== {'WARM-UP' if repeat == 0 else f'ROUND {repeat}/{args.repeats}'} | {mode.upper()} ===")
             settings.SHOW_ADMIN_ONLY_BOOKS = mode == 'baseline'
             refresh_ms = None
             title_count = 0
             if has_filter and mode == 'filtered':
+                describe('Refresh hidden titles: db.index.find', {'admin_only': True})
                 started = time.perf_counter()
                 title_count = len(text.admin_only_titles(force_refresh=True))
                 refresh_ms = (time.perf_counter() - started) * 1000
@@ -82,10 +108,12 @@ def main():
             common = dict(mode=mode, repeat=repeat, warmup=repeat == 0,
                           hidden_alias_count=title_count, refresh_ms=refresh_ms,
                           build_ms=build_ms, query_bytes=len(BSON.encode(effective_query)))
+            say(f'Expanded titles={title_count}; BSON query bytes={common["query_bytes"]}; query build={build_ms:.2f} ms; title refresh={refresh_ms} ms')
             # Mongo execution stats measure server work, not client hydration.
             command = {'find': 'links', 'filter': effective_query, 'maxTimeMS': args.max_time_ms}
             if not args.full_scan:
                 command['limit'] = args.limit
+            describe('START MongoDB explain (server execution, no result hydration):', {'explain': command, 'verbosity': 'executionStats', 'maxTimeMS': args.max_time_ms})
             try:
                 result = db.command('explain', command, verbosity='executionStats', maxTimeMS=args.max_time_ms)
                 emit(kind='explain', **common, stats=result.get('executionStats'), planner=result.get('queryPlanner'))
@@ -96,6 +124,7 @@ def main():
                 del linkset
                 continue
             # Fully consume cursor: timing find() alone measures almost no database work.
+            describe('START raw cursor (fully consumed; includes transfer and BSON decoding):', dict(command, batchSize=1000))
             started = time.perf_counter()
             count = 0
             cursor = db.links.find(effective_query).batch_size(1000).max_time_ms(args.max_time_ms)
@@ -110,6 +139,7 @@ def main():
             finally:
                 cursor.close()
             # The actual LinkSet materializes all returned objects; keep this bounded.
+            describe('START actual LinkSet hydration (always bounded):', {'find': 'links', 'filter': effective_query, 'limit': args.limit, 'maxTimeMS': args.max_time_ms})
             gc.collect()
             started = time.perf_counter()
             linkset.raw_records = linkset.raw_records.max_time_ms(args.max_time_ms)
@@ -121,6 +151,20 @@ def main():
             finally:
                 linkset.raw_records.close()
                 del linkset
+
+    say("\n=== SUMMARY — warm-up excluded; medians and ranges, not p95 ===")
+    for mode in modes:
+        for kind in ('explain', 'raw_stream', 'orm_hydration'):
+            rows = [r for r in measurements if r['mode'] == mode and r['kind'] == kind and not r['warmup']]
+            if not rows:
+                continue
+            good = [r for r in rows if 'error' not in r]
+            values = [r['stats']['executionTimeMillis'] if kind == 'explain' else r['elapsed_ms'] for r in good]
+            summary = dict(kind='summary', mode=mode, operation=kind, trials=len(rows), errors=len(rows)-len(good))
+            if values:
+                summary.update(median_ms=statistics.median(values), min_ms=min(values), max_ms=max(values))
+            emit(**summary)
+            describe(f'{mode} / {kind}:', summary)
 
 
 if __name__ == '__main__':
