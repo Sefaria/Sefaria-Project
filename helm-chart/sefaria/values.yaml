@@ -245,6 +245,12 @@ authService:
     issuer: ""              # "" -> https://mint-<env>.<namespace>.svc.cluster.local
   mintStub:
     enabled: false          # POC token issuer; never in a real environment
+  # Rule-scoped bodyToExtAuth on the HTTPRoute's legacy-body-auth rule: measures whether Envoy can hand a body-borne
+  # legacy apikey to the auth service. The decision is unchanged; only the key's presence and prefix are logged.
+  legacyBodyArm:
+    enabled: false
+    pathPrefix: /api/texts/modify-bulk/
+    maxRequestBytes: 65536
   monitoring:
     enabled: true
 
