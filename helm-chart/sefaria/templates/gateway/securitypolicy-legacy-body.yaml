@@ -20,16 +20,8 @@ spec:
     headersToExtAuth: [x-api-key, authorization, origin, content-type]
     bodyToExtAuth:
       maxRequestBytes: {{ .Values.authService.legacyBodyArm.maxRequestBytes }}   # [EG >= 1.3]
-    {{- if eq .Values.authService.transport "grpc" }}
     grpc:
       backendRefs:
         - name: auth-service-{{ .Values.deployEnv }}
           port: 9090
-    {{- else }}
-    http:
-      backendRefs:
-        - name: auth-service-{{ .Values.deployEnv }}
-          port: 8080
-      headersToBackend: [x-sefaria-project, x-sefaria-tier, x-sefaria-auth-result]
-    {{- end }}
 {{- end }}

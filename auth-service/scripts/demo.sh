@@ -313,8 +313,7 @@ pg() {
   kubectl --context "$CTX" -n "$NS" exec postgres-18-0 -- sh -c "psql -qtA -v ON_ERROR_STOP=1 -U \"\${POSTGRES_USER:-postgres}\" -d $1 -c \"$2\""
 }
 
-# keyadmin <args>: the registry writer, run inside an auth-service pod (it already has PG_DSN). No --push: the
-# registry's triggers notify every auth service themselves.
+# keyadmin <args>: the registry writer. The auth service pod's role is read-only, so this only works with a writer DSN.
 keyadmin() {
   kubectl --context "$CTX" -n "$NS" exec deploy/authpoc-auth-service -- /keyadmin "$@"
 }
@@ -333,7 +332,7 @@ auth_pods() {
 section_registry() {
   local -a k=(kubectl --context "$CTX" -n "$NS")
   local out n pods replicas
-  section '5. One key registry per cluster (read-only)' 'The auth service has no Postgres of its own: it reads the cluster registry (database sefaria_apikeys inside the shared postgres-18) through one Secret, listens for changes on it, and no longer uses the app Redis.'
+  section '5. One key registry per cluster (read-only)' 'The auth service has no Postgres of its own: it reads the cluster registry (database sefaria_auth inside the shared postgres-18) through one Secret, listens for changes on it, and no longer uses the app Redis.'
   show_command "${k[@]}" get deploy,svc -o name
   if ! out=$("${k[@]}" get deploy,svc -o name 2>/dev/null); then
     unavailable 'cluster not reachable (gcloud auth?); skipping the live sections'
@@ -350,11 +349,11 @@ section_registry() {
   ok_if 'PG_NOTIFY_CHANNEL=sefaria_apikeys' grep -qx 'PG_NOTIFY_CHANNEL=sefaria_apikeys' "$out"
   ok_if 'no REDIS_ADDR (app Redis not used)' bash -c "! grep -q '^REDIS_ADDR=' '$out'"
 
-  printf '%s$ psql sefaria_apikeys: triggers, and keys per project (counts only)%s\n' "$CYAN" "$RESET"
-  pg sefaria_apikeys "select tgname || ' on ' || tgrelid::regclass from pg_trigger where tgname like 'apikeys_notify%' order by 1"
-  n=$(pg sefaria_apikeys "select count(*) from pg_trigger where tgname like 'apikeys_notify%'")
+  printf '%s$ psql sefaria_auth: triggers, and keys per project (counts only)%s\n' "$CYAN" "$RESET"
+  pg sefaria_auth "select tgname || ' on ' || tgrelid::regclass from pg_trigger where tgname like 'apikeys_notify%' order by 1"
+  n=$(pg sefaria_auth "select count(*) from pg_trigger where tgname like 'apikeys_notify%'")
   ok_if "notify triggers: $n" test "$n" = 2
-  pg sefaria_apikeys "select p.id || ' tier=' || p.tier || ' active=' || count(*) filter (where k.revoked_at is null) || ' revoked=' || count(*) filter (where k.revoked_at is not null) from projects p left join api_keys k on k.project_id = p.id group by p.id, p.tier order by 1"
+  pg sefaria_auth "select p.id || ' tier=' || p.tier || ' active=' || count(k.id) filter (where k.revoked_at is null) || ' revoked=' || count(k.id) filter (where k.revoked_at is not null) from powered_by_project p left join powered_by_apikey k on k.project_id = p.id group by p.id, p.tier order by 1"
 
   pods=$(auth_pods); replicas=$(printf '%s\n' "$pods" | grep -c .)
   n=$(pg postgres "select count(*) from pg_stat_activity where application_name = 'authsvc-listener'")
@@ -380,26 +379,8 @@ check_notified() {
 }
 
 section_propagation() {
-  local orig target since now
-  section '6. A key change reaches every auth service (changes the registry, then restores it)' "keyadmin writes to the registry the way Django will. There is no push step: the registry's trigger sends a NOTIFY on commit, and every auth service reloads. Project: $DEMO_PROJECT."
-  orig=$(pg sefaria_apikeys "select tier from projects where id = '$DEMO_PROJECT'")
-  if [[ -z "$orig" ]]; then unavailable "project $DEMO_PROJECT not in the registry"; return 0; fi
-  target=partner; [[ "$orig" == partner ]] && target=developer
-  since=$(date -u +%Y-%m-%dT%H:%M:%SZ); sleep 1
-  RESTORE_TIER=$orig
-  show_command kubectl --context "$CTX" -n "$NS" exec deploy/authpoc-auth-service -- /keyadmin set-tier --project "$DEMO_PROJECT" --tier "$target"
-  keyadmin set-tier --project "$DEMO_PROJECT" --tier "$target" 2>&1 | sanitize
-  now=$(pg sefaria_apikeys "select tier from projects where id = '$DEMO_PROJECT'")
-  ok_if "registry: $DEMO_PROJECT tier $orig -> $now" test "$now" = "$target"
-  check_notified "$since" projects
-
-  since=$(date -u +%Y-%m-%dT%H:%M:%SZ); sleep 1
-  show_command kubectl --context "$CTX" -n "$NS" exec deploy/authpoc-auth-service -- /keyadmin set-tier --project "$DEMO_PROJECT" --tier "$orig"
-  keyadmin set-tier --project "$DEMO_PROJECT" --tier "$orig" 2>&1 | sanitize
-  now=$(pg sefaria_apikeys "select tier from projects where id = '$DEMO_PROJECT'")
-  ok_if "registry: $DEMO_PROJECT tier restored to $now" test "$now" = "$orig"
-  [[ "$now" == "$orig" ]] && RESTORE_TIER=''
-  check_notified "$since" projects
+  section '6. A key change reaches every auth service (skipped)' 'Not run here: the auth service role is read-only on the registry, and the registry writer is Django. keyadmin needs a writer DSN (scripts/propagation.sh with KEYADMIN_DSN_SECRET).'
+  unavailable 'skipped: the auth service role cannot write the registry; use scripts/propagation.sh with a writer DSN'
 }
 
 section_listener_drill() {

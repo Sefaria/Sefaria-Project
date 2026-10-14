@@ -1,87 +1,77 @@
+// keyadmin is a development tool that writes the key registry the way Django does: rows in powered_by_project and
+// powered_by_apikey. The registry's triggers NOTIFY on commit, so there is no push step. Production keys and
+// projects are created in Django; this tool is for cauldrons, drills and load tests.
 package main
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"math/big"
 	"os"
+	"strconv"
 	"strings"
-	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-
-	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
 )
 
-var emit = func(ctx context.Context, ev registry.ChangeEvent) error {
-	fmt.Fprintln(os.Stderr, "event:", redactedEvent(ev))
-	return nil
+const (
+	keyPrefix   = "sfr_"
+	keyAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	keyLength   = 32
+)
+
+// newKey mirrors powered_by.models.new_key_value.
+func newKey() string {
+	b := make([]byte, keyLength)
+	for i := range b {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(keyAlphabet))))
+		if err != nil {
+			panic(err)
+		}
+		b[i] = keyAlphabet[n.Int64()]
+	}
+	return keyPrefix + string(b)
 }
 
-// redactedEvent is the only form of a ChangeEvent this CLI prints: stderr of an in-cluster keyadmin
-// pod lands in cluster logs, so the key is reduced to its prefix (RULE 6.6; security review, finding A).
-func redactedEvent(ev registry.ChangeEvent) string {
-	ev.Key.Key = safePrefix(ev.Key.Key)
-	b, _ := json.Marshal(ev)
+// safePrefix is the only form of a key this CLI prints back: stderr of an in-cluster pod lands in cluster logs.
+func safePrefix(key string) string {
+	if len(key) <= 12 {
+		return key
+	}
+	return key[:12]
+}
+
+func originsJSON(csv string) string {
+	list := []string{}
+	if csv != "" {
+		list = strings.Split(csv, ",")
+	}
+	b, _ := json.Marshal(list)
 	return string(b)
 }
 
-func loadOne(ctx context.Context, db *sql.DB, key string) (registry.Key, error) {
-	row := db.QueryRowContext(ctx, `SELECT k.id::text, k.key, k.project_id, k.label, p.tier, array_to_string(p.allowed_origins, ','), (k.revoked_at IS NOT NULL)
-		FROM api_keys k JOIN projects p ON p.id=k.project_id WHERE k.key=$1`, key)
-	var k registry.Key
-	var origins string
-	if err := row.Scan(&k.ID, &k.Key, &k.ProjectID, &k.Label, &k.Tier, &origins, &k.Revoked); err != nil {
-		return k, err
+// projectID resolves --project, a numeric powered_by_project id or an exact project_name.
+func projectID(ctx context.Context, db *sql.DB, ref string) (int, error) {
+	var id int
+	if n, err := strconv.Atoi(ref); err == nil {
+		err = db.QueryRowContext(ctx, `SELECT id FROM powered_by_project WHERE id = $1`, n).Scan(&id)
+		return id, err
 	}
-	k.AllowedOrigins = []string{}
-	if origins != "" {
-		k.AllowedOrigins = strings.Split(origins, ",")
-	}
-	return k, nil
-}
-
-func emitKey(ctx context.Context, db *sql.DB, key string) error {
-	full, err := loadOne(ctx, db, key)
-	if err != nil {
-		return err
-	}
-	return emit(ctx, registry.ChangeEvent{Op: "upsert", Key: full, TS: time.Now()})
-}
-
-func emitProject(ctx context.Context, db *sql.DB, project string) error {
-	rows, err := db.QueryContext(ctx, `SELECT key FROM api_keys WHERE project_id=$1`, project)
-	if err != nil {
-		return err
-	}
-	var keys []string
-	for rows.Next() {
-		var k string
-		if err := rows.Scan(&k); err != nil {
-			rows.Close()
-			return err
-		}
-		keys = append(keys, k)
-	}
-	rows.Close()
-	for _, k := range keys {
-		if err := emitKey(ctx, db, k); err != nil {
-			return err
-		}
-	}
-	return nil
+	err := db.QueryRowContext(ctx, `SELECT id FROM powered_by_project WHERE project_name = $1 ORDER BY id LIMIT 1`, ref).Scan(&id)
+	return id, err
 }
 
 func main() {
-	dsn := flag.String("dsn", os.Getenv("PG_DSN"), "postgres DSN")
-	schemaPath := flag.String("schema", "internal/registry/schema.sql", "path to schema.sql (in the image: /schema.sql)")
-	push := flag.String("push", os.Getenv("PUSH"), "comma list of push channels: redis,http (Task 4)")
+	dsn := flag.String("dsn", os.Getenv("PG_DSN"), "postgres DSN of a role that can write the registry tables")
 	flag.Parse()
 	args := flag.Args()
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: keyadmin [--dsn] [--schema] [--push redis,http] init-schema|create|revoke|rotate|set-tier|set-origins|seed ...")
+		fmt.Fprintln(os.Stderr, "usage: keyadmin [--dsn] create|revoke|set-tier|set-origins|seed ...")
 		os.Exit(2)
 	}
 	ctx := context.Background()
@@ -90,14 +80,13 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
-	configurePush(*push)
 
 	sub := flag.NewFlagSet(args[0], flag.ExitOnError)
-	project := sub.String("project", "", "project id")
+	project := sub.String("project", "", "project id, or project name (create makes a project of that name when none matches)")
 	tier := sub.String("tier", "developer", "tier")
 	label := sub.String("label", "Default key", "key label")
-	origins := sub.String("origins", "", "comma list of allowed origins")
-	key := sub.String("key", "", "explicit key value (tests) or target key")
+	origins := sub.String("origins", "", "comma list of allowed origins of the key (empty allows any)")
+	key := sub.String("key", "", "explicit key value (create) or the target key (revoke, set-origins)")
 	count := sub.Int("count", 0, "number of keys for seed")
 	_ = sub.Parse(args[1:])
 
@@ -107,110 +96,52 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	splitOrigins := func() []string {
-		if *origins == "" {
-			return []string{}
-		}
-		return strings.Split(*origins, ",")
-	}
 	switch args[0] {
-	case "init-schema":
-		schema, err := os.ReadFile(*schemaPath)
-		fail(err)
-		_, err = db.ExecContext(ctx, string(schema))
-		fail(err)
-		fmt.Println("schema ok")
 	case "create":
 		k := *key
 		if k == "" {
-			k = registry.NewKey()
+			k = newKey()
 		}
-		_, err := db.ExecContext(ctx, `INSERT INTO projects(id,name,tier,allowed_origins) VALUES ($1,$1,$2,$3)
-			ON CONFLICT (id) DO UPDATE SET tier=EXCLUDED.tier, allowed_origins=EXCLUDED.allowed_origins`, *project, *tier, splitOrigins())
+		id, err := projectID(ctx, db, *project)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = db.QueryRowContext(ctx, `INSERT INTO powered_by_project(project_name, tier) VALUES ($1, $2) RETURNING id`, *project, *tier).Scan(&id)
+		}
 		fail(err)
-		_, err = db.ExecContext(ctx, `INSERT INTO api_keys(key,project_id,label) VALUES ($1,$2,$3)`, k, *project, *label)
+		_, err = db.ExecContext(ctx, `INSERT INTO powered_by_apikey(key, project_id, label, allowed_origins) VALUES ($1, $2, $3, $4::jsonb)`,
+			k, id, *label, originsJSON(*origins))
 		fail(err)
-		full, err := loadOne(ctx, db, k)
-		fail(err)
-		fail(emit(ctx, registry.ChangeEvent{Op: "upsert", Key: full, TS: time.Now()}))
-		fmt.Println(full.ID, k)
+		fmt.Fprintln(os.Stderr, "created key", safePrefix(k), "on project", id)
+		fmt.Println(id, k)
 	case "revoke":
-		_, err := db.ExecContext(ctx, `UPDATE api_keys SET revoked_at=now() WHERE key=$1 AND revoked_at IS NULL`, *key)
+		res, err := db.ExecContext(ctx, `UPDATE powered_by_apikey SET revoked_at = now() WHERE key = $1 AND revoked_at IS NULL`, *key)
 		fail(err)
-		fail(emitKey(ctx, db, *key))
-		fmt.Println("revoked")
-	case "rotate":
-		old, err := loadOne(ctx, db, *key)
-		fail(err)
-		nk := registry.NewKey()
-		tx, err := db.BeginTx(ctx, nil)
-		fail(err)
-		_, err = tx.ExecContext(ctx, `UPDATE api_keys SET revoked_at=now() WHERE key=$1`, *key)
-		fail(err)
-		_, err = tx.ExecContext(ctx, `INSERT INTO api_keys(key,project_id,label) VALUES ($1,$2,$3)`, nk, old.ProjectID, old.Label)
-		fail(err)
-		fail(tx.Commit())
-		fail(emitKey(ctx, db, *key))
-		fail(emitKey(ctx, db, nk))
-		fmt.Println(nk)
+		n, _ := res.RowsAffected()
+		fmt.Println("revoked", n)
 	case "set-tier":
-		_, err := db.ExecContext(ctx, `UPDATE projects SET tier=$2 WHERE id=$1`, *project, *tier)
+		id, err := projectID(ctx, db, *project)
 		fail(err)
-		fail(emitProject(ctx, db, *project))
+		_, err = db.ExecContext(ctx, `UPDATE powered_by_project SET tier = $2 WHERE id = $1`, id, *tier)
+		fail(err)
 		fmt.Println("tier set")
 	case "set-origins":
-		_, err := db.ExecContext(ctx, `UPDATE projects SET allowed_origins=$2 WHERE id=$1`, *project, splitOrigins())
+		_, err := db.ExecContext(ctx, `UPDATE powered_by_apikey SET allowed_origins = $2::jsonb WHERE key = $1`, *key, originsJSON(*origins))
 		fail(err)
-		fail(emitProject(ctx, db, *project))
 		fmt.Println("origins set")
 	case "seed":
-		_, err := db.ExecContext(ctx, `INSERT INTO projects(id,name,tier) VALUES ($1,$1,$2) ON CONFLICT DO NOTHING`, *project, *tier)
+		id, err := projectID(ctx, db, *project)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = db.QueryRowContext(ctx, `INSERT INTO powered_by_project(project_name, tier) VALUES ($1, $2) RETURNING id`, *project, *tier).Scan(&id)
+		}
 		fail(err)
 		tx, err := db.BeginTx(ctx, nil)
 		fail(err)
 		for i := 0; i < *count; i++ {
-			_, err = tx.ExecContext(ctx, `INSERT INTO api_keys(key,project_id) VALUES ($1,$2)`, registry.NewKey(), *project)
+			_, err = tx.ExecContext(ctx, `INSERT INTO powered_by_apikey(key, project_id, label) VALUES ($1, $2, $3)`, newKey(), id, *label)
 			fail(err)
 		}
 		fail(tx.Commit())
-		fmt.Printf("seeded %d keys on %s (no push; wait for the full reload)\n", *count, *project)
+		fmt.Printf("seeded %d keys on project %d (wait for the NOTIFY reload)\n", *count, id)
 	default:
 		fail(fmt.Errorf("unknown subcommand %q", args[0]))
 	}
-}
-
-func configurePush(spec string) {
-	if spec == "" {
-		return
-	}
-	var pubs []registry.Publisher
-	for _, ch := range strings.Split(spec, ",") {
-		switch ch {
-		case "redis":
-			pubs = append(pubs, registry.NewRedisPublisher(envOr("REDIS_ADDR", "localhost:6379"), os.Getenv("REDIS_PASSWORD"), envOr("PUSH_CHANNEL", "sefaria.apikeys")))
-		case "http":
-			pubs = append(pubs, registry.NewHTTPPublisher(strings.Split(envOr("HTTP_PUSH_URLS", "http://localhost:8080/internal/keys/apply"), ",")))
-		}
-	}
-	pub := registry.NewMultiPublisher(pubs...)
-	emit = func(ctx context.Context, ev registry.ChangeEvent) error {
-		t0 := time.Now()
-		err := pub.Publish(ctx, ev)
-		fmt.Fprintf(os.Stderr, "push op=%s key=%s project=%s took=%s err=%v\n", ev.Op, safePrefix(ev.Key.Key), ev.Key.ProjectID, time.Since(t0), err)
-		return err
-	}
-}
-
-func envOr(k, d string) string {
-	if v := os.Getenv(k); v != "" {
-		return v
-	}
-	return d
-}
-
-func safePrefix(key string) string {
-	if len(key) <= 12 {
-		return key
-	}
-	return key[:12]
 }
