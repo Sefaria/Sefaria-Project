@@ -16,15 +16,17 @@ const WWW_AUTH = 'ApiKey realm="sefaria"';
 
 test.describe('gateway decisions', () => {
   test('A1: a valid open key is allowed on the gated and an ungated path, stamped developer/ok', async ({ target, manifest }) => {
-    test.skip(!target.hasEcho, 'needs the echo upstream to see the stamped headers');
     const key = keyValue(OPEN);
     const projectId = String(manifest.keys.find(k => k.suite === 'gateway' && k.name === 'open')!.projectId);
-    const okBefore = await authsvcCounter('authsvc_decisions_total', { allow: 'true', result: 'ok' });
+    const local = target.name === 'local';
+    const okBefore = local ? await authsvcCounter('authsvc_decisions_total', { allow: 'true', result: 'ok' }) : 0;
 
-    for (const path of [GATED, UNGATED]) {
-      const echoed = await rawRequest({ target: target.name, host: 'echo', path, headers: { 'x-api-key': key } });
-      expect(echoed.status, summary(echoed)).toBe(200);
-      expect(stamped(echoed)).toEqual({ tier: 'developer', project: projectId, result: 'ok' });
+    if (target.hasEcho) {
+      for (const path of [GATED, UNGATED]) {
+        const echoed = await rawRequest({ target: target.name, host: 'echo', path, headers: { 'x-api-key': key } });
+        expect(echoed.status, summary(echoed)).toBe(200);
+        expect(stamped(echoed)).toEqual({ tier: 'developer', project: projectId, result: 'ok' });
+      }
     }
 
     const content = await rawRequest({ target: target.name, path: UNGATED, headers: { 'x-api-key': key } });
@@ -37,8 +39,10 @@ test.describe('gateway decisions', () => {
     expect(answeredByGateway(gated), `reached Django: ${summary(gated)}`).toBe(false);
     expect(gated.headers['www-authenticate'], summary(gated)).toBeUndefined();
 
-    const okAfter = await authsvcCounter('authsvc_decisions_total', { allow: 'true', result: 'ok' });
-    expect(okAfter).toBeGreaterThanOrEqual(okBefore + 3);
+    if (local) {
+      const okAfter = await authsvcCounter('authsvc_decisions_total', { allow: 'true', result: 'ok' });
+      expect(okAfter).toBeGreaterThanOrEqual(okBefore + 3);
+    }
   });
 
   test('A2a: an unknown sfr_ key on the gated path is 401 api_key_invalid, logged by prefix only', async ({ target }) => {

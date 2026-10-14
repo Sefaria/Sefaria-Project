@@ -209,6 +209,10 @@ test.describe('caller replays', () => {
     expect(r.code, `refused by the gateway: ${brief(r)}`).toBeUndefined();
     expect(r.status, brief(r)).toBe(200);
     expect(Array.isArray(r.json), brief(r)).toBe(true);
+
+    const text = await rawRequest({ target: target.name, path: '/api/v3/texts/Genesis.1.1', headers: { 'x-api-key': legacy!.value } });
+    expect(text.code, `refused by the gateway on a text read: ${brief(text)}`).toBeUndefined();
+    expect(text.status, brief(text)).toBe(200);
   });
 
   const knnCallers = [

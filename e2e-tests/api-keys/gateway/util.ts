@@ -124,9 +124,14 @@ export function stamped(r: RawResult) {
   return { tier: h['x-sefaria-tier'], project: h['x-sefaria-project'], result: h['x-sefaria-auth-result'] };
 }
 
-/** True when the response came from the gateway itself: Envoy never contacted an upstream. */
+/**
+ * True when the response came from the gateway itself: Envoy never contacted an upstream. The
+ * cluster's Envoy does not pass x-envoy-upstream-service-time to clients, so there nginx's
+ * `server` header marks a response from the upstream.
+ */
 export function answeredByGateway(r: RawResult): boolean {
-  return r.headers['x-envoy-upstream-service-time'] === undefined;
+  if (r.headers['x-envoy-upstream-service-time'] !== undefined) return false;
+  return !/nginx/i.test(r.headers['server'] || '');
 }
 
 export function sh(cmd: string, args: string[], input?: string): { status: number; stdout: string; stderr: string } {

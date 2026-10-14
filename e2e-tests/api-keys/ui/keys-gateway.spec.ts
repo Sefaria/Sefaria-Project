@@ -16,6 +16,8 @@ import {
  */
 
 const PROPAGATION_MS = 1000;
+/** The cauldron's Envoy fleet is shared by all of dev, so probes there are spaced further apart. */
+const probeInterval = (target: { name: string }) => (target.name === 'cauldron' ? 100 : 25);
 
 test.describe('keys x gateway', () => {
   test('A9a: a key revoked in the UI is refused with 401 api_key_invalid within 1 s (worst of 20)', async ({ account, gw, target }) => {
@@ -40,12 +42,12 @@ test.describe('keys x gateway', () => {
         await dev.expandProject(name);
         const card = dev.projectCard(name);
         for (const [label, value] of values) {
-          const ready = await poll(() => probeKey(gw, target, value), isAllowed, { timeoutMs: 10000 });
+          const ready = await poll(() => probeKey(gw, target, value), isAllowed, { timeoutMs: 10000, intervalMs: probeInterval(target) });
           expect(ready.elapsedMs, `${label} is accepted before the revoke: ${probeSummary(ready.last)}`).toBeDefined();
 
           const before = await readRegistry(target.name);
           const { clickedAt, respondedAt } = await revokeKeyInUi(dev, card, label);
-          const denied = await poll(() => probeKey(gw, target, value), isDenied('api_key_invalid'), { startedAt: respondedAt, timeoutMs: 10000 });
+          const denied = await poll(() => probeKey(gw, target, value), isDenied('api_key_invalid'), { startedAt: respondedAt, timeoutMs: 10000, intervalMs: probeInterval(target) });
           const after = before ? await readRegistry(target.name) : undefined;
           timings.push({
             label,
@@ -81,13 +83,13 @@ test.describe('keys x gateway', () => {
       const card = dev.projectCard(name);
       const keys = [await createKeyInUi(dev, card, 'A9b-1'), await createKeyInUi(dev, card, 'A9b-2')];
       for (const key of keys) {
-        const ready = await poll(() => probeKey(gw, target, key.value), isAllowed, { timeoutMs: 10000 });
+        const ready = await poll(() => probeKey(gw, target, key.value), isAllowed, { timeoutMs: 10000, intervalMs: probeInterval(target) });
         expect(ready.elapsedMs, `${key.label} accepted before the delete: ${probeSummary(ready.last)}`).toBeDefined();
       }
 
       const { respondedAt } = await deleteProjectInUi(dev, card, name);
       const results = await Promise.all(keys.map(key =>
-        poll(() => probeKey(gw, target, key.value), isDenied('api_key_invalid'), { startedAt: respondedAt, timeoutMs: 10000 })));
+        poll(() => probeKey(gw, target, key.value), isDenied('api_key_invalid'), { startedAt: respondedAt, timeoutMs: 10000, intervalMs: probeInterval(target) })));
       annotate('A9b timings', JSON.stringify(results.map((r, i) => ({ label: keys[i].label, fromResponseMs: r.elapsedMs }))));
       await expect(dev.projectCard(name)).toHaveCount(0);
       results.forEach((r, i) => {
@@ -111,7 +113,7 @@ test.describe('keys x gateway', () => {
       const card = dev.projectCard(name);
       for (const label of ['A9c-1', 'A9c-2', 'A9c-3']) {
         const created = await startKeyInUi(dev, card, label);
-        const accepted = poll(() => probeKey(gw, target, created.value), isAllowed, { startedAt: created.respondedAt, timeoutMs: 15000 });
+        const accepted = poll(() => probeKey(gw, target, created.value), isAllowed, { startedAt: created.respondedAt, timeoutMs: 15000, intervalMs: probeInterval(target) });
         await expect(readyMessage(card)).toHaveText('Ready to use. Copy it into your tool.', { timeout: t(20000) });
         const readyAt = Date.now();
         const result = await accepted;
@@ -214,7 +216,7 @@ test.describe('keys x gateway', () => {
     expect(deleted.status, deleted.text.slice(0, 300)).toBe(200);
     expect(deleted.json).toEqual({ status: 'ok' });
 
-    const refused = await poll(() => probeKey(gw, target, value), isDenied('api_key_invalid'), { startedAt: respondedAt, timeoutMs: 10000 });
+    const refused = await poll(() => probeKey(gw, target, value), isDenied('api_key_invalid'), { startedAt: respondedAt, timeoutMs: 10000, intervalMs: probeInterval(target) });
     annotate('N-M6 timing', `${refused.elapsedMs} ms from the API answer`);
     expect(refused.elapsedMs, `key after the account deletion: ${probeSummary(refused.last)}`).toBeDefined();
     expect(refused.elapsedMs!).toBeLessThanOrEqual(PROPAGATION_MS);
