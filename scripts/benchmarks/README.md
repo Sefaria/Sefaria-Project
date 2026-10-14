@@ -165,3 +165,20 @@ so the original regex-size errors at 100/1000 do not prevent subsequent cases ru
 Displayed/saved find/explain documents describe benchmark operations, not a wire-protocol trace
 of driver session fields, getMore requests or bootstrap queries. Each measurement is
 printed when its operation completes; the query event is emitted before execution.
+
+## Reproduce the failure with one hidden book
+
+From your laptop, with Python 3 and existing Kubernetes credentials:
+
+```sh
+python3 scripts/benchmarks/reproduce_single_hidden_book.py
+```
+
+This runs actual deployed PR code in the PR cauldron. It first loads one Link object
+for `Genesis 1:1` with zero hidden books, flags only `Chafetz Chaim on Sifra`, refreshes
+the actual title cache, and repeats the identical ORM lookup. It prints the original
+MongoDB exception and error code, restores the flag in `finally`, then repeats the
+lookup to show recovery. It refuses to start when any book is already hidden.
+No local Django, MongoDB, or Rich installation is required. Let the remote test finish;
+if connection/process termination prevents cleanup, use the main runner's `--restore-only`
+option before retrying. Do not run it concurrently with fixture-changing experiments.
