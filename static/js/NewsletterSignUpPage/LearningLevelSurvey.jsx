@@ -53,7 +53,7 @@ export default function LearningLevelSurvey({
       {errorMessage && (
         <div
           className="learningLevelErrorMessage"
-          data-anl-event="form_error:displayed"
+          data-anl-event="form_error:scrollIntoView"
           data-anl-engagement_type="error"
           data-anl-form_name="learning_level_survey"
         >

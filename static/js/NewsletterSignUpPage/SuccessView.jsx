@@ -11,6 +11,7 @@ export default function SuccessView() {
   return (
     <div
       className="successView"
+      data-anl-event="newsletter_signup_complete:scrollIntoView"
       data-anl-batch={JSON.stringify({
         form_name: "newsletter_signup_complete",
         engagement_type: "form_complete",

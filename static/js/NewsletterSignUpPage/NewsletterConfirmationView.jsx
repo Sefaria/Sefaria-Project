@@ -137,6 +137,7 @@ export default function NewsletterConfirmationView({
   return (
     <div
       className="newsletterConfirmationView"
+      data-anl-event="newsletter_signup_success:scrollIntoView"
       data-anl-batch={JSON.stringify({
         form_name: "newsletter_confirmation",
         engagement_type: "success",

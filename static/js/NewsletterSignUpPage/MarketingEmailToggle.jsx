@@ -38,7 +38,14 @@ export default function MarketingEmailToggle({
       role: "radio",
       ariaLabel: Sefaria._(TEXT_KEYS.NO),
     },
-  ];
+  ].map((option) => ({
+    ...option,
+    analyticsAttributes: disabled ? {} : {
+      "data-anl-event": "marketing_email_preference:click",
+      "data-anl-text": option.name,
+      "data-anl-form_name": "newsletter_signup",
+    },
+  }));
 
   // Handle toggle change - convert string value to boolean
   const handleSetOption = (_, optionName) => {

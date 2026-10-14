@@ -46,6 +46,7 @@ function FormInput({ id, type = "text", label, value, onChange, onBlur, disabled
         aria-describedby={error ? `${id}-error` : undefined}
         className={error ? "hasError" : ""}
         data-anl-event="form_interaction:inputStart"
+        data-anl-item_id={id}
         data-anl-form_name="newsletter_signup"
       />
     </div>
@@ -57,7 +58,7 @@ function BackendErrorBanner({ message }) {
     <div
       className="newsletterErrorMessage"
       role="alert"
-      data-anl-event="form_error:displayed"
+      data-anl-event="form_error:scrollIntoView"
       data-anl-engagement_type="error"
       data-anl-form_name="newsletter_signup"
     >
@@ -75,7 +76,7 @@ function FieldErrorSummary({ fieldErrors }) {
       className="newsletterErrorSummary"
       role="alert"
       aria-live="assertive"
-      data-anl-event="form_error:displayed"
+      data-anl-event="form_error:scrollIntoView"
       data-anl-engagement_type="error"
     >
       <h3 className="errorSummaryTitle">
