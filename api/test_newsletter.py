@@ -997,6 +997,21 @@ class TestUpdateListMemberships:
         # Verify no adds
         assert mock_add.call_count == 0
 
+    @mock.patch("api.newsletter_service.add_contact_to_list")
+    @mock.patch("api.newsletter_service.remove_contact_from_list")
+    def test_tries_every_list_when_one_fails(self, mock_remove, mock_add):
+        """A failed list doesn't stop the others; the error is raised after all were tried"""
+        mock_remove.side_effect = [
+            newsletter_service.ActiveCampaignError("AC API failed"),
+            None,
+        ]
+
+        with pytest.raises(newsletter_service.ActiveCampaignError, match="remove from 1"):
+            newsletter_service.update_list_memberships("28529", ["3"], ["1", "2"])
+
+        assert [c.args[1] for c in mock_remove.call_args_list] == ["1", "2"]
+        mock_add.assert_called_once_with("28529", "3")
+
 
 # ============================================================================
 # Tests for Mapping Helper Functions
@@ -1809,6 +1824,82 @@ class TestUpdateUserPreferencesImpl:
         mock_update_memberships.assert_called_once()
         assert set(mock_update_memberships.call_args[0][2]) == {"1", "99"}
         assert result["subscribed_newsletters"] == []
+
+    @mock.patch("api.newsletter_service._load_user_profile")
+    @mock.patch("api.newsletter_service.update_list_memberships")
+    @mock.patch("api.newsletter_service.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service.find_or_create_contact")
+    def test_opt_out_profile_save_fails_still_removes_lists_then_raises(
+        self,
+        mock_find,
+        mock_get_all_ids,
+        mock_get_memberships,
+        mock_update_memberships,
+        mock_load_profile,
+    ):
+        """A failed opt-out save doesn't stop the list removals, and is reported afterwards"""
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.save.side_effect = Exception("MongoDB unavailable")
+        mock_load_profile.return_value = mock_profile
+
+        mock_find.return_value = {"id": "100", "email": "user@example.com"}
+        mock_get_all_ids.return_value = ["1", "3", "99"]
+        mock_get_memberships.return_value = ["1", "99"]
+
+        with pytest.raises(newsletter_service.ActiveCampaignError, match="couldn't save the opt-out"):
+            newsletter_service.update_user_preferences_impl(
+                "user@example.com",
+                "Opt",
+                "Out",
+                [],
+                [{"stringid": "sefaria_news", "id": "1"}],
+                marketing_opt_out=True,
+            )
+
+        mock_profile.save.assert_called_once()
+        mock_update_memberships.assert_called_once()
+        assert set(mock_update_memberships.call_args[0][2]) == {"1", "99"}
+
+    @mock.patch("api.newsletter_service._load_user_profile")
+    @mock.patch("api.newsletter_service.update_list_memberships")
+    @mock.patch("api.newsletter_service.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service.find_or_create_contact")
+    def test_opt_out_failed_removal_leaves_profile_unchanged(
+        self,
+        mock_find,
+        mock_get_all_ids,
+        mock_get_memberships,
+        mock_update_memberships,
+        mock_load_profile,
+    ):
+        """When a list removal fails, the opt-out isn't saved, since the user still gets emails from that list"""
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.wants_marketing_emails = True
+        mock_load_profile.return_value = mock_profile
+
+        mock_find.return_value = {"id": "100", "email": "user@example.com"}
+        mock_get_all_ids.return_value = ["1", "3", "99"]
+        mock_get_memberships.return_value = ["1", "99"]
+        mock_update_memberships.side_effect = newsletter_service.ActiveCampaignError(
+            "Failed to update list memberships for contact 100: remove from 1"
+        )
+
+        with pytest.raises(newsletter_service.ActiveCampaignError, match="remove from 1"):
+            newsletter_service.update_user_preferences_impl(
+                "user@example.com",
+                "Opt",
+                "Out",
+                [],
+                [{"stringid": "sefaria_news", "id": "1"}],
+                marketing_opt_out=True,
+            )
+
+        mock_profile.save.assert_not_called()
+        assert mock_profile.wants_marketing_emails is True
 
 
 # ============================================================================

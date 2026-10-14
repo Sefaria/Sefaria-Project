@@ -997,7 +997,11 @@ def update_list_memberships(
     contact_id: str | int, add_list_ids: list[str], remove_list_ids: list[str]
 ) -> None:
     """
-    Atomically add and remove contact from multiple lists.
+    Add and remove a contact from multiple lists, one AC request per list.
+
+    Every list is tried even if an earlier one fails, and the error is raised at
+    the end. When a user opts out, one failed list shouldn't stop the others from
+    being removed.
 
     Args:
         contact_id (str or int): ActiveCampaign contact ID
@@ -1005,7 +1009,7 @@ def update_list_memberships(
         remove_list_ids (list): List IDs to unsubscribe from
 
     Raises:
-        ActiveCampaignError: If any operation fails
+        ActiveCampaignError: If any list couldn't be updated, after all were tried
     """
     logger.info(
         f"Updating list memberships for contact {contact_id}: adding {add_list_ids}, removing {remove_list_ids}"
@@ -1015,10 +1019,24 @@ def update_list_memberships(
     #   (a) AC's `contact/sync` endpoint with `subscribe`/`unsubscribe` arrays —
     #       single round trip for both directions.
     #   (b) ThreadPoolExecutor for concurrent per-list calls.
+    failed: list[str] = []
     for list_id in remove_list_ids:
-        remove_contact_from_list(contact_id, list_id)
+        try:
+            remove_contact_from_list(contact_id, list_id)
+        except ActiveCampaignError as e:
+            logger.warning(f"Failed to remove contact {contact_id} from list {list_id}: {e}")
+            failed.append(f"remove from {list_id}")
     for list_id in add_list_ids:
-        add_contact_to_list(contact_id, list_id)
+        try:
+            add_contact_to_list(contact_id, list_id)
+        except ActiveCampaignError as e:
+            logger.warning(f"Failed to add contact {contact_id} to list {list_id}: {e}")
+            failed.append(f"add to {list_id}")
+
+    if failed:
+        raise ActiveCampaignError(
+            f"Failed to update list memberships for contact {contact_id}: {', '.join(failed)}"
+        )
 
     logger.info(f"List memberships updated for contact {contact_id}")
 
@@ -1325,9 +1343,23 @@ def update_user_preferences_impl(
             f"Unsubscribing from {len(lists_to_remove)} lists: {lists_to_remove}"
         )
 
+        # Remove the lists first and save the opt-out only once they're all
+        # gone. wants_marketing_emails describes whether the user gets marketing
+        # emails, so it shouldn't say False while they're still on a list.
+        # Saving first wouldn't keep the choice anyway: fetch_user_subscriptions_impl
+        # reads False plus an active list as "signed up again elsewhere" and
+        # sets it back to True.
+        #
+        # update_list_memberships tries every list and raises if any failed. The
+        # user gets an error, the form keeps their choice, and they can submit
+        # again. If only the save fails, that's reported too; submitting again
+        # finds no active lists and just retries the save.
         update_list_memberships(contact_id, [], list(lists_to_remove))
 
-        _update_wants_marketing_emails(profile, False)
+        if not _update_wants_marketing_emails(profile, False):
+            raise ActiveCampaignError(
+                f"Unsubscribed {email} from all lists, but couldn't save the opt-out to their profile"
+            )
 
         logger.info(f"Marketing opt-out complete for {email}")
         return {"contact": contact, "subscribed_newsletters": []}
@@ -1405,7 +1437,7 @@ def _load_user_profile(email: str) -> UserProfile | None:
 
 def _update_wants_marketing_emails(
     profile: UserProfile | None, wants_marketing: bool
-) -> None:
+) -> bool:
     """
     Set wants_marketing_emails on an already-loaded UserProfile and save.
 
@@ -1413,23 +1445,31 @@ def _update_wants_marketing_emails(
     the caller controls when the MongoDB read happens. If `profile` is None,
     this is a no-op — the user has no Sefaria account to update.
 
-    Errors during save are logged at warning level and swallowed: a MongoDB
-    hiccup should never fail the surrounding ActiveCampaign flow, since the
-    AC mutations are the user-visible source of truth.
+    Errors during save are logged at warning level and not raised, so a MongoDB
+    hiccup never stops the surrounding ActiveCampaign flow. Returns False when
+    the save failed, so a caller can report it: opting out does, because
+    nothing else would set it to False later, so the user needs to try again.
+    Setting True doesn't need to, because the next form load sets it again if
+    the user has active lists.
+
+    Returns:
+        bool: False if the save failed; True if it worked or there was no profile
     """
     if profile is None:
         logger.info("No UserProfile in scope; skipping wants_marketing_emails update")
-        return
+        return True
     try:
         profile.wants_marketing_emails = wants_marketing
         profile.save()
         logger.info(
             f"Updated wants_marketing_emails={wants_marketing} for user {profile.id}"
         )
+        return True
     except Exception as e:
         logger.warning(
             f"Failed to update wants_marketing_emails for user {profile.id}: {e}"
         )
+        return False
 
 
 # ============================================================================
