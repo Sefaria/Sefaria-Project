@@ -1,0 +1,23 @@
+{{- if and .Values.gateway.enabled .Values.gateway.redirectHttpToHttps }}
+# Port 80 serves only a redirect to HTTPS. No policy can attach to the shared port-80 listener (see
+# clienttrafficpolicy.yaml), so serving the app there would let client-sent identity headers through whenever the auth
+# service fails open. A redirect answered by Envoy never reaches ext_authz, the rate limiter or the app.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Values.deployEnv }}-http-redirect
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    {{- range splitList "," (include "sefaria.gatewayListenerNames" (dict "root" $ "proto" "http")) }}
+    - name: {{ $.Values.deployEnv }}
+      sectionName: {{ . }}
+    {{- end }}
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+{{- end }}

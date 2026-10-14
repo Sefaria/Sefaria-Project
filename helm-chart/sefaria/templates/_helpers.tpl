@@ -281,3 +281,25 @@ http://{{ $svc }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.authServ
 {{- define "sefaria.authService.issuer" -}}
 {{- default (printf "https://mint-%s.%s.svc.cluster.local" .Values.deployEnv .Release.Namespace) .Values.authService.jwt.issuer -}}
 {{- end }}
+
+{{/*
+Gateway listener names for one protocol ("http" or "https"), comma-separated, in the order gateway.yaml renders them.
+Policies and routes that must reach only some listeners take their sectionNames from here, so they cannot drift from
+the Gateway. Call with (dict "root" $ "proto" "https").
+*/}}
+{{- define "sefaria.gatewayListenerNames" -}}
+{{- $root := .root -}}
+{{- $proto := .proto -}}
+{{- $names := list -}}
+{{- range $root.Values.domains.root -}}
+{{- $code := .code -}}
+{{- if kindIs "slice" $code }}{{ $code = index $code 0 }}{{ end -}}
+{{- $names = append $names (printf "%s-%s" $proto $code) -}}
+{{- $names = append $names (printf "%s-www-%s" $proto $code) -}}
+{{- range $root.Values.domains.modules -}}
+{{- $subdomain := index .subdomains $code -}}
+{{- if $subdomain }}{{ $names = append $names (printf "%s-%s-%s" $proto $subdomain $code) }}{{ end -}}
+{{- end -}}
+{{- end -}}
+{{- join "," $names -}}
+{{- end -}}
