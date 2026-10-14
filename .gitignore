@@ -70,6 +70,10 @@ node_modules
 .claude/skills/*
 !.claude/skills/sefaria-release-notes/
 !.claude/skills/sefaria-release-notes/**
+!.claude/agents/
+.claude/agents/*
+!.claude/agents/story-test-writer.md
+!.claude/agents/story-fidelity-reviewer.md
 CLAUDE.md
 !e2e-tests/CLAUDE.md
 
@@ -147,6 +151,7 @@ static/sheetrank.json
 e2e-tests/playwright_auth_*.json
 e2e-tests/auth_*.json
 e2e-tests/e2e-test-logs/
+e2e-tests/stories/.features-gen/
 /test-results/
 /playwright-report/
 /playwright/.cache/

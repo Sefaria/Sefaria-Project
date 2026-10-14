@@ -148,6 +148,7 @@
     "jest": "^24.9.0",
     "nodemon": "^1.9.2",
     "playwright": "^1.62.1",
+    "playwright-bdd": "^9.2.1",
     "sass": "^1.89.1",
     "source-map-support": "^0.4.15",
     "storybook": "10.0.2",

@@ -211,12 +211,19 @@ jobs:
         run: npx playwright install --with-deps
       
       - name: Run Playwright tests
-        run: npx playwright test
+        # bddgen compiles the story tests (e2e-tests/stories) into specs first.
+        run: npx bddgen && npx playwright test
         env:
           PLAYWRIGHT_SUPERUSER_EMAIL: "${{ secrets.PLAYWRIGHT_SUPERUSER_EMAIL }}"
           PLAYWRIGHT_SUPERUSER_PASSWORD: "${{ secrets.PLAYWRIGHT_SUPERUSER_PASSWORD }}"
           PLAYWRIGHT_USER_EMAIL: "${{ secrets.PLAYWRIGHT_USER_EMAIL }}"
           PLAYWRIGHT_USER_PASSWORD: "${{ secrets.PLAYWRIGHT_USER_PASSWORD }}"
+          PLAYWRIGHT_LA_USER_EMAIL: "${{ secrets.PLAYWRIGHT_LA_USER_EMAIL }}"
+          PLAYWRIGHT_LA_USER_PASSWORD: "${{ secrets.PLAYWRIGHT_LA_USER_PASSWORD }}"
+          PLAYWRIGHT_LA_USER_HE_EMAIL: "${{ secrets.PLAYWRIGHT_LA_USER_HE_EMAIL }}"
+          PLAYWRIGHT_LA_USER_HE_PASSWORD: "${{ secrets.PLAYWRIGHT_LA_USER_HE_PASSWORD }}"
+          PLAYWRIGHT_LA_OFF_USER_EMAIL: "${{ secrets.PLAYWRIGHT_LA_OFF_USER_EMAIL }}"
+          PLAYWRIGHT_LA_OFF_USER_PASSWORD: "${{ secrets.PLAYWRIGHT_LA_OFF_USER_PASSWORD }}"
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4

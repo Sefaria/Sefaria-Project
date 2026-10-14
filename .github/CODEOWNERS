@@ -1,0 +1,5 @@
+# Story tests (e2e-tests/stories/README.md): Product's behaviour stories are the
+# contract; the step definitions say what each sentence checks. Changes to either
+# during implementation need a `test-amendment` PR approved by an owner below.
+/e2e-tests/stories/features/ @Penina-Levy @yitzhakc
+/e2e-tests/stories/steps/ @yitzhakc

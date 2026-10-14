@@ -1,12 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
+import { defineBddConfig } from 'playwright-bdd';
 import { t } from './e2e-tests/globals';
 
-// load environment variables from .env file in the e2e-tests directory
+// load environment variables from .env file in the e2e-tests directory.
+// Variables already set in the shell win, so one run can target another
+// environment: SANDBOX_URL=https://www.sefaria.org npx playwright test ...
 if (!process.env.CI) {
   const env = require('dotenv').config({ path: './e2e-tests/.env' }).parsed;
   process.env = {
-    ...process.env,
     ...env,
+    ...process.env,
   };
 }
 
@@ -23,6 +26,19 @@ const MODULE_URLS = {
     VOICES: `https://chiburim.${SANDBOX_DOMAIN_IL}`
   }
 } as const;
+
+// Story-driven tests (e2e-tests/stories/README.md). Product's .feature files are
+// compiled by playwright-bdd into specs under stories/.features-gen. One project
+// per device class, because a scenario tagged "@desktop @phone" must run on both.
+// STORY_SCOPE selects whose stories run; the blocked tags never run.
+const STORY_SCOPE = process.env.STORY_SCOPE || '@scope-general';
+const STORY_TAGS = `(${STORY_SCOPE}) and not @decision-needed and not @spec-gap and not @api and not @manual`;
+const storyBddConfig = (device: 'desktop' | 'phone') => defineBddConfig({
+  features: 'e2e-tests/stories/features/**/*.feature',
+  steps: 'e2e-tests/stories/{steps,support}/**/*.ts',
+  outputDir: `e2e-tests/stories/.features-gen/${device}`,
+  tags: device === 'phone' ? `(${STORY_TAGS}) and @phone` : `(${STORY_TAGS}) and (@desktop or not @phone)`,
+});
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -147,7 +163,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: '**/mobile web/**',
+      testIgnore: ['**/mobile web/**', '**/stories/**'],
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -159,6 +175,27 @@ export default defineConfig({
       testDir: './e2e-tests/assistant',
       use: {
         ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    // Story-driven Library Assistant tests (Product's behaviour stories, run as written)
+    {
+      name: 'chrome-assistant-stories',
+      testDir: storyBddConfig('desktop'),
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 800 },
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'chrome-assistant-stories-phone',
+      testDir: storyBddConfig('phone'),
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 393, height: 852 },
+        hasTouch: true,
+        isMobile: true,
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
@@ -260,7 +297,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: '**/mobile web/**',
+      testIgnore: ['**/mobile web/**', '**/stories/**'],
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -365,7 +402,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: '**/mobile web/**',
+      testIgnore: ['**/mobile web/**', '**/stories/**'],
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
