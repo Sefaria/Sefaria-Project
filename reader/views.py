@@ -523,8 +523,30 @@ def catchall(request, tref, sheet=None):
         return text_panels(request, ref=tref, sheet=sheet)
 
 
+def _full_title_tref(tref, lang, version):
+    """
+    A title can itself contain segments that resemble the legacy
+    /<ref>/<lang>/<version> route (e.g. "Book/en/Part"). Return the rejoined
+    string if it is exactly a canonical ref, otherwise None.
+
+    This is deliberately strict: the legacy parser and partial matches would
+    accept "Genesis.1.1/en/Some_Version" as Ref("Genesis") and drop the
+    section and version.
+    """
+    full_tref = f"{tref}/{lang}/{version}"
+    try:
+        oref = Ref(full_tref)
+    except InputError:
+        return None
+    return full_tref if oref.url(False) == full_tref else None
+
+
 @ensure_csrf_cookie
 def old_versions_redirect(request, tref, lang, version):
+    full_tref = _full_title_tref(tref, lang, version)
+    if full_tref:
+        return catchall(request, full_tref)
+
     url = "/{}?v{}={}".format(tref, lang, version)
     response = redirect(iri_to_uri(url), permanent=True)
     params = request.GET.urlencode()
@@ -2026,6 +2048,10 @@ def social_image_api(request, tref):
 @catch_error_as_json
 @csrf_exempt
 def old_text_versions_api_redirect(request, tref, lang, version):
+    full_tref = _full_title_tref(tref, lang, version)
+    if full_tref:
+        return texts_api(request, full_tref)
+
     url = "/api/texts/{}?v{}={}".format(tref, lang, version)
     response = redirect(iri_to_uri(url), permanent=True)
     params = request.GET.urlencode()
