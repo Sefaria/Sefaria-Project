@@ -24,14 +24,14 @@ In:
   so a fail-open pass cannot carry spoofed identity upstream. Enabling requires
   `authService.image.tag` (an immutable `sha-...` tag pushed by the Continuous workflow).
 
-Out (later phases): first-party JWT minting and verification, rate limiting
-(BackendTrafficPolicy), the legacy body-borne `apikey`, the HTTP ext_authz transport, Redis/HTTP
-push, the HTTPRoute and nginx log-field changes, load tests and drill scripts. A bearer token is
-not verified in Phase 1: it rides the anonymous tier with `x-sefaria-auth-result: jwt_pending`.
+Also on this branch, all off by default: first-party JWT verification (`authService.jwt`, mint stub in
+`authService.mintStub`), rate limiting and monthly quotas (`authService.rateLimit`, `authService.meters`), the legacy
+body-borne `apikey` arm (`authService.legacyBodyArm`), the nginx `sefaria*` log fields, load tests (`k6/`) and drill
+scripts. Without a JWT verifier a bearer token rides the anonymous tier with `x-sefaria-auth-result: jwt_pending`.
 
 Later phases are specified in the Sefaria wiki page
-`wiki/meta/spec-2026-09-30-api-auth-phase1-and-later.md`. The full POC implementation, including
-everything listed as out, is in PR #3736.
+`wiki/meta/spec-2026-09-30-api-auth-phase1-and-later.md`; the monthly quota design is
+`wiki/meta/spec-2026-10-14-api-key-monthly-quota.md`.
 
 ## Configuration
 
@@ -39,6 +39,11 @@ Env vars (cmd/authsvc): HTTP_ADDR=:8080 GRPC_ADDR=:9090 AUTH_MODE=enforce|observ
 GATED_PATHS=/api/knn-search PG_DSN PG_NOTIFY_CHANNEL=sefaria_apikeys RELOAD_INTERVAL=60s
 HELP_URL=https://developers.sefaria.org/help/. An empty PG_NOTIFY_CHANNEL disables the listener and
 leaves only the periodic reload.
+
+METERED_PATHS=semantic=/api/knn-search (comma-separated `meter=prefix`; a malformed entry stops the service at
+startup) makes every allowed response carry `x-sefaria-meter` (`none` off metered paths), matched on the same decoded,
+cleaned path as GATED_PATHS. The gateway's quota rules select on it. JWT_MODE=authsvc with JWKS_URL, JWT_ISSUER,
+JWT_AUDIENCE and JWT_COOKIE_NAME verifies bearer tokens in the service.
 
 PG_DSN comes from the cluster Secret `auth-service-registry` (key `AUTH_PG_DSN`): a read-only role
 on `sefaria_auth` that can connect, LISTEN, and SELECT the columns the loader reads.

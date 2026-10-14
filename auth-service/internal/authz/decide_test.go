@@ -72,6 +72,7 @@ func TestDecidePreflight(t *testing.T) {
 		{"other method is not preflight", Request{Method: "GET", Path: "/api/knn-search", Origin: "https://embed.example.org"}, deny(enforce, 401, CodeKeyRequired, "This route requires an x-api-key header.")},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			tc.want.Meter = MeterNone
 			if got := Decide(reg, enforce, tc.r); got != tc.want {
 				t.Fatalf("got %+v want %+v", got, tc.want)
 			}

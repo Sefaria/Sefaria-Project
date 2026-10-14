@@ -74,7 +74,10 @@ func TestGRPCCheckAnonymousAllowStampsEmptyProject(t *testing.T) {
 	if got["x-sefaria-project"] != "" || got["x-sefaria-tier"] != "anonymous" || got["x-sefaria-auth-result"] != "anonymous" {
 		t.Fatalf("headers=%v", got)
 	}
-	if len(got) != 3 {
+	if got["x-sefaria-meter"] != "none" {
+		t.Fatalf("meter=%q", got["x-sefaria-meter"])
+	}
+	if len(got) != 4 {
 		t.Fatalf("expected all identity headers, got=%v", got)
 	}
 	if len(ok.HeadersToRemove) != 0 || len(ok.QueryParametersToRemove) != 1 || ok.QueryParametersToRemove[0] != "api_key" {

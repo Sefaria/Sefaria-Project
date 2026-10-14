@@ -30,6 +30,7 @@ class Status(models.TextChoices):
 
 class Tier(models.TextChoices):
     DEVELOPER = "developer", "Developer"
+    INTERNAL = "internal", "Internal"
 
 
 class Project(models.Model):

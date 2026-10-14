@@ -32,6 +32,7 @@ func decideRequest(l Lookup, o Options, r Request) Decision {
 	if d.Result == "jwt_pending" && o.Verifier != nil {
 		d = DecideJWT(o.Verifier, r.Authorization)
 	}
+	d.Meter = meterFor(o.Cfg, r.Path)
 	return d
 }
 
@@ -82,6 +83,8 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 					hdr("x-sefaria-project", d.Project),
 					hdr("x-sefaria-tier", d.Tier),
 					hdr("x-sefaria-auth-result", d.Result),
+					// Always stamped, with overwrite: a client-sent copy must never move a request into or out of a quota bucket.
+					hdr("x-sefaria-meter", d.Meter),
 				},
 				QueryParametersToRemove: []string{"api_key"},
 			}},

@@ -245,6 +245,10 @@ authService:
     issuer: ""              # "" -> https://mint-<env>.<namespace>.svc.cluster.local
   mintStub:
     enabled: false          # POC token issuer; never in a real environment
+  # Metered products: meter name -> path prefixes, rendered into the auth service's METERED_PATHS. The auth service
+  # stamps x-sefaria-meter with the meter of the request's path (none elsewhere); a quota below selects on it.
+  meters:
+    semantic: ["/api/knn-search"]
   rateLimit:
     enabled: false          # needs the controller's rateLimit.backend (infrastructure repo)
     testLimitsMultiplier: 1  # POC: raise to 10000 for latency runs
@@ -259,6 +263,17 @@ authService:
     embedPerOrigin: 15
     anonymousPerIP: 20
     anonymousShared: 40
+    # Usage quotas, one Global rule per (meter, tier), counted per project. A tier not listed in perTier has no
+    # quota (internal and anonymous stay out of it). Values are product decisions; none are set by default.
+    #   quotas:
+    #     - meter: semantic
+    #       unit: Month                        # Second, Minute, Hour, Day or Month; default Month
+    #       perTier: { developer: 100000, partner: 1000000 }
+    # The Month unit is a 30-day window aligned to the Unix epoch on Envoy Gateway 1.8 (prod), and a calendar month
+    # only on EG >= 1.9 with the ratelimit service's USE_CALENDAR_MONTH_RATE_LIMIT flag. The counters live in the
+    # rate-limit Redis, so a month-long quota needs a durable one (append-only file, a volume, noeviction); a
+    # restart or an eviction resets every project's count.
+    quotas: []
   # Adds sefariaProject, sefariaTier and sefariaAuthResult (and the meter) to the nginx access log, next to the
   # caller-classification fields.
   nginxLogFields: true

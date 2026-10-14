@@ -64,6 +64,11 @@ func main() {
 	if gp := os.Getenv("GATED_PATHS"); gp != "" {
 		cfg.GatedPaths = strings.Split(gp, ",")
 	}
+	meters, err := authz.ParseMeters(os.Getenv("METERED_PATHS"))
+	if err != nil {
+		panic(err)
+	}
+	cfg.Meters = meters
 	if cfg.Mode != authz.ModeEnforce && cfg.Mode != authz.ModeObserve {
 		panic("AUTH_MODE must be enforce or observe")
 	}
