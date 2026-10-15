@@ -8,6 +8,7 @@ source "$(dirname "$0")/lib.sh"
 DOWN_FOR="${DOWN_FOR:-6}"
 drill_up
 new_key f1
+wait_for 5 'test "$(gw $GW_HC $GATED f1)" = 200' >/dev/null
 check F1 "before: gated path without a key" "$(gw $GW_HC $GATED)" 401
 check F1 "before: gated path with a key" "$(gw $GW_HC $GATED f1)" 200
 
