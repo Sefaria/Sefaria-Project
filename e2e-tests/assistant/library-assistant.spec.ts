@@ -212,16 +212,50 @@ test.describe('Library Assistant — visibility boundaries', () => {
     await pm.onLibraryAssistant().expectNotPresent();
   });
 
-  test('LA-NEG-003: Does not appear for a logged-out user on the library home', async ({ context }) => {
+  test('LA-LOGGED-OUT-001: Appears for a logged-out user on the library home', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().expectNotPresent();
+    await pm.onLibraryAssistant().waitForReady();
   });
 
-  test('LA-NEG-004: Does not appear for a logged-out user on a reader page', async ({ context }) => {
+  test('LA-LOGGED-OUT-002: Appears for a logged-out user on a reader page', async ({ context }) => {
     const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().expectNotPresent();
+    await pm.onLibraryAssistant().waitForReady();
+  });
+
+  // The whole chain for a logged-out visitor: Sefaria renders the widget without a
+  // user, the widget sends its anonymous ID, and the real chat server answers.
+  test('LA-LOGGED-OUT-003: A logged-out user can ask a question and get an answer', async ({ context }) => {
+    test.setTimeout(t(90000));
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    const prompt = '<AUTO TEST> Say hi in one short word';
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().ensureOpen();
+    await pm.onLibraryAssistant().typeMessage(prompt);
+    await pm.onLibraryAssistant().sendViaEnter();
+    await pm.onLibraryAssistant().expectUserMessageShown(prompt);
+    await pm.onLibraryAssistant().expectAnswerShown();
+  });
+
+  // Logout (from any module) sets the lc_chatbot_clear cookie; the next Library page
+  // clears the assistant's saved chat so the next visitor on this browser doesn't see it.
+  // The logout itself isn't performed: it would destroy a shared auth session (rule §2.21).
+  test('LA-LOGGED-OUT-004: After a logout the next Library page clears the saved chat', async ({ context }) => {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().seedSavedChat();
+    expect(await pm.onLibraryAssistant().savedChatKeys()).not.toEqual([]);
+    // Set the way logout sets it: on the shared cookie domain (www.x.org → .x.org).
+    const sharedDomain = '.' + new URL(MODULE_URLS.EN.LIBRARY).hostname.split('.').slice(1).join('.');
+    await context.addCookies([{ name: 'lc_chatbot_clear', value: '1', domain: sharedDomain, path: '/' }]);
+
+    await page.reload();
+
+    expect(await pm.onLibraryAssistant().savedChatKeys()).toEqual([]);
+    const cookies = await context.cookies(MODULE_URLS.EN.LIBRARY);
+    expect(cookies.find((c) => c.name === 'lc_chatbot_clear')).toBeUndefined();
   });
 });
 

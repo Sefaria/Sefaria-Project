@@ -9,7 +9,10 @@ touching the key directly. The one exception is ``UserProfile.__init__``, which 
 the key when it creates a profile: importing this module from the model would be a
 cycle, so it reads the shared constant instead.
 
-Two rules:
+Logged-out visitors have no profile; whether they get the assistant is the remote
+config switch ``feature.chatbot.anonymous_enabled`` (on unless set to false).
+
+For logged-in users, two rules:
 
 1. **Key present** — obey it.
 2. **Key absent** — fall back to the experiments rule: the user is on the experiments
@@ -29,6 +32,8 @@ user reads exactly as they do today. The migration run — not the deploy — is
 the assistant switches from opt-in to opt-out, and rollback is unsetting the key.
 """
 
+from remote_config import remoteConfigCache
+from remote_config.keys import CHATBOT_ANONYMOUS_ENABLED
 from sefaria.constants.model import LIBRARY_ASSISTANT_SETTING_KEY
 from sefaria.model.user_profile import UserProfile
 
@@ -61,12 +66,19 @@ def is_enabled(profile):
     return _legacy_enabled(profile)
 
 
+def is_enabled_for_anonymous():
+    """
+    Whether logged-out visitors get the Library Assistant.
+    """
+    return normalize(remoteConfigCache.get(CHATBOT_ANONYMOUS_ENABLED, default=True))
+
+
 def is_enabled_for_user(user):
     """
     Convenience wrapper for a Django user object, authenticated or not.
     """
     if not user or not getattr(user, "is_authenticated", False):
-        return False
+        return is_enabled_for_anonymous()
     return is_enabled(UserProfile(user_obj=user))
 
 

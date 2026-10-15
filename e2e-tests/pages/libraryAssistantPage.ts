@@ -129,6 +129,12 @@ export class LibraryAssistantPage extends HelperBase {
     return this.page.locator('.message.user');
   }
 
+  /** Assistant answers only: not the welcome bubble (inside `.empty-state`),
+   *  the loading bubble (no `.message-content`) or the per-chat limit notice. */
+  private get answers() {
+    return this.page.locator('.message.assistant:not(.limit-message):not(.empty-state *):has(.message-content)');
+  }
+
   private get thinkingIndicator() {
     return this.page.locator('.thinking-content');
   }
@@ -283,6 +289,15 @@ export class LibraryAssistantPage extends HelperBase {
     await expect(this.userMessages.last()).toContainText(text, { timeout: t(5000) });
   }
 
+  /** An answer arrived and it isn't a failed one. Unlike `waitForResponse()`,
+   *  which only waits for the input to re-enable (that also happens after an error). */
+  async expectAnswerShown(): Promise<void> {
+    const answer = this.answers.last();
+    await expect(answer).toBeVisible({ timeout: t(60000) });
+    await expect(answer).not.toHaveClass(/\bfailed\b/);
+    await expect(answer.locator('.message-content')).not.toBeEmpty();
+  }
+
   async expectInputCleared(): Promise<void> {
     await expect(this.textarea).toHaveValue('', { timeout: t(5000) });
   }
@@ -376,5 +391,20 @@ export class LibraryAssistantPage extends HelperBase {
   /** Assert there are no user-sent message bubbles in the log. */
   async expectNoUserMessages(): Promise<void> {
     await expect(this.userMessages).toHaveCount(0, { timeout: t(5000) });
+  }
+
+  // --- The assistant's saved chat in the browser (localStorage, `lc_chatbot:` keys) ---
+
+  /** Put a saved chat in localStorage, as a logged-in user's session leaves it. */
+  async seedSavedChat(): Promise<void> {
+    await this.page.evaluate(() => {
+      localStorage.setItem('lc_chatbot:session', JSON.stringify({ sessionId: 'sess_e2e', lastActivity: new Date().toISOString() }));
+      localStorage.setItem('lc_chatbot:messages:sess_e2e', JSON.stringify([{ role: 'user', content: 'a saved question' }]));
+    });
+  }
+
+  /** The `lc_chatbot:` localStorage keys currently on this origin. */
+  async savedChatKeys(): Promise<string[]> {
+    return this.page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('lc_chatbot:')));
   }
 }

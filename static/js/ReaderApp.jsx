@@ -2576,8 +2576,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
-    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
-    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
+    // A logged-out visitor has no chatbot_user_token; chatbot_enabled alone decides.
+    const displayChatbot = this.props.chatbot_enabled && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment && !displayChatbot;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
@@ -2613,7 +2614,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 )}
                 {displayChatbot && (
                 <lc-chatbot
-                  user-id={this.props.chatbot_user_token}
+                  user-id={this.props.chatbot_user_token || undefined}
                   api-base-url={chatBotApiBaseUrl}
                   origin={this.props.chatbot_origin}
                   is-moderator={this.props.is_moderator || undefined}

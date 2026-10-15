@@ -72,6 +72,19 @@
 
     {% block head %}{% endblock %}
 
+    {% if chatbot_clear_storage %}
+    <script>
+      // After a logout: clear the Library Assistant's saved chat before it loads, so the
+      // next visitor or user on this browser doesn't see it (sefaria/utils/chatbot.py).
+      try {
+        Object.keys(localStorage)
+          .filter(function (key) { return key.indexOf("lc_chatbot:") === 0; })
+          .forEach(function (key) { localStorage.removeItem(key); });
+      } catch (e) {}
+      document.cookie = "{{ chatbot_clear_storage_cookie }}=; Max-Age=0; path=/{% if chatbot_cookie_domain %}; domain={{ chatbot_cookie_domain }}{% endif %}";
+    </script>
+    {% endif %}
+
     {% if chatbot_script_url %}
     <script src="{{ chatbot_script_url }}"{% if chatbot_script_type %} type="{{ chatbot_script_type }}"{% endif %}></script>
     {% endif %}

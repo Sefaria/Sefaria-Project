@@ -2,10 +2,12 @@ import json
 import re
 from unittest import mock
 
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
 from reader.conftest import create_test_user, make_profile_missing_la_setting, purge_test_profiles
 from sefaria.system.context_processors import chatbot_user_token
+from reader.views import chatbot_access_props
 from reader.models import UserExperimentSettings, _set_user_experiments
 from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
@@ -201,3 +203,37 @@ class AccountSettingsPageTest(LibraryAssistantUserTestCase):
         library_assistant.set_enabled(self.user, False)
 
         self.assertToggleShows(self.get_page(), on=False)
+
+
+class LoggedOutVisitorTest(TestCase):
+    """
+    Logged-out visitors get the assistant unless the remote config switch
+    feature.chatbot.anonymous_enabled is set to false.
+    """
+
+    def request(self):
+        request = mock.Mock()
+        request.user = AnonymousUser()
+        request.path = "/Genesis.1"  # the @user_only decorator skips /api/ and friends
+        request.GET = {}
+        request.session = {}
+        return request
+
+    def switch(self, **values):
+        cache = mock.Mock()
+        cache.get.side_effect = lambda key, default=None: values.get(key, default)
+        return mock.patch("sefaria.helper.library_assistant.remoteConfigCache", cache)
+
+    def test_gets_the_script_and_the_assistant_without_a_token(self):
+        with self.switch():
+            self.assertIsNotNone(chatbot_user_token(self.request())["chatbot_script_url"])
+            props = chatbot_access_props(self.request(), None)
+        self.assertTrue(props["chatbot_enabled"])
+        self.assertIsNone(props["chatbot_user_token"])
+
+    def test_switch_off_gets_nothing(self):
+        with self.switch(**{library_assistant.CHATBOT_ANONYMOUS_ENABLED: False}):
+            self.assertIsNone(chatbot_user_token(self.request())["chatbot_script_url"])
+            props = chatbot_access_props(self.request(), None)
+        self.assertFalse(props["chatbot_enabled"])
+        self.assertIsNone(props["chatbot_user_token"])

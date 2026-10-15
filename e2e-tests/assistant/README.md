@@ -119,7 +119,10 @@ Method map by UX ID:
 | UX-059 (Escape closes menu) — **`test.fixme`**: component does not yet handle Escape | `openHeaderMenu()`, `closeMenuWithEscape()`, `expectMenuHidden()` |
 | UX-060 (Restart conversation clears messages) | `typeMessage()`, `sendViaEnter()`, `waitForResponse()`, `openHeaderMenu()`, `clickRestartConversation()`, `expectEmptyState()`, `expectNoUserMessages()` |
 | UX-085 (LA hidden at 375px mobile viewport) | `waitForReady()`, then `page.setViewportSize({ width: 375, height: 667 })` + assert `lc-chatbot` hidden |
-| LA-NEG-001 → 004 (LA absent off its intended surface) | `expectNotPresent()` — on `voices.*` home, a voices sheet, and logged-out Library/reader pages |
+| LA-NEG-001 → 002 (LA absent off its intended surface) | `expectNotPresent()` — on `voices.*` home and a voices sheet |
+| LA-LOGGED-OUT-001 → 002 (LA present for logged-out visitors) | `waitForReady()` — on logged-out Library home and reader pages (remote config `feature.chatbot.anonymous_enabled`, on by default) |
+| LA-LOGGED-OUT-003 (logged-out visitor gets an answer) | `expectAnswerShown()` — real round trip to the chat server with no user |
+| LA-LOGGED-OUT-004 (logout clears the saved chat) | `seedSavedChat()` + the `lc_chatbot_clear` cookie a logout sets → reload → `savedChatKeys()` empty and cookie gone |
 
 State helpers (use these liberally at the top of a test to reach a known state):
 
