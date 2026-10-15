@@ -138,6 +138,27 @@
   text-decoration: none;
 }
 
+/* Where the full label crowds the header (within 16px of "Donate", or icons pushed off
+   screen), the pill says "Ask"; where even that crowds, it's hidden. Same widths for every
+   header, set by the most crowded (logged out; English for the label, Hebrew for "Ask").
+   !important: the .headerInner catch-all above sets display: flex with a higher specificity. */
+.textLink.libraryAssistantLink .libraryAssistantShortLabel {
+  display: none !important;
+}
+
+@media (min-width: 900px) and (max-width: 960px), (min-width: 1087px) and (max-width: 1159px) {
+  .textLink.libraryAssistantLink .libraryAssistantLabel {
+    display: none !important;
+  }
+  .textLink.libraryAssistantLink .libraryAssistantShortLabel {
+    display: inline !important;
+  }
+}
+@media (max-width: 899px) {
+  .textLink.libraryAssistantLink {
+    display: none !important;
+  }
+}
 .textLink.libraryAssistantLink:is(:hover, :active) {
   background: #653259; /* purple-800 */
 }
