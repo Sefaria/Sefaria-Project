@@ -1018,19 +1018,6 @@ export class LibraryAssistantQ4Page extends HelperBase {
   }
 
   /**
-   * LA-COOKIE-1: make the banner's text wrap onto more lines at the story's 393px width
-   * by adding words to it, the way a longer translation or a copy edit would. At 393px
-   * today's text fits on three lines, so it never wraps further on its own.
-   */
-  async lengthenCookieBannerText(): Promise<void> {
-    await this.cookieBanner.evaluate((banner) => {
-      // The banner holds one span per interface language; only the shown one has a size.
-      const shown = Array.from(banner.children).find((c) => (c as HTMLElement).offsetHeight > 0) ?? banner;
-      shown.insertBefore(document.createTextNode('Extra words standing in for a longer version of this message. '.repeat(3)), shown.firstChild);
-    });
-  }
-
-  /**
    * LA-COOKIE-1 / LA-COOKIE-3: the Ask button's bottom edge is `gap` px above the banner's top edge.
    * The button slides into place over 0.2s (and appears at the bottom edge after the sheet
    * closes), so keep measuring until it has settled rather than reading it mid-slide.

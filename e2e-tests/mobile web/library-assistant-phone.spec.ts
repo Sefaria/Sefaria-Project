@@ -323,9 +323,10 @@ test.describe('Library Assistant phone — cookie banner', () => {
   test('LA-COOKIE-1: The Ask button floats 16px above the banner, even when the banner text wraps', PHONE_TAGS, async () => {
     await la.expectAskButtonAboveCookieBanner(16);
 
-    // Longer banner text wraps onto more lines, still at the story's 393px width.
+    // A narrower phone makes the banner's text wrap onto more lines. Today's text
+    // still fits on three lines at 320px; at 280px the sentence itself wraps onto a fourth.
     const heightBefore = await la.cookieBannerHeight();
-    await la.lengthenCookieBannerText();
+    await page.setViewportSize({ width: 280, height: PHONE.height });
     await expect.poll(() => la.cookieBannerHeight(), { timeout: t(5000), message: 'the banner text should wrap to more lines' })
       .toBeGreaterThan(heightBefore);
     await la.expectAskButtonAboveCookieBanner(16);
