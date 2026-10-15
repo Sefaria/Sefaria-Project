@@ -4,8 +4,8 @@ title: Reader shell & panels
 domain: Reader
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
 ---
 # Reader shell & panels — product specification
 
@@ -15,7 +15,7 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+Multi-panel reading stays: readers can keep several texts open side by side, each in its own main reader panel. Opening a text from a panel's sidebar closes that sidebar and opens the text as a new main reader panel beside the panel it came from, as sefaria.org does today. The panel design should leave room for panel-management features later; which ones is not yet defined.
 
 ## Who it is for and what they need
 
@@ -23,15 +23,23 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Parity with sefaria.org: readers can have many reader windows open; each text opened from a panel opens as a new main reader panel to the left of the panel it was opened from (which side exactly: see Open questions). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899) · SHL-044 · SHL-049
+- Opening a text from a panel's sidebar (connections / resources) closes that sidebar and opens the text as a new main reader panel next to that panel. This behaviour must be kept. — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899) · CON-033 · CON-038
+- The design leaves room for future panel-management features (not specified yet). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **Keep:** several reader panels side by side; opening from a sidebar closes the sidebar and opens a new main panel beside the source panel (SHL-044, SHL-047, CON-033). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
+- **Change:** _None recorded yet._
+- **Drop:** _None recorded yet._
+- **New:** panel-management features beyond today's, scope open. — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 
 ## Open questions
 
-_None yet._
+- **Which side?** The thread says the new panel opens "to the left". On sefaria.org today it opens *after* the source panel in reading order: to its right in the English interface, to its left in the Hebrew interface (`master` `static/js/ReaderApp.jsx:2452`); `reader-next` does the same. Is "left" a fixed side, or does it follow the interface direction as today? · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
+- **What does "future panel management" cover?** For example reorder, resize, pin, stack, close all. Not stated yet.
+- **How many panels, and what on overflow?** Today the number of visible panels depends on window width and extra panels scroll sideways (SHL-039, SHL-040). Does that stay?
+- **Phones and narrow screens:** today one panel is shown and opening from the sidebar replaces the current panel (SHL-061). Does that stay?
 
 ## Decisions
 

@@ -4,8 +4,8 @@ title: Reader shell & panels
 domain: Reader
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
 ---
 # Reader shell & panels — architecture
 
@@ -15,23 +15,30 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+Each main reader panel owns its sidebar (the connections / resources panel) as a subcomponent, instead of the sidebar being a separate top-level panel as in the legacy reader. Opening a text from a sidebar closes that panel's sidebar and inserts a new main panel next to it. The panel state model should be extensible so panel-management features can be added later.
 
 ## Legacy approach vs new approach
 
-_Not discussed yet: how `master` does it, how `reader-next` does it, and what differs (data, state, rendering, routing, caching)._
+- **Legacy (`master`):** one flat `panels` array in `ReaderApp`. The sidebar is its own panel (`mode: "Connections"`) spliced in right after its text panel (`static/js/ReaderApp.jsx:1843`, `openTextListAt`; SHL-033, CON-004). Opening from the sidebar: `ReaderPanel.handleTextListClick` → `showBaseText` → `openPanelAt(panelPosition, …, replace=true)` (`static/js/ReaderPanel.jsx:208`, `:290`), which puts a new text panel in the sidebar's slot (`static/js/ReaderApp.jsx:1801`). A citation closes the next Connections panel and inserts the cited text after the source panel (`static/js/ReaderApp.jsx:1078`). Panels are placed with `left: offset` in the English interface and `right: offset` in the Hebrew interface (`static/js/ReaderApp.jsx:2452`), so "after" is to the right in English and to the left in Hebrew.
+- **New (`reader-next`):** a sidebar is already part of its panel's state, as `asides` and `asideLayout` (`reader-next/src/lib/workspace/types.ts:31`; design in `reader-next/docs/WORKSPACE.md` §1). `openFromSidebar` closes the panel's aside and opens a new text panel `after` it (`reader-next/src/features/reader/TextPanel.tsx:256`, via `openNextToWithId`, `src/lib/workspace/ops.ts:68`). Panels sit in a layout tree drawn as a flex row (`src/ui/SplitView/SplitView.module.css:4`) under `<html dir>` set from the interface language (`src/routes/__root.tsx:80`), so "after" is again right in English and left in Hebrew. The model already has `move` and before / after / above / below placements (`src/lib/workspace/ops.ts:106`, `src/lib/layout/tree.ts:17`).
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Each main reader panel has its sidebar (connections / resources) as a subcomponent; the sidebar is not a separate top-level panel. — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
+- Opening a text from a sidebar = close the owning panel's sidebar, then insert a new main panel next to that panel (to its left, per the thread; see below). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
+- The panel state model stays extensible for future panel-management features. — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [Connections & resources sidebar](../connections/architecture.md): the sidebar lives inside its main panel.
+- [URLs & routing](../routing/architecture.md): how panels and their sidebars are numbered in the URL (decision 2026-10-06).
+- [Language & accessibility](../i18n-a11y/architecture.md): whether "left" follows the interface direction.
 
 ## Risks and open questions
 
-_None yet._
+- Should "open next to" be a reading-order placement (after / before, as both clients do today) or a fixed visual side (always left)? The two differ in the English interface. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
+- Which future panel-management features must the state model support (reorder, resize, pin, stack, close all)? That decides whether the current layout tree is enough.
+- Is there a cap on open panels, and what happens past it?
 
 ## Decisions
 

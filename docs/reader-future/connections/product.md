@@ -4,8 +4,8 @@ title: Connections & resources sidebar
 domain: Reader
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
 ---
 # Connections & resources sidebar — product specification
 
@@ -23,7 +23,7 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Opening a text from the sidebar closes the sidebar and opens the text as a new main reader panel next to its panel, as sefaria.org does. Recorded in [Reader shell & panels](../reader-shell/product.md). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899) · CON-033
 
 ## Changes from today (keep · change · drop · new)
 
