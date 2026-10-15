@@ -36,14 +36,15 @@ content and a stable page are a focus point of the upcoming arc.
 
 - **Change:** first content on mobile. Today Search Console reports 100% of pages with LCP over 4 s, and Hotjar shows mobile
   sessions ending before content loads. — [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · Hotjar [1](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · [2](https://insights.hotjar.com/r?site=2695522&recording=112659747044) · [3](https://insights.hotjar.com/r?site=2695522&recording=112659758294) · [4](https://insights.hotjar.com/r?site=2695522&recording=112659767062) · PLT-003 · PLT-019
-- **Change:** repaints. The current architecture has a known repainting issue; the new reader is designed away from it. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- **Change:** repaints. The legacy sefaria.org reader has a known repainting issue; the new reader is designed away from it. Causes and what the new reader does about each: [architecture](architecture.md#legacy-loadrepaint-issues-vs-new-arc). — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792052319198069?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 - **New:** load speed and repaints monitored in production, on load and on scroll and click. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Open questions
 
 - Which targets do we commit to for LCP, INP (Interaction to Next Paint) and CLS (Cumulative Layout Shift), and on which
   devices and network profile? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
-- How and where are repaints measured on the live site (which real-user monitoring tool)? See `architecture.md`. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- How and where are repaints measured on the live site (which real-user monitoring tool)? Neither client measures LCP, INP or CLS
+  for real users today. See `architecture.md`. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Decisions
 
