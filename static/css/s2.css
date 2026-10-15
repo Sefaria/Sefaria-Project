@@ -5427,6 +5427,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: underline;
 }
 
+.noSearchResults-assistantLink {
+  color: var(--mussar-purple);
+  text-decoration: underline;
+}
+
 /* Desktop, assistant off (only the browse button): tighter heading, body and button */
 @media (min-width: 541px) {
   .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-textGroup {

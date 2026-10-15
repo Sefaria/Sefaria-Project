@@ -29,19 +29,25 @@ let appIsRunning = false;
 // Keep the assistant's name on one line wherever the text wraps
 const keepNameTogether = (text) => text.replace(/Library Assistant/g, 'Library\u00a0Assistant').replace(/עוזר הספרייה/g, 'עוזר\u00a0הספרייה');
 
-function renderCaption() {
-  const reportBugText = Sefaria._('search.null.caption.report_bug');
-  const contactUsText = Sefaria._('search.null.caption.contact_us');
-  const [before, middle, after] = Sefaria._('search.null.caption').split(/\{bug\}|\{contact\}/);
-  return (
-    <p className="noSearchResults-caption">
-      {before}
-      <a href={Sefaria._('search.null.caption.bug.link')} className="noSearchResults-captionLink">{reportBugText}</a>
-      {middle}
-      <a href={Sefaria._('search.null.caption.contact_us.href')} className="noSearchResults-captionLink">{contactUsText}</a>
-      {after}
-    </p>
-  );
+// The assistant's name in the body is a link that opens it and asks the search, like the
+// floating "Search with Library Assistant" button. The body breaks after its last "or" ("או").
+function linkAssistantName(text, query) {
+  const match = /Library\u00a0Assistant|עוזר\u00a0הספרייה/g;
+  const all = [...text.matchAll(match)];
+  if (!all.length) { return text; }
+  const {index, 0: name} = all[all.length - 1];
+  const open = (e) => {
+    e.preventDefault();
+    document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {
+      source: 'search_no_results',
+      question: assistantNoResultsPrompt(query),
+    }}));
+  };
+  const before = text.slice(0, index);
+  const or = before.includes(' או ') ? ' או ' : ' or ';
+  const orAt = before.lastIndexOf(or);
+  const lead = orAt === -1 ? before : <>{before.slice(0, orAt + or.length - 1)}<br />{before.slice(orAt + or.length)}</>;
+  return <>{lead}<a href="#" onClick={open} className="noSearchResults-assistantLink">{name}</a>{text.slice(index + name.length)}</>;
 }
 
 function NoSearchResults({ mode, query }) {
@@ -89,7 +95,7 @@ function NoSearchResults({ mode, query }) {
           <p className="noSearchResults-heading serif">{heading}</p>
           <p className="noSearchResults-body" style={hasAssistant === null ? {visibility: 'hidden'} : undefined}>
             {hasAssistant
-              ? keepNameTogether(Sefaria._(key('body.library_assistant')))
+              ? linkAssistantName(keepNameTogether(Sefaria._(key('body.library_assistant'))), query)
               : <InterfaceText>{key('body')}</InterfaceText>}
           </p>
         </div>
@@ -101,7 +107,6 @@ function NoSearchResults({ mode, query }) {
             </a>
           </div>
         )}
-        {renderCaption()}
       </div>
     </div>
   );
