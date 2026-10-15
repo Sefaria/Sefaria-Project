@@ -1,0 +1,15 @@
+.panel { display: flex; flex-direction: column; min-height: 0; height: 100%; background: var(--sefaria-color-surface-subtle); color: var(--sefaria-color-text); font-family: var(--sefaria-font-ui-en); }
+.header { display: flex; align-items: center; gap: var(--sefaria-space-2); min-height: var(--sefaria-reader-controls-height); padding-inline: var(--sefaria-space-4); background: var(--sefaria-color-border); }
+.headerTitle { flex: 1; margin: 0; min-width: 0; font-size: var(--sefaria-text-sans-body); font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sefaria-color-text-on-band); }
+.back { display: inline-flex; align-items: center; gap: var(--sefaria-space-1); color: var(--sefaria-color-text-on-band); font-size: var(--sefaria-text-sans-body); letter-spacing: 0.04em; text-decoration: none; }
+.back:hover { color: var(--sefaria-color-text); }
+.body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sefaria-space-6) var(--sefaria-space-8) var(--sefaria-space-12); }
+
+/* VERIFIED on sefaria.org (1280px): bar #ededed, 34px sides, title 16px light #666 letter-spaced 1px, then the language button (18px, 40% grey) and the circled × */
+.header { background: #ededed; padding-inline: 34px; gap: 15px; }
+.headerTitle { font-weight: 300; letter-spacing: 1px; color: #666; }
+.langToggle { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 32px; padding: 0; border: 0; background: none; cursor: pointer; }
+.langToggle img { opacity: 0.4; }
+.langToggle:hover img { opacity: 0.7; }
+.body { padding-inline: 49px 49px; }
+.header > button:last-child { margin-inline: -10px; } /* the 40px target, the 20px glyph where the old × sits */

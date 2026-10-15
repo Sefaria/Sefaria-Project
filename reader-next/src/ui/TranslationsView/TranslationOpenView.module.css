@@ -1,0 +1,8 @@
+.view { padding-block: var(--sefaria-space-4); }
+.name { display: inline-block; margin: 0 0 var(--sefaria-space-5); padding-block-end: var(--sefaria-space-2); border-block-end: 4px solid var(--sefaria-cat-quoting, #c7a7b4); font-family: var(--sefaria-font-text-en); font-weight: 400; font-size: var(--sefaria-text-serif-body); text-transform: uppercase; letter-spacing: 0.02em; color: var(--sefaria-color-text-secondary); }
+.text { font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); line-height: 1.6; color: var(--sefaria-color-text); }
+.text[dir="rtl"] { font-family: var(--sefaria-font-text-he); }
+.actions { display: flex; gap: var(--sefaria-space-4); margin-block-start: var(--sefaria-space-2); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); }
+.open { display: inline-flex; align-items: center; gap: var(--sefaria-space-1); color: var(--sefaria-color-text-secondary); text-decoration: none; }
+.open:hover { text-decoration: underline; }
+.missing { margin: var(--sefaria-space-6) 0; color: var(--sefaria-color-text-secondary); font-family: var(--sefaria-font-ui-en); }

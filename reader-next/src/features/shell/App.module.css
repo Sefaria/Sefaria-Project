@@ -1,0 +1,12 @@
+/* A fixed-height page on desktop: the header, then the workspace filling the rest (each panel scrolls on its own). */
+.app { display: flex; flex-direction: column; height: 100dvh; }
+.header { flex: none; }
+.main { flex: 1; min-height: 0; outline: none; }
+
+/* Phone: the page scrolls; a reader hides the site header (the panel has its own controls). */
+@media (max-width: 842px) {
+  .app { display: block; height: auto; }
+  .app[data-reading="true"] .header { display: none; }
+  /* ...unless the panel's menu button opened the navigation menu */
+  .app[data-reading="true"][data-menu="open"] .header { display: block; position: sticky; top: 0; z-index: 70; background: var(--sefaria-color-surface); }
+}

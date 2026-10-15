@@ -1,0 +1,67 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Jastrow",
+    "Jastrow, Preface",
+    "Jastrow, List of Abbreviations",
+    "Jastrow, Hebrew or Aramaic Abbreviations",
+    "Marcus Jastrow"
+  ],
+  "completion_objects": [
+    {
+      "title": "Jastrow",
+      "key": "Jastrow",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Jastrow, Preface",
+      "key": "Jastrow, Preface",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Jastrow, List of Abbreviations",
+      "key": "Jastrow, List of Abbreviations",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Jastrow, Hebrew or Aramaic Abbreviations",
+      "key": "Jastrow, Hebrew or Aramaic Abbreviations",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Marcus Jastrow",
+      "type": "AuthorTopic",
+      "key": "marcus-jastrow",
+      "is_primary": true,
+      "order": 4999898,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Jastrow",
+  "url": "Jastrow",
+  "index": "Jastrow",
+  "book": "Jastrow",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": []
+}

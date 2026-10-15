@@ -1,0 +1,1350 @@
+{
+  "title": "Pesach Haggadah",
+  "categories": [
+    "Liturgy",
+    "Haggadah"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "kadesh"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Kadesh",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "קדש",
+            "primary": true
+          }
+        ],
+        "key": "Kadesh"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "urchatz"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Urchatz",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Wash"
+          },
+          {
+            "lang": "he",
+            "text": "ורחץ",
+            "primary": true
+          }
+        ],
+        "key": "Urchatz"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "karpas"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Karpas",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Greens"
+          },
+          {
+            "lang": "he",
+            "text": "כרפס",
+            "primary": true
+          }
+        ],
+        "key": "Karpas"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "yachatz"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Yachatz",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Break"
+          },
+          {
+            "lang": "he",
+            "text": "יחץ",
+            "primary": true
+          }
+        ],
+        "key": "Yachatz"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "ha-lachma-anya"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Ha Lachma Anya",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "הא לחמא עניא",
+                "primary": true
+              }
+            ],
+            "key": "Ha Lachma Anya"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "four-questions"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Four Questions",
+                "primary": true
+              },
+              {
+                "lang": "en",
+                "text": "Ma Nishtana"
+              },
+              {
+                "lang": "he",
+                "text": "מה נשתנה",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "ארבע קושיות"
+              }
+            ],
+            "key": "Four Questions"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "we-were-slaves-in-egypt"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "We Were Slaves in Egypt",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "עבדים היינו",
+                "primary": true
+              }
+            ],
+            "key": "We Were Slaves in Egypt"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "story-of-the-five-rabbis"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Story of the Five Rabbis",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "מעשה שהיה בבני ברק",
+                "primary": true
+              }
+            ],
+            "key": "Story of the Five Rabbis"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "the-four-sons"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "The Four Sons",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "כנגד ארבעה בנים",
+                "primary": true
+              }
+            ],
+            "key": "The Four Sons"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "yechol-merosh-chodesh"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Yechol Me'rosh Chodesh",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "יכול מראש חודש",
+                "primary": true
+              }
+            ],
+            "key": "Yechol Me'rosh Chodesh"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "in-the-beginning-our-fathers-were-idol-worshipers"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "In the Beginning Our Fathers Were Idol Worshipers",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "מתחילה עובדי עבודה זרה היו אבותינו",
+                "primary": true
+              }
+            ],
+            "key": "In the Beginning Our Fathers Were Idol Worshipers"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "first-fruits-declaration"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "First Fruits Declaration",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "ארמי אבד אבי",
+                "primary": true
+              }
+            ],
+            "key": "First Fruits Declaration"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "the-ten-plagues"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "The Ten Plagues",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "עשר המכות",
+                "primary": true
+              }
+            ],
+            "key": "The Ten Plagues"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "dayenu"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Dayenu",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "דיינו",
+                "primary": true
+              }
+            ],
+            "key": "Dayenu"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "rabban-gamliels-three-things"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Rabban Gamliel's Three Things",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "פסח מצה ומרור",
+                "primary": true
+              }
+            ],
+            "key": "Rabban Gamliel's Three Things"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "first-half-of-hallel"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "First Half of Hallel",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "חצי הלל",
+                "primary": true
+              }
+            ],
+            "key": "First Half of Hallel"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "second-cup-of-wine"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Second Cup of Wine",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "כוס שניה",
+                "primary": true
+              }
+            ],
+            "key": "Second Cup of Wine"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "magid"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Magid",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "מגיד",
+            "primary": true
+          }
+        ],
+        "key": "Magid"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "rachtzah"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Rachtzah",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "רחצה",
+            "primary": true
+          }
+        ],
+        "key": "Rachtzah"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "motzi-matzah"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Motzi Matzah",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "מוציא מצה",
+            "primary": true
+          }
+        ],
+        "key": "Motzi Matzah"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "maror"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Maror",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "מרור",
+            "primary": true
+          }
+        ],
+        "key": "Maror"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "korech"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Korech",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "כורך",
+            "primary": true
+          }
+        ],
+        "key": "Korech"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "shulchan-orech"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Shulchan Orech",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Meal"
+          },
+          {
+            "lang": "he",
+            "text": "שולחן עורך",
+            "primary": true
+          }
+        ],
+        "key": "Shulchan Orech"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "tzafun"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Tzafun",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Afikoman"
+          },
+          {
+            "lang": "he",
+            "text": "צפון",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "אפיקומן"
+          }
+        ],
+        "key": "Tzafun"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "birkat-hamazon"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Birkat Hamazon",
+                "primary": true
+              },
+              {
+                "lang": "en",
+                "text": "Grace After the Meal"
+              },
+              {
+                "lang": "he",
+                "text": "ברכת המזון",
+                "primary": true
+              }
+            ],
+            "key": "Birkat Hamazon"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "third-cup-of-wine"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Third Cup of Wine",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "כוס שלישית",
+                "primary": true
+              }
+            ],
+            "key": "Third Cup of Wine"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "pour-out-thy-wrath"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Pour Out Thy Wrath",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "שפוך חמתך",
+                "primary": true
+              }
+            ],
+            "key": "Pour Out Thy Wrath"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "barech"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Barech",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "ברך",
+            "primary": true
+          }
+        ],
+        "key": "Barech"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "second-half-of-hallel"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Second Half of Hallel",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "מסיימים את ההלל",
+                "primary": true
+              }
+            ],
+            "key": "Second Half of Hallel"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "songs-of-praise-and-thanks"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Songs of Praise and Thanks",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "מזמורי הודיה",
+                "primary": true
+              }
+            ],
+            "key": "Songs of Praise and Thanks"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "fourth-cup-of-wine"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Fourth Cup of Wine",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "כוס רביעית",
+                "primary": true
+              }
+            ],
+            "key": "Fourth Cup of Wine"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "hallel"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Hallel",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "הלל",
+            "primary": true
+          }
+        ],
+        "key": "Hallel"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "chasal-siddur-pesach"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Chasal Siddur Pesach",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "חסל סידור פסח",
+                "primary": true
+              }
+            ],
+            "key": "Chasal Siddur Pesach"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "lshana-habaa"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "L'Shana HaBaa",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "לשנה הבאה",
+                "primary": true
+              }
+            ],
+            "key": "L'Shana HaBaa"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "and-it-happened-at-midnight"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "And It Happened at Midnight",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "ויהי בחצי הלילה",
+                "primary": true
+              }
+            ],
+            "key": "And It Happened at Midnight"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "zevach-pesach"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Zevach Pesach",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "זבח פסח",
+                "primary": true
+              }
+            ],
+            "key": "Zevach Pesach"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "ki-lo-nae"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Ki Lo Na'e",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "אדיר במלוכה",
+                "primary": true
+              }
+            ],
+            "key": "Ki Lo Na'e"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "adir-hu"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Adir Hu",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "אדיר הוא",
+                "primary": true
+              }
+            ],
+            "key": "Adir Hu"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "sefirat-haomer"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Sefirat HaOmer",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "ספירת העומר",
+                "primary": true
+              }
+            ],
+            "key": "Sefirat HaOmer"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "echad-mi-yodea"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Echad Mi Yodea",
+                "primary": true
+              },
+              {
+                "lang": "en",
+                "text": "One, Who Knows"
+              },
+              {
+                "lang": "he",
+                "text": "אחד מי יודע",
+                "primary": true
+              }
+            ],
+            "key": "Echad Mi Yodea"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "chad-gadya"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "en",
+                "text": "Chad Gadya",
+                "primary": true
+              },
+              {
+                "lang": "he",
+                "text": "חד גדיא",
+                "primary": true
+              }
+            ],
+            "key": "Chad Gadya"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "nirtzah"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Nirtzah",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "נרצה",
+            "primary": true
+          }
+        ],
+        "key": "Nirtzah"
+      }
+    ],
+    "nodeType": "SchemaNode",
+    "match_templates": [
+      {
+        "term_slugs": [
+          "pesach-haggadah"
+        ]
+      }
+    ],
+    "titles": [
+      {
+        "lang": "en",
+        "text": "Pesach Hagadah"
+      },
+      {
+        "lang": "en",
+        "text": "Passover Haggadah"
+      },
+      {
+        "lang": "en",
+        "text": "Passover Hagadah"
+      },
+      {
+        "lang": "en",
+        "text": "Haggadah"
+      },
+      {
+        "lang": "en",
+        "text": "Hagadah"
+      },
+      {
+        "lang": "en",
+        "text": "Haggadah Shel Pesach"
+      },
+      {
+        "text": "הגדה של פסח",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Pesach Haggadah",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Pesach Haggadah"
+  },
+  "authors": [],
+  "enDesc": "The Haggadah is the classic Jewish book used as the basis of the Passover seder. Its text was compiled during the periods of the Mishnah and the Talmud, with later medieval additions. It exists today in many forms, as different communities around the world developed their own variations.",
+  "enShortDesc": "Haggadah commonly used in Ashkenazi communities.",
+  "pubDate": [
+    1482
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    280,
+    360
+  ],
+  "pubPlace": "Guadalajara, Spain",
+  "era": "T",
+  "is_cited": true
+}

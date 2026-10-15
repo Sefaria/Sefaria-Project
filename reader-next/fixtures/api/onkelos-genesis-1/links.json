@@ -1,0 +1,3155 @@
+[
+  {
+    "_id": "695ea232ce06144202d81114",
+    "index_title": "Vayikra Rabbah",
+    "category": "Midrash",
+    "type": "",
+    "ref": "Vayikra Rabbah 33:6",
+    "anchorRef": "Onkelos Genesis 1:2",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:2"
+    ],
+    "sourceRef": "Vayikra Rabbah 33:6",
+    "sourceHeRef": "ויקרא רבה ל״ג:ו׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      500
+    ],
+    "commentaryNum": 33.0006,
+    "collectiveTitle": {
+      "en": "Vayikra Rabbah",
+      "he": "ויקרא רבה"
+    },
+    "heTitle": "ויקרא רבה"
+  },
+  {
+    "_id": "6960b724f2b3a9c109a73f6b",
+    "index_title": "Ramban on Genesis",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ramban on Genesis 1:20:1",
+    "anchorRef": "Onkelos Genesis 1:20",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:20"
+    ],
+    "sourceRef": "Ramban on Genesis 1:20:1",
+    "sourceHeRef": "רמב\"ן על בראשית א׳:כ׳:א׳",
+    "anchorVerse": 20,
+    "sourceHasEn": true,
+    "compDate": [
+      1246,
+      1270
+    ],
+    "commentaryNum": 20.0001,
+    "collectiveTitle": {
+      "en": "Ramban on Genesis",
+      "he": "רמב\"ן על בראשית"
+    }
+  },
+  {
+    "_id": "6960b723cbe5b810a679b7e6",
+    "index_title": "Ramban on Genesis",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ramban on Genesis 1:31:1",
+    "anchorRef": "Onkelos Genesis 1:31",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:31"
+    ],
+    "sourceRef": "Ramban on Genesis 1:31:1",
+    "sourceHeRef": "רמב\"ן על בראשית א׳:ל״א:א׳",
+    "anchorVerse": 31,
+    "sourceHasEn": true,
+    "compDate": [
+      1246,
+      1270
+    ],
+    "commentaryNum": 31.0001,
+    "collectiveTitle": {
+      "en": "Ramban on Genesis",
+      "he": "רמב\"ן על בראשית"
+    }
+  },
+  {
+    "_id": "56a78e94d6e4a955cb526989",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:1",
+    "anchorRef": "Onkelos Genesis 1:1",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:1"
+    ],
+    "sourceRef": "Genesis 1:1",
+    "sourceHeRef": "בראשית א׳:א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46767108d98a02694c8b39",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, אַרְעָא 1",
+    "anchorRef": "Onkelos Genesis 1:1",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:1"
+    ],
+    "sourceRef": "Jastrow, אַרְעָא 1",
+    "sourceHeRef": "מילון יסטרוב, אַרְעָא א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "אַרְעָא"
+  },
+  {
+    "_id": "5c4678aa08d98a02694ca8d3",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, ברי 1",
+    "anchorRef": "Onkelos Genesis 1:1",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:1"
+    ],
+    "sourceRef": "Jastrow, ברי 1",
+    "sourceHeRef": "מילון יסטרוב, ברי א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "ברי"
+  },
+  {
+    "_id": "5c4687ea08d98a02694d5de1",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, יַת 1",
+    "anchorRef": "Onkelos Genesis 1:1",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:1"
+    ],
+    "sourceRef": "Jastrow, יַת 1",
+    "sourceHeRef": "מילון יסטרוב, יַת א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "יַת"
+  },
+  {
+    "_id": "5c46a63608d98a02694e8ba4",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, קַדְמִין 1",
+    "anchorRef": "Onkelos Genesis 1:1",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:1"
+    ],
+    "sourceRef": "Jastrow, קַדְמִין 1",
+    "sourceHeRef": "מילון יסטרוב, קַדְמִין א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "קַדְמִין"
+  },
+  {
+    "_id": "5c46b24f08d98a02694efd61",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, שְׁמַיָּא 1",
+    "anchorRef": "Onkelos Genesis 1:1",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:1"
+    ],
+    "sourceRef": "Jastrow, שְׁמַיָּא 1",
+    "sourceHeRef": "מילון יסטרוב, שְׁמַיָּא א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "שְׁמַיָּא"
+  },
+  {
+    "_id": "5db003a98c12a8101ab69f4f",
+    "index_title": "Minei Targuma on Torah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minei Targuma on Torah, Genesis 1:1:1",
+    "anchorRef": "Onkelos Genesis 1:1",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:1"
+    ],
+    "sourceRef": "Minei Targuma on Torah, Genesis 1:1:1",
+    "sourceHeRef": "מיני תרגומא על תורה, בראשית א׳:א׳:א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1751,
+      1799
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Minei Targuma",
+      "he": "מיני תרגומא"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "6419567d280ead07d5ac4eda",
+    "index_title": "Netinah LaGer",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Netinah LaGer, Genesis 1:1:1",
+    "anchorRef": "Onkelos Genesis 1:1",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:1"
+    ],
+    "sourceRef": "Netinah LaGer, Genesis 1:1:1",
+    "sourceHeRef": "נתינה לגר, בראשית א׳:א׳:א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Netinah LaGer",
+      "he": "נתינה לגר"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "6419567d83fbc28f267c5677",
+    "index_title": "Netinah LaGer",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Netinah LaGer, Genesis 1:1:2",
+    "anchorRef": "Onkelos Genesis 1:1",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:1"
+    ],
+    "sourceRef": "Netinah LaGer, Genesis 1:1:2",
+    "sourceHeRef": "נתינה לגר, בראשית א׳:א׳:ב׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "commentaryNum": 1.0002,
+    "collectiveTitle": {
+      "en": "Netinah LaGer",
+      "he": "נתינה לגר"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "67f55374fae926f3920a9a8f",
+    "index_title": "A Dictionary of the Talmud",
+    "category": "Reference",
+    "type": "quotation",
+    "ref": "A Dictionary of the Talmud, יַת 1",
+    "anchorRef": "Onkelos Genesis 1:1",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:1"
+    ],
+    "sourceRef": "A Dictionary of the Talmud, יַת 1",
+    "sourceHeRef": "מילון שימושי לתלמוד, יַת א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "A Dictionary of the Talmud",
+      "he": "מילון שימושי לתלמוד"
+    },
+    "heTitle": "יַת"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6632",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:10",
+    "anchorRef": "Onkelos Genesis 1:10",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:10"
+    ],
+    "sourceRef": "Genesis 1:10",
+    "sourceHeRef": "בראשית א׳:י׳",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.001,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c4686bf08d98a02694d542a",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, יַמָּא 1",
+    "anchorRef": "Onkelos Genesis 1:10",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:10"
+    ],
+    "sourceRef": "Jastrow, יַמָּא 1",
+    "sourceHeRef": "מילון יסטרוב, יַמָּא א׳",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "יַמָּא"
+  },
+  {
+    "_id": "5c46899108d98a02694d72c3",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, כְּנִישָׁא 1",
+    "anchorRef": "Onkelos Genesis 1:10",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:10"
+    ],
+    "sourceRef": "Jastrow, כְּנִישָׁא 1",
+    "sourceHeRef": "מילון יסטרוב, כְּנִישָׁא א׳",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "כְּנִישָׁא"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6633",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:11",
+    "anchorRef": "Onkelos Genesis 1:11",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:11"
+    ],
+    "sourceRef": "Genesis 1:11",
+    "sourceHeRef": "בראשית א׳:י״א",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0011,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46736308d98a02694c6a64",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, אִילַן 1",
+    "anchorRef": "Onkelos Genesis 1:11",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:11"
+    ],
+    "sourceRef": "Jastrow, אִילַן 1",
+    "sourceHeRef": "מילון יסטרוב, אִילַן א׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "אִילַן"
+  },
+  {
+    "_id": "5c467cb808d98a02694cdb0d",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, דִּיתְאָה 1",
+    "anchorRef": "Onkelos Genesis 1:11",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:11"
+    ],
+    "sourceRef": "Jastrow, דִּיתְאָה 1",
+    "sourceHeRef": "מילון יסטרוב, דִּיתְאָה א׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "דִּיתְאָה"
+  },
+  {
+    "_id": "5c46806108d98a02694d0a92",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, זְרַע II 1",
+    "anchorRef": "Onkelos Genesis 1:11",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:11"
+    ],
+    "sourceRef": "Jastrow, זְרַע II 1",
+    "sourceHeRef": "מילון יסטרוב, זְרַע II א׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "זְרַע II"
+  },
+  {
+    "_id": "5c46800208d98a02694d064b",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, זַן 1",
+    "anchorRef": "Onkelos Genesis 1:11",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:11"
+    ],
+    "sourceRef": "Jastrow, זַן 1",
+    "sourceHeRef": "מילון יסטרוב, זַן א׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "זַן"
+  },
+  {
+    "_id": "5c469fc008d98a02694e526c",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, פֵּירָא II 1",
+    "anchorRef": "Onkelos Genesis 1:11",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:11"
+    ],
+    "sourceRef": "Jastrow, פֵּירָא II 1",
+    "sourceHeRef": "מילון יסטרוב, פֵּירָא II א׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "פֵּירָא II"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6634",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:12",
+    "anchorRef": "Onkelos Genesis 1:12",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:12"
+    ],
+    "sourceRef": "Genesis 1:12",
+    "sourceHeRef": "בראשית א׳:י״ב",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0012,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6635",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:13",
+    "anchorRef": "Onkelos Genesis 1:13",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:13"
+    ],
+    "sourceRef": "Genesis 1:13",
+    "sourceHeRef": "בראשית א׳:י״ג",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0013,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46b5b708d98a02694f1c36",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, תְּלִיתָאָה 1",
+    "anchorRef": "Onkelos Genesis 1:13",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:13"
+    ],
+    "sourceRef": "Jastrow, תְּלִיתָאָה 1",
+    "sourceHeRef": "מילון יסטרוב, תְּלִיתָאָה א׳",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "תְּלִיתָאָה"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6636",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:14",
+    "anchorRef": "Onkelos Genesis 1:14",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:14"
+    ],
+    "sourceRef": "Genesis 1:14",
+    "sourceHeRef": "בראשית א׳:י״ד",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0014,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c4676c608d98a02694c8e98",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, אָת 1",
+    "anchorRef": "Onkelos Genesis 1:14",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:14"
+    ],
+    "sourceRef": "Jastrow, אָת 1",
+    "sourceHeRef": "מילון יסטרוב, אָת א׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "אָת"
+  },
+  {
+    "_id": "5c46936008d98a02694dd889",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, נְהוֹר 1",
+    "anchorRef": "Onkelos Genesis 1:14",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:14"
+    ],
+    "sourceRef": "Jastrow, נְהוֹר 1",
+    "sourceHeRef": "מילון יסטרוב, נְהוֹר א׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "נְהוֹר"
+  },
+  {
+    "_id": "6419567d25cae0926906efb6",
+    "index_title": "Netinah LaGer",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Netinah LaGer, Genesis 1:14:1",
+    "anchorRef": "Onkelos Genesis 1:14",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:14"
+    ],
+    "sourceRef": "Netinah LaGer, Genesis 1:14:1",
+    "sourceHeRef": "נתינה לגר, בראשית א׳:י״ד:א׳",
+    "anchorVerse": 14,
+    "sourceHasEn": false,
+    "commentaryNum": 14.0001,
+    "collectiveTitle": {
+      "en": "Netinah LaGer",
+      "he": "נתינה לגר"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6637",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:15",
+    "anchorRef": "Onkelos Genesis 1:15",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:15"
+    ],
+    "sourceRef": "Genesis 1:15",
+    "sourceHeRef": "בראשית א׳:ט״ו",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0015,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46937008d98a02694dd91c",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, נְהַר I 1",
+    "anchorRef": "Onkelos Genesis 1:15",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:15"
+    ],
+    "sourceRef": "Jastrow, נְהַר I 1",
+    "sourceHeRef": "מילון יסטרוב, נְהַר I א׳",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "נְהַר I"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6638",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:16",
+    "anchorRef": "Onkelos Genesis 1:16",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:16"
+    ],
+    "sourceRef": "Genesis 1:16",
+    "sourceHeRef": "בראשית א׳:ט״ז",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0016,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46801b08d98a02694d0750",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, זְעֵיר II 1",
+    "anchorRef": "Onkelos Genesis 1:16",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:16"
+    ],
+    "sourceRef": "Jastrow, זְעֵיר II 1",
+    "sourceHeRef": "מילון יסטרוב, זְעֵיר II א׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "זְעֵיר II"
+  },
+  {
+    "_id": "5c46889e08d98a02694d6568",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, כּוֹכָב ² 1",
+    "anchorRef": "Onkelos Genesis 1:16",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:16"
+    ],
+    "sourceRef": "Jastrow, כּוֹכָב ² 1",
+    "sourceHeRef": "מילון יסטרוב, כּוֹכָב ² א׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "כּוֹכָב ²"
+  },
+  {
+    "_id": "5c46936008d98a02694dd88e",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, נְהוֹר 1",
+    "anchorRef": "Onkelos Genesis 1:16",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:16"
+    ],
+    "sourceRef": "Jastrow, נְהוֹר 1",
+    "sourceHeRef": "מילון יסטרוב, נְהוֹר א׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "נְהוֹר"
+  },
+  {
+    "_id": "5c46ab3708d98a02694ebb5d",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רַב 1",
+    "anchorRef": "Onkelos Genesis 1:16",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:16"
+    ],
+    "sourceRef": "Jastrow, רַב 1",
+    "sourceHeRef": "מילון יסטרוב, רַב א׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רַב"
+  },
+  {
+    "_id": "5c46abde08d98a02694ebf17",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רַבְרְבָא 1",
+    "anchorRef": "Onkelos Genesis 1:16",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:16"
+    ],
+    "sourceRef": "Jastrow, רַבְרְבָא 1",
+    "sourceHeRef": "מילון יסטרוב, רַבְרְבָא א׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רַבְרְבָא"
+  },
+  {
+    "_id": "5c46b1b008d98a02694ef7f1",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, שְׁלַט 1",
+    "anchorRef": "Onkelos Genesis 1:16",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:16"
+    ],
+    "sourceRef": "Jastrow, שְׁלַט 1",
+    "sourceHeRef": "מילון יסטרוב, שְׁלַט א׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "שְׁלַט"
+  },
+  {
+    "_id": "5c46b6ab08d98a02694f2602",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, תְּרֵי ³ 1",
+    "anchorRef": "Onkelos Genesis 1:16",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:16"
+    ],
+    "sourceRef": "Jastrow, תְּרֵי ³ 1",
+    "sourceHeRef": "מילון יסטרוב, תְּרֵי ³ א׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "תְּרֵי ³"
+  },
+  {
+    "_id": "67f5537afae926f3920a9c49",
+    "index_title": "A Dictionary of the Talmud",
+    "category": "Reference",
+    "type": "quotation",
+    "ref": "A Dictionary of the Talmud, כּוֹכְבָא 1",
+    "anchorRef": "Onkelos Genesis 1:16",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:16"
+    ],
+    "sourceRef": "A Dictionary of the Talmud, כּוֹכְבָא 1",
+    "sourceHeRef": "מילון שימושי לתלמוד, כּוֹכְבָא א׳",
+    "anchorVerse": 16,
+    "sourceHasEn": false,
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "A Dictionary of the Talmud",
+      "he": "מילון שימושי לתלמוד"
+    },
+    "heTitle": "כּוֹכְבָא"
+  },
+  {
+    "_id": "6829a9b3bf7f6c253fa336d9",
+    "index_title": "A Dictionary of the Talmud",
+    "category": "Reference",
+    "type": "quotation",
+    "ref": "A Dictionary of the Talmud, תְּרֵין 1",
+    "anchorRef": "Onkelos Genesis 1:16",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:16"
+    ],
+    "sourceRef": "A Dictionary of the Talmud, תְּרֵין 1",
+    "sourceHeRef": "מילון שימושי לתלמוד, תְּרֵין א׳",
+    "anchorVerse": 16,
+    "sourceHasEn": false,
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "A Dictionary of the Talmud",
+      "he": "מילון שימושי לתלמוד"
+    },
+    "heTitle": "תְּרֵין"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6639",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:17",
+    "anchorRef": "Onkelos Genesis 1:17",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:17"
+    ],
+    "sourceRef": "Genesis 1:17",
+    "sourceHeRef": "בראשית א׳:י״ז",
+    "anchorVerse": 17,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0017,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f663a",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:18",
+    "anchorRef": "Onkelos Genesis 1:18",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:18"
+    ],
+    "sourceRef": "Genesis 1:18",
+    "sourceHeRef": "בראשית א׳:י״ח",
+    "anchorVerse": 18,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0018,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f663b",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:19",
+    "anchorRef": "Onkelos Genesis 1:19",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:19"
+    ],
+    "sourceRef": "Genesis 1:19",
+    "sourceHeRef": "בראשית א׳:י״ט",
+    "anchorVerse": 19,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0019,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46abb708d98a02694ebdb8",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רְבִיעָאָה 1",
+    "anchorRef": "Onkelos Genesis 1:19",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:19"
+    ],
+    "sourceRef": "Jastrow, רְבִיעָאָה 1",
+    "sourceHeRef": "מילון יסטרוב, רְבִיעָאָה א׳",
+    "anchorVerse": 19,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רְבִיעָאָה"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f662a",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:2",
+    "anchorRef": "Onkelos Genesis 1:2",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:2"
+    ],
+    "sourceRef": "Genesis 1:2",
+    "sourceHeRef": "בראשית א׳:ב׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0002,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c468f7d08d98a02694db352",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, מִן ² 1",
+    "anchorRef": "Onkelos Genesis 1:2",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:2"
+    ],
+    "sourceRef": "Jastrow, מִן ² 1",
+    "sourceHeRef": "מילון יסטרוב, מִן ² א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "מִן ²"
+  },
+  {
+    "_id": "5c468ea208d98a02694da849",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, מַיִין 1",
+    "anchorRef": "Onkelos Genesis 1:2",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:2"
+    ],
+    "sourceRef": "Jastrow, מַיִין 1",
+    "sourceHeRef": "מילון יסטרוב, מַיִין א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "מַיִין"
+  },
+  {
+    "_id": "5c469c0908d98a02694e2d20",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, עַל ² 1",
+    "anchorRef": "Onkelos Genesis 1:2",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:2"
+    ],
+    "sourceRef": "Jastrow, עַל ² 1",
+    "sourceHeRef": "מילון יסטרוב, עַל ² א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "עַל ²"
+  },
+  {
+    "_id": "5c46acf008d98a02694eccdc",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רֵיקָן ² 1",
+    "anchorRef": "Onkelos Genesis 1:2",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:2"
+    ],
+    "sourceRef": "Jastrow, רֵיקָן ² 1",
+    "sourceHeRef": "מילון יסטרוב, רֵיקָן ² א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רֵיקָן ²"
+  },
+  {
+    "_id": "5c46ac4b08d98a02694ec436",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רוּחָא 1",
+    "anchorRef": "Onkelos Genesis 1:2",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:2"
+    ],
+    "sourceRef": "Jastrow, רוּחָא 1",
+    "sourceHeRef": "מילון יסטרוב, רוּחָא א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רוּחָא"
+  },
+  {
+    "_id": "5c46b50f08d98a02694f124c",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, תְּהוֹם ² 1",
+    "anchorRef": "Onkelos Genesis 1:2",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:2"
+    ],
+    "sourceRef": "Jastrow, תְּהוֹם ² 1",
+    "sourceHeRef": "מילון יסטרוב, תְּהוֹם ² א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "תְּהוֹם ²"
+  },
+  {
+    "_id": "6960958c0594ed2e2ee2d6c1",
+    "index_title": "Etz Yosef on Esther Rabbah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Etz Yosef on Esther Rabbah 7:13:18",
+    "anchorRef": "Onkelos Genesis 1:2",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:2"
+    ],
+    "sourceRef": "Etz Yosef on Esther Rabbah 7:13:18",
+    "sourceHeRef": "עץ יוסף על אסתר רבה ז׳:י״ג:י״ח",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      1816,
+      1832
+    ],
+    "commentaryNum": 13.0018,
+    "collectiveTitle": {
+      "en": "Etz Yosef on Esther Rabbah",
+      "he": "עץ יוסף על אסתר רבה"
+    }
+  },
+  {
+    "_id": "531e4fe2fbfba276047f663c",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:20",
+    "anchorRef": "Onkelos Genesis 1:20",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:20"
+    ],
+    "sourceRef": "Genesis 1:20",
+    "sourceHeRef": "בראשית א׳:כ׳",
+    "anchorVerse": 20,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.002,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c4681e208d98a02694d1a65",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, חַי ² 1",
+    "anchorRef": "Onkelos Genesis 1:20",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:20"
+    ],
+    "sourceRef": "Jastrow, חַי ² 1",
+    "sourceHeRef": "מילון יסטרוב, חַי ² א׳",
+    "anchorVerse": 20,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "חַי ²"
+  },
+  {
+    "_id": "5c46958508d98a02694dec15",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, נְפַשׁ 1",
+    "anchorRef": "Onkelos Genesis 1:20",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:20"
+    ],
+    "sourceRef": "Jastrow, נְפַשׁ 1",
+    "sourceHeRef": "מילון יסטרוב, נְפַשׁ א׳",
+    "anchorVerse": 20,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "נְפַשׁ"
+  },
+  {
+    "_id": "5c469aec08d98a02694e22f6",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, עוֹף ² 1",
+    "anchorRef": "Onkelos Genesis 1:20",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:20"
+    ],
+    "sourceRef": "Jastrow, עוֹף ² 1",
+    "sourceHeRef": "מילון יסטרוב, עוֹף ² א׳",
+    "anchorVerse": 20,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "עוֹף ²"
+  },
+  {
+    "_id": "5c46acc508d98a02694ec99a",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רְחֵשׁ 1",
+    "anchorRef": "Onkelos Genesis 1:20",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:20"
+    ],
+    "sourceRef": "Jastrow, רְחֵשׁ 1",
+    "sourceHeRef": "מילון יסטרוב, רְחֵשׁ א׳",
+    "anchorVerse": 20,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רְחֵשׁ"
+  },
+  {
+    "_id": "5db003ab8c12a8101ab69f57",
+    "index_title": "Minei Targuma on Torah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minei Targuma on Torah, Genesis 1:20:1",
+    "anchorRef": "Onkelos Genesis 1:20",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:20"
+    ],
+    "sourceRef": "Minei Targuma on Torah, Genesis 1:20:1",
+    "sourceHeRef": "מיני תרגומא על תורה, בראשית א׳:כ׳:א׳",
+    "anchorVerse": 20,
+    "sourceHasEn": false,
+    "compDate": [
+      1751,
+      1799
+    ],
+    "commentaryNum": 20.0001,
+    "collectiveTitle": {
+      "en": "Minei Targuma",
+      "he": "מיני תרגומא"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5fb254cd581cfce19ca75a04",
+    "index_title": "Ohev Ger",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Ohev Ger, Part II, Variants in Targum Onkelos 2:1",
+    "anchorRef": "Onkelos Genesis 1:20",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:20"
+    ],
+    "sourceRef": "Ohev Ger, Part II, Variants in Targum Onkelos 2:1",
+    "sourceHeRef": "אוהב גר, חלק שני, חלופי נוסחאות ב׳:א׳",
+    "anchorVerse": 20,
+    "sourceHasEn": false,
+    "compDate": [
+      1823,
+      1829
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Ohev Ger",
+      "he": "אוהב גר"
+    },
+    "heTitle": "חלופי נוסחאות"
+  },
+  {
+    "_id": "6419567e25cae0926906efb8",
+    "index_title": "Netinah LaGer",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Netinah LaGer, Genesis 1:20:1",
+    "anchorRef": "Onkelos Genesis 1:20",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:20"
+    ],
+    "sourceRef": "Netinah LaGer, Genesis 1:20:1",
+    "sourceHeRef": "נתינה לגר, בראשית א׳:כ׳:א׳",
+    "anchorVerse": 20,
+    "sourceHasEn": false,
+    "commentaryNum": 20.0001,
+    "collectiveTitle": {
+      "en": "Netinah LaGer",
+      "he": "נתינה לגר"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f663d",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:21",
+    "anchorRef": "Onkelos Genesis 1:21",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:21"
+    ],
+    "sourceRef": "Genesis 1:21",
+    "sourceHeRef": "בראשית א׳:כ״א",
+    "anchorVerse": 21,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0021,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46800208d98a02694d064c",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, זַן 1",
+    "anchorRef": "Onkelos Genesis 1:21",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:21"
+    ],
+    "sourceRef": "Jastrow, זַן 1",
+    "sourceHeRef": "מילון יסטרוב, זַן א׳",
+    "anchorVerse": 21,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "זַן"
+  },
+  {
+    "_id": "5c46a20108d98a02694e66f0",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, פְּרַח I 1",
+    "anchorRef": "Onkelos Genesis 1:21",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:21"
+    ],
+    "sourceRef": "Jastrow, פְּרַח I 1",
+    "sourceHeRef": "מילון יסטרוב, פְּרַח I א׳",
+    "anchorVerse": 21,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "פְּרַח I"
+  },
+  {
+    "_id": "5c46acc308d98a02694ec985",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רְחַשׁ 1",
+    "anchorRef": "Onkelos Genesis 1:21",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:21"
+    ],
+    "sourceRef": "Jastrow, רְחַשׁ 1",
+    "sourceHeRef": "מילון יסטרוב, רְחַשׁ א׳",
+    "anchorVerse": 21,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רְחַשׁ"
+  },
+  {
+    "_id": "5c46b60c08d98a02694f2027",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, תַּנִּינָא 1",
+    "anchorRef": "Onkelos Genesis 1:21",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:21"
+    ],
+    "sourceRef": "Jastrow, תַּנִּינָא 1",
+    "sourceHeRef": "מילון יסטרוב, תַּנִּינָא א׳",
+    "anchorVerse": 21,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "תַּנִּינָא"
+  },
+  {
+    "_id": "67f55348fae926f3920a8cb7",
+    "index_title": "A Dictionary of the Talmud",
+    "category": "Reference",
+    "type": "quotation",
+    "ref": "A Dictionary of the Talmud, חַיְתָא 1",
+    "anchorRef": "Onkelos Genesis 1:21",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:21"
+    ],
+    "sourceRef": "A Dictionary of the Talmud, חַיְתָא 1",
+    "sourceHeRef": "מילון שימושי לתלמוד, חַיְתָא א׳",
+    "anchorVerse": 21,
+    "sourceHasEn": false,
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "A Dictionary of the Talmud",
+      "he": "מילון שימושי לתלמוד"
+    },
+    "heTitle": "חַיְתָא"
+  },
+  {
+    "_id": "67f61f55fae926f3920af488",
+    "index_title": "A Dictionary of the Talmud",
+    "category": "Reference",
+    "type": "quotation",
+    "ref": "A Dictionary of the Talmud, רְחַשׁ 1",
+    "anchorRef": "Onkelos Genesis 1:21",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:21"
+    ],
+    "sourceRef": "A Dictionary of the Talmud, רְחַשׁ 1",
+    "sourceHeRef": "מילון שימושי לתלמוד, רְחַשׁ א׳",
+    "anchorVerse": 21,
+    "sourceHasEn": false,
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "A Dictionary of the Talmud",
+      "he": "מילון שימושי לתלמוד"
+    },
+    "heTitle": "רְחַשׁ"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f663e",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:22",
+    "anchorRef": "Onkelos Genesis 1:22",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:22"
+    ],
+    "sourceRef": "Genesis 1:22",
+    "sourceHeRef": "בראשית א׳:כ״ב",
+    "anchorVerse": 22,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0022,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c468f3b08d98a02694db02d",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, מְלֵי 1",
+    "anchorRef": "Onkelos Genesis 1:22",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:22"
+    ],
+    "sourceRef": "Jastrow, מְלֵי 1",
+    "sourceHeRef": "מילון יסטרוב, מְלֵי א׳",
+    "anchorVerse": 22,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "מְלֵי"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f663f",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:23",
+    "anchorRef": "Onkelos Genesis 1:23",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:23"
+    ],
+    "sourceRef": "Genesis 1:23",
+    "sourceHeRef": "בראשית א׳:כ״ג",
+    "anchorVerse": 23,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0023,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c4682ee08d98a02694d2677",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, חֲמִישַׁי 1",
+    "anchorRef": "Onkelos Genesis 1:23",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:23"
+    ],
+    "sourceRef": "Jastrow, חֲמִישַׁי 1",
+    "sourceHeRef": "מילון יסטרוב, חֲמִישַׁי א׳",
+    "anchorVerse": 23,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "חֲמִישַׁי"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6640",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:24",
+    "anchorRef": "Onkelos Genesis 1:24",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:24"
+    ],
+    "sourceRef": "Genesis 1:24",
+    "sourceHeRef": "בראשית א׳:כ״ד",
+    "anchorVerse": 24,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0024,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46784808d98a02694ca42d",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, בְּעִיר 1",
+    "anchorRef": "Onkelos Genesis 1:24",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:24"
+    ],
+    "sourceRef": "Jastrow, בְּעִיר 1",
+    "sourceHeRef": "מילון יסטרוב, בְּעִיר א׳",
+    "anchorVerse": 24,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "בְּעִיר"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6641",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:25",
+    "anchorRef": "Onkelos Genesis 1:25",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:25"
+    ],
+    "sourceRef": "Genesis 1:25",
+    "sourceHeRef": "בראשית א׳:כ״ה",
+    "anchorVerse": 25,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0025,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c4681eb08d98a02694d1aea",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, חֵיוָא 1",
+    "anchorRef": "Onkelos Genesis 1:25",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:25"
+    ],
+    "sourceRef": "Jastrow, חֵיוָא 1",
+    "sourceHeRef": "מילון יסטרוב, חֵיוָא א׳",
+    "anchorVerse": 25,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "חֵיוָא"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6642",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:26",
+    "anchorRef": "Onkelos Genesis 1:26",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:26"
+    ],
+    "sourceRef": "Genesis 1:26",
+    "sourceHeRef": "בראשית א׳:כ״ו",
+    "anchorVerse": 26,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0026,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46a4fa08d98a02694e7f74",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, צֶלֶם ² 1",
+    "anchorRef": "Onkelos Genesis 1:26",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:26"
+    ],
+    "sourceRef": "Jastrow, צֶלֶם ² 1",
+    "sourceHeRef": "מילון יסטרוב, צֶלֶם ² א׳",
+    "anchorVerse": 26,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "צֶלֶם ²"
+  },
+  {
+    "_id": "5c46acc308d98a02694ec984",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רְחַשׁ 1",
+    "anchorRef": "Onkelos Genesis 1:26",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:26"
+    ],
+    "sourceRef": "Jastrow, רְחַשׁ 1",
+    "sourceHeRef": "מילון יסטרוב, רְחַשׁ א׳",
+    "anchorVerse": 26,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רְחַשׁ"
+  },
+  {
+    "_id": "6419567e280ead07d5ac4edc",
+    "index_title": "Netinah LaGer",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Netinah LaGer, Genesis 1:26:1",
+    "anchorRef": "Onkelos Genesis 1:26",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:26"
+    ],
+    "sourceRef": "Netinah LaGer, Genesis 1:26:1",
+    "sourceHeRef": "נתינה לגר, בראשית א׳:כ״ו:א׳",
+    "anchorVerse": 26,
+    "sourceHasEn": false,
+    "commentaryNum": 26.0001,
+    "collectiveTitle": {
+      "en": "Netinah LaGer",
+      "he": "נתינה לגר"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6643",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:27",
+    "anchorRef": "Onkelos Genesis 1:27",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:27"
+    ],
+    "sourceRef": "Genesis 1:27",
+    "sourceHeRef": "בראשית א׳:כ״ז",
+    "anchorVerse": 27,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0027,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c467cce08d98a02694cdbfd",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, דְּכַר II 1",
+    "anchorRef": "Onkelos Genesis 1:27",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:27"
+    ],
+    "sourceRef": "Jastrow, דְּכַר II 1",
+    "sourceHeRef": "מילון יסטרוב, דְּכַר II א׳",
+    "anchorVerse": 27,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "דְּכַר II"
+  },
+  {
+    "_id": "5c4693c408d98a02694ddbfc",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, נוּקְבָא II 1",
+    "anchorRef": "Onkelos Genesis 1:27",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:27"
+    ],
+    "sourceRef": "Jastrow, נוּקְבָא II 1",
+    "sourceHeRef": "מילון יסטרוב, נוּקְבָא II א׳",
+    "anchorVerse": 27,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "נוּקְבָא II"
+  },
+  {
+    "_id": "5fb254f6f115e025a5e82167",
+    "index_title": "Ohev Ger",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Ohev Ger, Part II, Variants in Targum Onkelos 3:1",
+    "anchorRef": "Onkelos Genesis 1:27",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:27"
+    ],
+    "sourceRef": "Ohev Ger, Part II, Variants in Targum Onkelos 3:1",
+    "sourceHeRef": "אוהב גר, חלק שני, חלופי נוסחאות ג׳:א׳",
+    "anchorVerse": 27,
+    "sourceHasEn": false,
+    "compDate": [
+      1823,
+      1829
+    ],
+    "commentaryNum": 3.0001,
+    "collectiveTitle": {
+      "en": "Ohev Ger",
+      "he": "אוהב גר"
+    },
+    "heTitle": "חלופי נוסחאות"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6644",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:28",
+    "anchorRef": "Onkelos Genesis 1:28",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:28"
+    ],
+    "sourceRef": "Genesis 1:28",
+    "sourceHeRef": "בראשית א׳:כ״ח",
+    "anchorVerse": 28,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0028,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46820b08d98a02694d1c8f",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, חַיְיתָא I 1",
+    "anchorRef": "Onkelos Genesis 1:28",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:28"
+    ],
+    "sourceRef": "Jastrow, חַיְיתָא I 1",
+    "sourceHeRef": "מילון יסטרוב, חַיְיתָא I א׳",
+    "anchorVerse": 28,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "חַיְיתָא I"
+  },
+  {
+    "_id": "5c46956708d98a02694deaf2",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, נְפֵישׁ 1",
+    "anchorRef": "Onkelos Genesis 1:28",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:28"
+    ],
+    "sourceRef": "Jastrow, נְפֵישׁ 1",
+    "sourceHeRef": "מילון יסטרוב, נְפֵישׁ א׳",
+    "anchorVerse": 28,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "נְפֵישׁ"
+  },
+  {
+    "_id": "5c46acc308d98a02694ec983",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רְחַשׁ 1",
+    "anchorRef": "Onkelos Genesis 1:28",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:28"
+    ],
+    "sourceRef": "Jastrow, רְחַשׁ 1",
+    "sourceHeRef": "מילון יסטרוב, רְחַשׁ א׳",
+    "anchorVerse": 28,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רְחַשׁ"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6645",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:29",
+    "anchorRef": "Onkelos Genesis 1:29",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:29"
+    ],
+    "sourceRef": "Genesis 1:29",
+    "sourceHeRef": "בראשית א׳:כ״ט",
+    "anchorVerse": 29,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0029,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c469db908d98a02694e3fa0",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, עֲשַׂב 1",
+    "anchorRef": "Onkelos Genesis 1:29",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:29"
+    ],
+    "sourceRef": "Jastrow, עֲשַׂב 1",
+    "sourceHeRef": "מילון יסטרוב, עֲשַׂב א׳",
+    "anchorVerse": 29,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "עֲשַׂב"
+  },
+  {
+    "_id": "5c469cad08d98a02694e3494",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, עִסְבָּא 1",
+    "anchorRef": "Onkelos Genesis 1:29",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:29"
+    ],
+    "sourceRef": "Jastrow, עִסְבָּא 1",
+    "sourceHeRef": "מילון יסטרוב, עִסְבָּא א׳",
+    "anchorVerse": 29,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "עִסְבָּא"
+  },
+  {
+    "_id": "5fb254fd4571d0b17eea52b3",
+    "index_title": "Ohev Ger",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Ohev Ger, Part II, Variants in Targum Onkelos 4:1",
+    "anchorRef": "Onkelos Genesis 1:29",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:29"
+    ],
+    "sourceRef": "Ohev Ger, Part II, Variants in Targum Onkelos 4:1",
+    "sourceHeRef": "אוהב גר, חלק שני, חלופי נוסחאות ד׳:א׳",
+    "anchorVerse": 29,
+    "sourceHasEn": false,
+    "compDate": [
+      1823,
+      1829
+    ],
+    "commentaryNum": 4.0001,
+    "collectiveTitle": {
+      "en": "Ohev Ger",
+      "he": "אוהב גר"
+    },
+    "heTitle": "חלופי נוסחאות"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f662b",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:3",
+    "anchorRef": "Onkelos Genesis 1:3",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:3"
+    ],
+    "sourceRef": "Genesis 1:3",
+    "sourceHeRef": "בראשית א׳:ג׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0003,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46749708d98a02694c778a",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, אֲמַר 1",
+    "anchorRef": "Onkelos Genesis 1:3",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:3"
+    ],
+    "sourceRef": "Jastrow, אֲמַר 1",
+    "sourceHeRef": "מילון יסטרוב, אֲמַר א׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "אֲמַר"
+  },
+  {
+    "_id": "5c467df408d98a02694ce9ab",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, הֲוֵי 1",
+    "anchorRef": "Onkelos Genesis 1:3",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:3"
+    ],
+    "sourceRef": "Jastrow, הֲוֵי 1",
+    "sourceHeRef": "מילון יסטרוב, הֲוֵי א׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "הֲוֵי"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6646",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:30",
+    "anchorRef": "Onkelos Genesis 1:30",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:30"
+    ],
+    "sourceRef": "Genesis 1:30",
+    "sourceHeRef": "בראשית א׳:ל׳",
+    "anchorVerse": 30,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.003,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46820b08d98a02694d1c8e",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, חַיְיתָא I 1",
+    "anchorRef": "Onkelos Genesis 1:30",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:30"
+    ],
+    "sourceRef": "Jastrow, חַיְיתָא I 1",
+    "sourceHeRef": "מילון יסטרוב, חַיְיתָא I א׳",
+    "anchorVerse": 30,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "חַיְיתָא I"
+  },
+  {
+    "_id": "5c46acc308d98a02694ec978",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רְחַשׁ 1",
+    "anchorRef": "Onkelos Genesis 1:30",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:30"
+    ],
+    "sourceRef": "Jastrow, רְחַשׁ 1",
+    "sourceHeRef": "מילון יסטרוב, רְחַשׁ א׳",
+    "anchorVerse": 30,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רְחַשׁ"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6647",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:31",
+    "anchorRef": "Onkelos Genesis 1:31",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:31"
+    ],
+    "sourceRef": "Genesis 1:31",
+    "sourceHeRef": "בראשית א׳:ל״א",
+    "anchorVerse": 31,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0031,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c4680cb08d98a02694d0f27",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, חַד II 1",
+    "anchorRef": "Onkelos Genesis 1:31",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:31"
+    ],
+    "sourceRef": "Jastrow, חַד II 1",
+    "sourceHeRef": "מילון יסטרוב, חַד II א׳",
+    "anchorVerse": 31,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "חַד II"
+  },
+  {
+    "_id": "5c46b4a708d98a02694f0e7c",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, שְׁתִיתָאָה 1",
+    "anchorRef": "Onkelos Genesis 1:31",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:31"
+    ],
+    "sourceRef": "Jastrow, שְׁתִיתָאָה 1",
+    "sourceHeRef": "מילון יסטרוב, שְׁתִיתָאָה א׳",
+    "anchorVerse": 31,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "שְׁתִיתָאָה"
+  },
+  {
+    "_id": "5c46b65808d98a02694f230a",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, תַּקִּין 1",
+    "anchorRef": "Onkelos Genesis 1:31",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:31"
+    ],
+    "sourceRef": "Jastrow, תַּקִּין 1",
+    "sourceHeRef": "מילון יסטרוב, תַּקִּין א׳",
+    "anchorVerse": 31,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "תַּקִּין"
+  },
+  {
+    "_id": "6419567e83fbc28f267c5679",
+    "index_title": "Netinah LaGer",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Netinah LaGer, Genesis 1:31:1",
+    "anchorRef": "Onkelos Genesis 1:31",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:31"
+    ],
+    "sourceRef": "Netinah LaGer, Genesis 1:31:1",
+    "sourceHeRef": "נתינה לגר, בראשית א׳:ל״א:א׳",
+    "anchorVerse": 31,
+    "sourceHasEn": false,
+    "commentaryNum": 31.0001,
+    "collectiveTitle": {
+      "en": "Netinah LaGer",
+      "he": "נתינה לגר"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "67f55465fae926f3920ae4b5",
+    "index_title": "A Dictionary of the Talmud",
+    "category": "Reference",
+    "type": "quotation",
+    "ref": "A Dictionary of the Talmud, שְׁתִיתָאָה 1",
+    "anchorRef": "Onkelos Genesis 1:31",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:31"
+    ],
+    "sourceRef": "A Dictionary of the Talmud, שְׁתִיתָאָה 1",
+    "sourceHeRef": "מילון שימושי לתלמוד, שְׁתִיתָאָה א׳",
+    "anchorVerse": 31,
+    "sourceHasEn": false,
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "A Dictionary of the Talmud",
+      "he": "מילון שימושי לתלמוד"
+    },
+    "heTitle": "שְׁתִיתָאָה"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f662c",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:4",
+    "anchorRef": "Onkelos Genesis 1:4",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:4"
+    ],
+    "sourceRef": "Genesis 1:4",
+    "sourceHeRef": "בראשית א׳:ד׳",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0004,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46a36208d98a02694e6e50",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, פְּרַשׁ 1",
+    "anchorRef": "Onkelos Genesis 1:4",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:4"
+    ],
+    "sourceRef": "Jastrow, פְּרַשׁ 1",
+    "sourceHeRef": "מילון יסטרוב, פְּרַשׁ א׳",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "פְּרַשׁ"
+  },
+  {
+    "_id": "67f55297fae926f3920a6b29",
+    "index_title": "A Dictionary of the Talmud",
+    "category": "Reference",
+    "type": "quotation",
+    "ref": "A Dictionary of the Talmud, אֲרֵי 1",
+    "anchorRef": "Onkelos Genesis 1:4",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:4"
+    ],
+    "sourceRef": "A Dictionary of the Talmud, אֲרֵי 1",
+    "sourceHeRef": "מילון שימושי לתלמוד, אֲרֵי א׳",
+    "anchorVerse": 4,
+    "sourceHasEn": false,
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "A Dictionary of the Talmud",
+      "he": "מילון שימושי לתלמוד"
+    },
+    "heTitle": "אֲרֵי"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f662d",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:5",
+    "anchorRef": "Onkelos Genesis 1:5",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:5"
+    ],
+    "sourceRef": "Genesis 1:5",
+    "sourceHeRef": "בראשית א׳:ה׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0005,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c4680cb08d98a02694d0f2f",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, חַד II 1",
+    "anchorRef": "Onkelos Genesis 1:5",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:5"
+    ],
+    "sourceRef": "Jastrow, חַד II 1",
+    "sourceHeRef": "מילון יסטרוב, חַד II א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "חַד II"
+  },
+  {
+    "_id": "5c46865708d98a02694d4f79",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, יוֹם ² 1",
+    "anchorRef": "Onkelos Genesis 1:5",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:5"
+    ],
+    "sourceRef": "Jastrow, יוֹם ² 1",
+    "sourceHeRef": "מילון יסטרוב, יוֹם ² א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "יוֹם ²"
+  },
+  {
+    "_id": "5c468bf308d98a02694d8b0a",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, לֵילָא 1",
+    "anchorRef": "Onkelos Genesis 1:5",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:5"
+    ],
+    "sourceRef": "Jastrow, לֵילָא 1",
+    "sourceHeRef": "מילון יסטרוב, לֵילָא א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "לֵילָא"
+  },
+  {
+    "_id": "5c46a57b08d98a02694e84ae",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, צְפַר IV 1",
+    "anchorRef": "Onkelos Genesis 1:5",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:5"
+    ],
+    "sourceRef": "Jastrow, צְפַר IV 1",
+    "sourceHeRef": "מילון יסטרוב, צְפַר IV א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "צְפַר IV"
+  },
+  {
+    "_id": "5c46ad2c08d98a02694ecfe9",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רְמַשׁ 1",
+    "anchorRef": "Onkelos Genesis 1:5",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:5"
+    ],
+    "sourceRef": "Jastrow, רְמַשׁ 1",
+    "sourceHeRef": "מילון יסטרוב, רְמַשׁ א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רְמַשׁ"
+  },
+  {
+    "_id": "6419567f8defb334b3373cbb",
+    "index_title": "Netinah LaGer",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Netinah LaGer, Genesis 1:5:1",
+    "anchorRef": "Onkelos Genesis 1:5",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:5"
+    ],
+    "sourceRef": "Netinah LaGer, Genesis 1:5:1",
+    "sourceHeRef": "נתינה לגר, בראשית א׳:ה׳:א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": false,
+    "commentaryNum": 5.0001,
+    "collectiveTitle": {
+      "en": "Netinah LaGer",
+      "he": "נתינה לגר"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "67f5536dfae926f3920a9849",
+    "index_title": "A Dictionary of the Talmud",
+    "category": "Reference",
+    "type": "quotation",
+    "ref": "A Dictionary of the Talmud, יוֹרְדְּנָא 1",
+    "anchorRef": "Onkelos Genesis 1:5",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:5"
+    ],
+    "sourceRef": "A Dictionary of the Talmud, יוֹרְדְּנָא 1",
+    "sourceHeRef": "מילון שימושי לתלמוד, יוֹרְדְּנָא א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": false,
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "A Dictionary of the Talmud",
+      "he": "מילון שימושי לתלמוד"
+    },
+    "heTitle": "יוֹרְדְּנָא"
+  },
+  {
+    "_id": "67f55422fae926f3920ad051",
+    "index_title": "A Dictionary of the Talmud",
+    "category": "Reference",
+    "type": "quotation",
+    "ref": "A Dictionary of the Talmud, צְפַר² 1",
+    "anchorRef": "Onkelos Genesis 1:5",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:5"
+    ],
+    "sourceRef": "A Dictionary of the Talmud, צְפַר² 1",
+    "sourceHeRef": "מילון שימושי לתלמוד, צְפַר² א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": false,
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "A Dictionary of the Talmud",
+      "he": "מילון שימושי לתלמוד"
+    },
+    "heTitle": "צְפַר²"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f662e",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:6",
+    "anchorRef": "Onkelos Genesis 1:6",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:6"
+    ],
+    "sourceRef": "Genesis 1:6",
+    "sourceHeRef": "בראשית א׳:ו׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0006,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c4677b808d98a02694c9c08",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, בֵּין 1",
+    "anchorRef": "Onkelos Genesis 1:6",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:6"
+    ],
+    "sourceRef": "Jastrow, בֵּין 1",
+    "sourceHeRef": "מילון יסטרוב, בֵּין א׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "בֵּין"
+  },
+  {
+    "_id": "5c46a36208d98a02694e6e51",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, פְּרַשׁ 1",
+    "anchorRef": "Onkelos Genesis 1:6",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:6"
+    ],
+    "sourceRef": "Jastrow, פְּרַשׁ 1",
+    "sourceHeRef": "מילון יסטרוב, פְּרַשׁ א׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "פְּרַשׁ"
+  },
+  {
+    "_id": "5c46adb308d98a02694ed510",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רְקִיעַ 1",
+    "anchorRef": "Onkelos Genesis 1:6",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:6"
+    ],
+    "sourceRef": "Jastrow, רְקִיעַ 1",
+    "sourceHeRef": "מילון יסטרוב, רְקִיעַ א׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רְקִיעַ"
+  },
+  {
+    "_id": "5db003aa8c12a8101ab69f53",
+    "index_title": "Minei Targuma on Torah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minei Targuma on Torah, Genesis 1:6:1",
+    "anchorRef": "Onkelos Genesis 1:6",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:6"
+    ],
+    "sourceRef": "Minei Targuma on Torah, Genesis 1:6:1",
+    "sourceHeRef": "מיני תרגומא על תורה, בראשית א׳:ו׳:א׳",
+    "anchorVerse": 6,
+    "sourceHasEn": false,
+    "compDate": [
+      1751,
+      1799
+    ],
+    "commentaryNum": 6.0001,
+    "collectiveTitle": {
+      "en": "Minei Targuma",
+      "he": "מיני תרגומא"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "6419567f280ead07d5ac4ede",
+    "index_title": "Netinah LaGer",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Netinah LaGer, Genesis 1:6:1",
+    "anchorRef": "Onkelos Genesis 1:6",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:6"
+    ],
+    "sourceRef": "Netinah LaGer, Genesis 1:6:1",
+    "sourceHeRef": "נתינה לגר, בראשית א׳:ו׳:א׳",
+    "anchorVerse": 6,
+    "sourceHasEn": false,
+    "commentaryNum": 6.0001,
+    "collectiveTitle": {
+      "en": "Netinah LaGer",
+      "he": "נתינה לגר"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f662f",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:7",
+    "anchorRef": "Onkelos Genesis 1:7",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:7"
+    ],
+    "sourceRef": "Genesis 1:7",
+    "sourceHeRef": "בראשית א׳:ז׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0007,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c468c6708d98a02694d9054",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, לִרַע 1",
+    "anchorRef": "Onkelos Genesis 1:7",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:7"
+    ],
+    "sourceRef": "Jastrow, לִרַע 1",
+    "sourceHeRef": "מילון יסטרוב, לִרַע א׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "לִרַע"
+  },
+  {
+    "_id": "5c469a3208d98a02694e1a78",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, עֲבַד I 1",
+    "anchorRef": "Onkelos Genesis 1:7",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:7"
+    ],
+    "sourceRef": "Jastrow, עֲבַד I 1",
+    "sourceHeRef": "מילון יסטרוב, עֲבַד I א׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "עֲבַד I"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6630",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:8",
+    "anchorRef": "Onkelos Genesis 1:8",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:8"
+    ],
+    "sourceRef": "Genesis 1:8",
+    "sourceHeRef": "בראשית א׳:ח׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0008,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46b60c08d98a02694f2007",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, תִּנְיָין 1",
+    "anchorRef": "Onkelos Genesis 1:8",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:8"
+    ],
+    "sourceRef": "Jastrow, תִּנְיָין 1",
+    "sourceHeRef": "מילון יסטרוב, תִּנְיָין א׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "תִּנְיָין"
+  },
+  {
+    "_id": "531e4fe2fbfba276047f6631",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "targum",
+    "ref": "Genesis 1:9",
+    "anchorRef": "Onkelos Genesis 1:9",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:9"
+    ],
+    "sourceRef": "Genesis 1:9",
+    "sourceHeRef": "בראשית א׳:ט׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0009,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5c46861e08d98a02694d4be4",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, יַבַּשְׁתָּא 1",
+    "anchorRef": "Onkelos Genesis 1:9",
+    "anchorRefExpanded": [
+      "Onkelos Genesis 1:9"
+    ],
+    "sourceRef": "Jastrow, יַבַּשְׁתָּא 1",
+    "sourceHeRef": "מילון יסטרוב, יַבַּשְׁתָּא א׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "יַבַּשְׁתָּא"
+  }
+]

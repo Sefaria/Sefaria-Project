@@ -1,0 +1,28 @@
+/* Desktop: the panel fills its workspace cell; the text column and each side panel scroll on their own. */
+.panel { display: flex; flex: 1; min-width: 0; min-height: 0; height: 100%; background: var(--sefaria-color-surface, #fff); }
+.text { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+.aside { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+
+/* Phone (old single-panel mode): the page scrolls, so the browser can collapse its address bar. A side panel
+   is a sheet over the bottom 54% of the screen (old `.singlePanel .textList`), the text readable above it. */
+@media (max-width: 842px) {
+  .panel { display: block; height: auto; }
+  .panel > :global([data-direction]) { display: block; overflow: visible; }
+  .panel > :global([data-direction]) > div { display: block; }
+  .text { display: block; }
+  .panel[data-has-aside="true"] .text { padding-block-end: 54vh; }
+  .aside {
+    position: fixed; inset-inline: 0; bottom: 0; height: 54vh; z-index: var(--sefaria-z-sheet);
+    background: var(--sefaria-color-surface, #fff); border-block-start: 1px solid var(--sefaria-color-border);
+    box-shadow: 0 -2px 12px rgb(0 0 0 / 0.08);
+  }
+}
+
+/* The leading control: Close on a screen with room for panels, the menu button on a phone (as on sefaria.org, where the
+   site header gives way to the panel's own header while reading). Both are in the page so the server render needs no guess. */
+.notPhone { display: contents; }
+.onlyPhone { display: none; }
+@media (max-width: 842px) {
+  .notPhone { display: none; }
+  .onlyPhone { display: contents; }
+}

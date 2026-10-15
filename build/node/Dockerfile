@@ -1,16 +1,20 @@
-FROM us-east1-docker.pkg.dev/production-deployment/containers/base-node:v22.0.0
-ARG TYPE=build-prod
+# sefaria-node on this branch is the new reader client (reader-next/), not the legacy SSR server (Dockerfile.legacy).
+# The cluster sends page requests to it first; it renders the reader and library pages and hands everything else to Varnish/Django.
+# Built by .github/workflows/continuous.yaml with the repository root as context.
+FROM node:22-slim AS build
+WORKDIR /app
+COPY reader-next/package.json reader-next/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY reader-next/ ./
+RUN npm run build && npm prune --omit=dev
 
-WORKDIR /app/
-
-COPY package*.json /app/
-RUN npm install --unsafe-perm
-
-COPY ./node /app/node
-COPY ./static/js /app/static/js
-RUN npm run $TYPE
-
-COPY . /app/
+FROM node:22-slim
+ENV NODE_ENV=production PORT=3000 HOST=0.0.0.0
+WORKDIR /app
+COPY --from=build /app/package.json ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/server ./server
+USER node
 EXPOSE 3000
-
-CMD forever start -a -p ./ -l log/forever/forever.log -o log/forever/out.log -e log/forever/err.log static/bundles/server/server-bundle.js && tail -f log/forever/forever.log
+CMD ["node", "server/index.mjs"]

@@ -1,0 +1,477 @@
+{
+  "title": "Rashi on Genesis",
+  "categories": [
+    "Tanakh",
+    "Rishonim on Tanakh",
+    "Rashi",
+    "Torah"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 3,
+    "addressTypes": [
+      "Perek",
+      "Pasuk",
+      "Integer"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Verse",
+      "Comment"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "rashi",
+          "genesis"
+        ]
+      }
+    ],
+    "lengths": [
+      50,
+      1072,
+      2017
+    ],
+    "isSegmentLevelDiburHamatchil": true,
+    "diburHamatchilRegexes": [
+      "^<b>(.+?)</b>",
+      "^(.+?)[\\-–]"
+    ],
+    "titles": [
+      {
+        "lang": "en",
+        "text": "Rashi on Bereshit"
+      },
+      {
+        "lang": "en",
+        "text": "Rashi on Gen"
+      },
+      {
+        "lang": "en",
+        "text": "Rashi on Gen."
+      },
+      {
+        "lang": "en",
+        "text": "Rashi on Breishit"
+      },
+      {
+        "lang": "en",
+        "text": "Rashi on Ber"
+      },
+      {
+        "lang": "en",
+        "text": "Rashi on Bereishit"
+      },
+      {
+        "lang": "en",
+        "text": "Rashi on Ber."
+      },
+      {
+        "lang": "en",
+        "text": "Rashi on Beresheet"
+      },
+      {
+        "lang": "en",
+        "text": "Rashi on Bereshith"
+      },
+      {
+        "lang": "he",
+        "text": "רש\"י על ברא'"
+      },
+      {
+        "lang": "he",
+        "text": "רש\"י על בר'"
+      },
+      {
+        "lang": "he",
+        "text": "רש\"י על בר׳"
+      },
+      {
+        "lang": "he",
+        "text": "רש\"י על ברא׳"
+      },
+      {
+        "lang": "he",
+        "text": "רש\"י על בְּרֵאשִׁית"
+      },
+      {
+        "text": "רש״י על בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "רש”י על בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "רש״י על ברא'",
+        "lang": "he"
+      },
+      {
+        "text": "רש”י על ברא'",
+        "lang": "he"
+      },
+      {
+        "text": "רש״י על בר'",
+        "lang": "he"
+      },
+      {
+        "text": "רש”י על בר'",
+        "lang": "he"
+      },
+      {
+        "text": "רש״י על בר׳",
+        "lang": "he"
+      },
+      {
+        "text": "רש”י על בר׳",
+        "lang": "he"
+      },
+      {
+        "text": "רש״י על ברא׳",
+        "lang": "he"
+      },
+      {
+        "text": "רש”י על ברא׳",
+        "lang": "he"
+      },
+      {
+        "text": "רש״י על בְּרֵאשִׁית",
+        "lang": "he"
+      },
+      {
+        "text": "רש”י על בְּרֵאשִׁית",
+        "lang": "he"
+      },
+      {
+        "text": "רש\"י על בראשית",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Rashi on Genesis",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Rashi on Genesis"
+  },
+  "alt_structs": {
+    "Parasha": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 1:1:1-6:7:3",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "bereshit"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "bereshit"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Bereshit"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 6:9:1-11:32:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "noach"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "noach"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Noach"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 12:1:1-17:26:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "lech-lecha"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "lech-lecha"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Lech Lecha"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 18:1:1-22:23:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "vayera"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "vayera"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayera"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 23:1:1-25:18:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "chayei-sara"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "chayei-sara"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Chayei Sara"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 25:19:1-28:9:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "toldot"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "toldot"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Toldot"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 28:10:1-32:3:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "vayetzei"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "vayetzei"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayetzei"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 32:4:1-36:43:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "vayishlach"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "vayishlach"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayishlach"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 37:1:1-40:23:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "vayeshev"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "vayeshev"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayeshev"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 41:1:1-44:16:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "miketz"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "miketz"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Miketz"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 44:18:1-47:27:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "vayigash"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "vayigash"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayigash"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Rashi on Genesis 47:28:1-50:23:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "rashi",
+                "parasha",
+                "vayechi"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "rashi",
+                "vayechi"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayechi"
+        }
+      ]
+    }
+  },
+  "exclude_structs": [
+    "Parasha"
+  ],
+  "authors": [
+    "rashi"
+  ],
+  "enDesc": "Commentary on the Tanakh written by Rabbi Shlomo Yitzchaki (Rashi). Rashi lived in Troyes, France (1040-1105). Rashi’s commentary is an essential explanation of the Tanakh and resides in a place of honor on the page of almost all editions of the Tanakh. Over 300 supercommentaries have been written to further explain Rashi’s comments on the Torah. While quoting many midrashim and Talmudic passages, Rashi, in his commentary, states that his purpose is to present the pshat (contextual meaning) of the text.",
+  "pubDate": [
+    1476
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1075,
+    1105
+  ],
+  "compPlace": "Middle-Age France",
+  "pubPlace": "Guadalajara, Spain",
+  "era": "RI",
+  "dependence": "Commentary",
+  "base_text_titles": [
+    "Genesis"
+  ],
+  "base_text_mapping": "many_to_one",
+  "collective_title": "Rashi",
+  "is_cited": true
+}

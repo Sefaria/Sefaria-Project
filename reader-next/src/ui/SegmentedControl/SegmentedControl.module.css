@@ -1,0 +1,22 @@
+.group { display: inline-flex; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); overflow: hidden; background: var(--sefaria-color-surface); }
+.option { display: inline-flex; align-items: center; justify-content: center; gap: var(--sefaria-space-1); min-height: 36px; padding: 0 var(--sefaria-space-3); border: 0; border-inline-start: 1px solid var(--sefaria-color-border); background: transparent; color: var(--sefaria-color-text-secondary); font: inherit; font-size: var(--sefaria-text-sans-small); cursor: pointer; white-space: nowrap; }
+.option:first-child { border-inline-start: 0; }
+.option:hover:not([aria-disabled="true"]) { background: var(--sefaria-color-surface-muted); }
+.option[aria-checked="true"] { background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
+.option[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+.option:focus-visible { outline-offset: -3px; }
+.iconOnly { padding: 0; width: 40px; }
+.block { display: flex; width: 100%; }
+.block .option { flex: 1; }
+
+/* The display menu's own look (VERIFIED on sefaria.org): language as three full-width rows, the dark one chosen, a radio circle at the end */
+.rows { display: flex; flex-direction: column; gap: 0; border: 0; border-radius: 0; background: none; overflow: visible; }
+.rows .option { justify-content: space-between; width: 100%; min-height: 35px; padding: 0 10px; border: 0; border-radius: 6px; background: #ededec; color: #000; font-size: 14px; text-align: start; }
+.rows .option:hover:not([aria-disabled="true"]) { background: #e4e4e2; }
+.rows .option[aria-checked="true"] { background: #18345d; color: #fff; }
+.radio { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #666; background: #fff; box-sizing: border-box; color: #18345d; }
+.rows .option[aria-checked="true"] .radio { border-color: #fff; }
+.tiles { display: inline-flex; gap: 16px; border: 0; border-radius: 0; background: none; overflow: visible; }
+.tiles .option { width: 36px; min-height: 32px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #666; }
+.tiles .option:hover:not([aria-disabled="true"]) { background: #ededec; }
+.tiles .option[aria-checked="true"] { background: #18345d; color: #fff; }

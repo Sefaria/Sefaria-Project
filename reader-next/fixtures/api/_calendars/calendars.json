@@ -1,0 +1,218 @@
+{
+  "date": "2026-10-04",
+  "timezone": "America/Halifax",
+  "calendar_items": [
+    {
+      "title": {
+        "en": "Parashat Hashavua",
+        "he": "פרשת השבוע"
+      },
+      "displayValue": {
+        "en": "Bereshit",
+        "he": "בראשית"
+      },
+      "url": "Genesis.1.1-6.8",
+      "ref": "Genesis 1:1-6:8",
+      "heRef": "בראשית א׳:א׳-ו׳:ח׳",
+      "order": 1,
+      "category": "Tanakh",
+      "extraDetails": {
+        "aliyot": [
+          "Genesis 1:1-2:3",
+          "Genesis 2:4-2:19",
+          "Genesis 2:20-3:21",
+          "Genesis 3:22-4:18",
+          "Genesis 4:19-4:22",
+          "Genesis 4:23-5:24",
+          "Genesis 5:25-6:8",
+          "Genesis 6:5-6:8"
+        ]
+      },
+      "description": {
+        "en": "Bereshit (\"In the Beginning”) is the first parashah in the annual Torah reading cycle, which restarts at the beginning of the book of Genesis. The reading begins with God’s creation of the world. The first people, Adam and Eve, eat from the Tree of Knowledge and are then banished from the Garden of Eden. Their elder son, Cain, kills their younger son, Abel, and Cain is destined to a life of wandering.",
+        "he": "פרשת בראשית, הפרשה הראשונה בתורה, מתארת את ראשיתו של העולם. אלוהים בורא את העולם בשישה ימים ונח ביום השביעי. הוא מניח את האדם בגן עדן ומצווה עליו ליהנות מפירות הגן מלבד מפרי עץ הדעת. בעצת הנחש חוה ואדם אוכלים מעץ הדעת, ולכן מגורשים מגן עדן. בנם הבכור קין הורג את אחיו הצעיר הבל, וקין נידון להיות נע ונד בארץ."
+      }
+    },
+    {
+      "title": {
+        "en": "Haftarah",
+        "he": "הפטרה"
+      },
+      "displayValue": {
+        "en": "I Samuel 20:18-42",
+        "he": "שמואל א כ׳:י״ח-מ״ב"
+      },
+      "url": "I_Samuel.20.18-42",
+      "ref": "I Samuel 20:18-42",
+      "order": 2,
+      "category": "Tanakh"
+    },
+    {
+      "title": {
+        "en": "Daf Yomi",
+        "he": "דף יומי"
+      },
+      "displayValue": {
+        "en": "Bekhorot 16",
+        "he": "בכורות ט״ז"
+      },
+      "url": "Bekhorot.16",
+      "ref": "Bekhorot 16",
+      "order": 3,
+      "category": "Talmud"
+    },
+    {
+      "title": {
+        "en": "929",
+        "he": "929"
+      },
+      "displayValue": {
+        "en": "II Samuel 23 (286)",
+        "he": "שמואל ב כ״ג (286)"
+      },
+      "url": "II_Samuel.23",
+      "ref": "II Samuel 23",
+      "order": 4,
+      "category": "Tanakh"
+    },
+    {
+      "title": {
+        "en": "Daily Mishnah",
+        "he": "משנה יומית"
+      },
+      "displayValue": {
+        "en": "Mishnah Oholot 8:1-2",
+        "he": "משנה אהלות ח׳:א׳-ב׳"
+      },
+      "url": "Mishnah_Oholot.8.1-2",
+      "ref": "Mishnah Oholot 8:1-2",
+      "order": 5,
+      "category": "Mishnah"
+    },
+    {
+      "title": {
+        "en": "Daily Rambam",
+        "he": "הרמב\"ם היומי"
+      },
+      "displayValue": {
+        "en": "Divorce 13",
+        "he": "הלכות גירושין י״ג"
+      },
+      "url": "Mishneh_Torah,_Divorce.13",
+      "ref": "Mishneh Torah, Divorce 13",
+      "order": 6,
+      "category": "Halakhah"
+    },
+    {
+      "title": {
+        "en": "Daily Rambam (3 Chapters)",
+        "he": "הרמב\"ם היומי (3 פרקים)"
+      },
+      "displayValue": {
+        "en": "Damages to Property 6-8",
+        "he": "הלכות נזקי ממון ו׳-ח׳"
+      },
+      "url": "Mishneh_Torah,_Damages_to_Property.6-8",
+      "ref": "Mishneh Torah, Damages to Property 6-8",
+      "order": 7,
+      "category": "Halakhah"
+    },
+    {
+      "title": {
+        "en": "Daf a Week",
+        "he": "דף השבוע"
+      },
+      "displayValue": {
+        "en": "Nazir 12",
+        "he": "נזיר י״ב"
+      },
+      "url": "Nazir.12",
+      "ref": "Nazir 12",
+      "order": 8,
+      "category": "Talmud"
+    },
+    {
+      "title": {
+        "en": "Halakhah Yomit",
+        "he": "הלכה יומית"
+      },
+      "displayValue": {
+        "en": "Shulchan Arukh, Orach Chayim 271:17-272:2",
+        "he": "שולחן ערוך, אורח חיים ער״א:י״ז-ער״ב:ב׳"
+      },
+      "url": "Shulchan_Arukh,_Orach_Chayim.271.17-272.2",
+      "ref": "Shulchan Arukh, Orach Chayim 271:17-272:2",
+      "order": 9,
+      "category": "Halakhah"
+    },
+    {
+      "title": {
+        "en": "Arukh HaShulchan Yomi",
+        "he": "ערוך השולחן היומי"
+      },
+      "displayValue": {
+        "en": "Orach Chaim 355:13-20",
+        "he": "אורח חיים שנ״ה:י״ג-כ׳"
+      },
+      "url": "Arukh_HaShulchan,_Orach_Chaim.355.13-20",
+      "ref": "Arukh HaShulchan, Orach Chaim 355:13-20",
+      "order": 10,
+      "category": "Halakhah"
+    },
+    {
+      "title": {
+        "en": "Tanakh Yomi",
+        "he": "תנ\"ך יומי"
+      },
+      "displayValue": {
+        "en": "Joshua Seder 1",
+        "he": "יהושע סדר א"
+      },
+      "url": "Joshua.1.1-3.6",
+      "ref": "Joshua 1:1-3:6",
+      "order": 11,
+      "category": "Tanakh"
+    },
+    {
+      "title": {
+        "en": "Chok LeYisrael",
+        "he": "חק לישראל"
+      },
+      "displayValue": {
+        "en": "Bereshit",
+        "he": "בראשית"
+      },
+      "url": "collections/חק-לישראל?tag=Bereshit",
+      "order": 12,
+      "category": "Tanakh"
+    },
+    {
+      "title": {
+        "en": "Tanya Yomi",
+        "he": "תניא יומי"
+      },
+      "displayValue": {
+        "en": "23 Tishrei",
+        "he": "כג תשרי"
+      },
+      "url": "Tanya,_Part_IV;_Iggeret_HaKodesh.23.10",
+      "ref": "Tanya, Part IV; Iggeret HaKodesh 23:10",
+      "order": 15,
+      "category": "Chasidut"
+    },
+    {
+      "title": {
+        "en": "Yerushalmi Yomi",
+        "he": "ירושלמי יומי"
+      },
+      "displayValue": {
+        "en": "Jerusalem Talmud Shevuot 38",
+        "he": "תלמוד ירושלמי שבועות לח"
+      },
+      "url": "Jerusalem_Talmud_Shevuot.7.7.2-9",
+      "ref": "Jerusalem Talmud Shevuot 7:7:2-9",
+      "order": 16,
+      "category": "Talmud"
+    }
+  ]
+}

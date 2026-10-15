@@ -1,0 +1,167 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Sefer HaChinukh",
+    "Sefer HaChinukh, Author's Introduction",
+    "Sefer HaChinukh, Opening Letter by the Author",
+    "Sefer Yetzirah",
+    "Sefer HaMitzvot",
+    "Sefer Etz Chaim",
+    "Sefer",
+    "Sefer HaChayim, Sefer Zekhuyot",
+    "Sefer HaBahir",
+    "Sefer Chassidim"
+  ],
+  "completion_objects": [
+    {
+      "title": "Sefer HaChinukh",
+      "key": "Sefer HaChinukh",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Sefer HaChinukh, Author's Introduction",
+      "key": "Sefer HaChinukh, Author's Introduction",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Sefer HaChinukh, Opening Letter by the Author",
+      "key": "Sefer HaChinukh, Opening Letter by the Author",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Sefer Yetzirah",
+      "key": "Sefer Yetzirah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Sefer Yetzirah",
+      "type": "TocCategory",
+      "key": [
+        "Kabbalah",
+        "Sefer Yetzirah"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Sefer Yetzirah",
+      "type": "Topic",
+      "key": "sefer-yetzirah",
+      "is_primary": true,
+      "order": 4999932,
+      "topic_pools": [
+        "sheets"
+      ]
+    },
+    {
+      "title": "Sefer HaMitzvot",
+      "key": "Sefer HaMitzvot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Sefer HaMitzvot",
+      "type": "TocCategory",
+      "key": [
+        "Halakhah",
+        "Sifrei Mitzvot",
+        "Sefer HaMitzvot"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Sefer Etz Chaim",
+      "key": "Sefer Etz Chaim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Sefer Etz Chaim",
+      "type": "Topic",
+      "key": "sefer-etz-chaim",
+      "is_primary": true,
+      "order": 4999985,
+      "topic_pools": [
+        "sheets"
+      ]
+    },
+    {
+      "title": "Sefer",
+      "type": "Topic",
+      "key": "books",
+      "is_primary": false,
+      "order": 4999834,
+      "topic_pools": [
+        "library",
+        "general_en",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Sefer HaChayim, Sefer Zekhuyot",
+      "key": "Sefer HaChaim, Sefer Zekhuyot",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Sefer HaBahir",
+      "key": "Sefer HaBahir",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Sefer Chassidim",
+      "key": "Sefer Chasidim",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Sefer HaChinukh",
+  "url": "Sefer_HaChinukh",
+  "index": "Sefer HaChinukh",
+  "book": "Sefer HaChinukh",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Mitzvah",
+    "Paragraph"
+  ],
+  "heSectionNames": [
+    "מצוה",
+    "פסקה"
+  ],
+  "addressExamples": [
+    "3",
+    "6"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳"
+  ]
+}

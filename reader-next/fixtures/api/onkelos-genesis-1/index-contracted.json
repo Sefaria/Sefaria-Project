@@ -1,0 +1,1000 @@
+{
+  "title": "Onkelos Genesis",
+  "categories": [
+    "Tanakh",
+    "Targum",
+    "Onkelos",
+    "Torah"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Pasuk"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "onkelos",
+          "genesis"
+        ]
+      }
+    ],
+    "lengths": [
+      50,
+      1533
+    ],
+    "titles": [
+      {
+        "text": "Targum Onkelos Genesis",
+        "lang": "en"
+      },
+      {
+        "text": "Targ. Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "Targ. O. Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "תרגום אונקלוס בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "אונקלוס בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "אונקלוס, בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "תרגום אונקלוס על בראשית",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Onkelos Genesis",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Onkelos Genesis",
+    "heTitle": "תרגום אונקלוס על בראשית",
+    "heSectionNames": [
+      "פרק",
+      "פסוק"
+    ],
+    "key": "Onkelos Genesis",
+    "content_counts": [
+      31,
+      25,
+      24,
+      26,
+      32,
+      22,
+      24,
+      22,
+      29,
+      32,
+      32,
+      20,
+      18,
+      24,
+      21,
+      16,
+      27,
+      33,
+      38,
+      18,
+      34,
+      24,
+      20,
+      67,
+      34,
+      35,
+      46,
+      22,
+      35,
+      43,
+      54,
+      33,
+      20,
+      31,
+      29,
+      43,
+      36,
+      30,
+      23,
+      23,
+      57,
+      38,
+      34,
+      34,
+      28,
+      34,
+      31,
+      22,
+      33,
+      26
+    ]
+  },
+  "authors": [
+    {
+      "en": "Onkelos",
+      "he": "אונקלוס",
+      "slug": "onkelos"
+    }
+  ],
+  "enDesc": "Targum Onkelos is the official eastern (Babylonian) targum (Aramaic translation) to the Torah. However, its early origins may have been western, in Israel. Some identify this translation as the work of Aquila of Sinope in an Aramaic translation (Zvi Hirsch Chajes), or believe that the name \"Onkelos\" originally referred to Aquila but was applied in error to the Aramaic instead of the Greek translation. The translator is unique in that he avoids any type of personification. Samuel D. Luzzatto suggests that the translation was originally meant for the \"simple people\". This view was strongly rebutted by Nathan Marcus Adler in his introduction to Netinah La-Ger. In talmudic times, and to this day in Yemenite Jewish communities, Targum Onkelos was recited by heart as a verse-by-verse translation alternately with the Hebrew verses of the Torah in the synagogue. The Talmud states that \"a person should complete his portions of Scripture along with the community, reading the Scripture twice and the targum once (shnayim mikra ve-echad targum).\" This passage is taken by many to refer to Targum Onkelos.",
+  "heDesc": "",
+  "enShortDesc": "",
+  "heShortDesc": "",
+  "pubDate": [
+    1482
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    80,
+    120
+  ],
+  "compPlace": "Talmudic Israel/Babylon",
+  "pubPlace": "Bologna",
+  "era": "T",
+  "dependence": "Targum",
+  "base_text_titles": [
+    {
+      "en": "Genesis",
+      "he": "בראשית"
+    }
+  ],
+  "base_text_mapping": "one_to_one",
+  "collective_title": {
+    "en": "Onkelos",
+    "he": "תרגום אונקלוס"
+  },
+  "is_cited": true,
+  "heTitle": "תרגום אונקלוס על בראשית",
+  "titleVariants": [
+    "Targum Onkelos Genesis",
+    "Targ. Gen.",
+    "Targ. O. Gen.",
+    "Onkelos Genesis"
+  ],
+  "heTitleVariants": [
+    "תרגום אונקלוס בראשית",
+    "אונקלוס בראשית",
+    "אונקלוס, בראשית",
+    "תרגום אונקלוס על בראשית"
+  ],
+  "alts": {
+    "Parasha": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 1:1-6:8",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 1:1-2:3",
+            "Onkelos Genesis 2:4-2:19",
+            "Onkelos Genesis 2:20-3:21",
+            "Onkelos Genesis 3:22-4:18",
+            "Onkelos Genesis 4:19-4:22",
+            "Onkelos Genesis 4:23-5:24",
+            "Onkelos Genesis 5:25-6:8"
+          ],
+          "sharedTitle": "Bereshit",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Bereshit",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "בראשית",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Bereshit",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת בראשית",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Bereishit",
+              "lang": "en"
+            },
+            {
+              "text": "Parashat Genesis",
+              "lang": "en"
+            },
+            {
+              "text": "Genesis",
+              "lang": "en"
+            },
+            {
+              "text": "Bereishit",
+              "lang": "en"
+            },
+            {
+              "text": "Breishit",
+              "lang": "en"
+            },
+            {
+              "text": "Bereshis",
+              "lang": "en"
+            }
+          ],
+          "title": "Bereshit",
+          "heTitle": "בראשית"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 6:9-11:32",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 6:9-6:22",
+            "Onkelos Genesis 7:1-7:16",
+            "Onkelos Genesis 7:17-8:14",
+            "Onkelos Genesis 8:15-9:7",
+            "Onkelos Genesis 9:8-9:17",
+            "Onkelos Genesis 9:18-10:32",
+            "Onkelos Genesis 11:1-11:32"
+          ],
+          "sharedTitle": "Noach",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Noach",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "נח",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Noach",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת נח",
+              "lang": "he"
+            },
+            {
+              "text": "Noah",
+              "lang": "en"
+            },
+            {
+              "text": "Parshat Noah",
+              "lang": "en"
+            }
+          ],
+          "title": "Noach",
+          "heTitle": "נח"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 12:1-17:27",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 12:1-12:13",
+            "Onkelos Genesis 12:14-13:4",
+            "Onkelos Genesis 13:5-13:18",
+            "Onkelos Genesis 14:1-14:20",
+            "Onkelos Genesis 14:21-15:6",
+            "Onkelos Genesis 15:7-17:6",
+            "Onkelos Genesis 17:7-17:27"
+          ],
+          "sharedTitle": "Lech Lecha",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Lech Lecha",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "לך לך",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Lech Lecha",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת לך לך",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Lekh Lekha",
+              "lang": "en"
+            }
+          ],
+          "title": "Lech Lecha",
+          "heTitle": "לך לך"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 18:1-22:24",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 18:1-18:14",
+            "Onkelos Genesis 18:15-18:33",
+            "Onkelos Genesis 19:1-19:20",
+            "Onkelos Genesis 19:21-21:4",
+            "Onkelos Genesis 21:5-21:21",
+            "Onkelos Genesis 21:22-21:34",
+            "Onkelos Genesis 22:1-22:24"
+          ],
+          "sharedTitle": "Vayera",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayera",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "וירא",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayera",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת וירא",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayeira",
+              "lang": "en"
+            },
+            {
+              "text": "Parshat Vayera",
+              "lang": "en"
+            }
+          ],
+          "title": "Vayera",
+          "heTitle": "וירא"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 23:1-25:18",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 23:1-23:16",
+            "Onkelos Genesis 23:17-24:9",
+            "Onkelos Genesis 24:10-24:26",
+            "Onkelos Genesis 24:27-24:52",
+            "Onkelos Genesis 24:53-24:67",
+            "Onkelos Genesis 25:1-25:11",
+            "Onkelos Genesis 25:12-25:18"
+          ],
+          "sharedTitle": "Chayei Sara",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chayei Sara",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "חיי שרה",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Chayei Sara",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת חיי שרה",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Chayei Sarah",
+              "lang": "en"
+            },
+            {
+              "text": "Parashat Chaye Sarah",
+              "lang": "en"
+            },
+            {
+              "text": "Parshat Chayei Sarah",
+              "lang": "en"
+            },
+            {
+              "text": "Chayei Sarah",
+              "lang": "en"
+            },
+            {
+              "text": "Hayei Sarah",
+              "lang": "en"
+            },
+            {
+              "text": "Hayye Sarah",
+              "lang": "en"
+            }
+          ],
+          "title": "Chayei Sara",
+          "heTitle": "חיי שרה"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 25:19-28:9",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 25:19-26:5",
+            "Onkelos Genesis 26:6-26:12",
+            "Onkelos Genesis 26:13-26:22",
+            "Onkelos Genesis 26:23-26:29",
+            "Onkelos Genesis 26:30-27:27",
+            "Onkelos Genesis 27:28-28:4",
+            "Onkelos Genesis 28:5-28:9"
+          ],
+          "sharedTitle": "Toldot",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Toldot",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "תולדות",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Toldot",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת תולדות",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Toledot",
+              "lang": "en"
+            },
+            {
+              "text": "Parshat Toledot",
+              "lang": "en"
+            },
+            {
+              "text": "Toldos",
+              "lang": "en"
+            }
+          ],
+          "title": "Toldot",
+          "heTitle": "תולדות"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 28:10-32:3",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 28:10-28:22",
+            "Onkelos Genesis 29:1-29:17",
+            "Onkelos Genesis 29:18-30:13",
+            "Onkelos Genesis 30:14-30:27",
+            "Onkelos Genesis 30:28-31:16",
+            "Onkelos Genesis 31:17-31:42",
+            "Onkelos Genesis 31:43-32:3"
+          ],
+          "sharedTitle": "Vayetzei",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayetzei",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "ויצא",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayetzei",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת ויצא",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayeitzey",
+              "lang": "en"
+            },
+            {
+              "text": "Vayetze",
+              "lang": "en"
+            },
+            {
+              "text": "Parashat Vayetze",
+              "lang": "en"
+            },
+            {
+              "text": "Parashat Vayetzey",
+              "lang": "en"
+            }
+          ],
+          "title": "Vayetzei",
+          "heTitle": "ויצא"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 32:4-36:43",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 32:4-32:13",
+            "Onkelos Genesis 32:14-32:30",
+            "Onkelos Genesis 32:31-33:5",
+            "Onkelos Genesis 33:6-33:20",
+            "Onkelos Genesis 34:1-35:11",
+            "Onkelos Genesis 35:12-36:19",
+            "Onkelos Genesis 36:20-36:43"
+          ],
+          "sharedTitle": "Vayishlach",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayishlach",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "וישלח",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayishlach",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת וישלח",
+              "lang": "he"
+            }
+          ],
+          "title": "Vayishlach",
+          "heTitle": "וישלח"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 37:1-40:23",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 37:1-37:11",
+            "Onkelos Genesis 37:12-37:22",
+            "Onkelos Genesis 37:23-37:36",
+            "Onkelos Genesis 38:1-38:30",
+            "Onkelos Genesis 39:1-39:6",
+            "Onkelos Genesis 39:7-39:23",
+            "Onkelos Genesis 40:1-40:23"
+          ],
+          "sharedTitle": "Vayeshev",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayeshev",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "וישב",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayeshev",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת וישב",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Veyeshev",
+              "lang": "en"
+            },
+            {
+              "text": "Parshat Vayeshev",
+              "lang": "en"
+            }
+          ],
+          "title": "Vayeshev",
+          "heTitle": "וישב"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 41:1-44:17",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 41:1-41:14",
+            "Onkelos Genesis 41:15-41:38",
+            "Onkelos Genesis 41:39-41:52",
+            "Onkelos Genesis 41:53-42:18",
+            "Onkelos Genesis 42:19-43:15",
+            "Onkelos Genesis 43:16-43:29",
+            "Onkelos Genesis 43:30-44:17"
+          ],
+          "sharedTitle": "Miketz",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Miketz",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "מקץ",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Miketz",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת מקץ",
+              "lang": "he"
+            }
+          ],
+          "title": "Miketz",
+          "heTitle": "מקץ"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 44:18-47:27",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 44:18-44:30",
+            "Onkelos Genesis 44:31-45:7",
+            "Onkelos Genesis 45:8-45:18",
+            "Onkelos Genesis 45:19-45:27",
+            "Onkelos Genesis 45:28-46:27",
+            "Onkelos Genesis 46:28-47:10",
+            "Onkelos Genesis 47:11-47:27"
+          ],
+          "sharedTitle": "Vayigash",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayigash",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "ויגש",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayigash",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת ויגש",
+              "lang": "he"
+            }
+          ],
+          "title": "Vayigash",
+          "heTitle": "ויגש"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Onkelos Genesis 47:28-50:26",
+          "addressTypes": [
+            "Aliyah"
+          ],
+          "sectionNames": [
+            "Aliyah"
+          ],
+          "refs": [
+            "Onkelos Genesis 47:28-48:9",
+            "Onkelos Genesis 48:10-48:16",
+            "Onkelos Genesis 48:17-48:22",
+            "Onkelos Genesis 49:1-49:18",
+            "Onkelos Genesis 49:19-49:26",
+            "Onkelos Genesis 49:27-50:20",
+            "Onkelos Genesis 50:21-50:26"
+          ],
+          "sharedTitle": "Vayechi",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayechi",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "ויחי",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayechi",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת ויחי",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayehi",
+              "lang": "en"
+            }
+          ],
+          "title": "Vayechi",
+          "heTitle": "ויחי"
+        }
+      ],
+      "titles": [
+        {
+          "text": "Targum Onkelos Genesis",
+          "lang": "en"
+        },
+        {
+          "text": "Targ. Gen.",
+          "lang": "en"
+        },
+        {
+          "text": "Targ. O. Gen.",
+          "lang": "en"
+        },
+        {
+          "text": "תרגום אונקלוס בראשית",
+          "lang": "he"
+        },
+        {
+          "text": "אונקלוס בראשית",
+          "lang": "he"
+        },
+        {
+          "text": "אונקלוס, בראשית",
+          "lang": "he"
+        },
+        {
+          "text": "תרגום אונקלוס על בראשית",
+          "lang": "he",
+          "primary": true
+        },
+        {
+          "text": "Onkelos Genesis",
+          "lang": "en",
+          "primary": true
+        }
+      ],
+      "title": "Onkelos Genesis",
+      "heTitle": "תרגום אונקלוס על בראשית"
+    }
+  },
+  "sectionNames": [
+    "Chapter",
+    "Verse"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Onkelos Genesis 1",
+  "heCategories": [
+    "תנ\"ך",
+    "תרגומים",
+    "תרגום אונקלוס",
+    "תורה"
+  ],
+  "compDateString": {
+    "en": " (c.80  – c.120 CE)",
+    "he": " (80 – 120 לספירה בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1482 CE)",
+    "he": " (1482 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Talmudic Israel/Babylon",
+    "he": "ישראל / בבל התלמודית"
+  },
+  "pubPlaceString": {
+    "en": "Bologna",
+    "he": "בולוניה"
+  },
+  "relatedTopics": [
+    {
+      "slug": "prayer",
+      "title": {
+        "en": "Prayer",
+        "he": "תפילה"
+      }
+    },
+    {
+      "slug": "zevulun",
+      "title": {
+        "en": "Zevulun",
+        "he": "זבולון"
+      }
+    },
+    {
+      "slug": "sin-and-punishment-of-the-serpent",
+      "title": {
+        "en": "Sin and Punishment of the Serpent",
+        "he": "חטא הנחש ועונש"
+      }
+    },
+    {
+      "slug": "race",
+      "title": {
+        "en": "Race",
+        "he": "גזע"
+      }
+    },
+    {
+      "slug": "the-sale-of-joseph",
+      "title": {
+        "en": "The Sale of Joseph",
+        "he": "מכירת יוסף"
+      }
+    },
+    {
+      "slug": "josephs-blessing",
+      "title": {
+        "en": "Joseph's Blessing",
+        "he": "ברכת יוסף"
+      }
+    },
+    {
+      "slug": "budding-fruit",
+      "title": {
+        "en": "Budding Fruit",
+        "he": "הנץ פרי"
+      }
+    },
+    {
+      "slug": "lifting-of-the-hand",
+      "title": {
+        "en": "Lifting of the Hand",
+        "he": "הרמת יד"
+      }
+    },
+    {
+      "slug": "issachar",
+      "title": {
+        "en": "Issachar",
+        "he": "יששכר"
+      }
+    },
+    {
+      "slug": "dan",
+      "title": {
+        "en": "Dan",
+        "he": "דן"
+      }
+    },
+    {
+      "slug": "places",
+      "title": {
+        "en": "Places",
+        "he": "מקומות ואתרים"
+      }
+    },
+    {
+      "slug": "aram",
+      "title": {
+        "en": "Aram",
+        "he": "ארם"
+      }
+    },
+    {
+      "slug": "ishmael",
+      "title": {
+        "en": "Ishmael",
+        "he": "ישמעאל"
+      }
+    },
+    {
+      "slug": "seeking-god",
+      "title": {
+        "en": "Seeking God",
+        "he": "דרישת אלקים"
+      }
+    },
+    {
+      "slug": "mashiach",
+      "title": {
+        "en": "Mashiach",
+        "he": "משיח"
+      }
+    },
+    {
+      "slug": "niggun",
+      "title": {
+        "en": "Niggun",
+        "he": "ניגון"
+      }
+    },
+    {
+      "slug": "cover-for-the-eyes",
+      "title": {
+        "en": "Cover for the Eyes",
+        "he": "כסות עינים"
+      }
+    },
+    {
+      "slug": "like-a-distance",
+      "title": {
+        "en": "Like a Distance",
+        "he": "כברת"
+      }
+    }
+  ]
+}

@@ -1,0 +1,4159 @@
+[
+  {
+    "_id": "604a5c6e0acabd099ce079a5",
+    "index_title": "Tosefta Berakhot",
+    "category": "Tosefta",
+    "type": "",
+    "ref": "Tosefta Berakhot 3:7",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Tosefta Berakhot 3:7",
+    "sourceHeRef": "תוספתא ברכות ג׳:ז׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 3.0007,
+    "collectiveTitle": {
+      "en": "Tosefta Berakhot",
+      "he": "תוספתא ברכות"
+    },
+    "heTitle": "תוספתא ברכות"
+  },
+  {
+    "_id": "6a1f4424a0fdcd9b056dc269",
+    "index_title": "Tosefta Kifshutah on Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Tosefta Kifshutah on Berakhot 1:9:4",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Tosefta Kifshutah on Berakhot 1:9:4",
+    "sourceHeRef": "תוספתא כפשוטה על ברכות א׳:ט׳:ד׳",
+    "anchorVerse": 11,
+    "sourceHasEn": false,
+    "compDate": [
+      1936,
+      1954
+    ],
+    "commentaryNum": 9.0004,
+    "collectiveTitle": {
+      "en": "Tosefta Kifshutah on Berakhot",
+      "he": "תוספתא כפשוטה על ברכות"
+    },
+    "heTitle": "תוספתא כפשוטה על ברכות"
+  },
+  {
+    "_id": "60ad0fde34562eca13bb5e2b",
+    "index_title": "Tosefta Sotah (Lieberman)",
+    "category": "Tosefta",
+    "type": "related",
+    "ref": "Tosefta Sotah (Lieberman) 15:7",
+    "anchorRef": "Tosefta Berakhot 1:13",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:13"
+    ],
+    "sourceRef": "Tosefta Sotah (Lieberman) 15:7",
+    "sourceHeRef": "תוספתא סוטה (ליברמן) ט״ו:ז׳",
+    "anchorVerse": 13,
+    "sourceHasEn": false,
+    "commentaryNum": 15.0007,
+    "collectiveTitle": {
+      "en": "Tosefta Sotah (Lieberman)",
+      "he": "תוספתא סוטה (ליברמן)"
+    },
+    "heTitle": "תוספתא סוטה (ליברמן)"
+  },
+  {
+    "_id": "604a52cfcf437ea9ee83afdb",
+    "index_title": "Tosefta Berakhot",
+    "category": "Tosefta",
+    "type": "related",
+    "ref": "Tosefta Berakhot 2:6",
+    "anchorRef": "Tosefta Berakhot 1:4",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:4"
+    ],
+    "sourceRef": "Tosefta Berakhot 2:6",
+    "sourceHeRef": "תוספתא ברכות ב׳:ו׳",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 2.0006,
+    "collectiveTitle": {
+      "en": "Tosefta Berakhot",
+      "he": "תוספתא ברכות"
+    },
+    "heTitle": "תוספתא ברכות"
+  },
+  {
+    "_id": "6a18333196f628367c69466c",
+    "index_title": "Tziunei Maharan on Mishneh Torah, Reading the Shema",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Tziunei Maharan on Mishneh Torah, Reading the Shema 2:5:1",
+    "anchorRef": "Tosefta Berakhot 1:4",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:4"
+    ],
+    "sourceRef": "Tziunei Maharan on Mishneh Torah, Reading the Shema 2:5:1",
+    "sourceHeRef": "ציוני מהר\"ן על משנה תורה, הלכות קריאת שמע ב׳:ה׳:א׳",
+    "anchorVerse": 4,
+    "sourceHasEn": false,
+    "compDate": [
+      1875,
+      1881
+    ],
+    "commentaryNum": 5.0001,
+    "collectiveTitle": {
+      "en": "Tziunei Maharan on Mishneh Torah, Reading the Shema",
+      "he": "ציוני מהר\"ן על משנה תורה, הלכות קריאת שמע"
+    },
+    "heTitle": "ציוני מהר\"ן על משנה תורה, הלכות קריאת שמע"
+  },
+  {
+    "_id": "604a57c7620be18e8252927d",
+    "index_title": "Tosefta Berakhot",
+    "category": "Tosefta",
+    "type": "related",
+    "ref": "Tosefta Berakhot 2:9",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Tosefta Berakhot 2:9",
+    "sourceHeRef": "תוספתא ברכות ב׳:ט׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 2.0009,
+    "collectiveTitle": {
+      "en": "Tosefta Berakhot",
+      "he": "תוספתא ברכות"
+    },
+    "heTitle": "תוספתא ברכות"
+  },
+  {
+    "_id": "60ad0fd834562eca13bb5e15",
+    "index_title": "Tosefta Demai (Lieberman)",
+    "category": "Tosefta",
+    "type": "related",
+    "ref": "Tosefta Demai (Lieberman) 5:24",
+    "anchorRef": "Tosefta Berakhot 1:6",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:6"
+    ],
+    "sourceRef": "Tosefta Demai (Lieberman) 5:24",
+    "sourceHeRef": "תוספתא דמאי (ליברמן) ה׳:כ״ד",
+    "anchorVerse": 6,
+    "sourceHasEn": false,
+    "commentaryNum": 5.0024,
+    "collectiveTitle": {
+      "en": "Tosefta Demai (Lieberman)",
+      "he": "תוספתא דמאי (ליברמן)"
+    },
+    "heTitle": "תוספתא דמאי (ליברמן)"
+  },
+  {
+    "_id": "5b225f903322c50016000e1d",
+    "index_title": "Tosefta Berakhot",
+    "category": "Tosefta",
+    "type": "mesorat hashas",
+    "ref": "Tosefta Berakhot 1:9",
+    "anchorRef": "Tosefta Berakhot 1:8",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:8"
+    ],
+    "sourceRef": "Tosefta Berakhot 1:9",
+    "sourceHeRef": "תוספתא ברכות א׳:ט׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0009,
+    "collectiveTitle": {
+      "en": "Tosefta Berakhot",
+      "he": "תוספתא ברכות"
+    },
+    "heTitle": "תוספתא ברכות"
+  },
+  {
+    "_id": "6a1f083abb11c92d71f45552",
+    "index_title": "Tosefta Kifshutah on Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Tosefta Kifshutah on Berakhot 1:6:1",
+    "anchorRef": "Tosefta Berakhot 1:9",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:9"
+    ],
+    "sourceRef": "Tosefta Kifshutah on Berakhot 1:6:1",
+    "sourceHeRef": "תוספתא כפשוטה על ברכות א׳:ו׳:א׳",
+    "anchorVerse": 9,
+    "sourceHasEn": false,
+    "compDate": [
+      1936,
+      1954
+    ],
+    "commentaryNum": 6.0001,
+    "collectiveTitle": {
+      "en": "Tosefta Kifshutah on Berakhot",
+      "he": "תוספתא כפשוטה על ברכות"
+    },
+    "heTitle": "תוספתא כפשוטה על ברכות"
+  },
+  {
+    "_id": "5b2265bdc1b907001a7586eb",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Berakhot 2b:8",
+    "anchorRef": "Tosefta Berakhot 1:1-2",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1",
+      "Tosefta Berakhot 1:2"
+    ],
+    "sourceRef": "Berakhot 2b:8",
+    "sourceHeRef": "ברכות ב׳ ב:ח׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 4.0008,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "5c46923508d98a02694dce09",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, מִשְׁמָר 1",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Jastrow, מִשְׁמָר 1",
+    "sourceHeRef": "מילון יסטרוב, מִשְׁמָר א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "מִשְׁמָר"
+  },
+  {
+    "_id": "5c469df008d98a02694e413c",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, עֵת 1",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Jastrow, עֵת 1",
+    "sourceHeRef": "מילון יסטרוב, עֵת א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "עֵת"
+  },
+  {
+    "_id": "5c46abfa08d98a02694ec0db",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, רֶגַע 1",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Jastrow, רֶגַע 1",
+    "sourceHeRef": "מילון יסטרוב, רֶגַע א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "רֶגַע"
+  },
+  {
+    "_id": "5c46b2fb08d98a02694f02bb",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, שָׁעָה II 1",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Jastrow, שָׁעָה II 1",
+    "sourceHeRef": "מילון יסטרוב, שָׁעָה II א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "שָׁעָה II"
+  },
+  {
+    "_id": "5e1173e02649edba9b7404ec",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Berakhot 2b:4",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Berakhot 2b:4",
+    "sourceHeRef": "ברכות ב׳ ב:ד׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 4.0004,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "604a46b8f26e3841c14dd81e",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 1:1",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Mishnah Berakhot 1:1",
+    "sourceHeRef": "משנה ברכות א׳:א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "60ad0fd534562eca13bb5e09",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Berakhot 2b:8",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Berakhot 2b:8",
+    "sourceHeRef": "ברכות ב׳ ב:ח׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 4.0008,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "695ea3cd043803e6c918c47a",
+    "index_title": "Nehemiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Nehemiah 4",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Nehemiah 4",
+    "sourceHeRef": "נחמיה ד׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      -450,
+      -350
+    ],
+    "commentaryNum": 4,
+    "collectiveTitle": {
+      "en": "Nehemiah",
+      "he": "נחמיה"
+    },
+    "heTitle": "נחמיה"
+  },
+  {
+    "_id": "695eaf8d21229ba95ae8685a",
+    "index_title": "Nehemiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Nehemiah 4:15",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Nehemiah 4:15",
+    "sourceHeRef": "נחמיה ד׳:ט״ו",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      -450,
+      -350
+    ],
+    "commentaryNum": 4.0015,
+    "collectiveTitle": {
+      "en": "Nehemiah",
+      "he": "נחמיה"
+    },
+    "heTitle": "נחמיה"
+  },
+  {
+    "_id": "6a0f1e1b41035c70dfb1855c",
+    "index_title": "Mishnat Eretz Yisrael on Mishnah Niddah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Mishnat Eretz Yisrael on Mishnah Niddah 10:6:12",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Mishnat Eretz Yisrael on Mishnah Niddah 10:6:12",
+    "sourceHeRef": "משנת ארץ ישראל על משנה נדה י׳:ו׳:י״ב",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "commentaryNum": 6.0012,
+    "collectiveTitle": {
+      "en": "Mishnat Eretz Yisrael on Mishnah Niddah",
+      "he": "משנת ארץ ישראל על משנה נדה"
+    }
+  },
+  {
+    "_id": "6a0f728ace752ab40c8c36aa",
+    "index_title": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:1:2",
+    "anchorRef": "Tosefta Berakhot 1:1",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:1"
+    ],
+    "sourceRef": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:1:2",
+    "sourceHeRef": "אור לישרים על תלמוד ירושלמי ברכות א׳:א׳:ב׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "commentaryNum": 1.0002,
+    "collectiveTitle": {
+      "en": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+      "he": "אור לישרים על תלמוד ירושלמי ברכות"
+    }
+  },
+  {
+    "_id": "5b226185c1b907001a75792d",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Berakhot 34a:14",
+    "anchorRef": "Tosefta Berakhot 1:10-11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:10",
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Berakhot 34a:14",
+    "sourceHeRef": "ברכות ל״ד א:י״ד",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 67.0014,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "604a4ae54b0b83e0a3b97b08",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 1:4",
+    "anchorRef": "Tosefta Berakhot 1:10",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:10"
+    ],
+    "sourceRef": "Mishnah Berakhot 1:4",
+    "sourceHeRef": "משנה ברכות א׳:ד׳",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0004,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "60ad0fda34562eca13bb5e1d",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Berakhot 34a:14",
+    "anchorRef": "Tosefta Berakhot 1:10",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:10"
+    ],
+    "sourceRef": "Berakhot 34a:14",
+    "sourceHeRef": "ברכות ל״ד א:י״ד",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 67.0014,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "60ad0fdb34562eca13bb5e1f",
+    "index_title": "Bereshit Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Bereshit Rabbah 39:12",
+    "anchorRef": "Tosefta Berakhot 1:10",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:10"
+    ],
+    "sourceRef": "Bereshit Rabbah 39:12",
+    "sourceHeRef": "בראשית רבה ל״ט:י״ב",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      400
+    ],
+    "commentaryNum": 39.0012,
+    "collectiveTitle": {
+      "en": "Bereshit Rabbah",
+      "he": "בראשית רבה"
+    },
+    "heTitle": "בראשית רבה"
+  },
+  {
+    "_id": "6a1fac87ab43367e85c27bf6",
+    "index_title": "Penei Moshe on Jerusalem Talmud Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Penei Moshe on Jerusalem Talmud Berakhot 1:5:17:1",
+    "anchorRef": "Tosefta Berakhot 1:10",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:10"
+    ],
+    "sourceRef": "Penei Moshe on Jerusalem Talmud Berakhot 1:5:17:1",
+    "sourceHeRef": "פני משה על תלמוד ירושלמי ברכות א׳:ה׳:י״ז:א׳",
+    "anchorVerse": 10,
+    "sourceHasEn": false,
+    "commentaryNum": 17.0001,
+    "collectiveTitle": {
+      "en": "Penei Moshe on Jerusalem Talmud Berakhot",
+      "he": "פני משה על תלמוד ירושלמי ברכות"
+    },
+    "heTitle": "פני משה על תלמוד ירושלמי ברכות"
+  },
+  {
+    "_id": "5b225c5987ca670017e79f12",
+    "index_title": "Otzar Midrashim",
+    "category": "Midrash",
+    "type": "mesorat hashas",
+    "ref": "Otzar Midrashim, Shiur Komah 1:6",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Otzar Midrashim, Shiur Komah 1:6",
+    "sourceHeRef": "אוצר מדרשים, שעור קומה א׳:ו׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      1915
+    ],
+    "commentaryNum": 1.0006,
+    "collectiveTitle": {
+      "en": "Otzar Midrashim",
+      "he": "אוצר מדרשים"
+    }
+  },
+  {
+    "_id": "5b225c9787ca670017e7a7fe",
+    "index_title": "Otzar Midrashim",
+    "category": "Midrash",
+    "type": "mesorat hashas",
+    "ref": "Otzar Midrashim, Hekhalot, Chapter from the Chapters of Hekhalot 3",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Otzar Midrashim, Hekhalot, Chapter from the Chapters of Hekhalot 3",
+    "sourceHeRef": "אוצר מדרשים, היכלות, פרק מפרקי היכלות ג׳",
+    "anchorVerse": 11,
+    "sourceHasEn": false,
+    "compDate": [
+      1915
+    ],
+    "commentaryNum": 3,
+    "collectiveTitle": {
+      "en": "Otzar Midrashim",
+      "he": "אוצר מדרשים"
+    },
+    "heTitle": "פרק מפרקי היכלות"
+  },
+  {
+    "_id": "5b226ad3c1b907001a75af0f",
+    "index_title": "Bereshit Rabbah",
+    "category": "Midrash",
+    "type": "mesorat hashas",
+    "ref": "Bereshit Rabbah 39:12",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Bereshit Rabbah 39:12",
+    "sourceHeRef": "בראשית רבה ל״ט:י״ב",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      400
+    ],
+    "commentaryNum": 39.0012,
+    "collectiveTitle": {
+      "en": "Bereshit Rabbah",
+      "he": "בראשית רבה"
+    },
+    "heTitle": "בראשית רבה"
+  },
+  {
+    "_id": "5c46922e08d98a02694dcd99",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, מָשַׁל II 1",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Jastrow, מָשַׁל II 1",
+    "sourceHeRef": "מילון יסטרוב, מָשַׁל II א׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "מָשַׁל II"
+  },
+  {
+    "_id": "695ea3cace06144202d8170a",
+    "index_title": "Ezekiel",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Ezekiel 3",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Ezekiel 3",
+    "sourceHeRef": "יחזקאל ג׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      -550,
+      -450
+    ],
+    "commentaryNum": 3,
+    "collectiveTitle": {
+      "en": "Ezekiel",
+      "he": "יחזקאל"
+    },
+    "heTitle": "יחזקאל"
+  },
+  {
+    "_id": "695ea3cbce06144202d8170c",
+    "index_title": "Isaiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Isaiah 6",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Isaiah 6",
+    "sourceHeRef": "ישעיהו ו׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      -750,
+      -450
+    ],
+    "commentaryNum": 6,
+    "collectiveTitle": {
+      "en": "Isaiah",
+      "he": "ישעיהו"
+    },
+    "heTitle": "ישעיהו"
+  },
+  {
+    "_id": "695eaf8c435133f528b5d865",
+    "index_title": "Ezekiel",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Ezekiel 3:12",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Ezekiel 3:12",
+    "sourceHeRef": "יחזקאל ג׳:י״ב",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      -550,
+      -450
+    ],
+    "commentaryNum": 3.0012,
+    "collectiveTitle": {
+      "en": "Ezekiel",
+      "he": "יחזקאל"
+    },
+    "heTitle": "יחזקאל"
+  },
+  {
+    "_id": "695eaf8c435133f528b5d867",
+    "index_title": "Isaiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Isaiah 6:3",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Isaiah 6:3",
+    "sourceHeRef": "ישעיהו ו׳:ג׳",
+    "anchorVerse": 11,
+    "sourceHasEn": true,
+    "compDate": [
+      -750,
+      -450
+    ],
+    "commentaryNum": 6.0003,
+    "collectiveTitle": {
+      "en": "Isaiah",
+      "he": "ישעיהו"
+    },
+    "heTitle": "ישעיהו"
+  },
+  {
+    "_id": "6a04d9a4fbb1a5d0489be1e9",
+    "index_title": "Magen Avraham",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Magen Avraham 66:6",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Magen Avraham 66:6",
+    "sourceHeRef": "מגן אברהם ס״ו:ו׳",
+    "anchorVerse": 11,
+    "sourceHasEn": false,
+    "compDate": [
+      1665,
+      1671
+    ],
+    "commentaryNum": 66.0006,
+    "collectiveTitle": {
+      "en": "Magen Avraham",
+      "he": "מגן אברהם"
+    }
+  },
+  {
+    "_id": "6a0e208d6a2edf04ad588a96",
+    "index_title": "Meiri on Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Meiri on Berakhot 34a:6",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Meiri on Berakhot 34a:6",
+    "sourceHeRef": "מאירי על ברכות ל״ד א:ו׳",
+    "anchorVerse": 11,
+    "sourceHasEn": false,
+    "compDate": [
+      1280,
+      1310
+    ],
+    "commentaryNum": 67.0006,
+    "collectiveTitle": {
+      "en": "Meiri on Berakhot",
+      "he": "מאירי על ברכות"
+    }
+  },
+  {
+    "_id": "6a17c3856acd658dcc1dae4b",
+    "index_title": "Ba'er Hetev on Shulchan Arukh, Orach Chayim",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ba'er Hetev on Shulchan Arukh, Orach Chayim 66:7",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Ba'er Hetev on Shulchan Arukh, Orach Chayim 66:7",
+    "sourceHeRef": "באר היטב אורח חיים ס״ו:ז׳",
+    "anchorVerse": 11,
+    "sourceHasEn": false,
+    "compDate": [
+      1665,
+      1705
+    ],
+    "commentaryNum": 66.0007,
+    "collectiveTitle": {
+      "en": "Ba'er Hetev on Shulchan Arukh, Orach Chayim",
+      "he": "באר היטב אורח חיים"
+    },
+    "heTitle": "באר היטב אורח חיים"
+  },
+  {
+    "_id": "6a1d795963b95705f7b433f1",
+    "index_title": "Kaf HaChayim on Shulchan Arukh, Orach Chayim",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Kaf HaChayim on Shulchan Arukh, Orach Chayim 66:18:1",
+    "anchorRef": "Tosefta Berakhot 1:11",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:11"
+    ],
+    "sourceRef": "Kaf HaChayim on Shulchan Arukh, Orach Chayim 66:18:1",
+    "sourceHeRef": "כף החיים על שולחן ערוך אורח חיים ס״ו:י״ח:א׳",
+    "anchorVerse": 11,
+    "sourceHasEn": false,
+    "compDate": [
+      1900,
+      1940
+    ],
+    "commentaryNum": 18.0001,
+    "collectiveTitle": {
+      "en": "Kaf HaChayim on Shulchan Arukh, Orach Chayim",
+      "he": "כף החיים על שולחן ערוך אורח חיים"
+    },
+    "heTitle": "כף החיים על שולחן ערוך אורח חיים"
+  },
+  {
+    "_id": "5b225ce887ca670017e7b6be",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Berakhot 12b:23-25",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Berakhot 12b:23-25",
+    "sourceHeRef": "ברכות י״ב ב:כ״ג-כ״ה",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 24.0023,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "5b225d82fdb7300016c3c797",
+    "index_title": "Shemot Rabbah",
+    "category": "Midrash",
+    "type": "mesorat hashas",
+    "ref": "Shemot Rabbah 22:3",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Shemot Rabbah 22:3",
+    "sourceHeRef": "שמות רבה כ״ב:ג׳",
+    "anchorVerse": 12,
+    "sourceHasEn": false,
+    "compDate": [
+      1200
+    ],
+    "commentaryNum": 22.0003,
+    "collectiveTitle": {
+      "en": "Shemot Rabbah",
+      "he": "שמות רבה"
+    },
+    "heTitle": "שמות רבה"
+  },
+  {
+    "_id": "5b226aaac1b907001a75ac81",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "mesorat hashas",
+    "ref": "Mishnah Berakhot 1:5",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Mishnah Berakhot 1:5",
+    "sourceHeRef": "משנה ברכות א׳:ה׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0005,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "5c46b3c308d98a02694f09c9",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, שַׂר 1",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Jastrow, שַׂר 1",
+    "sourceHeRef": "מילון יסטרוב, שַׂר א׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "שַׂר"
+  },
+  {
+    "_id": "60ad0fdc34562eca13bb5e23",
+    "index_title": "Sifrei Devarim",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Sifrei Devarim 130:7",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Sifrei Devarim 130:7",
+    "sourceHeRef": "ספרי דברים ק״ל:ז׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      200
+    ],
+    "commentaryNum": 130.0007,
+    "collectiveTitle": {
+      "en": "Sifrei Devarim",
+      "he": "ספרי דברים"
+    },
+    "heTitle": "ספרי דברים"
+  },
+  {
+    "_id": "60ad0fdc34562eca13bb5e25",
+    "index_title": "Bereshit Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Bereshit Rabbah 91:10",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Bereshit Rabbah 91:10",
+    "sourceHeRef": "בראשית רבה צ״א:י׳",
+    "anchorVerse": 12,
+    "sourceHasEn": false,
+    "compDate": [
+      400
+    ],
+    "commentaryNum": 91.001,
+    "collectiveTitle": {
+      "en": "Bereshit Rabbah",
+      "he": "בראשית רבה"
+    },
+    "heTitle": "בראשית רבה"
+  },
+  {
+    "_id": "60ad0fdd34562eca13bb5e29",
+    "index_title": "Isaiah",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Isaiah 43:18",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Isaiah 43:18",
+    "sourceHeRef": "ישעיהו מ״ג:י״ח",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -750,
+      -450
+    ],
+    "commentaryNum": 43.0018,
+    "collectiveTitle": {
+      "en": "Isaiah",
+      "he": "ישעיהו"
+    },
+    "heTitle": "ישעיהו"
+  },
+  {
+    "_id": "60ad0fe134562eca13bb5e37",
+    "index_title": "I Samuel",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "I Samuel 3:10",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "I Samuel 3:10",
+    "sourceHeRef": "שמואל א ג׳:י׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      -500
+    ],
+    "commentaryNum": 3.001,
+    "collectiveTitle": {
+      "en": "I Samuel",
+      "he": "שמואל א"
+    },
+    "heTitle": "שמואל א"
+  },
+  {
+    "_id": "60ad0fe234562eca13bb5e3a",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Genesis 22:11",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Genesis 22:11",
+    "sourceHeRef": "בראשית כ״ב:י״א",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 22.0011,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "60ad0fe234562eca13bb5e3c",
+    "index_title": "Exodus",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Exodus 3:4",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Exodus 3:4",
+    "sourceHeRef": "שמות ג׳:ד׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 3.0004,
+    "collectiveTitle": {
+      "en": "Exodus",
+      "he": "שמות"
+    },
+    "heTitle": "שמות"
+  },
+  {
+    "_id": "60ad0fe334562eca13bb5e3e",
+    "index_title": "Bereshit Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Bereshit Rabbah 56:7",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Bereshit Rabbah 56:7",
+    "sourceHeRef": "בראשית רבה נ״ו:ז׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      400
+    ],
+    "commentaryNum": 56.0007,
+    "collectiveTitle": {
+      "en": "Bereshit Rabbah",
+      "he": "בראשית רבה"
+    },
+    "heTitle": "בראשית רבה"
+  },
+  {
+    "_id": "60ad0fe434562eca13bb5e40",
+    "index_title": "Shemot Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Shemot Rabbah 2:6",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Shemot Rabbah 2:6",
+    "sourceHeRef": "שמות רבה ב׳:ו׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      1200
+    ],
+    "commentaryNum": 2.0006,
+    "collectiveTitle": {
+      "en": "Shemot Rabbah",
+      "he": "שמות רבה"
+    },
+    "heTitle": "שמות רבה"
+  },
+  {
+    "_id": "60ad0fe434562eca13bb5e42",
+    "index_title": "Bamidbar Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Bamidbar Rabbah 14:21",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Bamidbar Rabbah 14:21",
+    "sourceHeRef": "במדבר רבה י״ד:כ״א",
+    "anchorVerse": 12,
+    "sourceHasEn": false,
+    "compDate": [
+      1200
+    ],
+    "commentaryNum": 14.0021,
+    "collectiveTitle": {
+      "en": "Bamidbar Rabbah",
+      "he": "במדבר רבה"
+    },
+    "heTitle": "במדבר רבה"
+  },
+  {
+    "_id": "60ad0fe534562eca13bb5e44",
+    "index_title": "Jeremiah",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Jeremiah 32:31",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Jeremiah 32:31",
+    "sourceHeRef": "ירמיהו ל״ב:ל״א",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 32.0031,
+    "collectiveTitle": {
+      "en": "Jeremiah",
+      "he": "ירמיהו"
+    },
+    "heTitle": "ירמיהו"
+  },
+  {
+    "_id": "675c2e310c5e9a711819da78",
+    "index_title": "Tosefta Berakhot (Lieberman)",
+    "category": "Tosefta",
+    "type": "",
+    "ref": "Tosefta Berakhot (Lieberman) 1:10",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Tosefta Berakhot (Lieberman) 1:10",
+    "sourceHeRef": "תוספתא ברכות (ליברמן) א׳:י׳",
+    "anchorVerse": 12,
+    "sourceHasEn": false,
+    "commentaryNum": 1.001,
+    "collectiveTitle": {
+      "en": "Tosefta Berakhot (Lieberman)",
+      "he": "תוספתא ברכות (ליברמן)"
+    },
+    "heTitle": "תוספתא ברכות (ליברמן)"
+  },
+  {
+    "_id": "695ea3cc3b5def7673a79a62",
+    "index_title": "Jeremiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Jeremiah 23:7",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Jeremiah 23:7",
+    "sourceHeRef": "ירמיהו כ״ג:ז׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 23.0007,
+    "collectiveTitle": {
+      "en": "Jeremiah",
+      "he": "ירמיהו"
+    },
+    "heTitle": "ירמיהו"
+  },
+  {
+    "_id": "695ea3cc3b5def7673a79a64",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 35",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Genesis 35",
+    "sourceHeRef": "בראשית ל״ה",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 35,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "695ea3cd3b5def7673a79a66",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 16",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Deuteronomy 16",
+    "sourceHeRef": "דברים ט״ז",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 16,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "695eaf8e043803e6c918e244",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 35:10",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Genesis 35:10",
+    "sourceHeRef": "בראשית ל״ה:י׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 35.001,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "695eaf8e043803e6c918e246",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 16:3",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Deuteronomy 16:3",
+    "sourceHeRef": "דברים ט״ז:ג׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 16.0003,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "695eaf8f043803e6c918e248",
+    "index_title": "Jeremiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Jeremiah 23:7-8",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Jeremiah 23:7-8",
+    "sourceHeRef": "ירמיהו כ״ג:ז׳-ח׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 23.0007,
+    "collectiveTitle": {
+      "en": "Jeremiah",
+      "he": "ירמיהו"
+    },
+    "heTitle": "ירמיהו"
+  },
+  {
+    "_id": "6a078a257fe3ab2738be5e8d",
+    "index_title": "Torah Temimah on Torah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Torah Temimah on Torah, Genesis 17:5:2",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Torah Temimah on Torah, Genesis 17:5:2",
+    "sourceHeRef": "תורה תמימה על התורה, בראשית י״ז:ה׳:ב׳",
+    "anchorVerse": 12,
+    "sourceHasEn": false,
+    "compDate": [
+      1898,
+      1902
+    ],
+    "commentaryNum": 5.0002,
+    "collectiveTitle": {
+      "en": "Torah Temimah on Torah",
+      "he": "תורה תמימה על התורה"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "6a0f76212dcb37f789c48fd5",
+    "index_title": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:6:11",
+    "anchorRef": "Tosefta Berakhot 1:12",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:12"
+    ],
+    "sourceRef": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:6:11",
+    "sourceHeRef": "אור לישרים על תלמוד ירושלמי ברכות א׳:ו׳:י״א",
+    "anchorVerse": 12,
+    "sourceHasEn": false,
+    "commentaryNum": 6.0011,
+    "collectiveTitle": {
+      "en": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+      "he": "אור לישרים על תלמוד ירושלמי ברכות"
+    }
+  },
+  {
+    "_id": "60ad0fe534562eca13bb5e46",
+    "index_title": "Bereshit Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Bereshit Rabbah 56:10",
+    "anchorRef": "Tosefta Berakhot 1:13",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:13"
+    ],
+    "sourceRef": "Bereshit Rabbah 56:10",
+    "sourceHeRef": "בראשית רבה נ״ו:י׳",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      400
+    ],
+    "commentaryNum": 56.001,
+    "collectiveTitle": {
+      "en": "Bereshit Rabbah",
+      "he": "בראשית רבה"
+    },
+    "heTitle": "בראשית רבה"
+  },
+  {
+    "_id": "60ad0fe634562eca13bb5e48",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Genesis 22:14",
+    "anchorRef": "Tosefta Berakhot 1:13",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:13"
+    ],
+    "sourceRef": "Genesis 22:14",
+    "sourceHeRef": "בראשית כ״ב:י״ד",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 22.0014,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "675c2e4e0c5e9a711819dbe3",
+    "index_title": "Tosefta Berakhot (Lieberman)",
+    "category": "Tosefta",
+    "type": "",
+    "ref": "Tosefta Berakhot (Lieberman) 1:11",
+    "anchorRef": "Tosefta Berakhot 1:13",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:13"
+    ],
+    "sourceRef": "Tosefta Berakhot (Lieberman) 1:11",
+    "sourceHeRef": "תוספתא ברכות (ליברמן) א׳:י״א",
+    "anchorVerse": 13,
+    "sourceHasEn": false,
+    "commentaryNum": 1.0011,
+    "collectiveTitle": {
+      "en": "Tosefta Berakhot (Lieberman)",
+      "he": "תוספתא ברכות (ליברמן)"
+    },
+    "heTitle": "תוספתא ברכות (ליברמן)"
+  },
+  {
+    "_id": "695ea3ce435133f528b5b9a1",
+    "index_title": "Isaiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Isaiah 43:18",
+    "anchorRef": "Tosefta Berakhot 1:13",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:13"
+    ],
+    "sourceRef": "Isaiah 43:18",
+    "sourceHeRef": "ישעיהו מ״ג:י״ח",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      -750,
+      -450
+    ],
+    "commentaryNum": 43.0018,
+    "collectiveTitle": {
+      "en": "Isaiah",
+      "he": "ישעיהו"
+    },
+    "heTitle": "ישעיהו"
+  },
+  {
+    "_id": "695eaf8d9a61cf7b5ae8b9e0",
+    "index_title": "Isaiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Isaiah 43:18-19",
+    "anchorRef": "Tosefta Berakhot 1:13",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:13"
+    ],
+    "sourceRef": "Isaiah 43:18-19",
+    "sourceHeRef": "ישעיהו מ״ג:י״ח-י״ט",
+    "anchorVerse": 13,
+    "sourceHasEn": true,
+    "compDate": [
+      -750,
+      -450
+    ],
+    "commentaryNum": 43.0018,
+    "collectiveTitle": {
+      "en": "Isaiah",
+      "he": "ישעיהו"
+    },
+    "heTitle": "ישעיהו"
+  },
+  {
+    "_id": "5b225dc1fdb7300016c3cfef",
+    "index_title": "Otzar Midrashim",
+    "category": "Midrash",
+    "type": "mesorat hashas",
+    "ref": "Otzar Midrashim, Chuppah of Eliyahu, Chuppat Eliyahu Rabbah 173",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Otzar Midrashim, Chuppah of Eliyahu, Chuppat Eliyahu Rabbah 173",
+    "sourceHeRef": "אוצר מדרשים, חופת אליהו, חופת אליהו רבה קע״ג",
+    "anchorVerse": 14,
+    "sourceHasEn": false,
+    "compDate": [
+      1915
+    ],
+    "commentaryNum": 173,
+    "collectiveTitle": {
+      "en": "Otzar Midrashim",
+      "he": "אוצר מדרשים"
+    },
+    "heTitle": "חופת אליהו רבה"
+  },
+  {
+    "_id": "5b225ee887ca670017e7d310",
+    "index_title": "Otzar Midrashim",
+    "category": "Midrash",
+    "type": "mesorat hashas",
+    "ref": "Otzar Midrashim, Pesikta, Pesikta Chadata 39",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Otzar Midrashim, Pesikta, Pesikta Chadata 39",
+    "sourceHeRef": "אוצר מדרשים, פסיקתא, פסיקתא חדתא ל״ט",
+    "anchorVerse": 14,
+    "sourceHasEn": false,
+    "compDate": [
+      1915
+    ],
+    "commentaryNum": 39,
+    "collectiveTitle": {
+      "en": "Otzar Midrashim",
+      "he": "אוצר מדרשים"
+    },
+    "heTitle": "פסיקתא חדתא"
+  },
+  {
+    "_id": "60ad0fdf34562eca13bb5e2d",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Berakhot 13a",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Berakhot 13a",
+    "sourceHeRef": "ברכות י״ג א",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 25,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "60ad0fdf34562eca13bb5e2f",
+    "index_title": "Shabbat",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Shabbat 105a",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Shabbat 105a",
+    "sourceHeRef": "שבת ק״ה א",
+    "anchorVerse": 14,
+    "sourceHasEn": false,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 209,
+    "collectiveTitle": {
+      "en": "Shabbat",
+      "he": "שבת"
+    },
+    "heTitle": "שבת"
+  },
+  {
+    "_id": "60ad0fe034562eca13bb5e31",
+    "index_title": "Bereshit Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Bereshit Rabbah 46:7",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Bereshit Rabbah 46:7",
+    "sourceHeRef": "בראשית רבה מ״ו:ז׳",
+    "anchorVerse": 14,
+    "sourceHasEn": false,
+    "compDate": [
+      400
+    ],
+    "commentaryNum": 46.0007,
+    "collectiveTitle": {
+      "en": "Bereshit Rabbah",
+      "he": "בראשית רבה"
+    },
+    "heTitle": "בראשית רבה"
+  },
+  {
+    "_id": "60ad0fe034562eca13bb5e33",
+    "index_title": "Bereshit Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Bereshit Rabbah 47:1",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Bereshit Rabbah 47:1",
+    "sourceHeRef": "בראשית רבה מ״ז:א׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      400
+    ],
+    "commentaryNum": 47.0001,
+    "collectiveTitle": {
+      "en": "Bereshit Rabbah",
+      "he": "בראשית רבה"
+    },
+    "heTitle": "בראשית רבה"
+  },
+  {
+    "_id": "60ad0fe134562eca13bb5e35",
+    "index_title": "Sifrei Devarim",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Sifrei Devarim 334:3",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Sifrei Devarim 334:3",
+    "sourceHeRef": "ספרי דברים של״ד:ג׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      200
+    ],
+    "commentaryNum": 334.0003,
+    "collectiveTitle": {
+      "en": "Sifrei Devarim",
+      "he": "ספרי דברים"
+    },
+    "heTitle": "ספרי דברים"
+  },
+  {
+    "_id": "60ad111234562eca13bb6212",
+    "index_title": "I Samuel",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "I Samuel 3:10",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "I Samuel 3:10",
+    "sourceHeRef": "שמואל א ג׳:י׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      -500
+    ],
+    "commentaryNum": 3.001,
+    "collectiveTitle": {
+      "en": "I Samuel",
+      "he": "שמואל א"
+    },
+    "heTitle": "שמואל א"
+  },
+  {
+    "_id": "60ad111334562eca13bb6214",
+    "index_title": "Exodus",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Exodus 3:4",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Exodus 3:4",
+    "sourceHeRef": "שמות ג׳:ד׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 3.0004,
+    "collectiveTitle": {
+      "en": "Exodus",
+      "he": "שמות"
+    },
+    "heTitle": "שמות"
+  },
+  {
+    "_id": "60ad111334562eca13bb6216",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Genesis 22:11",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Genesis 22:11",
+    "sourceHeRef": "בראשית כ״ב:י״א",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 22.0011,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "60ad111434562eca13bb6218",
+    "index_title": "Bereshit Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Bereshit Rabbah 56:7",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Bereshit Rabbah 56:7",
+    "sourceHeRef": "בראשית רבה נ״ו:ז׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      400
+    ],
+    "commentaryNum": 56.0007,
+    "collectiveTitle": {
+      "en": "Bereshit Rabbah",
+      "he": "בראשית רבה"
+    },
+    "heTitle": "בראשית רבה"
+  },
+  {
+    "_id": "60ad111434562eca13bb621a",
+    "index_title": "Shemot Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Shemot Rabbah 2:6",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Shemot Rabbah 2:6",
+    "sourceHeRef": "שמות רבה ב׳:ו׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      1200
+    ],
+    "commentaryNum": 2.0006,
+    "collectiveTitle": {
+      "en": "Shemot Rabbah",
+      "he": "שמות רבה"
+    },
+    "heTitle": "שמות רבה"
+  },
+  {
+    "_id": "60ad111534562eca13bb621c",
+    "index_title": "Bamidbar Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Bamidbar Rabbah 14:21",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Bamidbar Rabbah 14:21",
+    "sourceHeRef": "במדבר רבה י״ד:כ״א",
+    "anchorVerse": 14,
+    "sourceHasEn": false,
+    "compDate": [
+      1200
+    ],
+    "commentaryNum": 14.0021,
+    "collectiveTitle": {
+      "en": "Bamidbar Rabbah",
+      "he": "במדבר רבה"
+    },
+    "heTitle": "במדבר רבה"
+  },
+  {
+    "_id": "60ad111534562eca13bb621e",
+    "index_title": "Jeremiah",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Jeremiah 32:31",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Jeremiah 32:31",
+    "sourceHeRef": "ירמיהו ל״ב:ל״א",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 32.0031,
+    "collectiveTitle": {
+      "en": "Jeremiah",
+      "he": "ירמיהו"
+    },
+    "heTitle": "ירמיהו"
+  },
+  {
+    "_id": "60ad111634562eca13bb6220",
+    "index_title": "Bereshit Rabbah",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Bereshit Rabbah 56:10",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Bereshit Rabbah 56:10",
+    "sourceHeRef": "בראשית רבה נ״ו:י׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      400
+    ],
+    "commentaryNum": 56.001,
+    "collectiveTitle": {
+      "en": "Bereshit Rabbah",
+      "he": "בראשית רבה"
+    },
+    "heTitle": "בראשית רבה"
+  },
+  {
+    "_id": "60ad111734562eca13bb6222",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Genesis 22:14",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Genesis 22:14",
+    "sourceHeRef": "בראשית כ״ב:י״ד",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 22.0014,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "68702d62224caac3025f4854",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Berakhot 13a:4-7",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Berakhot 13a:4-7",
+    "sourceHeRef": "ברכות י״ג א:ד׳-ז׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 25.0004,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "695ea3cc3300e5c5f3801868",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 17",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Genesis 17",
+    "sourceHeRef": "בראשית י״ז",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 17,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "695eaf8d7412435fbe33f6b1",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 17:15",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Genesis 17:15",
+    "sourceHeRef": "בראשית י״ז:ט״ו",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 17.0015,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "695eaf8d7412435fbe33f6b3",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 17:5",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Genesis 17:5",
+    "sourceHeRef": "בראשית י״ז:ה׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 17.0005,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "6a06d33803a90b6a2d654424",
+    "index_title": "The Midrash of Philo",
+    "category": "Second Temple",
+    "type": "",
+    "ref": "The Midrash of Philo 17:15:5",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "The Midrash of Philo 17:15:5",
+    "sourceHeRef": "מדרשי פילון י״ז:ט״ו:ה׳",
+    "anchorVerse": 14,
+    "sourceHasEn": false,
+    "compDate": [
+      10,
+      50
+    ],
+    "commentaryNum": 15.0005,
+    "collectiveTitle": {
+      "en": "The Midrash of Philo",
+      "he": "מדרשי פילון"
+    },
+    "heTitle": "מדרשי פילון"
+  },
+  {
+    "_id": "6a06d4e0abd61af88771a175",
+    "index_title": "The Midrash of Philo",
+    "category": "Second Temple",
+    "type": "",
+    "ref": "The Midrash of Philo 17:5:3",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "The Midrash of Philo 17:5:3",
+    "sourceHeRef": "מדרשי פילון י״ז:ה׳:ג׳",
+    "anchorVerse": 14,
+    "sourceHasEn": false,
+    "compDate": [
+      10,
+      50
+    ],
+    "commentaryNum": 5.0003,
+    "collectiveTitle": {
+      "en": "The Midrash of Philo",
+      "he": "מדרשי פילון"
+    },
+    "heTitle": "מדרשי פילון"
+  },
+  {
+    "_id": "6a0b250b5a0609aba6786fed",
+    "index_title": "Torah Temimah on Torah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Torah Temimah on Torah, Genesis 17:5:2",
+    "anchorRef": "Tosefta Berakhot 1:14",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:14"
+    ],
+    "sourceRef": "Torah Temimah on Torah, Genesis 17:5:2",
+    "sourceHeRef": "תורה תמימה על התורה, בראשית י״ז:ה׳:ב׳",
+    "anchorVerse": 14,
+    "sourceHasEn": false,
+    "compDate": [
+      1898,
+      1902
+    ],
+    "commentaryNum": 5.0002,
+    "collectiveTitle": {
+      "en": "Torah Temimah on Torah",
+      "he": "תורה תמימה על התורה"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5b226680c1b907001a7595eb",
+    "index_title": "Bamidbar Rabbah",
+    "category": "Midrash",
+    "type": "mesorat hashas",
+    "ref": "Bamidbar Rabbah 14:21",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "Bamidbar Rabbah 14:21",
+    "sourceHeRef": "במדבר רבה י״ד:כ״א",
+    "anchorVerse": 15,
+    "sourceHasEn": false,
+    "compDate": [
+      1200
+    ],
+    "commentaryNum": 14.0021,
+    "collectiveTitle": {
+      "en": "Bamidbar Rabbah",
+      "he": "במדבר רבה"
+    },
+    "heTitle": "במדבר רבה"
+  },
+  {
+    "_id": "695eaf8cce06144202d83654",
+    "index_title": "Exodus",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Exodus 2:3",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "Exodus 2:3",
+    "sourceHeRef": "שמות ב׳:ג׳",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 2.0003,
+    "collectiveTitle": {
+      "en": "Exodus",
+      "he": "שמות"
+    },
+    "heTitle": "שמות"
+  },
+  {
+    "_id": "695eaf8dce06144202d83656",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 22:11",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "Genesis 22:11",
+    "sourceHeRef": "בראשית כ״ב:י״א",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 22.0011,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "695eaf8dce06144202d83658",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 17:5",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "Genesis 17:5",
+    "sourceHeRef": "בראשית י״ז:ה׳",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 17.0005,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "695eaf8ece06144202d8365a",
+    "index_title": "I Chronicles",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "I Chronicles 1:27",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "I Chronicles 1:27",
+    "sourceHeRef": "דברי הימים א א׳:כ״ז",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      -450,
+      -350
+    ],
+    "commentaryNum": 1.0027,
+    "collectiveTitle": {
+      "en": "I Chronicles",
+      "he": "דברי הימים א"
+    },
+    "heTitle": "דברי הימים א"
+  },
+  {
+    "_id": "695eaf8ece06144202d8365c",
+    "index_title": "Numbers",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Numbers 13:16",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "Numbers 13:16",
+    "sourceHeRef": "במדבר י״ג:ט״ז",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 13.0016,
+    "collectiveTitle": {
+      "en": "Numbers",
+      "he": "במדבר"
+    },
+    "heTitle": "במדבר"
+  },
+  {
+    "_id": "695eaf8ece06144202d8365e",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 32:44",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "Deuteronomy 32:44",
+    "sourceHeRef": "דברים ל״ב:מ״ד",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 32.0044,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "695eaf8fce06144202d83660",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 46:2",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "Genesis 46:2",
+    "sourceHeRef": "בראשית מ״ו:ב׳",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 46.0002,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "695eaf8fce06144202d83662",
+    "index_title": "Nehemiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Nehemiah 9:7",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "Nehemiah 9:7",
+    "sourceHeRef": "נחמיה ט׳:ז׳",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      -450,
+      -350
+    ],
+    "commentaryNum": 9.0007,
+    "collectiveTitle": {
+      "en": "Nehemiah",
+      "he": "נחמיה"
+    },
+    "heTitle": "נחמיה"
+  },
+  {
+    "_id": "695eaf90ce06144202d83664",
+    "index_title": "I Samuel",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "I Samuel 3:10",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "I Samuel 3:10",
+    "sourceHeRef": "שמואל א ג׳:י׳",
+    "anchorVerse": 15,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      -500
+    ],
+    "commentaryNum": 3.001,
+    "collectiveTitle": {
+      "en": "I Samuel",
+      "he": "שמואל א"
+    },
+    "heTitle": "שמואל א"
+  },
+  {
+    "_id": "6a0c2780cc24b74c6c250b6c",
+    "index_title": "Malbim on Leviticus",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Malbim on Leviticus, Vayikra 3:3",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "Malbim on Leviticus, Vayikra 3:3",
+    "sourceHeRef": "מלבי\"ם על ויקרא, ויקרא ג׳:ג׳",
+    "anchorVerse": 15,
+    "sourceHasEn": false,
+    "compDate": [
+      1844,
+      1874
+    ],
+    "commentaryNum": 3.0003,
+    "collectiveTitle": {
+      "en": "Malbim on Leviticus",
+      "he": "מלבי\"ם על ויקרא"
+    },
+    "heTitle": "ויקרא"
+  },
+  {
+    "_id": "6a1df2e492c678b85839f03f",
+    "index_title": "Notes and Corrections on Midrash Lekach Tov",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Notes and Corrections on Midrash Lekach Tov, Exodus 3:21",
+    "anchorRef": "Tosefta Berakhot 1:15",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:15"
+    ],
+    "sourceRef": "Notes and Corrections on Midrash Lekach Tov, Exodus 3:21",
+    "sourceHeRef": "הערות ותיקונים על מדרש לקח טוב, שמות ג׳:כ״א",
+    "anchorVerse": 15,
+    "sourceHasEn": false,
+    "compDate": [
+      1880,
+      1884
+    ],
+    "commentaryNum": 3.0021,
+    "collectiveTitle": {
+      "en": "Notes and Corrections on Midrash Lekach Tov",
+      "he": "הערות ותיקונים על מדרש לקח טוב"
+    },
+    "heTitle": "שמות"
+  },
+  {
+    "_id": "54b1d9a5fbfba21603f577e4",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 139",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Psalms 139",
+    "sourceHeRef": "תהילים קל״ט",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 139,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "54b1d9a5fbfba21603f577e6",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 9",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Deuteronomy 9",
+    "sourceHeRef": "דברים ט׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 9,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "695ea3cd66640df63e4e71b5",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 76",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Psalms 76",
+    "sourceHeRef": "תהילים ע״ו",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 76,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "695ea3cd66640df63e4e71b7",
+    "index_title": "Jeremiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Jeremiah 32",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Jeremiah 32",
+    "sourceHeRef": "ירמיהו ל״ב",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 32,
+    "collectiveTitle": {
+      "en": "Jeremiah",
+      "he": "ירמיהו"
+    },
+    "heTitle": "ירמיהו"
+  },
+  {
+    "_id": "695ea3cd66640df63e4e71b9",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 68",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Psalms 68",
+    "sourceHeRef": "תהילים ס״ח",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 68,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "695ea3ce66640df63e4e71bb",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 22",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Genesis 22",
+    "sourceHeRef": "בראשית כ״ב",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 22,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "695eaf8c3300e5c5f3803747",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 22:14",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Genesis 22:14",
+    "sourceHeRef": "בראשית כ״ב:י״ד",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 22.0014,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "695eaf8d3300e5c5f3803749",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 137:7",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Psalms 137:7",
+    "sourceHeRef": "תהילים קל״ז:ז׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 137.0007,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "695eaf8d3300e5c5f380374b",
+    "index_title": "Jeremiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Jeremiah 32:31",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Jeremiah 32:31",
+    "sourceHeRef": "ירמיהו ל״ב:ל״א",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 32.0031,
+    "collectiveTitle": {
+      "en": "Jeremiah",
+      "he": "ירמיהו"
+    },
+    "heTitle": "ירמיהו"
+  },
+  {
+    "_id": "695eaf8d3300e5c5f380374d",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 68:17",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Psalms 68:17",
+    "sourceHeRef": "תהילים ס״ח:י״ז",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 68.0017,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "695eaf8e3300e5c5f380374f",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 76:3",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Psalms 76:3",
+    "sourceHeRef": "תהילים ע״ו:ג׳",
+    "anchorVerse": 16,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 76.0003,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "6a0c6743016d24e40e1eacc7",
+    "index_title": "Rosh David",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Rosh David, Vayetzei 22",
+    "anchorRef": "Tosefta Berakhot 1:16",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:16"
+    ],
+    "sourceRef": "Rosh David, Vayetzei 22",
+    "sourceHeRef": "ראש דוד, ויצא כ״ב",
+    "anchorVerse": 16,
+    "sourceHasEn": false,
+    "compDate": [
+      1768,
+      1792
+    ],
+    "commentaryNum": 22,
+    "collectiveTitle": {
+      "en": "Rosh David",
+      "he": "ראש דוד"
+    },
+    "heTitle": "ויצא"
+  },
+  {
+    "_id": "5b225d50fdb7300016c3c153",
+    "index_title": "Rosh Hashanah",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Rosh Hashanah 28a:1",
+    "anchorRef": "Tosefta Berakhot 1:2",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:2"
+    ],
+    "sourceRef": "Rosh Hashanah 28a:1",
+    "sourceHeRef": "ראש השנה כ״ח א:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 55.0001,
+    "collectiveTitle": {
+      "en": "Rosh Hashanah",
+      "he": "ראש השנה"
+    },
+    "heTitle": "ראש השנה"
+  },
+  {
+    "_id": "5b225e2387ca670017e7ce4a",
+    "index_title": "Avot DeRabbi Natan",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Avot DeRabbi Natan 2:8",
+    "anchorRef": "Tosefta Berakhot 1:2",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:2"
+    ],
+    "sourceRef": "Avot DeRabbi Natan 2:8",
+    "sourceHeRef": "אבות דרבי נתן ב׳:ח׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      650,
+      950
+    ],
+    "commentaryNum": 2.0008,
+    "collectiveTitle": {
+      "en": "Avot DeRabbi Natan",
+      "he": "אבות דרבי נתן"
+    },
+    "heTitle": "אבות דרבי נתן"
+  },
+  {
+    "_id": "5b225fecfdb7300016c3f9af",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Berakhot 8b:18",
+    "anchorRef": "Tosefta Berakhot 1:2",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:2"
+    ],
+    "sourceRef": "Berakhot 8b:18",
+    "sourceHeRef": "ברכות ח׳ ב:י״ח",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 16.0018,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "5c467ef808d98a02694cf997",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, וָתִיק 1",
+    "anchorRef": "Tosefta Berakhot 1:2",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:2"
+    ],
+    "sourceRef": "Jastrow, וָתִיק 1",
+    "sourceHeRef": "מילון יסטרוב, וָתִיק א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "וָתִיק"
+  },
+  {
+    "_id": "604a4879271f901c9267a26a",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 1:1",
+    "anchorRef": "Tosefta Berakhot 1:2",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:2"
+    ],
+    "sourceRef": "Mishnah Berakhot 1:1",
+    "sourceHeRef": "משנה ברכות א׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "604a4881645e9753ec870849",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 1:2",
+    "anchorRef": "Tosefta Berakhot 1:2",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:2"
+    ],
+    "sourceRef": "Mishnah Berakhot 1:2",
+    "sourceHeRef": "משנה ברכות א׳:ב׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0002,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "5b22627cfdb7300016c408e1",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Berakhot 3b:11",
+    "anchorRef": "Tosefta Berakhot 1:3",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:3"
+    ],
+    "sourceRef": "Berakhot 3b:11",
+    "sourceHeRef": "ברכות ג׳ ב:י״א",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 6.0011,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "5c469ae508d98a02694e225d",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, עוֹנָה I 1",
+    "anchorRef": "Tosefta Berakhot 1:3",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:3"
+    ],
+    "sourceRef": "Jastrow, עוֹנָה I 1",
+    "sourceHeRef": "מילון יסטרוב, עוֹנָה I א׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "עוֹנָה I"
+  },
+  {
+    "_id": "604a48a07346add344919c57",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 1:1",
+    "anchorRef": "Tosefta Berakhot 1:3",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:3"
+    ],
+    "sourceRef": "Mishnah Berakhot 1:1",
+    "sourceHeRef": "משנה ברכות א׳:א׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "54b1d9a5fbfba21603f577cc",
+    "index_title": "Judges",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Judges 4",
+    "anchorRef": "Tosefta Berakhot 1:3",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:3"
+    ],
+    "sourceRef": "Judges 4",
+    "sourceHeRef": "שופטים ד׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      -1300,
+      -500
+    ],
+    "commentaryNum": 4,
+    "collectiveTitle": {
+      "en": "Judges",
+      "he": "שופטים"
+    },
+    "heTitle": "שופטים"
+  },
+  {
+    "_id": "695eaf8c66640df63e4e8f2c",
+    "index_title": "Judges",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Judges 7:19",
+    "anchorRef": "Tosefta Berakhot 1:3",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:3"
+    ],
+    "sourceRef": "Judges 7:19",
+    "sourceHeRef": "שופטים ז׳:י״ט",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      -1300,
+      -500
+    ],
+    "commentaryNum": 7.0019,
+    "collectiveTitle": {
+      "en": "Judges",
+      "he": "שופטים"
+    },
+    "heTitle": "שופטים"
+  },
+  {
+    "_id": "6a14bfa96831c113db5ff108",
+    "index_title": "Teshuvot Maharsham Volume I",
+    "category": "Responsa",
+    "type": "",
+    "ref": "Teshuvot Maharsham Volume I 11:5",
+    "anchorRef": "Tosefta Berakhot 1:3",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:3"
+    ],
+    "sourceRef": "Teshuvot Maharsham Volume I 11:5",
+    "sourceHeRef": "שו\"ת מהרש\"ם חלק א י״א:ה׳",
+    "anchorVerse": 3,
+    "sourceHasEn": false,
+    "compDate": [
+      1892
+    ],
+    "commentaryNum": 11.0005,
+    "collectiveTitle": {
+      "en": "Teshuvot Maharsham Volume I",
+      "he": "שו\"ת מהרש\"ם חלק א"
+    },
+    "heTitle": "שו\"ת מהרש\"ם חלק א"
+  },
+  {
+    "_id": "6a14e9d3adc5179dbfa70098",
+    "index_title": "Pardes Yosef",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Pardes Yosef, Exodus 33:5:1",
+    "anchorRef": "Tosefta Berakhot 1:3",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:3"
+    ],
+    "sourceRef": "Pardes Yosef, Exodus 33:5:1",
+    "sourceHeRef": "פרדס יוסף, ספר שמות ל״ג:ה׳:א׳",
+    "anchorVerse": 3,
+    "sourceHasEn": false,
+    "commentaryNum": 5.0001,
+    "collectiveTitle": {
+      "en": "Pardes Yosef",
+      "he": "פרדס יוסף"
+    },
+    "heTitle": "ספר שמות"
+  },
+  {
+    "_id": "6a16a668a2d1c86ecdc8d7d0",
+    "index_title": "Benayahu on Megillah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Benayahu on Megillah 6b:1",
+    "anchorRef": "Tosefta Berakhot 1:3",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:3"
+    ],
+    "sourceRef": "Benayahu on Megillah 6b:1",
+    "sourceHeRef": "בניהו על מגילה ו׳ ב:א׳",
+    "anchorVerse": 3,
+    "sourceHasEn": false,
+    "compDate": [
+      1855,
+      1895
+    ],
+    "commentaryNum": 12.0001,
+    "collectiveTitle": {
+      "en": "Benayahu on Megillah",
+      "he": "בניהו על מגילה"
+    },
+    "heTitle": "בניהו על מגילה"
+  },
+  {
+    "_id": "5b225e67fdb7300016c3e61f",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Berakhot 9b:14",
+    "anchorRef": "Tosefta Berakhot 1:4",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:4"
+    ],
+    "sourceRef": "Berakhot 9b:14",
+    "sourceHeRef": "ברכות ט׳ ב:י״ד",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 18.0014,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "5b226ad4c1b907001a75af13",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Berakhot 26a:13",
+    "anchorRef": "Tosefta Berakhot 1:4",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:4"
+    ],
+    "sourceRef": "Berakhot 26a:13",
+    "sourceHeRef": "ברכות כ״ו א:י״ג",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 51.0013,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "604a48b6197fbf0b2eb8e9dc",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 1:2",
+    "anchorRef": "Tosefta Berakhot 1:4",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:4"
+    ],
+    "sourceRef": "Mishnah Berakhot 1:2",
+    "sourceHeRef": "משנה ברכות א׳:ב׳",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0002,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "60ad0fd534562eca13bb5e0b",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Berakhot 9b:12",
+    "anchorRef": "Tosefta Berakhot 1:4",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:4"
+    ],
+    "sourceRef": "Berakhot 9b:12",
+    "sourceHeRef": "ברכות ט׳ ב:י״ב",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 18.0012,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "6a1832f8ddb943ab60a7cb0f",
+    "index_title": "Divrei Yirmiyahu on Mishneh Torah, Reading the Shema",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Divrei Yirmiyahu on Mishneh Torah, Reading the Shema 2:5:1",
+    "anchorRef": "Tosefta Berakhot 1:4",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:4"
+    ],
+    "sourceRef": "Divrei Yirmiyahu on Mishneh Torah, Reading the Shema 2:5:1",
+    "sourceHeRef": "דברי ירמיהו על משנה תורה, הלכות קריאת שמע ב׳:ה׳:א׳",
+    "anchorVerse": 4,
+    "sourceHasEn": false,
+    "compDate": [
+      1834,
+      1874
+    ],
+    "commentaryNum": 5.0001,
+    "collectiveTitle": {
+      "en": "Divrei Yirmiyahu on Mishneh Torah, Reading the Shema",
+      "he": "דברי ירמיהו על משנה תורה, הלכות קריאת שמע"
+    },
+    "heTitle": "דברי ירמיהו על משנה תורה, הלכות קריאת שמע"
+  },
+  {
+    "_id": "604a48f56b7242d9777abdf6",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 2:5",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Mishnah Berakhot 2:5",
+    "sourceHeRef": "משנה ברכות ב׳:ה׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 2.0005,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "604a4909271f901c9267a26c",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 3:1",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Mishnah Berakhot 3:1",
+    "sourceHeRef": "משנה ברכות ג׳:א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 3.0001,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "604a4914cc518b28ef5f929c",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 3:2",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Mishnah Berakhot 3:2",
+    "sourceHeRef": "משנה ברכות ג׳:ב׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 3.0002,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "604a57f7d2eb607d91c6c2fc",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 2:8",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Mishnah Berakhot 2:8",
+    "sourceHeRef": "משנה ברכות ב׳:ח׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 2.0008,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "60ad0fd634562eca13bb5e0d",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Berakhot 11a",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Berakhot 11a",
+    "sourceHeRef": "ברכות י״א א",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 21,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "60ad0fd634562eca13bb5e0f",
+    "index_title": "Sukkah",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Sukkah 25a",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Sukkah 25a",
+    "sourceHeRef": "סוכה כ״ה א",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 49,
+    "collectiveTitle": {
+      "en": "Sukkah",
+      "he": "סוכה"
+    },
+    "heTitle": "סוכה"
+  },
+  {
+    "_id": "695ea3cb3300e5c5f3801862",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 6",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Deuteronomy 6",
+    "sourceHeRef": "דברים ו׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 6,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "695ea9d17412435fbe33e7dc",
+    "index_title": "Deuteronomy",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Deuteronomy 6:7",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Deuteronomy 6:7",
+    "sourceHeRef": "דברים ו׳:ז׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 6.0007,
+    "collectiveTitle": {
+      "en": "Deuteronomy",
+      "he": "דברים"
+    },
+    "heTitle": "דברים"
+  },
+  {
+    "_id": "69fa45d9338c75c50decd698",
+    "index_title": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:3:2",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:3:2",
+    "sourceHeRef": "אור לישרים על תלמוד ירושלמי ברכות א׳:ג׳:ב׳",
+    "anchorVerse": 5,
+    "sourceHasEn": false,
+    "commentaryNum": 3.0002,
+    "collectiveTitle": {
+      "en": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+      "he": "אור לישרים על תלמוד ירושלמי ברכות"
+    }
+  },
+  {
+    "_id": "6a05191d3ff9e110f26d90f6",
+    "index_title": "Haamek Davar on Deuteronomy",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Haamek Davar on Deuteronomy 10:12:1",
+    "anchorRef": "Tosefta Berakhot 1:5",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:5"
+    ],
+    "sourceRef": "Haamek Davar on Deuteronomy 10:12:1",
+    "sourceHeRef": "העמק דבר על דברים י׳:י״ב:א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      1849,
+      1879
+    ],
+    "commentaryNum": 12.0001,
+    "collectiveTitle": {
+      "en": "Haamek Davar on Deuteronomy",
+      "he": "העמק דבר על דברים"
+    }
+  },
+  {
+    "_id": "5b226ad7c1b907001a75af51",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Berakhot 11a:15",
+    "anchorRef": "Tosefta Berakhot 1:6",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:6"
+    ],
+    "sourceRef": "Berakhot 11a:15",
+    "sourceHeRef": "ברכות י״א א:ט״ו",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 21.0015,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "604a4959c043533b479ab5dd",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 1:3",
+    "anchorRef": "Tosefta Berakhot 1:6",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:6"
+    ],
+    "sourceRef": "Mishnah Berakhot 1:3",
+    "sourceHeRef": "משנה ברכות א׳:ג׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0003,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "60ad0fd734562eca13bb5e11",
+    "index_title": "Sifrei Devarim",
+    "category": "Midrash",
+    "type": "related",
+    "ref": "Sifrei Devarim 34",
+    "anchorRef": "Tosefta Berakhot 1:6",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:6"
+    ],
+    "sourceRef": "Sifrei Devarim 34",
+    "sourceHeRef": "ספרי דברים ל״ד",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      200
+    ],
+    "commentaryNum": 34,
+    "collectiveTitle": {
+      "en": "Sifrei Devarim",
+      "he": "ספרי דברים"
+    },
+    "heTitle": "ספרי דברים"
+  },
+  {
+    "_id": "60ad0fd734562eca13bb5e13",
+    "index_title": "Tosefta Berakhot (Lieberman)",
+    "category": "Tosefta",
+    "type": "related",
+    "ref": "Tosefta Berakhot (Lieberman) 5:2",
+    "anchorRef": "Tosefta Berakhot 1:6",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:6"
+    ],
+    "sourceRef": "Tosefta Berakhot (Lieberman) 5:2",
+    "sourceHeRef": "תוספתא ברכות (ליברמן) ה׳:ב׳",
+    "anchorVerse": 6,
+    "sourceHasEn": false,
+    "commentaryNum": 5.0002,
+    "collectiveTitle": {
+      "en": "Tosefta Berakhot (Lieberman)",
+      "he": "תוספתא ברכות (ליברמן)"
+    },
+    "heTitle": "תוספתא ברכות (ליברמן)"
+  },
+  {
+    "_id": "60ad0fd834562eca13bb5e17",
+    "index_title": "Ketubot",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Ketubot 50b:9",
+    "anchorRef": "Tosefta Berakhot 1:6",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:6"
+    ],
+    "sourceRef": "Ketubot 50b:9",
+    "sourceHeRef": "כתובות נ׳ ב:ט׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 100.0009,
+    "collectiveTitle": {
+      "en": "Ketubot",
+      "he": "כתובות"
+    },
+    "heTitle": "כתובות"
+  },
+  {
+    "_id": "6a0f7363e7f9e5c76640f73a",
+    "index_title": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:3:3",
+    "anchorRef": "Tosefta Berakhot 1:6",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:6"
+    ],
+    "sourceRef": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:3:3",
+    "sourceHeRef": "אור לישרים על תלמוד ירושלמי ברכות א׳:ג׳:ג׳",
+    "anchorVerse": 6,
+    "sourceHasEn": false,
+    "commentaryNum": 3.0003,
+    "collectiveTitle": {
+      "en": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+      "he": "אור לישרים על תלמוד ירושלמי ברכות"
+    }
+  },
+  {
+    "_id": "6a1f955b2cd220e71388237b",
+    "index_title": "Mareh HaPanim on Jerusalem Talmud Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Mareh HaPanim on Jerusalem Talmud Berakhot 1:3:3:1",
+    "anchorRef": "Tosefta Berakhot 1:6",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:6"
+    ],
+    "sourceRef": "Mareh HaPanim on Jerusalem Talmud Berakhot 1:3:3:1",
+    "sourceHeRef": "מראה הפנים על תלמוד ירושלמי ברכות א׳:ג׳:ג׳:א׳",
+    "anchorVerse": 6,
+    "sourceHasEn": false,
+    "commentaryNum": 3.0001,
+    "collectiveTitle": {
+      "en": "Mareh HaPanim on Jerusalem Talmud Berakhot",
+      "he": "מראה הפנים על תלמוד ירושלמי ברכות"
+    },
+    "heTitle": "מראה הפנים על תלמוד ירושלמי ברכות"
+  },
+  {
+    "_id": "5b226115fdb7300016c3fe55",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "mesorat hashas",
+    "ref": "Mishnah Berakhot 1:4",
+    "anchorRef": "Tosefta Berakhot 1:7",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:7"
+    ],
+    "sourceRef": "Mishnah Berakhot 1:4",
+    "sourceHeRef": "משנה ברכות א׳:ד׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0004,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "5b226538c1b907001a75855f",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Berakhot 11a:24-25",
+    "anchorRef": "Tosefta Berakhot 1:7",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:7"
+    ],
+    "sourceRef": "Berakhot 11a:24-25",
+    "sourceHeRef": "ברכות י״א א:כ״ד-כ״ה",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 21.0024,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "60ad0fdb34562eca13bb5e21",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Berakhot 34a:14",
+    "anchorRef": "Tosefta Berakhot 1:7",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:7"
+    ],
+    "sourceRef": "Berakhot 34a:14",
+    "sourceHeRef": "ברכות ל״ד א:י״ד",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 67.0014,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "60ad0fdd34562eca13bb5e27",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Genesis 35:10",
+    "anchorRef": "Tosefta Berakhot 1:7",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:7"
+    ],
+    "sourceRef": "Genesis 35:10",
+    "sourceHeRef": "בראשית ל״ה:י׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 35.001,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "6a0b649ad214d17adf3ac2a6",
+    "index_title": "Machzor Vitry",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Machzor Vitry, Laws of Rosh HaShanah 325:3",
+    "anchorRef": "Tosefta Berakhot 1:7",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:7"
+    ],
+    "sourceRef": "Machzor Vitry, Laws of Rosh HaShanah 325:3",
+    "sourceHeRef": "מחזור ויטרי, הלכות ראש השנה שכ״ה:ג׳",
+    "anchorVerse": 7,
+    "sourceHasEn": false,
+    "compDate": [
+      1055,
+      1105
+    ],
+    "commentaryNum": 325.0003,
+    "collectiveTitle": {
+      "en": "Machzor Vitry",
+      "he": "מחזור ויטרי"
+    },
+    "heTitle": "הלכות ראש השנה"
+  },
+  {
+    "_id": "6a0ce93c4e56c16ae7add4bd",
+    "index_title": "Chiddushei HaRa'ah on Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Chiddushei HaRa'ah on Berakhot 11a:4",
+    "anchorRef": "Tosefta Berakhot 1:7",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:7"
+    ],
+    "sourceRef": "Chiddushei HaRa'ah on Berakhot 11a:4",
+    "sourceHeRef": "רא\"ה על ברכות י״א א:ד׳",
+    "anchorVerse": 7,
+    "sourceHasEn": false,
+    "compDate": [
+      1255,
+      1285
+    ],
+    "commentaryNum": 21.0004,
+    "collectiveTitle": {
+      "en": "Chiddushei HaRa'ah on Berakhot",
+      "he": "רא\"ה על ברכות"
+    }
+  },
+  {
+    "_id": "6a1832b96a9084df60166270",
+    "index_title": "Kessef Mishneh on Mishneh Torah, Reading the Shema",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Kessef Mishneh on Mishneh Torah, Reading the Shema 1:7:2",
+    "anchorRef": "Tosefta Berakhot 1:7",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:7"
+    ],
+    "sourceRef": "Kessef Mishneh on Mishneh Torah, Reading the Shema 1:7:2",
+    "sourceHeRef": "כסף משנה על משנה תורה, הלכות קריאת שמע א׳:ז׳:ב׳",
+    "anchorVerse": 7,
+    "sourceHasEn": false,
+    "compDate": [
+      1545,
+      1575
+    ],
+    "commentaryNum": 7.0002,
+    "collectiveTitle": {
+      "en": "Kessef Mishneh on Mishneh Torah, Reading the Shema",
+      "he": "כסף משנה על משנה תורה, הלכות קריאת שמע"
+    },
+    "heTitle": "כסף משנה על משנה תורה, הלכות קריאת שמע"
+  },
+  {
+    "_id": "5b22635e3322c50016001f3d",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "mesorat hashas",
+    "ref": "Berakhot 50a:3",
+    "anchorRef": "Tosefta Berakhot 1:8",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:8"
+    ],
+    "sourceRef": "Berakhot 50a:3",
+    "sourceHeRef": "ברכות נ׳ א:ג׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 99.0003,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "604a49b586d7d5d4410a6b2a",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 1:4",
+    "anchorRef": "Tosefta Berakhot 1:8",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:8"
+    ],
+    "sourceRef": "Mishnah Berakhot 1:4",
+    "sourceHeRef": "משנה ברכות א׳:ד׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 1.0004,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "604a49e6ab0215d092853dd5",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 6:1",
+    "anchorRef": "Tosefta Berakhot 1:8",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:8"
+    ],
+    "sourceRef": "Mishnah Berakhot 6:1",
+    "sourceHeRef": "משנה ברכות ו׳:א׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 6.0001,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "604a49fcab0215d092853dda",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 6:8",
+    "anchorRef": "Tosefta Berakhot 1:8",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:8"
+    ],
+    "sourceRef": "Mishnah Berakhot 6:8",
+    "sourceHeRef": "משנה ברכות ו׳:ח׳",
+    "anchorVerse": 8,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 6.0008,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "6a0ce7eed214d17adf3adb8e",
+    "index_title": "Chiddushei HaRa'ah on Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Chiddushei HaRa'ah on Berakhot 46a:10",
+    "anchorRef": "Tosefta Berakhot 1:8",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:8"
+    ],
+    "sourceRef": "Chiddushei HaRa'ah on Berakhot 46a:10",
+    "sourceHeRef": "רא\"ה על ברכות מ״ו א:י׳",
+    "anchorVerse": 8,
+    "sourceHasEn": false,
+    "compDate": [
+      1255,
+      1285
+    ],
+    "commentaryNum": 91.001,
+    "collectiveTitle": {
+      "en": "Chiddushei HaRa'ah on Berakhot",
+      "he": "רא\"ה על ברכות"
+    }
+  },
+  {
+    "_id": "6a10da471c1f53432af14946",
+    "index_title": "Shibbolei HaLeket",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Shibbolei HaLeket 28:11",
+    "anchorRef": "Tosefta Berakhot 1:8",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:8"
+    ],
+    "sourceRef": "Shibbolei HaLeket 28:11",
+    "sourceHeRef": "שבלי הלקט כ״ח:י״א",
+    "anchorVerse": 8,
+    "sourceHasEn": false,
+    "commentaryNum": 28.0011,
+    "collectiveTitle": {
+      "en": "Shibbolei HaLeket",
+      "he": "שבלי הלקט"
+    }
+  },
+  {
+    "_id": "5c46b04308d98a02694ee8d0",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, שָׁחַח 1",
+    "anchorRef": "Tosefta Berakhot 1:9",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:9"
+    ],
+    "sourceRef": "Jastrow, שָׁחַח 1",
+    "sourceHeRef": "מילון יסטרוב, שָׁחַח א׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "שָׁחַח"
+  },
+  {
+    "_id": "5c46b04908d98a02694ee8fe",
+    "index_title": "Jastrow",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Jastrow, שחי 1",
+    "anchorRef": "Tosefta Berakhot 1:9",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:9"
+    ],
+    "sourceRef": "Jastrow, שחי 1",
+    "sourceHeRef": "מילון יסטרוב, שחי א׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      1883,
+      1903
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Jastrow",
+      "he": "מילון יסטרוב"
+    },
+    "heTitle": "שחי"
+  },
+  {
+    "_id": "604a4aadeebfadf0c979b611",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 6:1",
+    "anchorRef": "Tosefta Berakhot 1:9",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:9"
+    ],
+    "sourceRef": "Mishnah Berakhot 6:1",
+    "sourceHeRef": "משנה ברכות ו׳:א׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 6.0001,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "604a4ac94c7e740968f0e819",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 6:8",
+    "anchorRef": "Tosefta Berakhot 1:9",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:9"
+    ],
+    "sourceRef": "Mishnah Berakhot 6:8",
+    "sourceHeRef": "משנה ברכות ו׳:ח׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 6.0008,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "604a4ad4645e9753ec870852",
+    "index_title": "Mishnah Berakhot",
+    "category": "Mishnah",
+    "type": "related",
+    "ref": "Mishnah Berakhot 7:3",
+    "anchorRef": "Tosefta Berakhot 1:9",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:9"
+    ],
+    "sourceRef": "Mishnah Berakhot 7:3",
+    "sourceHeRef": "משנה ברכות ז׳:ג׳",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 7.0003,
+    "collectiveTitle": {
+      "en": "Mishnah Berakhot",
+      "he": "משנה ברכות"
+    },
+    "heTitle": "משנה ברכות"
+  },
+  {
+    "_id": "60ad0fd934562eca13bb5e19",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Berakhot 46a",
+    "anchorRef": "Tosefta Berakhot 1:9",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:9"
+    ],
+    "sourceRef": "Berakhot 46a",
+    "sourceHeRef": "ברכות מ״ו א",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 91,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "60ad0fd934562eca13bb5e1b",
+    "index_title": "Pesachim",
+    "category": "Talmud",
+    "type": "related",
+    "ref": "Pesachim 104b",
+    "anchorRef": "Tosefta Berakhot 1:9",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:9"
+    ],
+    "sourceRef": "Pesachim 104b",
+    "sourceHeRef": "פסחים ק״ד ב",
+    "anchorVerse": 9,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 208,
+    "collectiveTitle": {
+      "en": "Pesachim",
+      "he": "פסחים"
+    },
+    "heTitle": "פסחים"
+  },
+  {
+    "_id": "6a19a116f63d1d1168b47ca3",
+    "index_title": "Tosafot HaRosh on Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Tosafot HaRosh on Berakhot 46b:2",
+    "anchorRef": "Tosefta Berakhot 1:9",
+    "anchorRefExpanded": [
+      "Tosefta Berakhot 1:9"
+    ],
+    "sourceRef": "Tosafot HaRosh on Berakhot 46b:2",
+    "sourceHeRef": "תוספות הרא\"ש על ברכות מ״ו ב:ב׳",
+    "anchorVerse": 9,
+    "sourceHasEn": false,
+    "commentaryNum": 92.0002,
+    "collectiveTitle": {
+      "en": "Tosafot HaRosh on Berakhot",
+      "he": "תוספות הרא\"ש על ברכות"
+    },
+    "heTitle": "תוספות הרא\"ש על ברכות"
+  }
+]

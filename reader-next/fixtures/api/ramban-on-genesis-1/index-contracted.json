@@ -1,0 +1,2891 @@
+{
+  "title": "Ramban on Genesis",
+  "categories": [
+    "Tanakh",
+    "Rishonim on Tanakh",
+    "Ramban",
+    "Torah"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "sharedTitle": "Introduction",
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Introduction",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "הקדמה",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "מבוא"
+          }
+        ],
+        "title": "Introduction",
+        "heTitle": "הקדמה",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "intro",
+        "content_counts": 6
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Foreword",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "פתיחה לפירוש התורה",
+            "primary": true
+          }
+        ],
+        "title": "Foreword",
+        "heTitle": "פתיחה לפירוש התורה",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Foreword",
+        "content_counts": 18
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 3,
+        "addressTypes": [
+          "Perek",
+          "Pasuk",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Chapter",
+          "Verse",
+          "Comment"
+        ],
+        "isSegmentLevelDiburHamatchil": true,
+        "diburHamatchilRegexes": [
+          "^<b>(.+?)</b>",
+          "^(.+?)[\\-–]"
+        ],
+        "default": true,
+        "title": "",
+        "heTitle": "",
+        "heSectionNames": [
+          "פרק",
+          "פסוק",
+          "פירוש"
+        ],
+        "key": "default",
+        "content_counts": [
+          [
+            4,
+            0,
+            2,
+            2,
+            2,
+            2,
+            2,
+            1,
+            1,
+            2,
+            1,
+            1,
+            0,
+            6,
+            1,
+            1,
+            0,
+            2,
+            0,
+            2,
+            1,
+            3,
+            0,
+            3,
+            0,
+            2,
+            0,
+            4,
+            1,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            2,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            2,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            2,
+            0,
+            1,
+            0,
+            1,
+            3,
+            1,
+            0,
+            1,
+            2,
+            0,
+            0,
+            0,
+            1,
+            1,
+            2,
+            1,
+            0,
+            1
+          ],
+          [
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            1,
+            0,
+            0,
+            5,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            2,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            3,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            2,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            3,
+            1,
+            1,
+            0,
+            1
+          ],
+          [
+            2,
+            2,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            2,
+            2,
+            1,
+            1,
+            1,
+            1,
+            2,
+            1,
+            1
+          ],
+          [
+            0,
+            1,
+            2,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1
+          ],
+          [
+            3,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            2,
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            2,
+            1,
+            2,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            1,
+            2,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            0,
+            2,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            2,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            2,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            2,
+            0,
+            2,
+            0,
+            1,
+            0,
+            2,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            1,
+            0,
+            2,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            2,
+            0,
+            0,
+            2,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1,
+            0,
+            1,
+            1
+          ],
+          [
+            2,
+            1,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            2,
+            1,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1,
+            0,
+            2,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            3,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            1,
+            1,
+            0,
+            2,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            2,
+            0,
+            2,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            2,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            2,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            1,
+            1,
+            0,
+            0,
+            2,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            2,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            2,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            2,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            1,
+            1,
+            0,
+            0,
+            2,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            2,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            0,
+            2,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            2,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            1,
+            1,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            2,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            2,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            3,
+            0,
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            2,
+            0,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            1,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            1,
+            1,
+            0,
+            0,
+            2,
+            0,
+            3
+          ],
+          [
+            1,
+            0,
+            1,
+            1,
+            2,
+            1,
+            0,
+            0,
+            0,
+            2,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            2,
+            1,
+            1,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            2,
+            0,
+            3
+          ]
+        ]
+      }
+    ],
+    "nodeType": "SchemaNode",
+    "match_templates": [
+      {
+        "term_slugs": [
+          "ramban",
+          "genesis"
+        ]
+      }
+    ],
+    "titles": [
+      {
+        "text": "Nachmanides on Bereshit",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Gen",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Breishit",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Ber",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Bereishit",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Ber.",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Beresheet",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Bereshith",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Genesis",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Bereshit",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Gen",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Breishit",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Ber",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Bereishit",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Ber.",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Beresheet",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Bereshith",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Genesis",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Bereshit",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Gen",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Breishit",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Ber",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Bereishit",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Ber.",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Beresheet",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Bereshith",
+        "lang": "en"
+      },
+      {
+        "text": "רמב\"ן על ברא'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ן על בר'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ן על בר׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ן על ברא׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ן על בְּרֵאשִׁית",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על ברא'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על ברא'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על בר'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על בר'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על בר׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על בר׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על ברא׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על ברא׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על בְּרֵאשִׁית",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על בְּרֵאשִׁית",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ן על בראשית",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Ramban on Genesis",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Ramban on Genesis",
+    "heTitle": "רמב\"ן על בראשית",
+    "key": "Ramban on Genesis"
+  },
+  "exclude_structs": [
+    "Parasha"
+  ],
+  "authors": [
+    {
+      "en": "Moses ben Nachman (Ramban)",
+      "he": "רמב״ן",
+      "slug": "ramban"
+    }
+  ],
+  "enDesc": "Commentary by Rabbi Moses ben Nahman (1194–1270), commonly known as the Ramban. The Ramban lived in Spain until his move to Jerusalem toward the end of his life. His commentary reflects his love of Eretz Yisrael. He usually begins his comments with Rashi’s explanation and then expounds further with insights from Kabbalah and Oral Tradition. His comments include respectful criticism of Rashi, Ibn Ezra and Rambam.",
+  "heDesc": "",
+  "enShortDesc": "",
+  "heShortDesc": "",
+  "pubDate": [
+    1480
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1246,
+    1270
+  ],
+  "compPlace": "Middle-Age Spain",
+  "pubPlace": "Bologna",
+  "era": "RI",
+  "dependence": "Commentary",
+  "base_text_titles": [
+    {
+      "en": "Genesis",
+      "he": "בראשית"
+    }
+  ],
+  "base_text_mapping": "many_to_one_default_only",
+  "collective_title": {
+    "en": "Ramban",
+    "he": "רמב\"ן"
+  },
+  "is_cited": true,
+  "heTitle": "רמב\"ן על בראשית",
+  "titleVariants": [
+    "Nachmanides on Bereshit",
+    "Nachmanides on Gen",
+    "Nachmanides on Gen.",
+    "Nachmanides on Breishit",
+    "Nachmanides on Ber",
+    "Nachmanides on Bereishit",
+    "Nachmanides on Ber.",
+    "Nachmanides on Beresheet",
+    "Nachmanides on Bereshith",
+    "Nachmanides on Genesis",
+    "Rabbi Moshe Ben Nachman on Bereshit",
+    "Rabbi Moshe Ben Nachman on Gen",
+    "Rabbi Moshe Ben Nachman on Gen.",
+    "Rabbi Moshe Ben Nachman on Breishit",
+    "Rabbi Moshe Ben Nachman on Ber",
+    "Rabbi Moshe Ben Nachman on Bereishit",
+    "Rabbi Moshe Ben Nachman on Ber.",
+    "Rabbi Moshe Ben Nachman on Beresheet",
+    "Rabbi Moshe Ben Nachman on Bereshith",
+    "Rabbi Moshe Ben Nachman on Genesis",
+    "Ramban on Bereshit",
+    "Ramban on Gen",
+    "Ramban on Gen.",
+    "Ramban on Breishit",
+    "Ramban on Ber",
+    "Ramban on Bereishit",
+    "Ramban on Ber.",
+    "Ramban on Beresheet",
+    "Ramban on Bereshith",
+    "Ramban on Genesis"
+  ],
+  "heTitleVariants": [
+    "רמב\"ן על ברא'",
+    "רמב\"ן על בר'",
+    "רמב\"ן על בר׳",
+    "רמב\"ן על ברא׳",
+    "רמב\"ן על בְּרֵאשִׁית",
+    "רמב״ן על בראשית",
+    "רמב”ן על בראשית",
+    "רמב״ן על ברא'",
+    "רמב”ן על ברא'",
+    "רמב״ן על בר'",
+    "רמב”ן על בר'",
+    "רמב״ן על בר׳",
+    "רמב”ן על בר׳",
+    "רמב״ן על ברא׳",
+    "רמב”ן על ברא׳",
+    "רמב״ן על בְּרֵאשִׁית",
+    "רמב”ן על בְּרֵאשִׁית",
+    "רמב\"ן על בראשית"
+  ],
+  "alts": {
+    "Parasha": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 1:1:1-6:8:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "bereshit"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "bereshit"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Bereshit",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Bereshit",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "בראשית",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Bereshit",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת בראשית",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Bereishit",
+              "lang": "en"
+            },
+            {
+              "text": "Parashat Genesis",
+              "lang": "en"
+            },
+            {
+              "text": "Genesis",
+              "lang": "en"
+            },
+            {
+              "text": "Bereishit",
+              "lang": "en"
+            },
+            {
+              "text": "Breishit",
+              "lang": "en"
+            },
+            {
+              "text": "Bereshis",
+              "lang": "en"
+            }
+          ],
+          "title": "Bereshit",
+          "heTitle": "בראשית"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 6:9:1-11:32:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "noach"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "noach"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Noach",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Noach",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "נח",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Noach",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת נח",
+              "lang": "he"
+            },
+            {
+              "text": "Noah",
+              "lang": "en"
+            },
+            {
+              "text": "Parshat Noah",
+              "lang": "en"
+            }
+          ],
+          "title": "Noach",
+          "heTitle": "נח"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 12:1:1-17:26:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "lech-lecha"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "lech-lecha"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Lech Lecha",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Lech Lecha",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "לך לך",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Lech Lecha",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת לך לך",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Lekh Lekha",
+              "lang": "en"
+            }
+          ],
+          "title": "Lech Lecha",
+          "heTitle": "לך לך"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 18:1:1-22:24:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayera"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayera"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayera",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayera",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "וירא",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayera",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת וירא",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayeira",
+              "lang": "en"
+            },
+            {
+              "text": "Parshat Vayera",
+              "lang": "en"
+            }
+          ],
+          "title": "Vayera",
+          "heTitle": "וירא"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 23:1:1-25:17:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "chayei-sara"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "chayei-sara"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Chayei Sara",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chayei Sara",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "חיי שרה",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Chayei Sara",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת חיי שרה",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Chayei Sarah",
+              "lang": "en"
+            },
+            {
+              "text": "Parashat Chaye Sarah",
+              "lang": "en"
+            },
+            {
+              "text": "Parshat Chayei Sarah",
+              "lang": "en"
+            },
+            {
+              "text": "Chayei Sarah",
+              "lang": "en"
+            },
+            {
+              "text": "Hayei Sarah",
+              "lang": "en"
+            },
+            {
+              "text": "Hayye Sarah",
+              "lang": "en"
+            }
+          ],
+          "title": "Chayei Sara",
+          "heTitle": "חיי שרה"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 25:19:1-28:5:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "toldot"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "toldot"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Toldot",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Toldot",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "תולדות",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Toldot",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת תולדות",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Toledot",
+              "lang": "en"
+            },
+            {
+              "text": "Parshat Toledot",
+              "lang": "en"
+            },
+            {
+              "text": "Toldos",
+              "lang": "en"
+            }
+          ],
+          "title": "Toldot",
+          "heTitle": "תולדות"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 28:12:1-32:2:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayetzei"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayetzei"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayetzei",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayetzei",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "ויצא",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayetzei",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת ויצא",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayeitzey",
+              "lang": "en"
+            },
+            {
+              "text": "Vayetze",
+              "lang": "en"
+            },
+            {
+              "text": "Parashat Vayetze",
+              "lang": "en"
+            },
+            {
+              "text": "Parashat Vayetzey",
+              "lang": "en"
+            }
+          ],
+          "title": "Vayetzei",
+          "heTitle": "ויצא"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 32:4:1-36:43:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayishlach"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayishlach"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayishlach",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayishlach",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "וישלח",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayishlach",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת וישלח",
+              "lang": "he"
+            }
+          ],
+          "title": "Vayishlach",
+          "heTitle": "וישלח"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 37:1:1-40:16:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayeshev"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayeshev"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayeshev",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayeshev",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "וישב",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayeshev",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת וישב",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Veyeshev",
+              "lang": "en"
+            },
+            {
+              "text": "Parshat Vayeshev",
+              "lang": "en"
+            }
+          ],
+          "title": "Vayeshev",
+          "heTitle": "וישב"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 41:1:1-44:10:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "miketz"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "miketz"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Miketz",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Miketz",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "מקץ",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Miketz",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת מקץ",
+              "lang": "he"
+            }
+          ],
+          "title": "Miketz",
+          "heTitle": "מקץ"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 44:18:1-47:19:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayigash"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayigash"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayigash",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayigash",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "ויגש",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayigash",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת ויגש",
+              "lang": "he"
+            }
+          ],
+          "title": "Vayigash",
+          "heTitle": "ויגש"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 47:28:1-49:33:3",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayechi"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayechi"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayechi",
+          "titles": [
+            {
+              "primary": true,
+              "text": "Vayechi",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "ויחי",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayechi",
+              "lang": "en"
+            },
+            {
+              "text": "פרשת ויחי",
+              "lang": "he"
+            },
+            {
+              "text": "Parashat Vayehi",
+              "lang": "en"
+            }
+          ],
+          "title": "Vayechi",
+          "heTitle": "ויחי"
+        }
+      ],
+      "titles": [
+        {
+          "text": "Nachmanides on Bereshit",
+          "lang": "en"
+        },
+        {
+          "text": "Nachmanides on Gen",
+          "lang": "en"
+        },
+        {
+          "text": "Nachmanides on Gen.",
+          "lang": "en"
+        },
+        {
+          "text": "Nachmanides on Breishit",
+          "lang": "en"
+        },
+        {
+          "text": "Nachmanides on Ber",
+          "lang": "en"
+        },
+        {
+          "text": "Nachmanides on Bereishit",
+          "lang": "en"
+        },
+        {
+          "text": "Nachmanides on Ber.",
+          "lang": "en"
+        },
+        {
+          "text": "Nachmanides on Beresheet",
+          "lang": "en"
+        },
+        {
+          "text": "Nachmanides on Bereshith",
+          "lang": "en"
+        },
+        {
+          "text": "Nachmanides on Genesis",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Moshe Ben Nachman on Bereshit",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Moshe Ben Nachman on Gen",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Moshe Ben Nachman on Gen.",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Moshe Ben Nachman on Breishit",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Moshe Ben Nachman on Ber",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Moshe Ben Nachman on Bereishit",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Moshe Ben Nachman on Ber.",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Moshe Ben Nachman on Beresheet",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Moshe Ben Nachman on Bereshith",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Moshe Ben Nachman on Genesis",
+          "lang": "en"
+        },
+        {
+          "text": "Ramban on Bereshit",
+          "lang": "en"
+        },
+        {
+          "text": "Ramban on Gen",
+          "lang": "en"
+        },
+        {
+          "text": "Ramban on Gen.",
+          "lang": "en"
+        },
+        {
+          "text": "Ramban on Breishit",
+          "lang": "en"
+        },
+        {
+          "text": "Ramban on Ber",
+          "lang": "en"
+        },
+        {
+          "text": "Ramban on Bereishit",
+          "lang": "en"
+        },
+        {
+          "text": "Ramban on Ber.",
+          "lang": "en"
+        },
+        {
+          "text": "Ramban on Beresheet",
+          "lang": "en"
+        },
+        {
+          "text": "Ramban on Bereshith",
+          "lang": "en"
+        },
+        {
+          "text": "רמב\"ן על ברא'",
+          "lang": "he"
+        },
+        {
+          "text": "רמב\"ן על בר'",
+          "lang": "he"
+        },
+        {
+          "text": "רמב\"ן על בר׳",
+          "lang": "he"
+        },
+        {
+          "text": "רמב\"ן על ברא׳",
+          "lang": "he"
+        },
+        {
+          "text": "רמב\"ן על בְּרֵאשִׁית",
+          "lang": "he"
+        },
+        {
+          "text": "רמב״ן על בראשית",
+          "lang": "he"
+        },
+        {
+          "text": "רמב”ן על בראשית",
+          "lang": "he"
+        },
+        {
+          "text": "רמב״ן על ברא'",
+          "lang": "he"
+        },
+        {
+          "text": "רמב”ן על ברא'",
+          "lang": "he"
+        },
+        {
+          "text": "רמב״ן על בר'",
+          "lang": "he"
+        },
+        {
+          "text": "רמב”ן על בר'",
+          "lang": "he"
+        },
+        {
+          "text": "רמב״ן על בר׳",
+          "lang": "he"
+        },
+        {
+          "text": "רמב”ן על בר׳",
+          "lang": "he"
+        },
+        {
+          "text": "רמב״ן על ברא׳",
+          "lang": "he"
+        },
+        {
+          "text": "רמב”ן על ברא׳",
+          "lang": "he"
+        },
+        {
+          "text": "רמב״ן על בְּרֵאשִׁית",
+          "lang": "he"
+        },
+        {
+          "text": "רמב”ן על בְּרֵאשִׁית",
+          "lang": "he"
+        },
+        {
+          "text": "רמב\"ן על בראשית",
+          "lang": "he",
+          "primary": true
+        },
+        {
+          "text": "Ramban on Genesis",
+          "lang": "en",
+          "primary": true
+        }
+      ],
+      "title": "Ramban on Genesis",
+      "heTitle": "רמב\"ן על בראשית"
+    }
+  },
+  "firstSectionRef": "Ramban on Genesis, Introduction",
+  "heCategories": [
+    "תנ\"ך",
+    "ראשונים על התנ״ך",
+    "רמב\"ן",
+    "תורה"
+  ],
+  "compDateString": {
+    "en": " (c.1246  – c.1270 CE)",
+    "he": " (1246 – 1270 לספירה בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1480 CE)",
+    "he": " (1480 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Middle-Age Spain",
+    "he": "ספרד של ימי הביניים"
+  },
+  "pubPlaceString": {
+    "en": "Bologna",
+    "he": "בולוניה"
+  },
+  "relatedTopics": [
+    {
+      "slug": "abraham",
+      "title": {
+        "en": "Abraham",
+        "he": "אברהם"
+      }
+    },
+    {
+      "slug": "ramban",
+      "title": {
+        "en": "Moses ben Nachman (Ramban)",
+        "he": "רמב״ן"
+      }
+    },
+    {
+      "slug": "jacob",
+      "title": {
+        "en": "Jacob",
+        "he": "יעקב"
+      }
+    },
+    {
+      "slug": "sarah",
+      "title": {
+        "en": "Sarah",
+        "he": "שרה"
+      }
+    },
+    {
+      "slug": "joseph",
+      "title": {
+        "en": "Joseph",
+        "he": "יוסף"
+      }
+    },
+    {
+      "slug": "creation",
+      "title": {
+        "en": "Creation",
+        "he": "בריאה"
+      }
+    },
+    {
+      "slug": "deeds-of-the-forefathers-are-signs-for-their-descendants",
+      "title": {
+        "en": "Deeds of the Forefathers are Signs for their Descendants",
+        "he": "מעשה אבות סימן לבנים"
+      }
+    },
+    {
+      "slug": "esau",
+      "title": {
+        "en": "Esau",
+        "he": "עשיו"
+      }
+    },
+    {
+      "slug": "hagar",
+      "title": {
+        "en": "Hagar",
+        "he": "הגר"
+      }
+    },
+    {
+      "slug": "angels",
+      "title": {
+        "en": "Angels",
+        "he": "מלאכים"
+      }
+    },
+    {
+      "slug": "rachel",
+      "title": {
+        "en": "Rachel",
+        "he": "רחל"
+      }
+    },
+    {
+      "slug": "animals",
+      "title": {
+        "en": "Animals",
+        "he": "בעלי חיים"
+      }
+    },
+    {
+      "slug": "isaacs-blessing",
+      "title": {
+        "en": "Isaac's Blessing",
+        "he": "ברכת יצחק"
+      }
+    },
+    {
+      "slug": "binding-of-isaac",
+      "title": {
+        "en": "Binding of Isaac",
+        "he": "עקידה"
+      }
+    },
+    {
+      "slug": "noah",
+      "title": {
+        "en": "Noah",
+        "he": "נח"
+      }
+    },
+    {
+      "slug": "flood",
+      "title": {
+        "en": "Flood",
+        "he": "מבול"
+      }
+    },
+    {
+      "slug": "sodom",
+      "title": {
+        "en": "Sodom",
+        "he": "סדום"
+      }
+    },
+    {
+      "slug": "vegetarianism",
+      "title": {
+        "en": "Vegetarianism",
+        "he": "צמחונות"
+      }
+    }
+  ]
+}

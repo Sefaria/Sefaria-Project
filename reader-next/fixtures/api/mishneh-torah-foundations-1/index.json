@@ -1,0 +1,210 @@
+{
+  "title": "Mishneh Torah, Foundations of the Torah",
+  "categories": [
+    "Halakhah",
+    "Mishneh Torah",
+    "Sefer Madda"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Halakhah"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Halakhah"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "mishneh-torah",
+          "hilchot",
+          "foundations-of-the-torah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "mishneh-torah",
+          "foundations-of-the-torah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "rambam",
+          "hilchot",
+          "foundations-of-the-torah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "rambam",
+          "foundations-of-the-torah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "hilchot",
+          "foundations-of-the-torah"
+        ]
+      }
+    ],
+    "lengths": [
+      10,
+      88
+    ],
+    "titles": [
+      {
+        "text": "Rambam, Hilchot Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Laws of Foundations of the Torah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Foundations of the Torah",
+        "lang": "en"
+      },
+      {
+        "text": "Mishneh Torah, Laws of Foundations of the Torah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Mishneh Torah, Hilchot Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Mishneh Torah, Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Hilkhot Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Mishneh Torah, Hilkhot Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, <i>Hilkhot Yesodei ha-Torah</i>",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Hilkhot Yesodei ha-Torah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Yesodei haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "רמב\"ם, הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "משנה תורה, הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ם, הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ם הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ם הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "משנה תורה, הלכות יסודי תורה",
+        "lang": "he"
+      },
+      {
+        "text": "משנה תורה, הלכות ייסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ם, הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ם, הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ם, הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ם, הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ם הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ם הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ם הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ם הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "משנה תורה, הלכות יסודי התורה",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Mishneh Torah, Foundations of the Torah",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Mishneh Torah, Foundations of the Torah"
+  },
+  "order": [
+    5,
+    1
+  ],
+  "authors": [
+    "rambam"
+  ],
+  "enDesc": "The Mishneh Torah (“Repetition of the Torah”), also referred to as Yad HaChazakah (“The Strong Hand”), is a monumental legal code and one of the most organized, comprehensive, and influential works of Jewish law. Written over a period of ten years, the work systematically categorizes and clearly explains all aspects of Jewish observance, including those applicable only in Temple times.",
+  "heDesc": "",
+  "enShortDesc": "",
+  "heShortDesc": "",
+  "pubDate": [
+    1474
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1176,
+    1178
+  ],
+  "compPlace": "Middle-Age Egypt",
+  "pubPlace": "Rome",
+  "era": "RI",
+  "is_cited": true
+}

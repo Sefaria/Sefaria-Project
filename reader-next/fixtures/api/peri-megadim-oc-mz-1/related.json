@@ -1,0 +1,677 @@
+{
+  "links": [
+    {
+      "_id": "680f686a58a737cf5d721b30",
+      "index_title": "Shulchan Arukh, Orach Chayim",
+      "category": "Halakhah",
+      "type": "super commentary",
+      "ref": "Shulchan Arukh, Orach Chayim 1:1",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1"
+      ],
+      "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+      "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1563
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Shulchan Arukh, Orach Chayim",
+        "he": "שולחן ערוך, אורח חיים"
+      },
+      "heTitle": "שולחן ערוך, אורח חיים"
+    },
+    {
+      "_id": "680f686a976dc0cb1272139d",
+      "index_title": "Turei Zahav on Shulchan Arukh, Orach Chayim",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:1",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1"
+      ],
+      "sourceRef": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:1",
+      "sourceHeRef": "טורי זהב על שולחן ערוך אורח חיים א׳:א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1635,
+        1645
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Turei Zahav",
+        "he": "טורי זהב"
+      },
+      "heTitle": "טורי זהב על שולחן ערוך אורח חיים"
+    },
+    {
+      "_id": "680f686a004d0134b5721735",
+      "index_title": "Turei Zahav on Shulchan Arukh, Orach Chayim",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:2",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:2:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:2:1"
+      ],
+      "sourceRef": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:2",
+      "sourceHeRef": "טורי זהב על שולחן ערוך אורח חיים א׳:ב׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1635,
+        1645
+      ],
+      "commentaryNum": 1.0002,
+      "collectiveTitle": {
+        "en": "Turei Zahav",
+        "he": "טורי זהב"
+      },
+      "heTitle": "טורי זהב על שולחן ערוך אורח חיים"
+    },
+    {
+      "_id": "680f686ba65929df6372140b",
+      "index_title": "Shulchan Arukh, Orach Chayim",
+      "category": "Halakhah",
+      "type": "super commentary",
+      "ref": "Shulchan Arukh, Orach Chayim 1:1",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:2:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:2:1"
+      ],
+      "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+      "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1563
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Shulchan Arukh, Orach Chayim",
+        "he": "שולחן ערוך, אורח חיים"
+      },
+      "heTitle": "שולחן ערוך, אורח חיים"
+    },
+    {
+      "_id": "6962f1b9f833042468c01ba2",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 57:9",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:2:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:2:1"
+      ],
+      "sourceRef": "Psalms 57:9",
+      "sourceHeRef": "תהילים נ״ז:ט׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 57.0009,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "6962f1baf833042468c01ba4",
+      "index_title": "Rif Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Rif Berakhot 1",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:2:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:2:1"
+      ],
+      "sourceRef": "Rif Berakhot 1",
+      "sourceHeRef": "רי\"ף ברכות א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        1085,
+        1105
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Rif Berakhot",
+        "he": "רי\"ף ברכות"
+      },
+      "heTitle": "רי\"ף ברכות"
+    },
+    {
+      "_id": "680f686b976dc0cb1272139f",
+      "index_title": "Turei Zahav on Shulchan Arukh, Orach Chayim",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:3",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:3:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:3:1"
+      ],
+      "sourceRef": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:3",
+      "sourceHeRef": "טורי זהב על שולחן ערוך אורח חיים א׳:ג׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        1635,
+        1645
+      ],
+      "commentaryNum": 1.0003,
+      "collectiveTitle": {
+        "en": "Turei Zahav",
+        "he": "טורי זהב"
+      },
+      "heTitle": "טורי זהב על שולחן ערוך אורח חיים"
+    },
+    {
+      "_id": "680f686b58a737cf5d721b32",
+      "index_title": "Shulchan Arukh, Orach Chayim",
+      "category": "Halakhah",
+      "type": "super commentary",
+      "ref": "Shulchan Arukh, Orach Chayim 1:4",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:3:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:3:1"
+      ],
+      "sourceRef": "Shulchan Arukh, Orach Chayim 1:4",
+      "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ד׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1563
+      ],
+      "commentaryNum": 1.0004,
+      "collectiveTitle": {
+        "en": "Shulchan Arukh, Orach Chayim",
+        "he": "שולחן ערוך, אורח חיים"
+      },
+      "heTitle": "שולחן ערוך, אורח חיים"
+    },
+    {
+      "_id": "680f686b004d0134b5721737",
+      "index_title": "Shulchan Arukh, Orach Chayim",
+      "category": "Halakhah",
+      "type": "super commentary",
+      "ref": "Shulchan Arukh, Orach Chayim 1:5",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:4:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:4:1"
+      ],
+      "sourceRef": "Shulchan Arukh, Orach Chayim 1:5",
+      "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ה׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1563
+      ],
+      "commentaryNum": 1.0005,
+      "collectiveTitle": {
+        "en": "Shulchan Arukh, Orach Chayim",
+        "he": "שולחן ערוך, אורח חיים"
+      },
+      "heTitle": "שולחן ערוך, אורח חיים"
+    },
+    {
+      "_id": "680f686ba65929df6372140d",
+      "index_title": "Turei Zahav on Shulchan Arukh, Orach Chayim",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:4",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:4:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:4:1"
+      ],
+      "sourceRef": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:4",
+      "sourceHeRef": "טורי זהב על שולחן ערוך אורח חיים א׳:ד׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        1635,
+        1645
+      ],
+      "commentaryNum": 1.0004,
+      "collectiveTitle": {
+        "en": "Turei Zahav",
+        "he": "טורי זהב"
+      },
+      "heTitle": "טורי זהב על שולחן ערוך אורח חיים"
+    },
+    {
+      "_id": "680f686b976dc0cb127213a1",
+      "index_title": "Shulchan Arukh, Orach Chayim",
+      "category": "Halakhah",
+      "type": "super commentary",
+      "ref": "Shulchan Arukh, Orach Chayim 1:5",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:5:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:5:1"
+      ],
+      "sourceRef": "Shulchan Arukh, Orach Chayim 1:5",
+      "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ה׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1563
+      ],
+      "commentaryNum": 1.0005,
+      "collectiveTitle": {
+        "en": "Shulchan Arukh, Orach Chayim",
+        "he": "שולחן ערוך, אורח חיים"
+      },
+      "heTitle": "שולחן ערוך, אורח חיים"
+    },
+    {
+      "_id": "680f686b58a737cf5d721b34",
+      "index_title": "Turei Zahav on Shulchan Arukh, Orach Chayim",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:5",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:5:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:5:1"
+      ],
+      "sourceRef": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:5",
+      "sourceHeRef": "טורי זהב על שולחן ערוך אורח חיים א׳:ה׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        1635,
+        1645
+      ],
+      "commentaryNum": 1.0005,
+      "collectiveTitle": {
+        "en": "Turei Zahav",
+        "he": "טורי זהב"
+      },
+      "heTitle": "טורי זהב על שולחן ערוך אורח חיים"
+    },
+    {
+      "_id": "680f686b004d0134b5721739",
+      "index_title": "Turei Zahav on Shulchan Arukh, Orach Chayim",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:6",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:6:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:6:1"
+      ],
+      "sourceRef": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:6",
+      "sourceHeRef": "טורי זהב על שולחן ערוך אורח חיים א׳:ו׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        1635,
+        1645
+      ],
+      "commentaryNum": 1.0006,
+      "collectiveTitle": {
+        "en": "Turei Zahav",
+        "he": "טורי זהב"
+      },
+      "heTitle": "טורי זהב על שולחן ערוך אורח חיים"
+    },
+    {
+      "_id": "680f686ba65929df6372140f",
+      "index_title": "Shulchan Arukh, Orach Chayim",
+      "category": "Halakhah",
+      "type": "super commentary",
+      "ref": "Shulchan Arukh, Orach Chayim 1:6",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:6:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:6:1"
+      ],
+      "sourceRef": "Shulchan Arukh, Orach Chayim 1:6",
+      "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ו׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1563
+      ],
+      "commentaryNum": 1.0006,
+      "collectiveTitle": {
+        "en": "Shulchan Arukh, Orach Chayim",
+        "he": "שולחן ערוך, אורח חיים"
+      },
+      "heTitle": "שולחן ערוך, אורח חיים"
+    },
+    {
+      "_id": "680f686b976dc0cb127213a3",
+      "index_title": "Shulchan Arukh, Orach Chayim",
+      "category": "Halakhah",
+      "type": "super commentary",
+      "ref": "Shulchan Arukh, Orach Chayim 1:7",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:7:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:7:1"
+      ],
+      "sourceRef": "Shulchan Arukh, Orach Chayim 1:7",
+      "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ז׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1563
+      ],
+      "commentaryNum": 1.0007,
+      "collectiveTitle": {
+        "en": "Shulchan Arukh, Orach Chayim",
+        "he": "שולחן ערוך, אורח חיים"
+      },
+      "heTitle": "שולחן ערוך, אורח חיים"
+    },
+    {
+      "_id": "680f686b58a737cf5d721b36",
+      "index_title": "Turei Zahav on Shulchan Arukh, Orach Chayim",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:7",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:7:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:7:1"
+      ],
+      "sourceRef": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:7",
+      "sourceHeRef": "טורי זהב על שולחן ערוך אורח חיים א׳:ז׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        1635,
+        1645
+      ],
+      "commentaryNum": 1.0007,
+      "collectiveTitle": {
+        "en": "Turei Zahav",
+        "he": "טורי זהב"
+      },
+      "heTitle": "טורי זהב על שולחן ערוך אורח חיים"
+    },
+    {
+      "_id": "680f686ba65929df63721411",
+      "index_title": "Turei Zahav on Shulchan Arukh, Orach Chayim",
+      "category": "Commentary",
+      "type": "commentary",
+      "ref": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:8",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:8:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:8:1"
+      ],
+      "sourceRef": "Turei Zahav on Shulchan Arukh, Orach Chayim 1:8",
+      "sourceHeRef": "טורי זהב על שולחן ערוך אורח חיים א׳:ח׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        1635,
+        1645
+      ],
+      "commentaryNum": 1.0008,
+      "collectiveTitle": {
+        "en": "Turei Zahav",
+        "he": "טורי זהב"
+      },
+      "heTitle": "טורי זהב על שולחן ערוך אורח חיים"
+    },
+    {
+      "_id": "680f686b004d0134b572173b",
+      "index_title": "Shulchan Arukh, Orach Chayim",
+      "category": "Halakhah",
+      "type": "super commentary",
+      "ref": "Shulchan Arukh, Orach Chayim 1:8",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:8:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:8:1"
+      ],
+      "sourceRef": "Shulchan Arukh, Orach Chayim 1:8",
+      "sourceHeRef": "שולחן ערוך, אורח חיים א׳:ח׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1563
+      ],
+      "commentaryNum": 1.0008,
+      "collectiveTitle": {
+        "en": "Shulchan Arukh, Orach Chayim",
+        "he": "שולחן ערוך, אורח חיים"
+      },
+      "heTitle": "שולחן ערוך, אורח חיים"
+    },
+    {
+      "_id": "6a153e4c20c58f4184e22879",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 145:1",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:8:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:8:1"
+      ],
+      "sourceRef": "Psalms 145:1",
+      "sourceHeRef": "תהילים קמ״ה:א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 145.0001,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "6962f1b8d443e71cbc1ac6e4",
+      "index_title": "I Samuel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "I Samuel 2:9",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1"
+      ],
+      "sourceRef": "I Samuel 2:9",
+      "sourceHeRef": "שמואל א ב׳:ט׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        -500
+      ],
+      "commentaryNum": 2.0009,
+      "collectiveTitle": {
+        "en": "I Samuel",
+        "he": "שמואל א"
+      },
+      "heTitle": "שמואל א"
+    },
+    {
+      "_id": "6962f1b9d443e71cbc1ac6e6",
+      "index_title": "Job",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Job 15:25",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1"
+      ],
+      "sourceRef": "Job 15:25",
+      "sourceHeRef": "איוב ט״ו:כ״ה",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -1300,
+        -300
+      ],
+      "commentaryNum": 15.0025,
+      "collectiveTitle": {
+        "en": "Job",
+        "he": "איוב"
+      },
+      "heTitle": "איוב"
+    },
+    {
+      "_id": "6962f1b9d443e71cbc1ac6e8",
+      "index_title": "Isaiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Isaiah 31:4",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1:1"
+      ],
+      "sourceRef": "Isaiah 31:4",
+      "sourceHeRef": "ישעיהו ל״א:ד׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -750,
+        -450
+      ],
+      "commentaryNum": 31.0004,
+      "collectiveTitle": {
+        "en": "Isaiah",
+        "he": "ישעיהו"
+      },
+      "heTitle": "ישעיהו"
+    },
+    {
+      "_id": "6962f1b89311a1e4d15097e1",
+      "index_title": "I Kings",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "I Kings 7",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:3:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:3:1"
+      ],
+      "sourceRef": "I Kings 7",
+      "sourceHeRef": "מלכים א ז׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -400
+      ],
+      "commentaryNum": 7,
+      "collectiveTitle": {
+        "en": "I Kings",
+        "he": "מלכים א"
+      },
+      "heTitle": "מלכים א"
+    },
+    {
+      "_id": "6962f1b8d1275d9d3dcc7da4",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "",
+      "ref": "Berakhot 12a:5",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:5:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:5:1"
+      ],
+      "sourceRef": "Berakhot 12a:5",
+      "sourceHeRef": "ברכות י״ב א:ה׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 23.0005,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "6962f1bb22032573b6a64828",
+      "index_title": "Keritot",
+      "category": "Talmud",
+      "type": "",
+      "ref": "Keritot 25a:18",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:7:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:7:1"
+      ],
+      "sourceRef": "Keritot 25a:18",
+      "sourceHeRef": "כריתות כ״ה א:י״ח",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 49.0018,
+      "collectiveTitle": {
+        "en": "Keritot",
+        "he": "כריתות"
+      },
+      "heTitle": "כריתות"
+    },
+    {
+      "_id": "6962f1bc22032573b6a6482a",
+      "index_title": "I Kings",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "I Kings 11",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:7:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:7:1"
+      ],
+      "sourceRef": "I Kings 11",
+      "sourceHeRef": "מלכים א י״א",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -400
+      ],
+      "commentaryNum": 11,
+      "collectiveTitle": {
+        "en": "I Kings",
+        "he": "מלכים א"
+      },
+      "heTitle": "מלכים א"
+    },
+    {
+      "_id": "6962f1b9df5142a739275e78",
+      "index_title": "Leviticus",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Leviticus 1:18",
+      "anchorRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:8:1",
+      "anchorRefExpanded": [
+        "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:8:1"
+      ],
+      "sourceRef": "Leviticus 1:18",
+      "sourceHeRef": "ויקרא א׳:י״ח",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 1.0018,
+      "collectiveTitle": {
+        "en": "Leviticus",
+        "he": "ויקרא"
+      },
+      "heTitle": "ויקרא"
+    }
+  ],
+  "sheets": [],
+  "notes": [],
+  "topics": [],
+  "manuscripts": [],
+  "media": [],
+  "guides": []
+}

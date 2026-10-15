@@ -1,0 +1,111 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Kuzari",
+    "Kuzari Sheni",
+    "Kuzari Sheni, Title Page",
+    "Kuzari Sheni, Introduction",
+    "Kuzari Sheni, Fifth Dialogue",
+    "Kuzari Sheni, First Dialogue",
+    "Kuzari Sheni, Third Dialogue",
+    "Kuzari Sheni, Fourth Dialogue",
+    "Kuzari Sheni, Second Dialogue"
+  ],
+  "completion_objects": [
+    {
+      "title": "Kuzari",
+      "key": "Kuzari",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Kuzari Sheni",
+      "key": "Matteh Dan",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Kuzari Sheni, Title Page",
+      "key": "Matteh Dan, Title Page",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Kuzari Sheni, Introduction",
+      "key": "Matteh Dan, Introduction",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Kuzari Sheni, Fifth Dialogue",
+      "key": "Matteh Dan, Fifth Dialogue",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Kuzari Sheni, First Dialogue",
+      "key": "Matteh Dan, First Dialogue",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Kuzari Sheni, Third Dialogue",
+      "key": "Matteh Dan, Third Dialogue",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Kuzari Sheni, Fourth Dialogue",
+      "key": "Matteh Dan, Fourth Dialogue",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Kuzari Sheni, Second Dialogue",
+      "key": "Matteh Dan, Second Dialogue",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Kuzari",
+  "url": "Kuzari",
+  "index": "Kuzari",
+  "book": "Kuzari",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Essay",
+    "Statement"
+  ],
+  "heSectionNames": [
+    "מאמר",
+    ""
+  ],
+  "addressExamples": [
+    "3",
+    "6"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳"
+  ]
+}

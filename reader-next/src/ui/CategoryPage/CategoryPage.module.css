@@ -1,0 +1,33 @@
+.titleBar { display: flex; align-items: center; gap: 20px; margin-block-end: 24px; }
+.title { margin: 0; font-family: var(--sefaria-font-text-en); font-size: 30px; font-weight: 400; letter-spacing: 0.02em; text-transform: uppercase; color: var(--sefaria-color-text); }
+.title[lang="he"] { font-family: var(--sefaria-font-text-he); text-transform: none; }
+.toggles { display: flex; gap: 14px; }
+.toggle { font-size: 16px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--sefaria-color-text-muted); text-decoration: none; padding-block-end: 2px; }
+.toggle[data-current] { color: var(--sefaria-color-text); border-block-end: 2px solid var(--sefaria-color-border); }
+.attribution { margin-block-end: 20px; font-size: 14px; }
+.attribution a { color: var(--sefaria-color-text-secondary); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 8px; margin-block-end: 16px; }
+@media (max-width: 842px) { .grid { grid-template-columns: 1fr; } }
+.block { padding: 18px 14px 22px 0; border-block-start: 1px solid var(--sefaria-color-border); }
+.block[data-line] { border-block-start: 4px solid var(--_line); padding-block-start: 14px; }
+.blockTitle { display: inline-block; font-family: var(--sefaria-font-text-en); font-size: 24px; color: var(--sefaria-color-text); text-decoration: none; }
+.blockTitle[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.blockTitle:hover { text-decoration: underline; }
+.desc { margin-block-start: 8px; font-size: 14px; line-height: 1.4; color: var(--sefaria-color-text-secondary); }
+.category { margin-block: 12px 4px; }
+.category h2 { margin: 0 0 8px; font-family: var(--sefaria-font-text-en); font-size: 24px; font-weight: 400; color: var(--sefaria-color-text); text-transform: uppercase; letter-spacing: 0.02em; }
+.category h2[lang="he"] { font-family: var(--sefaria-font-text-he); text-transform: none; }
+.inlineDesc { margin-inline-start: 8px; font-family: var(--sefaria-font-ui-en); font-size: 14px; text-transform: none; letter-spacing: 0; color: var(--sefaria-color-text-muted); }
+.longDesc { margin: 0 0 12px; font-size: 14px; line-height: 1.4; color: var(--sefaria-color-text-secondary); }
+
+/* LIB-004: on a phone the home page carries the About blurb itself, above the categories (VERIFIED with a phone User-Agent) */
+.phoneAbout { display: none; margin: 0 0 24px; font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: 1.3; color: #666; }
+@media (max-width: 842px) { .phoneAbout { display: block; } }
+
+/* Measured on sefaria.org (1280px): title 30px/500 black, no tracking; part headings ("TORAH (The Five Books of Moses)") 18px grey serif;
+   block titles 24px on a 31px line; descriptions 14px on 18px */
+.title { letter-spacing: 0; font-weight: 500; line-height: 39px; color: #000; }
+.category h2 { font-size: 18px; line-height: 23px; letter-spacing: 0; color: #666; }
+.inlineDesc { font-family: var(--sefaria-font-text-en); font-size: 18px; color: #666; }
+.blockTitle { line-height: 31.2px; }
+.desc { margin-block-start: 9px; line-height: 18px; }

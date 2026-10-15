@@ -1,0 +1,13 @@
+import { chromium } from "playwright";
+const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 1400, height: 1100 } });
+await ctx.addCookies([{ name: "interfaceLang", value: "english", domain: "www.sefaria.org", path: "/" }]);
+const p = await ctx.newPage();
+p.on("request", (r) => { const u = r.url(); if (/search|api\/(name|texts\/Genesis)/.test(u) && !/sentry|strapi/.test(u)) console.log("REQ", r.method(), decodeURIComponent(u).slice(0, 200), r.method() === "POST" ? (r.postData() || "").slice(0, 1800) : ""); });
+await p.goto("https://www.sefaria.org/Genesis.1.1?lang=en&with=SidebarSearch&sbsq=light", { waitUntil: "domcontentloaded" });
+await p.evaluate(() => document.querySelector("#interruptingMessageOverlay")?.remove());
+await p.waitForTimeout(9000);
+console.log("URL", decodeURIComponent(p.url()));
+const side = p.locator(".readerPanelBox.sidebar");
+console.log((await side.innerText()).split("\n").filter(Boolean).slice(0, 40).join(" | ").slice(0, 2500));
+await side.screenshot({ path: "/private/tmp/claude-501/-Users-akiva-Sefaria-dev-Sefaria-Project/ce92a779-5c0e-43e0-a3bd-e33a1b4d1619/scratchpad/live-sbs.png" });
+await b.close();

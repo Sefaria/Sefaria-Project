@@ -81,6 +81,37 @@ spec:
           - name: DD_LOGS_INJECTION
             value: "true"
           {{- end }}
+          {{- if eq .Values.nodejs.mode "reader" }}
+          # reader-next/src/lib/config.ts: the API through this release's Varnish, with the public Host Django routes by
+          - name: SEFARIA_API_ORIGIN
+            value: "http://varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}:8040"
+          - name: SEFARIA_API_HOST
+            value: {{ printf "www.%s" (tpl (index .Values.domains.root 0).url .) | quote }}
+          - name: PUBLIC_API_ORIGIN
+            value: ""
+          - name: PUBLIC_SITE_ORIGIN
+            value: ""
+          # this deployment's Voices (sheets made here live there)
+          - name: PUBLIC_VOICES_ORIGIN
+            value: {{ printf "https://voices.%s" (tpl (index .Values.domains.root 0).url .) | quote }}
+          - name: SEFARIA_PASS_THROUGH
+            value: "1"
+          - name: PORT
+            value: "3000"
+          # analytics IDs and the sign-in providers' public keys, as Django's pages use them (each optional; reader-next/src/lib/config.ts)
+          - name: APP_VERSION
+            value: "{{ .Values.nodejs.containerImage.tag }}"
+          - name: SIMPLE_ANALYTICS_HOSTNAME
+            value: {{ if eq (toString .Values.localSettings.DEBUG) "true" }}"sa-dev.sefaria.org"{{ else }}"sefaria.org"{{ end }}
+          {{- range list "GOOGLE_TAG_MANAGER_CODE" "GOOGLE_GTAG" "CLIENT_SENTRY_DSN" "GOOGLE_SSO_CLIENT_ID" "APPLE_SSO_CLIENT_ID" "RECAPTCHA_PUBLIC_KEY" }}
+          - name: {{ . }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ $.Values.secrets.localSettings.ref }}
+                key: {{ . }}
+                optional: true
+          {{- end }}
+          {{- end }}
           {{- if .Values.mongo.enabled }}
           - name: MONGO_HOST
             value: {{ .Values.deployEnv }}-mongo
@@ -94,4 +125,19 @@ spec:
               optional: true
         ports:
         - containerPort: 3000
+        {{- if eq .Values.nodejs.mode "reader" }}
+        readinessProbe:
+          httpGet:
+            path: /healthz-reader
+            port: 3000
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz-reader
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+        {{- end }}
         resources: {{ toYaml .Values.nodejs.resources | nindent 10 }}

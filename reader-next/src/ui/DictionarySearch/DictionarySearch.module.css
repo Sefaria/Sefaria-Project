@@ -1,0 +1,9 @@
+.box { position: relative; width: 300px; max-width: 100%; }
+.field { display: flex; align-items: center; gap: 8px; height: 34px; padding-inline: 10px; background: #ededec; border-radius: 6px; }
+.field[data-focused] { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+.btn { display: inline-flex; padding: 0; border: 0; background: none; cursor: pointer; color: #666; }
+.input { flex: 1; min-width: 0; border: 0; background: none; font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text); outline: none; }
+.list { position: absolute; z-index: 40; inset-inline-start: 0; top: calc(100% + 4px); width: 100%; margin: 0; padding: 6px 0; list-style: none; background: var(--sefaria-color-surface); border-radius: 6px; box-shadow: 0 4px 16px rgb(0 0 0 / 22%); max-height: 50vh; overflow: auto; }
+.list li[role="option"] { padding: 6px 14px; font-family: var(--sefaria-font-text-he); font-size: 20px; cursor: pointer; text-align: start; }
+.list li[data-active="true"] { background: var(--sefaria-color-surface-subtle, #f0f0f0); }
+.invalid { padding: 8px 14px; font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text-secondary); }

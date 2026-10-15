@@ -1,0 +1,6 @@
+.view { display: flex; flex-direction: column; gap: var(--sefaria-space-3); font-family: var(--sefaria-font-ui-en); }
+.view[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.intro, .sent { margin: 0; color: var(--sefaria-color-text-secondary); }
+.alert { margin: 0; color: var(--sefaria-color-error, #b3261e); }
+.field { width: 100%; box-sizing: border-box; padding: var(--sefaria-space-2) var(--sefaria-space-3); border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-md, 6px); background: var(--sefaria-color-surface); font: inherit; color: var(--sefaria-color-text); }
+textarea.field { min-height: 7rem; resize: vertical; }
