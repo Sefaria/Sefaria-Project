@@ -22,7 +22,7 @@ content and a stable page are a focus point of the upcoming arc.
 
 ## Who it is for and what they need
 
-- Mobile readers, the least patient group: they leave if the text is not on screen quickly, which likely costs real engagement. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · [Hotjar](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · PLT-019
+- Mobile readers, the least patient group: they leave if the text is not on screen quickly, which likely costs real engagement. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · Hotjar [1](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · [2](https://insights.hotjar.com/r?site=2695522&recording=112659747044) · [3](https://insights.hotjar.com/r?site=2695522&recording=112659758294) · [4](https://insights.hotjar.com/r?site=2695522&recording=112659767062) · PLT-019
 - Every reader: the page should not visibly repaint or shift on load, on scroll or on click. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Target behaviour in the future reader
@@ -35,7 +35,7 @@ content and a stable page are a focus point of the upcoming arc.
 ## Changes from today (keep · change · drop · new)
 
 - **Change:** first content on mobile. Today Search Console reports 100% of pages with LCP over 4 s, and Hotjar shows mobile
-  sessions ending before content loads. — [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · [Hotjar](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · PLT-003 · PLT-019
+  sessions ending before content loads. — [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · Hotjar [1](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · [2](https://insights.hotjar.com/r?site=2695522&recording=112659747044) · [3](https://insights.hotjar.com/r?site=2695522&recording=112659758294) · [4](https://insights.hotjar.com/r?site=2695522&recording=112659767062) · PLT-003 · PLT-019
 - **Change:** repaints. The current architecture has a known repainting issue; the new reader is designed away from it. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 - **New:** load speed and repaints monitored in production, on load and on scroll and click. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 

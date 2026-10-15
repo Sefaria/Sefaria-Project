@@ -18,7 +18,7 @@ _Not discussed yet. Today: TanStack Query with IndexedDB persistence per query (
 - Focus point for the upcoming arc: SSR and loading time minimal; repaints monitored on load and on scroll and click; the
   current architecture's repainting issue designed away from. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 - Evidence: Hotjar shows many short mobile sessions ending before content loads; Google Search Console reports LCP above 4 s
-  on 100% of pages. — [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · [Hotjar](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · forwarded in [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048275276949)
+  on 100% of pages. — [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · Hotjar [1](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · [2](https://insights.hotjar.com/r?site=2695522&recording=112659747044) · [3](https://insights.hotjar.com/r?site=2695522&recording=112659758294) · [4](https://insights.hotjar.com/r?site=2695522&recording=112659767062) · forwarded in [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048275276949)
 - Detail and open questions (RUM tool; LCP, INP and CLS targets): [platform-seo product](platform-seo/product.md),
   [platform-seo architecture](platform-seo/architecture.md), [text-display architecture](text-display/architecture.md).
 
