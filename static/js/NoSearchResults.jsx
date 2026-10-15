@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
@@ -10,27 +10,78 @@ const CTA_HREFS = {
   topics:  '/topics',
 };
 
-function renderCaption() {
-  const reportBugText = Sefaria._('search.null.caption.report_bug');
-  const contactUsText = Sefaria._('search.null.caption.contact_us');
-  const [before, middle, after] = Sefaria._('search.null.caption').split(/\{bug\}|\{contact\}/);
-  return (
-    <p className="noSearchResults-caption">
-      {before}
-      <a href={Sefaria._('search.null.caption.bug.link')} className="noSearchResults-captionLink">{reportBugText}</a>
-      {middle}
-      <a href={Sefaria._('search.null.caption.contact_us.href')} className="noSearchResults-captionLink">{contactUsText}</a>
-      {after}
-    </p>
-  );
+// With the assistant on, the floating Ask button becomes "✦ Search with Library Assistant"
+// on a no-results page and asks the assistant about the search that found nothing
+export const assistantNoResultsPrompt = (query) => Sefaria.interfaceLang === 'hebrew'
+  ? `חיפשתי "${query}" בספריא ואין תוצאות. אפשר לעזור לי למצוא מקורות, ספרים, מחברים ו/או נושאים רלוונטיים?`
+  : `I searched for "${query}" on Sefaria and got no results. Can you help me find relevant sources, books, authors and/or topics?`;
+
+// true: the widget is on the page and working. false: it isn't on the page.
+// null: its element is there but its script hasn't defined it yet (still loading, or failed).
+const assistantState = () => {
+  if (!document.querySelector('lc-chatbot') || !window.customElements) { return false; }
+  return window.customElements.get('lc-chatbot') ? true : null;
+};
+// How long to wait for a loading widget before falling back to the browse button
+const WIDGET_LOAD_TIMEOUT_MS = 3000;
+let appIsRunning = false;
+
+// Keep the assistant's name on one line wherever the text wraps
+const keepNameTogether = (text) => text.replace(/Library Assistant/g, 'Library\u00a0Assistant').replace(/עוזר הספרייה/g, 'עוזר\u00a0הספרייה');
+
+// The assistant's name in the body is a link that opens it and asks the search, like the
+// floating "Search with Library Assistant" button. The body breaks after its last "or" ("או").
+function linkAssistantName(text, query) {
+  const match = /Library\u00a0Assistant|עוזר\u00a0הספרייה/g;
+  const all = [...text.matchAll(match)];
+  if (!all.length) { return text; }
+  const {index, 0: name} = all[all.length - 1];
+  const open = (e) => {
+    e.preventDefault();
+    document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {
+      source: 'search_no_results',
+      question: assistantNoResultsPrompt(query),
+    }}));
+  };
+  const before = text.slice(0, index);
+  const or = before.includes(' או ') ? ' או ' : ' or ';
+  const orAt = before.lastIndexOf(or);
+  const lead = orAt === -1 ? before : <>{before.slice(0, orAt + or.length - 1)}<br />{before.slice(orAt + or.length)}</>;
+  return <>{lead}<a href="#" onClick={open} className="noSearchResults-assistantLink">{name}</a>{text.slice(index + name.length)}</>;
 }
 
 function NoSearchResults({ mode, query }) {
   const key = (type) => `search.null.${mode}.${type}`;
+  // Only offer the assistant when its widget is on the page and working (checked after mount:
+  // SSR has no document), and don't show either version until that's known, so switching tabs
+  // never flashes the browse button. Once the app is running, a new tab can check straight away;
+  // only the server-rendered first page has to wait for the first effect. A widget whose script
+  // fails to load would leave no way forward, so after a short wait the browse button shows.
+  const [hasAssistant, setHasAssistant] = useState(() => (appIsRunning ? assistantState() : null));
+  useEffect(() => {
+    appIsRunning = true;
+    const state = assistantState();
+    setHasAssistant(state);
+    if (state !== null) { return; }
+    let cancelled = false;
+    const timeout = new Promise(resolve => setTimeout(() => resolve(false), WIDGET_LOAD_TIMEOUT_MS));
+    Promise.race([window.customElements.whenDefined('lc-chatbot').then(() => true), timeout])
+      .then(defined => { if (!cancelled) { setHasAssistant(defined); } });
+    return () => { cancelled = true; };
+  }, []);
+  useEffect(() => {
+    if (!hasAssistant) { return; }
+    // The widget shows its own label for this source ("✦ Search with Library Assistant")
+    document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: {
+      source: 'search_no_results',
+      question: assistantNoResultsPrompt(query),
+    }}));
+    return () => document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: null}));
+  }, [hasAssistant, query]);
   const heading = Sefaria._(key('h1')).replace(/\[query\]|\{userquery\}/g, query);
 
   return (
-    <div className="noSearchResults">
+    <div className={hasAssistant ? "noSearchResults noSearchResults--withAssistant" : "noSearchResults"}>
       <img
         src={`/static/img/no-results-search-illustrations/NoResults${
           {sources: 'Source', books: 'Books', authors: 'Authors', topics: 'Topics'}[mode]
@@ -42,14 +93,20 @@ function NoSearchResults({ mode, query }) {
       <div className="noSearchResults-content">
         <div className="noSearchResults-textGroup">
           <p className="noSearchResults-heading serif">{heading}</p>
-          <p className="noSearchResults-body">
-            <InterfaceText>{key('body')}</InterfaceText>
+          <p className="noSearchResults-body" style={hasAssistant === null ? {visibility: 'hidden'} : undefined}>
+            {hasAssistant
+              ? linkAssistantName(keepNameTogether(Sefaria._(key('body.library_assistant'))), query)
+              : <InterfaceText>{key('body')}</InterfaceText>}
           </p>
         </div>
-        <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
-          <InterfaceText>{key('button')}</InterfaceText>
-        </a>
-        {renderCaption()}
+        {/* With the assistant on, the floating button is the way forward; with it off, browse */}
+        {hasAssistant === false && (
+          <div className="noSearchResults-ctas">
+            <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
+              <InterfaceText>{key('button')}</InterfaceText>
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
