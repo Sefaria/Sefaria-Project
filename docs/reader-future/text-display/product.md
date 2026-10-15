@@ -24,6 +24,7 @@ _Not discussed yet._
 ## Target behaviour in the future reader
 
 - Text the reader asked for is on screen fast, especially on phones; mobile sessions today end before it loads. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489)
+- Inline commentaries shown with the text and translation inside one panel. See [Reader shell & panels](../reader-shell/product.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 - Scrolling and clicking in the text never cause a visible repaint, flicker or jump. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · TXD-052 · TXD-068
 
 ## Changes from today (keep · change · drop · new)

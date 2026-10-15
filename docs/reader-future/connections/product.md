@@ -24,6 +24,7 @@ _Not discussed yet._
 ## Target behaviour in the future reader
 
 - Opening a text from the sidebar closes the sidebar and opens the text as a new main reader panel next to its panel, as sefaria.org does. Recorded in [Reader shell & panels](../reader-shell/product.md). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899) · CON-033
+- Inline commentary inside a panel would show some of what the sidebar shows today. See [Reader shell & panels](../reader-shell/product.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 
 ## Changes from today (keep · change · drop · new)
 

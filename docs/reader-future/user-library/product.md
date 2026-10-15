@@ -4,8 +4,8 @@ title: Saved, history & notes
 domain: Voices (sheets & community)
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
 ---
 # Saved, history & notes — product specification
 
@@ -23,7 +23,7 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Signed-in readers can save panel layouts (study sessions) and reopen them. See [Reader shell & panels](../reader-shell/product.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 
 ## Changes from today (keep · change · drop · new)
 

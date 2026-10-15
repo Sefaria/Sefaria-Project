@@ -28,17 +28,37 @@ Each main reader panel owns its sidebar (the connections / resources panel) as a
 - Opening a text from a sidebar = close the owning panel's sidebar, then insert a new main panel next to that panel (to its left, per the thread; see below). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 - The panel state model stays extensible for future panel-management features. — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 
+## Assessment: advanced panel management
+
+Requested in the thread ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)). For each idea: what `reader-next` already has, what is missing, and how big a change it is in complexity (not time). Paths are under `reader-next/` on `reader-next`. This is an assessment, not a decision.
+
+**Overall:** the tiling model (one layout tree with pure `insert` / `move` and four placements) already fits drag-to-reorder and vertical splits; those are mostly interaction and serialisation work. Two pieces are new structure: floating panels (state outside the tree) and inline commentary (a panel holding many sources, not one text with two version slots). Sharing beyond today's row needs a versioned state format, and stored workspaces need a backend API.
+
+| Capability | Already in `reader-next` | Missing | Size |
+|---|---|---|---|
+| Drag main panels left / right | Pure `move(ws, id, target, "before" \| "after")` that renumbers panels (`src/lib/workspace/ops.ts:106`, `src/lib/layout/tree.ts:115`, marked "future drag and drop"); any single row round-trips through the URL (`src/lib/workspace/url.ts:76`, `:104`). | No caller in the UI; no drag handles, drop targets or pointer handling; no history entry for a move. | Cheap (state), moderate (interaction) |
+| Vertical splits | The tree has column splits and above / below placements (`src/lib/layout/tree.ts:17`, `:87`); `SplitView` renders nested rows and columns with minimum sizes (`src/ui/SplitView/SplitView.module.css:4-5`). | The URL cannot hold it: decoding always builds a row and encoding walks leaves in order (`src/lib/workspace/url.ts:76`, `:104-106`), so a stack flattens on reload or share. The planned `layout=` parameter is not built (`docs/WORKSPACE.md:86-88`). Old-reader widths apply to a single row only (`src/features/workspace/Workspace.tsx:33-34`). No resizable dividers (borders only, `SplitView.module.css:9`). | Moderate |
+| Fully floating panels | Nothing. The workspace is `{ panels, layout }` and every visible panel is a leaf of a tree that tiles the screen (`src/lib/workspace/types.ts:51-54`, `src/lib/layout/tree.ts:13-15`). | A layer outside the tree: position and size per floating panel, z-order, focus and stacking, docking back into the tree, a URL / state form, a phone fallback. | Bigger change |
+| Save and share panel states | The URL is the state, in sefaria.org's grammar, byte for byte (`src/lib/workspace/url.ts:1-13`). Scroll positions live in history state backed by sessionStorage (`src/features/workspace/navigation.tsx:75`, `src/lib/reader/position-store.ts`). Last place per book is in localStorage (`src/lib/reader/last-place.ts:7`). Reading history syncs to `/api/profile/sync` (`src/lib/user/history.ts:5`). | A versioned format for what the old grammar cannot hold (splits, sizes, floating panels, several asides, inline commentary). URL length grows with every panel. Stored workspaces (a short share link, a saved list for signed-in readers) need a new Django model and API, which do not exist. | Cheap: share today's row layouts as the URL. Bigger: stored, named workspaces |
+| Inline commentary in a panel | A panel is one text at one ref with two version slots (`src/lib/workspace/types.ts:39-46`, `VersionSelection` in `src/lib/text/queries.ts:24`). A segment carries only `primary` and `translation` (`src/lib/text/model.ts:92-104`). Commentary lives in the connections aside (`src/lib/workspace/types.ts:14-29`). | A panel content model with several sources (base, translation, N commentaries). Alignment of commentary segments to base segments through links. A text column that interleaves them, loads links per section, and has per-source settings and URL params. `PanelState` is a one-member union switched in `PanelHost` (`src/lib/workspace/types.ts:48`, `src/features/workspace/Workspace.tsx:53-57`); the kind registry described in `docs/WORKSPACE.md:106` is not built. | Bigger change (shared with Text display) |
+| Performance with many panels | Each text column loads sections as the reader scrolls and keeps them (`src/features/reader/TextColumn.tsx:77`, no unloading or virtualisation). Panels have a 360 px minimum and the row scrolls sideways past it (`docs/WORKSPACE.md:51-54`). | Section unloading or virtualisation once several panels, floating panels or inline commentary multiply the DOM. | Moderate |
+| Phones | Below 842 px only the first panel shows, and its asides stack in a column (`src/features/reader/TextPanel.tsx:56`, `docs/WORKSPACE.md:110-114`). | A policy for what stacked, floating and shared layouts become on a phone. | Cheap if "one panel at a time"; otherwise open |
+| Keyboard and screen readers | `SplitView` labels the row as a group (`src/ui/SplitView/SplitView.tsx:47`). | A keyboard way to move panels, announcements of the new position, focus order for floating panels, Escape semantics (SHL-071). | Moderate |
+
 ## Dependencies on other areas
 
 - [Connections & resources sidebar](../connections/architecture.md): the sidebar lives inside its main panel.
 - [URLs & routing](../routing/architecture.md): how panels and their sidebars are numbered in the URL (decision 2026-10-06).
-- [Language & accessibility](../i18n-a11y/architecture.md): whether "left" follows the interface direction.
+- [Language & accessibility](../i18n-a11y/architecture.md): whether "left" follows the interface direction; keyboard and screen-reader support for moving panels.
+- [URLs & routing](../routing/architecture.md) and [Saved, history & notes](../user-library/architecture.md): sharing and saving panel states.
+- [Text display](../text-display/architecture.md): inline commentary in the text column.
 
 ## Risks and open questions
 
 - Should "open next to" be a reading-order placement (after / before, as both clients do today) or a fixed visual side (always left)? The two differ in the English interface. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 - Which future panel-management features must the state model support (reorder, resize, pin, stack, close all)? That decides whether the current layout tree is enough.
 - Is there a cap on open panels, and what happens past it?
+- Share by URL only, or stored workspaces with an id? A URL keeps old links working but grows with every panel and cannot hold floating panels without a new parameter; a stored workspace needs a backend model and API. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 
 ## Decisions
 

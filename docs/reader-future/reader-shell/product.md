@@ -26,20 +26,36 @@ _Not discussed yet._
 - Parity with sefaria.org: readers can have many reader windows open; each text opened from a panel opens as a new main reader panel to the left of the panel it was opened from (which side exactly: see Open questions). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899) · SHL-044 · SHL-049
 - Opening a text from a panel's sidebar (connections / resources) closes that sidebar and opens the text as a new main reader panel next to that panel. This behaviour must be kept. — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899) · CON-033 · CON-038
 - The design leaves room for future panel-management features (not specified yet). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
+- Main panels can be dragged left and right to reorder them. — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+- A panel can be moved into a vertical split (above or below another panel) or out into a fully floating panel. — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+- Panel states (which panels are open, what each shows, how they are arranged) can be saved and shared. Saving: see [Saved, history & notes](../user-library/product.md); share links: see [URLs & routing](../routing/product.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+- Today a panel holds one text with its translation. Future panels can also hold inline commentaries, shown with the text. Rendering: see [Text display](../text-display/product.md); overlap with the sidebar: see [Connections](../connections/product.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+
+### Product opportunities (assessment, not yet discussed)
+
+Asked for in the thread ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)); written by Claude as a starting list. All *idea* until someone in the channel takes one up.
+
+- **Shareable study layouts:** one link opens the same texts, splits and sidebars. A teacher prepares a layout for a class; chavruta partners open the same one.
+- **Saved study sessions:** signed-in readers keep named workspaces and resume them on another device, next to Saved and History.
+- **Compare as a layout:** two versions or two texts stacked or side by side as a preset, building on the compare panel (SHL-038).
+- **Inline commentary modes:** text, translation and one or more commentaries interleaved verse by verse in one panel, as an alternative to the sidebar.
+- **Workspaces and sheets:** a saved workspace as a lightweight study packet, or a source sheet opened as a workspace. Overlaps [Sheets: viewing](../sheets-view/product.md).
 
 ## Changes from today (keep · change · drop · new)
 
 - **Keep:** several reader panels side by side; opening from a sidebar closes the sidebar and opens a new main panel beside the source panel (SHL-044, SHL-047, CON-033). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 - **Change:** _None recorded yet._
 - **Drop:** _None recorded yet._
-- **New:** panel-management features beyond today's, scope open. — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
+- **New:** panel-management features beyond today's: drag to reorder, vertical splits, floating panels, saved and shared layouts, inline commentary in a panel. — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 
 ## Open questions
 
 - **Which side?** The thread says the new panel opens "to the left". On sefaria.org today it opens *after* the source panel in reading order: to its right in the English interface, to its left in the Hebrew interface (`master` `static/js/ReaderApp.jsx:2452`); `reader-next` does the same. Is "left" a fixed side, or does it follow the interface direction as today? · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 - **What does "future panel management" cover?** For example reorder, resize, pin, stack, close all. Not stated yet.
 - **How many panels, and what on overflow?** Today the number of visible panels depends on window width and extra panels scroll sideways (SHL-039, SHL-040). Does that stay?
-- **Phones and narrow screens:** today one panel is shown and opening from the sidebar replaces the current panel (SHL-061). Does that stay?
+- **Phones and narrow screens:** today one panel is shown and opening from the sidebar replaces the current panel (SHL-061). Does that stay? What do stacked, floating and shared layouts become on a phone?
+- **Shared layouts:** link only, or a stored workspace with an id? Does a shared layout open as the sender's copy (a snapshot) or stay in sync? · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+- **Inline commentary:** how many commentaries per panel, and does it replace the commentary view of the sidebar or sit beside it? · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 
 ## Decisions
 
