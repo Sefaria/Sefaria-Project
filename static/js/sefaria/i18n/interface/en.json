@@ -668,5 +668,6 @@
     "search.null.sources.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
     "search.null.books.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
     "search.null.authors.body.library_assistant": "Try a different search term, browse all Authors or ask the Library Assistant for help.",
-    "search.null.topics.body.library_assistant": "Try a different search term, browse all Topics or ask the Library Assistant for help."
+    "search.null.topics.body.library_assistant": "Try a different search term, browse all Topics or ask the Library Assistant for help.",
+    "search.null.library_assistant_question": "I searched for \"{query}\" on Sefaria and got no results. Can you help me find relevant sources, books, authors, and/or topics?"
 }

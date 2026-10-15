@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
@@ -28,6 +28,14 @@ function renderCaption() {
 function NoSearchResults({ mode, query }) {
   const key = (type) => `search.null.${mode}.${type}`;
   const heading = Sefaria._(key('h1')).replace(/\[query\]|\{userquery\}/g, query);
+
+  // Turn the Library Assistant's "Ask" button into "Search with Library Assistant", which asks
+  // about this search when clicked. The widget (ai-chatbot) owns the label; null puts back "Ask".
+  useEffect(() => {
+    const question = Sefaria._('search.null.library_assistant_question').replace(/\{query\}/g, query);
+    document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: {source: 'search_no_results', question}}));
+    return () => document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: null}));
+  }, [query]);
 
   return (
     <div className="noSearchResults">
