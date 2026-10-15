@@ -1,3 +1,5 @@
+import json
+import re
 import secrets
 import uuid
 
@@ -31,6 +33,13 @@ def create_test_user(prefix, superuser=False):
         email=f"{prefix}-{token}@example.com",
         password="password",
     )
+
+
+def page_props(html):
+    """The ReaderApp props a rendered page carries, as base.html writes them out."""
+    match = re.search(r"props:\s*(\{.*\}),\n", html)
+    assert match, "props JSON not found in the rendered page"
+    return json.loads(match.group(1))
 
 
 def purge_test_profiles(*users):
