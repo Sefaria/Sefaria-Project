@@ -132,6 +132,35 @@ CACHES = {
 }
 """
 
+"""THIS CACHE DEFINITION POINTS AT REDIS SENTINEL. Only useful if SENTINEL_HEADLESS_URL below is set;
+local dev has no Sentinel, so most developers want the example above."""
+"""
+from sefaria.system.redis_sentinel import RedisConfig, SentinelConfig, get_django_redis_cache_options
+
+_redis_config = RedisConfig(REDIS_URL, REDIS_PASSWORD, REDIS_PORT)
+_sentinel_config = SentinelConfig(SENTINEL_HEADLESS_URL, SENTINEL_PASSWORD, REDIS_PORT, SENTINEL_TRANSPORT_OPTS, SENTINEL_MASTER_SET)
+_shared_location, _shared_options = get_django_redis_cache_options(_redis_config, _sentinel_config, SHARED_CACHE_DB_NUM, read_from_replicas=False)
+_shared_options["SERIALIZER"] = "sefaria.system.serializers.JSONSerializer"
+_default_location, _default_options = get_django_redis_cache_options(_redis_config, _sentinel_config, DEFAULT_CACHE_DB_NUM)
+
+CACHES = {
+    "shared": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": _shared_location,
+        "OPTIONS": _shared_options,
+        "TIMEOUT": None,
+        "KEY_PREFIX": DEPLOY_ENV,
+    },
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": _default_location,
+        "OPTIONS": _default_options,
+        "TIMEOUT": 60 * 60 * 24 * 30,
+        "KEY_PREFIX": DEPLOY_ENV,
+    },
+}
+"""
+
 SITE_PACKAGE = "sites.sefaria"
 
 
@@ -243,14 +272,6 @@ CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
 CLOUDFLARE_TOKEN = ""
 
-# Multiserver
-MULTISERVER_ENABLED = False
-MULTISERVER_REDIS_SERVER = "127.0.0.1"
-MULTISERVER_REDIS_PORT = 6379
-MULTISERVER_REDIS_DB = 0
-MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
-MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
-
 # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
 GOOGLE_OAUTH2_CLIENT_ID = ""
 GOOGLE_OAUTH2_CLIENT_SECRET = ""
@@ -294,6 +315,20 @@ CELERY_REDIS_RESULT_BACKEND_DB_NUM = 3
 CELERY_QUEUES = {}
 CELERY_ENABLED = False
 # END Celery
+
+# CACHES and GenCache share Celery's Redis; keep these DB numbers distinct from CELERY_REDIS_*_DB_NUM.
+SENTINEL_MASTER_SET = "mymaster"  # the Bitnami redis chart's default sentinel.masterSet
+DEFAULT_CACHE_DB_NUM = 4
+SHARED_CACHE_DB_NUM = 5
+GENCACHE_REDIS_DB_NUM = 6
+# How often each process re-checks a GenCache counter, i.e. how stale a peer's copy can get,
+# and the most a process waits before rebuilding after Redis loses its keyspace.
+GENCACHE_CHECK_INTERVAL_SECONDS = 2
+GENCACHE_JITTER_MAX_SECONDS = 3
+
+# Prefixes CACHES and GenCache keys, so deployments sharing one Redis (e.g. cauldrons) don't
+# collide. Empty means no prefix.
+DEPLOY_ENV = ""
 
 #Slack
 SLACK_URL = ''
