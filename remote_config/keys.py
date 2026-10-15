@@ -18,3 +18,6 @@ CHATBOT_PROMO_MAYBE_LATER_JSON = "feature.chatbot.promoMaybeLaterJSON"
 CHATBOT_PROMO_SESSION_LENGTH_SECONDS = "feature.chatbot.promoSessionLengthSeconds"
 # Whether logged-out visitors get the Library Assistant (on unless set to false)
 CHATBOT_ANONYMOUS_ENABLED = "feature.chatbot.anonymous_enabled"
+# Free Library Assistant answers for a logged-out visitor. Read by the chatbot server
+# (ai-chatbot, chat/anon_access.py) from /api/remote-config; created by migration 0002.
+CHATBOT_ANONYMOUS_FREE_ANSWERS = "feature.chatbot.anonymous_free_answers"
