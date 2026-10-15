@@ -1,6 +1,7 @@
 import { Page, expect } from "@playwright/test"
 import { t } from "../globals"
 import { HelperBase } from "./helperBase"
+import { sefariaString } from "../support/assistantStrings"
 
 /**
  * Tab order is fixed by the `tabs` array in static/js/SearchPage.jsx:428.
@@ -276,6 +277,101 @@ export class SearchPage extends HelperBase{
         const heading = this.nullState.locator('.noSearchResults-heading');
         await expect(heading).toBeVisible({ timeout: t(5000) });
         return (await heading.textContent()) ?? '';
+    }
+
+    /**
+     * The body text under the heading, with non-breaking spaces turned into normal
+     * spaces and runs of spaces collapsed — so a design that keeps two words together
+     * with a non-breaking space still compares equal to the translation string.
+     */
+    async nullStateBodyText(): Promise<string> {
+        const body = this.nullState.locator('.noSearchResults-body');
+        await expect(body).toBeVisible({ timeout: t(5000) });
+        const text = (await body.textContent()) ?? '';
+        return text.replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    /**
+     * Every button-like control in the null state other than the two caption links
+     * ("Report a bug" / "contact us"), as hrefs. The Browse CTA is an `<a>` styled as a
+     * button, so it counts; a real `<button>` would be listed as "(button)".
+     */
+    async nullStateButtonHrefs(): Promise<string[]> {
+        await expect(this.nullState).toBeVisible({ timeout: t(5000) });
+        const links = await this.nullState.getByRole('link').evaluateAll((els) =>
+            els.filter((el) => !el.closest('.noSearchResults-caption')).map((el) => el.getAttribute('href') ?? ''));
+        const buttons = await this.nullState.getByRole('button').count();
+        return [...links, ...Array(buttons).fill('(button)')];
+    }
+
+    /**
+     * How many lines of the body text `phrase` is spread over (1 = it never breaks).
+     * Measured with a DOM Range around the phrase: a Range returns one box per line it
+     * touches, so boxes at different heights mean the phrase wrapped. Returns 0 when the
+     * phrase isn't in the body at all.
+     */
+    async nullStateLinesUsedBy(phrase: string): Promise<number> {
+        const body = this.nullState.locator('.noSearchResults-body');
+        await expect(body).toBeVisible({ timeout: t(5000) });
+        return body.evaluate((el, wanted) => {
+            const norm = (s: string) => s.replace(/ /g, ' ');
+            // Join every text node, remembering where each one starts.
+            const walker = el.ownerDocument.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+            const pieces: { node: Text; start: number }[] = [];
+            let all = '';
+            let node: Node | null;
+            while ((node = walker.nextNode())) {
+                pieces.push({ node: node as Text, start: all.length });
+                all += norm(node.textContent || '');
+            }
+            const from = all.indexOf(norm(wanted));
+            if (from < 0) return 0;
+            const to = from + wanted.length;
+            const at = (offset: number) => {
+                const piece = [...pieces].reverse().find((p) => p.start <= offset)!;
+                return { node: piece.node, offset: offset - piece.start };
+            };
+            const range = el.ownerDocument.createRange();
+            const a = at(from);
+            const b = at(to);
+            range.setStart(a.node, a.offset);
+            range.setEnd(b.node, b.offset);
+            const tops = new Set(Array.from(range.getClientRects())
+                .filter((r) => r.width > 0)
+                .map((r) => Math.round(r.top)));
+            return tops.size;
+        }, phrase);
+    }
+
+    // ---------------------------------------------------------------------
+    // Running a search
+    // ---------------------------------------------------------------------
+
+    /**
+     * Type into Sefaria's header search box (desktop header) and press Enter, the
+     * way a visitor does — the page changes without a full reload. The box's
+     * accessible name is read by translation key, so this works in Hebrew too.
+     */
+    async submitHeaderSearch(query: string): Promise<void> {
+        const box = this.page.locator('div.header[role="banner"]').getByRole('combobox', {
+            name: sefariaString('common.search_for_texts_or_keywords_here', this.language),
+        });
+        await expect(box).toBeVisible({ timeout: t(10000) });
+        await box.click();
+        await box.fill(query);
+        await box.press('Enter');
+        await expect(this.page).toHaveURL(/\/search\?/, { timeout: t(15000) });
+    }
+
+    /** Search again from the search box at the top of the search results page itself. */
+    async submitSearchFromResultsPage(query: string): Promise<void> {
+        const box = this.searchContent.getByRole('search').getByRole('textbox', {
+            name: sefariaString('common.search_for_texts_or_keywords_here', this.language),
+        });
+        await expect(box).toBeVisible({ timeout: t(10000) });
+        await box.fill(query);
+        await box.press('Enter');
+        await expect(this.page).toHaveURL(new RegExp(`[?&]q=${encodeURIComponent(query)}`), { timeout: t(15000) });
     }
 
     /**

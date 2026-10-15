@@ -342,3 +342,22 @@ Written **test-first** from the "Library Assistant behavior stories for automate
 npx playwright test --project=chrome-assistant library-assistant-q4-desktop
 npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library library-assistant-phone
 ```
+
+### Search with no results (LA-NULL-*)
+
+Also test-first, same helpers as above.
+
+| File | What |
+| --- | --- |
+| [library-assistant-null-search-desktop.spec.ts](library-assistant-null-search-desktop.spec.ts) | Every LA-NULL story on desktop (`chrome-assistant`) |
+| [../mobile web/library-assistant-null-search-phone.spec.ts](../mobile%20web/library-assistant-null-search-phone.spec.ts) | The `@phone` ones: LA-NULL-1 and LA-NULL-5 (mobile config) |
+| [../support/nullStateRecorder.ts](../support/nullStateRecorder.ts) | Records every version of the "no results" box from before the page loads (LA-NULL-3) |
+
+- **"Assistant on"** is `enLAUser` / `heLAUser`; **"assistant off"** is `enUser`, which never gets the assistant.
+- **The question the button sends** is read from Sefaria's `search.null.library_assistant_question` key.
+- **Logged-out stories are `test.fixme` placeholders** (the logged-out row of LA-NULL-1, and LA-NULL-8 → 12): the assistant doesn't load for logged-out visitors yet, and there is no free-answer count or login prompt to drive. Each placeholder lists its steps.
+
+```bash
+npx playwright test --project=chrome-assistant library-assistant-null-search-desktop
+npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library library-assistant-null-search-phone
+```

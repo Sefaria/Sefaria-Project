@@ -3,9 +3,8 @@ import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t } from '../globals';
 import { MOBILE_HAMBURGER } from '../constants';
-import { assistantString, sefariaString, escapeRegExp } from '../support/assistantStrings';
+import { assistantString, assistantKeys, sefariaString, escapeRegExp } from '../support/assistantStrings';
 import { analyzeBounces, analyzeSlide, BounceReport, RectSample, SlideReport } from '../support/motionAnalysis';
-
 /**
  * Page object for the Library Assistant "Q4 package" behavior stories
  * (LA-BTN-*, LA-ENTRY-*, LA-PHONE-*, LA-COOKIE-*, LA-NOTE-*, LA-RTL-*).
@@ -226,7 +225,34 @@ function installPageHelpers(): void {
     return false;
   };
 
-  w.__laTest = { deepAll, isShown, findAskButton, findDialog, boxesWithBackground, findDot, sample, pageScrollPositions, assistantIsOnTopAt };
+  /**
+   * Record the closed launcher's label and width every animation frame. Stops after `ms`,
+   * or — with `settleAfterChangeMs` — once the label has changed and then stayed the same
+   * for that long, so a test can wait through something slow (a search) and still stop
+   * soon after the label settles.
+   */
+  const sampleLauncher = (opts: { labels: string[]; ms: number; settleAfterChangeMs?: number }) =>
+    new Promise((resolve) => {
+      const samples: any[] = [];
+      const t0 = performance.now();
+      let prevLabel: string | null | undefined;
+      let lastChangeAt: number | null = null;
+      const frame = () => {
+        const now = performance.now() - t0;
+        const el = findAskButton(opts.labels);
+        const r = el ? el.getBoundingClientRect() : null;
+        const label = el ? labelText(el) : null;
+        samples.push({ t: now, label, width: r ? r.width : null });
+        if (prevLabel !== undefined && label !== prevLabel) lastChangeAt = now;
+        prevLabel = label;
+        const settled = opts.settleAfterChangeMs !== undefined && lastChangeAt !== null && now - lastChangeAt >= opts.settleAfterChangeMs;
+        if (now < opts.ms && !settled) requestAnimationFrame(frame);
+        else resolve(samples);
+      };
+      requestAnimationFrame(frame);
+    });
+
+  w.__laTest = { deepAll, isShown, findAskButton, findDialog, boxesWithBackground, findDot, sample, sampleLauncher, pageScrollPositions, assistantIsOnTopAt };
 }
 
 export class LibraryAssistantQ4Page extends HelperBase {
@@ -253,6 +279,15 @@ export class LibraryAssistantQ4Page extends HelperBase {
     return this.a('assistant.floating_button.label');
   }
 
+  /** "Search with Library Assistant" — the floating button's label on an empty search (LA-NULL-*). */
+  get searchLabel(): string {
+    return this.a('assistant.floating_button.search_label');
+  }
+
+  private launcherLabel(which: 'ask' | 'search'): string {
+    return which === 'ask' ? this.askLabel : this.searchLabel;
+  }
+
   /** "Library Assistant" — the header pill / hamburger menu item. */
   private get libraryAssistantLabel(): RegExp {
     return new RegExp(`^\\s*✦?\\s*${escapeRegExp(this.s('header.library_assistant'))}\\s*$`);
@@ -271,6 +306,14 @@ export class LibraryAssistantQ4Page extends HelperBase {
     return this.page
       .getByRole('button')
       .filter({ hasText: new RegExp(`^\\s*✦?\\s*${escapeRegExp(this.askLabel)}\\s*$`) });
+  }
+
+  /** The closed launcher when it reads "✦ Ask" or "✦ Search with Library Assistant". */
+  private launcher(which: 'ask' | 'search'): Locator {
+    if (which === 'ask') return this.askButton;
+    return this.page
+      .getByRole('button')
+      .filter({ hasText: new RegExp(`^\\s*✦?\\s*${escapeRegExp(this.searchLabel)}\\s*$`) });
   }
 
   /** The open assistant: a floating panel on wide screens, a full-screen sheet on phones. */
@@ -503,19 +546,20 @@ export class LibraryAssistantQ4Page extends HelperBase {
     await this.expectAssistantOpen();
   }
 
-  async closeWithMinimize(): Promise<void> {
+  /** `launcher` is the label the button should come back with ("search" on an empty search page). */
+  async closeWithMinimize(launcher: 'ask' | 'search' = 'ask'): Promise<void> {
     await this.press(this.minimizeButton);
-    await this.expectAssistantClosed();
+    await this.expectAssistantClosed(launcher);
   }
 
   async expectAssistantOpen(): Promise<void> {
     await expect(this.dialog).toBeVisible({ timeout: t(5000) });
   }
 
-  /** Closed means: no panel/sheet, and the Ask button is back. */
-  async expectAssistantClosed(): Promise<void> {
+  /** Closed means: no panel/sheet, and the Ask button (or, on an empty search, its search version) is back. */
+  async expectAssistantClosed(launcher: 'ask' | 'search' = 'ask'): Promise<void> {
     await expect(this.dialog).toBeHidden({ timeout: t(5000) });
-    await expect(this.askButton).toBeVisible({ timeout: t(5000) });
+    await expect(this.launcher(launcher)).toBeVisible({ timeout: t(5000) });
   }
 
   async expectAskButtonVisible(): Promise<void> {
@@ -1143,5 +1187,99 @@ export class LibraryAssistantQ4Page extends HelperBase {
     await this.askQuestion(question);
     await waitForQuestion();
     await this.closeWithMinimize();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Search with no results (LA-NULL-*)
+  // ---------------------------------------------------------------------------
+
+  /** The closed button reads "✦ Ask" or "✦ Search with Library Assistant". */
+  async expectLauncherReads(which: 'ask' | 'search', timeout = 10000): Promise<void> {
+    await expect(this.launcher(which)).toBeVisible({ timeout: t(timeout) });
+  }
+
+  /** LA-NULL-5: the relabelled button still has its four-point star. */
+  async expectSearchLauncherHasStar(): Promise<void> {
+    await expect(this.launcher('search')).toBeVisible({ timeout: t(5000) });
+    expect(await this.starSize(this.launcher('search')), 'the star should still be on the button').not.toBeNull();
+  }
+
+  /** Click "✦ Search with Library Assistant" and wait for the assistant to open. */
+  async clickSearchLauncher(): Promise<void> {
+    await expect(this.launcher('search')).toBeVisible({ timeout: t(10000) });
+    await this.press(this.launcher('search'));
+    await this.expectAssistantOpen();
+  }
+
+  /**
+   * Record the closed button's label and width on every animation frame while
+   * `action` runs. Recording starts in the page first, then `action` runs.
+   * With `settleAfterChangeMs`, recording stops that long after the label first
+   * changes (or after `ms` at the latest).
+   */
+  async watchLauncherWhile(
+    action: () => Promise<void>,
+    opts: { ms: number; settleAfterChangeMs?: number },
+  ): Promise<Array<{ t: number; label: string | null; width: number | null }>> {
+    await this.helpers();
+    await this.page.evaluate((o) => {
+      (window as any).__laLauncherSampling = (window as any).__laTest.sampleLauncher(o);
+    }, { labels: [this.askLabel, this.searchLabel], ms: t(opts.ms), settleAfterChangeMs: opts.settleAfterChangeMs });
+    await action();
+    return this.page.evaluate(() => (window as any).__laLauncherSampling);
+  }
+
+  /**
+   * LA-NULL-5: from frames recorded by watchLauncherWhile, check that the button changed
+   * to "Search with Library Assistant" once — never flipping back to "Ask" on the way —
+   * and that its width grew smoothly over ~200ms (or in one step with reduced motion).
+   */
+  expectGrewIntoSearchLabel(
+    samples: Array<{ t: number; label: string | null; width: number | null }>,
+    opts: { reducedMotion: boolean },
+  ): void {
+    const firstSearch = samples.findIndex((s) => s.label === this.searchLabel);
+    expect(firstSearch, `the button should change to "${this.searchLabel}"`).toBeGreaterThanOrEqual(0);
+    const flips = samples.slice(firstSearch).filter((s) => s.label !== this.searchLabel);
+    expect(
+      flips.length,
+      `once it reads "${this.searchLabel}" it should stay that way, but at ${Math.round(flips[0]?.t ?? 0)}ms ` +
+      `it read "${flips[0]?.label}" (${flips.length} frames)`,
+    ).toBe(0);
+
+    const growth = analyzeSlide(samples.filter((s) => s.width !== null).map((s) => ({ t: s.t, v: s.width as number })));
+    expect(growth.endValue, `the button should get wider (${growth.startValue}px → ${growth.endValue}px)`).toBeGreaterThan(growth.startValue);
+    if (opts.reducedMotion) {
+      expect(growth.inBetweenFrames, 'with reduced motion the width should change in one step').toBe(0);
+    } else {
+      expect(growth.inBetweenFrames, 'the width should grow smoothly, never jump').toBeGreaterThanOrEqual(2);
+      // 200ms, with room for animation-frame timing (~16ms per frame) and slow test machines.
+      // (The widget's ease-out curve gets within half a pixel of the end at ~170ms.)
+      expect(growth.durationMs, 'how long the width took to grow').toBeGreaterThanOrEqual(120);
+      expect(growth.durationMs, 'how long the width took to grow').toBeLessThanOrEqual(400);
+    }
+  }
+
+  /** LA-NULL-6: soon after the click, the open assistant shows one of its "thinking" messages. */
+  async expectThinkingWithin(ms: number): Promise<void> {
+    const messages = [
+      this.a('assistant.loading.initial'),
+      ...assistantKeys(/^assistant\.thinking\.array\.\d+$/).map((key) => this.a(key)),
+      this.a('assistant.thinking.final'),
+    ];
+    const anyMessage = new RegExp(`^\\s*(${messages.map(escapeRegExp).join('|')})\\s*$`);
+    await expect(this.dialog.getByText(anyMessage).first()).toBeVisible({ timeout: t(ms) });
+  }
+
+  async expectConversationLacks(text: string): Promise<void> {
+    await expect(this.conversation).toBeVisible({ timeout: t(5000) });
+    await expect(this.conversation).not.toContainText(text, { timeout: t(5000) });
+  }
+
+  /** LA-NULL-7: chat history lists a chat with this title. */
+  async expectChatInHistory(title: string): Promise<void> {
+    await this.openChatHistory();
+    await expect(this.historyPanel.getByRole('button', { name: new RegExp(escapeRegExp(title)) }).first())
+      .toBeVisible({ timeout: t(10000) });
   }
 }
