@@ -17065,3 +17065,204 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+
+/* Translation feedback POC (static/js/TranslationFeedback.jsx) */
+.translationFeedbackDialog {
+  border: none;
+  border-radius: 10px;
+  padding: 0;
+  width: 600px;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+  font-family: var(--english-sans-serif-font-family);
+  color: #333;
+}
+.translationFeedbackDialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.translationFeedbackForm {
+  padding: 24px 28px;
+  direction: ltr;
+  text-align: left;
+}
+.translationFeedbackForm h2 {
+  margin: 0 0 18px;
+  font-size: 22px;
+  font-weight: 500;
+  color: #000;
+  text-transform: none;
+  letter-spacing: normal;
+  text-align: left;
+}
+.translationFeedbackField {
+  margin-bottom: 16px;
+}
+.translationFeedbackField label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.translationFeedbackField .optional {
+  font-weight: normal;
+  color: var(--medium-grey);
+}
+.translationFeedbackField .readOnlyValue {
+  font-size: 16px;
+  padding: 6px 10px;
+  background: var(--lightest-grey, #F7F7F7);
+  border-radius: 6px;
+}
+.translationFeedbackField .translationFeedbackSource {
+  font-family: var(--hebrew-serif-font-family);
+  font-size: 20px;
+  line-height: 1.5;
+  text-align: right;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.translationFeedbackField .translationFeedbackCurrent {
+  font-family: var(--english-serif-font-family);
+  line-height: 1.5;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.translationFeedbackField .translationFeedbackLoading {
+  color: var(--medium-grey);
+  font-size: 14px;
+}
+.translationFeedbackLabelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.translationFeedbackStartButton {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 3px 10px;
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--dark-grey);
+  cursor: pointer;
+}
+.translationFeedbackStartButton:hover:not([disabled]) {
+  background: var(--lightest-grey, #F7F7F7);
+}
+.translationFeedbackStartButton[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+.translationFeedbackMeta,
+.translationFeedbackHelp {
+  font-size: 13px;
+  color: var(--dark-grey);
+  margin: 4px 0 6px;
+}
+.translationFeedbackField input,
+.translationFeedbackField textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 16px;
+  padding: 8px 10px;
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  resize: vertical;
+}
+.translationFeedbackError {
+  color: #B71C1C;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.translationFeedbackButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.translationFeedbackButtons .button {
+  margin: 0;
+}
+.translationFeedbackButtons .button[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+.translationFeedbackToast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100001;
+  background: var(--sefaria-blue);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 16px;
+}
+
+/* Translation feedback POC: reader marks under a segment (SegmentFeedbackMarks) */
+.segmentFeedbackMarks {
+  clear: both;
+  margin: 4px 0 10px;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: default;
+}
+.segmentFeedbackChanged {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #5c5c5c;
+  font-size: 12px;
+  background: #eef3f4;
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin-bottom: 6px;
+}
+.segmentFeedbackIcon { color: #196373; }
+.segmentFeedbackPending {
+  border-inline-start: 3px solid #CCB479;
+  background: #FBF8EF;
+  border-radius: 0 6px 6px 0;
+  padding: 6px 12px;
+  margin-bottom: 6px;
+}
+.segmentFeedbackPendingLabel {
+  font-size: 12px;
+  color: #5c5c5c;
+  margin-bottom: 2px;
+}
+.segmentFeedbackStatus {
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8a6d1a;
+  background: #F3EAC9;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-inline-start: 4px;
+}
+.segmentFeedbackDate { color: #8a8a8a; }
+.segmentFeedbackPendingText {
+  font-family: var(--english-serif-font-family);
+  font-size: 16px;
+  color: #333;
+  white-space: pre-wrap;
+}
+.segmentFeedbackMore {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #196373;
+  font-size: 12px;
+  cursor: pointer;
+}
+.segmentFeedbackMore:hover { text-decoration: underline; }
+
