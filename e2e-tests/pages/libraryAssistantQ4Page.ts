@@ -316,6 +316,14 @@ export class LibraryAssistantQ4Page extends HelperBase {
     return this.page.locator('div.header[role="banner"]');
   }
 
+  /**
+   * The bar you actually see. `div.header` itself is 0px tall (the bar inside it is fixed to
+   * the top of the window), and Playwright counts a 0px element as hidden — so check this one.
+   */
+  private get sefariaHeaderBar(): Locator {
+    return this.sefariaHeader.locator('.headerInner');
+  }
+
   private get headerPill(): Locator {
     const name = this.libraryAssistantLabel;
     return this.sefariaHeader.getByRole('button', { name }).or(this.sefariaHeader.getByRole('link', { name }));
@@ -638,7 +646,7 @@ export class LibraryAssistantQ4Page extends HelperBase {
 
   /** LA-ENTRY-4 */
   async expectNoHeaderPill(): Promise<void> {
-    await expect(this.sefariaHeader).toBeVisible({ timeout: t(15000) });
+    await expect(this.sefariaHeaderBar).toBeVisible({ timeout: t(15000) });
     await expect(this.headerPill).toHaveCount(0);
   }
 
