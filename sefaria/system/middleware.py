@@ -16,7 +16,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token
+from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token, ADMIN_MCP_TOKEN_AUDIENCE
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.utils.views_utils import add_query_param, mark_no_applink, is_aasa_excluded, AASA_EXCLUDED_PATHS
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port, referer_is_sefaria_domain, redirect_target_is_sefaria_domain
@@ -363,7 +363,15 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
 
     This supplements Django's normal session auth. If the request already has an
     authenticated user from the session, this middleware leaves it untouched.
+
+    Two token types share the header, each encrypted with its own secret:
+    - Chatbot tokens (no audience, CHATBOT_USER_ID_SECRET): accepted on any path except
+      ADMIN_MCP_PATH_PREFIX. CSRF is still enforced.
+    - Admin MCP tokens (audience ADMIN_MCP_TOKEN_AUDIENCE, ADMIN_MCP_TOKEN_SECRET): accepted only
+      on ADMIN_MCP_PATH_PREFIX and only for staff. CSRF is skipped, since a browser never attaches
+      this header on its own.
     """
+    ADMIN_MCP_PATH_PREFIX = "/api/admin/"
 
     def process_request(self, request):
         if getattr(request, "user", None) and request.user.is_authenticated:
@@ -374,22 +382,46 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
         if not encrypted_session_id:
             return
 
+        if request.path.startswith(self.ADMIN_MCP_PATH_PREFIX):
+            self._authenticate_admin_mcp(request, encrypted_session_id)
+            return
+
         user_id = get_user_id_from_chatbot_user_token(
             encrypted_session_id,
             getattr(settings, "CHATBOT_USER_ID_SECRET", None),
         )
-        if not user_id:
-            return
+        user = self._get_active_user(user_id)
+        if user:
+            self._set_user(request, user)
 
+    def _authenticate_admin_mcp(self, request, token):
+        user_id = get_user_id_from_chatbot_user_token(
+            token,
+            getattr(settings, "ADMIN_MCP_TOKEN_SECRET", None),
+            aud=ADMIN_MCP_TOKEN_AUDIENCE,
+        )
+        user = self._get_active_user(user_id)
+        if not user or not user.is_staff:
+            return
+        self._set_user(request, user)
+        request.auth_via = ADMIN_MCP_TOKEN_AUDIENCE
+        request._dont_enforce_csrf_checks = True
+
+    @staticmethod
+    def _get_active_user(user_id):
+        if not user_id:
+            return None
         User = get_user_model()
         try:
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
-            return
-
+            return None
         if getattr(user, "is_active", True) is False:
-            return
+            return None
+        return user
 
+    @staticmethod
+    def _set_user(request, user):
         request.user = user
         request._cached_user = user
         request.user_id = user.id

@@ -11,6 +11,8 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 DEFAULT_TTL_HOURS = 72
+ADMIN_MCP_TOKEN_AUDIENCE = "admin-mcp"
+ADMIN_MCP_DEFAULT_TTL_HOURS = 12
 NONCE_SIZE_BYTES = 12
 
 
@@ -45,7 +47,11 @@ def _decrypt_chatbot_user_token(token, secret):
     return payload
 
 
-def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS):
+def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS, aud=None):
+    """
+    Build an encrypted user token. `aud` scopes the token to a consumer other than the chatbot
+    (e.g. ADMIN_MCP_TOKEN_AUDIENCE); chatbot tokens carry no audience.
+    """
     if not user_id or not secret:
         return None
 
@@ -55,6 +61,8 @@ def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HO
         "user_id": int(user_id),
         "expiration": expires_at.replace(microsecond=0).isoformat(),
     }
+    if aud:
+        payload["aud"] = aud
     payload_bytes = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
     key = _derive_key(secret)
     aesgcm = AESGCM(key)
@@ -64,13 +72,19 @@ def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HO
     return base64.urlsafe_b64encode(token_bytes).decode("ascii")
 
 
-def get_user_id_from_chatbot_user_token(token, secret):
+def get_user_id_from_chatbot_user_token(token, secret, aud=None):
+    """
+    Returns the user id in `token`, or None if the token is invalid, expired, or was issued for a
+    different audience than `aud` (None means the chatbot, whose tokens carry no audience).
+    """
     if not token or not secret:
         return None
 
     try:
         payload = _decrypt_chatbot_user_token(token, secret)
         if payload is None:
+            return None
+        if payload.get("aud") != aud:
             return None
         user_id = int(payload["user_id"])
         return user_id if user_id > 0 else None

@@ -10,7 +10,7 @@ from django.conf import settings
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse, HttpResponseRedirect
 from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware, LocationSettingsMiddleware, WebSessionRedirectMiddleware
-from sefaria.utils.chatbot import build_chatbot_user_token
+from sefaria.utils.chatbot import build_chatbot_user_token, ADMIN_MCP_TOKEN_AUDIENCE
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
 # ============================================================================
@@ -597,6 +597,78 @@ class TestSessionIDAuthMiddleware:
         request.user = AnonymousUser()
 
         with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert not request.user.is_authenticated
+
+
+class TestSessionIDAuthMiddlewareAdminMCP:
+    chatbot_secret = "test-chatbot-secret"
+    admin_secret = "test-admin-mcp-secret"
+    admin_path = "/api/admin/topic-prompts"
+
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = SessionIDAuthMiddleware(get_response=lambda r: HttpResponse())
+
+    def _run(self, token, path):
+        request = self.factory.get(path, HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+        with override_settings(CHATBOT_USER_ID_SECRET=self.chatbot_secret, ADMIN_MCP_TOKEN_SECRET=self.admin_secret):
+            self.middleware.process_request(request)
+        return request
+
+    def _admin_token(self, user, secret=None):
+        return build_chatbot_user_token(user.id, secret or self.admin_secret, aud=ADMIN_MCP_TOKEN_AUDIENCE)
+
+    def test_admin_token_authenticates_staff_on_admin_path_and_skips_csrf(self, django_user_model):
+        user = django_user_model.objects.create_user(username="admin-mcp-staff", password="pass", is_staff=True)
+        request = self._run(self._admin_token(user), self.admin_path)
+
+        assert request.user.id == user.id
+        assert request.auth_via == ADMIN_MCP_TOKEN_AUDIENCE
+        assert request._dont_enforce_csrf_checks is True
+
+    def test_admin_token_rejected_for_non_staff(self, django_user_model):
+        user = django_user_model.objects.create_user(username="admin-mcp-nonstaff", password="pass")
+        request = self._run(self._admin_token(user), self.admin_path)
+
+        assert not request.user.is_authenticated
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+    def test_admin_token_rejected_outside_admin_path(self, django_user_model):
+        user = django_user_model.objects.create_user(username="admin-mcp-elsewhere", password="pass", is_staff=True)
+        request = self._run(self._admin_token(user), "/api/ref-topic-links/Genesis_1.1")
+
+        assert not request.user.is_authenticated
+
+    def test_chatbot_token_rejected_on_admin_path(self, django_user_model):
+        user = django_user_model.objects.create_user(username="chatbot-on-admin", password="pass", is_staff=True)
+        token = build_chatbot_user_token(user.id, self.chatbot_secret)
+        request = self._run(token, self.admin_path)
+
+        assert not request.user.is_authenticated
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+    def test_admin_audience_with_chatbot_secret_rejected(self, django_user_model):
+        user = django_user_model.objects.create_user(username="admin-aud-wrong-secret", password="pass", is_staff=True)
+        request = self._run(self._admin_token(user, secret=self.chatbot_secret), self.admin_path)
+
+        assert not request.user.is_authenticated
+
+    def test_chatbot_token_on_regular_path_still_enforces_csrf(self, django_user_model):
+        user = django_user_model.objects.create_user(username="chatbot-regular", password="pass")
+        token = build_chatbot_user_token(user.id, self.chatbot_secret)
+        request = self._run(token, "/api/profile")
+
+        assert request.user.id == user.id
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+    def test_admin_token_ignored_when_secret_unset(self, django_user_model):
+        user = django_user_model.objects.create_user(username="admin-mcp-disabled", password="pass", is_staff=True)
+        request = self.factory.get(self.admin_path, HTTP_X_SESSION_ID=self._admin_token(user))
+        request.user = AnonymousUser()
+        with override_settings(ADMIN_MCP_TOKEN_SECRET=None):
             self.middleware.process_request(request)
 
         assert not request.user.is_authenticated
