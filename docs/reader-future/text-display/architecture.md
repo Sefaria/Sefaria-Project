@@ -4,8 +4,8 @@ title: Text display & reading settings
 domain: Reader
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
 ---
 # Text display & reading settings — architecture
 
@@ -23,11 +23,14 @@ _Not discussed yet: how `master` does it, how `reader-next` does it, and what di
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Repaints are monitored in production on interactions in the reading column (scroll, including infinite scroll; clicks on
+  segments and controls), not only on load. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · TXD-052
+- The lab checks already in `reader-next` (jump analysis and CLS per scroll step) stay as regression gates. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · TXD-068 · [`e2e/smoothness.spec.ts:120`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/e2e/smoothness.spec.ts#L120)
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [SSR, SEO & platform](../platform-seo/architecture.md): load-time targets, SSR payload and production monitoring.
+- [Cross-cutting → Performance](../CROSS_CUTTING.md#performance).
 
 ## Risks and open questions
 

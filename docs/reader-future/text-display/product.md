@@ -4,8 +4,8 @@ title: Text display & reading settings
 domain: Reader
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
 ---
 # Text display & reading settings — product specification
 
@@ -23,15 +23,18 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Text the reader asked for is on screen fast, especially on phones; mobile sessions today end before it loads. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489)
+- Scrolling and clicking in the text never cause a visible repaint, flicker or jump. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · TXD-052 · TXD-068
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **Change:** on load sefaria.org paints the top of the chapter, then jumps to the linked segment; the new reader places it
+  before first paint. — TXD-054 · TXD-068 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Open questions
 
-_None yet._
+- Which scroll and click interactions count for the repaint target (infinite scroll, opening the sidebar, clicking a segment,
+  changing settings)? See [platform-seo](../platform-seo/product.md) for the overall targets. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Decisions
 

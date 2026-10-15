@@ -4,8 +4,8 @@ title: SSR, SEO & platform
 domain: Platform
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
 ---
 # SSR, SEO & platform — product specification
 
@@ -15,23 +15,35 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+The future reader must show content fast, above all on phones, and must not repaint or jump while it loads or while
+people scroll and tap. Evidence from sefaria.org today: Hotjar shows many short mobile sessions that end before the content
+has loaded, and Google Search Console reports every page with a Largest Contentful Paint (LCP) above 4 seconds. Fast first
+content and a stable page are a focus point of the upcoming arc.
 
 ## Who it is for and what they need
 
-_Not discussed yet._
+- Mobile readers, the least patient group: they leave if the text is not on screen quickly, which likely costs real engagement. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · [Hotjar](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · PLT-019
+- Every reader: the page should not visibly repaint or shift on load, on scroll or on click. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- The text a reader asked for is visible fast on a phone; time to content is kept minimal. A target to consider is the "good"
+  Core Web Vitals band, LCP ≤ 2.5 s ([web.dev](https://web.dev/articles/lcp)). — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489)
+- No visible repaint, flicker or layout jump on load, nor when the reader scrolls or clicks. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · TXD-054 · TXD-068
+- Load speed and repaints are watched on the live site, so a regression is seen before readers report it. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **Change:** first content on mobile. Today Search Console reports 100% of pages with LCP over 4 s, and Hotjar shows mobile
+  sessions ending before content loads. — [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · [Hotjar](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · PLT-003 · PLT-019
+- **Change:** repaints. The current architecture has a known repainting issue; the new reader is designed away from it. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- **New:** load speed and repaints monitored in production, on load and on scroll and click. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Open questions
 
-_None yet._
+- Which targets do we commit to for LCP, INP (Interaction to Next Paint) and CLS (Cumulative Layout Shift), and on which
+  devices and network profile? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- How and where are repaints measured on the live site (which real-user monitoring tool)? See `architecture.md`. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Decisions
 

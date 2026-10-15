@@ -4,8 +4,8 @@ title: SSR, SEO & platform
 domain: Platform
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
 ---
 # SSR, SEO & platform — architecture
 
@@ -15,23 +15,45 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+Server rendering and loading time are to be kept minimal, and repaints are to be monitored in production on load and on
+interactions (scroll, click). The current architecture has a repainting issue that the new design must avoid. Today
+sefaria.org reports LCP above 4 s on every page (Google Search Console).
 
 ## Legacy approach vs new approach
 
-_Not discussed yet: how `master` does it, how `reader-next` does it, and what differs (data, state, rendering, routing, caching)._
+- **Legacy (`master`):** Django posts page props to the Node SSR server and injects its HTML; the browser then hydrates and
+  seeds its caches from the same props (PLT-003, PLT-004, `reader/views.py:206-285`, `static/js/client.jsx:11-73`). On load
+  the reader paints the top of the chapter first, then jumps to the linked segment after hydration (TXD-054, verified
+  2026-10-04). Front-end performance traces go to Sentry (`static/js/client.jsx:21`, ANL-017).
+- **New (`reader-next`):** the client renders reader pages on the node pods and passes the rest to Django (PLT-003, decision
+  2026-10-06). Repaints and layout shift are checked in the lab only: per-step jump analysis and CLS in
+  [`e2e/smoothness.spec.ts:120`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/e2e/smoothness.spec.ts#L120) and [`scripts/jank-probe.mjs:16`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/scripts/jank-probe.mjs#L16)
+  (TXD-068). No production measurement of LCP, INP or CLS exists in `reader-next/src/`; Sentry tracing and replay are wired
+  but their sample rates default to 0 ([`src/lib/analytics/sentry.ts:38-41`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/analytics/sentry.ts#L38-L41); live rates per ANL-017).
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- SSR payload and server time to first content are minimal; nothing that is not needed for the first screen is rendered or
+  shipped up front. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- LCP on mobile within the "good" Core Web Vitals band (≤ 2.5 s per [web.dev](https://web.dev/articles/lcp)) is the target to
+  consider; today GSC shows 100% of pages above 4 s. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489)
+- Repaints and layout shifts are monitored in production (real users), both on load and on interactions such as scroll and
+  click, not only in lab tests. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- The current architecture's repainting issue is a known problem to design away from. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [Text display](../text-display/architecture.md): scroll and click repaints in the reading column (TXD-052, TXD-068).
+- [Analytics](../analytics/architecture.md): where real-user performance data is collected and reported (ANL-017).
+- [Cross-cutting → Performance](../CROSS_CUTTING.md#performance).
 
 ## Risks and open questions
 
-_None yet._
+- Real-user monitoring tool: how and where repaints, LCP, INP and CLS are measured (Sentry tracing, a web-vitals beacon to GA4,
+  Hotjar, or other). Not discussed yet. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- Targets for LCP, INP and CLS, and the device and network profile they hold for. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- "Current architecture" was not pinned to a client: the sefaria.org reader (`master`), the rebuild, or both. The repaint issue
+  should be named concretely (which pages, which interactions) so it can be tested. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
 
 ## Decisions
 
