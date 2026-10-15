@@ -54,9 +54,12 @@ function NoSearchResults({ mode, query }) {
             <InterfaceText>{key('body')}</InterfaceText>
           </p>
         </div>
-        <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
-          <InterfaceText>{key('button')}</InterfaceText>
-        </a>
+        {/* With the Library Assistant setting on, its "Search with Library Assistant" button takes this one's place */}
+        {!Sefaria.chatbot_enabled &&
+          <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
+            <InterfaceText>{key('button')}</InterfaceText>
+          </a>
+        }
         {renderCaption()}
       </div>
     </div>
