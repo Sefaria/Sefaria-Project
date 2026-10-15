@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, Page } from '@playwright/test';
 import { goToPageWithLang, goToPageWithUser } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
@@ -90,12 +90,12 @@ test.describe('Library Assistant — Hebrew', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-027 (HE): Input and send button are disabled while awaiting a response', async () => {
+  test('UX-027 (HE): Input is disabled and Send is replaced by Stop while awaiting a response', async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> תן לי ברכה קצרה');
     await pm.onLibraryAssistant().sendViaEnter();
-    await pm.onLibraryAssistant().expectInputDisabledDuringSend();
+    await pm.onLibraryAssistant().expectInputDisabledAndStopShownDuringSend();
     await pm.onLibraryAssistant().waitForResponse();
   });
 
@@ -112,9 +112,10 @@ test.describe('Library Assistant — Hebrew', () => {
   // Header More-options menu (UX-057 → UX-060)
   test('UX-057 (HE): More-options menu opens with the expected items', { tag: '@sanity' }, async () => {
     // The "Settings" item only renders for Django-staff accounts. The expected
-    // Hebrew texts (4, or 5 with Settings) come from the POM label set, keyed on
+    // Hebrew texts (5, or 6 with Settings) come from the POM label set, keyed on
     // BROWSER_SETTINGS.heLAUser.isModerator — keep that flag in sync with the account.
-    await pm.onLibraryAssistant().ensureOpen();
+    // The menu's dock item names the opposite mode, so start floating.
+    await pm.onLibraryAssistant().ensureFloating();
     await pm.onLibraryAssistant().openHeaderMenu();
     await pm.onLibraryAssistant().expectMenuVisible();
     await pm.onLibraryAssistant().expectMenuItemTexts(
@@ -151,12 +152,6 @@ test.describe('Library Assistant — Hebrew', () => {
     await pm.onLibraryAssistant().expectEmptyState();
     await pm.onLibraryAssistant().expectNoUserMessages();
     await pm.onLibraryAssistant().expectTextareaEnabled();
-  });
-
-  // Responsive — UX-085
-  test('UX-085 (HE): Library Assistant is hidden on a 375 px mobile viewport', { tag: '@sanity' }, async () => {
-    await page.setViewportSize({ width: 375, height: 667 });
-    await expect(page.locator('lc-chatbot')).toBeHidden({ timeout: t(5000) });
   });
 });
 

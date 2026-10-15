@@ -73,7 +73,7 @@ After `waitForReady()` you are free to interact through the page object.
 
 All locators pierce the open shadow root. Use role/label over CSS when possible.
 
-> **Labels are language-specific** (the deployed component is i18n'd). Don't hardcode label strings in tests — go through the page object, which resolves them from `LA_LABELS[this.language]`. The authoritative, **live-verified** English/Hebrew strings are in §11. The table below lists the *structural* locators (role/CSS) that don't change between languages; the accessible **name** for the role-based ones comes from §11.
+> **Labels are language-specific** (the deployed component is i18n'd). Don't hardcode label strings in tests — go through the page object, which looks them up by translation key (§11). The authoritative, **live-verified** English/Hebrew strings are in §11. The table below lists the *structural* locators (role/CSS) that don't change between languages; the accessible **name** for the role-based ones comes from §11.
 
 | Element | Locator shape | Notes |
 | --- | --- | --- |
@@ -83,12 +83,12 @@ All locators pierce the open shadow root. Use role/label over CSS when possible.
 | Close button (X) | `getByRole('button', { name: <close> })` | header |
 | Dock / Undock | `getByRole('button', { name: <dock> / <undock> })` | dock visible floating, undock visible docked |
 | More options (ellipsis) | `getByRole('button', { name: <moreOptions> })` | opens `role="menu"` dropdown |
-| Menu items | `getByRole('menuitem')` | 4 base items, +`Settings` first for staff (see §11) |
+| Menu items | `getByRole('menuitem')` | 5 base items, +`Settings` first for staff (see §11) |
 | Prompt textarea | `getByLabel(<promptInput>)` | `maxlength="10000"` (the UX-021 test-plan figure of "500 chars" is wrong — the DOM is authoritative) |
 | Send button | `getByRole('button', { name: <send> })` | disabled when textarea is empty |
 | User message bubble | `page.locator('.message.user')` | use `.last()` for the most recent |
 | Assistant message bubble | `page.locator('.message.assistant')` | use `.last()` for the most recent |
-| Thinking indicator | `page.locator('.thinking-content')` | visible while request is in-flight; text is `Thinking` in both languages |
+| Thinking indicator | `page.locator('.lc-thinking-block')` | visible while request is in-flight; its text rotates through several messages (see §11) |
 | Container (mode class) | `page.locator('lc-chatbot .lc-chatbot-container')` | `mode-floating`/`mode-docked` + `is-open`; `interface-hebrew` class in HE |
 
 `<name>` placeholders above are the per-language strings from §11. If you ever need something the role/label approach can't reach, fall back to `page.evaluate(() => document.querySelector('lc-chatbot').shadowRoot.querySelector(...))`. Don't add brittle CSS to the page object for it.
@@ -112,13 +112,12 @@ Method map by UX ID:
 | UX-023 (send enabled when has text) | `ensureOpen()`, `typeMessage()`, `expectSendEnabled()` |
 | UX-024 (Enter sends) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectUserMessageShown()`, `expectInputCleared()`, `waitForResponse()` |
 | UX-026 (send button sends) | `ensureOpen()`, `typeMessage()`, `sendViaButton()`, `expectUserMessageShown()`, `expectInputCleared()`, `waitForResponse()` |
-| UX-027 (input disabled during send) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectInputDisabledDuringSend()`, `waitForResponse()` |
+| UX-027 (input disabled, Send replaced by Stop during send) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectInputDisabledAndStopShownDuringSend()`, `waitForResponse()` |
 | UX-036 (thinking indicator appears then clears) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectThinkingVisible()`, `waitForResponse()`, `expectThinkingGone()` |
 | UX-057 (header menu opens with expected items) | `openHeaderMenu()`, `expectMenuVisible()`, `expectMenuItemTexts([...])` |
 | UX-058 (outside click closes menu) | `openHeaderMenu()`, `clickOutsideMenu()`, `expectMenuHidden()` |
 | UX-059 (Escape closes menu) — **`test.fixme`**: component does not yet handle Escape | `openHeaderMenu()`, `closeMenuWithEscape()`, `expectMenuHidden()` |
 | UX-060 (Restart conversation clears messages) | `typeMessage()`, `sendViaEnter()`, `waitForResponse()`, `openHeaderMenu()`, `clickRestartConversation()`, `expectEmptyState()`, `expectNoUserMessages()` |
-| UX-085 (LA hidden at 375px mobile viewport) | `waitForReady()`, then `page.setViewportSize({ width: 375, height: 667 })` + assert `lc-chatbot` hidden |
 | LA-NEG-001 → 004 (LA absent off its intended surface) | `expectNotPresent()` — on `voices.*` home, a voices sheet, and logged-out Library/reader pages |
 
 State helpers (use these liberally at the top of a test to reach a known state):
@@ -236,9 +235,9 @@ If the host is missing entirely: the user isn't whitelisted for LA, or storage s
 
 | File | Purpose |
 | --- | --- |
-| [library-assistant.spec.ts](library-assistant.spec.ts) | **English** spec: 16 behavioral tests (UX-001, 003, 004, 013, 014, 022, 023, 024, 026, 027, 036, 057, 058, 059 *(fixme)*, 060, 085) + 4 visibility-boundary tests (LA-NEG-001 → 004) |
+| [library-assistant.spec.ts](library-assistant.spec.ts) | **English** spec: 15 behavioral tests (UX-001, 003, 004, 013, 014, 022, 023, 024, 026, 027, 036, 057, 058, 059 *(fixme)*, 060) + 4 visibility-boundary tests (LA-NEG-001 → 004) |
 | [library-assistant-hebrew.spec.ts](library-assistant-hebrew.spec.ts) | **Hebrew** spec mirroring the English one (UX-… `(HE)` + LA-NEG-HE-001/003/004). Runs in parallel; see §12 |
-| [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) | Page object — all LA interactions; language-parameterized via `LA_LABELS[this.language]` (§11) |
+| [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) | Page object — all LA interactions; labels looked up by translation key (§11) |
 | [../pages/pageManager.ts](../pages/pageManager.ts) | Registers `pm.onLibraryAssistant()` |
 | [../globals.ts](../globals.ts) | `testLAUser` / `testHeLAUser`, `AUTH_PATHS.enLAUserFile` / `heLAUserFile`, `BROWSER_SETTINGS.enLAUser` / `heLAUser` |
 | [../.env](../.env) | `PLAYWRIGHT_LA_USER_*` (English) and `PLAYWRIGHT_LA_USER_HE_*` (Hebrew) credentials |
@@ -259,36 +258,33 @@ These UX IDs are planned but *not* yet implemented (the ranges below exclude eve
 - Feedback (inline + modal): UX-046 — UX-056
 - Header menu deep dives: UX-061 — UX-064 *(UX-057 → UX-060 done; UX-059 is implemented but `test.fixme` pending a component Escape-to-close fix)*
 - Moderator settings panel: UX-065 — UX-070. The QA user *is* staff/moderator and already sees the `Settings` menu entry (covered by UX-057), so the deeper settings-panel flows are reachable and just need writing.
-- Accessibility, theming, session, embedding, responsive: UX-071 — UX-084 *(UX-085 done)*
+- Accessibility, theming, session, embedding, responsive: UX-071 — UX-084 *(UX-085, "LA hidden at 375px", was removed when the LA gained mobile support — phone coverage now lives in the LA-* Q4 stories, see §13)*
 
 When tackling any of these, first check whether the page object already covers the interaction. If so, just write the spec. If not, add a small, named method — don't inline raw locators in the spec file (per [../CLAUDE.md](../CLAUDE.md) §2).
 
 ---
 
-## 11. Bilingual label reference (verified against the LIVE component)
+## 11. Bilingual label reference (looked up by translation key)
 
-The deployed component runs a `svelte-i18n` build (`interface-lang="en"` / `"he"`) and renders every label from a catalog. The strings below were captured from the **live deployed shadow DOM** in each language (not read from source — the source `he.json` differs from prod in several places, e.g. source `שלח`/`סגור` vs deployed `שליחה`/`סגירה`). They live in `LA_LABELS` in [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts); the POM picks the set from `this.language`, so specs never hardcode a label.
+The component runs a `svelte-i18n` build (`interface-lang="en"` / `"he"`) and renders every label from a catalog. The page object does **not** type the words out: `labelsFor()` in [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) reads each label by key from ai-chatbot's `src/i18n/locales/{en,he}.json` through [../support/assistantStrings.ts](../support/assistantStrings.ts). So a Weblate copy edit doesn't break the suite, and the suite needs `AI_CHATBOT_REPO_PATH` (default `../ai-chatbot`) checked out at the ai-chatbot version the site under test runs. The lookup happens on first use, so specs that never touch the LA don't need the checkout.
 
-| Element | English (live) | Hebrew (live) |
+| Element | Key | English today |
 | --- | --- | --- |
-| Trigger button (`aria-label`) | `Open Library Assistant` | `פתיחת עוזר הספרייה` |
-| Trigger pill text | `LIBRARY ASSISTANT` | `עוזר הספרייה` |
-| Dialog (`aria-label`) | `Chat window` | `חלון שיחה` |
-| Close (`title`/`aria`) | `Close` | `סגירה` |
-| Dock (floating→docked) | `Dock Assistant` | `הצמדת עוזר הספרייה` |
-| Undock (docked→floating) | `Undock Assistant` | `חזרה למצב צף` |
-| More options | `More options` | `אפשרויות נוספות` |
-| Prompt input (`aria`) | `Prompt input` | `שדה טקסט` |
-| Input placeholder | `What are you learning today?` | `מה נלמד היום?` |
-| Send (`aria`) | `Send` | `שליחה` |
-| Menu items (in order) | `Restart chat` / `Give feedback` / `Help` / `Opt out in Settings` | `התחלת שיחה מחדש` / `שליחת משוב` / `עזרה` / `כיבוי בהגדרת` |
-| Settings menu item (moderator-only) | `Settings` | `הגדרות` |
-| Restart menu item (`aria`) | `Restart convo` | `התחלת שיחה מחדש` |
-| Thinking indicator text | `Thinking` | `Thinking` *(English in both — the Hebrew string is not yet wired in prod; `expectThinkingVisible()` is intentionally language-invariant)* |
+| Trigger button (`aria-label`) | `assistant.header.openAssistant` | `Open Library Assistant` |
+| Dialog (`aria-label`) | `assistant.header.chatWindow` | `Chat window` |
+| Close (`title`/`aria`) | `assistant.header.close.tooltip` | `Close` |
+| Dock header button (floating→docked) | `assistant.header.dock.tooltip` | `Maximize & move to sidebar` |
+| Undock header button (docked→floating) | `assistant.header.undock.tooltip` | `Minimize & detach from sidebar` |
+| More options | `assistant.header.moreOptions` | `More options` |
+| Prompt input (`aria`) | `assistant.input.aria` | `Prompt input` |
+| Send (`aria`) | `assistant.input.send.tooltip` | `Send` |
+| Stop (`aria`), replaces Send while an answer is being written | `assistant.stop.aria` | `Stop` |
+| Menu items, panel floating (in order) | `assistant.history.header.new.tooltip`, `assistant.menu.dock`, `assistant.menu.feedback`, `assistant.menu.help`, `assistant.menu.optout` | `New chat` / `Maximize & move to sidebar` / `Give feedback` / `Help` / `Disable in settings` |
+| Settings menu item (moderator-only) | `assistant.menu.settings` | `Settings` |
+| Restart menu item (`aria`) | `assistant.menu.restart.aria` | `Restart convo` |
+| Thinking indicator text (`.lc-thinking-block`) | `assistant.loading.initial`, then `assistant.thinking.array.NN` in turn, then `assistant.thinking.final` | `Thinking`, then `Interpreting your question`, `Searching the library`, … `Synthesizing response` *(`expectThinkingVisible()` accepts any of them)* |
 
-> ⚠️ The pre-i18n English labels (`Close assistant`, `Send message`, `Dock assistant to side`, `Restart conversation`, `Opt-out in Settings`) are **gone** from prod. If you see them anywhere, they're stale — use the table above.
-
-**Menu & moderator status.** The `Settings` item renders only for Django-**staff** accounts (the chatbot's `is-moderator` branch) — so the menu is **4 items** for a normal account, **5** (Settings first) for staff. `expectedMenuTexts(isModerator)` builds the right list; pass `BROWSER_SETTINGS.<profile>.isModerator`. `enLAUser` is staff (`true`); `heLAUser` tracks the real `qa+automationLAHebrew` account — flip its `isModerator` flag in [../globals.ts](../globals.ts) if that account's staff status changes.
+**Menu & moderator status.** The `Settings` item renders only for Django-**staff** accounts (the chatbot's `is-moderator` branch) — so the menu is **5 items** for a normal account, **6** (Settings first) for staff. The dock item names the *other* mode (`assistant.menu.dock` while floating, `assistant.menu.undock` while docked), so call `ensureFloating()` before checking the list. `expectedMenuTexts(isModerator)` builds the floating-mode list; pass `BROWSER_SETTINGS.<profile>.isModerator`. `enLAUser` is staff (`true`); `heLAUser` tracks the real `qa+automationLAHebrew` account — flip its `isModerator` flag in [../globals.ts](../globals.ts) if that account's staff status changes.
 
 ---
 
@@ -321,3 +317,47 @@ Consequences (all verified live):
 If those creds are missing, `global-setup` skips the account with a warning and the Hebrew tests fail with a clear "auth file missing" error.
 
 See also [../CLAUDE.md](../CLAUDE.md) and the memory note "Hebrew logged-in needs a HE-preference account".
+
+---
+
+## 13. Q4 package stories (LA-BTN / LA-ENTRY / LA-PHONE / LA-COOKIE / LA-NOTE / LA-RTL)
+
+Written **test-first** from the "Library Assistant behavior stories for automated tests" doc, so they fail until the features land.
+
+| File | What |
+| --- | --- |
+| [library-assistant-q4-desktop.spec.ts](library-assistant-q4-desktop.spec.ts) | `@desktop` stories + LA-BTN-8, LA-ENTRY-2 (desktop config, `chrome-assistant`) |
+| [../mobile web/library-assistant-phone.spec.ts](../mobile%20web/library-assistant-phone.spec.ts) | `@phone` stories + LA-PHONE-1, LA-PHONE-11 (mobile config) |
+| [../pages/libraryAssistantQ4Page.ts](../pages/libraryAssistantQ4Page.ts) | Page object, `pm.onLibraryAssistantQ4()` |
+| [../support/chatServerMock.ts](../support/chatServerMock.ts) | Fake chat server (`page.route`) — choose an answer's text and when it arrives |
+| [../support/assistantStrings.ts](../support/assistantStrings.ts) | Copy by translation key; reads ai-chatbot's locale files from `AI_CHATBOT_REPO_PATH` (default `../ai-chatbot`) |
+| [../support/motionAnalysis.ts](../support/motionAnalysis.ts) | Turns per-frame position samples into bounce / slide facts |
+
+- **Copy by key, never by words.** The stories require it, so a Weblate edit can't break a test.
+- **The chat server is faked**, so these tests don't need the AI backend and run in seconds.
+- **Touch drags need Chromium.** Drags and swipes go through the Chromium DevTools protocol, so those tests (or steps) are skipped on WebKit.
+- **LA-NOTE-4 is not written.** The stories don't say when the button reads "Search with Library Assistant".
+
+```bash
+npx playwright test --project=chrome-assistant library-assistant-q4-desktop
+npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library library-assistant-phone
+```
+
+### Search with no results (LA-NULL-*)
+
+Also test-first, same helpers as above.
+
+| File | What |
+| --- | --- |
+| [library-assistant-null-search-desktop.spec.ts](library-assistant-null-search-desktop.spec.ts) | Every LA-NULL story on desktop (`chrome-assistant`) |
+| [../mobile web/library-assistant-null-search-phone.spec.ts](../mobile%20web/library-assistant-null-search-phone.spec.ts) | The `@phone` ones: LA-NULL-1 and LA-NULL-5 (mobile config) |
+| [../support/nullStateRecorder.ts](../support/nullStateRecorder.ts) | Records every version of the "no results" box from before the page loads (LA-NULL-3) |
+
+- **"Assistant on"** is `enLAUser` / `heLAUser`; **"assistant off"** is `enUser`, which never gets the assistant.
+- **The question the button sends** is read from Sefaria's `search.null.library_assistant_question` key.
+- **Logged-out stories are `test.fixme` placeholders** (the logged-out row of LA-NULL-1, and LA-NULL-8 → 12): the assistant doesn't load for logged-out visitors yet, and there is no free-answer count or login prompt to drive. Each placeholder lists its steps.
+
+```bash
+npx playwright test --project=chrome-assistant library-assistant-null-search-desktop
+npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library library-assistant-null-search-phone
+```
