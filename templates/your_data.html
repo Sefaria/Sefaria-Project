@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% comment %}
+"Your data" page — PROOF OF CONCEPT. Context comes from sefaria.helper.your_data.get_your_data_summary.
+Row labels built in Python are English-only for now.
+{% endcomment %}
+
+{% block content %}
+{% with told=data.told_us reading=data.from_reading history=data.from_reading.history %}
+<div id="yourDataPage" class="static biReady">
+  <div class="inner">
+    <div class="headerWithButtons">
+      <h1>
+        <span class="int-en">Your data</span>
+        <span class="int-he">המידע שלך</span>
+      </h1>
+      <div class="end">
+        <a class="button small blue control-elem" href="/settings/your-data/export" download>
+          <span class="int-en">Download your data</span>
+          <span class="int-he">הורדת המידע שלך</span>
+        </a>
+      </div>
+    </div>
+    <p class="yourDataIntro">
+      <span class="int-en">This is what Sefaria keeps about you, why we keep it, and where to change it. The download includes everything on this page as one JSON file. See also our <a href="/privacy-policy">privacy policy</a>.</span>
+      <span class="int-he">כאן מופיע המידע שספריא שומרת עליך, מדוע, והיכן ניתן לשנות אותו. ההורדה כוללת את כל המידע שבעמוד בקובץ JSON אחד. ראו גם את <a href="/privacy-policy">מדיניות הפרטיות</a>.</span>
+    </p>
+
+    {# ------------------------------------------------------------------ #}
+    <h2 class="yourDataGroup">
+      <span class="int-en">You told us</span>
+      <span class="int-he">מה שסיפרת לנו</span>
+    </h2>
+
+    <div class="section yourDataCard" id="yourDataAccount">
+      <div class="yourDataCardHeader">
+        <h3><span class="int-en">Account</span><span class="int-he">חשבון</span></h3>
+        <a class="yourDataChange" href="/settings/account"><span class="int-en">Change</span><span class="int-he">שינוי</span></a>
+      </div>
+      <dl class="yourDataRows">
+        <dt>Name</dt><dd>{{ told.account.name }}</dd>
+        <dt>Email</dt><dd>{{ told.account.email }}</dd>
+        <dt>Signed in with</dt><dd>{{ told.account.login }}</dd>
+        {% if told.account.joined %}<dt>Joined</dt><dd>{{ told.account.joined }}</dd>{% endif %}
+      </dl>
+      <p class="yourDataWhy">
+        <span class="int-en"><strong>Why we store this:</strong> to sign you in and to email you about your account. Your name is required at sign-up and appears on sheets you publish. Change your name on your <a href="/settings/profile">profile</a> and your email in <a href="/settings/account">account settings</a>.</span>
+        <span class="int-he"><strong>למה אנחנו שומרים את זה:</strong> כדי לאפשר התחברות ולשלוח אליך הודעות על החשבון. השם נדרש בהרשמה ומופיע על דפי מקורות שפרסמת.</span>
+      </p>
+    </div>
+
+    <div class="section yourDataCard" id="yourDataProfile">
+      <div class="yourDataCardHeader">
+        <h3><span class="int-en">Public profile</span><span class="int-he">פרופיל ציבורי</span></h3>
+        <a class="yourDataChange" href="/settings/profile"><span class="int-en">Change</span><span class="int-he">שינוי</span></a>
+      </div>
+      {% if told.profile_fields %}
+      <dl class="yourDataRows">
+        {% for row in told.profile_fields %}<dt>{{ row.label }}</dt><dd>{{ row.value|striptags|truncatechars:160 }}</dd>{% endfor %}
+      </dl>
+      {% else %}
+      <p class="yourDataEmpty"><span class="int-en">You haven't added anything to your profile.</span><span class="int-he">לא הוספת מידע לפרופיל.</span></p>
+      {% endif %}
+      <p class="yourDataWhy">
+        <span class="int-en"><strong>Why we store this:</strong> it is shown on your public profile page, only if you fill it in.</span>
+        <span class="int-he"><strong>למה אנחנו שומרים את זה:</strong> המידע מוצג בעמוד הפרופיל הציבורי שלך, רק אם מילאת אותו.</span>
+      </p>
+    </div>
+
+    <div class="section yourDataCard" id="yourDataSettings">
+      <div class="yourDataCardHeader">
+        <h3><span class="int-en">Account settings</span><span class="int-he">הגדרות חשבון</span></h3>
+        <a class="yourDataChange" href="/settings/account"><span class="int-en">Change</span><span class="int-he">שינוי</span></a>
+      </div>
+      <dl class="yourDataRows">
+        <dt>Email notifications</dt><dd>{{ told.settings.email_notifications|default:"daily"|capfirst }}</dd>
+        <dt>Site language</dt><dd>{{ told.settings.interface_language|default:"english"|capfirst }}</dd>
+        <dt>Haftarah custom</dt><dd>{{ told.settings.textual_custom|default:"sephardi"|capfirst }}</dd>
+        <dt>Preferred translation language</dt><dd>{{ told.settings.translation_language_preference|default:"Not set" }}</dd>
+        <dt>Preferred text versions</dt><dd>{{ told.version_preferences_count }} saved</dd>
+        <dt>Library Assistant</dt><dd>{% if library_assistant_enabled %}On{% else %}Off{% endif %}</dd>
+        {% if told.google_drive %}<dt>Google Drive (sheet export)</dt><dd>{{ told.google_drive }}</dd>{% endif %}
+      </dl>
+      <p class="yourDataWhy">
+        <span class="int-en"><strong>Why we store this:</strong> so the site, emails and texts appear the way you chose, on any device you sign in on.</span>
+        <span class="int-he"><strong>למה אנחנו שומרים את זה:</strong> כדי שהאתר, ההודעות והטקסטים יוצגו כפי שבחרת, בכל מכשיר שבו התחברת.</span>
+      </p>
+    </div>
+
+    <div class="section yourDataCard" id="yourDataDevice">
+      <div class="yourDataCardHeader">
+        <h3><span class="int-en">On this device only</span><span class="int-he">במכשיר זה בלבד</span></h3>
+      </div>
+      {% if told.device_preferences %}
+      <dl class="yourDataRows">
+        {% for row in told.device_preferences %}<dt>{{ row.label }}</dt><dd>{{ row.value }}</dd>{% endfor %}
+      </dl>
+      {% else %}
+      <p class="yourDataEmpty"><span class="int-en">No display preferences saved in this browser.</span><span class="int-he">לא נשמרו העדפות תצוגה בדפדפן זה.</span></p>
+      {% endif %}
+      <p class="yourDataWhy">
+        <span class="int-en"><strong>Why we store this:</strong> reader display choices (text language, layout) are kept as cookies in your browser, not on our servers. Change them from the reader's display menu; clearing cookies resets them.</span>
+        <span class="int-he"><strong>למה אנחנו שומרים את זה:</strong> העדפות התצוגה בקורא נשמרות כעוגיות בדפדפן שלך ולא בשרתים שלנו.</span>
+      </p>
+    </div>
+
+    <div class="section yourDataCard" id="yourDataNewsletter">
+      <div class="yourDataCardHeader">
+        <h3><span class="int-en">Newsletters</span><span class="int-he">ניוזלטרים</span></h3>
+      </div>
+      <p class="yourDataWhy">
+        <span class="int-en">When you sign up, your name, email, language and your answer to "I am an educator" are sent to Salesforce, the system we use for newsletters. The educator answer is not stored in your Sefaria profile. Unsubscribe from any newsletter email, or write to <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</span>
+        <span class="int-he">בעת ההרשמה, שמך, כתובת הדוא"ל, השפה ותשובתך לשאלה "אני מחנך/ת" נשלחים ל־Salesforce, המערכת שבה אנו משתמשים לניוזלטרים. ניתן לבטל את המינוי מכל הודעה, או לכתוב ל־<a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</span>
+      </p>
+    </div>
+
+    {# ------------------------------------------------------------------ #}
+    <h2 class="yourDataGroup">
+      <span class="int-en">Based on your reading</span>
+      <span class="int-he">על סמך הקריאה שלך</span>
+    </h2>
+
+    <div class="section yourDataCard" id="yourDataHistory" data-status="{% if not history.on %}off{% elif history.paused %}paused{% else %}on{% endif %}">
+      <div class="yourDataCardHeader">
+        <h3>
+          <span class="int-en">Reading history</span><span class="int-he">היסטוריית קריאה</span>
+          <span class="yourDataStatus" data-for="on"><span class="int-en">Recording</span><span class="int-he">פעילה</span></span>
+          <span class="yourDataStatus" data-for="paused"><span class="int-en">Paused</span><span class="int-he">מושהית</span></span>
+          <span class="yourDataStatus" data-for="off"><span class="int-en">Off</span><span class="int-he">כבויה</span></span>
+        </h3>
+        <a class="yourDataChange" href="/history"><span class="int-en">View all</span><span class="int-he">הצגת הכל</span></a>
+      </div>
+      <dl class="yourDataRows">
+        <dt>Passages and sheets in your history</dt><dd id="yourDataHistoryCount">{{ history.count }}</dd>
+        {% if history.since %}<dt>Recorded since</dt><dd>{{ history.since }}</dd>{% endif %}
+        <dt>Saved items (kept when you clear history)</dt><dd>{{ history.saved_count }}</dd>
+      </dl>
+      {% if history.recent %}
+      <ul class="yourDataRecent">
+        {% for h in history.recent %}<li>{% if h.url %}<a href="{{ h.url }}">{% endif %}<span class="int-en">{{ h.ref }}</span><span class="int-he">{{ h.he_ref }}</span>{% if h.url %}</a>{% endif %} <span class="yourDataDate">{{ h.date }}</span></li>{% endfor %}
+      </ul>
+      {% endif %}
+      <div class="yourDataControls">
+        <button type="button" class="button small white yourDataHistoryAction" data-action="pause" data-for="on"><span class="int-en">Pause history</span><span class="int-he">השהיית ההיסטוריה</span></button>
+        <button type="button" class="button small white yourDataHistoryAction" data-action="resume" data-for="paused"><span class="int-en">Resume history</span><span class="int-he">חידוש ההיסטוריה</span></button>
+        <button type="button" class="button small white yourDataHistoryAction" data-action="clear" data-for="on paused"><span class="int-en">Clear history</span><span class="int-he">מחיקת ההיסטוריה</span></button>
+        <span class="yourDataMessage" role="status"></span>
+      </div>
+      <p class="yourDataWhy">
+        <span class="int-en"><strong>Why we store this:</strong> it powers History, "continue reading" and Torah Tracker. Pausing stops recording new reading and keeps what is already here. Clearing deletes it along with the traits below; saved items stay. To turn history off entirely (which also deletes it), use <a href="/settings/account">account settings</a>.</span>
+        <span class="int-he"><strong>למה אנחנו שומרים את זה:</strong> ההיסטוריה משמשת את עמוד ההיסטוריה, "המשך קריאה" ו־Torah Tracker. השהיה עוצרת את התיעוד ושומרת את הקיים. מחיקה מוחקת גם את התכונות שלמטה; פריטים שמורים נשארים.</span>
+      </p>
+    </div>
+
+    <div class="section yourDataCard" id="yourDataTraits">
+      <div class="yourDataCardHeader">
+        <h3><span class="int-en">What we've inferred</span><span class="int-he">מה הסקנו</span></h3>
+        <a class="yourDataChange" href="/torahtracker"><span class="int-en">Torah Tracker</span><span class="int-he">Torah Tracker</span></a>
+      </div>
+      {% if reading.traits %}
+      <dl class="yourDataRows">
+        {% for t in reading.traits %}<dt>{{ t.label }}</dt><dd>{{ t.value }}{% if t.period == "currently" %} <span class="yourDataDate">(recently)</span>{% endif %}</dd>{% endfor %}
+      </dl>
+      {% else %}
+      <p class="yourDataEmpty"><span class="int-en">Nothing yet. Traits are worked out once a week from your reading history.</span><span class="int-he">אין עדיין. התכונות מחושבות פעם בשבוע מתוך היסטוריית הקריאה.</span></p>
+      {% endif %}
+      <p class="yourDataWhy">
+        <span class="int-en"><strong>Why we store this:</strong> a weekly job estimates these from your reading history so we can tailor what we show you, for example whether to offer Hebrew. You can't edit them directly; clearing your reading history deletes them.</span>
+        <span class="int-he"><strong>למה אנחנו שומרים את זה:</strong> תהליך שבועי מעריך אותן מתוך היסטוריית הקריאה כדי להתאים את מה שמוצג לך. מחיקת ההיסטוריה מוחקת אותן.</span>
+      </p>
+    </div>
+
+    {# ------------------------------------------------------------------ #}
+    <h2 class="yourDataGroup">
+      <span class="int-en">What you've made</span>
+      <span class="int-he">מה שיצרת</span>
+    </h2>
+    <div class="section yourDataCard" id="yourDataContent">
+      <dl class="yourDataRows">
+        <dt>Source sheets</dt><dd>{{ data.counts.sheets }}</dd>
+        <dt>Notes</dt><dd>{{ data.counts.notes }}</dd>
+        <dt>People you follow</dt><dd>{{ data.counts.following }}</dd>
+        <dt>Followers</dt><dd>{{ data.counts.followers }}</dd>
+      </dl>
+      <p class="yourDataWhy">
+        <span class="int-en">Your sheets and notes are listed in the download. Library Assistant conversations are kept by the Library Assistant and are not in the download yet.</span>
+        <span class="int-he">דפי המקורות וההערות שלך כלולים בהורדה. שיחות עם עוזר הספרייה נשמרות אצל עוזר הספרייה ואינן כלולות עדיין בהורדה.</span>
+      </p>
+    </div>
+
+    {# ------------------------------------------------------------------ #}
+    <h2 class="yourDataGroup">
+      <span class="int-en">Delete your account</span>
+      <span class="int-he">מחיקת החשבון</span>
+    </h2>
+    <div class="section yourDataCard" id="yourDataDelete">
+      <p>
+        <span class="int-en">Deleting your account removes your profile, reading history, sheets, notes, notifications and follows. It can't be undone. Download your data first if you want a copy.</span>
+        <span class="int-he">מחיקת החשבון מסירה את הפרופיל, היסטוריית הקריאה, דפי המקורות, ההערות, ההתראות והעוקבים. לא ניתן לבטל פעולה זו.</span>
+      </p>
+      {# POC: deliberately not wired to DELETE /api/account/delete. Before it is, delete_user_account #}
+      {# must also remove trend records, blocking records and Library Assistant conversations.       #}
+      <button type="button" class="button small red" id="yourDataDeleteButton"><span class="int-en">Delete account…</span><span class="int-he">מחיקת החשבון…</span></button>
+      <p class="yourDataStub" id="yourDataDeleteStub" hidden>
+        <span class="int-en">Prototype: self-serve deletion isn't switched on in this preview. To delete your account today, email <a href="mailto:hello@sefaria.org?subject=Delete%20my%20account">hello@sefaria.org</a>.</span>
+        <span class="int-he">אב טיפוס: מחיקה עצמית אינה פעילה בתצוגה זו. למחיקת החשבון כתבו ל־<a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</span>
+      </p>
+    </div>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}
+
+{% block js %}
+<script>
+  $(function() {
+    const $history = $("#yourDataHistory");
+    const $message = $history.find(".yourDataMessage");
+    const confirmText = {
+      clear: Sefaria._("Delete your reading history and the traits inferred from it? Saved items are kept. This can't be undone."),
+    };
+    $(".yourDataHistoryAction").click(function() {
+      const action = $(this).attr("data-action");
+      if (confirmText[action] && !window.confirm(confirmText[action])) { return; }
+      $message.text("");
+      $.post("/settings/your-data/history", {action: action}, function(data) {
+        if ("error" in data) {
+          $message.text(data.error);
+          return;
+        }
+        const h = data.history;
+        $history.attr("data-status", !h.on ? "off" : (h.paused ? "paused" : "on"));
+        $("#yourDataHistoryCount").text(h.count);
+        if (action === "clear") {
+          $history.find(".yourDataRecent").remove();
+          $("#yourDataTraits .yourDataRows").replaceWith('<p class="yourDataEmpty">' + Sefaria._("Nothing yet. Traits are worked out once a week from your reading history.") + '</p>');
+        }
+        $message.text({clear: Sefaria._("Reading history cleared."), pause: Sefaria._("Reading history paused."), resume: Sefaria._("Reading history resumed.")}[action]);
+      }).fail(function() {
+        $message.text(Sefaria._("Something went wrong. Please try again."));
+      });
+    });
+    $("#yourDataDeleteButton").click(function() {
+      $("#yourDataDeleteStub").prop("hidden", false);
+    });
+  });
+</script>
+{% endblock %}
