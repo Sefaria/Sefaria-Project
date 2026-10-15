@@ -22,24 +22,28 @@ class WatchRunPlugin {
 }
 
 class CleanOldAssetsOnBuildPlugin {
+    constructor(dir = 'client') {
+        this.dir = dir;  // the bundles/ subdirectory this config writes to, and the only one it cleans
+    }
     apply(compiler) {
+        const dir = this.dir;
         compiler.hooks.afterEmit.tap('AfterEmitPlugin', (compilation) => {
             const newlyCreatedAssets = compilation.assets;
 
             const unlinked = [];
-            console.log(path.resolve(buildDir + 'client'));
-            fs.readdir(path.resolve(buildDir + 'client'), function (err, files) {
+            console.log(path.resolve(buildDir + dir));
+            fs.readdir(path.resolve(buildDir + dir), function (err, files) {
                 if (typeof files === 'undefined') { return; }  // we've started to see cases where files is undefined on cloudbuilds. adding this here as a patch.
                 files.forEach(function (file) {
                     if (!newlyCreatedAssets[file]) {
-                        fs.unlink(path.resolve(buildDir + 'client/' + file), (err) => {
+                        fs.unlink(path.resolve(buildDir + dir + '/' + file), (err) => {
                           if (err) throw err;
                         });
                         unlinked.push(file);
                     }
                 });
                 if (unlinked.length > 0) {
-                    console.log('Removed old assets from client: ', unlinked);
+                    console.log('Removed old assets from ' + dir + ': ', unlinked);
                 }
             });
         });
@@ -120,6 +124,27 @@ var clientConfig = config({
         /*new webpack.optimize.UglifyJsPlugin({
             sourceMap: true
         })*/
+    ]
+});
+
+
+// NG mobile reader. Its own entry and bundle, so the new reader never ships ReaderApp's graph.
+// static/js/ng/ must not import ReaderApp.jsx, Misc.jsx, or CSS.
+var clientNgConfig = config({
+    context: path.resolve('./static/js'),
+    entry: './ng/client',
+    mode: 'development',  // can be overriden via cli
+    output: {
+        path: path.resolve(buildDir + 'client-ng'),
+        filename: 'client-ng-[fullhash].js'
+    },
+    resolve: {
+        // sefariaJquery only requires cheerio when there is no document (SSR); keep it out of the browser bundle.
+        alias: {cheerio: false}
+    },
+    plugins: [
+        new BundleTracker({filename: './node/webpack-stats.client-ng.json'}),
+        new CleanOldAssetsOnBuildPlugin('client-ng'),
     ]
 });
 
@@ -240,4 +265,5 @@ var linkerV3Config = config({
     ]
 })
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig, linkerV3Config];
+// Keep clientConfig and serverConfig first: webpack.client.js, webpack.server.js and webpack.client-server.js index into this list.
+module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig, linkerV3Config, clientNgConfig];

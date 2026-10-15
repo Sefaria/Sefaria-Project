@@ -395,7 +395,14 @@ WEBPACK_LOADER = {
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
-    }
+    },
+    'NG': {  # NG mobile reader client (static/js/ng/client.jsx), used by templates/ng/reader.html
+        'BUNDLE_DIR_NAME': 'bundles/client-ng/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.client-ng.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
+    },
 
 }
 
