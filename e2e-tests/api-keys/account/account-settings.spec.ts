@@ -235,12 +235,12 @@ test.describe('account settings: developer with a listing waiting', () => {
       expect(profile.status, profile.text).toBe(200);
     }
     state = await developerState(page);
-    listingId = state.yourListing?.id ?? addListing(GAUTH, `Account listing ${Date.now().toString(36)}`).id;
+    listingId = Number(state.yourListing?.id ?? addListing(GAUTH, `Account listing ${Date.now().toString(36)}`).id);
     await openSettings(page);
-    expect((await developerState(page)).yourListing?.id).toBe(listingId);
+    expect(Number((await developerState(page)).yourListing?.id), 'the pending listing (the state API sends ids as strings)').toBe(listingId);
   });
 
-  test('N-C6: Tab moves focus through the Account tab while a listing question waits on the hidden Developer tab @known-gap S2', async () => {
+  test('N-C6: Tab moves focus through the Account tab while a listing question waits on the hidden Developer tab', async () => {
     const stops = await tabStops(page);
     test.info().annotations.push({ type: 'evidence', description: `focus after each Tab: ${stops.join(' -> ')}` });
     expect(new Set(stops).size, 'each Tab moves focus somewhere new').toBe(3);
@@ -307,13 +307,13 @@ test.describe('account settings: developer with a listing waiting', () => {
     await expect(dev.listingDialog()).toBeVisible({ timeout: t(10000) });
   });
 
-  test('N-C6: Escape on the Account tab leaves the listing question for the Developer tab @known-gap S2', async () => {
+  test('N-C6: Escape on the Account tab leaves the listing question for the Developer tab', async () => {
     await page.locator('#accountSettingsPage h1').click();
     await page.keyboard.press('Escape');
     const dev = new DeveloperSettingsPage(page, 'english');
     await dev.developerTabLink().first().click();
     await page.waitForURL(/\/settings\/developer/, { timeout: t(30000) });
     await expect(dev.listingDialog(), 'the listing question is still asked').toBeVisible({ timeout: t(10000) });
-    expect((await developerState(page)).yourListing?.id).toBe(listingId);
+    expect(Number((await developerState(page)).yourListing?.id), 'the pending listing (the state API sends ids as strings)').toBe(listingId);
   });
 });
