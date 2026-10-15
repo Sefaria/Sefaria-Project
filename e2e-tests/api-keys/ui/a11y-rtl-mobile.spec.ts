@@ -308,7 +308,7 @@ test.describe('developer settings: Hebrew, phone width and keyboard (C10)', () =
       });
     }
 
-    test('C10 (keyboard): after a key is deleted from the keyboard, focus stays in its project, not on the page body @known-gap C10', async ({ manifest }) => {
+    test('C10 (keyboard): after a key is deleted from the keyboard, focus stays in its project, not on the page body', async ({ manifest }) => {
       const { page } = session;
       const { dev, card } = await openSeededProject(page, manifest, 'setUp');
       await postponeListing(page);
@@ -330,7 +330,7 @@ test.describe('developer settings: Hebrew, phone width and keyboard (C10)', () =
       expect(await focusIsInside(card), `focus is on ${await describeFocus(page)}`).toBe(true);
     });
 
-    test('C10 (keyboard): Tab moves through the Account tab while a listing is pending @known-gap S2', async () => {
+    test('C10 (keyboard): Tab moves through the Account tab while a listing is pending', async () => {
       const seen = await accountTabStops(session.page);
       expect(seen.filter(s => s.endsWith('(not visible)') || s === 'body'), `Tab stops: ${seen.join(' → ')}`).toEqual([]);
       expect(new Set(seen).size, `Tab stops: ${seen.join(' → ')}`).toBe(seen.length);
@@ -341,7 +341,7 @@ test.describe('developer settings: Hebrew, phone width and keyboard (C10)', () =
       expect((await accountTabStops(page)).filter(s => s.endsWith('(not visible)') || s === 'body')).toEqual([]);
     });
 
-    test('C10 (keyboard): Escape on the Account tab leaves the pending listing to be asked on the Developer tab @known-gap S2', async () => {
+    test('C10 (keyboard): Escape on the Account tab leaves the pending listing to be asked on the Developer tab', async () => {
       const { page } = session;
       await page.goto('/settings/account', { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => !!(window as any).Sefaria, null, { timeout: t(45000) });

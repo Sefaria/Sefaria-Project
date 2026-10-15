@@ -35,7 +35,7 @@ test.describe('developer settings: projects', () => {
     test.skip(target.name !== 'local', 'The projects suite runs on the local stack.');
   });
 
-  test('N-C9: double-clicking "Create project" makes exactly one project and no error notice @known-gap S6', async ({ account }) => {
+  test('N-C9: double-clicking "Create project" makes exactly one project and no error notice', async ({ account }) => {
     const { page } = await openAccount(account, SUITE, 'setUp');
     const dev = await openDeveloper(page);
     const name = unique('N-C9 double click');
@@ -57,7 +57,7 @@ test.describe('developer settings: projects', () => {
     await expect(page.locator('.devPocNotice[role="status"]')).toHaveCount(0);
   });
 
-  test('N-C13 (S10): Back from /settings/developer/projects/<id> collapses the card @known-gap S10', async ({ account }) => {
+  test('N-C13 (S10): Back from /settings/developer/projects/<id> collapses the card', async ({ account }) => {
     const { page } = await openAccount(account, SUITE, 'setUp');
     await openDeveloper(page);
     const name = unique('N-C13 back');
@@ -85,7 +85,7 @@ test.describe('developer settings: projects', () => {
     await expect(dev.projectCard(name).locator('button.devPocProjectToggle')).toHaveAttribute('aria-expanded', 'true');
   });
 
-  test('N-C13 (S12): Account Cancel after switching tabs leaves settings @known-gap S12', async ({ account }) => {
+  test('N-C13 (S12): Account Cancel after switching tabs leaves settings', async ({ account }) => {
     const { page } = await openAccount(account, SUITE, 'setUp');
     await page.goto('/texts', { waitUntil: 'domcontentloaded' });
     await page.goto('/settings/account', { waitUntil: 'domcontentloaded' });

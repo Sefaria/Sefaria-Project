@@ -158,7 +158,7 @@ test.describe('developer settings: "Is this your project?"', () => {
     await expect(dev.listingDialog()).toHaveCount(0);
   });
 
-  test('N-C14: a listing another account claimed first shows "No such listing." and refreshes the state @known-gap N-C14', async () => {
+  test('N-C14: a listing another account claimed first shows "No such listing." and refreshes the state', async () => {
     const listing = createListing(unique('N-C14 race'));
     await openDeveloper(page);
     await expect(dev.listingDialog()).toContainText(listing.name);
@@ -193,7 +193,7 @@ test.describe('developer settings: "Is this your project?"', () => {
     await expect(dev.listingDialog()).toContainText(listing.name);
   });
 
-  test('N-C9: double-clicking "Yes, add it" claims once with no error notice @known-gap S6', async () => {
+  test('N-C9: double-clicking "Yes, add it" claims once with no error notice', async () => {
     const listing = createListing(unique('N-C9 claim'));
     await openDeveloper(page);
     const statuses: number[] = [];
