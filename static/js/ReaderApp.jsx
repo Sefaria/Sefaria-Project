@@ -88,6 +88,11 @@ class ReaderApp extends Component {
         translationsSlug:        props.initialTranslationsSlug,
         collectionData:          props.initialCollectionData,
         linkerEditorBook:        props.initialLinkerEditorBook,
+        settingsTab:             props.initialSettingsTab,
+        developerProjectId:      props.initialDeveloperProjectId,
+        accountSettings:         props.initialAccountSettings,
+        developer:               props.initialDeveloper,
+        developerEmailLink:      props.initialDeveloperEmailLink,
       };
     }
 
@@ -177,6 +182,11 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
       collectionData:          state.collectionData          || null,
+      settingsTab:             state.settingsTab             || "account",
+      developerProjectId:      state.developerProjectId      || null,
+      accountSettings:         state.accountSettings         || null,
+      developer:               state.developer               || null,
+      developerEmailLink:      state.developerEmailLink      || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
@@ -453,6 +463,8 @@ class ReaderApp extends Component {
           (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.tab !== next.tab) ||
+          (prev.settingsTab !== next.settingsTab) ||
+          (next.menuOpen === "settings" && prev.developerProjectId !== next.developerProjectId) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
@@ -625,6 +637,16 @@ class ReaderApp extends Component {
             hist.url = "calendars";
             hist.mode = "calendars";
             break;
+          case "settings":
+            if (state.settingsTab === "developer") {
+              hist.title = Sefaria.getPageTitle("Developer Settings");
+              hist.url = "settings/developer" + (state.developerProjectId ? "/projects/" + state.developerProjectId : "");
+            } else {
+              hist.title = Sefaria.getPageTitle("Account Settings");
+              hist.url = "settings/account";
+            }
+            hist.mode = "settings";
+            break;
           case "sheets":
             hist.url = "";
             hist.mode = "sheets";
@@ -647,6 +669,21 @@ class ReaderApp extends Component {
             if (state.linkerEditorBook) {
               hist.url += "&book=" + encodeURIComponent(state.linkerEditorBook);
             }
+            break;
+          case "developerEmailConfirmed":
+            hist.title = Sefaria.getPageTitle("Email confirmed");
+            hist.url = "settings/developer/email-confirmed";
+            hist.mode = "developerEmailConfirmed";
+            break;
+          case "developerEmailLink":
+            hist.title = Sefaria.getPageTitle("Email confirmation");
+            hist.url = "settings/developer/confirm-email/" + (state.developerEmailLink ? state.developerEmailLink.key : "");
+            hist.mode = "developerEmailLink";
+            break;
+          case "poweredByForm":
+            hist.title = Sefaria.getPageTitle("Powered by Sefaria Submission Form");
+            hist.url = "powered-by/form";
+            hist.mode = "poweredByForm";
             break;
           case "user_stats":
             hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");

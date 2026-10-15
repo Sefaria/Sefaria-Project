@@ -212,12 +212,13 @@ authService:
   reloadInterval: 60s       # full reload from Postgres; also the revocation SLA when LISTEN/NOTIFY is down
   push:
     # Key changes reach every auth service in the cluster through Postgres LISTEN/NOTIFY on the key registry:
-    # triggers in the registry schema NOTIFY on this channel whatever the writer. The name is fixed in the schema.
+    # triggers from the Django powered_by migrations NOTIFY on this channel whatever the writer. The name is fixed there.
     pgChannel: sefaria_apikeys
   postgres:
-    # The cluster's one key registry: a database in the cluster's shared Postgres, read by every auth
-    # service in the cluster. The chart never runs a Postgres of its own. The Secret is a cluster-level
-    # object from the infrastructure repo, not per release.
+    # The key registry: Django's powered_by tables in sefaria_auth on the cluster's shared Postgres, read by
+    # every auth service in the cluster through a read-only role (auth-service/scripts/provision-cluster-registry.sh).
+    # The chart never runs a Postgres of its own. The Secret is a cluster-level object from the infrastructure
+    # repo, not per release.
     secrets:
       dsn:
         ref: auth-service-registry
@@ -637,6 +638,10 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
+  # Developer settings test controls; for branch cauldrons only.
+  DEVELOPER_SETTINGS_MOCKS: "False"
+  # The developer tab in settings and its routes; off means they return 404.
+  DEVELOPER_SETTINGS_ENABLED: "False"
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"
