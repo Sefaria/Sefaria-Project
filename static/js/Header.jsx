@@ -35,7 +35,7 @@ const LibraryAssistantHeaderLink = () => {
        onClick={open} onKeyDown={Util.handleKeyboardClick}>
       <LibraryAssistantStar />
       <span className="libraryAssistantLabel"><InterfaceText>header.library_assistant</InterfaceText></span>
-      <span className="libraryAssistantShortLabel"><InterfaceText text={{en: "Ask", he: "שאלו"}} /></span>{/* Inline until the header.library_assistant_short strings are in Weblate */}
+      <span className="libraryAssistantShortLabel"><InterfaceText>header.library_assistant_short</InterfaceText></span>
     </a>
   );
 };
