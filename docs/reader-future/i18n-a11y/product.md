@@ -4,8 +4,8 @@ title: Language & accessibility
 domain: Site & accounts
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
 ---
 # Language & accessibility — product specification
 
@@ -31,7 +31,7 @@ _Not discussed yet._
 
 ## Open questions
 
-_None yet._
+- If panels become draggable or floating ([Reader shell & panels](../reader-shell/architecture.md)), how do keyboard and screen-reader users move them? · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 
 ## Decisions
 
