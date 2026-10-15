@@ -2,7 +2,10 @@
 """
 Utility functions for views and request/response handling.
 """
+from fnmatch import fnmatch
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
+from django.conf import settings
 
 
 def add_query_param(url, param, value=""):
@@ -32,7 +35,15 @@ AASA_EXCLUDED_PATHS = [
     "/accounts/*",
     "/_allauth/*",
     "/api/auth/google/redirect",
+    f"/{settings.ADMIN_PATH.strip('/')}/*",  # Django admin; path is deployment-configurable
 ]
+
+
+def is_aasa_excluded(url):
+    """True if url's path is statically excluded from Universal Links, so marking it no_applink would be redundant."""
+    path = urlparse(url).path
+    return any(fnmatch(path, pattern) for pattern in AASA_EXCLUDED_PATHS)
+
 
 # Marks a redirect as "stay on web". Read by apple_app_site_association's AASA rule, stripped in client.jsx.
 NO_APPLINK_PARAM = "no_applink"
