@@ -565,6 +565,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu.closed {
   display: none;
 }
+/* The Library Assistant's floating button would sit on top of the open menu */
+.readerApp:has(.mobileNavMenu:not(.closed)) lc-chatbot {
+  visibility: hidden;
+}
 .mobileNavMenu .searchLine {
   padding: 15px 10px;
   border-bottom: 1px solid #EDEDEC;
@@ -603,6 +607,16 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 .mobileNavMenu a > img.blackIcon {
   opacity: 0.4;
+}
+/* The Library Assistant item is purple, with the ✦ as its icon */
+.mobileNavMenu a.libraryAssistantMenuItem {
+  color: var(--mussar-purple);
+}
+.mobileNavMenu .libraryAssistantMenuStar {
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 15px;
+  vertical-align: middle;
 }
 .mobileNavMenu a.blue {
   background-color: var(--sefaria-blue);
@@ -12687,6 +12701,10 @@ background-color: white;
   margin-inline-start: 12px;
 }
 @media (min-width: 843px) {
+  /* Here the banner is a card in the corner, clear of the Library Assistant's button */
+  :root {
+    --lc-launcher-bottom-offset: 0px !important;
+  }
   .cookiesNotification {
     width: 360px;
     margin: 10px;

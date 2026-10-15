@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, Page } from '@playwright/test';
 import { goToPageWithLang, goToPageWithUser } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
@@ -87,12 +87,12 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-027: Input and send button are disabled while awaiting a response', { tag: '@sanity' }, async () => {
+  test('UX-027: Input is disabled and Send is replaced by Stop while awaiting a response', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Give me a short greeting');
     await pm.onLibraryAssistant().sendViaEnter();
-    await pm.onLibraryAssistant().expectInputDisabledDuringSend();
+    await pm.onLibraryAssistant().expectInputDisabledAndStopShownDuringSend();
     await pm.onLibraryAssistant().waitForResponse();
   });
 
@@ -124,11 +124,13 @@ test.describe('Library Assistant — header menu', () => {
     await pm.onLibraryAssistant().ensureOpen();
   });
 
-  test('UX-057: More-options menu opens with the five expected items', async () => {
+  test('UX-057: More-options menu opens with the expected items', async () => {
     // The QA LA user is marked staff in Django (so Braintree can filter
     // automation noise via its "is staff?" column). Staff users see an extra
     // "Settings" item inserted at the top of the menu (`isModerator` branch
-    // in LCChatbot.svelte).
+    // in LCChatbot.svelte). The menu's dock item names the opposite mode, so
+    // start floating to know which one it shows.
+    await pm.onLibraryAssistant().ensureFloating();
     await pm.onLibraryAssistant().openHeaderMenu();
     await pm.onLibraryAssistant().expectMenuVisible();
     await pm.onLibraryAssistant().expectMenuItemTexts(
@@ -168,27 +170,6 @@ test.describe('Library Assistant — header menu', () => {
     await pm.onLibraryAssistant().expectNoUserMessages();
     // Textarea should be focused and re-enabled
     await pm.onLibraryAssistant().expectTextareaEnabled();
-  });
-});
-
-/**
- * Responsive viewport — UX-085.
- * The Library Assistant must not render at mobile widths (375 px).
- * This test uses the LA user so we can confirm the suppression happens even
- * for a whitelisted user, not just for logged-out / non-whitelisted users.
- */
-test.describe('Library Assistant — responsive', () => {
-  test('UX-085: Library Assistant is hidden on a 375 px mobile viewport', async ({ context }) => {
-    // Navigate and wait for the component to mount at desktop size first
-    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
-    const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().waitForReady();
-
-    // Resize to a typical mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-
-    // The entire <lc-chatbot> host (and its trigger / panel) should be hidden
-    await expect(page.locator('lc-chatbot')).toBeHidden({ timeout: t(5000) });
   });
 });
 
