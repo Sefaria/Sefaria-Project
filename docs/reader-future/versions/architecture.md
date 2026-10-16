@@ -4,8 +4,8 @@ title: Versions & translations
 domain: Reader
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-16
 ---
 # Versions & translations — architecture
 
@@ -23,7 +23,12 @@ _Not discussed yet: how `master` does it, how `reader-next` does it, and what di
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Version choice stays behind `src/lib/versions` and `src/lib/text` (paths under `reader-next/`): screens see `VersionMeta` and a
+  version selection, never how the backend stores editions, so editions stored apart from text (as in [Rethinking Sefaria's text data model](https://github.com/YishaiGlasner/textual-systems-notes/blob/main/papers/rethinking-sefarias-text-data-model.md)) change only those
+  modules. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- Forward compatibility with that model: [Cross-cutting → Assessment: a new backend text model](../CROSS_CUTTING.md#assessment-a-new-backend-text-model).
+  Today a segment carries one primary and one translation string, and a version is chosen per side as
+  `languageFamilyName|versionTitle` (`reader-next/src/lib/text/model.ts:100-101`, `reader-next/src/lib/versions/preferences.ts:64`).
 
 ## Dependencies on other areas
 
