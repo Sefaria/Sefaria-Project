@@ -6,16 +6,60 @@ Handles all API communication with ActiveCampaign.
 
 Threading model notes:
 
-    In production gunicorn is used with multiple worker processes, each running
-    multiple threads. That means the module-level `_client` defined
-    below is shared across many threads inside a single worker process.
+    In production gunicorn runs several worker processes, and each one runs
+    several threads (`--threads`, which switches gunicorn to its gthread worker).
+    The module-level `_client` defined below, and the one requests.Session
+    inside it, is shared by every thread in a worker process. Sharing the
+    session keeps connections to ActiveCampaign (AC) open between requests,
+    which saves a new HTTPS handshake on every call.
 
-    `requests.Session` is safe to share across threads for `.request()` calls
-    AS LONG AS the session's headers or cookies are modified after it has been
-    constructed. The headers are set exactly once inside `NewsletterClient.__init__`
-    and never touched again. Do NOT call
-    `_client._session.headers.update(...)` or `_client._session.cookies.set(...)`
-    after init time — that would introduce a race condition between threads.
+    Known issue, to be fixed in a separate PR: threads share the session's cookie jar.
+
+    The issue:
+        Several threads can write to the same cookie jar at the same time.
+        Our code never changes the session after `NewsletterClient.__init__`, but
+        requests does: after every response, it saves the response's cookies into
+        `session.cookies` so it can send them with later requests. AC sets two
+        cookies (PHPSESSID and em_acp_globalauth_cookie) on every reply. So when
+        two threads get AC replies at once, both write to the one shared jar.
+        requests doesn't promise that a Session is safe to share between threads,
+        and its maintainers advise one session per thread
+        (https://github.com/psf/requests/issues/1871).
+
+    Why it's unlikely to be a major problem:
+        The cookie jar is the only part of the session that changes while it's
+        in use. The headers, retry policy and adapter are set once and only read
+        afterwards, and urllib3's connection pool is built to be shared by
+        threads. We don't use the cookies either: the Api-Token header
+        authenticates every call, so it doesn't matter which thread's cookie
+        ends up in the jar. And the standard library's cookie jar takes a lock
+        while it saves cookies, so two threads writing at once shouldn't corrupt
+        it. The one side effect is that every user's requests are sent with the
+        same AC web-session cookie (PHPSESSID), which AC doesn't need.
+
+    A possible fix:
+        1. Refuse cookies, so requests never writes to the jar:
+               session.cookies.set_policy(DefaultCookiePolicy(allowed_domains=[]))
+           (DefaultCookiePolicy is from http.cookiejar. An empty allowed_domains
+           list blocks every domain.)
+        2. Give each thread its own session, as the requests maintainers advise:
+               self._thread_local = threading.local()   # in __init__
+
+               @property
+               def _session(self) -> requests.Session:
+                   session = getattr(self._thread_local, "session", None)
+                   if session is None:
+                       session = self._new_session()   # headers, cookie policy, retries
+                       self._thread_local.session = session
+                   return session
+           gunicorn's threads live as long as their worker, so each thread would
+           still reuse its session, and its open connection, for every request it
+           handles. A worker with 5 threads would hold at most 5 sessions.
+           api/conftest.py would then need to mount its RefuseNetworkAdapter in
+           `_new_session`, so the adapter covers every thread's session.
+
+    Until then, don't change `_client._session.headers` or `_client._session.cookies`
+    after init time.
 """
 
 from __future__ import annotations
@@ -183,10 +227,14 @@ class NewsletterClient:
           callers only need to catch one exception type.
 
     Thread safety:
-        After __init__ finishes, this instance is safe to share across threads.
-        See the "Threading model" note at the top of this file. Do NOT add code
-        that mutates self._session.headers or self._session.cookies later — that
-        would create a race condition between threads sharing this client.
+        One instance, and its single session, is shared by every thread in a
+        gunicorn worker. The one part of the session that changes while it's in
+        use is its cookie jar: requests saves AC's cookies into it after every
+        response, so threads can write to it at the same time. That's unlikely to
+        cause real problems, because we don't use the cookies and the jar locks
+        its writes. The "Threading model" note at the top of this file explains
+        the issue and a possible fix for a later PR. Don't add code that changes
+        self._session.headers or self._session.cookies after __init__.
     """
 
     def __init__(self, api_token: str, account_name: str, timeout: int = 10):
@@ -203,8 +251,9 @@ class NewsletterClient:
         self.timeout = timeout
         self.base_url = f"https://{account_name}.api-us1.com/api/3"
         self._session = requests.Session()
-        # Set headers exactly once here. They are never mutated after this point
-        # — see the thread-safety note in the module docstring.
+        # Set headers exactly once here. Our code never changes them after this
+        # point, though requests itself stores AC's cookies on this session. See
+        # the "Threading model" note in the module docstring.
         self._session.headers.update(
             {
                 "Api-Token": api_token,
@@ -959,8 +1008,8 @@ def subscribe_contact_to_lists(contact_id: str | int, list_ids: list[str]) -> No
     #   (a) Use AC's `contact/sync` endpoint with a `subscribe` array — one
     #       POST attaches the contact to multiple lists in a single round trip.
     #   (b) Wrap the per-list calls in a ThreadPoolExecutor so they run
-    #       concurrently. NewsletterClient's requests.Session is thread-safe
-    #       once headers are set (see module docstring), so this is safe today.
+    #       concurrently. Wait for the per-thread session fix described in the
+    #       module docstring first: today every thread shares one session.
     for list_id in list_ids:
         add_contact_to_list(contact_id, list_id)
 
