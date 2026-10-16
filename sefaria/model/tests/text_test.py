@@ -167,6 +167,7 @@ def test_invalid_index_save_no_category():
     assert "You must create category Mishnah/Commentary/Bartenura/Gargamel before adding texts to it." in str(e_info.value)
     assert model.IndexSet({"title": title}).count() == 0
 
+@pytest.mark.needs_corpus
 def test_best_time_period():
     i = model.library.get_index("Rashi on Genesis")
     assert i.best_time_period().period_string('en') == ' (c.1075  – c.1105 CE)'
@@ -584,6 +585,7 @@ def test_index_rename_migrates_versions():
         model.VersionSet({"title": {"$in": [old, new]}}).delete()
 
 
+@pytest.mark.needs_corpus
 def test_version_word_count():
     #simple
     assert model.Version().load({"title": "Genesis", "language": "he", "versionTitle": "Tanach with Ta'amei Hamikra"}).word_count() == 20813
@@ -597,6 +599,7 @@ def test_version_word_count():
     assert model.VersionSet({"title": {"$regex": "Haggadah"}}).word_count() > 200000
 
 
+@pytest.mark.needs_corpus
 def test_version_walk_thru_contents():
     def action(segment_str, tref, heTref, version):
         r = model.Ref(tref)

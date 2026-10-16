@@ -7,6 +7,8 @@ from sefaria.helper.linker.disambiguator import (
     Candidate,
 )
 
+pytestmark = pytest.mark.needs_linker
+
 
 @pytest.mark.parametrize("citing_ref,expected", [
     # --- None / empty inputs ---
@@ -34,14 +36,14 @@ from sefaria.helper.linker.disambiguator import (
     # --- Both complex, matching node titles: Meir Ayin on Seder Olam Rabbah ---
     # Both indices have 'Introduction' and 'default' children with matching English titles.
     # The default leaf has depth 2 (['Perek', 'Integer']), so section level = 1 number.
-    ("Meir Ayin on Seder Olam Rabbah 1:1:1", "Seder Olam Rabbah 1"),
-    ("Vilna Gaon on Seder Olam Rabbah 1:1:1", "Seder Olam Rabbah 1"),
+    pytest.param("Meir Ayin on Seder Olam Rabbah 1:1:1", "Seder Olam Rabbah 1", marks=pytest.mark.needs_corpus),
+    pytest.param("Vilna Gaon on Seder Olam Rabbah 1:1:1", "Seder Olam Rabbah 1", marks=pytest.mark.needs_corpus),
 
     # --- Both complex, node titles match (key != title): Prisha on Tur ---
     # Prisha's internal key is 'OrachChaim' but en title is 'Orach Chayim', which
     # matches Tur's 'Orach Chayim' child. Tur's Orach Chaim leaf has depth 2
     # (['Siman', 'Seif']), so section level = Siman only.
-    ("Prisha, Orach Chaim 1:1", "Tur, Orach Chayim 1"),
+    pytest.param("Prisha, Orach Chaim 1:1", "Tur, Orach Chayim 1", marks=pytest.mark.needs_corpus),
 
     # --- Complex citing, simple base (XOR → None) ---
     # Mishnat Eretz Yisrael is complex; Mishnah Shabbat is not.

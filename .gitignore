@@ -165,3 +165,6 @@ dump/*
 .env
 static_collected/*
 scripts/debug_cache/
+
+# Mongo-usage recorder artifacts (pytest/Mongo decoupling investigation)
+.artifacts/

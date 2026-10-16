@@ -3,6 +3,9 @@ from unittest.mock import Mock
 from sefaria.model.linker.category_resolver import ResolvedCategory
 
 
+
+pytestmark = pytest.mark.needs_linker
+
 @pytest.fixture
 def mock_raw_ref():
     return Mock()

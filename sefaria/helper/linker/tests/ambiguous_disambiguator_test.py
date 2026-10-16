@@ -7,6 +7,8 @@ from sefaria.helper.linker.disambiguator import (
     disambiguate_ambiguous_ref,
 )
 
+pytestmark = pytest.mark.needs_linker
+
 
 TEST_CASES = [
     # {
