@@ -4,7 +4,7 @@ import { BROWSER_SETTINGS, LANGUAGES } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { SearchPage, SearchTabId } from '../pages/searchPage';
 import { LibraryAssistantQ4Page } from '../pages/libraryAssistantQ4Page';
-import { MODULE_URLS, librarySearchUrl } from '../constants';
+import { MODULE_URLS, MODULE_TEXTS, librarySearchUrl } from '../constants';
 import { ChatServerMock } from '../support/chatServerMock';
 import { sefariaString } from '../support/assistantStrings';
 import { installNullStateRecorder, readNullStateRecords } from '../support/nullStateRecorder';
@@ -347,9 +347,11 @@ test.describe('Search with no results — the Ask button becomes the search acti
     await searchWithNoResults(search);
     await la.expectLauncherReads('search');
 
-    // Back to the library home page the test started on (no full reload).
-    await page.goBack();
-    await expect(page).not.toHaveURL(/\/search\?/);
+    // Leave through the header's Texts link (in-app, no full reload). Not the Back button:
+    // one header search leaves two history entries (with and without `search_tab`), so a
+    // single Back stays on the search page.
+    await new PageManager(page, LANGUAGES.EN).onModuleHeader()
+      .clickAndVerifyNavigation(MODULE_TEXTS.LIBRARY.EN.TEXTS_LINK, /\/texts/);
     await la.expectLauncherReads('ask');
   });
 });
