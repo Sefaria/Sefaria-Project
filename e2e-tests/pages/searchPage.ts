@@ -1,7 +1,7 @@
 import { Page, expect } from "@playwright/test"
 import { t } from "../globals"
 import { HelperBase } from "./helperBase"
-import { sefariaString } from "../support/assistantStrings"
+import { sefariaString, escapeRegExp } from "../support/assistantStrings"
 
 /**
  * Tab order is fixed by the `tabs` array in static/js/SearchPage.jsx:428.
@@ -294,12 +294,14 @@ export class SearchPage extends HelperBase{
     /**
      * Every button-like control in the null state other than the two caption links
      * ("Report a bug" / "contact us"), as hrefs. The Browse CTA is an `<a>` styled as a
-     * button, so it counts; a real `<button>` would be listed as "(button)".
+     * button, so it counts; a real `<button>` would be listed as "(button)". A link inside
+     * the body text (the assistant's name, LA-NULL-16) is part of the sentence, not a
+     * button, so it doesn't count either.
      */
     async nullStateButtonHrefs(): Promise<string[]> {
         await expect(this.nullState).toBeVisible({ timeout: t(5000) });
         const links = await this.nullState.getByRole('link').evaluateAll((els) =>
-            els.filter((el) => !el.closest('.noSearchResults-caption')).map((el) => el.getAttribute('href') ?? ''));
+            els.filter((el) => !el.closest('.noSearchResults-caption, .noSearchResults-body')).map((el) => el.getAttribute('href') ?? ''));
         const buttons = await this.nullState.getByRole('button').count();
         return [...links, ...Array(buttons).fill('(button)')];
     }
@@ -341,6 +343,126 @@ export class SearchPage extends HelperBase{
                 .map((r) => Math.round(r.top)));
             return tops.size;
         }, phrase);
+    }
+
+    /**
+     * "Library Assistant" (עוזר הספרייה) in the body text — a link when the assistant is
+     * on (LA-NULL-16). Found by its name, read by translation key. The page may join the
+     * two words with a non-breaking space, so any space between them matches.
+     */
+    private get nullStateAssistantLink() {
+        const words = sefariaString('header.library_assistant', this.language).split(/\s+/).map(escapeRegExp);
+        return this.nullState.locator('.noSearchResults-body')
+            .getByRole('link', { name: new RegExp(`^\\s*${words.join('\\s+')}\\s*$`) });
+    }
+
+    async expectNullStateAssistantLink(): Promise<void> {
+        await expect(this.nullStateAssistantLink).toBeVisible({ timeout: t(5000) });
+    }
+
+    /** LA-NULL-16: the assistant link's text color, and whether it is underlined. */
+    async nullStateAssistantLinkLook(): Promise<{ color: string; underlined: boolean }> {
+        await this.expectNullStateAssistantLink();
+        return this.nullStateAssistantLink.evaluate((el) => {
+            const cs = getComputedStyle(el);
+            return { color: cs.color, underlined: cs.textDecorationLine.includes('underline') };
+        });
+    }
+
+    /** LA-NULL-17: click the assistant's name in the body text. */
+    async clickNullStateAssistantLink(): Promise<void> {
+        await this.expectNullStateAssistantLink();
+        await this.nullStateAssistantLink.click();
+    }
+
+    /**
+     * LA-NULL-16: which line of the body text (1 = the first line) each of these is on:
+     *  - `orLine`: the last `orWord` ("or" / "או") before `phrase`
+     *  - `afterOrLine`: the first word after that `orWord`
+     *  - `phraseLine`: the start of `phrase` (the assistant's name)
+     * Every character's height on screen tells the lines apart. Returns null when
+     * `phrase`, or an `orWord` before it, isn't in the text.
+     */
+    private async nullStateLinesAroundLastOr(orWord: string, phrase: string): Promise<{ orLine: number; afterOrLine: number; phraseLine: number } | null> {
+        const body = this.nullState.locator('.noSearchResults-body');
+        await expect(body).toBeVisible({ timeout: t(5000) });
+        return body.evaluate((el, [or, wanted]) => {
+            const norm = (s: string) => s.replace(/ /g, ' ');
+            // Join every text node, remembering where each one starts.
+            const walker = el.ownerDocument.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+            const pieces: { node: Text; start: number }[] = [];
+            let all = '';
+            let node: Node | null;
+            while ((node = walker.nextNode())) {
+                pieces.push({ node: node as Text, start: all.length });
+                all += norm(node.textContent || '');
+            }
+            const phraseAt = all.lastIndexOf(norm(wanted));
+            if (phraseAt < 0) return null;
+            const orMatch = [...all.slice(0, phraseAt).matchAll(new RegExp(`(^|\\s)${or}(?=\\s)`, 'g'))].pop();
+            if (!orMatch) return null;
+            const orAt = orMatch.index! + orMatch[1].length;
+            let afterOrAt = orAt + or.length;
+            while (afterOrAt < all.length && /\s/.test(all[afterOrAt])) afterOrAt++;
+
+            // Height on screen of the character at `offset` in the joined text.
+            const topOf = (offset: number): number | null => {
+                const piece = [...pieces].reverse().find((p) => p.start <= offset)!;
+                const range = el.ownerDocument.createRange();
+                range.setStart(piece.node, offset - piece.start);
+                range.setEnd(piece.node, offset - piece.start + 1);
+                const rect = Array.from(range.getClientRects()).find((r) => r.width > 0);
+                return rect ? rect.top : null;
+            };
+            // Every line's height, from every visible character; lines closer than 4px are the same line.
+            const lineTops: number[] = [];
+            for (let i = 0; i < all.length; i++) {
+                if (/\s/.test(all[i])) continue;
+                const top = topOf(i);
+                if (top !== null && !lineTops.some((l) => Math.abs(l - top) < 4)) lineTops.push(top);
+            }
+            lineTops.sort((a, b) => a - b);
+            const lineOf = (offset: number) => {
+                const top = topOf(offset);
+                return top === null ? 0 : lineTops.findIndex((l) => Math.abs(l - top) < 4) + 1;
+            };
+            return { orLine: lineOf(orAt), afterOrLine: lineOf(afterOrAt), phraseLine: lineOf(phraseAt) };
+        }, [orWord, phrase] as const);
+    }
+
+    /**
+     * LA-NULL-16: the body text breaks right after its last `orWord` ("or" / "או"), so the
+     * words after it, including the assistant's name, start the next line.
+     */
+    async expectLineBreakAfterLastOr(orWord: string): Promise<void> {
+        const name = sefariaString('header.library_assistant', this.language);
+        const lines = await this.nullStateLinesAroundLastOr(orWord, name);
+        expect(lines, `the text should have "${orWord}" before "${name}"`).not.toBeNull();
+        expect(lines!.afterOrLine, `the line should break right after the last "${orWord}"`).toBe(lines!.orLine + 1);
+        expect(lines!.phraseLine, `"${name}" should be on the line that starts after "${orWord}"`).toBe(lines!.afterOrLine);
+    }
+
+    /** LA-NULL-19: scroll everything that holds the empty-search box all the way down. */
+    async scrollNullStateToBottom(): Promise<void> {
+        await expect(this.nullState).toBeVisible({ timeout: t(5000) });
+        await this.nullState.evaluate((el) => {
+            for (let box: HTMLElement | null = el.parentElement; box; box = box.parentElement) {
+                if (box.scrollHeight > box.clientHeight + 1) box.scrollTop = box.scrollHeight;
+            }
+            window.scrollTo(0, el.ownerDocument.documentElement.scrollHeight);
+        });
+    }
+
+    /** LA-NULL-19: where, from the top of the window, the last line of text in the empty-search box ends. */
+    async nullStateTextBottom(): Promise<number> {
+        const content = this.nullState.locator('.noSearchResults-content');
+        await expect(content).toBeVisible({ timeout: t(5000) });
+        return content.evaluate((el) => {
+            const range = el.ownerDocument.createRange();
+            range.selectNodeContents(el);
+            const lines = Array.from(range.getClientRects()).filter((r) => r.width > 0 && r.height > 0);
+            return Math.max(...lines.map((r) => r.bottom));
+        });
     }
 
     // ---------------------------------------------------------------------

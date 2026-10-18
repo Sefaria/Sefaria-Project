@@ -3,6 +3,7 @@ import { goToPageWithUser, hideAllModalsAndPopups, installEntitySearchMock } fro
 import { BROWSER_SETTINGS, LANGUAGES } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { SearchPage, SearchTabId } from '../pages/searchPage';
+import { LibraryAssistantQ4Page } from '../pages/libraryAssistantQ4Page';
 import { MODULE_URLS, librarySearchUrl } from '../constants';
 import { ChatServerMock } from '../support/chatServerMock';
 import { sefariaString } from '../support/assistantStrings';
@@ -11,8 +12,15 @@ import { TOPIC_HITS } from '../fixtures/entitySearchFixtures';
 
 /**
  * "Search with no results" (LA-NULL-*) — the stories tagged @desktop.
- * LA-NULL-1 and LA-NULL-5 are also tagged @phone; their phone runs live in
+ * LA-NULL-1, LA-NULL-5 and LA-NULL-16 are also tagged @phone; their phone runs,
+ * and the phone-only LA-NULL-19, live in
  * e2e-tests/mobile web/library-assistant-null-search-phone.spec.ts.
+ *
+ * With the assistant on, "Library Assistant" (עוזר הספרייה) in the page's text is a
+ * link that asks the assistant about the search, just like the floating
+ * "Search with Library Assistant" button; the two share one "already asked"
+ * (LA-NULL-13, LA-NULL-16 → LA-NULL-18). LA-NULL-18 also needs the ai-chatbot
+ * widget change from Sefaria/ai-chatbot#242 (commit 0efd3cf).
  *
  * Written TEST-FIRST: parts of this feature are not built yet (for example the
  * assistant version of the empty-search text, and the assistant for logged-out
@@ -67,6 +75,14 @@ const BROWSE_HREFS: Record<SearchTabId, string> = {
   topics: '/topics',
 };
 const ALL_TABS: SearchTabId[] = ['sources', 'books', 'authors', 'topics'];
+
+/** LA-NULL-16: the link's color, #7C416F (mussar purple), the way getComputedStyle reports it. */
+const MUSSAR_PURPLE = 'rgb(124, 65, 111)';
+/**
+ * LA-NULL-16: the word the text breaks after. The story names the word itself
+ * ("or" / "או"); it is part of a longer sentence, so it has no translation key of its own.
+ */
+const LAST_OR: Record<string, string> = { [LANGUAGES.EN]: 'or', [LANGUAGES.HE]: 'או' };
 
 test.use({ viewport: DESKTOP });
 
@@ -125,6 +141,24 @@ async function openEmptySearch(context: BrowserContext, profile: typeof BROWSER_
   return { page, search };
 }
 
+/** LA-NULL-16: the assistant's name in the text is a purple, underlined link, starting the line after the last "or". */
+async function expectAssistantNameIsLink(search: SearchPage, lang: string) {
+  const look = await search.nullStateAssistantLinkLook();
+  expect(look.color, 'the link should be mussar purple, #7C416F').toBe(MUSSAR_PURPLE);
+  expect(look.underlined, 'the link should be underlined').toBe(true);
+  await search.expectLineBreakAfterLastOr(LAST_OR[lang]);
+}
+
+/** Click the "Search with Library Assistant" button, or the assistant's name in the text; either way the assistant opens. */
+async function clickToAsk(which: 'link' | 'button', la: LibraryAssistantQ4Page, search: SearchPage) {
+  if (which === 'link') {
+    await search.clickNullStateAssistantLink();
+    await la.expectAssistantOpen();
+  } else {
+    await la.clickSearchLauncher();
+  }
+}
+
 // ---------------------------------------------------------------------------
 // LA-NULL-1 / LA-NULL-2 / LA-NULL-3: the page's own text and button
 // ---------------------------------------------------------------------------
@@ -138,25 +172,27 @@ const assistantOnExamples: Array<{ who: 'logged out' | 'logged in with the assis
 
 test.describe('Search with no results — assistant on: the page text (desktop)', () => {
   for (const { who, tab } of assistantOnExamples) {
-    const title = `LA-NULL-1: Assistant on, ${who}, ${tab} tab — no button on the page, assistant copy, "Library Assistant" on one line`;
+    const title = `LA-NULL-1: Assistant on, ${who}, ${tab} tab — no button on the page, assistant copy, "Library Assistant" on one line and a link`;
 
     if (who === 'logged out') {
       test.fixme(title, { ...DESKTOP_PHONE_TAGS, annotation: NOT_BUILT }, async () => {
         // Steps once it's built:
         //  1. goToPageWithLang(context, librarySearchUrl(QUERY), LANGUAGES.EN) — logged out.
         //  2. selectTab(tab); waitForNullState().
-        //  3. Same three checks as the logged-in rows below.
+        //  3. Same four checks as the logged-in rows below.
       });
       continue;
     }
 
     test(title, DESKTOP_PHONE_TAGS, async ({ context }) => {
       const { search } = await openEmptySearch(context, BROWSER_SETTINGS.enLAUser, tab);
+      // A link in the sentence isn't a button, so it doesn't count here (see nullStateButtonHrefs).
       expect(await search.nullStateButtonHrefs(), 'no button on the page itself').toEqual([]);
       await expect.poll(() => search.nullStateBodyText(), { message: 'assistant version of the text' })
         .toBe(sefariaString(`search.null.${tab}.body.library_assistant`, LANGUAGES.EN));
       const phrase = sefariaString('header.library_assistant', LANGUAGES.EN);
       expect(await search.nullStateLinesUsedBy(phrase), `"${phrase}" should sit on one line`).toBe(1);
+      await search.expectNullStateAssistantLink();
     });
   }
 });
@@ -269,6 +305,12 @@ test.describe('Search with no results — the Ask button becomes the search acti
     await mock.expectQuestionCountStays(1);
     await la.closeWithMinimize('search');
 
+    // The link in the text counts as the same button: the button asked first, so the link just reopens the chat.
+    await clickToAsk('link', la, search);
+    await la.expectConversationContains(searchQuestion(QUERY));
+    await mock.expectQuestionCountStays(1);
+    await la.closeWithMinimize('search');
+
     // Another empty tab of the same search: the label never flips back to "Ask", even for a frame.
     const frames = await la.watchLauncherWhile(async () => {
       await search.selectTab('books');
@@ -313,7 +355,7 @@ test.describe('Search with no results — the Ask button becomes the search acti
 });
 
 test.describe('Search with no results — Hebrew interface', () => {
-  test('LA-NULL-15: Hebrew — the button shows the Hebrew search label and sends the Hebrew question', { tag: ['@e2e', '@desktop', '@he'] }, async ({ context }) => {
+  test('LA-NULL-15: Hebrew — the button shows the Hebrew search label and sends the Hebrew question; so does the link in the text', { tag: ['@e2e', '@desktop', '@he'] }, async ({ context }) => {
     const { mock, la, search } = await startWithAssistant(context, { lang: LANGUAGES.HE });
     await searchWithNoResults(search);
     await la.expectLauncherReads('search'); // the label is looked up in he.json
@@ -321,7 +363,125 @@ test.describe('Search with no results — Hebrew interface', () => {
     await la.clickSearchLauncher();
     await mock.waitForQuestion(1);
     expect(mock.questions).toEqual([searchQuestion(QUERY, LANGUAGES.HE)]);
+
+    // "עוזר הספרייה" in the text (found by the Hebrew value of header.library_assistant) is a
+    // link that sends the same Hebrew question. The button already asked about this search,
+    // so try the link on a new one.
+    await la.closeWithMinimize('search');
+    await searchWithNoResults(search, SECOND_QUERY);
+    await clickToAsk('link', la, search);
+    await mock.waitForQuestion(2);
+    expect(mock.questions[1]).toBe(searchQuestion(SECOND_QUERY, LANGUAGES.HE));
   });
+});
+
+// ---------------------------------------------------------------------------
+// LA-NULL-16 → LA-NULL-18: the assistant's name in the text is a link
+// ---------------------------------------------------------------------------
+
+const inlineLinkExamples = [
+  { who: 'logged out', lang: LANGUAGES.EN, label: 'English' },
+  { who: 'logged in with the assistant on', lang: LANGUAGES.HE, label: 'Hebrew' },
+] as const;
+
+test.describe('Search with no results — the assistant\'s name in the text is a link (desktop)', () => {
+  for (const { who, lang, label } of inlineLinkExamples) {
+    const title = `LA-NULL-16: ${who}, ${label} — the assistant's name in the text is a purple underlined link, starting the line after the last "or" (every tab)`;
+
+    if (who === 'logged out') {
+      test.fixme(title, { ...DESKTOP_PHONE_TAGS, annotation: NOT_BUILT }, async () => {
+        // Steps once it's built:
+        //  1. goToPageWithLang(context, librarySearchUrl(QUERY), LANGUAGES.EN) — logged out.
+        //  2. For each tab: selectTab(tab); waitForNullState(); expectAssistantNameIsLink(search, LANGUAGES.EN).
+      });
+      continue;
+    }
+
+    test(title, { tag: ['@e2e', '@desktop', '@phone', '@he'] }, async ({ context }) => {
+      const { search } = await startWithAssistant(context, { lang });
+      await searchWithNoResults(search);
+      for (const tab of ALL_TABS) {
+        await search.selectTab(tab);
+        await search.waitForNullState();
+        await expectAssistantNameIsLink(search, lang);
+      }
+    });
+  }
+
+  test('LA-NULL-17: Clicking the link opens the assistant and sends the same question as "Search with Library Assistant"', DESKTOP_TAGS, async ({ context }) => {
+    const { mock, la, search } = await startWithAssistant(context);
+    mock.holdAnswers(); // keep the "thinking" state on screen long enough to see it
+    await searchWithNoResults(search);
+    await la.expectLauncherReads('search');
+
+    await clickToAsk('link', la, search);
+    await la.expectThinkingWithin(1500);
+    await mock.waitForQuestion(1);
+    // The button's question, read by key: the link must send exactly the same text.
+    expect(mock.questions).toEqual([searchQuestion(QUERY)]);
+    await la.expectConversationContains(searchQuestion(QUERY));
+    mock.releaseAnswers();
+  });
+
+  test('LA-NULL-17: The link, signed in — the question starts a new chat, and the earlier chat stays in history (LA-NULL-7)', DESKTOP_TAGS, async ({ context }) => {
+    const { mock, la, search } = await startWithAssistant(context);
+    // An earlier conversation, still open in the assistant.
+    mock.answerNextWith(EARLIER_ANSWER);
+    await la.openWithAskButton();
+    await la.askQuestion(EARLIER_QUESTION);
+    await la.expectConversationContains(EARLIER_ANSWER);
+    await la.closeWithMinimize();
+
+    await searchWithNoResults(search);
+    mock.answerNextWith(SEARCH_ANSWER);
+    await clickToAsk('link', la, search);
+    await mock.waitForQuestion(2);
+    expect(mock.asked[1].text).toBe(searchQuestion(QUERY));
+    expect(mock.asked[1].sessionId, 'the search question should go to a new chat').not.toBe(mock.asked[0].sessionId);
+    await la.expectConversationContains(SEARCH_ANSWER);
+    await la.expectConversationLacks(EARLIER_QUESTION);
+
+    await la.expectChatInHistory(EARLIER_QUESTION);
+  });
+
+  test.fixme('LA-NULL-17: The link, logged out — LA-NULL-8 to LA-NULL-12 hold for the link as for the button', LOGGED_OUT_TAGS, async () => {
+    // Steps once it's built: run each of LA-NULL-8 → LA-NULL-12 (below) with
+    // clickToAsk('link', la, search) in place of la.clickSearchLauncher().
+  });
+
+  // The story says to run it both ways: link first, then button first.
+  for (const first of ['link', 'button'] as const) {
+    const other = first === 'link' ? 'button' : 'link';
+
+    test(`LA-NULL-18: The link and the button ask once between them — ${first} first`, DESKTOP_TAGS, async ({ context }) => {
+      const { mock, la, search } = await startWithAssistant(context);
+      await searchWithNoResults(search);
+      mock.answerNextWith(SEARCH_ANSWER);
+      await clickToAsk(first, la, search);
+      await mock.waitForQuestion(1);
+      await la.expectConversationContains(SEARCH_ANSWER);
+
+      // Close, then click the other one, then the same one again: each time the same chat
+      // reopens and no second question is sent.
+      for (const again of [other, first] as const) {
+        await la.closeWithMinimize('search');
+        await clickToAsk(again, la, search);
+        await la.expectConversationContains(searchQuestion(QUERY));
+        await la.expectConversationContains(SEARCH_ANSWER);
+        await mock.expectQuestionCountStays(1);
+      }
+      await la.closeWithMinimize('search');
+
+      // A different search with no results: the link asks it once.
+      await searchWithNoResults(search, SECOND_QUERY);
+      await clickToAsk('link', la, search);
+      await mock.waitForQuestion(2);
+      expect(mock.questions[1]).toBe(searchQuestion(SECOND_QUERY));
+      await la.closeWithMinimize('search');
+      await clickToAsk('link', la, search);
+      await mock.expectQuestionCountStays(2);
+    });
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -338,11 +498,13 @@ test.describe('Search with no results — logged out (not built yet)', () => {
     //     conversation shows EARLIER_QUESTION above searchQuestion(QUERY).
   });
 
-  test.fixme('LA-NULL-9: Logged out at the limit — opens on the last chat, scrolled to the end, with the login prompt; nothing sent', LOGGED_OUT_TAGS, async () => {
+  test.fixme('LA-NULL-9: Logged out at the limit — opens on the last chat, scrolled to the end (or where the visitor left it), with the login prompt; nothing sent', LOGGED_OUT_TAGS, async () => {
     // Steps once it's built:
     //  1. Logged out with no free answers left (how to get there depends on how the count is kept).
     //  2. searchWithNoResults(); clickSearchLauncher().
-    //  3. The assistant shows the last conversation, scrolled to the bottom, with the login prompt.
+    //  3. The assistant shows the last conversation with the login prompt, scrolled to the
+    //     bottom (la.expectChatAtBottom()) — or, if the visitor closed it partway up during
+    //     this visit, scrolled where they left it (la.expectChatScrolledTo(<where they left it>), LA-QA-7).
     //  4. mock.expectQuestionCountStays(<count before the click>).
   });
 
