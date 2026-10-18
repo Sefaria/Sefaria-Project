@@ -239,6 +239,18 @@ test.describe('Library Assistant — visibility boundaries', () => {
     await pm.onLibraryAssistant().expectAnswerShown();
   });
 
+  // The widget's login prompt (shown once the free answers are used up) asks Sefaria to log
+  // in with an event; Sefaria opens its in-page login view with the event's source.
+  test('LA-LOGGED-OUT-005: The widget\'s login request opens the login view', async ({ context }) => {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+
+    await pm.onLibraryAssistant().requestLogin('rate_limit_login_button');
+
+    await pm.onLoginPage().expectChooseViewShown();
+  });
+
   // Logout (from any module) sets the lc_chatbot_clear cookie; the next Library page
   // clears the assistant's saved chat so the next visitor on this browser doesn't see it.
   // The logout itself isn't performed: it would destroy a shared auth session (rule §2.21).

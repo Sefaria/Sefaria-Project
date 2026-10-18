@@ -146,6 +146,11 @@ class ReaderApp extends Component {
     // Hide the sign up modal and show the auth page, with the given path and source.
     this.setState({ showAuth: true, authPath: path, authSource: source, showSignUpModal: false });
   }
+  handleChatbotLoginRequest = (event) => {
+    // The Library Assistant (<lc-chatbot>) asks to log in. A link inside its shadow DOM can't reach
+    // handleInAppLinkClick, so it sends an event with the signup source instead.
+    this.handleAuthNavigate(withNext('/login', Sefaria.util.currentPath()), event.detail?.source || null);
+  }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -230,6 +235,7 @@ class ReaderApp extends Component {
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.addEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+    document.addEventListener('chatbot:login_requested', this.handleChatbotLoginRequest);
 
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
@@ -265,6 +271,7 @@ class ReaderApp extends Component {
     document.removeEventListener('copy', this.handleCopyEvent);
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+    document.removeEventListener('chatbot:login_requested', this.handleChatbotLoginRequest);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {

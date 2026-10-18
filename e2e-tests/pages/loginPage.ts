@@ -1,5 +1,6 @@
 import { Page, expect } from "@playwright/test";
-import { LANGUAGES, testUser } from "../globals";
+import { LANGUAGES, testUser, t } from "../globals";
+import { AUTH_LABELS } from "../constants";
 import { HelperBase } from "./helperBase";
 import { changeLanguage, clickContinueWithEmail } from "../utils";
 
@@ -37,6 +38,14 @@ export class LoginPage extends HelperBase{
         // await for the page to load after login
         await this.page.waitForLoadState('domcontentloaded');
         await changeLanguage(this.page, this.language);
+    }
+
+    /** The login view (AuthPage's ChooseView) is shown. */
+    async expectChooseViewShown(): Promise<void> {
+        const label = this.language === LANGUAGES.HE
+            ? AUTH_LABELS.CONTINUE_WITH_EMAIL[LANGUAGES.HE]
+            : AUTH_LABELS.CONTINUE_WITH_EMAIL[LANGUAGES.EN];
+        await expect(this.page.getByRole('button', { name: label })).toBeVisible({ timeout: t(15000) });
     }
 
 }

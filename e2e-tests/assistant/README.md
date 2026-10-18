@@ -122,6 +122,7 @@ Method map by UX ID:
 | LA-NEG-001 → 002 (LA absent off its intended surface) | `expectNotPresent()` — on `voices.*` home and a voices sheet |
 | LA-LOGGED-OUT-001 → 002 (LA present for logged-out visitors) | `waitForReady()` — on logged-out Library home and reader pages (remote config `feature.chatbot.anonymous_enabled`, on by default) |
 | LA-LOGGED-OUT-003 (logged-out visitor gets an answer) | `expectAnswerShown()` — real round trip to the chat server with no user |
+| LA-LOGGED-OUT-005 (login request opens the login view) | `requestLogin('rate_limit_login_button')` (the event the widget's login prompt sends) → `onLoginPage().expectChooseViewShown()` |
 | LA-LOGGED-OUT-004 (logout clears the saved chat) | `seedSavedChat()` + the `lc_chatbot_clear` cookie a logout sets → reload → `savedChatKeys()` empty and cookie gone |
 
 State helpers (use these liberally at the top of a test to reach a known state):

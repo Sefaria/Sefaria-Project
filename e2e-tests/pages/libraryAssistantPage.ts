@@ -395,6 +395,13 @@ export class LibraryAssistantPage extends HelperBase {
 
   // --- The assistant's saved chat in the browser (localStorage, `lc_chatbot:` keys) ---
 
+  /** Send the widget's login request, as its login prompt button does. */
+  async requestLogin(source: string): Promise<void> {
+    await this.page.evaluate((detail) => {
+      document.dispatchEvent(new CustomEvent('chatbot:login_requested', { bubbles: true, composed: true, detail }));
+    }, { source });
+  }
+
   /** Put a saved chat in localStorage, as a logged-in user's session leaves it. */
   async seedSavedChat(): Promise<void> {
     await this.page.evaluate(() => {
