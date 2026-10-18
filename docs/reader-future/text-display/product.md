@@ -4,8 +4,8 @@ title: Text display & reading settings
 domain: Reader
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-18
 ---
 # Text display & reading settings — product specification
 
@@ -15,7 +15,10 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+Discussed so far: what a click, a double-click and a selection in the text should do. Nothing is decided. Ideas: clicking a
+segment no longer opens the sidebar, which gets its own control; clicking or double-clicking a word shows a small lookup at the
+word with a call-to-action to open the sidebar; selecting text triggers nothing. The sidebar side is in
+[Connections](../connections/product.md). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 
 ## Who it is for and what they need
 
@@ -23,15 +26,27 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Clicking a segment does not open the sidebar; the sidebar has its own open/close control. See [Connections](../connections/product.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · CON-008
+- Clicking or double-clicking a word shows a lightweight lookup at the word (pop-up or tooltip), with a call-to-action to open
+  the full sidebar. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · TXD-059
+- Selecting (highlighting) text triggers nothing; selection is for copying or keeping one's place. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468) · TXD-057 · TXD-059
+- On phones, tap and tap-and-hold could do different things. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **Keep:** _None recorded yet._
+- **Change:** a click on a segment stops opening the sidebar (CON-008). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Change:** a word lookup starts from a click or double-click on the word, not from a selection (TXD-059). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Drop:** dictionary lookup on text selection (TXD-057, TXD-059). — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **New:** _None recorded yet._
 
 ## Open questions
 
-_None yet._
+- **What does selecting a word do when the sidebar is closed?** Penina Levy and Yitzhak Clark: nothing ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468)). Asked in
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468). Today a selection does nothing while the sidebar is closed (CON-042, SHL-053); see
+  [Connections](../connections/product.md).
+- **Click or double-click** on a word to look it up? ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468))
+- **Phones:** which of tap and tap-and-hold does what? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792115591468479?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 
 ## Decisions
 
