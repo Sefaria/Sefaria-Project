@@ -4010,25 +4010,29 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 24px;
   cursor: pointer;
 }
-/* Search-query auto-correction banner */
+/* Search-query auto-correction banner. Long queries and suggestions wrap like normal text:
+   no indent, no truncation, links break across lines; a single over-long word breaks too. */
 .searchAutocorrectBanner {
   display: flex;
   flex-direction: column;
   row-gap: 4px;
-  margin-top: 20px;
+  margin-top: 12px;
   margin-bottom: 12px;
+  padding: 12px 16px;
+  background-color: var(--highlight-blue-light); /* #F0F7FF, Figma: functional-highlight-blue-light */
+  border-radius: 12px;
   color: var(--near-black);
+  overflow-wrap: break-word;
 }
 .searchAutocorrectBanner-line {
   font-size: 18px;
-  line-height: 27px;
+  line-height: 1.4;
   /* override the font variable, not font-family, which the universal * rule in fonts.css sets on every element */
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .searchAutocorrectBanner-secondary {
-  font-size: var(--sans-serif-body-font-size);
-  line-height: 1.4;
+  font-size: var(--sans-serif-small-font-size);
 }
 .searchAutocorrectBanner-line :is(.int-en, .int-he) {
   color: var(--near-black);
@@ -4049,8 +4053,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchAutocorrectBanner-original {
   cursor: pointer;
-  color: var(--select-blue);
+  color: var(--sefaria-blue); /* #18345D, Figma: text-link */
   text-decoration: underline;
+}
+/* "Did you mean" suggestions ask the user to act, so they're semibold; "Search instead for" stays regular */
+.searchAutocorrectBanner-suggestion {
+  font-weight: 600;
+}
+.searchAutocorrectBanner-suggestion:lang(he) {
+  font-weight: 700;
 }
 .searchContent .tab-view .tab-list .tab .searchTabCount {
   display: inline-block;

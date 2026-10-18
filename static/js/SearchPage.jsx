@@ -114,10 +114,9 @@ const SearchSuggestedQueriesBannerContent = ({suggestedQueries, onSearchSuggesti
         <React.Fragment key={query}>
           {i > 0 && <span className="searchAutocorrectBanner-separator">{", "}</span>}
           <_AutocorrectTerm query={query} onClick={q => onSearchSuggestion && onSearchSuggestion(q)}
-                            className="searchAutocorrectBanner-original"/>
+                            className="searchAutocorrectBanner-original searchAutocorrectBanner-suggestion"/>
         </React.Fragment>
       ))}
-      <InterfaceText text={{en: "?", he: "?"}}/>
     </div>
   </div>
 );
