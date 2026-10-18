@@ -4056,13 +4056,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: var(--sefaria-blue); /* #18345D, Figma: text-link */
   text-decoration: underline;
 }
-/* "Did you mean" suggestions ask the user to act, so they're semibold; "Search instead for" stays regular */
-.searchAutocorrectBanner-suggestion {
-  font-weight: 600;
-}
-.searchAutocorrectBanner-suggestion:lang(he) {
-  font-weight: 700;
-}
 .searchContent .tab-view .tab-list .tab .searchTabCount {
   display: inline-block;
   min-width: 24px;
