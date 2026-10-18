@@ -27,6 +27,8 @@
 *.log
 *.sql
 !semantic_search/sql/*.sql
+# auth-service Postgres test fixture
+!auth-service/internal/registry/testdata/*.sql
 *.sqlite
 *.db
 
@@ -147,6 +149,9 @@ static/sheetrank.json
 e2e-tests/playwright_auth_*.json
 e2e-tests/auth_*.json
 e2e-tests/e2e-test-logs/
+e2e-tests/.apikeys-e2e*.json
+e2e-tests/api-keys/.auth/
+e2e-tests/api-keys/results/
 /test-results/
 /playwright-report/
 /playwright/.cache/
@@ -165,3 +170,11 @@ dump/*
 .env
 static_collected/*
 scripts/debug_cache/
+
+# API auth POC: measurement artefacts are filed to the wiki, never committed here
+auth-service/poc-results/
+auth-service/bin/
+
+# API auth POC: the registry schema is source, copied into the image by build/auth-service/Dockerfile
+!auth-service/internal/registry/schema.sql
+!helm-chart/sefaria/files/auth-service-schema.sql

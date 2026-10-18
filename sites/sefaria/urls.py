@@ -14,6 +14,7 @@ static_pages = [
     "visualizations",
     "jobs",
     "terms",
+    "api-terms",
     "privacy-policy",
     "coming-soon",
     "shraga-silverstein",
