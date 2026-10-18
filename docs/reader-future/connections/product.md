@@ -56,6 +56,11 @@ _Not discussed yet._
 - **A tooltip with a slider** for the dictionaries? — Akiva Berger · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - **Phones:** the pop-up idea was raised for desktop ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792115591468479?thread_ts=1792091846.417749&cid=C0C9EGTL468)). On phones, tap and tap-and-hold could be told apart ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)). Today
   the sidebar opens inside the same panel on phones (CON-009).
+- **Do we keep the connection dots?** They are the only reason either client loads connection data while the sidebar is closed.
+  If per-segment counts come with the text, they cost almost nothing, so this becomes a product question rather than a
+  performance one (CON-029). — Akiva Berger · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
+- **Is a list of sheets ever shown in the reader,** or only a count and a link to Voices, as both clients do today (CON-014)?
+  A count alone would let the server stop sending sheet rows, 34–48% of `/api/related` today. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 
 ## Decisions
 

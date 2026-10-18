@@ -18,6 +18,8 @@ updated: 2026-10-18
 No target architecture yet. The ideas in the [product spec](product.md) would make whether the sidebar is open (or docked) a
 piece of panel state set by its own control rather than by choosing a segment, and would add a lightweight lookup surface at the
 word, next to the sidebar rather than inside it. [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+A second set of ideas: each state of the reader loads only the connection data it shows, from stored per-segment counts, so the
+dots and the sidebar summary stop downloading every link of the section. [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 
 ## Legacy approach vs new approach
 
@@ -44,6 +46,23 @@ word, next to the sidebar rather than inside it. [Slack](https://sefaria.slack.c
   dictionaries view ([`src/features/reader/ConnectionsPane.tsx:338-345`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/ConnectionsPane.tsx#L338-L345)), from [`src/lib/lexicon/lookup.ts:97`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/lexicon/lookup.ts#L97) (`/api/words`).
 - In both clients the dictionary has no surface outside the sidebar.
 
+**Related data (links, sheets, resources).** Akiva Berger asked what the reader needs from `/api/related` in each state — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529).
+- Legacy: every base-text section entered calls the full `/api/related/<section>?with_sheet_links=1` for that section and for the
+  next and previous ones, sidebar open or not, plus `?private=1` for each when signed in ([`static/js/TextRange.jsx:146-186`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/TextRange.jsx#L146-L186));
+  the response is split per segment into memory caches ([`static/js/sefaria/sefaria.js:2336-2373`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/sefaria/sefaria.js#L2336-L2373)). With the sidebar closed
+  only the dot uses it ([`static/js/TextRange.jsx:325`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/TextRange.jsx#L325), [`:604-612`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/TextRange.jsx#L604-L612)). Genesis 1's response is 12.3 MB (1.26 MB gzip);
+  when Varnish has no copy the server returns 504 after 15 s (measurements in [Public API](../api-data/architecture.md)).
+- New: one `/api/links/<section>?with_text=0&with_sheet_links=1` per loaded section, shared by the dots and the sidebar, sidebar
+  open or not, with no prefetch of neighbouring sections ([`src/features/reader/TextColumn.tsx:221-234`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/TextColumn.tsx#L221-L234),
+  [`src/lib/connections/queries.ts:18-52`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/connections/queries.ts#L18-L52)). Opening Resources, Topics, Manuscripts or Torah Readings fetches the full
+  `/api/related` as well, links included, and keeps only counts and a few sheet fields ([`src/features/reader/ConnectionsPane.tsx:204`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/ConnectionsPane.tsx#L204),
+  [`src/lib/connections/related.ts:90-109`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/connections/related.ts#L90-L109)). Both are kept on disk (IndexedDB) for 7 days ([`src/lib/cache/policies.ts:22`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/cache/policies.ts#L22));
+  Genesis 1's links alone are 6.3 MB.
+- In both clients sheets appear only as a count: the Sheets row opens Voices `sheets-with-ref`
+  ([`static/js/ConnectionsPanel.jsx:671-681`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/ConnectionsPanel.jsx#L671-L681), [`src/features/reader/ConnectionsPane.tsx:212`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/ConnectionsPane.tsx#L212)). The text of linked
+  texts comes from separate text requests, never from the related data ([`static/js/TextList.jsx:73-91`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/TextList.jsx#L73-L91),
+  [`src/features/reader/ConnectionsPane.tsx:170-171`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/ConnectionsPane.tsx#L170-L171)).
+
 ## Target architecture
 
 Implications of ideas, not decisions.
@@ -58,12 +77,23 @@ Implications of ideas, not decisions.
   entry rendering, with a call-to-action that opens the sidebar on the dictionaries for the same words. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - Lookups start from an explicit click or double-click on a word (tap or tap-and-hold on phones), not from mouse-up on a
   selection; see [Text display](../text-display/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- Each state loads only what it shows. Sidebar closed, no dots: nothing. Dots: one count per segment (the dot's opacity stops
+  changing at 50, [`src/lib/reader/labels.ts:79-81`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/reader/labels.ts#L79-L81)). Dots that follow a filter (CON-029) and the sidebar summary: per-segment
+  counts by category and book, plus counts of sheets, topics, manuscripts, media and guides. A commentary or category open: the
+  link rows for the selection and that filter, fetched then. Counts come from a stored per-section document
+  ([Public API](../api-data/architecture.md#target-architecture)). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
+- With the dots off and the sidebar closed, the reader makes no connection requests at all. If the counts arrive with the text,
+  the dots need no request of their own either; they could be a reading setting whose data is the counts, loaded per section
+  as in the [settings proposal](../text-display/architecture.md#settings--display-model-proposal). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
+- Keep `reader-next`'s single links request per section shared by dots and sidebar, and its lack of neighbour prefetch for
+  connections; stop persisting multi-MB link arrays to IndexedDB (counts can stay on disk long, link rows in memory). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 
 ## Dependencies on other areas
 
 - [Text display](../text-display/architecture.md): click, double-click and selection handling in the reading column.
 - [Reader shell & panels](../reader-shell/architecture.md): panel and aside state in the workspace; single panel on phones (SHL-061).
 - [URLs & routing](../routing/architecture.md): sidebar and lookup state in the URL (`with=`, `lookup=`).
+- [Public API & data exports](../api-data/architecture.md): the related, links and counts endpoints and what is stored server-side.
 
 ## Risks and open questions
 
@@ -72,6 +102,11 @@ Implications of ideas, not decisions.
   layout are open. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792115591468479?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - If double-click becomes the lookup gesture: the legacy guard against accidental multi-click selection
   ([`static/js/TextColumn.jsx:132-140`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/TextColumn.jsx#L132-L140)) is not ported to `reader-next` (TXD-057, `rebuild-status.json`: partial).
+- If the sidebar starts open (a [product idea](product.md#target-behaviour-in-the-future-reader)), every section entered needs
+  the summary, not only the dots: per-segment counts by category and book become the common case (about 25 KB gzip for
+  Genesis 1, against 1.26 MB for `/api/related` today). — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
+- Stored counts must follow the list's rules, or the numbers will disagree: sheets in library collections count as links
+  (`with_sheet_links=1`), essays are left out of the dots ([`src/lib/connections/queries.ts:39-52`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/connections/queries.ts#L39-L52)).
 
 ## Decisions
 
