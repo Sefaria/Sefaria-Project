@@ -386,7 +386,7 @@ export class SearchPage extends HelperBase{
         const body = this.nullState.locator('.noSearchResults-body');
         await expect(body).toBeVisible({ timeout: t(5000) });
         return body.evaluate((el, [or, wanted]) => {
-            const norm = (s: string) => s.replace(/ /g, ' ');
+            const norm = (s: string) => s.replace(/\u00a0/g, ' ');
             // Join every text node, remembering where each one starts.
             const walker = el.ownerDocument.createTreeWalker(el, NodeFilter.SHOW_TEXT);
             const pieces: { node: Text; start: number }[] = [];
