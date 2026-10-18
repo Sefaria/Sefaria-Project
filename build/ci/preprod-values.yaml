@@ -46,18 +46,6 @@ web:
       ref: logging-secret-production
     schoolLookup:
       ref: school-lookup-data-production
-redis:
-  containerImage:
-    imageRegistry: redis
-    tag: latest
-  pdb: true
-  resources:
-    requests:
-      memory: "500Mi"
-      cpu: "100m"
-    limits:
-      memory: "1500Mi"
-      cpu: "200m"
 gpuServer: "gpu-server.gpu-server.svc.cluster.local"
 nodejs:
   containerImage:
@@ -165,18 +153,6 @@ nginx:
     limits:
       memory: "300Mi"
       cpu: "150m"
-monitor:
-  containerImage:
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-    tag: sha-72f0a33-202602101120
-  replicaCount: 1
-  resources:
-    requests:
-      memory: "300Mi"
-      cpu: "50m"
-    limits:
-      memory: "400Mi"
-      cpu: "100m"
 cronJobs:
   # Settings for regenerating long cached data
   regenerate:
@@ -229,6 +205,5 @@ localSettings:
   SITE_PACKAGE: "sites.sefaria"
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
-  MULTISERVER_ENABLED: "True"
   CRM_TYPE: "SALESFORCE"
   FAIL_GRACEFULLY: "True"
