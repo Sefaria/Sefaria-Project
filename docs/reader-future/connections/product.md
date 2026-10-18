@@ -4,8 +4,8 @@ title: Connections & resources sidebar
 domain: Reader
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-18
 ---
 # Connections & resources sidebar — product specification
 
@@ -15,7 +15,10 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+Nothing is decided yet. Two ideas from the channel: the sidebar gets a more independent relationship with the text, with its
+own open/close control, docked at the side when closed instead of opened by clicking a segment, and possibly open from the start.
+Quick word lookups that take over the sidebar today (the dictionaries) would instead show a small element at the word, a pop-up
+or tooltip, with a call-to-action that opens the full sidebar. [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 
 ## Who it is for and what they need
 
@@ -23,15 +26,41 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- The sidebar opens and closes with its own control, and stays docked at the side of the panel when closed. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · CON-008
+- The sidebar starts open. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · CON-008
+- Clicking a segment no longer opens the sidebar. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · CON-008
+- Targeted lookups such as dictionary entries (as opposed to a whole commentary) open in a small pop-up or tooltip at the word
+  instead of taking over the sidebar, with a call-to-action to open the full sidebar. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · CON-042 · CON-043 · CON-044
+- Selecting (highlighting) text triggers nothing: readers select to copy, or to keep their place while reading. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468) · CON-042 · SHL-053
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **Keep:** _None recorded yet._
+- **Change:** the sidebar opens from its own control instead of a segment click (CON-008). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Change:** a dictionary lookup shows at the word, with a way into the full sidebar, instead of switching the sidebar to the
+  dictionaries (CON-042, CON-043, CON-044). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Drop:** dictionary lookup on text selection (CON-042, SHL-053). — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **New:** a docked state for the closed sidebar; a lightweight lookup element (pop-up or tooltip) with a call-to-action to open
+  the sidebar. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 
 ## Open questions
 
-_None yet._
+- **What does selecting a word do when the sidebar is closed?** Penina Levy and Yitzhak Clark: nothing ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468)). Asked in
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468). Today a selection already does nothing while the sidebar is closed: the lookup runs only when the sidebar is open
+  (CON-042, SHL-053).
+- **Click or double-click?** One message frees up a click on a word for the dictionary once the sidebar has its own control
+  ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468)); the summary of the thread speaks of double-clicking words ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)).
+- **If the dictionary stays in the sidebar,** does clicking a word open the sidebar, bringing back the problem of the sidebar
+  opening on a click? — Lev Israel · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092762959359?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Pop-up or sidebar?** Rules are needed for which lookups open in a pop-up and which in the sidebar. — Michael Kellman · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **A tooltip with a slider** for the dictionaries? — Akiva Berger · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Phones:** the pop-up idea was raised for desktop ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792115591468479?thread_ts=1792091846.417749&cid=C0C9EGTL468)). On phones, tap and tap-and-hold could be told apart ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)). Today
+  the sidebar opens inside the same panel on phones (CON-009).
+- **Do we keep the connection dots?** They are the only reason either client loads connection data while the sidebar is closed.
+  If per-segment counts come with the text, they cost almost nothing, so this becomes a product question rather than a
+  performance one (CON-029). — Akiva Berger · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
+- **Is a list of sheets ever shown in the reader,** or only a count and a link to Voices, as both clients do today (CON-014)?
+  A count alone would let the server stop sending sheet rows, 34–48% of `/api/related` today. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 
 ## Decisions
 

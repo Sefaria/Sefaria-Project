@@ -11,11 +11,16 @@ _Not discussed yet. Today: the new client's component library is React + Storybo
 
 ## Data layer and caching
 
-_Not discussed yet. Today: TanStack Query with IndexedDB persistence per query (`reader-next/src/lib/cache`)._
+_Not discussed yet in general. Today: TanStack Query with IndexedDB persistence per query (`reader-next/src/lib/cache`)._
+
+- Connection data: counts kept long on disk, multi-MB link arrays not persisted; see [Connections](connections/architecture.md#target-architecture).
+  — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 
 ## Performance
 
-_Not discussed yet._
+- `/api/related` is the reader's heaviest call (Genesis 1: 12.3 MB, 504 when not cached). Ideas: stored per-segment counts,
+  sheets as counts, leaner link rows, no connection requests with the sidebar closed and dots off; see
+  [Public API](api-data/architecture.md) and [Connections](connections/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 
 ## Accessibility and languages
 
