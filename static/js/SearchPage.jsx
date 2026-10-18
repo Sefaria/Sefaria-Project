@@ -205,6 +205,8 @@ const ENTITY_TABS = [
 // Exported so ElasticSearchQuerier can apply the same invalid-tab fallback as activeTab()
 // when it reads `tab` straight from props for analytics.
 export const ALL_TAB_IDS = ["sources", ...ENTITY_TABS.map(t => t.id)];
+// The /api/entity-search types, for ElasticSearchQuerier's check that a query finds nothing.
+export const ENTITY_TYPES = ENTITY_TABS.map(t => t.type);
 
 const emptyEntityData  = () => Object.fromEntries(ENTITY_TABS.map(t => [t.type, null]));
 const defaultEntitySort = () => Object.fromEntries(ENTITY_TABS.map(t => [t.type, 'relevance']));
@@ -567,9 +569,11 @@ class SearchPage extends Component {
                     () => this.resetEntityResults(ENTITY_TABS.map(t => t.type)));
       this._userSelectedTab = false;
       this._autoSwitchDecidedFor = null;
-    } else if (prevProps.disableAutoCorrect !== this.props.disableAutoCorrect) {
-      // "Search instead for <query>" re-searches every tab, not just the one clicked on.
-      // Same query, so category selections stay valid.
+    } else if (prevProps.disableAutoCorrect !== this.props.disableAutoCorrect ||
+               prevProps.autocorrectResolved !== this.props.autocorrectResolved) {
+      // "Search instead for <query>" re-searches every tab, not just the one clicked on. So
+      // does the decision on whether to correct, which the entity tabs wait for. Same query,
+      // so category selections stay valid.
       this.resetEntityResults(ENTITY_TABS.map(t => t.type));
     }
     this.maybeAutoSwitchFromEmptyTab();
@@ -585,7 +589,7 @@ class SearchPage extends Component {
     if (this._autoSwitchDecidedFor === decisionKey) { return; }
 
     // Sources first, then the entity tabs. null means no count yet for the search on screen.
-    const searchedText = this.props.correctedQuery || this.props.query;
+    const searchedText = this.searchedQuery();
     const countOf = id => {
       if (id === "sources") {
         return this.props.totalsFor === searchedText ? this.props.totalResults?.getValue() : null;
@@ -613,8 +617,9 @@ class SearchPage extends Component {
   }
 
   fetchEntityResults(types = ENTITY_TABS.map(t => t.type)) {
-    const query = this.props.query;
-    if (!query || this.props.searchInBook) { return; }
+    const query = this.searchedQuery();
+    // Until the decision on correcting is made, there's no telling which text to search.
+    if (!this.props.query || this.props.searchInBook || !this.props.autocorrectResolved) { return; }
     const forKey = this.entityResultsKey();
     types.forEach(type => {
       const token = ++this._entityFetchTokens[type];
@@ -626,7 +631,6 @@ class SearchPage extends Component {
       Sefaria.search.entitySearch(query, type, 0, {
             sort: this.state.entitySort[type],
             categoryPaths: this.selectedCategoryPaths(type),
-            disableAutocorrect: this.props.disableAutoCorrect,
           })
           .then(data => {
             if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
@@ -643,7 +647,7 @@ class SearchPage extends Component {
             // newer request succeeded and the user is looking at results. Dropping the stale
             // report can't leave the event waiting forever, because whatever superseded this
             // request reports in its own place -- on success or on failure.
-            if (this.props.query === query && !this.props.compare) {
+            if (this.searchedQuery() === query && !this.props.compare) {
               SearchAnalytics.recordApiResult(type + 's', null, err?.message || String(err));
             }
             // Show the empty state rather than leaving the panel on the loading message.
@@ -666,10 +670,15 @@ class SearchPage extends Component {
     return {hits, total: data.total, moreToLoad: hits.length < loadableTotal, isLoadingMore: false, forKey};
   }
 
+  // The text actually searched: the correction, if one was made.
+  searchedQuery() {
+    return this.props.correctedQuery || this.props.query;
+  }
+
   // Identifies the search the entity tabs show; stamped on each entityData entry so counts
   // from a previous search aren't mistaken for the current one.
   entityResultsKey() {
-    return `${this.props.query}||${this.props.disableAutoCorrect ? 1 : 0}`;
+    return `${this.props.query}||${this.props.correctedQuery || ""}`;
   }
 
   // Book responses carry `categoryCounts` for the sidebar; every other response leaves the
@@ -681,7 +690,7 @@ class SearchPage extends Component {
   }
 
   loadNextEntityPage(type) {
-    const query = this.props.query;
+    const query = this.searchedQuery();
     const cur = this.state.entityData[type];
     if (!cur || cur.isLoadingMore || !cur.moreToLoad) { return; }
     const forKey = cur.forKey;
@@ -694,7 +703,6 @@ class SearchPage extends Component {
     Sefaria.search.entitySearch(query, type, cur.hits.length, {
           sort: this.state.entitySort[type],
           categoryPaths: this.selectedCategoryPaths(type),
-          disableAutocorrect: this.props.disableAutoCorrect,
         })
         .then(data => {
           if (this._entityFetchTokens[type] !== token) { return; }  // superseded — these rows are stale
@@ -994,11 +1002,15 @@ class SearchPage extends Component {
   }
 }
 
+SearchPage.defaultProps = {autocorrectResolved: true};
+
 SearchPage.propTypes = {
   query:                    PropTypes.string,
   correctedQuery:           PropTypes.string,
   suggestedQueries:         PropTypes.arrayOf(PropTypes.string),
   disableAutoCorrect:       PropTypes.bool,
+  // False while ElasticSearchQuerier is still deciding whether to correct the query.
+  autocorrectResolved:      PropTypes.bool,
   onDisableAutoCorrect:     PropTypes.func,
   tab:                      PropTypes.string,
   setTab:                   PropTypes.func,

@@ -4,6 +4,8 @@ import FilterNode from './FilterNode';
 import SearchState from './searchState';
 import { SearchTotal } from "./searchTotal";
 
+const NO_AUTOCORRECT = Object.freeze({corrected_query: null, suggested_queries: null});
+
 
 class Search {
     constructor(searchIndexText, searchIndexSheet) {
@@ -594,19 +596,56 @@ class Search {
             })
             .catch(e => { delete this._cache[key]; throw e; });
     }
+    _fetchAutocorrect(query) {
+        const url = `${Sefaria.apiHost}/api/search-autocorrect?q=${encodeURIComponent(query)}`;
+        return this._cachedGet(url, `autocorrect|${query}`);
+    }
     autocorrectQuery(query) {
         // Resolves to {corrected_query, suggested_queries}. Never rejects: a failed lookup just
         // means searching the query as typed.
-        const noCorrection = {corrected_query: null, suggested_queries: null};
-        if (!query) { return Promise.resolve(noCorrection); }
-        const url = `${Sefaria.apiHost}/api/search-autocorrect?q=${encodeURIComponent(query)}`;
-        return this._cachedGet(url, `autocorrect|${query}`).catch(() => noCorrection);
+        if (!query) { return Promise.resolve(NO_AUTOCORRECT); }
+        return this._fetchAutocorrect(query).catch(() => NO_AUTOCORRECT);
     }
-    getCachedAutocorrect(query) {
-        // Lets a component apply an already-known correction synchronously, at construction.
-        return this._cache[`autocorrect|${query}`];
+    getCachedDecision(query) {
+        // Lets a component apply an already-made decision synchronously, at construction.
+        return this._cache[`autocorrectDecision|${query}`];
     }
-    entitySearch(query, type, start = 0, {sort = "relevance", categoryPaths = [], disableAutocorrect = false} = {}) {
+    decideAutocorrect(query, countResults) {
+        // Resolves to {corrected_query, suggested_queries}: what to search, and what to suggest.
+        // Never rejects.
+        //
+        // A confident correction is applied only when the query as typed finds nothing in any
+        // tab. `countResults()` returns one promise of a result count per tab, and is called
+        // only when there is a correction to decide on. Any results, or any failed count,
+        // means searching the query as typed. Suggestions pass through untouched.
+        //
+        // Decisions are cached per query, except those made without an answer from the
+        // autocorrect endpoint or a count, so a transient failure doesn't stick for the session.
+        if (!query) { return Promise.resolve(NO_AUTOCORRECT); }
+        const cached = this.getCachedDecision(query);
+        if (cached) { return Promise.resolve(cached); }
+        const remember = decision => { this._cache[`autocorrectDecision|${query}`] = decision; return decision; };
+        return this._fetchAutocorrect(query).then(async suggestion => {
+            if (!suggestion.corrected_query) { return remember(suggestion); }
+            const allEmpty = await this._allEmpty(countResults());
+            if (allEmpty === null) { return NO_AUTOCORRECT; }
+            return remember(allEmpty ? suggestion : NO_AUTOCORRECT);
+        }).catch(() => NO_AUTOCORRECT);
+    }
+    _allEmpty(counts) {
+        // Resolves true if every count is 0, false as soon as one isn't, and null if a count
+        // fails (or isn't a number) before any count has shown results.
+        return new Promise(resolve => {
+            let pending = counts.length;
+            if (!pending) { resolve(null); }
+            counts.forEach(count => Promise.resolve(count).then(n => {
+                if (!Number.isFinite(n)) { resolve(null); }
+                else if (n > 0) { resolve(false); }
+                else if (--pending === 0) { resolve(true); }
+            }, () => resolve(null)));
+        });
+    }
+    entitySearch(query, type, start = 0, {sort = "relevance", categoryPaths = []} = {}) {
         // Fetches one page of entity results (from `start`), so the tab panels can lazily
         // load more on scroll. `total` reports the full match count so the count badges and
         // "more to load" checks stay correct.
@@ -624,17 +663,12 @@ class Search {
         // Sorted so the key depends on which categories are selected, not on the order they
         // were clicked in.
         //
-        // Unless `disableAutocorrect`, searches autocorrectQuery's confident correction. The
-        // cache key uses the text actually searched, so the flag needs no key of its own.
+        // Searches `query` exactly as given; decideAutocorrect has already picked the text.
         const paths = [...categoryPaths].sort();
-        const correction = disableAutocorrect ? Promise.resolve(null) : this.autocorrectQuery(query);
-        return correction.then(corrected => {
-            const searched = corrected?.corrected_query || query;
-            const cacheKey = `entitySearch|${type}|${searched}|${start}|${sort}|${paths.join("|")}`;
-            let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(searched)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
-            paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
-            return this._cachedGet(url, cacheKey);
-        });
+        const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}`;
+        let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
+        paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
+        return this._cachedGet(url, cacheKey);
     }
 }
 

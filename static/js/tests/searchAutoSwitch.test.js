@@ -36,6 +36,7 @@ const makePage = ({ query = 'moses', tab = 'sources', sources, books, authors, t
     reportTabChange: jest.fn(),
   };
   page.activeTab = proto.activeTab.bind(page);
+  page.searchedQuery = proto.searchedQuery.bind(page);
   page.entityResultsKey = proto.entityResultsKey.bind(page);
   page.setTab = proto.setTab.bind(page);
   const entry = total => total === undefined ? null : { total, forKey: page.entityResultsKey() };

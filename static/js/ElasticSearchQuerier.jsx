@@ -11,7 +11,7 @@ import {LoadingMessage} from "./Misc";
 import PropTypes from "prop-types";
 import React from "react";
 import {SearchResultList} from "./SearchResultList";
-import SearchPage, {ALL_TAB_IDS} from "./SearchPage";
+import SearchPage, {ALL_TAB_IDS, ENTITY_TYPES} from "./SearchPage";
 import SearchInVoicesPage from "./SearchInVoicesPage";
 import SearchAnalytics from "./sefaria/searchAnalytics";
 
@@ -106,10 +106,12 @@ class ElasticSearchQuerier extends Component {
         hits:           [],
         error:          false,
         topics:         [],
-        // From /api/search-autocorrect (at most one is set). When correctedQuery is set, it is
-        // what gets searched.
+        // From Sefaria.search.decideAutocorrect (at most one is set). When correctedQuery is
+        // set, it is what gets searched. Nothing renders until autocorrectResolved, since the
+        // answer decides which text the results are for.
         correctedQuery: null,
         suggestedQueries: null,
+        autocorrectResolved: false,
         // "Search instead for <query>" normally lives in panel state (the `disableAutoCorrect`
         // prop, so it's in the URL). Callers without a panel, like the sidebar's search-in-book,
         // pass no onDisableAutoCorrect and the click is kept here until the query changes.
@@ -117,12 +119,8 @@ class ElasticSearchQuerier extends Component {
       }
 
       // Load search results from cache so they are available for immediate render. The cache
-      // is keyed by the text actually searched, so apply an already-known correction first.
-      const cachedCorrection = !props.disableAutoCorrect && Sefaria.search.getCachedAutocorrect(props.query);
-      if (cachedCorrection) {
-          this.state.correctedQuery = cachedCorrection.corrected_query || null;
-          this.state.suggestedQueries = cachedCorrection.suggested_queries || null;
-      }
+      // is keyed by the text actually searched, so apply an already-made decision first.
+      Object.assign(this.state, this._autocorrectStateFor(props));
       const args = this._getQueryArgs(props);
       let cachedQuery = Sefaria.search.getCachedQuery(args);
       while (cachedQuery) {
@@ -133,7 +131,7 @@ class ElasticSearchQuerier extends Component {
           this.state.hits = this.state.hits.concat(cachedQuery.hits.hits);
           this.state.totals = cachedQuery.hits.total;
           // Only final once the correction is known.
-          if (cachedCorrection || props.disableAutoCorrect || !props.query) { this.state.totalsFor = args.query; }
+          if (this.state.autocorrectResolved) { this.state.totalsFor = args.query; }
           this.state.pagesLoaded += 1;
           args.start = this.state.pagesLoaded * this.querySize[this.props.searchState.type];
           if (this.props.searchState.type === "text") {
@@ -237,7 +235,7 @@ class ElasticSearchQuerier extends Component {
             // entry whose query and tab both changed in one update, and this runs
             // before SearchPage.componentDidUpdate reports the new tab.
             SearchAnalytics.startQuery(newProps.query, this._analyticsTab(newProps));
-            state = {...this._rerunState(), localDisableAutoCorrect: false, isQueryRunning: !!newProps.query};
+            state = {...this._rerunState(newProps), localDisableAutoCorrect: false, isQueryRunning: !!newProps.query};
             this.setState(state, () => {
                 this._executeAllQueries(newProps);
                 if (!this.props.searchInBook) {
@@ -246,17 +244,30 @@ class ElasticSearchQuerier extends Component {
             });
         } else if (!!this.props.disableAutoCorrect !== !!newProps.disableAutoCorrect) {
             // "Search instead for <query>" was clicked, or back/forward crossed that click.
-            this.setState(this._rerunState(), () => this._executeAllQueries(newProps));
+            this.setState(this._rerunState(newProps, this.state.localDisableAutoCorrect), () => this._executeAllQueries(newProps));
         } else if (this._shouldUpdateQuery(this.props, newProps, this.props.searchState.type)) {
             this.setState(state, () => {
-                this._executeQuery(newProps, this.props.searchState.type);
+                this._executeQuery(newProps);
             })
         }
     }
-    _rerunState() {
+    _rerunState(props, localDisabled = false) {
         // Also drops the old Sources total, which SearchPage's empty-tab auto-switch reads.
-        return {hits: [], pagesLoaded: 0, moreToLoad: true, correctedQuery: null, suggestedQueries: null,
+        return {hits: [], pagesLoaded: 0, moreToLoad: true, ...this._autocorrectStateFor(props, localDisabled),
                 totals: new SearchTotal(), totalsFor: null, isQueryRunning: true};
+    }
+    _autocorrectStateFor(props, localDisabled = false) {
+        // What is known about the correction without asking anyone: nothing to decide when it's
+        // off, or when the decision was already made for this query.
+        if (!props.query || props.disableAutoCorrect || localDisabled) {
+            return {correctedQuery: null, suggestedQueries: null, autocorrectResolved: true};
+        }
+        const decision = Sefaria.search.getCachedDecision(props.query);
+        return {
+            correctedQuery: decision?.corrected_query || null,
+            suggestedQueries: decision?.suggested_queries || null,
+            autocorrectResolved: !!decision,
+        };
     }
     async _executeTopicQuery(query) {
         const topicQuerier = new TopicQuerier();
@@ -310,28 +321,54 @@ class ElasticSearchQuerier extends Component {
     }
     _executeAllQueries(props) {
       props = props || this.props;
+      this._sourcesStartedFor = null;
+      this._sourcesProbeTotal = null;
       this._resolveAutocorrect(props).then(() => {
-        if (!this._unmounted && this.props.query === props.query) {
-          this._executeQuery(props, this.props.searchState.type);
-          if (!this.props.searchInBook) {
-            this._executeTopicQuery(this._searchedQuery());
-          }
+        if (this._unmounted || this.props.query !== props.query) { return; }
+        // The Sources query may already be running, or done, as the check for whether the query
+        // finds anything. If so it was for the text now being searched (otherwise there was a
+        // correction), and its result stands.
+        if (this._sourcesStartedFor !== this._searchedQuery(props)) {
+          this._executeQuery(props);
+        } else if (this._sourcesProbeTotal !== null) {
+          SearchAnalytics.recordApiResult('sources', this._sourcesProbeTotal);
+        }
+        if (!this.props.searchInBook) {
+          this._executeTopicQuery(this._searchedQuery());
         }
       });
     }
     _resolveAutocorrect(props) {
-      // Resolves once the correction is in state; never rejects. The entity tabs look it up
-      // themselves (Sefaria.search.entitySearch), sharing the cached request.
-      if (this._autoCorrectDisabled(props) || !props.query) { return Promise.resolve(); }
-      // Without this, the gap before the search starts would render as "no results".
-      if (!Sefaria.search.getCachedAutocorrect(props.query)) { this.setState({isQueryRunning: true}); }
-      return Sefaria.search.autocorrectQuery(props.query).then(({corrected_query, suggested_queries}) => {
+      // Resolves once it's known which text to search, with that in state; never rejects.
+      if (this.state.autocorrectResolved) { return Promise.resolve(); }
+      return Sefaria.search.decideAutocorrect(props.query, () => this._countResultsAsTyped(props)).then(decision => {
         if (this._unmounted || this.props.query !== props.query || this._autoCorrectDisabled()) { return; }
+        const correctedQuery = decision.corrected_query || null;
         return new Promise(resolve => this.setState({
-          correctedQuery: corrected_query || null,
-          suggestedQueries: suggested_queries || null,
+          correctedQuery,
+          suggestedQueries: decision.suggested_queries || null,
+          autocorrectResolved: true,
+          // What the query as typed found is not what gets shown.
+          ...(correctedQuery ? {hits: [], pagesLoaded: 0, moreToLoad: true, totals: new SearchTotal(),
+                                totalsFor: null, isQueryRunning: true} : {}),
         }, resolve));
       });
+    }
+    _countResultsAsTyped(props) {
+      // One promise of a result count for each tab that shows results, all searching the query
+      // as typed. Sources runs its real query, which is kept if nothing gets corrected;
+      // the entity tabs share Sefaria.search's cache with SearchPage, which repeats these requests
+      // only if the text changes.
+      const counts = [new Promise((resolve, reject) => {
+        this._sourcesStartedFor = props.query;
+        this._executeQuery(props, {resolve, reject});
+      })];
+      if (!this.props.searchInBook && Sefaria.activeModule !== Sefaria.VOICES_MODULE) {
+        ENTITY_TYPES.forEach(type => {
+          counts.push(Sefaria.search.entitySearch(props.query, type).then(data => data.total));
+        });
+      }
+      return counts;
     }
     _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type) {
       // Returns a list of aggregations type which we should request from the server.
@@ -343,8 +380,11 @@ class ElasticSearchQuerier extends Component {
         .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
         .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[Sefaria.interfaceLang] : ''}`); // add suffix based on interfaceLang to filter, if present in suffix_map
     }
-    _executeQuery(props) {
+    _executeQuery(props, probe) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
+      // `probe` ({resolve, reject}), when given, gets the total, or the failure: this run is
+      // the check for whether the query finds anything, and its analytics are held until
+      // that's decided.
       props = props || this.props;
       if (!props.query) {
           return;
@@ -368,7 +408,12 @@ class ElasticSearchQuerier extends Component {
               // sources query re-runs when filters/sort change) are ignored
               // inside SearchAnalytics -- only the first response per search_id
               // counts toward firing search_query_executed.
-              SearchAnalytics.recordApiResult('sources', data.hits.total.getValue());
+              if (probe) {
+                this._sourcesProbeTotal = data.hits.total.getValue();
+                probe.resolve(this._sourcesProbeTotal);
+              } else {
+                SearchAnalytics.recordApiResult('sources', data.hits.total.getValue());
+              }
               if (this.state.pagesLoaded === 0) { // Skip if pages have already been loaded from cache, but let aggregation processing below occur
                 const currTotal = data.hits.total;
                 let state = {
@@ -404,7 +449,7 @@ class ElasticSearchQuerier extends Component {
                 this.props.registerAvailableFilters(availableFilters, registry, orphans, args.aggregationsToUpdate);
               }
             };
-      args.error = this._handleError;
+      args.error = probe ? (failure => { this._handleError(failure); probe.reject(failure); }) : this._handleError;
 
       const runningQuery = Sefaria.search.execute_query(args);
       this.updateRunningQuery(runningQuery);
@@ -440,7 +485,7 @@ class ElasticSearchQuerier extends Component {
         this.props.onDisableAutoCorrect();
         return;
       }
-      this.setState({...this._rerunState(), localDisableAutoCorrect: true}, () => this._executeAllQueries());
+      this.setState({...this._rerunState(this.props, true), localDisableAutoCorrect: true}, () => this._executeAllQueries());
     }
     _loadNextPage() {
       console.log("load next page")
@@ -494,12 +539,15 @@ class ElasticSearchQuerier extends Component {
         }
     }
     render () {
+        // Until it's decided which text is searched, show nothing the answer could replace.
+        const awaitingAutocorrect = !this.state.autocorrectResolved;
         const isVoices = Sefaria.activeModule === Sefaria.VOICES_MODULE;
         const SearchPageComponent = isVoices ? SearchInVoicesPage : SearchPage;
         return <SearchPageComponent
                     key={"searchPage"}
                     moreToLoad={this.state.moreToLoad}
-                    isQueryRunning={this.state.isQueryRunning}
+                    isQueryRunning={this.state.isQueryRunning || awaitingAutocorrect}
+                    autocorrectResolved={!awaitingAutocorrect}
                     searchTopMsg={isVoices && "search_page.results_for"}
                     query={this.props.query}
                     correctedQuery={this.state.correctedQuery}
@@ -509,9 +557,9 @@ class ElasticSearchQuerier extends Component {
                     tab={this.props.tab}
                     setTab={this.props.setTab}
                     sortTypeArray={SearchState.metadataByType[this.props.searchState.type].sortTypeArray}
-                    hits={this.normalizeHitsMetaData()}
-                    totalResults={this.state.totals}
-                    totalsFor={this.state.totalsFor}
+                    hits={awaitingAutocorrect ? [] : this.normalizeHitsMetaData()}
+                    totalResults={awaitingAutocorrect ? new SearchTotal() : this.state.totals}
+                    totalsFor={awaitingAutocorrect ? null : this.state.totalsFor}
                     type={this.props.searchState.type}
                     searchState={this.props.searchState}
                     settings={this.props.settings}
