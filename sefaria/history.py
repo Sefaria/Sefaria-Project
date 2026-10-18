@@ -4,6 +4,7 @@ history.py - managing the revision/activity history.
 Writes to MongoDB collection: history
 """
 from datetime import datetime
+from urllib.parse import quote
 from diff_match_patch import diff_match_patch
 from bson.code import Code
 
@@ -31,7 +32,7 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip
         kind = a["rev_type"].rsplit(" ", 1)[-1]
         if kind in ("text", "lexicon_entry") or a["rev_type"] == "review":
             try:
-                a["history_url"] = "/activity/%s/%s/%s" % (Ref(a["ref"]).url(), a["language"], a["version"].replace(" ", "_"))
+                a["history_url"] = "/activity/%s/%s/%s" % (Ref(a["ref"]).url(), a["language"], quote(a["version"].replace(" ", "_"), safe="_"))
             except:
                 a["history_url"] = "#"
     return activity
@@ -116,7 +117,7 @@ def collapse_activity(activity):
             "updates_count": len(streak) + act.get("updates_count", 1) -1,
             "history_url": "/activity/%s/%s/%s" % (Ref(act["ref"]).section_ref().url(),
                                                    act["language"],
-                                                   act["version"].replace(" ", "_")),
+                                                   quote(act["version"].replace(" ", "_"), safe="_")),
         })
         return act
 
@@ -396,4 +397,3 @@ def make_leaderboard(condition):
                         reducer)
 
     return sorted(leaders, key=lambda x: -x["count"])
-
