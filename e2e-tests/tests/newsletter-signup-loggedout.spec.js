@@ -8,7 +8,7 @@
  * 4. Stage 3: Success (completion message)
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../support/newsletter-test.js';
 import { routeWithHarFixture } from '../support/har-fixture.js';
 import { LANGUAGES } from '../globals';
 

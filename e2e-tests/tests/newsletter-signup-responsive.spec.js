@@ -14,7 +14,8 @@
  * - Layout adapts appropriately
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/newsletter-test.js";
+import { routeWithHarFixture } from "../support/har-fixture.js";
 
 const viewports = [
   { name: "iPhone SE", width: 375, height: 667 },
@@ -24,6 +25,13 @@ const viewports = [
 ];
 
 test.describe("Newsletter Signup - Mobile Responsiveness", () => {
+  // Serve the newsletter API from the saved recording, for every test in this file.
+  // Without it, every page load called the real /api/newsletter/lists (and through
+  // it, ActiveCampaign).
+  test.beforeEach(async ({ context }) => {
+    await routeWithHarFixture(context, "newsletter-loggedout");
+  });
+
   viewports.forEach(({ name, width, height }) => {
     test.describe(`${name} (${width}x${height})`, () => {
       test.beforeEach(async ({ page }) => {
@@ -308,6 +316,12 @@ test.describe("Newsletter Signup - Mobile Responsiveness", () => {
       });
 
       test("should fill and submit form at viewport size", async ({ page }) => {
+        // Stub subscribe. This test checks the layout, not the backend, and without
+        // the stub it subscribed john@example.com to a real list on every run.
+        await page.route("**/api/newsletter/subscribe", (route) =>
+          route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "ok" }) })
+        );
+
         // Fill first name
         const firstNameInput = page.locator("input#firstName");
         await firstNameInput.fill("John");

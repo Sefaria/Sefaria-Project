@@ -6,7 +6,7 @@
  *   - Loading indicator is visible while the lists API is pending.
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/newsletter-test.js";
 
 test.describe("Newsletter Signup — API state scenarios", () => {
   test.beforeEach(async ({ page }) => {

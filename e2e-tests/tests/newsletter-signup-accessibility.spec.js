@@ -9,10 +9,14 @@
  * 5. Focus management
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/newsletter-test.js";
+import { routeWithHarFixture } from "../support/har-fixture.js";
 
 test.describe("Newsletter Signup - Accessibility", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, context }) => {
+    // Serve the newsletter API from the saved recording. Without it, every page load
+    // called the real /api/newsletter/lists (and through it, ActiveCampaign).
+    await routeWithHarFixture(context, "newsletter-loggedout");
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.addInitScript(() => {
       document.cookie = "cookiesNotificationAccepted=1; path=/; max-age=31536000";

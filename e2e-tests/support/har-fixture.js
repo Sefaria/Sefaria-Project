@@ -1,5 +1,6 @@
 import { existsSync } from 'fs';
 import path from 'path';
+import { guardedContexts } from './newsletter-test.js';
 
 const FIXTURES_DIR = path.join(__dirname, '../fixtures');
 
@@ -10,9 +11,12 @@ const FIXTURES_DIR = path.join(__dirname, '../fixtures');
  * When we replay it, the browser gets the saved response instead of calling the real server.
  *
  * Replay mode (default): serves /api/newsletter/** responses from the named .har file.
- * If a newsletter API request isn't in the recording, it is blocked and the test fails.
+ * If a newsletter API request isn't in the recording, it falls back to the guard in
+ * support/newsletter-test.js, which blocks it and fails the test, naming the request.
  * We never let it go on to the real server, because these endpoints change real
- * newsletter subscriptions in ActiveCampaign.
+ * newsletter subscriptions in ActiveCampaign. (Before the guard existed, an unrecorded
+ * request was just aborted, and a test with a loose assertion still passed.) In a spec
+ * that doesn't use the guard, unrecorded requests are still aborted here.
  * Record mode (RECORD_HAR=1): passes through to real network and updates the HAR.
  *
  * To record a fixture from scratch:
@@ -35,7 +39,7 @@ export async function routeWithHarFixture(context, fixtureName) {
 
   await context.routeFromHAR(harPath, {
     url: '**/api/newsletter/**',
-    notFound: 'abort',
+    notFound: guardedContexts.has(context) ? 'fallback' : 'abort',
     update: isRecording,
   });
 }

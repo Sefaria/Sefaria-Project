@@ -16,7 +16,7 @@
  * - .inlineFieldError#field-error — per-field inline error messages
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../support/newsletter-test.js';
 import { routeWithHarFixture } from '../support/har-fixture.js';
 
 test.describe('Newsletter Signup - Form Validation', () => {
@@ -268,6 +268,14 @@ test.describe('Newsletter Signup - Form Validation', () => {
       'user+tag@example.co.uk',
       'test123@test-domain.org',
     ];
+
+    // Stub subscribe. This test checks the page's own email validation, and none of
+    // these submissions are in the HAR recording. Without the stub, each one is blocked
+    // and fails the test (see support/newsletter-test.js). The stub stays in place
+    // across the page.reload() calls below.
+    await page.route('**/api/newsletter/subscribe', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ok' }) })
+    );
 
     for (const email of validEmails) {
       // Reload for fresh form

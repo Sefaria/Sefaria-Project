@@ -29,7 +29,7 @@
  *   SANDBOX_URL=http://localhost:8000 npx playwright test --project=authenticated --workers=1
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/newsletter-test.js";
 import { routeWithHarFixture } from "../support/har-fixture.js";
 
 // The email of the authenticated user, read from env vars
