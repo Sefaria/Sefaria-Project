@@ -42,7 +42,7 @@ import {
   isCustomizableSiddur,
   pruneSchema,
   resolveHidden,
-  subscribeHiddenRefs
+  subscribeCustomization
 } from "./sefaria/siddurCustomization";
 
 
@@ -70,7 +70,7 @@ class BookPage extends Component {
   }
   componentDidMount() {
     this.loadData();
-    this.unsubscribeSiddur = subscribeHiddenRefs(this.props.title, refs => this.setState({siddurHiddenRefs: refs}));
+    this.unsubscribeSiddur = subscribeCustomization(this.props.title, refs => this.setState({siddurHiddenRefs: refs}));
   }
   componentWillUnmount() {
     this.unsubscribeSiddur && this.unsubscribeSiddur();
@@ -387,7 +387,7 @@ class TextTableOfContents extends Component {
   componentDidMount() {
     this.loadData();
     this.scrollToCurrent();
-    this.unsubscribeSiddur = subscribeHiddenRefs(this.props.title, refs => this.setState({siddurHiddenRefs: refs}));
+    this.unsubscribeSiddur = subscribeCustomization(this.props.title, refs => this.setState({siddurHiddenRefs: refs}));
   }
   componentWillUnmount() {
     this.unsubscribeSiddur && this.unsubscribeSiddur();

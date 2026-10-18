@@ -9,7 +9,7 @@ jest.mock("../ContentText", () => ({ ContentText: ({ text }) => text.en }));
 // eslint-disable-next-line import/first
 import SiddurCustomizeModal from "../SiddurCustomizeModal";
 // eslint-disable-next-line import/first
-import { getHiddenRefs, setHiddenRefs } from "../sefaria/siddurCustomization";
+import { getDisplayOptions, getHiddenRefs, setHiddenRefs } from "../sefaria/siddurCustomization";
 
 const TITLE = "The Koren Shalem Siddur; Ashkenaz";
 const ref = path => `${TITLE}, ${path}`;
@@ -51,9 +51,11 @@ describe("SiddurCustomizeModal", () => {
 
   test("starts with every node checked", () => {
     render();
-    const boxes = [...container.querySelectorAll("input[type=checkbox]")];
+    const boxes = [...container.querySelectorAll("input[type=checkbox]:not([role=switch])")];
     expect(boxes).toHaveLength(7);
     expect(boxes.every(b => b.checked)).toBe(true);
+    const switches = [...container.querySelectorAll("input[role=switch]")];
+    expect(switches.map(b => b.checked)).toEqual([true, false]);
   });
 
   test("a parent toggles all of its leaves and reflects partial state", () => {
@@ -107,5 +109,16 @@ describe("SiddurCustomizeModal", () => {
     expect(checkbox("On Waking").indeterminate).toBe(true);
     click(button("common.save"));
     expect(getHiddenRefs(TITLE)).toEqual([ref("Weekdays, On Waking 8-12")]);
+  });
+
+  test("display toggles save with the rest, and cancel discards them", () => {
+    render();
+    const [instructions, hints] = container.querySelectorAll("input[role=switch]");
+    click(instructions);
+    click(hints);
+    click(button("common.cancel"));
+    expect(getDisplayOptions(TITLE)).toEqual({showInstructions: true, showHints: false});
+    click(button("common.save"));
+    expect(getDisplayOptions(TITLE)).toEqual({showInstructions: false, showHints: true});
   });
 });

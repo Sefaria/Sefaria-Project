@@ -8,9 +8,11 @@ import Modal from './common/modal';
 import {
   buildCustomizeTree,
   flattenLeaves,
+  getDisplayOptions,
   getHiddenRefs,
   leavesOf,
   normalizeHiddenRefs,
+  setDisplayOptions,
   setHiddenRefs
 } from './sefaria/siddurCustomization';
 
@@ -64,6 +66,7 @@ const SiddurCustomizeModal = ({title, schema, close}) => {
   const tree = useMemo(() => buildCustomizeTree(schema, title), [schema, title]);
   const leafRefs = useMemo(() => flattenLeaves(tree).map(leaf => leaf.ref), [tree]);
   const [hidden, setHidden] = useState(() => new Set(normalizeHiddenRefs(tree, getHiddenRefs(title))));
+  const [options, setOptions] = useState(() => getDisplayOptions(title));
   const [collapsed, setCollapsed] = useState(() => new Set(
     tree.flatMap(node => node.children).flatMap(function parents(node) {
       return node.children.length ? [node.ref, ...node.children.flatMap(parents)] : [];
@@ -81,6 +84,7 @@ const SiddurCustomizeModal = ({title, schema, close}) => {
   };
   const save = () => {
     setHiddenRefs(title, leafRefs.filter(ref => hidden.has(ref)));
+    setDisplayOptions(title, options);
     close();
   };
 
@@ -94,6 +98,18 @@ const SiddurCustomizeModal = ({title, schema, close}) => {
         <p className="siddurCustomizeDescription">
           <InterfaceText>siddur_customize.description</InterfaceText>
         </p>
+        <div className="siddurCustomizeOptions">
+          {[["showInstructions", "siddur_customize.show_instructions"], ["showHints", "siddur_customize.show_hints"]].map(([key, label]) =>
+            <label className="siddurCustomizeOption" key={key}>
+              <input
+                type="checkbox"
+                role="switch"
+                checked={options[key]}
+                onChange={() => setOptions({...options, [key]: !options[key]})}
+              />
+              <InterfaceText>{label}</InterfaceText>
+            </label>)}
+        </div>
         <ul className="siddurCustomizeTree">
           {tree.map(node =>
             <SiddurCustomizeNode key={node.ref} node={node} hidden={hidden} collapsed={collapsed}

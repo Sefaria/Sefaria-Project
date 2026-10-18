@@ -3174,6 +3174,51 @@ a.cardTitle:hover {
   line-height: 1.4;
   color: var(--dark-grey);
 }
+.siddurCustomizeOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 20px 12px;
+}
+.siddurCustomizeOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.siddurCustomizeOption input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--sefaria-blue);
+}
+.siddurCustomizeHost {
+  display: contents;
+}
+.siddurHiddenHint {
+  margin: 10px 0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: var(--lightest-grey);
+  border: 1px dashed var(--lighter-grey);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--dark-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.siddurHiddenHintLink {
+  margin-inline-start: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--commentary-blue);
+  text-decoration: underline;
+  cursor: pointer;
+}
 .siddurCustomizeTree,
 .siddurCustomizeTree ul {
   list-style: none;

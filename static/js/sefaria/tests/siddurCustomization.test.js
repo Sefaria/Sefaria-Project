@@ -7,8 +7,19 @@ import {
   buildTree,
   firstVisibleSectionRef,
   flattenLeaves,
+  DEFAULT_OPTIONS,
+  OPTIONS_KEY,
+  getDisplayOptions,
   getHiddenRefs,
+  hiddenRun,
   hiddenSegmentsFor,
+  hintGroups,
+  interleaveHints,
+  isBlankHtml,
+  namesFor,
+  setDisplayOptions,
+  stripInstructions,
+  visibleSegments,
   isCustomizableSiddur,
   isRefHidden,
   leafSectionRefs,
@@ -17,7 +28,7 @@ import {
   resolveHidden,
   setHiddenRefs,
   skipHidden,
-  subscribeHiddenRefs,
+  subscribeCustomization,
 } from '../siddurCustomization';
 
 const TITLE = "The Koren Shalem Siddur; Ashkenaz";
@@ -150,13 +161,13 @@ describe('siddur customization', () => {
     test('subscribers get the current value and later changes until unsubscribed', () => {
       setHiddenRefs(TITLE, [ref("Preface")]);
       const callback = jest.fn();
-      const unsubscribe = subscribeHiddenRefs(TITLE, callback);
-      expect(callback).toHaveBeenLastCalledWith([ref("Preface")]);
+      const unsubscribe = subscribeCustomization(TITLE, callback);
+      expect(callback).toHaveBeenLastCalledWith([ref("Preface")], DEFAULT_OPTIONS);
       setHiddenRefs(TITLE, [ref("Weekdays, Tallit")]);
-      expect(callback).toHaveBeenLastCalledWith([ref("Weekdays, Tallit")]);
+      expect(callback).toHaveBeenLastCalledWith([ref("Weekdays, Tallit")], DEFAULT_OPTIONS);
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify({[TITLE]: []}));
       window.dispatchEvent(new StorageEvent("storage", {key: STORAGE_KEY}));
-      expect(callback).toHaveBeenLastCalledWith([]);
+      expect(callback).toHaveBeenLastCalledWith([], DEFAULT_OPTIONS);
       unsubscribe();
       window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
       expect(callback).toHaveBeenCalledTimes(3);
@@ -164,7 +175,7 @@ describe('siddur customization', () => {
 
     test('subscribing to other books is a no-op', () => {
       const callback = jest.fn();
-      subscribeHiddenRefs("Genesis", callback)();
+      subscribeCustomization("Genesis", callback)();
       expect(callback).not.toHaveBeenCalled();
     });
   });
@@ -218,14 +229,14 @@ describe('siddur customization', () => {
     test('resolveHidden: partial hides become paragraph ranges', () => {
       const r = resolveHidden(TITLE, [`${ON_WAKING} 8-12`, ref("Weekdays, Tallit")]);
       expect(r.leafRefs).toEqual([ref("Weekdays, Tallit")]);
-      expect(r.segments).toEqual({[ON_WAKING]: [[8, 12]]});
+      expect(r.segments).toEqual({[ON_WAKING]: [{from: 8, to: 12, en: "Tzitzit", he: "לבישת ציצית"}]});
     });
 
     test('resolveHidden: a parent with every child hidden hides its whole range', () => {
       const tree = buildCustomizeTree(subsSchema, TITLE);
       const amida = tree[0].children[2].children.find(n => n.en === "The Amida");
       const r = resolveHidden(TITLE, [...amida.children.map(n => n.ref), `${MINHA} 1-3`]);
-      expect(r.segments[MINHA]).toEqual([[1, 3], [9, 93]]);
+      expect(r.segments[MINHA].map(r => [r.from, r.to, r.en])).toEqual([[1, 3, "Ashrei"], [9, 93, "The Amida"]]);
     });
 
     test('resolveHidden: all sub-sections hidden hides the whole leaf', () => {
@@ -240,6 +251,94 @@ describe('siddur customization', () => {
       const segments = {[ON_WAKING]: [[8, 12]]};
       expect(hiddenSegmentsFor(ON_WAKING, segments)).toEqual([[8, 12]]);
       expect(hiddenSegmentsFor(ref("Weekdays, Tallit"), segments)).toBe(null);
+    });
+  });
+
+  describe('display options', () => {
+    beforeEach(() => window.localStorage.clear());
+
+    test('default to showing instructions and no notes, per title', () => {
+      expect(getDisplayOptions(TITLE)).toEqual({showInstructions: true, showHints: false});
+      const callback = jest.fn();
+      subscribeCustomization(TITLE, callback);
+      setDisplayOptions(TITLE, {showInstructions: false});
+      expect(getDisplayOptions(TITLE)).toEqual({showInstructions: false, showHints: false});
+      expect(getDisplayOptions("Other")).toEqual(DEFAULT_OPTIONS);
+      expect(callback).toHaveBeenLastCalledWith([], {showInstructions: false, showHints: false});
+      window.localStorage.setItem(OPTIONS_KEY, "nope");
+      expect(getDisplayOptions(TITLE)).toEqual(DEFAULT_OPTIONS);
+    });
+  });
+
+  describe('stripInstructions', () => {
+    // Paragraphs as they appear in the Koren text.
+    test.each([
+      ['<i class="instruction">Wash hands and say the following blessings.</i><br><i class="instruction">Some have the custom to say “Wisdom begins” on page 10 at this point.</i>', ''],
+      ['<i class="instruction">Leader:</i> יִתְגַּדַּל Magnified', ' יִתְגַּדַּל Magnified'],
+      ['<small><i class="instruction">On Ḥanukka:</i><br>עַל הַנִּסִּים [We thank You]<br><i class="instruction">Continue with “For all these things.”</i></small>',
+       '<small>עַל הַנִּסִּים [We thank You]</small>'],
+      ['the holy God. /<i class="instruction">Between Rosh HaShana and Yom Kippur:</i> the holy King./', 'the holy God. / the holy King./'],
+      ['מוֹדֶה I thank You', 'מוֹדֶה I thank You'],
+      ['', ''],
+    ])('%s', (html, expected) => expect(stripInstructions(html)).toBe(expected));
+
+    test('instruction-only paragraphs come out blank', () => {
+      expect(isBlankHtml(stripInstructions('<i class="instruction">Sit upright.</i>'))).toBe(true);
+      expect(isBlankHtml(stripInstructions('<small><i class="instruction">I</i></small>'))).toBe(true);
+      expect(isBlankHtml('<small>LORD</small>')).toBe(false);
+    });
+  });
+
+  describe('notes for hidden sections', () => {
+    test('hintGroups merges adjacent ranges into one note', () => {
+      const groups = hintGroups([
+        {from: 9, to: 93, en: "The Amida", he: "עמידה"},
+        {from: 1, to: 3, en: "Ashrei", he: "אשרי"},
+        {from: 4, to: 8, en: "Half Kaddish", he: "חצי קדיש"},
+      ]);
+      expect(groups.map(g => [g.from, g.to, g.names.map(n => n.en)])).toEqual([[1, 93, ["Ashrei", "Half Kaddish", "The Amida"]]]);
+      expect(hintGroups([{from: 1, to: 3, en: "A"}, {from: 5, to: 6, en: "B"}])).toHaveLength(2);
+    });
+
+    test('hiddenRun lists the hidden leaves up to the next visible one', () => {
+      const hidden = [ref("Weekdays, Tallit"), ref("Weekdays, Tefillin")];
+      expect(hiddenRun(ref("Weekdays, Tallit"), "next", LEAVES, hidden)).toEqual(hidden);
+      expect(hiddenRun(ref("Weekdays, Tefillin"), "prev", LEAVES, hidden)).toEqual(hidden);
+      expect(hiddenRun(ref("Weekdays, Morning Blessings"), "next", LEAVES, hidden)).toEqual([]);
+      expect(hiddenRun(null, "next", LEAVES, hidden)).toEqual([]);
+    });
+
+    test('namesFor names whole nodes where it can', () => {
+      const tree = buildTree(SCHEMA, TITLE);
+      const shabbat = LEAVES.filter(l => l.ref.startsWith(ref("Shabbat"))).map(l => l.ref);
+      expect(namesFor(tree, [ref("Weekdays, Morning Blessings"), ...shabbat, ref("Festivals, Hoshanot")]).map(n => n.en))
+        .toEqual(["Morning Blessings", "Shabbat", "Hoshanot"]);
+      expect(namesFor(tree, [ref("Weekdays, Tallit")])).toEqual([{en: "Tallit", he: "he Tallit"}]);
+    });
+  });
+
+  describe('rendering helpers', () => {
+    const seg = (number, en, he = "") => ({number, en, he});
+    const SEGMENTS = [
+      seg(1, '<i class="instruction">Wash hands.</i>'),
+      seg(2, 'Blessed are You', 'בָּרוּךְ'),
+      seg(3, '<i class="instruction">Leader:</i> Magnified', 'יִתְגַּדַּל'),
+      seg(4, 'TZITZIT'),
+      seg(5, 'Blessed... tasseled garments'),
+    ];
+
+    test('visibleSegments drops hidden ranges and instruction-only paragraphs', () => {
+      expect(visibleSegments(SEGMENTS, [{from: 4, to: 5}], false).map(s => s.number)).toEqual([1, 2, 3]);
+      const noInstructions = visibleSegments(SEGMENTS, [], true);
+      expect(noInstructions.map(s => s.number)).toEqual([2, 3, 4, 5]);
+      expect(noInstructions[1].en).toBe(' Magnified');
+      expect(SEGMENTS[2].en).toContain('Leader:');
+    });
+
+    test('interleaveHints places each note before the next visible paragraph', () => {
+      const visible = visibleSegments(SEGMENTS, [{from: 1, to: 1}, {from: 4, to: 5}], false);
+      const out = interleaveHints(visible, visible.map(s => s.number), hintGroups([{from: 1, to: 1, en: "A"}, {from: 4, to: 5, en: "B"}]), g => `hint ${g.names[0].en}`);
+      expect(out).toEqual(["hint A", 2, 3, "hint B"]);
     });
   });
 });

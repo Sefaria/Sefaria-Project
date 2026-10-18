@@ -10,6 +10,8 @@ import {EnglishText, HebrewText, LoadingMessage} from "./Misc";
 import {VersionContent} from "./ContentText";
 import {ContentText} from "./ContentText";
 import {ReaderPanelContext} from "./context";
+import SiddurHiddenHint from "./SiddurHiddenHint";
+import {hintGroups, interleaveHints, visibleSegments} from "./sefaria/siddurCustomization";
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
@@ -41,7 +43,9 @@ class TextRange extends Component {
     if (!Sefaria.areBothVersionsEqual(this.props.currVersions, nextProps.currVersions)) { return true; }
     if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight) { return true; }
-    if (String(this.props.hiddenSegments || "") !== String(nextProps.hiddenSegments || "")) { return true; }
+    if (JSON.stringify(this.props.hiddenSegments || null) !== JSON.stringify(nextProps.hiddenSegments || null)) { return true; }
+    if (!!this.props.hideInstructions !== !!nextProps.hideInstructions) { return true; }
+    if (!!this.props.showHiddenHints !== !!nextProps.showHiddenHints) { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
         (nextProps.settings.language !== this.props.settings.language ||
@@ -276,9 +280,10 @@ class TextRange extends Component {
     }
 
     let segments      = Sefaria.makeSegments(data, this.props.withContext);
-    if (this.props.hiddenSegments) {
-      // Paragraph ranges a reader hid in a customized siddur (see siddurCustomization.js).
-      segments = segments.filter(s => !this.props.hiddenSegments.some(([from, to]) => s.number >= from && s.number <= to));
+    // Paragraph ranges and instructions a reader hid in a customized siddur (see siddurCustomization.js).
+    const hiddenRanges = this.props.hiddenSegments || [];
+    if (hiddenRanges.length || this.props.hideInstructions) {
+      segments = visibleSegments(segments, hiddenRanges, this.props.hideInstructions);
     }
     if(segments.length > 0 && strip_vowels_re && !strip_vowels_re.test(segments[0].he)){
       strip_vowels_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
@@ -344,6 +349,11 @@ class TextRange extends Component {
         </span>
       );
     });
+    if (this.props.showHiddenHints && hiddenRanges.length) {
+      // Put a note where each run of hidden paragraphs was.
+      textSegments = interleaveHints(segments, textSegments, hintGroups(hiddenRanges), group =>
+        <SiddurHiddenHint key={`hint-${group.from}`} names={group.names} onCustomize={this.props.onSiddurCustomize} />);
+    }
     textSegments = textSegments.length ? textSegments : null;
 
     const classes = classNames({
@@ -436,6 +446,9 @@ TextRange.propTypes = {
   translationLanguagePreference: PropTypes.string,
   navigatePanel:          PropTypes.func,
   hiddenSegments:         PropTypes.array,
+  hideInstructions:       PropTypes.bool,
+  showHiddenHints:        PropTypes.bool,
+  onSiddurCustomize:      PropTypes.func,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
