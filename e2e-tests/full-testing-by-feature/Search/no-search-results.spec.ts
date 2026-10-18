@@ -103,20 +103,6 @@ test.describe('Search — NoSearchResults null state — entity tabs', () => {
     const heading = await pm.onSearchPage().nullStateHeadingText();
     expect(heading).toContain(ENTITY_NULL_QUERY);
   });
-
-  // =================================================================
-  // TEST SRCH-064: Caption has exactly two mailto: links (report bug, contact us)
-  // NoSearchResults.jsx:33 — renderCaption splits on [report_bug] / [contact_us]
-  // =================================================================
-  test('SRCH-064: Null state caption has report-bug and contact-us links', async () => {
-    await pm.onSearchPage().selectTab('books');
-    await pm.onSearchPage().waitForNullState();
-
-    const hrefs = await pm.onSearchPage().nullStateCaptionLinkHrefs();
-    expect(hrefs).toHaveLength(2);
-    expect(hrefs[0]).toMatch(/^mailto:/);
-    expect(hrefs[1]).toMatch(/^mailto:/);
-  });
 });
 
 // =============================================================================
@@ -160,10 +146,9 @@ test.describe('Search — NoSearchResults null state — sources tab', () => {
  * SRCH-061. Authors null state — CTA href is /people
  * SRCH-062. Topics null state — CTA href is /topics
  * SRCH-063. Heading interpolation — query appears in null state heading
- * SRCH-064. Caption links — exactly two mailto: hrefs (report bug, contact us)
  * SRCH-065. Sources null state — real search returns 0, CTA is /texts, heading includes query
  *
- * SRCH-060–064 use installEntitySearchMock with empty arrays for determinism.
+ * SRCH-060–063 use installEntitySearchMock with empty arrays for determinism.
  * SRCH-065 hits the real Elasticsearch text-search endpoint; the query is
  * deliberately gibberish to guarantee 0 hits without data coupling.
  *

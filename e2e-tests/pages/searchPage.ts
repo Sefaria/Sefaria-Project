@@ -292,16 +292,15 @@ export class SearchPage extends HelperBase{
     }
 
     /**
-     * Every button-like control in the null state other than the two caption links
-     * ("Report a bug" / "contact us"), as hrefs. The Browse CTA is an `<a>` styled as a
+     * Every button-like control in the null state, as hrefs. The Browse CTA is an `<a>` styled as a
      * button, so it counts; a real `<button>` would be listed as "(button)". A link inside
      * the body text (the assistant's name, LA-NULL-16) is part of the sentence, not a
-     * button, so it doesn't count either.
+     * button, so it doesn't count.
      */
     async nullStateButtonHrefs(): Promise<string[]> {
         await expect(this.nullState).toBeVisible({ timeout: t(5000) });
         const links = await this.nullState.getByRole('link').evaluateAll((els) =>
-            els.filter((el) => !el.closest('.noSearchResults-caption, .noSearchResults-body')).map((el) => el.getAttribute('href') ?? ''));
+            els.filter((el) => !el.closest('.noSearchResults-body')).map((el) => el.getAttribute('href') ?? ''));
         const buttons = await this.nullState.getByRole('button').count();
         return [...links, ...Array(buttons).fill('(button)')];
     }
@@ -494,16 +493,5 @@ export class SearchPage extends HelperBase{
         await box.fill(query);
         await box.press('Enter');
         await expect(this.page).toHaveURL(new RegExp(`[?&]q=${encodeURIComponent(query)}`), { timeout: t(15000) });
-    }
-
-    /**
-     * href values of the two caption links in render order:
-     *   [0] report-bug link
-     *   [1] contact-us link
-     */
-    async nullStateCaptionLinkHrefs(): Promise<string[]> {
-        const links = this.nullState.locator('a.noSearchResults-captionLink');
-        await expect(links.first()).toBeVisible({ timeout: t(5000) });
-        return links.evaluateAll((els) => els.map((el) => el.getAttribute('href') ?? ''));
     }
 }
