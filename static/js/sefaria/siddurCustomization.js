@@ -2,7 +2,12 @@
 // tree; unchecked sections are dropped from the book's table of contents and
 // skipped while scrolling the reader. Stored in localStorage only, so no account
 // is needed. Hidden sections are stored as schema leaf refs, composed the same
-// way the book TOC composes them ("<title>, <node>, <node>").
+// way the book TOC composes them ("<title>, <node>, <node>"), or, inside the
+// leaves listed in siddurSubsections.json, as paragraph ranges ("<leaf ref> 8-12").
+// The sub-section map is hand-curated from the text's bold headings; within each
+// leaf, a node's children cover its whole range.
+
+import SUBSECTIONS from './siddurSubsections.json';
 
 export const CUSTOMIZABLE_SIDDURIM = ["The Koren Shalem Siddur; Ashkenaz"];
 export const STORAGE_KEY = "siddur.hiddenSections";
@@ -77,6 +82,76 @@ export function buildTree(schema, title) {
     };
   });
   return schema && schema.nodes ? walk(schema.nodes, title) : [];
+}
+
+const segmentRangeRef = (leafRef, from, to) => `${leafRef} ${from === to ? from : `${from}-${to}`}`;
+
+const subsectionNodes = (items, leafRef) => items.map(item => ({
+  ref: segmentRangeRef(leafRef, item.from, item.to),
+  en: item.en,
+  he: item.he,
+  from: item.from,
+  to: item.to,
+  children: item.children ? subsectionNodes(item.children, leafRef) : [],
+}));
+
+export function buildCustomizeTree(schema, title) {
+  // buildTree, with each leaf's sub-sections from the curated map as children.
+  const subsections = SUBSECTIONS[title] || {};
+  const attach = nodes => nodes.map(node => {
+    if (node.children.length) { return {...node, children: attach(node.children)}; }
+    const items = subsections[node.ref.slice(title.length + 2)];
+    return items ? {...node, children: subsectionNodes(items, node.ref)} : node;
+  });
+  return attach(buildTree(schema, title));
+}
+
+export function normalizeHiddenRefs(tree, hiddenRefs) {
+  // Hidden refs as the tree's leaves, in tree order. A ref saved for a node that
+  // has since gained children stands for all of them; refs not in the tree drop.
+  const hidden = new Set(hiddenRefs);
+  const walk = (node, inherited) => {
+    const isHidden = inherited || hidden.has(node.ref);
+    return node.children.length ? node.children.flatMap(child => walk(child, isHidden)) : (isHidden ? [node.ref] : []);
+  };
+  return tree.flatMap(node => walk(node, false));
+}
+
+const resolved = new WeakMap();
+
+export function resolveHidden(title, hiddenRefs) {
+  // Splits stored refs into schema leaves to skip entirely and paragraph ranges
+  // to hide within leaves that stay visible: {leafRefs, segments: {leafRef: [[from, to]]}}.
+  if (resolved.has(hiddenRefs)) { return resolved.get(hiddenRefs); }
+  const hidden = new Set(hiddenRefs);
+  const leafRefs = [];
+  const segments = {};
+  const claimed = new Set();
+  const isHidden = node => node.children.length ? node.children.every(isHidden) : hidden.has(node.ref);
+  const hiddenRanges = nodes => nodes.flatMap(node =>
+    isHidden(node) ? [[node.from, node.to]] : hiddenRanges(node.children));
+  Object.entries(SUBSECTIONS[title] || {}).forEach(([path, items]) => {
+    const leafRef = `${title}, ${path}`;
+    const nodes = subsectionNodes(items, leafRef);
+    claimed.add(leafRef);
+    nodes.flatMap(leavesOf).forEach(node => claimed.add(node.ref));
+    if (hidden.has(leafRef) || nodes.every(isHidden)) {
+      leafRefs.push(leafRef);
+      return;
+    }
+    const ranges = hiddenRanges(nodes);
+    if (ranges.length) { segments[leafRef] = ranges; }
+  });
+  hiddenRefs.filter(ref => !claimed.has(ref)).forEach(ref => leafRefs.push(ref));
+  const result = {leafRefs, segments};
+  resolved.set(hiddenRefs, result);
+  return result;
+}
+
+export function hiddenSegmentsFor(sref, segments) {
+  // The hidden paragraph ranges of the leaf that section ref `sref` is in.
+  const leafRef = Object.keys(segments).find(leaf => isRefHidden(sref, [leaf]));
+  return leafRef ? segments[leafRef] : null;
 }
 
 export const leavesOf = node => node.children.length ? node.children.flatMap(leavesOf) : [node];

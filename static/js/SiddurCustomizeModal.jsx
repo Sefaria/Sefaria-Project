@@ -5,7 +5,14 @@ import Sefaria from './sefaria/sefaria';
 import {InterfaceText} from './Misc';
 import {ContentText} from './ContentText';
 import Modal from './common/modal';
-import {buildTree, flattenLeaves, getHiddenRefs, leavesOf, setHiddenRefs} from './sefaria/siddurCustomization';
+import {
+  buildCustomizeTree,
+  flattenLeaves,
+  getHiddenRefs,
+  leavesOf,
+  normalizeHiddenRefs,
+  setHiddenRefs
+} from './sefaria/siddurCustomization';
 
 
 const nodeState = (node, hidden) => {
@@ -53,10 +60,14 @@ const SiddurCustomizeNode = ({node, hidden, collapsed, onToggle, onToggleCollaps
 
 const SiddurCustomizeModal = ({title, schema, close}) => {
   // Tree of every section of the siddur; unchecked leaves are saved as hidden.
-  const tree = useMemo(() => buildTree(schema, title), [schema, title]);
+  // Top-level sections start expanded, everything below them collapsed.
+  const tree = useMemo(() => buildCustomizeTree(schema, title), [schema, title]);
   const leafRefs = useMemo(() => flattenLeaves(tree).map(leaf => leaf.ref), [tree]);
-  const [hidden, setHidden] = useState(() => new Set(getHiddenRefs(title).filter(ref => leafRefs.includes(ref))));
-  const [collapsed, setCollapsed] = useState(() => new Set());
+  const [hidden, setHidden] = useState(() => new Set(normalizeHiddenRefs(tree, getHiddenRefs(title))));
+  const [collapsed, setCollapsed] = useState(() => new Set(
+    tree.flatMap(node => node.children).flatMap(function parents(node) {
+      return node.children.length ? [node.ref, ...node.children.flatMap(parents)] : [];
+    })));
 
   const toggle = (node, show) => {
     const next = new Set(hidden);

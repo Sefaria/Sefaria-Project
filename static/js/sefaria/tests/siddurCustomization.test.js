@@ -1,15 +1,20 @@
 /* Testing done using Jest */
+import SUBSECTIONS from '../siddurSubsections.json';
 import {
   CHANGE_EVENT,
   STORAGE_KEY,
+  buildCustomizeTree,
   buildTree,
   firstVisibleSectionRef,
   flattenLeaves,
   getHiddenRefs,
+  hiddenSegmentsFor,
   isCustomizableSiddur,
   isRefHidden,
   leafSectionRefs,
+  normalizeHiddenRefs,
   pruneSchema,
+  resolveHidden,
   setHiddenRefs,
   skipHidden,
   subscribeHiddenRefs,
@@ -161,6 +166,80 @@ describe('siddur customization', () => {
       const callback = jest.fn();
       subscribeHiddenRefs("Genesis", callback)();
       expect(callback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('weekday sub-sections', () => {
+    const MINHA = ref("Weekdays, Minha for Weekdays");
+    const ON_WAKING = ref("Weekdays, On Waking");
+    const subsSchema = {title: TITLE, nodes: [
+      {title: "Weekdays", heTitle: "he Weekdays", nodes: [leaf("On Waking"), leaf("Tallit"), leaf("Minha for Weekdays")]},
+    ]};
+
+    test('the curated map partitions every leaf it lists', () => {
+      const check = (nodes, from, to) => {
+        expect(nodes[0].from).toBe(from);
+        expect(nodes[nodes.length - 1].to).toBe(to);
+        nodes.forEach((node, i) => {
+          expect(node.en && node.he).toBeTruthy();
+          if (i) { expect(node.from).toBe(nodes[i - 1].to + 1); }
+          if (node.children) { check(node.children, node.from, node.to); }
+        });
+      };
+      const leaves = Object.entries(SUBSECTIONS[TITLE]);
+      expect(leaves.length).toBeGreaterThan(10);
+      leaves.forEach(([path, nodes]) => {
+        expect(path.startsWith("Weekdays, ")).toBe(true);
+        check(nodes, 1, nodes[nodes.length - 1].to);
+      });
+    });
+
+    test('buildCustomizeTree hangs sub-sections, nested, off their leaves', () => {
+      const weekdays = buildCustomizeTree(subsSchema, TITLE)[0];
+      const [onWaking, tallit, minha] = weekdays.children;
+      expect(onWaking.children.map(n => n.en)).toContain("Tzitzit");
+      expect(onWaking.children.find(n => n.en === "Tzitzit").ref).toBe(`${ON_WAKING} 8-12`);
+      expect(tallit.children).toEqual([]);
+      const amida = minha.children.find(n => n.en === "The Amida");
+      expect(amida.ref).toBe(`${MINHA} 9-93`);
+      expect(amida.children.map(n => n.en)).toEqual(expect.arrayContaining(["Patriarchs", "Kedusha", "Elokai Netzor"]));
+      expect(buildTree(subsSchema, TITLE)[0].children[0].children).toEqual([]);
+    });
+
+    test('normalizeHiddenRefs expands refs saved before a leaf had sub-sections', () => {
+      const tree = buildCustomizeTree(subsSchema, TITLE);
+      const refs = normalizeHiddenRefs(tree, [ON_WAKING, ref("Weekdays, Tallit"), "stale"]);
+      expect(refs).toContain(`${ON_WAKING} 8-12`);
+      expect(refs).toContain(ref("Weekdays, Tallit"));
+      expect(refs).not.toContain(ON_WAKING);
+      expect(refs).not.toContain("stale");
+    });
+
+    test('resolveHidden: partial hides become paragraph ranges', () => {
+      const r = resolveHidden(TITLE, [`${ON_WAKING} 8-12`, ref("Weekdays, Tallit")]);
+      expect(r.leafRefs).toEqual([ref("Weekdays, Tallit")]);
+      expect(r.segments).toEqual({[ON_WAKING]: [[8, 12]]});
+    });
+
+    test('resolveHidden: a parent with every child hidden hides its whole range', () => {
+      const tree = buildCustomizeTree(subsSchema, TITLE);
+      const amida = tree[0].children[2].children.find(n => n.en === "The Amida");
+      const r = resolveHidden(TITLE, [...amida.children.map(n => n.ref), `${MINHA} 1-3`]);
+      expect(r.segments[MINHA]).toEqual([[1, 3], [9, 93]]);
+    });
+
+    test('resolveHidden: all sub-sections hidden hides the whole leaf', () => {
+      const tree = buildCustomizeTree(subsSchema, TITLE);
+      const r = resolveHidden(TITLE, flattenLeaves([tree[0].children[0]]).map(n => n.ref));
+      expect(r.leafRefs).toEqual([ON_WAKING]);
+      expect(r.segments).toEqual({});
+      expect(resolveHidden(TITLE, [ON_WAKING]).leafRefs).toEqual([ON_WAKING]);
+    });
+
+    test('hiddenSegmentsFor matches the section ref of a leaf', () => {
+      const segments = {[ON_WAKING]: [[8, 12]]};
+      expect(hiddenSegmentsFor(ON_WAKING, segments)).toEqual([[8, 12]]);
+      expect(hiddenSegmentsFor(ref("Weekdays, Tallit"), segments)).toBe(null);
     });
   });
 });

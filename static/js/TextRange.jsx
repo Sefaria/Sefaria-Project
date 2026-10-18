@@ -41,6 +41,7 @@ class TextRange extends Component {
     if (!Sefaria.areBothVersionsEqual(this.props.currVersions, nextProps.currVersions)) { return true; }
     if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight) { return true; }
+    if (String(this.props.hiddenSegments || "") !== String(nextProps.hiddenSegments || "")) { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
         (nextProps.settings.language !== this.props.settings.language ||
@@ -275,6 +276,10 @@ class TextRange extends Component {
     }
 
     let segments      = Sefaria.makeSegments(data, this.props.withContext);
+    if (this.props.hiddenSegments) {
+      // Paragraph ranges a reader hid in a customized siddur (see siddurCustomization.js).
+      segments = segments.filter(s => !this.props.hiddenSegments.some(([from, to]) => s.number >= from && s.number <= to));
+    }
     if(segments.length > 0 && strip_vowels_re && !strip_vowels_re.test(segments[0].he)){
       strip_vowels_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
     }
@@ -430,6 +435,7 @@ TextRange.propTypes = {
   textHighlights:         PropTypes.array,
   translationLanguagePreference: PropTypes.string,
   navigatePanel:          PropTypes.func,
+  hiddenSegments:         PropTypes.array,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},

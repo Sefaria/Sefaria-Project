@@ -41,6 +41,7 @@ import {
   flattenLeaves,
   isCustomizableSiddur,
   pruneSchema,
+  resolveHidden,
   subscribeHiddenRefs
 } from "./sefaria/siddurCustomization";
 
@@ -164,9 +165,10 @@ class BookPage extends Component {
   firstSectionRef() {
     // Customized siddurim start at their first section the reader hasn't hidden.
     const {indexDetails, siddurHiddenRefs} = this.state;
-    if (!siddurHiddenRefs.length) { return indexDetails.firstSectionRef; }
+    const hiddenLeaves = resolveHidden(this.props.title, siddurHiddenRefs).leafRefs;
+    if (!hiddenLeaves.length) { return indexDetails.firstSectionRef; }
     const leaves = flattenLeaves(buildTree(indexDetails.schema, this.props.title));
-    return firstVisibleSectionRef(leaves, siddurHiddenRefs) || indexDetails.firstSectionRef;
+    return firstVisibleSectionRef(leaves, hiddenLeaves) || indexDetails.firstSectionRef;
   }
   render() {
     const title     = this.props.title;
@@ -513,7 +515,7 @@ class TextTableOfContents extends Component {
           );
         } else {
           content = <SchemaNode
-                      schema={pruneSchema(this.state.indexDetails.schema, this.props.title, this.state.siddurHiddenRefs)}
+                      schema={pruneSchema(this.state.indexDetails.schema, this.props.title, resolveHidden(this.props.title, this.state.siddurHiddenRefs).leafRefs)}
                       key={this.state.siddurHiddenRefs.join("|")}
                       topToggleTitles={toggleNames}
                       addressTypes={this.state.indexDetails.schema.addressTypes}

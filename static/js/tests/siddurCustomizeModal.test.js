@@ -17,7 +17,7 @@ const leaf = title => ({ title, heTitle: title, nodeType: "JaggedArrayNode", dep
 const SCHEMA = {
   nodes: [
     leaf("Preface"),
-    { title: "Weekdays", heTitle: "Weekdays", nodes: [leaf("Tallit"), leaf("Tefillin")] },
+    { title: "Weekdays", heTitle: "Weekdays", nodes: [leaf("Tallit"), leaf("Tefillin"), leaf("On Waking")] },
     { title: "Shabbat", heTitle: "Shabbat", nodes: [leaf("Kabbalat Shabbat")] },
   ],
 };
@@ -52,7 +52,7 @@ describe("SiddurCustomizeModal", () => {
   test("starts with every node checked", () => {
     render();
     const boxes = [...container.querySelectorAll("input[type=checkbox]")];
-    expect(boxes).toHaveLength(6);
+    expect(boxes).toHaveLength(7);
     expect(boxes.every(b => b.checked)).toBe(true);
   });
 
@@ -96,5 +96,16 @@ describe("SiddurCustomizeModal", () => {
     render();
     click(container.querySelector(".siddurCustomizeCaret:not(.placeholder)"));
     expect(container.textContent).not.toContain("Tallit");
+  });
+
+  test("sub-sections start collapsed and save as paragraph ranges", () => {
+    render();
+    expect(container.textContent).not.toContain("Tzitzit");
+    const onWaking = [...container.querySelectorAll("li")].find(li => li.querySelector("label").textContent === "On Waking");
+    click(onWaking.querySelector(".siddurCustomizeCaret"));
+    click(checkbox("Tzitzit"));
+    expect(checkbox("On Waking").indeterminate).toBe(true);
+    click(button("common.save"));
+    expect(getHiddenRefs(TITLE)).toEqual([ref("Weekdays, On Waking 8-12")]);
   });
 });

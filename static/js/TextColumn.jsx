@@ -13,7 +13,9 @@ import {ContentText} from "./ContentText";
 import {
   buildTree,
   flattenLeaves,
+  hiddenSegmentsFor,
   isRefHidden,
+  resolveHidden,
   skipHidden,
   subscribeHiddenRefs
 } from "./sefaria/siddurCustomization";
@@ -51,7 +53,7 @@ class TextColumn extends Component {
     this.getScrollEventTarget().addEventListener("scroll", this.handleScroll);
     this.unsubscribeSiddur = subscribeHiddenRefs(this.props.bookTitle, refs => {
       this.setState({siddurHiddenRefs: refs});
-      if (refs.length) { this.loadSiddurIndex(); }
+      if (resolveHidden(this.props.bookTitle, refs).leafRefs.length) { this.loadSiddurIndex(); }
     });
   }
   componentWillUnmount() {
@@ -70,7 +72,7 @@ class TextColumn extends Component {
     // The section before or after `data` ("prev" | "next"), skipping sections
     // the reader has hidden in a customized siddur (see siddurCustomization.js).
     const raw = data?.[dir];
-    const hidden = this.state.siddurHiddenRefs;
+    const hidden = resolveHidden(this.props.bookTitle, this.state.siddurHiddenRefs).leafRefs;
     if (!raw || !hidden.length || !isRefHidden(raw, hidden)) { return raw; }
     const title = this.props.bookTitle;
     const indexDetails = Sefaria.getIndexDetailsFromCache(title);
@@ -516,6 +518,7 @@ class TextColumn extends Component {
         unsetTextHighlight={this.props.unsetTextHighlight}
         navigatePanel={this.props.navigatePanel}
         translationLanguagePreference={this.props.translationLanguagePreference}
+        hiddenSegments={hiddenSegmentsFor(sref, resolveHidden(this.props.bookTitle, this.state.siddurHiddenRefs).segments)}
         key={sref || oref.sectionRef} />);
     });
 
