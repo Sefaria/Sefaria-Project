@@ -672,5 +672,5 @@
     "header.library_assistant_short": "Ask",
     "search.autocorrect.results_shown": "These are results for",
     "search.autocorrect.original_term": "Search instead for",
-    "search.suggestions.prefix": "Did you mean"
+    "search.suggestions.prefix": "Did you mean:"
 }
