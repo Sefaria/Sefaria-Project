@@ -21,8 +21,8 @@ from sefaria.celery_setup.config import CeleryQueue
 from sefaria.settings import CELERY_ENABLED
 from sefaria.model.user_profile import UserProfile
 from api.newsletter_service import (
-    REGISTRATION_AC_TIMEOUT,
-    copy_learning_level_from_ac,
+    REGISTRATION_PROVIDER_TIMEOUT,
+    copy_learning_level_to_new_profile,
     is_newsletter_service_configured,
 )
 
@@ -35,6 +35,8 @@ COPY_LEARNING_LEVEL_RETRY_SECONDS = 60
 
 @app.task(
     bind=True,
+    # Keeps the service function's old name. Queued tasks find their handler by this
+    # string, so changing it would strand any task queued before a deploy.
     name="newsletter.copy_learning_level_from_ac",
     max_retries=1,
     acks_late=True,
@@ -48,7 +50,7 @@ def copy_learning_level_from_ac_task(self: Any, uid: int) -> None:
     reported to Sentry, and the profile simply has no learning level.
     """
     try:
-        copy_learning_level_from_ac(uid)
+        copy_learning_level_to_new_profile(uid)
     except Exception as exc:
         logger.warning(
             "copy_learning_level_from_ac_attempt_failed",
@@ -97,7 +99,7 @@ def dispatch_copy_learning_level_from_ac(profile: UserProfile) -> None:
         transaction.on_commit(queue_task)
     else:
         try:
-            learning_level: int | None = copy_learning_level_from_ac(profile.id, timeout=REGISTRATION_AC_TIMEOUT)
+            learning_level: int | None = copy_learning_level_to_new_profile(profile.id, timeout=REGISTRATION_PROVIDER_TIMEOUT)
             if learning_level is not None:
                 # Keep the in-memory profile in step with what was just saved
                 profile.learning_level = learning_level

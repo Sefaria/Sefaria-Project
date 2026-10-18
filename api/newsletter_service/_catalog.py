@@ -11,47 +11,55 @@ from typing import Any
 from django.core.cache import cache
 
 from sefaria.system.exceptions import InputError
-from api.newsletter_service._ac_client import _get_client, requires_ac_client
-from api.newsletter_service._errors import NewsletterListUnavailableError, wraps_ac_errors
+from api.newsletter_service._ac_client import get_ac_client, requires_newsletter_service
+from api.newsletter_service._errors import NewsletterListUnavailableError, reraise_as_newsletter_service_error
 from api.newsletter_service._results import NewsletterInfo
 
 logger: logging.Logger = logging.getLogger(__name__)
 
 
+# The Redis key keeps its old value on purpose: renaming it would only leave the old
+# entry behind, and notes on clearing this cache use this exact key.
 NEWSLETTER_LIST_CACHE_KEY: str = "newsletter_list_from_ac"
 NEWSLETTER_LIST_CACHE_TTL: int = 60 * 60  # 1 hour
 
 
 # TODO: evaluate whether this can be cached
-@wraps_ac_errors
-def get_all_lists() -> list[dict[str, Any]]:
+@reraise_as_newsletter_service_error
+def fetch_ac_lists() -> list[dict[str, Any]]:
     """
     Fetch all mailing lists from ActiveCampaign.
+
+    In product terms: every newsletter list in the account, including the unmanaged
+    ones the sign-up page doesn't offer.
 
     Returns:
         list: List of newsletter list objects with 'id', 'stringid', and 'name' fields.
 
     Raises:
-        ActiveCampaignError: If the API request fails.
+        NewsletterServiceError: If the API request fails.
     """
-    response: dict[str, Any] = _get_client().make_request("lists?limit=100")
+    response: dict[str, Any] = get_ac_client().make_request("lists?limit=100")
     lists: list[dict[str, Any]] = response.get("lists", [])
     logger.info(f"Retrieved {len(lists)} lists from ActiveCampaign")
     return lists
 
 
-@wraps_ac_errors
-def get_all_personalization_variables() -> list[dict[str, Any]]:
+@reraise_as_newsletter_service_error
+def fetch_ac_personalization_variables() -> list[dict[str, Any]]:
     """
     Fetch all personalization variables from ActiveCampaign.
+
+    In product terms: the raw values that hold each managed newsletter's display
+    data (icon, language, and whether it's the primary list).
 
     Returns:
         list: List of personalization variable objects
 
     Raises:
-        ActiveCampaignError: If API request fails
+        NewsletterServiceError: If API request fails
     """
-    response: dict[str, Any] = _get_client().make_request("personalizations?limit=100")
+    response: dict[str, Any] = get_ac_client().make_request("personalizations?limit=100")
     variables: list[dict[str, Any]] = response.get("personalizations", [])
     logger.info(
         f"Retrieved {len(variables)} personalization variables from ActiveCampaign"
@@ -60,14 +68,16 @@ def get_all_personalization_variables() -> list[dict[str, Any]]:
 
 
 # Precompiled at module load so we don't pay the compile/cache-lookup cost
-# on every call. get_newsletter_list() runs this against every personalization
+# on every call. fetch_ac_newsletters() runs this against every personalization
 # variable AC returns
 _LIST_META_TAG_RE: re.Pattern[str] = re.compile(r"list_(\d+)_meta")
 
 
-def extract_list_id_from_tag(tag: str | Any) -> int | None:
+def parse_list_id_from_meta_tag(tag: str | Any) -> int | None:
     """
     Extract list ID from a personalization variable tag using regex.
+
+    In product terms: which newsletter a list_<id>_meta variable describes.
 
     Args:
         tag (str): Tag string like "list_1_meta" (lowercase from ActiveCampaign API)
@@ -76,9 +86,9 @@ def extract_list_id_from_tag(tag: str | Any) -> int | None:
         int or None: The extracted list ID, or None if tag doesn't match pattern
 
     Example:
-        extract_list_id_from_tag("list_1_meta") -> 1
-        extract_list_id_from_tag("list_999_meta") -> 999
-        extract_list_id_from_tag("invalid_tag") -> None
+        parse_list_id_from_meta_tag("list_1_meta") -> 1
+        parse_list_id_from_meta_tag("list_999_meta") -> 999
+        parse_list_id_from_meta_tag("invalid_tag") -> None
     """
     if not tag or not isinstance(tag, str):
         return None
@@ -86,11 +96,14 @@ def extract_list_id_from_tag(tag: str | Any) -> int | None:
     return int(match.group(1)) if match else None
 
 
-def parse_metadata_from_variable(
+def parse_variable_metadata(
     variable: dict[str, Any] | None,
 ) -> dict[str, Any] | None:
     """
     Parse metadata JSON from a personalization variable's content field.
+
+    In product terms: one newsletter's display data (icon, language, primary), read
+    from JSON that someone typed into AC by hand.
 
     Args:
         variable (dict): Personalization variable object with 'content' field
@@ -113,7 +126,7 @@ def parse_metadata_from_variable(
         logger.warning(f"Failed to parse JSON content for variable '{tag}': {e}")
         return None
     # The content is typed by hand in ActiveCampaign. Valid JSON that isn't an
-    # object ([], "x", 5, true) would make get_newsletter_list fail for every
+    # object ([], "x", 5, true) would make fetch_ac_newsletters fail for every
     # list when it calls .get() on it, so skip just this one.
     if not isinstance(metadata, dict):
         logger.warning(f"JSON content for variable '{tag}' is not an object")
@@ -121,11 +134,14 @@ def parse_metadata_from_variable(
     return metadata
 
 
-def get_all_ac_list_ids() -> list[str]:
+def fetch_all_ac_list_ids() -> list[str]:
     """
     Fetch all list IDs from ActiveCampaign (managed and unmanaged).
 
-    Unlike get_newsletter_list() which only returns lists with personalization metadata,
+    In product terms: the IDs of every newsletter list, managed or not. A full
+    marketing opt-out removes the person from all of them.
+
+    Unlike fetch_ac_newsletters() which only returns lists with personalization metadata,
     this returns every list in the account. Used when opting out of all marketing emails
     to ensure unmanaged lists are also unsubscribed.
 
@@ -133,35 +149,41 @@ def get_all_ac_list_ids() -> list[str]:
         list: List of AC list ID strings (e.g., ['1', '2', '3', '99'])
 
     Raises:
-        ActiveCampaignError: If API request fails
+        NewsletterServiceError: If API request fails
     """
-    lists: list[dict[str, Any]] = get_all_lists()
+    lists: list[dict[str, Any]] = fetch_ac_lists()
     return [lst["id"] for lst in lists]
 
 
-def _parse_variable_entry(v: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
+def _parse_newsletter_variable(v: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
     """
     Extract (list_id, variable_data) from a personalization variable, or None
     if either the tag doesn't match `list_{N}_meta` or the JSON content can't
     be parsed.
 
+    In product terms: one metadata variable, turned into the ID of the newsletter it
+    describes plus that newsletter's display data.
+
     Single-pass design: runs the regex exactly once per variable. The caller
-    in get_newsletter_list uses this as the only filter. No separate prefilter
+    in fetch_ac_newsletters uses this as the only filter. No separate prefilter
     re-runs the regex.
     """
-    list_id = extract_list_id_from_tag(v.get("tag", ""))
+    list_id = parse_list_id_from_meta_tag(v.get("tag", ""))
     if list_id is None:
         return None
-    metadata = parse_metadata_from_variable(v)
+    metadata = parse_variable_metadata(v)
     if metadata is None:
         return None
     return str(list_id), {"metadata": metadata, "name": v.get("name", "")}
 
 
-@requires_ac_client
-def get_newsletter_list() -> list[NewsletterInfo]:
+@requires_newsletter_service
+def fetch_ac_newsletters() -> list[NewsletterInfo]:
     """
     Fetch all available newsletters with their metadata.
+
+    In product terms: the newsletters the sign-up page offers. The flows use
+    get_newsletters, the cached version.
 
     This function:
     1. Fetches all lists from ActiveCampaign
@@ -183,21 +205,21 @@ def get_newsletter_list() -> list[NewsletterInfo]:
             }
 
     Raises:
-        ActiveCampaignError: If API requests fail
+        NewsletterServiceError: If API requests fail
     """
     # Fetch both lists and variables
-    lists: list[dict[str, Any]] = get_all_lists()
-    variables: list[dict[str, Any]] = get_all_personalization_variables()
+    lists: list[dict[str, Any]] = fetch_ac_lists()
+    variables: list[dict[str, Any]] = fetch_ac_personalization_variables()
 
     # Create a map of list ID -> list info for quick lookup
     lists_by_id: dict[str, dict[str, Any]] = {lst["id"]: lst for lst in lists}
 
-    # Single-pass tag-match + metadata-parse via _parse_variable_entry.
+    # Single-pass tag-match + metadata-parse via _parse_newsletter_variable.
     # Each variable runs the regex exactly once. Variables whose tag doesn't
     # match `list_{N}_meta` or whose JSON content fails to parse return None
     # and get dropped by filter(None, ...).
     variables_by_id: dict[str, dict[str, Any]] = dict(
-        filter(None, map(_parse_variable_entry, variables))
+        filter(None, map(_parse_newsletter_variable, variables))
     )
 
     # Merge lists with metadata (only include lists with metadata)
@@ -227,11 +249,11 @@ def get_newsletter_list() -> list[NewsletterInfo]:
     return newsletters
 
 
-def get_cached_newsletter_list() -> list[NewsletterInfo]:
+def get_newsletters() -> list[NewsletterInfo]:
     """
     Get the managed newsletter list, caching non-empty ActiveCampaign responses.
 
-    get_newsletter_list() remains the raw ActiveCampaign fetch. This wrapper is
+    fetch_ac_newsletters() remains the raw ActiveCampaign fetch. This wrapper is
     used by both views and service flows that need current managed-list metadata
     for validation or display, so the cache boundary stays close to the data
     source rather than in one view module.
@@ -240,13 +262,13 @@ def get_cached_newsletter_list() -> list[NewsletterInfo]:
     if cached is not None:
         return cached
 
-    newsletters: list[NewsletterInfo] = get_newsletter_list()
+    newsletters: list[NewsletterInfo] = fetch_ac_newsletters()
     if newsletters:
         cache.set(NEWSLETTER_LIST_CACHE_KEY, newsletters, NEWSLETTER_LIST_CACHE_TTL)
     return newsletters
 
 
-def _resolve_valid_newsletters(
+def resolve_valid_newsletters(
     valid_newsletters: Sequence[Mapping[str, Any]] | None = None,
 ) -> Sequence[Mapping[str, Any]]:
     """
@@ -259,7 +281,7 @@ def _resolve_valid_newsletters(
         return valid_newsletters
 
     try:
-        newsletters = get_cached_newsletter_list()
+        newsletters = get_newsletters()
     except Exception as e:
         logger.exception(f"Error fetching cached newsletter list: {e}")
         raise NewsletterListUnavailableError(
@@ -277,16 +299,19 @@ def _resolve_valid_newsletters(
     return newsletters
 
 
-@wraps_ac_errors
+@reraise_as_newsletter_service_error
 def map_stringids_to_list_ids(
     newsletter_stringids: list[str], newsletter_list: Sequence[Mapping[str, Any]]
 ) -> list[str]:
     """
     Convert newsletter stringids to ActiveCampaign list IDs.
 
+    In product terms: turns the newsletter names the page sends (stringids) into
+    AC's numeric list IDs, and rejects any name that isn't a managed newsletter.
+
     Args:
         newsletter_stringids (list): Array of newsletter stringids (e.g., ['sefaria_news', 'text_updates'])
-        newsletter_list (list): List of newsletter objects from get_newsletter_list()
+        newsletter_list (list): List of newsletter objects from fetch_ac_newsletters()
 
     Returns:
         list: Array of AC list IDs as strings

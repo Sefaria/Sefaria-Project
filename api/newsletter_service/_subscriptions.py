@@ -6,25 +6,25 @@ import logging
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
-from api.newsletter_service._ac_client import requires_ac_client
+from api.newsletter_service._ac_client import requires_newsletter_service
 from api.newsletter_service._catalog import (
-    _resolve_valid_newsletters,
-    get_all_ac_list_ids,
+    fetch_all_ac_list_ids,
     map_stringids_to_list_ids,
+    resolve_valid_newsletters,
 )
 from api.newsletter_service._contacts import (
-    find_contact_id_by_email,
-    find_or_create_contact,
-    get_contact_learning_level,
-    get_contact_list_memberships,
-    subscribe_contact_to_lists,
-    update_list_memberships,
+    add_ac_contact_to_lists,
+    fetch_ac_contact_list_ids,
+    fetch_ac_learning_level_by_contact_id,
+    find_ac_contact_id_by_email,
+    find_or_create_ac_contact,
+    update_ac_list_memberships,
 )
-from api.newsletter_service._errors import NewsletterUpdateIncompleteError, wraps_ac_errors
-from api.newsletter_service._profiles import _load_user_profile, _update_wants_marketing_emails
+from api.newsletter_service._errors import NewsletterUpdateIncompleteError, reraise_as_newsletter_service_error
+from api.newsletter_service._profiles import load_existing_profile_by_email, save_wants_marketing_emails
 from api.newsletter_service._results import (
-    PreferencesResult,
-    SubscribeResult,
+    AddSubscriptionsResult,
+    ReplacePreferencesResult,
     UserSubscriptions,
 )
 from api.newsletter_service._validation import normalize_and_validate_email
@@ -35,15 +35,15 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-@requires_ac_client
-@wraps_ac_errors
-def subscribe_with_union(
+@requires_newsletter_service
+@reraise_as_newsletter_service_error
+def add_newsletter_subscriptions(
     email: str,
     first_name: str,
     last_name: str,
     newsletter_stringids: list[str],
     valid_newsletters: Sequence[Mapping[str, Any]] | None = None,
-) -> SubscribeResult:
+) -> AddSubscriptionsResult:
     """
     Subscribe a contact to newsletters using union semantics.
 
@@ -81,13 +81,13 @@ def subscribe_with_union(
         }
 
     Raises:
-        ActiveCampaignError: If any step fails
+        NewsletterServiceError: If any step fails
     """
     email = normalize_and_validate_email(email)
     logger.info(
         f"Starting subscription flow for {email} with newsletters: {newsletter_stringids}"
     )
-    valid_newsletters = _resolve_valid_newsletters(valid_newsletters)
+    valid_newsletters = resolve_valid_newsletters(valid_newsletters)
 
     # Step 1: Map stringids to AC list IDs. map_stringids_to_list_ids raises
     # InputError if any stringid isn't in valid_newsletters, so this
@@ -98,7 +98,7 @@ def subscribe_with_union(
     logger.info(f"Mapped to AC list IDs: {new_list_ids}")
 
     # Step 2: Find or create contact
-    contact: dict[str, Any] = find_or_create_contact(email, first_name, last_name)
+    contact: dict[str, Any] = find_or_create_ac_contact(email, first_name, last_name)
     contact_id: str = contact["id"]
 
     # Step 3: Get current *active* subscriptions.
@@ -106,7 +106,7 @@ def subscribe_with_union(
     # (status: 2) is treated as "not subscribed" and ends up in to_add below —
     # otherwise we'd silently skip resubscribing them.
     existing_active_list_ids: set[str] = set(
-        get_contact_list_memberships(contact_id, active_only=True)
+        fetch_ac_contact_list_ids(contact_id, active_only=True)
     )
     logger.info(f"Contact has existing active list IDs: {existing_active_list_ids}")
 
@@ -116,7 +116,7 @@ def subscribe_with_union(
     logger.info(f"Lists to newly subscribe to: {to_add}")
 
     # Step 5: Subscribe only to the genuinely new ones
-    subscribe_contact_to_lists(contact_id, list(to_add))
+    add_ac_contact_to_lists(contact_id, list(to_add))
 
     # Step 6: Map back to stringids for response.
     # final_list_ids reflects the post-call state: previously-active lists
@@ -140,9 +140,9 @@ def subscribe_with_union(
     return {"contact": contact, "all_subscriptions": all_subscriptions}
 
 
-@requires_ac_client
-@wraps_ac_errors
-def fetch_user_subscriptions_impl(
+@requires_newsletter_service
+@reraise_as_newsletter_service_error
+def fetch_user_subscriptions(
     email: str,
     valid_newsletters: Sequence[Mapping[str, Any]] | None = None,
     user: Any = None,
@@ -163,7 +163,7 @@ def fetch_user_subscriptions_impl(
         }
 
     Raises:
-        ActiveCampaignError: If API request fails
+        NewsletterServiceError: If API request fails
     """
     email = normalize_and_validate_email(email)
     logger.info(f"Fetching subscriptions for {email}")
@@ -173,12 +173,12 @@ def fetch_user_subscriptions_impl(
     profile_learning_level: int | None = None
     profile: UserProfile | None = None
     if user is not None and user.is_authenticated:
-        profile = _load_user_profile(email)
+        profile = load_existing_profile_by_email(email)
         if profile is not None:
             wants_marketing_emails = getattr(profile, "wants_marketing_emails", True)
             profile_learning_level = getattr(profile, "learning_level", None)
 
-    contact_id: str | None = find_contact_id_by_email(email)
+    contact_id: str | None = find_ac_contact_id_by_email(email)
 
     if contact_id is None:
         # User not in ActiveCampaign yet — fall back to profile value
@@ -192,10 +192,10 @@ def fetch_user_subscriptions_impl(
     logger.info(f"Found contact {contact_id} for email {email}")
 
     # Get list memberships (active only for accurate subscription state)
-    existing_list_ids: list[str] = get_contact_list_memberships(
+    existing_list_ids: list[str] = fetch_ac_contact_list_ids(
         contact_id, active_only=True
     )
-    valid_newsletters = _resolve_valid_newsletters(valid_newsletters)
+    valid_newsletters = resolve_valid_newsletters(valid_newsletters)
 
     # If the user previously opted out, but AC now shows any active membership,
     # the local opt-out flag is stale. Opt-out removes all AC lists, so any later
@@ -211,7 +211,7 @@ def fetch_user_subscriptions_impl(
             f"Correcting stale wants_marketing_emails=False for {email}; "
             f"found active AC list memberships: {existing_list_ids}"
         )
-        _update_wants_marketing_emails(profile, True)
+        save_wants_marketing_emails(profile, True)
         wants_marketing_emails = True
 
     # Map to stringids, separating out the managed newsletter lists
@@ -238,7 +238,7 @@ def fetch_user_subscriptions_impl(
     #   source of truth while MongoDB stays stale. This is a freshness check
     learning_level: int | None = profile_learning_level
     try:
-        ac_learning_level: int | None = get_contact_learning_level(contact_id)
+        ac_learning_level: int | None = fetch_ac_learning_level_by_contact_id(contact_id)
         if ac_learning_level is not None:
             learning_level = ac_learning_level
     except Exception as e:
@@ -251,16 +251,16 @@ def fetch_user_subscriptions_impl(
     }
 
 
-@requires_ac_client
-@wraps_ac_errors
-def update_user_preferences_impl(
+@requires_newsletter_service
+@reraise_as_newsletter_service_error
+def replace_user_preferences(
     email: str,
     first_name: str,
     last_name: str,
     selected_stringids: list[str],
     valid_newsletters: Sequence[Mapping[str, Any]] | None = None,
     marketing_opt_out: bool = False,
-) -> PreferencesResult:
+) -> ReplacePreferencesResult:
     """
     Update user's newsletter preferences using REPLACE behavior (not union).
 
@@ -270,7 +270,7 @@ def update_user_preferences_impl(
     - Opt-out (marketing_opt_out=True): Unsubscribes from ALL lists (managed + unmanaged).
       Sets wants_marketing_emails=False in MongoDB UserProfile.
 
-    The UserProfile is looked up by email (_load_user_profile), so this function
+    The UserProfile is looked up by email (load_existing_profile_by_email), so this function
     does not need the Django user object — the email already pins us to one account.
 
     Args:
@@ -290,7 +290,7 @@ def update_user_preferences_impl(
     Raises:
         InputError: If the email or a selected stringid isn't valid. Both are
             checked before anything is written to AC.
-        ActiveCampaignError: If any step fails
+        NewsletterServiceError: If any step fails
     """
     email = normalize_and_validate_email(email)
     logger.info(
@@ -301,7 +301,7 @@ def update_user_preferences_impl(
     # Load UserProfile once at the top so both branches share the same instance.
     # Returns None if no Sefaria account exists for `email` — that's fine; the
     # AC mutations below still run, only the profile save becomes a no-op.
-    profile: UserProfile | None = _load_user_profile(email)
+    profile: UserProfile | None = load_existing_profile_by_email(email)
 
     # Check the selections before writing anything to AC, so a request with an
     # unknown stringid doesn't create or rename a contact before it fails.
@@ -309,14 +309,14 @@ def update_user_preferences_impl(
     # this validates and maps in one pass. Opting out ignores the selections.
     new_list_ids: set[str] = set()
     if not marketing_opt_out:
-        valid_newsletters = _resolve_valid_newsletters(valid_newsletters)
+        valid_newsletters = resolve_valid_newsletters(valid_newsletters)
         new_list_ids = set(
             map_stringids_to_list_ids(selected_stringids, valid_newsletters)
         )
         logger.info(f"Mapped selections to AC list IDs: {new_list_ids}")
 
     # Find or create contact
-    contact: dict[str, Any] = find_or_create_contact(email, first_name, last_name)
+    contact: dict[str, Any] = find_or_create_ac_contact(email, first_name, last_name)
     contact_id: str = contact["id"]
 
     if marketing_opt_out:
@@ -324,11 +324,11 @@ def update_user_preferences_impl(
         logger.info(f"Marketing opt-out for {email}: unsubscribing from all lists")
 
         # Get ALL list IDs in the AC account (managed + unmanaged)
-        all_list_ids: set[str] = set(get_all_ac_list_ids())
+        all_list_ids: set[str] = set(fetch_all_ac_list_ids())
 
         # Get user's current active memberships
         active_list_ids: set[str] = set(
-            get_contact_list_memberships(contact_id, active_only=True)
+            fetch_ac_contact_list_ids(contact_id, active_only=True)
         )
 
         # Only unsubscribe from lists the user is actually subscribed to
@@ -340,17 +340,17 @@ def update_user_preferences_impl(
         # Remove the lists first and save the opt-out only once they're all
         # gone. wants_marketing_emails describes whether the user gets marketing
         # emails, so it shouldn't say False while they're still on a list.
-        # Saving first wouldn't keep the choice anyway: fetch_user_subscriptions_impl
+        # Saving first wouldn't keep the choice anyway: fetch_user_subscriptions
         # reads False plus an active list as "signed up again elsewhere" and
         # sets it back to True.
         #
-        # update_list_memberships tries every list and raises if any failed. The
+        # update_ac_list_memberships tries every list and raises if any failed. The
         # user gets an error, the form keeps their choice, and they can submit
         # again. If only the save fails, that's reported too; submitting again
         # finds no active lists and just retries the save.
-        update_list_memberships(contact_id, [], list(lists_to_remove))
+        update_ac_list_memberships(contact_id, [], list(lists_to_remove))
 
-        if not _update_wants_marketing_emails(profile, False):
+        if not save_wants_marketing_emails(profile, False):
             raise NewsletterUpdateIncompleteError(
                 f"Unsubscribed {email} from all lists, but couldn't save the opt-out to their profile"
             )
@@ -368,7 +368,7 @@ def update_user_preferences_impl(
 
         # Get existing active subscriptions
         existing_list_ids: set[str] = set(
-            get_contact_list_memberships(contact_id, active_only=True)
+            fetch_ac_contact_list_ids(contact_id, active_only=True)
         )
         logger.info(f"Contact has existing active list IDs: {existing_list_ids}")
 
@@ -381,12 +381,12 @@ def update_user_preferences_impl(
         )
 
         # Update list memberships (add and remove as needed)
-        update_list_memberships(
+        update_ac_list_memberships(
             contact_id, list(lists_to_add), list(lists_to_remove_managed)
         )
 
         # Update wants_marketing_emails on the pre-loaded profile
-        _update_wants_marketing_emails(profile, True)
+        save_wants_marketing_emails(profile, True)
 
         logger.info(
             f"Preferences updated for {email}. New subscriptions: {selected_stringids}"

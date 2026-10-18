@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from api import tasks
-from api.newsletter_service import ActiveCampaignError, REGISTRATION_AC_TIMEOUT
+from api.newsletter_service import NewsletterServiceError, REGISTRATION_PROVIDER_TIMEOUT
 from sefaria.celery_setup.config import CeleryQueue
 
 
@@ -21,16 +21,16 @@ def run_immediately(callback):
 class TestCopyLearningLevelFromAcTask:
     """Tests for the Celery task that runs in the worker"""
 
-    @patch("api.tasks.copy_learning_level_from_ac")
+    @patch("api.tasks.copy_learning_level_to_new_profile")
     def test_task_copies_for_user(self, mock_copy):
         result = tasks.copy_learning_level_from_ac_task.apply(args=[7])
 
         assert result.successful()
         mock_copy.assert_called_once_with(7)
 
-    @patch("api.tasks.copy_learning_level_from_ac")
+    @patch("api.tasks.copy_learning_level_to_new_profile")
     def test_task_first_fail_second_succeeds(self, mock_copy):
-        mock_copy.side_effect = [ActiveCampaignError("AC down"), 4]
+        mock_copy.side_effect = [NewsletterServiceError("AC down"), 4]
 
         result = tasks.copy_learning_level_from_ac_task.apply(args=[7])
 
@@ -39,9 +39,9 @@ class TestCopyLearningLevelFromAcTask:
         assert result.successful()
 
     @patch("api.tasks.sentry_sdk.capture_exception")
-    @patch("api.tasks.copy_learning_level_from_ac")
+    @patch("api.tasks.copy_learning_level_to_new_profile")
     def test_task_final_failure_reports_to_sentry(self, mock_copy, mock_capture):
-        mock_copy.side_effect = ActiveCampaignError("AC down")
+        mock_copy.side_effect = NewsletterServiceError("AC down")
 
         tasks.copy_learning_level_from_ac_task.apply(args=[7])
 
@@ -52,7 +52,7 @@ class TestCopyLearningLevelFromAcTask:
 class TestDispatchCopyLearningLevelFromAc:
     """Tests for starting the copy during registration"""
 
-    @patch("api.tasks.copy_learning_level_from_ac")
+    @patch("api.tasks.copy_learning_level_to_new_profile")
     @patch("api.tasks.copy_learning_level_from_ac_task")
     @patch("api.tasks.is_newsletter_service_configured", return_value=False)
     def test_dispatch_skips_when_ac_not_configured(self, _mock_configured, mock_task, mock_copy):
@@ -63,7 +63,7 @@ class TestDispatchCopyLearningLevelFromAc:
         mock_task.apply_async.assert_not_called()
         mock_copy.assert_not_called()
 
-    @patch("api.tasks.copy_learning_level_from_ac")
+    @patch("api.tasks.copy_learning_level_to_new_profile")
     @patch("api.tasks.copy_learning_level_from_ac_task")
     @patch("api.tasks.is_newsletter_service_configured", return_value=True)
     def test_dispatch_keeps_existing_level(self, _mock_configured, mock_task, mock_copy):
@@ -76,7 +76,7 @@ class TestDispatchCopyLearningLevelFromAc:
         mock_copy.assert_not_called()
 
     @patch("api.tasks.CELERY_ENABLED", True)
-    @patch("api.tasks.copy_learning_level_from_ac")
+    @patch("api.tasks.copy_learning_level_to_new_profile")
     @patch("api.tasks.copy_learning_level_from_ac_task")
     @patch("api.tasks.is_newsletter_service_configured", return_value=True)
     def test_dispatch_celery_enabled_queues_after_commit(self, _mock_configured, mock_task, mock_copy):
@@ -105,7 +105,7 @@ class TestDispatchCopyLearningLevelFromAc:
         mock_task.apply_async.assert_called_once()
 
     @patch("api.tasks.CELERY_ENABLED", False)
-    @patch("api.tasks.copy_learning_level_from_ac", return_value=4)
+    @patch("api.tasks.copy_learning_level_to_new_profile", return_value=4)
     @patch("api.tasks.copy_learning_level_from_ac_task")
     @patch("api.tasks.is_newsletter_service_configured", return_value=True)
     def test_dispatch_celery_disabled_copies_right_away(self, _mock_configured, mock_task, mock_copy):
@@ -113,17 +113,17 @@ class TestDispatchCopyLearningLevelFromAc:
 
         tasks.dispatch_copy_learning_level_from_ac(profile)
 
-        mock_copy.assert_called_once_with(7, timeout=REGISTRATION_AC_TIMEOUT)
+        mock_copy.assert_called_once_with(7, timeout=REGISTRATION_PROVIDER_TIMEOUT)
         mock_task.apply_async.assert_not_called()
         # The in-memory profile matches what was saved
         assert profile.learning_level == 4
 
     @patch("api.tasks.CELERY_ENABLED", False)
-    @patch("api.tasks.copy_learning_level_from_ac")
+    @patch("api.tasks.copy_learning_level_to_new_profile")
     @patch("api.tasks.is_newsletter_service_configured", return_value=True)
     def test_dispatch_celery_disabled_ac_failure_never_raises(self, _mock_configured, mock_copy):
         """If AC is down, registration carries on without a learning level"""
-        mock_copy.side_effect = ActiveCampaignError("AC down")
+        mock_copy.side_effect = NewsletterServiceError("AC down")
         profile = make_profile()
 
         tasks.dispatch_copy_learning_level_from_ac(profile)

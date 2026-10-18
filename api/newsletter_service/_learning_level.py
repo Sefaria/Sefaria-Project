@@ -10,13 +10,13 @@ from django.core import signing
 from sefaria.system.exceptions import InputError
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
-from api.newsletter_service._ac_client import requires_ac_client
+from api.newsletter_service._ac_client import requires_newsletter_service
 from api.newsletter_service._contacts import (
-    get_learning_level_for_email,
-    update_learning_level_in_ac,
+    fetch_ac_learning_level_by_email,
+    set_ac_learning_level,
 )
-from api.newsletter_service._profiles import _load_user_profile
-from api.newsletter_service._results import LearningLevelResult
+from api.newsletter_service._profiles import load_existing_profile_by_email
+from api.newsletter_service._results import SetLearningLevelResult
 from api.newsletter_service._validation import (
     is_valid_learning_level,
     normalize_and_validate_email,
@@ -30,10 +30,10 @@ logger: logging.Logger = logging.getLogger(__name__)
 # ============================================================================
 
 
-@requires_ac_client
-def update_learning_level_impl(
+@requires_newsletter_service
+def set_learning_level(
     email: str, learning_level: int | None
-) -> LearningLevelResult:
+) -> SetLearningLevelResult:
     """
     Update a user's learning level, handling both authenticated and unauthenticated users.
 
@@ -59,7 +59,7 @@ def update_learning_level_impl(
 
     Raises:
         InputError: If learning_level is invalid (not 1-5 or None)
-        ActiveCampaignError: If AC update fails
+        NewsletterServiceError: If AC update fails
     """
     email = normalize_and_validate_email(email)
 
@@ -73,7 +73,7 @@ def update_learning_level_impl(
     logger.info(f"Updating learning level for {email}: {learning_level}")
 
     # Step 1: Try to load the user profile using the shared newsletter helper.
-    profile: UserProfile | None = _load_user_profile(email)
+    profile: UserProfile | None = load_existing_profile_by_email(email)
 
     user_id: int | None = profile.id if profile is not None else None
     updated_profile: bool = False
@@ -83,9 +83,9 @@ def update_learning_level_impl(
     #
     # AC goes first so that a failed AC write leaves nothing changed and the error is accurate.
     # If AC succeeds and the profile save below fails, AC is ahead of the profile, which
-    # fetch_user_subscriptions_impl already handles: it reads AC and lets AC's value win.
+    # fetch_user_subscriptions already handles: it reads AC and lets AC's value win.
     try:
-        update_learning_level_in_ac(email, learning_level)
+        set_ac_learning_level(email, learning_level)
     except Exception as e:
         logger.exception(f"Error updating learning level in AC for {email}: {e}")
         raise
@@ -124,11 +124,12 @@ def update_learning_level_impl(
 
 # The salt keeps these tokens separate from anything else Django signs with the
 # same SECRET_KEY, so a signed value made for another purpose can't be used here.
+# Don't change it: every token already handed out would stop verifying.
 LEARNING_LEVEL_TOKEN_SALT: str = "newsletter.learning-level"
 LEARNING_LEVEL_TOKEN_MAX_AGE: int = 60 * 60 * 24  # 24 hours, in seconds
 
 
-def make_learning_level_token(email: str) -> str:
+def sign_learning_level_token(email: str) -> str:
     """
     Create a signed token that says "this email just subscribed".
 
@@ -143,7 +144,7 @@ def make_learning_level_token(email: str) -> str:
     return signing.dumps({"email": email}, salt=LEARNING_LEVEL_TOKEN_SALT)
 
 
-def read_learning_level_token(token: Any) -> str | None:
+def verify_learning_level_token(token: Any) -> str | None:
     """
     Return the email inside a learning-level token, or None if the token can't be trusted.
 
@@ -172,10 +173,10 @@ def read_learning_level_token(token: Any) -> str | None:
 # Only used when Celery is off and the copy runs during registration (see
 # api/tasks.py). The new user waits for those AC calls, so keep them short. If AC
 # is slow, we skip the copy instead of making the user wait.
-REGISTRATION_AC_TIMEOUT: float = 3
+REGISTRATION_PROVIDER_TIMEOUT: float = 3
 
 
-def copy_learning_level_from_ac(uid: int, timeout: float | None = None) -> int | None:
+def copy_learning_level_to_new_profile(uid: int, timeout: float | None = None) -> int | None:
     """
     Fill in a new account's learning level from ActiveCampaign.
 
@@ -196,7 +197,7 @@ def copy_learning_level_from_ac(uid: int, timeout: float | None = None) -> int |
         int or None: The level that was copied, or None if nothing was copied
 
     Raises:
-        ActiveCampaignError: If AC can't be reached (so the task can try again)
+        NewsletterServiceError: If AC can't be reached (so the task can try again)
     """
     profile: UserProfile = UserProfile(id=uid)
     # Keep a level the profile already has. A "seed" account (created before the
@@ -204,7 +205,7 @@ def copy_learning_level_from_ac(uid: int, timeout: float | None = None) -> int |
     if profile.id is None or profile.learning_level is not None:
         return None
 
-    learning_level: int | None = get_learning_level_for_email(profile.email, timeout=timeout)
+    learning_level: int | None = fetch_ac_learning_level_by_email(profile.email, timeout=timeout)
     if learning_level is None:
         return None
 

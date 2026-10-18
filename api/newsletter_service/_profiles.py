@@ -9,7 +9,7 @@ from sefaria.model.user_profile import UserProfile
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-def _load_user_profile(email: str) -> UserProfile | None:
+def load_existing_profile_by_email(email: str) -> UserProfile | None:
     """
     Look up the UserProfile for an email, but only if its Mongo profile document exists.
 
@@ -40,7 +40,7 @@ def _load_user_profile(email: str) -> UserProfile | None:
         return None
 
 
-def _update_wants_marketing_emails(
+def save_wants_marketing_emails(
     profile: UserProfile | None, wants_marketing: bool
 ) -> bool:
     """

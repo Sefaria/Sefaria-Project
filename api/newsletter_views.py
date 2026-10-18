@@ -18,20 +18,20 @@ from django.views.decorators.csrf import csrf_protect
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
 from api.newsletter_service import (
-    ActiveCampaignError,
     NewsletterInfo,
     NewsletterListUnavailableError,
+    NewsletterServiceError,
     NewsletterServiceNotConfiguredError,
-    get_cached_newsletter_list,
+    get_newsletters,
     is_newsletter_service_configured,
     is_valid_learning_level,
-    make_learning_level_token,
     normalize_and_validate_email,
-    read_learning_level_token,
-    subscribe_with_union,
-    fetch_user_subscriptions_impl,
-    update_user_preferences_impl,
-    update_learning_level_impl,
+    sign_learning_level_token,
+    verify_learning_level_token,
+    add_newsletter_subscriptions,
+    fetch_user_subscriptions,
+    replace_user_preferences,
+    set_learning_level,
 )
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -134,11 +134,11 @@ def handle_newsletter_view_errors(
                 logger.warning(f"Newsletter list unavailable {action.value}: {e}")
                 return jsonResponse({"error": str(e)}, status=503)
             except NewsletterServiceNotConfiguredError as e:
-                # Must come before ActiveCampaignError, which it subclasses. The
+                # Must come before NewsletterServiceError, which it subclasses. The
                 # message names the missing settings, so it only goes in the log.
                 logger.warning(f"Newsletter service not configured {action.value}: {e}")
                 return jsonResponse({"error": "newsletter_service_not_configured"}, status=503)
-            except ActiveCampaignError as e:
+            except NewsletterServiceError as e:
                 logger.warning(f"ActiveCampaign error {action.value}: {e}")
                 ac_body: dict[str, str] = {"error": str(e)}
                 # Failures that submitting again would fix (NewsletterUpdateIncompleteError)
@@ -198,7 +198,7 @@ def get_newsletter_lists(request: HttpRequest) -> HttpResponse:
     if not is_newsletter_service_configured():
         return jsonResponse({"error": "newsletter_service_not_configured"}, status=503)
 
-    newsletters: list[NewsletterInfo] = get_cached_newsletter_list()
+    newsletters: list[NewsletterInfo] = get_newsletters()
     return jsonResponse({"newsletters": newsletters})
 
 
@@ -311,7 +311,7 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
     logger.info(
         f"Processing subscription for {email} with newsletters: {selected_newsletters}"
     )
-    subscribe_with_union(email, first_name, last_name, selected_newsletters)
+    add_newsletter_subscriptions(email, first_name, last_name, selected_newsletters)
 
     # Return only what this request selected, not result["all_subscriptions"].
     # Anyone can call this endpoint with any email address, so returning the
@@ -323,7 +323,7 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
             "message": "Successfully subscribed to newsletters",
             "email": email,
             "subscribedNewsletters": selected_newsletters,
-            "learningLevelToken": make_learning_level_token(email),
+            "learningLevelToken": sign_learning_level_token(email),
         },
         status=200,
     )
@@ -387,7 +387,7 @@ def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
     logger.info(f"Fetching subscriptions for authenticated user: {email}")
 
     # Fetch user subscriptions (pass user for UserProfile lookup)
-    result = fetch_user_subscriptions_impl(email, user=user)
+    result = fetch_user_subscriptions(email, user=user)
 
     return jsonResponse(
         {
@@ -499,7 +499,7 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
     )
 
     # Update preferences using replace behavior (or opt-out if marketing_opt_out=True)
-    result = update_user_preferences_impl(
+    result = replace_user_preferences(
         email,
         first_name,
         last_name,
@@ -618,7 +618,7 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
     else:
         # Logged out: the email comes from the token that subscribe gave them, so a
         # single request can't set the learning level for any email it likes.
-        token_email: str | None = read_learning_level_token(body.get("token"))
+        token_email: str | None = verify_learning_level_token(body.get("token"))
         if token_email is None:
             return jsonResponse(
                 {
@@ -631,7 +631,7 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
 
     # Update learning level using service function
     logger.info(f"Processing learning level update for {email}")
-    result = update_learning_level_impl(email, learning_level)
+    result = set_learning_level(email, learning_level)
 
     # Return success response. The user ID is left out on purpose: the page doesn't
     # need it, and sending it back would tell the caller which Sefaria account

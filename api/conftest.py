@@ -33,7 +33,7 @@ def newsletter_client(monkeypatch):
     """
     from api.newsletter_service import _ac_client
 
-    fake_client = _ac_client.NewsletterClient("test-token", "test-account")
+    fake_client = _ac_client.ActiveCampaignClient("test-token", "test-account")
     # Refuse at the adapter, the last step before the network, so tests that mock
     # a higher layer (make_request, or requests.Session.request) still work.
     fake_client._session.mount("https://", RefuseNetworkAdapter())

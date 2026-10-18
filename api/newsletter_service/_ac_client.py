@@ -1,8 +1,9 @@
 """
-Newsletter Service Module
+The ActiveCampaign (AC) client for the newsletter service.
 
-Integrates with ActiveCampaign API to fetch and manage newsletter lists and metadata.
-Handles all API communication with ActiveCampaign.
+Every request to AC goes through ActiveCampaignClient.make_request, on the one shared
+client defined in this module (`_client`). Code in the package reaches it through
+get_ac_client().
 
 Threading model notes:
 
@@ -17,7 +18,7 @@ Threading model notes:
 
     The issue:
         Several threads can write to the same cookie jar at the same time.
-        Our code never changes the session after `NewsletterClient.__init__`, but
+        Our code never changes the session after `ActiveCampaignClient.__init__`, but
         requests does: after every response, it saves the response's cookies into
         `session.cookies` so it can send them with later requests. AC sets two
         cookies (PHPSESSID and em_acp_globalauth_cookie) on every reply. So when
@@ -75,7 +76,7 @@ from urllib3.util.retry import Retry
 from django.conf import settings
 
 from api.newsletter_service._errors import (
-    ActiveCampaignError,
+    NewsletterServiceError,
     NewsletterServiceNotConfiguredError,
 )
 
@@ -91,9 +92,12 @@ ACTIVECAMPAIGN_API_TOKEN: str | None = getattr(settings, "ACTIVECAMPAIGN_API_TOK
 ACTIVECAMPAIGN_ACCOUNT_NAME: str | None = getattr(settings, "ACTIVECAMPAIGN_ACCOUNT_NAME", None)
 
 
-class NewsletterClient:
+class ActiveCampaignClient:
     """
     Client for talking to the ActiveCampaign (AC) API.
+
+    In product terms: the newsletter service's one connection to its email provider.
+    Code outside this package shouldn't need to know it exists.
 
     What this class does:
         - Holds a single requests.Session so that multiple API calls reuse the
@@ -102,7 +106,7 @@ class NewsletterClient:
           of milliseconds of latency).
         - Sets the auth headers once, in __init__, so every request is
           authenticated without us repeating the headers each time.
-        - Translates network/HTTP errors into a single ActiveCampaignError so
+        - Translates network/HTTP errors into a single NewsletterServiceError so
           callers only need to catch one exception type.
 
     Thread safety:
@@ -169,7 +173,7 @@ class NewsletterClient:
         Send a request to the ActiveCampaign API and return the parsed JSON.
 
         This is the only place in the module that talks to AC over the network.
-        All higher-level helpers (get_all_lists, find_or_create_contact, etc.)
+        All higher-level helpers (fetch_ac_lists, find_or_create_ac_contact, etc.)
         go through here to have one place to handle errors and logging.
 
         Args:
@@ -184,7 +188,7 @@ class NewsletterClient:
             dict: The parsed JSON response from ActiveCampaign.
 
         Raises:
-            ActiveCampaignError: For any failure (timeout, connection error,
+            NewsletterServiceError: For any failure (timeout, connection error,
                 HTTP 4xx/5xx, or anything else unexpected). The error message
                 includes the AC response body when possible — useful for
                 debugging API errors and outages.
@@ -204,10 +208,10 @@ class NewsletterClient:
             return response.json()
 
         except requests.exceptions.Timeout:
-            raise ActiveCampaignError("ActiveCampaign API request timed out")
+            raise NewsletterServiceError("ActiveCampaign API request timed out")
 
         except requests.exceptions.ConnectionError:
-            raise ActiveCampaignError("Failed to connect to ActiveCampaign API")
+            raise NewsletterServiceError("Failed to connect to ActiveCampaign API")
 
         except requests.exceptions.HTTPError as e:
             # Build the most useful error message we can. AC normally returns
@@ -228,13 +232,13 @@ class NewsletterClient:
                     )
                 except json.JSONDecodeError:
                     error_msg = f"{error_msg} - {e.response.text}"
-            raise ActiveCampaignError(error_msg)
+            raise NewsletterServiceError(error_msg)
 
         except Exception as e:
             # Truly unexpected (not a known requests exception). Log with the
             # full stack trace so we can diagnose the surprise after the fact.
             logger.exception(f"Unexpected error calling ActiveCampaign API: {e}")
-            raise ActiveCampaignError(
+            raise NewsletterServiceError(
                 f"Unexpected error communicating with ActiveCampaign: {str(e)}"
             )
 
@@ -242,7 +246,7 @@ class NewsletterClient:
 # Module-level singleton instance.
 #
 # Why we instantiate this eagerly at import time:
-#   We want one NewsletterClient (and one requests.Session inside it) shared
+#   We want one ActiveCampaignClient (and one requests.Session inside it) shared
 #   across the whole module. Sharing the Session means TCP/TLS connections to
 #   AC's servers stay open between calls instead of being torn down and rebuilt
 #   each time. Building a new HTTPS connection takes hundreds of milliseconds,
@@ -259,14 +263,14 @@ class NewsletterClient:
 # In pytest, the newsletter_client fixture in api/conftest.py replaces this with a
 # fake client that refuses network calls, so the tests don't depend on the
 # machine's credentials.
-_client: NewsletterClient | None = (
-    NewsletterClient(ACTIVECAMPAIGN_API_TOKEN, ACTIVECAMPAIGN_ACCOUNT_NAME)
+_client: ActiveCampaignClient | None = (
+    ActiveCampaignClient(ACTIVECAMPAIGN_API_TOKEN, ACTIVECAMPAIGN_ACCOUNT_NAME)
     if ACTIVECAMPAIGN_API_TOKEN and ACTIVECAMPAIGN_ACCOUNT_NAME
     else None
 )
 
 
-def requires_ac_client(func):
+def requires_newsletter_service(func):
     """Decorator: raises NewsletterServiceNotConfiguredError if AC credentials are not configured."""
 
     @functools.wraps(func)
@@ -286,8 +290,15 @@ def is_newsletter_service_configured() -> bool:
     return _client is not None
 
 
-def _get_client() -> NewsletterClient:
-    # Always non-None here: callers are either @requires_ac_client public functions
+def get_ac_client() -> ActiveCampaignClient:
+    """
+    Return the shared client.
+
+    The other modules call this instead of importing `_client` directly. A direct
+    import would copy the client into their own module, so when the test fixture in
+    api/conftest.py swaps `_client` for a fake, they would keep using the real one.
+    """
+    # Always non-None here: callers are either @requires_newsletter_service public functions
     # (which check first) or private helpers that only run from those functions.
     assert _client is not None
     return _client

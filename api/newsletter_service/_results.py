@@ -12,7 +12,7 @@ type DisplayName = dict[str, str | None]
 
 
 class NewsletterInfo(TypedDict):
-    """One managed newsletter with display metadata. Element of get_newsletter_list()."""
+    """One managed newsletter with display metadata. Element of fetch_ac_newsletters()."""
 
     id: str
     stringid: str
@@ -22,38 +22,38 @@ class NewsletterInfo(TypedDict):
     primary: bool
 
 
-class SubscribeResult(TypedDict):
-    """Return shape of subscribe_with_union: the contact and the union of all current subscriptions."""
+class AddSubscriptionsResult(TypedDict):
+    """Return shape of add_newsletter_subscriptions: the contact and the union of all current subscriptions."""
 
     contact: dict[str, Any]
     all_subscriptions: list[str]
 
 
 class UserSubscriptions(TypedDict):
-    """Return shape of fetch_user_subscriptions_impl: a user's full subscription state."""
+    """Return shape of fetch_user_subscriptions: a user's full subscription state."""
 
     subscribed_newsletters: list[str]
     learning_level: int | None
     wants_marketing_emails: bool
 
 
-class PreferencesResult(TypedDict):
-    """Return shape of update_user_preferences_impl: the contact and the post-update subscription list."""
+class ReplacePreferencesResult(TypedDict):
+    """Return shape of replace_user_preferences: the contact and the post-update subscription list."""
 
     contact: dict[str, Any]
     subscribed_newsletters: list[str]
 
 
-class LearningLevelACResult(TypedDict):
-    """Return shape of update_learning_level_in_ac: confirms what was written to AC."""
+class ACLearningLevelResult(TypedDict):
+    """Return shape of set_ac_learning_level: confirms what was written to AC."""
 
     contact_id: str
     email: str
     learning_level: int | None
 
 
-class LearningLevelResult(TypedDict):
-    """Return shape of update_learning_level_impl: combined outcome of AC + UserProfile updates."""
+class SetLearningLevelResult(TypedDict):
+    """Return shape of set_learning_level: combined outcome of AC + UserProfile updates."""
 
     email: str
     learning_level: int | None
