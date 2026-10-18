@@ -10,6 +10,13 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 import {ContentText} from "./ContentText";
+import {
+  buildTree,
+  flattenLeaves,
+  isRefHidden,
+  skipHidden,
+  subscribeHiddenRefs
+} from "./sefaria/siddurCustomization";
 
 
 class TextColumn extends Component {
@@ -17,7 +24,8 @@ class TextColumn extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showScrollPlaceholders: false
+      showScrollPlaceholders: false,
+      siddurHiddenRefs: []
     };
     this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
     this.scrollPlaceholderHeight = 90;
@@ -41,10 +49,37 @@ class TextColumn extends Component {
       gtag("event", "select_content", params)
 
     this.getScrollEventTarget().addEventListener("scroll", this.handleScroll);
+    this.unsubscribeSiddur = subscribeHiddenRefs(this.props.bookTitle, refs => {
+      this.setState({siddurHiddenRefs: refs});
+      if (refs.length) { this.loadSiddurIndex(); }
+    });
   }
   componentWillUnmount() {
     this._isMounted = false;
     this.getScrollEventTarget().removeEventListener("scroll", this.handleScroll);
+    this.unsubscribeSiddur && this.unsubscribeSiddur();
+  }
+  loadSiddurIndex() {
+    // Skipping hidden siddur sections needs the book's schema.
+    this.siddurIndexPromise = this.siddurIndexPromise ||
+      Sefaria.getIndexDetails(this.props.bookTitle)
+        .then(() => this._isMounted && this.forceUpdate())
+        .catch(() => { this.siddurIndexPromise = null; });
+  }
+  neighborRef(data, dir) {
+    // The section before or after `data` ("prev" | "next"), skipping sections
+    // the reader has hidden in a customized siddur (see siddurCustomization.js).
+    const raw = data?.[dir];
+    const hidden = this.state.siddurHiddenRefs;
+    if (!raw || !hidden.length || !isRefHidden(raw, hidden)) { return raw; }
+    const title = this.props.bookTitle;
+    const indexDetails = Sefaria.getIndexDetailsFromCache(title);
+    if (!indexDetails) {
+      // Hold off on loading anything until we know which section comes next.
+      this.loadSiddurIndex();
+      return null;
+    }
+    return skipHidden(raw, dir, flattenLeaves(buildTree(indexDetails.schema, title)), hidden);
   }
   isWindowScroll() {
     // On singlePanel (mobile), the document is the scroll container so that mobile
@@ -325,7 +360,7 @@ class TextColumn extends Component {
     const topRef = this.props.srefs.at(0); // Currently displayed top section
     
     const currentData = Sefaria.ref(topRef);
-    if (!currentData?.prev) {
+    if (!this.neighborRef(currentData, "prev")) {
       return; // No previous content available
     }
     
@@ -344,17 +379,18 @@ class TextColumn extends Component {
     const refs = this.props.srefs.slice();
     
     // Add the immediate previous section
-    refs.splice(0, 0, currentData.prev);
+    const prevRef = this.neighborRef(currentData, "prev");
+    refs.splice(0, 0, prevRef);
     this.numSectionsLoadedAtTop = 1;
     
     // Try to load additional previous sections (up to 10 total)
-    let prevData = Sefaria.ref(currentData.prev);
-    let earlierData = prevData ? Sefaria.ref(prevData.prev) : null;
+    let prevData = Sefaria.ref(prevRef);
+    let earlierData = prevData ? Sefaria.ref(this.neighborRef(prevData, "prev")) : null;
 
     while (earlierData && this.numSectionsLoadedAtTop < 10) {
       refs.splice(0, 0, earlierData.ref);
       this.numSectionsLoadedAtTop += 1;
-      earlierData = Sefaria.ref(earlierData.prev);
+      earlierData = Sefaria.ref(this.neighborRef(earlierData, "prev"));
     }
     
     return refs;
@@ -371,7 +407,7 @@ class TextColumn extends Component {
     const currentRef = this.props.srefs.at(-1); // Currently displayed bottom section
     const currentData = Sefaria.ref(currentRef);
     
-    if (!currentData?.next) {
+    if (!this.neighborRef(currentData, "next")) {
       return; // No next content available
     }
     
@@ -386,16 +422,17 @@ class TextColumn extends Component {
     const refs = this.props.srefs.slice();
     
     // Add the immediate next section
-    refs.push(currentData.next);
+    const nextRef = this.neighborRef(currentData, "next");
+    refs.push(nextRef);
     let numSectionsAddToBottom = 1;
 
     // Try to load additional next sections (up to 10 total)
-    let nextData = Sefaria.ref(currentData.next);
-    let laterData = nextData ? Sefaria.ref(nextData.next) : null;
+    let nextData = Sefaria.ref(nextRef);
+    let laterData = nextData ? Sefaria.ref(this.neighborRef(nextData, "next")) : null;
 
          while (laterData && numSectionsAddToBottom < 10) {
           refs.push(laterData.ref);
-          laterData = Sefaria.ref(laterData.next);
+          laterData = Sefaria.ref(this.neighborRef(laterData, "next"));
           numSectionsAddToBottom += 1;
         }
 
@@ -488,8 +525,8 @@ class TextColumn extends Component {
       const first   = Sefaria.ref(this.props.srefs[0]);
       const last    = Sefaria.ref(this.props.srefs.slice(-1)[0]);
       const hasPrev = first && first.prev;
-      const noPrev  = first && !first.prev; // first is loaded, so we actually know there's nothing prev
-      const hasNext = last && last.next;
+      const noPrev  = first && !this.neighborRef(first, "prev"); // first is loaded, so we actually know there's nothing prev
+      const hasNext = last && this.neighborRef(last, "next");
 
       bookTitle = noPrev ?
         <div className="bookMetaDataBox" key="bookTitle">
