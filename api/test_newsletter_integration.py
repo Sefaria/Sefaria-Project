@@ -133,12 +133,12 @@ def _extract_list_mutations(mock_ac_request):
 class TestOptOutFlowIntegration:
     """Integration tests for update_user_preferences_impl opt-out and re-opt-in flows"""
 
-    @mock.patch("api.newsletter_service._load_user_profile", return_value=None)
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile", return_value=None)
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_opt_out_end_to_end(
         self,
         mock_find,
@@ -182,11 +182,11 @@ class TestOptOutFlowIntegration:
         # wants_marketing_emails set to False
         mock_update_flag.assert_called_once_with(None, False)
 
-    @mock.patch("api.newsletter_service._load_user_profile", return_value=None)
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile", return_value=None)
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_re_opt_in_after_opt_out(
         self,
         mock_find,
@@ -235,9 +235,9 @@ class TestOptOutFlowIntegration:
 class TestFetchUserSubscriptionsIntegration:
     """Integration tests for fetch_user_subscriptions_impl with wants_marketing_emails"""
 
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_stale_opt_out_scenario(
         self, mock_request, mock_get_memberships, mock_profile_class
     ):
@@ -294,10 +294,10 @@ class TestViewThroughServiceNormalUpdate:
     Full service logic runs end-to-end — verifies managed-list scoping.
     """
 
-    @mock.patch("api.newsletter_service._load_user_profile", return_value=None)
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile", return_value=None)
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_diff_scoped_to_managed_lists(
         self,
         mock_get_list,
@@ -337,10 +337,10 @@ class TestViewThroughServiceNormalUpdate:
 
         mock_update_flag.assert_called_once_with(None, True)
 
-    @mock.patch("api.newsletter_service._load_user_profile", return_value=None)
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile", return_value=None)
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_adding_new_managed_list(
         self,
         mock_get_list,
@@ -381,10 +381,10 @@ class TestViewThroughServiceOptOut:
     Full service logic runs — verifies ALL lists (managed + unmanaged) are removed.
     """
 
-    @mock.patch("api.newsletter_service._load_user_profile", return_value=None)
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile", return_value=None)
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_opt_out_removes_all_active_lists(
         self,
         mock_get_list,
@@ -435,10 +435,10 @@ class TestViewThroughServiceOptOut:
 
         mock_update_flag.assert_called_once_with(None, False)
 
-    @mock.patch("api.newsletter_service._load_user_profile", return_value=None)
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile", return_value=None)
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_opt_out_skips_already_unsubscribed_lists(
         self,
         mock_get_list,
@@ -477,10 +477,10 @@ class TestViewThroughServiceOptOut:
 
         mock_update_flag.assert_called_once_with(None, False)
 
-    @mock.patch("api.newsletter_service._load_user_profile", return_value=None)
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile", return_value=None)
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_opt_out_without_active_lists_still_persists_opt_out(
         self,
         mock_get_list,
@@ -528,9 +528,9 @@ class TestViewThroughServiceFetchSubscriptions:
     wants_marketing_emails propagation from MongoDB through to HTTP response.
     """
 
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_maps_list_ids_to_stringids(
         self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
     ):
@@ -562,9 +562,9 @@ class TestViewThroughServiceFetchSubscriptions:
         # List 99 has no stringid mapping → excluded from response
         assert data["wantsMarketingEmails"] is True
 
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_active_managed_subscription_corrects_stale_wants_marketing_false(
         self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
     ):
@@ -595,9 +595,9 @@ class TestViewThroughServiceFetchSubscriptions:
         assert mock_profile.wants_marketing_emails is True
         mock_profile.save.assert_called_once()
 
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_active_unmanaged_subscription_corrects_stale_wants_marketing_false(
         self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
     ):
@@ -628,9 +628,9 @@ class TestViewThroughServiceFetchSubscriptions:
         assert mock_profile.wants_marketing_emails is True
         mock_profile.save.assert_called_once()
 
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_wants_marketing_emails_false_remains_false_without_active_memberships(
         self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
     ):
@@ -657,10 +657,10 @@ class TestViewThroughServiceFetchSubscriptions:
         assert mock_profile.wants_marketing_emails is False
         mock_profile.save.assert_not_called()
 
-    @mock.patch("api.newsletter_service.get_contact_learning_level")
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_learning_level")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_learning_level_propagates_from_ac(
         self,
         mock_get_list,
@@ -704,8 +704,8 @@ class TestViewThroughServiceSubscribe:
     to the selected lists.
     """
 
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
     def test_subscribe_creates_new_ac_contact_for_unknown_email(
         self,
         mock_get_list,

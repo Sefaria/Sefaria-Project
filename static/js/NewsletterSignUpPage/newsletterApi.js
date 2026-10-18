@@ -14,7 +14,7 @@ import Cookies from "js-cookie";
 // The server only sends a code for errors the person can fix themselves; other
 // errors stay in English to help with debugging.
 // The values must match the server exactly (api/newsletter_views.py and
-// api/newsletter_service.py), so they stay strings, but we only ever use them
+// api/newsletter_service/_errors.py), so they stay strings, but we only ever use them
 // through this map so a typo shows up as undefined.
 export const SERVER_ERROR_CODE = Object.freeze({
   LEARNING_LEVEL_TOKEN_INVALID: "learning_level_token_invalid",

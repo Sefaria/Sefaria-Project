@@ -31,13 +31,13 @@ def newsletter_client(monkeypatch):
     Tests still mock `_client.make_request` for the replies they need. A call that
     isn't mocked fails instead of going out.
     """
-    from api import newsletter_service
+    from api.newsletter_service import _ac_client
 
-    fake_client = newsletter_service.NewsletterClient("test-token", "test-account")
+    fake_client = _ac_client.NewsletterClient("test-token", "test-account")
     # Refuse at the adapter, the last step before the network, so tests that mock
     # a higher layer (make_request, or requests.Session.request) still work.
     fake_client._session.mount("https://", RefuseNetworkAdapter())
-    monkeypatch.setattr(newsletter_service, "_client", fake_client)
+    monkeypatch.setattr(_ac_client, "_client", fake_client)
     return fake_client
 
 

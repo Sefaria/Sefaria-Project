@@ -2,7 +2,7 @@
 Newsletter service unit tests.
 
 This file holds narrow unit tests for individual service functions in
-`api/newsletter_service.py` (parsing helpers, data mappers, single API-call
+`api/newsletter_service/` (parsing helpers, data mappers, single API-call
 wrappers, and `*_impl` functions). Collaborators are mocked at their function
 boundary so each test exercises one piece of logic.
 
@@ -19,6 +19,8 @@ from types import SimpleNamespace
 from unittest import mock
 from django.core.cache import cache
 from api import newsletter_service
+from api.newsletter_service import _ac_client, _catalog, _contacts
+from sefaria.system.exceptions import InputError
 
 
 # Shared fixtures (`client`, `test_user`, `logged_in_client`, etc.) live in
@@ -35,17 +37,17 @@ class TestExtractListIdFromTag:
 
     def test_extract_valid_list_id(self):
         """Extract list ID from valid list_{id}_meta tags"""
-        assert newsletter_service.extract_list_id_from_tag("list_1_meta") == 1
-        assert newsletter_service.extract_list_id_from_tag("list_999_meta") == 999
-        assert newsletter_service.extract_list_id_from_tag("list_42_meta") == 42
+        assert _catalog.extract_list_id_from_tag("list_1_meta") == 1
+        assert _catalog.extract_list_id_from_tag("list_999_meta") == 999
+        assert _catalog.extract_list_id_from_tag("list_42_meta") == 42
 
     def test_extract_invalid_tags(self):
         """Return None for invalid tags"""
-        assert newsletter_service.extract_list_id_from_tag("INVALID_TAG") is None
-        assert newsletter_service.extract_list_id_from_tag("LIST_META") is None
-        assert newsletter_service.extract_list_id_from_tag("list_abc_meta") is None
-        assert newsletter_service.extract_list_id_from_tag("") is None
-        assert newsletter_service.extract_list_id_from_tag(None) is None
+        assert _catalog.extract_list_id_from_tag("INVALID_TAG") is None
+        assert _catalog.extract_list_id_from_tag("LIST_META") is None
+        assert _catalog.extract_list_id_from_tag("list_abc_meta") is None
+        assert _catalog.extract_list_id_from_tag("") is None
+        assert _catalog.extract_list_id_from_tag(None) is None
 
 
 class TestParseMetadataFromVariable:
@@ -57,7 +59,7 @@ class TestParseMetadataFromVariable:
             "tag": "list_1_meta",
             "content": '{"icon": "news-and-resources.svg", "language": "english"}',
         }
-        metadata = newsletter_service.parse_metadata_from_variable(variable)
+        metadata = _catalog.parse_metadata_from_variable(variable)
 
         assert metadata is not None
         assert metadata["icon"] == "news-and-resources.svg"
@@ -66,25 +68,25 @@ class TestParseMetadataFromVariable:
     def test_parse_invalid_json(self):
         """Return None for invalid JSON"""
         variable = {"tag": "list_1_meta", "content": "not valid json"}
-        assert newsletter_service.parse_metadata_from_variable(variable) is None
+        assert _catalog.parse_metadata_from_variable(variable) is None
 
     @pytest.mark.parametrize("content", ["[]", '"x"', "5", "true"])
     def test_parse_json_that_is_not_an_object(self, content):
         """Return None for valid JSON that isn't an object, since callers read it as a dict"""
         variable = {"tag": "list_1_meta", "content": content}
-        assert newsletter_service.parse_metadata_from_variable(variable) is None
+        assert _catalog.parse_metadata_from_variable(variable) is None
 
     def test_parse_missing_content_field(self):
         """Return None when content field is missing"""
         assert (
-            newsletter_service.parse_metadata_from_variable({"tag": "list_1_meta"})
+            _catalog.parse_metadata_from_variable({"tag": "list_1_meta"})
             is None
         )
 
     def test_parse_empty_content(self):
         """Return None for empty content"""
         assert (
-            newsletter_service.parse_metadata_from_variable(
+            _catalog.parse_metadata_from_variable(
                 {"tag": "list_1_meta", "content": ""}
             )
             is None
@@ -92,7 +94,7 @@ class TestParseMetadataFromVariable:
 
     def test_parse_none_variable(self):
         """Return None for None input"""
-        assert newsletter_service.parse_metadata_from_variable(None) is None
+        assert _catalog.parse_metadata_from_variable(None) is None
 
 
 class TestParseVariableEntry:
@@ -108,7 +110,7 @@ class TestParseVariableEntry:
 
     def test_returns_list_id_and_variable_data(self):
         v = self._make_variable()
-        result = newsletter_service._parse_variable_entry(v)
+        result = _catalog._parse_variable_entry(v)
         assert result is not None
         list_id, data = result
         assert list_id == "1"
@@ -120,24 +122,24 @@ class TestParseVariableEntry:
             "tag": "list_3_meta",
             "content": '{"icon": "edu.svg", "language": "english"}',
         }
-        result = newsletter_service._parse_variable_entry(v)
+        result = _catalog._parse_variable_entry(v)
         assert result is not None
         _, data = result
         assert data["name"] == ""
 
     def test_returns_none_for_invalid_json_content(self):
         v = self._make_variable(content="not valid json")
-        assert newsletter_service._parse_variable_entry(v) is None
+        assert _catalog._parse_variable_entry(v) is None
 
     def test_returns_none_for_missing_content_field(self):
         v = {"tag": "list_1_meta", "name": "Sefaria News"}
-        assert newsletter_service._parse_variable_entry(v) is None
+        assert _catalog._parse_variable_entry(v) is None
 
 
 class TestMakeRequest:
     """Tests for NewsletterClient.make_request (the AC API transport layer)"""
 
-    @mock.patch("api.newsletter_service.requests.Session.request")
+    @mock.patch("api.newsletter_service._ac_client.requests.Session.request")
     def test_data_parameter_passed_as_json(self, mock_request):
         """Verify data parameter is passed through as json= to requests.request()"""
         mock_response = mock.MagicMock()
@@ -146,7 +148,7 @@ class TestMakeRequest:
         mock_request.return_value = mock_response
 
         payload = {"fieldValue": {"contact": "123", "field": "test", "value": "42"}}
-        newsletter_service._get_client().make_request(
+        _ac_client._get_client().make_request(
             "fieldValues", method="POST", data=payload
         )
 
@@ -154,7 +156,7 @@ class TestMakeRequest:
         call_kwargs = mock_request.call_args
         assert call_kwargs[1].get("json") == payload
 
-    @mock.patch("api.newsletter_service.requests.Session.request")
+    @mock.patch("api.newsletter_service._ac_client.requests.Session.request")
     def test_no_data_parameter_omits_json(self, mock_request):
         """Verify GET requests without data don't include json= parameter"""
         mock_response = mock.MagicMock()
@@ -162,7 +164,7 @@ class TestMakeRequest:
         mock_response.raise_for_status = mock.MagicMock()
         mock_request.return_value = mock_response
 
-        newsletter_service._get_client().make_request("lists")
+        _ac_client._get_client().make_request("lists")
 
         mock_request.assert_called_once()
         call_kwargs = mock_request.call_args
@@ -184,7 +186,7 @@ class TestMakeRequest:
         from requests.adapters import HTTPAdapter
         from urllib3.util.retry import Retry
 
-        client = newsletter_service.NewsletterClient("test_token", "test_account")
+        client = _ac_client.NewsletterClient("test_token", "test_account")
         adapter = client._session.get_adapter("https://test_account.api-us1.com/api/3/lists")
 
         assert isinstance(adapter, HTTPAdapter)
@@ -205,11 +207,11 @@ class TestMakeRequest:
         down, not just a stale socket), Session.request raises ConnectionError.
         make_request must surface this as ActiveCampaignError.
         """
-        client = newsletter_service.NewsletterClient("test_token", "test_account")
+        client = _ac_client.NewsletterClient("test_token", "test_account")
         with mock.patch.object(
             client._session,
             "request",
-            side_effect=newsletter_service.requests.exceptions.ConnectionError("Connection refused"),
+            side_effect=_ac_client.requests.exceptions.ConnectionError("Connection refused"),
         ):
             with pytest.raises(newsletter_service.ActiveCampaignError, match="Failed to connect"):
                 client.make_request("lists")
@@ -218,7 +220,7 @@ class TestMakeRequest:
 class TestGetAllLists:
     """Tests for fetching lists from ActiveCampaign"""
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_get_all_lists_success(self, mock_request):
         """Successfully fetch lists from AC"""
         mock_request.return_value = {
@@ -231,14 +233,14 @@ class TestGetAllLists:
                 },
             ]
         }
-        lists = newsletter_service.get_all_lists()
+        lists = _catalog.get_all_lists()
 
         assert len(lists) == 2
         assert lists[0]["id"] == "1"
         assert lists[1]["stringid"] == "educator_resources"
         mock_request.assert_called_once_with("lists?limit=100")
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_get_all_lists_error(self, mock_request):
         """Raise error when API call fails"""
         mock_request.side_effect = newsletter_service.ActiveCampaignError(
@@ -246,13 +248,13 @@ class TestGetAllLists:
         )
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
-            newsletter_service.get_all_lists()
+            _catalog.get_all_lists()
 
 
 class TestGetAllAcListIds:
     """Tests for get_all_ac_list_ids helper function"""
 
-    @mock.patch("api.newsletter_service.get_all_lists")
+    @mock.patch("api.newsletter_service._catalog.get_all_lists")
     def test_returns_all_list_ids(self, mock_get_all_lists):
         """Returns IDs from all lists (managed and unmanaged)"""
         mock_get_all_lists.return_value = [
@@ -260,15 +262,15 @@ class TestGetAllAcListIds:
             {"id": "2", "stringid": "educator_resources", "name": "Educator Resources"},
             {"id": "99", "stringid": "internal_list", "name": "Internal List"},
         ]
-        list_ids = newsletter_service.get_all_ac_list_ids()
+        list_ids = _catalog.get_all_ac_list_ids()
 
         assert list_ids == ["1", "2", "99"]
 
-    @mock.patch("api.newsletter_service.get_all_lists")
+    @mock.patch("api.newsletter_service._catalog.get_all_lists")
     def test_returns_empty_when_no_lists(self, mock_get_all_lists):
         """Returns empty list when no lists exist"""
         mock_get_all_lists.return_value = []
-        list_ids = newsletter_service.get_all_ac_list_ids()
+        list_ids = _catalog.get_all_ac_list_ids()
 
         assert list_ids == []
 
@@ -276,7 +278,7 @@ class TestGetAllAcListIds:
 class TestGetAllPersonalizationVariables:
     """Tests for fetching personalization variables from ActiveCampaign"""
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_get_all_variables_success(self, mock_request):
         """Successfully fetch personalization variables"""
         mock_request.return_value = {
@@ -293,7 +295,7 @@ class TestGetAllPersonalizationVariables:
                 },
             ]
         }
-        variables = newsletter_service.get_all_personalization_variables()
+        variables = _catalog.get_all_personalization_variables()
 
         assert len(variables) == 2
         assert variables[0]["tag"] == "list_1_meta"
@@ -303,8 +305,8 @@ class TestGetAllPersonalizationVariables:
 class TestGetNewsletterList:
     """Tests for complete newsletter list building with metadata"""
 
-    @mock.patch("api.newsletter_service.get_all_lists")
-    @mock.patch("api.newsletter_service.get_all_personalization_variables")
+    @mock.patch("api.newsletter_service._catalog.get_all_lists")
+    @mock.patch("api.newsletter_service._catalog.get_all_personalization_variables")
     def test_get_newsletter_list_success(self, mock_variables, mock_lists):
         """Successfully build newsletter list with metadata"""
         mock_lists.return_value = [
@@ -323,7 +325,7 @@ class TestGetNewsletterList:
                 "content": '{"icon": "educator-resources.svg", "language": "english"}',
             },
         ]
-        newsletters = newsletter_service.get_newsletter_list()
+        newsletters = _catalog.get_newsletter_list()
 
         assert len(newsletters) == 2
         assert newsletters[0]["id"] == "1"
@@ -337,8 +339,8 @@ class TestGetNewsletterList:
         assert newsletters[1]["id"] == "2"
         assert newsletters[1]["icon"] == "educator-resources.svg"
 
-    @mock.patch("api.newsletter_service.get_all_lists")
-    @mock.patch("api.newsletter_service.get_all_personalization_variables")
+    @mock.patch("api.newsletter_service._catalog.get_all_lists")
+    @mock.patch("api.newsletter_service._catalog.get_all_personalization_variables")
     def test_only_returns_lists_with_metadata(self, mock_variables, mock_lists):
         """Only return lists that have complete metadata"""
         mock_lists.return_value = [
@@ -352,13 +354,13 @@ class TestGetNewsletterList:
                 "content": '{"icon": "news-and-resources.svg", "language": "english"}',
             },
         ]
-        newsletters = newsletter_service.get_newsletter_list()
+        newsletters = _catalog.get_newsletter_list()
 
         assert len(newsletters) == 1
         assert newsletters[0]["id"] == "1"
 
-    @mock.patch("api.newsletter_service.get_all_lists")
-    @mock.patch("api.newsletter_service.get_all_personalization_variables")
+    @mock.patch("api.newsletter_service._catalog.get_all_lists")
+    @mock.patch("api.newsletter_service._catalog.get_all_personalization_variables")
     def test_skips_lists_with_malformed_metadata(self, mock_variables, mock_lists):
         """Skip lists with malformed metadata"""
         mock_lists.return_value = [
@@ -377,13 +379,13 @@ class TestGetNewsletterList:
                 "content": "not valid json at all",
             },
         ]
-        newsletters = newsletter_service.get_newsletter_list()
+        newsletters = _catalog.get_newsletter_list()
 
         assert len(newsletters) == 1
         assert newsletters[0]["id"] == "1"
 
-    @mock.patch("api.newsletter_service.get_all_lists")
-    @mock.patch("api.newsletter_service.get_all_personalization_variables")
+    @mock.patch("api.newsletter_service._catalog.get_all_lists")
+    @mock.patch("api.newsletter_service._catalog.get_all_personalization_variables")
     def test_skips_lists_whose_metadata_is_not_an_object(self, mock_variables, mock_lists):
         """One list whose metadata is a JSON array is skipped, and the other lists still load"""
         mock_lists.return_value = [
@@ -402,13 +404,13 @@ class TestGetNewsletterList:
                 "content": "[]",
             },
         ]
-        newsletters = newsletter_service.get_newsletter_list()
+        newsletters = _catalog.get_newsletter_list()
 
         assert len(newsletters) == 1
         assert newsletters[0]["id"] == "1"
 
-    @mock.patch("api.newsletter_service.get_all_lists")
-    @mock.patch("api.newsletter_service.get_all_personalization_variables")
+    @mock.patch("api.newsletter_service._catalog.get_all_lists")
+    @mock.patch("api.newsletter_service._catalog.get_all_personalization_variables")
     def test_hebrew_language_produces_he_displayname(self, mock_variables, mock_lists):
         """Hebrew-language metadata produces {'en': None, 'he': name} displayName shape."""
         mock_lists.return_value = [
@@ -421,13 +423,13 @@ class TestGetNewsletterList:
                 "content": '{"icon": "news-and-resources.svg", "language": "hebrew"}',
             },
         ]
-        newsletters = newsletter_service.get_newsletter_list()
+        newsletters = _catalog.get_newsletter_list()
 
         assert len(newsletters) == 1
         assert newsletters[0]["displayName"] == {"en": None, "he": "חדשות עברית"}
 
-    @mock.patch("api.newsletter_service.get_all_lists")
-    @mock.patch("api.newsletter_service.get_all_personalization_variables")
+    @mock.patch("api.newsletter_service._catalog.get_all_lists")
+    @mock.patch("api.newsletter_service._catalog.get_all_personalization_variables")
     def test_primary_comes_from_metadata(self, mock_variables, mock_lists):
         """Only a list whose metadata has "primary": true is marked primary."""
         mock_lists.return_value = [
@@ -442,7 +444,7 @@ class TestGetNewsletterList:
             {"tag": "list_3_meta", "name": "Flag False", "content": '{"primary": false}'},
             {"tag": "list_4_meta", "name": "Flag String", "content": '{"primary": "false"}'},
         ]
-        newsletters = newsletter_service.get_newsletter_list()
+        newsletters = _catalog.get_newsletter_list()
 
         assert {nl["stringid"]: nl["primary"] for nl in newsletters} == {
             "flagged": True,
@@ -451,26 +453,26 @@ class TestGetNewsletterList:
             "flag_string": False,
         }
 
-    @mock.patch("api.newsletter_service.get_all_lists")
-    @mock.patch("api.newsletter_service.get_all_personalization_variables")
+    @mock.patch("api.newsletter_service._catalog.get_all_lists")
+    @mock.patch("api.newsletter_service._catalog.get_all_personalization_variables")
     def test_api_errors_propagate(self, mock_variables, mock_lists):
         """API errors are propagated"""
         mock_lists.side_effect = newsletter_service.ActiveCampaignError("API down")
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
-            newsletter_service.get_newsletter_list()
+            _catalog.get_newsletter_list()
 
 
 class TestGetCachedNewsletterList:
     """Tests for caching the managed newsletter list at the service layer."""
 
     def setup_method(self):
-        cache.delete(newsletter_service.NEWSLETTER_LIST_CACHE_KEY)
+        cache.delete(_catalog.NEWSLETTER_LIST_CACHE_KEY)
 
     def teardown_method(self):
-        cache.delete(newsletter_service.NEWSLETTER_LIST_CACHE_KEY)
+        cache.delete(_catalog.NEWSLETTER_LIST_CACHE_KEY)
 
-    @mock.patch("api.newsletter_service.get_newsletter_list")
+    @mock.patch("api.newsletter_service._catalog.get_newsletter_list")
     def test_returns_cached_value_without_fetching(self, mock_get_newsletter_list):
         cached_newsletters = [
             {
@@ -481,14 +483,14 @@ class TestGetCachedNewsletterList:
                 "language": "english",
             }
         ]
-        cache.set(newsletter_service.NEWSLETTER_LIST_CACHE_KEY, cached_newsletters)
+        cache.set(_catalog.NEWSLETTER_LIST_CACHE_KEY, cached_newsletters)
 
         newsletters = newsletter_service.get_cached_newsletter_list()
 
         assert newsletters == cached_newsletters
         mock_get_newsletter_list.assert_not_called()
 
-    @mock.patch("api.newsletter_service.get_newsletter_list")
+    @mock.patch("api.newsletter_service._catalog.get_newsletter_list")
     def test_caches_non_empty_fetch_result(self, mock_get_newsletter_list):
         fetched_newsletters = [
             {
@@ -505,18 +507,18 @@ class TestGetCachedNewsletterList:
 
         assert newsletters == fetched_newsletters
         assert (
-            cache.get(newsletter_service.NEWSLETTER_LIST_CACHE_KEY)
+            cache.get(_catalog.NEWSLETTER_LIST_CACHE_KEY)
             == fetched_newsletters
         )
 
-    @mock.patch("api.newsletter_service.get_newsletter_list")
+    @mock.patch("api.newsletter_service._catalog.get_newsletter_list")
     def test_does_not_cache_empty_fetch_result(self, mock_get_newsletter_list):
         mock_get_newsletter_list.return_value = []
 
         newsletters = newsletter_service.get_cached_newsletter_list()
 
         assert newsletters == []
-        assert cache.get(newsletter_service.NEWSLETTER_LIST_CACHE_KEY) is None
+        assert cache.get(_catalog.NEWSLETTER_LIST_CACHE_KEY) is None
 
 
 # ============================================================================
@@ -527,7 +529,7 @@ class TestGetCachedNewsletterList:
 class TestFindOrCreateContact:
     """Tests for finding or creating AC contacts"""
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_find_existing_contact(self, mock_request):
         """Find an existing contact by email"""
         mock_request.return_value = {
@@ -540,14 +542,14 @@ class TestFindOrCreateContact:
                 }
             ]
         }
-        contact = newsletter_service.find_or_create_contact(
+        contact = _contacts.find_or_create_contact(
             "john@example.com", "John", "Doe"
         )
 
         assert contact["id"] == "28529"
         assert contact["email"] == "john@example.com"
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_create_new_contact(self, mock_request):
         """Create a new contact if not found"""
         # First call: no existing contacts (search)
@@ -564,7 +566,7 @@ class TestFindOrCreateContact:
             },
         ]
 
-        contact = newsletter_service.find_or_create_contact(
+        contact = _contacts.find_or_create_contact(
             "jane@example.com", "Jane", "Smith"
         )
 
@@ -572,7 +574,7 @@ class TestFindOrCreateContact:
         assert contact["email"] == "jane@example.com"
         assert mock_request.call_count == 2
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_find_contact_api_error(self, mock_request):
         """Handle API errors when finding contact"""
         mock_request.side_effect = newsletter_service.ActiveCampaignError(
@@ -580,11 +582,11 @@ class TestFindOrCreateContact:
         )
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
-            newsletter_service.find_or_create_contact(
+            _contacts.find_or_create_contact(
                 "test@example.com", "Test", "User"
             )
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_email_with_plus_is_url_encoded(self, mock_request):
         """
         Tagged emails like `foo+bar@gmail.com` must be URL-encoded in the lookup
@@ -596,7 +598,7 @@ class TestFindOrCreateContact:
             "contacts": [{"id": "28529", "email": "foo+bar@gmail.com"}]
         }
 
-        newsletter_service.find_or_create_contact("foo+bar@gmail.com", "Foo", "Bar")
+        _contacts.find_or_create_contact("foo+bar@gmail.com", "Foo", "Bar")
 
         # First positional arg to make_request is the endpoint path.
         endpoint = mock_request.call_args.args[0]
@@ -604,7 +606,7 @@ class TestFindOrCreateContact:
         # Defensive: the raw `+` and `@` must NOT appear unencoded in the query.
         assert "foo+bar@gmail.com" not in endpoint
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_email_with_special_chars_is_url_encoded(self, mock_request):
         """
         Other RFC 5321-legal characters that have URL meanings (`&`, `=`) must
@@ -617,7 +619,7 @@ class TestFindOrCreateContact:
             {"contact": {"id": "28530", "email": "a&b=c@example.com"}},
         ]
 
-        newsletter_service.find_or_create_contact("a&b=c@example.com", "A", "B")
+        _contacts.find_or_create_contact("a&b=c@example.com", "A", "B")
 
         endpoint = mock_request.call_args_list[0].args[0]
         assert "a%26b%3Dc%40example.com" in endpoint
@@ -626,7 +628,7 @@ class TestFindOrCreateContact:
 class TestGetContactListMemberships:
     """Tests for fetching contact list memberships"""
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_get_list_memberships_success(self, mock_request):
         """Successfully fetch list memberships"""
         mock_request.return_value = {
@@ -635,21 +637,21 @@ class TestGetContactListMemberships:
                 {"list": "3", "contact": "28529"},
             ]
         }
-        list_ids = newsletter_service.get_contact_list_memberships("28529")
+        list_ids = _contacts.get_contact_list_memberships("28529")
 
         assert len(list_ids) == 2
         assert "1" in list_ids
         assert "3" in list_ids
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_get_no_memberships(self, mock_request):
         """Return empty list when contact has no memberships"""
         mock_request.return_value = {"contactLists": []}
-        list_ids = newsletter_service.get_contact_list_memberships("28529")
+        list_ids = _contacts.get_contact_list_memberships("28529")
 
         assert list_ids == []
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_active_only_filters_by_status(self, mock_request):
         """active_only=True filters to only status=1 (active) memberships"""
         mock_request.return_value = {
@@ -659,7 +661,7 @@ class TestGetContactListMemberships:
                 {"list": "5", "contact": "28529", "status": "1"},  # Active
             ]
         }
-        list_ids = newsletter_service.get_contact_list_memberships(
+        list_ids = _contacts.get_contact_list_memberships(
             "28529", active_only=True
         )
 
@@ -668,7 +670,7 @@ class TestGetContactListMemberships:
         assert "5" in list_ids
         assert "3" not in list_ids
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_active_only_false_returns_all(self, mock_request):
         """active_only=False (default) returns all memberships regardless of status"""
         mock_request.return_value = {
@@ -677,7 +679,7 @@ class TestGetContactListMemberships:
                 {"list": "3", "contact": "28529", "status": "2"},
             ]
         }
-        list_ids = newsletter_service.get_contact_list_memberships(
+        list_ids = _contacts.get_contact_list_memberships(
             "28529", active_only=False
         )
 
@@ -697,7 +699,7 @@ class TestMapStringidsToListIds:
             {"stringid": "parashah_series", "id": "5"},
         ]
         stringids = ["sefaria_news", "text_updates"]
-        list_ids = newsletter_service.map_stringids_to_list_ids(
+        list_ids = _catalog.map_stringids_to_list_ids(
             stringids, newsletter_list
         )
 
@@ -712,8 +714,8 @@ class TestMapStringidsToListIds:
         ]
         stringids = ["sefaria_news", "invalid_newsletter"]
 
-        with pytest.raises(newsletter_service.InputError):
-            newsletter_service.map_stringids_to_list_ids(stringids, newsletter_list)
+        with pytest.raises(InputError):
+            _catalog.map_stringids_to_list_ids(stringids, newsletter_list)
 
 
 class TestNormalizeAndValidateEmail:
@@ -744,37 +746,37 @@ class TestNormalizeAndValidateEmail:
 
         assert error.value.code == "invalid_email"
         # Still an InputError, so code that catches InputError keeps working
-        assert isinstance(error.value, newsletter_service.InputError)
+        assert isinstance(error.value, InputError)
 
 
 class TestAddContactToList:
     """Tests for adding contact to list"""
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_add_contact_to_list_success(self, mock_request):
         """Successfully add contact to list"""
         mock_request.return_value = {"contactList": {"contact": "28529", "list": "1"}}
 
-        result = newsletter_service.add_contact_to_list("28529", "1")
+        result = _contacts.add_contact_to_list("28529", "1")
 
         assert result["contact"] == "28529"
         assert result["list"] == "1"
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_add_contact_to_list_api_error(self, mock_request):
         """Handle API errors when adding contact to list"""
         mock_request.side_effect = newsletter_service.ActiveCampaignError("API failure")
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
-            newsletter_service.add_contact_to_list("28529", "1")
+            _contacts.add_contact_to_list("28529", "1")
 
 
 class TestSubscribeWithUnion:
     """Tests for union-based subscription flow"""
 
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.subscribe_contact_to_lists")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.subscribe_contact_to_lists")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_subscribe_new_user(self, mock_find, mock_subscribe, mock_get_memberships):
         """Subscribe a new user with no existing subscriptions"""
         mock_find.return_value = {
@@ -803,10 +805,10 @@ class TestSubscribeWithUnion:
         assert "sefaria_news" in result["all_subscriptions"]
         assert "text_updates" in result["all_subscriptions"]
 
-    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.subscribe_contact_to_lists")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._catalog.get_cached_newsletter_list")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.subscribe_contact_to_lists")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_subscribe_uses_cached_newsletter_list_when_not_injected(
         self, mock_find, mock_subscribe, mock_get_memberships, mock_get_cached
     ):
@@ -829,9 +831,9 @@ class TestSubscribeWithUnion:
         mock_get_cached.assert_called_once()
         assert result["all_subscriptions"] == ["sefaria_news"]
 
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.subscribe_contact_to_lists")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.subscribe_contact_to_lists")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_subscribe_with_union_existing_subscriptions(
         self, mock_find, mock_subscribe, mock_get_memberships
     ):
@@ -857,9 +859,9 @@ class TestSubscribeWithUnion:
         assert "text_updates" in result["all_subscriptions"]
         assert "parashah_series" in result["all_subscriptions"]
 
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.subscribe_contact_to_lists")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.subscribe_contact_to_lists")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_only_subscribes_to_diff(
         self, mock_find, mock_subscribe, mock_get_memberships
     ):
@@ -913,27 +915,27 @@ class TestSubscribeWithUnion:
 class TestRemoveContactFromList:
     """Tests for removing contact from newsletter list"""
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_remove_contact_from_list_success(self, mock_request):
         """Successfully remove contact from list"""
         mock_request.return_value = {
             "contactList": {"contact": "28529", "list": "1", "status": "2"}
         }
 
-        result = newsletter_service.remove_contact_from_list("28529", "1")
+        result = _contacts.remove_contact_from_list("28529", "1")
 
         assert result["contact"] == "28529"
         assert result["status"] == "2"
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_remove_contact_from_list_api_error(self, mock_request):
         """Handle API errors when removing contact from list"""
         mock_request.side_effect = newsletter_service.ActiveCampaignError("API failure")
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
-            newsletter_service.remove_contact_from_list("28529", "1")
+            _contacts.remove_contact_from_list("28529", "1")
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_remove_idempotent(self, mock_request):
         """Removing a contact twice should both succeed (idempotent)"""
         mock_request.return_value = {
@@ -941,9 +943,9 @@ class TestRemoveContactFromList:
         }
 
         # First removal
-        result1 = newsletter_service.remove_contact_from_list("28529", "1")
+        result1 = _contacts.remove_contact_from_list("28529", "1")
         # Second removal (should also succeed)
-        result2 = newsletter_service.remove_contact_from_list("28529", "1")
+        result2 = _contacts.remove_contact_from_list("28529", "1")
 
         assert result1["status"] == "2"
         assert result2["status"] == "2"
@@ -957,48 +959,48 @@ class TestRemoveContactFromList:
 class TestUpdateListMemberships:
     """Tests for updating list memberships (add and remove)"""
 
-    @mock.patch("api.newsletter_service.add_contact_to_list")
-    @mock.patch("api.newsletter_service.remove_contact_from_list")
+    @mock.patch("api.newsletter_service._contacts.add_contact_to_list")
+    @mock.patch("api.newsletter_service._contacts.remove_contact_from_list")
     def test_update_add_and_remove(self, mock_remove, mock_add):
         """Update contact by adding and removing from lists"""
         mock_remove.return_value = None
         mock_add.return_value = None
 
-        newsletter_service.update_list_memberships("28529", ["3", "5"], ["1", "2"])
+        _contacts.update_list_memberships("28529", ["3", "5"], ["1", "2"])
 
         # Verify removes were called
         assert mock_remove.call_count == 2
         # Verify adds were called
         assert mock_add.call_count == 2
 
-    @mock.patch("api.newsletter_service.add_contact_to_list")
-    @mock.patch("api.newsletter_service.remove_contact_from_list")
+    @mock.patch("api.newsletter_service._contacts.add_contact_to_list")
+    @mock.patch("api.newsletter_service._contacts.remove_contact_from_list")
     def test_update_add_only(self, mock_remove, mock_add):
         """Update contact by adding to lists only"""
         mock_add.return_value = None
 
-        newsletter_service.update_list_memberships("28529", ["3", "5"], [])
+        _contacts.update_list_memberships("28529", ["3", "5"], [])
 
         # Verify no removes
         assert mock_remove.call_count == 0
         # Verify adds were called
         assert mock_add.call_count == 2
 
-    @mock.patch("api.newsletter_service.add_contact_to_list")
-    @mock.patch("api.newsletter_service.remove_contact_from_list")
+    @mock.patch("api.newsletter_service._contacts.add_contact_to_list")
+    @mock.patch("api.newsletter_service._contacts.remove_contact_from_list")
     def test_update_remove_only(self, mock_remove, mock_add):
         """Update contact by removing from lists only"""
         mock_remove.return_value = None
 
-        newsletter_service.update_list_memberships("28529", [], ["1", "2"])
+        _contacts.update_list_memberships("28529", [], ["1", "2"])
 
         # Verify removes were called
         assert mock_remove.call_count == 2
         # Verify no adds
         assert mock_add.call_count == 0
 
-    @mock.patch("api.newsletter_service.add_contact_to_list")
-    @mock.patch("api.newsletter_service.remove_contact_from_list")
+    @mock.patch("api.newsletter_service._contacts.add_contact_to_list")
+    @mock.patch("api.newsletter_service._contacts.remove_contact_from_list")
     def test_tries_every_list_when_one_fails(self, mock_remove, mock_add):
         """A failed list doesn't stop the others; the error is raised after all were tried"""
         mock_remove.side_effect = [
@@ -1007,7 +1009,7 @@ class TestUpdateListMemberships:
         ]
 
         with pytest.raises(newsletter_service.ActiveCampaignError, match="remove from 1"):
-            newsletter_service.update_list_memberships("28529", ["3"], ["1", "2"])
+            _contacts.update_list_memberships("28529", ["3"], ["1", "2"])
 
         assert [c.args[1] for c in mock_remove.call_args_list] == ["1", "2"]
         mock_add.assert_called_once_with("28529", "3")
@@ -1025,8 +1027,8 @@ class TestUpdateListMemberships:
 class TestFetchUserSubscriptionsImpl:
     """Tests for fetch_user_subscriptions_impl function"""
 
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_fetch_existing_user_subscriptions(
         self, mock_request, mock_get_memberships
     ):
@@ -1054,7 +1056,7 @@ class TestFetchUserSubscriptionsImpl:
         # Default wants_marketing_emails when no user passed
         assert result["wants_marketing_emails"] is True
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_fetch_new_user_no_subscriptions(self, mock_request):
         """Return empty subscriptions for new user not in AC"""
         mock_request.return_value = {"contacts": []}
@@ -1071,8 +1073,8 @@ class TestFetchUserSubscriptionsImpl:
         assert result["learning_level"] is None
         assert result["wants_marketing_emails"] is True
 
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_fetch_filters_invalid_list_ids(self, mock_request, mock_get_memberships):
         """Fetch only maps valid list IDs back to stringids"""
         mock_request.return_value = {
@@ -1092,7 +1094,7 @@ class TestFetchUserSubscriptionsImpl:
         # Should only include valid mappings
         assert result["subscribed_newsletters"] == ["sefaria_news"]
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_fetch_api_error(self, mock_request):
         """Handle API errors gracefully"""
         mock_request.side_effect = newsletter_service.ActiveCampaignError("API down")
@@ -1106,9 +1108,9 @@ class TestFetchUserSubscriptionsImpl:
                 "user@example.com", newsletter_list
             )
 
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_fetch_corrects_stale_wants_marketing_false_with_active_membership(
         self, mock_request, mock_get_memberships, mock_profile_class
     ):
@@ -1139,9 +1141,9 @@ class TestFetchUserSubscriptionsImpl:
         assert mock_profile.wants_marketing_emails is True
         mock_profile.save.assert_called_once()
 
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_fetch_preserves_wants_marketing_false_without_active_memberships(
         self, mock_request, mock_get_memberships, mock_profile_class
     ):
@@ -1174,8 +1176,8 @@ class TestFetchUserSubscriptionsImpl:
 class TestGetContactLearningLevel:
     """Tests for get_contact_learning_level function"""
 
-    @mock.patch("api.newsletter_service.get_ac_field_id_by_perstag")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._contacts.get_ac_field_id_by_perstag")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_returns_int_when_field_present(self, mock_request, mock_get_field_id):
         """Return integer learning level when AC field has a valid value"""
         mock_get_field_id.return_value = "7"
@@ -1186,13 +1188,13 @@ class TestGetContactLearningLevel:
             ]
         }
 
-        result = newsletter_service.get_contact_learning_level("28529")
+        result = _contacts.get_contact_learning_level("28529")
 
         assert result == 3
         mock_get_field_id.assert_called_once_with("LEARNING_LEVEL")
 
-    @mock.patch("api.newsletter_service.get_ac_field_id_by_perstag")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._contacts.get_ac_field_id_by_perstag")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_returns_none_when_field_empty(self, mock_request, mock_get_field_id):
         """Return None when field exists but value is empty string"""
         mock_get_field_id.return_value = "7"
@@ -1202,12 +1204,12 @@ class TestGetContactLearningLevel:
             ]
         }
 
-        result = newsletter_service.get_contact_learning_level("28529")
+        result = _contacts.get_contact_learning_level("28529")
 
         assert result is None
 
-    @mock.patch("api.newsletter_service.get_ac_field_id_by_perstag")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._contacts.get_ac_field_id_by_perstag")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_returns_none_when_field_missing(self, mock_request, mock_get_field_id):
         """Return None when LEARNING_LEVEL field is not in contact's fieldValues"""
         mock_get_field_id.return_value = "7"
@@ -1217,12 +1219,12 @@ class TestGetContactLearningLevel:
             ]
         }
 
-        result = newsletter_service.get_contact_learning_level("28529")
+        result = _contacts.get_contact_learning_level("28529")
 
         assert result is None
 
-    @mock.patch("api.newsletter_service.get_ac_field_id_by_perstag")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._contacts.get_ac_field_id_by_perstag")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_returns_none_for_non_numeric_value(self, mock_request, mock_get_field_id):
         """Return None when AC stores a non-numeric string"""
         mock_get_field_id.return_value = "7"
@@ -1232,22 +1234,22 @@ class TestGetContactLearningLevel:
             ]
         }
 
-        result = newsletter_service.get_contact_learning_level("28529")
+        result = _contacts.get_contact_learning_level("28529")
 
         assert result is None
 
-    @mock.patch("api.newsletter_service.get_ac_field_id_by_perstag")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._contacts.get_ac_field_id_by_perstag")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_api_error_propagates(self, mock_request, mock_get_field_id):
         """ActiveCampaignError propagates to caller"""
         mock_get_field_id.return_value = "7"
         mock_request.side_effect = newsletter_service.ActiveCampaignError("API down")
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
-            newsletter_service.get_contact_learning_level("28529")
+            _contacts.get_contact_learning_level("28529")
 
-    @mock.patch("api.newsletter_service.get_ac_field_id_by_perstag")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._contacts.get_ac_field_id_by_perstag")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_matches_field_id_as_string(self, mock_request, mock_get_field_id):
         """Field ID matching works when AC returns int vs string"""
         mock_get_field_id.return_value = "7"
@@ -1257,7 +1259,7 @@ class TestGetContactLearningLevel:
             ]
         }
 
-        result = newsletter_service.get_contact_learning_level("28529")
+        result = _contacts.get_contact_learning_level("28529")
 
         assert result == 2
 
@@ -1265,60 +1267,60 @@ class TestGetContactLearningLevel:
 class TestFindContactIdByEmail:
     """Tests for find_contact_id_by_email (read-only lookup, never creates a contact)"""
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_returns_first_contact_id(self, mock_request):
         """Returns the ID of the contact AC finds, and passes the timeout through"""
         mock_request.return_value = {"contacts": [{"id": "28529"}]}
 
-        result = newsletter_service.find_contact_id_by_email("a+b@example.com", timeout=3)
+        result = _contacts.find_contact_id_by_email("a+b@example.com", timeout=3)
 
         assert result == "28529"
         mock_request.assert_called_once_with(
             "contacts?filters[email]=a%2Bb%40example.com", timeout=3
         )
 
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_returns_none_when_not_found(self, mock_request):
         """Returns None (instead of creating anything) when AC has no such contact"""
         mock_request.return_value = {"contacts": []}
 
-        assert newsletter_service.find_contact_id_by_email("new@example.com") is None
+        assert _contacts.find_contact_id_by_email("new@example.com") is None
         mock_request.assert_called_once()
 
 
 class TestGetLearningLevelForEmail:
     """Tests for get_learning_level_for_email"""
 
-    @mock.patch("api.newsletter_service.get_contact_learning_level")
-    @mock.patch("api.newsletter_service.find_contact_id_by_email")
+    @mock.patch("api.newsletter_service._contacts.get_contact_learning_level")
+    @mock.patch("api.newsletter_service._contacts.find_contact_id_by_email")
     def test_no_contact_returns_none(self, mock_find, mock_get_level):
         """No AC contact means no learning level, without reading any fields"""
         mock_find.return_value = None
 
-        assert newsletter_service.get_learning_level_for_email("new@example.com") is None
+        assert _contacts.get_learning_level_for_email("new@example.com") is None
         mock_get_level.assert_not_called()
 
-    @mock.patch("api.newsletter_service.get_contact_learning_level")
-    @mock.patch("api.newsletter_service.find_contact_id_by_email")
+    @mock.patch("api.newsletter_service._contacts.get_contact_learning_level")
+    @mock.patch("api.newsletter_service._contacts.find_contact_id_by_email")
     def test_returns_level_and_passes_timeout(self, mock_find, mock_get_level):
         """Returns the AC level, using the same timeout for both AC calls"""
         mock_find.return_value = "28529"
         mock_get_level.return_value = 3
 
-        result = newsletter_service.get_learning_level_for_email("a@example.com", timeout=3)
+        result = _contacts.get_learning_level_for_email("a@example.com", timeout=3)
 
         assert result == 3
         mock_find.assert_called_once_with("a@example.com", timeout=3)
         mock_get_level.assert_called_once_with("28529", timeout=3)
 
-    @mock.patch("api.newsletter_service.get_contact_learning_level")
-    @mock.patch("api.newsletter_service.find_contact_id_by_email")
+    @mock.patch("api.newsletter_service._contacts.get_contact_learning_level")
+    @mock.patch("api.newsletter_service._contacts.find_contact_id_by_email")
     def test_out_of_range_level_returns_none(self, mock_find, mock_get_level):
         """A value outside 1-5 in AC is ignored rather than copied"""
         mock_find.return_value = "28529"
         mock_get_level.return_value = 9
 
-        assert newsletter_service.get_learning_level_for_email("a@example.com") is None
+        assert _contacts.get_learning_level_for_email("a@example.com") is None
 
 
 class TestCopyLearningLevelFromAc:
@@ -1329,9 +1331,9 @@ class TestCopyLearningLevelFromAc:
         # Only the attributes the function reads; it never calls profile.save()
         return SimpleNamespace(id=uid, email="new@example.com", learning_level=learning_level)
 
-    @mock.patch("api.newsletter_service.db")
-    @mock.patch("api.newsletter_service.get_learning_level_for_email", return_value=4)
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.db")
+    @mock.patch("api.newsletter_service._learning_level.get_learning_level_for_email", return_value=4)
+    @mock.patch("api.newsletter_service._learning_level.UserProfile")
     def test_copies_level_from_ac(self, mock_profile_cls, mock_get_level, mock_db):
         mock_profile_cls.return_value = self.make_profile()
 
@@ -1346,9 +1348,9 @@ class TestCopyLearningLevelFromAc:
             {"$set": {"learning_level": 4}},
         )
 
-    @mock.patch("api.newsletter_service.db")
-    @mock.patch("api.newsletter_service.get_learning_level_for_email", return_value=2)
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.db")
+    @mock.patch("api.newsletter_service._learning_level.get_learning_level_for_email", return_value=2)
+    @mock.patch("api.newsletter_service._learning_level.UserProfile")
     def test_passes_timeout_to_ac(self, mock_profile_cls, mock_get_level, _mock_db):
         mock_profile_cls.return_value = self.make_profile()
 
@@ -1356,9 +1358,9 @@ class TestCopyLearningLevelFromAc:
 
         mock_get_level.assert_called_once_with("new@example.com", timeout=3)
 
-    @mock.patch("api.newsletter_service.db")
-    @mock.patch("api.newsletter_service.get_learning_level_for_email")
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.db")
+    @mock.patch("api.newsletter_service._learning_level.get_learning_level_for_email")
+    @mock.patch("api.newsletter_service._learning_level.UserProfile")
     def test_keeps_existing_level(self, mock_profile_cls, mock_get_level, mock_db):
         """A profile that already has a level (e.g. a seed account) keeps it"""
         mock_profile_cls.return_value = self.make_profile(learning_level=2)
@@ -1368,9 +1370,9 @@ class TestCopyLearningLevelFromAc:
         mock_get_level.assert_not_called()
         mock_db.profiles.update_one.assert_not_called()
 
-    @mock.patch("api.newsletter_service.db")
-    @mock.patch("api.newsletter_service.get_learning_level_for_email")
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.db")
+    @mock.patch("api.newsletter_service._learning_level.get_learning_level_for_email")
+    @mock.patch("api.newsletter_service._learning_level.UserProfile")
     def test_skips_missing_user(self, mock_profile_cls, mock_get_level, mock_db):
         """If the account was deleted before the task ran, do nothing"""
         mock_profile_cls.return_value = self.make_profile(uid=None)
@@ -1380,9 +1382,9 @@ class TestCopyLearningLevelFromAc:
         mock_get_level.assert_not_called()
         mock_db.profiles.update_one.assert_not_called()
 
-    @mock.patch("api.newsletter_service.db")
-    @mock.patch("api.newsletter_service.get_learning_level_for_email", return_value=None)
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.db")
+    @mock.patch("api.newsletter_service._learning_level.get_learning_level_for_email", return_value=None)
+    @mock.patch("api.newsletter_service._learning_level.UserProfile")
     def test_no_level_in_ac_writes_nothing(self, mock_profile_cls, _mock_get_level, mock_db):
         mock_profile_cls.return_value = self.make_profile()
 
@@ -1390,9 +1392,9 @@ class TestCopyLearningLevelFromAc:
 
         mock_db.profiles.update_one.assert_not_called()
 
-    @mock.patch("api.newsletter_service.db")
-    @mock.patch("api.newsletter_service.get_learning_level_for_email")
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.db")
+    @mock.patch("api.newsletter_service._learning_level.get_learning_level_for_email")
+    @mock.patch("api.newsletter_service._learning_level.UserProfile")
     def test_ac_failure_is_raised(self, mock_profile_cls, mock_get_level, mock_db):
         """AC errors are passed on, so the Celery task can try again"""
         mock_profile_cls.return_value = self.make_profile()
@@ -1407,9 +1409,9 @@ class TestCopyLearningLevelFromAc:
 class TestFetchUserSubscriptionsLearningLevel:
     """Tests for learning_level in fetch_user_subscriptions_impl"""
 
-    @mock.patch("api.newsletter_service.get_contact_learning_level")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_learning_level")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_returns_ac_learning_level(
         self, mock_request, mock_get_memberships, mock_get_ll
     ):
@@ -1427,10 +1429,10 @@ class TestFetchUserSubscriptionsLearningLevel:
 
         assert result["learning_level"] == 3
 
-    @mock.patch("api.newsletter_service.get_contact_learning_level")
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_learning_level")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_ac_value_wins_over_profile(
         self, mock_request, mock_get_memberships, mock_profile_class, mock_get_ll
     ):
@@ -1457,10 +1459,10 @@ class TestFetchUserSubscriptionsLearningLevel:
 
         assert result["learning_level"] == 4  # AC wins over profile's 2
 
-    @mock.patch("api.newsletter_service.get_contact_learning_level")
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_learning_level")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_falls_back_to_profile_when_ac_has_none(
         self, mock_request, mock_get_memberships, mock_profile_class, mock_get_ll
     ):
@@ -1487,10 +1489,10 @@ class TestFetchUserSubscriptionsLearningLevel:
 
         assert result["learning_level"] == 5  # Falls back to profile
 
-    @mock.patch("api.newsletter_service.get_contact_learning_level")
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_learning_level")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_graceful_degradation_on_ac_field_error(
         self, mock_request, mock_get_memberships, mock_profile_class, mock_get_ll
     ):
@@ -1521,8 +1523,8 @@ class TestFetchUserSubscriptionsLearningLevel:
         assert result["subscribed_newsletters"] == ["sefaria_news"]
         assert result["learning_level"] == 3  # Falls back to profile
 
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_profile_learning_level_when_not_in_ac(
         self, mock_request, mock_profile_class
     ):
@@ -1554,11 +1556,11 @@ class TestFetchUserSubscriptionsLearningLevel:
 class TestUpdateUserPreferencesImpl:
     """Tests for update_user_preferences_impl function (replace behavior)"""
 
-    @mock.patch("api.newsletter_service._load_user_profile", return_value=None)
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile", return_value=None)
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
     def test_update_replace_subscriptions(
         self,
         mock_get_memberships,
@@ -1605,10 +1607,10 @@ class TestUpdateUserPreferencesImpl:
         # to simulate "no Sefaria account"). wants_marketing_emails set to True for normal update.
         mock_update_flag.assert_called_once_with(None, True)
 
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
     def test_update_unsubscribe_all_previous(
         self, mock_get_memberships, mock_find, mock_update, mock_update_flag
     ):
@@ -1641,10 +1643,10 @@ class TestUpdateUserPreferencesImpl:
 
         assert result["subscribed_newsletters"] == ["sefaria_news"]
 
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
     def test_update_subscribe_all_new(
         self, mock_get_memberships, mock_find, mock_update, mock_update_flag
     ):
@@ -1690,7 +1692,7 @@ class TestUpdateUserPreferencesImpl:
         ]
 
         # Try to update with invalid stringid
-        with pytest.raises(newsletter_service.InputError):
+        with pytest.raises(InputError):
             newsletter_service.update_user_preferences_impl(
                 "user@example.com",
                 "John",
@@ -1699,10 +1701,10 @@ class TestUpdateUserPreferencesImpl:
                 newsletter_list,
             )
 
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_normal_update_preserves_unmanaged_lists(
         self, mock_find, mock_get_memberships, mock_update, mock_update_flag
     ):
@@ -1737,10 +1739,10 @@ class TestUpdateUserPreferencesImpl:
 
         assert result["subscribed_newsletters"] == ["text_updates"]
 
-    @mock.patch("api.newsletter_service._update_wants_marketing_emails")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions._update_wants_marketing_emails")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_empty_selection_unsubscribes_from_all_managed(
         self, mock_find, mock_get_memberships, mock_update_memberships, mock_update_flag
     ):
@@ -1785,11 +1787,11 @@ class TestUpdateUserPreferencesImpl:
         assert "1" in remove_list
         assert "3" in remove_list
 
-    @mock.patch("api.newsletter_service.UserProfile")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_opt_out_account_without_profile_document(
         self,
         mock_find,
@@ -1825,11 +1827,11 @@ class TestUpdateUserPreferencesImpl:
         assert set(mock_update_memberships.call_args[0][2]) == {"1", "99"}
         assert result["subscribed_newsletters"] == []
 
-    @mock.patch("api.newsletter_service._load_user_profile")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_opt_out_profile_save_fails_still_removes_lists_then_raises(
         self,
         mock_find,
@@ -1862,11 +1864,11 @@ class TestUpdateUserPreferencesImpl:
         mock_update_memberships.assert_called_once()
         assert set(mock_update_memberships.call_args[0][2]) == {"1", "99"}
 
-    @mock.patch("api.newsletter_service._load_user_profile")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_opt_out_profile_save_fails_raises_incomplete_error(
         self,
         mock_find,
@@ -1892,11 +1894,11 @@ class TestUpdateUserPreferencesImpl:
 
         assert excinfo.value.code == "preferences_update_incomplete"
 
-    @mock.patch("api.newsletter_service._load_user_profile")
-    @mock.patch("api.newsletter_service.update_list_memberships")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile")
+    @mock.patch("api.newsletter_service._subscriptions.update_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     def test_opt_out_failed_removal_leaves_profile_unchanged(
         self,
         mock_find,
@@ -1940,9 +1942,9 @@ class TestUpdateUserPreferencesImpl:
 class TestUpdateLearningLevelInAc:
     """Tests for update_learning_level_in_ac() service function"""
 
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_ac_field_id_by_perstag", return_value="104")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._contacts.get_ac_field_id_by_perstag", return_value="104")
+    @mock.patch("api.newsletter_service._contacts.find_or_create_contact")
     def test_update_learning_level_valid(
         self, mock_find_contact, mock_field_lookup, mock_ac_request
     ):
@@ -1950,16 +1952,16 @@ class TestUpdateLearningLevelInAc:
         mock_find_contact.return_value = {"id": "12345", "email": "test@example.com"}
         mock_ac_request.return_value = {"success": True}
 
-        result = newsletter_service.update_learning_level_in_ac("test@example.com", 3)
+        result = _contacts.update_learning_level_in_ac("test@example.com", 3)
 
         assert result["contact_id"] == "12345"
         assert result["learning_level"] == 3
         assert result["email"] == "test@example.com"
         mock_field_lookup.assert_called_once_with("LEARNING_LEVEL")
 
-    @mock.patch("api.newsletter_service._client.make_request")
-    @mock.patch("api.newsletter_service.get_ac_field_id_by_perstag", return_value="104")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    @mock.patch("api.newsletter_service._contacts.get_ac_field_id_by_perstag", return_value="104")
+    @mock.patch("api.newsletter_service._contacts.find_or_create_contact")
     def test_update_learning_level_none(
         self, mock_find_contact, mock_field_lookup, mock_ac_request
     ):
@@ -1967,7 +1969,7 @@ class TestUpdateLearningLevelInAc:
         mock_find_contact.return_value = {"id": "12345", "email": "test@example.com"}
         mock_ac_request.return_value = {"success": True}
 
-        result = newsletter_service.update_learning_level_in_ac(
+        result = _contacts.update_learning_level_in_ac(
             "test@example.com", None
         )
 
@@ -1976,42 +1978,42 @@ class TestUpdateLearningLevelInAc:
 
     def test_update_learning_level_invalid_zero(self):
         """Reject learning level of 0"""
-        with pytest.raises(newsletter_service.InputError):
-            newsletter_service.update_learning_level_in_ac("test@example.com", 0)
+        with pytest.raises(InputError):
+            _contacts.update_learning_level_in_ac("test@example.com", 0)
 
     def test_update_learning_level_invalid_too_high(self):
         """Reject learning level above 5"""
-        with pytest.raises(newsletter_service.InputError):
-            newsletter_service.update_learning_level_in_ac("test@example.com", 6)
+        with pytest.raises(InputError):
+            _contacts.update_learning_level_in_ac("test@example.com", 6)
 
     def test_update_learning_level_invalid_string(self):
         """Reject non-integer learning level"""
-        with pytest.raises(newsletter_service.InputError):
+        with pytest.raises(InputError):
             # Deliberately passing a string to verify validation rejects it.
-            newsletter_service.update_learning_level_in_ac("test@example.com", "advanced")  # type: ignore[arg-type]
+            _contacts.update_learning_level_in_ac("test@example.com", "advanced")  # type: ignore[arg-type]
 
-    @mock.patch("api.newsletter_service.get_ac_field_id_by_perstag", return_value="104")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._contacts.get_ac_field_id_by_perstag", return_value="104")
+    @mock.patch("api.newsletter_service._contacts.find_or_create_contact")
     def test_update_learning_level_ac_error(self, mock_find_contact, mock_field_lookup):
         """Handle AC API errors gracefully"""
         mock_find_contact.return_value = {"id": "12345", "email": "test@example.com"}
 
         with mock.patch(
-            "api.newsletter_service._client.make_request"
+            "api.newsletter_service._ac_client._client.make_request"
         ) as mock_ac_request:
             mock_ac_request.side_effect = newsletter_service.ActiveCampaignError(
                 "API Error"
             )
 
             with pytest.raises(newsletter_service.ActiveCampaignError):
-                newsletter_service.update_learning_level_in_ac("test@example.com", 2)
+                _contacts.update_learning_level_in_ac("test@example.com", 2)
 
 
 class TestUpdateLearningLevelImpl:
     """Tests for update_learning_level_impl() service function"""
 
-    @mock.patch("api.newsletter_service.update_learning_level_in_ac")
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.update_learning_level_in_ac")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
     def test_update_learning_level_with_account(
         self, mock_profile_class, mock_ac_update
     ):
@@ -2035,8 +2037,8 @@ class TestUpdateLearningLevelImpl:
         # Verify profile was saved
         mock_profile.save.assert_called_once()
 
-    @mock.patch("api.newsletter_service.update_learning_level_in_ac")
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.update_learning_level_in_ac")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
     def test_update_learning_level_no_account(self, mock_profile_class, mock_ac_update):
         """Update learning level for user without existing account"""
         # Mock UserProfile to simulate no user found
@@ -2055,8 +2057,8 @@ class TestUpdateLearningLevelImpl:
         # Verify profile was NOT saved
         mock_profile.save.assert_not_called()
 
-    @mock.patch("api.newsletter_service.update_learning_level_in_ac")
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.update_learning_level_in_ac")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
     def test_update_learning_level_none(self, mock_profile_class, mock_ac_update):
         """Update learning level to None (optional)"""
         mock_profile = mock.MagicMock()
@@ -2071,10 +2073,10 @@ class TestUpdateLearningLevelImpl:
 
     def test_update_learning_level_invalid_value(self):
         """Reject invalid learning level"""
-        with pytest.raises(newsletter_service.InputError):
+        with pytest.raises(InputError):
             newsletter_service.update_learning_level_impl("test@example.com", 10)
 
-    @mock.patch("api.newsletter_service.update_learning_level_in_ac")
+    @mock.patch("api.newsletter_service._learning_level.update_learning_level_in_ac")
     @mock.patch("sefaria.model.user_profile.UserProfile")
     def test_update_learning_level_ac_error_propagates(
         self, mock_profile_class, mock_ac_update
@@ -2091,8 +2093,8 @@ class TestUpdateLearningLevelImpl:
         with pytest.raises(newsletter_service.ActiveCampaignError):
             newsletter_service.update_learning_level_impl("test@example.com", 1)
 
-    @mock.patch("api.newsletter_service.update_learning_level_in_ac")
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.update_learning_level_in_ac")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
     def test_update_learning_level_ac_error_leaves_profile_unchanged(
         self, mock_profile_class, mock_ac_update
     ):
@@ -2110,8 +2112,8 @@ class TestUpdateLearningLevelImpl:
 
         mock_profile.save.assert_not_called()
 
-    @mock.patch("api.newsletter_service.update_learning_level_in_ac")
-    @mock.patch("api.newsletter_service.UserProfile")
+    @mock.patch("api.newsletter_service._learning_level.update_learning_level_in_ac")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
     def test_update_learning_level_account_without_profile_document(
         self, mock_profile_class, mock_ac_update
     ):
@@ -2154,15 +2156,15 @@ class TestIsValidLearningLevel:
     @pytest.mark.parametrize(
         "service_function",
         [
-            newsletter_service.update_learning_level_in_ac,
+            _contacts.update_learning_level_in_ac,
             newsletter_service.update_learning_level_impl,
         ],
     )
-    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_service_functions_reject_true_before_calling_ac(
         self, mock_request, service_function
     ):
-        with pytest.raises(newsletter_service.InputError, match="Learning level must be"):
+        with pytest.raises(InputError, match="Learning level must be"):
             service_function("test@example.com", True)
 
         mock_request.assert_not_called()

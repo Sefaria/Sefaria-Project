@@ -438,11 +438,11 @@ class TestUpdateUserPreferencesIntegration:
         call_kwargs = mock_update.call_args[1]
         assert call_kwargs["marketing_opt_out"] is True
 
-    @mock.patch("api.newsletter_service._load_user_profile", return_value=None)
-    @mock.patch("api.newsletter_service.remove_contact_from_list")
-    @mock.patch("api.newsletter_service.get_contact_list_memberships")
-    @mock.patch("api.newsletter_service.get_all_ac_list_ids")
-    @mock.patch("api.newsletter_service.find_or_create_contact")
+    @mock.patch("api.newsletter_service._subscriptions._load_user_profile", return_value=None)
+    @mock.patch("api.newsletter_service._contacts.remove_contact_from_list")
+    @mock.patch("api.newsletter_service._subscriptions.get_contact_list_memberships")
+    @mock.patch("api.newsletter_service._subscriptions.get_all_ac_list_ids")
+    @mock.patch("api.newsletter_service._subscriptions.find_or_create_contact")
     @mock.patch("api.newsletter_views.get_cached_newsletter_list")
     def test_opt_out_with_failed_list_removal_returns_incomplete_code(
         self,
@@ -498,12 +498,12 @@ class TestGetUserSubscriptionsIntegration:
 
     def test_returns_503_when_not_configured(self, logged_in_client, monkeypatch):
         """Returns 503 with a stable error key when AC credentials are absent, like /lists does."""
-        from api import newsletter_service
+        from api.newsletter_service import _ac_client
 
         # No client is what the service has when the credentials aren't set. This
         # endpoint has no up-front check, so the 503 has to come from the error
         # requires_ac_client raises.
-        monkeypatch.setattr(newsletter_service, "_client", None)
+        monkeypatch.setattr(_ac_client, "_client", None)
 
         response = logged_in_client.get("/api/newsletter/subscriptions")
 
