@@ -231,4 +231,23 @@
   cursor: pointer;
 }
 
+@media (max-width: 842px) {
+  .header .headerInner.desktopHeaderInner,
+  .header.hiddenOnMobile {
+    display: none;
+  }
+}
+@media (min-width: 843px) and (max-width: 1086px) {
+  .header .headerInner.mobile,
+  .header .mobileNavMenu {
+    display: none;
+  }
+}
+@media (min-width: 1087px) {
+  .header .headerInner.mobile,
+  .header .mobileNavMenu {
+    display: none;
+  }
+}
+
 /*# sourceMappingURL=header.css.map */

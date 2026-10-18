@@ -110,7 +110,7 @@ class AuthorIndexAggregation(AuthorWorksAggregation):
         return self._index.get_title(lang)
 
     def get_url(self):
-        return f'/{self._index.title.replace(" ", "_").replace("?", "%3F")}'
+        return f'/{Ref(self._index.title).url()}'
 
     def is_category(self):
         return False
@@ -1361,7 +1361,6 @@ def process_topic_description_change(topic, **kwargs):
             ref_topic_dict = {"toTopic": topic.slug, "dataSource": "learning-team-editing-tool", "linkType": refLinkType,
                               'ref': ref}
             RefTopicLink(ref_topic_dict).save()
-
 
 
 

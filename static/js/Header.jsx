@@ -235,18 +235,34 @@ const Header = (props) => {
     }
   }, []);
   
-  const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
-  
-  const shouldHide = () => {
-    // Determines whether or not this component should be displayed or not. 
-    // When the component is hidden, there are two cases: (1) the ReaderControls component is displayed instead of this component, essentially
-    // functioning as the header.  This case occurs when viewing a library text in mode "Text"
-    // and (2) there is simply no header at all.  This case occurs when viewing a library text in mode "TextAndConnections".    
-    // shouldHide() returns true when the header should be hidden (a) on mobile (b) while viewing library texts (c) when the mobile nav menu is not open.
-    const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
-    const hidden = mobile && !props.mobileNavMenuOpen && isViewingTextContent;
-    return hidden;
-  }
+  // The breakpoint is unknown during SSR, so the server renders both the mobile and the desktop headers, and CSS media
+  // queries (header.scss) show the right one until the client renders. CSS alone isn't enough, because keeping the
+  // hidden header mounted would leave duplicate DOM and its components' document-level listeners (e.g. the dropdowns'
+  // click-outside and Escape handlers) running. So after mount, only the header matching the breakpoint is rendered.
+  // The first client render still includes both, so that it matches the server markup for hydration.
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+  const isMobile = isMounted && Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
+  const shouldShowMobile = !isMounted || isMobile;
+  const shouldShowDesktop = !isMounted || !isMobile;
+
+  const headerRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "regular_header" });
+    gtag("event", "header_viewed", { impression_type: "regular_header" });
+    if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
+  }, "sa.header_viewed");
+
+  // Determines whether or not this component should be displayed on mobile.
+  // When the component is hidden, there are two cases: (1) the ReaderControls component is displayed instead of this component, essentially
+  // functioning as the header.  This case occurs when viewing a library text in mode "Text"
+  // and (2) there is simply no header at all.  This case occurs when viewing a library text in mode "TextAndConnections".
+  // shouldHideOnMobile is true when the header should be hidden (a) in the single panel layout (mobile devices) (b) while viewing library texts
+  // (c) when the mobile nav menu is not open. The multi panel layout keeps space for the header above the panels, so hiding it there
+  // would leave an empty bar on narrow screens.
+  // It doesn't check the breakpoint, so it's also used for the CSS class that hides the header on mobile before the client renders.
+  const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
+  const shouldHideOnMobile = !props.multiPanel && !props.mobileNavMenuOpen && isViewingTextContent;
+  if (isMobile && shouldHideOnMobile) return null;
 
   const hasUnreadNotifications = !!(props.notificationCount);
 
@@ -271,13 +287,6 @@ const Header = (props) => {
                               />;
 
 
-  const headerRef = useOnceFullyVisible(() => {
-    sa_event("header_viewed", { impression_type: "regular_header" });
-    gtag("event", "header_viewed", { impression_type: "regular_header" });
-    if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
-  }, "sa.header_viewed");
-
-
   const showAssistantLink = props.libraryAssistant && props.module === Sefaria.LIBRARY_MODULE;
 
   const links = props.module === Sefaria.LIBRARY_MODULE ? ['Texts', 'Topics'] : ['Topics', 'Collections']
@@ -297,8 +306,6 @@ const Header = (props) => {
     <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>
   </div>
 
-  
-  if (shouldHide()) return null;
 
   const headerContent = (
     <>
@@ -367,18 +374,20 @@ const Header = (props) => {
   // In "book toc" mode, we want to show a color line below the header.  In all other cases, we want to show a box shadow.
   const hasColorLine = props?.firstPanel?.menuOpen === "book toc";
   const hasBoxShadow = !hasColorLine;
-  const headerInnerClasses = classNames({
-    headerInner: 1,
-    boxShadow: hasBoxShadow,
-    mobile: mobile
-  });
   return (
-    <div className="header" role="banner" ref={headerRef}>
-      <div className={headerInnerClasses}>
-        {mobile ? mobileHeaderContent : headerContent}
-      </div>
+    <div className={classNames({header: 1, hiddenOnMobile: shouldHideOnMobile})} role="banner" ref={headerRef}>
+      {shouldShowDesktop &&
+        <div className={classNames({headerInner: 1, desktopHeaderInner: 1, boxShadow: hasBoxShadow})}>
+          {headerContent}
+        </div>
+      }
+      {shouldShowMobile &&
+        <div className={classNames({headerInner: 1, mobile: 1, boxShadow: hasBoxShadow})}>
+          {mobileHeaderContent}
+        </div>
+      }
 
-      {mobile &&
+      {shouldShowMobile &&
         <MobileNavMenu
           visible={props.mobileNavMenuOpen}
           onRefClick={props.onRefClick}

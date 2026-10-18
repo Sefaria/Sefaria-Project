@@ -227,3 +227,19 @@ $interfaces: english hebrew;
   font-size: 24px;
   cursor: pointer;
 }
+
+// The breakpoint is unknown during SSR, so the server renders both the mobile and the desktop headers
+// and these rules show the right one until the client renders only the matching one.
+@include breakpoint(mobile) {
+  .header .headerInner.desktopHeaderInner,
+  .header.hiddenOnMobile {
+    display: none;
+  }
+}
+
+@include breakpoint(tablet, desktop) {
+  .header .headerInner.mobile,
+  .header .mobileNavMenu {
+    display: none;
+  }
+}
