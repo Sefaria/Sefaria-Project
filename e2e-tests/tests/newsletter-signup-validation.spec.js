@@ -20,13 +20,13 @@ import { test, expect } from '../support/newsletter-test.js';
 import { routeWithHarFixture } from '../support/har-fixture.js';
 
 test.describe('Newsletter Signup - Form Validation', () => {
-  test.beforeEach(async ({ page, context }) => {
+  test.beforeEach(async ({ page, context, baseURL }) => {
     // TODO: This recording may need to be updated or recorded again. It was
     // made before lists could be marked "primary" in ActiveCampaign, so its lists
     // response has no `primary` field and the confirmation page falls back to the
     // first list. It also has 7 lists, while ActiveCampaign had 8 in October 2026
     // (a Hebrew list, ID 4, was added). See support/har-fixture.js to record it.
-    await routeWithHarFixture(context, 'newsletter-loggedout');
+    await routeWithHarFixture(context, 'newsletter-loggedout', baseURL);
 
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.addInitScript(() => {

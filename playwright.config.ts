@@ -2,6 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 import { t } from './e2e-tests/globals';
 
 // load environment variables from .env file in the e2e-tests directory
+// (copy e2e-tests/example.env). Outside CI, the .env values OVERRIDE variables set in the
+// shell: `SANDBOX_URL=http://127.0.0.1:8000 npx playwright test` still runs against .env's
+// SANDBOX_URL if .env sets one. Edit .env, or set CI=1 to skip it. In CI the file doesn't exist
+// and is never read; the workflow passes SANDBOX_URL and the PLAYWRIGHT_* credentials as
+// environment variables instead.
 if (!process.env.CI) {
   const env = require('dotenv').config({ path: './e2e-tests/.env' }).parsed;
   process.env = {
@@ -91,17 +96,20 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    /* Auth setup — logs in a real user and saves session to .auth/setup_session.json */
+    // Newsletter signup tests — kept as standalone projects during the
+    // integration window. TODO: fold into the per-module matrix once the
+    // newsletter tests align with an existing module's scope.
+    //
+    // The login step for chrome-newsletter-logged-in: logs in a real user and saves the
+    // session to .auth/setup_session.json.
     {
-      name: 'setup',
+      name: 'chrome-newsletter-login',
       testMatch: /auth\.setup\.js/,
     },
 
-    // Newsletter signup tests — kept as a standalone project during the
-    // integration window. TODO: fold into the per-module matrix once the
-    // newsletter tests align with an existing module's scope.
+    // The logged-out newsletter specs (every newsletter-signup-*.spec.js except -real).
     {
-      name: 'chrome-newsletter',
+      name: 'chrome-newsletter-logged-out',
       testDir: './e2e-tests/tests',
       testMatch: /newsletter-signup-.*\.spec\.js/,
       testIgnore: [/.*-real\.spec\.js/],
@@ -139,7 +147,7 @@ export default defineConfig({
     // Strapi content tests (banners/modals/sidebar ads). HAR-driven and deliberately
     // Strapi-ON: these specs bypass goToPageWithLang (which suppresses Strapi) and replay
     // e2e-tests/fixtures/strapi-content.har via routeFromHAR. Kept as a standalone project,
-    // like chrome-newsletter, so the fixtures/clock machinery stays isolated from the
+    // like the chrome-newsletter-* projects, so the fixtures/clock machinery stays isolated from the
     // PageManager suites. See e2e-tests/tests/strapi.fixtures.js.
     {
       name: 'chrome-strapi',
@@ -148,7 +156,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         // No baseURL override: inherit the global `use.baseURL` (= SANDBOX_URL verbatim), like
-        // chrome-newsletter. The MODULE_URLS defined in this file always build
+        // chrome-newsletter-logged-out. The MODULE_URLS defined in this file always build
         // `https://www.<domain>`, which is correct for a remote sandbox but breaks a local one
         // (`https://www.localhost:8000` → ERR_SSL_PROTOCOL_ERROR). Recording happens against a
         // local Django + Strapi, so the raw SANDBOX_URL is what this suite needs.
@@ -245,15 +253,19 @@ export default defineConfig({
       },
     },
 
-    /* Authenticated project — uses real Django session from setup */
+    // The logged-in newsletter specs. They start with the real Django session that
+    // chrome-newsletter-login saves. The pattern names the newsletter files on purpose:
+    // a bare /-real\.spec\.js/ also matched strapi-audience-real.spec.js, which then ran
+    // twice (it belongs to chrome-strapi).
     {
-      name: 'authenticated',
+      name: 'chrome-newsletter-logged-in',
+      testDir: './e2e-tests/tests',
+      testMatch: /newsletter-signup-.*-real\.spec\.js/,
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'e2e-tests/.auth/setup_session.json',
       },
-      dependencies: ['setup'],
-      testMatch: /.*-real\.spec\.js/,
+      dependencies: ['chrome-newsletter-login'],
     },
 
     // Firefox - Library-specific modularization tests

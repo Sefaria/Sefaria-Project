@@ -15,18 +15,19 @@
  * The saved responses use a placeholder email (test@example.com) and always report
  * the same subscriptions, no matter what the account really has.
  *
- * These tests belong to the `authenticated` Playwright project (see
- * playwright.config.ts), which depends on the `setup` project — Playwright
- * runs auth.setup.js first, then loads the resulting storageState here.
+ * These tests belong to the `chrome-newsletter-logged-in` Playwright project (see
+ * playwright.config.ts), which depends on the `chrome-newsletter-login` project —
+ * Playwright runs auth.setup.js first, then loads the resulting storageState here.
  *
  * Requires environment variables:
  *   PLAYWRIGHT_USER_EMAIL    - email of the test user
  *   PLAYWRIGHT_USER_PASSWORD - password of the test user
  *   SANDBOX_URL              - base URL (e.g., http://localhost:8000)
  *
- * Run with:
- *   PLAYWRIGHT_USER_EMAIL=<TEST USERNAME> PLAYWRIGHT_USER_PASSWORD=<TEST USERNAME'S PASSWORD> \
- *   SANDBOX_URL=http://localhost:8000 npx playwright test --project=authenticated --workers=1
+ * Set them in e2e-tests/.env (copy e2e-tests/example.env). Outside CI, .env wins over
+ * variables set on the command line (see playwright.config.ts). In CI the merge-queue workflow
+ * passes them as environment variables. Run with:
+ *   npx playwright test --project=chrome-newsletter-logged-in --workers=1
  */
 
 import { test, expect } from "../support/newsletter-test.js";
@@ -48,12 +49,12 @@ const expectSupplementalContentHidden = async (page) => {
 const expectFooterVisible = async (_page) => {};
 
 test.describe("Newsletter Signup - Real Authenticated Flow", () => {
-  test.beforeEach(async ({ page, context }) => {
+  test.beforeEach(async ({ page, context, baseURL }) => {
     // TODO: This recording may need to be updated or recorded again. It was
     // made before lists could be marked "primary" in ActiveCampaign, so its lists
     // response has no `primary` field and the confirmation page falls back to the
     // first list. See support/har-fixture.js to record it.
-    await routeWithHarFixture(context, "newsletter-loggedin");
+    await routeWithHarFixture(context, "newsletter-loggedin", baseURL);
 
     await page.setViewportSize({ width: 1280, height: 720 });
 

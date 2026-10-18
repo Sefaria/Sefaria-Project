@@ -28,8 +28,8 @@ test.describe("Newsletter Signup - Mobile Responsiveness", () => {
   // Serve the newsletter API from the saved recording, for every test in this file.
   // Without it, every page load called the real /api/newsletter/lists (and through
   // it, ActiveCampaign).
-  test.beforeEach(async ({ context }) => {
-    await routeWithHarFixture(context, "newsletter-loggedout");
+  test.beforeEach(async ({ context, baseURL }) => {
+    await routeWithHarFixture(context, "newsletter-loggedout", baseURL);
   });
 
   viewports.forEach(({ name, width, height }) => {

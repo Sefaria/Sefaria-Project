@@ -13,10 +13,10 @@ import { test, expect } from "../support/newsletter-test.js";
 import { routeWithHarFixture } from "../support/har-fixture.js";
 
 test.describe("Newsletter Signup - Accessibility", () => {
-  test.beforeEach(async ({ page, context }) => {
+  test.beforeEach(async ({ page, context, baseURL }) => {
     // Serve the newsletter API from the saved recording. Without it, every page load
     // called the real /api/newsletter/lists (and through it, ActiveCampaign).
-    await routeWithHarFixture(context, "newsletter-loggedout");
+    await routeWithHarFixture(context, "newsletter-loggedout", baseURL);
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.addInitScript(() => {
       document.cookie = "cookiesNotificationAccepted=1; path=/; max-age=31536000";

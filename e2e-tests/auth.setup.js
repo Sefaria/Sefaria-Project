@@ -6,13 +6,12 @@
  * Other test projects that depend on this setup will start with
  * the saved session, making all API calls work with real auth.
  *
- * Usage:
- *   PLAYWRIGHT_USER_EMAIL=user@example.com \
- *   PLAYWRIGHT_USER_PASSWORD=secret \
- *   SANDBOX_URL=http://localhost:8000 \
- *   npx playwright test --project=setup
+ * Usage: put PLAYWRIGHT_USER_EMAIL, PLAYWRIGHT_USER_PASSWORD and SANDBOX_URL in
+ * e2e-tests/.env (copy e2e-tests/example.env), then
+ *   npx playwright test --project=chrome-newsletter-login
+ * Outside CI, .env wins over variables set on the command line (see playwright.config.ts).
  *
- * The setup runs automatically when running the 'authenticated' project.
+ * It runs automatically before the chrome-newsletter-logged-in project.
  */
 
 import { test as setup, expect } from '@playwright/test';
@@ -27,7 +26,7 @@ setup('authenticate via SSO login API', async ({ page }) => {
   if (!email || !password) {
     throw new Error(
       'PLAYWRIGHT_USER_EMAIL and PLAYWRIGHT_USER_PASSWORD environment variables are required.\n' +
-      'Usage: PLAYWRIGHT_USER_EMAIL=user@example.com PLAYWRIGHT_USER_PASSWORD=secret npx playwright test --project=authenticated'
+      'Set them in e2e-tests/.env (copy e2e-tests/example.env), then run: npx playwright test --project=chrome-newsletter-logged-in'
     );
   }
 
