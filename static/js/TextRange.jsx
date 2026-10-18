@@ -46,6 +46,8 @@ class TextRange extends Component {
     if (JSON.stringify(this.props.hiddenSegments || null) !== JSON.stringify(nextProps.hiddenSegments || null)) { return true; }
     if (!!this.props.hideInstructions !== !!nextProps.hideInstructions) { return true; }
     if (!!this.props.showHiddenHints !== !!nextProps.showHiddenHints) { return true; }
+    if (JSON.stringify([this.props.hiddenBefore, this.props.hiddenAfter]) !==
+        JSON.stringify([nextProps.hiddenBefore, nextProps.hiddenAfter])) { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
         (nextProps.settings.language !== this.props.settings.language ||
@@ -349,10 +351,13 @@ class TextRange extends Component {
         </span>
       );
     });
-    if (this.props.showHiddenHints && hiddenRanges.length) {
-      // Put a note where each run of hidden paragraphs was.
-      textSegments = interleaveHints(segments, textSegments, hintGroups(hiddenRanges), group =>
-        <SiddurHiddenHint key={`hint-${group.from}`} names={group.names} onCustomize={this.props.onSiddurCustomize} />);
+    if (this.props.showHiddenHints) {
+      // Put a note where each run of hidden paragraphs was, and where hidden
+      // sections were skipped before or after this one.
+      const hint = (key, names) => <SiddurHiddenHint key={key} names={names} onCustomize={this.props.onSiddurCustomize} />;
+      textSegments = interleaveHints(segments, textSegments, hintGroups(hiddenRanges), group => hint(`hint-${group.from}`, group.names));
+      if (this.props.hiddenBefore?.length) { textSegments.unshift(hint("hint-before", this.props.hiddenBefore)); }
+      if (this.props.hiddenAfter?.length) { textSegments.push(hint("hint-after", this.props.hiddenAfter)); }
     }
     textSegments = textSegments.length ? textSegments : null;
 
@@ -448,6 +453,8 @@ TextRange.propTypes = {
   hiddenSegments:         PropTypes.array,
   hideInstructions:       PropTypes.bool,
   showHiddenHints:        PropTypes.bool,
+  hiddenBefore:           PropTypes.array,
+  hiddenAfter:            PropTypes.array,
   onSiddurCustomize:      PropTypes.func,
 };
 TextRange.defaultProps = {

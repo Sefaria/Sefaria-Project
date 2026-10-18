@@ -11,7 +11,6 @@ import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 import {ContentText} from "./ContentText";
 import SiddurCustomizeModal from "./SiddurCustomizeModal";
-import SiddurHiddenHint from "./SiddurHiddenHint";
 import {
   DEFAULT_OPTIONS,
   buildTree,
@@ -59,7 +58,7 @@ class TextColumn extends Component {
 
     this.getScrollEventTarget().addEventListener("scroll", this.handleScroll);
     this.unsubscribeSiddur = subscribeCustomization(this.props.bookTitle, (refs, options) => {
-      this.setState({siddurHiddenRefs: refs, siddurOptions: options});
+      this.setState({siddurHiddenRefs: refs, siddurOptions: options}, this.dropHiddenSections);
       if (resolveHidden(this.props.bookTitle, refs).leafRefs.length) { this.loadSiddurIndex(); }
     });
   }
@@ -74,6 +73,21 @@ class TextColumn extends Component {
       Sefaria.getIndexDetails(this.props.bookTitle)
         .then(() => this._isMounted && this.forceUpdate())
         .catch(() => { this.siddurIndexPromise = null; });
+  }
+  dropHiddenSections() {
+    // Sections loaded before the reader hid them leave the column, except the one
+    // in view, which stays put on screen (see componentDidUpdate).
+    const hidden = resolveHidden(this.props.bookTitle, this.state.siddurHiddenRefs).leafRefs;
+    const inView = this.props.currentlyVisibleRef;
+    const kept = this.props.srefs.filter(sref =>
+      !isRefHidden(sref, hidden) || sref === inView || Sefaria.getRefFromCache(sref)?.sectionRef === inView);
+    if (!hidden.length || !kept.length || kept.length === this.props.srefs.length) { return; }
+    const anchor = this.sectionElement(inView);
+    this.siddurScrollAnchor = anchor ? {ref: inView, top: anchor.getBoundingClientRect().top} : null;
+    this.props.updateTextColumn(kept);
+  }
+  sectionElement(sectionRef) {
+    return sectionRef && [...this.node.querySelectorAll(".textRange.basetext")].find(el => el.dataset.ref === sectionRef);
   }
   openSiddurCustomize() {
     Sefaria.getIndexDetails(this.props.bookTitle).then(() => this._isMounted && this.setState({showSiddurCustomize: true}));
@@ -128,7 +142,14 @@ class TextColumn extends Component {
     return this.isWindowScroll() ? window.innerHeight : this.node.clientHeight;
   }
   componentDidUpdate(prevProps, prevState) {
-    
+    if (this.siddurScrollAnchor && prevProps.srefs !== this.props.srefs) {
+      // Hidden sections were dropped: keep the section in view where it was.
+      const {ref, top} = this.siddurScrollAnchor;
+      this.siddurScrollAnchor = null;
+      const delta = (this.sectionElement(ref)?.getBoundingClientRect().top ?? top) - top;
+      if (delta) { this.isWindowScroll() ? window.scrollBy(0, delta) : this.node.scrollTop += delta; }
+    }
+
     const layoutWidth = this.$container.find(".textInner").width();
     const layoutWidthChanged = this.prevLayoutWidth && this.prevLayoutWidth !== layoutWidth;
     this.prevLayoutWidth = layoutWidth;
@@ -506,16 +527,14 @@ class TextColumn extends Component {
     const isDictionary = (index && index.categories[0] === "Reference");
     const siddurOptions = this.state.siddurOptions;
     const siddurHidden = resolveHidden(this.props.bookTitle, this.state.siddurHiddenRefs);
-    const siddurHint = (key, names) => names.length ?
-      <SiddurHiddenHint key={key} names={names} onCustomize={this.openSiddurCustomize} /> : null;
-    let content =  this.props.srefs.flatMap((sref, i) => {
+    let content =  this.props.srefs.map((sref, i) => {
       const oref = Sefaria.getRefFromCache(sref);
       const isCurrentlyVisible = oref && this.props.currentlyVisibleRef === oref.sectionRef;
-      // With hints on, note the hidden sections skipped after this one (or before the first, at the start of the book).
+      // With notes on, name the hidden sections skipped after this one (or before the first, at the start of the book).
       const hintData = siddurOptions.showHints ? Sefaria.ref(sref) : null;
-      return [
-        i === 0 && hintData && !this.neighborRef(hintData, "prev") ? siddurHint(`${sref}-hint-before`, this.siddurHiddenNames(hintData, "prev")) : null,
-        (<TextRange
+      const hintsBefore = i === 0 && hintData && !this.neighborRef(hintData, "prev") ? this.siddurHiddenNames(hintData, "prev") : [];
+      const hintsAfter = hintData ? this.siddurHiddenNames(hintData, "next") : [];
+      return (<TextRange
         panelPosition ={this.props.panelPosition}
         sref={sref}
         isCurrentlyVisible={isCurrentlyVisible}
@@ -547,10 +566,10 @@ class TextColumn extends Component {
         hiddenSegments={hiddenSegmentsFor(sref, siddurHidden.segments)}
         hideInstructions={!siddurOptions.showInstructions}
         showHiddenHints={siddurOptions.showHints}
+        hiddenBefore={hintsBefore}
+        hiddenAfter={hintsAfter}
         onSiddurCustomize={this.openSiddurCustomize}
-        key={sref || oref.sectionRef} />),
-        hintData ? siddurHint(`${sref}-hint-after`, this.siddurHiddenNames(hintData, "next")) : null,
-      ].filter(Boolean);
+        key={sref || oref.sectionRef} />);
     });
 
     let pre, post, bookTitle;
