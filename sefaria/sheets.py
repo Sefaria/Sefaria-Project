@@ -795,7 +795,7 @@ def update_included_refs(query=None, hours=None, refine_refs=False):
     for sheet in sheets:
         sources = sheet.get("sources", [])
         refs = refs_in_sources(sources, refine_refs=refine_refs)
-        db.sheets.update({"_id": sheet["_id"]}, {"$set": {"includedRefs": refs, "expandedRefs": model.Ref.expand_refs(refs)}})
+        db.sheets.update_one({"_id": sheet["_id"]}, {"$set": {"includedRefs": refs, "expandedRefs": model.Ref.expand_refs(refs)}})
 
 
 def get_top_sheets(limit=3):
@@ -1256,15 +1256,15 @@ def add_visual_data(sheet_id, visualNodes, zoom):
     """
     Adds visual layout data to db
     """
-    db.sheets.update({"id": sheet_id},{"$unset": { "visualNodes": "", "zoom": "" } })
-    db.sheets.update({"id": sheet_id},{"$push": {"visualNodes": {"$each": visualNodes},"zoom" : zoom}})
+    db.sheets.update_one({"id": sheet_id},{"$unset": { "visualNodes": "", "zoom": "" } })
+    db.sheets.update_one({"id": sheet_id},{"$push": {"visualNodes": {"$each": visualNodes},"zoom" : zoom}})
 
 
 def add_like_to_sheet(sheet_id, uid):
     """
     Add uid as a liker of sheet_id.
     """
-    db.sheets.update({"id": sheet_id}, {"$addToSet": {"likes": uid}})
+    db.sheets.update_one({"id": sheet_id}, {"$addToSet": {"likes": uid}})
     sheet = get_sheet(sheet_id)
 
     notification = Notification({"uid": sheet["owner"]})
@@ -1276,7 +1276,7 @@ def remove_like_from_sheet(sheet_id, uid):
     """
     Remove uid as a liker of sheet_id.
     """
-    db.sheets.update({"id": sheet_id}, {"$pull": {"likes": uid}})
+    db.sheets.update_one({"id": sheet_id}, {"$pull": {"likes": uid}})
 
 
 def likers_list_for_sheet(sheet_id):
