@@ -35,6 +35,7 @@ const LibraryAssistantHeaderLink = () => {
        onClick={open} onKeyDown={Util.handleKeyboardClick}>
       <LibraryAssistantStar />
       <span className="libraryAssistantLabel"><InterfaceText>header.library_assistant</InterfaceText></span>
+      <span className="libraryAssistantShortLabel"><InterfaceText>header.library_assistant_short</InterfaceText></span>
     </a>
   );
 };
