@@ -165,3 +165,6 @@ dump/*
 .env
 static_collected/*
 scripts/debug_cache/
+
+# Local benchmark measurements
+hidden-books-runs/
