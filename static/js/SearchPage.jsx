@@ -109,7 +109,7 @@ SearchAutocorrectBannerContent.propTypes = {
 const SearchSuggestedQueriesBannerContent = ({suggestedQueries, onSearchSuggestion}) => (
   <div className="searchAutocorrectBanner">
     <div className="searchAutocorrectBanner-line">
-      <InterfaceText text={{en: "Did you mean: ", he: "התכוונת ל: "}}/>
+      <InterfaceText text={{en: "Did you mean: ", he: "האם התכוונת ל: "}}/>
       {suggestedQueries.map((query, i) => (
         <React.Fragment key={query}>
           {i > 0 && <span className="searchAutocorrectBanner-separator">{", "}</span>}
