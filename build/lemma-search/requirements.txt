@@ -1,0 +1,11 @@
+# Model versions must match the indexed corpus; no silent fallback on Linux.
+transformers==4.57.6
+tokenizers==0.22.2
+numpy==2.5.3
+pandas==3.0.6
+shoshan @ git+https://github.com/ivrit/shoshan.git@046a031ee5ff0b5585b9185c41e37f9e1e6e784f
+celery[redis]==5.5.2
+redis==5.2.1
+dnspython==2.7.0
+structlog==25.1.0
+tqdm==4.70.1

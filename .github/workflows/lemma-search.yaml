@@ -1,0 +1,86 @@
+name: Lemma search worker
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'scripts/lemma_search_*.py'
+      - 'scripts/import_lemma_search_index.py'
+      - 'sefaria/celery_setup/generate_config.py'
+      - 'build/lemma-search/**'
+      - '.github/workflows/lemma-search.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lemma-worker-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Opt in only this POC branch; never expose registry credentials to fork PRs.
+    if: >-
+      github.repository == 'Sefaria/Sefaria-Project' &&
+      (github.head_ref || github.ref_name) == 'codex/lemma-search-experiment' &&
+      (github.event_name == 'workflow_dispatch' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
+      - uses: docker/login-action@v3
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
+      - name: Read pinned bundle and branch image name
+        id: config
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import os, re
+          from pathlib import Path
+          bundle = Path('build/lemma-search/bundle-image.txt').read_text().strip()
+          if not re.fullmatch(r'us-east1-docker\.pkg\.dev/development-205018/containers/sefaria-lemma-search-bundle@sha256:[a-f0-9]{64}', bundle):
+              raise SystemExit('Expected a digest-pinned dev bundle image')
+          branch = os.environ['BRANCH'].lower()
+          # Match the existing web-image and Cauldron branch slug convention.
+          if branch.count('/') >= 2:
+              branch = branch.split('/')[-2]
+          slug = re.sub(r'[^a-z0-9.\-]', '', branch)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'bundle={bundle}\nslug={slug}\n')
+          PYCODE
+      - name: Verify bundle is published
+        env:
+          BUNDLE: ${{ steps.config.outputs.bundle }}
+        run: docker buildx imagetools inspect "$BUNDLE" > /dev/null
+      - name: Generate immutable build tag
+        id: tag
+        run: echo "value=sha-${GITHUB_SHA:0:7}-$(date -u +%Y%m%d%H%M%S)" >> "$GITHUB_OUTPUT"
+      - name: Build and publish worker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: build/lemma-search/Dockerfile.ci
+          platforms: linux/amd64
+          push: true
+          build-args: |
+            BUNDLE_IMAGE=${{ steps.config.outputs.bundle }}
+          tags: us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-lemma-search-${{ steps.config.outputs.slug }}:${{ steps.tag.outputs.value }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/Sefaria/Sefaria-Project

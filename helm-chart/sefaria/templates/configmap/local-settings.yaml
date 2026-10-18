@@ -79,6 +79,12 @@ data:
   SENTINEL_HEADLESS_URL: {{ .Values.tasks.redis.sentinelURL }}
   SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.redis.transportOptions | toJson | quote }}
   {{- end }}
+  {{- if .Values.lemmaSearch.enabled }}
+  LEMMA_SEARCH_EXPERIMENT: "true"
+  LEMMA_SEARCH_BACKEND: "celery"
+  LEMMA_SEARCH_INDEX: {{ required "lemmaSearch.index is required" .Values.lemmaSearch.index | quote }}
+  LEMMA_SEARCH_QUEUE: {{ printf "%s-lemma-search" .Values.deployEnv | quote }}
+  {{- end }}
   CELERY_ENABLED: "{{ .Values.tasks.enabled }}"
   PGVECTOR_HOST: {{ .Values.localSettings.PGVECTOR_HOST | quote }}
   PGVECTOR_DB_PORT: {{ .Values.localSettings.PGVECTOR_DB_PORT | quote }}
