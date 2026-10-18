@@ -35,7 +35,9 @@ function linkAssistantName(text, query) {
   const before = text.slice(0, index);
   const or = before.includes(' או ') ? ' או ' : ' or ';
   const orAt = before.lastIndexOf(or);
-  const lead = orAt === -1 ? before : <>{before.slice(0, orAt + or.length - 1)}<br />{before.slice(orAt + or.length)}</>;
+  // The space after "or" stays before the break: it's invisible at the end of a line, and keeps
+  // the text reading "or ask" (not "orask") for screen readers and copying
+  const lead = orAt === -1 ? before : <>{before.slice(0, orAt + or.length)}<br />{before.slice(orAt + or.length)}</>;
   return <>{lead}<a href="#" onClick={open} className="noSearchResults-assistantLink">{name}</a>{text.slice(index + name.length)}</>;
 }
 
