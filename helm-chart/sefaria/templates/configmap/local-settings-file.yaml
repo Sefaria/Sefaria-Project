@@ -53,6 +53,9 @@ data:
     ]
 
     DEBUG = os.getenv("DEBUG").lower() == "true"
+    # Optional; unset/empty follows DEBUG (see global_settings in sefaria/system/context_processors.py).
+    if os.getenv("REACT_DEV_MODE"):
+        REACT_DEV_MODE = os.getenv("REACT_DEV_MODE").lower() == "true"
     OFFLINE = os.getenv("OFFLINE").lower() == "true"
     DOWN_FOR_MAINTENANCE = os.getenv("DOWN_FOR_MAINTENANCE").lower() == "true"
     MAINTENANCE_MESSAGE =  os.getenv("MAINTENANCE_MESSAGE")

@@ -566,6 +566,10 @@ cronJobs:
 
 localSettings:
   DEBUG: true
+  # "true"/"false" picks the React UMD build base.html loads; empty follows DEBUG.
+  # Only set false where the image is built with build-prod (release images): cauldron
+  # images use the development webpack build, which breaks against production React.
+  REACT_DEV_MODE: ""
   DOMAIN_LANGUAGE: {}
     # https://www.sefaria.org: english
     # https://www.sefaria.org.il: hebrew
