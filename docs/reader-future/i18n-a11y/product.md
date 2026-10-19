@@ -4,8 +4,8 @@ title: Language & accessibility
 domain: Site & accounts
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-19
 ---
 # Language & accessibility — product specification
 
@@ -15,7 +15,10 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+Nothing decided. Research in the thread mapped how sefaria.org chooses the interface language (the UI, its direction and the
+site domain, sefaria.org or sefaria.org.il) and the content language (Hebrew, English or bilingual text), and how the new client
+differs; the rules are in the [architecture](architecture.md#legacy-approach-vs-new-approach). Today the new client decides each
+from one cookie, with English and bilingual as defaults. The items below are *ideas* for what the future reader should do · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
 
 ## Who it is for and what they need
 
@@ -27,11 +30,28 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+**Keep**
+- The header switch between English and Hebrew, sharing the `interfaceLang` and `contentLang` cookies with the old site so both
+  agree while they coexist. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · I18-007, RTE-034
+- A link can set the text language per panel (`lang`, `lang<n>`), over the reader's saved choice. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · RTE-043
+
+**Change**
+- A signed-in reader's interface language is saved to their profile and followed on every page and device, as on sefaria.org
+  today; the new client reads and writes only the cookie. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · I18-010, RTE-034
+
+**Drop**
+- The legacy quirks in [Legacy behaviour not to port](architecture.md#legacy-behaviour-not-to-port): browser language never
+  reached, signed-in readers never get location or cookie, the text-language choice not shared between sefaria.org and
+  sefaria.org.il. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639)
 
 ## Open questions
 
-_None yet._
+All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+- Should text default to Hebrew when the interface is Hebrew, as on sefaria.org? The new client always starts bilingual
+  (SHL-007).
+- Should menus and sidebars follow the interface language rather than the text setting, as on sefaria.org (SHL-013)?
+- Should the text-language choice be saved per reader in the profile? Neither client does today.
+- With no saved choice, should the browser's language count, or only the visitor's country?
 
 ## Decisions
 
