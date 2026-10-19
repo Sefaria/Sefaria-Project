@@ -49,7 +49,9 @@ class Test_Lexicon_Lookup(object):
 
         word2 = "עִוֵּ֔ר"
         results = LexiconLookupAggregator.lexicon_lookup(word2)
-        assert results.count() == 8
+        # Ben Yehuda Dictionary adds a ninth match alongside BDB, BDB Augmented Strong,
+        # Jastrow and Klein.
+        assert results.count() == 9
 
     @pytest.mark.needs_corpus
     def test_hts_lookup(self):
