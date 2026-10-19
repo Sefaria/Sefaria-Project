@@ -44,7 +44,8 @@ done_phase "download+extract"
 # Large collections the corpus selection (needs_corpus and not deep and not failing)
 # never touches, measured 2026-09-24 by recording every test's Mongo commands
 # (SEFARIA_RECORD_MONGO=1, see sefaria/conftest.py) against dump_small. Skipping them
-# cuts the restore by about 6.7 GB. An exclude list, so a new collection is restored
+# cuts the restore by about 6.5 GB. word_form is restored: the Test_Lexicon_Lookup
+# tests read it. An exclude list, so a new collection is restored
 # by default. The recorder sees only test phases, not session start; if a corpus test
 # fails on a missing collection, take it off this list.
 RESTORE_EXCLUDE=(
