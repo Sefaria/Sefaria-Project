@@ -82,6 +82,14 @@ const AuthPage = ({
     setView('email');
   };
 
+  const logInButton = (
+    <div className="sefaria-auth-stack">
+      <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={switchFlow('login')}>
+        <InterfaceText>auth.log_in_link</InterfaceText>
+      </Button>
+    </div>
+  );
+
   let content;
   if (view === 'email' && flow === 'register') {
     content = (
@@ -116,7 +124,11 @@ const AuthPage = ({
       />
     );
   } else if (view === 'forgot-sent') {
-    content = <MessageView heading="auth.reset_link_sent" sub="auth.check_your_email" />;
+    content = (
+      <MessageView heading="auth.reset_link_sent" sub="auth.check_your_email">
+        {logInButton}
+      </MessageView>
+    );
   } else if (view === 'reset') {
     content = (
       <ResetView csrf={csrf} onLinkExpired={() => setView('reset-expired')} onSuccess={() => setView('reset-success')} />
@@ -128,11 +140,7 @@ const AuthPage = ({
   } else if (view === 'reset-success') {
     content = (
       <MessageView heading="auth.password_reset_success_title" sub="auth.password_reset_success_sub">
-        <div className="sefaria-auth-stack">
-          <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={switchFlow('login')}>
-            <InterfaceText>auth.log_in_link</InterfaceText>
-          </Button>
-        </div>
+        {logInButton}
       </MessageView>
     );
   } else {
