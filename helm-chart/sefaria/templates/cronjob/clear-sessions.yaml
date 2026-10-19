@@ -1,0 +1,68 @@
+{{- if .Values.cronJobs.clearSessions.enabled }}
+---
+# Purges expired rows from the django_session table.
+#
+# Django never deletes expired session records on its own -- the SESSION_ENGINE
+# (cached_db) only stops honoring them. With SESSION_COOKIE_AGE at 399 days each
+# row now sticks around ~28x longer than it did under Django's 2-week default,
+# so without this job the table grows without bound.
+#
+# clearsessions is Django's own management command: it deletes rows whose
+# expire_date has already passed, which is exactly the set no longer usable for
+# login. Live sessions are untouched. Stale entries left behind in the Redis
+# session cache expire on their own TTL, and a cache hit on a deleted row still
+# fails closed because cached_db re-validates against the database.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-clear-sessions
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  schedule: "0 3 * * 0"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          volumes:
+          - name: local-settings
+            configMap:
+              name: local-settings-file-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
+          containers:
+          - name: clear-sessions
+            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            env:
+            - name: REDIS_HOST
+              value: "redis-{{ .Values.deployEnv }}"
+            - name: NODEJS_HOST
+              value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: VARNISH_HOST
+              value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - secretRef:
+                name: local-settings-secrets-{{ .Values.deployEnv }}
+                optional: true
+            - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            volumeMounts:
+              - mountPath: /app/sefaria/local_settings.py
+                name: local-settings
+                subPath: local_settings.py
+                readOnly: true
+            command: ["bash"]
+            args: [
+              "-c",
+              "python manage.py clearsessions"
+            ]
+          restartPolicy: OnFailure
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}

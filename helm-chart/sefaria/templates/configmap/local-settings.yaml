@@ -13,6 +13,9 @@ data:
   SESSION_COOKIE_SECURE: "true"
   SESSION_COOKIE_HTTPONLY: "true"
   SESSION_COOKIE_SAMESITE: "Lax"
+  # Session lifetime in seconds; 399 days by default (just under the 400-day
+  # cap browsers place on cookie lifetimes).
+  SESSION_COOKIE_AGE: "{{ .Values.localSettings.SESSION_COOKIE_AGE | default 34473600 }}"
   CSRF_COOKIE_SECURE: "true"
   CSRF_COOKIE_HTTPONLY: "false"
   CSRF_COOKIE_SAMESITE: "Lax"
