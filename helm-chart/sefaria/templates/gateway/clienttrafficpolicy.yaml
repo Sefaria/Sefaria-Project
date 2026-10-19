@@ -6,10 +6,34 @@ metadata:
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
-  targetRef:
-    group: gateway.networking.k8s.io
-    kind: Gateway
-    name: {{ .Values.deployEnv }}
+  # TLS settings cannot be attached to a Gateway with HTTP listeners. Envoy
+  # Gateway rejects that configuration when multiple HTTP listeners share port
+  # 80, and emits direct 500 responses for every route on the Gateway. Attach
+  # the policy only to the HTTPS listener sections instead.
+  targetRefs:
+    {{- range .Values.domains.root }}
+    {{- $code := .code }}
+    {{- if kindIs "slice" $code }}
+      {{- $code = index $code 0 }}
+    {{- end }}
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $.Values.deployEnv }}
+      sectionName: https-{{ $code }}
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $.Values.deployEnv }}
+      sectionName: https-www-{{ $code }}
+    {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $.Values.deployEnv }}
+      sectionName: https-{{ $subdomain }}-{{ $code }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
   tls:
     alpnProtocols: {{ .Values.gateway.alpnProtocols | toJson | nindent 6 }}
   clientIPDetection:
