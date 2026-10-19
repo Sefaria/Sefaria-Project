@@ -153,7 +153,7 @@
                 <span class="int-en">Login Method</span>
                 <span class="int-he">אמצעי התחברות</span>
         </label>
-        {% if not social_providers %}
+        {% if user.has_usable_password %}
         <div id="username-change-display" class="form-section">
             <input id="email-display" type="text" disabled="disabled" value="{{ user.email }}" />
             <button id="change-email" type="button" class="button blue fillWidth">
@@ -172,7 +172,7 @@
             </button>
             <span id="email-edit-errors"></span>
         </div>
-        {% else %}
+        {% elif social_providers %}
         <div class="form-section">
             {% if "google" in social_providers and "apple" in social_providers %}
             {% include "elements/login_method_text.html" with method_en="Google & Apple Sign-In with" method_he="התחברות דרך גוגל ואפל עם" %}

@@ -12,6 +12,7 @@ from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext_lazy as _
 from google.cloud.exceptions import GoogleCloudError
 from PIL import Image
 
@@ -109,6 +110,19 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
 
 
 class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
+    error_messages = {
+        **DefaultSocialAccountAdapter.error_messages,
+        "disconnect_disabled": _("Google and Apple sign-in can't be unlinked from a Sefaria account."),
+    }
+
+    def validate_disconnect(self, account, accounts):
+        """
+        Product decision: a linked Google/Apple identity can't be removed. allauth runs
+        every disconnect through this hook first -- the /accounts/3rdparty/ page and the
+        headless DELETE .../account/providers endpoint -- so refusing here closes all of
+        them without unmounting URLs the OAuth callbacks live under.
+        """
+        raise self.validation_error("disconnect_disabled")
 
     def pre_social_login(self, request, sociallogin):
         """
