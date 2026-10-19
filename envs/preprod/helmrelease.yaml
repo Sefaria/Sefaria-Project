@@ -233,6 +233,7 @@ spec:
       jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
     localSettings:
       DEBUG: true
+      REACT_DEV_MODE: false
       OFFLINE: false
       DOMAIN_LANGUAGE:
         "https://www.sefaria.org": "english"

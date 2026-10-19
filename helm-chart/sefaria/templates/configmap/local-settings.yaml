@@ -7,6 +7,7 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 data: 
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
+  REACT_DEV_MODE: "{{ .Values.localSettings.REACT_DEV_MODE }}"
   # Automatic domain configuration - single source of truth
   DOMAIN_MODULES: {{ include "config.domainModules" . | fromYaml | toJson | quote }}
   # Session cookie settings for cross-subdomain support within this cauldron
