@@ -63,7 +63,8 @@ class AccountSettingsLoginMethodTest(TestCase):
         html = self.render()
 
         self.assertNotIn('id="change-email"', html)
-        self.assertIn("Apple Sign-In with", html)
+        self.assertIn('<span class="loginMethodText">Apple Sign-In with</span>', html)
+        self.assertIn('<span class="loginMethodText">התחברות דרך אפל עם</span>', html)
 
     def test_sso_only_user_with_both_providers(self):
         self.link("google")

@@ -42,11 +42,12 @@ class DisconnectRefusedTest(TestCase):
         self.assertEqual(res.status_code, 400)
         self.assert_account_kept()
 
-    def _headless_delete(self, client_type):
+    def _headless_delete(self, client_type, **headers):
         return self.client.delete(
             f"/_allauth/{client_type}/v1/account/providers",
             data=json.dumps({"provider": "google", "account": "g-1"}),
             content_type="application/json",
+            **headers,
         )
 
     def test_headless_browser_delete_is_refused(self):
@@ -56,12 +57,20 @@ class DisconnectRefusedTest(TestCase):
         self.assertEqual(res.json()["errors"][0]["code"], "disconnect_disabled")
         self.assert_account_kept()
 
-    def test_headless_app_delete_does_not_remove_account(self):
-        # Without an app session token allauth answers 401; the app client shares
-        # the browser client's input class, so the browser test covers the refusal.
-        res = self._headless_delete("app")
+    def test_headless_app_delete_is_refused(self):
+        self.client.logout()
+        login = self.client.post(
+            "/_allauth/app/v1/auth/login",
+            data=json.dumps({"email": "dc@test.com", "password": "secret"}),
+            content_type="application/json",
+        )
+        self.assertEqual(login.status_code, 200)
+        token = login.json()["meta"]["session_token"]
 
-        self.assertIn(res.status_code, (400, 401))
+        res = self._headless_delete("app", HTTP_X_SESSION_TOKEN=token)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json()["errors"][0]["code"], "disconnect_disabled")
         self.assert_account_kept()
 
 
