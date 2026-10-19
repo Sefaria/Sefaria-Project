@@ -20,8 +20,6 @@ spec:
     deployEnv: production
     previousServicesCount: "3"
     deploymentMessage: true
-    postgres:
-      host: "postgres-18.default.svc.cluster.local"
     restore:
       enabled: false
       dynamicName: false
