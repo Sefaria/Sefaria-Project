@@ -596,19 +596,12 @@ class Search {
             })
             .catch(e => { delete this._cache[key]; throw e; });
     }
-    _fetchAutocorrect(query) {
-        const url = `${Sefaria.apiHost}/api/search-autocorrect?q=${encodeURIComponent(query)}`;
-        return this._cachedGet(url, `autocorrect|${query}`);
-    }
-    autocorrectQuery(query) {
-        // Resolves to {corrected_query, suggested_queries}. Never rejects: a failed lookup just
-        // means searching the query as typed.
-        if (!query) { return Promise.resolve(NO_AUTOCORRECT); }
-        return this._fetchAutocorrect(query).catch(() => NO_AUTOCORRECT);
+    _decisionKey(query) {
+        return `autocorrectDecision|${query}`;
     }
     getCachedDecision(query) {
         // Lets a component apply an already-made decision synchronously, at construction.
-        return this._cache[`autocorrectDecision|${query}`];
+        return this._cache[this._decisionKey(query)];
     }
     decideAutocorrect(query, countResults) {
         // Resolves to {corrected_query, suggested_queries}: what to search, and what to suggest.
@@ -624,8 +617,9 @@ class Search {
         if (!query) { return Promise.resolve(NO_AUTOCORRECT); }
         const cached = this.getCachedDecision(query);
         if (cached) { return Promise.resolve(cached); }
-        const remember = decision => { this._cache[`autocorrectDecision|${query}`] = decision; return decision; };
-        return this._fetchAutocorrect(query).then(async suggestion => {
+        const remember = decision => { this._cache[this._decisionKey(query)] = decision; return decision; };
+        const url = `${Sefaria.apiHost}/api/search-autocorrect?q=${encodeURIComponent(query)}`;
+        return this._cachedGet(url, `autocorrect|${query}`).then(async suggestion => {
             if (!suggestion.corrected_query) { return remember(suggestion); }
             const allEmpty = await this._allEmpty(countResults());
             if (allEmpty === null) { return NO_AUTOCORRECT; }
@@ -663,7 +657,7 @@ class Search {
         // Sorted so the key depends on which categories are selected, not on the order they
         // were clicked in.
         //
-        // Searches `query` exactly as given; decideAutocorrect has already picked the text.
+        // `query` is the text to search: the correction from decideAutocorrect, if there is one.
         const paths = [...categoryPaths].sort();
         const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}`;
         let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;

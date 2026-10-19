@@ -1,5 +1,5 @@
 /**
- * Search.autocorrectQuery, Search.decideAutocorrect and Search.entitySearch. Sefaria._cachedApiPromise is
+ * Search.decideAutocorrect and Search.entitySearch. Sefaria._cachedApiPromise is
  * stubbed with a url -> response map on the global Sefaria, which is how search.js reaches it.
  */
 // The real module boots the whole app on import; search.js only needs the global at call time.
@@ -23,35 +23,6 @@ function setup(responses) {
   };
   return {search: new Search(), requested};
 }
-
-describe('Search.autocorrectQuery', () => {
-  test('returns the endpoint answer, asking only once per query', async () => {
-    const answer = {corrected_query: 'bereishit rabbah', suggested_queries: null};
-    const {search, requested} = setup({'/api/search-autocorrect?q=bereshit%20rabbah': answer});
-    expect(await search.autocorrectQuery('bereshit rabbah')).toEqual(answer);
-    expect(await search.autocorrectQuery('bereshit rabbah')).toEqual(answer);
-    expect(requested).toHaveLength(2);  // both reach _cachedApiPromise, which owns the cache
-    expect(Object.keys(search._cache)).toEqual(['autocorrect|bereshit rabbah']);
-  });
-
-  test('fails open: a failed lookup means no correction, and is not cached', async () => {
-    const {search} = setup({});
-    expect(await search.autocorrectQuery('cat')).toEqual(NONE);
-    expect(search._cache).toEqual({});
-  });
-
-  test('an error body means no correction, and is evicted from the cache', async () => {
-    const {search} = setup({'/api/search-autocorrect?q=cat': {error: 'boom'}});
-    expect(await search.autocorrectQuery('cat')).toEqual(NONE);
-    expect(search._cache).toEqual({});
-  });
-
-  test('an empty query skips the request', async () => {
-    const {search, requested} = setup({});
-    expect(await search.autocorrectQuery('')).toEqual(NONE);
-    expect(requested).toEqual([]);
-  });
-});
 
 describe('Search.decideAutocorrect', () => {
   const url = q => `/api/search-autocorrect?q=${q}`;
@@ -109,7 +80,20 @@ describe('Search.decideAutocorrect', () => {
   test('a failed lookup means as typed, and is not cached', async () => {
     const {search} = setup({});
     expect(await search.decideAutocorrect('cat', counts(0))).toEqual(NONE);
-    expect(search.getCachedDecision('cat')).toBeUndefined();
+    expect(search._cache).toEqual({});
+  });
+
+  test('an error body means as typed, and is evicted from the cache', async () => {
+    const {search} = setup({[url('cat')]: {error: 'boom'}});
+    expect(await search.decideAutocorrect('cat', counts(0))).toEqual(NONE);
+    expect(search._cache).toEqual({});
+  });
+
+  test('a decided query asks the endpoint only once', async () => {
+    const {search, requested} = setup({[url('cat')]: many});
+    await search.decideAutocorrect('cat', counts(0));
+    await search.decideAutocorrect('cat', counts(0));
+    expect(requested).toEqual([url('cat')]);
   });
 
   test('counts that throw outright mean as typed', async () => {
@@ -128,7 +112,7 @@ describe('Search.decideAutocorrect', () => {
 describe('Search.entitySearch', () => {
   const entityUrl = q => `/api/entity-search?q=${q}&type=book&start=0&sort=relevance`;
 
-  test('searches the text it is given, without consulting autocorrect', async () => {
+  test('searches the text it is given', async () => {
     const {search, requested} = setup({[entityUrl('bereshit')]: {hits: [], total: 0}});
     await search.entitySearch('bereshit', 'book');
     expect(requested).toEqual([entityUrl('bereshit')]);

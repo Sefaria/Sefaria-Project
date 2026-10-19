@@ -205,11 +205,11 @@ const ENTITY_TABS = [
 // Exported so ElasticSearchQuerier can apply the same invalid-tab fallback as activeTab()
 // when it reads `tab` straight from props for analytics.
 export const ALL_TAB_IDS = ["sources", ...ENTITY_TABS.map(t => t.id)];
-// The /api/entity-search types, for ElasticSearchQuerier's check that a query finds nothing.
+// The /api/entity-search types. Exported for ElasticSearchQuerier's check that a query finds nothing.
 export const ENTITY_TYPES = ENTITY_TABS.map(t => t.type);
 
-const emptyEntityData  = () => Object.fromEntries(ENTITY_TABS.map(t => [t.type, null]));
-const defaultEntitySort = () => Object.fromEntries(ENTITY_TABS.map(t => [t.type, 'relevance']));
+const emptyEntityData  = () => Object.fromEntries(ENTITY_TYPES.map(type => [type, null]));
+const defaultEntitySort = () => Object.fromEntries(ENTITY_TYPES.map(type => [type, 'relevance']));
 
 
 const formatEntityYear = (year) => {
@@ -384,7 +384,7 @@ class SearchPage extends Component {
     // still matches: without this, a page that was already in flight when the sort changed
     // would land afterwards and mix rows from the old ordering into the new list. Kept off
     // `state` because it must update synchronously, before React re-renders.
-    this._entityFetchTokens = Object.fromEntries(ENTITY_TABS.map(t => [t.type, 0]));
+    this._entityFetchTokens = Object.fromEntries(ENTITY_TYPES.map(type => [type, 0]));
     // For maybeAutoSwitchFromEmptyTab: whether the reader picked a tab for the query on screen,
     // and which query/correction it has already decided for. Off `state` because they gate a
     // side effect rather than rendering.
@@ -566,7 +566,7 @@ class SearchPage extends Component {
       // A new query invalidates the category selections and their counts — both describe the
       // previous result set — so rebuild the filter tree unselected before refetching.
       this.setState({bookCategoryFilters: this.makeBookCategoryFilters(), bookCategoryCounts: null},
-                    () => this.resetEntityResults(ENTITY_TABS.map(t => t.type)));
+                    () => this.resetEntityResults(ENTITY_TYPES));
       this._userSelectedTab = false;
       this._autoSwitchDecidedFor = null;
     } else if (prevProps.disableAutoCorrect !== this.props.disableAutoCorrect ||
@@ -574,7 +574,7 @@ class SearchPage extends Component {
       // "Search instead for <query>" re-searches every tab, not just the one clicked on. So
       // does the decision on whether to correct, which the entity tabs wait for. Same query,
       // so category selections stay valid.
-      this.resetEntityResults(ENTITY_TABS.map(t => t.type));
+      this.resetEntityResults(ENTITY_TYPES);
     }
     this.maybeAutoSwitchFromEmptyTab();
   }
@@ -585,7 +585,7 @@ class SearchPage extends Component {
   // and returns undecided until each count it needs has loaded.
   maybeAutoSwitchFromEmptyTab() {
     if (this._userSelectedTab || !this.props.query || this.props.searchInBook) { return; }
-    const decisionKey = `${this.props.query}||${this.props.correctedQuery || ""}`;
+    const decisionKey = this.entityResultsKey();
     if (this._autoSwitchDecidedFor === decisionKey) { return; }
 
     // Sources first, then the entity tabs. null means no count yet for the search on screen.
@@ -616,7 +616,7 @@ class SearchPage extends Component {
     this._autoSwitchDecidedFor = decisionKey;  // every tab came back empty -- nowhere better to go
   }
 
-  fetchEntityResults(types = ENTITY_TABS.map(t => t.type)) {
+  fetchEntityResults(types = ENTITY_TYPES) {
     const query = this.searchedQuery();
     // Until the decision on correcting is made, there's no telling which text to search.
     if (!this.props.query || this.props.searchInBook || !this.props.autocorrectResolved) { return; }
