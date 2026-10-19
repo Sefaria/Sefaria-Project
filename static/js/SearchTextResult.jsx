@@ -126,7 +126,8 @@ class SearchTextResult extends Component {
         const snippetMarkup = this.get_snippet_markup(data);
         const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
         return (
-            <div className="result textResult">
+            <div className="result textResult" data-ref={s.ref} data-version-title={s.version}
+                 data-language-family={s.languageFamilyName} data-is-primary={String(!!s.isPrimary)}>
                 <a href={href} onClick={this.handleResultClick}>
                     <div className="result-title">
                         <InterfaceText text={{en: s.ref, he: s.heRef}}/>

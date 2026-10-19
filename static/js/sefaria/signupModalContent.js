@@ -6,6 +6,7 @@ export const SignUpModalKind = {
   Follow: Symbol("Follow"),
   Notes: Symbol("Notes"),
   Save: Symbol("Save"),
+  CopyTool: Symbol("Copy Tool"),
   Default: Symbol("Default"),
 };
 
@@ -243,6 +244,46 @@ const signUpModalContent = {
         bulletContent: {
           en: "Build & share source sheets",
           he: "צרו ושתפו דפי מקורות",
+        },
+      },
+    ],
+  },
+  [SignUpModalKind.CopyTool]: {
+    h2: {
+      en: "Copy texts exactly the way you need them",
+      he: "העתיקו טקסטים בדיוק כפי שאתם צריכים",
+    },
+    h3: {
+      en: "Create a free account to use the Copy Tool",
+      he: "פתחו חשבון חינמי כדי להשתמש בכלי ההעתקה",
+    },
+    contentList: [
+      {
+        icon: "copy-white.svg",
+        bulletContent: {
+          en: "Copy a word, a passage, or a whole chapter",
+          he: "העתיקו מילה, קטע או פרק שלם",
+        },
+      },
+      {
+        icon: "tools-add-connection-white.svg",
+        bulletContent: {
+          en: "Source, translation, or both, in the versions you choose",
+          he: "מקור, תרגום או שניהם, בגרסאות שתבחרו",
+        },
+      },
+      {
+        icon: "share-icon-white.svg",
+        bulletContent: {
+          en: "Paste cleanly into Google Docs, Word, email, or Markdown",
+          he: "הדביקו בקלות ב־Google Docs, ב־Word, במייל או ב־Markdown",
+        },
+      },
+      {
+        icon: "note-white.svg",
+        bulletContent: {
+          en: "Citations and links back to Sefaria included",
+          he: "כולל מראה מקום וקישור לספריא",
         },
       },
     ],
