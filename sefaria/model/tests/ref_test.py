@@ -577,6 +577,7 @@ class Test_Cache(object):
         Ref.remove_index_from_cache("Genesis")
         Ref.remove_index_from_cache("Genesis")
 
+    @pytest.mark.needs_corpus
     def test_ref_flush_from_cache(self):
         # normal(), url() and a sectioned tref all name the same entry and must all be
         # purged; a different entry in the same dictionary must be untouched.
