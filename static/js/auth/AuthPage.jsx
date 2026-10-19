@@ -41,6 +41,8 @@ const AuthPage = ({
     return resetValid === false ? 'reset-expired' : 'reset';
   });
   const prevFlowRef = useRef(flow);
+  // The view to land on when the flow next changes; `requestNewLink` sets it, the effect consumes it.
+  const viewOnFlowChangeRef = useRef('choose');
   // Clicking "Log in"/"Sign up" outside this component (e.g. in the header) only updates the
   // `initialPath` prop/URL, bypassing `switchFlow` below — without this, the card stays stuck on
   // whatever view it was showing (reset, forgot, email, ...) instead of landing on ChooseView.
@@ -49,7 +51,8 @@ const AuthPage = ({
   useEffect(() => {
     if (prevFlowRef.current === flow) return;
     prevFlowRef.current = flow;
-    setView('choose');
+    setView(viewOnFlowChangeRef.current);
+    viewOnFlowChangeRef.current = 'choose';
   }, [flow]);
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
   const csrf = getCsrfToken();
@@ -75,7 +78,13 @@ const AuthPage = ({
   const onForgotClick = (e) => { e.preventDefault(); setView('forgot'); };
   // The rare "link doesn't resolve to any account" fallback routes to the
   // existing manual-email-entry ForgotView rather than building a new one.
-  const requestNewLink = () => { setView('forgot'); onNavigate?.(flowToPath('login', next)); };
+  // Leaving the reset-confirm URL changes the flow, so the flow effect above has to be told to
+  // keep ForgotView rather than fall back to ChooseView.
+  const requestNewLink = () => {
+    viewOnFlowChangeRef.current = 'forgot';
+    setView('forgot');
+    onNavigate?.(flowToPath('login', next));
+  };
   const onEmailClick = () => {
     tracking.chooseMethod(AUTH_METHOD.EMAIL);
     tracking.startProcess();

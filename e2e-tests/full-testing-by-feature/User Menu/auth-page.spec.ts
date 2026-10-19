@@ -227,10 +227,12 @@ test.describe('Auth Page reset-confirm link', () => {
     await expect(page.getByRole('alert')).toContainText(/couldn't find an account for this link/i, { timeout: t(10000) });
     await expect(page.getByRole('button', { name: /^Request New Link$/i })).toHaveCount(0);
 
-    // The banner's link leaves the reset-confirm URL for /login. The view it lands on is
-    // deliberately not asserted: see the it.todo in AuthPage.test.js.
+    // The banner's link leaves the reset-confirm URL for /login and lands on the manual
+    // forgot-password form, where the user can enter an email.
     await page.getByRole('link', { name: /^Request New Link$/i }).click();
     await expect(page).toHaveURL(/\/login/, { timeout: t(10000) });
+    await expect(page.getByRole('heading', { name: /^Forgot Password\?$/i })).toBeVisible({ timeout: t(10000) });
+    await expect(page.getByLabel('Email Address')).toBeVisible();
   });
 
   test('UMN-A12: The expired-link page and Reset Link Sent render in Hebrew', async ({ context }) => {

@@ -198,8 +198,15 @@ describe('AuthPage reset-confirm flow', () => {
     expect(onNavigate).toHaveBeenCalledWith('/login');
   });
 
-  // requestNewLink sets view 'forgot' and navigates to /login in the same handler, but the
-  // resulting reset -> login flow change re-runs AuthPage's flow effect, which resets the view
-  // to 'choose' and so lands on ChooseView instead of the intended ForgotView.
-  it.todo('lands on the manual forgot-password form after the no-account banner link');
+  // requestNewLink moves from the reset-confirm URL to /login. That reset -> login flow change
+  // re-runs AuthPage's flow effect, which must not override the ForgotView the banner asked for.
+  it('lands on the manual forgot-password form after the no-account banner link', async () => {
+    mockResponse(false, { _auth: { code: 'no_account_for_link' } });
+    mount({ initialPath: RESET_PATH, resetValid: false });
+    await act(async () => { click(findByText('button', 'auth.request_new_link')); });
+
+    click(container.querySelector('.sefaria-auth-error a'));
+    expect(heading()).toBe('auth.forgot_password');
+    expect(container.querySelector('#forgot-form')).not.toBeNull();
+  });
 });
