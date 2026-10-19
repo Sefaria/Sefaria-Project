@@ -5,6 +5,7 @@ import urllib.parse
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory, override_settings
 
 sys._called_from_test = True
@@ -368,3 +369,34 @@ class ImportGravatarTest(TestCase):
         self.assertEqual(profile.profile_pic_url, 'https://storage/big.png')
         self.assertEqual(profile.profile_pic_url_small, 'https://storage/small.png')
         self.assertEqual(mock_gsm.upload_file.call_count, 2)
+
+
+class ValidateDisconnectTest(TestCase):
+    """
+    Product decision: a linked Google/Apple identity can't be removed.
+    allauth runs every disconnect through the adapter's validate_disconnect
+    before deleting the SocialAccount, so refusing there closes the
+    connections page and both headless clients at once.
+    """
+    def _link(self, user, provider):
+        return SocialAccount.objects.create(user=user, provider=provider, uid=f"{provider}-{user.id}")
+
+    def test_refuses_disconnect_for_password_user(self):
+        user = User.objects.create_user(username="pw@test.com", email="pw@test.com", password="secret")
+        account = self._link(user, "google")
+
+        with self.assertRaises(ValidationError) as cm:
+            SefariaSocialAccountAdapter().validate_disconnect(account, SocialAccount.objects.filter(user=user))
+
+        self.assertEqual(cm.exception.code, "disconnect_disabled")
+
+    def test_refuses_disconnect_with_two_providers(self):
+        # allauth's own rule would allow unlinking one of two accounts.
+        user = User.objects.create_user(username="two@test.com", email="two@test.com", password="secret")
+        account = self._link(user, "google")
+        self._link(user, "apple")
+
+        with self.assertRaises(ValidationError) as cm:
+            SefariaSocialAccountAdapter().validate_disconnect(account, SocialAccount.objects.filter(user=user))
+
+        self.assertEqual(cm.exception.code, "disconnect_disabled")
