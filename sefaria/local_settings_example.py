@@ -142,6 +142,7 @@ SITE_PACKAGE = "sites.sefaria"
 
 ################ Default Settings (Don't change these unless you know what you are doing) ###############################
 DEBUG = True
+# REACT_DEV_MODE = False  # React build loaded by base.html; defaults to DEBUG
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
