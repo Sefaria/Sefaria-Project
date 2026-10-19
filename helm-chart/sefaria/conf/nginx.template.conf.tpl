@@ -76,8 +76,8 @@ http {
   }
   add_header 'Access-Control-Allow-Origin' $cors_header always;
 
-  upstream varnishupstream {
-    server ${VARNISH_HOST}:8040;
+  upstream backendupstream {
+    server ${UPSTREAM_HOST}:${UPSTREAM_PORT};
     keepalive 32;
   }
 
@@ -97,7 +97,7 @@ http {
     }
 
     location / {
-        proxy_pass http://varnishupstream;
+        proxy_pass http://backendupstream;
     }
   }
 
@@ -188,7 +188,7 @@ http {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnishupstream;
+      proxy_pass http://backendupstream;
     }
 
     location /static/mobile/message-en.json {
@@ -271,7 +271,7 @@ http {
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnishupstream;
+      proxy_pass http://backendupstream;
     }
 
     location ~ /api/ {
@@ -280,7 +280,7 @@ http {
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnishupstream;
+      proxy_pass http://backendupstream;
     }
 
     location / {
@@ -296,7 +296,7 @@ http {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnishupstream;
+      proxy_pass http://backendupstream;
     }
 
     location /static/mobile/message-en.json {

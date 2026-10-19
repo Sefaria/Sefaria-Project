@@ -5,7 +5,7 @@
 {{- if .Values.keda.nginx.enabled }}
 {{- include "sefaria.keda.scaledobject" (list . "nginx" (printf "%s-nginx" .Values.deployEnv) .Values.keda.nginx) }}
 {{- end }}
-{{- if .Values.keda.varnish.enabled }}
+{{- if and .Values.keda.varnish.enabled .Values.varnish.enabled }}
 {{- include "sefaria.keda.scaledobject" (list . "varnish" (printf "%s-varnish" .Values.deployEnv) .Values.keda.varnish) }}
 {{- end }}
 {{- if .Values.keda.redis.enabled }}
