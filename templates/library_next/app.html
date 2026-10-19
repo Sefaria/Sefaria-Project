@@ -1,0 +1,137 @@
+{% load render_bundle from webpack_loader %}
+{% load static %}
+{% load sefaria_tags %}
+{% get_static_prefix as STATIC_PREFIX %}
+{% comment %}
+  Library Next shell (static/js/library-next/, docs/library-next/PLAN.md). A deliberately small
+  document: no s2.css or classic header, props embedded with json_script, a server-rendered
+  skeleton the SPA replaces. Kept from base.html: SEO meta, favicons, the chatbot script tag
+  (so <lc-chatbot> can be mounted by the assistant dock), Google Tag Manager and gtag.
+  The dev harness (static/js/library-next/dev/serve.js) serves a static equivalent of this file.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="{% if request.interfaceLang == 'hebrew' %}he{% else %}en{% endif %}" dir="{% if request.interfaceLang == 'hebrew' %}rtl{% else %}ltr{% endif %}">
+<head>
+    {% meta_title %}{{ title|striptags }}{% endmeta_title %}
+    <meta charset="utf-8"/>
+    <meta name="csrf-token" content="{{ csrf_token }}"/>
+    {% meta_desc %}{{ desc|striptags }}{% endmeta_desc %}
+    {% if noindex or DEBUG %}
+    <meta name="robots" content="noindex, nofollow">
+    {% endif %}
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#FFFFFF">
+    <meta name="apple-itunes-app" content="app-id=1163273965">
+    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" />
+
+    {% if SITE_SETTINGS.TORAH_SPECIFIC %}
+    <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
+    <link rel="alternate" href="https://www.sefaria.org.il{{ request.path }}" hreflang="he" />
+    {% endif %}
+    {% if canonical_url %}
+    <link rel="canonical" href="{{ canonical_url }}" />
+    {% endif %}
+
+    <meta property="og:type" content="website"/>
+    <meta property="og:image" content="{% social_image_url request 'facebook' %}" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="https://{{ request.get_host }}{{ request.get_full_path }}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@sefariaproject" />
+    <meta name="twitter:image" content="{% social_image_url request 'twitter' %}" />
+
+    {% with favicon_version=3 %}
+    <link rel="shortcut icon" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.ico?v={{ favicon_version }}" sizes="48x48">
+    <link rel="icon" type="image/svg+xml" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.svg?v={{ favicon_version }}" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/apple-touch-icon.png?v={{ favicon_version }}">
+    <link rel="manifest" href="/site.webmanifest?v={{ favicon_version }}">
+    {% endwith %}
+
+    {# The chatbot web component, emitted exactly as base.html does; the AssistantDock mounts <lc-chatbot>. #}
+    {% if chatbot_script_url %}
+    <script src="{{ chatbot_script_url }}"{% if chatbot_script_type %} type="{{ chatbot_script_type }}"{% endif %}></script>
+    {% endif %}
+
+    {# Fonts: Taamey Frank (Hebrew) is self-hosted and declared in static/js/library-next/styles/tokens.css. #}
+    <link rel="preload" href="{% static 'fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf' %}" as="font" type="font/ttf" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://use.typekit.net/aeg8div.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Heebo:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap">
+
+    <link rel="stylesheet" href="{% static 'css/color-palette.css' %}">
+
+    {# Scripts are deferred: the skeleton paints without waiting for them. Order is preserved. #}
+    <script defer src="https://unpkg.com/react@16/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    <script defer src="https://unpkg.com/react-dom@16/umd/react-dom.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script defer src="/data.{{ last_cached_short }}.js"></script>
+    {% render_bundle 'main' 'js' 'LIBRARY_NEXT' attrs='defer' %}
+
+    {% if GOOGLE_TAG_MANAGER_CODE %}
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer',"{{ GOOGLE_TAG_MANAGER_CODE }}");</script>
+    <!-- End Google Tag Manager -->
+    {% endif %}
+</head>
+<body class="ln-body interface-{{ request.interfaceLang|default:'english' }}" data-active-module="{{ active_module }}" data-route="{{ route }}">
+    {% if GOOGLE_TAG_MANAGER_CODE %}
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    {% endif %}
+
+    {# Server-rendered skeleton: the same geometry as <Shell>, replaced by ReactDOM.render. #}
+    <div id="library-next-root">
+      <div class="ln-skeleton">
+        <header class="ln-skeleton-header"><span class="ln-skeleton-logo"></span></header>
+        <main class="ln-skeleton-main" aria-busy="true">
+          <span class="ln-skeleton-line"></span>
+          <span class="ln-skeleton-line"></span>
+          <span class="ln-skeleton-line short"></span>
+          <noscript>Sefaria Library needs JavaScript. / ספריית ספריא דורשת JavaScript.</noscript>
+        </main>
+      </div>
+    </div>
+    <style>
+      .ln-skeleton{min-height:100vh;background:#fff;font-family:Roboto,Heebo,sans-serif}
+      .ln-skeleton-header{height:56px;border-bottom:1px solid #EDEDEC;display:flex;align-items:center;padding-inline:16px}
+      .ln-skeleton-logo{width:96px;height:22px;border-radius:4px;background:#e6e6e6}
+      .ln-skeleton-main{max-width:720px;margin:48px auto;padding-inline:16px;display:grid;gap:14px}
+      .ln-skeleton-line{display:block;height:14px;border-radius:4px;background:#efefef}
+      .ln-skeleton-line.short{width:60%}
+    </style>
+
+    {{ library_next_props|json_script:"library-next-props" }}
+    {{ CLIENT_SENTRY_DSN|default_if_none:""|json_script:"library-next-sentry-dsn" }}
+    <script>
+      // sefaria.js reads DJANGO_VARS when the bundle is evaluated, so it is set here, ahead of the deferred scripts.
+      var DJANGO_VARS = {
+        props: JSON.parse(document.getElementById("library-next-props").textContent),
+        sentryDSN: JSON.parse(document.getElementById("library-next-sentry-dsn").textContent) || null,
+        inReaderApp: false,
+        libraryNext: true
+      };
+    </script>
+
+    {% if GOOGLE_GTAG %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_GTAG }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ GOOGLE_GTAG }}', {
+        'user_id': DJANGO_VARS.props._uid || null,
+        'traffic_type': (DJANGO_VARS.props._email || '').includes('sefaria.org') ? 'sefariaemail' : null,
+        'site_lang': '{{ request.interfaceLang }}',
+        'site_version': DJANGO_VARS.props.appVersion || null,
+        'library': 'next'
+      });
+    </script>
+    {% endif %}
+</body>
+</html>

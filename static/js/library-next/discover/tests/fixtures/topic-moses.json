@@ -1,0 +1,735 @@
+{
+ "primaryTitle": {
+  "en": "Moses",
+  "he": "משה"
+ },
+ "en": "Moses",
+ "he": "משה",
+ "slug": "moses",
+ "subclass": "person",
+ "alt_ids": {
+  "_temp_id": "משה",
+  "wikidata": "Q9077",
+  "_old_slug": "-75"
+ },
+ "description": {
+  "en": "Moses was the greatest prophet in the biblical tradition. Raised by the daughter of Pharaoh in the Egyptian royal family, after he fled Egypt, he married [Tzipporah](https://www.sefaria.org/topics/tzipporah1), the daughter of a Midianite priest, [Yitro](https://www.sefaria.org/topics/yitro). After an encounter with God at the burning bush, God sends Moses back to lead the Israelites out of slavery and to [Mount Sinai](https://www.sefaria.org/topics/mount-sinai) to received the Torah and then through the desert to the promised land. Tragically, he is not allowed to enter the land. ",
+  "he": "משה היה גדול הנביאים במסורת המקראית. הוא גדל בבית פרעה, ברח ממצרים ונשלח לשם בחזרה על ידי אלוהים כדי להוציא את בני ישראל מעבדות ולהביאם לארץ המובטחת. משה קיבל את התורה בהר סיני כדי למסור אותה לבני ישראל. הוא נפטר לפני כניסת העם לארץ המובטחת."
+ },
+ "categoryDescription": {},
+ "numSources": 6410,
+ "good_to_promote": true,
+ "description_published": true,
+ "data_source": "sefaria",
+ "image": {
+  "image_uri": "https://storage.googleapis.com/img.sefaria.org/topics/166904-40dca8ee-343f-11ef-92fb-0e4830bcbdef.gif",
+  "image_caption": {
+   "en": "Moses Strikes the Rock, James Jacques Joseph Tissot (c. 1896-1902). The Jewish Museum, NY. Gift of the heirs of Jacob Schiff",
+   "he": "משה מכה בסלע, ג׳יימס ג׳ק ג׳וסף טיסו (1896-1902). המוזיאון היהודי בניו יורק, מתנת יורשי יעקב שיף. "
+  }
+ },
+ "secondary_image_uri": "https://storage.googleapis.com/img.sefaria.org/topics/moses-secondary-be0cd3d4-d3ea-11ef-9f1c-4a3eabb5115e.png",
+ "primaryTitleIsTransliteration": {
+  "en": false,
+  "he": false
+ },
+ "titles": [
+  {
+   "text": "Moses",
+   "lang": "en",
+   "primary": true
+  },
+  {
+   "text": "משה",
+   "lang": "he",
+   "primary": true
+  }
+ ],
+ "properties": {
+  "enWikiLink": {
+   "value": "https://en.wikipedia.org/wiki/Moses"
+  },
+  "heWikiLink": {
+   "value": "https://he.wikipedia.org/wiki/משה"
+  }
+ },
+ "refs": {
+  "about": {
+   "refs": [
+    {
+     "ref": "Deuteronomy 34:10-12",
+     "expandedRefs": [
+      "Deuteronomy 34:10",
+      "Deuteronomy 34:11",
+      "Deuteronomy 34:12"
+     ],
+     "is_sheet": false,
+     "order": {
+      "user_votes": 21.333333333333332,
+      "tfidf": 892.6662333062234,
+      "numDatasource": 3,
+      "availableLangs": [
+       "en",
+       "he"
+      ],
+      "comp_date": -1300,
+      "order_id": "A00000000400340010-00340012",
+      "pr": 7.558858523021179,
+      "curatedPrimacy": {
+       "en": 587,
+       "he": 29
+      }
+     },
+     "descriptions": {
+      "en": {
+       "title": "An Unmatched Prophet ",
+       "prompt": "Moses, who led the Jews out of Egypt, is considered to have been the greatest prophet who ever lived and had a uniquely close relationship with God. The end of the book of Deuteronomy highlights Moses’s unparalleled prophetic status."
+      },
+      "he": {
+       "title": "לא קם נביא עוד בישראל כמשה",
+       "prompt": "משה היה החשוב מבין נביאי ומנהיגי ישראל מצד דיבורו פנים אל פנים עם אלוקים ומצד המופתים הגדולים שנשלח לעשות. הפסוקים האחרונים בספר דברים שחותמים את התורה מוקדשים לייחודיות זו של משה.\n",
+       "ai_context": ""
+      }
+     },
+     "similarRefs": [
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "dataSource": "sefaria-users",
+       "ref": "Deuteronomy 34:10-12",
+       "expandedRefs": [
+        "Deuteronomy 34:10",
+        "Deuteronomy 34:11",
+        "Deuteronomy 34:12"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 23,
+        "tfidf": 892.6662333062234,
+        "numDatasource": 3,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000400340010-00340012",
+        "pr": 7.558858523021179
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "dataSource": "sefaria-users",
+       "ref": "Deuteronomy 34:10-12",
+       "expandedRefs": [
+        "Deuteronomy 34:10",
+        "Deuteronomy 34:11",
+        "Deuteronomy 34:12"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 23,
+        "tfidf": 892.6662333062234,
+        "numDatasource": 3,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000400340010-00340012",
+        "pr": 7.558858523021179
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "dataSource": "sefaria-users",
+       "ref": "Deuteronomy 34:10-12",
+       "expandedRefs": [
+        "Deuteronomy 34:10",
+        "Deuteronomy 34:11",
+        "Deuteronomy 34:12"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 23,
+        "tfidf": 892.6662333062234,
+        "numDatasource": 3,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000400340010-00340012",
+        "pr": 7.558858523021179
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "dataSource": "aspaklaria",
+       "ref": "Deuteronomy 34:10",
+       "expandedRefs": [
+        "Deuteronomy 34:10"
+       ],
+       "is_sheet": false,
+       "order": {
+        "tfidf": 584.0484841893086,
+        "numDatasource": 3,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000400340010",
+        "pr": 7.558858523021179
+       }
+      }
+     ],
+     "dataSources": {
+      "learning-team": {
+       "en": "Curation of the Sefaria Learning Team",
+       "he": "איסוף ועריכה של צוות החינוך בספריא",
+       "slug": "learning-team"
+      }
+     }
+    },
+    {
+     "ref": "Pirkei Avot 1:1",
+     "expandedRefs": [
+      "Pirkei Avot 1:1"
+     ],
+     "is_sheet": false,
+     "order": {
+      "availableLangs": [
+       "en",
+       "he"
+      ],
+      "curatedPrimacy": {
+       "en": 587,
+       "he": 28
+      },
+      "tfidf": 754.6746868799671,
+      "numDatasource": 3,
+      "comp_date": 200,
+      "order_id": "A00100300800010001",
+      "pr": 2.9832401581489534
+     },
+     "descriptions": {
+      "en": {
+       "title": "Tradition’s Pivotal First Link",
+       "prompt": "Moses, who receives the Torah, is the first link in the chain of its transmission. Mishnah Avot, a work of ancient rabbinic ethics and wisdom from the land of Israel, traces the transmission of Torah from Moses to the time of the Second Temple."
+      },
+      "he": {
+       "title": "משה קיבל תורה מסיני",
+       "prompt": "משה רבנו היה הראשון בשרשרת מסירת התורה שניתנה בסיני. מסכת אבות פותחת במשנה שמתארת את העברת המסורה מסיני וכוללת את התורה שבכתב ואת התורה שבעל פה.\n",
+       "ai_context": ""
+      }
+     },
+     "similarRefs": [],
+     "dataSources": {
+      "learning-team": {
+       "en": "Curation of the Sefaria Learning Team",
+       "he": "איסוף ועריכה של צוות החינוך בספריא",
+       "slug": "learning-team"
+      }
+     }
+    },
+    {
+     "ref": "Shemot Rabbah 1:22",
+     "expandedRefs": [
+      "Shemot Rabbah 1:22"
+     ],
+     "is_sheet": false,
+     "order": {
+      "availableLangs": [
+       "en",
+       "he"
+      ],
+      "curatedPrimacy": {
+       "en": 586
+      },
+      "tfidf": 772.0744117602994,
+      "numDatasource": 1,
+      "comp_date": 500,
+      "order_id": "A00300100000100010022",
+      "pr": 1.0
+     },
+     "descriptions": {
+      "en": {
+       "title": "Miriam Foresees Israel’s Savior",
+       "prompt": "Moses’s future as a prophet and leader of Israel was clear from early in his life, and, according to some traditions, even before he was born. The midrash in Shemot Rabbah describes how Moses’s family, including his prophetess sister, Miriam, related to him in his infancy."
+      }
+     },
+     "similarRefs": [],
+     "dataSources": {
+      "learning-team": {
+       "en": "Curation of the Sefaria Learning Team",
+       "he": "איסוף ועריכה של צוות החינוך בספריא",
+       "slug": "learning-team"
+      }
+     }
+    },
+    {
+     "ref": "Exodus 2:1-10",
+     "expandedRefs": [
+      "Exodus 34:1"
+     ],
+     "is_sheet": false,
+     "generatedBy": "sheet-topic-aggregator",
+     "order": {
+      "user_votes": 18,
+      "tfidf": 1185.1717414030932,
+      "numDatasource": 1,
+      "availableLangs": [
+       "en",
+       "he"
+      ],
+      "comp_date": -1400,
+      "order_id": "A00000000200020001",
+      "pr": 1,
+      "curatedPrimacy": {
+       "en": 0,
+       "he": 0
+      }
+     },
+     "similarRefs": [],
+     "dataSources": {
+      "sefaria-users": {
+       "en": "Sheets by Sefaria users",
+       "he": "דפי מקורות ממשתמשי ספריא",
+       "slug": "sefaria-users"
+      }
+     }
+    },
+    {
+     "ref": "Exodus 2:7-9",
+     "expandedRefs": [
+      "Exodus 2:7",
+      "Exodus 2:8",
+      "Exodus 2:9"
+     ],
+     "is_sheet": false,
+     "order": {
+      "tfidf": 291.4692750450306,
+      "numDatasource": 2,
+      "availableLangs": [
+       "he"
+      ],
+      "comp_date": 1100,
+      "order_id": "A00000000100020002-00020010",
+      "pr": 0.5,
+      "curatedPrimacy": {
+       "en": 0,
+       "he": 0
+      }
+     },
+     "similarRefs": [
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "ref": "Exodus 2:1-6",
+       "expandedRefs": [
+        "Exodus 2:1",
+        "Exodus 2:2",
+        "Exodus 2:3",
+        "Exodus 2:4",
+        "Exodus 2:5",
+        "Exodus 2:6"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 37,
+        "tfidf": 173.43304826727172,
+        "numDatasource": 2,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000100020001-00020006",
+        "pr": 11.772259108303771
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "ref": "Exodus 2:1-6",
+       "expandedRefs": [
+        "Exodus 2:1",
+        "Exodus 2:2",
+        "Exodus 2:3",
+        "Exodus 2:4",
+        "Exodus 2:5",
+        "Exodus 2:6"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 37,
+        "tfidf": 173.43304826727172,
+        "numDatasource": 2,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000100020001-00020006",
+        "pr": 11.772259108303771
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "ref": "Exodus 2:1-6",
+       "expandedRefs": [
+        "Exodus 2:1",
+        "Exodus 2:2",
+        "Exodus 2:3",
+        "Exodus 2:4",
+        "Exodus 2:5",
+        "Exodus 2:6"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 37,
+        "tfidf": 173.43304826727172,
+        "numDatasource": 2,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000100020001-00020006",
+        "pr": 11.772259108303771
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "ref": "Exodus 2:1-6",
+       "expandedRefs": [
+        "Exodus 2:1",
+        "Exodus 2:2",
+        "Exodus 2:3",
+        "Exodus 2:4",
+        "Exodus 2:5",
+        "Exodus 2:6"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 37,
+        "tfidf": 173.43304826727172,
+        "numDatasource": 2,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000100020001-00020006",
+        "pr": 11.772259108303771
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "ref": "Exodus 2:1-6",
+       "expandedRefs": [
+        "Exodus 2:1",
+        "Exodus 2:2",
+        "Exodus 2:3",
+        "Exodus 2:4",
+        "Exodus 2:5",
+        "Exodus 2:6"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 37,
+        "tfidf": 173.43304826727172,
+        "numDatasource": 2,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000100020001-00020006",
+        "pr": 11.772259108303771
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "ref": "Exodus 2:10-15",
+       "expandedRefs": [
+        "Exodus 2:10",
+        "Exodus 2:11",
+        "Exodus 2:12",
+        "Exodus 2:13",
+        "Exodus 2:14",
+        "Exodus 2:15"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 48.333333333333336,
+        "tfidf": 1011.2216551430042,
+        "numDatasource": 2,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000100020010-00020015",
+        "pr": 8.4224680860915
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "ref": "Exodus 2:7-9",
+       "expandedRefs": [
+        "Exodus 2:7",
+        "Exodus 2:8",
+        "Exodus 2:9"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 33.333333333333336,
+        "tfidf": 214.9852565055633,
+        "numDatasource": 2,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000100020007-00020009",
+        "pr": 2.062450084722654
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "ref": "Exodus 2:7-9",
+       "expandedRefs": [
+        "Exodus 2:7",
+        "Exodus 2:8",
+        "Exodus 2:9"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 33.333333333333336,
+        "tfidf": 214.9852565055633,
+        "numDatasource": 2,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000100020007-00020009",
+        "pr": 2.062450084722654
+       }
+      },
+      {
+       "linkType": "about",
+       "class": "refTopic",
+       "ref": "Exodus 2:7-9",
+       "expandedRefs": [
+        "Exodus 2:7",
+        "Exodus 2:8",
+        "Exodus 2:9"
+       ],
+       "is_sheet": false,
+       "generatedBy": "sheet-topic-aggregator",
+       "order": {
+        "user_votes": 33.333333333333336,
+        "tfidf": 214.9852565055633,
+        "numDatasource": 2,
+        "availableLangs": [
+         "en",
+         "he"
+        ],
+        "comp_date": -1400,
+        "order_id": "A00000000100020007-00020009",
+        "pr": 2.062450084722654
+       }
+      }
+     ],
+     "dataSources": {
+      "aspaklaria": {
+       "en": "Aspaklaria",
+       "he": "אספקלריא",
+       "slug": "aspaklaria"
+      },
+      "sefaria-users": {
+       "en": "Sheets by Sefaria users",
+       "he": "דפי מקורות ממשתמשי ספריא",
+       "slug": "sefaria-users"
+      }
+     }
+    }
+   ],
+   "title": {
+    "en": "About",
+    "he": "About"
+   },
+   "shouldDisplay": true
+  }
+ },
+ "links": {
+  "is-a": {
+   "links": [
+    {
+     "dataSource": "aspaklaria-edited-by-sefaria",
+     "order": {
+      "linksInCommon": 16,
+      "tfidf": 113.1502475875376,
+      "numSources": 0
+     },
+     "isInverse": false,
+     "topic": "biblical-figures",
+     "title": {
+      "en": "Biblical Figures",
+      "he": "דמויות תנכיות"
+     },
+     "titleIsTransliteration": {
+      "en": false,
+      "he": false
+     },
+     "shouldDisplay": true,
+     "pools": []
+    }
+   ],
+   "title": {
+    "en": "",
+    "he": ""
+   },
+   "shouldDisplay": false
+  },
+  "has-relationship": {
+   "links": [
+    {
+     "dataSource": "aspaklaria-edited-by-sefaria",
+     "order": {
+      "linksInCommon": 5,
+      "tfidf": 116.8709262478843,
+      "numSources": 180
+     },
+     "isInverse": true,
+     "topic": "aaron",
+     "title": {
+      "en": "Aaron",
+      "he": "אהרן"
+     },
+     "titleIsTransliteration": {
+      "en": false,
+      "he": false
+     },
+     "shouldDisplay": true,
+     "pools": [
+      "library",
+      "sheets"
+     ]
+    },
+    {
+     "dataSource": "aspaklaria-edited-by-sefaria",
+     "order": {
+      "linksInCommon": 2,
+      "tfidf": 85.59427408614019,
+      "numSources": 81
+     },
+     "isInverse": true,
+     "topic": "moses-and-aaron",
+     "title": {
+      "en": "Moses and Aaron",
+      "he": "אהרן ומשה"
+     },
+     "titleIsTransliteration": {
+      "en": false,
+      "he": false
+     },
+     "shouldDisplay": true,
+     "pools": [
+      "library",
+      "sheets"
+     ]
+    },
+    {
+     "dataSource": "aspaklaria-edited-by-sefaria",
+     "order": {
+      "linksInCommon": 3,
+      "tfidf": 85.59427408614019,
+      "numSources": 96
+     },
+     "isInverse": true,
+     "topic": "moses-and-joshua",
+     "title": {
+      "en": "Moses and Joshua",
+      "he": "משה ויהושע"
+     },
+     "titleIsTransliteration": {
+      "en": false,
+      "he": false
+     },
+     "shouldDisplay": true,
+     "pools": [
+      "library",
+      "sheets"
+     ]
+    }
+   ],
+   "title": {
+    "en": "Relationship",
+    "he": "קשרים"
+   },
+   "shouldDisplay": true,
+   "pluralTitle": {
+    "en": "Relationships",
+    "he": "קשרים"
+   }
+  },
+  "parent-of": {
+   "links": [
+    {
+     "dataSource": "aspaklaria-edited-by-sefaria",
+     "order": {
+      "linksInCommon": 4,
+      "tfidf": 41.94170730868097,
+      "numSources": 3
+     },
+     "isInverse": true,
+     "topic": "gershom",
+     "title": {
+      "en": "Gershom",
+      "he": "גרשם"
+     },
+     "titleIsTransliteration": {
+      "en": true,
+      "he": false
+     },
+     "shouldDisplay": true,
+     "pools": [
+      "sheets"
+     ]
+    }
+   ],
+   "title": {
+    "en": "Child",
+    "he": "ילדים"
+   },
+   "shouldDisplay": true,
+   "pluralTitle": {
+    "en": "Children",
+    "he": "ילדים"
+   }
+  }
+ }
+}

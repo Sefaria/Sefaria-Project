@@ -1,0 +1,166 @@
+{
+ "ref": "Berakhot 2a",
+ "heRef": "ברכות ב׳ א",
+ "isComplex": false,
+ "text": [
+  "The beginning of tractate <i>Berakhot</i>, the first tractate in the first of the six orders of Mishna, opens with a discussion of the recitation of <i>Shema</i>, as the recitation of <i>Shema</i> encompasses an acceptance of the yoke of Heaven and of the mitzvot, and as such, forms the basis for all subsequent teachings. The Mishna opens with the laws regarding the appropriate time to recite <i>Shema</i>: <br><br><strong>MISHNA:</strong> <b>From when,</b> that is, from what time, does <b>one recite <i>Shema</i> in the evening? From the time when the priests enter to partake of their <i>teruma.</i></b> Until when does the time for the recitation of the evening <i>Shema</i> extend? <b>Until the end of the first watch.</b> The term used in the Torah (Deuteronomy 6:7) to indicate the time for the recitation of the evening <i>Shema</i> is <i>beshokhbekha</i>, when you lie down, which refers to the time in which individuals go to sleep. Therefore, the time for the recitation of <i>Shema</i> is the first portion of the night, when individuals typically prepare for sleep. <b>That is the statement of Rabbi Eliezer.</b>",
+  "<b>The Rabbis say:</b> The time for the recitation of the evening <i>Shema</i> is <b>until midnight.</b>",
+  "<b>Rabban Gamliel says:</b> One may recite <i>Shema</i> <b>until dawn,</b> indicating that <i>beshokhbekha</i> is to be understood as a reference to the entire time people sleep in their beds, the whole night."
+ ],
+ "he": [
+  "<big><strong>מֵאֵימָתַי</strong></big> קוֹרִין אֶת שְׁמַע בָּעֲרָבִין? מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן. עַד סוֹף הָאַשְׁמוּרָה הָרִאשׁוֹנָה. דִּבְרֵי רַבִּי אֱלִיעֶזֶר.",
+  "וַחֲכָמִים אוֹמְרִים: עַד חֲצוֹת.",
+  "רַבָּן גַּמְלִיאֵל אוֹמֵר עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר."
+ ],
+ "versions": [
+  {
+   "status": "locked",
+   "priority": 3,
+   "license": "CC-BY-NC",
+   "language": "he",
+   "versionTitle": "William Davidson Edition - Vocalized Aramaic",
+   "versionTitleInHebrew": "מהדורת וויליאם דייוידסון - ארמית המנוקד",
+   "shortVersionTitle": "",
+   "actualLanguage": "he",
+   "isPrimary": true,
+   "isSource": true
+  },
+  {
+   "status": "locked",
+   "priority": 2,
+   "license": "CC-BY-NC",
+   "language": "he",
+   "versionTitle": "William Davidson Edition - Aramaic",
+   "versionTitleInHebrew": "מהדורת וויליאם דייוידסון - ארמית",
+   "shortVersionTitle": "",
+   "actualLanguage": "he",
+   "isPrimary": true,
+   "isSource": true
+  },
+  {
+   "status": "locked",
+   "priority": "",
+   "license": "CC-BY-SA",
+   "language": "he",
+   "versionTitle": "Wikisource Talmud Bavli",
+   "versionTitleInHebrew": "תלמוד בבלי (ויקיטקסט)",
+   "shortVersionTitle": "",
+   "actualLanguage": "he",
+   "isPrimary": true,
+   "isSource": true
+  },
+  {
+   "status": "locked",
+   "priority": 2,
+   "license": "CC-BY-NC",
+   "language": "en",
+   "versionTitle": "William Davidson Edition - English",
+   "versionTitleInHebrew": "מהדורת וויליאם דייוידסון - אנגלית",
+   "shortVersionTitle": "Koren - Steinsaltz",
+   "actualLanguage": "en",
+   "isPrimary": false,
+   "isSource": false
+  },
+  {
+   "status": "locked",
+   "priority": 1,
+   "license": "Public Domain",
+   "language": "en",
+   "versionTitle": "Tractate Berakot by A. Cohen, Cambridge University Press, 1921",
+   "versionTitleInHebrew": "מסכת ברכות/א. כהן, בהוצאת אוניברסיטת קיימברידג׳, 1921",
+   "shortVersionTitle": "A. Cohen, Cambridge University Press, 1921",
+   "actualLanguage": "en",
+   "isPrimary": false,
+   "isSource": false
+  },
+  {
+   "status": "",
+   "priority": "",
+   "license": "CC0",
+   "language": "en",
+   "versionTitle": "Sefaria Community Translation",
+   "versionTitleInHebrew": "תרגום קהילת ספריא",
+   "shortVersionTitle": "",
+   "actualLanguage": "en",
+   "isPrimary": false,
+   "isSource": false
+  },
+  {
+   "status": "locked",
+   "priority": "",
+   "license": "Public Domain",
+   "language": "en",
+   "versionTitle": "Talmud Bavli. German trans. by Lazarus Goldschmidt, 1929 [de]",
+   "versionTitleInHebrew": "",
+   "shortVersionTitle": "Lazarus Goldschmidt, 1929",
+   "actualLanguage": "de",
+   "isPrimary": false,
+   "isSource": false
+  }
+ ],
+ "textDepth": 2,
+ "sectionNames": [
+  "Daf",
+  "Line"
+ ],
+ "addressTypes": [
+  "Talmud",
+  "Integer"
+ ],
+ "lengths": [
+  127,
+  2749
+ ],
+ "length": 127,
+ "heTitle": "ברכות ב׳ א",
+ "type": "Talmud",
+ "primary_category": "Talmud",
+ "book": "Berakhot",
+ "categories": [
+  "Talmud",
+  "Bavli",
+  "Seder Zeraim"
+ ],
+ "order": [
+  1,
+  1
+ ],
+ "sections": [
+  "2a"
+ ],
+ "toSections": [
+  "2a"
+ ],
+ "isDependant": false,
+ "indexTitle": "Berakhot",
+ "heIndexTitle": "ברכות",
+ "sectionRef": "Berakhot 2a",
+ "firstAvailableSectionRef": "Berakhot 2a",
+ "heSectionRef": "ברכות ב׳ א",
+ "isSpanning": false,
+ "versionTitle": "William Davidson Edition - English",
+ "versionTitleInHebrew": "מהדורת וויליאם דייוידסון - אנגלית",
+ "shortVersionTitle": "Koren - Steinsaltz",
+ "shortVersionTitleInHebrew": "קורן - שטיינזלץ",
+ "versionSource": "https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1",
+ "versionStatus": "locked",
+ "extendedNotesHebrew": "",
+ "digitizedBySefaria": false,
+ "license": "CC-BY-NC",
+ "formatEnAsPoetry": false,
+ "heVersionTitle": "William Davidson Edition - Vocalized Aramaic",
+ "heVersionTitleInHebrew": "מהדורת וויליאם דייוידסון - ארמית המנוקד",
+ "heShortVersionTitle": "",
+ "heShortVersionTitleInHebrew": "קורן - שטיינזלץ",
+ "heVersionSource": "http://sefaria.org",
+ "heVersionStatus": "locked",
+ "heExtendedNotesHebrew": "",
+ "heDigitizedBySefaria": false,
+ "heLicense": "CC-BY-NC",
+ "formatHeAsPoetry": false,
+ "title": "Berakhot 2a",
+ "heBook": "ברכות",
+ "index_offsets_by_depth": {},
+ "next": "Berakhot 2b",
+ "prev": null
+}
