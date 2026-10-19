@@ -4,8 +4,8 @@ title: Book pages
 domain: Library & discovery
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-19
 ---
 # Book pages — architecture
 
@@ -27,7 +27,9 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [Saved, history & notes](../user-library/architecture.md): Continue Reading (BOK-003) reads `last-place.ts` in localStorage
+  today ([`src/features/book/BookRoute.tsx:38-40`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/book/BookRoute.tsx#L38-L40)); in the target it reads the reader's position from the user-state store,
+  so it follows the account. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Risks and open questions
 

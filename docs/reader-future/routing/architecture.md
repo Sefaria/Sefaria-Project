@@ -4,8 +4,8 @@ title: URLs & routing
 domain: Platform
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-19
 ---
 # URLs & routing — architecture
 
@@ -23,11 +23,16 @@ _Not discussed yet: how `master` does it, how `reader-next` does it, and what di
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- **Resume is a segment URL.** A reading position stores the canonical segment ref and versions; resuming opens that URL. The
+  reader already lands and scrolls on a segment URL, server-rendered ([`src/features/reader/TextColumn.tsx:311`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextColumn.tsx#L311), script at
+  [`src/features/reader/use-reading-scroll.ts:402`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/use-reading-scroll.ts#L402)) and client-side ([`src/features/reader/TextColumn.tsx:167-170`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextColumn.tsx#L167-L170)), and the
+  address bar keeps naming the verse being read ([`src/features/reader/TextPanel.tsx:168-175`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L168-L175)). No new URL grammar is needed
+  unless works get several structures (open in the data-model assessment, `../CROSS_CUTTING.md`). See
+  [Saved, history & notes](../user-library/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [Saved, history & notes](../user-library/architecture.md): resume links for reading positions and bookmarks.
 
 ## Risks and open questions
 

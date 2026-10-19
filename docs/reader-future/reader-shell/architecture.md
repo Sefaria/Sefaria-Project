@@ -4,8 +4,8 @@ title: Reader shell & panels
 domain: Reader
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-19
 ---
 # Reader shell & panels — architecture
 
@@ -23,11 +23,17 @@ _Not discussed yet: how `master` does it, how `reader-next` does it, and what di
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- **One "now reading" signal per panel.** The reading-scroll engine reports the focused and the settled segment
+  ([`src/features/reader/use-reading-scroll.ts:30-33`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/use-reading-scroll.ts#L30-L33)); `TextColumn` passes them up with their passage
+  ([`src/features/reader/TextColumn.tsx:154-163`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextColumn.tsx#L154-L163)); `TextPanel` then wires four consumers separately: the URL
+  ([`src/features/reader/TextPanel.tsx:168-175`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L168-L175)), last place ([`src/features/reader/TextPanel.tsx:355-358`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L355-L358)), reading history
+  ([`src/features/reader/TextPanel.tsx:462-473`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L462-L473)) and back/forward ([`src/features/reader/TextPanel.tsx:143-146`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L143-L146)). Gather them
+  behind one hook that emits `{work, ref, versions, structure?}` on settle, so a reading-position tracker is one more
+  subscriber, not a fifth wiring. See [Saved, history & notes](../user-library/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [Saved, history & notes](../user-library/architecture.md): reading position and history subscribe to the panel's signal.
 
 ## Risks and open questions
 

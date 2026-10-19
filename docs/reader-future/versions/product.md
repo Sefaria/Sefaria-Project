@@ -4,8 +4,8 @@ title: Versions & translations
 domain: Reader
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-19
 ---
 # Versions & translations — product specification
 
@@ -15,7 +15,9 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+Nothing decided. Research in the thread mapped how each client picks the source and translation a reader sees, how a choice
+sticks across books and visits, and where the new client differs; the rules are in the
+[architecture](architecture.md#legacy-approach-vs-new-approach). The items below are *ideas* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
 
 ## Who it is for and what they need
 
@@ -27,11 +29,30 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+**Keep**
+- A chosen translation sticks for its corpus (pick one in Genesis, get it in Isaiah). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-002, VER-012
+- A translation-language preference (es, fr, de…) picks the best translation in that language when none is named. — *idea* ·
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-014
+- The page arrives with the preferred translation already shown; on sefaria.org the default can flash first and then be
+  swapped. The new client already does this. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-014
+
+**Change**
+- A signed-in reader's version and translation-language preferences are saved to the profile, as on sefaria.org; the new client
+  keeps them in cookies only. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · VER-002
+- A link naming a version the text lacks, or only a title, falls back to the default translation or is corrected, instead of
+  being dropped or showing no translation. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · RTE-028, VER-014
+
+**Drop**
+- Legacy URL correction that strips a right-to-left translation or a left-to-right source on reload
+  ([Legacy behaviour not to port](architecture.md#legacy-behaviour-not-to-port)). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639)
 
 ## Open questions
 
-_None yet._
+All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+- Sync version and translation-language preferences to the profile for signed-in readers?
+- What should a link with an unknown or title-only version do: redirect to the corrected link, or quietly show the default?
+- Keep the location-based "read in your language" suggestion (VER-004)? sefaria.org offers the first supported language of the
+  visitor's country and never English; the new client has none and no way to set the preference.
 
 ## Decisions
 
