@@ -91,6 +91,7 @@ class AbstractIndex(object):
         vs = self.versionState()
         content_nodes = self.nodes.get_leaf_nodes()
         for c in content_nodes:
+            sections = None
             try:
                 state_ja = vs.state_node(c).ja("all")
                 for indxs in state_ja.non_empty_sections():
