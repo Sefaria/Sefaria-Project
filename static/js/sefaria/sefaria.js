@@ -144,7 +144,7 @@ Sefaria = extend(Sefaria, {
       const norm = Sefaria.makeRef(Sefaria.parseRef(ref));
       if (typeof norm === "object" && "error" in norm) {
           // If the ref doesn't parse, just replace spaces with undescores.
-          return typeof ref === "string" ? ref.replace(/ /g, "_") : ref;
+          return typeof ref === "string" ? Sefaria.util.encodeTitleForUrl(ref) : ref;
       }
       return norm;
   },
@@ -3036,7 +3036,6 @@ _media: {},
   },
   _tableOfContentsDedications: {},
     _strapiContent: null,
-  _inAppAds: null,
   _upcomingDay: {},  // for example, possible keys are 'parasha' and 'holiday'
   getUpcomingDay: function(day) {
       // currently `day` can be 'holiday' or 'parasha'
@@ -4161,7 +4160,6 @@ Sefaria.resetCache = function() {
     this.sheets._userSheetsByRef = {};
 
     // These change slowly, but they do change
-    this._inAppAds = {};
     this._upcomingDay = {};
     this._parashaNextRead = {};
     this._featuredTopic = {};
