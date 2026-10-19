@@ -129,7 +129,10 @@ var serverConfig = config({
     entry: './server',
     target: 'node',
     mode: 'development',  // can be overriden via cli
-    externals: [nodeExternals()],
+    // d3 and @observablehq/plot are ESM-only, so the server can't require() them at runtime; bundle them instead.
+    externals: [nodeExternals({
+        allowlist: [/^d3(-|$)/, /^@observablehq\//, /^internmap$/, /^delaunator$/, /^robust-predicates$/, /^isoformat$/, /^interval-tree-1d$/, /^binary-search-bounds$/],
+    })],
     output: {
         path: path.resolve(buildDir + 'server'),
         filename: 'server-bundle.js'
