@@ -61,6 +61,8 @@ data:
             ]
             pattern = re.compile(r'\s+'.join(parts) + r'\s*\Z')
             m = pattern.match(message)
+            if m is None:
+                return event_dict
             res = m.groupdict()
 
             res["httpRequest"] = {
@@ -131,11 +133,17 @@ data:
             "error_console": {
                 "class": "logging.StreamHandler",
                 "formatter": "json_formatter",
+                "stream": "ext://sys.stderr",
             },
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": "json_formatter",
+                "stream": "ext://sys.stdout",
             },
+        },
+        "loggers": {
+            "gunicorn.access": {"level": "WARNING", "handlers": [], "propagate": False},
+            "gunicorn.error": {"level": "INFO", "handlers": ["error_console"], "propagate": False},
         },
     }
 

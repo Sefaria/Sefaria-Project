@@ -330,6 +330,7 @@ LOGGING = {
             'handlers': ['default'],
             'propagate': False,
         },
+        'elastic_transport.transport': {'level': 'WARNING'},
     }
 }
 
