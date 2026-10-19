@@ -117,3 +117,27 @@ def test_set_enabled_coerces_before_writing(saveable_profile):
     with whitelisted(False):
         library_assistant.set_enabled(mock.Mock(id=1), "false")
     assert saveable_profile.settings[SETTING_KEY] is False
+
+
+def remote_config(anonymous_enabled):
+    """Stub remote config for the logged-out switch; other keys keep their defaults."""
+    def get(key, default=None):
+        return anonymous_enabled if key == library_assistant.CHATBOT_ANONYMOUS_ENABLED else default
+    return mock.patch.object(library_assistant.remoteConfigCache, "get", side_effect=get)
+
+
+class FakeAnonymousUser(object):
+    is_authenticated = False
+
+
+@pytest.mark.parametrize("user", [None, FakeAnonymousUser()])
+def test_logged_out_visitors_get_the_assistant_by_default(user):
+    with mock.patch.object(library_assistant.remoteConfigCache, "get", side_effect=lambda k, default=None: default):
+        assert library_assistant.is_enabled_for_user(user) is True
+
+
+@pytest.mark.parametrize("value", [False, "false", 0])
+def test_remote_config_switches_logged_out_access_off(value):
+    with remote_config(value):
+        assert library_assistant.is_enabled_for_user(FakeAnonymousUser()) is False
+        assert library_assistant.is_enabled_for_anonymous() is False
