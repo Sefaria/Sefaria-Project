@@ -51,7 +51,6 @@ RESTORE_EXCLUDE=(
   webpages                          # 4671+1423 MB, not in recorder's touched-collection set
   webpages_long_urls                # 43 MB, not in recorder's touched-collection set
   dibur_hamatchils                  # 245+35 MB, not in recorder's touched-collection set
-  word_form                         # 218+72 MB, not in recorder's touched-collection set
   library_assistant_migration_archive # 32 MB, not in recorder's touched-collection set
   garden_stop                       # 14 MB, not in recorder's touched-collection set
   translation_requests              # 10 MB, not in recorder's touched-collection set
