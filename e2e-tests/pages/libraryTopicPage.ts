@@ -517,8 +517,13 @@ export class LibraryTopicPage extends HelperBase {
     await expect(
       this.page.locator('h1', { hasText: /Page Not Found|not found/i }).first(),
     ).toBeVisible({ timeout: t(10000) });
-    // User can navigate away — the global header "Topics" link is present.
-    await expect(this.page.locator('a[href="/topics"], a[href^="/topics"]').first()).toBeVisible({ timeout: t(10000) });
+    const topicsLink = this.page.locator('a[href="/topics"], a[href^="/topics"]').first();
+    if (await topicsLink.count()) {
+      await expect(topicsLink).toBeVisible({ timeout: t(10000) });
+      return;
+    }
+    // DEBUG=True replaces the themed 404 (and its nav) with Django's technical page.
+    await expect(this.page.getByRole('heading', { name: /Page not found \(404\)/i })).toBeVisible();
   }
 
   // --- Analytics / a11y proxies ---

@@ -81,9 +81,9 @@ export const BROWSER_SETTINGS = {
         file: AUTH_PATHS.enLAUserFile,
         lang: LANGUAGES.EN,
         user: testLAUser,
-        // Account is Django staff → the LA More-options menu shows the extra
-        // "Settings" item (the chatbot's `is-moderator` branch).
-        isModerator: true,
+        // qa+automation is whitelisted for the assistant but is not Django staff,
+        // so the More-options menu does not include the moderator "Settings" item.
+        isModerator: false,
     },
     // Logs in natively on the Hebrew (.org.il) domain — see global-setup.ts.
     heLAUser: {
