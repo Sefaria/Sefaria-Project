@@ -725,5 +725,11 @@
     "newsletter_sign_up_page.learning_level_4.label": "Advanced",
     "newsletter_sign_up_page.learning_level_4.description": "I can easily navigate the Jewish library but benefit from translation and/or context in some cases.",
     "newsletter_sign_up_page.learning_level_5.label": "Expert",
-    "newsletter_sign_up_page.learning_level_5.description": "I can easily study the texts of the Jewish library independently in their original language."
+    "newsletter_sign_up_page.learning_level_5.description": "I can easily study the texts of the Jewish library independently in their original language.",
+    "header.library_assistant": "Library Assistant",
+    "search.null.sources.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
+    "search.null.books.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
+    "search.null.authors.body.library_assistant": "Try a different search term, browse all Authors or ask the Library Assistant for help.",
+    "search.null.topics.body.library_assistant": "Try a different search term, browse all Topics or ask the Library Assistant for help.",
+    "header.library_assistant_short": "Ask"
 }
