@@ -16,20 +16,20 @@ The test-status column mirrors the F-QUOTA-01 rows of `e2e-tests/api-keys/featur
 |---|---|
 | `POC` | Sefaria-Project `origin/feature/<POC story>/auth-service-poc-monthly-quota` @ `76d34a4` (draft PR #3813). Go paths start at `auth-service/`, chart paths at `helm-chart/sefaria/` |
 | `P1` | Sefaria-Project `origin/feature/<P1 story>/api-keys-phase1-with-settings-ui` (Phase 1, #3798) |
-| `INFRA` | `/home/yodem/sefaria/infrastructure` `origin/main` @ `d5a41a9` |
+| `INFRA` | `Sefaria/infrastructure` `origin/main` @ `d5a41a9` |
 | `EG@v1.8.0` / `EG@v1.9.1` | github.com/envoyproxy/gateway at those tags. Prod runs v1.8.0, dev v1.9.1 (`INFRA prod/cluster-1/spec/envoy/helmrelease.yaml:25`, `dev/cluster-1/spec/envoy/helmrelease.yaml:25`) |
 | `RL@8fe6ea42` / `RL@ff287602` / `RL@master` | github.com/envoyproxy/ratelimit: the image EG v1.9.1 bundles / the image EG v1.8.0 bundles / `053bfeb` (`EG api/v1alpha1/shared_types.go:38@v1.9.1`, `:37@v1.8.0`) |
 | `Envoy@1.39.1` | the proxy EG v1.9.1 bundles (`shared_types.go:30@v1.9.1`) |
-| `wiki/` | `/home/yodem/sefaria/sefaria-wiki/wiki/` |
+| `wiki/` | the Sefaria wiki repo, `sefaria-wiki`, under `wiki/` |
 | `spec` | `wiki/meta/spec-2026-10-14-api-key-monthly-quota.md` |
 | `arch` | `wiki/sources/api-key-architecture-2026-10-14.md` |
 | `next-steps` | `wiki/projects/api-key-program/next-steps.md` |
-| `r1`..`r4` | research files in this folder: `r1-code.md` (code path), `r2-envoy.md` (Envoy/ratelimit internals), `r3-go-extauthz.md` (auth service), `r4-industry.md` (industry practice). A cite like `(r2 §C1)` points to the research section that holds the primary-source evidence |
+| `r1`..`r4` | citation keys for the 2026-10-20 research notes behind this document: r1 (code reading), r2 (Envoy and Envoy Gateway docs), r3 (Go ext_authz practice), r4 (industry comparison). The notes are not published in this repo; every conclusion they support is carried inline here. A cite like `(r2 §C1)` names the note section the conclusion came from |
 | Trove-Envoy | Trove book "Envoy Proxy: The Definitive Guide", `cmmt9asuy0a2yqq0z4njsdch4` (p.14 = ch.12 ext_authz, p.19 = ch.17 rate limiting) |
 
 Corrections to the research made while writing this (source re-read):
 - r2 §B4 says per-rule `xRateLimitHeaders` is v1.9+ only. **Wrong.** It is in the v1.8.0 API:
-  `api/v1alpha1/ratelimit_types.go:139-144@v1.8.0` (fetched with `gh api`, copy `rl_types_v180.go` in this folder). r1 Q5.6 was right.
+  `api/v1alpha1/ratelimit_types.go:139-144@v1.8.0` (fetched with `gh api`). r1 Q5.6 was right.
   The chart comment claiming 1.8.0 rejects it (`POC values.yaml:256-258`) disagrees with the source; live CRD behaviour on prod is UNVERIFIED.
 - r2 §A3 worries that client-sent `x-sefaria-*` survive a fail-open. On the POC chart they are stripped at the listener before
   ext_authz (`POC templates/gateway/clienttrafficpolicy.yaml:30-37`), proven on authpoc with the auth service at 0 replicas
@@ -440,7 +440,7 @@ For **Yotam**
 3. Prefer `STOP_CACHE_KEY_INCREMENT_WHEN_OVERLIMIT` (one env var, extra GET) or the shared-domain filter ordering (two RPCs, needs a live ordering test), or both?
 4. Is a patch upgrade of prod EG v1.8.0 -> v1.8.4+ acceptable before launch (calendar flag), or do we ship with the epoch window and published dates?
 5a. #3798 (`P1@7e3f5bb`) lacks the meter, quota BTP, 4-header strip and e2e scripts (Q-EDGE-74): confirm the draft PR into its branch should bring the POC's auth-service and chart pieces with it, not only the API-projects/Powered-by split.
-5. Should the Library Assistant's behaviour in an outage differ from third parties (Daniel's "tier-specific key types" question, next-steps 2026-10-19)?
+5. (Decided 2026-10-20: no, the Library Assistant gets no special outage behaviour, see section 8.) Should the Library Assistant's behaviour in an outage differ from third parties (Daniel's "tier-specific key types" question, next-steps 2026-10-19)?
 
 For **Daniel** (product)
 6. Monthly `developer` number and per-minute numbers (from 30 days of Phase 0 data), and whether rejected or failed requests (4xx/5xx) may count toward the month.
