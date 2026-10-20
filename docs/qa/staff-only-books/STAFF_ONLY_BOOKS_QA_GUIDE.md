@@ -94,6 +94,53 @@ qa.urls(`${me} Book`, {categoryPath: cat});
 - On the staff cauldron, all of it is visible.
 - On the public cauldron, none of it is. Check with the `qa.urls` table, and look at Genesis 1:1's connections and Genesis's versions.
 
+## Part 2b: copy a real book of the tester's choice
+This exercises real structures the dummy book doesn't have. Before running anything, **ask the tester** these questions, and wait for their answers.
+
+1. **Which book should be copied?** Any non-dictionary book on Sefaria works, and more complex ones test more. Some suggestions:
+   - simple: `Ruth`
+   - with several parts: `Pesach Haggadah`
+   - a commentary: `Rashi on Ruth`
+   - Talmud: `Berakhot`
+2. **The copy's English title.** It must start with their prefix and contain no hyphens, for example `Zzz QA Dana Haggadah`.
+3. **The copy's Hebrew title.**
+4. **Where should the copy go?**
+   - **(a)** In their staff-only category from Part 2. The whole copy is then staff-only automatically.
+   - **(b)** In the original book's own category, flagged staff-only explicitly. This tests a staff-only book in a public category.
+5. **How much text?** Sections per part (default 5), versions (default 2: one English and one Hebrew, or exact version titles), and links (default 30). Keep these small: a big copy is slow.
+
+Then run, with their answers filled in:
+
+```js
+// (a) in the staff-only category:
+await qa.copyBook("<source>", "<English title>", "<Hebrew title>", {categoryPath: cat, maxSections: 5, versions: 2, maxLinks: 30});
+// (b) in the original category, flagged explicitly:
+await qa.copyBook("<source>", "<English title>", "<Hebrew title>", {staffOnly: true, maxSections: 5, versions: 2, maxLinks: 30});
+
+await qa.status("<English title>");
+qa.urls("<English title>", {categoryPath: cat /* or the original category */, linkedRef: "<a ref the copy links to>"});
+```
+
+`copyBook` takes up to a few minutes. It returns:
+- which versions it copied
+- which versions it skipped, with the reason (some versions can't be exported, usually because of their license)
+- how many links it copied
+- `alreadyLinked`: links that already existed. For a commentary, the site creates links to its base text automatically when the versions are saved, so these are expected.
+- `skippedLinks`: essay links, which can't be copied this way
+- the first section of the copy, so you can open it
+
+**Expected:**
+- The copy has the source's structure: its parts and section names. Its first sections have text in the copied versions.
+- `qa.status` shows the copy, its versions and all its links as `admin_only: true`.
+- On the staff cauldron, you can open the copy, and its links appear on both ends. For example, a copy of Ruth links to commentaries on Ruth, so those commentaries' connection panels show the copy.
+- On the public cauldron, none of it appears:
+  - not in the table of contents
+  - not by URL
+  - not in the connection panels of the books it links to
+- For option (b): the original category still appears on the public cauldron, but without the copy.
+
+Publish the copy in Part 4 with `qa.publishBook("<English title>")`. For option (a), publish the category first.
+
 ## Part 3: things that must be refused
 Each of these should print an error and change nothing:
 
@@ -116,7 +163,8 @@ await qa.publishBook(`${me} Book`, {dryRun: true});
 await qa.publishBook(`${me} Book`);                 // also publishes its versions and links
 await qa.publishVersion("Genesis", `${me} Genesis Translation`, "en");
 await qa.status(`${me} Book`);                      // everything admin_only: false
-qa.refreshUrls(`${me} Book`, "Genesis");
+// and the copy from Part 2b, if you made one: qa.publishBook("<English title>")
+qa.refreshUrls(`${me} Book`, "Genesis" /*, "<English title of the copy>", "<a book it links to>" */);
 ```
 
 `qa.refreshUrls` prints links on the **public** cauldron. Open each one in order while logged in there as staff. They tell the public site to reload what it keeps in memory: the table of contents, the book, Genesis and the search-bar autocomplete. Each redirects to a page with a "Cache-Reset" style message.
@@ -135,6 +183,7 @@ Send Yonadav:
 Tester: <name>          Agent: <which>         Date:
 Part 1 (example set)    staff: OK / problem    public: OK / problem
 Part 2 (create)         each call OK? flags as expected?   staff: ...   public: ...
+Part 2b (copy)          which book, (a) or (b), what was copied/skipped, flags, staff: ...   public: ...
 Part 3 (refusals)       both refused? anything created anyway?
 Part 4 (publish)        each call OK?   public before refresh: ...   public after refresh: ...
 Anything else odd (with URL, what you expected, what you saw, screenshot if visual):
