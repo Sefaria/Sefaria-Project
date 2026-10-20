@@ -19,8 +19,8 @@ MONGO_PORT=27017
 DJANGO_DB=sefaria_auth
 GO_DB=authsvc_go
 PG_DSN_GO="postgres://postgres:pg@127.0.0.1:$PG_PORT/$GO_DB?sslmode=disable"
-SCHEMA_SQL="select conname, pg_get_constraintdef(oid) from pg_constraint where conrelid in ('powered_by_apikey'::regclass,'powered_by_projectlimits'::regclass) and contype='c' order by 1;
-select tgname, pg_get_triggerdef(oid) from pg_trigger where not tgisinternal and tgrelid in ('powered_by_apikey'::regclass,'powered_by_project'::regclass,'powered_by_projectlimits'::regclass) order by 1;"
+SCHEMA_SQL="select conname, pg_get_constraintdef(oid) from pg_constraint where conrelid in ('powered_by_apikey'::regclass,to_regclass('powered_by_projectlimits')) and contype='c' order by 1;
+select tgname, pg_get_triggerdef(oid) from pg_trigger where not tgisinternal and tgrelid in ('powered_by_apikey'::regclass,'powered_by_project'::regclass,to_regclass('powered_by_projectlimits')) order by 1;"
 FAILS=0
 SUBCOMMAND_ARGS=()  # set by main: the arguments after the subcommand name
 
