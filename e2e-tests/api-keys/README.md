@@ -58,6 +58,39 @@ Import `test` and `expect` from `./fixtures` (or `../fixtures`).
 
 Tier is the `tier` column of the project's row in `powered_by_projectlimits` (no row means developer). It is set through `set_project_tier` in the local-stack drills, or the admin ProjectLimits inline. Every key of a project shares that tier and the project's counters. The project table keeps the metadata and the key table keeps the keys. Raw SQL that deletes a project must delete its limits row first, because the FK is deferred and refuses the delete at commit.
 
+## Feature matrix
+
+`features.json` is the machine-checked list of every API key feature (`F-AREA-NN`) and edge case (`F-AREA-NN.eN`), each with a
+scenario, the expected behaviour, a severity (P0 gateway decisions, migrations, writer atomicity, fail-open behaviour; P1 default;
+P2 UI and documentation limits) and the checks that prove it. `check_features.py` reads it and fails when a check does not exist.
+
+```bash
+python3 e2e-tests/api-keys/check_features.py --strict      # exit 0: every edge case has a resolvable check; MISSING lines say what is wrong
+python3 e2e-tests/api-keys/check_features.py --summary     # counts by status and area, planned cases by tracking id
+python3 -m unittest discover -s e2e-tests/api-keys/tests -t .   # the validator's own tests
+```
+
+The POC refs resolve against the one remote branch matching `refs.poc_glob`; pass `--poc-ref REF` (or `API_KEYS_POC_REF`) to name it,
+and `--offline-poc` only when the branch is not fetched (poc refs then count as unverified, not proven). Never write a Shortcut id in
+`features.json`.
+
+**Statuses.** `on_branch`: provable on this branch by a test, drill, file check or demo section that exists now. `poc_only`: provable
+only on the POC branch (the check carries `"scope": "poc"`). `planned`: not built yet; the edge case carries `tracking` (the follow-up id)
+and `planned_check` (one sentence naming the proof), and needs no `checks`. A status on an edge case overrides its feature's.
+
+**Known gaps.** A row with `"known_gap": true` cites the test that asserts the desired behaviour and fails today (a `known_gap` test name,
+`@pytest.mark.failing`, a Go `knowngaps` build tag, `@known-gap` in a Playwright title, a drill tagged `[KG]`). A known-gap test is never proof
+of an edge case that is not a known gap.
+
+**Add an edge case.** Append an object to the feature's `edge_cases` with the next free `.eN` (never renumber: other documents cite the ids),
+a `scenario`, an `expected`, a `severity` and `checks` (kinds: `pytest`, `gotest`, `playwright`, `demo`, `drill`, `shell`, `file`,
+`checks_json`; ref forms are in `check_features.py`). A `demo` check names a `section_*` of `auth-service/scripts/demo.sh` whose body
+has a `prove <id>` line for that feature or edge id. Run the validator and fix every `MISSING` line.
+
+**PR rule.** A PR that adds a test under the `must_map` globs (`powered_by/tests/project_limits_*_test.py`,
+`powered_by/tests/migration_project_limits_test.py`) must map it: cite it from the edge case it proves, or `--strict` fails with
+"test matched by must_map is not referenced by any check".
+
 ## Files
 
 `env.ts` (targets, manifest, masking), `fixtures.ts`, `session.ts` (login, contexts), `gateway.ts`, `registry.ts`,

@@ -1,0 +1,4163 @@
+{
+ "schema_version": 1,
+ "refs": {
+  "poc_glob": "origin/feature/*/auth-service-poc-monthly-quota"
+ },
+ "must_map": [
+  "powered_by/tests/project_limits_*_test.py",
+  "powered_by/tests/migration_project_limits_test.py"
+ ],
+ "features": [
+  {
+   "id": "F-MODEL-01",
+   "area": "model",
+   "title": "One limits row per API project; keys and project metadata not duplicated",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-MODEL-01.e1",
+     "scenario": "raw UPDATE of a limits row to tier gold",
+     "expected": "the database CHECK rejects an unknown tier",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_tier_check_rejects_unknown"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-01.e2",
+     "scenario": "developer, partner and internal tiers",
+     "expected": "accepted",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_tier_accepts_developer_partner_internal"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-01.e3",
+     "scenario": "new limits row, in Python and by a raw INSERT with only project_id",
+     "expected": "defaults to developer, timestamps included",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_new_limits_row_defaults_to_developer"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_raw_insert_with_only_the_project_id_gets_the_database_defaults"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-01.e4",
+     "scenario": "second row for one project, or a row for a missing project",
+     "expected": "refused by the primary key and by the FK (SET CONSTRAINTS ALL IMMEDIATE)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_a_second_row_for_one_project_is_refused"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_a_row_needs_an_existing_project"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-01.e5",
+     "scenario": "column inventory of the limits and key tables",
+     "expected": "limits holds only project_id, tier, created_at, updated_at; the key table is unchanged (no tier column)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::NoDuplicationTest::test_limits_table_has_only_project_id_tier_and_timestamps"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::NoDuplicationTest::test_key_table_columns_are_unchanged"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_tables"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-01.e6",
+     "scenario": "column inventory of the project table",
+     "expected": "keeps name, description, owner, organization, consent_withdrawn_at, deleted_at, notes and the frozen tier",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::NoDuplicationTest::test_project_table_keeps_its_metadata_columns"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_tables"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-01.e7",
+     "scenario": "deleting projects",
+     "expected": "a project with keys cannot be hard-deleted (PROTECT); a keyless hard delete removes its limits row (CASCADE); a soft delete keeps the row",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_a_project_with_keys_cannot_be_deleted"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_deleting_a_keyless_project_removes_its_limits_row"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_soft_deleting_a_project_keeps_its_limits_row"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-01.e8",
+     "scenario": "makemigrations --check --dry-run inside the suite",
+     "expected": "no pending model changes",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::MigrationStateTest::test_no_pending_model_changes"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-01.e9",
+     "scenario": "creating a project, claiming a listing and setting a tier through the writer",
+     "expected": "Project.tier (frozen) never changes",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::FrozenProjectTierTest::test_writer_never_writes_the_project_tier"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-01.e10",
+     "scenario": "change_tier permission",
+     "expected": "declared on ProjectLimits and present after migrating",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_change_tier_permission_is_declared"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-MODEL-02",
+   "area": "model",
+   "title": "Backfill 0007 (limits rows for API projects)",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-MODEL-02.e1",
+     "scenario": "prod shape (ownerless keyless Formstack listings, no keys)",
+     "expected": "no row created, no error",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_prod_shape_creates_no_rows"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e2",
+     "scenario": "dev shape (owner+keys, owner without keys, partner project with a revoked key, soft-deleted project with a revoked key, settings-created private project, claimed legacy listing, mock row with a key, gold legacy tier)",
+     "expected": "one row per API project copying its tier; none for ownerless keyless listings",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_dev_shape_creates_one_row_per_api_project_with_its_tier"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e3",
+     "scenario": "backfill run",
+     "expected": "sends no NOTIFY and writes nothing to the key or project table",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_backfill_sends_no_notify_and_touches_no_other_table"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e4",
+     "scenario": "unknown legacy project tier (gold)",
+     "expected": "becomes developer with a warning and never aborts",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_unknown_tier_is_downgraded_not_fatal"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e5",
+     "scenario": "second forward run, with a staff-set partner present",
+     "expected": "inserts nothing and never overwrites",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_backfill_is_idempotent_and_never_overwrites"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e6",
+     "scenario": "reverse migration",
+     "expected": "copies each row's tier back onto the frozen project tier (changed rows only) and deletes the limits rows; keys and projects untouched",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_reverse_restores_the_project_tier_and_removes_the_rows"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e7",
+     "scenario": "forward, reverse, forward",
+     "expected": "identical limits rows; project and key ids unchanged",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_roundtrip_is_lossless"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e8",
+     "scenario": "soft-deleted project",
+     "expected": "gets its row with its tier, and its keys still load as revoked",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_deleted_project_keeps_its_row_and_its_keys_load_revoked"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e9",
+     "scenario": "two keys of one project",
+     "expected": "one row, independent of key order",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_two_keys_of_a_project_share_one_row"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e10",
+     "scenario": "migrate powered_by 0005, latest, 0005, latest on Postgres with seeded dev-shape and prod-shape data",
+     "expected": "schema dumps equal",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "e2e-tests/api-keys/checks/run-checks.sh#migrations"
+      },
+      {
+       "kind": "file",
+       "ref": "e2e-tests/api-keys/checks/testenv/seed_dev_shape.sql",
+       "contains": "powered_by_apikey"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-MODEL-03",
+   "area": "model",
+   "title": "NOTIFY triggers after 0008",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-MODEL-03.e1",
+     "scenario": "limits tier UPDATE",
+     "expected": "one NOTIFY with table powered_by_projectlimits, exactly once for the one row",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_limits_tier_update_notifies_once"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-03.e2",
+     "scenario": "limits INSERT and DELETE",
+     "expected": "each fires a NOTIFY (statement trigger)",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_limits_insert_and_delete_notify"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-03.e3",
+     "scenario": "last_used_at, project name, limits updated_at alone, and a write leaving the tier unchanged",
+     "expected": "fire no NOTIFY",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_bookkeeping_updates_do_not_notify"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestListenIgnoresBookkeepingWrites"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-03.e4",
+     "scenario": "setting a project's deleted_at, and writing the frozen Project.tier",
+     "expected": "deleted_at notifies, the frozen tier does not",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_soft_delete_notifies"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_frozen_project_tier_does_not_notify"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-03.e5",
+     "scenario": "deleting a project row",
+     "expected": "fires the statement trigger",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_project_delete_notifies"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-03.e6",
+     "scenario": "trigger inventory after 0008",
+     "expected": "six triggers and one function; key triggers unchanged, project update trigger lists deleted_at only, limits update trigger lists tier",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_trigger_inventory_after_0008"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_registry"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-03.e7",
+     "scenario": "applying 0008",
+     "expected": "sends a NOTIFY so a waiting new auth-service image reloads at once",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_migration_0008_sends_a_notify"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-03.e8",
+     "scenario": "reversing 0008",
+     "expected": "restores the 0005 trigger definitions and drops the limits triggers (pg_get_triggerdef)",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_reverse_restores_the_0005_triggers"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-03.e9",
+     "scenario": "0008 on a database that already holds backfilled limits rows",
+     "expected": "applies with no pending-trigger-events error",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_0008_applies_with_backfilled_rows_present"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-MODEL-04",
+   "area": "model",
+   "title": "Reader-role grants",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-MODEL-04.e1",
+     "scenario": "auth_service_reader role exists",
+     "expected": "0008 grants SELECT (project_id, tier) on powered_by_projectlimits",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::GrantMigrationTest::test_grants_reader_role_when_present"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-04.e2",
+     "scenario": "reader role absent",
+     "expected": "the migration still succeeds",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::GrantMigrationTest::test_no_reader_role_is_not_an_error"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-04.e3",
+     "scenario": "reader selects created_at or updated_at on the limits table, or last_used_at on the key table",
+     "expected": "refused (column-level grants only)",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::GrantMigrationTest::test_reader_cannot_read_bookkeeping_columns"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_registry"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-04.e4",
+     "scenario": "provision script and local provision.sql",
+     "expected": "grant (project_id, tier) on the limits table; the script's table guard lists it",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/provision-cluster-registry.sh",
+       "contains": "powered_by_projectlimits"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/dev/local-stack/provision.sql",
+       "contains": "SELECT \\(project_id, tier\\) ON powered_by_projectlimits"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-MODEL-05",
+   "area": "model",
+   "title": "Old-image compatibility on the shared dev DB (expand-only)",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-MODEL-05.e1",
+     "scenario": "old code inserts a key and a project row (frozen tier default)",
+     "expected": "works with no limits row involved",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::OldCodeCompatibilityTest::test_old_code_can_still_insert_a_key_and_a_project"
+      },
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/d-old-code.sh"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-05.e2",
+     "scenario": "old loader join (apikey JOIN project, p.tier)",
+     "expected": "still returns every migrated key",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::OldCodeCompatibilityTest::test_old_loader_join_returns_migrated_keys"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-05.e3",
+     "scenario": "tier changed on the limits row after 0008",
+     "expected": "invisible to the old query, which reads the frozen column (documented limit, pinned)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::OldCodeCompatibilityTest::test_old_loader_does_not_see_a_tier_changed_after_the_split"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-05.e4",
+     "scenario": "new loader query with a tier written to the frozen Project.tier (what an old image's admin does)",
+     "expected": "ignored",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::OldCodeCompatibilityTest::test_new_loader_query_ignores_the_frozen_project_tier"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-05.e5",
+     "scenario": "old image hard-deletes a keyless project that has a limits row",
+     "expected": "refused by the FK at commit, nothing lost; a keyed project stays protected (documented limit)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::OldCodeCompatibilityTest::test_old_code_cannot_hard_delete_a_project_that_has_a_limits_row"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-SCHEMA-01",
+   "area": "model",
+   "title": "Go fixture parity",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-E7"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-SCHEMA-01.e1",
+     "scenario": "fixture key-table columns vs Django",
+     "expected": "equal (unchanged)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/auth_service_schema_test.py::AuthServiceFixtureSchemaTest::test_N_E7_the_key_table_has_the_same_columns"
+      }
+     ]
+    },
+    {
+     "id": "F-SCHEMA-01.e2",
+     "scenario": "fixture project columns (id, project_name, deleted_at) vs Django",
+     "expected": "match",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/auth_service_schema_test.py::AuthServiceFixtureSchemaTest::test_N_E7_the_project_columns_the_auth_service_reads_match"
+      }
+     ]
+    },
+    {
+     "id": "F-SCHEMA-01.e3",
+     "scenario": "fixture and Django limits-table columns",
+     "expected": "equal",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/auth_service_schema_test.py::AuthServiceFixtureSchemaTest::test_N_E7_the_limits_table_has_the_same_columns"
+      }
+     ]
+    },
+    {
+     "id": "F-SCHEMA-01.e4",
+     "scenario": "fixture and Django limits tier CHECK text",
+     "expected": "identical (single tier list)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/auth_service_schema_test.py::AuthServiceFixtureSchemaTest::test_N_E7_the_limits_tier_check_matches"
+      }
+     ]
+    },
+    {
+     "id": "F-SCHEMA-01.e5",
+     "scenario": "notify triggers and function, all six",
+     "expected": "identical",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/auth_service_schema_test.py::AuthServiceFixtureSchemaTest::test_N_E7_the_notify_triggers_are_identical"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/auth_service_schema_test.py::AuthServiceFixtureSchemaTest::test_N_E7_the_notify_function_is_identical"
+      }
+     ]
+    },
+    {
+     "id": "F-SCHEMA-01.e6",
+     "scenario": "key-table CHECK constraints",
+     "expected": "equal (origins check differs today; known gap)",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/auth_service_schema_test.py::AuthServiceFixtureSchemaTest::test_N_E7_the_key_table_has_the_same_check_constraints_known_gap_N_E7"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-WRITE-01",
+   "area": "write",
+   "title": "Limits through the writer",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-WRITE-01.e1",
+     "scenario": "creating a project in developer settings",
+     "expected": "creates its developer limits row in the same transaction; a failure leaves neither",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_create_project_creates_a_developer_limits_row"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_a_failed_project_create_leaves_neither_project_nor_row"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-01.e2",
+     "scenario": "claiming a listing",
+     "expected": "gives it a developer limits row (now owned); an existing row is kept",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_claiming_a_listing_creates_a_developer_limits_row"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_claiming_keeps_an_existing_limits_row"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-01.e3",
+     "scenario": "keys of a partner project, created before or after the change, revoked or live",
+     "expected": "all stamp partner; a key has no tier of its own",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_all_keys_of_a_project_share_its_tier"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-01.e4",
+     "scenario": "set_project_tier",
+     "expected": "creates or updates the one row, rejects an unknown tier and changes nothing, touches no other project, works before the first key",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_set_project_tier_creates_or_updates_the_one_row"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_set_project_tier_rejects_unknown_tier_and_changes_nothing"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_set_project_tier_touches_no_other_project"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_set_project_tier_works_before_the_first_key"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-01.e5",
+     "scenario": "project without a limits row (legacy listing, mock, project of an older image)",
+     "expected": "effective tier developer",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_project_tier_of_a_project_without_a_row_is_developer"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_tables"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-01.e6",
+     "scenario": "settings JSON",
+     "expected": "never contains tier; the key set of every project and key object is unchanged",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::StateShapeTest::test_state_json_shape_is_unchanged_and_has_no_tier"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-01.e7",
+     "scenario": "revoking every key of the project",
+     "expected": "the tier survives (the limits row is not the keys')",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_tier_survives_revoking_every_key"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-WRITE-02",
+   "area": "write",
+   "title": "Create, update, visibility, delete (unchanged by the split)",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-WRITE-02.e1",
+     "scenario": "project name, visibility and website",
+     "expected": "validated; private keeps its fields, public is published, public to private withdraws consent and unpublishes",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_a_project_needs_a_name_and_a_visibility_and_a_valid_website"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_a_public_project_is_published_and_a_private_one_is_not"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_making_a_public_project_private_withdraws_consent_and_unpublishes_it"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-02.e2",
+     "scenario": "website change",
+     "expected": "moves restricted keys' origins; no website frees them",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_new_website_moves_restricted_keys_and_no_website_frees_them"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-02.e3",
+     "scenario": "deleting a project",
+     "expected": "revokes its keys and keeps the rows; the project row lock serialises delete, update and key creation",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_deleting_a_project_revokes_its_keys_and_keeps_the_rows"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ProjectLockTest::test_creating_a_key_locks_the_project_row"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ProjectLockTest::test_deleting_a_project_locks_the_project_row"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-02.e4",
+     "scenario": "new project",
+     "expected": "a Powered by row owned by the account with a developer limits row",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_a_project_is_a_powered_by_row_owned_by_the_account"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-02.e5",
+     "scenario": "soft-deleting a project",
+     "expected": "keeps its limits row and tier",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_deleting_a_project_keeps_its_limits_row"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-WRITE-03",
+   "area": "write",
+   "title": "Claim and dismiss a listing (unchanged by the split apart from F-WRITE-01.e2)",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-C14",
+    "N-C15",
+    "N-C9",
+    "N-D8"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-WRITE-03.e1",
+     "scenario": "claiming a listing",
+     "expected": "becomes a project (same id, linkedListing true); a second claim is 'No such listing.'; a dismissed listing is not offered again",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ListingTest::test_claiming_makes_the_listing_a_project"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ListingTest::test_a_dismissed_listing_is_not_offered_again"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/ui/listing-claim.spec.ts::N-C14: a listing another account claimed first"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-03.e2",
+     "scenario": "another account acts on a project or listing",
+     "expected": "cannot see, claim, dismiss, update or key it (404)",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_gaps_test.py::OtherAccountTest::test_C5_every_action_on_another_accounts_objects_is_not_found_and_changes_nothing"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-03.e3",
+     "scenario": "claiming a listing whose submitter said no",
+     "expected": "should stay unpublished (known gap)",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_gaps_test.py::ClaimConsentTest::test_N_C15_claiming_a_listing_whose_submitter_said_no_keeps_it_unpublished_known_gap_N_D8"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-03.e4",
+     "scenario": "staff unpublish, then the owner toggles private and public",
+     "expected": "should survive (known gap)",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_gaps_test.py::ClaimConsentTest::test_N_C15_a_staff_unpublish_holds_when_the_owner_toggles_private_and_public_known_gap_N_D8"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-03.e5",
+     "scenario": "double click on 'Yes, add it'",
+     "expected": "claims once",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/ui/listing-claim.spec.ts::N-C9: double-clicking"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-WRITE-04",
+   "area": "write",
+   "title": "Keys",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-C4",
+    "C3"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-WRITE-04.e1",
+     "scenario": "five live keys, a revoked key, a race for the last slot",
+     "expected": "at most five live keys; a revoked key frees a slot; the cap holds under a race",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_project_has_at_most_five_active_keys"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::KeyCreationRaceTest::test_create_key_waits_for_a_delete_in_progress_and_then_finds_no_project"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_gaps_test.py::KeySlotTest::test_N_C4_revoking_a_key_frees_a_slot"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/ui/keys.spec.ts::C3: five keys fill a project"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-04.e2",
+     "scenario": "key label, restriction and revoke",
+     "expected": "label required and at most 100 chars; restriction allows only the website origin; revoking keeps the row; a new key is sfr_ + 32 random chars, unrestricted",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_restricting_a_key_allows_only_the_project_website_origin"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_key_cannot_be_restricted_without_a_website"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_deleting_a_key_revokes_it_and_keeps_the_row"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_new_key_is_a_random_unrestricted_registry_key"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-04.e3",
+     "scenario": "allowed_origins value that is not a list of origin strings",
+     "expected": "rejected by the validator and the DB CHECK",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/api_key_model_test.py::AllowedOriginsTest::test_the_database_rejects_values_that_are_not_an_array_of_strings"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/api_key_model_test.py::AllowedOriginsTest::test_full_clean_rejects_bad_values"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-WRITE-05",
+   "area": "write",
+   "title": "Account deletion hook (unchanged)",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-M5",
+    "N-M6"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-WRITE-05.e1",
+     "scenario": "account deletion",
+     "expected": "the owner's keys are revoked, created projects soft-deleted with owner NULL, a claimed listing released; an account with no projects deletes cleanly",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_an_owners_keys_are_revoked_and_projects_soft_deleted"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_a_claimed_listing_is_released_and_its_keys_revoked"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_an_account_with_no_projects_is_deleted_with_the_flag_off"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-05.e2",
+     "scenario": "a failing deletion hook",
+     "expected": "should leave no half-deleted account (known gap)",
+     "severity": "P0",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_a_failing_deletion_hook_leaves_no_half_deleted_account_known_gap_N_M5"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-05.e3",
+     "scenario": "deleting the account",
+     "expected": "its key is revoked at the gateway within 1 s",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/ui/keys-gateway.spec.ts::N-M6: deleting an account refuses its key"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-WRITE-06",
+   "area": "write",
+   "title": "Flag off, onboarding, verification, resend limits, email change, mocks, seed script (unchanged)",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-WRITE-06.e1",
+     "scenario": "developer settings flag off",
+     "expected": "every developer route is 404 logged in and out; the route list covers every surface",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/flag_off_routes_test.py::test_C9_the_route_list_covers_every_developer_surface"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/flag_off_routes_test.py::test_C9_a_full_request_is_not_found"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::DeveloperSettingsOffTest::test_the_developer_api_is_not_found"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-06.e2",
+     "scenario": "verification by email link, Google, Apple; expired, used, foreign links; resend cooldown and daily cap; email change; profile and terms",
+     "expected": "behave as before the split",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::VerificationTest::test_a_verified_email_turns_developer_settings_on"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::SsoVerificationTest::test_google_with_a_verified_email_verifies_the_account"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ConfirmationLinkTest::test_an_expired_link_offers_a_new_one_and_confirms_nothing"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ResendLimitTest::test_a_sixth_email_in_a_day_is_refused_until_the_first_is_a_day_old"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::EmailChangeTest::test_new_projects_keys_and_claims_are_blocked"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ProfileTest::test_the_terms_must_be_accepted"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/ui/onboarding.spec.ts::C1: the emailed link, opened in a second tab"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-06.e3",
+     "scenario": "mock listing and the seed script",
+     "expected": "a mock is offered and starting over releases it; the seed script resets and tears down cleanly (its ORM project delete cascades to the limits row)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::MockTest::test_a_mock_listing_is_offered_and_starting_over_releases_it"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/seed_api_keys_e2e_test.py::SeedApiKeysE2eTest::test_reset_then_teardown_leaves_no_rows"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/seed_api_keys_e2e_test.py::SeedApiKeysE2eTest::test_gateway_keys_have_their_restrictions_and_revocations"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/seed_api_keys_e2e_test.py::SeedGuardTest::test_ids_outside_the_band_are_refused"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-ADMIN-01",
+   "area": "admin",
+   "title": "Project admin and the ProjectLimits inline",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-M11"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-ADMIN-01.e1",
+     "scenario": "project admin changelist and change form",
+     "expected": "render with the limits and key inlines",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_N_M11_the_changelist_renders"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_N_M11_the_change_form_renders_with_the_key_inline"
+      }
+     ]
+    },
+    {
+     "id": "F-ADMIN-01.e2",
+     "scenario": "staff without change_tier",
+     "expected": "sees the limits inline read-only and cannot add a row",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_staff_without_change_tier_sees_limits_readonly"
+      }
+     ]
+    },
+    {
+     "id": "F-ADMIN-01.e3",
+     "scenario": "superuser or permission holder changes the tier through the inline (Postgres)",
+     "expected": "the row is created or updated and a NOTIFY is sent",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminNotifyTest::test_superuser_can_change_tier_through_the_inline_and_it_notifies"
+      }
+     ]
+    },
+    {
+     "id": "F-ADMIN-01.e4",
+     "scenario": "key inline",
+     "expected": "has no tier field, and a key added in it creates no limits row",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_key_inline_has_no_tier_and_adds_no_limits_row"
+      }
+     ]
+    },
+    {
+     "id": "F-ADMIN-01.e5",
+     "scenario": "Developer settings fieldset",
+     "expected": "no longer offers the frozen Project.tier",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_frozen_project_tier_is_not_in_the_form"
+      }
+     ]
+    },
+    {
+     "id": "F-ADMIN-01.e6",
+     "scenario": "saving a project without touching the limits inline",
+     "expected": "creates no row",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_saving_a_project_without_limits_changes_creates_no_row"
+      }
+     ]
+    },
+    {
+     "id": "F-ADMIN-01.e7",
+     "scenario": "deleting a project with keys, an invalid origin in the inline, a Formstack row saved unchanged",
+     "expected": "refused with the protected page; rejected; round-trips",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_N_M11_deleting_a_project_with_keys_is_refused_with_a_page"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_N_M11_an_invalid_origin_is_rejected"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_N_M11_saving_a_formstack_row_unchanged_round_trips"
+      }
+     ]
+    },
+    {
+     "id": "F-ADMIN-01.e8",
+     "scenario": "clearing revoked_at, and adding a sixth live key in the admin",
+     "expected": "should not resurrect a key and should be refused (known gap)",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_N_M11_clearing_revoked_at_does_not_bring_a_key_back_known_gap_N_M11"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_N_M11_a_sixth_active_key_cannot_be_added_known_gap_N_M11"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-LIST-01",
+   "area": "list",
+   "title": "GET /api/powered-by",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-CR14"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-LIST-01.e1",
+     "scenario": "anonymous, non-staff and staff requests",
+     "expected": "anonymous and non-staff see only published rows without private fields; staff see all with private fields",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/powered_by_api_test.py::test_anonymous_sees_only_published_without_private_fields"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/powered_by_api_test.py::test_non_staff_user_sees_only_published_without_private_fields"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/powered_by_api_test.py::test_staff_sees_all_projects_with_private_fields"
+      }
+     ]
+    },
+    {
+     "id": "F-LIST-01.e2",
+     "scenario": "public and staff responses",
+     "expected": "neither contains tier, limits or any key",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/project_limits_writer_test.py::ListingResponseTest::test_listing_responses_never_expose_tier_limits_or_keys"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_tables"
+      }
+     ]
+    },
+    {
+     "id": "F-LIST-01.e3",
+     "scenario": "a deleted project marked published",
+     "expected": "should not be public (known gap)",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_security_test.py::DeletedProjectGalleryTest::test_N_CR14_a_deleted_project_marked_published_is_not_public_known_gap_N_CR14"
+      }
+     ]
+    },
+    {
+     "id": "F-LIST-01.e4",
+     "scenario": "project whose limits tier is internal",
+     "expected": "never in the public or non-staff listing, published or not; staff still see it",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/powered_by_api_test.py::test_internal_projects_are_never_in_the_public_listing"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-LIST-02",
+   "area": "list",
+   "title": "POST (Formstack webhook)",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-LIST-02.e1",
+     "scenario": "webhook with missing, wrong or unconfigured HMAC; consent rule; envelope translation; field cleaning",
+     "expected": "401 for bad signatures, consent sets is_published, translation and cleaning unchanged",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/powered_by_api_test.py::test_post_missing_signature_returns_401"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/powered_by_api_test.py::test_post_wrong_signature_returns_401"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/powered_by_api_test.py::test_post_without_consent_is_not_published"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/powered_by_api_test.py::test_translate_formstack_maps_simple_text_fields"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/powered_by_api_test.py::test_clean_rejects_invalid_url"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-REG-01",
+   "area": "registry",
+   "title": "Loader reads the project's limits tier and the project's deleted_at",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-REG-01.e1",
+     "scenario": "registry loads keys",
+     "expected": "key, tier, project id and origins",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadAll"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-01.e2",
+     "scenario": "fixture project and key have no tier column",
+     "expected": "tier comes from the project's limits row",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadAllTierComesFromTheLimitsRow"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_registry"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-01.e3",
+     "scenario": "project with no limits row",
+     "expected": "loads as developer",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadAllProjectWithoutLimitsIsDeveloper"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-01.e4",
+     "scenario": "two keys of one project",
+     "expected": "same tier (one limits row; x-sefaria-project is the project id, so they also share counters)",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadAllKeysOfOneProjectShareTheTier"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-01.e5",
+     "scenario": "malformed allowed_origins row",
+     "expected": "skips only that key",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadAllSkipsNonArrayOrigins"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-01.e6",
+     "scenario": "keys of a soft-deleted project",
+     "expected": "load revoked",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadAllMarksDeletedProjectKeysRevoked"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-01.e7",
+     "scenario": "deleting the only keyed project",
+     "expected": "not an empty load",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestDeletingTheOnlyKeyedProjectRevokesItImmediately"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-01.e8",
+     "scenario": "fixture CHECK with an unknown limits tier",
+     "expected": "rejected",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestFixtureRejectsAnUnknownTier"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-REG-02",
+   "area": "registry",
+   "title": "LISTEN/NOTIFY",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-REG-02.e1",
+     "scenario": "plain SQL changes (limits tier UPDATE, project DELETE)",
+     "expected": "delivered with table powered_by_projectlimits",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestListenDeliversPlainSQLChanges"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-02.e2",
+     "scenario": "listener connection lost",
+     "expected": "reconnect re-establishes LISTEN and signals a reload",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestListenReconnectsAndReestablishes"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_listener_drill"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-02.e3",
+     "scenario": "bookkeeping writes (project name, key last_used_at, limits updated_at)",
+     "expected": "do not notify",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestListenIgnoresBookkeepingWrites"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-02.e4",
+     "scenario": "burst of notifications, and a signal during a reload",
+     "expected": "one reload; exactly one more",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestCoalescerMergesBurst"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestCoalescerReloadsAgainForSignalDuringReload"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-02.e5",
+     "scenario": "tier change on a project's limits row",
+     "expected": "reaches the registry for every key of that project",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestTierChangeReachesEveryKeyOfTheProject"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-REG-03",
+   "area": "registry",
+   "title": "Snapshot and reload",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-REG-03.e1",
+     "scenario": "snapshot replace and lookup, concurrent readers during replace",
+     "expected": "consistent",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestReplaceAndLookup"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestConcurrentReadersDuringReplace"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-03.e2",
+     "scenario": "empty reload",
+     "expected": "single empty rejected, applied after the gap, an error resets the guard, periodic reload guarded, loads serialised",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestEmptyReloadGuard"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestEmptyReloadWithinGapStaysRejected"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestEmptyReloadAfterGapIsApplied"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestReloaderErrorBetweenEmptiesResetsGuard"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestPeriodicReloadGuardsEmpty"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestReloaderSerializesLoads"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-REG-04",
+   "area": "registry",
+   "title": "Readiness (N-CR8)",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-CR8"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-REG-04.e1",
+     "scenario": "first load fails",
+     "expected": "the pod stays not ready",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/cmd/authsvc::TestNCR8FirstLoadFailsKeepsPodNotReady"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-04.e2",
+     "scenario": "empty first load",
+     "expected": "should be ready (gap)",
+     "severity": "P0",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/cmd/authsvc::TestKnownGapNCR8EmptyTableAtStart"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-04.e3",
+     "scenario": "never-loaded registry, keyed request",
+     "expected": "should answer gRPC UNAVAILABLE (gap)",
+     "severity": "P0",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestKnownGapNCR8NeverLoadedRegistry"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-REG-05",
+   "area": "registry",
+   "title": "Failure drills (local stack, stack-owned Postgres)",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-REG-05.e1",
+     "scenario": "reader role lacks a grant (revokes deleted_at on the project table)",
+     "expected": "reloads fail visibly, running pod keeps its set, recovery without restart",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-05.e2",
+     "scenario": "reader role lacks SELECT (project_id, tier) on powered_by_projectlimits",
+     "expected": "same visible failure and recovery",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh#powered_by_projectlimits"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-05.e3",
+     "scenario": "wrong DSN",
+     "expected": "never ready, fails open",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/f2-bad-dsn.sh"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-05.e4",
+     "scenario": "LISTEN broken",
+     "expected": "revoke applies within one reload after reconnect",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/f3-listen.sh"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-05.e5",
+     "scenario": "role password rotated",
+     "expected": "reload errors visible (gap F4)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/f4-rotate.sh"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-05.e6",
+     "scenario": "all keys deleted",
+     "expected": "guard rejects, then applies with WARN",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/ne3-guard.sh"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-05.e7",
+     "scenario": "empty table at start",
+     "expected": "handled as drilled",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/ncr8-empty-start.sh"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-REG-06",
+   "area": "registry",
+   "title": "Propagation",
+   "status": "on_branch",
+   "legacy_ids": [
+    "A9a",
+    "A9b",
+    "A9c",
+    "N-A11"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-REG-06.e1",
+     "scenario": "key created through the ORM, then revoked",
+     "expected": "accepted, then 401 within 2 s; registry version bumps",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/smoke.sh"
+      },
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/e1-registry.sh"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_propagation"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-06.e2",
+     "scenario": "revoke or project delete in the UI, new key",
+     "expected": "401 within 1 s; new key accepted within 1 s of 'Ready to use'",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/ui/keys-gateway.spec.ts::A9a"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/ui/keys-gateway.spec.ts::A9b"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/ui/keys-gateway.spec.ts::A9c"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-06.e3",
+     "scenario": "tier change on the project's limits row",
+     "expected": "reaches x-sefaria-tier of every key of the project within 5 s",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::N-A11: a tier change on the project reaches the next request"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_propagation"
+      }
+     ]
+    },
+    {
+     "id": "F-REG-06.e4",
+     "scenario": "several auth-service replicas",
+     "expected": "every replica is notified and reloads",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_registry"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-01",
+   "area": "decision",
+   "title": "Valid key",
+   "status": "on_branch",
+   "legacy_ids": [
+    "A1"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-01.e1",
+     "scenario": "valid key on the gated and an ungated path",
+     "expected": "allowed with project and tier stamped",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestDecideEnforce"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCCheckAllow"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::A1: a valid open key"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_enforced"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-02",
+   "area": "decision",
+   "title": "Unknown, revoked or legacy-format key",
+   "status": "on_branch",
+   "legacy_ids": [
+    "A2a",
+    "A2b"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-02.e1",
+     "scenario": "unknown, revoked or legacy-format key on the gated path",
+     "expected": "401 api_key_invalid with body {error, code, help} and no key leak",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestDecideEnforce"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestBodyShapeAndNoLeak"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::A2a"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_enforced"
+      }
+     ]
+    },
+    {
+     "id": "F-DEC-02.e2",
+     "scenario": "revoked key and unknown key",
+     "expected": "byte-identical bodies (no oracle)",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_propagation"
+      }
+     ]
+    },
+    {
+     "id": "F-DEC-02.e3",
+     "scenario": "invalid key on an ungated path",
+     "expected": "should be anonymous, gets 401 today (known gap)",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestKnownGapA2bInvalidKeyUngated"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::A2b: "
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-03",
+   "area": "decision",
+   "title": "Origin restriction",
+   "status": "on_branch",
+   "legacy_ids": [
+    "A3a",
+    "A3b",
+    "N-CR3"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-03.e1",
+     "scenario": "exact origin vs wrong, none, null, case, port, www vs bare, http vs https",
+     "expected": "exact allowed; others denied 403 origin_not_allowed",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestDecideEnforce"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/origin.spec.ts::A3a"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/origin.spec.ts::A3b"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_enforced"
+      }
+     ]
+    },
+    {
+     "id": "F-DEC-03.e2",
+     "scenario": "non-browser caller forging the Origin",
+     "expected": "passes (documented limit)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/origin.spec.ts::N-CR3"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-04",
+   "area": "decision",
+   "title": "Gate",
+   "status": "on_branch",
+   "legacy_ids": [
+    "A4a",
+    "A4b",
+    "A4c",
+    "N-A5"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-04.e1",
+     "scenario": "no key on the gated path (GET and POST)",
+     "expected": "401 api_key_required with www-authenticate",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestDecideEnforce"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::A4a"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_enforced"
+      }
+     ]
+    },
+    {
+     "id": "F-DEC-04.e2",
+     "scenario": "Bearer only, Bearer plus valid key, key in Authorization",
+     "expected": "Bearer only is 401; with a valid key the key decides; a key in Authorization is ignored",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestA4bBearerOnlyOnGatedPath"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestA4cBearerAndValidKeyOnGatedPath"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestNA5KeyInAuthorizationHeader"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-05",
+   "area": "decision",
+   "title": "Preflight",
+   "status": "on_branch",
+   "legacy_ids": [
+    "A5a",
+    "A5b",
+    "A5c"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-05.e1",
+     "scenario": "OPTIONS with Origin and no key, without Origin, and with a key",
+     "expected": "allowed as embed; gated; the key is checked first",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestDecidePreflight"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCCheckPreflight"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestA5cOptionsWithKey"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_enforced"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-06",
+   "area": "decision",
+   "title": "Path normalisation",
+   "status": "on_branch",
+   "legacy_ids": [
+    "A6a",
+    "A6c",
+    "N-CR9"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-06.e1",
+     "scenario": "%6b, //, ./, %2F variants of the gated path",
+     "expected": "gated; /API/ is not gated and Django 404s it",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGatedPathEncodedAndDoubleSlash"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestNCR9MalformedGatedPathsGated"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/paths.spec.ts::A6a"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/paths.spec.ts::A6c"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_enforced"
+      }
+     ]
+    },
+    {
+     "id": "F-DEC-06.e2",
+     "scenario": "malformed % suffix and double-encoded forms",
+     "expected": "should be gated (known gap)",
+     "severity": "P0",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestKnownGapNCR9MalformedGatedPaths"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-07",
+   "area": "decision",
+   "title": "Header edge cases",
+   "status": "on_branch",
+   "legacy_ids": [
+    "A2c",
+    "A2d",
+    "N-A7"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-07.e1",
+     "scenario": "empty x-api-key, duplicate x-api-key on the gated path, header-name case and padding",
+     "expected": "empty is no key; duplicate is 401; case and padding do not matter",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestA2dDuplicateKeyHeaderOnGatedPath"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::A2c"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::A2d"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/headers.spec.ts::N-A7"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_enforced"
+      }
+     ]
+    },
+    {
+     "id": "F-DEC-07.e2",
+     "scenario": "duplicate x-api-key on an ungated path",
+     "expected": "should be anonymous (known gap)",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestKnownGapA2dDuplicateKeyHeaderUngated"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-08",
+   "area": "decision",
+   "title": "Observe mode",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-E5"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-08.e1",
+     "scenario": "observe mode",
+     "expected": "never denies; records observed:<code>",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestDecideObserveNeverDenies"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCObserveMode"
+      },
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/e2-observe.sh"
+      }
+     ]
+    },
+    {
+     "id": "F-DEC-08.e2",
+     "scenario": "KNOWN GAP (drill not tagged [KG]): bad AUTH_MODE or RELOAD_INTERVAL",
+     "expected": "should be rejected, crash-loops instead (gap N-E5)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/dev/local-stack/scenarios/ne5-badmode.sh",
+       "contains": "gap N-E5"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-09",
+   "area": "decision",
+   "title": "Anonymous and embed classification",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-A9"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-09.e1",
+     "scenario": "anonymous request, same-origin GET, cross-module embed",
+     "expected": "anonymous stamps an empty project; same-origin GET is anonymous; cross-module is embed",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCCheckAnonymousAllowStampsEmptyProject"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/callers/website-smoke.spec.ts::N-A9"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-10",
+   "area": "decision",
+   "title": "Logging",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-E2",
+    "N-CR4d"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-10.e1",
+     "scenario": "key in a request",
+     "expected": "only a key prefix is logged; 12 characters is too many (target sfr_ + 4)",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestKnownGapNE2LegacyKeyPrefix"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestKnownGapNCR4dValidKeyPrefix"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::A2a"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_safe"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-11",
+   "area": "decision",
+   "title": "Config",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-A10"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-11.e1",
+     "scenario": "GATED_PATHS comma list with a space after a comma",
+     "expected": "should be trimmed; ungates the second path today (gap)",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/cmd/authsvc::TestGatedPathsCommaList"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/cmd/authsvc::TestKnownGapNA10GatedPathsTrimmed"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEC-12",
+   "area": "decision",
+   "title": "Callers that must keep working",
+   "status": "on_branch",
+   "legacy_ids": [
+    "B1",
+    "B3",
+    "B4",
+    "B6",
+    "B7",
+    "B8",
+    "N-B4"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-DEC-12.e1",
+     "scenario": "website logged in and out, linker, mobile shapes, sefaria-eval and mcp, Apple callback, webhooks, down-detector",
+     "expected": "keep working through the gateway",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/callers/website-smoke.spec.ts::B1"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/callers/linker.spec.ts::B3"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/callers/replays.spec.ts::B4"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/callers/replays.spec.ts::B6"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/callers/replays.spec.ts::B7"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/callers/replays.spec.ts::B8"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/callers/replays.spec.ts::N-B4"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-HDR-01",
+   "area": "header",
+   "title": "Allow stamps x-sefaria-project, x-sefaria-tier, x-sefaria-auth-result with overwrite; no headers_to_remove",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-HDR-01.e1",
+     "scenario": "allowed request",
+     "expected": "stamps the three x-sefaria-* headers with overwrite and removes none",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCCheckAllow"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/decisions.spec.ts::A1: a valid open key"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-HDR-02",
+   "area": "header",
+   "title": "Client-sent copies",
+   "status": "on_branch",
+   "legacy_ids": [
+    "A7",
+    "N-A3",
+    "N-A2"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-HDR-02.e1",
+     "scenario": "client sends x-sefaria-* headers",
+     "expected": "spoofed copies never reach the upstream (listener strip)",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/headers.spec.ts::A7"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_safe"
+      }
+     ]
+    },
+    {
+     "id": "F-HDR-02.e2",
+     "scenario": "no strip, empty-valued stamped header",
+     "expected": "overwrites a spoofed one",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/headers.spec.ts::N-A3"
+      }
+     ]
+    },
+    {
+     "id": "F-HDR-02.e3",
+     "scenario": "strip on the cluster",
+     "expected": "should be accepted (gap N-A2)",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/cauldron-only.spec.ts::N-A2"
+      }
+     ]
+    },
+    {
+     "id": "F-HDR-02.e4",
+     "scenario": "auth service down (fail open) with spoofed x-sefaria-*",
+     "expected": "stripped",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_outage"
+      },
+      {
+       "kind": "drill",
+       "ref": "auth-service/scripts/quota-e2e.sh#S1",
+       "scope": "poc"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-HDR-03",
+   "area": "header",
+   "title": "?api_key= is removed from the upstream and is not a credential",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-A6"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-HDR-03.e1",
+     "scenario": "?api_key= in the query",
+     "expected": "removed before the upstream and not a credential",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCQueryStrip"
+      },
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/headers.spec.ts::N-A6"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-HDR-04",
+   "area": "header",
+   "title": "Oversized headers get 431 from Envoy; a 50 KB key gets a prompt 401",
+   "status": "on_branch",
+   "legacy_ids": [
+    "A10"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-HDR-04.e1",
+     "scenario": "oversized headers and a 50 KB key",
+     "expected": "431 from Envoy; prompt 401 api_key_invalid",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/gateway/headers.spec.ts::A10"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-HDR-05",
+   "area": "header",
+   "title": "Deny carries JSON body, status, and www-authenticate on 401",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-HDR-05.e1",
+     "scenario": "denied request",
+     "expected": "JSON body, status, and www-authenticate on 401",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCCheckDeny"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-JWT-01",
+   "area": "jwt",
+   "title": "First-party JWT arm",
+   "status": "poc_only",
+   "edge_cases": [
+    {
+     "id": "F-JWT-01.e1",
+     "scenario": "valid token, invalid token",
+     "expected": "resolves to tier firstparty with project = sub; invalid handled per mode",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestDecideJWT",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestDecideRequestSettlesBearerWithVerifier",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/jwtverify::TestVerify",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-JWT-01.e2",
+     "scenario": "gated path with a JWT",
+     "expected": "the gate precedes bearer handling (JWT can never reach semantic search)",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGatedPathDeniedBeforeBearerHandling",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-JWT-01.e3",
+     "scenario": "Authorization header and cookie",
+     "expected": "Bearer preferred, configured cookie extracted",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestJWTAuthorizationPrefersBearerAndExtractsConfiguredCookie",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-JWT-01.e4",
+     "scenario": "signing, rotation, bad tokens",
+     "expected": "ES256 round trip, bad tokens fail, rotation states",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/mint::TestSignAndVerifyES256",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/mint::TestBadTokensFail",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/mint::TestRotationStates",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-JWT-01.e5",
+     "scenario": "JWKS down",
+     "expected": "cached 300 s, then failure",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/scripts/drill-jwks-down.sh",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-JWT-01.e6",
+     "scenario": "jwt.mode=envoy and a non-JWT Bearer (the LA token)",
+     "expected": "401 from Envoy (risk, not default)",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-JWT-1",
+     "planned_check": "A render check that mode: envoy is refused with LA bearer routes"
+    }
+   ]
+  },
+  {
+   "id": "F-LEG-01",
+   "area": "legacy",
+   "title": "Legacy apikey in a body",
+   "status": "poc_only",
+   "edge_cases": [
+    {
+     "id": "F-LEG-01.e1",
+     "scenario": "legacy apikey in a request body",
+     "expected": "only presence and prefix are logged; the decision never uses a body key",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestLegacyBodyKey",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCLogsLegacyBodyKeyPresenceByPrefixOnly",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-LEG-01.e2",
+     "scenario": "legacy body-key write",
+     "expected": "still reaches Django",
+     "severity": "P1",
+     "status": "on_branch",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/b9-legacy-body.sh"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-KEYADM-01",
+   "area": "keyadmin",
+   "title": "keyadmin",
+   "status": "poc_only",
+   "edge_cases": [
+    {
+     "id": "F-KEYADM-01.e1",
+     "scenario": "keyadmin new key and origins",
+     "expected": "key format equals Django's; only a prefix is ever printed; origins JSON",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/cmd/keyadmin::TestNewKeyMatchesDjangoFormat",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/cmd/keyadmin::TestSafePrefixNeverCarriesFullKey",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/cmd/keyadmin::TestOriginsJSON",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-KEYADM-01.e2",
+     "scenario": "set-tier",
+     "expected": "rejects a value outside the CHECK list and upserts the project's row in powered_by_projectlimits, never the frozen project column (needed when the POC rebases)",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-KEYADM-1",
+     "planned_check": "A keyadmin test that set-tier upserts powered_by_projectlimits and rejects a tier outside the CHECK list"
+    }
+   ]
+  },
+  {
+   "id": "F-RL-01",
+   "area": "ratelimit",
+   "title": "Per-minute rate limits by tier (the 'protect ourselves' half)",
+   "status": "poc_only",
+   "edge_cases": [
+    {
+     "id": "F-RL-01.e1",
+     "scenario": "limits by tier",
+     "expected": "developer and partner per project; firstparty per subject; embed per Origin; anonymous per client IP and one shared cap",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/demo.sh",
+       "contains": "section_ratelimit",
+       "scope": "poc"
+      },
+      {
+       "kind": "file",
+       "ref": "helm-chart/sefaria/templates/gateway/backendtrafficpolicy-auth.yaml",
+       "contains": "rateLimit",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-RL-01.e2",
+     "scenario": "over the limit",
+     "expected": "429, JSON body rate_limited with project, tier, meter; Retry-After: 60",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/demo.sh",
+       "contains": "burst 'developer key'",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-RL-01.e3",
+     "scenario": "unknown, empty or internal tier",
+     "expected": "unlimited by absence (target: explicit internal rule and an anonymous catch-all)",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-RL-1",
+     "planned_check": "A render check for an explicit internal rule and an anonymous catch-all (rows F-QUOTA-01.e28, .e29, .e30)"
+    },
+    {
+     "id": "F-RL-01.e4",
+     "scenario": "rate-limit Redis down",
+     "expected": "fails open and recovers",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/scripts/drill-rl-redis-down.sh",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-RL-01.e5",
+     "scenario": "same project over several route hosts and listeners",
+     "expected": "counters split (up to six on prod)",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-RL-2",
+     "planned_check": "An e2e that counts one call per host (Q-EDGE-43)"
+    },
+    {
+     "id": "F-RL-01.e6",
+     "scenario": "allowed responses and the 429 override",
+     "expected": "allowed carry x-ratelimit-*; the 429 override drops them",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/demo.sh",
+       "contains": "burst 'developer key'",
+       "scope": "poc"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-QUOTA-01",
+   "area": "quota",
+   "title": "Monthly quota for semantic search (the 'capacity' half)",
+   "status": "poc_only",
+   "legacy_ids": [
+    "Q-EDGE-01",
+    "Q-EDGE-02",
+    "Q-EDGE-03",
+    "Q-EDGE-04",
+    "Q-EDGE-05",
+    "Q-EDGE-06",
+    "Q-EDGE-07",
+    "Q-EDGE-08",
+    "Q-EDGE-09",
+    "Q-EDGE-10",
+    "Q-EDGE-11",
+    "Q-EDGE-12",
+    "Q-EDGE-13",
+    "Q-EDGE-14",
+    "Q-EDGE-15",
+    "Q-EDGE-16",
+    "Q-EDGE-17",
+    "Q-EDGE-18",
+    "Q-EDGE-19",
+    "Q-EDGE-20",
+    "Q-EDGE-21",
+    "Q-EDGE-22",
+    "Q-EDGE-23",
+    "Q-EDGE-24",
+    "Q-EDGE-25",
+    "Q-EDGE-26",
+    "Q-EDGE-27",
+    "Q-EDGE-28",
+    "Q-EDGE-29",
+    "Q-EDGE-30",
+    "Q-EDGE-31",
+    "Q-EDGE-32",
+    "Q-EDGE-33",
+    "Q-EDGE-34",
+    "Q-EDGE-35",
+    "Q-EDGE-36",
+    "Q-EDGE-37",
+    "Q-EDGE-38",
+    "Q-EDGE-39",
+    "Q-EDGE-40",
+    "Q-EDGE-41",
+    "Q-EDGE-42",
+    "Q-EDGE-43",
+    "Q-EDGE-44",
+    "Q-EDGE-45",
+    "Q-EDGE-46",
+    "Q-EDGE-47",
+    "Q-EDGE-48",
+    "Q-EDGE-49",
+    "Q-EDGE-50",
+    "Q-EDGE-51",
+    "Q-EDGE-52",
+    "Q-EDGE-53",
+    "Q-EDGE-54",
+    "Q-EDGE-55",
+    "Q-EDGE-56",
+    "Q-EDGE-57",
+    "Q-EDGE-58",
+    "Q-EDGE-59",
+    "Q-EDGE-60",
+    "Q-EDGE-61",
+    "Q-EDGE-62",
+    "Q-EDGE-63",
+    "Q-EDGE-64",
+    "Q-EDGE-65",
+    "Q-EDGE-66",
+    "Q-EDGE-67",
+    "Q-EDGE-68",
+    "Q-EDGE-69",
+    "Q-EDGE-70",
+    "Q-EDGE-71",
+    "Q-EDGE-72",
+    "Q-EDGE-73",
+    "Q-EDGE-74"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-QUOTA-01.e1",
+     "scenario": "6 requests to the metered path with a probe meter",
+     "expected": "the 7th is 429 with meter in the body; window 2592000 s (w=2592000 does not prove the epoch window, see Q-EDGE-01)",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/scripts/quota-e2e.sh#Q1",
+       "scope": "poc"
+      },
+      {
+       "kind": "drill",
+       "ref": "auth-service/scripts/quota-e2e.sh#Q1w",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-QUOTA-01.e2",
+     "scenario": "quota on one meter, an unmetered path",
+     "expected": "quota is per meter; the unmetered path stays 200",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/scripts/quota-e2e.sh#Q2",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-QUOTA-01.e3",
+     "scenario": "quota exhausted by one project, another project on the same tier",
+     "expected": "quota is per project; the other stays 200",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/scripts/quota-e2e.sh#Q3",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-QUOTA-01.e4",
+     "scenario": "internal tier project on the metered path",
+     "expected": "no monthly rule (see Q-EDGE-26 for the explicit internal rule)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/scripts/quota-e2e.sh#Q4",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-QUOTA-01.e5",
+     "scenario": "meter classification",
+     "expected": "from the decoded cleaned path, longest prefix wins, none off every path, always overwritten, also in observe mode",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestMeterMatchesTheDecodedCleanedPath",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestMeterLongestPrefixWins",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestNoMetersMeansNone",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestParseMeters",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCStampsMeterOnMeteredAndOtherPaths",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCOverwritesClientSentMeter",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCStampsMeterInObserveMode",
+       "scope": "poc"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCStampsMeterWithVerifier",
+       "scope": "poc"
+      }
+     ]
+    },
+    {
+     "id": "F-QUOTA-01.e6",
+     "scenario": "Q-EDGE-01 [H] Month boundary",
+     "expected": "Calendar month (1st 00:00 UTC) via EG >= v1.8.4 image + `USE_CALENDAR_MONTH_RATE_LIMIT=true`, or publish the epoch reset date everywhere",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-01",
+     "planned_check": "reset-date helper unit test; assert `x-ratelimit-reset` or the `_<bucketStart>` Redis key suffix, never Q1w"
+    },
+    {
+     "id": "F-QUOTA-01.e7",
+     "scenario": "Q-EDGE-02 [H] Calendar flag turned on while counters exist",
+     "expected": "Flip before the first production counters exist, or at a published boundary",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-02",
+     "planned_check": "drill: `redis-cli --scan` before and after on dev ratelimit"
+    },
+    {
+     "id": "F-QUOTA-01.e8",
+     "scenario": "Q-EDGE-03 [L] Fixed-window boundary burst",
+     "expected": "Acceptable for month; for per-minute only if limits are near real capacity",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q\\-EDGE\\-03\\ \\|\\ Fixed\\-window\\ boundary\\ burst"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e9",
+     "scenario": "Q-EDGE-04 [L] Clock skew between ratelimit replicas",
+     "expected": "Accept; NTP on nodes",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q\\-EDGE\\-04\\ \\|\\ Clock\\ skew\\ between\\ ratelimit\\ replicas"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e10",
+     "scenario": "Q-EDGE-05 [M] Very large `Retry-After`",
+     "expected": "Quota 429: no `Retry-After` (OpenAI pattern) or reset timestamp in body; per-minute 429: `Retry-After` <= 60",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-05",
+     "planned_check": "render check asserts the header per override; curl"
+    },
+    {
+     "id": "F-QUOTA-01.e11",
+     "scenario": "Q-EDGE-06 [C] Redis restart / reschedule",
+     "expected": "AOF `appendfsync everysec` on a PVC (loses <= ~1 s), dedicated instance, alert on restarts; admin runbook to re-seed from the BigQuery rollup",
+     "severity": "P0",
+     "status": "planned",
+     "tracking": "FU-Q-06",
+     "planned_check": "drill: delete Redis pod mid-burst, read keys after"
+    },
+    {
+     "id": "F-QUOTA-01.e12",
+     "scenario": "Q-EDGE-07 [H] Redis eviction under memory pressure",
+     "expected": "`noeviction` (or `volatile-*` has the same problem: every ratelimit key has a TTL) plus a `used_memory` alert. (added, r2 J3.6) The anonymous per-IP rule writes one key per source IP per minute window (TTL 60 s + up to 300 s jitter), so a many-IP flood is itself a way to fill 128 MB and evict month keys; key size ~250-350 B is an estimate, not measured",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-07",
+     "planned_check": "drill: fill dev Redis with junk keys, month key survives"
+    },
+    {
+     "id": "F-QUOTA-01.e13",
+     "scenario": "Q-EDGE-08 [M] Redis full with `noeviction`",
+     "expected": "Alert on memory at 70%; treat OOM as fail-open incident",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-08",
+     "planned_check": "drill: tiny `maxmemory` on a test Redis"
+    },
+    {
+     "id": "F-QUOTA-01.e14",
+     "scenario": "Q-EDGE-09 [H] Redis or ratelimit down, or ratelimit RPC > 20 ms",
+     "expected": "Keep fail-open for availability (decided 2026-10-20: everything fails open, semantic search included, section 8). The Gemini project spend cap is the hard ceiling; alert on `ratelimit.error` and `ratelimit.failure_mode_allowed`. `failClosed` is one global bool and answers 500, so it cannot be scoped to knn-search.",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/scripts/drill-rl-redis-down.sh",
+       "scope": "poc"
+      }
+     ],
+     "status": "poc_only"
+    },
+    {
+     "id": "F-QUOTA-01.e15",
+     "scenario": "Q-EDGE-10 [M] ratelimit pod restarted before xDS config arrives",
+     "expected": "Accept; >=2 replicas + PDB (`rateLimitPDB`) so one is always configured",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-10",
+     "planned_check": "drill: delete ratelimit pod during load"
+    },
+    {
+     "id": "F-QUOTA-01.e16",
+     "scenario": "Q-EDGE-11 [L] Redis HA failover (if Sentinel/replica is added later)",
+     "expected": "Prefer single durable instance; if HA, set that env (corrected: the env exists only in image `8fe6ea42`, `settings.go:210`; prod's `ff287602` (EG v1.8.0) lacks it)",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q\\-EDGE\\-11\\ \\|\\ Redis\\ HA\\ failover\\ \\(if\\ Sentinel/replica\\ is\\ added\\ later\\)"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e17",
+     "scenario": "Q-EDGE-12 [M] Monthly-exhausted project keeps calling",
+     "expected": "`LOCAL_CACHE_SIZE_IN_BYTES` > 0 so over-limit keys are answered from memory. (corrected, caveat) The local entry lives `ExpirationSeconds(unit)` = up to 30 days per ratelimit pod (`base_limiter.go:136-147`), so a *raised* limit or an operator reset of the Redis key does not unblock the project until the bucket rolls or the pod restarts (breaks Q-EDGE-45 and the §4 item 3 runbook)",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-12",
+     "planned_check": "e2e: exhaust quota, measure Redis ops/s"
+    },
+    {
+     "id": "F-QUOTA-01.e18",
+     "scenario": "Q-EDGE-13 [M] Auth service down / > 200 ms / error (fail-open) -> no tier",
+     "expected": "Fail open on every path (decided 2026-10-20, section 8). The A3 catch-all is per-minute limits only and carries no 'no semantic search' row, so a request with no tier header is not blocked on semantic search (F-OUT-02.e3). Accepted risk: Gemini quota exhaustion (Q-EDGE-65).",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-13",
+     "planned_check": "drill: auth service at 0 replicas, knn-search anonymous and with Bearer only, nothing blocked by Envoy or the limiter; render check on the catch-all"
+    },
+    {
+     "id": "F-QUOTA-01.e19",
+     "scenario": "Q-EDGE-14 [M] Auth-service pod termination (rollout, scale-in)",
+     "expected": "KNOWN GAP (drill not tagged [KG]); `preStop` sleep 5-10 s, `terminationGracePeriodSeconds` > 20 s shutdown cap, gRPC health NOT_SERVING on SIGTERM",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/dev/local-stack/scenarios/nf1-sigterm.sh",
+       "contains": "gap N-F1"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e20",
+     "scenario": "Q-EDGE-15 [H] Registry empty at first load",
+     "expected": "Not Ready on empty first load unless an explicit allow-empty flag",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/cmd/authsvc::TestKnownGapNCR8EmptyTableAtStart"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e21",
+     "scenario": "Q-EDGE-16 [M] Registry reload keeps failing (Postgres down)",
+     "expected": "Gauge `authsvc_last_reload_success_timestamp_seconds` + alert",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-16",
+     "planned_check": "go test plus drill: block Postgres, watch the metric"
+    },
+    {
+     "id": "F-QUOTA-01.e22",
+     "scenario": "Q-EDGE-17 [L] Replicas disagree during reload window",
+     "expected": "Accept (documented SLA 60 s)",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q\\-EDGE\\-17\\ \\|\\ Replicas\\ disagree\\ during\\ reload\\ window"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e23",
+     "scenario": "Q-EDGE-18 [L] Client spoofs `x-sefaria-*` while the auth service answers",
+     "expected": "Stripped at listener, then overwritten by the auth service",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCOverwritesClientSentMeter",
+       "scope": "poc"
+      },
+      {
+       "kind": "drill",
+       "ref": "auth-service/scripts/quota-e2e.sh#S1",
+       "scope": "poc"
+      }
+     ],
+     "status": "poc_only"
+    },
+    {
+     "id": "F-QUOTA-01.e24",
+     "scenario": "Q-EDGE-19 [C] Client spoofs `x-sefaria-project=<victim>` during an auth outage where the strip is NOT applied",
+     "expected": "ClientTrafficPolicy Accepted on every HTTPS listener before limits ship (fix `a33497b` exists on POC, not on #3774); port 80 redirect-only",
+     "severity": "P0",
+     "status": "planned",
+     "tracking": "FU-Q-19",
+     "planned_check": "drill: `quota-e2e.sh --drill` S1 on the target env; wiki check D10 (CTP Accepted"
+    },
+    {
+     "id": "F-QUOTA-01.e25",
+     "scenario": "Q-EDGE-20 [L] Key rotated mid-month (new key, old revoked)",
+     "expected": "Same (correct by design, A2 decided)",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-20",
+     "planned_check": "e2e: use key A to N, create B, revoke A, expect remaining = limit - N"
+    },
+    {
+     "id": "F-QUOTA-01.e26",
+     "scenario": "Q-EDGE-21 [L] 5 keys on one project",
+     "expected": "All share one project counter (no multiplication)",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-21",
+     "planned_check": "e2e: alternate two keys, one counter"
+    },
+    {
+     "id": "F-QUOTA-01.e27",
+     "scenario": "Q-EDGE-22 [H] New project created to reset quota",
+     "expected": "Decide N-CR7: cap projects per account, or stamp an owner header and add a per-owner monthly rule",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-22",
+     "planned_check": "e2e: second project has a fresh counter; decision with Daniel"
+    },
+    {
+     "id": "F-QUOTA-01.e28",
+     "scenario": "Q-EDGE-23 [M] Tier change mid-month on the project's limits row (developer -> partner or back)",
+     "expected": "Document as reset; prefer per-project overrides; runbook to read/set the Redis key",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-23",
+     "planned_check": "e2e: set the tier on the project's limits row, compare remaining"
+    },
+    {
+     "id": "F-QUOTA-01.e29",
+     "scenario": "Q-EDGE-24 [L] Project soft-deleted",
+     "expected": "Loaded as revoked: 401 for all its keys, not counted (see Q-EDGE-69 for how fast that propagates). Its counter stays in Redis until TTL; an undelete in the same block resumes it",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_deleted_project_keeps_its_row_and_its_keys_load_revoked"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadAllMarksDeletedProjectKeysRevoked"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e30",
+     "scenario": "Q-EDGE-25 [M] Revoked or unknown key",
+     "expected": "Count denies per IP (e.g. catch-all anonymous rule never sees them); sample deny logs",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-25",
+     "planned_check": "knowngap tests; drill: k6 random keys, watch log volume"
+    },
+    {
+     "id": "F-QUOTA-01.e31",
+     "scenario": "Q-EDGE-26 [H] Tier `internal`",
+     "expected": "Explicit very high `internal` per-minute rule, no monthly rule (section 4 item 5, A3).",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-26",
+     "planned_check": "e2e: `quota-e2e.sh` Q4 plus 429 at the new rule limit"
+    },
+    {
+     "id": "F-QUOTA-01.e32",
+     "scenario": "Q-EDGE-27 [H] Unknown, empty or typo tier (and `partner`, which Django cannot create)",
+     "expected": "Invert-regex catch-all on the known tiers, per-minute only (never a semantic deny, section 8); DB CHECK on `powered_by_projectlimits.tier`; `keyadmin` validation; map unknown tiers to a safe label in `decide.go` (section 4 item 5).",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-27",
+     "planned_check": "helm render plus `egctl x translate` shows the catch-all descriptor; e2e: tier `xyz` via SQL"
+    },
+    {
+     "id": "F-QUOTA-01.e33",
+     "scenario": "Q-EDGE-28 [M] Library Assistant",
+     "expected": "No special key format and no special key or path for the Library Assistant (decided 2026-10-20, section 8). It uses its normal `sfr_` key and Bearer; during an outage it arrives with no tier header and is not blocked on semantic search; the Gemini spend cap is set at a catastrophic level.",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-28",
+     "planned_check": "e2e: LA staging call with key and Bearer; drill: outage with LA traffic at its normal rate, none throttled below it"
+    },
+    {
+     "id": "F-QUOTA-01.e34",
+     "scenario": "Q-EDGE-29 [L] Origin-restricted key from the wrong Origin",
+     "expected": "403 `origin_not_allowed`, not counted",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestDecideEnforce"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestA5cOptionsWithKey"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/internal/authz/decide_gaps_test.go",
+       "contains": "CodeOriginNotAllowed"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e35",
+     "scenario": "Q-EDGE-30 [L] Observe mode (`decide.go` observe)",
+     "expected": "Only for dark launch; never with quota enforcing",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGRPCStampsMeterInObserveMode",
+       "scope": "poc"
+      }
+     ],
+     "status": "poc_only"
+    },
+    {
+     "id": "F-QUOTA-01.e36",
+     "scenario": "Q-EDGE-31 [M] `jwt.mode=envoy`",
+     "expected": "Keep `mode: authsvc` (default and authpoc)",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-JWT-1",
+     "planned_check": "same render check as F-JWT-01.e6"
+    },
+    {
+     "id": "F-QUOTA-01.e37",
+     "scenario": "Q-EDGE-32 [L] Burst at the limit (concurrency)",
+     "expected": "Exact admission: INCRBY atomic, exactly `limit` requests see `after <= limit`. Counter ends above the limit by the number of rejected requests",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-32",
+     "planned_check": "e2e: 200 parallel at remaining=5, expect exactly 5 x 200"
+    },
+    {
+     "id": "F-QUOTA-01.e38",
+     "scenario": "Q-EDGE-33 [C] Per-minute 429 consumes monthly quota",
+     "expected": "Rejected calls must not burn monthly quota: set the env to `true` or move the quota to a shared domain whose filter runs after the per-minute one",
+     "severity": "P0",
+     "status": "planned",
+     "tracking": "FU-Q-33",
+     "planned_check": "e2e: exceed per-minute by 20, month key +0 after the fix (+20 today"
+    },
+    {
+     "id": "F-QUOTA-01.e39",
+     "scenario": "Q-EDGE-34 [M] Upstream errors counted (Django 401 no Bearer, 400 bad body, 503 no Gemini key, 502 Gemini failed, client abort, Envoy route timeout)",
+     "expected": "Accept and document as \"requests, not successful results\". (corrected) Refunds are not available **through EG**: Envoy 1.38/1.39 (`HitsAddend.is_negative_hits`, `route_components.proto:2689-2692@1.39.1`) and ratelimit `8fe6ea42` (README \"Negative hits\") support them, but the EG v1.8/v1.9 BTP API does not expose the field, and prod's `ff287602` lacks it. Only an EnvoyPatchPolicy could wire it",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-34",
+     "planned_check": "e2e: send bad body x N, read the counter; document"
+    },
+    {
+     "id": "F-QUOTA-01.e40",
+     "scenario": "Q-EDGE-35 [H] One counted request = many Gemini calls",
+     "expected": "Query path: max 1-2 retries, short timeout; keep the Gemini project spend cap as the real ceiling",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-35",
+     "planned_check": "Django test with mocked 503 counts attempts"
+    },
+    {
+     "id": "F-QUOTA-01.e41",
+     "scenario": "Q-EDGE-36 [L] Client retries after a 5xx",
+     "expected": "Same counting; document; consider `cost.request.number: 0` for idempotent retries only if a header proves it (not planned)",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q\\-EDGE\\-36\\ \\|\\ Client\\ retries\\ after\\ a\\ 5xx"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e42",
+     "scenario": "Q-EDGE-37 [L] Request cancelled by the client mid-flight",
+     "expected": "Accept",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q\\-EDGE\\-37\\ \\|\\ Request\\ cancelled\\ by\\ the\\ client\\ mid\\-flight"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e43",
+     "scenario": "Q-EDGE-38 [M] Very long query text",
+     "expected": "Cap query length in Django (e.g. 2,000 chars)",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-38",
+     "planned_check": "Django test 400/413 on oversize"
+    },
+    {
+     "id": "F-QUOTA-01.e44",
+     "scenario": "Q-EDGE-39 [L] `cost > 1`",
+     "expected": "Keep cost 1 per call",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-39",
+     "planned_check": "render assertion"
+    },
+    {
+     "id": "F-QUOTA-01.e45",
+     "scenario": "Q-EDGE-40 [L] OPTIONS preflight on knn-search",
+     "expected": "Allowed as tier `embed` (only when it carries `Origin` and no `x-api-key`: `decide.go:170-172`), meter computed but no semantic quota rule for `embed`: not counted toward the monthly quota. (corrected) It **is** counted on the embed per-Origin per-minute rule 3 (`backendtrafficpolicy-auth.yaml:38-43`)",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-40",
+     "planned_check": "confirm or add the decide test for OPTIONS with Origin"
+    },
+    {
+     "id": "F-QUOTA-01.e46",
+     "scenario": "Q-EDGE-41 [L] CDN / Varnish cached responses",
+     "expected": "Same; if a response cache is ever added, describe the quota as \"requests\"",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q\\-EDGE\\-41\\ \\|\\ CDN\\ /\\ Varnish\\ cached\\ responses"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e47",
+     "scenario": "Q-EDGE-42 [M] Shadow mode on the quota rule",
+     "expected": "Recommended for the first block: measure, then enforce",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-42",
+     "planned_check": "drill: `shadowMode`, exceed, expect 200 plus shadow stat"
+    },
+    {
+     "id": "F-QUOTA-01.e48",
+     "scenario": "Q-EDGE-43 [C] Same project via several hostnames (`sefaria.org`, `www.`, `voices.`, `.org.il` hosts)",
+     "expected": "`shared: true` on quota rules (domain = policy, key = rule name) or canonical-host redirect for `/api/*`",
+     "severity": "P0",
+     "status": "planned",
+     "tracking": "FU-Q-43",
+     "planned_check": "e2e: one call per authpoc host, `redis-cli --scan --pattern \"*authpoc*\"`"
+    },
+    {
+     "id": "F-QUOTA-01.e49",
+     "scenario": "Q-EDGE-44 [H] Rule inserted/removed/reordered (new tier, new meter sorting before an old one, Daniel's per-partner rules)",
+     "expected": "Append-only quota rules; CI diff of rendered ratelimit config. (corrected) `shared: true` does **not** give stable names: a shared rule's descriptor key is `<ns>/<policy>/rule/<i>` with `i` = position in the BTP (`irRuleName`, `backendtrafficpolicy.go:1913-1914@v1.9.1`) plus `rule-<k>-match-M` with `k` = index among shared rules (`getDomainRuleIndex`). Shared only removes the HTTPRoute/host part",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-44",
+     "planned_check": "`helm template` before and after plus `egctl x translate`, existing keys unchanged"
+    },
+    {
+     "id": "F-QUOTA-01.e50",
+     "scenario": "Q-EDGE-45 [L] Limit value changed mid-block",
+     "expected": "Takes effect immediately, count kept (limit not in key). Confirmed for today (local cache off); (corrected, caveat) once `LOCAL_CACHE_SIZE_IN_BYTES` > 0, a raised limit does not unblock already-over projects until the bucket rolls (Q-EDGE-12)",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-45",
+     "planned_check": "drill: lower the limit below the count, expect 429"
+    },
+    {
+     "id": "F-QUOTA-01.e51",
+     "scenario": "Q-EDGE-46 [M] Prod and preprod in one cluster, one Redis",
+     "expected": "Same; size `maxmemory` for both; alert per env",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-46",
+     "planned_check": "drill: list keys per domain prefix"
+    },
+    {
+     "id": "F-QUOTA-01.e52",
+     "scenario": "Q-EDGE-47 [M] Multiple Envoy / ratelimit replicas",
+     "expected": ">=2 ratelimit replicas + PDB for availability (no correctness change)",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-47",
+     "planned_check": "drill: scale ratelimit to 2, burst, exact count"
+    },
+    {
+     "id": "F-QUOTA-01.e53",
+     "scenario": "Q-EDGE-48 [C] Prod prerequisites missing",
+     "expected": "All of §4 \"must change\" before enabling",
+     "severity": "P0",
+     "status": "planned",
+     "tracking": "FU-Q-48",
+     "planned_check": "render prod values; wiki check D10 (CTP Accepted) before enabling"
+    },
+    {
+     "id": "F-QUOTA-01.e54",
+     "scenario": "Q-EDGE-49 [H] BackendTrafficPolicy rejected by EG (e.g. field unsupported on 1.8.0)",
+     "expected": "Render and apply on a 1.8.x cauldron first; watch policy `Accepted`",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-49",
+     "planned_check": "drill: apply to a v1.8 cauldron, watch policy `Accepted`"
+    },
+    {
+     "id": "F-QUOTA-01.e55",
+     "scenario": "Q-EDGE-50 [M] `xRateLimitHeaders` on prod v1.8.0",
+     "expected": "Verify on prod CRD (`kubectl explain`) before relying on it",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-50",
+     "planned_check": "`kubectl explain` on the prod CRD"
+    },
+    {
+     "id": "F-QUOTA-01.e56",
+     "scenario": "Q-EDGE-51 [H] Meter or tier typo between `authService.meters` and `rateLimit.quotas[]`",
+     "expected": "`render-check.sh` asserts every quota meter exists in `METERED_PATHS` and every tier is valid",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-51",
+     "planned_check": "`render-check.sh` asserts every quota meter is in `METERED_PATHS` and every tier valid"
+    },
+    {
+     "id": "F-QUOTA-01.e57",
+     "scenario": "Q-EDGE-52 [M] Client IP detection",
+     "expected": "CTP Accepted; verify `sourceCIDR` descriptor = real client IP",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-52",
+     "planned_check": "drill: compare nginx `remoteIp` with the ratelimit key"
+    },
+    {
+     "id": "F-QUOTA-01.e58",
+     "scenario": "Q-EDGE-53 [L] Gated path with no key",
+     "expected": "401 `api_key_required` before Bearer handling; not counted",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGatedPathDeniedBeforeBearerHandling",
+       "scope": "poc"
+      }
+     ],
+     "status": "poc_only"
+    },
+    {
+     "id": "F-QUOTA-01.e59",
+     "scenario": "Q-EDGE-54 [L] Bearer-only (first-party JWT or LA token) on knn-search",
+     "expected": "Same (LA must use a key)",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestGatedPathDeniedBeforeBearerHandling",
+       "scope": "poc"
+      }
+     ],
+     "status": "poc_only"
+    },
+    {
+     "id": "F-QUOTA-01.e60",
+     "scenario": "Q-EDGE-55 [L] Encoded paths `%6b`, `//`, `..`",
+     "expected": "Gated and metered",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestMeterMatchesTheDecodedCleanedPath",
+       "scope": "poc"
+      }
+     ],
+     "status": "poc_only"
+    },
+    {
+     "id": "F-QUOTA-01.e61",
+     "scenario": "Q-EDGE-56 [M] `/api/%6bnn-search%`, `/api/%256bnn-search`",
+     "expected": "Fail closed on undecodable paths; match the router's normalisation",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestKnownGapNCR9MalformedGatedPaths"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e62",
+     "scenario": "Q-EDGE-57 [L] `/api/knn-searchX`",
+     "expected": "Segment-boundary match",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-57",
+     "planned_check": "unit test for segment-boundary match"
+    },
+    {
+     "id": "F-QUOTA-01.e63",
+     "scenario": "Q-EDGE-58 [M] `GATED_PATHS` with spaces (`\"/a, /b\"`)",
+     "expected": "Trim like `METERED_PATHS`",
+     "severity": "P1",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/cmd/authsvc::TestKnownGapNA10GatedPathsTrimmed"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e64",
+     "scenario": "Q-EDGE-59 [L] Duplicate `x-api-key` headers",
+     "expected": "Same on gated path",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestA2dDuplicateKeyHeaderOnGatedPath"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e65",
+     "scenario": "Q-EDGE-60 [L] `?api_key=` in query / key in body / key as Bearer",
+     "expected": "Not credentials; query param stripped upstream; gated path 401",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-60",
+     "planned_check": "unit tests on `decide`/`grpcserver` for the three shapes"
+    },
+    {
+     "id": "F-QUOTA-01.e66",
+     "scenario": "Q-EDGE-61 [H] 429 body/headers: quota vs per-minute",
+     "expected": "Distinct reason (e.g. `code: quota_exhausted` with `reset_at`, no `Retry-After`) vs `rate_limited` + `Retry-After` <= 60. Envoy cannot tell which descriptor tripped inside one override (spec §6); options in §4 item 7",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-61",
+     "planned_check": "e2e: trigger each, diff responses"
+    },
+    {
+     "id": "F-QUOTA-01.e67",
+     "scenario": "Q-EDGE-62 [M] Usage visibility on 200s",
+     "expected": "(corrected) Disabling headers on the per-minute rule does **not** surface the monthly numbers: Envoy picks the min-remaining descriptor first and, if headers are disabled for it, emits no `x-ratelimit-*` at all (`ratelimit_headers.cc:52-74@1.39.1`). Also rule 0 covers every path, not only semantic requests. Use a usage page / documented reset instead",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-62",
+     "planned_check": "e2e: inspect headers at 50% month usage"
+    },
+    {
+     "id": "F-QUOTA-01.e68",
+     "scenario": "Q-EDGE-63 [M] Usage page / warnings",
+     "expected": "Phase 1: publish limit + reset date in docs; operator alert at 80/100% from rollup",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-63",
+     "planned_check": "e2e (Phase 2"
+    },
+    {
+     "id": "F-QUOTA-01.e69",
+     "scenario": "Q-EDGE-64 [L] Anonymous gets `x-sefaria-project: \"\"`",
+     "expected": "Never key a rule on project for tiers that can have \"\"",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-64",
+     "planned_check": "render assertion"
+    },
+    {
+     "id": "F-QUOTA-01.e70",
+     "scenario": "Q-EDGE-65 [H] Gemini project spend cap hit",
+     "expected": "Accepted risk (decided 2026-10-20, section 8): auth service down plus a flood on semantic search can exhaust the shared Gemini quota, and the Library Assistant's semantic tool stops until the quota resets or the service recovers. Cap set at a catastrophic level only, alert well before it; runbook, no cauldron test.",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q\\-EDGE\\-65\\ \\|\\ Gemini\\ project\\ spend\\ cap\\ hit"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e71",
+     "scenario": "Q-EDGE-66 [M] `embed` tier is keyed on the client-chosen `Origin` header",
+     "expected": "Key embed on something the server derives (IP), or cap it; never a client-chosen key (Azure \"client-driven throttling\", r4 §7)",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-66",
+     "planned_check": "drill: loop with random `Origin`, watch `DBSIZE`"
+    },
+    {
+     "id": "F-QUOTA-01.e72",
+     "scenario": "Q-EDGE-67 [M] Anonymous per-IP rule uses `sourceCIDR 0.0.0.0/0`",
+     "expected": "Add an IPv6 CIDR (`::/0`) rule or confirm Envoy emits one descriptor for both families",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-67",
+     "planned_check": "`egctl x translate`; drill: `curl -6` burst on authpoc"
+    },
+    {
+     "id": "F-QUOTA-01.e73",
+     "scenario": "Q-EDGE-68 [L] Non-POST method on `/api/knn-search`",
+     "expected": "Accept and document, or make the meter method-aware",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q\\-EDGE\\-68\\ \\|\\ Non\\-POST\\ method\\ on\\ `/api/knn\\-search`"
+      }
+     ],
+     "status": "on_branch"
+    },
+    {
+     "id": "F-QUOTA-01.e74",
+     "scenario": "Q-EDGE-69 [L] Soft-delete a project without revoking its keys",
+     "expected": "Add `deleted_at` to the project trigger, or keep Django as the only soft-delete path",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-69",
+     "planned_check": "drill: `UPDATE ... SET deleted_at`, time to first 401"
+    },
+    {
+     "id": "F-QUOTA-01.e75",
+     "scenario": "Q-EDGE-70 [M] Prod's bundled ratelimit image `ff287602` (EG v1.8.0) vs `8fe6ea42`",
+     "expected": "Prod on `8fe6ea42` or later (EG >= v1.8.4, not v1.9.0); start Redis before the ratelimit pods",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-70",
+     "planned_check": "drill: ratelimit with Redis at 0 replicas, then Redis slowed past 20 ms"
+    },
+    {
+     "id": "F-QUOTA-01.e76",
+     "scenario": "Q-EDGE-71 [M] Flood of bad keys on a gated path",
+     "expected": "Run `local_ratelimit` (order 302) before ext_authz via `EnvoyProxy.spec.filterOrder`; sample deny logs. UNVERIFIED on a cauldron",
+     "severity": "P1",
+     "status": "planned",
+     "tracking": "FU-Q-71",
+     "planned_check": "drill: k6 random keys, watch auth-service CPU and log volume"
+    },
+    {
+     "id": "F-QUOTA-01.e77",
+     "scenario": "Q-EDGE-72 [L] ratelimit `QUOTA_MODE` env",
+     "expected": "Never set it; CI check on the env block",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-72",
+     "planned_check": "assert the env list in the HelmRelease"
+    },
+    {
+     "id": "F-QUOTA-01.e78",
+     "scenario": "Q-EDGE-73 [L] `STOP_CACHE_KEY_INCREMENT_WHEN_OVERLIMIT=true` side effects",
+     "expected": "Accept; include these rules in the live test of fix item 2",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-Q-73",
+     "planned_check": "drill: same as Q-EDGE-33 on a per-IP rule"
+    },
+    {
+     "id": "F-QUOTA-01.e79",
+     "scenario": "Q-EDGE-74 [C] PR base: #3798 (Phase 1) has none of the quota machinery",
+     "expected": "The draft PR into #3798's branch must carry the meter header, the quota BTP, the 4-header strip and the e2e matrix together, or the matrix cannot pass",
+     "severity": "P0",
+     "status": "planned",
+     "tracking": "FU-Q-74",
+     "planned_check": "`render-check.sh` and `go test ./...` on the PR branch; e2e: the new matrix"
+    }
+   ]
+  },
+  {
+   "id": "F-OUT-01",
+   "area": "outage",
+   "title": "Fail-open default (EG default is fail-closed; the chart sets open)",
+   "status": "on_branch",
+   "legacy_ids": [
+    "N-F1"
+   ],
+   "edge_cases": [
+    {
+     "id": "F-OUT-01.e1",
+     "scenario": "auth service stopped",
+     "expected": "gated path open only while down, failure_mode_allowed rises, deciding resumes after readiness, ungated traffic unchanged, keyed traffic never denied",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/f1-stop.sh"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_outage"
+      }
+     ]
+    },
+    {
+     "id": "F-OUT-01.e2",
+     "scenario": "auth service paused longer than 200 ms",
+     "expected": "requests fail open within the timeout",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/nf2-pause.sh"
+      }
+     ]
+    },
+    {
+     "id": "F-OUT-01.e3",
+     "scenario": "ext_authz in normal operation",
+     "expected": "adds about 0.5 ms and never reaches the 200 ms timeout",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/f5-latency.sh"
+      }
+     ]
+    },
+    {
+     "id": "F-OUT-01.e4",
+     "scenario": "KNOWN GAP (drill not tagged [KG]): rolling restart",
+     "expected": "lets gated requests through for about a second (gap N-F1; harmless under fail-open, kept as a tracked gap)",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/dev/local-stack/scenarios/nf1-sigterm.sh",
+       "contains": "gap N-F1"
+      }
+     ]
+    },
+    {
+     "id": "F-OUT-01.e5",
+     "scenario": "chart rendered off and on for every values set",
+     "expected": "sane",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/e3-helm.sh"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/Makefile",
+       "contains": "helm-matrix"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-OUT-02",
+   "area": "outage",
+   "title": "Semantic search is not closed during an outage",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-OUT-02.e1",
+     "scenario": "auth service stopped, /api/knn-search without a key",
+     "expected": "not stopped by Envoy: no api_key_required body, no gateway 5xx; the request reaches Django, which applies its own Bearer check",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/f1-stop.sh"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_outage"
+      }
+     ]
+    },
+    {
+     "id": "F-OUT-02.e2",
+     "scenario": "chart defaults",
+     "expected": "keeps authService.extAuth.failOpen: true and has no per-path closed rule",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "helm-chart/sefaria/values.yaml",
+       "contains": "failOpen: true"
+      },
+      {
+       "kind": "file",
+       "ref": "helm-chart/sefaria/templates/gateway/securitypolicy.yaml",
+       "contains": "failOpen: \\{\\{ \\.Values\\.authService\\.extAuth\\.failOpen \\}\\}"
+      },
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_safe"
+      }
+     ]
+    },
+    {
+     "id": "F-OUT-02.e3",
+     "scenario": "request with no x-sefaria-tier header (auth service down)",
+     "expected": "hits no 'no semantic search' rule in the rate-limit catch-all; the catch-all carries per-minute limits only",
+     "severity": "P0",
+     "status": "planned",
+     "tracking": "FU-OUT-1",
+     "planned_check": "POC port: render-check.sh asserts no rule matches an empty tier on the semantic meter with a deny; drill with the auth service at 0 replicas, a semantic request is not 429 or 403 from the limiter"
+    },
+    {
+     "id": "F-OUT-02.e4",
+     "scenario": "per-path fail-closed list",
+     "expected": "can be added later if data calls for it",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-OUT-2",
+     "planned_check": "Not built; revisit with Gemini quota data"
+    }
+   ]
+  },
+  {
+   "id": "F-OUT-03",
+   "area": "outage",
+   "title": "Library Assistant and the Gemini ceiling",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-OUT-03.e1",
+     "scenario": "Library Assistant knn call",
+     "expected": "Django Bearer is the credential on /api/knn-search; a fake Bearer is 401 from Django",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "playwright",
+       "ref": "e2e-tests/api-keys/callers/replays.spec.ts::B5: Library Assistant knn shape"
+      },
+      {
+       "kind": "file",
+       "ref": "api/views.py",
+       "contains": "SEMANTIC_SEARCH_API_TOKEN"
+      }
+     ]
+    },
+    {
+     "id": "F-OUT-03.e2",
+     "scenario": "Library Assistant during an outage",
+     "expected": "Envoy passes its Bearer request through to Django with no special key or route",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "demo",
+       "ref": "auth-service/scripts/demo.sh::section_outage"
+      }
+     ]
+    },
+    {
+     "id": "F-OUT-03.e3",
+     "scenario": "auth service down and a flood on semantic search",
+     "expected": "accepted risk: the shared Gemini quota can be exhausted and the LA semantic tool stops until the quota resets or the service recovers",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q-EDGE-65"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Accepted risks"
+      }
+     ]
+    },
+    {
+     "id": "F-OUT-03.e4",
+     "scenario": "Library Assistant semantic search fails",
+     "expected": "falls back to keyword search (ai-chatbot repo; recommended, not required by the decision)",
+     "severity": "P2",
+     "status": "planned",
+     "tracking": "FU-OUT-3",
+     "planned_check": "A test in the ai-chatbot repo that the LA falls back to keyword search"
+    }
+   ]
+  },
+  {
+   "id": "F-OUT-04",
+   "area": "outage",
+   "title": "Auth-service availability",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-OUT-04.e1",
+     "scenario": "empty or never-loaded registry",
+     "expected": "should step aside (UNAVAILABLE) instead of denying valid keys (known gap)",
+     "severity": "P0",
+     "known_gap": true,
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/authz::TestKnownGapNCR8NeverLoadedRegistry"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/cmd/authsvc::TestKnownGapNCR8EmptyTableAtStart"
+      }
+     ]
+    },
+    {
+     "id": "F-OUT-04.e2",
+     "scenario": "Postgres unreachable at boot or while running",
+     "expected": "pod not ready or stale snapshot, recovery without restart",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/f2-bad-dsn.sh"
+      },
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh"
+      },
+      {
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/f4-rotate.sh"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-DEMO-01",
+   "area": "demo",
+   "title": "demo.sh",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-DEMO-01.e1",
+     "scenario": "every section_* of demo.sh",
+     "expected": "prints the feature ids it proves; each check prints [OK F-...], [MISMATCH F-...] or [SKIP F-...] (the validator checks every prove id and --list-sections)",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "shell",
+       "ref": "auth-service/scripts/demo.sh"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/demo.sh",
+       "contains": "--list-sections"
+      }
+     ]
+    },
+    {
+     "id": "F-DEMO-01.e2",
+     "scenario": "bash -n and shellcheck at warning level",
+     "expected": "clean",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "shell",
+       "ref": "e2e-tests/api-keys/checks/run-checks.sh"
+      },
+      {
+       "kind": "file",
+       "ref": "e2e-tests/api-keys/checks/run-checks.sh",
+       "contains": "shellcheck -S warning"
+      }
+     ]
+    },
+    {
+     "id": "F-DEMO-01.e3",
+     "scenario": "demo exit status and --offline / --list-sections",
+     "expected": "non-zero iff a MISMATCH printed; --offline and --list-sections need no cluster",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/demo.sh",
+       "contains": "--offline"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/demo.sh",
+       "contains": "--list-sections"
+      }
+     ]
+    },
+    {
+     "id": "F-DEMO-01.e4",
+     "scenario": "default run",
+     "expected": "read-only; mutating sections need --allow-mutating (grep gate: no write command outside mutating_* functions)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "e2e-tests/api-keys/checks/run-checks.sh",
+       "contains": "demo_write_gate"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/demo.sh",
+       "contains": "--allow-mutating"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-META-01",
+   "area": "meta",
+   "title": "The matrix itself",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-META-01.e1",
+     "scenario": "features.json",
+     "expected": "every edge case has a check; every ref resolves; known-gap tests are never proof; planned rows are counted",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "e2e-tests/api-keys/check_features.py",
+       "contains": "--strict"
+      },
+      {
+       "kind": "file",
+       "ref": "e2e-tests/api-keys/tests/test_check_features.py",
+       "contains": "def test_valid_minimal_file_passes"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
