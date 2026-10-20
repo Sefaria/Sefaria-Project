@@ -165,3 +165,6 @@ dump/*
 .env
 static_collected/*
 scripts/debug_cache/
+
+# Standalone live reading map auth database (inquiry/pilot_settings.py)
+.inquiry-pilot.sqlite3*

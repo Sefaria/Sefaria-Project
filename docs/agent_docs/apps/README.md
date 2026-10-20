@@ -54,6 +54,12 @@ These are the smaller Django apps that sit alongside the main `reader/` and `sef
 - **Key files**: `staging` (one line, the pinned version).
 - **Non-obvious**: Despite living next to the Django apps, there is no `__init__.py`, `apps.py`, or Python code here. Don't treat it as importable; bumping the version string is what triggers a staging deploy.
 
+### inquiry/
+> Source: `inquiry/`
+- **Purpose**: Staff-only live reading map at `/inquiry/atlas/` (mounted through `urls_shared.py`). Off unless `INQUIRY_ATLAS_ENABLED=1`.
+- **Data flow**: Celery task `inquiry.refresh_activity` aggregates `user_history` into one Mongo document, `inquiry_activity_snapshots.latest` (circle sizes from the newest 500 reads, readers on each book now, and the last 60s of reads with the book each reader came from). No beat runs in the chart; the activity API enqueues the task on the tasks queue while a viewer polls, with an atomic claim so concurrent viewers enqueue once per 5s.
+- **Non-obvious**: Book ids are positions in the frozen `static/inquiry/atlas-baseline.json` catalog; titles missing from it are skipped. `pilot_settings.py` runs the page standalone (SQLite auth, local Mongo, `pilot_celery.py` with beat). See `inquiry/README.md`.
+
 ## Cross-App Relationships
 - `chatbot/` is a thin proxy over `remote_config/`; its admin page edits a single JSON `RemoteConfigEntry`. Other chatbot feature flags also live in `remote_config/keys.py`.
 - `django_topics/` is tightly coupled to `sefaria/model/topic.py` — the Mongo `Topic.save`/`delete` path mirrors slug + pool membership into the Postgres `DjangoTopic` row. Pools themselves only exist in Postgres; Mongo topic code calls back through `DjangoTopic.objects` to read them.

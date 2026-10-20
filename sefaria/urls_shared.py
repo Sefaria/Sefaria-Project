@@ -19,6 +19,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from sso.views import MobileTokenObtainPairView
 
 shared_patterns = [
+    path('inquiry/', include('inquiry.urls')),
     path('_allauth/', include('allauth.headless.urls')),
     path('accounts/', include('allauth.urls')),
     path('', include('sso.urls')),
