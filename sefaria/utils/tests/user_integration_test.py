@@ -284,6 +284,25 @@ class TestContentTransfer:
         assert env.mongo.user_history.find_one({"last_place": True})["time_stamp"] == 300
         assert all(r["server_time_stamp"] > 300 for r in records)
 
+    def test_history_merge_loads_only_bookmarks_and_last_places(self, merge_env, monkeypatch):
+        """Ordinary reading visits are moved in the database, never loaded into memory"""
+        env = merge_env
+        visits = [{"uid": env.source.id, "ref": "Genesis 1:%d" % verse} for verse in range(1, 51)]
+        bookmarks = [{"uid": uid, "ref": "Exodus 1:1", "saved": True} for uid in (env.source.id, env.survivor.id)]
+        env.mongo.user_history.insert_many(visits + bookmarks)
+        # Record how many documents each user_history query matched when it ran.
+        matched_counts = []
+        collection_type = type(env.mongo.user_history)
+        original_find = collection_type.find
+        def counting_find(collection, filter=None, *args, **kwargs):
+            if collection.name == "user_history":
+                matched_counts.append(collection.count_documents(filter or {}))
+            return original_find(collection, filter, *args, **kwargs)
+        monkeypatch.setattr(collection_type, "find", counting_find)
+        merge(env)
+        assert matched_counts and max(matched_counts) <= len(bookmarks)
+        assert env.mongo.user_history.count_documents({"uid": env.survivor.id}) == 52
+
     def test_search_refresh_is_queued_for_changed_sheets(self, merge_env, monkeypatch):
         """Sheets whose owner or credits changed are sent to be re-indexed for search"""
         from sefaria import search

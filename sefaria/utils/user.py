@@ -504,9 +504,14 @@ def _merge_history(from_uid, into_uid):
     place" in the same book. In each case only one record can win, so the
     others are switched off.
     """
-    # Load the records BEFORE moving them. Moving gives each source record a
-    # fresh sync time stamp, which would make every source record look newest.
-    records = list(db.user_history.find({"uid": {"$in": [from_uid, into_uid]}}))
+    # Load only bookmarks and last places: they are the only records compared.
+    # Ordinary visits can number in the hundreds of thousands and are moved by
+    # update_many() below without being loaded.
+    # Load them BEFORE moving them. Moving gives each source record a fresh
+    # sync time stamp, which would make every source record look newest.
+    may_compete = {"uid": {"$in": [from_uid, into_uid]},
+                   "$or": [{"saved": True}, {"delete_saved": True}, {"last_place": True}]}
+    records = list(db.user_history.find(may_compete))
     bookmark_groups = _group_by([r for r in records if r.get("saved") or r.get("delete_saved")], _bookmark_key)
     last_place_groups = _group_by([r for r in records if r.get("last_place")], lambda r: r.get("book"))
 
