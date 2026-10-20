@@ -197,9 +197,13 @@ def _domain_hosts(value):
 
 
 def require_mutation_consent(target):
-    """A cauldron write needs APIKEYS_ALLOW_MUTATING_ON to repeat the cauldron name exactly."""
-    if target == "cauldron" and os.environ.get("APIKEYS_ALLOW_MUTATING_ON") != cauldron_name():
-        raise SystemExit("Refusing: writing to the cauldron needs APIKEYS_ALLOW_MUTATING_ON={}.".format(cauldron_name()))
+    """A cauldron write needs APIKEYS_CAULDRON set explicitly and APIKEYS_ALLOW_MUTATING_ON repeating it exactly."""
+    if target != "cauldron":
+        return
+    named, allowed = os.environ.get("APIKEYS_CAULDRON"), os.environ.get("APIKEYS_ALLOW_MUTATING_ON")
+    if not named or named != allowed or named != cauldron_name():
+        raise SystemExit("Refusing: writing to the cauldron needs APIKEYS_CAULDRON and APIKEYS_ALLOW_MUTATING_ON "
+                         "both set, to the same cauldron name.")
 
 
 def guard_target(target):
