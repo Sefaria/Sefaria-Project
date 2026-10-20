@@ -7,6 +7,7 @@ memory and learn of the change through the existing refresh URLs, which staff ca
 afterwards (each response lists them under `refresh`).
 """
 from bson.objectid import ObjectId
+from pymongo import UpdateOne
 
 from sefaria.model import Category, Index, Version, VersionSet, LinkSet, Ref, library, log_update
 from sefaria.model.abstract import show_admin_only_records
@@ -48,10 +49,12 @@ def _queue_version_for_search(version):
     if not SEARCH_INDEX_ON_SAVE:
         return
     index = version.get_index()
-    db.index_queue.insert_many([
-        {"ref": oref.normal(), "lang": version.language, "version": version.versionTitle, "type": "ref"}
+    # Upsert: a segment may already be queued, and the queue is unique on (lang, version, ref).
+    db.index_queue.bulk_write([
+        UpdateOne({"ref": oref.normal(), "lang": version.language, "version": version.versionTitle},
+                  {"$setOnInsert": {"type": "ref"}}, upsert=True)
         for oref in index.all_segment_refs()
-    ])
+    ], ordered=False)
 
 
 def _refresh_urls(*paths):

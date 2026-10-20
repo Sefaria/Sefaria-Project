@@ -241,6 +241,21 @@ def test_status_reports_staff_only_records(hidden_genesis_version, staff_mode):
     assert status["links"]["admin_only"] >= 0
 
 
+def test_queueing_for_search_tolerates_already_queued_segments(monkeypatch):
+    from sefaria.helper import staff_only
+    monkeypatch.setattr(staff_only, "SEARCH_INDEX_ON_SAVE", True)
+    version = Version().load({"title": "Ruth", "language": "en"})
+    query = {"version": version.versionTitle, "lang": version.language, "ref": {"$regex": "^Ruth "}}
+    already = db.index_queue.count_documents(query)
+    try:
+        staff_only._queue_version_for_search(version)
+        staff_only._queue_version_for_search(version)  # second time: every segment is already queued
+        assert db.index_queue.count_documents(query) == len(version.get_index().all_segment_refs())
+    finally:
+        if not already:
+            db.index_queue.delete_many(query)
+
+
 def test_publish_requires_staff_site(public_mode):
     from sefaria.helper import staff_only
     with pytest.raises(InputError):
