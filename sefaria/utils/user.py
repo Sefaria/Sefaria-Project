@@ -9,6 +9,7 @@ import structlog
 import sefaria.model as model
 from sefaria.system.database import db
 from sefaria.helper.crm.crm_mediator import CrmMediator
+from sefaria.system.exceptions import InputError
 
 logger = structlog.get_logger(__name__)
 
@@ -66,6 +67,16 @@ def delete_user_account(uid, confirm=True):
 
 def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_profile_data=False):
     """ Moves all content of `from_uid` into `into_uid` then deletes `from_uid`"""
+    # Validate before loading profiles: loading a missing profile can create it.
+    # A self-merge would otherwise finish by deleting the account we meant to keep.
+    if from_uid == into_uid:
+        raise InputError("Source and destination accounts must be different.")
+    for uid in (from_uid, into_uid):
+        if not User.objects.filter(id=uid).exists():
+            raise InputError("User %s does not exist." % uid)
+        if not db.profiles.find_one({"id": uid}):
+            raise InputError("User %s does not have a profile." % uid)
+
     from_user = model.UserProfile(id=from_uid)
     if not from_user._id:
         print("Source user %d does not have a profile." % from_uid)
@@ -83,10 +94,10 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
 
     # Move user reading history
     db.user_history.update_many({"uid": from_uid}, {"$set": {"uid": into_uid}})
-    # Move group admins
-    db.groups.update({"admins": from_uid}, {"$set": {"admins.$": into_uid}})
-    # Move group members
-    db.groups.update({"members": from_uid}, {"$set": {"members.$": into_uid}})
+    # MongoDB groups are source-sheet collections, not Django permission groups.
+    # PyMongo 4 removed update(); update_many() also reaches every collection.
+    db.groups.update_many({"admins": from_uid}, {"$set": {"admins.$": into_uid}})
+    db.groups.update_many({"members": from_uid}, {"$set": {"members.$": into_uid}})
     # Move Sheets
     db.sheets.update_many({"owner": from_uid}, {"$set": {"owner": into_uid}})
     # Move Notes
