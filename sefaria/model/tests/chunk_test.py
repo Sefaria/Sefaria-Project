@@ -601,6 +601,7 @@ def test_text_family_alts():
     c = tf.contents()
     assert c.get("alts")
 
+@pytest.mark.needs_corpus
 def test_text_family_version_with_underscores():
     with_spaces = TextFamily(
         Ref("Amos 1"), lang="he", lang2="en", commentary=False,
@@ -610,6 +611,7 @@ def test_text_family_version_with_underscores():
         Ref("Amos 1"), lang="he", lang2="en", commentary=False,
         version="Miqra_according_to_the_Masorah",
         version2="Tanakh:_The_Holy_Scriptures,_published_by_JPS")
+    assert with_spaces.he and with_spaces.text
     assert with_spaces.he == with_underscores.he
     assert with_spaces.text == with_underscores.text
 
