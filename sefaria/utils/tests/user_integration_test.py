@@ -24,7 +24,7 @@ from unittest.mock import Mock
 
 import pytest
 from django.contrib.auth.models import Group, Permission, User
-from django.db import DatabaseError, IntegrityError, connection, transaction
+from django.db import IntegrityError, connection, transaction
 from django.test import override_settings
 
 from allauth.account.models import EmailAddress
@@ -540,8 +540,8 @@ class TestFailureSafety:
 
     @pytest.mark.django_db(transaction=True)
     @pytest.mark.parametrize("locked_account", ["source", "survivor"])
-    def test_overlapping_merge_stops_before_moving_content(self, merge_env, locked_account):
-        """A second merge of an account that is already being merged fails right away"""
+    def test_overlapping_merge_stops_before_moving_content(self, merge_env, locked_account, capsys):
+        """A second merge of an account that is already being merged fails right away, safe to retry"""
         if connection.vendor != "postgresql":
             pytest.skip("Requires PostgreSQL row locks, as used in production")
         env = merge_env
@@ -553,13 +553,15 @@ class TestFailureSafety:
             with other.cursor() as cursor:
                 cursor.execute("SELECT id FROM auth_user WHERE id = %s FOR UPDATE",
                                [getattr(env, locked_account).id])
-            with pytest.raises(DatabaseError):
+            # InputError tells the web form nothing changed, so it can be tried again.
+            with pytest.raises(InputError, match="already being merged"):
                 merge(env)
         finally:
             other.rollback()
             other.close()
         assert env.mongo.notes.find_one()["owner"] == env.source.id
         assert User.objects.filter(id=env.source.id).exists()
+        assert "may already have applied" not in capsys.readouterr().out
 
     def test_profile_cleanup_failure_reports_that_sql_deletion_already_committed(self, merge_env, monkeypatch, capsys):
         """If the last step fails, the operator is told the Django user is already gone"""

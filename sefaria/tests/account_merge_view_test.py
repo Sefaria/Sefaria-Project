@@ -26,6 +26,7 @@ from sefaria import views
 from sefaria.forms import SefariaMergeAccountsForm
 from sefaria.system.exceptions import InputError
 from sefaria.utils import user as user_utils
+from sefaria.utils.user import MergeNotStartedError
 
 
 # ============================================================================
@@ -240,13 +241,21 @@ class TestMergeResult:
         env.merge.return_value["warnings"] = ["CRM record needs manual review."]
         assert payload(request(env))["warnings"] == ["CRM record needs manual review."]
 
-    def test_late_input_error_is_safe_to_correct(self, merge_form_env):
-        """An InputError from the merge means nothing changed, so the page may resend"""
+    def test_merge_that_did_not_start_is_safe_to_correct(self, merge_form_env):
+        """MergeNotStartedError means nothing changed, so the page may resend"""
         env = merge_form_env
-        env.merge.side_effect = InputError("A profile disappeared before the merge started.")
+        env.merge.side_effect = MergeNotStartedError("A profile disappeared before the merge started.")
         response = request(env)
         assert response.status_code == 400
         assert payload(response)["retry_safe"] is True
+
+    def test_other_input_errors_are_not_presented_as_safe_to_retry(self, merge_form_env):
+        """A plain InputError may come from partway through the merge, so the page stays locked"""
+        env = merge_form_env
+        env.merge.side_effect = InputError("raised by library code during the transfer")
+        response = request(env)
+        assert response.status_code == 500
+        assert payload(response)["retry_safe"] is False
 
     def test_partial_failure_is_not_presented_as_safe_to_retry(self, merge_form_env):
         """Any other error may mean data moved, so the page stays locked and hides details"""

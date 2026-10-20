@@ -1470,7 +1470,7 @@ def _find_account(id_or_email):
 
 
 def _run_account_merge(operator, source, destination, profile_mode):
-    from sefaria.utils.user import merge_user_accounts
+    from sefaria.utils.user import MergeNotStartedError, merge_user_accounts
     try:
         # The form has already checked staff access, the password, and the typed
         # MERGE. confirm=False skips the command-line prompt, which would
@@ -1481,9 +1481,12 @@ def _run_account_merge(operator, source, destination, profile_mode):
             override_profile_data=profile_mode == "override",
             confirm=False,
         )
-    except InputError as error:
+    except MergeNotStartedError as error:
+        # Raised only before the merge changes anything, so the form can be fixed and resent.
         return jsonResponse({"error": str(error), "retry_safe": True}, status=400)
     except Exception:
+        # Anything else (even an InputError from code the merge calls) may have
+        # happened after some data moved, so never present it as safe to retry.
         logger.exception("Admin account merge failed", operator_id=operator.id,
                          from_uid=source.id, into_uid=destination.id)
         return jsonResponse({"error": "The merge stopped. Some data may already have moved. "

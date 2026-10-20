@@ -12,7 +12,7 @@ import time
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db import transaction
+from django.db import OperationalError, transaction
 import structlog
 
 import sefaria.model as model
@@ -93,6 +93,10 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
 
     Returns {"from_uid", "into_uid", "warnings"}. Warnings are follow-up tasks
     for a person, such as a CRM record that needs manual review.
+
+    Raises MergeNotStartedError when it stops before changing anything (bad
+    input, or the account is already being merged); that is safe to retry. Any
+    other error may mean some MongoDB data has already moved.
     """
     from_uid, into_uid = _parse_uid(from_uid), _parse_uid(into_uid)
     _check_accounts_can_merge(from_uid, into_uid)
@@ -123,6 +127,10 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
           (from_user.email, into_user.email))
     warnings = [warning for warning in (cache_warning, crm_warning) if warning]
     return {"from_uid": from_uid, "into_uid": into_uid, "warnings": warnings}
+
+
+class MergeNotStartedError(InputError):
+    """The merge stopped before changing anything, so it is safe to fix the problem and retry."""
 
 
 class ProfileMode(Enum):
@@ -198,30 +206,30 @@ _MERGE_READING_SETTINGS = (
 # ---------------------------------------------------------------------------
 
 def _parse_uid(uid):
-    """Turn "12" or 12 into 12. Raise InputError for anything else."""
+    """Turn "12" or 12 into 12. Raise MergeNotStartedError for anything else."""
     # Python treats True as the integer 1, so reject booleans explicitly.
     # Otherwise merge_user_accounts(True, ...) would merge user 1.
     is_id_like = isinstance(uid, (str, int)) and not isinstance(uid, bool)
     if not is_id_like:
-        raise InputError("Account IDs must be integers.")
+        raise MergeNotStartedError("Account IDs must be integers.")
     try:
         return int(uid)
     except ValueError:
-        raise InputError("Account IDs must be integers.") from None
+        raise MergeNotStartedError("Account IDs must be integers.") from None
 
 
 def _check_accounts_can_merge(from_uid, into_uid):
     # Merging an account into itself would end by deleting the account we
     # meant to keep.
     if from_uid == into_uid:
-        raise InputError("Source and destination accounts must be different.")
+        raise MergeNotStartedError("Source and destination accounts must be different.")
     # Read the raw profile document here. Loading model.UserProfile for a user
     # who has no profile creates an empty one, which we don't want.
     for uid in (from_uid, into_uid):
         if not User.objects.filter(id=uid).exists():
-            raise InputError("User %s does not exist." % uid)
+            raise MergeNotStartedError("User %s does not exist." % uid)
         if not db.profiles.find_one({"id": uid}):
-            raise InputError("User %s does not have a profile." % uid)
+            raise MergeNotStartedError("User %s does not have a profile." % uid)
 
 
 def _confirmed_on_command_line(from_user, into_user):
@@ -237,6 +245,9 @@ def _report_if_merge_stops(step, from_uid, into_uid, *, source_user_deleted):
     """If the code inside this block fails, say which step failed, then re-raise the error."""
     try:
         yield
+    except MergeNotStartedError:
+        # Nothing has changed yet, so there is nothing to inspect.
+        raise
     except Exception:
         logger.exception("Account merge stopped; inspect MongoDB before retrying",
                          from_uid=from_uid, into_uid=into_uid, step=step,
@@ -274,9 +285,13 @@ def _lock_users(from_uid, into_uid):
     # stops two merges from each waiting on the other. These are SQL locks
     # only: they do not stop someone editing the account's MongoDB data.
     locked = User.objects.select_for_update(nowait=True).filter(id__in=[from_uid, into_uid]).order_by("id")
-    users = {user.id: user for user in locked}
+    try:
+        users = {user.id: user for user in locked}  # The query (and the lock) runs here.
+    except OperationalError:
+        # Nothing has changed yet, so this is safe to try again later.
+        raise MergeNotStartedError("One of these accounts is already being merged. Try again when that merge ends.")
     if len(users) != 2:
-        raise InputError("An account disappeared before the merge started.")
+        raise MergeNotStartedError("An account disappeared before the merge started.")
     return users
 
 
@@ -284,7 +299,7 @@ def _load_raw_profiles(from_uid, into_uid):
     source = db.profiles.find_one({"id": from_uid})
     destination = db.profiles.find_one({"id": into_uid})
     if not source or not destination:
-        raise InputError("A profile disappeared before the merge started.")
+        raise MergeNotStartedError("A profile disappeared before the merge started.")
     return source, destination
 
 
