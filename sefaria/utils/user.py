@@ -128,7 +128,7 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
 class ProfileMode(Enum):
     """What to do with profile fields (bio, location, settings, ...) during a merge."""
     FILL = "fill"                          # Copy source values only where the destination is blank.
-    OVERRIDE = "override"                  # Copy source values over the destination's values.
+    OVERRIDE = "override"                  # Copy source values over the destination's values (blank ones are skipped).
     KEEP_DESTINATION = "keep_destination"  # Copy nothing.
 
 
@@ -361,7 +361,9 @@ def _profile_updates(source, destination, profile_mode, now):
     replace_existing = profile_mode is ProfileMode.OVERRIDE
 
     def should_copy(field):
-        return field in source and (replace_existing or _is_blank(destination.get(field)))
+        # A blank source value is never copied: it would erase the destination's value.
+        has_value = not _is_blank(source.get(field))
+        return has_value and (replace_existing or _is_blank(destination.get(field)))
 
     updates = {field: deepcopy(source[field]) for field in _MERGE_PROFILE_FIELDS if should_copy(field)}
     if "bio" in updates:
@@ -394,11 +396,13 @@ def _profile_updates(source, destination, profile_mode, now):
 def _combine_preferences(existing, incoming, replace_existing):
     """Return a new dict with `incoming` merged into `existing`, one key at a time.
 
-    When both sides have a nested dict for a key, merge those dicts the same way,
+    Blank incoming values are skipped. When both sides have a nested dict for a key, merge those dicts the same way,
     so one corpus preference doesn't wipe out the others.
     """
     combined = deepcopy(existing)
     for key, value in incoming.items():
+        if _is_blank(value):
+            continue  # Never copy an empty value over a real one.
         both_are_dicts = isinstance(combined.get(key), dict) and isinstance(value, dict)
         if both_are_dicts:
             combined[key] = _combine_preferences(combined[key], value, replace_existing)

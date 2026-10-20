@@ -77,6 +77,15 @@ class TestProfileUpdates:
                                               ProfileMode.OVERRIDE, now=1)
         assert updates == {"location": "source"}
 
+    @pytest.mark.parametrize("profile_mode", [ProfileMode.FILL, ProfileMode.OVERRIDE])
+    def test_blank_source_values_are_never_copied(self, profile_mode):
+        """An empty source value never replaces or fills anything, in any mode"""
+        source = {"bio": "", "website": None, "location": "source"}
+        destination = {"bio": "<p>Mine</p>", "website": "mine.example", "location": "personal"}
+        updates = user_utils._profile_updates(source, destination, profile_mode, now=1)
+        expected = {"location": "source"} if profile_mode is ProfileMode.OVERRIDE else {}
+        assert updates == expected
+
     def test_fields_not_in_the_copy_list_are_ignored(self):
         """Identity fields such as CRM IDs are never copied, even in OVERRIDE"""
         updates = user_utils._profile_updates({"sf_app_user_id": "work-crm"}, {}, ProfileMode.OVERRIDE, now=1)
@@ -140,6 +149,13 @@ class TestCombinePreferences:
         combined = user_utils._combine_preferences({"Tanakh": {"en": "personal"}},
                                                    {"Tanakh": {"en": "source"}}, replace_existing=True)
         assert combined == {"Tanakh": {"en": "source"}}
+
+    def test_blank_incoming_values_never_replace_existing_ones(self):
+        """Even with replace_existing, an empty incoming value leaves the existing one alone"""
+        combined = user_utils._combine_preferences({"translation_language_preference": "en", "textual_custom": "sephardi"},
+                                                   {"translation_language_preference": None, "textual_custom": ""},
+                                                   replace_existing=True)
+        assert combined == {"translation_language_preference": "en", "textual_custom": "sephardi"}
 
     def test_false_and_zero_are_kept(self):
         """False and 0 are real choices, so they are not filled in"""

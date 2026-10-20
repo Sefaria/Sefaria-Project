@@ -44,7 +44,7 @@ class SefariaMergeAccountsForm(forms.Form):
                                   help_text=_("Enter the user ID or email address."))
     profile_mode = forms.ChoiceField(label=_("Profile information"), initial="fill", choices=(
         ("fill", _("Fill empty destination fields")),
-        ("override", _("Replace destination fields with source fields")),
+        ("override", _("Replace destination fields with source fields (blank source fields are skipped)")),
         ("none", _("Keep destination profile information")),
     ))
     password = forms.CharField(label=_("Your admin password"), strip=False,
