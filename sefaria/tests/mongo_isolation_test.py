@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 import textwrap
@@ -27,19 +28,35 @@ def test_non_loopback_host_refused():
     assert r.returncode != 0 and "loopback" in r.stderr
 
 
-def test_reader_alone_never_opens_a_real_connection():
-    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
-                        "reader/tests/static_pages_test.py"],
-                       cwd=ROOT, capture_output=True, text=True, env={**os.environ, **MOCK}, timeout=45)
+_PROBE = """
+import sys, pytest
+
+class _Probe:
+    def pytest_sessionfinish(self, session, exitstatus):
+        from sefaria.system import database
+        print("PROBE", type(database.client).__module__, database.MONGO_PORT)
+
+sys.exit(pytest.main(["-q", "-p", "no:cacheprovider"] + sys.argv[1:], plugins=[_Probe()]))
+"""
+
+
+def _probe(*args):
+    # A real mongod may be listening on the default port of a dev box, so a run that
+    # silently connected to it would still pass; read the client type instead.
+    r = subprocess.run([sys.executable, "-c", _PROBE, *args], cwd=ROOT, capture_output=True, text=True,
+                       env={**os.environ, **MOCK}, timeout=120)
     assert r.returncode == 0, r.stdout[-800:]
+    probe = re.findall(r"PROBE (\S+) (\S+)", r.stdout)
+    assert probe and probe[-1][0].startswith("mongomock") and probe[-1][1] == "27099", r.stdout[-800:]
+
+
+def test_reader_alone_never_opens_a_real_connection():
+    _probe("reader/tests/static_pages_test.py")
 
 
 def test_reader_before_sefaria_arg_order():
-    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
-                        "reader/tests/static_pages_test.py",
-                        "sefaria/tests/mongo_isolation_test.py::test_non_loopback_host_refused"],
-                       cwd=ROOT, capture_output=True, text=True, env={**os.environ, **MOCK}, timeout=90)
-    assert r.returncode == 0, r.stdout[-800:]
+    _probe("reader/tests/static_pages_test.py",
+           "sefaria/tests/mongo_isolation_test.py::test_non_loopback_host_refused")
 
 
 @pytest.mark.skipif(os.environ.get("SEFARIA_MOCK_MONGO") != "1", reason="only meaningful in the mocked jobs")
