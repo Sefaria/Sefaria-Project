@@ -70,6 +70,10 @@ python3 e2e-tests/api-keys/check_features.py --summary     # counts by status an
 python3 -m unittest discover -s e2e-tests/api-keys/tests -t .   # the validator's own tests
 ```
 
+"Resolves" means the cited test, section, drill marker or file pattern exists (a `demo` check also needs a `prove` line for that id); it does
+not mean the check passed. The validator executes nothing: drills, demo sections and Playwright specs are run separately, and pytest classes
+that need Postgres skip on SQLite, so run them with `bash e2e-tests/api-keys/checks/run-checks.sh pytest` (Postgres).
+
 The POC refs resolve against the one remote branch matching `refs.poc_glob`; pass `--poc-ref REF` (or `API_KEYS_POC_REF`) to name it,
 and `--offline-poc` only when the branch is not fetched (poc refs then count as unverified, not proven). Never write a Shortcut id in
 `features.json`.

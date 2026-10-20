@@ -418,7 +418,7 @@ need_mutating() {
 
 section_built() {
   local output rc
-  section '1. Built' 'The branch builds and its Go tests pass, the Helm matrix validates, and the feature matrix has no unchecked edge case.' F-META-01 F-SCHEMA.e1
+  section '1. Built' 'The branch builds and its Go tests pass, the Helm matrix validates, and the feature matrix has no unchecked edge case.' F-META-01 F-SCHEMA-01.e1
 
   output=$(new_tmp)
   if command -v go >/dev/null 2>&1; then
@@ -427,9 +427,9 @@ section_built() {
     capture_shell 'cd auth-service && go test -count=1 ./...' "$output" bash -c 'cd "$1" && shift && exec "$@"' _ "$AUTH_SERVICE" "${goenv[@]}" go test -count=1 ./...
     rc=$?
     awk '$1 == "ok" || $1 == "FAIL" { printf "  %-7s %s\n", $1, $2 }' "$output"
-    prove F-SCHEMA.e1 'go test ./... passes, including the registry tests on the schema fixture' test "$rc" -eq 0
+    prove F-SCHEMA-01.e1 'go test ./... passes, including the registry tests on the schema fixture' test "$rc" -eq 0
   else
-    skip_unavailable F-SCHEMA.e1 'go is not installed here; run-checks.sh go runs the same tests'
+    skip_unavailable F-SCHEMA-01.e1 'go is not installed here; run-checks.sh go runs the same tests'
   fi
 
   output=$(new_tmp)

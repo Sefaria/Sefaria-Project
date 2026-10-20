@@ -509,7 +509,7 @@
       },
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/d-old-code.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/d-old-code.sh#pass) pass \"$case $text\""
       }
      ]
     },
@@ -1178,6 +1178,14 @@
       {
        "kind": "pytest",
        "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_N_M11_the_change_form_renders_with_the_key_inline"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_staff_without_change_tier_sees_limits_readonly"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminNotifyTest::test_superuser_can_change_tier_through_the_inline_and_it_notifies"
       }
      ]
     },
@@ -1691,7 +1699,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh#startup: reload error counted"
       }
      ]
     },
@@ -1703,7 +1711,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh#powered_by_projectlimits"
+       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh#limits grant running: the running pod keeps its set"
       }
      ]
     },
@@ -1715,7 +1723,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/f2-bad-dsn.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/f2-bad-dsn.sh#whole host fails open"
       }
      ]
     },
@@ -1727,7 +1735,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/f3-listen.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/f3-listen.sh#revoke made while the listener was down"
       }
      ]
     },
@@ -1739,7 +1747,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/f4-rotate.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/f4-rotate.sh#readiness reflects failing reloads"
       }
      ]
     },
@@ -1751,7 +1759,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/ne3-guard.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/ne3-guard.sh#empty registry reload applied"
       }
      ]
     },
@@ -1763,7 +1771,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/ncr8-empty-start.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/ncr8-empty-start.sh#empty start: a valid key fails open"
       }
      ]
     }
@@ -1789,11 +1797,11 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/smoke.sh"
+       "ref": "auth-service/dev/local-stack/smoke.sh#result S4 pass"
       },
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/e1-registry.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/e1-registry.sh#new key accepted on the gated path"
       },
       {
        "kind": "demo",
@@ -2224,20 +2232,20 @@
       },
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/e2-observe.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/e2-observe.sh#envoy denied nothing"
       }
      ]
     },
     {
      "id": "F-DEC-08.e2",
-     "scenario": "KNOWN GAP (drill not tagged [KG]): bad AUTH_MODE or RELOAD_INTERVAL",
+     "scenario": "bad AUTH_MODE or RELOAD_INTERVAL",
      "expected": "should be rejected, crash-loops instead (gap N-E5)",
      "severity": "P1",
+     "known_gap": true,
      "checks": [
       {
-       "kind": "file",
-       "ref": "auth-service/dev/local-stack/scenarios/ne5-badmode.sh",
-       "contains": "gap N-E5"
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/ne5-badmode.sh#gap N-E5"
       }
      ]
     }
@@ -2688,7 +2696,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/b9-legacy-body.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/b9-legacy-body.sh#POST /api/links with apikey in the body"
       }
      ]
     }
@@ -3148,13 +3156,13 @@
     {
      "id": "F-QUOTA-01.e19",
      "scenario": "Q-EDGE-14 [M] Auth-service pod termination (rollout, scale-in)",
-     "expected": "KNOWN GAP (drill not tagged [KG]); `preStop` sleep 5-10 s, `terminationGracePeriodSeconds` > 20 s shutdown cap, gRPC health NOT_SERVING on SIGTERM",
+     "expected": "`preStop` sleep 5-10 s, `terminationGracePeriodSeconds` > 20 s shutdown cap, gRPC health NOT_SERVING on SIGTERM",
      "severity": "P1",
+     "known_gap": true,
      "checks": [
       {
-       "kind": "file",
-       "ref": "auth-service/dev/local-stack/scenarios/nf1-sigterm.sh",
-       "contains": "gap N-F1"
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/nf1-sigterm.sh#gap N-F1"
       }
      ],
      "status": "on_branch"
@@ -3316,7 +3324,7 @@
     {
      "id": "F-QUOTA-01.e34",
      "scenario": "Q-EDGE-29 [L] Origin-restricted key from the wrong Origin",
-     "expected": "403 `origin_not_allowed`, not counted",
+     "expected": "403 origin_not_allowed",
      "severity": "P2",
      "checks": [
       {
@@ -3326,11 +3334,6 @@
       {
        "kind": "gotest",
        "ref": "auth-service/internal/authz::TestA5cOptionsWithKey"
-      },
-      {
-       "kind": "file",
-       "ref": "auth-service/internal/authz/decide_gaps_test.go",
-       "contains": "CodeOriginNotAllowed"
       }
      ],
      "status": "on_branch"
@@ -3818,7 +3821,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/f1-stop.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/f1-stop.sh#F1 envoy failure_mode_allowed rises"
       },
       {
        "kind": "demo",
@@ -3834,7 +3837,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/nf2-pause.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/nf2-pause.sh#valid key never denied"
       }
      ]
     },
@@ -3846,20 +3849,20 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/f5-latency.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/f5-latency.sh#no request at or over 200 ms"
       }
      ]
     },
     {
      "id": "F-OUT-01.e4",
-     "scenario": "KNOWN GAP (drill not tagged [KG]): rolling restart",
+     "scenario": "rolling restart",
      "expected": "lets gated requests through for about a second (gap N-F1; harmless under fail-open, kept as a tracked gap)",
      "severity": "P2",
+     "known_gap": true,
      "checks": [
       {
-       "kind": "file",
-       "ref": "auth-service/dev/local-stack/scenarios/nf1-sigterm.sh",
-       "contains": "gap N-F1"
+       "kind": "drill",
+       "ref": "auth-service/dev/local-stack/scenarios/nf1-sigterm.sh#gap N-F1"
       }
      ]
     },
@@ -3871,7 +3874,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/e3-helm.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/e3-helm.sh#E3 make helm-matrix"
       },
       {
        "kind": "file",
@@ -3896,7 +3899,7 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/f1-stop.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/f1-stop.sh#F1 gated path fails open while down"
       },
       {
        "kind": "demo",
@@ -4041,15 +4044,15 @@
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/f2-bad-dsn.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/f2-bad-dsn.sh#whole host fails open"
       },
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh#startup: reload error counted"
       },
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/f4-rotate.sh"
+       "ref": "auth-service/dev/local-stack/scenarios/f4-rotate.sh#readiness reflects failing reloads"
       }
      ]
     }

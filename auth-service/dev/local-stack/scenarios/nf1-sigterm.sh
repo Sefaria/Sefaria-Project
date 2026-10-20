@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# N-F1: a rolling restart of the auth service under a steady loop. Two replicas behind Envoy, as the chart's
+# [KG] N-F1: a rolling restart of the auth service under a steady loop. Two replicas behind Envoy, as the chart's
 # RollingUpdate (maxSurge 1, maxUnavailable 0) leaves them: the new one is ready, then the old one gets SIGTERM.
 # Desired: no request fails open (needs a preStop delay so the endpoint leaves before the server stops).
 # Low fidelity: Envoy drops the old endpoint through its own health check here, not through EDS.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# N-E5: a bad AUTH_MODE or RELOAD_INTERVAL. Desired: the process refuses to start, and the chart or CI rejects the
+# [KG] N-E5: a bad AUTH_MODE or RELOAD_INTERVAL. Desired: the process refuses to start, and the chart or CI rejects the
 # value before deploy. Today the chart renders anything, so the pod crash-loops and the host fails open.
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
