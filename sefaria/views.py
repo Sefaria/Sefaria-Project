@@ -1398,7 +1398,11 @@ def merge_accounts(request):
     are, then with action=merge once the staff member has confirmed.
     """
     if request.method == "GET":
-        return render_template(request, "merge-accounts.html", None, {"form": SefariaMergeAccountsForm()})
+        # The "Merge into another account" link on a user's admin page passes
+        # that user as ?source=, so the form opens with the source filled in.
+        # Nothing is checked yet; that happens when the form is submitted.
+        form = SefariaMergeAccountsForm(initial={"source": request.GET.get("source", "")})
+        return render_template(request, "merge-accounts.html", None, {"form": form})
 
     form = SefariaMergeAccountsForm(request.POST)
     if not form.is_valid():

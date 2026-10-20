@@ -295,3 +295,44 @@ class TestUrlAndTemplate:
         assert 'name="csrfmiddlewaretoken"' in html
         assert 'id="merge-accounts-status"' in html
         assert "js/account-merge.js" in html
+
+
+# ============================================================================
+# Links from the Django admin
+# ============================================================================
+
+class TestAdminLinks:
+    """Staff can reach the merge page from the Django admin without knowing its URL."""
+
+    @pytest.fixture
+    def admin_client(self, client, merge_form_env):
+        """A test client logged in as a superuser, so every admin page is visible."""
+        env = merge_form_env
+        env.operator.is_superuser = True
+        env.operator.save()
+        client.force_login(env.operator)
+        return client
+
+    @override_settings(ROOT_URLCONF="sefaria.urls_library")
+    def test_admin_index_links_to_merge_page(self, admin_client):
+        """The admin home page links to the merge form"""
+        response = admin_client.get(reverse("admin:index"))
+        assert response.status_code == 200
+        assert 'href="/admin/merge/accounts"' in response.content.decode()
+
+    @override_settings(ROOT_URLCONF="sefaria.urls_library")
+    def test_user_page_links_to_merge_with_that_user_as_source(self, admin_client, merge_form_env):
+        """A user's admin page links to the merge form with that user filled in as the source"""
+        source = merge_form_env.source
+        response = admin_client.get(reverse("admin:auth_user_change", args=[source.id]))
+        assert response.status_code == 200
+        assert f'href="/admin/merge/accounts?source={source.id}"' in response.content.decode()
+
+    def test_source_in_the_link_fills_in_the_form(self, merge_form_env):
+        """Opening the merge page with ?source= fills in only the source field"""
+        env = merge_form_env
+        request(env, data={"source": str(env.source.id)}, method="get")
+        form = env.render.call_args.args[3]["form"]
+        assert form["source"].value() == str(env.source.id)
+        assert form["destination"].value() is None
+        env.merge.assert_not_called()

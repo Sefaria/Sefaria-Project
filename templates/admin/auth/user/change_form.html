@@ -1,0 +1,17 @@
+{% extends "admin/change_form.html" %}
+{% comment %}
+Adds a "Merge into another account" button to each user's admin page. The link
+fills in this user as the source (the account that will be deleted), so staff
+don't have to type it. The merge page still shows both accounts and asks for
+confirmation before anything changes.
+
+The link uses the user's ID rather than their email, so the email never ends up
+in a URL or a server log.
+{% endcomment %}
+
+{% block object-tools-items %}
+<li>
+    <a href="{% url 'merge/accounts' %}?source={{ original.pk }}">Merge into another account…</a>
+</li>
+{{ block.super }}
+{% endblock %}
