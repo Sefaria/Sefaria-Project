@@ -549,7 +549,7 @@ def _sheet_topics_with_slugs(sheet):
     so a single malformed sheet can't stop the weekly topic recalculation.
     """
     topics = []
-    for topic_dict in sheet.get("topics", []):
+    for topic_dict in sheet.get("topics") or []:
         if topic_dict.get("slug"):
             topics.append(topic_dict)
         else:
@@ -935,7 +935,8 @@ def update_ref_topic_link_orders(source_links, sheet_topic_links):
         avg_pr = 0 if len(sheet['includedRefs']) == 0 else total_pr / len(sheet['includedRefs'])
 
         # relevance based on other topics on this sheet
-        other_topic_slug_set = {t['slug'] for t in sheet.get('topics', []) if t['slug'] != topic_slug}
+        # slugless topics are already logged by generate_sheet_topic_links; skip them quietly here
+        other_topic_slug_set = {t['slug'] for t in sheet.get('topics') or [] if t.get('slug') and t['slug'] != topic_slug}
         total_tfidf = 0
         for other_topic_slug in other_topic_slug_set:
             intra_topic_link = IntraTopicLink().load({'$or': [
@@ -1046,7 +1047,7 @@ def get_top_topic(sheet):
     :return: Topic() obj
     """
     # get all topics on the sheet (learn the candidates)
-    topics = sheet.get("topics", [])  # mongo query on sheet
+    topics = [t for t in sheet.get("topics") or [] if t.get("slug")]  # mongo query on sheet
 
     def topic_score(t):
         rtl = RefTopicLink().load({"toTopic": t["slug"], "ref": "Sheet {}".format(sheet.get("id"))})

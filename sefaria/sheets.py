@@ -484,7 +484,6 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
             status_changed = True
 
         old_topics = existing.get("topics", [])
-        topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
         old_media_urls = set([source["media"] for source in existing.get("sources") if "media" in source])
         if len(old_media_urls) > 0:
@@ -526,7 +525,6 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         sheet["views"] = 1
 
         old_topics = []
-        topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
         # ensure that sheet sources have nodes (primarily for sheets posted via API)
         # and ensure that images from copied sheets hosted on google cloud get duplicated as well
@@ -579,8 +577,13 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 
     # Resolve slugs before the sheet is written: if anything below raises after the write,
     # the stored topics must already be valid (slugless topics break topic recalculation).
-    sheet["topics"] = normalize_sheet_topics(sheet.get("topics", []))
-    topics_diff = topic_list_diff(old_topics, sheet["topics"])
+    # Saves that leave topics untouched and fully slugged are not renormalized, so they never rewrite stored topics.
+    # The diff is recomputed on the merged sheet: an update that omits topics keeps the stored ones.
+    topics = sheet.get("topics") or []
+    topics_diff = topic_list_diff(old_topics, topics)
+    if topics_diff["added"] or topics_diff["removed"] or any(not t.get("slug") for t in topics):
+        sheet["topics"] = normalize_sheet_topics(topics)
+        topics_diff = topic_list_diff(old_topics, sheet["topics"])
 
     if new_sheet:
         # mongo enforces a unique sheet id, get a new id until a unique one has been found
@@ -608,7 +611,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 
     if status_changed and sheet["status"] == "public":
         # Publish, update sheet topic links as though all are new - add links for all
-        update_sheet_topic_links(sheet["id"], sheet["topics"], [])
+        update_sheet_topic_links(sheet["id"], sheet.get("topics") or [], [])
     elif status_changed and sheet["status"] != "public":
         # Unpublish, update sheet topic links as though there are now none - remove links for all
         update_sheet_topic_links(sheet["id"], [], old_topics)
