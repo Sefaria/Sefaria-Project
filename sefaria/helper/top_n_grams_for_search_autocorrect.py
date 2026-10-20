@@ -20,7 +20,7 @@ import re
 import tempfile
 import time
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, FrozenSet, Hashable, Iterable, List, Mapping, Optional, Sequence, Set, Tuple, Union
 
 import datrie
@@ -305,14 +305,14 @@ def load_top_n_grams() -> datrie.BaseTrie:
 
 # Edit alphabet. No space, so a candidate only changes word boundaries by deleting one. No
 # apostrophe, since `normalize_chars` strips it from every key.
-_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789\"" + ''.join(chr(c) for c in range(0x05d0, 0x05eb))
+_EDIT_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789\"" + ''.join(chr(c) for c in range(0x05d0, 0x05eb))
 
 
 class _PhraseSpellChecker(SpellChecker):
     """autospell's edit generator over a mixed Hebrew/Latin alphabet; the table isn't split by language."""
     def __init__(self):
         super().__init__("en")
-        self.letters = _ALPHABET
+        self.letters = _EDIT_ALPHABET
 
 
 _phrase_spell_checker = _PhraseSpellChecker()
@@ -332,7 +332,7 @@ def _is_empty(table: Optional[PhraseTable]) -> bool:
     return next(iter(table), None) is None
 
 
-def _tie_break_score(count: float) -> float:
+def tie_break_score(count: float) -> float:
     """
     Log-damped popularity, so 50,000 hits isn't 500x "more correct" than 100. The entity
     index scores on this same scale, which is what makes the two sources comparable.
@@ -340,7 +340,7 @@ def _tie_break_score(count: float) -> float:
     return math.log10(1 + max(count, 0))
 
 
-def _keep_max(scores: Dict[str, float], key: str, score: float) -> None:
+def keep_max(scores: Dict[str, float], key: str, score: float) -> None:
     if key not in scores or score > scores[key]:
         scores[key] = score
 
@@ -371,9 +371,9 @@ def _ranked_candidates(phrase: str, top_n_grams: PhraseTable,
     scores: Dict[str, float] = {}
     for c in candidates:
         if c in top_n_grams:
-            _keep_max(scores, c, _tie_break_score(top_n_grams[c]))
+            keep_max(scores, c, tie_break_score(top_n_grams[c]))
         if entity_alt_index is not None and c in entity_alt_index:
-            _keep_max(scores, c, entity_alt_index[c])  # stored pre-scored
+            keep_max(scores, c, entity_alt_index[c])  # stored pre-scored
     return _by_score(scores)
 
 
@@ -417,7 +417,7 @@ def _one_title_per_entity(ranked: List[Tuple[str, float]],
 @dataclass(frozen=True)
 class AmbiguousCandidates:
     """Full queries for each competing candidate, with scores, best first."""
-    scored_queries: List[Tuple[str, float]] = field(default_factory=list)
+    scored_queries: List[Tuple[str, float]]
 
 
 def _try_window(words: List[str], normalized: List[str], start: int, end: int,
@@ -442,7 +442,7 @@ def _try_window(words: List[str], normalized: List[str], start: int, end: int,
         scored = {}
         for c, score in ranked:
             if top_score - score < AMBIGUITY_LOG_GAP:
-                _keep_max(scored, _substitute_window(words, normalized, start, end, c), score)
+                keep_max(scored, _substitute_window(words, normalized, start, end, c), score)
         return AmbiguousCandidates(scored_queries=_by_score(scored))
 
     return _substitute_window(words, normalized, start, end, ranked[0][0])
@@ -457,6 +457,15 @@ class AutocorrectResult:
     original_query: str
     corrected_query: Optional[str] = None
     suggested_queries: Optional[List[str]] = None
+
+
+def _to_result(query: str, result: Union[str, AmbiguousCandidates, None]) -> Optional[AutocorrectResult]:
+    if result is None:
+        return None
+    if isinstance(result, AmbiguousCandidates):
+        return AutocorrectResult(original_query=query,
+                                 suggested_queries=[q for q, _ in result.scored_queries[:MAX_SUGGESTIONS]])
+    return AutocorrectResult(original_query=query, corrected_query=result)
 
 
 def autocorrect_query(query: str, top_n_grams: PhraseTable,
@@ -483,27 +492,22 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
     normalized = [normalize_chars(normalize_word(w)) for w in words]  # the table's key form
     n = len(normalized)
 
-    def finish(result: Union[str, AmbiguousCandidates, None]) -> Optional[AutocorrectResult]:
-        if result is None:
-            return None
-        if isinstance(result, AmbiguousCandidates):
-            return AutocorrectResult(original_query=query, suggested_queries=[q for q, _ in result.scored_queries[:MAX_SUGGESTIONS]])
-        return AutocorrectResult(original_query=query, corrected_query=result)
-
     if n <= MAX_PHRASE_WORDS:
-        return finish(_try_window(words, normalized, 0, n, top_n_grams, entity_alt_index, entity_owners))
+        return _to_result(query, _try_window(words, normalized, 0, n, top_n_grams, entity_alt_index, entity_owners))
 
     if entity_alt_index is not None:
-        whole = finish(_try_window(words, normalized, 0, n, {}, entity_alt_index, entity_owners))
+        whole = _try_window(words, normalized, 0, n, {}, entity_alt_index, entity_owners)
         if whole:
-            return whole
+            return _to_result(query, whole)
 
-    return _correct_long_query_by_trigrams(query, words, normalized, top_n_grams, entity_alt_index, entity_owners)
+    return _to_result(query, _correct_long_query_by_trigrams(words, normalized, top_n_grams, entity_alt_index,
+                                                             entity_owners))
 
 
-def _correct_long_query_by_trigrams(query: str, words: List[str], normalized: List[str], top_n_grams: PhraseTable,
+def _correct_long_query_by_trigrams(words: List[str], normalized: List[str], top_n_grams: PhraseTable,
                                      entity_alt_index: Optional[PhraseTable],
-                                     entity_owners: Optional[Mapping[str, FrozenSet[Hashable]]] = None) -> Optional[AutocorrectResult]:
+                                     entity_owners: Optional[Mapping[str, FrozenSet[Hashable]]] = None
+                                     ) -> Union[str, AmbiguousCandidates, None]:
     """
     Tries every MAX_PHRASE_WORDS-word window -- never shorter ones, whose one-edit "fixes" too
     often turn a rare real word into a common one -- and allows one edit in the whole query.
@@ -518,11 +522,11 @@ def _correct_long_query_by_trigrams(query: str, words: List[str], normalized: Li
         result = _try_window(words, normalized, start, start + MAX_PHRASE_WORDS, top_n_grams, entity_alt_index, entity_owners)
         if isinstance(result, AmbiguousCandidates):
             for q, score in result.scored_queries:
-                _keep_max(ambiguous, q, score)
+                keep_max(ambiguous, q, score)
         elif result:
             confident.add(result)
     if len(confident) == 1 and not ambiguous:
-        return AutocorrectResult(original_query=query, corrected_query=next(iter(confident)))
+        return next(iter(confident))
     if ambiguous and not confident:
-        return AutocorrectResult(original_query=query, suggested_queries=[q for q, _ in _by_score(ambiguous)[:MAX_SUGGESTIONS]])
+        return AmbiguousCandidates(scored_queries=_by_score(ambiguous))
     return None

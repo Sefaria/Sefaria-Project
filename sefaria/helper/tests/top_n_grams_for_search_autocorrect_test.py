@@ -11,7 +11,7 @@ from sefaria.helper.top_n_grams_for_search_autocorrect import (
     normalize_word,
     _one_edit_candidates,
     _ranked_candidates,
-    _tie_break_score,
+    tie_break_score,
     _try_window,
     _one_title_per_entity,
     AmbiguousCandidates,
@@ -76,10 +76,10 @@ def test_best_match_returns_none_when_nothing_in_top_n_grams_is_one_edit_away():
 
 def test_tie_break_score_is_damped_and_monotonic():
     # Large counts stop mattering in direct proportion to their size.
-    assert _tie_break_score(0) == 0
-    assert _tie_break_score(9) < _tie_break_score(99) < _tie_break_score(999)
+    assert tie_break_score(0) == 0
+    assert tie_break_score(9) < tie_break_score(99) < tie_break_score(999)
     # A 100x bigger count is nowhere near a 100x bigger score.
-    assert _tie_break_score(10000) < _tie_break_score(100) * 10
+    assert tie_break_score(10000) < tie_break_score(100) * 10
 
 
 def test_best_match_considers_entity_alt_index_and_picks_the_higher_score():
@@ -95,7 +95,7 @@ def test_best_match_prefers_the_higher_scoring_source_when_a_candidate_is_in_bot
     top_n_grams = {"cot": 100000}           # huge raw count, but still log-damped
     entity_alt_index = {"cot": 1000.0}      # deliberately-inflated score, wins anyway
     assert _best_match("cat", top_n_grams, entity_alt_index) == "cot"
-    assert entity_alt_index["cot"] > _tie_break_score(top_n_grams["cot"])
+    assert entity_alt_index["cot"] > tie_break_score(top_n_grams["cot"])
 
 
 # --------------------------------------------------------------------------- #
@@ -220,8 +220,8 @@ def test_one_title_per_entity_keeps_titles_with_no_entity():
 
 
 def test_try_window_confident_when_disparity_is_large():
-    # Same candidate pair, but now "cot" dominates by many orders of magnitude -- a clear
-    # winner, not a guess, so the single-candidate fix applies as it always did.
+    # Same candidate pair, but "cot" dominates by many orders of magnitude -- a clear
+    # winner, not a guess, so the single-candidate fix applies.
     top_n_grams = {"cot": 100000, "cap": 2}
     words = ["Cat"]
     normalized = [normalize_word(w) for w in words]
@@ -387,8 +387,8 @@ def test_autocorrect_query_ambiguous_returns_suggestions_not_a_correction():
 
 
 def test_autocorrect_query_confident_when_disparity_is_large():
-    # Same pair, but now one dominates by orders of magnitude -- the mari/maariv example in
-    # the module docstring: not really competing, so the dominant one still auto-corrects.
+    # Same pair, but one dominates by orders of magnitude -- not competing, so the dominant
+    # one auto-corrects.
     top_n_grams = {"cot": 100000, "cap": 2}
     assert autocorrect_query("cat", top_n_grams) == AutocorrectResult(
         original_query="cat", corrected_query="cot")

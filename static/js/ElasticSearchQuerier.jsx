@@ -112,10 +112,10 @@ class ElasticSearchQuerier extends Component {
         correctedQuery: null,
         suggestedQueries: null,
         autocorrectResolved: false,
-        // "Search instead for <query>" normally lives in panel state (the `disableAutoCorrect`
+        // "Search instead for <query>" normally lives in panel state (the `disableAutocorrect`
         // prop, so it's in the URL). Callers without a panel, like the sidebar's search-in-book,
-        // pass no onDisableAutoCorrect and the click is kept here until the query changes.
-        localDisableAutoCorrect: false,
+        // pass no onDisableAutocorrect and the click is kept here until the query changes.
+        localDisableAutocorrect: false,
       }
 
       // Load search results from cache so they are available for immediate render. The cache
@@ -223,11 +223,6 @@ class ElasticSearchQuerier extends Component {
         return ALL_TAB_IDS.includes(props.tab) ? props.tab : "sources";
     }
     componentWillReceiveProps(newProps) {
-        let state = {
-            hits: [],
-            pagesLoaded: 0,
-            moreToLoad: true
-        };
         if (this.props.query !== newProps.query) {
             // New query text within the same visit: same flow_id, new search_id.
             // Pass the tab explicitly rather than letting startQuery read the tab
@@ -235,36 +230,37 @@ class ElasticSearchQuerier extends Component {
             // entry whose query and tab both changed in one update, and this runs
             // before SearchPage.componentDidUpdate reports the new tab.
             SearchAnalytics.startQuery(newProps.query, this._analyticsTab(newProps));
-            state = {...this._rerunState(newProps, false), isQueryRunning: !!newProps.query};
-            this.setState(state, () => {
+            this.setState({...this._rerunState(newProps, false), isQueryRunning: !!newProps.query}, () => {
                 this._executeAllQueries(newProps);
                 if (!this.props.searchInBook) {
                     this.props.resetSearchFilters();
                 }
             });
-        } else if (!!this.props.disableAutoCorrect !== !!newProps.disableAutoCorrect) {
+        } else if (!!this.props.disableAutocorrect !== !!newProps.disableAutocorrect) {
             // "Search instead for <query>" was clicked, or back/forward crossed that click.
-            this.setState(this._rerunState(newProps, this.state.localDisableAutoCorrect),
+            this.setState(this._rerunState(newProps, this.state.localDisableAutocorrect),
                           () => this._executeAllQueries(newProps));
         } else if (this._shouldUpdateQuery(this.props, newProps, this.props.searchState.type)) {
-            this.setState(state, () => {
+            this.setState(this._clearedHitsState(), () => {
                 this._executeQuery(newProps);
             })
         }
     }
-    _rerunState(props, localDisableAutoCorrect) {
-        return {...this._freshResultsState(), localDisableAutoCorrect,
-                ...this._autocorrectStateFor(props, {localDisableAutoCorrect})};
+    _rerunState(props, localDisableAutocorrect) {
+        return {...this._freshResultsState(), localDisableAutocorrect,
+                ...this._autocorrectStateFor(props, {localDisableAutocorrect})};
+    }
+    _clearedHitsState() {
+        return {hits: [], pagesLoaded: 0, moreToLoad: true};
     }
     _freshResultsState() {
         // Also drops the old Sources total, which SearchPage's empty-tab auto-switch reads.
-        return {hits: [], pagesLoaded: 0, moreToLoad: true, totals: new SearchTotal(), totalsFor: null,
-                isQueryRunning: true};
+        return {...this._clearedHitsState(), totals: new SearchTotal(), totalsFor: null, isQueryRunning: true};
     }
     _autocorrectStateFor(props, state) {
         // What is known about the correction without asking anyone: nothing to decide when it's
         // off, or when the decision was already made for this query.
-        if (!props.query || this._autoCorrectDisabled(props, state)) { return this._decisionState({}); }
+        if (!props.query || this._autocorrectDisabled(props, state)) { return this._decisionState({}); }
         const decision = Sefaria.search.getCachedDecision(props.query);
         return decision ? this._decisionState(decision)
                         : {correctedQuery: null, suggestedQueries: null, autocorrectResolved: false};
@@ -349,7 +345,7 @@ class ElasticSearchQuerier extends Component {
       // Resolves once it's known which text to search, with that in state; never rejects.
       if (this.state.autocorrectResolved) { return Promise.resolve(); }
       return Sefaria.search.decideAutocorrect(props.query, () => this._countResultsAsTyped(props)).then(decision => {
-        if (this._unmounted || this.props.query !== props.query || this._autoCorrectDisabled()) { return; }
+        if (this._unmounted || this.props.query !== props.query || this._autocorrectDisabled()) { return; }
         const state = this._decisionState(decision);
         // What the query as typed found is not what gets shown.
         if (state.correctedQuery) { Object.assign(state, this._freshResultsState()); }
@@ -479,14 +475,14 @@ class ElasticSearchQuerier extends Component {
         exact: fieldExact === field,
       };
     }
-    _autoCorrectDisabled(props = this.props, state = this.state) {
-      return !!props.disableAutoCorrect || state.localDisableAutoCorrect;
+    _autocorrectDisabled(props = this.props, state = this.state) {
+      return !!props.disableAutocorrect || state.localDisableAutocorrect;
     }
-    disableAutoCorrect = () => {
-      // With a panel, the rerun happens when the change comes back as the disableAutoCorrect prop.
-      if (this._autoCorrectDisabled()) { return; }
-      if (this.props.onDisableAutoCorrect) {
-        this.props.onDisableAutoCorrect();
+    disableAutocorrect = () => {
+      // With a panel, the rerun happens when the change comes back as the disableAutocorrect prop.
+      if (this._autocorrectDisabled()) { return; }
+      if (this.props.onDisableAutocorrect) {
+        this.props.onDisableAutocorrect();
         return;
       }
       this.setState(this._rerunState(this.props, true), () => this._executeAllQueries());
@@ -556,8 +552,8 @@ class ElasticSearchQuerier extends Component {
                     query={this.props.query}
                     correctedQuery={this.state.correctedQuery}
                     suggestedQueries={this.state.suggestedQueries}
-                    disableAutoCorrect={this._autoCorrectDisabled()}
-                    onDisableAutoCorrect={this.disableAutoCorrect}
+                    disableAutocorrect={this._autocorrectDisabled()}
+                    onDisableAutocorrect={this.disableAutocorrect}
                     tab={this.props.tab}
                     setTab={this.props.setTab}
                     sortTypeArray={SearchState.metadataByType[this.props.searchState.type].sortTypeArray}

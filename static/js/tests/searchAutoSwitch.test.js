@@ -24,7 +24,7 @@ const proto = SearchPage.prototype;
 const makePage = ({ query = 'moses', tab = 'sources', sources, books, authors, topics, ...props } = {}) => {
   const page = {
     props: {
-      query, tab, correctedQuery: null, disableAutoCorrect: false, setTab: jest.fn(),
+      query, tab, correctedQuery: null, disableAutocorrect: false, setTab: jest.fn(),
       totalResults: new SearchTotal({ value: sources ?? 0 }),
       totalsFor: sources === undefined ? null : query,
       ...props,

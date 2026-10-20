@@ -569,7 +569,7 @@ class SearchPage extends Component {
                     () => this.resetEntityResults(ENTITY_TYPES));
       this._userSelectedTab = false;
       this._autoSwitchDecidedFor = null;
-    } else if (prevProps.disableAutoCorrect !== this.props.disableAutoCorrect ||
+    } else if (prevProps.disableAutocorrect !== this.props.disableAutocorrect ||
                prevProps.autocorrectResolved !== this.props.autocorrectResolved) {
       // "Search instead for <query>" re-searches every tab, not just the one clicked on. So
       // does the decision on whether to correct, which the entity tabs wait for. Same query,
@@ -604,7 +604,7 @@ class SearchPage extends Component {
       this._autoSwitchDecidedFor = decisionKey;  // the tab on screen has results -- stay
       return;
     }
-    for (const id of ["sources", ...ENTITY_TABS.map(t => t.id)]) {
+    for (const id of ALL_TAB_IDS) {
       const count = countOf(id);
       if (count === null || count === undefined) { return; }  // wait for it before deciding
       if (count > 0) {
@@ -959,7 +959,7 @@ class SearchPage extends Component {
                 <SearchAutocorrectBanner
                     correctedQuery={this.props.correctedQuery}
                     originalQuery={this.props.query}
-                    onSearchOriginal={this.props.onDisableAutoCorrect}
+                    onSearchOriginal={this.props.onDisableAutocorrect}
                     suggestedQueries={this.props.suggestedQueries}
                     onSearchSuggestion={this.props.onQueryChange}
                 />
@@ -1008,10 +1008,10 @@ SearchPage.propTypes = {
   query:                    PropTypes.string,
   correctedQuery:           PropTypes.string,
   suggestedQueries:         PropTypes.arrayOf(PropTypes.string),
-  disableAutoCorrect:       PropTypes.bool,
+  disableAutocorrect:       PropTypes.bool,
   // False while ElasticSearchQuerier is still deciding whether to correct the query.
   autocorrectResolved:      PropTypes.bool,
-  onDisableAutoCorrect:     PropTypes.func,
+  onDisableAutocorrect:     PropTypes.func,
   tab:                      PropTypes.string,
   setTab:                   PropTypes.func,
   type:                      PropTypes.oneOf(["text", "sheet"]),

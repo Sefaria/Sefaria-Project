@@ -10,7 +10,7 @@ same edit-distance comparison against the query.
 """
 from typing import Callable, Dict, FrozenSet, Hashable, Iterable, Sequence, Set, Tuple
 
-from sefaria.helper.top_n_grams_for_search_autocorrect import _keep_max, _tie_break_score, build_phrase_trie, tokenize
+from sefaria.helper.top_n_grams_for_search_autocorrect import keep_max, tie_break_score, build_phrase_trie, tokenize
 
 # Same cutoff AutoCompleter uses to keep low-signal topics out of anything query-facing.
 # Books and authors are exempt: each is a curated name worth correcting toward regardless.
@@ -22,7 +22,7 @@ NAMED_ENTITY_BONUS = 2.0
 
 
 def _entity_tie_break_score(weight: float, bonus: bool = False) -> float:
-    score = _tie_break_score(weight)
+    score = tie_break_score(weight)
     return score + NAMED_ENTITY_BONUS if bonus else score
 
 
@@ -30,24 +30,20 @@ def _normalize_phrase(title: str, lang: str) -> str:
     return " ".join(tokenize(title, lang))
 
 
-def _add_entry(index: Dict[str, float], phrase: str, score: float) -> None:
-    # A title shared by several entities (e.g. a book and a topic) keeps the higher score.
-    if phrase:
-        _keep_max(index, phrase, score)
-
-
 def _entity_key(kind: str, entity) -> Hashable:
     return kind, getattr(entity, "slug", None) or getattr(entity, "title", None) or id(entity)
 
 
-def _add_titles(index: Dict[str, float], titles_for: Callable[[str], Iterable[str]], score: float,
-                langs: Sequence[str], owners: Dict[str, Set[Hashable]] = None, entity: Hashable = None) -> None:
+def _add_titles(index: Dict[str, float], owners: Dict[str, Set[Hashable]], titles_for: Callable[[str], Iterable[str]],
+                score: float, langs: Sequence[str], entity: Hashable) -> None:
     for lang in langs:
         for title in titles_for(lang) or []:
             phrase = _normalize_phrase(title, lang)
-            _add_entry(index, phrase, score)
-            if owners is not None and phrase:
-                owners.setdefault(phrase, set()).add(entity)
+            if not phrase:
+                continue
+            # A title shared by several entities (e.g. a book and a topic) keeps the higher score.
+            keep_max(index, phrase, score)
+            owners.setdefault(phrase, set()).add(entity)
 
 
 def build_entity_alt_tables(langs: Sequence[str] = ('en', 'he'), min_topic_sources: int = MIN_TOPIC_SOURCES
@@ -64,26 +60,21 @@ def build_entity_alt_tables(langs: Sequence[str] = ('en', 'he'), min_topic_sourc
         if book.nodes:
             # Root titles only: Index.all_titles() also yields section titles like
             # "Moreh Nevukhim, Prefatory Remarks".
-            _add_titles(index, book.nodes.title_group.all_titles, book_score, langs,
-                        owners, _entity_key("book", book))
+            _add_titles(index, owners, book.nodes.title_group.all_titles, book_score, langs,
+                        _entity_key("book", book))
 
     topics = TopicSet({"shouldDisplay": {"$ne": False}, "numSources": {"$gte": min_topic_sources},
                         "subclass": {"$ne": "author"}})
     for t in topics:
-        _add_titles(index, lambda lang, t=t: t.get_titles(lang, with_disambiguation=False),
-                    _entity_tie_break_score(getattr(t, "numSources", 0)), langs, owners, _entity_key("topic", t))
+        _add_titles(index, owners, lambda lang, t=t: t.get_titles(lang, with_disambiguation=False),
+                    _entity_tie_break_score(getattr(t, "numSources", 0)), langs, _entity_key("topic", t))
 
     for author in AuthorTopicSet():
-        _add_titles(index, lambda lang, a=author: a.get_titles(lang, with_disambiguation=False),
+        _add_titles(index, owners, lambda lang, a=author: a.get_titles(lang, with_disambiguation=False),
                     _entity_tie_break_score(getattr(author, "numSources", 0), bonus=True), langs,
-                    owners, _entity_key("topic", author))
+                    _entity_key("topic", author))
 
     return index, {phrase: frozenset(keys) for phrase, keys in owners.items()}
-
-
-def build_entity_alt_index(langs: Sequence[str] = ('en', 'he'),
-                            min_topic_sources: int = MIN_TOPIC_SOURCES) -> Dict[str, float]:
-    return build_entity_alt_tables(langs, min_topic_sources)[0]
 
 
 def build_entity_alt_trie(langs: Sequence[str] = ('en', 'he'), min_topic_sources: int = MIN_TOPIC_SOURCES):

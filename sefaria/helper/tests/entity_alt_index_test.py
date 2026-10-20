@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-build_entity_alt_index() runs against stand-ins for IndexSet/TopicSet/AuthorTopicSet, not Mongo.
+build_entity_alt_tables() runs against stand-ins for IndexSet/TopicSet/AuthorTopicSet, not Mongo.
 """
 from sefaria.helper.entity_alt_index import (
     MIN_TOPIC_SOURCES,
     NAMED_ENTITY_BONUS,
     _entity_tie_break_score,
     _normalize_phrase,
-    _add_entry,
-    build_entity_alt_index,
+    _add_titles,
     build_entity_alt_tables,
 )
+
+
+def _entity_index(**kwargs):
+    return build_entity_alt_tables(**kwargs)[0]
 
 
 # --------------------------------------------------------------------------- #
@@ -35,7 +38,7 @@ def test_entity_tie_break_score_bonus_applies_even_at_zero_weight():
 
 
 # --------------------------------------------------------------------------- #
-#  _normalize_phrase / _add_entry                                             #
+#  _normalize_phrase / _add_titles                                            #
 # --------------------------------------------------------------------------- #
 
 def test_normalize_phrase_matches_word_by_word_normalization():
@@ -51,19 +54,24 @@ def test_normalize_phrase_applies_the_linker_normalizer_by_language():
     assert _normalize_phrase("  Rashi’s   Commentary ", "en") == "rashi’s commentary".replace("’", "'")
 
 
-def test_add_entry_keeps_the_higher_score_on_collision():
-    index = {}
-    _add_entry(index, "shared title", 1.0)
-    _add_entry(index, "shared title", 5.0)
-    assert index["shared title"] == 5.0
-    _add_entry(index, "shared title", 2.0)  # lower score must not overwrite
-    assert index["shared title"] == 5.0
+def _add(index, owners, title, score, entity="e"):
+    _add_titles(index, owners, lambda lang: [title], score, ("en",), entity)
 
 
-def test_add_entry_ignores_empty_phrase():
-    index = {}
-    _add_entry(index, "", 10.0)
-    assert index == {}
+def test_add_titles_keeps_the_higher_score_on_collision():
+    index, owners = {}, {}
+    _add(index, owners, "shared title", 1.0, "a")
+    _add(index, owners, "shared title", 5.0, "b")
+    assert index["shared title"] == 5.0
+    _add(index, owners, "shared title", 2.0, "c")  # lower score must not overwrite
+    assert index["shared title"] == 5.0
+    assert owners["shared title"] == {"a", "b", "c"}
+
+
+def test_add_titles_ignores_empty_phrase():
+    index, owners = {}, {}
+    _add(index, owners, "", 10.0)
+    assert index == {} and owners == {}
 
 
 # --------------------------------------------------------------------------- #
@@ -89,9 +97,7 @@ class _FakeIndex:
 
 
 class _FakeIndexNoNodes:
-    """A stub/malformed Index with no schema tree -- build_entity_alt_index must skip it,
-    not crash (mirrors top_n_grams_for_search_autocorrect.build_top_n_grams's own
-    `if not index.nodes` guard)."""
+    """A stub/malformed Index with no schema tree -- the build must skip it, not crash."""
     nodes = None
 
 
@@ -115,7 +121,7 @@ def test_build_entity_alt_index_indexes_books_authors_and_topics(monkeypatch):
     monkeypatch.setattr(sefaria_topic, "TopicSet", lambda *a, **k: topics)
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: authors)
 
-    index = build_entity_alt_index(langs=("en", "he"))
+    index = _entity_index(langs=("en", "he"))
 
     assert index["mishneh torah"] == NAMED_ENTITY_BONUS  # no book popularity signal -> bonus alone
     assert index["משנה תורה"] == NAMED_ENTITY_BONUS
@@ -135,13 +141,13 @@ def test_build_entity_alt_index_author_outscores_equally_sourced_topic(monkeypat
     monkeypatch.setattr(sefaria_model, "IndexSet", lambda *a, **k: [], raising=False)
     monkeypatch.setattr(sefaria_topic, "TopicSet", lambda *a, **k: topics)
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: authors)
-    topic_only = build_entity_alt_index(langs=("en",))
+    topic_only = _entity_index(langs=("en",))
 
     authors = [_FakeTopic({"en": ["Same Name"]}, num_sources=50)]
     topics = []
     monkeypatch.setattr(sefaria_topic, "TopicSet", lambda *a, **k: topics)
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: authors)
-    author_only = build_entity_alt_index(langs=("en",))
+    author_only = _entity_index(langs=("en",))
 
     assert author_only["same name"] == topic_only["same name"] + NAMED_ENTITY_BONUS
 
@@ -161,7 +167,7 @@ def test_build_entity_alt_index_min_topic_sources_excludes_low_signal_topics(mon
     monkeypatch.setattr(sefaria_topic, "TopicSet", fake_topic_set)
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: [])
 
-    build_entity_alt_index(langs=("en",), min_topic_sources=25)
+    _entity_index(langs=("en",), min_topic_sources=25)
     assert captured["query"]["numSources"] == {"$gte": 25}
 
 
@@ -175,7 +181,7 @@ def test_build_entity_alt_index_books_get_the_same_bonus_as_a_zero_sourced_autho
     monkeypatch.setattr(sefaria_topic, "TopicSet", lambda *a, **k: [])
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: authors)
 
-    index = build_entity_alt_index(langs=("en",))
+    index = _entity_index(langs=("en",))
     assert index["some book"] == index["some author"] == NAMED_ENTITY_BONUS
 
 

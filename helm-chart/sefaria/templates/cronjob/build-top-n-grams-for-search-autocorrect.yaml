@@ -43,6 +43,7 @@ spec:
               - mountPath: /google-cloud-secret
                 name: backup-manager-secret
                 readOnly: true
+            resources: {{ toYaml .Values.cronJobs.buildTopNGramsForSearchAutocorrect.resources | nindent 14 }}
             command: ["bash"]
             args: [
               "-c",

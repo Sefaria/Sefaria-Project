@@ -656,8 +656,6 @@ class Search {
         //
         // Sorted so the key depends on which categories are selected, not on the order they
         // were clicked in.
-        //
-        // `query` is the text to search: the correction from decideAutocorrect, if there is one.
         const paths = [...categoryPaths].sort();
         const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}`;
         let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;

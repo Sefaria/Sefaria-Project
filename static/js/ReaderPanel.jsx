@@ -964,8 +964,8 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<ElasticSearchQuerier
                     query={this.state.searchQuery}
-                    disableAutoCorrect={!!this.state.searchNoAutocorrect}
-                    onDisableAutoCorrect={() => this.conditionalSetState({searchNoAutocorrect: true})}
+                    disableAutocorrect={!!this.state.searchDisableAutocorrect}
+                    onDisableAutocorrect={() => this.conditionalSetState({searchDisableAutocorrect: true})}
                     tab={this.state.tab}
                     setTab={this.setTab}
                     searchState={this.state['searchState']}

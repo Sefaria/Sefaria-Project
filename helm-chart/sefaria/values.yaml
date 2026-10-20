@@ -496,9 +496,17 @@ cronJobs:
     enabled: true
   # Rebuilds the search auto-correction table and uploads it to gs://sefaria-search-autocorrect.
   # Every environment's name service loads that one object, so enable in production only --
-  # anywhere else would overwrite prod's table. Size the job's memory before enabling.
+  # anywhere else would overwrite prod's table. Single-threaded; peak memory is the bigram
+  # level's shard counters plus the carried phrase table (raise --num-shards to lower it).
   buildTopNGramsForSearchAutocorrect:
     enabled: false
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "1"
+      limits:
+        memory: "12Gi"
+        cpu: "2"
   dailyEmailNotifications:
     enabled: false
   embedLibraryToPgvector:
