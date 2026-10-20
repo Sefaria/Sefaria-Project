@@ -323,11 +323,14 @@ demo_write_gate() {
   local file="${1:-auth-service/scripts/demo.sh}" hits
   [ -f "$file" ] || return 0
   hits=$(awk '
-    /^[a-z_]+\(\) *\{/ { fn = $1; sub(/\(.*/, "", fn) }
+    /^[[:space:]]*[A-Za-z0-9_]+\(\)[[:space:]]*\{/ { fn = $1; sub(/\(.*/, "", fn) }
     /^\}/ { fn = "" }
     /^[[:space:]]*#/ { next }
-    tolower($0) ~ /(insert into|update powered_by|delete from|pg_terminate_backend|compose .*(stop|start) |kubectl .* scale )/ \
-      && fn !~ /^(mutating_|t_authsvc_(down|up)$)/ { printf "%s:%d: write outside mutating_*: %s\n", FILENAME, NR, $0 }
+    tolower($0) ~ /(insert[[:space:]]+into|update[[:space:]]+[a-z_.]+[[:space:]]+set|delete[[:space:]]+from|pg_terminate_backend)/ \
+      || tolower($0) ~ /docker[[:space:]]+compose[^#]*[[:space:]](stop|start|restart)([[:space:]]|$)/ \
+      || tolower($0) ~ /kubectl[^#]*[[:space:]]scale([[:space:]]|$)/ {
+      if (fn !~ /^(mutating_|t_authsvc_(down|up)$)/) printf "%s:%d: write outside mutating_*: %s\n", FILENAME, NR, $0
+    }
   ' "$file")
   if [ -n "$hits" ]; then fail "demo write gate"$'\n'"$hits"; fi
 }

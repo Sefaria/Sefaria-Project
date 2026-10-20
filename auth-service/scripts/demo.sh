@@ -383,8 +383,8 @@ spoof_stripped() { # the echo answered (it shows a host header) and the spoofed 
   grep -qi '"host"' "$1" && [[ "$(echoed_header "$1" x-sefaria-tier)" != internal && "$(echoed_header "$1" x-sefaria-project)" != 1 ]]
 }
 
-secret_free() { # the file holds service log lines (level=...) and no full key (sfr_ plus 16 or more characters)
-  [[ -s "$1" ]] && grep -q 'level=' "$1" && ! grep -Eq 'sfr_[A-Za-z0-9_-]{16,}' "$1"
+secret_free() { # the file holds service log lines (Go default slog: "2026/10/20 12:00:00 INFO msg", maybe prefixed) and no full key
+  [[ -s "$1" ]] && grep -Eq '(^|[| ])[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9:]{8} (INFO|WARN|ERROR|DEBUG) ' "$1" && ! grep -Eq 'sfr_[A-Za-z0-9_-]{16,}' "$1"
 }
 
 # wait_echo_header <key> <header> <value> <limit-ms>: polls the echo backend until the header shows the value; prints
