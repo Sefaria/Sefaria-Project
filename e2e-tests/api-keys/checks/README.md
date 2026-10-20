@@ -24,7 +24,7 @@ bash e2e-tests/api-keys/checks/run-checks.sh <command> [args]
 | `features` | `python3 e2e-tests/api-keys/check_features.py --strict`, then `unit`. |
 | `all` | `selftest`, `pytest`, `migrations`, `go`, `shell`, `features`. |
 
-`KEEP=1` leaves the containers running after `pytest`, `migrations`, `go` or `all`. Without it those commands
+Containers already running when a command starts (for example after `up`) are never removed by it. `KEEP=1` leaves the containers running after `pytest`, `migrations`, `go` or `all`. Without it those commands
 stop the containers on exit.
 
 ## Contract
@@ -59,4 +59,4 @@ by something other than an `apikeys-checks-*` container, the command fails and n
   CHECK constraint and the triggers came back after the reverse and forward steps.
 - `go`: the log is in `.claude/scratch/apikeys-checks/logs/go.log`. `grep -- '--- FAIL'` finds failing tests.
 - `Postgres not ready` or `Mongo not ready`: read `docker logs apikeys-checks-pg` (or `-mongo`).
-- After a failure the containers are removed on exit. Run with `KEEP=1` to inspect them, then `down` to remove them.
+- After a failure the containers this run started are removed on exit. Run with `KEEP=1` to inspect them, then `down` to remove them.
