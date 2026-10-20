@@ -280,3 +280,39 @@ class TestReassignSources:
         sources = [{"addedBy": SOURCE, "subsources": [{"addedBy": SOURCE}]}]
         user_utils._reassign_sources(sources, SOURCE, DESTINATION)
         assert sources == [{"addedBy": SOURCE, "subsources": [{"addedBy": SOURCE}]}]
+
+
+class TestSheetChanges:
+    """Tests for _sheet_changes, which builds the MongoDB update for one sheet"""
+
+    def test_owner_moves_and_cached_owner_details_are_removed(self):
+        """A new owner means the saved owner name and picture would be wrong, so they are removed"""
+        changes = user_utils._sheet_changes({"owner": SOURCE, "ownerName": "Old"}, SOURCE, DESTINATION)
+        assert changes["$set"] == {"owner": DESTINATION}
+        assert set(changes["$unset"]) == {"ownerName", "ownerImageUrl", "ownerProfileUrl", "ownerOrganization"}
+
+    def test_like_moves_without_duplicates(self):
+        """The source's like becomes the destination's, and a sheet both liked keeps one like"""
+        assert user_utils._sheet_changes({"likes": [OTHER, SOURCE]}, SOURCE, DESTINATION) == {
+            "$set": {"likes": [OTHER, DESTINATION]}}
+        assert user_utils._sheet_changes({"likes": [SOURCE, DESTINATION]}, SOURCE, DESTINATION) == {
+            "$set": {"likes": [DESTINATION]}}
+
+    def test_source_credits_move(self):
+        """A source the old account added is credited to the new account"""
+        changes = user_utils._sheet_changes({"sources": [{"addedBy": SOURCE}]}, SOURCE, DESTINATION)
+        assert changes == {"$set": {"sources": [{"addedBy": DESTINATION}]}}
+
+    def test_unrelated_sheet_is_left_alone(self):
+        """A sheet that only has nested sources from other people needs no update"""
+        sheet = {"owner": OTHER, "likes": [OTHER], "sources": [{"subsources": [{"addedBy": OTHER}]}]}
+        assert user_utils._sheet_changes(sheet, SOURCE, DESTINATION) is None
+
+
+class TestFieldsByCollection:
+    """Tests for _fields_by_collection"""
+
+    def test_groups_fields_and_keeps_their_order(self):
+        """Fields are grouped under their collection, in the order they were listed"""
+        references = (("notes", "owner"), ("sheets", "owner"), ("notes", "author"))
+        assert user_utils._fields_by_collection(references) == {"notes": ["owner", "author"], "sheets": ["owner"]}

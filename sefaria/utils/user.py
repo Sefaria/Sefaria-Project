@@ -154,7 +154,7 @@ def _profile_mode(fill_in_profile_data, override_profile_data):
 # Where user IDs are stored
 # ---------------------------------------------------------------------------
 
-# Fields that hold a single user ID. Each one is moved with one update_many().
+# Fields that hold a single user ID. _move_simple_references() moves them.
 _SIMPLE_REFERENCES = (
     ("notes", "owner"), ("history", "user"), ("notifications", "uid"),
     ("notifications", "content.liker"), ("notifications", "content.publisher"),
@@ -305,8 +305,7 @@ def _load_raw_profiles(from_uid, into_uid):
 
 def _move_content(source, destination, profile_mode):
     from_uid, into_uid = source["id"], destination["id"]
-    for collection, field in _SIMPLE_REFERENCES:
-        db[collection].update_many({field: from_uid}, {"$set": {field: into_uid}})
+    _move_simple_references(from_uid, into_uid)
     _merge_collections(from_uid, into_uid)
     _merge_relationships("following", "follower", "followee", from_uid, into_uid)
     _merge_relationships("blocking", "blocker", "blockee", from_uid, into_uid)
@@ -325,6 +324,33 @@ def _move_content(source, destination, profile_mode):
     if settings.SEARCH_INDEX_ON_SAVE and changed_sheet_ids:
         from sefaria.search import queue_sheets_sync
         queue_sheets_sync(changed_sheet_ids)
+
+
+def _move_simple_references(from_uid, into_uid):
+    for collection, fields in _fields_by_collection(_SIMPLE_REFERENCES).items():
+        ids = _ids_mentioning(collection, from_uid, fields)
+        if not ids:
+            continue
+        for field in fields:
+            # Matching on _id uses its index, so these updates don't read the whole collection.
+            db[collection].update_many({"_id": {"$in": ids}, field: from_uid}, {"$set": {field: into_uid}})
+
+
+def _fields_by_collection(references):
+    """Turn ((collection, field), ...) into {collection: [field, ...]}, keeping the order."""
+    groups = _group_by(references, lambda reference: reference[0])
+    return {collection: [field for _, field in pairs] for collection, pairs in groups.items()}
+
+
+def _ids_mentioning(collection, uid, fields):
+    """Return the _id of every document where any of `fields` holds `uid`.
+
+    Several of these fields have no index (notifications.content.* among them).
+    MongoDB has to read the whole collection to search an unindexed field, so a
+    single query with $or reads it once, instead of once per field.
+    """
+    mentions_uid = {"$or": [{field: uid} for field in fields]}
+    return [document["_id"] for document in db[collection].find(mentions_uid, {"_id": 1})]
 
 
 def _remove_access(survivor, retiring):
@@ -569,32 +595,61 @@ def _update_records(records, fields):
 # ---------------------------------------------------------------------------
 
 def _merge_sheets(from_uid, into_uid):
-    """Move sheet ownership, likes, and source credits. Returns the IDs of changed sheets."""
-    changed_sheet_ids = set()
+    """Move sheet ownership, likes, and source credits. Returns the IDs of sheets to re-index."""
+    sheet_ids_to_reindex = set()
+    for sheet in _sheets_mentioning(from_uid):
+        changes = _sheet_changes(sheet, from_uid, into_uid)
+        if not changes:
+            continue
+        db.sheets.update_one({"_id": sheet["_id"]}, changes)
+        # The search index doesn't include likes, so a change to likes alone needs no re-index.
+        changed_fields = set(changes["$set"]) - {"likes"}
+        if changed_fields:
+            sheet_ids_to_reindex.add(sheet["id"])
+    return sheet_ids_to_reindex
+
+
+def _sheets_mentioning(from_uid):
+    # One query for every way a sheet can mention the user, for the same reason
+    # as _ids_mentioning(): most of these fields have no index.
+    # Old sheets can also have sources inside sources, any number of levels
+    # deep. A query can't search every level, so load every sheet with nested
+    # sources too, and check those in Python.
+    mentions = [{field: from_uid} for field, _ in _SHEET_USER_FIELDS]
+    mentions += [{"likes": from_uid}, {"sources.addedBy": from_uid}, {"sources.subsources": {"$exists": True}}]
+    fields_to_load = {"id": 1, "likes": 1, "sources": 1, **{field: 1 for field, _ in _SHEET_USER_FIELDS}}
+    return db.sheets.find({"$or": mentions}, fields_to_load)
+
+
+def _sheet_changes(sheet, from_uid, into_uid):
+    """Return the MongoDB update for one sheet, or None if nothing changes.
+
+    This only reads the sheet. It does not touch the database.
+    """
+    set_fields, unset_fields = {}, {}
     for field, cached_fields in _SHEET_USER_FIELDS:
-        changed_sheet_ids.update(db.sheets.distinct("id", {field: from_uid}))
-        db.sheets.update_many({field: from_uid}, {"$set": {field: into_uid},
-                                                "$unset": {name: "" for name in cached_fields}})
+        if sheet.get(field) == from_uid:
+            set_fields[field] = into_uid
+            unset_fields.update(dict.fromkeys(cached_fields, ""))
 
-    # Add the destination's like before removing the source's, so a sheet that
-    # both accounts liked ends up with exactly one like.
-    db.sheets.update_many({"likes": from_uid}, {"$addToSet": {"likes": into_uid}})
-    db.sheets.update_many({"likes": from_uid}, {"$pull": {"likes": from_uid}})
+    likes = sheet.get("likes") or []
+    if from_uid in likes:
+        # A sheet both accounts liked ends up with exactly one like.
+        likes_without_source = [uid for uid in likes if uid != from_uid]
+        already_liked = into_uid in likes_without_source
+        set_fields["likes"] = likes_without_source if already_liked else likes_without_source + [into_uid]
 
-    for sheet in _sheets_that_may_credit(from_uid):
-        reassigned = _reassign_sources(sheet["sources"], from_uid, into_uid)
-        if reassigned != sheet["sources"]:
-            db.sheets.update_one({"_id": sheet["_id"]}, {"$set": {"sources": reassigned}})
-            changed_sheet_ids.add(sheet["id"])
-    return changed_sheet_ids
+    sources = sheet.get("sources") or []
+    reassigned = _reassign_sources(sources, from_uid, into_uid)
+    if reassigned != sources:
+        set_fields["sources"] = reassigned
 
-
-def _sheets_that_may_credit(from_uid):
-    # Old sheets can have sources inside sources, any number of levels deep.
-    # A MongoDB query can't search every level, so also load every sheet with
-    # nested sources and check those in Python.
-    may_credit = {"$or": [{"sources.addedBy": from_uid}, {"sources.subsources": {"$exists": True}}]}
-    return db.sheets.find(may_credit, {"sources": 1, "id": 1})
+    if not set_fields:
+        return None
+    changes = {"$set": set_fields}
+    if unset_fields:
+        changes["$unset"] = unset_fields
+    return changes
 
 
 def _reassign_sources(sources, from_uid, into_uid):
@@ -626,11 +681,17 @@ def _verify_merge_transfers(from_uid):
     This checks the database itself, rather than trusting that each step above
     worked, so a missed field stops the merge before the source is deleted.
     """
-    for collection, field in _ALL_REFERENCES:
-        if db[collection].find_one({field: from_uid}, {"_id": 1}):
+    for collection, fields in _fields_by_collection(_ALL_REFERENCES).items():
+        # One query per collection, for the same reason as _ids_mentioning().
+        mentions_uid = {"$or": [{field: from_uid} for field in fields]}
+        leftover = db[collection].find_one(mentions_uid, {"_id": 1})
+        if leftover:
+            # Find which field still holds the ID; looking up by _id uses its index.
+            field = next(field for field in fields
+                         if db[collection].find_one({"_id": leftover["_id"], field: from_uid}, {"_id": 1}))
             raise RuntimeError("Source reference remains in %s.%s; source was not deleted." % (collection, field))
-    for sheet in _sheets_that_may_credit(from_uid):
-        still_credited = any(source.get("addedBy") == from_uid for source in _iter_sheet_sources(sheet["sources"]))
+    for sheet in _sheets_mentioning(from_uid):
+        still_credited = any(source.get("addedBy") == from_uid for source in _iter_sheet_sources(sheet.get("sources") or []))
         if still_credited:
             raise RuntimeError("Source attribution remains on sheet %s; source was not deleted." % sheet["id"])
 
