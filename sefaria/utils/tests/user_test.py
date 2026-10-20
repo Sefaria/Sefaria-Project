@@ -40,7 +40,7 @@ def merge_env(db, monkeypatch):
     monkeypatch.setattr(user_utils, "model", SimpleNamespace(UserProfile=profiles))
     cleanup = Mock()
     monkeypatch.setattr(user_utils, "delete_user_account", cleanup)
-    monkeypatch.setattr(user_utils, "_refresh_merge_caches", Mock())
+    monkeypatch.setattr(user_utils, "_refresh_merge_caches", Mock(return_value=None))
     monkeypatch.setattr(user_utils.settings, "SEARCH_INDEX_ON_SAVE", False)
     monkeypatch.setattr(user_utils, "CrmMediator", Mock())
     monkeypatch.setattr("builtins.input", lambda _: "MERGE")
@@ -83,6 +83,23 @@ def test_cancel_leaves_accounts_untouched(merge_env, monkeypatch):
     merge(env)
     assert env.mongo.user_history.count_documents({"uid": env.source.id}) == 1
     env.cleanup.assert_not_called()
+
+
+def test_confirmed_web_call_never_reads_console_input(merge_env, monkeypatch):
+    env = merge_env
+    console_input = Mock(side_effect=AssertionError("A web worker must not read stdin"))
+    monkeypatch.setattr("builtins.input", console_input)
+    result = user_utils.merge_user_accounts(env.source.id, env.survivor.id, confirm=False)
+    console_input.assert_not_called()
+    assert result == {"from_uid": env.source.id, "into_uid": env.survivor.id, "warnings": []}
+    assert not User.objects.filter(pk=env.source.id).exists()
+
+
+def test_cache_warning_is_returned_to_web_callers(merge_env):
+    env = merge_env
+    user_utils._refresh_merge_caches.return_value = "Profile caches need refresh."
+    result = merge(env)
+    assert result["warnings"] == ["Profile caches need refresh."]
 
 
 def test_self_merge_is_rejected_before_loading_profiles(merge_env):

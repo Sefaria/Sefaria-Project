@@ -23,6 +23,7 @@ from django.template.response import TemplateResponse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
@@ -31,6 +32,7 @@ from django.db import transaction
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
 from django.contrib.auth.views import LoginView, LogoutView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
@@ -46,7 +48,8 @@ from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
-from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
+from sefaria.forms import (SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm,
+                          SefariaDeleteSheet, SefariaMergeAccountsForm)
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
@@ -1380,6 +1383,86 @@ def delete_sheet_by_id(request):
 
         except:
             return jsonResponse({"failure": "sheet not deleted: try again or contact a developer"})
+
+
+@transaction.non_atomic_requests
+@staff_member_required
+@never_cache
+@csrf_protect
+@sensitive_post_parameters("password")
+@require_http_methods(["GET", "POST"])
+def merge_accounts(request):
+    """Review two identities before invoking the same merge used by the CLI."""
+    if request.method == "GET":
+        return render_template(request, "merge-accounts.html", None, {"form": SefariaMergeAccountsForm()})
+
+    form = SefariaMergeAccountsForm(request.POST)
+    if not form.is_valid():
+        return jsonResponse({"errors": form.errors.get_json_data(), "retry_safe": True}, status=400)
+
+    # Recheck the current staff user and password on each POST, including preview.
+    # Neither a stale browser session nor JavaScript validation authorizes a merge.
+    operator = User.objects.get(id=request.user.id)
+    if not operator.is_active or not operator.is_staff:
+        return jsonResponse({"error": "An active staff account is required.", "retry_safe": True}, status=403)
+    if not operator.check_password(form.cleaned_data["password"]):
+        return jsonResponse({"errors": {"password": [{"message": "Incorrect admin password."}]},
+                             "retry_safe": True}, status=400)
+
+    action = request.POST.get("action")
+    if action not in ("preview", "merge"):
+        return jsonResponse({"error": "Choose preview or merge.", "retry_safe": True}, status=400)
+
+    accounts = {}
+    for field in ("source", "destination"):
+        value = form.cleaned_data[field]
+        try:
+            query = {"id": int(value)} if value.isdecimal() else {"email__iexact": value}
+            accounts[field] = User.objects.get(**query)
+        except User.DoesNotExist:
+            form.add_error(field, "Account not found.")
+        except User.MultipleObjectsReturned:
+            form.add_error(field, "Several accounts have this email address. Enter the user ID instead.")
+    if len(accounts) == 2:
+        if accounts["source"].id == accounts["destination"].id:
+            form.add_error("destination", "Source and destination accounts must be different.")
+        for field, account in accounts.items():
+            # Reading raw profiles avoids creating one as a lookup side effect.
+            if not db.profiles.find_one({"id": account.id}, {"_id": 1}):
+                form.add_error(field, "This account does not have a profile.")
+    if form.errors:
+        return jsonResponse({"errors": form.errors.get_json_data(), "retry_safe": True}, status=400)
+
+    source, destination = accounts["source"], accounts["destination"]
+    if action == "preview":
+        return jsonResponse({field: {"id": account.id, "email": account.email,
+                                     "name": account.get_full_name()}
+                             for field, account in accounts.items()})
+
+    from sefaria.utils.user import merge_user_accounts
+    try:
+        # The form has already checked staff access, password, and typed consent.
+        # An explicit argument avoids patching process-wide input() in a web worker.
+        result = merge_user_accounts(
+            source.id, destination.id,
+            fill_in_profile_data=form.cleaned_data["profile_mode"] == "fill",
+            override_profile_data=form.cleaned_data["profile_mode"] == "override",
+            confirm=False,
+        )
+    except InputError as error:
+        return jsonResponse({"error": str(error), "retry_safe": True}, status=400)
+    except Exception:
+        logger.exception("Admin account merge failed", operator_id=operator.id,
+                         from_uid=source.id, into_uid=destination.id)
+        return jsonResponse({"error": "The merge stopped. Some data may already have moved. "
+                             "Have a developer inspect both accounts before retrying.",
+                             "retry_safe": False}, status=500)
+    logger.info("Admin account merge completed", operator_id=operator.id,
+                from_uid=source.id, into_uid=destination.id,
+                profile_mode=form.cleaned_data["profile_mode"])
+    return jsonResponse({"success": "Accounts merged. Source account %s was deleted; "
+                         "destination account %s remains." % (source.id, destination.id),
+                         "warnings": result["warnings"]})
 
 
 

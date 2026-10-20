@@ -72,12 +72,14 @@ def delete_user_account(uid, confirm=True):
     return True
 
 
-def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_profile_data=False):
+def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_profile_data=False, *, confirm=True):
     """Move supported account data into a personal account, then delete the source.
 
     Run while both accounts are quiet. SQL changes roll back together, but MongoDB
     writes do not: inspect both accounts after any failure before retrying. Source
     logins, backend privileges, discussions, and experiments are never transferred.
+    Web callers must check authorization and explicit consent before confirm=False.
+    Successful calls return source/destination IDs and any follow-up warnings.
     """
     # Normalize CLI strings as well, so merging "12" into 12 cannot delete itself.
     try:
@@ -100,16 +102,18 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
     from_user = model.UserProfile(id=from_uid)
     into_user = model.UserProfile(id=into_uid)
 
-    print("Are you sure you want to merge the account of '%s' (%s) into the account of '%s' (%s)" %
-          (from_user.full_name, from_user.email, into_user.full_name, into_user.email))
-    print("Only destination logins will remain. Destination staff/admin access will be removed; "
-          "source-sheet collection roles will transfer. Both accounts must be quiet.")
-    if input("Type 'MERGE' to confirm: ") != "MERGE":
-        print("Canceled.")
-        return
+    if confirm:
+        print("Are you sure you want to merge the account of '%s' (%s) into the account of '%s' (%s)" %
+              (from_user.full_name, from_user.email, into_user.full_name, into_user.email))
+        print("Only destination logins will remain. Destination staff/admin access will be removed; "
+              "source-sheet collection roles will transfer. Both accounts must be quiet.")
+        if input("Type 'MERGE' to confirm: ") != "MERGE":
+            print("Canceled.")
+            return
 
     phase = "content transfer"
     sql_committed = False
+    warnings = []
     try:
         # durable=True also rejects callers that wrap the merge in a larger SQL
         # transaction: source profile cleanup must run after the SQL commit.
@@ -178,11 +182,16 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
     finally:
         # A partial merge can also change displayed ownership, so invalidate even
         # on failure. Cache errors must not hide the original transfer exception.
-        _refresh_merge_caches(from_uid, into_uid)
+        warning = _refresh_merge_caches(from_uid, into_uid)
+        if warning:
+            warnings.append(warning)
 
-    _review_merged_crm_account(from_user, source, destination)
+    warning = _review_merged_crm_account(from_user, source, destination)
+    if warning:
+        warnings.append(warning)
     print("Content from %s moved into %s's account; source account deleted." %
           (from_user.email, into_user.email))
+    return {"from_uid": from_uid, "into_uid": into_uid, "warnings": warnings}
 
 
 # These are account references, not arbitrary integers embedded in documents.
@@ -380,7 +389,9 @@ def _refresh_merge_caches(from_uid, into_uid):
             server_coordinator.publish_event("scache", "invalidate_user_profile_cache", [[from_uid, into_uid]])
     except Exception:
         logger.exception("Account merge cache refresh failed", from_uid=from_uid, into_uid=into_uid)
-        print("Profile caches could not be refreshed; refresh them before checking the merged account.")
+        warning = "Profile caches could not be refreshed; refresh them before checking the merged account."
+        print(warning)
+        return warning
 
 
 def _review_merged_crm_account(from_user, source, destination):
@@ -396,7 +407,9 @@ def _review_merged_crm_account(from_user, source, destination):
         logger.exception("Merged source CRM review failed", from_uid=source["id"], into_uid=destination["id"])
     logger.error("Account merged; source CRM record needs manual review", crm_id=source[field],
                  from_uid=source["id"], into_uid=destination["id"])
-    print("Account merged; source CRM record %s needs manual review." % source[field])
+    warning = "Account merged; source CRM record %s needs manual review." % source[field]
+    print(warning)
+    return warning
 
 
 def generate_api_key(uid):
