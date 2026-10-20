@@ -17,6 +17,7 @@ DUMP_URL=${DUMP_URL:-https://storage.googleapis.com/sefaria-mongo-backup/dump_sm
 MONGO_IMAGE=${MONGO_IMAGE:-mongo:4.4}
 WORK=${WORK:-/mnt/test-mongo}
 PORT=${PORT:-27017}
+CONTAINER=${CONTAINER:-test-mongo}
 
 phase() { echo "::group::$1"; PHASE_START=$(date +%s); }
 done_phase() { echo "$1 took $(( $(date +%s) - PHASE_START ))s"; echo "::endgroup::"; }
@@ -28,12 +29,12 @@ if ! mkdir -p "$WORK/data" "$WORK/dump" 2>/dev/null; then
 fi
 
 phase "Start $MONGO_IMAGE"
-docker run -d --name test-mongo -p "127.0.0.1:$PORT:27017" -v "$WORK/data:/data/db" "$MONGO_IMAGE" >/dev/null
+docker run -d --name "$CONTAINER" -p "127.0.0.1:$PORT:27017" -v "$WORK/data:/data/db" "$MONGO_IMAGE" >/dev/null
 for _ in $(seq 1 60); do
-  docker exec test-mongo mongo --quiet --eval 'db.runCommand({ping: 1}).ok' 2>/dev/null | grep -q 1 && break
+  docker exec "$CONTAINER" mongo --quiet --eval 'db.runCommand({ping: 1}).ok' 2>/dev/null | grep -q 1 && break
   sleep 1
 done
-docker exec test-mongo mongo --quiet --eval 'db.runCommand({ping: 1}).ok' | grep -q 1
+docker exec "$CONTAINER" mongo --quiet --eval 'db.runCommand({ping: 1}).ok' | grep -q 1
 done_phase "start"
 
 phase "Download and extract dump_small"
@@ -48,7 +49,9 @@ done_phase "download+extract"
 # tests read it. An exclude list, so a new collection is restored
 # by default. The recorder sees only test phases, not session start; if a corpus test
 # fails on a missing collection, take it off this list.
-RESTORE_EXCLUDE=(
+# RESTORE_EXCLUDE (space-separated names) overrides the list; set but empty excludes nothing
+# (the fixture re-record, rerecord_fixtures.py, needs the full database); unset keeps this default.
+DEFAULT_EXCLUDE=(
   webpages                          # 4671+1423 MB, not in recorder's touched-collection set
   webpages_long_urls                # 43 MB, not in recorder's touched-collection set
   dibur_hamatchils                  # 245+35 MB, not in recorder's touched-collection set
@@ -56,18 +59,23 @@ RESTORE_EXCLUDE=(
   garden_stop                       # 14 MB, not in recorder's touched-collection set
   translation_requests              # 10 MB, not in recorder's touched-collection set
 )
+if [ "${RESTORE_EXCLUDE+set}" = set ]; then
+  read -ra EXCLUDE_COLLS <<< "$RESTORE_EXCLUDE"
+else
+  EXCLUDE_COLLS=("${DEFAULT_EXCLUDE[@]}")
+fi
 NS_EXCLUDE_ARGS=()
-for coll in "${RESTORE_EXCLUDE[@]}"; do
+for coll in ${EXCLUDE_COLLS[@]+"${EXCLUDE_COLLS[@]}"}; do
   NS_EXCLUDE_ARGS+=(--nsExclude "sefaria.$coll")
 done
 
 phase "Restore into database sefaria"
 docker run --rm --network host -v "$WORK/dump:/dump" "$MONGO_IMAGE" \
   mongorestore --host "127.0.0.1:$PORT" --drop --numParallelCollections 4 --quiet \
-  --nsInclude 'sefaria.*' "${NS_EXCLUDE_ARGS[@]}" \
+  --nsInclude 'sefaria.*' ${NS_EXCLUDE_ARGS[@]+"${NS_EXCLUDE_ARGS[@]}"} \
   --dir /dump/dump
 done_phase "restore"
 
 rm -rf "$WORK/dump"
-docker exec test-mongo mongo --quiet sefaria --eval 'printjson({index: db.index.countDocuments({}), texts: db.texts.estimatedDocumentCount()})'
+docker exec "$CONTAINER" mongo --quiet sefaria --eval 'printjson({index: db.index.countDocuments({}), texts: db.texts.estimatedDocumentCount()})'
 df -h / /mnt | sed 's/^/  /'
