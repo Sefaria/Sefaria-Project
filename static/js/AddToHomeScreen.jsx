@@ -206,7 +206,8 @@ const AddToHomeScreen = ({currentRef}) => {
     }
   }, [target && target.key]);
 
-  // iOS jumps to the home screen after "Add"; treat coming back to the page from the steps as success.
+  // iOS jumps to the home screen after "Add". We can't confirm the install, so coming back
+  // to the page from the steps just closes the modal (no confirmation).
   useEffect(() => {
     if (view !== "iosSteps" || !target) { return; }
     let wasHidden = false;
@@ -214,7 +215,7 @@ const AddToHomeScreen = ({currentRef}) => {
       if (document.visibilityState === "hidden") { wasHidden = true; }
       else if (wasHidden) {
         writeState(target.key, Object.assign(readState(target.key), {i: 1}));
-        setView("success");
+        setView(null);
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
@@ -227,9 +228,10 @@ const AddToHomeScreen = ({currentRef}) => {
     writeState(target.key, Object.assign(readState(target.key), {d: 1}));
     setView(null);
   };
-  const markInstalled = () => {
+  // "Done" on the manual steps: close quietly, since the browser can't tell us it worked.
+  const finishSteps = () => {
     writeState(target.key, Object.assign(readState(target.key), {i: 1}));
-    setView("success");
+    setView(null);
   };
   const add = async () => {
     if (isIOS()) { setView("iosSteps"); return; }
@@ -237,8 +239,9 @@ const AddToHomeScreen = ({currentRef}) => {
       const promptEvent = deferredPrompt;
       deferredPrompt = null;
       promptEvent.prompt();
-      const choice = await promptEvent.userChoice;
-      if (choice.outcome === "accepted") { markInstalled(); }
+      await promptEvent.userChoice;
+      // Close the modal either way; the confirmation only comes from Chrome's appinstalled event.
+      setView(null);
       return;
     }
     setView("androidSteps");
@@ -270,7 +273,7 @@ const AddToHomeScreen = ({currentRef}) => {
               <li><span className="a2hsStepNumber" aria-hidden="true">2</span><span>Tap <strong>View More</strong>, then <AddIcon/> <strong>Add to Home Screen</strong>.</span></li>
               <li><span className="a2hsStepNumber" aria-hidden="true">3</span><span>Tap <strong>Add</strong> in the top corner.</span></li>
             </ol>
-            <Button size="fullwidth" onClick={markInstalled}>Done</Button>
+            <Button size="fullwidth" onClick={finishSteps}>Done</Button>
           </>
         )}
         {view === "androidSteps" && (
@@ -280,7 +283,7 @@ const AddToHomeScreen = ({currentRef}) => {
               <li><span className="a2hsStepNumber" aria-hidden="true">1</span><span>Tap <strong>⋮</strong> in your browser's menu.</span></li>
               <li><span className="a2hsStepNumber" aria-hidden="true">2</span><span>Tap <strong>Add to home screen</strong> or <strong>Install app</strong>.</span></li>
             </ol>
-            <Button size="fullwidth" onClick={markInstalled}>Done</Button>
+            <Button size="fullwidth" onClick={finishSteps}>Done</Button>
           </>
         )}
       </div>
