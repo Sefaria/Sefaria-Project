@@ -113,9 +113,7 @@ const activeJobKeys = [];
 
     console.log(JSON.stringify(slackMsg));
 
-    // The linker job is skipped whenever a diff cannot reach linker code; that is its normal state.
-    const skipIsOk = k => k === "Continuous Testing: PyTest (linker)";
-    const overallSuccess = activeJobKeys.every(k => succeeded(jobsResults[k]) || (skipIsOk(k) && skipped(jobsResults[k])));
+    const overallSuccess = activeJobKeys.every(k => succeeded(jobsResults[k]));
     const webhookUrl = overallSuccess ? slackSuccessUrl : slackFailureUrl;
     const webhook = new IncomingWebhook(webhookUrl);
 

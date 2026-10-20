@@ -199,55 +199,16 @@ jobs:
         with:
           filters: |
             python_files_changed:
-              - added|modified:
+              - added|modified|deleted:
                 - '**/*.py'
                 - 'requirements.txt'
                 - 'setup.py'
                 - 'pyproject.toml'
+                - 'pytest.ini'
+                - 'build/ci/prepare-pytest-runner.sh'
+                - 'build/ci/restore-test-mongo.sh'
                 - 'sefaria/tests/fixtures/mongo/**'
                 - '.github/workflows/continuous.yaml'
-  check-linker-impact:
-    # Deterministic answer to "can a linker test possibly be affected by this diff?"
-    # NOT a path filter on sefaria/model/linker/** -- a linker test can break from a
-    # change anywhere in its transitive import closure, and gating on the subsystem's
-    # own directory would produce false greens. The closure is recomputed on every run
-    # (a stdlib AST walk, seconds, no DB) rather than committed, so it cannot drift.
-    # FAILS OPEN: unresolvable dynamic imports mean "affected".
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
-    outputs:
-      linker_affected: ${{ steps.impact.outputs.linker_affected }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Compute changed files
-        id: changed
-        run: |
-          BASE="${{ github.event.pull_request.base.sha }}"
-          # NUL-separated and unquoted (core.quotepath=off): paths with spaces or
-          # Hebrew characters must reach import_closure.py intact.
-          git -c core.quotepath=off diff --name-only -z "$BASE"...HEAD > changed.z \
-            || git -c core.quotepath=off diff --name-only -z HEAD~1 HEAD > changed.z
-          echo "--- changed files ---"; tr '\0' '\n' < changed.z
-      - name: Is any linker-reachable file touched?
-        id: impact
-        run: |
-          ARGS=()
-          while IFS= read -r -d '' f; do ARGS+=(--changed-file "$f"); done < changed.z
-          RESULT=$(python scripts/test_impact/import_closure.py \
-            --subsystem-glob 'sefaria/model/linker/*' \
-            --subsystem-glob 'sefaria/helper/linker/*' \
-            --subsystem-glob 'sefaria/model/linker_*.py' \
-            --subsystem-glob 'sefaria/helper/linker_*.py' \
-            "${ARGS[@]}" --format json)
-          echo "$RESULT" | python -c "import json,sys; d=json.load(sys.stdin); print('affected:', d.get('affected')); print('fail_open:', d['fail_open'])"
-          AFFECTED=$(echo "$RESULT" | python -c "import json,sys; print(str(json.load(sys.stdin).get('affected', True)).lower())")
-          echo "linker_affected=$AFFECTED" >> $GITHUB_OUTPUT
 
   # Every pytest job runs on a GitHub-hosted runner; none touches a cluster.
   # The three jobs below use mongomock. sefaria/system/database.py builds a
@@ -348,11 +309,10 @@ jobs:
           ./sefaria ./sso ./reader ./powered_by
   pytest-linker-job:
     name: "Continuous Testing: PyTest (linker)"
-    needs: [ check-python-files, check-linker-impact ]
+    needs: [ check-python-files ]
     if: >
       github.event.pull_request.draft == false &&
-      needs.check-python-files.outputs.python_files_changed == 'true' &&
-      needs.check-linker-impact.outputs.linker_affected == 'true'
+      needs.check-python-files.outputs.python_files_changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -438,7 +398,6 @@ jobs:
       - build-generic
       - build-derived
       - check-python-files
-      - check-linker-impact
       - pytest-no-mongo-job
       - pytest-job
       - pytest-linker-job
@@ -460,22 +419,9 @@ jobs:
             if [ "${{ needs.check-python-files.outputs.python_files_changed }}" == "true" ]; then
               if [ "${{ needs.pytest-no-mongo-job.result }}" != "success" ] || \
                  [ "${{ needs.pytest-job.result }}" != "success" ] || \
+                 [ "${{ needs.pytest-linker-job.result }}" != "success" ] || \
                  [ "${{ needs.pytest-corpus-job.result }}" != "success" ]; then
                 echo "One or more Python-related test jobs failed"
-                exit 1
-              fi
-              # pytest-linker-job is skipped when the diff cannot reach linker code.
-              # That skip is a pass only when check-linker-impact itself succeeded and
-              # said "not affected"; if the impact job failed, the linker job is also
-              # skipped (its dependency failed), and that must not read as green.
-              if [ "${{ needs.check-linker-impact.result }}" != "success" ]; then
-                echo "Linker impact analysis did not succeed"
-                exit 1
-              fi
-              if [ "${{ needs.pytest-linker-job.result }}" != "success" ] && \
-                 ! { [ "${{ needs.pytest-linker-job.result }}" == "skipped" ] && \
-                     [ "${{ needs.check-linker-impact.outputs.linker_affected }}" == "false" ]; }; then
-                echo "Linker test job did not pass (result: ${{ needs.pytest-linker-job.result }})"
                 exit 1
               fi
             fi
