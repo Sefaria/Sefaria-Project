@@ -259,9 +259,14 @@ test.describe('Library Assistant — visibility boundaries', () => {
     const pm = new PageManager(page, LANGUAGES.EN);
     await pm.onLibraryAssistant().seedSavedChat();
     expect(await pm.onLibraryAssistant().savedChatKeys()).not.toEqual([]);
-    // Set the way logout sets it: on the shared cookie domain (www.x.org → .x.org).
-    const sharedDomain = '.' + new URL(MODULE_URLS.EN.LIBRARY).hostname.split('.').slice(1).join('.');
-    await context.addCookies([{ name: 'lc_chatbot_clear', value: '1', domain: sharedDomain, path: '/' }]);
+    // Set the way logout sets it: on the shared cookie domain (www.x.org → .x.org) on a
+    // deployed sandbox, host-only on a local one (localhost / an IP has no shared domain).
+    const libraryHost = new URL(MODULE_URLS.EN.LIBRARY).hostname;
+    const isLocalHost = !libraryHost.includes('.') || /^\d+(\.\d+){3}$/.test(libraryHost);
+    const clearCookie = isLocalHost
+      ? { name: 'lc_chatbot_clear', value: '1', url: MODULE_URLS.EN.LIBRARY }
+      : { name: 'lc_chatbot_clear', value: '1', domain: '.' + libraryHost.split('.').slice(1).join('.'), path: '/' };
+    await context.addCookies([clearCookie]);
 
     await page.reload();
 

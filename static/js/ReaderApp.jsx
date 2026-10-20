@@ -146,10 +146,15 @@ class ReaderApp extends Component {
     // Hide the sign up modal and show the auth page, with the given path and source.
     this.setState({ showAuth: true, authPath: path, authSource: source, showSignUpModal: false });
   }
+  authNext() {
+    // Where to return after logging in. If the auth page is already open, keep its own `next`
+    // rather than nesting /login?next=... inside a new one.
+    return this.state.showAuth ? nextFromPath(this.state.authPath) : Sefaria.util.currentPath();
+  }
   handleChatbotLoginRequest = (event) => {
     // The Library Assistant (<lc-chatbot>) asks to log in. A link inside its shadow DOM can't reach
     // handleInAppLinkClick, so it sends an event with the signup source instead.
-    this.handleAuthNavigate(withNext('/login', Sefaria.util.currentPath()), event.detail?.source || null);
+    this.handleAuthNavigate(withNext('/login', this.authNext()), event.detail?.source || null);
   }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
@@ -1381,8 +1386,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
 
     if (isAuthPath(path)) {
-      const next = this.state.showAuth ? nextFromPath(this.state.authPath) : Sefaria.util.currentPath();
-      this.handleAuthNavigate(withNext(path, next), signupSource);
+      this.handleAuthNavigate(withNext(path, this.authNext()), signupSource);
       return true;
     }
 
