@@ -67,7 +67,7 @@ class StaffOnlyQACopyCategoryView(StaffOnlyAPIView):
 class StaffOnlyQACopyIndexView(StaffOnlyAPIView):
 
     def post(self, request):
-        return self._handle(request, staff_only_qa.copy_index)
+        return self._handle(request, staff_only_qa.start_copy_index)
 
 
 class StaffOnlyQACopyVersionView(StaffOnlyAPIView):

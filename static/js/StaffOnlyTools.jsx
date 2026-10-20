@@ -94,8 +94,8 @@ function staffOnlyBookButtons(title, categories, adminOnly) {
       if (!category) { return; }
       run(null, () => staffOnlyPost("/_api/staff-only/qa/copy-index",
                                     {title, newTitle, heTitle, categories: category.split("/").map(c => c.trim())}),
-          r => `Created the staff-only book ${r.copied} with ${r.versions.length} version(s) and ${r.links} link(s)` +
-               (r.skippedLinks ? ` (${r.skippedLinks} link(s) skipped)` : "") + `.\nOpen it at ${r.url}`);
+          r => `Copying ${title} to the staff-only book ${r.copying} in the background.\n` +
+               `A book with many versions takes a minute or two. Then open ${r.url} : it shows a STAFF ONLY badge.`);
     }];
   }
   if (Sefaria.staff_only_mode && adminOnly) {

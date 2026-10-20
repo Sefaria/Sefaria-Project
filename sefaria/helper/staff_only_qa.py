@@ -7,13 +7,17 @@ Remove before merging, together with the QA views and routes in api/staff_only_v
 and the "QA: copy" buttons in static/js/StaffOnlyTools.jsx.
 """
 import copy
+import threading
 
+import structlog
 from django.conf import settings
 
 from sefaria.model import Category, Index, Link, LinkSet, Ref, Version, VersionSet, library, log_add
 from sefaria.model.abstract import show_admin_only_records
 from sefaria.system.exceptions import BookNameError, DuplicateRecordError, InputError
 from sefaria import tracker
+
+logger = structlog.get_logger(__name__)
 
 QA_METHOD = "Staff-only QA copy"
 QA_GENERATED_BY = "staff_only_qa_copy"
@@ -78,18 +82,40 @@ def _copy_ref(tref, source_title, new_title):
     return tref
 
 
+def _check_copy_index(body):
+    _require_enabled()
+    _required(body, "title", "newTitle", "heTitle")
+    source = _load_index(body["title"])
+    _check_title(body["newTitle"])
+    if Index().load({"title": body["newTitle"]}):
+        raise InputError("A book called {} already exists.".format(body["newTitle"]))
+    return source
+
+
+def start_copy_index(user, body):
+    """
+    Check the request, then copy in a background thread: a book with many versions takes longer than the
+    gateway waits for a response. The copy shows up when it's done; failures are logged.
+    """
+    _check_copy_index(body)
+
+    def work():
+        try:
+            copy_index(user, body)
+        except Exception:
+            logger.exception("staff-only QA copy failed", source=body.get("title"), copy=body.get("newTitle"))
+
+    threading.Thread(target=work, daemon=True).start()
+    return {"copying": body["newTitle"], "url": "/" + body["newTitle"].replace(" ", "_")}
+
+
 def copy_index(user, body):
     """
     A staff-only copy of a book under a new title: its structure, all its versions and up to `max_links` of its
     links (rewritten to point at the copy). Placed in `categories` (default: the source's own categories).
     """
-    _require_enabled()
-    _required(body, "title", "newTitle", "heTitle")
-    source = _load_index(body["title"])
+    source = _check_copy_index(body)
     new_title, he_title = body["newTitle"], body["heTitle"]
-    _check_title(new_title)
-    if Index().load({"title": new_title}):
-        raise InputError("A book called {} already exists.".format(new_title))
     max_links = int(body.get("maxLinks", DEFAULT_MAX_LINKS))
 
     raw = copy.deepcopy(source.contents(raw=True))

@@ -139,22 +139,23 @@ def publish_links(user, body):
     Publish staff-only links that touch a book (`index`) or are listed by id (`ids`).
     Links whose other book is still staff-only are skipped and reported. Not logged to history
     one by one: a book can have thousands of links.
+
+    Only the flag changes, so it is cleared directly rather than by re-saving each link: a re-save re-runs
+    every link validation, and existing links that fail an unrelated check (e.g. stale `charLevelData`)
+    would abort the publish halfway. Nothing subscribes to link saves.
     """
     _require_staff_site()
     dry_run = bool(body.get("dry_run"))
-    published, skipped = 0, []
+    publishable, skipped = [], []
     for link in LinkSet(_links_query(index_title=body.get("index"), ids=body.get("ids"))):
         parent = link._admin_only_parent()
         if parent:
             skipped.append({"id": str(link._id), "refs": link.refs, "reason": "{} is staff-only".format(parent)})
-            continue
-        if not dry_run:
-            link.admin_only = False
-            link._skip_lang_check = True  # neither changes by publishing
-            link._skip_expanded_refs_set = True
-            link.save()
-        published += 1
-    return {"published": published, "skipped": skipped, "dry_run": dry_run}
+        else:
+            publishable.append(link._id)
+    if publishable and not dry_run:
+        db.links.update_many({"_id": {"$in": publishable}}, {"$unset": {"admin_only": ""}})
+    return {"published": len(publishable), "skipped": skipped, "dry_run": dry_run}
 
 
 def publish_index(user, body):

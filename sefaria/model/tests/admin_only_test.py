@@ -256,6 +256,22 @@ def test_queueing_for_search_tolerates_already_queued_segments(monkeypatch):
             db.index_queue.delete_many(query)
 
 
+def test_publish_links_does_not_revalidate_unrelated_fields(hidden_book, monkeypatch, staff_mode):
+    # An existing link that fails an unrelated validation must not abort a publish halfway.
+    from sefaria.helper import staff_only
+    monkeypatch.setattr(Index, "is_admin_only", lambda self: False)
+    stale = db.links.insert_one({"refs": ["Genesis 1:3", "Leviticus 1:3"], "type": "quotation", "admin_only": True,
+                                 "generated_by": "zzz_publish",
+                                 "charLevelData": [{"startChar": 0, "endChar": 1, "versionTitle": "No Such Version", "language": "en"},
+                                                   {"startChar": 0, "endChar": 1, "versionTitle": "No Such Version", "language": "en"}]}).inserted_id
+    try:
+        result = staff_only.publish_links(0, {"ids": [str(stale)]})
+        assert result["published"] == 1
+        assert "admin_only" not in db.links.find_one({"_id": stale})
+    finally:
+        db.links.delete_many({"generated_by": "zzz_publish"})
+
+
 def test_publish_requires_staff_site(public_mode):
     from sefaria.helper import staff_only
     with pytest.raises(InputError):
