@@ -233,6 +233,14 @@ def test_unresolvable_citation_renders_as_text():
     assert span.wrap_span_in_a_tag() == "Zzz 1"
 
 
+def test_status_reports_staff_only_records(hidden_genesis_version, staff_mode):
+    from sefaria.helper import staff_only
+    status = staff_only.status("Genesis")
+    assert status["index"] == {"title": "Genesis", "admin_only": False}
+    assert {"versionTitle": "Zzz Hidden Genesis", "language": "en", "admin_only": True} in status["versions"]
+    assert status["links"]["admin_only"] >= 0
+
+
 def test_publish_requires_staff_site(public_mode):
     from sefaria.helper import staff_only
     with pytest.raises(InputError):

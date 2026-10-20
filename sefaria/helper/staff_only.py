@@ -80,7 +80,7 @@ def status(index_title):
     hidden_path = admin_only_category_path(categories)
     base_titles = getattr(index, "base_text_titles", None) or []
     hidden_bases = admin_only_index_titles(base_titles)
-    links = list(LinkSet(_links_query(index_title=index.title), proj={"refs": 1, "admin_only": 1}))
+    links = list(LinkSet(_links_query(index_title=index.title)))
     blocked = sum(1 for link in links if link._admin_only_parent())
     return {
         "index": {"title": index.title, "admin_only": index.is_admin_only()},
