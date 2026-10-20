@@ -1198,6 +1198,10 @@
       {
        "kind": "pytest",
        "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_staff_without_change_tier_sees_limits_readonly"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_staff_without_change_tier_cannot_forge_a_limits_row_or_a_tier_change"
       }
      ]
     },
@@ -3751,11 +3755,20 @@
     {
      "id": "F-QUOTA-01.e74",
      "scenario": "Q-EDGE-69 [L] Soft-delete a project without revoking its keys",
-     "expected": "Add `deleted_at` to the project trigger, or keep Django as the only soft-delete path",
+     "expected": "Keep `deleted_at` in the project trigger (migration 0008 does), so a soft delete NOTIFYs",
      "severity": "P2",
-     "status": "planned",
-     "tracking": "FU-Q-69",
-     "planned_check": "drill: `UPDATE ... SET deleted_at`, time to first 401"
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_soft_delete_notifies"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/docs/monthly-quota.md",
+       "contains": "Q\\-EDGE\\-69\\ \\|\\ Soft\\-delete\\ a\\ project\\ without\\ revoking\\ its\\ keys"
+      }
+     ],
+     "status": "on_branch"
     },
     {
      "id": "F-QUOTA-01.e75",
