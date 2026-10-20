@@ -28,6 +28,7 @@ export const LOCAL_PORTS = {
 } as const;
 
 export const CAULDRON_NAME = process.env.APIKEYS_CAULDRON || 'apikeys-pipeline';
+if (!/^[a-z0-9-]+$/.test(CAULDRON_NAME)) throw new Error(`APIKEYS_CAULDRON=${CAULDRON_NAME} is not a cauldron name`);
 export const CAULDRON_HOST = `www.${CAULDRON_NAME}.cauldron.sefaria.org`;
 export const CAULDRON_KUBE_CONTEXT = 'gke_development-205018_us-east1-b_cluster-1';
 

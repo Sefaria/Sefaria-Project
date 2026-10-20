@@ -12,7 +12,8 @@
 #   --offline          only the checks that need no network, docker or cluster (built, coverage, read more)
 #   --read-only        default: nothing is written, stopped or scaled; mutating sections print [SKIP ...]
 #   --allow-mutating   also run the mutating_* functions: SQL writes, a stopped auth service, a dropped listener.
-#                      On --target cauldron it needs APIKEYS_CAULDRON set explicitly (never the shared default).
+#                      On --target cauldron it needs APIKEYS_CAULDRON=<name> and APIKEYS_ALLOW_MUTATING_ON=<same name>,
+#                      and the name must not be a shared cauldron (apikeys-pipeline, authpoc, api-keys-poc).
 #   --list-sections    print the section function names and exit without running anything
 #
 # Optional keys, read from the environment (a key is never printed in full; 12 characters at most):
@@ -134,16 +135,23 @@ while (($#)); do
   shift
 done
 
+SHARED_CAULDRONS=(apikeys-pipeline authpoc api-keys-poc)  # named as shared in e2e-tests/api-keys/cauldron/SAFETY.md
+
+refuse() { printf 'refusing: %s\n' "$1" >&2; exit 2; }
+
 refuse_unsafe_cauldron_target() {
   [[ $TARGET == cauldron ]] || return 0
-  if [[ $CTX != "$DEV_CTX" ]]; then
-    printf 'refusing --target cauldron: CTX=%s; only %s is allowed\n' "$CTX" "$DEV_CTX" >&2
-    exit 2
-  fi
-  if $ALLOW_MUTATING && [[ -z ${APIKEYS_CAULDRON:-} ]]; then
-    printf 'refusing --allow-mutating on the shared default cauldron %s: set APIKEYS_CAULDRON to the cauldron this drill may change\n' "$CAULDRON_ENV" >&2
-    exit 2
-  fi
+  [[ $CAULDRON_ENV =~ ^[a-z0-9-]+$ ]] || refuse "APIKEYS_CAULDRON='$CAULDRON_ENV' is not a cauldron name ([a-z0-9-]+)"
+  [[ $CTX == "$DEV_CTX" ]] || refuse "--target cauldron with CTX=$CTX; only $DEV_CTX is allowed"
+  [[ $NS == default ]] || refuse "--target cauldron with NS=$NS; only default is allowed"
+  $ALLOW_MUTATING || return 0
+  local shared
+  for shared in "${SHARED_CAULDRONS[@]}"; do
+    [[ $CAULDRON_ENV != "$shared" ]] || refuse "--allow-mutating never runs on the shared cauldron $shared"
+  done
+  [[ ${APIKEYS_CAULDRON:-} == "$CAULDRON_ENV" && ${APIKEYS_ALLOW_MUTATING_ON:-} == "$CAULDRON_ENV" ]] \
+    || refuse "--allow-mutating on a cauldron needs APIKEYS_CAULDRON=$CAULDRON_ENV and APIKEYS_ALLOW_MUTATING_ON=$CAULDRON_ENV"
+  [[ -z ${DEMO_HOST:-} || $DEMO_HOST == *"$CAULDRON_ENV"* ]] || refuse "DEMO_HOST=$DEMO_HOST does not name the cauldron $CAULDRON_ENV"
 }
 refuse_unsafe_cauldron_target
 
@@ -297,6 +305,7 @@ t_authsvc_down() {
     stack_compose stop authsvc >/dev/null
   else
     CAULDRON_REPLICAS=$(kubectl --context "$CTX" -n "$NS" get deploy "$CAULDRON_ENV-auth-service" -o 'jsonpath={.spec.replicas}')
+    [[ $CAULDRON_REPLICAS =~ ^[0-9]+$ ]] || { printf 'cannot read the replica count of %s-auth-service; not scaling\n' "$CAULDRON_ENV" >&2; return 1; }
     kubectl --context "$CTX" -n "$NS" scale deploy "$CAULDRON_ENV-auth-service" --replicas=0 >/dev/null
   fi
 }

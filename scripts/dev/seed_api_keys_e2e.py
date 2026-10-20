@@ -178,8 +178,15 @@ def read_password(preamble=None):
 
 # --- Target guard ---------------------------------------------------------------
 
+def cauldron_name():
+    name = os.environ.get("APIKEYS_CAULDRON", "apikeys-pipeline")
+    if not re.fullmatch(r"[a-z0-9-]+", name):
+        raise SystemExit("Refusing: APIKEYS_CAULDRON={!r} is not a cauldron name.".format(name))
+    return name
+
+
 def guard_target(target):
-    """Refuses to run anywhere but the local stack's Postgres or the apikeys-pipeline cauldron."""
+    """Refuses to run anywhere but the local stack's Postgres or the cauldron named by APIKEYS_CAULDRON."""
     from django.conf import settings
 
     env_target = os.environ.get("APIKEYS_TARGET")
@@ -202,9 +209,10 @@ def guard_target(target):
             raise SystemExit("Refusing: --target cauldron but the database is on this machine.")
         if not getattr(settings, "DEVELOPER_SETTINGS_MOCKS", False):
             raise SystemExit("Refusing: --target cauldron needs DEVELOPER_SETTINGS_MOCKS on.")
+        name = cauldron_name()
         domains = json.dumps(getattr(settings, "DOMAIN_MODULES", {}) or {})
-        if domains not in ("{}", "null") and "apikeys-pipeline" not in domains:
-            raise SystemExit("Refusing: this pod's DOMAIN_MODULES is not the apikeys-pipeline cauldron.")
+        if name not in domains:
+            raise SystemExit("Refusing: this pod's DOMAIN_MODULES does not name the {} cauldron.".format(name))
     else:
         raise SystemExit("--target must be local or cauldron.")
 
@@ -549,7 +557,7 @@ def build_manifest(target, password_file="", base=None):
         "schemaVersion": 1,
         "target": target,
         "baseURL": {"local": "http://www.gateway.test:10080",
-                    "cauldron": "https://www.apikeys-pipeline.cauldron.sefaria.org"}[target],
+                    "cauldron": "https://www.{}.cauldron.sefaria.org".format(cauldron_name())}[target],
         "runId": run_id,
         "marker": marker_for(run_id) if run_id else None,
         "createdAt": datetime.now(dt_timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),

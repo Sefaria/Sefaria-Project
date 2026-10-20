@@ -6,8 +6,10 @@
 match, default 3798) and the dev cluster context
 `gke_development-205018_us-east1-b_cluster-1` (the default context on some machines is production).
 
-`auth-service/scripts/demo.sh --target cauldron --allow-mutating` refuses (exit 2) unless `APIKEYS_CAULDRON` is set
-explicitly, and refuses any kube context other than the dev one.
+`auth-service/scripts/demo.sh --target cauldron --allow-mutating` needs `APIKEYS_CAULDRON=<name>` and
+`APIKEYS_ALLOW_MUTATING_ON=<same name>`, never runs on `apikeys-pipeline`, `authpoc` or `api-keys-poc`, and refuses
+(exit 2) any kube context other than the dev one, a namespace other than `default`, or a `DEMO_HOST` that does not
+name the cauldron.
 
 ## Rulebook
 

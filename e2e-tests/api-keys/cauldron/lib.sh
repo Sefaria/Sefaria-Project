@@ -11,6 +11,7 @@ NS=default
 # app=nginx-<env>, deployEnv=<env>, HelmRelease <env>).
 CAULDRON=${APIKEYS_CAULDRON:-apikeys-pipeline}
 APIKEYS_PR=${APIKEYS_PR:-3798}
+[[ $CAULDRON =~ ^[a-z0-9-]+$ ]] || { printf 'STOP: APIKEYS_CAULDRON=%s is not a cauldron name\n' "$CAULDRON" >&2; exit 1; }
 HOST=www.$CAULDRON.cauldron.sefaria.org
 BASE="https://$HOST"
 WEB_SELECTOR=app=web-$CAULDRON

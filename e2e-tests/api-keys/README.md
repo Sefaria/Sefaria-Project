@@ -2,7 +2,7 @@
 
 Playwright suites for the API key gateway (Envoy ext_authz + the Go auth service) and the developer settings UI.
 They run against exactly two targets: the local Docker stack (`auth-service/dev/local-stack/`) or the
-`apikeys-pipeline` cauldron. Names, ports, accounts and the manifest format are fixed in [CONTRACT.md](CONTRACT.md);
+default cauldron (`apikeys-pipeline`, or `$APIKEYS_CAULDRON`). Names, ports, accounts and the manifest format are fixed in [CONTRACT.md](CONTRACT.md);
 the case list is [`../test-plans/sc-47260-api-keys.md`](../test-plans/sc-47260-api-keys.md).
 
 The projects `apikeys-setup` and `apikeys` exist only when `APIKEYS_TARGET` is set **and** the manifest exists, so

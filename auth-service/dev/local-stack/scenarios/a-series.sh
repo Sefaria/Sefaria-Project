@@ -65,9 +65,11 @@ if [ "$TARGET" = local ]; then
   hosthdr() { if [ "$1" = bare ]; then echo "Host: gateway.test:${PORT:-10080}"; else echo "Host: $1.gateway.test:${PORT:-10080}"; fi; }
   ROOT=gateway.test
 else
-  base() { echo "https://$( [ "$1" = bare ] && echo apikeys-pipeline || echo "$1.apikeys-pipeline").cauldron.sefaria.org"; }
+  CAULDRON="${APIKEYS_CAULDRON:-apikeys-pipeline}"
+  [[ $CAULDRON =~ ^[a-z0-9-]+$ ]] || { echo "APIKEYS_CAULDRON=$CAULDRON is not a cauldron name" >&2; exit 1; }
+  base() { echo "https://$( [ "$1" = bare ] && echo "$CAULDRON" || echo "$1.$CAULDRON").cauldron.sefaria.org"; }
   hosthdr() { echo "X-Noop: 1"; }
-  ROOT=apikeys-pipeline.cauldron.sefaria.org
+  ROOT=$CAULDRON.cauldron.sefaria.org
 fi
 
 # req HOST PATH [curl args...] -> sets STATUS, CODE, BODY (masked)
@@ -131,7 +133,7 @@ if [ "$TARGET" = cauldron ]; then
   s="$(curl -s -o /dev/null -m 20 -w '%{http_code}' "http://www.$ROOT$G")"
   line N-A2 info "plain http:// on the gated path -> $s (reaches the route without a redirect when not 301/308)"
   ctp="$(kubectl --context "${APIKEYS_KUBE_CONTEXT:-gke_development-205018_us-east1-b_cluster-1}" -n default get clienttrafficpolicy \
-    apikeys-pipeline -o jsonpath='{.status.ancestors[0].conditions[?(@.type=="Accepted")].status}' 2>/dev/null)"
+    "$CAULDRON" -o jsonpath='{.status.ancestors[0].conditions[?(@.type=="Accepted")].status}' 2>/dev/null)"
   [ "$ctp" = True ] && line N-A2 pass "ClientTrafficPolicy Accepted=$ctp" || line N-A2 GAP "ClientTrafficPolicy Accepted=$ctp (want True; N-A2)"
 fi
 

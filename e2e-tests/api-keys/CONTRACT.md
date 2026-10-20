@@ -12,7 +12,7 @@ script and every helper.
 | `APIKEYS_TARGET` | Browser base URL | API requests go to | Workers |
 |---|---|---|---|
 | `local` | `http://www.gateway.test:10080` | `http://127.0.0.1:10080` with `Host: www.gateway.test:10080` | 4 (max) |
-| `cauldron` | `https://www.apikeys-pipeline.cauldron.sefaria.org` | the same URL (real DNS) | 2 (max), `retries: 1`, `ignoreHTTPSErrors` |
+| `cauldron` | `https://www.<cauldron>.cauldron.sefaria.org` (default cauldron `apikeys-pipeline`, or `$APIKEYS_CAULDRON`) | the same URL (real DNS) | 2 (max), `retries: 1`, `ignoreHTTPSErrors` |
 
 Always use the `www.` host. The bare cauldron host answers 301 to everything except gateway denials.
 
@@ -213,7 +213,7 @@ committed, never pasted into logs or reports. Fields not listed here may be adde
 | `APIKEYS_E2E_PASSWORD_FILE` | seed, `auth.setup.ts` | `.claude/scratch/api-keys-e2e/password` under the repo root (git-ignored); must exist |
 | `APIKEYS_RUN_ID` | seed | generated when unset |
 | `APIKEYS_WORKERS` | config | local 4; cauldron 2, and values above 2 are clamped |
-| `APIKEYS_REGISTRY_URL` | `registry.ts` | local `http://127.0.0.1:18080`; cauldron only when set (port-forward `svc/auth-service-apikeys-pipeline 18081:8080` → `http://127.0.0.1:18081`), otherwise the helper falls back to polling the gateway. Replaces the plan's `REGISTRY_URL` |
+| `APIKEYS_REGISTRY_URL` | `registry.ts` | local `http://127.0.0.1:18080`; cauldron only when set (port-forward `svc/auth-service-<cauldron> 18081:8080`, default `apikeys-pipeline` or `$APIKEYS_CAULDRON` → `http://127.0.0.1:18081`), otherwise the helper falls back to polling the gateway. Replaces the plan's `REGISTRY_URL` |
 | `APIKEYS_MAILPIT_URL` | `mail.ts` | local `http://127.0.0.1:18025`; unset on the cauldron (no mailbox) |
 | `APIKEYS_KUBE_CONTEXT` | cauldron scripts | must equal `gke_development-205018_us-east1-b_cluster-1`; anything else is refused |
 | `DEVELOPER_SETTINGS_ENABLED`, `DEVELOPER_SETTINGS_MOCKS` | Django wrapper | per process, see §2 |
