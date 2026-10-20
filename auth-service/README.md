@@ -50,3 +50,17 @@ after the Django migrations. A new column in the load query needs a matching GRA
 `make test` (Go vet and race tests; the Postgres tests run when `PG_TEST_DSN` is set, as they do in
 the Continuous workflow's auth-service job),
 `make helm-matrix`, `make helm-render`, `make shellcheck`.
+
+## Demo
+
+`scripts/demo.sh` walks through what is built, deployed, enforced, safe and propagated. Every section
+prints the feature ids it proves (`FEATURES: ...`) and each check prints `[OK id]`, `[MISMATCH id]` or
+`[SKIP id]`; the last line is `DEMO RESULT: ok=N mismatch=M skipped=K`. Targets: `--target local`
+(default, the local stack in `dev/local-stack`) and `--target cauldron` (the apikeys-pipeline
+cauldron through `kubectl`; `DEMO_HOST` overrides the site). The demo is read-only by default;
+`--allow-mutating` also runs the sections that write SQL, drop the listener connection or stop the
+auth service (each is undone on exit). `--offline` runs only the checks that need no network, docker
+or cluster, `--pause` waits between sections, and `--list-sections` prints the section names. A
+`MISMATCH` means the target behaves differently from what the feature id promises, and the script then
+exits 1; a `SKIP` means the check could not run here (read-only, POC only, or a tool is missing), not
+that it passed. An unknown flag exits 2.
