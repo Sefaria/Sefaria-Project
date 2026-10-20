@@ -11,7 +11,7 @@ fix on its own and still produce a phrase the corpus never contains.
 When several candidates score within AMBIGUITY_LOG_GAP of each other, nothing is corrected and
 they are returned as suggestions instead -- picking one would be a guess.
 
-Lifecycle: a weekly CronJob runs scripts/build_top_n_grams_for_search_autocorrect.py, which
+Lifecycle: a monthly CronJob runs scripts/build_top_n_grams_for_search_autocorrect.py, which
 saves the table as a datrie file and uploads it to a public GCS object. The name service
 downloads it at startup (`load_top_n_grams`) and serves /api/search-autocorrect from it.
 """
