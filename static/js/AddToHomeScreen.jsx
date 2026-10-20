@@ -57,8 +57,8 @@ const getTarget = (ref) => {
   try {
     const parashahRef = Sefaria.calendars && Sefaria.calendarRef("Parashat Hashavua");
     if (parashahRef && Sefaria.refContains(parashahRef, ref)) {
-      return {key: "parashah", label: "Weekly Parsha", stepsTitle: "Add the parashah in 3 steps",
-              headline: "Back to study the parsha?", start: "/parashat-hashavua",
+      return {key: "parashah", label: "Weekly Parashah", stepsTitle: "Add the parashah in 3 steps",
+              headline: "Back to study the parashah?", start: "/parashat-hashavua",
               tagline: "Add the parashah to your home screen to open it again with one tap."};
     }
   } catch (e) {}

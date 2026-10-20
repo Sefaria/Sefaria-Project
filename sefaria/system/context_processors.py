@@ -147,7 +147,7 @@ def add_to_home_screen(request):
             from sefaria.utils.calendars import get_todays_parasha
             parasha_ref = Ref(get_todays_parasha()["ref"])
             if parasha_ref.contains(Ref(path)):
-                target = {"start": "/parashat-hashavua", "name": "Weekly Parsha", "id": "parashah"}
+                target = {"start": "/parashat-hashavua", "name": "Weekly Parashah", "id": "parashah"}
         except Exception:
             target = None
     if target is None:
