@@ -18,6 +18,9 @@ const MINCHA_TITLES = [
   "Siddur Edot HaMizrach, Weekday Mincha",
 ];
 
+// Demo switches (?a2hs=reset / ?a2hs=show), read before the reader rewrites the address.
+const INITIAL_A2HS_PARAM = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get("a2hs") : null;
+
 // Chrome fires beforeinstallprompt once per manifest; keep it so the button can use it later.
 let deferredPrompt = null;
 const listeners = new Set();
@@ -54,7 +57,7 @@ const getTarget = (ref) => {
   try {
     const parashahRef = Sefaria.calendars && Sefaria.calendarRef("Parashat Hashavua");
     if (parashahRef && Sefaria.refContains(parashahRef, ref)) {
-      return {key: "parashah", label: "Parashah", stepsTitle: "Add the parashah in 3 steps",
+      return {key: "parashah", label: "Weekly Parsha", stepsTitle: "Add the parashah in 3 steps",
               headline: "Back to study the parsha?", start: "/parashat-hashavua",
               tagline: "Add the parashah to your home screen to open it again with one tap."};
     }
@@ -88,10 +91,13 @@ const useMiniAppManifest = (target) => {
     const link = document.getElementById("appManifest");
     const title = document.getElementById("appleWebAppTitle");
     if (!target || !link) { return; }
-    const originalHref = link.getAttribute("href");
-    const originalTitle = title && title.getAttribute("content");
-    const params = new URLSearchParams({start: target.start, name: target.label, id: target.key});
-    link.setAttribute("href", `/site.webmanifest?${params.toString()}`);
+    const originalHref = link.dataset.defaultHref || link.getAttribute("href");
+    const originalTitle = title && (title.dataset.defaultContent || title.getAttribute("content"));
+    // The server already renders the right manifest on a full page load; swap only after in-app navigation.
+    if (!link.getAttribute("href").includes(`id=${target.key}`)) {
+      const params = new URLSearchParams({start: target.start, name: target.label, id: target.key});
+      link.setAttribute("href", `/site.webmanifest?${params.toString()}`);
+    }
     if (title) { title.setAttribute("content", target.label); }
     return () => {
       link.setAttribute("href", originalHref);
@@ -99,6 +105,12 @@ const useMiniAppManifest = (target) => {
     };
   }, [target && target.key]);
 };
+
+const SafariMenuIcon = () => (
+  <svg className="a2hsInlineIcon" role="img" aria-label="Page menu" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M4 7h16"/><path d="M4 12h12"/><path d="M4 17h8"/>
+  </svg>
+);
 
 const ShareIcon = ({size = 18}) => (
   <svg className="a2hsInlineIcon" role="img" aria-label="Share" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -184,22 +196,29 @@ const AddToHomeScreen = ({currentRef}) => {
   // Decide whether and when to offer, once per target page view.
   useEffect(() => {
     if (!target || isStandalone()) { setView(null); return; }
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("a2hs") === "reset") { writeState(target.key, {v: 0, t: 0, d: 0, i: 0}); }
+    const demo = INITIAL_A2HS_PARAM || new URLSearchParams(window.location.search).get("a2hs");
+    if (demo === "reset") { writeState(target.key, {v: 0, t: 0, d: 0, i: 0}); }
     const state = recordVisit(target.key);
-    if (params.get("a2hs") !== "show" && (state.d || state.i)) { return; }
+    if (demo !== "show" && (state.d || state.i)) { return; }
     // Only offer from the second visit on; the first visit shows nothing.
-    if (state.v > 1 || params.get("a2hs") === "show") {
+    if (state.v > 1 || demo === "show") {
       if (viewRef.current === null) { setView("offer"); }
     }
   }, [target && target.key]);
 
-  // iOS uses the page's own URL for the icon, so show the weekly redirect while the steps are up.
+  // iOS jumps to the home screen after "Add"; treat coming back to the page from the steps as success.
   useEffect(() => {
-    if (view !== "iosSteps" || !target || target.key !== "parashah") { return; }
-    const originalUrl = window.location.pathname + window.location.search + window.location.hash;
-    window.history.replaceState(window.history.state, "", target.start);
-    return () => window.history.replaceState(window.history.state, "", originalUrl);
+    if (view !== "iosSteps" || !target) { return; }
+    let wasHidden = false;
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") { wasHidden = true; }
+      else if (wasHidden) {
+        writeState(target.key, Object.assign(readState(target.key), {i: 1}));
+        setView("success");
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [view]);
 
   if (!target || !view) { return null; }
@@ -247,8 +266,8 @@ const AddToHomeScreen = ({currentRef}) => {
           <>
             <h2 className="a2hsTitle a2hsStepsTitle">{target.stepsTitle}</h2>
             <ol className="a2hsSteps">
-              <li><span className="a2hsStepNumber" aria-hidden="true">1</span><span>Tap <ShareIcon/> Share in Safari's toolbar.</span></li>
-              <li><span className="a2hsStepNumber" aria-hidden="true">2</span><span>Scroll down and tap <AddIcon/> <strong>Add to Home Screen</strong>.</span></li>
+              <li><span className="a2hsStepNumber" aria-hidden="true">1</span><span>Tap <SafariMenuIcon/> next to the address, then <ShareIcon/> <strong>Share</strong>.</span></li>
+              <li><span className="a2hsStepNumber" aria-hidden="true">2</span><span>Tap <strong>View More</strong>, then <AddIcon/> <strong>Add to Home Screen</strong>.</span></li>
               <li><span className="a2hsStepNumber" aria-hidden="true">3</span><span>Tap <strong>Add</strong> in the top corner.</span></li>
             </ol>
             <Button size="fullwidth" onClick={markInstalled}>Done</Button>
