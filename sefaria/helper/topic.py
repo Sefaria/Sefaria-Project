@@ -543,6 +543,20 @@ def get_topics_for_book(title: str, annotate=False, n=18) -> list:
     SECONDARY TOPIC DATA GENERATION
 """
 
+def _sheet_topics_with_slugs(sheet):
+    """
+    Returns the sheet's topics that have a slug. A topic saved without one is skipped and logged,
+    so a single malformed sheet can't stop the weekly topic recalculation.
+    """
+    topics = []
+    for topic_dict in sheet.get("topics", []):
+        if topic_dict.get("slug"):
+            topics.append(topic_dict)
+        else:
+            logger.warning("Skipping sheet topic without a slug", sheet_id=sheet.get("id"), topic=topic_dict)
+    return topics
+
+
 def generate_all_topic_links_from_sheets(topic=None):
     """
     Processes all public source sheets to create topic links.
@@ -562,10 +576,10 @@ def generate_all_topic_links_from_sheets(topic=None):
     query = {"status": "public", "viaOwner": {"$exists": 0}, "assignment_id": {"$exists": 0}}
     if topic:
         query['topics.slug'] = topic
-    projection = {"topics": 1, "expandedRefs": 1, "owner": 1}
+    projection = {"topics": 1, "expandedRefs": 1, "owner": 1, "id": 1}
     sheet_list = db.sheets.find(query, projection)
     for sheet in tqdm(sheet_list, desc="aggregating sheet topics"):
-        sheet_topics = sheet.get("topics", [])
+        sheet_topics = _sheet_topics_with_slugs(sheet)
         for topic_dict in sheet_topics:
             slug = topic_dict['slug']
             for tref in sheet.get("expandedRefs", []):
@@ -677,8 +691,7 @@ def generate_sheet_topic_links():
     for sheet in tqdm(sheet_list, desc="getting sheet topic links"):
         if sheet.get('id', None) is None:
             continue
-        sheet_topics = sheet.get("topics", [])
-        for topic_dict in sheet_topics:
+        for topic_dict in _sheet_topics_with_slugs(sheet):
             slug = topic_dict['slug']
             sheet_links += [{
                 "class": "refTopic",
