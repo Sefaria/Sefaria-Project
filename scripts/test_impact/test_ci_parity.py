@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -374,157 +375,11 @@ class TestCollectHelpers:
 
 
 # ---------------------------------------------------------------------------
-# sandbox ("corpus") jobs: pytest launched via createJobFromRollout.sh inside
-# a Kubernetes Job, not `python -m pytest` on the runner directly.
+# real-Mongo jobs: collected with the baseline env, not their own port
 # ---------------------------------------------------------------------------
 
-SANDBOX_WORKFLOW_YAML = """
-env:
-  CORPUS_MARK_EXPR: "needs_corpus and not deep and not failing"
-jobs:
-  pytest-corpus-job:
-    name: "Continuous Testing: PyTest (corpus)"
-    steps:
-      - name: Start Job
-        run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
-        env:
-          DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
-          PYTEST_MARK_EXPR: ${{ env.CORPUS_MARK_EXPR }}
-"""
-
-
-def load_sandbox_sample():
-    return yaml.safe_load(SANDBOX_WORKFLOW_YAML)
-
-
-class TestSandboxJobs:
-    def test_sandbox_step_parsed_with_env_resolution(self):
-        workflow = load_sandbox_sample()
-        jobs = ci_parity.extract_pytest_jobs(workflow)
-        spec = jobs["pytest-corpus-job"]
-        assert spec["argv"] == [
-            "-m", "needs_corpus and not deep and not failing",
-            "./sefaria", "./sso", "./reader", "./powered_by",
-        ]
-
-    def test_sandbox_defaults_when_mark_expr_and_targets_absent(self):
-        workflow_yaml = """
-jobs:
-  pytest-corpus-job:
-    steps:
-      - run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
-"""
-        workflow = yaml.safe_load(workflow_yaml)
-        jobs = ci_parity.extract_pytest_jobs(workflow)
-        spec = jobs["pytest-corpus-job"]
-        assert spec["argv"] == [
-            "-m", ci_parity.SANDBOX_DEFAULT_MARK_EXPR,
-        ] + ci_parity.SANDBOX_DEFAULT_TARGETS.split()
-
-    def test_sandbox_targets_override_is_split(self):
-        workflow_yaml = """
-jobs:
-  pytest-corpus-job:
-    steps:
-      - run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
-        env:
-          PYTEST_TARGETS: "./sefaria/datatype ./sso"
-"""
-        workflow = yaml.safe_load(workflow_yaml)
-        jobs = ci_parity.extract_pytest_jobs(workflow)
-        spec = jobs["pytest-corpus-job"]
-        assert spec["argv"][2:] == ["./sefaria/datatype", "./sso"]
-
-    def test_unresolvable_expression_raises(self):
-        workflow_yaml = """
-jobs:
-  pytest-corpus-job:
-    steps:
-      - run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
-        env:
-          PYTEST_MARK_EXPR: ${{ env.MISSING_VAR }}
-"""
-        workflow = yaml.safe_load(workflow_yaml)
-        import pytest
-
-        with pytest.raises(ci_parity.UnresolvedExpressionError):
-            ci_parity.extract_pytest_jobs(workflow)
-
-    def test_unresolvable_expression_surfaces_as_exit_2_via_main(self, tmp_path, monkeypatch):
-        workflow_yaml = """
-jobs:
-  pytest-corpus-job:
-    steps:
-      - run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
-        env:
-          PYTEST_MARK_EXPR: ${{ env.MISSING_VAR }}
-"""
-        _write_workflow(tmp_path, workflow_yaml)
-
-        def _fail_if_called(*args, **kwargs):
-            raise AssertionError("collect() should not be reached: parsing must fail first")
-
-        monkeypatch.setattr(ci_parity, "collect", _fail_if_called)
-        rc = ci_parity.main(["--root", str(tmp_path)])
-        assert rc == 2
-
-    def test_deploy_env_steps_expression_is_ignored_not_an_error(self):
-        # DEPLOY_ENV uses ${{ steps.get-sha.outputs.sha_short }}, which this
-        # script cannot and need not resolve -- only PYTEST_MARK_EXPR /
-        # PYTEST_TARGETS are read at all.
-        workflow = load_sandbox_sample()
-        jobs = ci_parity.extract_pytest_jobs(workflow)  # must not raise
-        assert "pytest-corpus-job" in jobs
-
-    def test_sandbox_job_uses_baseline_env_for_collection(self, tmp_path, monkeypatch):
-        workflow_yaml = """
-jobs:
-  pytest-ordinary-job:
-    env:
-      SEFARIA_MOCK_MONGO: "1"
-    steps:
-      - run: python -m pytest -q -m "not deep" ./sefaria
-  pytest-corpus-job:
-    steps:
-      - run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
-        env:
-          DEPLOY_ENV: sandbox-abc123
-          PYTEST_MARK_EXPR: "needs_corpus"
-          PYTEST_TARGETS: "./sefaria"
-"""
-        _write_workflow(tmp_path, workflow_yaml)
-        ordinary_argv = ("-q", "-m", "not deep", "./sefaria")
-        corpus_argv = ("-m", "needs_corpus", "./sefaria")
-        baseline_argv = ("-m", ci_parity.DEFAULT_BASELINE_EXPR, "./sefaria")
-
-        calls = []
-
-        def _fake_collect(argv, env, root):
-            calls.append((tuple(argv), dict(env)))
-            key = tuple(argv)
-            if key == ordinary_argv:
-                return {"sefaria/tests/a_test.py::test_a"}
-            if key == corpus_argv:
-                return {"sefaria/tests/a_test.py::test_a"}
-            if key == baseline_argv:
-                return {"sefaria/tests/a_test.py::test_a"}
-            raise AssertionError(f"unexpected argv {argv!r}")
-
-        monkeypatch.setattr(ci_parity, "collect", _fake_collect)
-        rc = ci_parity.main(["--root", str(tmp_path), "--baseline-paths", "./sefaria"])
-        assert rc == 0
-
-        # find the call made for the corpus job and confirm it used the
-        # ordinary job's env (SEFARIA_MOCK_MONGO), not DEPLOY_ENV from its own step.
-        corpus_calls = [env for argv, env in calls if argv == corpus_argv]
-        assert len(corpus_calls) == 1
-        assert corpus_calls[0].get("SEFARIA_MOCK_MONGO") == "1"
-        assert "DEPLOY_ENV" not in corpus_calls[0]
-        # The sandbox job runs against real Mongo, so it keeps manifest tests too.
-        assert corpus_calls[0].get(ci_parity.PARITY_BASELINE_ENV) == "1"
-
-    def test_real_mongo_job_is_collected_with_baseline_env(self, tmp_path, monkeypatch):
-        workflow_yaml = """
+def test_real_mongo_job_is_collected_with_baseline_env(tmp_path, monkeypatch):
+    workflow_yaml = """
 jobs:
   pytest-mock-job:
     env:
@@ -538,47 +393,108 @@ jobs:
     steps:
       - run: python -m pytest -q -m "needs_corpus" ./sefaria
 """
-        _write_workflow(tmp_path, workflow_yaml)
-        calls = []
+    _write_workflow(tmp_path, workflow_yaml)
+    calls = []
 
-        def _fake_collect(argv, env, root):
-            calls.append((tuple(argv), dict(env)))
-            return {"sefaria/tests/a_test.py::test_a"}
+    def _fake_collect(argv, env, root):
+        calls.append((tuple(argv), dict(env)))
+        return {"sefaria/tests/a_test.py::test_a"}
 
-        monkeypatch.setattr(ci_parity, "collect", _fake_collect)
-        assert ci_parity.main(["--root", str(tmp_path), "--baseline-paths", "./sefaria"]) == 0
-        corpus_env = [env for argv, env in calls if "needs_corpus" in argv][0]
-        mock_env = [env for argv, env in calls if "not needs_corpus" in argv][0]
-        # The real-Mongo job gets the mocked baseline env, not its own port 27017.
-        assert corpus_env.get("SEFARIA_MOCK_MONGO") == "1"
-        assert corpus_env.get("LOCAL_TEST_MONGO_PORT") != "27017"
-        assert corpus_env.get(ci_parity.PARITY_BASELINE_ENV) == "1"
-        # A mocked job keeps its own env, so manifest deselection still applies to it.
-        assert ci_parity.PARITY_BASELINE_ENV not in mock_env
+    monkeypatch.setattr(ci_parity, "collect", _fake_collect)
+    assert ci_parity.main(["--root", str(tmp_path), "--baseline-paths", "./sefaria"]) == 0
+    corpus_env = [env for argv, env in calls if "needs_corpus" in argv][0]
+    mock_env = [env for argv, env in calls if "not needs_corpus" in argv][0]
+    # The real-Mongo job gets the mocked baseline env, not its own port 27017.
+    assert corpus_env.get("SEFARIA_MOCK_MONGO") == "1"
+    assert corpus_env.get("LOCAL_TEST_MONGO_PORT") != "27017"
+    # A mocked job keeps its own env.
+    assert mock_env.get("SEFARIA_MOCK_MONGO") == "1"
 
-    def test_baseline_keeps_manifest_tests_but_mocked_jobs_do_not(self, tmp_path, monkeypatch):
-        # conftest deselects _not-mockable.json tests under the mock unless
-        # SEFARIA_PARITY_BASELINE=1; the baseline must set it and a mocked job must not,
-        # so a manifest test that no job runs shows up as missing.
-        _write_workflow(tmp_path, SIMPLE_WORKFLOW.replace('FOO: "1"', 'SEFARIA_MOCK_MONGO: "1"'))
-        manifest_test = "sefaria/tests/a_test.py::test_manifest"
 
-        def _fake_collect(argv, env, root):
-            ids = {"sefaria/tests/a_test.py::test_a"}
-            if env.get(ci_parity.PARITY_BASELINE_ENV) == "1":
-                ids.add(manifest_test)
-            return ids
+# ---------------------------------------------------------------------------
+# --baseline-ref: master collected from a materialized copy; HEAD decides failures
+# ---------------------------------------------------------------------------
 
-        monkeypatch.setattr(ci_parity, "collect", _fake_collect)
-        rc = ci_parity.main(["--root", str(tmp_path), "--baseline-paths", "./sefaria", "--json"])
-        assert rc == 1
+def _git(cwd, *args):
+    subprocess.run(
+        ["git", "-c", "user.email=test@example.com", "-c", "user.name=test",
+         "-c", "commit.gpgsign=false", *args],
+        cwd=cwd, check=True, capture_output=True,
+    )
 
-    def test_existing_ordinary_job_tests_still_pass(self):
-        # Sanity check that sandbox-support additions didn't change ordinary
-        # job extraction behaviour (full regression covered by TestExtractPytestJobs
-        # above; this is a quick smoke check colocated with the sandbox tests).
-        workflow = load_sample()
-        jobs = ci_parity.extract_pytest_jobs(workflow)
-        assert "-m" in jobs["pytest-job"]["argv"]
-        expr_idx = jobs["pytest-job"]["argv"].index("-m") + 1
-        assert jobs["pytest-job"]["argv"][expr_idx] == "not deep and not failing and needs_mongo"
+
+def test_materialize_ref_overlays_infra(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    (repo / "f.txt").write_text("old\n")
+    _git(repo, "add", "f.txt")
+    _git(repo, "commit", "-q", "-m", "one")
+    (repo / "f.txt").write_text("new\n")
+    _git(repo, "commit", "-q", "-am", "two")
+    # This checkout's mock infrastructure: present in the working tree, not tracked at HEAD~1.
+    (repo / "infra.py").write_text("MOCK = True\n")
+    dest = tmp_path / "dest"
+    dest.mkdir()
+    ci_parity.materialize_ref("HEAD~1", str(repo), str(dest), overlay=("infra.py",))
+    assert (dest / "f.txt").read_text() == "old\n"
+    assert (dest / "infra.py").read_text() == "MOCK = True\n"
+
+
+def test_baseline_ref_hidden_test_fails_removed_test_informational(tmp_path, monkeypatch, capsys):
+    _write_workflow(tmp_path, SIMPLE_WORKFLOW)
+    a = "sefaria/tests/a_test.py::test_a"
+    b = "sefaria/tests/b_test.py::test_b"
+    c = "sefaria/tests/c_test.py::test_c"
+    job_argv = ("-q", "-m", "not deep", "./sefaria")
+    baseline_argv = ("-m", ci_parity.DEFAULT_BASELINE_EXPR, "./sefaria")
+    head_all_argv = ("-m", "", "./sefaria")
+    mapping = {job_argv: {a}, baseline_argv: {a, b, c}, head_all_argv: {a, b}}
+    calls = []
+    monkeypatch.setattr(ci_parity, "collect", _fake_collect_factory(mapping, calls))
+    monkeypatch.setattr(ci_parity, "materialize_ref", lambda ref, root, dest, overlay=None: None)
+    argv = [
+        "--root", str(tmp_path), "--baseline-paths", "./sefaria", "--baseline-env", "FOO=1",
+        "--baseline-ref", "origin/master",
+    ]
+
+    assert ci_parity.main(argv) == 1  # b exists at HEAD and no job runs it: hidden
+    out = capsys.readouterr().out
+    assert "removed" in out and c in out  # gone at HEAD: informational
+    assert "hidden" in out and b in out
+    baseline_calls = [root for argv_, _env, root in calls if argv_ == baseline_argv]
+    assert len(baseline_calls) == 1 and baseline_calls[0] != str(tmp_path)  # from the master copy
+
+    allow_path = tmp_path / "allow.json"
+    allow_path.write_text(json.dumps([{"nodeid": b, "reason": "covered elsewhere"}]))
+    assert ci_parity.main(argv + ["--allow", str(allow_path)]) == 0
+
+
+def test_unavailable_ref_exits_2(tmp_path, monkeypatch, capsys):
+    _write_workflow(tmp_path, SIMPLE_WORKFLOW)
+    _git(tmp_path, "init", "-q")
+    job_argv = ("-q", "-m", "not deep", "./sefaria")
+    mapping = {job_argv: {"sefaria/tests/a_test.py::test_a"}}
+    monkeypatch.setattr(ci_parity, "collect", _fake_collect_factory(mapping))
+    rc = ci_parity.main([
+        "--root", str(tmp_path), "--baseline-paths", "./sefaria", "--baseline-env", "FOO=1",
+        "--baseline-ref", "origin/no-such-ref",
+    ])
+    assert rc == 2
+    assert "origin/no-such-ref" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# sandbox and PARITY_BASELINE_ENV leftovers are gone
+# ---------------------------------------------------------------------------
+
+def test_no_sandbox_leftovers():
+    for name in (
+        "SANDBOX_LAUNCHER_SCRIPT", "_sandbox_job_spec", "UnresolvedExpressionError",
+        "PARITY_BASELINE_ENV", "_resolve_env_expr",
+    ):
+        assert not hasattr(ci_parity, name), name
+    assert "createJobFromRollout" not in (ci_parity.__doc__ or "")
+    source_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ci_parity.py")
+    with open(source_path, encoding="utf-8") as fh:
+        assert "sandbox" not in fh.read().lower()
