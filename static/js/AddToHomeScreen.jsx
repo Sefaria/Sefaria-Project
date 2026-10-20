@@ -10,7 +10,6 @@ import {CloseButton} from './Misc';
  * Spec: "Add to Home Screen — Light Spec & POC" doc. Design: "Add to Home Screen banner" canvas.
  */
 
-const FIRST_VISIT_DELAY_MS = 1000;
 const CONFIRMATION_MS = 6000;
 
 const MINCHA_TITLES = [
@@ -189,11 +188,10 @@ const AddToHomeScreen = ({currentRef}) => {
     if (params.get("a2hs") === "reset") { writeState(target.key, {v: 0, t: 0, d: 0, i: 0}); }
     const state = recordVisit(target.key);
     if (params.get("a2hs") !== "show" && (state.d || state.i)) { return; }
-    const laterVisit = state.v > 1 || params.get("a2hs") === "show";
-    const timer = setTimeout(() => {
+    // Only offer from the second visit on; the first visit shows nothing.
+    if (state.v > 1 || params.get("a2hs") === "show") {
       if (viewRef.current === null) { setView("offer"); }
-    }, laterVisit ? 0 : FIRST_VISIT_DELAY_MS);
-    return () => clearTimeout(timer);
+    }
   }, [target && target.key]);
 
   // iOS uses the page's own URL for the icon, so show the weekly redirect while the steps are up.
