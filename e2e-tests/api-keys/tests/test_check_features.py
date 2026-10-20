@@ -233,6 +233,43 @@ class ResolverTests(RepoCase):
         self.assertFalse(ok)
         self.assertIn("no func TestMissing", reason)
 
+    def test_go_subtest_ref_needs_func_and_string_literal(self):
+        self.write("auth-service/registry/sub_test.go",
+                   'package registry\n\nfunc TestTiers(t *testing.T) {\n\tt.Run("partner tier", func(t *testing.T) {})\n}\n')
+        src = cf.LocalSource(self.root)
+        owner = ("F-REG-01", "F-REG-01.e1")
+        self.assertEqual(cf.resolve_gotest({"ref": "auth-service/registry::TestTiers/partner tier"}, src, owner),
+                         (True, "", False))
+        ok, reason, _ = cf.resolve_gotest({"ref": "auth-service/registry::TestTiers/ghost"}, src, owner)
+        self.assertFalse(ok)
+        self.assertIn("no subtest", reason)
+        ok, reason, _ = cf.resolve_gotest({"ref": "auth-service/registry::TestNope/partner tier"}, src, owner)
+        self.assertFalse(ok)
+        self.assertIn("no func TestNope", reason)
+
+    def test_playwright_skip_and_only_calls_resolve(self):
+        self.write("e2e-tests/api-keys/ui/skips.spec.ts",
+                   "test.skip('Skipped title', async () => {});\n"
+                   "test.only('Only title', async () => {});\n"
+                   "test.skip('Gap title @known-gap', async () => {});\n")
+        src = cf.LocalSource(self.root)
+        owner = ("F-WRITE-01", "F-WRITE-01.e1")
+        path = "e2e-tests/api-keys/ui/skips.spec.ts"
+        self.assertEqual(cf.resolve_playwright({"ref": path + "::Skipped title"}, src, owner), (True, "", False))
+        self.assertEqual(cf.resolve_playwright({"ref": path + "::Only title"}, src, owner)[0], True)
+        self.assertEqual(cf.resolve_playwright({"ref": path + "::Gap title"}, src, owner)[2], True)
+
+    def test_default_demo_script_is_checked_even_when_uncited(self):
+        self.write("auth-service/scripts/demo.sh", DEMO_SCRIPT.replace(
+            "  prove F-MODEL-01.e1\n", "  prove F-MODEL-01.e1\n  prove F-GHOST-01.e9\n", 1).replace("section_quota\n", "", 1))
+        self.write("powered_by/tests/test_tier.py", PYTEST_OK)
+        doc = make_doc([make_feature("F-MODEL-01", [make_edge("F-MODEL-01.e1", [
+            {"kind": "pytest", "ref": "powered_by/tests/test_tier.py::test_tier_rejects_unknown"}])])])
+        failures, _, _ = self.evaluate(doc)
+        messages = self.messages(failures)
+        self.assertTrue(any("F-GHOST-01.e9 names no feature" in m for m in messages), messages)
+        self.assertTrue(any("--list-sections printed" in m for m in messages), messages)
+
     def test_playwright_title_prefix_resolves(self):
         self.write("e2e-tests/api-keys/ui/keys.spec.ts",
                    "test('Admin can create a key', async () => {});\n"
@@ -377,10 +414,10 @@ class PocScopeTests(RepoCase):
 
     def test_poc_ref_from_glob_needs_exactly_one_branch(self):
         self.assertEqual(cf.resolve_poc_ref(self.root, None, POC_GLOB)[0], None)
-        feature_a = "origin/feature/sc-1/auth-service-poc-monthly-quota"
+        feature_a = "origin/feature/branch-a/auth-service-poc-monthly-quota"
         git(self.root, "update-ref", "refs/remotes/" + feature_a, "HEAD")
         self.assertEqual(cf.resolve_poc_ref(self.root, None, POC_GLOB), (feature_a, ""))
-        git(self.root, "update-ref", "refs/remotes/origin/feature/sc-2/auth-service-poc-monthly-quota", "HEAD")
+        git(self.root, "update-ref", "refs/remotes/origin/feature/branch-b/auth-service-poc-monthly-quota", "HEAD")
         ref, reason = cf.resolve_poc_ref(self.root, None, POC_GLOB)
         self.assertIsNone(ref)
         self.assertIn("2 remote branches", reason)
@@ -427,15 +464,44 @@ class CliTests(RepoCase):
         proc = self.run_cli("--features", os.path.join(self.root, bad))
         self.assertEqual(proc.returncode, 2)
 
-    def test_strict_turns_warnings_into_errors(self):
+    def test_strict_keeps_offline_poc_warnings_as_warnings(self):
+        self.write("powered_by/tests/test_tier.py", PYTEST_OK)
+        self.init_git()
+        doc = make_doc([make_feature("F-QUOTA-01", [make_edge("F-QUOTA-01.e1", [
+            {"kind": "pytest", "ref": "powered_by/tests/test_tier.py::test_tier_rejects_unknown",
+             "scope": "poc"}])], status="poc_only")])
+        path = os.path.join(self.root, self.write_features(doc))
+        proc = self.run_cli("--features", path, "--strict", "--offline-poc", "--poc-ref", "no-such-ref", "--summary")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("WARN", proc.stdout)
+        self.assertIn("0 error(s), 1 warning(s)", proc.stdout)
+        self.assertIn("unverified: 1", proc.stdout)
+
+    def test_strict_does_not_escalate_missing_wiki_but_require_wiki_does(self):
         doc = make_doc([make_feature("F-MODEL-01", [make_edge("F-MODEL-01.e1", [
             {"kind": "checks_json", "ref": "B10"}])])])
-        path = self.write_features(doc)
-        lenient = self.run_cli("--features", os.path.join(self.root, path))
-        strict = self.run_cli("--features", os.path.join(self.root, path), "--strict")
-        self.assertEqual(lenient.returncode, 0)
+        path = os.path.join(self.root, self.write_features(doc))
+        self.assertEqual(self.run_cli("--features", path, "--strict").returncode, 0)
+        strict = self.run_cli("--features", path, "--strict", "--require-wiki")
         self.assertEqual(strict.returncode, 1)
-        self.assertIn("MISSING F-MODEL-01.e1 checks_json B10: wiki checks.json absent", strict.stdout)
+        self.assertIn("wiki checks.json not found", strict.stdout)
+
+    def test_poc_ref_env_var_is_used_by_main(self):
+        self.write("powered_by/tests/test_tier.py", PYTEST_OK)
+        self.init_git()
+        doc = make_doc([make_feature("F-QUOTA-01", [make_edge("F-QUOTA-01.e1", [
+            {"kind": "pytest", "ref": "powered_by/tests/test_tier.py::test_tier_rejects_unknown",
+             "scope": "poc"}])], status="poc_only")])
+        path = os.path.join(self.root, self.write_features(doc))
+        env = dict(os.environ, API_KEYS_POC_REF="HEAD", API_KEY_CHECKS_JSON=os.path.join(self.root, "none.json"))
+        proc = subprocess.run([sys.executable, SCRIPT, "--root", self.root, "--features", path],
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8", env=env, check=False)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        env["API_KEYS_POC_REF"] = "no-such-ref"
+        proc = subprocess.run([sys.executable, SCRIPT, "--root", self.root, "--features", path],
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8", env=env, check=False)
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("POC ref unavailable", proc.stdout)
 
     def test_json_report_flag(self):
         doc = make_doc([make_feature("F-MODEL-01", [make_edge("F-MODEL-01.e1")])])

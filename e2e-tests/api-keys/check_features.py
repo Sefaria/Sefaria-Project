@@ -37,7 +37,8 @@ PROVE = re.compile(r"^\s*prove\s+(F-[A-Z]+-\d+(?:\.e\d+)?)")
 SECTION_START = re.compile(r"^(section_\w+)\(\)\s*\{")
 SECTION_END = re.compile(r"^\}")
 GO_KNOWN_GAP = re.compile(r"^//go:build\s+.*\bknowngaps\b", re.M)
-PLAYWRIGHT_CALL = re.compile(r"""\btest(?:\.fixme)?\(\s*(['"`])((?:\\.|(?!\1).)*?)\1""")
+PLAYWRIGHT_CALL = re.compile(r"""\btest(?:\.(?:fixme|skip|only))?\(\s*(['"`])((?:\\.|(?!\1).)*?)\1""")
+DEFAULT_DEMO = "auth-service/scripts/demo.sh"
 FUNC_TYPES = (ast.FunctionDef, ast.AsyncFunctionDef)
 
 EXIT_OK, EXIT_FAIL, EXIT_USAGE = 0, 1, 2
@@ -366,14 +367,29 @@ def resolve_gotest(check, src, owner):
     names = src.list_dir(directory)
     if names is None:
         return False, f"no directory {directory}", False
-    pattern = re.compile("^func " + re.escape(name) + r"\(", re.M)
+    func_name, _, subtest = name.partition("/")
+    pattern = re.compile("^func " + re.escape(func_name) + r"\(", re.M)
+    found_func = False
     for file_name in names:
         if not fnmatch.fnmatchcase(file_name, "*_test.go"):
             continue
         text = src.read(posixpath.join(directory, file_name)) or ""
-        if pattern.search(text):
-            return True, "", bool(GO_KNOWN_GAP.search(text))
-    return False, f"no func {name} in {directory}/*_test.go", False
+        if not pattern.search(text):
+            continue
+        found_func = True
+        if subtest and not _go_has_string_literal(text, subtest):
+            continue
+        return True, "", bool(GO_KNOWN_GAP.search(text))
+    if found_func:
+        return False, f"no subtest {subtest!r} in func {func_name} in {directory}/*_test.go", False
+    return False, f"no func {func_name} in {directory}/*_test.go", False
+
+
+def _go_has_string_literal(text, value):
+    for quote in ('"', "`"):
+        if quote + value + quote in text:
+            return True
+    return False
 
 
 def resolve_playwright(check, src, owner):
@@ -656,6 +672,8 @@ def evaluate(doc, ctx):
         stats["features"] += 1
         for edge in feature["edge_cases"]:
             findings.extend(_evaluate_edge(feature, edge, ctx, stats, demo_paths))
+    if ctx.local.exists(DEFAULT_DEMO):
+        demo_paths.add(DEFAULT_DEMO)
     findings.extend(_demo_findings(sorted(demo_paths), doc, ctx.local))
     findings.extend(_must_map_findings(doc, ctx.root))
     failures = [f for f in findings if f.level != "WARN"]
@@ -777,7 +795,7 @@ def _summary_lines(stats):
 def build_parser():
     parser = argparse.ArgumentParser(
         description="Check features.json: every feature and edge case must name checks that exist.")
-    parser.add_argument("--strict", action="store_true", help="treat warnings (unverified checks) as errors")
+    parser.add_argument("--strict", action="store_true", help="accepted for CI; every rule is always enforced (warnings stay warnings; see --require-wiki, --offline-poc)")
     parser.add_argument("--summary", action="store_true", help="print counts by status and area, planned by tracking id")
     parser.add_argument("--json", action="store_true", help="print the report as JSON")
     parser.add_argument("--root", help="repository root (default: git toplevel)")
@@ -811,9 +829,6 @@ def main(argv=None):
         no_planned=args.no_planned,
     )
     failures, warnings, stats = evaluate(doc, ctx)
-    if args.strict:
-        failures = failures + [w._replace(level="MISSING") for w in warnings]
-        warnings = []
     return report(failures, warnings, stats, as_json=args.json, summary=args.summary)
 
 
