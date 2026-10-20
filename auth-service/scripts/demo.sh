@@ -26,7 +26,7 @@ PAUSE=false
 OFFLINE=false
 READ_ONLY=true
 ALLOW_MUTATING=false
-TMP_FILES=()
+TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/apikeys-demo.XXXXXX")  # new_tmp runs in subshells, so files live in one dir the EXIT trap removes
 
 STACK_PROJECT=sefaria-apikeys-stack
 STACK_PG=sefaria-apikeys-stack-pg-1
@@ -80,27 +80,26 @@ SECTIONS=(section_built section_deployed section_enforced section_safe section_r
 # mutating_restore: undo whatever a mutating_* function left behind; a no-op when nothing is pending.
 mutating_restore() {
   if $AUTHSVC_STOPPED; then
-    t_authsvc_up >/dev/null 2>&1
+    t_authsvc_up >/dev/null || restore_failed 'the auth service could not be started again'
     AUTHSVC_STOPPED=false
   fi
   if [[ -n "$PENDING_KEY_LABEL" ]]; then
-    t_pg "delete from powered_by_apikey where label = '$PENDING_KEY_LABEL'" >/dev/null 2>&1
+    t_pg "delete from powered_by_apikey where label = '$PENDING_KEY_LABEL'" >/dev/null 2>&1 \
+      || restore_failed "the demo key labelled $PENDING_KEY_LABEL was not deleted"
     PENDING_KEY_LABEL=''
   fi
   if [[ -n "$PENDING_TIER_RESTORE" ]]; then
-    t_pg "$PENDING_TIER_RESTORE" >/dev/null 2>&1
+    t_pg "$PENDING_TIER_RESTORE" >/dev/null 2>&1 || restore_failed "the tier restore failed: $PENDING_TIER_RESTORE"
     PENDING_TIER_RESTORE=''
   fi
 }
 
+restore_failed() { printf '%sWARNING:%s demo cleanup: %s; fix it by hand\n' "$RED" "$RESET" "$1" >&2; }
+
 cleanup() {
-  local file
   (( BASH_SUBSHELL == 0 )) || return 0   # pipeline subshells inherit this trap; only the main shell cleans up
   mutating_restore
-  for file in "${TMP_FILES[@]-}"; do
-    [[ -n "$file" ]] || continue
-    rm -f "$file"
-  done
+  rm -rf "$TMP_DIR"
 }
 trap cleanup EXIT
 trap 'exit 130' INT TERM   # route signals through the EXIT trap so every mutation is undone
@@ -218,10 +217,7 @@ capture_shell() {
 }
 
 new_tmp() {
-  local file
-  file=$(mktemp "${TMPDIR:-/tmp}/apikeys-demo.XXXXXX")
-  TMP_FILES+=("$file")
-  printf '%s' "$file"
+  mktemp "$TMP_DIR/file.XXXXXX"
 }
 
 # age_under_1s <go-duration>: true when a Go duration such as 1.35ms or 850µs is below one second.
@@ -273,10 +269,16 @@ t_registry() {
   fi
 }
 
+# Same -f and STACK_RUN_DIR as dev/local-stack/lib.sh, so a run from the repo root never picks the root compose file.
+stack_compose() {
+  STACK_RUN_DIR="${APIKEYS_STACK_STATE_DIR:-$ROOT/.claude/scratch/apikeys-stack}/run" \
+    docker compose -f "$AUTH_SERVICE/dev/local-stack/docker-compose.yml" -p "$STACK_PROJECT" "$@"
+}
+
 # t_authsvc_down / t_authsvc_up: stop and restart the auth service (called only from mutating_* functions).
 t_authsvc_down() {
   if [[ $TARGET == local ]]; then
-    docker compose -p "$STACK_PROJECT" stop authsvc >/dev/null 2>&1
+    stack_compose stop authsvc >/dev/null
   else
     CAULDRON_REPLICAS=$(kubectl --context "$CTX" -n "$NS" get deploy "$CAULDRON_ENV-auth-service" -o 'jsonpath={.spec.replicas}')
     kubectl --context "$CTX" -n "$NS" scale deploy "$CAULDRON_ENV-auth-service" --replicas=0 >/dev/null
@@ -285,7 +287,7 @@ t_authsvc_down() {
 
 t_authsvc_up() {
   if [[ $TARGET == local ]]; then
-    docker compose -p "$STACK_PROJECT" start authsvc >/dev/null 2>&1
+    stack_compose start authsvc >/dev/null
   else
     kubectl --context "$CTX" -n "$NS" scale deploy "$CAULDRON_ENV-auth-service" --replicas="${CAULDRON_REPLICAS:-1}" >/dev/null
   fi
@@ -308,7 +310,7 @@ wait_registry_ready() { # up to 40 s for a non-empty registry after the auth ser
 
 auth_replicas() {
   if [[ $TARGET == local ]]; then
-    docker compose -p "$STACK_PROJECT" ps -q authsvc 2>/dev/null | grep -c .
+    stack_compose ps -q authsvc 2>/dev/null | grep -c .
   else
     kubectl --context "$CTX" -n "$NS" get pods -l "app=auth-service-$CAULDRON_ENV" -o name | grep -c .
   fi
@@ -427,7 +429,7 @@ section_built() {
     capture_shell 'cd auth-service && go test -count=1 ./...' "$output" bash -c 'cd "$1" && shift && exec "$@"' _ "$AUTH_SERVICE" "${goenv[@]}" go test -count=1 ./...
     rc=$?
     awk '$1 == "ok" || $1 == "FAIL" { printf "  %-7s %s\n", $1, $2 }' "$output"
-    prove F-SCHEMA-01.e1 'go test ./... passes, including the registry tests on the schema fixture' test "$rc" -eq 0
+    prove F-SCHEMA-01.e1 'go test ./... passes (the registry tests on the schema fixture skip without PG_TEST_DSN)' test "$rc" -eq 0
   else
     skip_unavailable F-SCHEMA-01.e1 'go is not installed here; run-checks.sh go runs the same tests'
   fi
@@ -473,7 +475,7 @@ section_deployed() {
 }
 
 section_enforced() {
-  section '3. Enforced live' 'Real requests show anonymous access, valid-key access, invalid-key rejection, the gate, origin policy and header edge cases.' F-DEC-01 F-DEC-02 F-DEC-03.e1 F-DEC-04.e1 F-DEC-05.e1 F-DEC-06.e1 F-DEC-07.e1
+  section '3. Enforced live' 'Real requests show anonymous access, valid-key access, invalid-key rejection, the gate, origin policy and header edge cases.' F-DEC-01.e1 F-DEC-02.e1 F-DEC-03.e1 F-DEC-04.e1 F-DEC-05.e1 F-DEC-06.e1 F-DEC-07.e1
   printf 'Target: %s   ungated path: /api/texts/Genesis.1   gated path: /api/knn-search\n' "$TARGET"
 
   http_probe 'anonymous, ungated' '' '' /api/texts/Genesis.1
@@ -483,13 +485,13 @@ section_enforced() {
 
   if [[ -n "$DEV_KEY" ]]; then
     http_probe 'developer key' "$DEV_KEY" '' /api/texts/Genesis.1
-    prove F-DEC-01 'a valid developer key is allowed' probe_is 200 -
+    prove F-DEC-01.e1 'a valid developer key is allowed' probe_is 200 -
   else
-    skip_unavailable F-DEC-01 'set DEMO_KEY to a valid developer key'
+    skip_unavailable F-DEC-01.e1 'set DEMO_KEY to a valid developer key'
   fi
 
   http_probe 'unknown key, gated' "$UNKNOWN_KEY" '' /api/knn-search
-  prove F-DEC-02 'an unknown key on the gated path is 401 api_key_invalid' probe_is 401 api_key_invalid
+  prove F-DEC-02.e1 'an unknown key on the gated path is 401 api_key_invalid' probe_is 401 api_key_invalid
 
   http_probe 'knn-search, no key' '' '' /api/knn-search
   prove F-DEC-04.e1 'the gated path without a key is 401 api_key_required' probe_is 401 api_key_required
@@ -512,7 +514,7 @@ section_enforced() {
 
 section_safe() {
   local output
-  section '4. Safe by design' 'Spoofed identity headers never reach the backend, no full key appears in the auth-service logs, and fail-open is explicit.' F-HDR-02.e1 F-DEC-10 F-OUT-02.e2
+  section '4. Safe by design' 'Spoofed identity headers never reach the backend, no full key appears in the auth-service logs, and fail-open is explicit.' F-HDR-02.e1 F-DEC-10.e1 F-OUT-02.e2
   output=$(new_tmp)
   if [[ $TARGET == local ]]; then
     t_echo / -H 'x-sefaria-tier: internal' -H 'x-sefaria-project: 1' -o "$output" >/dev/null 2>&1
@@ -524,12 +526,12 @@ section_safe() {
 
   output=$(new_tmp)
   if [[ $TARGET == local ]]; then
-    docker compose -p "$STACK_PROJECT" logs authsvc --no-color --tail 1000 >"$output" 2>&1
+    stack_compose logs authsvc --no-color --tail 1000 >"$output" 2>&1
   else
     kubectl --context "$CTX" -n "$NS" logs -l "app=auth-service-$CAULDRON_ENV" --all-containers=true --tail=1000 >"$output" 2>&1
   fi
   printf '    log lines read: %s\n' "$(wc -l <"$output" | tr -d ' ')"
-  prove F-DEC-10 'no full key in the auth-service logs (only prefixes)' secret_free "$output"
+  prove F-DEC-10.e1 'no full key in the auth-service logs (only prefixes)' secret_free "$output"
 
   printf '    chart policy: %s\n' "$(grep -E '^[[:space:]]+(failOpen|timeout):' "$ROOT/helm-chart/sefaria/values.yaml" | tr -s ' ' | paste -sd' ')"
   prove F-OUT-02.e2 'chart default keeps authService.extAuth.failOpen: true' grep -q 'failOpen: true' "$ROOT/helm-chart/sefaria/values.yaml"
@@ -539,7 +541,7 @@ section_registry() {
   local out len expected_len replicas listeners
   section '5. One registry per cluster' 'The auth service reads Django tables through the limits join, listens on six triggers, and every replica is connected.' F-REG-01 F-REG-02 F-MODEL-03.e6 F-MODEL-04.e3 F-REG-06.e4
 
-  prove F-REG-01 'the loader query LEFT JOINs powered_by_projectlimits and binds defaultTier developer' \
+  prove F-REG-01.e2 'the loader query LEFT JOINs powered_by_projectlimits and binds defaultTier developer' \
     bash -c 'grep -q "LEFT JOIN powered_by_projectlimits" "$1" && grep -q "COALESCE(l\.tier, \$1)" "$1" && grep -q "defaultTier = .developer." "$1"' _ "$AUTH_SERVICE/internal/registry/pgload.go"
 
   printf '%s$ psql sefaria_auth: triggers (name on table)%s\n' "$CYAN" "$RESET"
