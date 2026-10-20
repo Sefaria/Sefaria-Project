@@ -51,3 +51,17 @@ def test_save_sheet_stores_slugs_even_if_later_step_fails():
             sheets.save_sheet(new_sheet, user_id=1)
     stored = db.sheets.insert_one.call_args[0][0]
     assert stored["topics"] == [{"asTyped": "Veil", "slug": "veil"}]
+
+
+def test_save_sheet_syncs_links_when_repairing_stored_slugless_topics():
+    """An update that doesn't send topics reuses the stored list; repairing it must still count as a topic change."""
+    existing = {"id": 7, "status": "public", "dateModified": "t0", "views": 1, "owner": 1, "likes": [],
+                "dateCreated": "t0", "sources": [], "topics": [{"asTyped": "veil"}]}
+    update = {"id": 7, "status": "public", "lastModified": "t0", "sources": []}
+    with patch.object(sheets, "db") as db, \
+            patch.object(sheets, "choose_existing_topic_for_title", return_value=MagicMock(slug="veil")), \
+            patch.object(sheets, "generate_and_save_sheet_scoring"), \
+            patch.object(sheets, "update_sheet_topic_links") as sync_links:
+        db.sheets.find_one.return_value = existing
+        sheets.save_sheet(update, user_id=1, search_override=True)
+    sync_links.assert_called_once_with(7, [{"asTyped": "Veil", "slug": "veil"}], [{"asTyped": "veil"}])

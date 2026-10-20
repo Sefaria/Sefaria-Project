@@ -1045,15 +1045,13 @@ def normalize_sheet_topics(topics):
     normalized_slug_title_pairs = {}
 
     for topic in topics:
+        # don't write back into `topic`: callers may hold the same dicts as their pre-save snapshot
         title = normalize_new_topic_title(topic["asTyped"])
-        if not topic.get("slug"):
+        slug = topic.get("slug")
+        if not slug:
             match = choose_existing_topic_for_title(title)
-            if match:
-                topic["slug"] = match.slug
-            else:
-                new_topic = create_topic_from_title(title)
-                topic["slug"] = new_topic.slug
-        normalized_slug_title_pairs[(title, topic["slug"])] = None
+            slug = match.slug if match else create_topic_from_title(title).slug
+        normalized_slug_title_pairs[(title, slug)] = None
 
     return [{"asTyped": pair[0], "slug": pair[1]} for pair in normalized_slug_title_pairs]
 
