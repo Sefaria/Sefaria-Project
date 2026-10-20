@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import { CAULDRON_NAME } from '../env';
 import { keyValue } from '../gateway';
 import { GATED, UNGATED, kubectlReadOnly, rawRequest, summary } from './util';
 
@@ -15,7 +16,7 @@ test.describe('gateway on the cauldron', () => {
       description: `plain http:// gated path -> ${summary(plain)} (a 401 means port 80 reaches the route without a redirect)`,
     });
 
-    const ctp = kubectlReadOnly(['get', 'clienttrafficpolicy', 'apikeys-pipeline', '-n', 'default', '-o', 'json']);
+    const ctp = kubectlReadOnly(['get', 'clienttrafficpolicy', CAULDRON_NAME, '-n', 'default', '-o', 'json']);
     expect(ctp.status, ctp.stderr).toBe(0);
     const policy = JSON.parse(ctp.stdout);
     expect(policy.spec?.headers?.earlyRequestHeaders?.remove).toEqual(

@@ -27,7 +27,8 @@ export const LOCAL_PORTS = {
   mailpit: 18025,
 } as const;
 
-export const CAULDRON_HOST = 'www.apikeys-pipeline.cauldron.sefaria.org';
+export const CAULDRON_NAME = process.env.APIKEYS_CAULDRON || 'apikeys-pipeline';
+export const CAULDRON_HOST = `www.${CAULDRON_NAME}.cauldron.sefaria.org`;
 export const CAULDRON_KUBE_CONTEXT = 'gke_development-205018_us-east1-b_cluster-1';
 
 const BASE_URLS: Record<TargetName, string> = {
@@ -71,7 +72,7 @@ export function assertAllowedUrl(url: string, kind: 'browser' | 'api' = 'api') {
   const host = new URL(url).hostname;
   const allowed = kind === 'browser' ? ALLOWED_BROWSER_HOSTS : ALLOWED_API_HOSTS;
   if (!allowed.some(re => re.test(host))) {
-    throw new Error(`Refusing to send an api-keys test request to ${host}: not the local stack or the apikeys-pipeline cauldron.`);
+    throw new Error(`Refusing to send an api-keys test request to ${host}: not the local stack or the ${CAULDRON_NAME} cauldron.`);
   }
 }
 

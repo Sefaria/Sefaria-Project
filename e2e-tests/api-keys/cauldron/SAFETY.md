@@ -1,8 +1,13 @@
 # Cauldron runner: safety rules
 
 `run.sh` prints this file before it does anything. It targets only
-`https://www.apikeys-pipeline.cauldron.sefaria.org` and the dev cluster context
+`https://www.$APIKEYS_CAULDRON.cauldron.sefaria.org` (default `apikeys-pipeline`, the shared cauldron; set
+`APIKEYS_CAULDRON=apisplit` for the dedicated one; `APIKEYS_PR` names the PR whose merge commit the images must
+match, default 3798) and the dev cluster context
 `gke_development-205018_us-east1-b_cluster-1` (the default context on some machines is production).
+
+`auth-service/scripts/demo.sh --target cauldron --allow-mutating` refuses (exit 2) unless `APIKEYS_CAULDRON` is set
+explicitly, and refuses any kube context other than the dev one.
 
 ## Rulebook
 

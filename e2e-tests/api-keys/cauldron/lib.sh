@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+# shellcheck disable=SC2034  # sourced library: its variables are used by run.sh and fixture-free.sh
 # Shared helpers for the cauldron runner. Sourced, never run.
 # Every cluster call goes through kc, which pins the dev context and the default namespace and
 # refuses any verb that is not read-only (exec and port-forward are limited further below).

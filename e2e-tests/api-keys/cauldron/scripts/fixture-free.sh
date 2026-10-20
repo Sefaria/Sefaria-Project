@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
+# shellcheck disable=SC2034  # sourced library: variables come from and go to run.sh
 # Fixture-free cauldron cases: plain requests with no key or a made-up key, plus read-only
 # cluster observation. Sourced by run.sh, which provides RUN_DIR, RUN_ID, rec and the lib.
 

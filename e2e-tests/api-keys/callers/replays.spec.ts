@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { findAccount, readPassword } from '../env';
+import { CAULDRON_HOST, findAccount, readPassword } from '../env';
 import { keyValue } from '../gateway';
 import { GATED, RawResult, answeredByGateway, rawRequest } from '../gateway/util';
 
@@ -124,7 +124,7 @@ test.describe('caller replays', () => {
     const csrf = cookieValue(loginPage.headers['set-cookie'], 'csrftoken');
     expect(csrf, 'csrftoken cookie on the login page').toBeTruthy();
 
-    const base = target.name === 'local' ? 'http://www.gateway.test:10080' : 'https://www.apikeys-pipeline.cauldron.sefaria.org';
+    const base = target.name === 'local' ? 'http://www.gateway.test:10080' : `https://${CAULDRON_HOST}`;
     const posted = await rawRequest({
       target: target.name, path: '/login', method: 'POST',
       headers: {
