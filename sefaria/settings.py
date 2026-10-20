@@ -366,6 +366,8 @@ SEARCH_INDEX_NAME_CATEGORY = 'category'
 # Never override it per process or script: the environment's caches must only ever hold one
 # mode's view of the library.
 SHOW_ADMIN_ONLY_BOOKS = os.getenv("SHOW_ADMIN_ONLY_BOOKS", "false").lower() == "true"
+# TEMPORARY (PR #3838 QA): "QA: copy as staff-only" admin buttons. Only the QA cauldron turns this on. Remove before merging.
+STAFF_ONLY_QA_TOOLS = os.getenv("STAFF_ONLY_QA_TOOLS", "false").lower() == "true"
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

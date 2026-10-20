@@ -277,3 +277,63 @@ def test_publish_links_skips_links_to_hidden_books(hidden_book, monkeypatch, sta
         assert db.links.find_one({"_id": blocked})["admin_only"] is True
     finally:
         db.links.delete_many({"generated_by": "zzz_publish"})
+
+
+# ---- TEMPORARY (PR #3838 QA): copy tools. Remove with sefaria/helper/staff_only_qa.py before merging. ---- #
+
+@pytest.fixture
+def qa_tools(monkeypatch):
+    monkeypatch.setattr(settings, "SHOW_ADMIN_ONLY_BOOKS", True, raising=False)
+    monkeypatch.setattr(settings, "STAFF_ONLY_QA_TOOLS", True, raising=False)
+
+
+def test_qa_tools_are_off_by_default(staff_mode, monkeypatch):
+    from sefaria.helper import staff_only_qa
+    monkeypatch.setattr(settings, "STAFF_ONLY_QA_TOOLS", False, raising=False)
+    with pytest.raises(InputError):
+        staff_only_qa.copy_version(0, {"title": "Ruth", "versionTitle": "x", "language": "en", "newVersionTitle": "y"})
+
+
+def test_qa_copy_version_is_staff_only(qa_tools):
+    from sefaria.helper import staff_only_qa
+    source = Version().load({"title": "Ruth", "language": "en"})
+    new_title = "Zzz QA Copy Of " + source.versionTitle
+    try:
+        staff_only_qa.copy_version(0, {"title": "Ruth", "versionTitle": source.versionTitle, "language": "en",
+                                       "newVersionTitle": new_title})
+        copy = db.texts.find_one({"title": "Ruth", "versionTitle": new_title})
+        assert copy["admin_only"] is True and copy["isPrimary"] is False and copy["chapter"] == source.chapter
+    finally:
+        v = Version().load({"title": "Ruth", "versionTitle": new_title})
+        if v:
+            v.delete()
+
+
+def test_qa_copy_book_and_category(qa_tools):
+    from sefaria.helper import staff_only_qa
+    category_path = ["Tanakh", "Zzz QA Copy Category"]
+    new_title = "Zzz QA Copy Of Ruth"
+    try:
+        staff_only_qa.copy_category(0, {"path": ["Tanakh", "Torah"], "name": category_path[-1], "heName": "העתקה"})
+        assert db.category.find_one({"path": category_path})["admin_only"] is True
+
+        result = staff_only_qa.copy_index(0, {"title": "Ruth", "newTitle": new_title, "heTitle": "העתק רות",
+                                              "categories": category_path, "maxLinks": 20})
+        assert db.index.find_one({"title": new_title})["admin_only"] is True
+        assert db.texts.count_documents({"title": new_title}) == db.texts.count_documents({"title": "Ruth"}) == len(result["versions"])
+        assert db.texts.count_documents({"title": new_title, "admin_only": {"$ne": True}}) == 0
+        links = list(db.links.find({"refs": {"$regex": "^" + new_title}}))
+        assert links and result["links"] == len(links) and all(l.get("admin_only") for l in links)
+        assert not any(r.startswith("Zzz QA Copy Of Ruth Rabbah") for l in links for r in l["refs"])
+
+        with pytest.raises(InputError):  # hyphens are refused before anything is written
+            staff_only_qa.copy_index(0, {"title": "Ruth", "newTitle": "Zzz QA Ruth-Copy", "heTitle": "x"})
+    finally:
+        index = Index().load({"title": new_title})
+        if index:
+            index.delete()
+        LinkSet({"refs": {"$regex": "^" + new_title}}).delete()
+        category = Category().load({"path": category_path})
+        if category:
+            category.delete()
+        db.history.delete_many({"method": "Staff-only QA copy"})

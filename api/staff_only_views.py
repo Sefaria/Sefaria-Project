@@ -3,6 +3,7 @@ from django.views import View
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
 from sefaria.helper import staff_only
+from sefaria.helper import staff_only_qa
 from .views import _load_json_body, StaffRequiredMixin
 
 
@@ -53,3 +54,23 @@ class StaffOnlyPublishLinksView(StaffOnlyAPIView):
 
     def post(self, request):
         return self._handle(request, staff_only.publish_links)
+
+
+# TEMPORARY (PR #3838 QA): copy existing records as staff-only. Remove before merging, with sefaria/helper/staff_only_qa.py.
+
+class StaffOnlyQACopyCategoryView(StaffOnlyAPIView):
+
+    def post(self, request):
+        return self._handle(request, staff_only_qa.copy_category)
+
+
+class StaffOnlyQACopyIndexView(StaffOnlyAPIView):
+
+    def post(self, request):
+        return self._handle(request, staff_only_qa.copy_index)
+
+
+class StaffOnlyQACopyVersionView(StaffOnlyAPIView):
+
+    def post(self, request):
+        return self._handle(request, staff_only_qa.copy_version)

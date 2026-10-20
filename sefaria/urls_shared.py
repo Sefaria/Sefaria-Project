@@ -136,6 +136,10 @@ shared_patterns = [
     path('_api/staff-only/index/publish', staff_only_views.StaffOnlyPublishIndexView.as_view()),
     path('_api/staff-only/version/publish', staff_only_views.StaffOnlyPublishVersionView.as_view()),
     path('_api/staff-only/links/publish', staff_only_views.StaffOnlyPublishLinksView.as_view()),
+    # TEMPORARY (PR #3838 QA): remove before merging.
+    path('_api/staff-only/qa/copy-category', staff_only_views.StaffOnlyQACopyCategoryView.as_view()),
+    path('_api/staff-only/qa/copy-index', staff_only_views.StaffOnlyQACopyIndexView.as_view()),
+    path('_api/staff-only/qa/copy-version', staff_only_views.StaffOnlyQACopyVersionView.as_view()),
 
     path('api/ref/<path:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),

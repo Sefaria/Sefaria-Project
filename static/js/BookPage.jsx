@@ -34,6 +34,7 @@ import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu} from "./common/DropdownMenu";
 import { getCsrfToken } from "./sefaria/csrf";
+import { StaffOnlyBadge, staffOnlyBookButtons } from "./StaffOnlyTools";
 
 
 
@@ -246,7 +247,10 @@ class BookPage extends Component {
                 <div className="tocTitle" role="heading" aria-level="1">
                   <div className="tocTitleControls">
                     <CategoryHeader type="books" toggleButtonIDs={["section", "edit"]}
-                                    data={title}><ContentText text={{en:title, he:heTitle}}/></CategoryHeader>
+                                    actionButtons={staffOnlyBookButtons(title, this.state.indexDetails && this.state.indexDetails.categories,
+                                                                        this.state.indexDetails && this.state.indexDetails.admin_only)}
+                                    data={title}><ContentText text={{en:title, he:heTitle}}/>
+                      <StaffOnlyBadge adminOnly={this.state.indexDetails && this.state.indexDetails.admin_only}/></CategoryHeader>
                   </div>
                   { this.props.multiPanel && this.props.toggleLanguage && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                   <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }

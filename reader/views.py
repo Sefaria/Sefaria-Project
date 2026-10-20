@@ -304,6 +304,11 @@ def base_props(request):
             "_email": request.user.email,
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
+            # staff site (SHOW_ADMIN_ONLY_BOOKS): moderators see staff-only badges and Publish buttons
+            "staff_only_mode": request.user.is_staff and bool(getattr(settings, "SHOW_ADMIN_ONLY_BOOKS", False)),
+            # TEMPORARY (PR #3838 QA): "QA: copy as staff-only" buttons. Remove before merging.
+            "staff_only_qa_tools": request.user.is_staff and bool(getattr(settings, "SHOW_ADMIN_ONLY_BOOKS", False))
+                                   and bool(getattr(settings, "STAFF_ONLY_QA_TOOLS", False)),
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "is_sustainer": profile.is_sustainer,
             "experiments": profile.experiments,
@@ -326,6 +331,8 @@ def base_props(request):
             "_email": "",
             "slug": "",
             "is_moderator": False,
+            "staff_only_mode": False,
+            "staff_only_qa_tools": False,
             "is_editor": False,
             "is_sustainer": False,
             "experiments": False,

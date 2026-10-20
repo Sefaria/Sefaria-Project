@@ -11,6 +11,7 @@ import VersionBlockSelectButton from "./VersionBlockSelectButton";
 import VersionInformation from "./VersionInformation";
 import VersionImage from "./VersionImage";
 import VersionBlockWithPreview from "./VersionBlockWithPreview";
+import { StaffOnlyBadge, VersionStaffOnlyControls } from "../StaffOnlyTools";
 
 class VersionBlockUtils {
     static makeVersionTitle(version){
@@ -288,6 +289,7 @@ class VersionBlock extends Component {
               <div id="delete_button" onClick={this.deleteVersion}>Delete Version</div>
               <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
               <div className="clearFix"></div>
+              <VersionStaffOnlyControls version={this.props.version}/>
             </div>
           </div>
         </div>
@@ -305,6 +307,7 @@ class VersionBlock extends Component {
                     this.props.currObjectVersions, this.props.rendermode === 'book-page')}
                />
             </div>
+            <StaffOnlyBadge adminOnly={v.admin_only}/>
             <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
             <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria.translateISOLanguageName(v.actualLanguage) : ""}</div>
           </div>

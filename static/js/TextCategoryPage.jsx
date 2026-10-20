@@ -14,6 +14,7 @@ import {
   CategoryHeader
 } from './Misc';
 import {ContentText} from "./ContentText";
+import { StaffOnlyBadge, useCategoryAdminOnly, staffOnlyCategoryButtons } from "./StaffOnlyTools";
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
@@ -46,6 +47,7 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
     }
   }
 
+  const catAdminOnly = useCategoryAdminOnly(cats);
   const tocObject = Sefaria.tocObjectByCategories(cats);
   const catContents = Sefaria.tocItemsByCategories(cats);
   const nestLevel   = category === "Commentary" ? 1 : 0;
@@ -57,9 +59,10 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
   const title = compare ? categoryToggle :
     <div className="navTitle">
-        <CategoryHeader data={cats} type="cats">
+        <CategoryHeader data={cats} type="cats" actionButtons={staffOnlyCategoryButtons(cats, catAdminOnly)}>
             <h1>
             <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
+            <StaffOnlyBadge adminOnly={catAdminOnly}/>
             </h1>
         </CategoryHeader>
       {categoryToggle}
