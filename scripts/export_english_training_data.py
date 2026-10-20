@@ -42,7 +42,10 @@ import html
 import json
 import os
 import re
+import time
 from collections import Counter, defaultdict
+from datetime import timedelta
+from functools import lru_cache
 
 import django
 django.setup()
@@ -85,12 +88,61 @@ ENGLISH_STOPWORDS = frozenset(
     "its also when some could these how do our my your".split()
 )
 
+SCRIPT_START = time.time()
+
+
+def log(msg):
+    """Print `msg` prefixed with wall-clock time and time since the script started."""
+    elapsed = timedelta(seconds=int(time.time() - SCRIPT_START))
+    print("[{} +{}] {}".format(time.strftime("%H:%M:%S"), elapsed, msg), flush=True)
+
+
+class Progress:
+    """Logs a plain one-line progress report every `every` items: count, percent of `total`, rate and ETA."""
+
+    def __init__(self, label, total, every):
+        self.label, self.total, self.every = label, total, every
+        self.done = 0
+        self.start = time.time()
+        log("{}: starting, {:,} to read".format(label, total))
+
+    def tick(self, extra=lambda: ""):
+        """`extra` is a function returning text to append, called only when a line is actually logged."""
+        self.done += 1
+        if self.done % self.every == 0:
+            self._log(extra())
+
+    def finish(self, extra=""):
+        self._log(extra, finished=True)
+
+    def _log(self, extra, finished=False):
+        elapsed = time.time() - self.start
+        rate = self.done / elapsed if elapsed else 0.0
+        parts = ["{}: {:,}/{:,}".format(self.label, self.done, self.total)]
+        if self.total and not finished:
+            parts[0] += " ({:.1%})".format(self.done / self.total)
+            if rate:
+                parts.append("ETA {}".format(timedelta(seconds=int(max(self.total - self.done, 0) / rate))))
+        parts.append("{:,.0f}/s".format(rate))
+        if finished:
+            parts.append("done in {}".format(timedelta(seconds=int(elapsed))))
+        if extra:
+            parts.append(extra)
+        log(" · ".join(parts))
+
+
+def capped(total, limit):
+    return min(total, limit) if limit else total
+
 
 def version_docs(limit=None):
     """Yield one doc per ref. Within each index, versions are tried in Sefaria's preference order
     (VersionSet default: priority desc, then _id) and a ref is taken from the first version that has it."""
-    titles = sorted(db.texts.distinct("title", {"actualLanguage": "en"}))
-    for title in titles[:limit or None]:
+    titles = sorted(db.texts.distinct("title", {"actualLanguage": "en"}))[:limit or None]
+    progress = Progress("versions (indexes)", len(titles), every=100)
+    n_docs = 0
+    for title in titles:
+        progress.tick(lambda: "{:,} refs exported".format(n_docs))
         seen_refs = set()
         for version in VersionSet({"title": title, "actualLanguage": "en"}):
             docs = []
@@ -107,9 +159,11 @@ def version_docs(limit=None):
             try:
                 version.walk_thru_contents(action)
             except Exception as e:  # e.g. version whose Index no longer exists
-                print("Skipping {} / {}: {}: {}".format(version.title, version.versionTitle, type(e).__name__, e), flush=True)
+                log("Skipping {} / {}: {}: {}".format(version.title, version.versionTitle, type(e).__name__, e))
                 continue
+            n_docs += len(docs)
             yield from docs
+    progress.finish("{:,} refs exported".format(n_docs))
 
 
 def user_generated_text(source):
@@ -127,13 +181,17 @@ def sheet_docs(limit=None):
     cursor = db.sheets.find({"status": "public"}, {"id": 1, "title": 1, "sources": 1, "owner": 1, "dateCreated": 1})
     if limit:
         cursor = cursor.limit(limit)
+    progress = Progress("sheets", capped(db.sheets.count_documents({"status": "public"}), limit), every=10000)
+    n_docs = 0
     for sheet in cursor:
+        progress.tick(lambda: "{:,} nodes exported".format(n_docs))
         sheet_language = get_sheet_language(sheet)
         for position, source in enumerate(sheet.get("sources", [])):
             node = user_generated_text(source)
             if not node or not node[1] or not node[1].strip():
                 continue
             node_type, text = node
+            n_docs += 1
             yield {
                 "id": "sheet:{}:{}".format(sheet["id"], source.get("node", position)),
                 "source": "sheet",
@@ -144,11 +202,18 @@ def sheet_docs(limit=None):
                 "sheet_language": sheet_language,
                 "text": text,
             }
+    progress.finish("{:,} nodes exported".format(n_docs))
 
 
 def whitelisted_site_name(url):
     """Return the name of the whitelisted site `url` belongs to, or None if the site is unknown or not whitelisted."""
-    site = site_data_for_domain(domain_for_url(url))
+    return whitelisted_site_name_for_domain(domain_for_url(url))
+
+
+@lru_cache(maxsize=None)
+def whitelisted_site_name_for_domain(domain):
+    """Cached by domain, since site_data_for_domain scans every site's domains on each call."""
+    site = site_data_for_domain(domain)
     return site["name"] if site and site.get("is_whitelisted") else None
 
 
@@ -176,11 +241,15 @@ def find_site_boilerplate(limit=None):
     pages_per_site = Counter()
     line_pages = defaultdict(Counter)  # site -> line key -> number of pages containing it
     cursor = db.webpages_text.find({}, {"url": 1, "body": 1}, limit=limit or 0)
+    progress = Progress("webpages pass 1/2 (find boilerplate)", capped(db.webpages_text.estimated_document_count(), limit), every=10000)
     for page in cursor:
+        progress.tick(lambda: "{:,} whitelisted pages, {:,} distinct lines counted".format(
+            sum(pages_per_site.values()), sum(len(c) for c in line_pages.values())))
         site = whitelisted_site_name(page["url"])
         if site:
             pages_per_site[site] += 1
             line_pages[site].update({line_key(line) for line in body_lines(page.get("body") or "")})
+    progress.finish("{:,} whitelisted pages on {:,} sites".format(sum(pages_per_site.values()), len(pages_per_site)))
     boilerplate = {}
     for site, counts in line_pages.items():
         threshold = max(BOILERPLATE_MIN_DOCS, BOILERPLATE_MIN_FRAC * pages_per_site[site])
@@ -246,7 +315,9 @@ def webpage_docs(limit=None, rejected=None):
     rejected = rejected if rejected is not None else Counter()
     boilerplate = find_site_boilerplate(limit)
     exported_texts = set()
+    progress = Progress("webpages pass 2/2 (filter + export)", capped(db.webpages_text.estimated_document_count(), limit), every=10000)
     for page in db.webpages_text.find({}, limit=limit or 0):
+        progress.tick(lambda: "{:,} kept, {:,} rejected".format(len(exported_texts), sum(rejected.values())))
         site = whitelisted_site_name(page["url"])
         if not site:
             rejected["not_whitelisted"] += 1
@@ -270,6 +341,7 @@ def webpage_docs(limit=None, rejected=None):
             "text": text,
             **metrics,
         }
+    progress.finish("{:,} kept, {:,} rejected".format(len(exported_texts), sum(rejected.values())))
 
 
 def main():
@@ -296,10 +368,10 @@ def main():
                 fout.write(json.dumps(doc, ensure_ascii=False) + "\n")
                 counts[doc["source"]] += 1
                 if sum(counts.values()) % 100000 == 0:
-                    print("...{}".format(counts), flush=True)
-    print("Wrote {} to {}".format(counts, args.out))
+                    log("written so far: {} ({:.2f} GB)".format(counts, fout.tell() / 1e9))
+    log("Wrote {} to {} ({:.2f} GB)".format(counts, args.out, os.path.getsize(args.out) / 1e9))
     if rejected:
-        print("Webpages rejected: {}".format(dict(rejected.most_common())))
+        log("Webpages rejected: {}".format(dict(rejected.most_common())))
 
 
 if __name__ == "__main__":
