@@ -14,17 +14,22 @@ import sefaria.model.abstract as abstract
 # cascade functions are tested in person_test.py
 
 
-def _base_collections():
+def _load_base_collections():
     path = os.path.join(os.path.dirname(__file__), "..", "..", "tests", "fixtures", "mongo", "_base.json")
-    return set(json_util.loads(open(path).read())["collections"])
+    with open(path) as f:
+        return set(json_util.loads(f.read())["collections"])
+
+# Parsed once at import: _base.json is ~17 MB, and parsing it per record class slowed every collection.
+_BASE_COLLECTIONS = _load_base_collections()
 
 # Subclasses whose collection is in the base fixture but whose subtype is not: the base
 # 'topics' docs hold no person-typed topics, so PersonTopic/AuthorTopic load nothing here.
+# Remove an entry if the base gains matching documents: the fail-on-empty body will not flag a stale entry.
 _BASE_MISSING_SUBCLASSES = {"PersonTopic", "AuthorTopic"}
 
 _RECORD_PARAMS = [
     pytest.param(sub, id=sub.__name__,
-                 marks=[] if sub.collection in _base_collections() and sub.__name__ not in _BASE_MISSING_SUBCLASSES
+                 marks=[] if sub.collection in _BASE_COLLECTIONS and sub.__name__ not in _BASE_MISSING_SUBCLASSES
                  else [pytest.mark.needs_corpus])
     for sub in abstract.get_record_classes()]
 
