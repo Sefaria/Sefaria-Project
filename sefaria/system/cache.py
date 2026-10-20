@@ -206,17 +206,21 @@ in_memory_cache = InMemoryCache()
 
 
 def invalidate_user_profile_cache(uids):
-    """Forget merged identities on this process and in shared recommendations.
+    """Clear cached profile data for these user IDs, so pages show the merged account.
 
-    The merge utility also publishes this function through the existing multiserver
-    coordinator (as scache.invalidate_user_profile_cache) so other web workers run it.
+    This only clears this server's memory and the shared cache. To reach the other
+    web servers, the account merge also sends this call through the multiserver
+    coordinator, as scache.invalidate_user_profile_cache.
     """
     from sefaria.model import following, user_profile
 
     for uid in uids:
         user_profile.public_user_data_cache.pop(uid, None)
+    # The list of suggested people to follow; it is rebuilt on next use.
     following.creators = None
-    # Cover the default, positional, and keyword calls to aggregate_profiles().
+    # aggregate_profiles() is cached under a different key depending on how it
+    # was called: with no argument, with lang as a positional argument, or with
+    # lang= as a keyword. Delete every one of those keys.
     keys = [cache_get_key(cache_get_key_arr("aggregate_profiles"))]
     for lang in ("english", "hebrew"):
         keys.append(cache_get_key(cache_get_key_arr("aggregate_profiles", lang)))
