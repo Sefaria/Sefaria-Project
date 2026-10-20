@@ -412,8 +412,8 @@ def resolve_demo(check, src, owner):
     sections = demo_sections(text)
     if section not in sections:
         return False, f"no function {section}() in {path}", False
-    if not set(owner) & set(sections[section]):
-        return False, f"{section} proves neither {owner[0]} nor {owner[1]}", False
+    if owner[1] not in sections[section]:
+        return False, f"{section} does not prove {owner[1]}", False
     return True, "", False
 
 
@@ -615,8 +615,10 @@ def apply_status_rules(feature, edge, results):
         if not edge.get("tracking") or not edge.get("planned_check"):
             findings.append(Finding("MISSING", eid, "-", "-", "planned case needs tracking and planned_check"))
         return findings
-    if any(res.ok is not True for res in results) or any(_proves(res, edge, status) for res in results):
+    if any(_proves(res, edge, status) for res in results):
         return findings
+    if any(res.ok is False for res in results) or (results and not any(res.ok for res in results)):
+        return findings  # a failure is already reported; with nothing resolved: the unresolved checks are already reported and may still be the proof
     return findings + [Finding("MISSING", eid, "-", "-", _no_proof(edge, status, results))]
 
 

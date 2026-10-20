@@ -142,6 +142,14 @@ class EdgeRuleTests(RepoCase):
         self.assertEqual(len(failures), 1)
         self.assertIn("only known-gap tests resolve", failures[0].reason)
 
+    def test_unverified_wiki_check_does_not_rescue_a_known_gap_only_normal_case(self):
+        gap = {"kind": "pytest", "ref": "powered_by/tests/test_tier.py::test_gap_rate_limit"}
+        wiki = {"kind": "checks_json", "ref": "B10"}
+        doc = make_doc([make_feature("F-MODEL-01", [make_edge("F-MODEL-01.e1", [gap, wiki])])])
+        failures, _, _ = self.evaluate(doc, wiki_path=os.path.join(self.root, "absent.json"))
+        self.assertEqual(len(failures), 1)
+        self.assertIn("only known-gap tests resolve", failures[0].reason)
+
     def test_known_gap_case_must_cite_a_known_gap_test(self):
         normal = {"kind": "pytest", "ref": self.ok_ref}
         gap = {"kind": "pytest", "ref": "powered_by/tests/test_tier.py::test_known_gap_drift"}
@@ -320,7 +328,17 @@ class ResolverTests(RepoCase):
         ])
         failures, _, _ = self.evaluate(doc)
         self.assertEqual([f.edge for f in failures], ["F-QUOTA-01.e1"])
-        self.assertIn("proves neither", failures[0].reason)
+        self.assertIn("does not prove F-QUOTA-01.e1", failures[0].reason)
+
+    def test_demo_section_proving_only_the_feature_id_does_not_prove_an_edge(self):
+        self.write("auth-service/scripts/demo.sh", DEMO_SCRIPT.replace("prove F-MODEL-01.e1", "prove F-MODEL-01"))
+        doc = make_doc([make_feature("F-MODEL-01", [make_edge("F-MODEL-01.e1", [
+            {"kind": "demo", "ref": "auth-service/scripts/demo.sh::section_model"}])]),
+            make_feature("F-QUOTA-01", [make_edge("F-QUOTA-01.e1", [
+                {"kind": "demo", "ref": "auth-service/scripts/demo.sh::section_quota"}])])])
+        failures, _, _ = self.evaluate(doc)
+        self.assertEqual([f.edge for f in failures], ["F-MODEL-01.e1"])
+        self.assertIn("does not prove F-MODEL-01.e1", failures[0].reason)
 
     def test_demo_prove_of_unknown_id_fails(self):
         self.write("auth-service/scripts/demo.sh", DEMO_SCRIPT.replace(
