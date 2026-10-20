@@ -134,7 +134,7 @@ class SefariaSiteMapGenerator(object):
         Creates a sitemap for each topic that has at least one source or source sheet.
         """
         topics = TopicSet()
-        topics = [topic for topic in topics if topic.should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY)]
+        topics = [topic for topic in topics if topic.should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY, textual_only=True)]
         urls = [self._hostname + "/topics/" + topic.slug for topic in topics]
         self.write_urls(urls, "topics-sitemap.xml")
 

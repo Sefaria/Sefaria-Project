@@ -3124,9 +3124,9 @@ def get_name_completions(name, limit, topic_override=False, types=None, topic_po
     ref = None
     topic = None
     if topic_override:
-        topic_set = TopicSet({"titles.text": re.compile(fr'^{re.escape(name)}$', flags=re.IGNORECASE)}, sort=[("numSources", -1)], limit=1)
-        if topic_set.count() > 0:
-            topic = topic_set.array()[0]
+        matching_topics = TopicSet({"titles.text": re.compile(fr'^{re.escape(name)}$', flags=re.IGNORECASE)}).array()
+        if len(matching_topics) > 0:
+            topic = max(matching_topics, key=lambda t: t.total_sources)
     try:
         ref = Ref(name)
         inode = ref.index_node
@@ -3613,7 +3613,7 @@ def topic_page(request, slug, test_version=None):
     return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
-        "noindex":        not topic_obj.should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY),
+        "noindex":        not topic_obj.should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY, textual_only=True),
     })
 
 @catch_error_as_json
@@ -3623,7 +3623,7 @@ def topics_list_api(request):
     """
     limit = int(request.GET.get("limit", 1000))
     minify = bool(int(request.GET.get("minify", 1)))
-    all_topics = get_all_topics(limit, active_module=request.active_module, min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY)
+    all_topics = get_all_topics(limit, active_module=request.active_module, min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY, textual_only=True)
     all_topics_json = []
     for topic in all_topics:
         topic_json = topic.contents(minify=minify, with_html=True)
