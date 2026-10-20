@@ -112,9 +112,11 @@ const SafariMenuIcon = () => (
   </svg>
 );
 
-const ShareIcon = ({size = 18}) => (
-  <svg className="a2hsInlineIcon" role="img" aria-label="Share" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/>
+const ShareIcon = ({size = 20}) => (
+  // Drawn to match iOS's Share glyph (square with an open top and an arrow up through it).
+  <svg className="a2hsInlineIcon" role="img" aria-label="Share" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 9H7.5A2.5 2.5 0 0 0 5 11.5v8A2.5 2.5 0 0 0 7.5 22h9a2.5 2.5 0 0 0 2.5-2.5v-8A2.5 2.5 0 0 0 16.5 9H15"/>
+    <path d="M12 2v13"/><path d="M8.5 5.5 12 2l3.5 3.5"/>
   </svg>
 );
 
