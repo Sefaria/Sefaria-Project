@@ -32,9 +32,15 @@ def _filter(wf):
     rules = yaml.safe_load(step["with"]["filters"])["python_files_changed"]
     return {kind: pats for rule in rules for kind, pats in rule.items()}
 
+PYTEST_JOB_IDS = ["pytest-no-mongo-job", "pytest-job", "pytest-linker-job", "pytest-corpus-job"]
+
 def test_no_linker_impact_gate(wf):
     assert "check-linker" + "-impact" not in wf["jobs"]
     assert wf["jobs"]["pytest-linker-job"]["needs"] == ["check-python-files"]
+
+def test_sibling_pytest_jobs_share_one_if(wf):
+    conds = {jid: wf["jobs"][jid]["if"] for jid in PYTEST_JOB_IDS}
+    assert len(set(conds.values())) == 1, conds
 
 @pytest.mark.parametrize("path", ["pytest.ini", "build/ci/prepare-pytest-runner.sh",
     "build/ci/restore-test-mongo.sh", "sefaria/tests/fixtures/mongo/_base.json", "scripts/test_impact/ci_parity.py"])
@@ -58,7 +64,8 @@ def test_branch_protection_checks_every_pytest_job(wf):
     script = bp["steps"][0]["run"]
     for jid in pytest_jobs(wf):
         assert jid in bp["needs"], jid
-        assert "needs.%s.result" % jid in script, jid
+        assert '[ "${{ needs.%s.result }}" != "success" ]' % jid in script, jid
+    assert "skipped" not in script
     assert "check-linker" + "-impact" not in script
 
 def test_no_continue_on_error_in_pytest_jobs(wf):
