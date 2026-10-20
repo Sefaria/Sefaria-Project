@@ -468,9 +468,11 @@ def _ordered_union(first, second):
 # ---------------------------------------------------------------------------
 
 def _merge_collections(from_uid, into_uid):
-    either_user_has_a_role = {"$or": [{role: {"$in": [from_uid, into_uid]}} for role in _COLLECTION_ROLES]}
+    # Only collections the source belongs to. Collections that have just the
+    # destination are not part of the merge and must not change.
+    source_has_a_role = {"$or": [{role: from_uid} for role in _COLLECTION_ROLES]}
     projection = {role: 1 for role in _COLLECTION_ROLES}
-    for group in db.groups.find(either_user_has_a_role, projection):
+    for group in db.groups.find(source_has_a_role, projection):
         # Write all role lists in one update, so a group is never half-changed.
         db.groups.update_one({"_id": group["_id"]}, {"$set": _merged_roles(group, from_uid, into_uid)})
 
@@ -481,7 +483,8 @@ def _merged_roles(group, from_uid, into_uid):
         renamed = [into_uid if uid == from_uid else uid for uid in uids]
         return _ordered_union(renamed, [])  # Removes duplicates and keeps the order.
 
-    roles = {role: replace_source(group[role]) for role in _COLLECTION_ROLES if role in group}
+    # Skip role lists that are missing or stored as null; there is nothing to move in them.
+    roles = {role: replace_source(group[role]) for role in _COLLECTION_ROLES if isinstance(group.get(role), list)}
     # Admins have every member right, so an admin should not also be listed as a member.
     is_admin_and_member = into_uid in roles.get("admins", []) and into_uid in roles.get("members", [])
     if is_admin_and_member:

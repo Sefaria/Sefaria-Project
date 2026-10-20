@@ -206,6 +206,14 @@ class TestContentTransfer:
             if "publishers" in group:
                 assert group["publishers"] == [env.survivor.id]
 
+    def test_collections_without_the_source_are_left_alone(self, merge_env):
+        """A collection the source never belonged to is not rewritten"""
+        env = merge_env
+        untouched = {"admins": [env.survivor.id], "members": [env.survivor.id, 99]}
+        env.mongo.groups.insert_one(dict(untouched))
+        merge(env)
+        assert env.mongo.groups.find_one({}, {"_id": 0}) == untouched
+
     @pytest.mark.parametrize("collection,left,right", [
         ("following", "follower", "followee"), ("blocking", "blocker", "blockee"),
     ])

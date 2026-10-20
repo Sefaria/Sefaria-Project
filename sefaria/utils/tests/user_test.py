@@ -196,6 +196,11 @@ class TestMergedRoles:
                                          SOURCE, DESTINATION)
         assert roles == {"admins": [DESTINATION], "members": [OTHER]}
 
+    def test_null_role_lists_are_left_as_they_are(self):
+        """A role list stored as null is skipped instead of crashing the merge"""
+        roles = user_utils._merged_roles({"admins": [SOURCE], "members": None}, SOURCE, DESTINATION)
+        assert roles == {"admins": [DESTINATION]}
+
     def test_missing_role_lists_stay_missing(self):
         """A role list the group doesn't have is not added"""
         assert user_utils._merged_roles({"admins": [SOURCE]}, SOURCE, DESTINATION) == {"admins": [DESTINATION]}
