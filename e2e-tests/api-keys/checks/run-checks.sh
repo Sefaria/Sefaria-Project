@@ -19,8 +19,8 @@ MONGO_PORT=27017
 DJANGO_DB=sefaria_auth
 GO_DB=authsvc_go
 PG_DSN_GO="postgres://postgres:pg@127.0.0.1:$PG_PORT/$GO_DB?sslmode=disable"
-SCHEMA_SQL="select conname, pg_get_constraintdef(oid) from pg_constraint where conrelid='powered_by_apikey'::regclass and contype='c' order by 1;
-select tgname, pg_get_triggerdef(oid) from pg_trigger where not tgisinternal and tgrelid in ('powered_by_apikey'::regclass,'powered_by_project'::regclass) order by 1;"
+SCHEMA_SQL="select conname, pg_get_constraintdef(oid) from pg_constraint where conrelid in ('powered_by_apikey'::regclass,'powered_by_projectlimits'::regclass) and contype='c' order by 1;
+select tgname, pg_get_triggerdef(oid) from pg_trigger where not tgisinternal and tgrelid in ('powered_by_apikey'::regclass,'powered_by_project'::regclass,'powered_by_projectlimits'::regclass) order by 1;"
 FAILS=0
 SUBCOMMAND_ARGS=()  # set by main: the arguments after the subcommand name
 
@@ -51,7 +51,7 @@ EOF
 
 # ---------------------------------------------------------------- containers
 port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
-STARTED_HERE=0 # set to 1 when this invocation created a container; the EXIT trap removes only then
+STARTED_HERE=() # containers this invocation created; the EXIT trap removes only these
 container_running() { [ -n "$(docker ps -q --filter "name=^$1\$" 2>/dev/null)" ]; }
 
 start_pg() {
@@ -60,7 +60,7 @@ start_pg() {
   docker rm -f "$PG_NAME" >/dev/null 2>&1
   docker run -d --name "$PG_NAME" -e POSTGRES_PASSWORD=pg -p "127.0.0.1:$PG_PORT:5432" "$PG_IMAGE" >/dev/null \
     || { fail "could not start $PG_IMAGE as $PG_NAME (is the image pulled?)"; return 1; }
-  STARTED_HERE=1
+  STARTED_HERE+=("$PG_NAME")
 }
 
 start_mongo() {
@@ -69,7 +69,7 @@ start_mongo() {
   docker rm -f "$MONGO_NAME" >/dev/null 2>&1
   docker run -d --name "$MONGO_NAME" -p "127.0.0.1:$MONGO_PORT:27017" "$MONGO_IMAGE" >/dev/null \
     || { fail "could not start $MONGO_IMAGE as $MONGO_NAME (is the image pulled?)"; return 1; }
-  STARTED_HERE=1
+  STARTED_HERE+=("$MONGO_NAME")
 }
 
 pg_ready() { docker exec "$PG_NAME" psql -h 127.0.0.1 -U postgres -Atc 'select 1' >/dev/null 2>&1; }
@@ -110,9 +110,10 @@ cmd_down() {
 }
 
 teardown_unless_kept() {
-  if [ "$STARTED_HERE" != 1 ]; then echo "leaving $PG_NAME and $MONGO_NAME running: this run did not start them"; return; fi
-  if [ "${KEEP:-0}" = 1 ]; then echo "KEEP=1: leaving $PG_NAME and $MONGO_NAME running"; return; fi
-  cmd_down
+  if [ "${#STARTED_HERE[@]}" -eq 0 ]; then echo "leaving $PG_NAME and $MONGO_NAME running: this run did not start them"; return; fi
+  if [ "${KEEP:-0}" = 1 ]; then echo "KEEP=1: leaving ${STARTED_HERE[*]} running"; return; fi
+  local name
+  for name in "${STARTED_HERE[@]}"; do docker rm -f "$name" >/dev/null && echo "removed $name"; done
 }
 
 # ---------------------------------------------------------------- selftest and unit
@@ -181,7 +182,7 @@ manage() { # run manage.py, print the command and its status, count a failure
   return "$rc"
 }
 
-schema_dump() { # apikey CHECK constraints and the non-internal triggers of both tables
+schema_dump() { # apikey and limits CHECK constraints and the non-internal triggers of the three tables
   echo "-- schema $1"
   docker exec "$PG_NAME" psql -U postgres -d "$DJANGO_DB" -Atc "$SCHEMA_SQL" || fail "schema dump $1"
 }
