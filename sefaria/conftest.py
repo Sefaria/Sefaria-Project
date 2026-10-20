@@ -3,7 +3,6 @@ import hashlib
 import os
 import re
 import sys
-from collections import defaultdict
 
 # sys._called_from_test must be set before ANY sefaria import below, not just
 # inside pytest_configure() further down this file. The `patch(...).start()`
@@ -25,21 +24,17 @@ from unittest.mock import patch, MagicMock
 _MOCK_MONGO_ENABLED = os.environ.get("SEFARIA_MOCK_MONGO") == "1"
 _MOCK_MONGO_CLIENT = None
 _MOCK_MONGO_SENTINEL = "__sefaria_mock_mongo_bootstrap__"
-_MONGO_FIXTURE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tests", "fixtures", "mongo")
+# SEFARIA_MONGO_FIXTURE_DIR lets the re-record proof verify freshly written
+# fixtures in a temp dir; the base, the overlays and _shapes.json all come from it.
+_MONGO_FIXTURE_DIR = os.environ.get("SEFARIA_MONGO_FIXTURE_DIR") or os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "tests", "fixtures", "mongo")
 _MONGO_BASE_FIXTURE = os.path.join(_MONGO_FIXTURE_DIR, "_base.json")
-_NOT_MOCKABLE_MANIFEST = os.path.join(_MONGO_FIXTURE_DIR, "_not-mockable.json")
-_deselected_not_mockable = defaultdict(list)
-
-
-def _load_not_mockable():
-    if os.path.isfile(_NOT_MOCKABLE_MANIFEST):
-        try:
-            with open(_NOT_MOCKABLE_MANIFEST) as f:
-                data = json.load(f)
-                return {entry["nodeid"]: entry.get("reason", "unknown") for entry in data}
-        except (ValueError, OSError):
-            pass
-    return {}
+_SHAPES_FILE = os.path.join(_MONGO_FIXTURE_DIR, "_shapes.json")
+# check (default): fail a needs_mongo test that touches Mongo beyond its recorded shape;
+# write: record the shapes; off: neither.
+_SHAPES_MODE = os.environ.get("SEFARIA_FIXTURE_SHAPES", "check")
+_SHAPES = None
+_written_shapes = {}
 
 # --- Local-Mongo endpoint override, applied BEFORE sefaria.system.database is
 # imported (its MongoClient is built from module-level constants at import time,
@@ -62,12 +57,20 @@ if os.environ.get("SEFARIA_TEST_MONGO") == "1":
     _sefaria_settings.SEFARIA_DB = _pytest_mongo_settings.SEFARIA_DB
     _sefaria_settings.SEFARIA_DB_USER = _pytest_mongo_settings.SEFARIA_DB_USER
     _sefaria_settings.SEFARIA_DB_PASSWORD = _pytest_mongo_settings.SEFARIA_DB_PASSWORD
+    # A replica-set name makes pymongo wait for a primary that a loopback test Mongo
+    # (or the mock) never has; database.py reads this at import time.
+    _sefaria_settings.MONGO_REPLICASET_NAME = None
 
 if _MOCK_MONGO_ENABLED:
     import mongomock
     from bson import json_util
     from sefaria import settings as _sefaria_settings
 
+    from sefaria.tests.mongo_shapes import ShapeTracker, load_shapes, shape_drift, drift_message
+
+    # One tracker per process: install() patches mongomock classes globally.
+    _SHAPES = ShapeTracker()
+    _SHAPES.install()
     _MOCK_MONGO_CLIENT = mongomock.MongoClient()
     # mongomock lists databases lazily; database.py checks existence before it
     # assigns `db`, so create one collection in the configured DB up front.
@@ -160,7 +163,7 @@ def _insert_fixture(active_db, payload, bulk=False):
             else:
                 for doc in docs:
                     active_db[collection].replace_one({"_id": doc["_id"]}, doc, upsert=True)
-        else:
+        elif collection not in active_db.list_collection_names():
             active_db.create_collection(collection)
 
 
@@ -191,25 +194,6 @@ def _flush_phase():
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_collection_modifyitems(session, config, items):
-    # scripts/test_impact/ci_parity.py sets SEFARIA_PARITY_BASELINE=1 when collecting
-    # its baseline, so a manifest entry cannot hide a test from both sides of the check.
-    if _MOCK_MONGO_ENABLED and os.environ.get("SEFARIA_PARITY_BASELINE") != "1":
-        not_mockable = _load_not_mockable()
-        if not_mockable:
-            deselected = []
-            remaining = []
-            for item in items:
-                raw_nodeid = item.nodeid.split("[", 1)[0]
-                reason = not_mockable.get(item.nodeid) or not_mockable.get(raw_nodeid)
-                if reason:
-                    deselected.append(item)
-                    _deselected_not_mockable[reason].append(item.nodeid)
-                else:
-                    remaining.append(item)
-            if deselected:
-                items[:] = remaining
-                config.hook.pytest_deselected(items=deselected)
-
     if not _recording_enabled():
         yield
         return
@@ -270,7 +254,24 @@ def pytest_runtest_teardown(item):
     _flush_phase()
 
 
+def _flush_shapes():
+    """Merge this session's observed shapes into _shapes.json: entries not re-observed are kept."""
+    from sefaria.tests.fixture_schema import schema_digests
+    merged = {"shapes": {}}
+    if os.path.isfile(_SHAPES_FILE):
+        with open(_SHAPES_FILE) as f:
+            merged = json.load(f)
+    shapes = merged.get("shapes", {})
+    shapes.update({nodeid: {c: sorted(fields) for c, fields in cols.items()} for nodeid, cols in _written_shapes.items()})
+    payload = {"format": 1, "schema": schema_digests(), "shapes": shapes}
+    with open(_SHAPES_FILE, "w") as f:
+        json.dump(payload, f, indent=1, sort_keys=True)
+        f.write("\n")
+
+
 def pytest_sessionfinish(session, exitstatus):
+    if _MOCK_MONGO_ENABLED and _SHAPES_MODE == "write" and _written_shapes:
+        _flush_shapes()
     if not _recording_enabled() or not _recorder_index:
         return
     os.makedirs(_ARTIFACT_DIR, exist_ok=True)
@@ -295,13 +296,6 @@ def pytest_sessionfinish(session, exitstatus):
     merged.update(serializable)
     with open(index_path, 'w') as f:
         json.dump(merged, f, indent=2, sort_keys=True)
-
-
-def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    if _MOCK_MONGO_ENABLED and _deselected_not_mockable:
-        total = sum(len(v) for v in _deselected_not_mockable.values())
-        breakdown = ", ".join(f"{len(v)} {reason}" for reason, v in sorted(_deselected_not_mockable.items()))
-        terminalreporter.write_line(f"MOCKED MONGO: {total} tests deselected ({breakdown})")
 
 
 def _build_real_mongo_library_toc():
@@ -331,6 +325,69 @@ def _build_real_mongo_library_toc():
 _library_stale = False
 
 
+def _fixture_path_or_fail(nodeid, incomplete_ok, ci):
+    path = _mongo_fixture_path(nodeid)
+    if os.path.isfile(path):
+        return path
+    if incomplete_ok and ci:
+        raise pytest.UsageError("SEFARIA_MOCK_MONGO_INCOMPLETE_OK is not allowed when CI=true")
+    # A missing fixture must FAIL by default, not skip: skipping makes a marked set
+    # exit 0 while almost nothing ran (measured: 3 passed, 73 skipped), the
+    # false-green shape this pipeline already has a history of. INCOMPLETE_OK is
+    # for converting a set by hand, never CI.
+    msg = (f"SEFARIA_MOCK_MONGO=1 but no Mongo fixture exists for {nodeid}.\n"
+           f"Fix: python scripts/pytest_minimal_dataset/rerecord_fixtures.py --only '{nodeid}'")
+    if incomplete_ok:
+        pytest.skip(msg)
+    pytest.fail(msg, pytrace=False)
+
+
+def reseed_mock_db(active_db, overlay_path=None, rebuild=True):
+    """Reset the mock DB to the sentinel plus the shared base (plus an overlay), and clear the caches."""
+    global _library_stale
+    for collection in active_db.list_collection_names():
+        active_db.drop_collection(collection)
+    active_db[_MOCK_MONGO_SENTINEL].insert_one({"_id": "exists"})
+    _insert_fixture(active_db, _load_fixture(_MONGO_BASE_FIXTURE), bulk=True)
+    if overlay_path:
+        _insert_fixture(active_db, _load_fixture(overlay_path))
+    # `library` builds its title maps when sefaria.model is imported, and
+    # seeding collections does not touch those in-memory maps, so Ref('Sotah')
+    # would raise even with the Index document present. Rebuild after every
+    # seed so refs resolved against a previous test's data are not reused.
+    if rebuild:
+        from sefaria.model.text import library
+        library.rebuild(include_toc=True)
+        _library_stale = False
+    else:
+        _library_stale = True
+    from django.core.cache import caches
+    for alias in _LOCMEM_CACHE_ALIASES:
+        caches[alias].clear()
+
+
+_loaded_shapes = None
+
+
+def _verify_shapes(nodeid, observed, flags, needs_corpus):
+    """Record (write) or check (check) what the test touched against its fixture's recorded shape."""
+    global _loaded_shapes
+    if _SHAPES_MODE == "off":
+        return
+    if _SHAPES_MODE == "write":
+        _written_shapes[nodeid] = {c: set(f) for c, f in observed.items()}
+        return
+    if _loaded_shapes is None:
+        _loaded_shapes = load_shapes(_SHAPES_FILE) or {}
+    recorded = _loaded_shapes.get(nodeid)
+    if recorded is None:
+        pytest.fail(f"No recorded Mongo shape for {nodeid} in {_SHAPES_FILE}.\n"
+                    f"Fix: python scripts/pytest_minimal_dataset/rerecord_fixtures.py --only '{nodeid}'", pytrace=False)
+    drift = shape_drift(observed, recorded)
+    if drift or (flags and not needs_corpus):
+        pytest.fail(drift_message(nodeid, drift, flags if not needs_corpus else ()), pytrace=False)
+
+
 @pytest.fixture(autouse=True)
 def _seed_mock_mongo(request):
     global _library_stale
@@ -345,53 +402,19 @@ def _seed_mock_mongo(request):
         yield
         return
 
-    path = _mongo_fixture_path(request.node.nodeid)
-    if not os.path.isfile(path):
-        # A missing fixture must FAIL by default, not skip. Conversion to mocked
-        # Mongo is incremental, so most needs_mongo tests have no fixture yet --
-        # and skipping them makes the whole marked set exit 0 while almost nothing
-        # ran (measured: 3 passed, 73 skipped). That is the false-green shape this
-        # pipeline already has a documented history of. Set
-        # SEFARIA_MOCK_MONGO_INCOMPLETE_OK=1 while converting a set by hand; never
-        # in CI.
-        message = (
-            f"SEFARIA_MOCK_MONGO=1 but no Mongo fixture exists for {request.node.nodeid}. "
-            f"Generate one with scripts/pytest_minimal_dataset/export_mongo_fixtures.py, "
-            f"or set SEFARIA_MOCK_MONGO_INCOMPLETE_OK=1 to skip unconverted tests locally."
-        )
-        if os.environ.get("SEFARIA_MOCK_MONGO_INCOMPLETE_OK") == "1":
-            pytest.skip(message)
-        pytest.fail(message, pytrace=False)
+    path = _fixture_path_or_fail(request.node.nodeid, os.environ.get("SEFARIA_MOCK_MONGO_INCOMPLETE_OK") == "1",
+                                 os.environ.get("CI") == "true")
 
     from sefaria.system import database
-    from sefaria.model.text import library
 
     active_db = database.db
 
-    def _reseed(overlay_path=None, rebuild=True):
-        for collection in active_db.list_collection_names():
-            active_db.drop_collection(collection)
-        active_db[_MOCK_MONGO_SENTINEL].insert_one({"_id": "exists"})
-        _insert_fixture(active_db, _load_fixture(_MONGO_BASE_FIXTURE), bulk=True)
-        if overlay_path:
-            _insert_fixture(active_db, _load_fixture(overlay_path))
-        # `library` builds its title maps when sefaria.model is imported, and
-        # seeding collections does not touch those in-memory maps, so Ref('Sotah')
-        # would raise even with the Index document present. Rebuild after every
-        # seed so refs resolved against a previous test's data are not reused.
-        global _library_stale
-        if rebuild:
-            library.rebuild(include_toc=True)
-            _library_stale = False
-        else:
-            _library_stale = True
-        from django.core.cache import caches
-        for alias in _LOCMEM_CACHE_ALIASES:
-            caches[alias].clear()
-
     try:
-        _reseed(path)
-        yield
+        reseed_mock_db(active_db, path)
+        with _SHAPES.recording() as observed:
+            yield
+        _verify_shapes(request.node.nodeid, observed, _SHAPES.flags,
+                       request.node.get_closest_marker("needs_corpus") is not None)
     finally:
         # Back to the session's starting state (sentinel + shared base), not an
         # empty DB: a later test in the same process that is not needs_mongo --
@@ -399,7 +422,7 @@ def _seed_mock_mongo(request):
         # data whether or not a needs_mongo test ran before it, including when
         # this setup failed part-way. The library rebuild is deferred (see
         # _library_stale) to whichever test runs next.
-        _reseed(rebuild=False)
+        reseed_mock_db(active_db, rebuild=False)
 
 # Aliases the session overrides swapped to LocMemCache (see
 # sefaria/local_settings_pytest.py); _seed_mock_mongo clears them on every reseed

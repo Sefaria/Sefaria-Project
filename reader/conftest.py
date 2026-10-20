@@ -1,3 +1,4 @@
+import sefaria.conftest  # noqa: F401 (applies the Mongo isolation before any database import, whatever the CLI order)
 import secrets
 import uuid
 
