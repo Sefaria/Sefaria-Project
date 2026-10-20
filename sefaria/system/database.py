@@ -62,6 +62,8 @@ class QueryCounter(monitoring.CommandListener):
         elif cmd == 'delete':
             deletes = event.command.get('deletes') or []
             filt = [d.get('q') for d in deletes] or None
+        elif cmd == 'findAndModify':
+            filt = event.command.get('query')
         elif cmd == 'insert':
             docs = event.command.get('documents') or []
             insert_ids = [str(d.get('_id')) for d in docs if isinstance(d, dict) and '_id' in d]
@@ -100,6 +102,10 @@ class QueryCounter(monitoring.CommandListener):
             n_returned = reply.get('n', len(doc_ids))
         elif cmd in ('update', 'delete'):
             n_returned = reply.get('n', 0)
+        elif cmd == 'findAndModify':
+            value = reply.get('value')
+            doc_ids = [str(value['_id'])] if isinstance(value, dict) and '_id' in value else []
+            n_returned = 1 if value else 0
         else:
             n_returned = reply.get('n')
 
