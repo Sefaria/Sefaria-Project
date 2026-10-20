@@ -59,7 +59,7 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
   const title = compare ? categoryToggle :
     <div className="navTitle">
-        <CategoryHeader data={cats} type="cats" actionButtons={staffOnlyCategoryButtons(cats, catAdminOnly)}>
+        <CategoryHeader data={cats} type="cats" actionButtons={staffOnlyCategoryButtons(cats, catAdminOnly, heCatTitle)}>
             <h1>
             <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
             <StaffOnlyBadge adminOnly={catAdminOnly}/>

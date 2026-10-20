@@ -37,6 +37,9 @@ async function run(confirmText, action, describe) {
 const refreshNote = paths => paths && paths.length ?
   `\n\nThe public site keeps the library in memory. Open these there, logged in as staff, in order:\n${paths.join("\n")}` : "";
 
+/** A default Hebrew name for a copy: the source's, marked as a copy, with a number so copies don't collide. */
+const hebrewCopyName = heSource => `${heSource || ""} עותק ${Math.floor(1000 + Math.random() * 9000)}`.trim();
+
 const StaffOnlyBadge = ({adminOnly}) => (
   Sefaria.staff_only_mode && adminOnly ?
     <span className="staffOnlyBadge" title="Hidden on the public site until published">STAFF ONLY</span> : null
@@ -59,15 +62,15 @@ function useCategoryAdminOnly(path) {
 }
 
 /** Extra entries for CategoryHeader's admin menu on a category page. */
-function staffOnlyCategoryButtons(path, adminOnly) {
+function staffOnlyCategoryButtons(path, adminOnly, heName) {
   const buttons = {};
   if (Sefaria.staff_only_qa_tools) {
     buttons.qaCopyCategory = ["QA: copy as staff-only", () => {
       const name = window.prompt("English name of the staff-only copy (no hyphens):", `Zzz QA ${path[path.length - 1]}`);
       if (!name) { return; }
-      const heName = window.prompt("Hebrew name of the copy:");
-      if (!heName) { return; }
-      run(null, () => staffOnlyPost("/_api/staff-only/qa/copy-category", {path, name, heName}),
+      const heCopyName = window.prompt("Hebrew name of the copy:", hebrewCopyName(heName));
+      if (!heCopyName) { return; }
+      run(null, () => staffOnlyPost("/_api/staff-only/qa/copy-category", {path, name, heName: heCopyName}),
           r => `Created the staff-only category ${r.copied}.\nIt's empty: copy books into it from their book pages.`);
     }];
   }
@@ -81,19 +84,19 @@ function staffOnlyCategoryButtons(path, adminOnly) {
 }
 
 /** Extra entries for CategoryHeader's admin menu on a book page. */
-function staffOnlyBookButtons(title, categories, adminOnly) {
+function staffOnlyBookButtons(title, categories, adminOnly, heTitle) {
   const buttons = {};
   if (Sefaria.staff_only_qa_tools) {
     buttons.qaCopyBook = ["QA: copy as staff-only", () => {
       const newTitle = window.prompt("English title of the staff-only copy (no hyphens):", `Zzz QA ${title}`);
       if (!newTitle) { return; }
-      const heTitle = window.prompt("Hebrew title of the copy:");
-      if (!heTitle) { return; }
+      const heCopyTitle = window.prompt("Hebrew title of the copy:", hebrewCopyName(heTitle));
+      if (!heCopyTitle) { return; }
       const category = window.prompt("Category of the copy (separate levels with /). Keep it, or name a staff-only category:",
                                      (categories || []).join("/"));
       if (!category) { return; }
       run(null, () => staffOnlyPost("/_api/staff-only/qa/copy-index",
-                                    {title, newTitle, heTitle, categories: category.split("/").map(c => c.trim())}),
+                                    {title, newTitle, heTitle: heCopyTitle, categories: category.split("/").map(c => c.trim())}),
           r => `Copying ${title} to the staff-only book ${r.copying} in the background.\n` +
                `A book with many versions takes a minute or two. Then open ${r.url} : it shows a STAFF ONLY badge.`);
     }];

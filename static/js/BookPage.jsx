@@ -248,7 +248,7 @@ class BookPage extends Component {
                   <div className="tocTitleControls">
                     <CategoryHeader type="books" toggleButtonIDs={["section", "edit"]}
                                     actionButtons={staffOnlyBookButtons(title, this.state.indexDetails && this.state.indexDetails.categories,
-                                                                        this.state.indexDetails && this.state.indexDetails.admin_only)}
+                                                                        this.state.indexDetails && this.state.indexDetails.admin_only, heTitle)}
                                     data={title}><ContentText text={{en:title, he:heTitle}}/>
                       <StaffOnlyBadge adminOnly={this.state.indexDetails && this.state.indexDetails.admin_only}/></CategoryHeader>
                   </div>
