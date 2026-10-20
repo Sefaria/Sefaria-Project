@@ -313,6 +313,23 @@ cmd_shell() {
     tool=("$tools_dir/bin/shellcheck")
   fi
   "${tool[@]}" -S warning "${files[@]}" || fail "shellcheck -S warning ${files[*]}"
+  step "demo.sh write gate"
+  demo_write_gate ${DEMO_GATE_FILE:+"$DEMO_GATE_FILE"}
+}
+
+# demo_write_gate [file]: every write command in demo.sh (SQL write, terminated backend, compose stop/start, kubectl
+# scale) sits inside a mutating_* function or the t_authsvc_down/t_authsvc_up adapters (F-DEMO-01.e4).
+demo_write_gate() {
+  local file="${1:-auth-service/scripts/demo.sh}" hits
+  [ -f "$file" ] || return 0
+  hits=$(awk '
+    /^[a-z_]+\(\) *\{/ { fn = $1; sub(/\(.*/, "", fn) }
+    /^\}/ { fn = "" }
+    /^[[:space:]]*#/ { next }
+    tolower($0) ~ /(insert into|update powered_by|delete from|pg_terminate_backend|compose .*(stop|start) |kubectl .* scale )/ \
+      && fn !~ /^(mutating_|t_authsvc_(down|up)$)/ { printf "%s:%d: write outside mutating_*: %s\n", FILENAME, NR, $0 }
+  ' "$file")
+  if [ -n "$hits" ]; then fail "demo write gate"$'\n'"$hits"; fi
 }
 
 cmd_features() {

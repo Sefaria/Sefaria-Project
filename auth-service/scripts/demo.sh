@@ -17,7 +17,6 @@
 #   DEMO_KEY               a valid developer key (valid-key probe)
 #   DEMO_RESTRICTED_KEY    a valid key whose allowed origins are limited
 #   DEMO_RESTRICTED_ORIGIN an origin that key allows
-#   DEMO_RATELIMIT=1       run the rate-limit and quota bursts (POC only; skipped on this branch)
 set -uo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -46,8 +45,7 @@ apikeys_notify_projects_update on powered_by_project'
 DEV_KEY=${DEMO_KEY:-}
 BETA_KEY=${DEMO_RESTRICTED_KEY:-}
 RESTRICTED_ORIGIN=${DEMO_RESTRICTED_ORIGIN:-}
-# Never valid: shapes that no registry row can hold.
-REVOKED_KEY='sfr_revoked00000000000000000000001'
+# Never valid: a shape that no registry row can hold.
 UNKNOWN_KEY='sfr_nope0000000000000000000000000001'
 
 OK_COUNT=0
@@ -64,6 +62,8 @@ CAULDRON_REPLICAS=''
 ACCEPT_MS=''
 DENY_MS=''
 TIER_MS=''
+REVOKED_BODY=''
+UNKNOWN_BODY=''
 LISTENERS_AFTER=''
 
 readonly RESET=$'\033[0m'
@@ -156,7 +156,6 @@ show_command() {
   for arg in "$@"; do
     case "$arg" in
       "${DEV_KEY:-REDACTED_DEV_KEY}"|"REDACTED_DEV_KEY") printf ' %s' "$(mask_key "$DEV_KEY")" ;;
-      "$REVOKED_KEY"|"REDACTED_REVOKED_KEY") printf ' %s' "$(mask_key "$REVOKED_KEY")" ;;
       "$UNKNOWN_KEY"|"REDACTED_UNKNOWN_KEY") printf ' %s' "$(mask_key "$UNKNOWN_KEY")" ;;
       "${BETA_KEY:-REDACTED_BETA_KEY}"|"REDACTED_BETA_KEY") printf ' %s' "$(mask_key "$BETA_KEY")" ;;
       *) printf ' %q' "$arg" ;;
@@ -380,12 +379,12 @@ echoed_header() {
   tr ',' '\n' <"$1" | sed -n "s/.*\"$2\" *: *\"\([^\"]*\)\".*/\1/p" | head -n 1
 }
 
-spoof_stripped() { # the spoofed x-sefaria-tier and x-sefaria-project of the echo request did not arrive
-  [[ "$(echoed_header "$1" x-sefaria-tier)" != internal && "$(echoed_header "$1" x-sefaria-project)" != 1 ]]
+spoof_stripped() { # the echo answered (it shows a host header) and the spoofed tier and project did not arrive
+  grep -qi '"host"' "$1" && [[ "$(echoed_header "$1" x-sefaria-tier)" != internal && "$(echoed_header "$1" x-sefaria-project)" != 1 ]]
 }
 
-secret_free() { # no full key (sfr_ plus 16 or more characters) anywhere in the file
-  ! grep -Eq 'sfr_[A-Za-z0-9_-]{16,}' "$1"
+secret_free() { # the file holds service log lines (level=...) and no full key (sfr_ plus 16 or more characters)
+  [[ -s "$1" ]] && grep -q 'level=' "$1" && ! grep -Eq 'sfr_[A-Za-z0-9_-]{16,}' "$1"
 }
 
 # wait_echo_header <key> <header> <value> <limit-ms>: polls the echo backend until the header shows the value; prints
@@ -474,8 +473,7 @@ section_deployed() {
 }
 
 section_enforced() {
-  local revoked_body unknown_body
-  section '3. Enforced live' 'Real requests show anonymous access, valid-key access, invalid-key rejection, the gate, origin policy and header edge cases.' F-DEC-01 F-DEC-02 F-DEC-02.e2 F-DEC-03.e1 F-DEC-04.e1 F-DEC-05.e1 F-DEC-06.e1 F-DEC-07.e1
+  section '3. Enforced live' 'Real requests show anonymous access, valid-key access, invalid-key rejection, the gate, origin policy and header edge cases.' F-DEC-01 F-DEC-02 F-DEC-03.e1 F-DEC-04.e1 F-DEC-05.e1 F-DEC-06.e1 F-DEC-07.e1
   printf 'Target: %s   ungated path: /api/texts/Genesis.1   gated path: /api/knn-search\n' "$TARGET"
 
   http_probe 'anonymous, ungated' '' '' /api/texts/Genesis.1
@@ -492,15 +490,6 @@ section_enforced() {
 
   http_probe 'unknown key, gated' "$UNKNOWN_KEY" '' /api/knn-search
   prove F-DEC-02 'an unknown key on the gated path is 401 api_key_invalid' probe_is 401 api_key_invalid
-  http_probe 'revoked-shaped key, gated' "$REVOKED_KEY" '' /api/knn-search
-  prove F-DEC-02 'a revoked key on the gated path is 401 api_key_invalid' probe_is 401 api_key_invalid
-
-  revoked_body=$(new_tmp)
-  unknown_body=$(new_tmp)
-  printf '%s$ cmp revoked-body unknown-body%s\n' "$CYAN" "$RESET"
-  t_curl /api/knn-search -o "$revoked_body" -H "x-api-key: $REVOKED_KEY" >/dev/null 2>&1
-  t_curl /api/knn-search -o "$unknown_body" -H "x-api-key: $UNKNOWN_KEY" >/dev/null 2>&1
-  prove F-DEC-02.e2 'revoked and unknown key bodies are byte-identical (no oracle)' bash -c '[[ -s "$1" ]] && cmp -s "$1" "$2"' _ "$revoked_body" "$unknown_body"
 
   http_probe 'knn-search, no key' '' '' /api/knn-search
   prove F-DEC-04.e1 'the gated path without a key is 401 api_key_required' probe_is 401 api_key_required
@@ -550,8 +539,8 @@ section_registry() {
   local out len expected_len replicas listeners
   section '5. One registry per cluster' 'The auth service reads Django tables through the limits join, listens on six triggers, and every replica is connected.' F-REG-01 F-REG-02 F-MODEL-03.e6 F-MODEL-04.e3 F-REG-06.e4
 
-  prove F-REG-01 'the loader query LEFT JOINs powered_by_projectlimits and defaults the tier to developer' \
-    bash -c 'grep -q "LEFT JOIN powered_by_projectlimits" "$1" && grep -q "COALESCE(l.tier, .developer.)" "$1"' _ "$AUTH_SERVICE/internal/registry/pgload.go"
+  prove F-REG-01 'the loader query LEFT JOINs powered_by_projectlimits and binds defaultTier developer' \
+    bash -c 'grep -q "LEFT JOIN powered_by_projectlimits" "$1" && grep -q "COALESCE(l\.tier, \$1)" "$1" && grep -q "defaultTier = .developer." "$1"' _ "$AUTH_SERVICE/internal/registry/pgload.go"
 
   printf '%s$ psql sefaria_auth: triggers (name on table)%s\n' "$CYAN" "$RESET"
   out=$(t_pg "select tgname || ' on ' || tgrelid::regclass from pg_trigger where not tgisinternal and tgname like 'apikeys_notify%' order by tgname collate \"C\"")
@@ -625,6 +614,10 @@ mutating_key_lifecycle() {
     if probe_is 401 api_key_invalid; then DENY_MS=$(( (now - start) / 1000000 )); break; fi
     sleep 0.05
   done
+  REVOKED_BODY=$(new_tmp)
+  t_curl /api/knn-search -o "$REVOKED_BODY" -H "x-api-key: $key" >/dev/null 2>&1
+  UNKNOWN_BODY=$(new_tmp)
+  t_curl /api/knn-search -o "$UNKNOWN_BODY" -H "x-api-key: $UNKNOWN_KEY" >/dev/null 2>&1
   mutating_restore
 }
 
@@ -653,16 +646,18 @@ mutating_tier_upsert() {
 }
 
 section_propagation() {
-  section '7. A change reaches the auth service' 'A key created or revoked, and a project tier changed through its limits row, reach live requests within the time bounds (mutating, local only).' F-REG-06.e1 F-REG-06.e3
+  section '7. A change reaches the auth service' 'A key created or revoked, and a project tier changed through its limits row, reach live requests within the time bounds (mutating, local only).' F-REG-06.e1 F-REG-06.e3 F-DEC-02.e2
   if [[ $TARGET == cauldron ]]; then
     skip_unavailable F-REG-06.e1 'cauldron: the auth-service role is read-only and Django owns the writes; run the local target'
     skip_unavailable F-REG-06.e3 'cauldron: the auth-service role is read-only and Django owns the writes; run the local target'
+    skip_unavailable F-DEC-02.e2 'cauldron: a truly revoked key needs a write; run the local target'
     return 0
   fi
-  need_mutating F-REG-06.e1 F-REG-06.e3 || return 0
+  need_mutating F-REG-06.e1 F-REG-06.e3 F-DEC-02.e2 || return 0
   if mutating_key_lifecycle; then
     prove F-REG-06.e1 "a new key is accepted within 1 s (took ${ACCEPT_MS:-over 5000}ms)" age_under_1s "${ACCEPT_MS:-5000}ms"
     prove F-REG-06.e1 "a revoked key is 401 api_key_invalid within 1 s (took ${DENY_MS:-over 5000}ms)" age_under_1s "${DENY_MS:-5000}ms"
+    prove F-DEC-02.e2 'a truly revoked key and an unknown key get byte-identical bodies (no oracle)' bash -c '[[ -s "$1" ]] && cmp -s "$1" "$2"' _ "$REVOKED_BODY" "$UNKNOWN_BODY"
   fi
   if mutating_tier_upsert; then
     prove F-REG-06.e3 "a limits-row tier change reaches x-sefaria-tier within 5 s (took ${TIER_MS:-over 5000}ms)" test -n "$TIER_MS"
