@@ -70,6 +70,8 @@ node_modules
 .claude/skills/*
 !.claude/skills/sefaria-release-notes/
 !.claude/skills/sefaria-release-notes/**
+!.claude/skills/mongo-test-fixtures/
+!.claude/skills/mongo-test-fixtures/**
 CLAUDE.md
 !e2e-tests/CLAUDE.md
 
