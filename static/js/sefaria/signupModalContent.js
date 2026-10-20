@@ -6,6 +6,7 @@ export const SignUpModalKind = {
   Follow: Symbol("Follow"),
   Notes: Symbol("Notes"),
   Save: Symbol("Save"),
+  Bookshelf: Symbol("Bookshelf"),
   Default: Symbol("Default"),
 };
 
@@ -244,6 +245,23 @@ const signUpModalContent = {
           en: "Build & share source sheets",
           he: "צרו ושתפו דפי מקורות",
         },
+      },
+    ],
+  },
+  [SignUpModalKind.Bookshelf]: {
+    h2: { en: "Want to add more texts to your bookshelf?", he: "רוצים להוסיף עוד טקסטים למדף הספרים שלכם?" },
+    h3: {
+      en: "Create a free account to save as many as you like.",
+      he: "פתחו חשבון משתמש בחינם כדי לשמור כמה שתרצו.",
+    },
+    contentList: [
+      {
+        icon: "star-white.png",
+        bulletContent: { en: "Keep every text you're learning", he: "שמרו כל טקסט שאתם לומדים" },
+      },
+      {
+        icon: "clock-white.svg",
+        bulletContent: { en: "Pick up where you left off", he: "המשיכו מהמקום שבו הפסקתם" },
       },
     ],
   },
