@@ -89,11 +89,11 @@ const _AutocorrectTerm = ({query, onClick, className}) => {
 const SearchAutocorrectBannerContent = ({correctedQuery, originalQuery, onSearchOriginal}) => (
   <div className="searchAutocorrectBanner">
     <div className="searchAutocorrectBanner-line">
-      <InterfaceText text={{en: "These are results for ", he: "מוצגות תוצאות עבור "}}/>
+      <InterfaceText>search.autocorrect.results_shown</InterfaceText>{" "}
       <span className="searchAutocorrectBanner-corrected" {..._queryLangProps(correctedQuery)}>{correctedQuery}</span>
     </div>
     <div className="searchAutocorrectBanner-line searchAutocorrectBanner-secondary">
-      <InterfaceText text={{en: "Search instead for ", he: "חיפוש של "}}/>
+      <InterfaceText>search.autocorrect.original_term</InterfaceText>{" "}
       <_AutocorrectTerm query={originalQuery} onClick={() => onSearchOriginal && onSearchOriginal()}
                         className="searchAutocorrectBanner-original"/>
     </div>
@@ -109,7 +109,7 @@ SearchAutocorrectBannerContent.propTypes = {
 const SearchSuggestedQueriesBannerContent = ({suggestedQueries, onSearchSuggestion}) => (
   <div className="searchAutocorrectBanner">
     <div className="searchAutocorrectBanner-line">
-      <InterfaceText text={{en: "Did you mean: ", he: "האם התכוונת ל: "}}/>
+      <InterfaceText>search.suggestions.prefix</InterfaceText>{" "}
       {suggestedQueries.map((query, i) => (
         <React.Fragment key={query}>
           {i > 0 && <span className="searchAutocorrectBanner-separator">{", "}</span>}
