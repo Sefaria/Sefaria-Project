@@ -124,7 +124,8 @@ seed_project() {
 
 # --- lifecycle -------------------------------------------------------------------------------------------------------
 
-render_drill_envoy() { "$PYTHON" "$SCEN_DIR/drill_envoy.py" "$D11_RUN_DIR"; }
+# shellcheck disable=SC2120  # callers pass the replica hosts (nf1)
+render_drill_envoy() { "$PYTHON" "$SCEN_DIR/drill_envoy.py" "$D11_RUN_DIR" "$@"; }
 
 drill_pg_up() {
   dcompose up -d --wait pg >/dev/null 2>&1 || die "drill pg did not start"
