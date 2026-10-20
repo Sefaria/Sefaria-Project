@@ -269,9 +269,9 @@ const AddToHomeScreen = ({currentRef}) => {
           <>
             <h2 className="a2hsTitle a2hsStepsTitle">{target.stepsTitle}</h2>
             <ol className="a2hsSteps">
-              <li><span className="a2hsStepNumber" aria-hidden="true">1</span><span>Tap <SafariMenuIcon/> next to the address, then <ShareIcon/> <strong>Share</strong>.</span></li>
-              <li><span className="a2hsStepNumber" aria-hidden="true">2</span><span>Tap <strong>View More</strong>, then <AddIcon/> <strong>Add to Home Screen</strong>.</span></li>
-              <li><span className="a2hsStepNumber" aria-hidden="true">3</span><span>Tap <strong>Add</strong> in the top corner.</span></li>
+              <li><span className="a2hsStepNumber" aria-hidden="true">1</span><span>Open Safari's <strong>Share</strong> menu: tap <SafariMenuIcon/> or <ShareIcon/>.</span></li>
+              <li><span className="a2hsStepNumber" aria-hidden="true">2</span><span>Scroll down or tap <strong>View More</strong>, then tap <AddIcon/> <strong>Add to Home Screen</strong>.</span></li>
+              <li><span className="a2hsStepNumber" aria-hidden="true">3</span><span>Tap <strong>Add</strong>.</span></li>
             </ol>
             <Button size="fullwidth" onClick={finishSteps}>Done</Button>
           </>
