@@ -4,13 +4,19 @@
 
 KCTX=gke_development-205018_us-east1-b_cluster-1
 NS=default
-HOST=www.apikeys-pipeline.cauldron.sefaria.org
+# The target cauldron is named once. The defaults keep the shared apikeys-pipeline cauldron; the names below
+# follow helm-chart/sefaria (service auth-service-<env>, deploy <env>-auth-service, labels app=web-<env>,
+# app=nginx-<env>, deployEnv=<env>, HelmRelease <env>).
+CAULDRON=${APIKEYS_CAULDRON:-apikeys-pipeline}
+APIKEYS_PR=${APIKEYS_PR:-3798}
+HOST=www.$CAULDRON.cauldron.sefaria.org
 BASE="https://$HOST"
-WEB_SELECTOR=app=web-apikeys-pipeline
+WEB_SELECTOR=app=web-$CAULDRON
 PG_POD=postgres-18-0
-AUTH_SVC=svc/auth-service-apikeys-pipeline
-AUTH_DEPLOY=deploy/apikeys-pipeline-auth-service
-NGINX_SELECTOR=app=nginx-apikeys-pipeline
+AUTH_SVC=svc/auth-service-$CAULDRON
+AUTH_DEPLOY=deploy/$CAULDRON-auth-service
+NGINX_SELECTOR=app=nginx-$CAULDRON
+DEPLOY_ENV_SELECTOR=deployEnv=$CAULDRON
 PF_PORT=18081
 ID_LO=2098000001
 ID_HI=2098000999

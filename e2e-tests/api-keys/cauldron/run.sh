@@ -45,22 +45,22 @@ trap cleanup EXIT INT TERM
 
 auth_pod_state() {
   kc get pods -o custom-columns=N:.metadata.name,R:.status.containerStatuses[0].restartCount,S:.status.startTime --no-headers \
-    | grep apikeys-pipeline-auth-service | tr -s ' ' | tr '\n' ';'
+    | grep "$CAULDRON-auth-service" | tr -s ' ' | tr '\n' ';'
 }
 
 # --- preflight (N-E6) ---------------------------------------------------------------------------
 preflight() {
   local merge short imgs sefaria bad hr authlog
-  merge="$(gh api repos/Sefaria/Sefaria-Project/pulls/3798 -q .merge_commit_sha)" || die "gh api failed"
+  merge="$(gh api repos/Sefaria/Sefaria-Project/pulls/$APIKEYS_PR -q .merge_commit_sha)" || die "gh api failed"
   short="${merge:0:7}"
-  imgs="$(kc get pods -l deployEnv=apikeys-pipeline --field-selector=status.phase=Running \
+  imgs="$(kc get pods -l "$DEPLOY_ENV_SELECTOR" --field-selector=status.phase=Running \
     -o jsonpath='{range .items[*]}{.metadata.name}{" "}{range .spec.containers[*]}{.image}{" "}{end}{"\n"}{end}')"
   printf '%s\n' "$imgs" > "$RUN_DIR/images.txt"
   sefaria="$(printf '%s\n' "$imgs" | grep -oE 'sefaria-[a-z0-9-]+:sha-[0-9a-f]+' | sort -u)"
   [ "$(printf '%s\n' "$sefaria" | grep -c .)" -ge 4 ] || die "fewer than 4 distinct sefaria images found: $sefaria"
   bad="$(printf '%s\n' "$sefaria" | grep -v ":sha-$short\$" || true)"
   [ -z "$bad" ] || die "pin is stale or moved (merge sha $short): $bad. Do not bump; report it."
-  hr="$(kc get helmrelease apikeys-pipeline -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}')"
+  hr="$(kc get helmrelease "$CAULDRON" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}')"
   [ "$hr" = True ] || die "HelmRelease Ready=$hr"
   authlog="$(kc logs "$AUTH_DEPLOY" 2>/dev/null | grep -oE 'registry loaded keys=[0-9]+.{0,60}' | tail -1)"
   [ -n "$authlog" ] || die "auth service log has no 'registry loaded keys='"

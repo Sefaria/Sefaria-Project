@@ -56,8 +56,9 @@ the Continuous workflow's auth-service job),
 `scripts/demo.sh` walks through what is built, deployed, enforced, safe and propagated. Every section
 prints the feature ids it proves (`FEATURES: ...`) and each check prints `[OK id]`, `[MISMATCH id]` or
 `[SKIP id]`; the last line is `DEMO RESULT: ok=N mismatch=M skipped=K`. Targets: `--target local`
-(default, the local stack in `dev/local-stack`) and `--target cauldron` (the apikeys-pipeline
-cauldron through `kubectl`; `DEMO_HOST` overrides the site). The demo is read-only by default;
+(default, the local stack in `dev/local-stack`) and `--target cauldron` (the cauldron named by
+`APIKEYS_CAULDRON`, default the shared `apikeys-pipeline`, through `kubectl` on the dev context only;
+`DEMO_HOST` overrides the site; `--allow-mutating` there needs `APIKEYS_CAULDRON` set explicitly). The demo is read-only by default;
 `--allow-mutating` also runs the sections that write SQL, drop the listener connection or stop the
 auth service (each is undone on exit). `--offline` runs only the checks that need no network, docker
 or cluster, `--pause` waits between sections, and `--list-sections` prints the section names. A

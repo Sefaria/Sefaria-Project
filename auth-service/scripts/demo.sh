@@ -7,10 +7,12 @@
 #   demo.sh [--target local|cauldron] [--pause] [--offline] [--read-only | --allow-mutating] [--list-sections]
 #
 #   --target local     the local stack (auth-service/dev/local-stack, compose project sefaria-apikeys-stack), default
-#   --target cauldron  the apikeys-pipeline cauldron (kubectl on the dev cluster; DEMO_HOST overrides the site)
+#   --target cauldron  the cauldron named by APIKEYS_CAULDRON (default apikeys-pipeline, the shared one; kubectl on the
+#                      dev cluster only; DEMO_HOST overrides the site)
 #   --offline          only the checks that need no network, docker or cluster (built, coverage, read more)
 #   --read-only        default: nothing is written, stopped or scaled; mutating sections print [SKIP ...]
-#   --allow-mutating   also run the mutating_* functions: SQL writes, a stopped auth service, a dropped listener
+#   --allow-mutating   also run the mutating_* functions: SQL writes, a stopped auth service, a dropped listener.
+#                      On --target cauldron it needs APIKEYS_CAULDRON set explicitly (never the shared default).
 #   --list-sections    print the section function names and exit without running anything
 #
 # Optional keys, read from the environment (a key is never printed in full; 12 characters at most):
@@ -28,12 +30,13 @@ READ_ONLY=true
 ALLOW_MUTATING=false
 TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/apikeys-demo.XXXXXX")  # new_tmp runs in subshells, so files live in one dir the EXIT trap removes
 
+DEV_CTX=gke_development-205018_us-east1-b_cluster-1
 STACK_PROJECT=sefaria-apikeys-stack
 STACK_PG=sefaria-apikeys-stack-pg-1
 SENTINEL_NOTES='E2E api-keys stack sentinel (local only)'
-CTX=${CTX:-gke_development-205018_us-east1-b_cluster-1}
+CTX=${CTX:-$DEV_CTX}
 NS=${NS:-default}
-CAULDRON_ENV=apikeys-pipeline
+CAULDRON_ENV=${APIKEYS_CAULDRON:-apikeys-pipeline}
 CAULDRON_HOST=${DEMO_HOST:-https://www.$CAULDRON_ENV.cauldron.sefaria.org}
 EXPECTED_TRIGGERS='apikeys_notify_keys_update on powered_by_apikey
 apikeys_notify_keys_write on powered_by_apikey
@@ -130,6 +133,19 @@ while (($#)); do
   esac
   shift
 done
+
+refuse_unsafe_cauldron_target() {
+  [[ $TARGET == cauldron ]] || return 0
+  if [[ $CTX != "$DEV_CTX" ]]; then
+    printf 'refusing --target cauldron: CTX=%s; only %s is allowed\n' "$CTX" "$DEV_CTX" >&2
+    exit 2
+  fi
+  if $ALLOW_MUTATING && [[ -z ${APIKEYS_CAULDRON:-} ]]; then
+    printf 'refusing --allow-mutating on the shared default cauldron %s: set APIKEYS_CAULDRON to the cauldron this drill may change\n' "$CAULDRON_ENV" >&2
+    exit 2
+  fi
+}
+refuse_unsafe_cauldron_target
 
 mask_key() {
   printf '%s…' "${1:0:12}"

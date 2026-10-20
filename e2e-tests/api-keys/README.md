@@ -25,6 +25,9 @@ temporary directory and swaps it in at the end, so a run already in progress nev
 The seed script and the setup both read the shared password from `APIKEYS_E2E_PASSWORD_FILE` (default
 `.claude/scratch/api-keys-e2e/password`). On the cauldron, use `e2e-tests/api-keys/cauldron/run.sh`, which
 preflights, seeds through the web pod, runs with at most 2 workers and always tears down.
+`APIKEYS_CAULDRON` names the target cauldron (default `apikeys-pipeline`) and `APIKEYS_PR` the pull request
+whose merge commit the images must match (default 3798); both runner and `demo.sh` derive every host and
+resource name from them.
 
 ## What the scaffold gives a spec
 

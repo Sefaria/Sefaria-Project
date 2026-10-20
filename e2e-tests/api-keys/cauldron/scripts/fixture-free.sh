@@ -56,12 +56,12 @@ probe_a2c() {
 
 probe_na8() {
   local ev="" ok=1 r
-  for h in "$HOST" "apikeys-pipeline.cauldron.sefaria.org" "voices.apikeys-pipeline.cauldron.sefaria.org"; do
+  for h in "$HOST" "$CAULDRON.cauldron.sefaria.org" "voices.$CAULDRON.cauldron.sefaria.org"; do
     r="$(c "https://$h$GATED")"
     ev="$ev $h$GATED->$(status_of "$r") $(body_of "$r" | json_field code);"
     [ "$(status_of "$r")" = 401 ] || ok=0
   done
-  r="$(c "https://apikeys-pipeline.cauldron.sefaria.org/texts")"
+  r="$(c "https://$CAULDRON.cauldron.sefaria.org/texts")"
   local loc; loc="$(headers_of "$r" | tr -d '\r' | grep -i '^location:' | cut -d' ' -f2- || true)"
   ev="$ev bare /texts->$(status_of "$r") location=$loc"
   [ "$(status_of "$r")" = 301 ] || ok=0
@@ -89,7 +89,7 @@ probe_b11() {
   ev="JS-off GET /Genesis.1 -> $(status_of "$r"), verse text in the server HTML=$has"
   local probes cron node
   probes="$(kc get pods -l "$WEB_SELECTOR" -o jsonpath='{.items[0].spec.containers[0].readinessProbe.httpGet.path}:{.items[0].spec.containers[0].readinessProbe.httpGet.port} {.items[0].spec.containers[0].livenessProbe.httpGet.path}:{.items[0].spec.containers[0].livenessProbe.httpGet.port}' 2>/dev/null)"
-  cron="$(kc get cronjobs -o name 2>/dev/null | grep apikeys-pipeline | tr '\n' ' ')"
+  cron="$(kc get cronjobs -o name 2>/dev/null | grep "$CAULDRON" | tr '\n' ' ')"
   node="$(kc get pods -l "$WEB_SELECTOR" -o jsonpath='{.items[0].spec.containers[0].env[?(@.name=="NODEJS_HOST")].value}' 2>/dev/null)"
   ev="$ev; web readiness/liveness httpGet $probes (kubelet to the pod, not through Envoy); SSR NODEJS_HOST=$node (in-cluster Service); cronjobs: $cron"
   if [ "$has" = yes ] && [ "$(status_of "$r")" = 200 ] && [ -n "$node" ]; then rec B11 pass "$ev"
@@ -127,7 +127,7 @@ except Exception as e: print("unparsed", e)'); mock rows (id:published:consent)=
 
 probe_nm4() {
   local a b v
-  a="$(c "$BASE/settings/account")"; b="$(c "$BASE/settings/account/")"; v="$(c "https://voices.apikeys-pipeline.cauldron.sefaria.org/settings/account")"
+  a="$(c "$BASE/settings/account")"; b="$(c "$BASE/settings/account/")"; v="$(c "https://voices.$CAULDRON.cauldron.sefaria.org/settings/account")"
   local la lb
   la="$(headers_of "$a" | tr -d '\r' | grep -i '^location:' | cut -d' ' -f2- || true)"
   lb="$(headers_of "$b" | tr -d '\r' | grep -i '^location:' | cut -d' ' -f2- || true)"
