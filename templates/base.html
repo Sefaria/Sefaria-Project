@@ -46,7 +46,7 @@
     <meta name="twitter:image" content="{% social_image_url request 'twitter' %}" />
 
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-itunes-app" content="app-id=1163273965">
+    {# Add-to-home-screen POC: Smart App Banner removed so it doesn't compete with the install modal #}
     
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     
@@ -55,10 +55,10 @@
     <link rel="icon" type="image/svg+xml" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.svg?v={{ favicon_version }}" sizes="any">
     <link rel="icon" type="image/png" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.png?v={{ favicon_version }}" sizes="96x96">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/apple-touch-icon.png?v={{ favicon_version }}">
-    <link rel="manifest" href="/site.webmanifest?v={{ favicon_version }}">
+    <link rel="manifest" id="appManifest" href="/site.webmanifest?v={{ favicon_version }}">
     {# In the future in case there are more than 2 modules, define a custom filter with a dictionary that maps module names to colors/strings #}
     <meta name="theme-color" content="{% if active_module == 'voices' %}#518159{% else %}#18345D{% endif %}">
-    <meta name="apple-mobile-web-app-title"
+    <meta name="apple-mobile-web-app-title" id="appleWebAppTitle"
           content="{% if active_module == 'voices' %}
                     {% trans 'Voices' %}
                   {% else %}

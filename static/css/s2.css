@@ -17065,3 +17065,225 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+
+/* ========== ADD TO HOME SCREEN (POC) ========== */
+.dialogModal:has(.a2hsModal) {
+  top: 0;
+  padding: 0;
+}
+.dialogModal .modal-content > .a2hsModal {
+  position: relative;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  font-family: var(--english-sans-serif-font-family);
+  color: #121212;
+}
+.dialogModal .modal-content:has(.a2hsModal) {
+  border-radius: 12px;
+  box-shadow: 0px 40px 80px 0px rgba(0, 0, 0, 0.18), 0px 1px 2px 0px rgba(0, 0, 0, 0.08);
+}
+.a2hsModal .readerNavMenuCloseButton,
+.a2hsConfirmation .readerNavMenuCloseButton {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  line-height: 1;
+  color: #6f6f6f;
+  text-decoration: none;
+}
+.a2hsModal .readerNavMenuCloseButton {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+}
+.a2hsHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 20px;
+}
+.a2hsTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.4;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #121212;
+}
+.a2hsStepsTitle {
+  align-self: stretch;
+  padding-inline-end: 28px;
+  text-align: start;
+}
+.a2hsTagline {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #575757;
+}
+.a2hsPhone {
+  position: relative;
+  width: 132px;
+  height: 200px;
+  box-sizing: border-box;
+  padding: 26px 14px 12px;
+  border: 3px solid #121212;
+  border-radius: 26px;
+  background: #f2f5fa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.a2hsPhoneSpeaker {
+  position: absolute;
+  top: 8px;
+  left: 47px;
+  width: 32px;
+  height: 7px;
+  border-radius: 4px;
+  background: #121212;
+}
+.a2hsPhoneGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: 98px;
+  justify-items: center;
+}
+.a2hsTile {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.a2hsSefariaIcon,
+.a2hsTileLabel {
+  animation-duration: 3.6s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+  animation-iteration-count: 2;
+}
+.a2hsSefariaIcon {
+  animation-name: a2hs-pop;
+}
+.a2hsTileLabel {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #121212;
+  animation-name: a2hs-tag;
+}
+@keyframes a2hs-pop {
+  0%, 20% { transform: scale(0); opacity: 0; }
+  32% { transform: scale(1.25); opacity: 1; }
+  40%, 100% { transform: scale(1); opacity: 1; }
+}
+@keyframes a2hs-tag {
+  0%, 36% { opacity: 0; }
+  46%, 100% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .a2hsSefariaIcon, .a2hsTileLabel { animation: none; }
+}
+.a2hsSteps {
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: start;
+}
+.a2hsSteps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.a2hsSteps strong {
+  font-weight: 600;
+}
+.a2hsStepNumber {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--sefaria-blue);
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 24px;
+  text-align: center;
+  font-weight: 600;
+}
+.a2hsInlineIcon {
+  vertical-align: -3px;
+  color: var(--sefaria-blue);
+}
+.a2hsConfirmation {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 1002;
+  box-sizing: border-box;
+  padding: 12px 4px 12px 12px;
+  background: #ffffff;
+  border: 1px solid #ededec;
+  border-radius: 12px;
+  box-shadow: 0px 16px 32px 0px rgba(13, 3, 32, 0.16), 0px 1px 2px 0px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--english-sans-serif-font-family);
+  color: #121212;
+}
+.a2hsConfirmation.aboveAsk {
+  bottom: calc(84px + env(safe-area-inset-bottom));
+}
+.a2hsConfirmationIcon {
+  flex: none;
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+.a2hsConfirmationIcon img {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+}
+.a2hsCheck {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  background: #518159;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.a2hsConfirmationText {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+}
+/* ========== ADD TO HOME SCREEN (POC) - END ========== */
