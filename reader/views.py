@@ -1994,7 +1994,8 @@ def complete_version_api(request):
             return jsonResponse({"error": "Unrecognized API key."})
     else:
         method = None
-        internal_do_post = csrf_protect(internal_do_post())
+        # csrf_protect wraps a view, which takes the request; check the token before saving anything.
+        return csrf_protect(lambda request: internal_do_post())(request)
 
     return internal_do_post()
 
