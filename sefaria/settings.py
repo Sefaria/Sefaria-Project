@@ -85,6 +85,12 @@ SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
 # local_settings doesn't define it.
 ADMIN_MCP_TOKEN_SECRET = os.getenv("ADMIN_MCP_TOKEN_SECRET") or None
 ADMIN_MCP_TOKEN_TTL_HOURS = 12
+# Secret shared with the AI chatbot for user MCP sign-in (see api/mcp_auth_views.py and
+# SessionIDAuthMiddleware). Unset disables MCP sign-in and MCP token access.
+MCP_TOKEN_SECRET = os.getenv("MCP_TOKEN_SECRET") or None
+# Where /api/mcp/authorize may send a sign-in result: the chatbot's OAuth callback URLs,
+# comma-separated, matched exactly.
+MCP_AUTH_CALLBACK_URLS = [url.strip() for url in os.getenv("MCP_AUTH_CALLBACK_URLS", "").split(",") if url.strip()]
 CHATBOT_USE_LOCAL_SCRIPT = False
 
 TEMPLATES = [

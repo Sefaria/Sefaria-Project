@@ -13,6 +13,12 @@ from django.utils.dateparse import parse_datetime
 DEFAULT_TTL_HOURS = 72
 ADMIN_MCP_TOKEN_AUDIENCE = "admin-mcp"
 ADMIN_MCP_DEFAULT_TTL_HOURS = 12
+# User MCP sign-in (api/mcp_auth_views.py). Both audiences use MCP_TOKEN_SECRET, shared with the
+# AI chatbot. Sefaria mints mcp-login tokens to prove who signed in; the chatbot's MCP server mints
+# short-lived mcp tokens per tool call, which Sefaria accepts only on the sheet API routes it uses.
+MCP_LOGIN_TOKEN_AUDIENCE = "mcp-login"
+MCP_LOGIN_TOKEN_TTL_MINUTES = 5
+MCP_TOKEN_AUDIENCE = "mcp"
 NONCE_SIZE_BYTES = 12
 
 

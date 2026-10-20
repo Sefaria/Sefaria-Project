@@ -8,6 +8,7 @@ import remote_config.views as remote_config_views
 import api.views as api_views
 import api.linker_admin_views as linker_api_views
 import api.admin_mcp_views as admin_mcp_views
+import api.mcp_auth_views as mcp_auth_views
 import api.lexicon_admin_views as lexicon_api_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
@@ -214,6 +215,8 @@ shared_patterns = [
     path('api/admin/mcp-token', admin_mcp_views.AdminMCPTokenView.as_view()),
     path('api/admin/topic-prompts', admin_mcp_views.TopicPromptsView.as_view()),
     path('api/admin/topic-prompts/<str:link_id>', admin_mcp_views.TopicPromptView.as_view()),
+    # Sign-in handoff for the AI chatbot's user MCP server (chat.sefaria.org/mcp/user).
+    path('api/mcp/authorize', mcp_auth_views.mcp_authorize),
     path('api/ref-topic-links/bulk', reader_views.topic_ref_bulk_api),
     path('api/ref-topic-links/<path:tref>', reader_views.topic_ref_api),
     path('api/v2/topics/<path:topic>', reader_views.topics_api, {'v2': True}),

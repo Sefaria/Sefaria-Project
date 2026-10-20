@@ -1,4 +1,5 @@
 import os
+import re
 import resource
 import sys
 import tempfile
@@ -16,7 +17,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token, ADMIN_MCP_TOKEN_AUDIENCE
+from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token, ADMIN_MCP_TOKEN_AUDIENCE, MCP_TOKEN_AUDIENCE
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.utils.views_utils import add_query_param, mark_no_applink, is_aasa_excluded, AASA_EXCLUDED_PATHS
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port, referer_is_sefaria_domain, redirect_target_is_sefaria_domain
@@ -364,14 +365,22 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
     This supplements Django's normal session auth. If the request already has an
     authenticated user from the session, this middleware leaves it untouched.
 
-    Two token types share the header, each encrypted with its own secret:
+    Three token types share the header, each encrypted with its own secret:
     - Chatbot tokens (no audience, CHATBOT_USER_ID_SECRET): accepted on any path except
       ADMIN_MCP_PATH_PREFIX. CSRF is still enforced.
     - Admin MCP tokens (audience ADMIN_MCP_TOKEN_AUDIENCE, ADMIN_MCP_TOKEN_SECRET): accepted only
       on ADMIN_MCP_PATH_PREFIX and only for staff. CSRF is skipped, since a browser never attaches
       this header on its own.
+    - User MCP tokens (audience MCP_TOKEN_AUDIENCE, MCP_TOKEN_SECRET): minted per tool call by the AI
+      chatbot's MCP server for a user who signed in at /api/mcp/authorize. Accepted only on
+      MCP_ROUTES, the sheet API calls its tools make. CSRF is skipped for the same reason.
     """
     ADMIN_MCP_PATH_PREFIX = "/api/admin/"
+    MCP_ROUTES = (
+        ("GET", re.compile(r"^/api/sheets/user/\d+(/.*)?$")),
+        ("GET", re.compile(r"^/api/sheets/\d+/?$")),
+        ("POST", re.compile(r"^/api/sheets/?$")),
+    )
 
     def process_request(self, request):
         if getattr(request, "user", None) and request.user.is_authenticated:
@@ -384,6 +393,9 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
 
         if request.path.startswith(self.ADMIN_MCP_PATH_PREFIX):
             self._authenticate_admin_mcp(request, encrypted_session_id)
+            return
+
+        if self._is_mcp_route(request) and self._authenticate_mcp(request, encrypted_session_id):
             return
 
         user_id = get_user_id_from_chatbot_user_token(
@@ -406,6 +418,23 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
         self._set_user(request, user)
         request.auth_via = ADMIN_MCP_TOKEN_AUDIENCE
         request._dont_enforce_csrf_checks = True
+
+    def _is_mcp_route(self, request):
+        return any(request.method == method and pattern.match(request.path) for method, pattern in self.MCP_ROUTES)
+
+    def _authenticate_mcp(self, request, token):
+        user_id = get_user_id_from_chatbot_user_token(
+            token,
+            getattr(settings, "MCP_TOKEN_SECRET", None),
+            aud=MCP_TOKEN_AUDIENCE,
+        )
+        user = self._get_active_user(user_id)
+        if not user:
+            return False
+        self._set_user(request, user)
+        request.auth_via = MCP_TOKEN_AUDIENCE
+        request._dont_enforce_csrf_checks = True
+        return True
 
     @staticmethod
     def _get_active_user(user_id):
