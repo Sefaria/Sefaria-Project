@@ -273,9 +273,11 @@ function installPageHelpers(): void {
     const r = el.getBoundingClientRect();
     return { scrollTop: el.scrollTop, maxScroll: el.scrollHeight - el.clientHeight, top: r.top, bottom: r.bottom };
   };
+  // Jump instantly: the chat has `scroll-behavior: smooth`, so setting scrollTop would glide for
+  // ~0.6s and callers would read a position partway there
   const scrollChatTo = (logName: string, fraction: number) => {
     const el = findChatScroller(logName);
-    if (el) el.scrollTop = fraction * (el.scrollHeight - el.clientHeight);
+    if (el) el.scrollTo({ top: fraction * (el.scrollHeight - el.clientHeight), behavior: 'instant' });
   };
   /** Record how far the conversation is scrolled on every animation frame for `ms` milliseconds. */
   const sampleChatScroll = (opts: { logName: string; ms: number }) =>
