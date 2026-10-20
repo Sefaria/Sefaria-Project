@@ -519,3 +519,56 @@ def test_cache_refresh_forgets_both_profiles_and_recommendations(monkeypatch):
     assert user_profile.public_user_data_cache[333] == {"name": "keep"}
     assert following.creators is None
     assert cache.get_cache_elem(key) is None
+
+
+def test_fill_copies_source_values_only_into_empty_destination_fields(merge_env):
+    env = merge_env
+    env.mongo.profiles.update_one({"id": env.source.id}, {"$set": {
+        "bio": "<script>unsafe</script><p>Source bio</p>", "location": "source", "website": "source.example",
+        "settings": {"interface_language": "hebrew"},
+    }})
+    env.mongo.profiles.update_one({"id": env.survivor.id}, {"$set": {
+        "bio": "", "location": "personal", "settings": {}, "attr_time_stamps": {"settings": 45},
+    }})
+    user_utils.merge_user_accounts(env.source.id, env.survivor.id, fill_in_profile_data=True)
+    result = env.mongo.profiles.find_one({"id": env.survivor.id})
+    assert "Source bio" in result["bio"] and "<script>" not in result["bio"]
+    assert result["website"] == "source.example"
+    assert result["location"] == "personal"
+    assert result["settings"] == {"interface_language": "hebrew"}
+    # Changing settings must also record when they changed, so devices re-sync.
+    assert result["attr_time_stamps"]["settings"] == pytest.approx(user_utils.time.time(), abs=10)
+
+
+def test_remaining_nested_sheet_attribution_stops_deletion(merge_env, monkeypatch):
+    env = merge_env
+    env.mongo.sheets.insert_one({"id": 100, "owner": 99, "sources": [
+        {"subsources": [{"addedBy": env.source.id}]}]})
+    collection_type = type(env.mongo.sheets)
+    original_update = collection_type.update_one
+    def skip_sheets(collection, *args, **kwargs):
+        if collection.name != "sheets":
+            return original_update(collection, *args, **kwargs)
+    monkeypatch.setattr(collection_type, "update_one", skip_sheets)
+    with pytest.raises(RuntimeError, match="sheet 100"):
+        merge(env)
+    assert User.objects.filter(id=env.source.id).exists()
+
+
+def test_cache_refresh_runs_locally_and_on_other_servers(monkeypatch):
+    from sefaria.system import cache
+    from sefaria.system.multiserver import coordinator
+    invalidate = Mock()
+    publisher = Mock()
+    monkeypatch.setattr(cache, "invalidate_user_profile_cache", invalidate)
+    monkeypatch.setattr(coordinator, "server_coordinator", publisher)
+    assert user_utils._refresh_merge_caches(111, 222) is None
+    invalidate.assert_called_once_with([111, 222])
+    publisher.publish_event.assert_called_once_with("scache", "invalidate_user_profile_cache", [[111, 222]])
+
+
+def test_cache_refresh_failure_becomes_a_warning(monkeypatch, capsys):
+    from sefaria.system import cache
+    monkeypatch.setattr(cache, "invalidate_user_profile_cache", Mock(side_effect=RuntimeError("redis down")))
+    warning = user_utils._refresh_merge_caches(111, 222)
+    assert "could not be refreshed" in warning

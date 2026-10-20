@@ -157,4 +157,32 @@ describe("account merge form", function () {
     expect(fields.disabled).toBe(false);
     expect(window.confirm).not.toHaveBeenCalled();
   });
+
+  it("labels the button for each outcome", async function () {
+    const button = document.getElementById("merge-accounts-submit");
+    window.confirm.mockReturnValue(false);
+    global.fetch.mockResolvedValue(response(preview));
+    submit();
+    await settle();
+    expect(button.textContent).toBe("Review merge");
+
+    // Each attempt clears the password on purpose, so type it again.
+    form.elements.password.value = "admin-password";
+    window.confirm.mockReturnValue(true);
+    global.fetch.mockReset();
+    global.fetch.mockResolvedValueOnce(response(preview)).mockResolvedValueOnce(response({
+      error: "Some data may already have moved.", retry_safe: false,
+    }, false));
+    submit();
+    await settle();
+    expect(button.textContent).toBe("Check accounts before retrying");
+  });
+
+  it("labels the button after a successful merge", async function () {
+    const button = document.getElementById("merge-accounts-submit");
+    global.fetch.mockResolvedValueOnce(response(preview)).mockResolvedValueOnce(response({success: "Accounts merged."}));
+    submit();
+    await settle();
+    expect(button.textContent).toBe("Merged");
+  });
 });
