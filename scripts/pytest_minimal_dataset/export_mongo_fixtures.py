@@ -40,8 +40,6 @@ LINK_SAMPLE_SAFE = {
 # here. See check_total_budget() -- the total, not this number, is the hard line.
 MAX_BASE_BYTES = 17 * 1024 * 1024
 MAX_TOTAL_BYTES = 20 * 1024 * 1024
-NOT_MOCKABLE_MANIFEST = os.path.join(DEFAULT_FIXTURE_DIR, "_not-mockable.json")
-_oversized_fixtures = []
 LINK_RESPONSE_FIELDS = {
     "anchorRef", "category", "ref", "type", "refs",
     "is_first_comment", "first_comment_indexes", "first_comment_section_ref",
@@ -411,7 +409,6 @@ def write_fixture(output_dir, nodeid, collections, records=None):
         )
         return None
     if nodeid != "_base" and size > MAX_FIXTURE_BYTES:
-        _oversized_fixtures.append({"nodeid": nodeid, "reason": "oversized"})
         print(
             f"WARNING: omitting {nodeid}: generated fixture is {size} bytes (> {MAX_FIXTURE_BYTES})",
             file=sys.stderr,
@@ -430,6 +427,36 @@ def write_base_fixture(output_dir, collections):
     """Write the shared library metadata fixture from a prepared union."""
     trimmed = {key: docs for key, docs in collections.items() if key in BASE_COLLECTIONS}
     return write_fixture(output_dir, "_base", trimmed)
+
+
+def refresh_base_from_source(source_db, accumulator):
+    """Re-read every base document carried over from an earlier export: edits at the source win, ids that
+    vanished are dropped. Returns {collection: [dropped ids]}."""
+    dropped = {}
+    for collection, docs in accumulator.items():
+        if not docs: continue
+        fresh = {str(d["_id"]): d for d in source_db[collection].find({"_id": {"$in": [d["_id"] for d in docs.values()]}})}
+        for key in list(docs):
+            if key in fresh: docs[key] = fresh[key]
+            else: dropped.setdefault(collection, []).append(key); del docs[key]
+    return dropped
+
+
+def write_manifest(output_dir, source=None):
+    fixtures = {}
+    for name in sorted(os.listdir(output_dir)):
+        if name.startswith("_") or not name.endswith(".json"): continue
+        raw = open(os.path.join(output_dir, name), "rb").read()
+        payload = json.loads(raw)
+        fixtures[name] = {"nodeid": payload["nodeid"], "sha256": hashlib.sha256(raw).hexdigest(),
+                          "collections": sorted(payload["collections"])}
+    base = os.path.join(output_dir, "_base.json")
+    if not os.path.isfile(base):
+        raise SystemExit(f"cannot write manifest: {base} is missing")
+    manifest = {"format": 1, "source": source or {}, "fixtures": fixtures,
+                "base": {"sha256": hashlib.sha256(open(base, "rb").read()).hexdigest()}}
+    with open(os.path.join(output_dir, "_manifest.json"), "w") as fh:
+        json.dump(manifest, fh, indent=1, sort_keys=True); fh.write("\n")
 
 
 def enrich_base_with_library_families(source_db, accumulator):
@@ -557,6 +584,26 @@ def load_existing_base(path):
     return collections
 
 
+def load_source_stamp(path, output_dir):
+    """Manifest `source`: the --source-stamp-json object when given, else what the existing manifest records."""
+    if path:
+        with open(path) as f:
+            return json.load(f)
+    existing = os.path.join(output_dir, "_manifest.json")
+    if os.path.isfile(existing):
+        try:
+            with open(existing) as f:
+                return json.load(f).get("source") or None
+        except (ValueError, OSError):
+            return None
+    return None
+
+
+def report_dropped(dropped):
+    for collection, ids in sorted(dropped.items()):
+        print(f"dropped {len(ids)} {collection} doc(s) deleted from source: {', '.join(ids)}", file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("test_files", nargs="*", help="pytest file path(s) to export, e.g. sefaria/tests/recommendation_test.py")
@@ -567,15 +614,26 @@ def main():
     ap.add_argument("--source-db", default="sefaria")
     ap.add_argument(
         "--base-only", action="store_true",
-        help="rebuild _base.json only (existing base + library families); "
-             "leave per-test overlays and _not-mockable.json untouched",
+        help="rebuild _base.json only (existing base + library families); leave per-test overlays untouched",
+    )
+    ap.add_argument(
+        "--manifest-only", action="store_true",
+        help="rewrite _manifest.json from the fixture files in --output-dir and exit",
+    )
+    ap.add_argument(
+        "--source-stamp-json", metavar="PATH",
+        help="JSON object merged into the manifest's source (dump_url, last_modified, etag, recorded_at, git_sha)",
     )
     args = ap.parse_args()
+
+    if args.manifest_only:
+        write_manifest(args.output_dir, load_source_stamp(args.source_stamp_json, args.output_dir))
+        return
 
     if args.host != "127.0.0.1":
         raise SystemExit("refusing to export fixtures from a non-loopback Mongo host")
     if not args.base_only and not args.test_files:
-        ap.error("test_files is required unless --base-only is given")
+        ap.error("test_files is required unless --base-only or --manifest-only is given")
 
     client = pymongo.MongoClient(args.host, args.port, serverSelectionTimeoutMS=5000)
     source_db = client[args.source_db]
@@ -583,6 +641,7 @@ def main():
     if args.base_only:
         base_acc = defaultdict(dict)
         merge_base_docs(base_acc, load_existing_base(os.path.join(args.output_dir, "_base.json")))
+        report_dropped(refresh_base_from_source(source_db, base_acc))
         enrich_base_with_extra_titles(source_db, base_acc)
         enrich_base_with_library_families(source_db, base_acc)
         path = write_base_fixture(
@@ -595,22 +654,11 @@ def main():
         print(f"{path} ({os.path.getsize(path)} bytes; fixture total {total} bytes)")
         return
 
-    existing_manifest = {}
-    partial_library_manifest = {}
-    if os.path.isfile(NOT_MOCKABLE_MANIFEST):
-        try:
-            with open(NOT_MOCKABLE_MANIFEST) as f:
-                for entry in json.load(f):
-                    existing_manifest[entry["nodeid"]] = entry
-                    if entry.get("reason") == "partial-library":
-                        partial_library_manifest[entry["nodeid"]] = entry
-        except (ValueError, OSError):
-            existing_manifest = {}
-
     written = []
-    written_nodeids = set()
+    oversized = []
     base_acc = defaultdict(dict)
     merge_base_docs(base_acc, load_existing_base(os.path.join(args.output_dir, "_base.json")))
+    report_dropped(refresh_base_from_source(source_db, base_acc))
     for test_file in args.test_files:
         paths = list(artifact_paths(args.artifact_dir, test_file))
         if not paths:
@@ -621,38 +669,34 @@ def main():
             if not records:
                 continue
             nodeid = records[0]["nodeid"]
-            if nodeid in partial_library_manifest:
-                print(f"Skipping {nodeid}: marked as partial-library in not-mockable manifest", file=sys.stderr)
-                continue
             collections, base_part = collect_docs(source_db, records)
             merge_base_docs(base_acc, base_part)
             path = write_fixture(args.output_dir, nodeid, collections, records)
             if path:
                 written.append(path)
-                written_nodeids.add(nodeid)
+            else:
+                oversized.append(nodeid)
 
     if base_acc:
         enrich_base_with_extra_titles(source_db, base_acc)
         enrich_base_with_library_families(source_db, base_acc)
-        write_base_fixture(
+        path = write_base_fixture(
             args.output_dir,
             {collection: list(docs.values()) for collection, docs in base_acc.items()},
         )
+        if path is None:
+            raise SystemExit(f"_base.json was NOT rewritten: it would exceed MAX_BASE_BYTES ({MAX_BASE_BYTES})")
         check_total_budget(args.output_dir)
 
     for path in written:
         print(path)
 
-    os.makedirs(os.path.dirname(NOT_MOCKABLE_MANIFEST), exist_ok=True)
-    # Never remove partial-library entries, only update oversized status
-    for nodeid in written_nodeids:
-        if nodeid not in partial_library_manifest:
-            existing_manifest.pop(nodeid, None)
-    for entry in _oversized_fixtures:
-        existing_manifest[entry["nodeid"]] = entry
-    sorted_manifest = [existing_manifest[k] for k in sorted(existing_manifest.keys())]
-    with open(NOT_MOCKABLE_MANIFEST, "w") as f:
-        json.dump(sorted_manifest, f, indent=2, sort_keys=True)
+    write_manifest(args.output_dir, load_source_stamp(args.source_stamp_json, args.output_dir))
+    if oversized:
+        raise SystemExit(
+            f"fixtures over MAX_FIXTURE_BYTES ({MAX_FIXTURE_BYTES} bytes) were not written; "
+            f"mark these needs_corpus: {', '.join(oversized)}"
+        )
 
 
 if __name__ == "__main__":

@@ -1,6 +1,11 @@
+import hashlib
 import json
 import sys
+from collections import defaultdict
 from pathlib import Path
+
+import mongomock
+import pytest
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
@@ -275,3 +280,158 @@ def test_library_families_pull_in_missing_base_texts():
     titles = {d["title"] for d in acc["index"].values()}
     assert "Netivot Olam" in titles
     assert "Not In Dump" not in titles
+
+
+# --- T4: base kept in sync with the source, manifest, caps, loopback guard ----
+
+NODEID = "sefaria/tests/example_test.py::test_x"
+
+
+def _mock_source(**collections):
+    client = mongomock.MongoClient()
+    db = client["sefaria"]
+    for name, docs in collections.items():
+        if docs:
+            db[name].insert_many([dict(d) for d in docs])
+    return client
+
+
+def _write_artifact(artifact_dir, records):
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    path = artifact_dir / "run.jsonl"
+    path.write_text("".join(json.dumps(r) + "\n" for r in records))
+    return path
+
+
+def _run_main(monkeypatch, argv, client):
+    monkeypatch.setattr(exp.pymongo, "MongoClient", lambda *a, **k: client)
+    monkeypatch.setattr(sys, "argv", ["export_mongo_fixtures.py"] + argv)
+    return exp.main()
+
+
+def test_base_refresh_drops_docs_deleted_from_source():
+    db = _mock_source(index=[{"_id": "1", "title": "Genesis"}])["sefaria"]
+    acc = defaultdict(dict)
+    acc["index"]["1"] = {"_id": "1", "title": "Genesis"}
+    acc["index"]["2"] = {"_id": "2", "title": "Deleted At Source"}
+    dropped = exp.refresh_base_from_source(db, acc)
+    assert dropped == {"index": ["2"]}
+    assert set(acc["index"]) == {"1"}
+
+
+def test_base_refresh_takes_edited_doc_from_source():
+    db = _mock_source(index=[{"_id": "1", "title": "New Title"}])["sefaria"]
+    acc = defaultdict(dict)
+    acc["index"]["1"] = {"_id": "1", "title": "Old Title"}
+    dropped = exp.refresh_base_from_source(db, acc)
+    assert dropped == {}
+    assert acc["index"]["1"]["title"] == "New Title"
+
+
+def test_rejected_base_aborts_full_export(tmp_path, monkeypatch):
+    out = tmp_path / "fixtures"
+    out.mkdir()
+    exp.write_base_fixture(str(out), {"index": [{"_id": "a", "title": "Genesis"}]})
+    original = (out / "_base.json").read_bytes()
+    artifacts = tmp_path / "artifacts"
+    _write_artifact(artifacts, [{
+        "nodeid": NODEID, "collection": "index", "command": "find",
+        "filter": {"title": "Genesis"}, "n_returned": 1, "doc_ids": ["a"],
+    }])
+    client = _mock_source(index=[{"_id": "a", "title": "Genesis", "categories": ["Tanakh"], "pad": "x" * 5000}])
+    monkeypatch.setattr(exp, "MAX_BASE_BYTES", 200)
+    with pytest.raises(SystemExit) as info:
+        _run_main(monkeypatch, [
+            "sefaria/tests/example_test.py", "--artifact-dir", str(artifacts),
+            "--output-dir", str(out),
+        ], client)
+    assert info.value.code not in (None, 0)
+    assert (out / "_base.json").read_bytes() == original
+
+
+def test_oversized_overlay_is_an_error(tmp_path, monkeypatch):
+    out = tmp_path / "fixtures"
+    exp.write_base_fixture(str(out), {"index": [{"_id": "a", "title": "Genesis"}]})
+    artifacts = tmp_path / "artifacts"
+    _write_artifact(artifacts, [{
+        "nodeid": NODEID, "collection": "texts", "command": "find",
+        "filter": {"title": "Exodus", "language": "en"}, "n_returned": 1, "doc_ids": ["t1"],
+    }])
+    client = _mock_source(texts=[{"_id": "t1", "title": "Exodus", "language": "en", "chapter": [["x" * 500]]}])
+    monkeypatch.setattr(exp, "MAX_FIXTURE_BYTES", 50)
+    with pytest.raises(SystemExit) as info:
+        _run_main(monkeypatch, [
+            "sefaria/tests/example_test.py", "--artifact-dir", str(artifacts),
+            "--output-dir", str(out),
+        ], client)
+    message = str(info.value.code)
+    assert NODEID in message
+    assert "needs_corpus" in message
+    assert not (out / "_not-mockable.json").exists()
+
+
+def test_find_and_modify_filter_is_replayed():
+    client = _mock_source(texts=[
+        {"_id": "t1", "title": "Exodus", "language": "en", "chapter": [["x"]]},
+        {"_id": "t2", "title": "Leviticus", "language": "en", "chapter": [["y"]]},
+    ])
+    records = [{
+        "nodeid": NODEID, "command": "findAndModify", "collection": "texts",
+        "filter": {"title": "Exodus", "language": "en"}, "n_returned": 1, "doc_ids": [],
+    }]
+    overlay, _ = exp.collect_docs(client["sefaria"], records)
+    assert [d["_id"] for d in overlay["texts"]] == ["t1"]
+
+
+def test_refuses_non_loopback(tmp_path, monkeypatch):
+    def no_client(*a, **k):
+        raise AssertionError("must not open a Mongo client for a non-loopback host")
+
+    monkeypatch.setattr(exp.pymongo, "MongoClient", no_client)
+    monkeypatch.setattr(sys, "argv", [
+        "export_mongo_fixtures.py", "sefaria/tests/example_test.py",
+        "--host", "10.1.2.3", "--output-dir", str(tmp_path),
+    ])
+    with pytest.raises(SystemExit) as info:
+        exp.main()
+    assert "non-loopback" in str(info.value.code)
+
+
+def test_manifest_lists_every_fixture_with_sha256(tmp_path):
+    exp.write_base_fixture(str(tmp_path), {"index": [{"_id": "a", "title": "Genesis"}]})
+    exp.write_fixture(
+        str(tmp_path), NODEID, {"links": [{"_id": "a", "ref": "1"}]},
+        records=[{"collection": "links", "filter": {"ref": "1"}}],
+    )
+    exp.write_manifest(str(tmp_path))
+    text = (tmp_path / "_manifest.json").read_text()
+    manifest = json.loads(text)
+    assert text == json.dumps(manifest, indent=1, sort_keys=True) + "\n"
+    assert manifest["format"] == 1
+    assert manifest["source"] == {}
+    fname = exp.sanitize_nodeid(NODEID) + ".json"
+    assert set(manifest["fixtures"]) == {fname}
+    entry = manifest["fixtures"][fname]
+    assert entry["nodeid"] == NODEID
+    assert entry["collections"] == ["links"]
+    assert entry["sha256"] == hashlib.sha256((tmp_path / fname).read_bytes()).hexdigest()
+    assert manifest["base"]["sha256"] == hashlib.sha256((tmp_path / "_base.json").read_bytes()).hexdigest()
+
+
+def test_output_dir_is_honoured_for_manifest(tmp_path, monkeypatch):
+    out = tmp_path / "out"
+    default_dir = tmp_path / "default"
+    default_dir.mkdir()
+    exp.write_base_fixture(str(out), {"index": [{"_id": "a", "title": "Genesis"}]})
+    monkeypatch.setattr(exp, "DEFAULT_FIXTURE_DIR", str(default_dir))
+    stamp = tmp_path / "stamp.json"
+    stamp.write_text(json.dumps({"dump_url": "https://example.test/dump", "etag": "e1"}))
+    monkeypatch.setattr(sys, "argv", [
+        "export_mongo_fixtures.py", "--manifest-only", "--output-dir", str(out),
+        "--source-stamp-json", str(stamp),
+    ])
+    exp.main()
+    manifest = json.loads((out / "_manifest.json").read_text())
+    assert manifest["source"]["dump_url"] == "https://example.test/dump"
+    assert manifest["source"]["etag"] == "e1"
+    assert list(default_dir.iterdir()) == []
