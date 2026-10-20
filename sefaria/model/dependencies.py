@@ -75,11 +75,13 @@ subscribe(process_index_delete_in_book_search,                          text.Ind
 def process_version_title_change_in_search(ver, **kwargs):
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
+        text_index = library.get_index(ver.title)
+        if text_index.is_admin_only():  # hidden books must never reach shared search
+            return
         from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
         search_index_name = get_new_and_current_index_names("text")['current']
         # no reason to deal with merged index since versions don't exist. still leaving this here in case it is necessary
         # search_index_name_merged = get_new_and_current_index_names("merged")['current']
-        text_index = library.get_index(ver.title)
         delete_version(text_index, kwargs.get("old"), ver.language)
         new_version_title = kwargs.get("new")
         failed_refs = []
