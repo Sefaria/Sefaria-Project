@@ -1392,16 +1392,20 @@ def delete_sheet_by_id(request):
 @sensitive_post_parameters("password")
 @require_http_methods(["GET", "POST"])
 def merge_accounts(request):
-    """Review two identities before invoking the same merge used by the CLI."""
+    """Staff form for merging two accounts. Runs the same merge as the command line.
+
+    The browser POSTs twice: first with action=preview to show who the accounts
+    are, then with action=merge once the staff member has confirmed.
+    """
     if request.method == "GET":
         return render_template(request, "merge-accounts.html", None, {"form": SefariaMergeAccountsForm()})
 
     form = SefariaMergeAccountsForm(request.POST)
     if not form.is_valid():
-        return jsonResponse({"errors": form.errors.get_json_data(), "retry_safe": True}, status=400)
+        return _merge_form_errors(form)
 
-    # Recheck the current staff user and password on each POST, including preview.
-    # Neither a stale browser session nor JavaScript validation authorizes a merge.
+    # Check staff access and the password again on every POST, including the
+    # preview. An old browser session or the page's JavaScript is not enough.
     operator = User.objects.get(id=request.user.id)
     if not operator.is_active or not operator.is_staff:
         return jsonResponse({"error": "An active staff account is required.", "retry_safe": True}, status=403)
@@ -1413,40 +1417,64 @@ def merge_accounts(request):
     if action not in ("preview", "merge"):
         return jsonResponse({"error": "Choose preview or merge.", "retry_safe": True}, status=400)
 
+    accounts = _merge_accounts_from_form(form)
+    if form.errors:
+        return _merge_form_errors(form)
+
+    if action == "preview":
+        return jsonResponse({field: {"id": account.id, "email": account.email, "name": account.get_full_name()}
+                             for field, account in accounts.items()})
+    return _run_account_merge(operator, accounts["source"], accounts["destination"],
+                              form.cleaned_data["profile_mode"])
+
+
+def _merge_form_errors(form):
+    # retry_safe tells the page nothing has changed yet, so the form can be fixed and sent again.
+    return jsonResponse({"errors": form.errors.get_json_data(), "retry_safe": True}, status=400)
+
+
+def _merge_accounts_from_form(form):
+    """Look up the source and destination users. Problems are added to `form` as errors."""
     accounts = {}
     for field in ("source", "destination"):
-        value = form.cleaned_data[field]
-        try:
-            query = {"id": int(value)} if value.isdecimal() else {"email__iexact": value}
-            accounts[field] = User.objects.get(**query)
-        except User.DoesNotExist:
-            form.add_error(field, "Account not found.")
-        except User.MultipleObjectsReturned:
-            form.add_error(field, "Several accounts have this email address. Enter the user ID instead.")
-    if len(accounts) == 2:
-        if accounts["source"].id == accounts["destination"].id:
-            form.add_error("destination", "Source and destination accounts must be different.")
-        for field, account in accounts.items():
-            # Reading raw profiles avoids creating one as a lookup side effect.
-            if not db.profiles.find_one({"id": account.id}, {"_id": 1}):
-                form.add_error(field, "This account does not have a profile.")
-    if form.errors:
-        return jsonResponse({"errors": form.errors.get_json_data(), "retry_safe": True}, status=400)
+        account, error = _find_account(form.cleaned_data[field])
+        if error:
+            form.add_error(field, error)
+        else:
+            accounts[field] = account
+    if len(accounts) < 2:
+        return accounts
 
-    source, destination = accounts["source"], accounts["destination"]
-    if action == "preview":
-        return jsonResponse({field: {"id": account.id, "email": account.email,
-                                     "name": account.get_full_name()}
-                             for field, account in accounts.items()})
+    if accounts["source"].id == accounts["destination"].id:
+        form.add_error("destination", "Source and destination accounts must be different.")
+    for field, account in accounts.items():
+        # Read the raw profile document: loading a UserProfile would create an empty one.
+        if not db.profiles.find_one({"id": account.id}, {"_id": 1}):
+            form.add_error(field, "This account does not have a profile.")
+    return accounts
 
+
+def _find_account(id_or_email):
+    """Return (user, None) if exactly one account matches, otherwise (None, error message)."""
+    query = {"id": int(id_or_email)} if id_or_email.isdecimal() else {"email__iexact": id_or_email}
+    try:
+        return User.objects.get(**query), None
+    except User.DoesNotExist:
+        return None, "Account not found."
+    except User.MultipleObjectsReturned:
+        return None, "Several accounts have this email address. Enter the user ID instead."
+
+
+def _run_account_merge(operator, source, destination, profile_mode):
     from sefaria.utils.user import merge_user_accounts
     try:
-        # The form has already checked staff access, password, and typed consent.
-        # An explicit argument avoids patching process-wide input() in a web worker.
+        # The form has already checked staff access, the password, and the typed
+        # MERGE. confirm=False skips the command-line prompt, which would
+        # otherwise wait for keyboard input inside the web server.
         result = merge_user_accounts(
             source.id, destination.id,
-            fill_in_profile_data=form.cleaned_data["profile_mode"] == "fill",
-            override_profile_data=form.cleaned_data["profile_mode"] == "override",
+            fill_in_profile_data=profile_mode == "fill",
+            override_profile_data=profile_mode == "override",
             confirm=False,
         )
     except InputError as error:
@@ -1458,8 +1486,7 @@ def merge_accounts(request):
                              "Have a developer inspect both accounts before retrying.",
                              "retry_safe": False}, status=500)
     logger.info("Admin account merge completed", operator_id=operator.id,
-                from_uid=source.id, into_uid=destination.id,
-                profile_mode=form.cleaned_data["profile_mode"])
+                from_uid=source.id, into_uid=destination.id, profile_mode=profile_mode)
     return jsonResponse({"success": "Accounts merged. Source account %s was deleted; "
                          "destination account %s remains." % (source.id, destination.id),
                          "warnings": result["warnings"]})
