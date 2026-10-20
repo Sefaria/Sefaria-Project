@@ -38,6 +38,14 @@ const COLORS = {
 /** Allowed difference, in px, when comparing measured positions/sizes. */
 const PX = 1;
 
+/**
+ * How far below the top of the chat area an answer's first line may sit and still count as
+ * "the chat shows the start of the answer". The widget leaves 80px above an answer on purpose
+ * (RESPONSE_PACKAGE_TOP_OFFSET in ai-chatbot's LCChatbot.svelte), so the end of the question
+ * shows; the rest is room for the answer's own padding (today the line lands ~95px down).
+ */
+const ANSWER_START_MAX_OFFSET = 120;
+
 /** Pause for a set time inside a touch gesture. Not wrapped in t(): the
  *  gesture's speed is part of what is being tested (a slow drag vs a quick
  *  flick), so it must not stretch with TIMEOUT_MULTIPLIER. */
@@ -1374,7 +1382,7 @@ export class LibraryAssistantQ4Page extends HelperBase {
   /**
    * LA-NOTE-3 / LA-QA-6: the open chat shows the start of an answer. `startText` is
    * text from the answer's first line. The first line is at the top of the chat area
-   * (with up to 48px of room for the space above a message), or, when the chat can't
+   * (within ANSWER_START_MAX_OFFSET px of it), or, when the chat can't
    * scroll any further down, it's on screen.
    * `notTopOrEnd` also checks the chat is scrolled to neither its top nor its end.
    */
@@ -1387,7 +1395,7 @@ export class LibraryAssistantQ4Page extends HelperBase {
       const b = await this.box(start);
       seen = `answer starts ${Math.round(b.y - s.top)}px below the top of the chat area; ` +
         `scrolled ${Math.round(s.scrollTop)}px of ${Math.round(s.maxScroll)}px`;
-      const atTop = b.y >= s.top - PX && b.y - s.top <= 48;
+      const atTop = b.y >= s.top - PX && b.y - s.top <= ANSWER_START_MAX_OFFSET;
       const cannotGoFurther = s.maxScroll - s.scrollTop <= 2 && b.y >= s.top - PX && b.y < s.bottom;
       return atTop || cannotGoFurther;
     }, { timeout: t(5000), message: 'the chat should open on the start of the answer' })
