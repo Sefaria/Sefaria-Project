@@ -262,20 +262,30 @@ jobs:
         #
         # ./semantic_search is outside master's baseline paths but ran in this
         # job's old allowlist; it stays so this change drops no coverage. The two
-        # scripts/ test files are passed by path, which pytest collects even
-        # though pytest.ini's python_files does not list scripts/.
+        # scripts/ directories are passed whole: pytest.ini's python_files lists
+        # their test_*.py patterns, so every tooling test runs here.
         run: >
           python -m pytest -q --reuse-db
           -m "not deep and not failing and not needs_mongo and not needs_linker and not needs_corpus"
           ./sefaria ./sso ./reader ./powered_by
           ./semantic_search
-          scripts/test_impact/test_ci_parity.py
-          scripts/pytest_minimal_dataset/test_export_mongo_fixtures.py
-          scripts/pytest_minimal_dataset/test_generate_minimal_dataset.py
+          scripts/test_impact scripts/pytest_minimal_dataset
+      - name: Check the Mongo fixtures against the collected tests
+        run: python scripts/pytest_minimal_dataset/check_fixtures.py
       - name: Check CI parity with master's pytest selection
         # Fails if any test master's baseline selects is collected by none of the
         # pytest jobs in this workflow, pytest-corpus-job included.
-        run: python scripts/test_impact/ci_parity.py
+        # On pull_request the baseline is the base branch, not this checkout's
+        # master: a test removed upstream is informational, a hidden one fails.
+        run: |
+          ARGS=()
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+            ARGS+=(--baseline-ref FETCH_HEAD)
+          fi
+          python scripts/test_impact/ci_parity.py "${ARGS[@]}"
+      - name: Fixtures were not rewritten by the tests
+        run: git diff --exit-code -- sefaria/tests/fixtures/mongo
   pytest-job:
     name: "Continuous Testing: PyTest"
     needs: [ check-python-files ]
@@ -307,6 +317,8 @@ jobs:
           python -m pytest -q --reuse-db
           -m "not deep and not failing and needs_mongo and not needs_linker and not needs_corpus"
           ./sefaria ./sso ./reader ./powered_by
+      - name: Fixtures were not rewritten by the tests
+        run: git diff --exit-code -- sefaria/tests/fixtures/mongo
   pytest-linker-job:
     name: "Continuous Testing: PyTest (linker)"
     needs: [ check-python-files ]
@@ -336,6 +348,8 @@ jobs:
           python -m pytest -q --reuse-db
           -m "not deep and not failing and needs_linker and not needs_corpus"
           ./sefaria ./sso ./reader ./powered_by
+      - name: Fixtures were not rewritten by the tests
+        run: git diff --exit-code -- sefaria/tests/fixtures/mongo
   # Tests marked needs_corpus: the mocked library cannot represent them (real
   # texts/links, the full ~6,600-index library, Mongo features mongomock lacks).
   # They run against a real MongoDB on this runner, restored from Sefaria's public
