@@ -59,7 +59,6 @@ per the work item's instructions, rather than failing outright.
 import argparse
 import json
 import os
-import subprocess
 import sys
 from collections import defaultdict
 
@@ -67,7 +66,8 @@ import pymongo
 from bson import ObjectId
 from pymongo.errors import BulkWriteError, OperationFailure
 
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+import recording
+from recording import REPO_ROOT
 DEFAULT_ARTIFACT_DIR = os.path.join(REPO_ROOT, ".artifacts", "mongo-usage")
 
 # Mutated by main() to point at whatever --artifact-dir was passed (default:
@@ -87,22 +87,18 @@ def artifacts_present():
     )
 
 
-def rerun_recording(test_target="sefaria/tests"):
+def rerun_recording(test_target="sefaria/tests", port=27018, source_db="sefaria"):
     print(f"[generate_minimal_dataset] no recorder artifacts found under {ARTIFACT_DIR}; "
           f"re-running the recording pass: pytest {test_target}", file=sys.stderr)
-    env = dict(os.environ)
-    env.setdefault("LOCAL_TEST_DB_NAME", "sefaria")
-    result = subprocess.run(
-        [os.path.join(REPO_ROOT, "venv", "bin", "pytest"), test_target, "-q", "--no-header",
-         "-p", "no:cacheprovider"],
-        cwd=REPO_ROOT, env=env,
-    )
+    # runner is resolved at call time so the recorder env is the one run_recording builds.
+    returncode = recording.run_recording([test_target], port=port, db_name=source_db,
+                                         runner=recording.subprocess.run)
     # Recording is a side effect of running the suite; a nonzero exit code
     # from the suite itself does not mean the recording failed, so we do not
     # treat it as fatal here -- but we do require the artifacts to now exist.
     if not artifacts_present():
         raise SystemExit(
-            f"[generate_minimal_dataset] recording pass finished (pytest exit={result.returncode}) "
+            f"[generate_minimal_dataset] recording pass finished (pytest exit={returncode}) "
             f"but still produced no artifacts under {ARTIFACT_DIR}; cannot proceed."
         )
 
@@ -142,12 +138,28 @@ def to_object_id(v):
     return v
 
 
+# Stages that keep documents as they are, so a later $match still describes source documents.
+_PASS_THROUGH = {"$sort", "$limit", "$skip", "$unwind"}
+
+
 def extract_match_filter(pipeline):
-    """Merge every leading/any $match stage in an aggregate pipeline into one filter.
-    Returns None if the pipeline has no $match stage to replay safely."""
+    """Merge the $match stages that still describe source documents into one filter.
+
+    Scanning stops at the first stage that reshapes documents (e.g. $group): a $match
+    after it filters the reshaped output, not the source, so replaying it would be wrong.
+    Returns None if there is no $match stage to replay safely.
+    """
     if not isinstance(pipeline, list):
         return None
-    matches = [stage["$match"] for stage in pipeline if isinstance(stage, dict) and "$match" in stage]
+    matches = []
+    for stage in pipeline:
+        if not isinstance(stage, dict) or len(stage) != 1:
+            break
+        (name, body), = stage.items()
+        if name == "$match":
+            matches.append(body)
+        elif name not in _PASS_THROUGH:
+            break
     if not matches:
         return None
     if len(matches) == 1:
@@ -263,7 +275,7 @@ def insert_batched(collection_handle, docs, batch_size=1000):
     return written
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=27018)
@@ -276,7 +288,13 @@ def main():
                           "Point this at a frozen copy (e.g. .artifacts/mongo-usage.recording) "
                           "to avoid the verification pytest run (which is itself instrumented "
                           "by the same conftest.py) overwriting the very artifacts you generated from.")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
+
+    if args.source_db == args.target_db:
+        raise SystemExit(
+            f"REFUSING: --source-db and --target-db are both {args.source_db!r}; "
+            "the target is dropped before the source is read."
+        )
 
     global ARTIFACT_DIR
     ARTIFACT_DIR = args.artifact_dir

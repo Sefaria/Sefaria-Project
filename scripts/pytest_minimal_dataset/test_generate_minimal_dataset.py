@@ -107,3 +107,58 @@ class TestCopyIndexes:
         copied, failed = gen.copy_indexes(source, target, "c")
         assert (copied, failed) == (1, [])
         assert "title_1" in target.c.index_information()
+
+
+class TestExtractMatchFilterAfterGroup:
+    def test_match_after_group_is_ignored(self):
+        pipeline = [{"$match": {"a": 1}}, {"$group": {"_id": "$x"}}, {"$match": {"b": 2}}]
+        assert gen.extract_match_filter(pipeline) == {"a": 1}
+
+
+class TestSameSourceAndTarget:
+    def test_refuses_same_source_and_target(self, tmp_path, monkeypatch):
+        (tmp_path / "_index.json").write_text("{}")
+        (tmp_path / "t.jsonl").write_text("")
+        calls = []
+
+        class SpyClient:
+            def __init__(self, *args, **kwargs):
+                calls.append(args)
+
+        monkeypatch.setattr(gen.pymongo, "MongoClient", SpyClient)
+        drops = []
+        monkeypatch.setattr(SpyClient, "drop_database", lambda self, name: drops.append(name), raising=False)
+
+        with pytest.raises(SystemExit):
+            gen.main(["--source-db", "x", "--target-db", "x", "--artifact-dir", str(tmp_path)])
+        assert drops == []
+
+
+class TestRerunRecording:
+    def test_rerun_recording_uses_recorder_env(self, monkeypatch):
+        import recording
+
+        seen = {}
+
+        class Done:
+            returncode = 0
+
+        def fake_run(cmd, **kwargs):
+            seen["cmd"] = cmd
+            seen["env"] = kwargs["env"]
+            seen["cwd"] = kwargs["cwd"]
+            return Done()
+
+        monkeypatch.setattr(recording.subprocess, "run", fake_run)
+        monkeypatch.setattr(gen, "artifacts_present", lambda: True)
+        monkeypatch.setenv("SEFARIA_MOCK_MONGO", "1")
+
+        gen.rerun_recording()
+
+        assert seen["env"]["SEFARIA_RECORD_MONGO"] == "1"
+        assert seen["env"]["SEFARIA_TEST_MONGO"] == "1"
+        assert seen["env"]["LOCAL_TEST_MONGO_PORT"] == "27018"
+        assert seen["env"]["LOCAL_TEST_DB_NAME"] == "sefaria"
+        assert "SEFARIA_MOCK_MONGO" not in seen["env"]
+        assert seen["cwd"] == recording.REPO_ROOT
+        assert seen["cmd"][1:3] == ["-m", "pytest"]
