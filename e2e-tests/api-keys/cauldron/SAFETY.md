@@ -62,7 +62,7 @@ name the cauldron.
 ## Seeded runs
 
 Seeding the cauldron (fixture accounts, projects and keys written through the ORM in the web pod) is a cluster write.
-It needs Daniel's own go-ahead, which is not recorded, so this runner has no seeded mode. When it is approved, the
+The seeder also refuses any cauldron write unless `APIKEYS_ALLOW_MUTATING_ON` equals `APIKEYS_CAULDRON`. It needs Daniel's own go-ahead, which is not recorded, so this runner has no seeded mode. When it is approved, the
 seeded flow is: the same preflight and snapshot; require the script's `--leftovers` to print 0; seed once with the
 script and password on stdin (`python - --target cauldron --reset --manifest-stdout`) into the manifest above;
 run `--project=apikeys` with the setup project, but only when no local suite is running, because the setup project

@@ -13,6 +13,11 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/../lib.sh"
 
+DEV_CTX=gke_development-205018_us-east1-b_cluster-1
+if [ -n "${APIKEYS_KUBE_CONTEXT:-}" ] && [ "$APIKEYS_KUBE_CONTEXT" != "$DEV_CTX" ]; then
+  echo "APIKEYS_KUBE_CONTEXT=$APIKEYS_KUBE_CONTEXT; only $DEV_CTX is allowed" >&2; exit 2
+fi
+
 D1_DIR="$REPO/.claude/scratch/apikeys-d1"
 D1_ENVOY=apikeys-d1-envoy-keepunchanged
 D1_PORT=10090
@@ -132,7 +137,7 @@ done
 if [ "$TARGET" = cauldron ]; then
   s="$(curl -s -o /dev/null -m 20 -w '%{http_code}' "http://www.$ROOT$G")"
   line N-A2 info "plain http:// on the gated path -> $s (reaches the route without a redirect when not 301/308)"
-  ctp="$(kubectl --context "${APIKEYS_KUBE_CONTEXT:-gke_development-205018_us-east1-b_cluster-1}" -n default get clienttrafficpolicy \
+  ctp="$(kubectl --context "$DEV_CTX" -n default get clienttrafficpolicy \
     "$CAULDRON" -o jsonpath='{.status.ancestors[0].conditions[?(@.type=="Accepted")].status}' 2>/dev/null)"
   [ "$ctp" = True ] && line N-A2 pass "ClientTrafficPolicy Accepted=$ctp" || line N-A2 GAP "ClientTrafficPolicy Accepted=$ctp (want True; N-A2)"
 fi

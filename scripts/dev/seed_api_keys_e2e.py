@@ -185,6 +185,23 @@ def cauldron_name():
     return name
 
 
+def _domain_hosts(value):
+    """Every host named anywhere in a DOMAIN_MODULES value, scheme and trailing slash removed."""
+    if isinstance(value, dict):
+        return set().union(*(_domain_hosts(v) for v in value.values()), *(_domain_hosts(k) for k in value))
+    if isinstance(value, (list, tuple, set)):
+        return set().union(*(_domain_hosts(v) for v in value))
+    if isinstance(value, str):
+        return {re.sub(r"^https?://", "", value).rstrip("/")}
+    return set()
+
+
+def require_mutation_consent(target):
+    """A cauldron write needs APIKEYS_ALLOW_MUTATING_ON to repeat the cauldron name exactly."""
+    if target == "cauldron" and os.environ.get("APIKEYS_ALLOW_MUTATING_ON") != cauldron_name():
+        raise SystemExit("Refusing: writing to the cauldron needs APIKEYS_ALLOW_MUTATING_ON={}.".format(cauldron_name()))
+
+
 def guard_target(target):
     """Refuses to run anywhere but the local stack's Postgres or the cauldron named by APIKEYS_CAULDRON."""
     from django.conf import settings
@@ -210,9 +227,9 @@ def guard_target(target):
         if not getattr(settings, "DEVELOPER_SETTINGS_MOCKS", False):
             raise SystemExit("Refusing: --target cauldron needs DEVELOPER_SETTINGS_MOCKS on.")
         name = cauldron_name()
-        domains = json.dumps(getattr(settings, "DOMAIN_MODULES", {}) or {})
-        if name not in domains:
-            raise SystemExit("Refusing: this pod's DOMAIN_MODULES does not name the {} cauldron.".format(name))
+        wanted = {"www.{}.cauldron.sefaria.org".format(name), "{}.cauldron.sefaria.org".format(name)}
+        if not wanted & _domain_hosts(getattr(settings, "DOMAIN_MODULES", None)):
+            raise SystemExit("Refusing: this pod's DOMAIN_MODULES does not name the {} cauldron's host.".format(name))
     else:
         raise SystemExit("--target must be local or cauldron.")
 
@@ -690,6 +707,10 @@ def main(argv, password_preamble=None):
         return 0
     if args.leftovers:
         return 1 if print_leftovers(out, args.include_sentinel) else 0
+    writes = (args.reset or args.legacy_key or args.reset_send_limits or args.mint_expired_link
+              or (args.teardown and not args.dry_run))
+    if writes:
+        require_mutation_consent(args.target)
     if args.teardown and args.dry_run:
         plan = teardown_plan(include_sentinel=args.include_sentinel)
         print("would remove {} users ({}), {} projects, {} keys, {} legacy keys, {} profiles".format(

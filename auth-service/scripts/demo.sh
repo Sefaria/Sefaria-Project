@@ -144,6 +144,12 @@ refuse_unsafe_cauldron_target() {
   [[ $CAULDRON_ENV =~ ^[a-z0-9-]+$ ]] || refuse "APIKEYS_CAULDRON='$CAULDRON_ENV' is not a cauldron name ([a-z0-9-]+)"
   [[ $CTX == "$DEV_CTX" ]] || refuse "--target cauldron with CTX=$CTX; only $DEV_CTX is allowed"
   [[ $NS == default ]] || refuse "--target cauldron with NS=$NS; only default is allowed"
+  if [[ -n ${DEMO_HOST:-} ]]; then
+    case ${DEMO_HOST%/} in
+      "https://www.$CAULDRON_ENV.cauldron.sefaria.org"|"https://$CAULDRON_ENV.cauldron.sefaria.org") ;;
+      *) refuse "DEMO_HOST=$DEMO_HOST is not exactly the cauldron $CAULDRON_ENV's site" ;;
+    esac
+  fi
   $ALLOW_MUTATING || return 0
   local shared
   for shared in "${SHARED_CAULDRONS[@]}"; do
@@ -151,7 +157,6 @@ refuse_unsafe_cauldron_target() {
   done
   [[ ${APIKEYS_CAULDRON:-} == "$CAULDRON_ENV" && ${APIKEYS_ALLOW_MUTATING_ON:-} == "$CAULDRON_ENV" ]] \
     || refuse "--allow-mutating on a cauldron needs APIKEYS_CAULDRON=$CAULDRON_ENV and APIKEYS_ALLOW_MUTATING_ON=$CAULDRON_ENV"
-  [[ -z ${DEMO_HOST:-} || $DEMO_HOST == *"$CAULDRON_ENV"* ]] || refuse "DEMO_HOST=$DEMO_HOST does not name the cauldron $CAULDRON_ENV"
 }
 refuse_unsafe_cauldron_target
 
