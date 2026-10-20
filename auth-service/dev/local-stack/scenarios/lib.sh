@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Shared by the stack scenario scripts. Sourced, not run.
 #
 # The drills run against a private copy of the gateway half of the stack (compose project sefaria-apikeys-d11,
@@ -18,10 +19,7 @@ export D11_RUN_DIR="$D11_DIR/run"
 D11_PG_PORT=55439
 D11_HTTP=http://127.0.0.1:28080
 D11_ADMIN=http://127.0.0.1:29000
-GW_HC=20080
-GW_NOHC=20082
-GW_NOAUTHZ=20083
-GATED=/api/knn-search
+export GW_HC=20080 GW_NOHC=20082 GW_NOAUTHZ=20083 GATED=/api/knn-search
 PROJECT_ID=9001
 KEYS_DIR="$D11_DIR/keys"
 mkdir -p "$D11_DIR" "$KEYS_DIR" && chmod 700 "$KEYS_DIR"
@@ -50,7 +48,7 @@ check() {  # check ID "what" actual expected  -> pass or FAIL
   if [ "$3" = "$4" ]; then pass "$1 $2 ($3)"; else fail "$1 $2: got $3, want $4"; fi
 }
 finish() {
-  _say done "$SCRIPT_NAME: $PASSES pass, $GAPS gap, $FAILS FAIL"
+  _say "done" "$SCRIPT_NAME: $PASSES pass, $GAPS gap, $FAILS FAIL"
   exit "$FAILS"
 }
 
@@ -107,6 +105,8 @@ new_key() {
               ON CONFLICT (key) DO NOTHING" >/dev/null
   ( umask 077; printf 'x-api-key: %s\n' "$value" >"$KEYS_DIR/$1.hdr" )
 }
+# set_project_tier TIER -> the drill project's tier, kept on its limits row (no row means developer)
+set_project_tier() { psql_su -c "INSERT INTO powered_by_projectlimits (project_id, tier) VALUES ($PROJECT_ID, '$1') ON CONFLICT (project_id) DO UPDATE SET tier = EXCLUDED.tier, updated_at = now()" >/dev/null; }
 revoke_key() { psql_su -c "UPDATE powered_by_apikey SET revoked_at = now() WHERE label = '$1' AND revoked_at IS NULL" >/dev/null; }
 unknown_key() { ( umask 077; printf 'x-api-key: sfr_d11unknown%s\n' "$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 24)" >"$KEYS_DIR/$1.hdr" ); }
 load_query_rows() { psql_su -c "SELECT count(*) FROM powered_by_apikey k JOIN powered_by_project p ON p.id = k.project_id"; }
@@ -115,16 +115,16 @@ seed_project() {
   psql_su -c "INSERT INTO powered_by_project (id, created_at, updated_at, submission_source, creator, creator_email,
       submitter, is_developer, job_title, found_sefaria, sefaria_tools_used, tech_used_raw, technical_experience,
       vibe_coded, project_why, project_name, project_link, project_reach, project_desc, project_category,
-      has_pbs_logo, tags, status, is_buggy, consent_to_display, is_published, featured, notes, tier)
+      has_pbs_logo, tags, status, is_buggy, consent_to_display, is_published, featured, notes)
     VALUES ($PROJECT_ID, now(), now(), 'developer_settings', 'Drill', 'apikeys-e2e-d11-drill@example.com', '', true,
       '', '', '[]', '', '', false, '', 'Stack drill', '', '', '', '', false, '[]', 'unknown', false, false, false,
-      false, 'E2E api-keys d11 drill (local only)', 'developer')
+      false, 'E2E api-keys d11 drill (local only)')
     ON CONFLICT (id) DO UPDATE SET deleted_at = NULL" >/dev/null
 }
 
 # --- lifecycle -------------------------------------------------------------------------------------------------------
 
-render_drill_envoy() { "$PYTHON" "$SCEN_DIR/drill_envoy.py" "$D11_RUN_DIR" "$@"; }
+render_drill_envoy() { "$PYTHON" "$SCEN_DIR/drill_envoy.py" "$D11_RUN_DIR"; }
 
 drill_pg_up() {
   dcompose up -d --wait pg >/dev/null 2>&1 || die "drill pg did not start"

@@ -211,11 +211,11 @@ test.describe('gateway decisions', () => {
     expect(await tierOf()).toBe('developer');
     try {
       const started = Date.now();
-      localPsql(`UPDATE powered_by_project SET tier = 'partner' WHERE id = ${Number(projectId)}`);
+      localPsql(`INSERT INTO powered_by_projectlimits (project_id, tier) VALUES (${Number(projectId)}, 'partner') ON CONFLICT (project_id) DO UPDATE SET tier = EXCLUDED.tier`);
       await expect.poll(tierOf, { timeout: 5000, intervals: [100] }).toBe('partner');
       test.info().annotations.push({ type: 'latency', description: `new tier seen after ${Date.now() - started} ms` });
     } finally {
-      localPsql(`UPDATE powered_by_project SET tier = 'developer' WHERE id = ${Number(projectId)}`);
+      localPsql(`INSERT INTO powered_by_projectlimits (project_id, tier) VALUES (${Number(projectId)}, 'developer') ON CONFLICT (project_id) DO UPDATE SET tier = EXCLUDED.tier`);
     }
     await expect.poll(tierOf, { timeout: 5000, intervals: [100] }).toBe('developer');
   });

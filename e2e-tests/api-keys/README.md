@@ -56,6 +56,8 @@ Import `test` and `expect` from `./fixtures` (or `../fixtures`).
 - On the cauldron: at most 2 workers (the setup refuses more), `www.` host only, `@example.com` accounts only, and
   never touch rows the seed did not create.
 
+Tier is the `tier` column of the project's row in `powered_by_projectlimits` (no row means developer). It is set through `set_project_tier` in the local-stack drills, or the admin ProjectLimits inline. Every key of a project shares that tier and the project's counters. The project table keeps the metadata and the key table keeps the keys. Raw SQL that deletes a project must delete its limits row first, because the FK is deferred and refuses the delete at commit.
+
 ## Files
 
 `env.ts` (targets, manifest, masking), `fixtures.ts`, `session.ts` (login, contexts), `gateway.ts`, `registry.ts`,

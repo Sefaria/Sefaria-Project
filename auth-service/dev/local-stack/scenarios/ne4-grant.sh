@@ -8,7 +8,10 @@ source "$(dirname "$0")/lib.sh"
 drill_up RELOAD_INTERVAL=5s
 new_key ne4
 wait_for 5 'test "$(gw $GW_HC $GATED ne4)" = 200' >/dev/null
-restore() { psql_su -c "GRANT SELECT (deleted_at) ON powered_by_project TO auth_service_reader" >/dev/null; }
+restore() {
+  psql_su -c "GRANT SELECT (deleted_at) ON powered_by_project TO auth_service_reader" >/dev/null
+  psql_su -c "GRANT SELECT (project_id, tier) ON powered_by_projectlimits TO auth_service_reader" >/dev/null
+}
 trap restore EXIT
 err0="$(metric 'authsvc_reload_total{result="error"}')"
 psql_su -c "REVOKE SELECT (deleted_at) ON powered_by_project FROM auth_service_reader" >/dev/null
@@ -33,5 +36,22 @@ check N-E4 "startup: the host fails open (gated path without a key)" "$(gw $GW_H
 restore
 t="$(wait_for 20 'test "$(readyz)" = 200')"
 [ "$t" != timeout ] && pass "N-E4 ready again ${t}s after the grant is restored, with no restart" || fail "N-E4 not ready after the grant is restored"
+
+# The same on the limits table: the load query joins it for every project's tier (F-REG-05.e2).
+new_key ne4limits
+wait_for 5 'test "$(gw $GW_HC $GATED ne4limits)" = 200' >/dev/null
+err2="$(metric 'authsvc_reload_total{result="error"}')"
+psql_su -c "REVOKE SELECT (project_id, tier) ON powered_by_projectlimits FROM auth_service_reader" >/dev/null
+revoke_key ne4limits
+sleep 11
+err3="$(metric 'authsvc_reload_total{result="error"}')"
+[ "$err3" -gt "$err2" ] && pass "N-E4 limits grant running: reload_total{result=\"error\"} rises ($err2 -> $err3)" || fail "N-E4 limits grant running: reload errors not counted"
+dcompose logs --no-log-prefix --since 30s authsvc 2>&1 | grep -q 'permission denied' \
+  && pass "N-E4 limits grant running: 'permission denied' is logged" || fail "N-E4 limits grant running: no permission error logged"
+check N-E4 "limits grant running: the running pod keeps its set" "$(gw $GW_HC $GATED ne4limits)" 200
+restore
+t="$(wait_for 20 'test "$(gw $GW_HC $GATED ne4limits)" = 401')"
+[ "$t" != timeout ] && pass "N-E4 limits grant restored: the pending revoke applies ${t}s later, with no restart" \
+  || fail "N-E4 limits grant restored: the revoke did not apply"
 drill_reset
 finish

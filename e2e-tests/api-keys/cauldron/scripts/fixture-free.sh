@@ -26,7 +26,7 @@ probe_a2a() {
   local has_prefix=no has_full=no
   grep -q "key_prefix=${key:0:12} " <<<"$logs" && has_prefix=yes
   grep -qF "$key" <<<"$logs" && has_full=yes
-  local ev="GET $GATED with a random sfr_ key -> $(status_of "$r") code=$code www-authenticate='$www'; deny log line with a 12-character prefix: $has_prefix; full value in the log: $has_full"
+  local ev; ev="GET $GATED with a random sfr_ key -> $(status_of "$r") code=$code www-authenticate='$www'; deny log line with a 12-character prefix: $has_prefix; full value in the log: $has_full"
   if [ "$(status_of "$r")" = 401 ] && [ "$code" = api_key_invalid ] && [ -n "$www" ] && [ "$has_full" = no ]; then
     rec A2a pass "$ev"
   else
@@ -49,7 +49,7 @@ probe_a2b_ungated() {
 probe_a2c() {
   local g u
   g="$(c -H 'x-api-key;' "$BASE$GATED")"; u="$(c -H 'x-api-key;' "$BASE$UNGATED")"
-  local ev="empty x-api-key: gated -> $(status_of "$g") $(body_of "$g" | json_field code); ungated -> $(status_of "$u")"
+  local ev; ev="empty x-api-key: gated -> $(status_of "$g") $(body_of "$g" | json_field code); ungated -> $(status_of "$u")"
   if [ "$(status_of "$g")" = 401 ] && [ "$(body_of "$g" | json_field code)" = api_key_required ] && [ "$(status_of "$u")" = 200 ]; then
     rec A2c pass "$ev"; else rec A2c "$(infra_or "$(status_of "$g")" fail-product-bug)" "$ev"; fi
 }
@@ -109,7 +109,7 @@ probe_nb4_b3() {
 }
 
 probe_d4() {
-  local mocks r ids_in_api leak
+  local mocks r leak
   mocks="$(kc_psql_ro "select id||':'||is_published::text||':'||consent_to_display::text from powered_by_project where notes = 'Created by the developer settings test controls.' and deleted_at is null order by id" | tr '\n' ' ')"
   r="$(c "$BASE/api/powered-by")"
   local names
@@ -117,7 +117,7 @@ probe_d4() {
   leak=0; local shown=""
   while IFS= read -r n; do [ -z "$n" ] && continue; body_has "$r" "\"$n\"" && { leak=$((leak+1)); shown="$shown '$n'"; }; done <<<"$names"
   local fixture; fixture="$(grep -c 'apikeys-e2e-\|E2E api-keys' "$(cut -f2 <<<"$r")" || true)"
-  local ev="GET /api/powered-by -> $(status_of "$r"), $(body_of "$r" | python3 -c 'import json,sys
+  local ev; ev="GET /api/powered-by -> $(status_of "$r"), $(body_of "$r" | python3 -c 'import json,sys
 try:
   d=json.load(sys.stdin); d=d.get("projects", d) if isinstance(d, dict) else d; print(len(d), "rows")
 except Exception as e: print("unparsed", e)'); mock rows (id:published:consent)=[$mocks]; mock rows visible in public API=$leak$shown; fixture rows visible=$fixture"
@@ -131,7 +131,7 @@ probe_nm4() {
   local la lb
   la="$(headers_of "$a" | tr -d '\r' | grep -i '^location:' | cut -d' ' -f2- || true)"
   lb="$(headers_of "$b" | tr -d '\r' | grep -i '^location:' | cut -d' ' -f2- || true)"
-  local ev="logged out: /settings/account -> $(status_of "$a") $la; /settings/account/ -> $(status_of "$b") $lb; voices /settings/account -> $(status_of "$v")"
+  local ev; ev="logged out: /settings/account -> $(status_of "$a") $la; /settings/account/ -> $(status_of "$b") $lb; voices /settings/account -> $(status_of "$v")"
   if [ "$(status_of "$v")" = 404 ] && [ "$(status_of "$a")" != 500 ] && [ "$(status_of "$b")" != 500 ]; then
     rec N-M4 pass "partial (logged-out half): $ev. SSR content check with a session: blocked (Q1)"
   else rec N-M4 "$(infra_or "$(status_of "$a")" fail-product-bug)" "$ev"; fi
@@ -140,7 +140,7 @@ probe_nm4() {
 probe_b8_strapi() {
   local r
   r="$(c -X POST -H "Authorization: Basic $(printf 'e2e:wrong' | base64)" -H 'Content-Type: application/json' --data '{}' "$BASE/api/strapi/cache-invalidate")"
-  local ev="Strapi cache-invalidate, wrong Basic, sent once -> $(status_of "$r") '$(body_of "$r" | head -c 80 | tr '\n' ' ')' gateway code='$(body_of "$r" | json_field code)'"
+  local ev; ev="Strapi cache-invalidate, wrong Basic, sent once -> $(status_of "$r") '$(body_of "$r" | head -c 80 | tr '\n' ' ')' gateway code='$(body_of "$r" | json_field code)'"
   if [ "$(status_of "$r")" = 401 ] && [ -z "$(body_of "$r" | json_field code)" ]; then
     rec B8-strapi pass "$ev. Formstack half blocked (Q1: its safety net is the seeded teardown)"
   else rec B8-strapi "$(infra_or "$(status_of "$r")" fail-product-bug)" "$ev"; fi
@@ -166,11 +166,13 @@ probe_ne4() {
   local dp; dp="$(kc_psql_ro '\dp powered_by_project' | tr '\n' ' ')"
   local reader; reader="$(printf '%s' "$dp" | grep -o 'auth_service_reader=r/[a-z_]*' | head -3 | tr '\n' ' ')"
   local col; col="$(printf '%s' "$dp" | grep -oE 'deleted_at:[^|]*auth_service_reader=r' | head -1 || true)"
+  local lim; lim="$(kc_psql_ro '\dp powered_by_projectlimits' | tr '\n' ' ')"
+  local lim_col; lim_col="$(printf '%s' "$lim" | grep -oE 'tier:[^|]*auth_service_reader=r' | head -1 || true)"
   local loads; loads="$(kc logs "$AUTH_DEPLOY" --since=24h 2>/dev/null | grep -cE 'reload (failed|error)|permission denied' || true)"
-  if [ -n "$col" ]; then
-    rec N-E4 pass "cauldron half (read-only): \\dp powered_by_project shows a deleted_at column grant for auth_service_reader ('$(printf '%s' "$col" | head -c 120)'); reload errors in auth log (24h)=$loads. The failure-visibility half is local (D11 ne4-grant.sh)"
+  if [ -n "$col" ] && [ -n "$lim_col" ]; then
+    rec N-E4 pass "cauldron half (read-only): \\dp powered_by_project shows a deleted_at column grant for auth_service_reader ('$(printf '%s' "$col" | head -c 120)'); \\dp powered_by_projectlimits shows a tier column grant ('$(printf '%s' "$lim_col" | head -c 120)'); reload errors in auth log (24h)=$loads. The failure-visibility half is local (D11 ne4-grant.sh)"
   else
-    rec N-E4 fail-product-bug "no deleted_at column grant for auth_service_reader in \\dp powered_by_project; reader grants: $reader"
+    rec N-E4 fail-product-bug "reader column grants missing: deleted_at on powered_by_project='${col:-none}', tier on powered_by_projectlimits='${lim_col:-none}'; reader grants: $reader"
   fi
 }
 

@@ -12,9 +12,10 @@ drill_up
 # pg_dump 18 writes a random \restrict token per dump.
 schema() { dcompose exec -T pg pg_dump -U postgres -s -x --no-owner sefaria_auth | grep -vE '^\\(un)?restrict '; }
 applied() { psql_su -c "SELECT name FROM django_migrations WHERE app = 'powered_by' ORDER BY id DESC LIMIT 1"; }
-check N-M7 "latest powered_by migration before" "$(applied)" 0005_api_key_origins_strings
+check N-M7 "latest powered_by migration before" "$(applied)" 0008_project_limits_check_triggers
 
-for m in 0003_developer_settings 0004_api_key_notify_triggers 0005_api_key_origins_strings; do
+for m in 0003_developer_settings 0004_api_key_notify_triggers 0005_api_key_origins_strings \
+    0006_project_limits_schema 0007_project_limits_backfill 0008_project_limits_check_triggers; do
   for dir in forward backward; do
     flag=(); [ $dir = backward ] && flag=(--backwards)
     if d11_manage sqlmigrate ${flag[@]+"${flag[@]}"} powered_by "$m" >"$OUT/$m.$dir.sql" 2>"$OUT/$m.$dir.err"; then
@@ -53,6 +54,7 @@ roundtrip() {  # roundtrip LABEL
   local grants
   grants="$(psql_su -c "SELECT has_column_privilege('auth_service_reader', 'powered_by_project', 'deleted_at', 'SELECT')
     AND has_table_privilege('auth_service_reader', 'powered_by_apikey', 'SELECT') OR has_column_privilege('auth_service_reader', 'powered_by_apikey', 'key', 'SELECT')")"
+  [ "$(applied)" = 0008_project_limits_check_triggers ] && info "N-M7 [$label] the reader role's tier privilege on the limits table: $(psql_su -c "SELECT has_column_privilege('auth_service_reader', 'powered_by_projectlimits', 'tier', 'SELECT')")"
   [ "$grants" = t ] && info "N-M7 [$label] the reader role still has its grants after the round trip" \
     || info "N-M7 [$label] the round trip drops the reader role's grants on the recreated table and columns: the auth service cannot reload until provision-cluster-registry.sh runs again (as N-E4)"
   dcompose exec -T pg psql -q -U postgres -d sefaria_auth -v ON_ERROR_STOP=1 <"$STACK_DIR/provision.sql" >/dev/null
@@ -64,7 +66,37 @@ check N-M7 "[no-dev-rows] no developer_settings projects" "$(psql_su -c "SELECT 
 roundtrip no-dev-rows
 psql_su -c "UPDATE powered_by_project SET submission_source = 'developer_settings' WHERE id = $PROJECT_ID" >/dev/null
 roundtrip with-dev-row
-info "N-M7 a rollback past 0003 drops every key and the projects' tier/owner/deleted_at columns; that data does not come back"
+
+# A limits row's tier is the project's tier while the row exists; rolling back past 0006 copies it onto the frozen
+# column and drops the table, and the keys and project rows stay.
+limits_rollback() {
+  set_project_tier partner
+  local keys_before; keys_before="$(psql_su -c "SELECT count(*) FROM powered_by_apikey")"
+  schema >"$OUT/limits.schema.before.sql"
+  dcompose stop authsvc >/dev/null 2>&1
+  if d11_manage migrate powered_by 0005 --noinput >"$OUT/limits.back.log" 2>&1; then
+    pass "N-M7 [limits] migrate powered_by 0005"
+    check N-M7 "[limits] after rollback to 0005: powered_by_projectlimits is gone" "$(psql_su -c "SELECT count(*) FROM pg_tables WHERE tablename = 'powered_by_projectlimits'")" 0
+    check N-M7 "[limits] after rollback to 0005: keys kept" "$(psql_su -c "SELECT count(*) FROM powered_by_apikey")" "$keys_before"
+    check N-M7 "[limits] after rollback to 0005: project row kept" "$(psql_su -c "SELECT count(*) FROM powered_by_project WHERE id = $PROJECT_ID")" 1
+    check N-M7 "[limits] after rollback to 0005: frozen tier equals the limits row's tier" "$(psql_su -c "SELECT tier FROM powered_by_project WHERE id = $PROJECT_ID")" partner
+  else
+    fail "N-M7 [limits] migrate powered_by 0005: $(tail -3 "$OUT/limits.back.log" | tr '\n' ' ')"
+  fi
+  d11_manage migrate powered_by --noinput >"$OUT/limits.fwd.log" 2>&1 && pass "N-M7 [limits] migrate powered_by forward again" \
+    || fail "N-M7 [limits] migrate forward: $(tail -3 "$OUT/limits.fwd.log" | tr '\n' ' ')"
+  schema >"$OUT/limits.schema.after.sql"
+  if diff -q "$OUT/limits.schema.before.sql" "$OUT/limits.schema.after.sql" >/dev/null; then
+    pass "N-M7 [limits] schema identical after the round trip"
+  else
+    diff "$OUT/limits.schema.before.sql" "$OUT/limits.schema.after.sql" >"$OUT/limits.schema.diff"
+    fail "N-M7 [limits] schema differs after the round trip ($OUT/limits.schema.diff)"
+  fi
+  dcompose exec -T pg psql -q -U postgres -d sefaria_auth -v ON_ERROR_STOP=1 <"$STACK_DIR/provision.sql" >/dev/null
+  set_project_tier developer
+}
+limits_rollback
+info "N-M7 a rollback past 0003 drops every key and the projects' owner/deleted_at columns and the limits table; that data does not come back"
 
 new_key baseline
 dcompose start authsvc >/dev/null 2>&1

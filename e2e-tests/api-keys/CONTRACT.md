@@ -167,6 +167,8 @@ verified/unverified, F7 set up with 0 projects, F8 with a project, F9 unclaimed 
 Website origins for restricted keys and browser CORS pages: `https://site-a.example.com` (the key's website) and
 `https://site-b.example.com` (another site). Specs serve both with `page.route`; nothing is fetched from them.
 
+Tier is the `tier` column of the project's row in `powered_by_projectlimits` (no row means developer). It is set through `set_project_tier` in the local-stack drills, or the admin ProjectLimits inline. Every key of a project shares that tier and the project's counters. The project table keeps the metadata and the key table keeps the keys. Raw SQL that deletes a project must delete its limits row first, because the FK is deferred and refuses the delete at commit.
+
 ## 4. Manifest
 
 `e2e-tests/.apikeys-e2e.json` (override: `APIKEYS_MANIFEST`). Git-ignored, written by `--manifest-stdout`, never

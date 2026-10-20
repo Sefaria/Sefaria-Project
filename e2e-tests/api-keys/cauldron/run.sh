@@ -95,7 +95,8 @@ union all select 'marker_projects', count(*), '' from powered_by_project where n
 union all select 'fixture_email_projects', count(*), '' from powered_by_project where creator_email like 'apikeys-e2e-%@example.com'
 union all select 'fixture_email_users', count(*), '' from auth_user where email like 'apikeys-e2e-%'
 union all select 'band_owned_projects', count(*), '' from powered_by_project where owner_id between $ID_LO and $ID_HI
-union all select 'mock_rows', count(*), '' from powered_by_project where notes = 'Created by the developer settings test controls.'"
+union all select 'mock_rows', count(*), '' from powered_by_project where notes = 'Created by the developer settings test controls.'
+union all select 'limits', count(*), md5(coalesce(string_agg(project_id::text || ':' || tier, ',' order by project_id), '')) from powered_by_projectlimits"
 
 snapshot() {
   kc_psql_ro "$SNAP_SQL" > "$RUN_DIR/snapshot-$1.txt" || die "snapshot $1 failed"
