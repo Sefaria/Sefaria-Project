@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import Sefaria from '../sefaria/sefaria';
 import { InterfaceText } from '../Misc.jsx';
 
 /**

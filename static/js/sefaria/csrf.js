@@ -21,11 +21,16 @@
  * pages hardest to diagnose. A missing meta tag fails loudly instead.
  */
 export function getCsrfToken() {
-  if (typeof document !== 'undefined') {
-    const meta = document.querySelector('meta[name="csrf-token"]');
-    if (meta && meta.content) {
-      return meta.content;
-    }
+  // No `document` means we're in Node SSR, where there's no page and no POST
+  // to protect: components (e.g. AuthPage) call this during render just to pass
+  // the token down as a prop, and the browser re-reads it on hydration. Return
+  // '' quietly rather than logging a warning on every server render.
+  if (typeof document === 'undefined') {
+    return '';
+  }
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta && meta.content) {
+    return meta.content;
   }
   console.warn('csrf-token meta tag missing — POST will likely 403. Add <meta name="csrf-token"> to this page.');
   return '';

@@ -5,6 +5,13 @@ import {
   pickFirstError, authError, postJson, postForm, resolveInitialAuthState,
 } from '../utils.js';
 
+// utils.js imports the Sefaria singleton (for authError's Sefaria._); mock the
+// module rather than setting a `global.Sefaria`, which the import would ignore.
+jest.mock('../../sefaria/sefaria', () => ({
+  __esModule: true,
+  default: { _: (key) => `t:${key}` },
+}));
+
 describe('safeNext', () => {
   it('allows a plain relative path', () => {
     expect(safeNext('/sheets/123')).toBe('/sheets/123');
@@ -198,10 +205,6 @@ describe('pickFirstError', () => {
 });
 
 describe('authError', () => {
-  const realSefaria = global.Sefaria;
-  beforeAll(() => { global.Sefaria = { _: (key) => `t:${key}` }; });
-  afterAll(() => { global.Sefaria = realSefaria; });
-
   it('localizes the picked error message and passes through _auth metadata', () => {
     const result = authError(
       { _auth: { code: 'sso_only_account', providers: ['google'] }, error: 'auth.generic_error' },

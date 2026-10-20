@@ -1,3 +1,4 @@
+import hashlib
 import io
 import os
 import zipfile
@@ -32,7 +33,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from functools import wraps
@@ -46,7 +47,7 @@ from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sso.adapters import import_gravatar
@@ -135,38 +136,6 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
                 return resolve_url(next_page)
         return super().get_next_page()
 
-
-class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
-    pass
-
-class CustomPasswordResetCompleteView(StaticViewMixin, PasswordResetCompleteView):
-    pass
-
-class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
-    form_class = SefariaPasswordResetForm
-    email_template_name = 'registration/password_reset_email.txt'
-    html_email_template_name = 'registration/password_reset_email.html'
-    
-    def form_valid(self, form):
-        """
-        Override form_valid to set the correct domain for the email context.
-        """
-        # Get the current domain from the request
-        current_domain = self.request.get_host()
-        
-        # Call form.save with domain override - this sends the email
-        form.save(
-            request=self.request,
-            domain_override=current_domain,
-            use_https=self.request.is_secure(),
-            email_template_name=self.email_template_name,
-            subject_template_name=self.subject_template_name,
-            html_email_template_name=self.html_email_template_name,
-            from_email=self.from_email,
-            extra_email_context=self.extra_email_context,
-        )
-        # Don't call super().form_valid(form) as it would send the email again
-        return HttpResponseRedirect(self.get_success_url())
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
@@ -509,6 +478,9 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
+FIND_REFS_TASK_EXPIRES_SECONDS = 60
+
+
 @cors_allow_all
 @api_view(["POST", "OPTIONS"])
 def find_refs_api(request):
@@ -518,7 +490,10 @@ def find_refs_api(request):
     find_refs_input = FindRefsInput(request_text, options, metadata)
     async_result = find_refs_api_task.apply_async(
         args=(asdict(find_refs_input),),
-        queue=CeleryQueue.TASKS.value
+        queue=CeleryQueue.FIND_REFS.value,
+        # The linker client gives up polling after ~60s (its 15 retries, in static/js/linker.v3/main.js, run out
+        # before maxRetryTime). Past that nobody is waiting for the result, so workers should skip the task.
+        expires=FIND_REFS_TASK_EXPIRES_SECONDS,
     )
     logger.info(
         "find_refs_api:enqueued",
@@ -1392,13 +1367,13 @@ def delete_sheet_by_id(request):
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
 
-            try:
-                es_index_name = search.get_new_and_current_index_names("sheet")['current']
-                search.delete_sheet(es_index_name, id)
-            except NewConnectionError as e:
-                logger.warn("Failed to connect to elastic search server on sheet delete.")
-            except AuthorizationException as e:
-                logger.warn("Failed to connect to elastic search server on sheet delete.")
+            # Queued rather than deleted directly: web pods only have read access to ES. The
+            # sheet is already gone from Mongo, so the queue consumer removes its search doc.
+            if SEARCH_INDEX_ON_SAVE:
+                try:
+                    search.queue_sheet_sync(id)
+                except Exception as e:
+                    logger.error(f"Failed to queue deleted sheet {id} for search removal: {type(e).__name__}: {e}")
 
 
             return jsonResponse({"success": f"deleted sheet {sheet_id}"})
@@ -1425,12 +1400,21 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
         except Exception as e:
             logger.error(f'Failed to mark user as spam: {e}')
     sheets = db.sheets.find({"owner": spammer_id})
+    quarantined_sheet_ids = []
     for sheet in sheets:
         sheet["spam_sheet_quarantine"] = datetime.now()
         sheet["datePublished"] = None
         sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
         db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
+        quarantined_sheet_ids.append(sheet["id"])
+    # Unlisted sheets must leave search; the queue consumer removes them (web cannot write to ES).
+    if SEARCH_INDEX_ON_SAVE and quarantined_sheet_ids:
+        from sefaria.search import queue_sheets_sync
+        try:
+            queue_sheets_sync(quarantined_sheet_ids)
+        except Exception as e:
+            logger.error(f"Failed to queue quarantined sheets of spammer {spammer_id} for search removal: {type(e).__name__}: {e}")
     # Delete Notes
     db.notes.delete_many({"owner": spammer_id})
     # Delete Notifcations
@@ -1457,6 +1441,12 @@ def spam_dashboard(request):
             db.sheets.update_many({"id": {"$in": reviewed_sheet_ids}}, {"$set": {"reviewed": True}})
             spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
             db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
+            if SEARCH_INDEX_ON_SAVE:
+                from sefaria.search import queue_sheets_sync
+                try:
+                    queue_sheets_sync(spam_sheet_ids)
+                except Exception as e:
+                    logger.error(f"Failed to queue spam sheets {spam_sheet_ids} for search removal: {type(e).__name__}: {e}")
 
             for spammer in spammers:
                 try:
@@ -1524,7 +1514,13 @@ def index_sheets_by_timestamp(request):
 
 # Change this whenever the GraphQL query/response shape changes in a way that is not backwards compatible (e.g. the Strapi v4 -> v5 flattening)
 # It's part of the cache key so queries from a newly deployed frontend cannot collide with payloads cached under the previous schema
-STRAPI_SCHEMA_VERSION = "v5"
+# v6: sidebar ads gained `pageType` (page-type targeting). The cache key now also includes a hash
+# of the query body (see strapi_graphql_cache), so even same-version clients posting different
+# query shapes — e.g. a stale browser bundle during a deploy window — can never poison the slot
+# that up-to-date clients read.
+# v7: sidebar ads' hasBlueBackground (boolean) replaced by sidebarAdBackgroundColor (hex string,
+# mirroring bannerBackgroundColor).
+STRAPI_SCHEMA_VERSION = "v7"
 
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
@@ -1585,9 +1581,18 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
                 {"error": "GraphQL query required in request body"}, status=400
             )
 
-        # Create cache key from the schema version and the specified dates. The query structure is static apart from the dates in its body. 
-        # Including the schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
-        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}"
+        # Create cache key from the schema version, the specified dates, AND a hash of the query body.
+        # The schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
+        # The query hash closes a subtler hole the version constant alone cannot: during a deploy window, a browser
+        # still running the PREVIOUS frontend bundle posts the previous (smaller) query to this same endpoint. Without
+        # the hash, its response — missing the newly added fields — would be cached under the key that freshly
+        # deployed clients read, silently stripping the new fields from every visitor for the cache TTL.
+        # Distinct query shapes therefore get distinct slots; identical clients still share one slot per date range.
+        # Full SHA-256 digest, untruncated: the key must NEVER collide (a collision silently serves one
+        # query shape's payload to a client that sent a different one — the exact poisoning this exists
+        # to prevent), and Redis key length is not a constraint worth trading that guarantee for.
+        query_hash: str = hashlib.sha256(query.encode("utf-8")).hexdigest()
+        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}_{query_hash}"
 
         # Try to get from cache first
         # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage

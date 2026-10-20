@@ -2518,7 +2518,7 @@ function aboutHtml(data) {
 			html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes merged sections from multiple text versions:</span>'
 			for (i = 0; i < uniqueSources.length; i++ ) {
 				html += '<div class="mergeSource">' +
-					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + encodeURI(uniqueSources[i].replace(/ /g, "_")) + '">' + 
+					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + encodeURIComponent(uniqueSources[i].replace(/ /g, "_")) + '">' +
 					uniqueSources[i] + '</a></div>';
 			}
 			html += "</div>";
@@ -2539,7 +2539,7 @@ function aboutHtml(data) {
 						'<div class="aboutSource">Source: ' + sourceLink +'</div> ⋄ ') +
 						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div> ⋄ ') +
 						'<div class="credits"></div> ⋄ ' +
-						'<a class="historyLink" href="/activity/'+data.sectionRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+						'<a class="historyLink" href="/activity/'+data.sectionRef.replace(/ /g, "_")+'/'+version.lang+'/'+encodeURIComponent(version.title.replace(/ /g, "_"))+'">Full history &raquo;</a>' +
 						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
 						(version.notes ? "<div class='versionNotes'>" + version.notes + "</div>" : "" ) +
 						(version.status === "locked" ? 
@@ -2578,7 +2578,7 @@ function aboutHtml(data) {
             versionsHtml[v.language] = '';
         }
 		versionsHtml[v.language] += '<div class="alternateVersion ' + v.language + '">' +
-							'<a href="/' + makeRef(data) + '/' + v.language + '/' + encodeURI(v.versionTitle.replace(/ /g, "_")) + '">' +
+							'<a href="/' + makeRef(data) + '/' + v.language + '/' + encodeURIComponent(v.versionTitle.replace(/ /g, "_")) + '">' +
 							v.versionTitle + '</a></div>';
 		//versionsLang[v.language] = true;
 	}
@@ -3506,11 +3506,14 @@ sjs.showNewText = function () {
 
 	$(window).scrollLeft(0).unbind("scroll.update");
 
-	// Title
-	var title = sjs.editing.book.replace(/_/g, " ");
-	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
-		title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
-	}	
+	// Title -- sections may be internal integers (daf 2a = 3), so prefer the normalized sectionRef
+	let title = sjs.editing.sectionRef;
+	if (!title) {
+		title = sjs.editing.book.replace(/_/g, " ");
+		for (let i = 0; i < sjs.editing.sectionNames.length-1; i++) {
+			title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
+		}
+	}
 	$("#editTitle").text(title);
 
 	// Compare Text -- always the primary version, as a reference to translate from/compare against
@@ -4156,9 +4159,14 @@ function readNewVersion() {
 	// Called "new version" by legacy when a text was referred to as a 'version'.
 	var version = {};
 
-	version.postUrl = sjs.editing.book.replace(/ /g, "_");
-	for (var i= 0 ; i < sjs.editing.sectionNames.length - 1; i++) {
-		version.postUrl += "." + sjs.editing.sections[i];
+	// sections may be internal integers (daf 2a = 3), so build the URL from the normalized sectionRef
+	if (sjs.editing.sectionRef) {
+		version.postUrl = sjs.editing.sectionRef.replace(/ /g, "_").replace(/:/g, ".");
+	} else {
+		version.postUrl = sjs.editing.book.replace(/ /g, "_");
+		for (var i= 0 ; i < sjs.editing.sectionNames.length - 1; i++) {
+			version.postUrl += "." + sjs.editing.sections[i];
+		}
 	}
 	
 	if ($("#originalRadio").prop("checked")) {
@@ -4327,4 +4335,3 @@ function hardRefresh(ref) {
 	$(".screen").hide();
 	actuallyGet(parseRef(ref));	
 }
-

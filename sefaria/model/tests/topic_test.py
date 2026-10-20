@@ -1,6 +1,11 @@
+from types import SimpleNamespace
+
 import pytest
 
-from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, TopicLinkHelper, IntraTopicLinkSet, RefTopicLinkSet
+from sefaria.model.topic import (
+    Topic, TopicSet, IntraTopicLink, RefTopicLink, TopicLinkHelper,
+    IntraTopicLinkSet, RefTopicLinkSet, AuthorIndexAggregation,
+)
 from sefaria.model.text import Ref
 from sefaria.system.database import db as mongo_db
 from sefaria.system.exceptions import SluggedMongoRecordMissingError
@@ -48,10 +53,23 @@ def clean_links(a):
     ls = RefTopicLinkSet({'toTopic': _ms(a)})
     if ls.count() > 0:
         ls.delete()
-
     ls = IntraTopicLinkSet({"$or": [{"fromTopic": _ms(a)}, {"toTopic": _ms(a)}]})
     if ls.count() > 0:
         ls.delete()
+
+
+def test_author_index_aggregation_uses_canonical_ref_url(monkeypatch):
+    class DummyRef:
+        def __init__(self, title):
+            assert title == "Book/Part\\Object"
+
+        def url(self):
+            return "Book%2FPart%5CObject"
+
+    monkeypatch.setattr("sefaria.model.topic.Ref", DummyRef)
+    aggregation = AuthorIndexAggregation(SimpleNamespace(title="Book/Part\\Object"))
+
+    assert aggregation.get_url() == "/Book%2FPart%5CObject"
 
 
 @pytest.fixture(scope='module', autouse=True)

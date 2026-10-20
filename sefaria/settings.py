@@ -129,6 +129,7 @@ MIDDLEWARE = [
     'django_user_agents.middleware.UserAgentMiddleware',
     'sefaria.system.middleware.ModuleMiddleware',
     'sefaria.system.middleware.LocationSettingsMiddleware',
+    'sefaria.system.middleware.WebSessionRedirectMiddleware',
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
@@ -192,7 +193,7 @@ INSTALLED_APPS = (
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
 
 SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
-SEMANTIC_SEARCH_TABLE_VERSION = os.environ.get("SEMANTIC_SEARCH_TABLE_VERSION", "legacy")
+SEMANTIC_SEARCH_TABLE_VERSION = os.environ.get("SEMANTIC_SEARCH_TABLE_VERSION", "new")
 
 # Deployed app version (semantic-release tag), set as a pod env var by the Helm chart.
 # Empty in local dev, where no deploy has happened.

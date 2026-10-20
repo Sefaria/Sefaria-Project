@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import Sefaria from '../sefaria/sefaria';
 import { InterfaceText } from '../Misc.jsx';
 import AuthCard from './AuthCard.jsx';
 import LoadingSub from './LoadingSub.jsx';
@@ -38,7 +39,7 @@ const ChooseView = ({
       <>
         <InterfaceText>auth.already_have_an_account</InterfaceText>
         {' '}
-        <a href="/login" onClick={switchFlow('login')}>
+        <a href="/login" data-signup-source="register_crosslink" onClick={switchFlow('login')}>
           <InterfaceText>auth.log_in_link</InterfaceText>
         </a>
       </>

@@ -62,7 +62,7 @@ spec:
         {{- end }}
       {{- if .Values.datadog.enabled }}
       annotations:
-        ad.datadoghq.com/web.logs: '[{"source":"python","service":"{{ .Values.deployEnv }}-web"}]'
+        ad.datadoghq.com/web.logs_exclude: "true"
         admission.datadoghq.com/python-lib.version: "v4.7.1"
       {{- end }}
     spec:
