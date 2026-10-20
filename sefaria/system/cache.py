@@ -205,6 +205,26 @@ class InMemoryCache():
 in_memory_cache = InMemoryCache()
 
 
+def invalidate_user_profile_cache(uids):
+    """Forget merged identities on this process and in shared recommendations.
+
+    The merge utility also publishes this function through the existing multiserver
+    coordinator (as scache.invalidate_user_profile_cache) so other web workers run it.
+    """
+    from sefaria.model import following, user_profile
+
+    for uid in uids:
+        user_profile.public_user_data_cache.pop(uid, None)
+    following.creators = None
+    # Cover the default, positional, and keyword calls to aggregate_profiles().
+    keys = [cache_get_key(cache_get_key_arr("aggregate_profiles"))]
+    for lang in ("english", "hebrew"):
+        keys.append(cache_get_key(cache_get_key_arr("aggregate_profiles", lang)))
+        keys.append(cache_get_key(cache_get_key_arr("aggregate_profiles", lang=lang)))
+    for key in keys:
+        delete_cache_elem(key)
+
+
 def invalidate_cache_by_pattern(pattern: str, cache_type: Optional[str] = None) -> dict:
     """
     Invalidate cache entries matching a pattern using the most appropriate method for the cache backend.
