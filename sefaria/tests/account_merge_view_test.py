@@ -193,6 +193,15 @@ class TestAccountLookup:
         response = request(env, {**env.data, "source": str(env.source.id)})
         assert response.status_code == 200
 
+    @pytest.mark.parametrize("field", ["source", "destination"])
+    def test_operator_cannot_merge_their_own_account(self, merge_form_env, field):
+        """Staff can't merge their own account: it would delete it or remove their admin access"""
+        env = merge_form_env
+        response = request(env, {**env.data, field: env.operator.email})
+        assert response.status_code == 400
+        assert "your own account" in payload(response)["errors"][field][0]["message"]
+        env.merge.assert_not_called()
+
     def test_missing_profile_is_reported_without_creating_one(self, merge_form_env, monkeypatch):
         """An account without a profile is reported, and the check doesn't create one"""
         env = merge_form_env

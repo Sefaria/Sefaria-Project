@@ -1417,7 +1417,7 @@ def merge_accounts(request):
     if action not in ("preview", "merge"):
         return jsonResponse({"error": "Choose preview or merge.", "retry_safe": True}, status=400)
 
-    accounts = _merge_accounts_from_form(form)
+    accounts = _merge_accounts_from_form(form, operator)
     if form.errors:
         return _merge_form_errors(form)
 
@@ -1433,7 +1433,7 @@ def _merge_form_errors(form):
     return jsonResponse({"errors": form.errors.get_json_data(), "retry_safe": True}, status=400)
 
 
-def _merge_accounts_from_form(form):
+def _merge_accounts_from_form(form, operator):
     """Look up the source and destination users. Problems are added to `form` as errors."""
     accounts = {}
     for field in ("source", "destination"):
@@ -1448,6 +1448,10 @@ def _merge_accounts_from_form(form):
     if accounts["source"].id == accounts["destination"].id:
         form.add_error("destination", "Source and destination accounts must be different.")
     for field, account in accounts.items():
+        # As the source, the operator's own account would be deleted mid-request.
+        # As the destination, it would lose its staff access.
+        if account.id == operator.id:
+            form.add_error(field, "You can't merge your own account. Ask another staff member.")
         # Read the raw profile document: loading a UserProfile would create an empty one.
         if not db.profiles.find_one({"id": account.id}, {"_id": 1}):
             form.add_error(field, "This account does not have a profile.")
