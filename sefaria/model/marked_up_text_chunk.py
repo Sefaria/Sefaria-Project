@@ -328,15 +328,26 @@ class CitationMUTCSpan(MUTCSpan):
 
     def __init__(self, raw_span: dict):
         super().__init__(raw_span)
-        tref = raw_span.get('ref')
-        self.ref = Ref(tref) if tref else None
+        self.ref = self._resolve(raw_span.get('ref'))
         # When the disambiguator resolved this citation, the link should target the resolved ref
         # rather than the (ambiguous / non-segment) ref the linker originally caught.
-        self.resolved_ref = Ref(self.disambiguated_ref) if self.disambiguated_ref else None
+        self.resolved_ref = self._resolve(self.disambiguated_ref)
+
+    @staticmethod
+    def _resolve(tref):
+        # A stored ref can stop resolving: its book was renamed, or is staff-only and invisible here.
+        if not tref:
+            return None
+        try:
+            return Ref(tref)
+        except InputError:
+            return None
 
     def wrap_span_in_a_tag(self) -> str:
         href, tref = "", ""
         link_ref = self.resolved_ref or self.ref
+        if not link_ref and not self._debug:
+            return self.text  # unresolvable citation: show plain text rather than a dead link
         if link_ref:
             href = link_ref.url()
             tref = link_ref.normal()

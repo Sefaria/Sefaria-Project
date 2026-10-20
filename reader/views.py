@@ -53,6 +53,7 @@ from remote_config import remoteConfigCache
 
 from sefaria.model import *
 from sefaria.model.text import TocSerializationOptions
+from sefaria.model.abstract import public_query
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
@@ -1925,7 +1926,7 @@ def texts_api(request, tref):
                 return jsonResponse({"error": "Text version not found."})
 
             v.delete()
-            record_version_deletion(tref, versionEn, "en", request.user.id)
+            record_version_deletion(tref, versionEn, "en", request.user.id, admin_only=v.is_admin_only())
 
             if USE_VARNISH:
                 invalidate_linked(oref)
@@ -1938,7 +1939,7 @@ def texts_api(request, tref):
                 return jsonResponse({"error": "Text version not found."})
 
             v.delete()
-            record_version_deletion(tref, versionHe, "he", request.user.id)
+            record_version_deletion(tref, versionHe, "he", request.user.id, admin_only=v.is_admin_only())
 
             if USE_VARNISH:
                 invalidate_linked(oref)
@@ -2185,8 +2186,9 @@ def index_api(request, title, raw=False):
             return jsonResponse({"error": "Only moderators can delete indices."})
 
         title = title.replace("_", " ")
-        library.get_index(title).delete()
-        record_index_deletion(title, request.user.id)
+        index = library.get_index(title)
+        index.delete()
+        record_index_deletion(title, request.user.id, admin_only=index.is_admin_only())
 
         return jsonResponse({"status": "ok"})
 
@@ -3503,7 +3505,7 @@ def texts_history_api(request, tref, lang=None, version=None):
         query = {"ref": {"$regex": refRe }, "language": lang, "version": version.replace("_", " ")}
     else:
         query = {"ref": {"$regex": refRe }}
-    history = db.history.find(query)
+    history = db.history.find(public_query(query))
 
     summary = {"copiers": set(), "translators": set(), "editors": set(), "reviewers": set() }
     updated = history[0]["date"].isoformat() if len(history) else "Unknown"
@@ -4784,11 +4786,11 @@ def translations_api(request, lang=None):
     """
     bundle_commentaries_langs = ["en", "he"]
     if not lang:
-        res = db.texts.distinct("actualLanguage")
+        res = db.texts.distinct("actualLanguage", public_query())
         return jsonResponse(res)
     # import time
     # t0 = time.time()
-    aggregation_query = [{"$match": {"actualLanguage": lang}}, {"$lookup": {
+    aggregation_query = [{"$match": public_query({"actualLanguage": lang})}, {"$lookup": {
         "from": "index",
         "localField": "title",
         "foreignField": "title",

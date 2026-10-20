@@ -360,6 +360,12 @@ SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 SEARCH_INDEX_NAME_CATEGORY = 'category'
 
+# Whether this process sees records marked `admin_only` (staff-only Categories, Indexes, Versions,
+# Links and their History). Set per environment in local settings: only the staff site (preprod)
+# sets it True. Never override it per process or script: the environment's caches must only ever
+# hold one mode's view of the library.
+SHOW_ADMIN_ONLY_BOOKS = False
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):

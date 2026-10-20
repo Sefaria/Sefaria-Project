@@ -53,10 +53,17 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         "searchRoot",
         "order",
         "match_templates",
+        "admin_only",  # bool. staff-only category, hidden where SHOW_ADMIN_ONLY_BOOKS is False. Set on creation; can be cleared, never set again.
     ]
+    has_admin_only_flag = True
 
     def __str__(self):
         return "Category: {}".format(", ".join(self.path))
+
+    def _admin_only_parent(self):
+        from sefaria.model.text import admin_only_category_path
+        hidden_path = admin_only_category_path(getattr(self, "path", [])[:-1])
+        return "its parent category {}".format("/".join(hidden_path)) if hidden_path else None
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return "{}().load({{'path': [{}]}})".format(self.__class__.__name__, ", ".join(['"{}"'.format(x) for x in self.path]))
