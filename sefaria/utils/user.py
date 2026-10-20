@@ -191,8 +191,10 @@ _COLLECTION_ROLES = ("admins", "members", "publishers")
 _MERGE_PROFILE_FIELDS = (
     "position", "organization", "jewish_education", "bio", "website", "location",
     "public_email", "facebook", "twitter", "linkedin", "youtube",
-    "profile_pic_url", "profile_pic_url_small",
 )
+# The large and small versions of one profile picture. They are copied together
+# or not at all; see _picture_updates().
+_PICTURE_FIELDS = ("profile_pic_url", "profile_pic_url_small")
 # Only these reading settings move. Privacy and email settings stay as the
 # destination chose them.
 _MERGE_READING_SETTINGS = (
@@ -410,6 +412,7 @@ def _profile_updates(source, destination, profile_mode, now):
     if "bio" in updates:
         # A bio is shown as HTML, so clean it the same way a profile edit does.
         updates["bio"] = sanitize_bio(updates["bio"] or "")
+    updates.update(_picture_updates(source, destination, replace_existing))
 
     source_settings = source.get("settings", {})
     reading_settings = {key: source_settings[key] for key in _MERGE_READING_SETTINGS if key in source_settings}
@@ -432,6 +435,21 @@ def _profile_updates(source, destination, profile_mode, now):
         if combined != current:
             updates[field] = combined
     return updates
+
+
+def _picture_updates(source, destination, replace_existing):
+    """Copy the source's large and small profile pictures together, or not at all.
+
+    Copying only one of them would show two different people's pictures on the
+    same profile (one on the profile page, the other as the small thumbnail).
+    """
+    def has_picture(profile):
+        return any(not _is_blank(profile.get(field)) for field in _PICTURE_FIELDS)
+
+    should_copy = has_picture(source) and (replace_existing or not has_picture(destination))
+    if not should_copy:
+        return {}
+    return {field: source.get(field, "") for field in _PICTURE_FIELDS}
 
 
 def _combine_preferences(existing, incoming, replace_existing):

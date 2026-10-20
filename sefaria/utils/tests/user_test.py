@@ -91,6 +91,30 @@ class TestProfileUpdates:
         updates = user_utils._profile_updates({"sf_app_user_id": "work-crm"}, {}, ProfileMode.OVERRIDE, now=1)
         assert updates == {}
 
+    def test_fill_never_mixes_two_peoples_pictures(self):
+        """If the destination has either picture, fill copies neither"""
+        source = {"profile_pic_url": "source-large", "profile_pic_url_small": "source-small"}
+        destination = {"profile_pic_url": "", "profile_pic_url_small": "personal-small"}
+        assert user_utils._profile_updates(source, destination, ProfileMode.FILL, now=1) == {}
+
+    def test_fill_copies_both_pictures_into_an_empty_destination(self):
+        """With no destination picture, fill copies the large and small picture together"""
+        source = {"profile_pic_url": "source-large", "profile_pic_url_small": "source-small"}
+        assert user_utils._profile_updates(source, {}, ProfileMode.FILL, now=1) == source
+
+    def test_override_replaces_both_pictures_together(self):
+        """Override copies the source's picture pair as a unit, so the two always match"""
+        source = {"profile_pic_url": "source-large", "profile_pic_url_small": ""}
+        destination = {"profile_pic_url": "personal-large", "profile_pic_url_small": "personal-small"}
+        assert user_utils._profile_updates(source, destination, ProfileMode.OVERRIDE, now=1) == {
+            "profile_pic_url": "source-large", "profile_pic_url_small": ""}
+
+    def test_override_keeps_the_destination_picture_when_the_source_has_none(self):
+        """A source with no picture never erases the destination's picture"""
+        destination = {"profile_pic_url": "personal-large", "profile_pic_url_small": "personal-small"}
+        source = {"profile_pic_url": "", "profile_pic_url_small": None}
+        assert user_utils._profile_updates(source, destination, ProfileMode.OVERRIDE, now=1) == {}
+
     def test_bio_is_cleaned(self):
         """A copied bio has unsafe HTML removed"""
         updates = user_utils._profile_updates({"bio": "<script>x</script><p>Hi</p>"}, {}, ProfileMode.FILL, now=1)
