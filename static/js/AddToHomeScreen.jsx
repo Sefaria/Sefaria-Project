@@ -10,7 +10,7 @@ import {CloseButton} from './Misc';
  * Spec: "Add to Home Screen — Light Spec & POC" doc. Design: "Add to Home Screen banner" canvas.
  */
 
-const FIRST_VISIT_DELAY_MS = 10 * 1000;
+const FIRST_VISIT_DELAY_MS = 1000;
 const CONFIRMATION_MS = 6000;
 
 const MINCHA_TITLES = [
