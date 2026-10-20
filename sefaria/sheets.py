@@ -483,7 +483,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         if sheet["status"] != existing["status"]:
             status_changed = True
 
-        old_topics = existing.get("topics", [])
+        old_topics = existing.get("topics") or []
 
         old_media_urls = set([source["media"] for source in existing.get("sources") if "media" in source])
         if len(old_media_urls) > 0:
@@ -579,7 +579,9 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
     # the stored topics must already be valid (slugless topics break topic recalculation).
     # Saves that leave topics untouched and fully slugged are not renormalized, so they never rewrite stored topics.
     # The diff is recomputed on the merged sheet: an update that omits topics keeps the stored ones.
-    topics = sheet.get("topics") or []
+    if "topics" in sheet and sheet["topics"] is None:
+        sheet["topics"] = []
+    topics = sheet.get("topics", [])
     topics_diff = topic_list_diff(old_topics, topics)
     if topics_diff["added"] or topics_diff["removed"] or any(not t.get("slug") for t in topics):
         sheet["topics"] = normalize_sheet_topics(topics)

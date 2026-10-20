@@ -35,10 +35,13 @@ def test_generate_sheet_topic_links_survives_slugless_topics():
 
 
 def test_generate_all_topic_links_from_sheets_survives_slugless_topics():
-    sheet = dict(SLUGLESS_SHEET, owner=1, expandedRefs=[])
-    with patch.object(topic_helper, "db") as db:
+    sheet = {"id": 1, "owner": 1, "expandedRefs": ["Genesis 1:1"],
+             "topics": [{"asTyped": "Veil"}, {"asTyped": "Light", "slug": "light"}, {"asTyped": "Dark", "slug": "dark"}]}
+    with patch.object(topic_helper, "db") as db, patch.object(topic_helper, "get_ref_safely", return_value=None):
         db.sheets.find.return_value = [sheet]
-        topic_helper.generate_all_topic_links_from_sheets(topic="light")
+        source_links, related_links, sheet_links = topic_helper.generate_all_topic_links_from_sheets()
+    assert [l.toTopic for l in sheet_links] == ["light", "dark"]
+    assert source_links == [] and related_links == []
 
 
 def test_update_ref_topic_link_orders_survives_slugless_topics():
@@ -101,7 +104,7 @@ def test_save_sheet_stores_slugs_even_if_later_step_fails():
 def _resave(stored, update):
     """Saves `update` over a copy of the stored sheet; returns (written sheet, normalize mock, link-sync mock)."""
     existing = dict(stored)
-    if "topics" in stored:
+    if stored.get("topics"):
         existing["topics"] = [dict(t) for t in stored["topics"]]
     with patch.object(sheets, "db") as db, \
             patch.object(sheets, "choose_existing_topic_for_title", return_value=MagicMock(slug="veil")), \
@@ -142,4 +145,14 @@ def test_save_sheet_without_topics_does_not_add_topics_field():
     stored = dict(STORED_SHEET)
     written, normalize, _ = _resave(stored, {"status": "public", "sources": []})
     assert "topics" not in written
+    normalize.assert_not_called()
+
+
+def test_save_sheet_stores_explicit_null_topics_as_empty_and_resaves():
+    with patch.object(sheets, "db") as db, patch.object(sheets, "generate_and_save_sheet_scoring"):
+        sheets.save_sheet({"title": "A sheet", "status": "unlisted", "sources": [], "topics": None}, user_id=1, search_override=True)
+    assert db.sheets.insert_one.call_args[0][0]["topics"] == []
+
+    written, normalize, _ = _resave(dict(STORED_SHEET, topics=None), {"status": "public", "sources": []})
+    assert written["topics"] == []
     normalize.assert_not_called()
