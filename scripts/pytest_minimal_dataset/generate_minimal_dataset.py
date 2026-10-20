@@ -306,7 +306,7 @@ def main(argv=None):
         )
 
     if not artifacts_present():
-        rerun_recording(args.test_target)
+        rerun_recording(args.test_target, port=args.port, source_db=args.source_db)
 
     index = load_index()
     touched_collections = set()

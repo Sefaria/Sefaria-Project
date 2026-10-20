@@ -162,3 +162,23 @@ class TestRerunRecording:
         assert "SEFARIA_MOCK_MONGO" not in seen["env"]
         assert seen["cwd"] == recording.REPO_ROOT
         assert seen["cmd"][1:3] == ["-m", "pytest"]
+
+
+class TestRerunForwardsPortAndSource:
+    def test_main_forwards_port_and_source_db_to_rerun(self, tmp_path, monkeypatch):
+        class _Stop(Exception):
+            pass
+
+        seen = {}
+
+        def fake_rerun(test_target="sefaria/tests", port=27018, source_db="sefaria"):
+            seen.update(test_target=test_target, port=port, source_db=source_db)
+            raise _Stop
+
+        monkeypatch.setattr(gen, "rerun_recording", fake_rerun)
+        monkeypatch.setattr(gen, "ARTIFACT_DIR", gen.ARTIFACT_DIR)  # restored after the test
+        with pytest.raises(_Stop):
+            gen.main(["--port", "27019", "--source-db", "foo", "--target-db", "bar",
+                      "--artifact-dir", str(tmp_path / "missing")])
+        assert seen["port"] == 27019
+        assert seen["source_db"] == "foo"
