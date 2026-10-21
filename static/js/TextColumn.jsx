@@ -412,8 +412,8 @@ class TextColumn extends Component {
 
     // When using tab to navigate (i.e. a11y) set ref to currently focused ref
     let $segment = null;
-    if ($("body").hasClass("user-is-tabbing") && $(".segment:focus").length > 0) {
-      $segment = $(".segment:focus").eq(0);
+    if ($("body").hasClass("user-is-tabbing") && this.$container.find(".segment:focus").length > 0) {
+      $segment = this.$container.find(".segment:focus").eq(0);
     } else {
       const $container = this.$container;
       const isWindowScroll = this.isWindowScroll();
