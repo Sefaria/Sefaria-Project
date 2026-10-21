@@ -79,7 +79,7 @@
     "css-modules-require-hook": "^4.2.3",
     "deep-merge": "^1.0.0",
     "diff-match-patch": "^1.0.0",
-    "dompurify": "^2.3.6",
+    "dompurify": "^3.4.17",
     "dotenv": "^17.1.0",
     "downshift": "^9.0.0",
     "draggabilly": "^3.0.0",
