@@ -10,9 +10,9 @@ from sefaria.model.topic import Topic, RefTopicLink
 from sefaria.helper import topic_prompts_admin as tpa
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-from sefaria.utils.chatbot import build_chatbot_user_token, ADMIN_MCP_TOKEN_AUDIENCE
+from sefaria.utils.chatbot import build_chatbot_user_token, MCP_TOKEN_AUDIENCE
 
-ADMIN_SECRET = "test-admin-mcp-secret"
+MCP_SECRET = "test-mcp-secret"
 HOST = "www.modularization.testing.sefaria.org"
 TEST_DOMAIN_MODULES = {lang: {"library": f"https://{HOST}", "voices": f"https://voices.{HOST}"} for lang in ("en", "he")}
 
@@ -305,12 +305,12 @@ class TestAdminMCPEndpoints:
 
     @pytest.fixture(autouse=True)
     def _settings(self, settings):
-        settings.ADMIN_MCP_TOKEN_SECRET = ADMIN_SECRET
+        settings.MCP_TOKEN_SECRET = MCP_SECRET
         settings.DOMAIN_MODULES = TEST_DOMAIN_MODULES
         settings.ALLOWED_HOSTS = [HOST]
 
     def _token(self, user):
-        return build_chatbot_user_token(user.id, ADMIN_SECRET, aud=ADMIN_MCP_TOKEN_AUDIENCE)
+        return build_chatbot_user_token(user.id, MCP_SECRET, ttl_hours=5 / 60, aud=MCP_TOKEN_AUDIENCE)
 
     def _client(self):
         return Client(enforce_csrf_checks=True, HTTP_HOST=HOST)
@@ -328,6 +328,8 @@ class TestAdminMCPEndpoints:
                                 content_type="application/json", **headers)
         assert response.status_code == 200, response.content
         assert response.json()["result"]["prompt"] == "Via MCP"
+        audit = db[tpa.AUDIT_COLLECTION].find_one({"link_id": ai_link._id}, sort=[("date", -1)])
+        assert audit["via"] == MCP_TOKEN_AUDIENCE and audit["uid"] == staff.id
 
         stale = client.patch(f"/api/admin/topic-prompts/{ai_link._id}",
                              json.dumps({"lang": "en", "base_version": version, "prompt": "Again"}),
@@ -341,14 +343,7 @@ class TestAdminMCPEndpoints:
         client.force_login(user)
         assert client.get("/api/admin/topic-prompts").status_code == 403
 
-    def test_mint_requires_staff_session_and_token_cannot_mint(self, django_user_model):
-        staff = django_user_model.objects.create_user(username="mcp-minter", password="pass", is_staff=True)
-        token_client = self._client()
-        response = token_client.post("/api/admin/mcp-token", HTTP_X_SESSION_ID=self._token(staff))
-        assert response.status_code == 403
-
-        session_client = Client(HTTP_HOST=HOST)
-        session_client.force_login(staff)
-        minted = session_client.post("/api/admin/mcp-token").json()
-        listed = self._client().get("/api/admin/topic-prompts", {"limit": 1}, HTTP_X_SESSION_ID=minted["token"])
-        assert listed.status_code == 200
+    def test_mcp_token_of_non_staff_is_401(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-nonstaff-endpoint", password="pass")
+        response = self._client().get("/api/admin/topic-prompts", HTTP_X_SESSION_ID=self._token(user))
+        assert response.status_code == 401

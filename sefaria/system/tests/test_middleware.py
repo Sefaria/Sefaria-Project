@@ -11,7 +11,7 @@ from django.conf import settings
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse, HttpResponseRedirect
 from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware, LocationSettingsMiddleware, WebSessionRedirectMiddleware
-from sefaria.utils.chatbot import build_chatbot_user_token, ADMIN_MCP_TOKEN_AUDIENCE, MCP_LOGIN_TOKEN_AUDIENCE, MCP_TOKEN_AUDIENCE
+from sefaria.utils.chatbot import build_chatbot_user_token, MCP_LOGIN_TOKEN_AUDIENCE, MCP_TOKEN_AUDIENCE
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
 # ============================================================================
@@ -605,41 +605,50 @@ class TestSessionIDAuthMiddleware:
 
 class TestSessionIDAuthMiddlewareAdminMCP:
     chatbot_secret = "test-chatbot-secret"
-    admin_secret = "test-admin-mcp-secret"
+    mcp_secret = "test-user-mcp-secret"
     admin_path = "/api/admin/topic-prompts"
 
     def setup_method(self):
         self.factory = RequestFactory()
         self.middleware = SessionIDAuthMiddleware(get_response=lambda r: HttpResponse())
 
-    def _run(self, token, path):
-        request = self.factory.get(path, HTTP_X_SESSION_ID=token)
+    def _run(self, token, path, method="get"):
+        request = getattr(self.factory, method)(path, HTTP_X_SESSION_ID=token)
         request.user = AnonymousUser()
-        with override_settings(CHATBOT_USER_ID_SECRET=self.chatbot_secret, ADMIN_MCP_TOKEN_SECRET=self.admin_secret):
+        with override_settings(CHATBOT_USER_ID_SECRET=self.chatbot_secret, MCP_TOKEN_SECRET=self.mcp_secret):
             self.middleware.process_request(request)
         return request
 
-    def _admin_token(self, user, secret=None):
-        return build_chatbot_user_token(user.id, secret or self.admin_secret, aud=ADMIN_MCP_TOKEN_AUDIENCE)
+    def _mcp_token(self, user):
+        return build_chatbot_user_token(user.id, self.mcp_secret, ttl_hours=5 / 60, aud=MCP_TOKEN_AUDIENCE)
 
-    def test_admin_token_authenticates_staff_on_admin_path_and_skips_csrf(self, django_user_model):
-        user = django_user_model.objects.create_user(username="admin-mcp-staff", password="pass", is_staff=True)
-        request = self._run(self._admin_token(user), self.admin_path)
+    @pytest.mark.parametrize(("method", "path"), [
+        ("get", "/api/admin/topic-prompts"),
+        ("patch", "/api/admin/topic-prompts/64f0a1b2c3d4e5f601234567"),
+    ])
+    def test_mcp_token_authenticates_staff_on_admin_routes_and_skips_csrf(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(username=f"mcp-staff-{method}", password="pass", is_staff=True)
+        request = self._run(self._mcp_token(user), path, method)
 
         assert request.user.id == user.id
-        assert request.auth_via == ADMIN_MCP_TOKEN_AUDIENCE
+        assert request.auth_via == MCP_TOKEN_AUDIENCE
         assert request._dont_enforce_csrf_checks is True
 
-    def test_admin_token_rejected_for_non_staff(self, django_user_model):
-        user = django_user_model.objects.create_user(username="admin-mcp-nonstaff", password="pass")
-        request = self._run(self._admin_token(user), self.admin_path)
+    def test_mcp_token_rejected_for_non_staff_on_admin_routes(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-nonstaff-admin", password="pass")
+        request = self._run(self._mcp_token(user), self.admin_path)
 
         assert not request.user.is_authenticated
         assert not getattr(request, "_dont_enforce_csrf_checks", False)
 
-    def test_admin_token_rejected_outside_admin_path(self, django_user_model):
-        user = django_user_model.objects.create_user(username="admin-mcp-elsewhere", password="pass", is_staff=True)
-        request = self._run(self._admin_token(user), "/api/ref-topic-links/Genesis_1.1")
+    @pytest.mark.parametrize(("method", "path"), [
+        ("post", "/api/admin/topic-prompts"),
+        ("get", "/api/admin/other"),
+        ("post", "/api/ref-topic-links/Genesis_1.1"),
+    ])
+    def test_mcp_token_rejected_off_admin_routes(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(username=f"mcp-staff-off-{method}-{abs(hash(path))}", password="pass", is_staff=True)
+        request = self._run(self._mcp_token(user), path, method)
 
         assert not request.user.is_authenticated
 
@@ -651,12 +660,6 @@ class TestSessionIDAuthMiddlewareAdminMCP:
         assert not request.user.is_authenticated
         assert not getattr(request, "_dont_enforce_csrf_checks", False)
 
-    def test_admin_audience_with_chatbot_secret_rejected(self, django_user_model):
-        user = django_user_model.objects.create_user(username="admin-aud-wrong-secret", password="pass", is_staff=True)
-        request = self._run(self._admin_token(user, secret=self.chatbot_secret), self.admin_path)
-
-        assert not request.user.is_authenticated
-
     def test_chatbot_token_on_regular_path_still_enforces_csrf(self, django_user_model):
         user = django_user_model.objects.create_user(username="chatbot-regular", password="pass")
         token = build_chatbot_user_token(user.id, self.chatbot_secret)
@@ -664,15 +667,6 @@ class TestSessionIDAuthMiddlewareAdminMCP:
 
         assert request.user.id == user.id
         assert not getattr(request, "_dont_enforce_csrf_checks", False)
-
-    def test_admin_token_ignored_when_secret_unset(self, django_user_model):
-        user = django_user_model.objects.create_user(username="admin-mcp-disabled", password="pass", is_staff=True)
-        request = self.factory.get(self.admin_path, HTTP_X_SESSION_ID=self._admin_token(user))
-        request.user = AnonymousUser()
-        with override_settings(ADMIN_MCP_TOKEN_SECRET=None):
-            self.middleware.process_request(request)
-
-        assert not request.user.is_authenticated
 
 
 class TestSessionIDAuthMiddlewareUserMCP:
@@ -714,7 +708,7 @@ class TestSessionIDAuthMiddlewareUserMCP:
         ("post", "/api/sheets/715437/add"),
         ("get", "/api/profile"),
         ("post", "/api/sheets/715437"),
-        ("get", "/api/admin/topic-prompts"),
+        ("get", "/api/admin/mcp-token"),
     ])
     def test_mcp_token_rejected_elsewhere(self, django_user_model, method, path):
         user = django_user_model.objects.create_user(username=f"mcp-off-{method}-{abs(hash(path))}", password="pass", is_staff=True)

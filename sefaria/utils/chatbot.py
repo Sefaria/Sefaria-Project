@@ -11,11 +11,10 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 DEFAULT_TTL_HOURS = 72
-ADMIN_MCP_TOKEN_AUDIENCE = "admin-mcp"
-ADMIN_MCP_DEFAULT_TTL_HOURS = 12
-# User MCP sign-in (api/mcp_auth_views.py). Both audiences use MCP_TOKEN_SECRET, shared with the
+# MCP sign-in (api/mcp_auth_views.py). Both audiences use MCP_TOKEN_SECRET, shared with the
 # AI chatbot. Sefaria mints mcp-login tokens to prove who signed in; the chatbot's MCP server mints
-# short-lived mcp tokens per tool call, which Sefaria accepts only on the sheet API routes it uses.
+# short-lived mcp tokens per tool call, which Sefaria accepts only on the API routes its tools use
+# (see SessionIDAuthMiddleware).
 MCP_LOGIN_TOKEN_AUDIENCE = "mcp-login"
 MCP_LOGIN_TOKEN_TTL_MINUTES = 5
 MCP_TOKEN_AUDIENCE = "mcp"
@@ -56,7 +55,7 @@ def _decrypt_chatbot_user_token(token, secret):
 def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS, aud=None):
     """
     Build an encrypted user token. `aud` scopes the token to a consumer other than the chatbot
-    (e.g. ADMIN_MCP_TOKEN_AUDIENCE); chatbot tokens carry no audience.
+    (e.g. MCP_TOKEN_AUDIENCE); chatbot tokens carry no audience.
     """
     if not user_id or not secret:
         return None

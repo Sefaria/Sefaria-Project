@@ -1,6 +1,6 @@
 """
 Listing and editing topic prompts (the title/prompt "descriptions" on RefTopicLinks) for admin tools
-such as the admin MCP server. See docs/arch_docs/topic_prompts_admin_mcp.md.
+such as the AI chatbot's admin MCP endpoint. See docs/arch_docs/topic_prompts_admin_mcp.md.
 
 Unlike `edit_topic_source`, updates here never create links, change refs, reorder, or publish, and they
 write only the edited language's description, atomically (see update_prompt).
@@ -208,9 +208,10 @@ def _current_or_none(link_id, lang, topic_titles, base_url):
     return serialize_prompt(link, lang, topic_titles, base_url)
 
 
-def update_prompt(link_id, lang, fields, base_version, uid, dry_run=False, base_url=""):
+def update_prompt(link_id, lang, fields, base_version, uid, dry_run=False, base_url="", via="session"):
     """
     Edits title/prompt/ai_context (and optionally review_state) of one existing description.
+    `via` records how the editor authenticated ("mcp" or "session") in the audit log.
     Returns {"result": ..., "before": ..., "dry_run": bool, "warnings": [...]}.
     Raises TopicPromptNotFound, TopicPromptConflict (stale base_version) or InputError.
 
@@ -260,7 +261,7 @@ def update_prompt(link_id, lang, fields, base_version, uid, dry_run=False, base_
         "ref": link.ref,
         "lang": lang,
         "uid": uid,
-        "via": "admin-mcp",
+        "via": via,
         "status": "pending",
         "before": {**_audit_fields(before), "version": before["version"]},
         "after": {**_audit_fields(after), "version": after["version"]},

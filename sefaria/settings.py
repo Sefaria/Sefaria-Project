@@ -80,13 +80,10 @@ STATICFILES_DIRS = [
 SECRET_KEY = ''
 CHATBOT_USER_ID_SECRET = 'secret'
 SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
-# Secret for admin MCP tokens (see SessionIDAuthMiddleware). Unset disables admin MCP access.
-# Read from the environment here so a deployment's env secret enables it even when its
-# local_settings doesn't define it.
-ADMIN_MCP_TOKEN_SECRET = os.getenv("ADMIN_MCP_TOKEN_SECRET") or None
-ADMIN_MCP_TOKEN_TTL_HOURS = 12
-# Secret shared with the AI chatbot for user MCP sign-in (see api/mcp_auth_views.py and
-# SessionIDAuthMiddleware). Unset disables MCP sign-in and MCP token access.
+# Secret shared with the AI chatbot for MCP sign-in (see api/mcp_auth_views.py and
+# SessionIDAuthMiddleware). Unset disables MCP sign-in and MCP token access. Read from the
+# environment here so a deployment's env secret enables it even when its local_settings doesn't
+# define it.
 MCP_TOKEN_SECRET = os.getenv("MCP_TOKEN_SECRET") or None
 # Where /api/mcp/authorize may send a sign-in result: the chatbot's OAuth callback URLs,
 # comma-separated, matched exactly.

@@ -212,10 +212,9 @@ shared_patterns = [
     path('api/topics/pools/<path:pool_name>', reader_views.topic_pool_api),
     re_path(r'^_api/topics/featured-topic/?$', reader_views.featured_topic_api),
     re_path(r'^api/topics/trending/?$', reader_views.trending_topics_api),
-    path('api/admin/mcp-token', admin_mcp_views.AdminMCPTokenView.as_view()),
     path('api/admin/topic-prompts', admin_mcp_views.TopicPromptsView.as_view()),
     path('api/admin/topic-prompts/<str:link_id>', admin_mcp_views.TopicPromptView.as_view()),
-    # Sign-in handoff for the AI chatbot's user MCP server (chat.sefaria.org/mcp/user).
+    # Sign-in handoff for the AI chatbot's MCP server (chat.sefaria.org/mcp/user and /mcp/admin).
     path('api/mcp/authorize', mcp_auth_views.mcp_authorize),
     path('api/ref-topic-links/bulk', reader_views.topic_ref_bulk_api),
     path('api/ref-topic-links/<path:tref>', reader_views.topic_ref_api),
