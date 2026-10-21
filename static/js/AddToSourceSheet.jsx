@@ -16,6 +16,7 @@ import sanitizeHtml  from 'sanitize-html';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import { GDocAdvertBox } from './Promotions';
 import * as sheetsUtils from './sefaria/sheetsUtils'
+import { postRefreshEditor } from './refreshEditorChannel';
 
 
 
@@ -296,8 +297,7 @@ class AddToSourceSheetBox extends Component {
     }
     Sefaria.sheets.updateUserSheets(this.state.selectedSheet, Sefaria._uid, true);
     this.setState({showConfirm: true});
-    const channel = new BroadcastChannel('refresh-editor');
-    channel.postMessage("refresh");
+    postRefreshEditor((this.state.selectedSheet || {}).id);
   }
   makeTitleRef(){
     const refTitles = (this.props.srefs.length > 0 && (!this.props.srefs[0].startsWith("Sheet"))) ? {
