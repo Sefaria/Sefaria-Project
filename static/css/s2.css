@@ -17340,3 +17340,25 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .bookshelfPromo .sefariaModalBottomContent a {
   text-decoration: underline;
 }
+/* The sign-up wall has no shelf preview, so it gets more room to carry the page */
+.bookshelfPromo.bookshelfPromoLimit #interruptingMessage.sefariaModalContentBox {
+  width: 460px;
+  padding: 44px 48px 36px;
+}
+.bookshelfPromoLimit .sefariaModalContent h2 {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+.bookshelfPromoLimit .bookshelfPromoBody {
+  font-size: 16px;
+  line-height: 22px;
+  margin-bottom: 26px;
+}
+.bookshelfPromoLimit .sefariaModalContent .button {
+  padding: 12px 40px;
+  font-size: 16px;
+}
+.bookshelfPromoLimit .sefariaModalBottomContent {
+  margin-top: 16px;
+  font-size: 14px;
+}

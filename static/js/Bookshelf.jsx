@@ -129,7 +129,7 @@ const BookshelfPromoModal = ({promo, onClose}) => {
   };
 
   return (
-    <div id="interruptingMessageBox" className="sefariaModalBox bookshelfPromo">
+    <div id="interruptingMessageBox" className={classNames("sefariaModalBox bookshelfPromo", {bookshelfPromoLimit: variant === 'limit'})}>
       <div id="interruptingMessageOverlay" onClick={onClose}></div>
       <div
         id="interruptingMessage"
