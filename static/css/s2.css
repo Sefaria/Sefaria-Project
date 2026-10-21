@@ -17190,6 +17190,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .bookshelfPromoCardTitle {
   font-family: var(--english-serif-font-family);
   font-size: 13px;
+  font-weight: 700;
   color: var(--near-black);
 }
 .bookshelfPromoCardRef {
