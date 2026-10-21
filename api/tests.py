@@ -3,8 +3,10 @@ import django
 django.setup()
 from reader.tests import SefariaTestCase
 import json
+from unittest import mock
 from api.api_warnings import APIWarningCode
 from sefaria.system.database import QueryCounter
+from sefaria.system.exceptions import InputError
 
 
 c = Client()
@@ -475,3 +477,49 @@ class APIRefTests(SefariaTestCase):
         self.assertEqual(data['node_type'], 'SheetNode')
         self.assertEqual(data['sheet_id'], 1)
         self.assertEqual(data['navigation_refs']['shortest_path_to_root'][-1], 'Sheet 1')
+
+
+class APIErrorHandlingTests(SefariaTestCase):
+    """Unexpected server-side failures surface as 500s; input errors keep their 4xx responses."""
+
+    PARSE_PATCH = 'api.views.Ref.instantiate_ref_with_legacy_parse_fallback'
+    ADAPTER_PATCH = 'api.views.TextRequestAdapter'
+
+    def setUp(self):
+        super().setUp()
+        self.server_error_client = Client(raise_request_exception=False)
+
+    def test_text_unexpected_ref_parse_error_returns_500(self):
+        with mock.patch(self.PARSE_PATCH, side_effect=RuntimeError('unexpected')):
+            response = self.server_error_client.get('/api/v3/texts/Genesis.1')
+        self.assertEqual(500, response.status_code)
+
+    def test_text_unexpected_adapter_error_returns_500(self):
+        with mock.patch(self.ADAPTER_PATCH) as adapter:
+            adapter.return_value.get_versions_for_query.side_effect = RuntimeError('unexpected')
+            response = self.server_error_client.get('/api/v3/texts/Genesis.1')
+        self.assertEqual(500, response.status_code)
+
+    def test_text_input_error_from_adapter_returns_400(self):
+        with mock.patch(self.ADAPTER_PATCH) as adapter:
+            adapter.return_value.get_versions_for_query.side_effect = InputError('bad version request')
+            response = c.get('/api/v3/texts/Genesis.1')
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(json.loads(response.content)['error'], 'bad version request')
+
+    def test_text_input_error_from_ref_parse_returns_404(self):
+        with mock.patch(self.PARSE_PATCH, side_effect=InputError('unparseable ref')):
+            response = c.get('/api/v3/texts/Genesis.1')
+        self.assertEqual(404, response.status_code)
+        self.assertEqual(json.loads(response.content)['error'], 'unparseable ref')
+
+    def test_ref_unexpected_parse_error_returns_500(self):
+        with mock.patch(self.PARSE_PATCH, side_effect=RuntimeError('unexpected')):
+            response = self.server_error_client.get('/api/ref/Genesis.1')
+        self.assertEqual(500, response.status_code)
+
+    def test_ref_input_error_still_reports_not_a_ref(self):
+        with mock.patch(self.PARSE_PATCH, side_effect=InputError('unparseable ref')):
+            response = c.get('/api/ref/Genesis.1')
+        self.assertEqual(200, response.status_code)
+        self.assertFalse(json.loads(response.content)['is_ref'])
