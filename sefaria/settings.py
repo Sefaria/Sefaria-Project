@@ -80,6 +80,7 @@ STATICFILES_DIRS = [
 SECRET_KEY = ''
 CHATBOT_USER_ID_SECRET = None  # Must be set in local_settings / env; 'secret' is rejected outside DEBUG
 SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
+CHATBOT_ACCEPT_LEGACY_TOKENS = True  # Accept tokens minted before the audience claim; turn off after one TTL window (72h)
 CHATBOT_USE_LOCAL_SCRIPT = False
 
 TEMPLATES = [
