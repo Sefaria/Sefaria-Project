@@ -78,7 +78,7 @@ STATICFILES_DIRS = [
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
-CHATBOT_USER_ID_SECRET = 'secret'
+CHATBOT_USER_ID_SECRET = None  # Must be set in local_settings / env; 'secret' is rejected outside DEBUG
 SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
 CHATBOT_USE_LOCAL_SCRIPT = False
 

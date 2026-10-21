@@ -601,6 +601,37 @@ class TestSessionIDAuthMiddleware:
 
         assert not request.user.is_authenticated
 
+    def test_default_secret_token_is_not_built_outside_debug(self, django_user_model):
+        user = django_user_model.objects.create_user(username="default-secret-build-user", password="pass")
+
+        with override_settings(DEBUG=False):
+            assert build_chatbot_user_token(user.id, "secret") is None
+
+    def test_default_secret_header_is_rejected_outside_debug(self, django_user_model):
+        user = django_user_model.objects.create_user(username="default-secret-header-user", password="pass")
+        # A token forged with the publicly known default secret must not authenticate outside DEBUG.
+        with override_settings(DEBUG=True):
+            forged = build_chatbot_user_token(user.id, "secret")
+        assert forged is not None
+        request = self.factory.get("/", HTTP_X_SESSION_ID=forged)
+        request.user = AnonymousUser()
+
+        with override_settings(DEBUG=False, CHATBOT_USER_ID_SECRET="secret"):
+            self.middleware.process_request(request)
+
+        assert not request.user.is_authenticated
+
+    def test_missing_secret_header_is_rejected(self, django_user_model):
+        user = django_user_model.objects.create_user(username="missing-secret-header-user", password="pass")
+        token = build_chatbot_user_token(user.id, self.secret)
+        request = self.factory.get("/", HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+
+        with override_settings(DEBUG=False, CHATBOT_USER_ID_SECRET=None):
+            self.middleware.process_request(request)
+
+        assert not request.user.is_authenticated
+
 
 # ============================================================================
 # CSRF TRUSTED ORIGINS TESTS

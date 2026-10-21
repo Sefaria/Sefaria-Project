@@ -7,11 +7,22 @@ from datetime import timedelta
 
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from django.conf import settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 DEFAULT_TTL_HOURS = 72
 NONCE_SIZE_BYTES = 12
+# Publicly known placeholder; tokens built with it are forgeable, so it is only accepted under DEBUG.
+INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET = 'secret'
+
+
+def is_usable_chatbot_user_id_secret(secret):
+    if not secret:
+        return False
+    if secret == INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET and not settings.DEBUG:
+        return False
+    return True
 
 
 def _hash_user_id(user_id):
@@ -46,7 +57,7 @@ def _decrypt_chatbot_user_token(token, secret):
 
 
 def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS):
-    if not user_id or not secret:
+    if not user_id or not is_usable_chatbot_user_id_secret(secret):
         return None
 
     expires_at = (now or timezone.now()) + timedelta(hours=ttl_hours)
@@ -65,7 +76,7 @@ def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HO
 
 
 def get_user_id_from_chatbot_user_token(token, secret):
-    if not token or not secret:
+    if not token or not is_usable_chatbot_user_id_secret(secret):
         return None
 
     try:
