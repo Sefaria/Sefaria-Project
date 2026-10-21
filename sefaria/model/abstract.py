@@ -21,6 +21,38 @@ from sefaria.system.exceptions import InputError, SluggedMongoRecordMissingError
 logger = structlog.get_logger(__name__)
 
 
+def merge_queries(query, extra):
+    """
+    Combine two mongo queries with $and, so that a key present in both is not overwritten.
+    Returns `query` untouched when there is nothing to add.
+    """
+    query = query or {}
+    if not extra:
+        return query
+    if not query:
+        return extra
+    return {"$and": [query, extra]}
+
+
+def show_admin_only_records():
+    """
+    True in processes that see staff-only (`admin_only`) records: the staff site (preprod) only.
+    Set per environment in local settings, never per run.
+    """
+    from django.conf import settings
+    return bool(getattr(settings, "SHOW_ADMIN_ONLY_BOOKS", False))
+
+
+def admin_only_filter():
+    """Query fragment hiding staff-only records, or None where they are shown."""
+    return None if show_admin_only_records() else {"admin_only": {"$ne": True}}
+
+
+def public_query(query=None):
+    """`query` with staff-only records excluded, for direct db.* reads of a collection that carries `admin_only`."""
+    return merge_queries(query, admin_only_filter())
+
+
 class AbstractMongoRecord(object):
     """
     AbstractMongoRecord - superclass of classes representing mongo records.
@@ -36,6 +68,7 @@ class AbstractMongoRecord(object):
     track_pkeys = False
     pkeys = []   # list of fields that others may depend on
     history_noun = None  # Label for history records
+    has_admin_only_flag = False  # True for collections whose records may carry `admin_only` (staff-only) and are hidden by it
     ALLOWED_TAGS = list(bleach.ALLOWED_TAGS) + ["p", "br"]  # not sure why p/br isn't included. dont see any security risks
     ALLOWED_ATTRS = bleach.ALLOWED_ATTRIBUTES
 
@@ -46,6 +79,42 @@ class AbstractMongoRecord(object):
         self.pkeys_orig_values = {}
         self.load_from_dict(attrs, True)
             
+    @classmethod
+    def visibility_filter(cls):
+        """
+        Extra query merged into every read of this collection. None means no filter.
+        """
+        return admin_only_filter() if cls.has_admin_only_flag else None
+
+    def is_admin_only(self):
+        return bool(getattr(self, "admin_only", False))
+
+    def _admin_only_parent(self):
+        """
+        If a record this one depends on is staff-only, return a short description of it; otherwise None.
+        A record under a staff-only parent must itself be staff-only. Subclasses override.
+        """
+        return None
+
+    def _apply_admin_only_rules(self, is_new_obj):
+        """
+        A new record under a staff-only parent is stamped staff-only, unless it explicitly says otherwise.
+        A record may go from staff-only to public, never back.
+        """
+        parent = self._admin_only_parent()
+        if parent and is_new_obj and getattr(self, "admin_only", None) is None:
+            self.admin_only = True
+        if self.is_admin_only():
+            if not is_new_obj:
+                stored = getattr(db, self.collection).find_one({"_id": self._id}, {"admin_only": 1})
+                if stored is not None and not stored.get("admin_only"):
+                    raise InputError("{} is public and can not be made staff-only.".format(self))
+        else:
+            if parent:
+                raise InputError("{} must be staff-only because {} is staff-only.".format(self, parent))
+            if hasattr(self, "admin_only"):
+                delattr(self, "admin_only")  # only True is ever stored
+
     def load_by_id(self, _id=None):
         if _id is None:
             raise Exception(type(self).__name__ + ".load() expects an _id as an argument. None provided.")
@@ -56,6 +125,7 @@ class AbstractMongoRecord(object):
         return self.load({"_id": _id})
 
     def load(self, query, proj=None):
+        query = merge_queries(query, self.visibility_filter())
         obj = getattr(db, self.collection).find_one(query, proj)
         if obj:
             assert set(obj.keys()) <= set(self._saveable_attr_keys()), \
@@ -110,6 +180,8 @@ class AbstractMongoRecord(object):
         is_new_obj = self.is_new()
 
         self._normalize()
+        if self.has_admin_only_flag:
+            self._apply_admin_only_rules(is_new_obj)
         self._validate()
         self._sanitize()
         self._pre_save()
@@ -332,7 +404,7 @@ class AbstractMongoSet(collections.abc.Iterable):
     recordClass = AbstractMongoRecord
 
     def __init__(self, query=None, page=0, limit=0, sort=None, proj=None, skip=None, hint=None, record_kwargs=None):   # default sort used to be =[("_id", 1)]
-        self.query = query or {}
+        self.query = merge_queries(query, self.recordClass.visibility_filter())
         self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
         self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj)
         if sort:

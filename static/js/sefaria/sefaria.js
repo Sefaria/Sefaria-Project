@@ -4026,6 +4026,8 @@ Sefaria.unpackBaseProps = function(props){
       "_email",
       "slug",
       "is_moderator",
+      "staff_only_mode",
+      "staff_only_qa_tools",
       "is_editor",
       "is_sustainer",
       "experiments",

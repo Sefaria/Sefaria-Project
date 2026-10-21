@@ -64,7 +64,10 @@ class GlobalNotification(abst.AbstractMongoRecord):
         from sefaria.model.text import library, Version
         if self.type == "index":
             assert self.content.get("index")
-            assert library.get_index(self.content.get("index"))
+            index = library.get_index(self.content.get("index"))
+            assert index
+            if index.is_admin_only():
+                raise InputError("Can not notify about staff-only book {}.".format(index.title))
         elif self.type == "version":
             i = self.content.get("index")
             v = self.content.get("version")
@@ -78,6 +81,8 @@ class GlobalNotification(abst.AbstractMongoRecord):
                 "language": l,
             })
             assert version, "No Version Found: {}/{}/{}".format(i, v, l)
+            if version.is_admin_only() or library.get_index(i).is_admin_only():
+                raise InputError("Can not notify about staff-only version {}/{}.".format(i, v))
         elif self.type == "general":
             assert self.content.get("en"), "Please provide an English message."
             assert self.content.get("he"), "Please provide a Hebrew message."

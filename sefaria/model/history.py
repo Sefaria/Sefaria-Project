@@ -40,7 +40,23 @@ def diff_strings(old_string, new_string):
     return diff_html, revert_patch
 
 
+def _is_admin_only_text(oref, vtitle):
+    """True if the edited version, or its book, is staff-only. Reads db directly: works in either mode."""
+    title = oref.index.title
+    if oref.index.is_admin_only():
+        return True
+    return db.texts.find_one({"title": title, "versionTitle": vtitle, "admin_only": True}, {"_id": 1}) is not None
+
+
+def _is_admin_only_change(old_dict, new_dict):
+    """True if the record is staff-only after the change (or, for a deletion, was before it)."""
+    state = new_dict if new_dict is not None else old_dict
+    return bool(state and state.get("admin_only"))
+
+
 def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
+    if "_admin_only" not in kwargs:  # computed once, then passed down the per-segment recursion
+        kwargs["_admin_only"] = _is_admin_only_text(oref, vtitle)
 
     if isinstance(new_text, list):
         if not isinstance(old_text, list):  # is this necessary? the TextChunk should handle it.
@@ -71,6 +87,8 @@ def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
         "rev_type": "{} text".format(action),
         "method": kwargs.get("method", "Site")
     }
+    if kwargs.get("_admin_only"):
+        log["admin_only"] = True
 
     History(log).save()
 
@@ -118,6 +136,8 @@ def log_version_metadata(user, old_dict, new_dict, **kwargs):
         "language": new_dict.get("language"),
         "method": kwargs.get("method", "Site"),
     }
+    if _is_admin_only_change(old_dict, new_dict):
+        log["admin_only"] = True
     return History(log).save()
 
 
@@ -151,6 +171,9 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
             if kwargs.get(key):
                 log[key] = kwargs[key]
 
+    if _is_admin_only_change(old_dict, new_dict):
+        log["admin_only"] = True
+
     return History(log).save()
 
 '''
@@ -163,6 +186,7 @@ def next_revision_num():
 
 class History(abst.AbstractMongoRecord):
     collection = 'history'
+    has_admin_only_flag = True  # set when the change is to a staff-only record; never cleared, so edits made while hidden stay hidden
     required_attrs = [
         "rev_type",
         "user",
@@ -184,7 +208,8 @@ class History(abst.AbstractMongoRecord):
         "note_id",  # .05%
         "comment",  # rev_type: review
         "score",    # rev_type: review
-        "sheet"     # rev_type: publish sheet
+        "sheet",    # rev_type: publish sheet
+        "admin_only",  # bool. the change was to a staff-only record
     ]
 
     def _sanitize(self):

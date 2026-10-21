@@ -3687,6 +3687,25 @@ details .open-details::before {
 }
 .versionBlock .versionTitle a{
 }
+/* staff-only (admin_only) records, shown to moderators on the staff site: see StaffOnlyTools.jsx */
+.staffOnlyBadge {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: #b33;
+  color: #fff;
+  font-family: "Roboto", "Helvetica Neue", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+}
+.staffOnlyVersionControls {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
 .versionBlock .versionBlockHeading .versionEditIcon{
   display: none;
 }

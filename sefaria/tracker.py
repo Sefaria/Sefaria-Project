@@ -9,6 +9,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 import sefaria.model as model
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
 from sefaria.constants.model import get_legacy_lang_from_direction
@@ -228,6 +229,13 @@ def _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, ne
             post_modify_text(user, action, oref, lang, vtitle, old_text, new_text, version_id, skip_links=skip_links, count_after=False, **kwargs)
 
 
+def _is_admin_only_version(index, vtitle):
+    if index.is_admin_only():
+        return True
+    # direct read: the model filter would hide the record in public mode
+    return db.texts.find_one({"title": index.title, "versionTitle": vtitle, "admin_only": True}, {"_id": 1}) is not None
+
+
 def count_and_index(oref, lang, vtitle, to_count=1):
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
 
@@ -235,7 +243,7 @@ def count_and_index(oref, lang, vtitle, to_count=1):
     if to_count:
         count_segments(oref.index)
     
-    if SEARCH_INDEX_ON_SAVE:
+    if SEARCH_INDEX_ON_SAVE and not _is_admin_only_version(oref.index, vtitle):  # staff-only texts must never reach shared search
         model.IndexQueue({
             "ref": oref.normal(),
             "lang": lang,
