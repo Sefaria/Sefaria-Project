@@ -2800,16 +2800,22 @@ _media: {},
         $.post(`${Sefaria.apiHost}/api/profile/sync?no_return=1`,
           { user_history: JSON.stringify([savedItem]), client: 'web' }
         ).done(response => {
-          if (!!response['error']) {
-            reject(response['error'])
-          } else {
-            if (action === "add_saved" && !!response.created && response.created.length > 0) {
-              Sefaria.saved.items = response.created.concat(Sefaria.saved.items);
+          // A response that cannot be read rejects; an exception here would otherwise
+          // be swallowed by jQuery and leave this promise pending.
+          try {
+            if (!!response['error']) {
+              reject(response['error'])
             } else {
-              // delete
-              Sefaria.removeSavedItem({ ref, versions });
+              if (action === "add_saved" && !!response.created && response.created.length > 0) {
+                Sefaria.saved.items = response.created.concat(Sefaria.saved.items);
+              } else {
+                // delete
+                Sefaria.removeSavedItem({ ref, versions });
+              }
+              resolve(response);
             }
-            resolve(response);
+          } catch (error) {
+            reject(error);
           }
         }).fail((jqXHR, textStatus, errorThrown) => {
           reject(errorThrown);
@@ -2822,7 +2828,9 @@ _media: {},
   editProfileAPI: (partialProfile) => {
     const data = {json: JSON.stringify(partialProfile)};
     return new Promise((resolve, reject) => {
-      $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
+      $.post(`${Sefaria.apiHost}/api/profile`, data).done(resolve).fail((jqXHR, textStatus, errorThrown) => {
+        reject(errorThrown || textStatus);
+      });
     });
   },
   // TEMPORARY (goes with the experiments framework): no callers.
@@ -2923,7 +2931,7 @@ _media: {},
         Sefaria.getRef(h.ref).then(oref => {
           h.he_ref = oref.heRef;
           resolve(h);
-        });
+        }).catch(reject);
       }))).then(new_hist_array => {
         const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
         const user_history_cookie = cookie("user_history");
@@ -2931,6 +2939,8 @@ _media: {},
         const trimmed = Sefaria._trimUserHistoryForCookie(new_hist_array.concat(user_history));
         cookie("user_history", JSON.stringify(trimmed), {path: "/"});
         Sefaria.userHistory.items = trimmed;
+      }).catch(error => {
+        console.error("Could not record user history for a signed-out viewer", error);
       });
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
@@ -2979,6 +2989,8 @@ _media: {},
             reject(e);
           }
         });
+      } else {
+        reject('notSignedIn');
       }
     })
   },
