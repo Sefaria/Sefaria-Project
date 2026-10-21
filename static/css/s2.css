@@ -17185,7 +17185,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   background: var(--white);
   border: 1px solid var(--lighter-grey);
   border-top: 3px solid var(--tanakh-teal);
-  animation: bookshelfCardSlide 4s ease-out 2 forwards, bookshelfCardGlow 4s ease-out 2;
+  animation: bookshelfCardSlide 4s ease-out infinite, bookshelfCardGlow 4s ease-out infinite;
 }
 .bookshelfPromoCardTitle {
   font-family: var(--english-serif-font-family);
@@ -17214,7 +17214,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 @keyframes bookshelfCardSlide {
   0%, 8% { transform: translate(70px, -60px) scale(1.08); opacity: 0; }
   30% { opacity: 1; }
-  48%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
+  48%, 88% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0; }
 }
 @keyframes bookshelfCardGlow {
   0%, 46% { box-shadow: 0 0 0 0 rgba(204, 180, 121, 0); }
