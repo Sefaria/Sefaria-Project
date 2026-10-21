@@ -17174,14 +17174,14 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 }
 .bookshelfPromoSlot {
   position: relative;
-  height: 72px;
+  height: 86px;
   border: 1px dashed var(--light-grey);
   background: var(--lightest-grey);
 }
 .bookshelfPromoCard {
   position: absolute;
   inset: -1px;
-  padding: 6px 8px;
+  padding: 7px 8px 10px;
   background: var(--white);
   border: 1px solid var(--lighter-grey);
   border-top: 3px solid var(--tanakh-teal);
@@ -17204,8 +17204,9 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 }
 .bookshelfPromoCardButton {
   display: inline-block;
-  padding: 1px 6px;
+  padding: 2px 7px;
   border-radius: 3px;
+  line-height: 15px;
   background: var(--sefaria-blue);
   color: var(--white);
   font-family: var(--english-sans-serif-font-family);
