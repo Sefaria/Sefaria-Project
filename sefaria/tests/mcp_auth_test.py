@@ -106,3 +106,46 @@ def test_disabled_without_secret():
 @pytest.mark.django_db
 def test_get_only(mcp_settings):
     assert Client().post(URL, {"state": STATE, "redirect_uri": CALLBACK}).status_code == 405
+
+
+@pytest.mark.django_db
+class TestMCPSheetSaves:
+    """An mcp token may only create new, unlisted sheets through POST /api/sheets/."""
+
+    def _post(self, user, sheet, auth_via="mcp"):
+        import json
+        from unittest.mock import patch
+
+        from django.test import RequestFactory
+
+        from sourcesheets.views import save_sheet_api
+
+        request = RequestFactory().post("/api/sheets/", {"json": json.dumps(sheet)})
+        request.user = user
+        request.auth_via = auth_via
+        with patch("sourcesheets.views.save_sheet", side_effect=lambda s, uid, **kw: {"id": 7, **s}) as save:
+            response = save_sheet_api(request)
+        return response, save
+
+    def test_existing_sheet_ids_are_refused(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-update", password="pass")
+        response, save = self._post(user, {"id": 123, "title": "Mine", "sources": []})
+        assert response.status_code == 403
+        save.assert_not_called()
+
+    def test_new_sheets_are_forced_unlisted_and_out_of_collections(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-create", password="pass")
+        response, save = self._post(
+            user,
+            {"title": "New", "sources": [], "status": "public", "displayedCollection": "someone-elses"},
+        )
+        assert response.status_code == 200
+        saved = save.call_args.args[0]
+        assert saved["status"] == "unlisted"
+        assert "displayedCollection" not in saved
+
+    def test_other_callers_are_unchanged(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-browser", password="pass")
+        response, save = self._post(user, {"title": "Public", "sources": [], "status": "public"}, auth_via=None)
+        assert response.status_code == 200
+        assert save.call_args.args[0]["status"] == "public"
