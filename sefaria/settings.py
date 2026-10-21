@@ -371,6 +371,8 @@ else:
         from sefaria.local_settings_example import *
 if os.getenv("COOLIFY"):
     from sefaria.local_settings_coolify import *
+    from sefaria.local_settings_coolify import resolve_allowed_hosts
+    ALLOWED_HOSTS = resolve_allowed_hosts(globals().get("DEBUG", False))
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 
