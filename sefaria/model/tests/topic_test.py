@@ -455,3 +455,35 @@ class TestRefTopicLink(object):
         with pytest.raises(DuplicateRecordError):
             l2.save()
         l1.delete()
+
+
+class TestTopicDjangoMirror(object):
+
+    @pytest.mark.django_db
+    def test_mongo_topic_save_survives_django_mirror_failure(self, monkeypatch):
+        """
+        The Django mirror is best-effort: a failing mirror write must not fail the Mongo topic save.
+        """
+        from django.db import OperationalError
+        import sefaria.model.topic as topic_module
+
+        def _raise(*args, **kwargs):
+            raise OperationalError("mirror unavailable")
+
+        monkeypatch.setattr(topic_module.DjangoTopic.objects, "get_or_create", _raise)
+        logged = []
+        monkeypatch.setattr(topic_module.logger, "warning", lambda *a, **kw: logged.append(kw))
+
+        fake_topic = SimpleNamespace(slug=_ms('mirror-failure'), get_primary_title=lambda lang: 'Mirror Failure')
+        Topic._mirror_to_django(fake_topic)
+
+        assert logged and logged[0].get("slug") == _ms('mirror-failure')
+
+    @pytest.mark.django_db
+    def test_django_mirror_writes_titles_when_available(self):
+        from sefaria.model.topic import Topic as TopicModel
+        fake_topic = SimpleNamespace(slug=_ms('mirror-ok'), get_primary_title=lambda lang: f'Title {lang}')
+        TopicModel._mirror_to_django(fake_topic)
+        mirrored = DjangoTopic.objects.get(slug=_ms('mirror-ok'))
+        assert mirrored.en_title == 'Title en'
+        assert mirrored.he_title == 'Title he'
