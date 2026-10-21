@@ -199,6 +199,15 @@ http {
       return 301 ${STRAPI_LOCATION}/api/mobile-message-he;
     }
 
+    # Node server bundle and source maps are never served publicly.
+    location ~ ^/static/bundles/server/ {
+      return 404;
+    }
+
+    location ~* ^/static/bundles/(?!linker\.v3/).*\.map$ {
+      return 404;
+    }
+
     location /static/ {
       access_log off;
       alias /app/static/;
@@ -305,6 +314,15 @@ http {
 
     location /static/mobile/message-he.json {
       return 301 ${STRAPI_LOCATION}/api/mobile-message-he;
+    }
+
+    # Node server bundle and source maps are never served publicly.
+    location ~ ^/static/bundles/server/ {
+      return 404;
+    }
+
+    location ~* ^/static/bundles/(?!linker\.v3/).*\.map$ {
+      return 404;
     }
 
     location /static/ {
