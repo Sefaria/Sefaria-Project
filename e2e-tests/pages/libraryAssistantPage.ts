@@ -395,11 +395,70 @@ export class LibraryAssistantPage extends HelperBase {
 
   // --- The assistant's saved chat in the browser (localStorage, `lc_chatbot:` keys) ---
 
-  /** Send the widget's login request, as its login prompt button does. */
-  async requestLogin(source: string): Promise<void> {
-    await this.page.evaluate((detail) => {
-      document.dispatchEvent(new CustomEvent('chatbot:login_requested', { bubbles: true, composed: true, detail }));
-    }, { source });
+  /** Mark the free answers as used up, as the widget does at the limit; shown after a reload. */
+  async seedFreeAnswersUsedUp(): Promise<void> {
+    await this.page.evaluate(() => localStorage.setItem('lc_chatbot:anon_limit_reached', 'true'));
+  }
+
+  // --- Sefaria's sign-up options in the login prompt (light DOM, the widget's signup-options slot) ---
+
+  private get signupOptions() {
+    return this.page.locator('lc-chatbot > [slot="signup-options"]');
+  }
+
+  /** One option: 'google' | 'apple' | 'email'. */
+  signupOption(provider: 'google' | 'apple' | 'email') {
+    return this.signupOptions.locator(`[data-provider="${provider}"]`);
+  }
+
+  /** Which of Google / Apple this sandbox has client IDs for (Email is always offered). */
+  async configuredProviders(): Promise<Array<'google' | 'apple' | 'email'>> {
+    const ids = await this.page.evaluate(() => ({
+      google: !!(window as any).Sefaria?.googleClientId,
+      apple: !!(window as any).Sefaria?.appleClientId,
+    }));
+    return [...(ids.google ? ['google' as const] : []), ...(ids.apple ? ['apple' as const] : []), 'email'];
+  }
+
+  async expectSignupOptionsShown(): Promise<void> {
+    for (const provider of await this.configuredProviders()) {
+      await expect(this.signupOption(provider)).toBeVisible({ timeout: t(10000) });
+    }
+  }
+
+  async expectSignupOptionsHidden(): Promise<void> {
+    await expect(this.signupOption('email')).toBeHidden();
+  }
+
+  async expectNoSignupOptions(): Promise<void> {
+    await expect(this.signupOptions).toHaveCount(0);
+  }
+
+  /** Google's real (invisible) button sits inside the Google circle; the click itself can't be automated. */
+  async expectGoogleButtonOverGoogleOption(): Promise<void> {
+    await expect(this.signupOption('google').locator('.sefaria-provider-sdk-overlay iframe')).toHaveCount(1, { timeout: t(15000) });
+  }
+
+  /** Stub Apple's popup, so a click on the Apple option starts sign-up without leaving the page. */
+  async stubAppleSignIn(): Promise<void> {
+    await this.page.waitForFunction(() => (window as any).AppleID?.auth, null, { timeout: t(15000) });
+    await this.page.evaluate(() => {
+      (window as any).AppleID.auth.signIn = () => new Promise(() => {});
+    });
+  }
+
+  /** Record GA4 events from here on (Sefaria's sign-up analytics go through window.gtag). */
+  async recordAnalyticsEvents(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as any).__gaEvents = [];
+      (window as any).gtag = (command: string, name: string, params: object) => {
+        if (command === 'event') (window as any).__gaEvents.push({ name, ...params });
+      };
+    });
+  }
+
+  async analyticsEvents(): Promise<Array<Record<string, any>>> {
+    return this.page.evaluate(() => (window as any).__gaEvents || []);
   }
 
   /** Put a saved chat in localStorage, as a logged-in user's session leaves it. */

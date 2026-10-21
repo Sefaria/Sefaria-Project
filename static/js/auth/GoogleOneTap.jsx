@@ -9,8 +9,11 @@ const SESSION_KEY = 'sefaria_interruptive_ui_shown';
 const wasShown = () => { try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch { return true; } };
 const markShown = () => { try { sessionStorage.setItem(SESSION_KEY, '1'); } catch { } };
 const isAuthPath = () => AUTH_PATHS.has(window.location.pathname.replace(/\/$/, ''));
+// .sefaria-provider-sdk-overlay: another Google sign-in button is on the page (e.g. the Library
+// Assistant's sign-up options). GIS's initialize() is global, so One Tap's would take it over.
 const hasInterruptiveUI = () =>
-  ['.cookiesNotification', '.siteWideBanner:not(.hidden)', '.modal', '[role="dialog"][aria-modal="true"]']
+  ['.cookiesNotification', '.siteWideBanner:not(.hidden)', '.modal', '[role="dialog"][aria-modal="true"]',
+    '.sefaria-provider-sdk-overlay']
     .some(s => !!document.querySelector(s));
 
 export default function GoogleOneTap({ googleClientId }) {

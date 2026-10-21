@@ -40,12 +40,10 @@ export class LoginPage extends HelperBase{
         await changeLanguage(this.page, this.language);
     }
 
-    /** The login view (AuthPage's ChooseView) is shown. */
-    async expectChooseViewShown(): Promise<void> {
-        const label = this.language === LANGUAGES.HE
-            ? AUTH_LABELS.CONTINUE_WITH_EMAIL[LANGUAGES.HE]
-            : AUTH_LABELS.CONTINUE_WITH_EMAIL[LANGUAGES.EN];
-        await expect(this.page.getByRole('button', { name: label })).toBeVisible({ timeout: t(15000) });
+    /** The email sign-up form (AuthPage's RegisterView) is shown. */
+    async expectEmailSignupFormShown(): Promise<void> {
+        const label = AUTH_LABELS.FIRST_NAME[this.language === LANGUAGES.HE ? LANGUAGES.HE : LANGUAGES.EN];
+        await expect(this.page.getByPlaceholder(label)).toBeVisible({ timeout: t(15000) });
     }
 
 }

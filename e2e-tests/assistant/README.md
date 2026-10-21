@@ -122,7 +122,11 @@ Method map by UX ID:
 | LA-NEG-001 → 002 (LA absent off its intended surface) | `expectNotPresent()` — on `voices.*` home and a voices sheet |
 | LA-LOGGED-OUT-001 → 002 (LA present for logged-out visitors) | `waitForReady()` — on logged-out Library home and reader pages (remote config `feature.chatbot.anonymous_enabled`, on by default) |
 | LA-LOGGED-OUT-003 (logged-out visitor gets an answer) | `expectAnswerShown()` — real round trip to the chat server with no user |
-| LA-LOGGED-OUT-005 (login request opens the login view, without the assistant) | `requestLogin('rate_limit_login_button')` (the event the widget's login prompt sends) → `onLoginPage().expectChooseViewShown()` and `expectNotPresent()` |
+| LA-LOGGED-OUT-005 (sign-up options appear once the free answers are used up) | `expectSignupOptionsHidden()` → `seedFreeAnswersUsedUp()` + reload → `expectSignupOptionsShown()`. The options are Sefaria's `SignupOptions` in the widget's `signup-options` slot (light DOM: `lc-chatbot > [slot="signup-options"]`) |
+| LA-LOGGED-OUT-006 (Email opens the sign-up form) | `signupOption('email')` → `onLoginPage().expectEmailSignupFormShown()`, `expectNotPresent()`; `recordAnalyticsEvents()` (a stubbed `window.gtag`) saw `auth_flow_started` (`rate_limit_login_button`, `registration`), `auth_method_chosen` (`email`), `auth_process_started` |
+| LA-LOGGED-OUT-007 (Apple starts sign-up) | `stubAppleSignIn()` → `signupOption('apple')` → the same three events, method `apple`. Skipped when the sandbox has no Apple client ID |
+| LA-LOGGED-OUT-008 (Google's button is in place) | `expectGoogleButtonOverGoogleOption()`: Google's iframe sits inside the Google circle. Its click can't be automated, so a real Google sign-up is checked by hand. Skipped when the sandbox has no Google client ID |
+| LA-LOGGED-OUT-009 (no sign-up options when logged in) | `enLAUser` → `expectNoSignupOptions()` |
 | LA-LOGGED-OUT-004 (logout clears the saved chat) | `seedSavedChat()` + the `lc_chatbot_clear` cookie a logout sets → reload → `savedChatKeys()` empty and cookie gone |
 
 State helpers (use these liberally at the top of a test to reach a known state):

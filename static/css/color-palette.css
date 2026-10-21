@@ -7,6 +7,7 @@
   --devportal-purple: var(--sefaria-purple); /* a distinct name for a distinct purpose, sharing the one purple */
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
+  --light-blue-border: #B8D3F0;  /* a light border on white, e.g. round sign-up buttons */
   --highlight-green-light: #F1FCF5;
   --near-black: #121212;
   --beit-midrash-grey: #333333;

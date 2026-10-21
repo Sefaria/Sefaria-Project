@@ -1,5 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, goToPageWithUser } from '../utils';
+import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS } from '../constants';
@@ -239,18 +239,78 @@ test.describe('Library Assistant — visibility boundaries', () => {
     await pm.onLibraryAssistant().expectAnswerShown();
   });
 
-  // The widget's login prompt (shown once the free answers are used up) asks Sefaria to log
-  // in with an event; Sefaria opens its in-page login view with the event's source.
-  test('LA-LOGGED-OUT-005: The widget\'s login request opens the login view, without the assistant', async ({ context }) => {
+  // Once the free answers are used up, the widget's login prompt shows Sefaria's sign-up
+  // options (Google, Apple, Email), which Sefaria puts in the widget's signup-options slot.
+  // Getting there for real takes real answers, so the widget's "used up" flag is seeded.
+  async function openWithFreeAnswersUsedUp(context: BrowserContext) {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
     await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().seedFreeAnswersUsedUp();
+    await page.reload();
+    await hideAllModalsAndPopups(page);
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().ensureOpen();
+    return { page, pm };
+  }
 
-    await pm.onLibraryAssistant().requestLogin('rate_limit_login_button');
+  test('LA-LOGGED-OUT-005: The sign-up options appear in the assistant once the free answers are used up', async ({ context }) => {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().ensureOpen();
+    await pm.onLibraryAssistant().expectSignupOptionsHidden();
 
-    await pm.onLoginPage().expectChooseViewShown();
+    const usedUp = await openWithFreeAnswersUsedUp(context);
+
+    await usedUp.pm.onLibraryAssistant().expectSignupOptionsShown();
+  });
+
+  test('LA-LOGGED-OUT-006: Email opens the sign-up form in-page, reported as an email sign-up from the assistant', async ({ context }) => {
+    const { pm } = await openWithFreeAnswersUsedUp(context);
+    await pm.onLibraryAssistant().recordAnalyticsEvents();
+
+    await pm.onLibraryAssistant().signupOption('email').click();
+
+    await pm.onLoginPage().expectEmailSignupFormShown();
     // The assistant isn't shown on the login and registration screens.
     await pm.onLibraryAssistant().expectNotPresent();
+    const events = await pm.onLibraryAssistant().analyticsEvents();
+    expect(events.map((e) => e.name)).toEqual(['auth_flow_started', 'auth_method_chosen', 'auth_process_started']);
+    expect(events[0]).toMatchObject({ source: 'rate_limit_login_button', flow_intent: 'registration' });
+    expect(events[1]).toMatchObject({ method: 'email' });
+  });
+
+  test('LA-LOGGED-OUT-007: Apple starts Apple sign-up, reported as a sign-up from the assistant', async ({ context }) => {
+    const { pm } = await openWithFreeAnswersUsedUp(context);
+    test.skip(!(await pm.onLibraryAssistant().configuredProviders()).includes('apple'),
+      'Apple sign-in is not configured on this sandbox');
+    await pm.onLibraryAssistant().stubAppleSignIn();
+    await pm.onLibraryAssistant().recordAnalyticsEvents();
+
+    await pm.onLibraryAssistant().signupOption('apple').click();
+
+    const events = await pm.onLibraryAssistant().analyticsEvents();
+    expect(events.map((e) => e.name)).toEqual(['auth_flow_started', 'auth_method_chosen', 'auth_process_started']);
+    expect(events[0]).toMatchObject({ source: 'rate_limit_login_button', flow_intent: 'registration' });
+    expect(events[1]).toMatchObject({ method: 'apple' });
+  });
+
+  // A click on Google's own button can't be automated; this checks it's in place.
+  test('LA-LOGGED-OUT-008: Google\'s own sign-in button covers the Google option', async ({ context }) => {
+    const { pm } = await openWithFreeAnswersUsedUp(context);
+    test.skip(!(await pm.onLibraryAssistant().configuredProviders()).includes('google'),
+      'Google sign-in is not configured on this sandbox');
+
+    await pm.onLibraryAssistant().expectGoogleButtonOverGoogleOption();
+  });
+
+  test('LA-LOGGED-OUT-009: A logged-in user\'s assistant has no sign-up options', async ({ context }) => {
+    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+
+    await pm.onLibraryAssistant().expectNoSignupOptions();
   });
 
   // Logout (from any module) sets the lc_chatbot_clear cookie; the next Library page

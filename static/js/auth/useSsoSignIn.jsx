@@ -306,3 +306,17 @@ export function useProviderTriggers({ next, tracking }) {
     googleReady, appleReady, ssoLoading, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
   };
 }
+
+/**
+ * useProviderError — a view's error state, registered while the view is mounted as where a
+ * Google/Apple failure surfaces (useProviderTriggers' `setActiveErrorHandler`). Returns
+ * [error, setError]; the view can set its own errors too, shown in the same ErrorBanner.
+ */
+export function useProviderError(setActiveErrorHandler) {
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    setActiveErrorHandler?.(setError);
+    return () => setActiveErrorHandler?.(null);
+  }, [setActiveErrorHandler]);
+  return [error, setError];
+}

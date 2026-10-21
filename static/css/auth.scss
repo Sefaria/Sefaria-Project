@@ -324,6 +324,53 @@ $stroke-strong:   1.5px;
   }
 }
 
+// Round, icon-only provider buttons (ProviderButton variant="icon") in a row: the sign-up
+// options outside AuthPage (SignupOptions, in the Library Assistant's login prompt).
+.sefaria-signup-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $sp-2;
+
+  &-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+  }
+}
+
+.sefaria-provider-button--icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--light-blue-border);
+  border-radius: 50%;
+
+  &:hover {
+    border-color: var(--light-blue-border);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--sefaria-blue);
+    outline-offset: 2px;
+  }
+
+  .sefaria-provider-button-icon { width: 18px; height: 18px; flex-basis: 18px; }
+  &[data-provider="apple"] .sefaria-provider-button-icon { width: 17px; height: 17px; flex-basis: 17px; }
+}
+
+// Google's: the real Google button is placed over this circle, clipped to it.
+.sefaria-provider-button-shell--icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+
+  &:hover .sefaria-provider-button {
+    border-color: var(--light-blue-border);
+  }
+}
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Divider ("or" / "או")

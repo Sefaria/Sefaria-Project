@@ -1,10 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Sefaria from '../sefaria/sefaria';
 import { InterfaceText } from '../Misc.jsx';
 
 const PROVIDERS = {
   google: { icon: 'google', defaultLabel: 'auth.continue_with_google' },
   apple: { icon: 'apple', defaultLabel: 'auth.continue_with_apple' },
+  email: { icon: 'email', defaultLabel: 'auth.continue_with_email' },
 };
 
 /**
@@ -16,6 +18,9 @@ const PROVIDERS = {
  * real (invisible, elsewhere-mounted) Google button can be positioned exactly on top of it —
  * see `useProviderTriggers` (`useSsoSignIn.jsx`). Apple exposes `AppleID.auth.signIn()`
  * directly, so its button just uses `onClick`.
+ *
+ * `variant="icon"`: a round button with the icon only, its label read out instead of shown
+ * (SignupOptions).
  */
 const ProviderButton = ({
   provider,
@@ -24,10 +29,14 @@ const ProviderButton = ({
   disabled = false,
   id,
   trackingRef = null,
+  variant = 'standard',
 }) => {
   const config = PROVIDERS[provider];
   if (!config) return null;
 
+  const text = label || config.defaultLabel;
+  const isIcon = variant === 'icon';
+  const variantClass = isIcon ? ' sefaria-provider-button--icon' : '';
   const content = (
     <>
       <img
@@ -36,7 +45,7 @@ const ProviderButton = ({
         alt=""
         aria-hidden="true"
       />
-      <InterfaceText>{label || config.defaultLabel}</InterfaceText>
+      {!isIcon && <InterfaceText>{text}</InterfaceText>}
     </>
   );
 
@@ -45,10 +54,11 @@ const ProviderButton = ({
       <div
         id={id}
         ref={trackingRef}
-        className={`sefaria-provider-button-shell${disabled ? ' is-disabled' : ''}`}
+        className={`sefaria-provider-button-shell${isIcon ? ' sefaria-provider-button-shell--icon' : ''}${disabled ? ' is-disabled' : ''}`}
+        data-provider={provider}
         tabIndex={-1}
       >
-        <div className="sefaria-provider-button" aria-hidden="true">
+        <div className={`sefaria-provider-button${variantClass}`} aria-hidden="true">
           {content}
         </div>
       </div>
@@ -59,7 +69,9 @@ const ProviderButton = ({
     <button
       id={id}
       type="button"
-      className="sefaria-provider-button"
+      className={`sefaria-provider-button${variantClass}`}
+      data-provider={provider}
+      aria-label={isIcon ? Sefaria._(text) : undefined}
       onClick={onClick}
       disabled={disabled}
     >
@@ -69,12 +81,13 @@ const ProviderButton = ({
 };
 
 ProviderButton.propTypes = {
-  provider: PropTypes.oneOf(['google', 'apple']).isRequired,
+  provider: PropTypes.oneOf(['google', 'apple', 'email']).isRequired,
   label: PropTypes.string,
   onClick: PropTypes.func,
   disabled: PropTypes.bool,
   id: PropTypes.string,
   trackingRef: PropTypes.func,
+  variant: PropTypes.oneOf(['standard', 'icon']),
 };
 
 export default ProviderButton;
