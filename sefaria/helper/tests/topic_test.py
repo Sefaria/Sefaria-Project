@@ -289,3 +289,33 @@ def test_get_topic_omits_orphaned_ref_links():
 	finally:
 		db.topic_links.delete_many({'toTopic': slug})
 		t.delete()
+
+
+def test_recommend_topics_excludes_char_level_links():
+	"""recommend_topics counts only whole-segment topic links, matching Ref.topiclinkset().
+	A link tagged to a character span inside a segment must not add its topic to the
+	recommendations, while a whole-segment link for the same ref still does."""
+	from sefaria.system.database import db
+	created = []
+	for name in ['Recommend Whole Segment', 'Recommend Char Level']:
+		t = Topic({'slug': '', 'data_source': 'sefaria', 'numSources': 0})
+		t.add_primary_titles(name, name[::-1])
+		t.set_slug_to_primary_title()
+		t.save()
+		created.append(t)
+	whole_slug, char_slug = created[0].slug, created[1].slug
+	base = {'class': 'refTopic', 'linkType': 'about', 'is_sheet': False, 'dataSource': 'sefaria',
+			'ref': 'Genesis 1:1', 'expandedRefs': ['Genesis 1:1']}
+	db.topic_links.insert_many([
+		{**base, 'toTopic': whole_slug},
+		{**base, 'toTopic': char_slug,
+		 'charLevelData': {'startChar': 0, 'endChar': 4, 'versionTitle': 'test', 'language': 'en'}},
+	])
+	try:
+		recommended_slugs = [r['slug'] for r in topic.recommend_topics(['Genesis 1:1'])]
+		assert whole_slug in recommended_slugs
+		assert char_slug not in recommended_slugs
+	finally:
+		db.topic_links.delete_many({'toTopic': {'$in': [whole_slug, char_slug]}})
+		for t in created:
+			t.delete()
