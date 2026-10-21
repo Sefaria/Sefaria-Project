@@ -1522,6 +1522,119 @@ def index_sheets_by_timestamp(request):
 # mirroring bannerBackgroundColor).
 STRAPI_SCHEMA_VERSION = "v7"
 
+# The GraphQL proxy below is unauthenticated, so the body must be one read-only query that selects only the
+# promotion root fields the frontend queries (static/js/context.js). Per-locale aliases (en_banners: banners) are
+# allowed because validation checks the field name, not the alias. Limit is generous: the frontend query is a few KB.
+STRAPI_GRAPHQL_MAX_BODY_BYTES = 64 * 1024
+STRAPI_GRAPHQL_ALLOWED_ROOT_FIELDS = frozenset({"banners", "modals", "sidebarAds"})
+_STRAPI_GRAPHQL_TOKEN_RE = re.compile(r"[A-Za-z_]\w*|\d\w*|\.\.\.|\S")
+_STRAPI_GRAPHQL_NAME_RE = re.compile(r"[A-Za-z_]\w*")
+
+
+def _strip_graphql_strings_and_comments(query: str) -> str:
+    """
+    Replace each string literal with a lone '"' and drop '#' comments, so the remaining tokens match what
+    Strapi's GraphQL parser sees. Raises ValueError on an unterminated string.
+    """
+    out = []
+    i, n = 0, len(query)
+    while i < n:
+        if query.startswith('"""', i):
+            j = i + 3
+            while True:
+                if j >= n:
+                    raise ValueError("Unterminated block string")
+                if query.startswith('\\"""', j):
+                    j += 4
+                elif query.startswith('"""', j):
+                    break
+                else:
+                    j += 1
+            out.append('"')
+            i = j + 3
+        elif query[i] == '"':
+            j = i + 1
+            while True:
+                if j >= n or query[j] in "\r\n":
+                    raise ValueError("Unterminated string")
+                if query[j] == "\\":
+                    j += 2
+                elif query[j] == '"':
+                    break
+                else:
+                    j += 1
+            out.append('"')
+            i = j + 1
+        elif query[i] == "#":
+            while i < n and query[i] not in "\r\n":
+                i += 1
+        else:
+            out.append(query[i])
+            i += 1
+    return "".join(out)
+
+
+def _validate_strapi_graphql_query(query: str) -> Optional[str]:
+    """
+    Return None when the query is a single read-only query selecting only allowed root fields,
+    otherwise a short reason for rejecting it. Rejects mutations, subscriptions, fragments, directives,
+    variables, introspection and any other root field.
+    """
+    try:
+        tokens = _STRAPI_GRAPHQL_TOKEN_RE.findall(_strip_graphql_strings_and_comments(query))
+    except ValueError as e:
+        return str(e)
+
+    brace_depth = 0
+    paren_depth = 0
+    operation_count = 0
+    root_fields: List[str] = []
+    for index, token in enumerate(tokens):
+        previous = tokens[index - 1] if index > 0 else None
+        following = tokens[index + 1] if index + 1 < len(tokens) else None
+        if token in ("...", "@", "$"):
+            return "fragments, directives and variables are not allowed"
+        if token.startswith("__"):
+            return "introspection is not allowed"
+        if token == "{":
+            if brace_depth == 0:
+                operation_count += 1
+            brace_depth += 1
+        elif token == "}":
+            brace_depth -= 1
+            if brace_depth < 0:
+                return "unbalanced braces"
+        elif token == "(":
+            paren_depth += 1
+        elif token == ")":
+            paren_depth -= 1
+            if paren_depth < 0:
+                return "unbalanced parentheses"
+        elif brace_depth == 0:
+            # Only the `query` keyword and an optional operation name may appear outside the selection set
+            if token != "query" and previous != "query":
+                return "only query operations are allowed"
+        elif (
+            brace_depth == 1
+            and paren_depth == 0
+            and _STRAPI_GRAPHQL_NAME_RE.fullmatch(token)
+            and following != ":"
+        ):
+            # A name followed by ":" is an alias, so the field name is the token after it
+            root_fields.append(token)
+
+    if brace_depth != 0 or paren_depth != 0:
+        return "unbalanced braces or parentheses"
+    if operation_count != 1:
+        return "exactly one query operation is required"
+    if not root_fields:
+        return "no root fields selected"
+    disallowed = sorted(set(root_fields) - STRAPI_GRAPHQL_ALLOWED_ROOT_FIELDS)
+    if disallowed:
+        return f"root fields not allowed: {', '.join(disallowed)}"
+    return None
+
+
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
     """
@@ -1575,10 +1688,22 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
 
         # Get GraphQL query from request body
         # For simplicity, the GraphQL query is accepted as plain text instead of JSON, so client doesn't need to send a formatted
+        if len(request.body) > STRAPI_GRAPHQL_MAX_BODY_BYTES:
+            return jsonResponse(
+                {"error": "GraphQL query body is too large"}, status=413
+            )
         query: str = request.body.decode("utf-8")
         if not query:
             return jsonResponse(
                 {"error": "GraphQL query required in request body"}, status=400
+            )
+
+        # Only read-only queries of the promotion root fields are forwarded to Strapi (this endpoint is unauthenticated)
+        validation_error = _validate_strapi_graphql_query(query)
+        if validation_error:
+            logger.warning(f"Rejected graphql-cache query: {validation_error}")
+            return jsonResponse(
+                {"error": f"GraphQL query rejected: {validation_error}"}, status=400
             )
 
         # Create cache key from the schema version, the specified dates, AND a hash of the query body.
