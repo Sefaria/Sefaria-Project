@@ -16,7 +16,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token
+from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token, is_usable_chatbot_user_id_secret
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.utils.views_utils import add_query_param, mark_no_applink, is_aasa_excluded, AASA_EXCLUDED_PATHS
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port, referer_is_sefaria_domain, redirect_target_is_sefaria_domain
@@ -364,6 +364,11 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
     This supplements Django's normal session auth. If the request already has an
     authenticated user from the session, this middleware leaves it untouched.
     """
+
+    def __init__(self, get_response=None):
+        super().__init__(get_response)
+        if not is_usable_chatbot_user_id_secret(getattr(settings, "CHATBOT_USER_ID_SECRET", None)):
+            logger.critical("CHATBOT_USER_ID_SECRET is missing or the insecure default; X-Session-ID authentication is disabled")
 
     def process_request(self, request):
         if getattr(request, "user", None) and request.user.is_authenticated:
