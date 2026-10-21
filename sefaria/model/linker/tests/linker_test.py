@@ -656,6 +656,9 @@ def test_full_pipeline_ref_resolver(monkeypatch, context_tref, input_str, lang, 
     ['גמ\' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:) עוד', 'ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע', 'ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)'],
     # No delimiter nearby -> span is left untouched
     ['זה טקסט רגיל בלי סוגריים בסוף', 'טקסט רגיל', 'טקסט רגיל'],
+    # Unclosed delimiter at the very end of the document -> no closing char to extend to, span is left untouched
+    ['טקסט עם סוגריים (פתוח', '(פתוח', '(פתוח'],
+    ['טקסט עם סוגריים [פתוח', '[פתוח', '[פתוח'],
 ])
 def test_pretty_text_end_paren(doc_text, span_text, expected_pretty_text):
     doc = NEDoc(doc_text)
