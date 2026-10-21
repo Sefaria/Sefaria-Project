@@ -483,8 +483,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         if sheet["status"] != existing["status"]:
             status_changed = True
 
-        old_topics = existing.get("topics", [])
-        topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
+        old_topics = existing.get("topics") or []
 
         old_media_urls = set([source["media"] for source in existing.get("sources") if "media" in source])
         if len(old_media_urls) > 0:
@@ -526,7 +525,6 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         sheet["views"] = 1
 
         old_topics = []
-        topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
         # ensure that sheet sources have nodes (primarily for sheets posted via API)
         # and ensure that images from copied sheets hosted on google cloud get duplicated as well
@@ -577,6 +575,18 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
     if rebuild_nodes:
         sheet = rebuild_sheet_nodes(sheet)
 
+    # Resolve slugs before the sheet is written: if anything below raises after the write,
+    # the stored topics must already be valid (slugless topics break topic recalculation).
+    # Saves that leave topics untouched and fully slugged are not renormalized, so they never rewrite stored topics.
+    # The diff is recomputed on the merged sheet: an update that omits topics keeps the stored ones.
+    if "topics" in sheet and sheet["topics"] is None:
+        sheet["topics"] = []
+    topics = sheet.get("topics", [])
+    topics_diff = topic_list_diff(old_topics, topics)
+    if topics_diff["added"] or topics_diff["removed"] or any(not t.get("slug") for t in topics):
+        sheet["topics"] = normalize_sheet_topics(topics)
+        topics_diff = topic_list_diff(old_topics, sheet["topics"])
+
     if new_sheet:
         # mongo enforces a unique sheet id, get a new id until a unique one has been found
         while True:
@@ -599,12 +609,11 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         generate_and_save_sheet_scoring(sheet)
 
     if len(topics_diff["added"]) or len(topics_diff["removed"]):
-        update_sheet_topics(sheet["id"], sheet.get("topics", []), old_topics)
-        sheet = db.sheets.find_one({"id": sheet["id"]})
+        update_sheet_topic_links(sheet["id"], sheet["topics"], old_topics)
 
     if status_changed and sheet["status"] == "public":
         # Publish, update sheet topic links as though all are new - add links for all
-        update_sheet_topic_links(sheet["id"], sheet["topics"], [])
+        update_sheet_topic_links(sheet["id"], sheet.get("topics") or [], [])
     elif status_changed and sheet["status"] != "public":
         # Unpublish, update sheet topic links as though there are now none - remove links for all
         update_sheet_topic_links(sheet["id"], [], old_topics)
@@ -1032,27 +1041,33 @@ def topic_list_diff(old, new):
     }
 
 
+def normalize_sheet_topics(topics):
+    """
+    Returns `topics` deduped, with `asTyped` normalized and every topic given a slug,
+    choosing an existing topic or creating a new one for any topic that lacks a slug.
+    """
+    # dict keys dedupe while keeping the order the user gave the topics in
+    normalized_slug_title_pairs = {}
+
+    for topic in topics:
+        # don't write back into `topic`: callers may hold the same dicts as their pre-save snapshot
+        title = normalize_new_topic_title(topic["asTyped"])
+        slug = topic.get("slug")
+        if not slug:
+            match = choose_existing_topic_for_title(title)
+            slug = match.slug if match else create_topic_from_title(title).slug
+        normalized_slug_title_pairs[(title, slug)] = None
+
+    return [{"asTyped": pair[0], "slug": pair[1]} for pair in normalized_slug_title_pairs]
+
+
 def update_sheet_topics(sheet_id, topics, old_topics):
     """
     Sets the topic list for `sheet_id` to those listed in list `topics`,
     containing fields `asTyped` and `slug`.
     Performs some normalization of `asTyped` and creates new topic objects for new topics.
     """
-    normalized_slug_title_pairs = set()
-
-    for topic in topics:
-    # Dedupe, normalize titles, create/choose topics for any missing slugs
-        title = normalize_new_topic_title(topic["asTyped"])
-        if "slug" not in topic:
-            match = choose_existing_topic_for_title(title)
-            if match:
-                topic["slug"] = match.slug
-            else:
-                new_topic = create_topic_from_title(title)
-                topic["slug"] = new_topic.slug
-        normalized_slug_title_pairs.add((title, topic["slug"]))
-
-    normalized_topics = [{"asTyped": pair[0], "slug": pair[1]} for pair in normalized_slug_title_pairs]
+    normalized_topics = normalize_sheet_topics(topics)
 
     db.sheets.update_one({"id": sheet_id}, {"$set": {"topics": normalized_topics}})
 
