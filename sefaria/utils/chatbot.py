@@ -15,6 +15,8 @@ DEFAULT_TTL_HOURS = 72
 NONCE_SIZE_BYTES = 12
 # Publicly known placeholder; tokens built with it are forgeable, so it is only accepted under DEBUG.
 INSECURE_DEFAULT_CHATBOT_USER_ID_SECRET = 'secret'
+# Audience claim binding a token to this service; tokens carrying another audience are rejected.
+CHATBOT_TOKEN_AUDIENCE = 'sefaria-chatbot-session'
 
 
 def is_usable_chatbot_user_id_secret(secret):
@@ -53,7 +55,21 @@ def _decrypt_chatbot_user_token(token, secret):
     if expiration <= timezone.now():
         return None
 
+    if not _has_valid_claims(payload):
+        return None
+
     return payload
+
+
+def _has_valid_claims(payload):
+    # The hashed id must describe the user id it travels with.
+    if payload.get("id") != _hash_user_id(payload.get("user_id")):
+        return False
+    # Tokens minted before the audience claim existed have none. They are accepted only while
+    # CHATBOT_ACCEPT_LEGACY_TOKENS is on, which covers one TTL window after deploy.
+    if "aud" not in payload:
+        return getattr(settings, "CHATBOT_ACCEPT_LEGACY_TOKENS", True)
+    return payload["aud"] == CHATBOT_TOKEN_AUDIENCE
 
 
 def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS):
@@ -65,6 +81,7 @@ def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HO
         "id": _hash_user_id(user_id),
         "user_id": int(user_id),
         "expiration": expires_at.replace(microsecond=0).isoformat(),
+        "aud": CHATBOT_TOKEN_AUDIENCE,
     }
     payload_bytes = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
     key = _derive_key(secret)
