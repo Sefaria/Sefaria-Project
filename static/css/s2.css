@@ -610,7 +610,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 /* The Library Assistant item is purple, with the ✦ as its icon */
 .mobileNavMenu a.libraryAssistantMenuItem {
-  color: var(--mussar-purple);
+  color: var(--chatbot-purple);
 }
 .mobileNavMenu .libraryAssistantMenuStar {
   width: 16px;
