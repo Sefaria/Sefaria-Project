@@ -144,7 +144,7 @@ Sefaria = extend(Sefaria, {
       const norm = Sefaria.makeRef(Sefaria.parseRef(ref));
       if (typeof norm === "object" && "error" in norm) {
           // If the ref doesn't parse, just replace spaces with undescores.
-          return typeof ref === "string" ? ref.replace(/ /g, "_") : ref;
+          return typeof ref === "string" ? Sefaria.util.encodeTitleForUrl(ref) : ref;
       }
       return norm;
   },

@@ -10,6 +10,11 @@ var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
 
+    /** Encode a raw text title as one reader URL path segment. */
+    static encodeTitleForUrl(title) {
+      return title.replace(/ /g, '_').replace(/[%?\\/]/g, char => ({'%': '%25', '?': '%3F', '/': '%2F', '\\': '%5C'}[char]));
+    }
+
     /**
      * Returns the English/Hebrew title to show above `segment`, if it begins a new parasha
      * (or, when aliyot are shown, a new aliyah). Returns null otherwise.
@@ -77,7 +82,8 @@ class Util {
       }
     }
     static encodeVtitle(vtitle) {
-      return vtitle.replace(/\s/g, '_').replace(/;/g, '%3B');
+      // Escape only what would break a query value; keep Hebrew, ',' and ':' readable.
+      return vtitle.replace(/\s/g, '_').replace(/[;&#+]/g, char => ({';': '%3B', '&': '%26', '#': '%23', '+': '%2B'}[char]));
     }
     static _getVersionParams(version) {
       return `${version.languageFamilyName}|${this.encodeVtitle(version.versionTitle)}`;
@@ -93,11 +99,8 @@ class Util {
       }
     }
     static getObjectFromUrlParam(param) {
-      const params = param ? param.split('|') : '';
-      return {languageFamilyName: params[0], versionTitle: params[1]};
-    }
-    static decodeVtitle(vtitle) {
-      return vtitle.replace(/_/g, ' ').replace(/%3B/g, ';');
+      const params = param ? param.split('|') : [];
+      return {languageFamilyName: params[0], versionTitle: params.slice(1).join('|')};
     }
     static localeDate(dateString) {
         // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang

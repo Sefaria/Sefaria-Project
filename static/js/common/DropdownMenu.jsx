@@ -206,8 +206,8 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
     };
     const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
+          if (isOpenRef.current) {onClose?.({ type: 'passive' });} // document listener runs for closed menus too
           setIsOpen(false);
-          onClose?.({ type: 'passive' });
       }
     };
     const handleClickOutside = (event) => {
@@ -215,7 +215,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
             wrapperRef.current &&
             !wrapperRef.current.contains(event.target)
         ) {
-            if (isOpenRef.current) {onClose?.({ type: 'passive' });}
+            if (isOpenRef.current) {onClose?.({ type: 'passive' });} // document listener runs for closed menus too
             setIsOpen(false);
         }
     };
