@@ -177,11 +177,6 @@ class TextColumn extends Component {
       return;
     }
     
-    // Clear the loading flag if we were loading content at the top
-    const wasLoadingContentAtTop = this.loadingContentAtTop;
-    this.loadingContentAtTop = false;
-    
-    
     // Set initial scroll position if this is the first load
     if (!this.initialScrollTopSet) {
       this.setInitialScrollPosition();
@@ -194,7 +189,7 @@ class TextColumn extends Component {
     this.adjustInfiniteScroll(true);
     
     // If we were loading content at the top, restore scroll position to prevent jumping
-    if (wasLoadingContentAtTop) {
+    if (this.loadingContentAtTop) {
       this.restoreScrollPositionAfterTopLoad();
     }
     
@@ -239,33 +234,47 @@ class TextColumn extends Component {
     }
   }
   restoreScrollPositionAfterTopLoad() {
-    // After new TextRanges load at the top, adjust scroll position to prevent content jumping
-    const $texts = this.$container.find(".basetext");
-    
-    // Check if we can safely restore scroll position
-    // Need at least 2 text sections and first one should be loaded
-    if ($texts.length < 2 || $texts.eq(0).hasClass("loading")) {
+    // After new TextRanges load at the top, put the section that was on top before the load
+    // back where it was on screen, so the prepended content doesn't push the reader away.
+    // loadingContentAtTop stays set until the restore has landed, so scroll events in between
+    // (e.g. a touch fling still in progress) can't trigger another load at the top.
+    const anchor = this.topLoadAnchor;
+    if (!this._isMounted || !anchor || !anchor.node.isConnected) {
+      this.finishTopLoad();
       return;
     }
-    
-    // Calculate the new scroll position
-    const newScrollTop = this.calculateScrollPositionAfterTopLoad($texts);
-    
-    // Apply the new scroll position
-    this.setScrollTop(newScrollTop);
+    const prependedHeight = Math.max(0, anchor.node.offsetTop - anchor.offsetTop);
+    // Mobile browsers can drop a programmatic window scroll made during momentum scrolling, so
+    // re-check over the next few frames and re-apply the restore if it didn't stick. Drift below
+    // the tolerance is the user's own scrolling and is left alone.
+    const tolerance = Math.max(100, prependedHeight / 2);
+    const maxChecks = 10;
+    let checks = 0;
+    const applyRestore = () => {
+      if (!this._isMounted || this.topLoadAnchor !== anchor || !anchor.node.isConnected) {
+        this.finishTopLoad();
+        return;
+      }
+      const drift = anchor.node.getBoundingClientRect().top - anchor.viewportTop;
+      const isFirstPass = checks === 0;
+      if (isFirstPass ? Math.abs(drift) >= 1 : Math.abs(drift) > tolerance) {
+        this.setScrollTop(this.getLocalScrollTop() + drift);
+      } else if (!isFirstPass) {
+        this.finishTopLoad();
+        return;
+      }
+      checks += 1;
+      if (checks < maxChecks) {
+        requestAnimationFrame(applyRestore);
+      } else {
+        this.finishTopLoad();
+      }
+    };
+    applyRestore();
   }
-
-  
-  calculateScrollPositionAfterTopLoad($texts) {
-    // Calculate the correct scroll position after new content has been loaded at the top
-    // The goal is to keep the user viewing the same content they were looking at before (avoid a jump)
-    const targetTop = $texts.eq(this.numSectionsLoadedAtTop).position().top;
-    const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
-    
-    const currentScrollTop = this.getLocalScrollTop();
-    const calculatedTop = targetTop + currentScrollTop - adjust;
-    
-    return calculatedTop;
+  finishTopLoad() {
+    this.topLoadAnchor = null;
+    this.loadingContentAtTop = false;
   }
   restoreScrollPositionByPercentage() {
     // After the layout width of the column changes, restore the scroll to the same percentage
@@ -329,35 +338,25 @@ class TextColumn extends Component {
       return; // No previous content available
     }
     
-    // Build list of previous sections to load
-    const newRefs = this.buildPreviousRefs(currentData);
-    
-    // Set flag to indicate we're loading content at top (affects scroll restoration)
+    // Remember where the current top section is on screen, so it can be put back there once
+    // the previous section has loaded above it
+    const $topText = this.$container.find(".basetext").first();
+    if ($topText.length) {
+      this.topLoadAnchor = {
+        node: $topText[0],
+        offsetTop: $topText[0].offsetTop,
+        viewportTop: $topText[0].getBoundingClientRect().top,
+      };
+    }
     this.loadingContentAtTop = true;
-    
-    this.props.updateTextColumn(newRefs);
+
+    this.props.updateTextColumn(this.buildPreviousRefs(currentData));
   }
 
   buildPreviousRefs(currentData) {
-    // Build a list of previous sections to load, starting from the current top section
-    // We load multiple sections at once for better performance
-    const refs = this.props.srefs.slice();
-    
-    // Add the immediate previous section
-    refs.splice(0, 0, currentData.prev);
-    this.numSectionsLoadedAtTop = 1;
-    
-    // Try to load additional previous sections (up to 10 total)
-    let prevData = Sefaria.ref(currentData.prev);
-    let earlierData = prevData ? Sefaria.ref(prevData.prev) : null;
-
-    while (earlierData && this.numSectionsLoadedAtTop < 10) {
-      refs.splice(0, 0, earlierData.ref);
-      this.numSectionsLoadedAtTop += 1;
-      earlierData = Sefaria.ref(earlierData.prev);
-    }
-    
-    return refs;
+    // Only the immediately previous section: earlier sections may already be in the client
+    // text cache from prefetching, but loading them too would jump the reader back further.
+    return [currentData.prev, ...this.props.srefs];
   }
 
   handleInfiniteScrollDown() {
