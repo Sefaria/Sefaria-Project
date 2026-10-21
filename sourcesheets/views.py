@@ -40,7 +40,7 @@ from sefaria.constants.model import get_direction_from_legacy_lang
 from sefaria.site.site_settings import SITE_SETTINGS
 
 from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes, menu_page
-from sefaria.sheets import clean_sources, bleach_text
+from sefaria.sheets import clean_sources, bleach_text, clean_sheet_for_render
 from bs4 import BeautifulSoup
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
@@ -62,6 +62,14 @@ def annotate_user_links(sources):
             source["subsources"] = annotate_user_links(source["subsources"])
 
     return sources
+
+
+def sheet_json_for_script(sheet):
+    """
+    Serializes a sheet for embedding in an inline <script> block. Markup characters are written as
+    JSON unicode escapes, so no field value can close the script element.
+    """
+    return json.dumps(sheet).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 
 @ensure_csrf_cookie
@@ -186,6 +194,7 @@ def view_sheet(request, sheet_id, editorMode = False):
     if "error" in sheet and sheet["error"] != "Sheet updated.":
             return HttpResponse(sheet["error"])
 
+    clean_sheet_for_render(sheet)
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
@@ -215,7 +224,7 @@ def view_sheet(request, sheet_id, editorMode = False):
     canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
 
     return render_template(request,'sheets.html', None, {
-        "sheetJSON": json.dumps(sheet),
+        "sheetJSON": sheet_json_for_script(sheet),
         "sheet": sheet,
         "sheet_class": sheet_class,
         "can_edit": can_edit_flag,
@@ -249,6 +258,7 @@ def view_visual_sheet(request, sheet_id):
     if "error" in sheet:
         return HttpResponse(sheet["error"])
 
+    clean_sheet_for_render(sheet)
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
@@ -265,7 +275,7 @@ def view_visual_sheet(request, sheet_id):
     can_add_flag    = can_add(request.user, sheet)
 
     return render_template(request,'sheets_visual.html', None, {
-        "sheetJSON": json.dumps(sheet),
+        "sheetJSON": sheet_json_for_script(sheet),
         "sheet": sheet,
         "sheet_class": sheet_class,
         "can_edit": can_edit_flag,

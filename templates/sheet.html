@@ -1,17 +1,16 @@
 {% load sefaria_tags %}
 {% with "sheet.html" as sheet_template %}
 
-{% autoescape off %}
 {% for source in sources %}
 	{% if "text" in source %}
 		<li class="source sheetItem {{ source.options.sourceLayout }} {{ source.options.sourceLanguage }} {{ source.options.sourceLangLayout }} {{ source.options.indented }}">
-			<div class="customTitle">{{ source.customTitle }}</div>
+			<div class="customTitle">{{ source.customTitle|safe }}</div>
 			<div class="he">
 				<div class="title">
 					<span class="he">{{ source.heRef|ref_link }}</span>
 				</div>
 				<div class="text">
-					<div class="he">{{ source.text.he }}</div>
+					<div class="he">{{ source.text.he|safe }}</div>
 				</div>
 			</div>
 			<div class="en">
@@ -19,7 +18,7 @@
 					<span class="en">{{ source.ref|ref_link }}</span>
 				</div>
 				<div class="text">
-					<div class="en">{{ source.text.en }}</div>
+					<div class="en">{{ source.text.en|safe }}</div>
 				</div>
 			</div>
 			<div class="clear"></div>
@@ -29,8 +28,8 @@
 		<li class="outsideBiWrapper">
 			<div class="outsideBi sheetItem">
 				<div class="text">
-					<div class="he">{{ source.outsideBiText.he }}</div>
-					<div class="en">{{ source.outsideBiText.en }}</div>
+					<div class="he">{{ source.outsideBiText.he|safe }}</div>
+					<div class="en">{{ source.outsideBiText.en|safe }}</div>
 					<div class="clear"></div>
 				</div>
 			</div>
@@ -38,14 +37,14 @@
 	{% elif "comment" in source %}
 		<div class="commentWrapper sheetItem">
 			<div class="comment">
-				{{ source.comment }}
+				{{ source.comment|safe }}
 			</div>
 		</div>
 
 	{% elif "outsideText" in source %}
 		<li class="outsideWrapper sheetItem">
 			<div class="outside">
-				{{ source.outsideText }}
+				{{ source.outsideText|safe }}
 			</div>
 		</li>
 
@@ -61,5 +60,4 @@
 	{% endif %}
 
 {% endfor %}
-{% endautoescape %}
 {% endwith %}

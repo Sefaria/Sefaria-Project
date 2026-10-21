@@ -152,9 +152,9 @@ def ref_link(value, absolute=False):
 		return ""
 	try:
 		oref = m.Ref(value)
-		link = '<a href="/' + oref.url() + '">' + value + '</a>'
+		link = '<a href="/' + oref.url() + '">' + conditional_escape(value) + '</a>'
 	except:
-		link = value
+		link = conditional_escape(value)
 	ref_link_cache[value] = mark_safe(link)
 	return ref_link_cache[value]
 
@@ -175,7 +175,7 @@ def he_ref_link(value, absolute=False):
 		oref = m.Ref(value)
 		link = '<a class="heRef" href="/' + oref.url() + '">' + re.sub(r"\d+(-\d+)?", "", oref.he_normal()) + '</a>'
 	except:
-		link = '<a class="heRef" href="#invalid-ref">' + value + '</a>'
+		link = '<a class="heRef" href="#invalid-ref">' + conditional_escape(value) + '</a>'
 	he_ref_link_cache[value] = mark_safe(link)
 	return he_ref_link_cache[value]
 
