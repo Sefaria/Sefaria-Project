@@ -1,0 +1,487 @@
+{
+  "collections": {
+    "texts": [
+      {
+        "_id": {
+          "$oid": "5497c1cefbfba238003c54f9"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Genesis",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c1e6fbfba238003c59bc"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Exodus",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c1f9fbfba238003c5d18"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Leviticus",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c217fbfba238003c6222"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Numbers",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c226fbfba238003c65e2"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Deuteronomy",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c230fbfba238003c6875"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Joshua",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c239fbfba238003c6ae0"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Judges",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c24bfbfba238003c6e0c"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "I Samuel",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c25afbfba238003c70c4"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "II Samuel",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c264fbfba238003c73fa"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "I Kings",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c272fbfba238003c76ca"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "II Kings",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c27ffbfba238003c7bd6"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Isaiah",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c295fbfba238003c812b"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Jeremiah",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2a6fbfba238003c8625"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Ezekiel",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2aefbfba238003c86eb"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Hosea",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2b1fbfba238003c8735"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Joel",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2b4fbfba238003c87c8"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Amos",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2b7fbfba238003c87de"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Obadiah",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2b9fbfba238003c880f"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Jonah",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2bbfbfba238003c8879"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Micah",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2befbfba238003c88a9"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Nahum",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2c1fbfba238003c88e2"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Habakkuk",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2c3fbfba238003c8918"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Zephaniah",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2c6fbfba238003c893f"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Haggai",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2cafbfba238003c8a13"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Zechariah",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2ccfbfba238003c8a4b"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Malachi",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2d8fbfba238003c8dfb"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "I Chronicles",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c2e4fbfba238003c9132"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "II Chronicles",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c306fbfba238003c9b12"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Psalms",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c324fbfba238003c9f41"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Job",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c334fbfba238003ca2d5"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Proverbs",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c352fbfba238003ca32b"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Ruth",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c354fbfba238003ca3a1"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Song of Songs",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c35bfbfba238003ca51b"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Lamentations",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c35efbfba238003ca5c3"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Esther",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c365fbfba238003ca729"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Daniel",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c36cfbfba238003ca842"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Ezra",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "5497c371fbfba238003ca9d8"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Nehemiah",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "611cb8ac19e6f0414df612a4"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Ecclesiastes",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "670d03b966a4bceed58cc551"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "title": "Siddur Ashkenaz",
+        "versionSource": "http://sefaria.org",
+        "versionTitle": "Tanach with Nikkud"
+      }
+    ]
+  },
+  "nodeid": "sefaria/tests/modtools_test.py::TestVersionIndicesAPI::test_version_indices_returns_list"
+}

@@ -8,6 +8,8 @@ import types
 
 import pytest
 
+import sefaria
+
 
 spec = importlib.util.spec_from_file_location(
     "reindex_orchestrator",
@@ -620,6 +622,7 @@ def test_main_cleans_partial_init_failure_without_deleting_current(monkeypatch):
     )
     monkeypatch.setitem(sys.modules, "scripts.scheduled.reindex_pipeline", pipeline)
     monkeypatch.setitem(sys.modules, "sefaria.search", search)
+    monkeypatch.setattr(sefaria, "search", search, raising=False)
     monkeypatch.setenv("K8S_NAMESPACE", "default")
     monkeypatch.setenv("SHARD_JOB_IMAGE", "sefaria:test")
     monkeypatch.setenv("SHARD_RESOURCES", '{"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}')
@@ -665,6 +668,7 @@ def _mock_main_services(monkeypatch, search, batch, finalize):
     monkeypatch.setitem(sys.modules, "sefaria.pagesheetrank", types.SimpleNamespace(update_pagesheetrank=lambda: None))
     monkeypatch.setitem(sys.modules, "scripts.scheduled.reindex_pipeline", pipeline)
     monkeypatch.setitem(sys.modules, "sefaria.search", search)
+    monkeypatch.setattr(sefaria, "search", search, raising=False)
     monkeypatch.setenv("K8S_NAMESPACE", "default")
     monkeypatch.setenv("SHARD_JOB_IMAGE", "sefaria:test")
     monkeypatch.setenv("SHARD_RESOURCES", '{"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}')

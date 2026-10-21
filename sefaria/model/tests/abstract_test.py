@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import contextlib
+import os
 
 import pytest
+from bson import json_util
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
@@ -10,6 +12,26 @@ import sefaria.model as model
 import sefaria.model.abstract as abstract
 
 # cascade functions are tested in person_test.py
+
+
+def _load_base_collections():
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "tests", "fixtures", "mongo", "_base.json")
+    with open(path) as f:
+        return set(json_util.loads(f.read())["collections"])
+
+# Parsed once at import: _base.json is ~17 MB, and parsing it per record class slowed every collection.
+_BASE_COLLECTIONS = _load_base_collections()
+
+# Subclasses whose collection is in the base fixture but whose subtype is not: the base
+# 'topics' docs hold no person-typed topics, so PersonTopic/AuthorTopic load nothing here.
+# Remove an entry if the base gains matching documents: the fail-on-empty body will not flag a stale entry.
+_BASE_MISSING_SUBCLASSES = {"PersonTopic", "AuthorTopic"}
+
+_RECORD_PARAMS = [
+    pytest.param(sub, id=sub.__name__,
+                 marks=[] if sub.collection in _BASE_COLLECTIONS and sub.__name__ not in _BASE_MISSING_SUBCLASSES
+                 else [pytest.mark.needs_corpus])
+    for sub in abstract.get_record_classes()]
 
 
 def setup_module(module):
@@ -42,14 +64,17 @@ class TestMongoRecordModels(object):
             assert len(sub.required_attrs)
             assert "_id" not in sub.required_attrs
 
-    @pytest.mark.parametrize("sub", abstract.get_record_classes())
-    def test_instanciation_load_and_validity(self, sub):
+    @pytest.mark.parametrize("sub", _RECORD_PARAMS)
+    def test_instanciation_load_and_validity(self, sub, request):
         m = sub()
-        if m.collection == "term": #remove this line once terms are normalized
-            return
+        if m.collection == "term":  # terms are not normalized yet
+            pytest.skip("terms are not normalized")
         res = m.load({})
-        if not res:  # Collection may be empty
-            return
+        if not res:
+            if request.node.get_closest_marker("needs_corpus") is None:
+                pytest.fail(f"{sub.__name__}: collection {m.collection!r} is empty here but the case is not needs_corpus; "
+                            "a vacuous pass would hide invalid records")
+            pytest.skip(f"collection {m.collection!r} is empty in this environment")
         assert m._id
         m._validate()
 
