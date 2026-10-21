@@ -17174,7 +17174,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   animation-duration: 3.6s;
   animation-timing-function: ease-out;
   animation-fill-mode: both;
-  animation-iteration-count: 2;
+  animation-iteration-count: infinite; /* POC only: production should stop after ~5s (WCAG 2.2.2) */
 }
 .a2hsSefariaIcon {
   animation-name: a2hs-pop;
