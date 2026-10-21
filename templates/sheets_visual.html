@@ -56,11 +56,10 @@
 {% include "js/headers.js" %}
 
 <script type="text/javascript">
-{% autoescape off %}
 	var sjs = sjs || {};
 
 	$.extend(sjs, {
-		current: {{ sheetJSON|default:"null" }},
+		current: {{ sheetJSON|default:"null"|safe }},
 		assignment_id: {{ assignment_id|default:"null" }},
 		assigner_id: {{ assigner_id|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
@@ -72,11 +71,10 @@
 		autosave: false,
 		changes: false,
 		{% if user.id %}
-		_fullname: "{{ user.first_name }} {{ user.last_name }}",
-		_userLink: "{{ user.id|user_link }}"
+		_fullname: "{{ user.first_name|escapejs }} {{ user.last_name|escapejs }}",
+		_userLink: "{{ user.id|user_link|escapejs }}"
 		{% endif %}
 	});
-{% endautoescape %}
 </script>
 {% if can_edit or can_add %}
 <script src="{% static 'ckeditor/ckeditor.js' %}"></script>
