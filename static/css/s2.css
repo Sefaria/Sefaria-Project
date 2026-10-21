@@ -17135,9 +17135,9 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 }
 
 .bookshelfPromo .bookshelfPromoBody {
-  font-size: 16px;
-  line-height: 22px;
-  margin: 0 0 24px;
+  font-size: 13px;
+  line-height: 19px;
+  margin: 0 0 18px;
 }
 .bookshelfPromo #interruptingMessageClose {
   background: none;
@@ -17158,12 +17158,12 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   background: var(--white);
   border-radius: 4px;
   padding: 12px 14px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
   text-align: start;
 }
 .bookshelfPromoShelfTitle {
   font-family: var(--english-serif-font-family);
-  font-size: 16px;
+  font-size: 14px;
   color: var(--near-black);
   margin-bottom: 8px;
 }
@@ -17297,7 +17297,41 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   color: var(--inline-link-blue);
   text-decoration: underline;
 }
+/* Promo modal matches the bookshelf mockup: compact, centered, inline button (drifts from SignUpModal on purpose) */
+.bookshelfPromo #interruptingMessage.sefariaModalContentBox {
+  width: 380px;
+  max-width: calc(100% - 32px);
+  box-sizing: border-box;
+  padding: 26px 32px;
+}
 .bookshelfPromo .sefariaModalContent {
-  width: 440px;
-  max-width: 100%;
+  align-items: center;
+  text-align: center;
+  height: auto;
+}
+.bookshelfPromo .sefariaModalContent h2 {
+  font-size: 21px;
+  line-height: 1.25;
+  margin: 0 0 8px;
+}
+.bookshelfPromo .sefariaModalContent .button {
+  width: auto;
+  margin: 0;
+  padding: 10px 26px;
+  font-size: 14px;
+  line-height: 18px;
+}
+.bookshelfPromo .sefariaModalBottomContent {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--white);
+}
+.bookshelfPromo .bookshelfLinkButton {
+  font-size: 12px;
+}
+.bookshelfPromo #interruptingMessageClose.sefariaModalClose {
+  top: 8px;
+  right: 12px;
+  font-size: 18px;
+  line-height: 1;
 }
