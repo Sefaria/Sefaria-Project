@@ -2696,6 +2696,14 @@ def _swap_alias_atomically(names):
     )
 
 
+def _retain_previous_index_enabled():
+    """
+    Opt-in (default off) switch for keeping the previous index after an alias swap, so a
+    rollback to it is possible until the next reindex starts.
+    """
+    return os.environ.get("REINDEX_RETAIN_PREVIOUS_INDEX", "").lower() in ("1", "true", "yes")
+
+
 def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
     """
     Phase 3: Restore production index settings, run a sanity gate on doc counts,
@@ -2737,8 +2745,14 @@ def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
     _swap_alias_atomically(names)
 
     if names['new'] != names['current']:
-        logger.debug(f"Cleaning up old index - old_index: {names['current']}")
-        clear_index(names['current'])
+        if _retain_previous_index_enabled():
+            # Keep the previous index as a rollback target for one cycle. It is not an extra
+            # peak on disk: the build already holds both indices. reindex_init recreates this
+            # slot at the start of the next run, which removes it then.
+            logger.info(f"Retaining previous index for one cycle - previous_index: {names['current']}")
+        else:
+            logger.debug(f"Cleaning up old index - old_index: {names['current']}")
+            clear_index(names['current'])
 
     logger.info(f"reindex_finalize complete - type: {type}, alias -> {names['new']} ({new_count} docs)")
 
