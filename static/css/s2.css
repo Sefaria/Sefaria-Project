@@ -17337,3 +17337,6 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   font-size: 18px;
   line-height: 1;
 }
+.bookshelfPromo .sefariaModalBottomContent a {
+  text-decoration: underline;
+}

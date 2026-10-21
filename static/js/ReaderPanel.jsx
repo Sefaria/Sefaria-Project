@@ -1477,10 +1477,7 @@ class ReaderControls extends Component {
               tooltip={true}
               toggleSignUpModal={this.props.toggleSignUpModal}
             /> :
-            <BookshelfStar
-              book={this.props.currentBook()}
-              toggleSignUpModal={this.props.toggleSignUpModal}
-            />
+            <BookshelfStar book={this.props.currentBook()} />
           }
         <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={displaySettingsButton}>{displaySettingsMenu}</DropdownMenu>
         </div>);

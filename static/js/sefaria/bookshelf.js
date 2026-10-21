@@ -165,6 +165,12 @@ const noteBookOpened = (book) => {
 
 // The promo can fire on page load before the overlay has subscribed, so it waits here until taken.
 let queuedPromo = null;
+/** Show the sign-up wall for an anonymous reader who tries to add a second book. */
+const showLimit = (book) => {
+  setPending(book);
+  queuedPromo = {book, variant: 'limit', animate: false};
+  emit('promo', queuedPromo);
+};
 const takePromo = () => {
   const promo = queuedPromo;
   queuedPromo = null;
@@ -204,6 +210,7 @@ const Bookshelf = {
   noteHistory,
   noteBookOpened,
   takePromo,
+  showLimit,
   mergeAfterLogin,
 };
 

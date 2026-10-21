@@ -4,7 +4,6 @@ import classNames from 'classnames';
 import Sefaria from './sefaria/sefaria';
 import Bookshelf from './sefaria/bookshelf';
 import { InterfaceText } from './Misc';
-import { SignUpModalKind } from './sefaria/signupModalContent';
 
 /*
  * Bookshelf POC: the reader-header star, the second-visit promo modal, the confirmation toast,
@@ -54,7 +53,7 @@ const StarIcon = ({filled}) => (
 );
 
 
-const BookshelfStar = ({book, toggleSignUpModal}) => {
+const BookshelfStar = ({book}) => {
   useBookshelfVersion();
   const mounted = useMounted();
   const [pulse, setPulse] = useState(false);
@@ -72,10 +71,7 @@ const BookshelfStar = ({book, toggleSignUpModal}) => {
   const onClick = (e) => {
     e.preventDefault();
     Bookshelf.toggle(book).catch(err => {
-      if (err === 'full') {
-        Bookshelf.setPending(book);
-        toggleSignUpModal(SignUpModalKind.Bookshelf);
-      }
+      if (err === 'full') { Bookshelf.showLimit(book); }
     });
   };
 
@@ -95,7 +91,6 @@ const BookshelfStar = ({book, toggleSignUpModal}) => {
 };
 BookshelfStar.propTypes = {
   book: PropTypes.string,
-  toggleSignUpModal: PropTypes.func.isRequired,
 };
 
 
@@ -148,7 +143,9 @@ const BookshelfPromoModal = ({promo, onClose}) => {
         <button type="button" id="interruptingMessageClose" className="sefariaModalClose" aria-label={Sefaria._("common.close")} onClick={onClose}>×</button>
         <div className="sefariaModalContent">
           {animate ? <PromoShelfAnimation book={book} /> : null}
-          <h2 id="bookshelfPromoTitle" className="serif sans-serif-in-hebrew">Learning {bookTitle(book)} again?</h2>
+          <h2 id="bookshelfPromoTitle" className="serif sans-serif-in-hebrew">
+            {variant === 'limit' ? "Want to add more texts to your bookshelf?" : `Learning ${bookTitle(book)} again?`}
+          </h2>
           {variant === 'add' ? (
             <>
               <p className="bookshelfPromoBody">Add it to your bookshelf on the Sefaria homepage and pick up where you left off.</p>
@@ -159,7 +156,9 @@ const BookshelfPromoModal = ({promo, onClose}) => {
             </>
           ) : (
             <>
-              <p className="bookshelfPromoBody">Sign up or log in to add this text to your bookshelf.</p>
+              <p className="bookshelfPromoBody">
+                {variant === 'limit' ? "Create a free account to save as many as you like." : "Sign up or log in to add this text to your bookshelf."}
+              </p>
               <a className="button white control-elem" href={"/register" + nextParam()} onClick={() => Bookshelf.setPending(book)}>
                 <InterfaceText>common.sign_up</InterfaceText>
               </a>
