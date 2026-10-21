@@ -2587,8 +2587,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
-    // A logged-out visitor has no chatbot_user_token; chatbot_enabled alone decides.
-    const displayChatbot = this.props.chatbot_enabled && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    // A logged-out visitor has no chatbot_user_token; chatbot_enabled alone decides. Not on the
+    // login and registration screens, which logged-out visitors reach from the assistant itself;
+    // it comes back once they leave them.
+    const displayChatbot = this.props.chatbot_enabled && !mobile && isLibraryModule && !this.state.showAuth && !(this.props.remoteConfig?.chatbot?.hide === 1);
     const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment && !displayChatbot;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
