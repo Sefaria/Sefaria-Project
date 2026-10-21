@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Admin: Merge Accounts" %} | {% trans "Sefaria" %}{% endblock %}
+
+{% block content %}
+<div id="mergeAccounts" class="static">
+    <div class="inner">
+        <h1>Merge Accounts</h1>
+        <h2>Caution: the source account will be deleted.</h2>
+        <p>This cannot be undone. Double-check which account should remain.</p>
+        <ul>
+            <li>Only destination logins will remain. Source logins will be removed.</li>
+            <li>The destination's staff and administrator access will be removed.</li>
+            <li>Source-sheet collection memberships and admin roles will transfer.</li>
+            <li>Both accounts must stop editing and syncing until the merge finishes.</li>
+        </ul>
+        <form id="merge-accounts-form" method="post" action="{% url 'merge/accounts' %}" autocomplete="off">
+            {% csrf_token %}
+            <fieldset id="merge-accounts-fields">
+                <legend>Accounts to merge</legend>
+                {{ form.as_p }}
+                <button id="merge-accounts-submit" type="submit" class="button control-elem" disabled>
+                    Review merge
+                </button>
+            </fieldset>
+        </form>
+        <noscript>Enable JavaScript to review and merge accounts.</noscript>
+        <p>Merging may take a while. Keep this page open and do not submit again.
+            If the merge fails, some data may already have moved. Check both accounts before retrying.</p>
+        <div id="merge-accounts-status" role="status" aria-live="polite" aria-atomic="true"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'js/account-merge.js' %}" defer></script>
+{% endblock %}
