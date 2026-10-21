@@ -4,8 +4,8 @@ title: Linker & embeds
 domain: Platform
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-21
 ---
 # Linker & embeds — product specification
 
@@ -23,7 +23,13 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Other sites show Sefaria texts with the [Sefaria frontend toolkit](https://sefaria.github.io/sefaria-frontend-toolkit/)'s
+  elements (a passage, a passage with its translation, a source card, a connections panel, a small reader), added with one
+  script tag or an npm package. The sefaria.org reader itself does not use them; see
+  [Cross-cutting → Design system](../CROSS_CUTTING.md#design-system-and-components). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769)
+- The toolkit's linked-article example, where a click on a hand-written citation opens the passage in a small dialog and the
+  text is fetched only then, is a starting point for the linker popup (LNK-006)
+  ([`docs/examples/linked-article.md`](https://github.com/Sefaria/sefaria-frontend-toolkit/blob/03443b78014f9cda9a2fead89c624d0118496535/docs/examples/linked-article.md)). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769) · LNK-006
 
 ## Changes from today (keep · change · drop · new)
 
@@ -31,7 +37,9 @@ _Not discussed yet._
 
 ## Open questions
 
-_None yet._
+- Is the toolkit Sefaria's embed product and the base for the next linker (LNK-003 to LNK-006), or a separate community project?
+  Who owns it?
+- Should an embedded passage look exactly like the same passage on sefaria.org (same fonts, colours and text clean-up)?
 
 ## Decisions
 
