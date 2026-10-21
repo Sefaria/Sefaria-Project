@@ -2422,8 +2422,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
 
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
+    const chatbotHiddenByRemoteConfig = this.props.remoteConfig?.chatbot?.hide === 1;
     // On phones the widget itself becomes a full-screen sheet, opened from its own button or the mobile menu.
-    const displayChatbot = this.props.chatbot_enabled && !!this.props.chatbot_user_token && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    const displayChatbot = this.props.chatbot_enabled && !!this.props.chatbot_user_token && isLibraryModule && !chatbotHiddenByRemoteConfig;
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
