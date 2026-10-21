@@ -236,6 +236,8 @@ spec:
         enabled: true
       weeklyEmailNotifications:
         enabled: true
+      buildTopNGramsForSearchAutocorrect:
+        enabled: true
     secrets:
       localSettings:
         ref: local-settings-secrets-production

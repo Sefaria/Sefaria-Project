@@ -669,6 +669,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
         "tab": search_params["search_tab"],
+        "searchDisableAutocorrect": search_params["disable_autocorrect"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -1102,6 +1103,8 @@ def get_search_params(get_dict, i=None):
         # `tab` is the text/sheet search type; `search_tab` is the active results tab
         # on the search page (sources/books/authors/topics).
         "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
+        # Set by "Search instead for <query>": search `query` exactly as typed.
+        "disable_autocorrect": get_dict.get(get_param("disable_autocorrect", i)) == "1",
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -1143,6 +1146,7 @@ def search(request):
         "initialMenu": "search",
         "initialQuery": search_params["query"],
         "initialSearchTab": search_params["search_tab"],
+        "initialSearchDisableAutocorrect": search_params["disable_autocorrect"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -4947,6 +4951,26 @@ def dummy_search_api(request):
     })
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
+
+
+@catch_error_as_json
+def search_autocorrect_api(request):
+    """
+    GET /api/search-autocorrect?q=<query>
+    -> {"corrected_query": str|None, "suggested_queries": [str]|None}, at most one set.
+
+    The client calls this before searching and searches the correction it returns. Served by
+    the name service, which holds the tables. Varnish caches by URL, so don't add per-request
+    parameters beyond `q`.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    query = request.GET.get("q", "").strip()
+    result = library.autocorrect_query(query) if query else None
+    return jsonResponse({
+        "corrected_query": result.corrected_query if result else None,
+        "suggested_queries": result.suggested_queries if result else None,
+    })
 
 
 @csrf_exempt
