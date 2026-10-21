@@ -20,6 +20,7 @@ const http          = require('http'),
     ReaderApp       = React.createFactory(SefariaReact.ReaderApp);
 
 const {logger, expressLogger, errorLogger} = require('./sefaria-logging');
+const { createSharedCache } = require('./sharedCache');
 
 const server = express();
 
@@ -27,62 +28,12 @@ server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 server.use(bodyParser.json({limit: '50mb'}));
 
 const cacheKeyMapping = {"toc": "toc", "topic_toc": "topic_toc", "terms": "term_mapping", "books": "books_en", "virtualBooks": "virtualBooks" };
-let sharedCacheData = {
-  /*
-  Not data, but a unix timestamp (originally) passed from django indicating when data was last updated on this node process. i
-  if a later date comes in on a request, it will trigger an update
-   */
-  "last_cached": null,
-  /* data */
-  "toc": null,
-  "topic_toc": null,
-  "terms": null,
-  "books": null,
-  "virtualBooks": null,
-};
 
 const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDIS_PORT}`, {prefix: ':1:'});
 const getAsync = promisify(cache.get).bind(cache);
 
-
-const loadSharedData = async function({ last_cached_to_compare = null, startup = false } = {}){
-    logger.debug("Load Shared Data - Input last cached timestamp to compare: " + last_cached_to_compare);
-    //TODO: If the data wasnt placed in Redis by django to begin with, well, we're screwed.
-    // Or you know, fix it so Node does send a signal to Django to populate cache.
-    let redisCalls = [];
-    for (const [key, value] of Object.entries(cacheKeyMapping)) {
-      if(startup || last_cached_to_compare == null || await needsUpdating(key, last_cached_to_compare)){
-        //console.log("Fetching: " + key + "|" + value )
-        redisCalls.push(getAsync(value).then(resp => {
-          if(!resp){
-            throw new Error(`Error with ${key}: ${value} not found in cache`);
-          }else{
-            sharedCacheData[key] = JSON.parse(resp);
-          }
-        }).catch(error => {
-          logger.error(`${value}: ${error.message}`);
-        }));
-      }
-    }
-    try{
-      await Promise.all(redisCalls);
-      if(cacheTimestampNeedsUpdating("last_cached", last_cached_to_compare)){
-        sharedCacheData["last_cached"] = last_cached_to_compare;
-      }
-      return Promise.resolve();
-    }catch(e) {
-      console.error(e.message);
-      return Promise.reject(e); //Is this the correct way??
-    }
-};
-
-const cacheTimestampNeedsUpdating = function(cache_timestamp = "last_cached", timestamp_to_compare){
-  return sharedCacheData[cache_timestamp] < timestamp_to_compare;
-};
-
-const needsUpdating = function(cachekey, last_cached_to_compare){
-  return !sharedCacheData[cachekey] || cacheTimestampNeedsUpdating("last_cached", last_cached_to_compare);
-};
+const sharedCache = createSharedCache({ getAsync, cacheKeyMapping, logger });
+const { data: sharedCacheData, loadSharedData, cacheTimestampNeedsUpdating, needsUpdating } = sharedCache;
 
 const renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
@@ -137,11 +88,18 @@ router.post('/ReaderApp/:cachekey', function(req, res, next) {
   });
 });
 
-router.post('/Footer/:cachekey', function(req, res) {
+router.post('/Footer/:cachekey', function(req, res, next) {
   const props = req.body.propsJSON ? JSON.parse(req.body.propsJSON) : req.body;
-  SefariaReact.unpackDataFromProps(props);
-  const html  = ReactDOMServer.renderToString(React.createElement(SefariaReact.Footer));
-  res.send(html);
+  loadSharedData({last_cached_to_compare: props["last_cached"]}).then(() => {
+    props.remoteConfig = props.remoteConfig || {};
+    // Reset client state from the shared cache, as ReaderApp rendering does, so the footer never reads data left by an earlier request.
+    SefariaReact.sefariaSetup(sharedCacheData, props, true);
+    SefariaReact.unpackDataFromProps(props);
+    const html  = ReactDOMServer.renderToString(React.createElement(SefariaReact.Footer));
+    res.send(html);
+  }).catch(error => {
+    return next(error);
+  });
 });
 
 router.get('/healthz', function(req, res) {
