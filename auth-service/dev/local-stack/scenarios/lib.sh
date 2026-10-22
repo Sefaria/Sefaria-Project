@@ -97,19 +97,21 @@ since() { python3 -c "import time; print('%.1f' % (time.time() - $1))"; }
 
 # --- fixtures ------------------------------------------------------------------------------------------------------
 
+# The drill project's api_project row (one live row per profile). Keys point at api_project.id, not at the profile.
+DRILL_API_PROJECT="(SELECT id FROM api_project WHERE profile_id = $PROJECT_ID AND deleted_at IS NULL)"
 # new_key NAME [ORIGINS_JSON] -> inserts a live key on the drill project; its header file is $KEYS_DIR/NAME.hdr
 new_key() {
   local value; value="sfr_d11$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)"
   psql_su -c "INSERT INTO powered_by_apikey (id, key, label, allowed_origins, created_at, project_id)
-              VALUES (gen_random_uuid(), '$value', '$1', '${2:-[]}'::jsonb, now(), $PROJECT_ID)
+              VALUES (gen_random_uuid(), '$value', '$1', '${2:-[]}'::jsonb, now(), $DRILL_API_PROJECT)
               ON CONFLICT (key) DO NOTHING" >/dev/null
   ( umask 077; printf 'x-api-key: %s\n' "$value" >"$KEYS_DIR/$1.hdr" )
 }
-# set_project_tier TIER -> the drill project's tier, kept on its limits row (no row means developer)
-set_project_tier() { psql_su -c "INSERT INTO powered_by_projectlimits (project_id, tier) VALUES ($PROJECT_ID, '$1') ON CONFLICT (project_id) DO UPDATE SET tier = EXCLUDED.tier, updated_at = now()" >/dev/null; }
+# set_project_tier TIER -> the drill project's tier, on its api_project row (api_tier must hold TIER)
+set_project_tier() { psql_su -c "UPDATE api_project SET tier_id = '$1', updated_at = now() WHERE id = $DRILL_API_PROJECT" >/dev/null; }
 revoke_key() { psql_su -c "UPDATE powered_by_apikey SET revoked_at = now() WHERE label = '$1' AND revoked_at IS NULL" >/dev/null; }
 unknown_key() { ( umask 077; printf 'x-api-key: sfr_d11unknown%s\n' "$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 24)" >"$KEYS_DIR/$1.hdr" ); }
-load_query_rows() { psql_su -c "SELECT count(*) FROM powered_by_apikey k JOIN powered_by_project p ON p.id = k.project_id"; }
+load_query_rows() { psql_su -c "SELECT count(*) FROM powered_by_apikey k JOIN api_project p ON p.id = k.project_id"; }
 
 seed_project() {
   psql_su -c "INSERT INTO powered_by_project (id, created_at, updated_at, submission_source, creator, creator_email,
@@ -120,6 +122,10 @@ seed_project() {
       '', '', '[]', '', '', false, '', 'Stack drill', '', '', '', '', false, '[]', 'unknown', false, false, false,
       false, 'E2E api-keys d11 drill (local only)')
     ON CONFLICT (id) DO UPDATE SET deleted_at = NULL" >/dev/null
+  # the profile's live api_project row (tier developer), created once; set_project_tier moves it between tiers
+  psql_su -c "INSERT INTO api_project (profile_id, contact_email, tier_id, created_at, updated_at)
+    SELECT $PROJECT_ID, 'apikeys-e2e-d11-drill@example.com', 'developer', now(), now()
+    WHERE NOT EXISTS (SELECT 1 FROM api_project WHERE profile_id = $PROJECT_ID AND deleted_at IS NULL)" >/dev/null
 }
 
 # --- lifecycle -------------------------------------------------------------------------------------------------------

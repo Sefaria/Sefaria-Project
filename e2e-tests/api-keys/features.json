@@ -4,85 +4,80 @@
   "poc_glob": "origin/feature/*/auth-service-poc-monthly-quota"
  },
  "must_map": [
-  "powered_by/tests/project_limits_*_test.py",
-  "powered_by/tests/migration_project_limits_test.py"
+  "powered_by/tests/*api_project*_test.py"
  ],
  "features": [
   {
    "id": "F-MODEL-01",
    "area": "model",
-   "title": "One limits row per API project; keys and project metadata not duplicated",
+   "title": "One API project per profile; tier by foreign key; keys and profile metadata not duplicated",
    "status": "on_branch",
    "edge_cases": [
     {
      "id": "F-MODEL-01.e1",
-     "scenario": "raw UPDATE of a limits row to tier gold",
-     "expected": "the database CHECK rejects an unknown tier",
+     "scenario": "api_project given a tier that does not exist (ORM or raw SQL)",
+     "expected": "the foreign key to api_tier refuses it",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_tier_check_rejects_unknown"
+       "ref": "powered_by/tests/api_project_model_test.py::ApiProjectModelTest::test_tier_fk_refuses_unknown"
       }
      ]
     },
     {
      "id": "F-MODEL-01.e2",
-     "scenario": "developer, partner and internal tiers",
-     "expected": "accepted",
+     "scenario": "seeded tiers developer, partner and internal",
+     "expected": "all three exist, each with a semantic meter-limit row",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_tier_accepts_developer_partner_internal"
+       "ref": "powered_by/tests/api_project_model_test.py::ApiProjectModelTest::test_seeded_tiers_have_a_semantic_meter_row"
       }
      ]
     },
     {
      "id": "F-MODEL-01.e3",
-     "scenario": "new limits row, in Python and by a raw INSERT with only project_id",
-     "expected": "defaults to developer, timestamps included",
+     "scenario": "new api_project, in Python and by a raw INSERT with only profile_id and timestamps",
+     "expected": "defaults to developer with an empty contact email, timestamps set",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_new_limits_row_defaults_to_developer"
-      },
-      {
-       "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_raw_insert_with_only_the_project_id_gets_the_database_defaults"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_new_api_project_defaults_to_developer_in_python_and_raw_insert"
       }
      ]
     },
     {
      "id": "F-MODEL-01.e4",
-     "scenario": "second row for one project, or a row for a missing project",
-     "expected": "refused by the primary key and by the FK (SET CONSTRAINTS ALL IMMEDIATE)",
+     "scenario": "second live api_project for one profile, or one for a profile that does not exist",
+     "expected": "refused by the partial unique index api_project_one_live_per_profile and by the profile foreign key; a deleted API project frees the profile",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_a_second_row_for_one_project_is_refused"
+       "ref": "powered_by/tests/api_project_model_test.py::ApiProjectModelTest::test_second_live_api_project_for_a_profile_is_refused"
       },
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_a_row_needs_an_existing_project"
+       "ref": "powered_by/tests/api_project_model_test.py::ApiProjectModelTest::test_deleted_api_project_frees_the_profile"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_an_api_project_needs_an_existing_profile"
       }
      ]
     },
     {
      "id": "F-MODEL-01.e5",
-     "scenario": "column inventory of the limits and key tables",
-     "expected": "limits holds only project_id, tier, created_at, updated_at; the key table is unchanged (no tier column)",
+     "scenario": "column inventory of the api_project and key tables",
+     "expected": "api_project holds id, profile_id, owner_id, contact_email, tier_id, deleted_at, created_at, updated_at; the key table points at api_project and has no tier column",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::NoDuplicationTest::test_limits_table_has_only_project_id_tier_and_timestamps"
-      },
-      {
-       "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::NoDuplicationTest::test_key_table_columns_are_unchanged"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_column_inventory_of_the_api_project_and_key_tables"
       },
       {
        "kind": "demo",
@@ -92,13 +87,13 @@
     },
     {
      "id": "F-MODEL-01.e6",
-     "scenario": "column inventory of the project table",
-     "expected": "keeps name, description, owner, organization, consent_withdrawn_at, deleted_at, notes and the frozen tier",
+     "scenario": "column inventory of the profile table",
+     "expected": "keeps the profile metadata (name, website, description, organization, AI-assisted, consent, notes) and the frozen tier, owner and deleted_at columns that older images still use",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::NoDuplicationTest::test_project_table_keeps_its_metadata_columns"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_profile_table_keeps_its_metadata_and_the_frozen_columns"
       },
       {
        "kind": "demo",
@@ -108,57 +103,57 @@
     },
     {
      "id": "F-MODEL-01.e7",
-     "scenario": "deleting projects",
-     "expected": "a project with keys cannot be hard-deleted (PROTECT); a keyless hard delete removes its limits row (CASCADE); a soft delete keeps the row",
+     "scenario": "deleting API projects, profiles and owner accounts",
+     "expected": "an API project with keys and a profile with an API project cannot be hard-deleted (PROTECT); a soft delete keeps the row; deleting the owner account clears owner and keeps the project",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_a_project_with_keys_cannot_be_deleted"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_an_api_project_with_keys_cannot_be_deleted_and_a_profile_with_one_cannot_either"
       },
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_deleting_a_keyless_project_removes_its_limits_row"
-      },
-      {
-       "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_soft_deleting_a_project_keeps_its_limits_row"
+       "ref": "powered_by/tests/api_project_model_test.py::ApiProjectModelTest::test_owner_delete_sets_null"
       }
      ]
     },
     {
      "id": "F-MODEL-01.e8",
-     "scenario": "makemigrations --check --dry-run inside the suite",
+     "scenario": "makemigrations --check --dry-run for powered_by inside the suite",
      "expected": "no pending model changes",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::MigrationStateTest::test_no_pending_model_changes"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_no_pending_model_changes_in_powered_by"
       }
      ]
     },
     {
      "id": "F-MODEL-01.e9",
-     "scenario": "creating a project, claiming a listing and setting a tier through the writer",
-     "expected": "Project.tier (frozen) never changes",
+     "scenario": "creating, editing and deleting a project, claiming a listing and deleting the account through the writer",
+     "expected": "the profile's frozen tier, owner and deleted_at never change",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::FrozenProjectTierTest::test_writer_never_writes_the_project_tier"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectWriterEdgesTest::test_the_writer_never_writes_the_frozen_profile_columns"
       }
      ]
     },
     {
      "id": "F-MODEL-01.e10",
      "scenario": "change_tier permission",
-     "expected": "declared on ProjectLimits and present after migrating",
+     "expected": "declared on ApiProject and present after migrating; only its holders edit the tier in the admin",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_model_test.py::ProjectLimitsModelTest::test_change_tier_permission_is_declared"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_change_tier_permission_is_declared"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/public_listing_api_project_test.py::AdminApiProjectTest::test_admin_tier_editable_only_with_change_tier"
       }
      ]
     }
@@ -167,7 +162,7 @@
   {
    "id": "F-MODEL-02",
    "area": "model",
-   "title": "Backfill 0007 (limits rows for API projects)",
+   "title": "Backfill 0007 (API project rows for existing profiles) and cleanup 0009",
    "status": "on_branch",
    "edge_cases": [
     {
@@ -178,103 +173,111 @@
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_prod_shape_creates_no_rows"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_prod_shape_creates_none"
       }
      ]
     },
     {
      "id": "F-MODEL-02.e2",
-     "scenario": "dev shape (owner+keys, owner without keys, partner project with a revoked key, soft-deleted project with a revoked key, settings-created private project, claimed legacy listing, mock row with a key, gold legacy tier)",
-     "expected": "one row per API project copying its tier; none for ownerless keyless listings",
+     "scenario": "dev shape (owner+keys, owner without keys, partner project with a key, soft-deleted project, settings-created private project, claimed legacy listing, mock row with a key, gold legacy tier)",
+     "expected": "one api_project row per profile that has an owner, a developer-settings source or a key, with id equal to the profile id, its tier copied and deleted_at carried; none for ownerless keyless listings",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_dev_shape_creates_one_row_per_api_project_with_its_tier"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_dev_shape_ids_and_keys_preserved"
       }
      ]
     },
     {
      "id": "F-MODEL-02.e3",
      "scenario": "backfill run",
-     "expected": "sends no NOTIFY and writes nothing to the key or project table",
+     "expected": "profile and key rows are identical before and after (the NOTIFY triggers on api_project only arrive in 0008, so the backfill itself sends none by construction)",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_backfill_sends_no_notify_and_touches_no_other_table"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_dev_shape_ids_and_keys_preserved"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_reverse_roundtrip"
       }
      ]
     },
     {
      "id": "F-MODEL-02.e4",
-     "scenario": "unknown legacy project tier (gold)",
-     "expected": "becomes developer with a warning and never aborts",
+     "scenario": "unknown legacy profile tier (gold)",
+     "expected": "becomes developer on the api_project row with a warning and never aborts",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_unknown_tier_is_downgraded_not_fatal"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_dev_shape_ids_and_keys_preserved"
       }
      ]
     },
     {
      "id": "F-MODEL-02.e5",
-     "scenario": "second forward run, with a staff-set partner present",
-     "expected": "inserts nothing and never overwrites",
+     "scenario": "second forward run, with a staff-set partner tier present and a profile an older image wrote since",
+     "expected": "inserts only the missing row and never overwrites an existing api_project",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_backfill_is_idempotent_and_never_overwrites"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_rerun_picks_up_rows_old_images_wrote"
       }
      ]
     },
     {
      "id": "F-MODEL-02.e6",
      "scenario": "reverse migration",
-     "expected": "copies each row's tier back onto the frozen project tier (changed rows only) and deletes the limits rows; keys and projects untouched",
+     "expected": "deletes every api_project row; profiles and keys untouched",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_reverse_restores_the_project_tier_and_removes_the_rows"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_reverse_roundtrip"
       }
      ]
     },
     {
      "id": "F-MODEL-02.e7",
      "scenario": "forward, reverse, forward",
-     "expected": "identical limits rows; project and key ids unchanged",
+     "expected": "identical api_project rows; profile and key rows unchanged",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_roundtrip_is_lossless"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_reverse_roundtrip"
       }
      ]
     },
     {
      "id": "F-MODEL-02.e8",
-     "scenario": "soft-deleted project",
-     "expected": "gets its row with its tier, and its keys still load as revoked",
+     "scenario": "soft-deleted profile",
+     "expected": "gets an api_project row with deleted_at set, and its keys still load revoked",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_deleted_project_keeps_its_row_and_its_keys_load_revoked"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_dev_shape_ids_and_keys_preserved"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadMarksDeletedProjectKeysRevoked"
       }
      ]
     },
     {
      "id": "F-MODEL-02.e9",
-     "scenario": "two keys of one project",
-     "expected": "one row, independent of key order",
+     "scenario": "two keys of one profile",
+     "expected": "one api_project row; both keys keep their project id",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_two_keys_of_a_project_share_one_row"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_dev_shape_ids_and_keys_preserved"
       }
      ]
     },
@@ -294,48 +297,68 @@
        "contains": "powered_by_apikey"
       }
      ]
+    },
+    {
+     "id": "F-MODEL-02.e11",
+     "scenario": "migration 0009 on a database that holds the abandoned per-project limits design (its table, triggers and migration rows), and on one that does not",
+     "expected": "removes the table, puts the profile trigger back on tier OR deleted_at, forgets the three abandoned migration names; a second run changes nothing; nothing happens where nothing was abandoned",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_cleanup_test.py::CleanupAbandonedLimitsMigrationTest::test_cleanup_removes_the_abandoned_design_and_is_idempotent"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_cleanup_test.py::CleanupAbandonedLimitsMigrationTest::test_cleanup_is_a_no_op_where_nothing_was_abandoned"
+      }
+     ]
     }
    ]
   },
   {
    "id": "F-MODEL-03",
    "area": "model",
-   "title": "NOTIFY triggers after 0008",
+   "title": "NOTIFY triggers on the API tables (migration 0008)",
    "status": "on_branch",
    "edge_cases": [
     {
      "id": "F-MODEL-03.e1",
-     "scenario": "limits tier UPDATE",
-     "expected": "one NOTIFY with table powered_by_projectlimits, exactly once for the one row",
+     "scenario": "api_project tier UPDATE",
+     "expected": "one NOTIFY with table api_project, exactly once for the one row",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_limits_tier_update_notifies_once"
+       "ref": "powered_by/tests/migration_api_project_triggers_test.py::ApiProjectTriggersMigrationTest::test_tier_change_notifies_once"
       }
      ]
     },
     {
      "id": "F-MODEL-03.e2",
-     "scenario": "limits INSERT and DELETE",
-     "expected": "each fires a NOTIFY (statement trigger)",
+     "scenario": "api_tier per-minute update, and api_tier_meter_limit INSERT, UPDATE and DELETE",
+     "expected": "each fires a NOTIFY (a row trigger for updates, a statement trigger for insert and delete)",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_limits_insert_and_delete_notify"
+       "ref": "powered_by/tests/migration_api_project_triggers_test.py::ApiProjectTriggersMigrationTest::test_tier_limit_edit_notifies"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestListenDeliversPlainSQLChanges"
       }
      ]
     },
     {
      "id": "F-MODEL-03.e3",
-     "scenario": "last_used_at, project name, limits updated_at alone, and a write leaving the tier unchanged",
+     "scenario": "contact_email, owner, profile, updated_at on api_project, a tier name, a meter limit's updated_at alone, and key last_used_at",
      "expected": "fire no NOTIFY",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_bookkeeping_updates_do_not_notify"
+       "ref": "powered_by/tests/migration_api_project_triggers_test.py::ApiProjectTriggersMigrationTest::test_descriptive_edit_does_not_notify"
       },
       {
        "kind": "gotest",
@@ -345,41 +368,45 @@
     },
     {
      "id": "F-MODEL-03.e4",
-     "scenario": "setting a project's deleted_at, and writing the frozen Project.tier",
-     "expected": "deleted_at notifies, the frozen tier does not",
+     "scenario": "api_project update trigger",
+     "expected": "watches tier_id and deleted_at only, so setting deleted_at (a soft delete) notifies and a descriptive edit does not",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_soft_delete_notifies"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::TriggerInventoryEdgesTest::test_api_project_update_notifies_on_tier_or_deletion_and_delete_is_a_statement_trigger"
       },
       {
-       "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_frozen_project_tier_does_not_notify"
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestDeletingTheOnlyKeyedProjectRevokesItImmediately"
       }
      ]
     },
     {
      "id": "F-MODEL-03.e5",
-     "scenario": "deleting a project row",
+     "scenario": "deleting an api_project row",
      "expected": "fires the statement trigger",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_project_delete_notifies"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::TriggerInventoryEdgesTest::test_api_project_update_notifies_on_tier_or_deletion_and_delete_is_a_statement_trigger"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestListenDeliversPlainSQLChanges"
       }
      ]
     },
     {
      "id": "F-MODEL-03.e6",
      "scenario": "trigger inventory after 0008",
-     "expected": "six triggers and one function; key triggers unchanged, project update trigger lists deleted_at only, limits update trigger lists tier",
+     "expected": "ten NOTIFY triggers: the four key and profile triggers of 0004 unchanged, and six on api_project, api_tier and api_tier_meter_limit",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_trigger_inventory_after_0008"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::TriggerInventoryEdgesTest::test_the_notify_triggers_are_exactly_the_ten_of_the_api_project_design"
       },
       {
        "kind": "demo",
@@ -389,37 +416,57 @@
     },
     {
      "id": "F-MODEL-03.e7",
-     "scenario": "applying 0008",
-     "expected": "sends a NOTIFY so a waiting new auth-service image reloads at once",
+     "scenario": "applying the trigger step of 0008",
+     "expected": "sends a NOTIFY so a waiting auth service reloads at once",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_migration_0008_sends_a_notify"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::MigrationEdgesTest::test_applying_the_trigger_step_sends_a_notify"
       }
      ]
     },
     {
      "id": "F-MODEL-03.e8",
      "scenario": "reversing 0008",
-     "expected": "restores the 0005 trigger definitions and drops the limits triggers (pg_get_triggerdef)",
+     "expected": "drops the six API triggers and keeps the key and profile triggers; the key foreign key returns to the profile table",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_reverse_restores_the_0005_triggers"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::MigrationEdgesTest::test_reversing_the_trigger_step_restores_the_key_and_profile_triggers_only"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_triggers_test.py::ApiProjectTriggersMigrationTest::test_key_project_fk_points_at_api_project_and_migration_round_trips"
       }
      ]
     },
     {
      "id": "F-MODEL-03.e9",
-     "scenario": "0008 on a database that already holds backfilled limits rows",
-     "expected": "applies with no pending-trigger-events error",
+     "scenario": "0008 on a database that holds backfilled rows and a key an older image wrote after 0007",
+     "expected": "applies with no pending-trigger-events error and gives the key an API project",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_0008_applies_with_backfilled_rows_present"
+       "ref": "powered_by/tests/migration_api_project_triggers_test.py::ApiProjectTriggersMigrationTest::test_key_project_fk_points_at_api_project_and_migration_round_trips"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-03.e10",
+     "scenario": "the profile NOTIFY trigger after 0009",
+     "expected": "stays on tier OR deleted_at for older images that still write powered_by_project.tier; the new loader ignores that value (F-OLDIMG-01)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::TriggerInventoryEdgesTest::test_the_profile_triggers_stay_for_older_images"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_cleanup_test.py::CleanupAbandonedLimitsMigrationTest::test_cleanup_removes_the_abandoned_design_and_is_idempotent"
       }
      ]
     }
@@ -434,12 +481,12 @@
     {
      "id": "F-MODEL-04.e1",
      "scenario": "auth_service_reader role exists",
-     "expected": "0008 grants SELECT (project_id, tier) on powered_by_projectlimits",
+     "expected": "0008 grants SELECT on api_project (id, tier_id, deleted_at), api_tier (id, per_minute_per_project) and api_tier_meter_limit (tier_id, meter, monthly_per_project)",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::GrantMigrationTest::test_grants_reader_role_when_present"
+       "ref": "powered_by/tests/migration_api_project_triggers_test.py::ApiProjectTriggersMigrationTest::test_reader_grants"
       }
      ]
     },
@@ -451,19 +498,19 @@
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::GrantMigrationTest::test_no_reader_role_is_not_an_error"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::MigrationEdgesTest::test_a_missing_reader_role_is_not_an_error"
       }
      ]
     },
     {
      "id": "F-MODEL-04.e3",
-     "scenario": "reader selects created_at or updated_at on the limits table, or last_used_at on the key table",
+     "scenario": "reader selects api_project.profile_id, owner_id or contact_email",
      "expected": "refused (column-level grants only)",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::GrantMigrationTest::test_reader_cannot_read_bookkeeping_columns"
+       "ref": "powered_by/tests/migration_api_project_triggers_test.py::ApiProjectTriggersMigrationTest::test_reader_grants"
       },
       {
        "kind": "demo",
@@ -474,18 +521,23 @@
     {
      "id": "F-MODEL-04.e4",
      "scenario": "provision script and local provision.sql",
-     "expected": "grant (project_id, tier) on the limits table; the script's table guard lists it",
+     "expected": "grant the same three column lists on api_project, api_tier and api_tier_meter_limit; the script's table guard lists all five tables",
      "severity": "P1",
      "checks": [
       {
        "kind": "file",
        "ref": "auth-service/scripts/provision-cluster-registry.sh",
-       "contains": "powered_by_projectlimits"
+       "contains": "GRANT SELECT \\(id, tier_id, deleted_at\\) ON api_project"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/provision-cluster-registry.sh",
+       "contains": "'api_project', 'api_tier', 'api_tier_meter_limit'"
       },
       {
        "kind": "file",
        "ref": "auth-service/dev/local-stack/provision.sql",
-       "contains": "SELECT \\(project_id, tier\\) ON powered_by_projectlimits"
+       "contains": "GRANT SELECT \\(id, tier_id, deleted_at\\) ON api_project"
       }
      ]
     }
@@ -499,13 +551,13 @@
    "edge_cases": [
     {
      "id": "F-MODEL-05.e1",
-     "scenario": "old code inserts a key and a project row (frozen tier default)",
-     "expected": "works with no limits row involved",
+     "scenario": "an older image inserts a profile row (frozen tier default) after the split",
+     "expected": "the insert works with no api_project row involved; the next run of the idempotent backfill gives the profile one",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::OldCodeCompatibilityTest::test_old_code_can_still_insert_a_key_and_a_project"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_rerun_picks_up_rows_old_images_wrote"
       },
       {
        "kind": "drill",
@@ -515,49 +567,53 @@
     },
     {
      "id": "F-MODEL-05.e2",
-     "scenario": "old loader join (apikey JOIN project, p.tier)",
-     "expected": "still returns every migrated key",
+     "scenario": "old loader join (apikey JOIN powered_by_project, p.tier)",
+     "expected": "still returns every migrated key, because an API project has the id of its profile",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::OldCodeCompatibilityTest::test_old_loader_join_returns_migrated_keys"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::OldImageEdgesTest::test_old_loader_join_still_returns_a_migrated_key"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_dev_shape_ids_and_keys_preserved"
       }
      ]
     },
     {
      "id": "F-MODEL-05.e3",
-     "scenario": "tier changed on the limits row after 0008",
-     "expected": "invisible to the old query, which reads the frozen column (documented limit, pinned)",
+     "scenario": "tier changed on api_project after the split",
+     "expected": "invisible to the old query, which reads the frozen profile column (documented limit, pinned)",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::OldCodeCompatibilityTest::test_old_loader_does_not_see_a_tier_changed_after_the_split"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::OldImageEdgesTest::test_a_tier_changed_on_the_api_project_is_invisible_to_the_old_query"
       }
      ]
     },
     {
      "id": "F-MODEL-05.e4",
-     "scenario": "new loader query with a tier written to the frozen Project.tier (what an old image's admin does)",
-     "expected": "ignored",
+     "scenario": "new loader query with a tier written to the frozen powered_by_project.tier (what an older image's admin does)",
+     "expected": "ignored: the key loads with the tier of its api_project",
      "severity": "P0",
      "checks": [
       {
-       "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::OldCodeCompatibilityTest::test_new_loader_query_ignores_the_frozen_project_tier"
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadIgnoresLegacyTierColumn"
       }
      ]
     },
     {
      "id": "F-MODEL-05.e5",
-     "scenario": "old image hard-deletes a keyless project that has a limits row",
-     "expected": "refused by the FK at commit, nothing lost; a keyed project stays protected (documented limit)",
+     "scenario": "older image hard-deletes a profile that has an api_project",
+     "expected": "refused by the foreign key at commit, nothing lost; an API project with keys stays protected (documented limit)",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::OldCodeCompatibilityTest::test_old_code_cannot_hard_delete_a_project_that_has_a_limits_row"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_an_old_image_cannot_hard_delete_a_profile_that_has_an_api_project"
       }
      ]
     }
@@ -598,32 +654,32 @@
     },
     {
      "id": "F-SCHEMA-01.e3",
-     "scenario": "fixture and Django limits-table columns",
-     "expected": "equal",
+     "scenario": "columns the loader reads from api_project, api_tier and api_tier_meter_limit, fixture vs Django",
+     "expected": "equal names and nullability",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/auth_service_schema_test.py::AuthServiceFixtureSchemaTest::test_N_E7_the_limits_table_has_the_same_columns"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::FixtureApiTablesTest::test_the_columns_the_loader_reads_match"
       }
      ]
     },
     {
      "id": "F-SCHEMA-01.e4",
-     "scenario": "fixture and Django limits tier CHECK text",
-     "expected": "identical (single tier list)",
+     "scenario": "foreign keys the loader joins on (api_project to profile and tier, meter limit to tier, key to api_project)",
+     "expected": "present in the fixture and in Django, so an unknown tier is refused in both",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/auth_service_schema_test.py::AuthServiceFixtureSchemaTest::test_N_E7_the_limits_tier_check_matches"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::FixtureApiTablesTest::test_the_foreign_keys_the_loader_joins_on_exist_in_both"
       }
      ]
     },
     {
      "id": "F-SCHEMA-01.e5",
-     "scenario": "notify triggers and function, all six",
-     "expected": "identical",
+     "scenario": "key and profile notify triggers and the notify function",
+     "expected": "identical (the API-table triggers are e7)",
      "severity": "P1",
      "checks": [
       {
@@ -648,92 +704,112 @@
        "ref": "powered_by/tests/auth_service_schema_test.py::AuthServiceFixtureSchemaTest::test_N_E7_the_key_table_has_the_same_check_constraints_known_gap_N_E7"
       }
      ]
+    },
+    {
+     "id": "F-SCHEMA-01.e7",
+     "scenario": "notify triggers on api_tier and api_tier_meter_limit, fixture vs Django",
+     "expected": "identical names and definitions",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::FixtureApiTablesTest::test_the_api_table_triggers_are_identical"
+      }
+     ]
     }
    ]
   },
   {
    "id": "F-WRITE-01",
    "area": "write",
-   "title": "Limits through the writer",
+   "title": "API project, tier and keys through the writer",
    "status": "on_branch",
    "edge_cases": [
     {
      "id": "F-WRITE-01.e1",
      "scenario": "creating a project in developer settings",
-     "expected": "creates its developer limits row in the same transaction; a failure leaves neither",
+     "expected": "creates its profile and its developer API project in one transaction; a failure leaves neither",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_create_project_creates_a_developer_limits_row"
+       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_a_project_is_a_powered_by_row_owned_by_the_account"
       },
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_a_failed_project_create_leaves_neither_project_nor_row"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectWriterEdgesTest::test_a_failed_project_create_leaves_neither_profile_nor_api_project"
       }
      ]
     },
     {
      "id": "F-WRITE-01.e2",
      "scenario": "claiming a listing",
-     "expected": "gives it a developer limits row (now owned); an existing row is kept",
+     "expected": "gives the existing profile a developer API project owned by the account; the profile itself is unchanged",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_claiming_a_listing_creates_a_developer_limits_row"
+       "ref": "powered_by/tests/developer_api_test.py::ListingTest::test_claiming_makes_the_listing_a_project"
       },
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_claiming_keeps_an_existing_limits_row"
+       "ref": "powered_by/tests/developer_api_test.py::ListingTest::test_claiming_keeps_the_listing_consent_and_publish_flags"
       }
      ]
     },
     {
      "id": "F-WRITE-01.e3",
      "scenario": "keys of a partner project, created before or after the change, revoked or live",
-     "expected": "all stamp partner; a key has no tier of its own",
+     "expected": "all load as partner and share the project's counters; a key has no tier of its own",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_all_keys_of_a_project_share_its_tier"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectWriterEdgesTest::test_every_key_of_a_project_has_the_tier_of_its_api_project"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadAll"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadJoinsApiProjectAndTier"
       }
      ]
     },
     {
      "id": "F-WRITE-01.e4",
-     "scenario": "set_project_tier",
-     "expected": "creates or updates the one row, rejects an unknown tier and changes nothing, touches no other project, works before the first key",
+     "scenario": "changing a project's tier",
+     "expected": "only an admin holding change_tier can; an unknown tier is refused by the foreign key; the change notifies the auth service",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_set_project_tier_creates_or_updates_the_one_row"
+       "ref": "powered_by/tests/public_listing_api_project_test.py::AdminApiProjectTest::test_admin_tier_editable_only_with_change_tier"
       },
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_set_project_tier_rejects_unknown_tier_and_changes_nothing"
+       "ref": "powered_by/tests/api_project_model_test.py::ApiProjectModelTest::test_tier_fk_refuses_unknown"
       },
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_set_project_tier_touches_no_other_project"
-      },
-      {
-       "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_set_project_tier_works_before_the_first_key"
+       "ref": "powered_by/tests/migration_api_project_triggers_test.py::ApiProjectTriggersMigrationTest::test_tier_change_notifies_once"
       }
      ]
     },
     {
      "id": "F-WRITE-01.e5",
-     "scenario": "project without a limits row (legacy listing, mock, project of an older image)",
-     "expected": "effective tier developer",
+     "scenario": "profile with no live API project (legacy listing, mock row, profile an older image made)",
+     "expected": "has no keys and is not a gateway project; it stays in the public listing unless internal; claiming gives it a developer API project",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_project_tier_of_a_project_without_a_row_is_developer"
+       "ref": "powered_by/tests/public_listing_api_project_test.py::PublicListingApiProjectTest::test_legacy_profile_listed_with_or_without_project"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ListingTest::test_claiming_makes_the_listing_a_project"
       },
       {
        "kind": "demo",
@@ -744,24 +820,24 @@
     {
      "id": "F-WRITE-01.e6",
      "scenario": "settings JSON",
-     "expected": "never contains tier; the key set of every project and key object is unchanged",
+     "expected": "never contains tier; the key set of the state, every project and every key object is unchanged",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::StateShapeTest::test_state_json_shape_is_unchanged_and_has_no_tier"
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::StateShapeTest::test_state_json_shape_unchanged"
       }
      ]
     },
     {
      "id": "F-WRITE-01.e7",
      "scenario": "revoking every key of the project",
-     "expected": "the tier survives (the limits row is not the keys')",
+     "expected": "the API project and its tier survive",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_tier_survives_revoking_every_key"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectWriterEdgesTest::test_revoking_every_key_keeps_the_api_project_and_its_tier"
       }
      ]
     }
@@ -770,13 +846,13 @@
   {
    "id": "F-WRITE-02",
    "area": "write",
-   "title": "Create, update, visibility, delete (unchanged by the split)",
+   "title": "Create, update, visibility, delete on API projects",
    "status": "on_branch",
    "edge_cases": [
     {
      "id": "F-WRITE-02.e1",
      "scenario": "project name, visibility and website",
-     "expected": "validated; private keeps its fields, public is published, public to private withdraws consent and unpublishes",
+     "expected": "validated; private keeps its fields, public is listed while staff leave it published, public to private withdraws consent and unlists it",
      "severity": "P1",
      "checks": [
       {
@@ -785,23 +861,35 @@
       },
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_a_public_project_is_published_and_a_private_one_is_not"
+       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_a_public_project_is_listed_and_a_private_one_is_not"
       },
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_making_a_public_project_private_withdraws_consent_and_unpublishes_it"
+       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_making_a_public_project_private_withdraws_consent_and_unlists_it"
       }
      ]
     },
     {
      "id": "F-WRITE-02.e2",
      "scenario": "website change",
-     "expected": "moves restricted keys' origins; no website frees them",
+     "expected": "moves restricted keys' origins; no website is refused while a key is restricted and allowed once none is",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_new_website_moves_restricted_keys_and_no_website_frees_them"
+       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_new_website_moves_restricted_keys_and_no_website_is_refused_while_a_key_is_restricted"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::WebsiteRestrictionTest::test_clear_website_refused_when_restricted"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::WebsiteRestrictionTest::test_clear_website_allowed_when_no_key_is_restricted"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::WebsiteRestrictionTest::test_website_change_rewrites_only_restricted_keys"
       }
      ]
     },
@@ -828,7 +916,7 @@
     {
      "id": "F-WRITE-02.e4",
      "scenario": "new project",
-     "expected": "a Powered by row owned by the account with a developer limits row",
+     "expected": "a developer-settings profile with a live developer API project owned by the account",
      "severity": "P1",
      "checks": [
       {
@@ -840,12 +928,32 @@
     {
      "id": "F-WRITE-02.e5",
      "scenario": "soft-deleting a project",
-     "expected": "keeps its limits row and tier",
+     "expected": "sets deleted_at on the API project and keeps its row, keys and tier; a settings-made profile is unpublished and the profile is free for a new API project",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ProjectLimitsWriterTest::test_deleting_a_project_keeps_its_limits_row"
+       "ref": "powered_by/tests/developer_api_test.py::ProjectTest::test_deleting_a_project_revokes_its_keys_and_keeps_the_rows"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::DeletedSettingsProjectTest::test_settings_created_project_is_unpublished_on_delete"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/api_project_model_test.py::ApiProjectModelTest::test_deleted_api_project_frees_the_profile"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-02.e6",
+     "scenario": "ids in the developer API",
+     "expected": "project ids are api_project ids, not profile ids; edit, key creation and delete address the API project",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::ApiProjectIdTest::test_ids_are_api_project_ids_not_profile_ids"
       }
      ]
     }
@@ -854,7 +962,7 @@
   {
    "id": "F-WRITE-03",
    "area": "write",
-   "title": "Claim and dismiss a listing (unchanged by the split apart from F-WRITE-01.e2)",
+   "title": "Claim and dismiss a listing",
    "status": "on_branch",
    "legacy_ids": [
     "N-C14",
@@ -898,26 +1006,24 @@
     {
      "id": "F-WRITE-03.e3",
      "scenario": "claiming a listing whose submitter said no",
-     "expected": "should stay unpublished (known gap)",
+     "expected": "stays unpublished until the owner picks Public",
      "severity": "P1",
-     "known_gap": true,
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/developer_api_gaps_test.py::ClaimConsentTest::test_N_C15_claiming_a_listing_whose_submitter_said_no_keeps_it_unpublished_known_gap_N_D8"
+       "ref": "powered_by/tests/developer_api_gaps_test.py::ClaimConsentTest::test_N_C15_claiming_a_listing_whose_submitter_said_no_keeps_it_unpublished"
       }
      ]
     },
     {
      "id": "F-WRITE-03.e4",
      "scenario": "staff unpublish, then the owner toggles private and public",
-     "expected": "should survive (known gap)",
+     "expected": "the staff unpublish holds",
      "severity": "P1",
-     "known_gap": true,
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/developer_api_gaps_test.py::ClaimConsentTest::test_N_C15_a_staff_unpublish_holds_when_the_owner_toggles_private_and_public_known_gap_N_D8"
+       "ref": "powered_by/tests/developer_api_gaps_test.py::ClaimConsentTest::test_N_C15_a_staff_unpublish_holds_when_the_owner_toggles_private_and_public"
       }
      ]
     },
@@ -1133,7 +1239,7 @@
     {
      "id": "F-WRITE-06.e3",
      "scenario": "mock listing and the seed script",
-     "expected": "a mock is offered and starting over releases it; the seed script resets and tears down cleanly (its ORM project delete cascades to the limits row)",
+     "expected": "a mock is offered and starting over releases it; the seed script resets and tears down cleanly, API projects and keys included",
      "severity": "P1",
      "checks": [
       {
@@ -1159,7 +1265,7 @@
   {
    "id": "F-ADMIN-01",
    "area": "admin",
-   "title": "Project admin and the ProjectLimits inline",
+   "title": "Profile admin and API project admin",
    "status": "on_branch",
    "legacy_ids": [
     "N-M11"
@@ -1167,8 +1273,8 @@
    "edge_cases": [
     {
      "id": "F-ADMIN-01.e1",
-     "scenario": "project admin changelist and change form",
-     "expected": "render with the limits and key inlines",
+     "scenario": "profile admin changelist and API project change form",
+     "expected": "render; the API project form carries the key inline",
      "severity": "P2",
      "checks": [
       {
@@ -1178,78 +1284,70 @@
       {
        "kind": "pytest",
        "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_N_M11_the_change_form_renders_with_the_key_inline"
-      },
-      {
-       "kind": "pytest",
-       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_staff_without_change_tier_sees_limits_readonly"
-      },
-      {
-       "kind": "pytest",
-       "ref": "powered_by/tests/admin_test.py::ProjectAdminNotifyTest::test_superuser_can_change_tier_through_the_inline_and_it_notifies"
       }
      ]
     },
     {
      "id": "F-ADMIN-01.e2",
      "scenario": "staff without change_tier",
-     "expected": "sees the limits inline read-only and cannot add a row",
+     "expected": "the tier field is not offered and a forged tier value changes nothing",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_staff_without_change_tier_sees_limits_readonly"
-      },
-      {
-       "kind": "pytest",
-       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_staff_without_change_tier_cannot_forge_a_limits_row_or_a_tier_change"
+       "ref": "powered_by/tests/public_listing_api_project_test.py::AdminApiProjectTest::test_admin_tier_editable_only_with_change_tier"
       }
      ]
     },
     {
      "id": "F-ADMIN-01.e3",
-     "scenario": "superuser or permission holder changes the tier through the inline (Postgres)",
-     "expected": "the row is created or updated and a NOTIFY is sent",
+     "scenario": "a holder of change_tier changes the tier in the API project form",
+     "expected": "the tier is saved and a NOTIFY is sent",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/admin_test.py::ProjectAdminNotifyTest::test_superuser_can_change_tier_through_the_inline_and_it_notifies"
+       "ref": "powered_by/tests/public_listing_api_project_test.py::AdminApiProjectTest::test_admin_tier_editable_only_with_change_tier"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_triggers_test.py::ApiProjectTriggersMigrationTest::test_tier_change_notifies_once"
       }
      ]
     },
     {
      "id": "F-ADMIN-01.e4",
      "scenario": "key inline",
-     "expected": "has no tier field, and a key added in it creates no limits row",
+     "expected": "has no tier field: a key takes the tier of the API project it belongs to",
      "severity": "P1",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_key_inline_has_no_tier_and_adds_no_limits_row"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_the_key_inline_has_no_tier_and_the_profile_admin_does_not_offer_the_frozen_columns"
       }
      ]
     },
     {
      "id": "F-ADMIN-01.e5",
-     "scenario": "Developer settings fieldset",
-     "expected": "no longer offers the frozen Project.tier",
+     "scenario": "profile admin Developer settings fieldset",
+     "expected": "does not offer the frozen tier, owner or deleted_at",
      "severity": "P2",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_frozen_project_tier_is_not_in_the_form"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_the_key_inline_has_no_tier_and_the_profile_admin_does_not_offer_the_frozen_columns"
       }
      ]
     },
     {
      "id": "F-ADMIN-01.e6",
-     "scenario": "saving a project without touching the limits inline",
-     "expected": "creates no row",
+     "scenario": "saving a profile in the admin without touching it",
+     "expected": "creates no API project",
      "severity": "P2",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_saving_a_project_without_limits_changes_creates_no_row"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ProfileAdminEdgesTest::test_saving_a_profile_without_changes_creates_no_api_project"
       }
      ]
     },
@@ -1287,6 +1385,18 @@
       {
        "kind": "pytest",
        "ref": "powered_by/tests/admin_test.py::ProjectAdminTest::test_N_M11_a_sixth_active_key_cannot_be_added_known_gap_N_M11"
+      }
+     ]
+    },
+    {
+     "id": "F-ADMIN-01.e9",
+     "scenario": "clearing revoked_at of a revoked key in the key inline",
+     "expected": "the key stays revoked (the field is read-only once set)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/public_listing_api_project_test.py::AdminApiProjectTest::test_admin_cannot_unrevoke_a_key"
       }
      ]
     }
@@ -1329,7 +1439,7 @@
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/project_limits_writer_test.py::ListingResponseTest::test_listing_responses_never_expose_tier_limits_or_keys"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_listing_responses_never_expose_tier_limits_or_keys"
       },
       {
        "kind": "demo",
@@ -1340,25 +1450,28 @@
     {
      "id": "F-LIST-01.e3",
      "scenario": "a deleted project marked published",
-     "expected": "should not be public (known gap)",
+     "expected": "is not public",
      "severity": "P1",
-     "known_gap": true,
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/developer_security_test.py::DeletedProjectGalleryTest::test_N_CR14_a_deleted_project_marked_published_is_not_public_known_gap_N_CR14"
+       "ref": "powered_by/tests/developer_security_test.py::DeletedProjectGalleryTest::test_N_CR14_a_deleted_project_marked_published_is_not_public"
       }
      ]
     },
     {
      "id": "F-LIST-01.e4",
-     "scenario": "project whose limits tier is internal",
+     "scenario": "profile whose live API project is on the internal tier",
      "expected": "never in the public or non-staff listing, published or not; staff still see it",
      "severity": "P0",
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/powered_by_api_test.py::test_internal_projects_are_never_in_the_public_listing"
+       "ref": "powered_by/tests/public_listing_api_project_test.py::PublicListingApiProjectTest::test_internal_project_never_listed"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/public_listing_api_project_test.py::PublicListingApiProjectTest::test_legacy_profile_listed_with_or_without_project"
       }
      ]
     }
@@ -1403,7 +1516,7 @@
   {
    "id": "F-REG-01",
    "area": "registry",
-   "title": "Loader reads the project's limits tier and the project's deleted_at",
+   "title": "Loader reads the API project's tier and deleted_at, and the tier's limits",
    "status": "on_branch",
    "edge_cases": [
     {
@@ -1420,13 +1533,13 @@
     },
     {
      "id": "F-REG-01.e2",
-     "scenario": "fixture project and key have no tier column",
-     "expected": "tier comes from the project's limits row",
+     "scenario": "key and api_project carry no tier of their own beyond api_project.tier_id",
+     "expected": "tier and limits come from api_project, api_tier and api_tier_meter_limit",
      "severity": "P0",
      "checks": [
       {
        "kind": "gotest",
-       "ref": "auth-service/internal/registry::TestLoadAllTierComesFromTheLimitsRow"
+       "ref": "auth-service/internal/registry::TestLoadJoinsApiProjectAndTier"
       },
       {
        "kind": "demo",
@@ -1436,25 +1549,25 @@
     },
     {
      "id": "F-REG-01.e3",
-     "scenario": "project with no limits row",
-     "expected": "loads as developer",
+     "scenario": "api_project created without a tier",
+     "expected": "takes the developer default (database default, fixture and Django)",
      "severity": "P0",
      "checks": [
       {
-       "kind": "gotest",
-       "ref": "auth-service/internal/registry::TestLoadAllProjectWithoutLimitsIsDeveloper"
+       "kind": "pytest",
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_new_api_project_defaults_to_developer_in_python_and_raw_insert"
       }
      ]
     },
     {
      "id": "F-REG-01.e4",
      "scenario": "two keys of one project",
-     "expected": "same tier (one limits row; x-sefaria-project is the project id, so they also share counters)",
+     "expected": "same tier (one api_project; x-sefaria-project is its id, so they also share counters)",
      "severity": "P0",
      "checks": [
       {
        "kind": "gotest",
-       "ref": "auth-service/internal/registry::TestLoadAllKeysOfOneProjectShareTheTier"
+       "ref": "auth-service/internal/registry::TestLoadAll"
       }
      ]
     },
@@ -1472,13 +1585,13 @@
     },
     {
      "id": "F-REG-01.e6",
-     "scenario": "keys of a soft-deleted project",
+     "scenario": "keys of a soft-deleted API project",
      "expected": "load revoked",
      "severity": "P0",
      "checks": [
       {
        "kind": "gotest",
-       "ref": "auth-service/internal/registry::TestLoadAllMarksDeletedProjectKeysRevoked"
+       "ref": "auth-service/internal/registry::TestLoadMarksDeletedProjectKeysRevoked"
       }
      ]
     },
@@ -1496,13 +1609,17 @@
     },
     {
      "id": "F-REG-01.e8",
-     "scenario": "fixture CHECK with an unknown limits tier",
-     "expected": "rejected",
+     "scenario": "api_project.tier_id naming a tier that does not exist",
+     "expected": "refused by the foreign key in the fixture and in Django",
      "severity": "P1",
      "checks": [
       {
-       "kind": "gotest",
-       "ref": "auth-service/internal/registry::TestFixtureRejectsAnUnknownTier"
+       "kind": "pytest",
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::FixtureApiTablesTest::test_the_foreign_keys_the_loader_joins_on_exist_in_both"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/api_project_model_test.py::ApiProjectModelTest::test_tier_fk_refuses_unknown"
       }
      ]
     }
@@ -1516,8 +1633,8 @@
    "edge_cases": [
     {
      "id": "F-REG-02.e1",
-     "scenario": "plain SQL changes (limits tier UPDATE, project DELETE)",
-     "expected": "delivered with table powered_by_projectlimits",
+     "scenario": "plain SQL changes (api_project tier UPDATE, api_tier and meter-limit changes, key INSERT, project DELETE)",
+     "expected": "delivered with the table name (api_project, api_tier, api_tier_meter_limit, powered_by_apikey)",
      "severity": "P0",
      "checks": [
       {
@@ -1544,7 +1661,7 @@
     },
     {
      "id": "F-REG-02.e3",
-     "scenario": "bookkeeping writes (project name, key last_used_at, limits updated_at)",
+     "scenario": "bookkeeping writes (profile name, key last_used_at, api_project updated_at)",
      "expected": "do not notify",
      "severity": "P0",
      "checks": [
@@ -1572,13 +1689,21 @@
     },
     {
      "id": "F-REG-02.e5",
-     "scenario": "tier change on a project's limits row",
-     "expected": "reaches the registry for every key of that project",
+     "scenario": "change on a project's api_project row",
+     "expected": "reaches the registry: the NOTIFY is delivered and the full reload that follows applies the new state to every key of the project (pinned for deleted_at; the tier is read in the same join)",
      "severity": "P0",
      "checks": [
       {
        "kind": "gotest",
-       "ref": "auth-service/internal/registry::TestTierChangeReachesEveryKeyOfTheProject"
+       "ref": "auth-service/internal/registry::TestListenDeliversPlainSQLChanges"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestDeletingTheOnlyKeyedProjectRevokesItImmediately"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadJoinsApiProjectAndTier"
       }
      ]
     }
@@ -1709,13 +1834,13 @@
     },
     {
      "id": "F-REG-05.e2",
-     "scenario": "reader role lacks SELECT (project_id, tier) on powered_by_projectlimits",
+     "scenario": "reader role lacks SELECT (tier_id, meter, monthly_per_project) on api_tier_meter_limit",
      "expected": "same visible failure and recovery",
      "severity": "P0",
      "checks": [
       {
        "kind": "drill",
-       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh#limits grant running: the running pod keeps its set"
+       "ref": "auth-service/dev/local-stack/scenarios/ne4-grant.sh#meter-limit grant running: the running pod keeps its set"
       }
      ]
     },
@@ -1835,7 +1960,7 @@
     },
     {
      "id": "F-REG-06.e3",
-     "scenario": "tier change on the project's limits row",
+     "scenario": "tier change on the project's api_project row",
      "expected": "reaches x-sefaria-tier of every key of the project within 5 s",
      "severity": "P0",
      "checks": [
@@ -2738,11 +2863,11 @@
     {
      "id": "F-KEYADM-01.e2",
      "scenario": "set-tier",
-     "expected": "rejects a value outside the CHECK list and upserts the project's row in powered_by_projectlimits, never the frozen project column (needed when the POC rebases)",
+     "expected": "rejects a value outside the CHECK list and sets api_project.tier_id for the project, never the frozen powered_by_project.tier column (needed when the POC rebases)",
      "severity": "P1",
      "status": "planned",
      "tracking": "FU-KEYADM-1",
-     "planned_check": "A keyadmin test that set-tier upserts powered_by_projectlimits and rejects a tier outside the CHECK list"
+     "planned_check": "A keyadmin test that set-tier updates api_project.tier_id and rejects a tier that is not in api_tier"
     }
    ]
   },
@@ -3265,12 +3390,12 @@
     },
     {
      "id": "F-QUOTA-01.e28",
-     "scenario": "Q-EDGE-23 [M] Tier change mid-month on the project's limits row (developer -> partner or back)",
+     "scenario": "Q-EDGE-23 [M] Tier change mid-month on the API project's tier (developer -> partner or back)",
      "expected": "Document as reset; prefer per-project overrides; runbook to read/set the Redis key",
      "severity": "P1",
      "status": "planned",
      "tracking": "FU-Q-23",
-     "planned_check": "e2e: set the tier on the project's limits row, compare remaining"
+     "planned_check": "e2e: set the tier on the API project, compare remaining"
     },
     {
      "id": "F-QUOTA-01.e29",
@@ -3280,11 +3405,11 @@
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::BackfillMigrationTest::test_deleted_project_keeps_its_row_and_its_keys_load_revoked"
+       "ref": "powered_by/tests/migration_api_project_backfill_test.py::ApiProjectBackfillMigrationTest::test_dev_shape_ids_and_keys_preserved"
       },
       {
        "kind": "gotest",
-       "ref": "auth-service/internal/registry::TestLoadAllMarksDeletedProjectKeysRevoked"
+       "ref": "auth-service/internal/registry::TestLoadMarksDeletedProjectKeysRevoked"
       }
      ],
      "status": "on_branch"
@@ -3310,7 +3435,7 @@
     {
      "id": "F-QUOTA-01.e32",
      "scenario": "Q-EDGE-27 [H] Unknown, empty or typo tier (and `partner`, which Django cannot create)",
-     "expected": "Invert-regex catch-all on the known tiers, per-minute only (never a semantic deny, section 8); DB CHECK on `powered_by_projectlimits.tier`; `keyadmin` validation; map unknown tiers to a safe label in `decide.go` (section 4 item 5).",
+     "expected": "Invert-regex catch-all on the known tiers, per-minute only (never a semantic deny, section 8); the api_project.tier_id foreign key to api_tier; `keyadmin` validation; map unknown tiers to a safe label in `decide.go` (section 4 item 5).",
      "severity": "P1",
      "status": "planned",
      "tracking": "FU-Q-27",
@@ -3760,7 +3885,7 @@
      "checks": [
       {
        "kind": "pytest",
-       "ref": "powered_by/tests/migration_project_limits_test.py::TriggerMigrationTest::test_soft_delete_notifies"
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::TriggerInventoryEdgesTest::test_api_project_update_notifies_on_tier_or_deletion_and_delete_is_a_statement_trigger"
       },
       {
        "kind": "file",
@@ -4170,6 +4295,370 @@
        "kind": "file",
        "ref": "e2e-tests/api-keys/tests/test_check_features.py",
        "contains": "def test_valid_minimal_file_passes"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-CLAIM-01",
+   "area": "write",
+   "title": "Claimed legacy listing after the owner's account is deleted",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-CLAIM-01.e1",
+     "scenario": "an account that claimed a legacy listing is deleted",
+     "expected": "the listing profile is untouched: still public, published and claimable, every field as before",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_after_account_deletion_is_public_claimable_and_keeps_edits"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::ListingTest::test_deleting_the_account_revokes_keys_deletes_projects_and_releases_listings"
+      }
+     ]
+    },
+    {
+     "id": "F-CLAIM-01.e2",
+     "scenario": "the same deletion",
+     "expected": "its API project is soft-deleted with the owner cleared, and its keys are revoked",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_after_account_deletion_is_public_claimable_and_keeps_edits"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_a_claimed_listing_is_released_and_its_keys_revoked"
+      }
+     ]
+    },
+    {
+     "id": "F-CLAIM-01.e3",
+     "scenario": "another verified account with the listing's submission email claims it afterwards",
+     "expected": "the claim works and creates a new API project owned by that account",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_after_account_deletion_is_public_claimable_and_keeps_edits"
+      }
+     ]
+    },
+    {
+     "id": "F-CLAIM-01.e4",
+     "scenario": "edits the first owner made to the claimed listing",
+     "expected": "survive the deletion and show for the second owner",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::ClaimedListingAccountDeletionTest::test_claimed_legacy_listing_after_account_deletion_is_public_claimable_and_keeps_edits"
+      }
+     ]
+    },
+    {
+     "id": "F-CLAIM-01.e5",
+     "scenario": "a project made in developer settings, by contrast, when its owner is deleted",
+     "expected": "its profile is unpublished (only legacy listings stay public)",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::DeletedSettingsProjectTest::test_settings_created_project_is_unpublished_on_delete"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/account_deletion_test.py::DeleteAccountTest::test_N_M5_an_owners_keys_are_revoked_and_projects_soft_deleted"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-SITE-01",
+   "area": "write",
+   "title": "Website restriction on keys follows the project's website",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-SITE-01.e1",
+     "scenario": "clearing the website while a key is restricted to it",
+     "expected": "refused with a message; the website and the key's origins stay as they were",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::WebsiteRestrictionTest::test_clear_website_refused_when_restricted"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_new_website_moves_restricted_keys_and_no_website_is_refused_while_a_key_is_restricted"
+      }
+     ]
+    },
+    {
+     "id": "F-SITE-01.e2",
+     "scenario": "changing the website while one key is restricted and another is not",
+     "expected": "rewrites only the restricted key's origin to the new website; the unrestricted server key is unchanged",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::WebsiteRestrictionTest::test_website_change_rewrites_only_restricted_keys"
+      }
+     ]
+    },
+    {
+     "id": "F-SITE-01.e3",
+     "scenario": "clearing the website when no key is restricted",
+     "expected": "allowed; unrestricted server keys are unaffected",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::WebsiteRestrictionTest::test_clear_website_allowed_when_no_key_is_restricted"
+      }
+     ]
+    },
+    {
+     "id": "F-SITE-01.e4",
+     "scenario": "restricting a key of a project that has no website",
+     "expected": "refused",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_a_key_cannot_be_restricted_without_a_website"
+      }
+     ]
+    },
+    {
+     "id": "F-SITE-01.e5",
+     "scenario": "restricting a key of a project with a website",
+     "expected": "allows only the website's origin",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_restricting_a_key_allows_only_the_project_website_origin"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-PRIV-01",
+   "area": "list",
+   "title": "Internal and private profiles never reach the public listing",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-PRIV-01.e1",
+     "scenario": "a profile whose live API project is on the internal tier, published or not",
+     "expected": "never in GET /api/powered-by for the public or non-staff users; staff still see it",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/public_listing_api_project_test.py::PublicListingApiProjectTest::test_internal_project_never_listed"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/public_listing_api_project_test.py::PublicListingApiProjectTest::test_legacy_profile_listed_with_or_without_project"
+      }
+     ]
+    },
+    {
+     "id": "F-PRIV-01.e2",
+     "scenario": "a private profile (no consent) with a live API project",
+     "expected": "not listed",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/public_listing_api_project_test.py::PublicListingApiProjectTest::test_private_profile_with_live_project_is_not_listed"
+      }
+     ]
+    },
+    {
+     "id": "F-PRIV-01.e3",
+     "scenario": "a settings-created profile with no live API project",
+     "expected": "hidden",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/public_listing_api_project_test.py::PublicListingApiProjectTest::test_settings_created_profile_without_live_project_is_hidden"
+      }
+     ]
+    },
+    {
+     "id": "F-PRIV-01.e4",
+     "scenario": "a settings-created public profile with a live API project",
+     "expected": "listed",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/public_listing_api_project_test.py::PublicListingApiProjectTest::test_settings_created_public_profile_with_live_project_is_listed"
+      }
+     ]
+    },
+    {
+     "id": "F-PRIV-01.e5",
+     "scenario": "a deleted settings-made project, even if staff mark it published",
+     "expected": "not listed",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_security_test.py::DeletedProjectGalleryTest::test_N_CR14_a_deleted_project_marked_published_is_not_public"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::DeletedSettingsProjectTest::test_settings_created_project_is_unpublished_on_delete"
+      }
+     ]
+    },
+    {
+     "id": "F-PRIV-01.e6",
+     "scenario": "a logged-in non-staff user",
+     "expected": "sees what the public sees: published and consented rows without private fields",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/powered_by_api_test.py::test_non_staff_user_sees_only_published_without_private_fields"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F-OUTAGE-01",
+   "area": "ratelimit",
+   "title": "Auth service down: fail open on the static default limits",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-OUTAGE-01.e1",
+     "scenario": "chart rendered with rate limiting on",
+     "expected": "every rule has a static numeric limit, so with no limit metadata from the auth service the static default applies",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "shell",
+       "ref": "auth-service/scripts/ratelimit-check.sh"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/ratelimit-check.sh",
+       "contains": "every rule has a static numeric limit \\(fail-open\\)"
+      }
+     ]
+    },
+    {
+     "id": "F-OUTAGE-01.e2",
+     "scenario": "a request with no tier metadata (what an unreachable auth service yields)",
+     "expected": "falls into rule 4, the inverted-tier catch-all, counted per client IP rather than in one shared bucket; nothing is left unlimited",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/ratelimit-check.sh",
+       "contains": "rule 4 is the inverted-tier catch-all"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/ratelimit-check.sh",
+       "contains": "rule 4 splits per client IP"
+      }
+     ]
+    },
+    {
+     "id": "F-OUTAGE-01.e3",
+     "scenario": "auth service scaled to zero on a running gateway, burst past the static limit",
+     "expected": "429 from the static rules and no 5xx from the gateway",
+     "severity": "P0",
+     "status": "planned",
+     "tracking": "FU-OUTAGE-1",
+     "planned_check": "drill: scale the auth service to zero on a cauldron, burst past the static limit, expect 429 and no 5xx"
+    }
+   ]
+  },
+  {
+   "id": "F-OLDIMG-01",
+   "area": "registry",
+   "title": "An older image still writes powered_by_project.tier",
+   "status": "on_branch",
+   "edge_cases": [
+    {
+     "id": "F-OLDIMG-01.e1",
+     "scenario": "the profile carries tier partner while its api_project is developer",
+     "expected": "the loader reads api_project.tier_id only: the key loads as developer",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadIgnoresLegacyTierColumn"
+      }
+     ]
+    },
+    {
+     "id": "F-OLDIMG-01.e2",
+     "scenario": "an older image writes powered_by_project.tier",
+     "expected": "the kept profile trigger still notifies, so the auth service reloads, and the reload ignores the value",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::TriggerInventoryEdgesTest::test_the_profile_triggers_stay_for_older_images"
+      },
+      {
+       "kind": "gotest",
+       "ref": "auth-service/internal/registry::TestLoadIgnoresLegacyTierColumn"
+      }
+     ]
+    },
+    {
+     "id": "F-OLDIMG-01.e3",
+     "scenario": "new code (writer, claim, account deletion) touches a profile",
+     "expected": "never writes the frozen tier, owner or deleted_at",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectWriterEdgesTest::test_the_writer_never_writes_the_frozen_profile_columns"
+      }
+     ]
+    },
+    {
+     "id": "F-OLDIMG-01.e4",
+     "scenario": "the admin edits a profile",
+     "expected": "does not offer the frozen tier, owner or deleted_at",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::ApiProjectSchemaEdgesTest::test_the_key_inline_has_no_tier_and_the_profile_admin_does_not_offer_the_frozen_columns"
+      }
+     ]
+    },
+    {
+     "id": "F-OLDIMG-01.e5",
+     "scenario": "an older loader reads a tier changed on api_project",
+     "expected": "sees the frozen profile value (documented limit)",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/feature_edges_api_project_test.py::OldImageEdgesTest::test_a_tier_changed_on_the_api_project_is_invisible_to_the_old_query"
       }
      ]
     }

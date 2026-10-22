@@ -59,7 +59,7 @@ Import `test` and `expect` from `./fixtures` (or `../fixtures`).
 - On the cauldron: at most 2 workers (the setup refuses more), `www.` host only, `@example.com` accounts only, and
   never touch rows the seed did not create.
 
-Tier is the `tier` column of the project's row in `powered_by_projectlimits` (no row means developer). It is set through `set_project_tier` in the local-stack drills, or the admin ProjectLimits inline. Every key of a project shares that tier and the project's counters. The project table keeps the metadata and the key table keeps the keys. Raw SQL that deletes a project must delete its limits row first, because the FK is deferred and refuses the delete at commit.
+Tier is the `tier_id` column of the profile's live row in `api_project` (one per profile; `api_tier` holds the seeded tiers developer, partner and internal, and `api_tier_meter_limit` the monthly limits per tier). The local-stack drills set it through `set_project_tier`. Every key of a project shares that tier and the project's counters. The profile table `powered_by_project` keeps the metadata, the key table keeps the keys, and each key points at its `api_project` row. Raw SQL that deletes a profile must delete its `api_project` row, and that row's keys, first, because the FK from `api_project` to the profile is deferred and refuses the delete at commit.
 
 ## Feature matrix
 
@@ -94,9 +94,10 @@ a `scenario`, an `expected`, a `severity` and `checks` (kinds: `pytest`, `gotest
 `checks_json`; ref forms are in `check_features.py`). A `demo` check names a `section_*` of `auth-service/scripts/demo.sh` whose body
 has a `prove <id>` line for that feature or edge id. Run the validator and fix every `MISSING` line.
 
-**PR rule.** A PR that adds a test under the `must_map` globs (`powered_by/tests/project_limits_*_test.py`,
-`powered_by/tests/migration_project_limits_test.py`) must map it: cite it from the edge case it proves, or `--strict` fails with
-"test matched by must_map is not referenced by any check".
+**PR rule.** A PR that adds a test under the `must_map` glob (`powered_by/tests/*api_project*_test.py`: the API project model,
+migration, writer, listing and edge-case tests) must map it: cite it from the edge case it proves, or `--strict` fails with
+"test matched by must_map is not referenced by any check". Test classes ending in `Test` or `TestCase` count, as well as `Test*` classes
+and module functions. Edge cases that only a new test can prove go in `powered_by/tests/feature_edges_api_project_test.py`.
 
 ## Files
 

@@ -9,8 +9,8 @@ CREATE TABLE powered_by_project (
   deleted_at   timestamptz
 );
 CREATE TABLE api_tier (
-  id                     text PRIMARY KEY,
-  name                   text NOT NULL DEFAULT '',
+  id                     varchar(20) PRIMARY KEY,
+  name                   varchar(100) NOT NULL DEFAULT '',
   per_minute_per_project int NOT NULL,
   created_at             timestamptz NOT NULL DEFAULT now(),
   updated_at             timestamptz NOT NULL DEFAULT now()
@@ -21,8 +21,8 @@ INSERT INTO api_tier (id, name, per_minute_per_project) VALUES
   ('internal', 'Internal', 6000);
 CREATE TABLE api_tier_meter_limit (
   id                  serial PRIMARY KEY,
-  tier_id             text NOT NULL REFERENCES api_tier(id),
-  meter               text NOT NULL,
+  tier_id             varchar(20) NOT NULL REFERENCES api_tier(id),
+  meter               varchar(50) NOT NULL,
   monthly_per_project bigint NOT NULL,
   UNIQUE (tier_id, meter)
 );
@@ -31,7 +31,7 @@ CREATE TABLE api_project (
   profile_id    integer NOT NULL REFERENCES powered_by_project(id),
   owner_id      int,
   contact_email text,
-  tier_id       text NOT NULL DEFAULT 'developer' REFERENCES api_tier(id),
+  tier_id       varchar(20) NOT NULL DEFAULT 'developer' REFERENCES api_tier(id),
   deleted_at    timestamptz,
   created_at    timestamptz NOT NULL DEFAULT now(),
   updated_at    timestamptz NOT NULL DEFAULT now()
@@ -71,8 +71,13 @@ CREATE TRIGGER apikeys_notify_api_project_update AFTER UPDATE ON api_project FOR
   EXECUTE FUNCTION apikeys_notify();
 CREATE TRIGGER apikeys_notify_api_project_delete AFTER DELETE ON api_project
   FOR EACH STATEMENT EXECUTE FUNCTION apikeys_notify();
-CREATE TRIGGER apikeys_notify_api_tier_update AFTER UPDATE ON api_tier FOR EACH ROW
+CREATE TRIGGER apikeys_notify_tier_write AFTER INSERT OR DELETE ON api_tier
+  FOR EACH STATEMENT EXECUTE FUNCTION apikeys_notify();
+CREATE TRIGGER apikeys_notify_tier_update AFTER UPDATE ON api_tier FOR EACH ROW
   WHEN (OLD.per_minute_per_project IS DISTINCT FROM NEW.per_minute_per_project)
   EXECUTE FUNCTION apikeys_notify();
-CREATE TRIGGER apikeys_notify_tier_limit_write AFTER INSERT OR UPDATE OR DELETE ON api_tier_meter_limit
+CREATE TRIGGER apikeys_notify_meter_limit_write AFTER INSERT OR DELETE ON api_tier_meter_limit
   FOR EACH STATEMENT EXECUTE FUNCTION apikeys_notify();
+CREATE TRIGGER apikeys_notify_meter_limit_update AFTER UPDATE ON api_tier_meter_limit FOR EACH ROW
+  WHEN (OLD.tier_id IS DISTINCT FROM NEW.tier_id OR OLD.meter IS DISTINCT FROM NEW.meter OR OLD.monthly_per_project IS DISTINCT FROM NEW.monthly_per_project)
+  EXECUTE FUNCTION apikeys_notify();

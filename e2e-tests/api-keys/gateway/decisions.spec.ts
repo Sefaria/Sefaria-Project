@@ -205,17 +205,19 @@ test.describe('gateway decisions', () => {
   test('N-A11: a tier change on the project reaches the next request', async ({ target, manifest }) => {
     test.skip(target.name !== 'local', 'writes the project row directly; local stack only');
     const projectId = manifest.keys.find(k => k.suite === 'gateway' && k.name === TIER_KEY.name)!.projectId;
+    // the manifest's key projectId is the api_project id, the row that holds the tier
+    const apiProject = String(Number(projectId));
     const key = keyValue(TIER_KEY);
     const tierOf = async () => stamped(await rawRequest({ target: target.name, host: 'echo', path: UNGATED, headers: { 'x-api-key': key } })).tier;
 
     expect(await tierOf()).toBe('developer');
     try {
       const started = Date.now();
-      localPsql(`INSERT INTO powered_by_projectlimits (project_id, tier) VALUES (${Number(projectId)}, 'partner') ON CONFLICT (project_id) DO UPDATE SET tier = EXCLUDED.tier`);
+      localPsql(`UPDATE api_project SET tier_id = 'partner', updated_at = now() WHERE id = ${apiProject}`);
       await expect.poll(tierOf, { timeout: 5000, intervals: [100] }).toBe('partner');
       test.info().annotations.push({ type: 'latency', description: `new tier seen after ${Date.now() - started} ms` });
     } finally {
-      localPsql(`INSERT INTO powered_by_projectlimits (project_id, tier) VALUES (${Number(projectId)}, 'developer') ON CONFLICT (project_id) DO UPDATE SET tier = EXCLUDED.tier`);
+      localPsql(`UPDATE api_project SET tier_id = 'developer', updated_at = now() WHERE id = ${apiProject}`);
     }
     await expect.poll(tierOf, { timeout: 5000, intervals: [100] }).toBe('developer');
   });

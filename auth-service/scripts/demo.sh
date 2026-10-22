@@ -39,12 +39,16 @@ CTX=${CTX:-$DEV_CTX}
 NS=${NS:-default}
 CAULDRON_ENV=${APIKEYS_CAULDRON:-apikeys-pipeline}
 CAULDRON_HOST=${DEMO_HOST:-https://www.$CAULDRON_ENV.cauldron.sefaria.org}
-EXPECTED_TRIGGERS='apikeys_notify_keys_update on powered_by_apikey
+EXPECTED_TRIGGERS='apikeys_notify_api_project_delete on api_project
+apikeys_notify_api_project_update on api_project
+apikeys_notify_keys_update on powered_by_apikey
 apikeys_notify_keys_write on powered_by_apikey
-apikeys_notify_limits_update on powered_by_projectlimits
-apikeys_notify_limits_write on powered_by_projectlimits
+apikeys_notify_meter_limit_update on api_tier_meter_limit
+apikeys_notify_meter_limit_write on api_tier_meter_limit
 apikeys_notify_projects_delete on powered_by_project
-apikeys_notify_projects_update on powered_by_project'
+apikeys_notify_projects_update on powered_by_project
+apikeys_notify_tier_update on api_tier
+apikeys_notify_tier_write on api_tier'
 
 DEV_KEY=${DEMO_KEY:-}
 BETA_KEY=${DEMO_RESTRICTED_KEY:-}
@@ -363,8 +367,9 @@ listener_count() {
   t_pg "select count(*) from pg_stat_activity where $(listener_filter)" postgres
 }
 
-sentinel_project() {
-  t_pg "select id from powered_by_project where notes = '$SENTINEL_NOTES' limit 1"
+# the sentinel's live api_project row: keys point at it, and its tier_id is the tier the auth service stamps
+sentinel_api_project() {
+  t_pg "select a.id from api_project a join powered_by_project p on p.id = a.profile_id where p.notes = '$SENTINEL_NOTES' and a.deleted_at is null limit 1"
 }
 
 new_demo_key() {
@@ -569,20 +574,20 @@ section_safe() {
 
 section_registry() {
   local out len expected_len replicas listeners
-  section '5. One registry per cluster' 'The auth service reads Django tables through the limits join, listens on six triggers, and every replica is connected.' F-REG-01 F-REG-02 F-MODEL-03.e6 F-MODEL-04.e3 F-REG-06.e4
+  section '5. One registry per cluster' 'The auth service reads api_project, api_tier and api_tier_meter_limit through its joins, listens on ten triggers, and every replica is connected.' F-REG-01 F-REG-02 F-MODEL-03.e6 F-MODEL-04.e3 F-REG-06.e4
 
-  prove F-REG-01.e2 'the loader query LEFT JOINs powered_by_projectlimits and binds defaultTier developer' \
-    bash -c 'grep -q "LEFT JOIN powered_by_projectlimits" "$1" && grep -q "COALESCE(l\.tier, \$1)" "$1" && grep -q "defaultTier = .developer." "$1"' _ "$AUTH_SERVICE/internal/registry/pgload.go"
+  prove F-REG-01.e2 'the loader query JOINs api_project and api_tier, and reads api_tier_meter_limit' \
+    bash -c 'grep -q "JOIN api_project " "$1" && grep -q "JOIN api_tier " "$1" && grep -q "FROM api_tier_meter_limit" "$1"' _ "$AUTH_SERVICE/internal/registry/pgload.go"
 
   printf '%s$ psql sefaria_auth: triggers (name on table)%s\n' "$CYAN" "$RESET"
   out=$(t_pg "select tgname || ' on ' || tgrelid::regclass from pg_trigger where not tgisinternal and tgname like 'apikeys_notify%' order by tgname collate \"C\"")
   printf '%s\n' "$out"
-  prove F-MODEL-03.e6 'exactly the six expected notify triggers exist' test "$out" = "$EXPECTED_TRIGGERS"
-  out=$(t_pg "select pg_get_triggerdef(oid) from pg_trigger where tgname = 'apikeys_notify_limits_update'")
-  # pg_get_triggerdef prints the WHEN clause lower-cased: ((old.tier)::text IS DISTINCT FROM (new.tier)::text)
-  prove F-MODEL-03.e6 'the limits update trigger fires on a tier change (its WHEN clause names old.tier)' contains "$out" '(old.tier)'
+  prove F-MODEL-03.e6 'exactly the ten expected notify triggers exist' test "$out" = "$EXPECTED_TRIGGERS"
+  out=$(t_pg "select pg_get_triggerdef(oid) from pg_trigger where tgname = 'apikeys_notify_api_project_update'")
+  # pg_get_triggerdef prints the WHEN clause lower-cased: ((old.tier_id)::text IS DISTINCT FROM (new.tier_id)::text)
+  prove F-MODEL-03.e6 'the api_project update trigger fires on a tier change (its WHEN clause names old.tier_id)' contains "$out" 'old.tier_id'
 
-  expected_len=$(t_pg 'select count(*) from powered_by_apikey k join powered_by_project p on p.id = k.project_id')
+  expected_len=$(t_pg 'select count(*) from powered_by_apikey k join api_project p on p.id = k.project_id')
   len=$(registry_len)
   printf '    registry len=%s  keys joined to projects=%s\n' "${len:-?}" "$expected_len"
   prove F-REG-01 '/internal/registry length equals the keys joined to their projects' test "${len:-x}" = "$expected_len"
@@ -594,28 +599,28 @@ section_registry() {
   out=$(t_pg 'select pg_notification_queue_usage()' postgres)
   prove F-REG-02 "notification queue usage is 0 (it is ${out:-unknown})" test "$out" = 0
 
-  out=$(t_pg "select string_agg(c || '=' || has_column_privilege('auth_service_reader', 'powered_by_projectlimits', c, 'SELECT'), ' ' order by c) from unnest(array['project_id','tier','created_at','updated_at']) c")
-  printf '    reader grants on powered_by_projectlimits: %s\n' "$out"
-  prove F-MODEL-04.e3 'the reader reads (project_id, tier) of the limits table and not its timestamps' \
-    test "$out" = 'created_at=false project_id=true tier=true updated_at=false'
+  out=$(t_pg "select string_agg(t || '.' || c || '=' || has_column_privilege('auth_service_reader', t, c, 'SELECT'), ' ' order by t, c) from (values ('api_project','id'),('api_project','tier_id'),('api_project','deleted_at'),('api_project','profile_id'),('api_project','owner_id'),('api_project','contact_email'),('api_tier','id'),('api_tier','per_minute_per_project'),('api_tier_meter_limit','tier_id'),('api_tier_meter_limit','meter'),('api_tier_meter_limit','monthly_per_project')) v(t, c)")
+  printf '    reader grants: %s\n' "$out"
+  prove F-MODEL-04.e3 'the reader reads the api_project, api_tier and meter-limit columns it needs, and not profile_id, owner_id or contact_email' \
+    test "$out" = 'api_project.contact_email=false api_project.deleted_at=true api_project.id=true api_project.owner_id=false api_project.profile_id=false api_project.tier_id=true api_tier.id=true api_tier.per_minute_per_project=true api_tier_meter_limit.meter=true api_tier_meter_limit.monthly_per_project=true api_tier_meter_limit.tier_id=true'
 }
 
 section_tables() {
   local out
-  section '6. Tables hold one thing each' 'Keys carry no tier, limits live in one four-column table, project metadata stays on the project, and the public listing never shows a tier.' F-MODEL-01.e5 F-MODEL-01.e6 F-WRITE-01.e5 F-LIST-01.e2
+  section '6. Tables hold one thing each' 'Keys carry no tier, the tier lives on api_project, project metadata stays on the profile, and the public listing never shows a tier.' F-MODEL-01.e5 F-MODEL-01.e6 F-WRITE-01.e5 F-LIST-01.e2
 
   out=$(t_pg "select count(*) from information_schema.columns where table_name = 'powered_by_apikey' and column_name in ('tier','project_name','description','organization','owner_id','notes')")
   prove F-MODEL-01.e5 'powered_by_apikey has no tier or project-metadata column' test "$out" = 0
-  out=$(t_pg "select string_agg(column_name, ',' order by column_name) from information_schema.columns where table_name = 'powered_by_projectlimits'")
-  printf '    powered_by_projectlimits columns: %s\n' "$out"
-  prove F-MODEL-01.e5 'powered_by_projectlimits holds only project_id, tier, created_at, updated_at' test "$out" = 'created_at,project_id,tier,updated_at'
+  out=$(t_pg "select string_agg(column_name, ',' order by column_name) from information_schema.columns where table_name = 'api_project'")
+  printf '    api_project columns: %s\n' "$out"
+  prove F-MODEL-01.e5 'api_project has exactly its eight columns' test "$out" = 'contact_email,created_at,deleted_at,id,owner_id,profile_id,tier_id,updated_at'
   out=$(t_pg "select count(*) from information_schema.columns where table_name = 'powered_by_project' and column_name in ('project_name','notes','deleted_at','tier')")
   prove F-MODEL-01.e6 'powered_by_project keeps its metadata columns and the frozen tier' test "$out" = 4
 
-  printf '    limits rows per tier: %s\n' "$(t_pg "select coalesce(string_agg(tier || '=' || c, ' ' order by tier), 'none') from (select tier, count(*) c from powered_by_projectlimits group by tier) t")"
-  out=$(t_pg 'select count(*) from powered_by_project p where exists (select 1 from powered_by_apikey k where k.project_id = p.id) and not exists (select 1 from powered_by_projectlimits l where l.project_id = p.id)')
-  printf '    projects with keys and no limits row (developer by default): %s\n' "$out"
-  prove F-WRITE-01.e5 'the keyed projects without a limits row are counted (they are developer, not an error)' is_number "$out"
+  printf '    api_project rows per tier: %s\n' "$(t_pg "select coalesce(string_agg(tier_id || '=' || c, ' ' order by tier_id), 'none') from (select tier_id, count(*) c from api_project group by tier_id) t")"
+  out=$(t_pg "select count(*) from api_project a where exists (select 1 from powered_by_apikey k where k.project_id = a.id) and a.tier_id not in ('developer', 'partner', 'internal')")
+  printf '    keyed api_project rows outside the three seeded tiers: %s\n' "$out"
+  prove F-WRITE-01.e5 'every keyed api_project row has one of the three seeded tiers' test "$out" = 0
 
   out=$(new_tmp)
   printf '%s$ GET /api/powered-by%s\n' "$CYAN" "$RESET"
@@ -623,11 +628,11 @@ section_tables() {
   prove F-LIST-01.e2 '/api/powered-by contains no tier field' bash -c '[[ -s "$1" ]] && ! grep -q "\"tier\"" "$1"' _ "$out"
 }
 
-# mutating_key_lifecycle: create a key on the sentinel project through SQL, then revoke it; sets ACCEPT_MS and DENY_MS
-# (milliseconds until the registry served the change; empty on timeout).
+# mutating_key_lifecycle: create a key on the sentinel's api_project row through SQL, then revoke it; sets ACCEPT_MS and
+# DENY_MS (milliseconds until the registry served the change; empty on timeout).
 mutating_key_lifecycle() {
   local project label key start now
-  project=$(sentinel_project)
+  project=$(sentinel_api_project)
   if [[ -z "$project" ]]; then
     skip_unavailable F-REG-06.e1 'no local-stack sentinel project to attach a demo key to'
     return 1
@@ -654,32 +659,32 @@ mutating_key_lifecycle() {
   mutating_restore
 }
 
-# mutating_tier_upsert: move the sentinel project to partner through its limits row; sets TIER_MS (empty on timeout).
+# mutating_tier_upsert: move the sentinel's api_project row to partner; sets TIER_MS (empty on timeout).
 mutating_tier_upsert() {
   local project label key prior
-  project=$(sentinel_project)
+  project=$(sentinel_api_project)
   if [[ -z "$project" ]]; then
-    skip_unavailable F-REG-06.e3 'no local-stack sentinel project'
+    skip_unavailable F-REG-06.e3 'no local-stack sentinel api_project row'
     return 1
   fi
   label="demo-tier-$$"
   key=$(new_demo_key)
-  prior=$(t_pg "select tier from powered_by_projectlimits where project_id = $project")
-  if [[ -n "$prior" ]]; then
-    PENDING_TIER_RESTORE="update powered_by_projectlimits set tier = '$prior' where project_id = $project"
-  else
-    PENDING_TIER_RESTORE="delete from powered_by_projectlimits where project_id = $project"
+  prior=$(t_pg "select tier_id from api_project where id = $project")
+  if [[ -z "$prior" ]]; then
+    skip_unavailable F-REG-06.e3 'the sentinel api_project row has no tier to restore'
+    return 1
   fi
+  PENDING_TIER_RESTORE="update api_project set tier_id = '$prior', updated_at = now() where id = $project"
   PENDING_KEY_LABEL=$label
   t_pg "insert into powered_by_apikey (id, key, label, allowed_origins, created_at, project_id) values (gen_random_uuid(), '$key', '$label', '[]'::jsonb, now(), $project)" >/dev/null
-  printf '%s$ psql: upsert powered_by_projectlimits (project %s, tier partner); prior tier: %s%s\n' "$CYAN" "$project" "${prior:-none (developer)}" "$RESET"
-  t_pg "insert into powered_by_projectlimits (project_id, tier) values ($project, 'partner') on conflict (project_id) do update set tier = excluded.tier, updated_at = now()" >/dev/null
+  printf '%s$ psql: set api_project %s to tier partner; prior tier: %s%s\n' "$CYAN" "$project" "$prior" "$RESET"
+  t_pg "update api_project set tier_id = 'partner', updated_at = now() where id = $project" >/dev/null
   TIER_MS=$(wait_echo_header "$key" x-sefaria-tier partner 5000)
   mutating_restore
 }
 
 section_propagation() {
-  section '7. A change reaches the auth service' 'A key created or revoked, and a project tier changed through its limits row, reach live requests within the time bounds (mutating, local only).' F-REG-06.e1 F-REG-06.e3 F-DEC-02.e2
+  section '7. A change reaches the auth service' 'A key created or revoked, and a project tier changed on its api_project row, reach live requests within the time bounds (mutating, local only).' F-REG-06.e1 F-REG-06.e3 F-DEC-02.e2
   if [[ $TARGET == cauldron ]]; then
     skip_unavailable F-REG-06.e1 'cauldron: the auth-service role is read-only and Django owns the writes; run the local target'
     skip_unavailable F-REG-06.e3 'cauldron: the auth-service role is read-only and Django owns the writes; run the local target'
@@ -693,7 +698,7 @@ section_propagation() {
     prove F-DEC-02.e2 'a truly revoked key and an unknown key get byte-identical bodies (no oracle)' bash -c '[[ -s "$1" ]] && cmp -s "$1" "$2"' _ "$REVOKED_BODY" "$UNKNOWN_BODY"
   fi
   if mutating_tier_upsert; then
-    prove F-REG-06.e3 "a limits-row tier change reaches x-sefaria-tier within 5 s (took ${TIER_MS:-over 5000}ms)" test -n "$TIER_MS"
+    prove F-REG-06.e3 "an api_project tier change reaches x-sefaria-tier within 5 s (took ${TIER_MS:-over 5000}ms)" test -n "$TIER_MS"
   fi
 }
 

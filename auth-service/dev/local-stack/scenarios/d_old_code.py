@@ -39,9 +39,11 @@ def sql(query, args=()):
 
 
 def cleanup():
-    sql("DELETE FROM powered_by_apikey WHERE project_id IN (SELECT id FROM powered_by_project WHERE notes = %s)", [MARK])
-    # The deferred FK from the limits row would fail the project delete at commit, so the limits rows go first.
-    sql("DELETE FROM powered_by_projectlimits WHERE project_id IN (SELECT id FROM powered_by_project "
+    # Keys point at api_project, and api_project at the profile (PROTECT), so keys go first, then the api_project rows.
+    sql("DELETE FROM powered_by_apikey WHERE project_id IN (SELECT a.id FROM api_project a "
+        "JOIN powered_by_project p ON p.id = a.profile_id WHERE p.notes = %s OR p.owner_id IN (%s, %s))",
+        [MARK, UID_OWNER, UID_ADMIN])
+    sql("DELETE FROM api_project WHERE profile_id IN (SELECT id FROM powered_by_project "
         "WHERE notes = %s OR owner_id IN (%s, %s))", [MARK, UID_OWNER, UID_ADMIN])
     sql("DELETE FROM powered_by_project WHERE notes = %s OR owner_id IN (%s, %s)", [MARK, UID_OWNER, UID_ADMIN])
     sql("DELETE FROM auth_user WHERE id IN (%s, %s)", [UID_OWNER, UID_ADMIN])
@@ -60,9 +62,21 @@ def project_row(name, owner=None, source="developer_settings"):
         RETURNING id""", [source, name, MARK, owner])[0][0]
 
 
-def key_row(project_id, label):
+def api_project_for(profile_id):
+    """The profile's live api_project row, created with the developer tier when it has none (as the backfill does)."""
+    row = sql("SELECT id FROM api_project WHERE profile_id = %s AND deleted_at IS NULL", [profile_id])
+    if row:
+        return row[0][0]
+    return sql("""INSERT INTO api_project (profile_id, owner_id, contact_email, tier_id, created_at, updated_at)
+                  VALUES (%s, (SELECT owner_id FROM powered_by_project WHERE id = %s), '', 'developer', now(), now())
+                  RETURNING id""", [profile_id, profile_id])[0][0]
+
+
+def key_row(profile_id, label):
+    """A key on the profile's api_project row."""
     sql("""INSERT INTO powered_by_apikey (id, key, label, allowed_origins, created_at, project_id)
-           VALUES (gen_random_uuid(), 'sfr_d11old' || md5(random()::text), %s, '[]', now(), %s)""", [label, project_id])
+           VALUES (gen_random_uuid(), 'sfr_d11old' || md5(random()::text), %s, '[]', now(), %s)""",
+        [label, api_project_for(profile_id)])
 
 
 def synthetic_user(uid, email, staff=False):
@@ -76,7 +90,7 @@ def synthetic_user(uid, email, staff=False):
 cleanup()
 
 # D-1: master's Powered by POST (the Formstack webhook path) inserts into the migrated table. The frozen
-# powered_by_project.tier column still takes its db default here; the limits table is not involved.
+# powered_by_project.tier column still takes its db default here; api_project is not involved.
 secret = "d11-local-secret"
 body = json.dumps({"project_name": "D11 master form", "project_link": "https://d11-master-form.example",
                    "consent_to_display": False, "creator_email": "apikeys-e2e-d11-form@example.com", "notes": MARK})
@@ -94,33 +108,36 @@ else:
 resp = Client(raise_request_exception=False).get("/api/powered-by", HTTP_HOST="127.0.0.1")
 say("pass" if resp.status_code == 200 else "FAIL", "D-1", "master GET /api/powered-by on the migrated table -> %s" % resp.status_code)
 
-# D-1b: a project and a key inserted by SQL that knows nothing of the limits table load as developer, the way the
-# auth service's load query reads them (LEFT JOIN, COALESCE).
-no_limits = project_row("D11 no-limits project")
-key_row(no_limits, "d11-no-limits")
-loaded = sql("SELECT COALESCE(l.tier, 'developer') FROM powered_by_apikey k JOIN powered_by_project p ON p.id = k.project_id "
-             "LEFT JOIN powered_by_projectlimits l ON l.project_id = p.id WHERE k.label = %s", ["d11-no-limits"])
-if loaded and loaded[0][0] == "developer":
-    say("pass", "D-1b", "a project and key inserted without the limits table load as developer")
+# D-1b: a profile written by SQL with no api_project row cannot take a key: the key FK targets api_project, so an
+# old image's key write for such a profile is refused.
+no_api = project_row("D11 no-api-project")
+error = None
+try:
+    sql("""INSERT INTO powered_by_apikey (id, key, label, allowed_origins, created_at, project_id)
+           VALUES (gen_random_uuid(), 'sfr_d11old' || md5(random()::text), 'd11-no-api', '[]', now(), %s)""", [no_api])
+except Exception as exc:  # the FK refusal under test
+    error = type(exc).__name__
+if error == "IntegrityError":
+    say("pass", "D-1b", "a key for a profile with no api_project row is refused by the key FK -> %s" % error)
 else:
-    say("FAIL", "D-1b", "a project and key inserted without the limits table load as %s" % (loaded,))
+    say("FAIL", "D-1b", "a key for a profile with no api_project row was not refused (%s)" % (error,))
 
-# D-1c: an old image hard-deletes a keyless project that has a limits row: the FK refuses it at commit, nothing is lost.
+# D-1c: an old image hard-deletes a project that has an api_project row: the FK refuses it, nothing is lost.
 limited = project_row("D11 limited project")
-sql("INSERT INTO powered_by_projectlimits (project_id, tier) VALUES (%s, 'partner')", [limited])
+api_project_for(limited)
 error = None
 try:
     sql("DELETE FROM powered_by_project WHERE id = %s", [limited])
 except Exception as exc:  # the FK refusal under test
     error = type(exc).__name__
 project_left = sql("SELECT count(*) FROM powered_by_project WHERE id = %s", [limited])[0][0]
-limits_left = sql("SELECT count(*) FROM powered_by_projectlimits WHERE project_id = %s", [limited])[0][0]
-if error == "IntegrityError" and (project_left, limits_left) == (1, 1):
-    say("pass", "D-1c", "hard delete of a keyless project with a limits row -> %s at commit; project left=%s, limits row left=%s"
-        % (error, project_left, limits_left))
+api_left = sql("SELECT count(*) FROM api_project WHERE profile_id = %s", [limited])[0][0]
+if error == "IntegrityError" and (project_left, api_left) == (1, 1):
+    say("pass", "D-1c", "hard delete of a project with an api_project row -> %s at commit; project left=%s, api_project left=%s"
+        % (error, project_left, api_left))
 else:
-    say("FAIL", "D-1c", "hard delete of a keyless project with a limits row -> %s; project left=%s, limits row left=%s"
-        % (error, project_left, limits_left))
+    say("FAIL", "D-1c", "hard delete of a project with an api_project row -> %s; project left=%s, api_project left=%s"
+        % (error, project_left, api_left))
 
 # D-2: master deletes a user who owns a developer project with a key.
 owner = synthetic_user(UID_OWNER, "apikeys-e2e-d11-owner@example.com")

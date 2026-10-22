@@ -165,16 +165,17 @@ probe_ne1() {
 }
 
 probe_ne4() {
-  local dp; dp="$(kc_psql_ro '\dp powered_by_project' | tr '\n' ' ')"
+  local dp; dp="$(kc_psql_ro '\dp api_project' | tr '\n' ' ')"
   local reader; reader="$(printf '%s' "$dp" | grep -o 'auth_service_reader=r/[a-z_]*' | head -3 | tr '\n' ' ')"
   local col; col="$(printf '%s' "$dp" | grep -oE 'deleted_at:[^|]*auth_service_reader=r' | head -1 || true)"
-  local lim; lim="$(kc_psql_ro '\dp powered_by_projectlimits' | tr '\n' ' ')"
-  local lim_col; lim_col="$(printf '%s' "$lim" | grep -oE 'tier:[^|]*auth_service_reader=r' | head -1 || true)"
+  local tier_col; tier_col="$(printf '%s' "$dp" | grep -oE 'tier_id:[^|]*auth_service_reader=r' | head -1 || true)"
+  local tm; tm="$(kc_psql_ro '\dp api_tier_meter_limit' | tr '\n' ' ')"
+  local tm_col; tm_col="$(printf '%s' "$tm" | grep -oE 'monthly_per_project:[^|]*auth_service_reader=r' | head -1 || true)"
   local loads; loads="$(kc logs "$AUTH_DEPLOY" --since=24h 2>/dev/null | grep -cE 'reload (failed|error)|permission denied' || true)"
-  if [ -n "$col" ] && [ -n "$lim_col" ]; then
-    rec N-E4 pass "cauldron half (read-only): \\dp powered_by_project shows a deleted_at column grant for auth_service_reader ('$(printf '%s' "$col" | head -c 120)'); \\dp powered_by_projectlimits shows a tier column grant ('$(printf '%s' "$lim_col" | head -c 120)'); reload errors in auth log (24h)=$loads. The failure-visibility half is local (D11 ne4-grant.sh)"
+  if [ -n "$col" ] && [ -n "$tier_col" ] && [ -n "$tm_col" ]; then
+    rec N-E4 pass "cauldron half (read-only): \\dp api_project shows deleted_at and tier_id column grants for auth_service_reader ('$(printf '%s' "$col" | head -c 120)'); \\dp api_tier_meter_limit shows a monthly_per_project column grant ('$(printf '%s' "$tm_col" | head -c 120)'); reload errors in auth log (24h)=$loads. The failure-visibility half is local (D11 ne4-grant.sh)"
   else
-    rec N-E4 fail-product-bug "reader column grants missing: deleted_at on powered_by_project='${col:-none}', tier on powered_by_projectlimits='${lim_col:-none}'; reader grants: $reader"
+    rec N-E4 fail-product-bug "reader column grants missing: deleted_at on api_project='${col:-none}', tier_id on api_project='${tier_col:-none}', monthly_per_project on api_tier_meter_limit='${tm_col:-none}'; reader grants: $reader"
   fi
 }
 

@@ -3,7 +3,7 @@
 # checks it end to end, revokes it, then deletes the row. Key values never reach stdout or a log.
 #   S1 anonymous page view through Envoy -> 200
 #   S2 gated path without a key -> 401 api_key_required
-#   S3 a key inserted through the ORM is accepted (echo shows the project's tier: developer without a limits row; gated path not denied)
+#   S3 a key inserted through the ORM is accepted (echo shows the project's api_project tier: developer by default; gated path not denied)
 #   S4 revoking the key through the ORM -> 401 api_key_invalid within 2 s
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
@@ -34,7 +34,8 @@ key_id="$(SMOKE_SECRET="$secret" orm <<'PY' | grep '^key_id=' | cut -d= -f2
 import os
 from powered_by.models import ApiKey, Project
 project = Project.objects.get(notes="E2E api-keys stack sentinel (local only)")
-api_key = ApiKey.objects.create(project=project, label="smoke")
+api_project = project.api_projects.get(deleted_at__isnull=True)
+api_key = ApiKey.objects.create(project=api_project, label="smoke")
 with open(os.environ["SMOKE_SECRET"], "w") as f:
     f.write(api_key.key)
 print("key_id=%s" % api_key.id)
@@ -52,7 +53,7 @@ www_code="$(gw www /api/knn-search -H "x-api-key: $key" -o /dev/null -w '%{http_
 case "$tier" in
   "developer ok project="[0-9]*)
     if [ "$www_code" != 401 ] && [ "$www_code" != 403 ]; then
-      result S3 pass "registry version $v0 -> $(registry_version) in ${bump}s; echo /api/knn-search with key -> tier/result: $tier (the project tier, from its limits row or developer); www /api/knn-search with key -> $www_code (not denied)"
+      result S3 pass "registry version $v0 -> $(registry_version) in ${bump}s; echo /api/knn-search with key -> tier/result: $tier (the api_project row's tier, developer by default); www /api/knn-search with key -> $www_code (not denied)"
     else
       result S3 fail "www /api/knn-search with key -> $www_code"
     fi ;;

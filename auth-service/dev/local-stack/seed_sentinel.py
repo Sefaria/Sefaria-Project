@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from emailusernames.utils import _email_to_username
-from powered_by.models import ApiKey, Project, SubmissionSource
+from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
 
 SENTINEL_ID = 2_098_000_901
 SENTINEL_EMAIL = "apikeys-e2e-stack-sentinel@example.com"
@@ -23,16 +23,20 @@ if user is None:
     user.set_unusable_password()
     user.save()
 
-project = Project.objects.filter(notes=SENTINEL_NOTES, owner=user).first()
-if project is None:
-    project = Project.objects.create(
-        submission_source=SubmissionSource.DEVELOPER_SETTINGS, owner=user, creator="Stack Sentinel",
+profile = Project.objects.filter(notes=SENTINEL_NOTES).first()
+if profile is None:
+    profile = Project.objects.create(
+        submission_source=SubmissionSource.DEVELOPER_SETTINGS, creator="Stack Sentinel",
         creator_email=SENTINEL_EMAIL, project_name="Stack sentinel", notes=SENTINEL_NOTES,
         is_published=False, consent_to_display=False,
     )
-elif project.deleted_at is not None:
-    project.deleted_at = None
-    project.save(update_fields=["deleted_at"])
+
+project = profile.api_projects.filter(deleted_at__isnull=True).first()
+if project is None:
+    project = ApiProject.objects.create(profile=profile, owner=user)
+elif project.owner_id != user.id:
+    project.owner = user
+    project.save(update_fields=["owner"])
 
 if not project.api_keys.filter(revoked_at__isnull=True).exists():
     ApiKey.objects.create(project=project, label="sentinel")

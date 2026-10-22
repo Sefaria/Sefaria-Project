@@ -226,6 +226,14 @@ class EdgeRuleTests(RepoCase):
         self.assertEqual(len(failures), 1)
         self.assertIn("test_b", failures[0].ref)
 
+    def test_must_map_counts_django_test_classes(self):
+        self.write("powered_by/tests/api_key_tier_edges_test.py",
+                   "class TierEdgesTest(TestCase):\n    def test_c(self):\n        pass\n\n\n"
+                   "class Helper:\n    def test_not_collected(self):\n        pass\n")
+        doc = make_doc([make_feature("F-MODEL-01", [make_edge("F-MODEL-01.e1")])],
+                       must_map=["powered_by/tests/api_key_tier_edges_*test.py"])
+        self.assertEqual(cf.must_map(doc, self.root), ["powered_by/tests/api_key_tier_edges_test.py::test_c"])
+
 
 class ResolverTests(RepoCase):
     def test_go_test_ref_resolves_and_build_tag_is_detected(self):

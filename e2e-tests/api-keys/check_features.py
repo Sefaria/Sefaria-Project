@@ -572,6 +572,11 @@ def must_map(doc, root):
     return list(dict.fromkeys(keys))
 
 
+def _is_test_class(name):
+    """pytest classes start with Test; Django and unittest classes end with Test or TestCase."""
+    return name.startswith("Test") or name.endswith(("Test", "TestCase"))
+
+
 def _test_names(path):
     with open(path, encoding="utf-8", errors="replace") as handle:
         try:
@@ -582,7 +587,7 @@ def _test_names(path):
     for node in tree.body:
         if isinstance(node, FUNC_TYPES) and node.name.startswith("test_"):
             names.append(node.name)
-        elif isinstance(node, ast.ClassDef) and node.name.startswith("Test"):
+        elif isinstance(node, ast.ClassDef) and _is_test_class(node.name):
             names.extend(
                 member.name for member in node.body
                 if isinstance(member, FUNC_TYPES) and member.name.startswith("test_")
