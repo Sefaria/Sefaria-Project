@@ -702,7 +702,7 @@ describe('server errors in Hebrew', () => {
 
 describe('confirming the email', () => {
   const unverified = { developerEnabled: false, ssoConnected: false, emailVerified: false };
-  const linkSent = { ...unverified, confirmationSentAt: '2026-10-11T00:00:00Z' };
+  const linkSent = { ...unverified, confirmationSentAt: new Date().toISOString() };
 
   it('offers only the emailed link, never a change of sign-in method', () => {
     mount('developer', unverified);
@@ -749,7 +749,7 @@ describe('confirming the email', () => {
 
 describe('the confirmation link', () => {
   const linkSent = {
-    developerEnabled: false, ssoConnected: false, emailVerified: false, confirmationSentAt: '2026-10-11T00:00:00Z',
+    developerEnabled: false, ssoConnected: false, emailVerified: false, confirmationSentAt: new Date().toISOString(),
   };
 
   it('is noticed by the waiting tab within a few seconds', async () => {
@@ -820,7 +820,7 @@ describe('test controls', () => {
 
   it('open the mock email, whose button is the real confirmation link', () => {
     mount('developer', {
-      developerEnabled: false, ssoConnected: false, emailVerified: false, confirmationSentAt: '2026-10-11T00:00:00Z',
+      developerEnabled: false, ssoConnected: false, emailVerified: false, confirmationSentAt: new Date().toISOString(),
       mock: { ...MOCK, confirmationKey: 'abc:123' },
     });
     act(() => { container.querySelector('[data-agent-action="mock-open-email"]').click(); });

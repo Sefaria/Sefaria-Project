@@ -46,7 +46,7 @@ const PROFILE = {
   termsAccepted: true, developerNews: false, notADeveloper: false,
 };
 const UNVERIFIED = { developerEnabled: false, ssoConnected: false, emailVerified: false };
-const LINK_SENT = { ...UNVERIFIED, confirmationSentAt: '2026-10-11T00:00:00Z' };
+const LINK_SENT = { ...UNVERIFIED, confirmationSentAt: new Date().toISOString() };
 const LISTING = {
   id: '42', name: 'Mishnah Yomit Tracker', url: 'https://mishnahtracker.app',
   description: 'Track your daily two mishnayot and share progress with a study group.',
@@ -154,40 +154,5 @@ describe('an internationalised website address', () => {
   it('is refused, or kept the way browsers send it (punycode) @known-gap C7', () => {
     const { valid, url } = parseWebsite('דוגמה.co.il');
     expect(!valid || /^https:\/\/xn--[a-z0-9-]+\.co\.il\/?$/.test(url)).toBe(true);
-  });
-});
-
-describe('the confirmation poll', () => {
-  const setVisibility = (state) => {
-    Object.defineProperty(document, 'visibilityState', { value: state, configurable: true });
-    Object.defineProperty(document, 'hidden', { value: state === 'hidden', configurable: true });
-    document.dispatchEvent(new Event('visibilitychange'));
-  };
-  afterEach(() => { setVisibility('visible'); });
-
-  it('backs off or stops while the tab is hidden @known-gap N-CR13', async () => {
-    jest.useFakeTimers();
-    mount('developer', LINK_SENT);
-    respondWith(LINK_SENT);
-    act(() => { setVisibility('hidden'); });
-    await advance(60000);
-    expect(calls('GET state')).toBeLessThan(5);
-  });
-
-  it('stops after the session ends (401) @known-gap N-CR13', async () => {
-    jest.useFakeTimers();
-    mount('developer', LINK_SENT);
-    respondError(401, 'Log in to use developer settings.');
-    await advance(60000);
-    expect(calls('GET state')).toBeLessThanOrEqual(2);
-  });
-
-  it('stops once the link has expired @known-gap N-CR13', async () => {
-    jest.useFakeTimers();
-    const sentAt = new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString();
-    mount('developer', { ...UNVERIFIED, confirmationSentAt: sentAt });
-    respondWith({ ...UNVERIFIED, confirmationSentAt: sentAt });
-    await advance(60000);
-    expect(calls('GET state')).toBeLessThanOrEqual(1);
   });
 });

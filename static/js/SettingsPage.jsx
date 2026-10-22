@@ -2360,6 +2360,10 @@ const SAVE_FAILED = {
 };
 const CONNECTED_MS = 8000;
 const CONFIRMATION_POLL_MS = 3000;
+const CONFIRMATION_FAST_POLL_MS = 60 * 1000;
+const CONFIRMATION_MAX_POLL_MS = 60 * 1000;
+/* How long an emailed confirmation link works, as the server's CONFIRMATION_LINK_MAX_AGE. */
+const CONFIRMATION_LINK_MS = 3 * 24 * 60 * 60 * 1000;
 const SETUP_MS = 1200;
 const ARRIVAL_HIGHLIGHT_MS = 2400;
 
@@ -2465,27 +2469,61 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
   };
 
   /* The confirmation link may be opened anywhere, and opening it turns developer settings on,
-     so a page waiting for it checks every few seconds, and at once when a tab in this browser
-     signals it. */
+     so a page waiting for it checks every few seconds for the first minute and less often after
+     that, and at once when a tab in this browser signals it. It pauses while the tab is hidden,
+     and stops when the session ends or the link has expired. */
   const awaitingConfirmation = !accountVerified(developerState) && !!developerState.confirmationSentAt;
+  const confirmationSentAt = awaitingConfirmation ? developerState.confirmationSentAt : null;
   useEffect(() => {
-    if (!awaitingConfirmation) { return undefined; }
+    if (!confirmationSentAt) { return undefined; }
+    const expiresAt = Date.parse(confirmationSentAt) + CONFIRMATION_LINK_MS;
+    const expired = () => Date.now() >= expiresAt;
     let active = true;
-    const check = () => readState().then(server => {
-      if (active && server.emailVerified) {
-        active = false;
-        emailConfirmed(server);
+    let timer = null;
+    let waitingSince = Date.now();
+    let delay = CONFIRMATION_POLL_MS;
+    const stop = () => { active = false; clearTimeout(timer); };
+    const schedule = () => {
+      clearTimeout(timer);
+      if (!active || document.hidden) { return; }
+      if (expired()) { stop(); return; }
+      timer = setTimeout(check, delay);
+      if (Date.now() - waitingSince >= CONFIRMATION_FAST_POLL_MS) {
+        delay = Math.min(delay * 2, CONFIRMATION_MAX_POLL_MS);
       }
-    }).catch(() => {});
-    const timer = setInterval(check, CONFIRMATION_POLL_MS);
-    const onStorage = (e) => { if (e.key === CONFIRMATION_SIGNAL_KEY) { check(); } };
-    window.addEventListener("storage", onStorage);
-    return () => {
-      active = false;
-      clearInterval(timer);
-      window.removeEventListener("storage", onStorage);
     };
-  }, [awaitingConfirmation]);
+    const check = () => {
+      if (!active) { return; }
+      if (expired()) { stop(); return; }
+      readState().then(server => {
+        if (!active) { return; }
+        if (server.emailVerified) {
+          stop();
+          emailConfirmed(server);
+        } else {
+          schedule();
+        }
+      }, err => {
+        if (!active) { return; }
+        if (err.status === 401) { stop(); } else { schedule(); }
+      });
+    };
+    const onStorage = (e) => { if (e.key === CONFIRMATION_SIGNAL_KEY) { check(); } };
+    const onVisibility = () => {
+      if (document.hidden) { clearTimeout(timer); return; }
+      waitingSince = Date.now();
+      delay = CONFIRMATION_POLL_MS;
+      check();
+    };
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisibility);
+    schedule();
+    return () => {
+      stop();
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [confirmationSentAt]);
 
   const emailConfirmed = (server) => {
     setMockEmailOpen(false);

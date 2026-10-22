@@ -43,7 +43,7 @@ const PROFILE = {
   termsAccepted: true, developerNews: false, notADeveloper: false,
 };
 const UNVERIFIED = { developerEnabled: false, ssoConnected: false, emailVerified: false };
-const LINK_SENT = { ...UNVERIFIED, confirmationSentAt: '2026-10-11T00:00:00Z' };
+const LINK_SENT = { ...UNVERIFIED, confirmationSentAt: new Date().toISOString() };
 const LISTING = {
   id: '42', name: 'Mishnah Yomit Tracker', url: 'https://mishnahtracker.app',
   description: 'Track your daily two mishnayot and share progress with a study group.',
@@ -263,5 +263,58 @@ describe('changing the email in the Account tab', () => {
     render({ tab: 'developer' });
     expect(developerPanel().querySelector('[aria-label="Confirm your new email"]')).toBeTruthy();
     expect(developerPanel().querySelector('[data-agent-action="new-project"]')).toBeNull();
+  });
+});
+
+describe('the confirmation poll', () => {
+  const setVisibility = (state) => {
+    Object.defineProperty(document, 'visibilityState', { value: state, configurable: true });
+    Object.defineProperty(document, 'hidden', { value: state === 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  };
+  afterEach(() => { setVisibility('visible'); });
+
+  it('pauses while the tab is hidden, and checks at once when it is shown again', async () => {
+    jest.useFakeTimers();
+    mount('developer', LINK_SENT);
+    respondWith(LINK_SENT);
+    act(() => { setVisibility('hidden'); });
+    await advance(60000);
+    expect(calls('GET state')).toBe(0);
+    await act(async () => { setVisibility('visible'); await flush(); });
+    expect(calls('GET state')).toBe(1);
+    await advance(3000);
+    expect(calls('GET state')).toBe(2);
+  });
+
+  it('checks less often after the first minute', async () => {
+    jest.useFakeTimers();
+    let now = Date.now();
+    const clock = jest.spyOn(Date, 'now').mockImplementation(() => now);
+    mount('developer', { ...UNVERIFIED, confirmationSentAt: new Date(now).toISOString() });
+    respondWith(LINK_SENT);
+    const wait = async (ms) => { now += ms; await advance(ms); };
+    for (let i = 0; i < 20; i++) { await wait(3000); }
+    expect(calls('GET state')).toBe(20);
+    for (let i = 0; i < 20; i++) { await wait(3000); }
+    expect(calls('GET state')).toBeLessThan(25);
+    clock.mockRestore();
+  });
+
+  it('stops after the session ends (401)', async () => {
+    jest.useFakeTimers();
+    mount('developer', LINK_SENT);
+    respondError(401, 'Log in to use developer settings.');
+    await advance(60000);
+    expect(calls('GET state')).toBe(1);
+  });
+
+  it('stops once the link has expired', async () => {
+    jest.useFakeTimers();
+    const sentAt = new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString();
+    mount('developer', { ...UNVERIFIED, confirmationSentAt: sentAt });
+    respondWith({ ...UNVERIFIED, confirmationSentAt: sentAt });
+    await advance(60000);
+    expect(calls('GET state')).toBe(0);
   });
 });
