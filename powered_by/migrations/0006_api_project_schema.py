@@ -14,7 +14,7 @@ from django.db import migrations, models
 
 # Placeholder limits. Daniel sets the real numbers; edit these rows, not this migration.
 TIERS = [
-    # (slug, name, per_minute_per_project, default-meter monthly_per_project)
+    # (slug, name, per_minute_per_project, semantic-meter monthly_per_project)
     ("developer", "Developer", 600, 100000),
     ("partner", "Partner", 6000, 1000000),
     ("internal", "Internal", 60000, 100000000),
@@ -29,7 +29,7 @@ def seed_tiers(apps, schema_editor):
             id=slug, defaults={"name": name, "per_minute_per_project": per_minute},
         )
         ApiTierMeterLimit.objects.get_or_create(
-            tier=tier, meter="default", defaults={"monthly_per_project": monthly},
+            tier=tier, meter="semantic", defaults={"monthly_per_project": monthly},
         )
 
 
@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
             name="ApiTierMeterLimit",
             fields=[
                 ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("meter", models.SlugField(help_text="Meter name, e.g. default.", max_length=50)),
+                ("meter", models.SlugField(help_text="Meter name, e.g. semantic.", max_length=50)),
                 ("monthly_per_project", models.BigIntegerField(help_text="Units of this meter allowed per API project per month.")),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),

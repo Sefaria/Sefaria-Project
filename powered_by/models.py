@@ -246,7 +246,7 @@ class ApiTierMeterLimit(models.Model):
         ApiTier, on_delete=models.CASCADE, related_name="meter_limits",
         help_text="The tier this limit belongs to.",
     )
-    meter = models.SlugField(max_length=50, help_text="Meter name, e.g. default.")
+    meter = models.SlugField(max_length=50, help_text="Meter name, e.g. semantic.")
     monthly_per_project = models.BigIntegerField(
         help_text="Units of this meter allowed per API project per month.",
     )

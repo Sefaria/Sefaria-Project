@@ -45,10 +45,10 @@ class ApiProjectModelTest(TestCase):
         self.assertIsNone(project.owner_id)
         self.assertTrue(ApiProject.objects.filter(pk=project.pk).exists())
 
-    def test_seeded_tiers_exist(self):
+    def test_seeded_tiers_have_a_semantic_meter_row(self):
         slugs = set(ApiTier.objects.values_list("id", flat=True))
         self.assertTrue({"developer", "partner", "internal"} <= slugs)
         for slug in ("developer", "partner", "internal"):
             with self.subTest(tier=slug):
                 self.assertTrue(
-                    ApiTierMeterLimit.objects.filter(tier_id=slug, meter="default").exists())
+                    ApiTierMeterLimit.objects.filter(tier_id=slug, meter="semantic").exists())
