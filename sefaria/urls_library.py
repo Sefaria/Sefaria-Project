@@ -4,6 +4,7 @@ from django.contrib import admin
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from functools import partial
 import reader.views as reader_views
+import reader.gem_views as gem_views
 import sefaria.views as sefaria_views
 from sefaria.urls_shared import shared_patterns, maintenance_patterns
 from sefaria.settings import DOWN_FOR_MAINTENANCE
@@ -15,7 +16,10 @@ handler500 = 'reader.views.custom_server_error'
 handler404 = 'reader.views.custom_page_not_found'
 
 urlpatterns = [
-    path('', reader_views.home, name="home"),
+    # gem: the site root is a standalone Talmud learning tool (see reader/gem_views.py)
+    path('', gem_views.gem_home, name="home"),
+    re_path(r'^gem/?$', gem_views.gem_home, name="gem"),
+    path('gem/<path:tref>', gem_views.gem_home, name="gem_ref"),
     re_path(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
     re_path(r'^texts/notes/?$', reader_views.notes),
     re_path(r'^texts/recent/?$', reader_views.old_recent_redirect),
