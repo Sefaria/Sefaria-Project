@@ -313,6 +313,15 @@ LOGGING = {
         "json_formatter": {
             "()": structlog.stdlib.ProcessorFormatter,
             "processor": structlog.processors.JSONRenderer(),
+            # stdlib (non-structlog) records, e.g. django.request or elastic_transport,
+            # need severity and logger too; without them Datadog falls back to the
+            # stream and tags every line as error (sc-46457).
+            "foreign_pre_chain": [
+                structlog.processors.TimeStamper(fmt="iso"),
+                structlog.stdlib.add_logger_name,
+                sefaria_logging.add_severity,
+                sefaria_logging.log_exception_info,
+            ],
         },
     },
     'handlers': {
@@ -332,7 +341,11 @@ LOGGING = {
         },
         'django.request': {
             'handlers': ['default'],
+            'level': 'ERROR',  # 4xx warnings ("Not Found: ...") are noise; 5xx still log
             'propagate': False,
+        },
+        'elastic_transport.transport': {
+            'level': 'WARNING',  # drop the per-request INFO line; failures and retries still log
         },
     }
 }
