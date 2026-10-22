@@ -1753,6 +1753,21 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
     if (projectsHeadingRef.current) { projectsHeadingRef.current.focus(); }
   };
 
+  /* Cancelling a new project returns focus to the button that opened the form, which renders
+     again once the form closes. */
+  const tabRef = useRef(null);
+  const focusNewProjectButton = useRef(false);
+  const cancelNewProject = () => {
+    focusNewProjectButton.current = true;
+    setShowNewProject(false);
+  };
+  useEffect(() => {
+    if (showNewProject || !focusNewProjectButton.current) { return; }
+    focusNewProjectButton.current = false;
+    const opener = tabRef.current && tabRef.current.querySelector('[data-agent-action="new-project"]');
+    if (opener) { opener.focus(); }
+  }, [showNewProject]);
+
   const toggleExpand = (project) => expandProject(expandedProjectId === project.id ? null : project.id);
 
   const newProjectButton = (label, className) => (
@@ -1765,7 +1780,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
     [accountEmail(), state.profile.additionalEmail].filter(Boolean) : [];
 
   return (
-    <div className="devPocPage">
+    <div className="devPocPage" ref={tabRef}>
       <header className={"devPocPageHeader" + (highlight && developerOn ? " settingsHighlight" : "")}>
         <div>
           <h1><InterfaceText text={{en: "Developer settings", he: "הגדרות מפתחים"}} /></h1>
@@ -1854,7 +1869,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
           </div>
 
           {showNewProject ?
-            <NewProjectPanel onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
+            <NewProjectPanel onCreate={onCreateProject} onCancel={cancelNewProject} /> :
             state.projects.length === 0 ?
             <div className="devPocEmpty">
               <h2><InterfaceText text={{en: "No projects yet", he: "עדיין אין פרויקטים"}} /></h2>

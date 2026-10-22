@@ -623,6 +623,18 @@ describe('dialog keyboard behaviour', () => {
     expect(description(yourListingDialog())).toContain('Mishnah Yomit Tracker');
   });
 
+  it('returns focus to the button that opened the new-project form when it is cancelled', () => {
+    openNewProject();
+    act(() => { buttonNamed(container.querySelector('.devPocNewProject'), 'Cancel').click(); });
+    expect(document.activeElement.textContent).toBe('Create your first project');
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+
+    openNewProject({ projects: [publicProject()] });
+    act(() => { buttonNamed(container.querySelector('.devPocNewProject'), 'Cancel').click(); });
+    expect(document.activeElement.textContent).toBe('New project');
+  });
+
   it("closes on Escape without the key reaching the panel around the page", () => {
     const outer = jest.fn();
     container = document.createElement('div');
