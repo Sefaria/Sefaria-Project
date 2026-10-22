@@ -13,6 +13,10 @@ api_project.id is moved past the copied ids, so a row created afterwards cannot 
 Nothing here touches the key table, and no trigger watches api_project until 0008, so this sends no
 NOTIFY. The inserts queue deferred foreign-key checks, so no ALTER TABLE may run in this migration
 (the key FK and triggers are 0008).
+
+An API project gets its profile's id when no other API project holds that id yet, and the next id of the
+sequence otherwise (0008 re-runs this, and an older image may have written rows in between). On SQLite, which has
+no sequence functions, the same rule runs through the historical models.
 """
 import warnings
 
@@ -34,7 +38,9 @@ WHERE {API_PROJECT} AND {NO_API_PROJECT} AND p.tier NOT IN {KNOWN_TIERS}
 
 FORWARD_SQL = f"""
 INSERT INTO api_project (id, profile_id, owner_id, contact_email, tier_id, deleted_at, created_at, updated_at)
-SELECT p.id, p.id, p.owner_id, '',
+SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM api_project t WHERE t.id = p.id)
+            THEN p.id ELSE nextval(pg_get_serial_sequence('api_project', 'id')) END,
+       p.id, p.owner_id, '',
        CASE WHEN p.tier IN {KNOWN_TIERS} THEN p.tier ELSE 'developer' END,
        p.deleted_at, now(), now()
 FROM powered_by_project p
@@ -42,7 +48,13 @@ WHERE {API_PROJECT} AND {NO_API_PROJECT}
 ORDER BY p.id
 """
 
-# The explicit ids above do not advance the serial sequence, so move it past the largest id.
+# Before the insert the sequence must already be past every API project id and every profile id, so a
+# nextval for a taken id can never meet an id a later row is about to claim. The explicit ids do not
+# advance it, so it moves again after the insert.
+SEQUENCE_BEFORE_SQL = """
+SELECT setval(pg_get_serial_sequence('api_project', 'id'),
+              GREATEST((SELECT COALESCE(max(id), 1) FROM api_project), (SELECT COALESCE(max(id), 1) FROM powered_by_project), 1))
+"""
 SEQUENCE_SQL = """
 SELECT setval(pg_get_serial_sequence('api_project', 'id'), GREATEST((SELECT COALESCE(max(id), 1) FROM api_project), 1))
 """
@@ -50,24 +62,57 @@ SELECT setval(pg_get_serial_sequence('api_project', 'id'), GREATEST((SELECT COAL
 REVERSE_SQL = "DELETE FROM api_project"
 
 
-def forward(apps, schema_editor):
-    if schema_editor.connection.vendor != "postgresql":
-        return
-    with schema_editor.connection.cursor() as cursor:
-        cursor.execute(COUNT_UNKNOWN_SQL)
-        (unknown,) = cursor.fetchone()
+def _normalised_tier(tier):
+    return tier if tier in ("developer", "partner", "internal") else "developer"
+
+
+def _warn_unknown_tiers(unknown):
     if unknown:
         warnings.warn(
             f"{unknown} API project(s) have a tier outside developer, partner, internal; "
             "their api_project rows are set to developer",
-            stacklevel=2,
+            stacklevel=3,
         )
+
+
+def _forward_with_models(apps, schema_editor):
+    """The same backfill through the historical models, for databases without sequence functions (SQLite)."""
+    alias = schema_editor.connection.alias
+    Project, ApiProject, ApiKey = (apps.get_model("powered_by", name) for name in ("Project", "ApiProject", "ApiKey"))
+    keyed = set(ApiKey.objects.using(alias).values_list("project_id", flat=True))
+    has_api_project = set(ApiProject.objects.using(alias).values_list("profile_id", flat=True))
+    taken = set(ApiProject.objects.using(alias).values_list("id", flat=True))
+    unknown = 0
+    for profile in Project.objects.using(alias).order_by("id"):
+        if profile.pk in has_api_project:
+            continue
+        if not (profile.owner_id is not None or profile.submission_source == "developer_settings" or profile.pk in keyed):
+            continue
+        tier = _normalised_tier(profile.tier)
+        unknown += tier != profile.tier
+        ApiProject.objects.using(alias).create(
+            id=None if profile.pk in taken else profile.pk, profile_id=profile.pk, owner_id=profile.owner_id,
+            tier_id=tier, deleted_at=profile.deleted_at)
+        taken.add(profile.pk)
+    _warn_unknown_tiers(unknown)
+
+
+def forward(apps, schema_editor):
+    if schema_editor.connection.vendor != "postgresql":
+        _forward_with_models(apps, schema_editor)
+        return
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(COUNT_UNKNOWN_SQL)
+        (unknown,) = cursor.fetchone()
+    _warn_unknown_tiers(unknown)
+    schema_editor.execute(SEQUENCE_BEFORE_SQL)
     schema_editor.execute(FORWARD_SQL)
     schema_editor.execute(SEQUENCE_SQL)
 
 
 def reverse(apps, schema_editor):
     if schema_editor.connection.vendor != "postgresql":
+        apps.get_model("powered_by", "ApiProject").objects.using(schema_editor.connection.alias).all().delete()
         return
     schema_editor.execute(REVERSE_SQL)
 

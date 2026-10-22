@@ -313,6 +313,66 @@
        "ref": "powered_by/tests/migration_api_project_cleanup_test.py::CleanupAbandonedLimitsMigrationTest::test_cleanup_is_a_no_op_where_nothing_was_abandoned"
       }
      ]
+    },
+    {
+     "id": "F-MODEL-02.e12",
+     "scenario": "backfill run when another API project already holds the id a profile would get (0007 re-run by 0008, or rows an older image wrote)",
+     "expected": "the profile gets the next id of the sequence, no primary-key error; the other row keeps its id; a second run inserts nothing; a later new API project cannot collide",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::BackfillTakenIdTest::test_a_rerun_with_a_taken_id_inserts_under_another_id"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::BackfillTakenIdTest::test_new_rows_after_the_backfill_do_not_collide_with_it"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e13",
+     "scenario": "migrating 0006 -> 0008 on a development SQLite database that already has a key",
+     "expected": "each API-project profile gets an api_project row with its own id, and the key still points at it",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::SqliteBackfillTest::test_migrating_with_an_existing_key_gives_it_an_api_project"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e14",
+     "scenario": "rollback to 0007 and a new forward run when a profile has a deleted API project and a replacement, or two API projects hold each other's profile id",
+     "expected": "every key ends on the API project it started on (the rollback records each key's exact API project; keys of a deleted project never move onto the live one); the record is dropped afterwards",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::KeyRemapRoundTripTest::test_a_deleted_and_a_replacement_api_project_keep_their_own_keys"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::KeyRemapRoundTripTest::test_an_unrelated_id_collision_does_not_move_keys_to_another_profile"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::KeyRemapRoundTripTest::test_the_remap_record_is_gone_after_the_forward_run"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e15",
+     "scenario": "forward run with keys that have no rollback record (written by older images)",
+     "expected": "a live key goes to its profile's live API project",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::KeyRemapRoundTripTest::test_keys_without_a_record_go_to_the_live_api_project"
+      }
+     ]
     }
    ]
   },
@@ -954,6 +1014,30 @@
       {
        "kind": "pytest",
        "ref": "powered_by/tests/developer_writer_api_project_test.py::ApiProjectIdTest::test_ids_are_api_project_ids_not_profile_ids"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-02.e7",
+     "scenario": "edit a project with a request that leaves contactEmail out",
+     "expected": "the stored contact email is kept",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::ContactEmailEditTest::test_an_edit_without_contact_email_keeps_the_stored_one"
+      }
+     ]
+    },
+    {
+     "id": "F-WRITE-02.e8",
+     "scenario": "edit a project with an empty contactEmail",
+     "expected": "the contact email is cleared",
+     "severity": "P2",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/developer_writer_api_project_test.py::ContactEmailEditTest::test_an_edit_with_an_empty_contact_email_clears_it"
       }
      ]
     }
@@ -4269,6 +4353,22 @@
        "kind": "file",
        "ref": "auth-service/scripts/demo.sh",
        "contains": "--allow-mutating"
+      }
+     ]
+    },
+    {
+     "id": "F-DEMO-01.e5",
+     "scenario": "demo.sh (default or --offline) with PG_TEST_DSN set in the environment",
+     "expected": "the Go tests do not see PG_TEST_DSN (they truncate and rebuild its schema); only --pg-integration passes it on",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "e2e-tests/api-keys/tests/test_demo_pg_dsn.py::DemoPgTestDsnTest::test_offline_does_not_pass_pg_test_dsn_to_the_go_tests"
+      },
+      {
+       "kind": "pytest",
+       "ref": "e2e-tests/api-keys/tests/test_demo_pg_dsn.py::DemoPgTestDsnTest::test_the_explicit_flag_passes_it_through"
       }
      ]
     }

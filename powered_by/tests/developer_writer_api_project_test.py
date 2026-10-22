@@ -173,3 +173,28 @@ class ApiProjectIdTest(DeveloperApiTestCase):
         self.assertEqual(Project.objects.get(id=api_project.profile_id).project_name, "Renamed")
         self.assertEqual(self.call("delete", "projects/" + project["id"])[0], 200)
         self.assertIsNotNone(ApiProject.objects.get(id=api_project.id).deleted_at)
+
+
+class ContactEmailEditTest(DeveloperApiTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+
+    def test_an_edit_without_contact_email_keeps_the_stored_one(self):
+        project = self.call("post", "projects", {"project": {**PROJECT, "contactEmail": "dev@example.org"}})[1]
+        project_id = project["projectId"]
+        self.assertEqual(ApiProject.objects.get(id=int(project_id)).contact_email, "dev@example.org")
+
+        status, state = self.call("post", "projects/" + project_id, {"project": {**PROJECT, "name": "Renamed"}})
+
+        self.assertEqual(status, 200, state)
+        self.assertEqual(ApiProject.objects.get(id=int(project_id)).contact_email, "dev@example.org")
+        self.assertEqual(state["projects"][0]["contactEmail"], "dev@example.org")
+
+    def test_an_edit_with_an_empty_contact_email_clears_it(self):
+        project_id = self.call("post", "projects", {"project": {**PROJECT, "contactEmail": "dev@example.org"}})[1]["projectId"]
+
+        self.call("post", "projects/" + project_id, {"project": {**PROJECT, "contactEmail": ""}})
+
+        self.assertEqual(ApiProject.objects.get(id=int(project_id)).contact_email, "")

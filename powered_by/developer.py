@@ -475,7 +475,8 @@ def clean_project_fields(data):
         "websiteUrl": _text(data, "websiteUrl", 200),
         "visibility": data.get("visibility"),
         "aiAssisted": bool(data.get("aiAssisted")),
-        "contactEmail": _text(data, "contactEmail"),
+        # None when the request leaves it out, so an edit keeps the stored address.
+        "contactEmail": _text(data, "contactEmail") if "contactEmail" in data else None,
     }
     if not fields["name"]:
         raise InputError("Give the project a name.")
@@ -568,7 +569,7 @@ def create_project(user, data):
     )
     _apply_fields(profile, fields)
     profile.save()
-    return ApiProject.objects.create(profile=profile, owner=user, contact_email=fields["contactEmail"])
+    return ApiProject.objects.create(profile=profile, owner=user, contact_email=fields["contactEmail"] or "")
 
 
 @transaction.atomic
@@ -583,7 +584,8 @@ def update_project(user, project_id, data):
     _apply_fields(profile, fields)
     _set_visibility(profile, fields["visibility"])
     profile.save()
-    api_project.contact_email = fields["contactEmail"]
+    if fields["contactEmail"] is not None:
+        api_project.contact_email = fields["contactEmail"]
     api_project.save()
     if profile.project_link != old_link:
         new_origins = [origin_of(profile.project_link)] if profile.project_link else []

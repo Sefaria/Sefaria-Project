@@ -22,13 +22,14 @@ TIERS = [
 
 
 def seed_tiers(apps, schema_editor):
+    alias = schema_editor.connection.alias
     ApiTier = apps.get_model("powered_by", "ApiTier")
     ApiTierMeterLimit = apps.get_model("powered_by", "ApiTierMeterLimit")
     for slug, name, per_minute, monthly in TIERS:
-        tier, _ = ApiTier.objects.get_or_create(
+        tier, _ = ApiTier.objects.using(alias).get_or_create(
             id=slug, defaults={"name": name, "per_minute_per_project": per_minute},
         )
-        ApiTierMeterLimit.objects.get_or_create(
+        ApiTierMeterLimit.objects.using(alias).get_or_create(
             tier=tier, meter="semantic", defaults={"monthly_per_project": monthly},
         )
 
