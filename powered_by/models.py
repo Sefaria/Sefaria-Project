@@ -337,13 +337,13 @@ def validate_allowed_origins(value):
 
 class ApiKey(models.Model):
     """
-    An API key of a project. The auth service loads every key, with its project's tier,
-    and reloads on the NOTIFY sent by the triggers in migration 0004. Keys are never
-    deleted: a revoked key keeps its row so historical logs still resolve.
+    An API key of an API project. Keys belong to an API project, whose tier the auth service
+    loads with every key. It reloads on the NOTIFY sent by the triggers in migrations 0004 and
+    0008. Keys are never deleted: a revoked key keeps its row so historical logs still resolve.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     key = models.CharField(max_length=100, unique=True, default=new_key_value)
-    project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name="api_keys")
+    project = models.ForeignKey(ApiProject, on_delete=models.PROTECT, related_name="api_keys")
     label = models.CharField(max_length=100)
     allowed_origins = models.JSONField(
         default=list, blank=True, db_default=[], validators=[validate_allowed_origins],

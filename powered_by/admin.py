@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ApiKey, Project
+from .models import ApiKey, ApiProject, Project
 
 
 class ApiKeyInline(admin.TabularInline):
@@ -35,7 +35,6 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ("project_name", "creator", "creator_email", "submitter")
     readonly_fields = ("created_at", "updated_at")
     raw_id_fields = ("owner",)
-    inlines = (ApiKeyInline,)
     date_hierarchy = "created_at"
 
     fieldsets = (
@@ -95,3 +94,12 @@ class ProjectAdmin(admin.ModelAdmin):
             ),
         }),
     )
+
+
+@admin.register(ApiProject)
+class ApiProjectAdmin(admin.ModelAdmin):
+    # Placeholder for the keys inline, which moved here from the profile admin when the keys moved to the
+    # API project; the full admin (tier permission, listing guard) follows with the writer changes.
+    list_display = ("id", "profile", "owner", "tier", "deleted_at")
+    raw_id_fields = ("profile", "owner")
+    inlines = (ApiKeyInline,)

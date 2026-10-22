@@ -24,7 +24,7 @@ pg() { kubectl --context "$CTX" -n default exec -i postgres-18-0 -- sh -c 'psql 
 [ -e "$OUT" ] && { echo "refusing: $OUT already exists"; exit 1; }
 [ "$(pg -c "SELECT count(*) FROM pg_roles WHERE rolname = '$ROLE'")" = 0 ] || { echo "refusing: role $ROLE exists"; exit 1; }
 [ "$(pg -c "SELECT count(*) FROM pg_database WHERE datname = '$DB'")" = 1 ] || { echo "refusing: database $DB does not exist"; exit 1; }
-[ "$(pg -d "$DB" -c "SELECT count(*) FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('powered_by_project', 'powered_by_apikey')")" = 2 ] \
+[ "$(pg -d "$DB" -c "SELECT count(*) FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('powered_by_project', 'powered_by_apikey', 'api_project', 'api_tier', 'api_tier_meter_limit')")" = 5 ] \
   || { echo "refusing: registry tables missing in $DB (run the Django migrations first)"; exit 1; }
 [ "$(pg -d "$DB" -c "SELECT count(*) FROM pg_trigger WHERE tgname LIKE 'apikeys\_notify\_%'")" -ge 4 ] \
   || { echo "refusing: NOTIFY triggers missing in $DB (run the Django migrations first)"; exit 1; }
@@ -36,8 +36,8 @@ printf 'probe: x\n' | sops --encrypt --gcp-kms "$KMS" --input-type yaml --output
 PW=$(openssl rand -hex 24)
 printf "CREATE ROLE %s LOGIN PASSWORD '%s';\nALTER ROLE %s SET default_transaction_read_only = on;\nGRANT CONNECT ON DATABASE %s TO %s;\n" \
   "$ROLE" "$PW" "$ROLE" "$DB" "$ROLE" | pg
-printf "GRANT USAGE ON SCHEMA public TO %s;\nGRANT SELECT (id, tier, deleted_at) ON powered_by_project TO %s;\nGRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO %s;\n" \
-  "$ROLE" "$ROLE" "$ROLE" | pg -d "$DB"
+printf "GRANT USAGE ON SCHEMA public TO %s;\nGRANT SELECT (id, tier, deleted_at) ON powered_by_project TO %s;\nGRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO %s;\nGRANT SELECT (id, tier_id, deleted_at) ON api_project TO %s;\nGRANT SELECT (id, per_minute_per_project) ON api_tier TO %s;\nGRANT SELECT (tier_id, meter, monthly_per_project) ON api_tier_meter_limit TO %s;\n" \
+  "$ROLE" "$ROLE" "$ROLE" "$ROLE" "$ROLE" "$ROLE" | pg -d "$DB"
 echo "ok: role $ROLE, read-only on the registry tables in $DB"
 
 umask 077

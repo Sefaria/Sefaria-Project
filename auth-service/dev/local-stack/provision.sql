@@ -13,6 +13,9 @@ GRANT CONNECT ON DATABASE sefaria_auth TO auth_service_reader;
 GRANT USAGE ON SCHEMA public TO auth_service_reader;
 GRANT SELECT (id, tier, deleted_at) ON powered_by_project TO auth_service_reader;
 GRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO auth_service_reader;
+GRANT SELECT (id, tier_id, deleted_at) ON api_project TO auth_service_reader;
+GRANT SELECT (id, per_minute_per_project) ON api_tier TO auth_service_reader;
+GRANT SELECT (tier_id, meter, monthly_per_project) ON api_tier_meter_limit TO auth_service_reader;
 
 -- Accounts created through the UI start above the real Mongo profiles and the fixture band.
 DO $$
