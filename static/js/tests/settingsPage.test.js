@@ -271,6 +271,15 @@ describe('project website', () => {
     expect(container.querySelector('[role="alert"]').textContent).toContain('Enter a website address like example.com');
     expect(container.querySelector('.devPocNewProject')).toBeTruthy();
   });
+  it("doesn't promise that a website restriction makes a copied key useless", () => {
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    act(() => { visibilityRadio('private').click(); });
+    submitProject();
+    const dialog = container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]');
+    expect(dialog.textContent).not.toMatch(/no use anywhere else/i);
+    expect(dialog.textContent).toContain('outside a browser');
+  });
 });
 
 const yourListingDialog = () => container.querySelector('[aria-labelledby="devPocYourListingTitle"]');

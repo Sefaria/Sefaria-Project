@@ -261,15 +261,6 @@ describe('an internationalised website address', () => {
   });
 });
 
-describe('copy about website restrictions', () => {
-  it('does not promise that a copied key is useless elsewhere @known-gap N-CR3', () => {
-    openNewProject();
-    fillProject();
-    submitProject();
-    expect(noWebsiteDialog().textContent).not.toMatch(/no use anywhere else/i);
-  });
-});
-
 describe('the confirmation poll', () => {
   const setVisibility = (state) => {
     Object.defineProperty(document, 'visibilityState', { value: state, configurable: true });

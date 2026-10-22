@@ -1061,8 +1061,8 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => {
           <li><InterfaceText text={{en: "We show it alongside your project on Powered by Sefaria.", he: "נציג אותו לצד הפרויקט ב־Powered by Sefaria."}} /></li>
           <li>
             <InterfaceText text={{
-              en: "You can make your key work only on your site, so a copied key is no use anywhere else.",
-              he: "אפשר להגביל את המפתח כך שיעבוד רק באתר שלכם, ומפתח שהועתק לא יעבוד בשום מקום אחר.",
+              en: "You can make your key work only on your site's pages, so other websites can't use a copied key in their visitors' browsers. It doesn't stop use outside a browser, where anyone can send your site's address.",
+              he: "אפשר להגביל את המפתח כך שיעבוד רק בדפים של האתר שלכם, ואתרים אחרים לא יוכלו להשתמש במפתח שהועתק בדפדפנים של המבקרים שלהם. ההגבלה לא מונעת שימוש מחוץ לדפדפן, שם כל אחד יכול לשלוח את כתובת האתר שלכם.",
             }} />
           </li>
         </ul>
