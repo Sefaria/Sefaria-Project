@@ -10,6 +10,7 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.views.decorators.clickjacking import xframe_options_deny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
@@ -162,10 +163,12 @@ LINK_PAGE_TITLES = {
     developer.LinkStatus.ALREADY_CONFIRMED: "Already confirmed",
     developer.LinkStatus.EXPIRED: "This link has expired",
     developer.LinkStatus.NOT_ACCOUNT_EMAIL: "This link is no longer valid",
+    developer.LinkStatus.ADDRESS_IN_USE: "This link is no longer valid",
 }
 
 
 @requires_developer_settings
+@xframe_options_deny
 @ensure_csrf_cookie
 def confirm_email(request, key):
     status = developer.confirm_email(request, key)
@@ -178,6 +181,7 @@ def confirm_email(request, key):
 
 
 @requires_developer_settings
+@xframe_options_deny
 def email_confirmed_page(request):
     return menu_page(request, page="developerEmailConfirmed", title="Email confirmed",
                      desc="Your email is confirmed for Sefaria developer settings.")

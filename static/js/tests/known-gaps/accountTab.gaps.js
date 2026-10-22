@@ -96,13 +96,3 @@ describe('Hebrew interface, email change', () => {
     expect(placeholder).toMatch(HEBREW);
   });
 });
-
-describe('saving on a site that is not Torah-specific', () => {
-  it('does not turn reading history off, since the page has no reading history setting @known-gap N-M15', () => {
-    mount({ torahSpecific: false });
-    act(() => { container.querySelector('.saveAccountSettingsBtn').click(); });
-    const [, data] = $.post.mock.calls[$.post.mock.calls.length - 1];
-    const { settings } = JSON.parse(data.json);
-    expect(settings.reading_history).not.toBe(false);
-  });
-});

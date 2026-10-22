@@ -25,6 +25,7 @@ import {
   setKeyRestriction,
   updateProject,
   websiteHost,
+  websiteOrigin,
 } from './developerSettingsApi';
 
 /* Account and developer settings, one page with a tab per settings section. The developer tab
@@ -461,14 +462,25 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
                      onCancelConfirmation}) => {
   const [asking, setAsking] = useState(false);
   const [resent, setResent] = useState(false);
-  const start = () => { if (verified) { onStart(); } else { setAsking(true); } };
+  const [error, setError] = useState("");
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
+  /* onStart, onSendConfirmation and onCancelConfirmation reject with the server's reason, shown here. */
+  const attempt = (request, onDone) => {
+    setError("");
+    setResent(false);
+    Promise.resolve(request()).then(() => { if (mounted.current && onDone) { onDone(); } },
+      err => { if (mounted.current) { setError(err.message || Sefaria._v(SAVE_FAILED)); } });
+  };
+  const start = () => { if (verified) { attempt(onStart); } else { setError(""); setAsking(true); } };
+  const errorMessage = error ? <p className="devPocWarning" role="alert">{error}</p> : null;
   const cardClass = "devPocCard" + (highlight ? " settingsHighlight" : "");
   const email = accountEmail();
   const emailText = email ? <bdi dir="ltr"><strong>{email}</strong></bdi> : null;
 
   if (settingUp) {
     return (
-      <div className={"devPocNotice devPocSettingUp " + cardClass} role="status">
+      <div className={"devPocNotice devPocSettingUp " + cardClass}>
         <span className="devPocSpinner" aria-hidden="true" />
         <strong><InterfaceText text={{en: "Setting up developer settings…", he: "מכינים את הגדרות המפתחים…"}} /></strong>
       </div>
@@ -486,15 +498,17 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
           }} />
         </p>
         <div className="devPocActions">
-          <button className="button small white" type="button" data-agent-action="resend-confirmation" onClick={() => { onSendConfirmation(); setResent(true); }}>
+          <button className="button small white" type="button" data-agent-action="resend-confirmation" onClick={() => attempt(onSendConfirmation, () => setResent(true))}>
             <InterfaceText text={{en: "Resend the link", he: "שליחה חוזרת של הקישור"}} />
           </button>
-          <button className="button small transparent" type="button" onClick={() => { onCancelConfirmation(); setAsking(false); setResent(false); }}>
+          <button className="button small transparent" type="button" onClick={() => attempt(onCancelConfirmation, () => setAsking(false))}>
             <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
           </button>
         </div>
-        {resent ?
-          <p className="devPocHelp" role="status"><InterfaceText text={{en: "Sent again.", he: "נשלח שוב."}} /></p> : null}
+        <p className="devPocHelp devPocStatus" role="status">
+          {resent ? <InterfaceText text={{en: "Sent again.", he: "נשלח שוב."}} /> : null}
+        </p>
+        {errorMessage}
         <p className="devPocHelp">
           <InterfaceText text={{
             en: "Not there? Check your spam folder. Wrong address? Change it in Account settings first.",
@@ -516,13 +530,14 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
           }} />
         </p>
         <div className="devPocActions">
-          <button className="button small blue" type="button" data-agent-action="send-confirmation" onClick={onSendConfirmation}>
+          <button className="button small blue" type="button" data-agent-action="send-confirmation" onClick={() => attempt(onSendConfirmation)}>
             <InterfaceText text={{en: "Email me a confirmation link", he: "שלחו לי קישור לאישור"}} />
           </button>
-          <button className="button small transparent" type="button" onClick={() => setAsking(false)}>
+          <button className="button small transparent" type="button" onClick={() => { setError(""); setAsking(false); }}>
             <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
           </button>
         </div>
+        {errorMessage}
       </div>
     );
   }
@@ -541,6 +556,7 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
           <InterfaceText text={{en: "Get started", he: "בואו נתחיל"}} />
         </button>
       </div>
+      {errorMessage}
     </div>
   );
 };
@@ -551,6 +567,13 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
 const ReconfirmEmail = ({confirmationSent, onSend}) => {
   const email = accountEmail();
   const emailText = <bdi dir="ltr"><strong>{email}</strong></bdi>;
+  const [error, setError] = useState("");
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
+  const send = () => {
+    setError("");
+    Promise.resolve(onSend()).catch(err => { if (mounted.current) { setError(err.message || Sefaria._v(SAVE_FAILED)); } });
+  };
   return (
     <div className="devPocNotice devPocReconfirm" role="region" aria-label={Sefaria._v({en: "Confirm your new email", he: "אישור כתובת הדוא״ל החדשה"})}>
       <h2><InterfaceText text={{en: "Confirm your new email address", he: "אישור כתובת הדוא״ל החדשה"}} /></h2>
@@ -560,20 +583,21 @@ const ReconfirmEmail = ({confirmationSent, onSend}) => {
           he: <React.Fragment>כתובת הדוא״ל של החשבון שונתה ל־{emailText}. הפרויקטים והמפתחות שלכם ממשיכים לעבוד. כדי ליצור פרויקטים ומפתחות חדשים, אשרו את הכתובת החדשה.</React.Fragment>,
         }} />
       </p>
-      {confirmationSent ?
-        <p className="devPocHelp" role="status">
+      <p className="devPocHelp devPocStatus" role="status">
+        {confirmationSent ?
           <InterfaceText text={{
             en: <React.Fragment>We sent a confirmation link to {emailText}. It works for 3 days.</React.Fragment>,
             he: <React.Fragment>שלחנו קישור לאישור אל {emailText}. הקישור בתוקף 3 ימים.</React.Fragment>,
-          }} />
-        </p> : null}
+          }} /> : null}
+      </p>
       <div className="devPocActions">
-        <button className="button small white" type="button" data-agent-action="send-confirmation" onClick={onSend}>
+        <button className="button small white" type="button" data-agent-action="send-confirmation" onClick={send}>
           <InterfaceText text={confirmationSent ?
             {en: "Resend the link", he: "שליחה חוזרת של הקישור"} :
             {en: "Email me a confirmation link", he: "שלחו לי קישור לאישור"}} />
         </button>
       </div>
+      {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
     </div>
   );
 };
@@ -792,14 +816,14 @@ const ProfileForm = ({profile, onSave, onCancel}) => {
 
 
 /* A listing's public fields only: what anyone can already see on Powered by Sefaria. */
-const ListingSummary = ({listing}) => (
-  <div className="devPocListingSummary">
+const ListingSummary = ({id, listing}) => (
+  <div className="devPocListingSummary" id={id}>
     <strong dir="auto">{listing.name}</strong> <span className="devPocMuted" dir="ltr">({listing.url})</span>
     <p className="devPocHelp" dir="auto">{listing.description}</p>
   </div>
 );
 
-const ContactLink = () => <a href={"mailto:" + CONTACT_EMAIL} dir="ltr">{CONTACT_EMAIL}</a>;
+const ContactLink = () => <a className="devPocContactLink" href={"mailto:" + CONTACT_EMAIL} dir="ltr">{CONTACT_EMAIL}</a>;
 
 const LinkedListingNote = ({name}) => (
   <p className="devPocHelp devPocLinked" role="status">
@@ -935,17 +959,18 @@ const YourListingDialog = ({listing, onYes, onNo, onLater}) => {
     });
   };
   return (
-    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocYourListingTitle">
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocYourListingTitle"
+      aria-describedby="devPocYourListingBody devPocYourListingSummary devPocYourListingAfter">
       <section className="devPocDialog">
         <h2 id="devPocYourListingTitle"><InterfaceText text={{en: "Is this your project?", he: "האם זה הפרויקט שלך?"}} /></h2>
-        <p>
+        <p id="devPocYourListingBody">
           <InterfaceText text={{
             en: "This project on Powered by Sefaria was submitted with your email address.",
             he: "הפרויקט הזה ב־Powered by Sefaria נשלח עם כתובת האימייל שלך.",
           }} />
         </p>
-        <ListingSummary listing={listing} />
-        <p>
+        <ListingSummary id="devPocYourListingSummary" listing={listing} />
+        <p id="devPocYourListingAfter">
           <InterfaceText text={{
             en: "If it's yours, we'll add it to your projects with these details, so you can create an API key for it. It stays public, like the listing, and you can edit it afterwards.",
             he: "אם הוא שלך, נוסיף אותו לפרויקטים שלך עם הפרטים האלה, כדי שתוכלו ליצור לו מפתח API. הוא יישאר ציבורי, כמו הרישום, ואפשר לערוך אותו אחר כך.",
@@ -981,10 +1006,10 @@ const MakePrivateDialog = ({onConfirm, onCancel}) => {
   const cancelRef = useRef(null);
   useDialogKeys(cancelRef, onCancel);
   return (
-    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPrivateTitle">
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPrivateTitle" aria-describedby="devPocPrivateBody">
       <section className="devPocDialog">
         <h2 id="devPocPrivateTitle"><InterfaceText text={{en: "Make this project private?", he: "להפוך את הפרויקט לפרטי?"}} /></h2>
-        <p>
+        <p id="devPocPrivateBody">
           <InterfaceText text={{en: "The project will be marked private.", he: "הפרויקט יסומן כפרטי."}} />{" "}
           <PublishedCopiesWarning />
         </p>
@@ -1015,10 +1040,10 @@ const PublicPreviewDialog = ({fields, onClose}) => {
   ].filter(row => row.value || !row.optional);
 
   return (
-    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPublicTitle">
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPublicTitle" aria-describedby="devPocPublicBody">
       <section className="devPocDialog">
         <h2 id="devPocPublicTitle"><InterfaceText text={{en: "What will be public", he: "מה יהיה ציבורי"}} /></h2>
-        <p>
+        <p id="devPocPublicBody">
           <InterfaceText text={{
             en: "If Sefaria features it on Powered by Sefaria, anyone will be able to see:",
             he: "אם ספריא תציג אותו ב־Powered by Sefaria, כל אחד יוכל לראות:",
@@ -1053,20 +1078,21 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => {
   const addRef = useRef(null);
   useDialogKeys(addRef, onAddWebsite);
   return (
-    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocNoWebsiteTitle">
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocNoWebsiteTitle"
+      aria-describedby="devPocNoWebsiteBody devPocNoWebsiteReasons devPocNoWebsiteLater">
       <section className="devPocDialog">
         <h2 id="devPocNoWebsiteTitle"><InterfaceText text={{en: "Save without a website?", he: "לשמור בלי אתר?"}} /></h2>
-        <p><InterfaceText text={{en: "A website helps your project in two ways:", he: "אתר עוזר לפרויקט שלכם בשתי דרכים:"}} /></p>
-        <ul className="devPocList">
+        <p id="devPocNoWebsiteBody"><InterfaceText text={{en: "A website helps your project in two ways:", he: "אתר עוזר לפרויקט שלכם בשתי דרכים:"}} /></p>
+        <ul className="devPocList" id="devPocNoWebsiteReasons">
           <li><InterfaceText text={{en: "We show it alongside your project on Powered by Sefaria.", he: "נציג אותו לצד הפרויקט ב־Powered by Sefaria."}} /></li>
           <li>
             <InterfaceText text={{
-              en: "You can make your key work only on your site, so a copied key is no use anywhere else.",
-              he: "אפשר להגביל את המפתח כך שיעבוד רק באתר שלכם, ומפתח שהועתק לא יעבוד בשום מקום אחר.",
+              en: "You can make your key work only on your site's pages, so other websites can't use a copied key in their visitors' browsers. It doesn't stop use outside a browser, where anyone can send your site's address.",
+              he: "אפשר להגביל את המפתח כך שיעבוד רק בדפים של האתר שלכם, ואתרים אחרים לא יוכלו להשתמש במפתח שהועתק בדפדפנים של המבקרים שלהם. ההגבלה לא מונעת שימוש מחוץ לדפדפן, שם כל אחד יכול לשלוח את כתובת האתר שלכם.",
             }} />
           </li>
         </ul>
-        <p>
+        <p id="devPocNoWebsiteLater">
           <InterfaceText text={{
             en: <React.Fragment>No website yet? That's fine. You can add it later with <strong>Edit project</strong>.</React.Fragment>,
             he: <React.Fragment>עדיין אין אתר? זה בסדר. אפשר להוסיף אותו מאוחר יותר דרך <strong>עריכת הפרויקט</strong>.</React.Fragment>,
@@ -1086,9 +1112,14 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => {
 };
 
 
+const WEBSITE_IN_USE = {
+  en: "A key is restricted to this website. Turn off the restriction on every key before removing the website.",
+  he: "יש מפתח שמוגבל לאתר הזה. כבו את ההגבלה בכל המפתחות לפני הסרת האתר.",
+};
+
 /* One form for creating and editing a project. A missing website asks once before saving,
    and the website field gets focus if the developer goes back to add one. */
-const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, onSave, onCancel, onDelete}) => {
+const ProjectForm = ({initial, savedVisibility, websiteRequired, linkedListingName, submitLabel, onSave, onCancel, onDelete}) => {
   const [fields, setFields] = useState(initial);
   const [error, setError] = useState("");
   const [askWebsite, setAskWebsite] = useState(false);
@@ -1137,6 +1168,10 @@ const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, 
     }
     if (!fields.visibility) {
       setError(Sefaria._v({en: "Choose whether the project is public or private.", he: "נא לבחור אם הפרויקט ציבורי או פרטי."}));
+      return;
+    }
+    if (!fields.websiteUrl.trim() && websiteRequired) {
+      setError(Sefaria._v(WEBSITE_IN_USE));
       return;
     }
     setError("");
@@ -1238,7 +1273,7 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
   const [explained, setExplained] = useState(false);
   const explainerId = "devPocRestrictionHelp-" + apiKey.id;
   const summaryId = "devPocRestrictionSummary-" + apiKey.id;
-  const origin = <code dir="ltr">https://{host}</code>;
+  const origin = <code dir="ltr">{websiteOrigin(project.websiteUrl)}</code>;
   return (
     <div className="devPocRestriction">
       <div className="devPocRestrictionRow">
@@ -1250,8 +1285,8 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
             onChange={e => onToggle(e.target.checked)}
             aria-describedby={summaryId}
             aria-label={Sefaria._v({
-              en: "Only accept requests with " + apiKey.label + " from " + host,
-              he: "לקבל בקשות עם " + apiKey.label + " רק מ־" + host,
+              en: "Only accept requests from " + host + " (" + apiKey.label + ")",
+              he: "לקבל בקשות רק מ־ " + host + " (" + apiKey.label + ")",
             })}
           />
           <span>
@@ -1355,7 +1390,12 @@ const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDel
   <article className={"devPocKey" + (isNew ? " devPocKeyNew" : "")}>
     <div className="devPocKeyHeading">
       <strong dir="auto">{apiKey.label}</strong>
-      <button type="button" className="button small transparent devPocDanger" onClick={onDelete}>
+      <button
+        type="button"
+        className="button small transparent devPocDanger"
+        aria-label={Sefaria._v({en: "Delete key " + apiKey.label, he: "מחיקת המפתח " + apiKey.label})}
+        onClick={onDelete}
+      >
         <InterfaceText text={{en: "Delete key", he: "מחיקת המפתח"}} />
       </button>
     </div>
@@ -1364,7 +1404,7 @@ const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDel
       <span><InterfaceText text={{en: "Created " + formatDate(apiKey.created), he: "נוצר ב־" + formatDate(apiKey.created)}} /></span>
     </div>
     {isNew ?
-      <p className="devPocKeyReady" role="status">
+      <p className="devPocKeyReady">
         <InterfaceText text={{en: "Ready to use. Copy it into your tool.", he: "מוכן לשימוש. העתיקו אותו לכלי שלכם."}} />
       </p> : null}
     {project.websiteUrl ?
@@ -1388,12 +1428,14 @@ const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDel
 
 
 const KEY_HIGHLIGHT_MS = 4000;
+const KEY_LABEL_MAX_LENGTH = 100;
 
 const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite}) => {
   const [creating, setCreating] = useState(false);   // showing the label form
   const [label, setLabel] = useState("");
   const [phase, setPhase] = useState("idle");        // idle | setting-up | error
   const [error, setError] = useState("");
+  const [createError, setCreateError] = useState("");
   const [newKeyId, setNewKeyId] = useState(null);
   const mounted = useRef(true);
   const highlightTimer = useRef(null);
@@ -1414,14 +1456,18 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
     setError("");
     setPhase("setting-up");
     const minimum = new Promise(resolve => setTimeout(resolve, KEY_SETUP_MS));
-    const created = run(createKey(project.id, label.trim()), {quiet: true});
+    const created = run(createKey(project.id, label.trim()), {quiet: true, refresh: true});
     Promise.all([created, minimum]).then(([data]) => {
       if (!mounted.current) { return; }
       setPhase("idle"); setCreating(false); setLabel("");
       setNewKeyId(data.keyId);
       clearTimeout(highlightTimer.current);
       highlightTimer.current = setTimeout(() => setNewKeyId(null), KEY_HIGHLIGHT_MS);
-    }, () => { if (mounted.current) { setPhase("error"); } });
+    }, err => {
+      if (!mounted.current) { return; }
+      setCreateError(err.message);
+      setPhase("error");
+    });
   };
 
   const toggleRestriction = (keyId, on) => run(setKeyRestriction(keyId, on)).catch(() => {});
@@ -1491,6 +1537,7 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
               dir="auto"
               placeholder={Sefaria._v({en: "e.g. My website", he: "למשל: האתר שלי"})}
               value={label}
+              maxLength={KEY_LABEL_MAX_LENGTH}
               onChange={e => setLabel(e.target.value)}
             />
           </div>
@@ -1504,8 +1551,12 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
             </button>
           </div>
         </form> : null}
+      <p className="sr-only" role="status">
+        {phase === "setting-up" ? <InterfaceText text={{en: "Setting up your key…", he: "מכינים את המפתח…"}} /> :
+          newKeyId ? <InterfaceText text={{en: "Ready to use. Copy it into your tool.", he: "מוכן לשימוש. העתיקו אותו לכלי שלכם."}} /> : null}
+      </p>
       {phase === "setting-up" ?
-        <div className="devPocNotice devPocSettingUp" role="status">
+        <div className="devPocNotice devPocSettingUp">
           <span className="devPocSpinner" aria-hidden="true" />
           <span>
             <strong><InterfaceText text={{en: "Setting up your key…", he: "מכינים את המפתח…"}} /></strong>
@@ -1515,9 +1566,9 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
       {phase === "error" ?
         <div className="devPocWarning" role="alert">
           <strong><InterfaceText text={{en: "We couldn't create your key.", he: "לא הצלחנו ליצור את המפתח."}} /></strong>
-          <p><InterfaceText text={{en: "Nothing was created. Please try again.", he: "שום דבר לא נוצר. נסו שוב."}} /></p>
-          <button type="button" className="button small white" onClick={() => setPhase("idle")}>
-            <InterfaceText text={{en: "Try again", he: "לנסות שוב"}} />
+          <p>{createError || <InterfaceText text={{en: "Nothing was created. Please try again.", he: "שום דבר לא נוצר. נסו שוב."}} />}</p>
+          <button type="button" className="button small white" onClick={() => { setPhase("idle"); if (atLimit) { setCreating(false); } }}>
+            <InterfaceText text={atLimit ? {en: "Close", he: "סגירה"} : {en: "Try again", he: "לנסות שוב"}} />
           </button>
         </div> : null}
 
@@ -1568,7 +1619,7 @@ const listingStatus = (project) => {
 };
 
 
-const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm, onToggleExpand, onDeleted, notice}) => {
+const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm, onToggleExpand, onDeleted}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
 
@@ -1582,19 +1633,7 @@ const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm
   };
 
   /* Rejects with the error for the form to show; a saved project closes the editor. */
-  const saveProject = (fields) => {
-    const losingUrl = !!project.websiteUrl && !fields.websiteUrl.trim();
-    const restrictedKeys = project.keys.filter(k => k.restrictToWebsite).map(k => k.label);
-    return run(updateProject(project.id, fields), {quiet: true}).then(() => {
-      setEditing(false);
-      if (losingUrl && restrictedKeys.length) {
-        notice(Sefaria._v({
-          en: restrictedKeys.join(", ") + " now works anywhere again, because the project no longer has a website.",
-          he: restrictedKeys.join(", ") + " עובד שוב בכל מקום, כי לפרויקט כבר אין אתר.",
-        }));
-      }
-    });
-  };
+  const saveProject = (fields) => run(updateProject(project.id, fields), {quiet: true}).then(() => setEditing(false));
 
   const keyLabels = project.keys.map(k => k.label).join(", ");
   const keysText = project.keys.length
@@ -1666,6 +1705,7 @@ const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm
                   websiteUrl: project.websiteUrl, visibility: project.visibility, aiAssisted: project.aiAssisted,
                 }}
                 savedVisibility={project.visibility}
+                websiteRequired={project.keys.some(k => k.restrictToWebsite)}
                 linkedListingName={project.linkedListing ? project.name : null}
                 submitLabel={{en: "Save project", he: "שמירת הפרויקט"}}
                 onSave={saveProject}
@@ -1684,10 +1724,10 @@ const ConfirmDialog = ({confirm, onClose}) => {
   const cancelRef = useRef(null);
   useDialogKeys(cancelRef, () => onClose(false));
   return (
-    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocConfirmTitle">
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocConfirmTitle" aria-describedby="devPocConfirmBody">
       <section className="devPocDialog">
         <h2 id="devPocConfirmTitle" dir="auto">{confirm.title}</h2>
-        <p>{confirm.body}</p>
+        <p id="devPocConfirmBody">{confirm.body}</p>
         <div className="devPocActions">
           <button type="button" className="button small white" ref={cancelRef} onClick={() => onClose(false)}>
             <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
@@ -1718,6 +1758,21 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
     if (projectsHeadingRef.current) { projectsHeadingRef.current.focus(); }
   };
 
+  /* Cancelling a new project returns focus to the button that opened the form, which renders
+     again once the form closes. */
+  const tabRef = useRef(null);
+  const focusNewProjectButton = useRef(false);
+  const cancelNewProject = () => {
+    focusNewProjectButton.current = true;
+    setShowNewProject(false);
+  };
+  useEffect(() => {
+    if (showNewProject || !focusNewProjectButton.current) { return; }
+    focusNewProjectButton.current = false;
+    const opener = tabRef.current && tabRef.current.querySelector('[data-agent-action="new-project"]');
+    if (opener) { opener.focus(); }
+  }, [showNewProject]);
+
   const toggleExpand = (project) => expandProject(expandedProjectId === project.id ? null : project.id);
 
   const newProjectButton = (label, className) => (
@@ -1730,7 +1785,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
     [accountEmail(), state.profile.additionalEmail].filter(Boolean) : [];
 
   return (
-    <div className="devPocPage">
+    <div className="devPocPage" ref={tabRef}>
       <header className={"devPocPageHeader" + (highlight && developerOn ? " settingsHighlight" : "")}>
         <div>
           <h1><InterfaceText text={{en: "Developer settings", he: "הגדרות מפתחים"}} /></h1>
@@ -1753,8 +1808,12 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
         </a>
       </header>
 
-      {connectedMessage ?
-        <div className="devPocSuccess" role="status"><p>{connectedMessage}</p></div> : null}
+      <p className="sr-only" role="status">
+        {settingUp ? <InterfaceText text={{en: "Setting up developer settings…", he: "מכינים את הגדרות המפתחים…"}} /> : null}
+      </p>
+      <div className={connectedMessage ? "devPocSuccess" : "sr-only"} role="status">
+        {connectedMessage ? <p>{connectedMessage}</p> : null}
+      </div>
 
       {!developerOn || settingUp ?
         <GetStarted
@@ -1763,19 +1822,21 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
           settingUp={settingUp}
           highlight={highlight}
           onStart={onStart}
-          onSendConfirmation={() => run(sendConfirmation()).catch(() => {})}
-          onCancelConfirmation={() => run(cancelConfirmation()).catch(() => {})}
+          onSendConfirmation={() => run(sendConfirmation(), {quiet: true, refresh: true})}
+          onCancelConfirmation={() => run(cancelConfirmation(), {quiet: true, refresh: true})}
         /> :
         !state.profile ?
         <ProfileOnboarding onSave={profile => run(saveProfile(profile), {quiet: true})} /> :
         <React.Fragment>
-          {notice ?
-            <div className="devPocNotice" role="status">
-              <p>{notice}</p>
-              <button type="button" className="button small transparent" onClick={() => setNotice("")}>
-                <InterfaceText text={{en: "Dismiss", he: "סגירה"}} />
-              </button>
-            </div> : null}
+          <div className={notice ? "devPocNotice" : "sr-only"} role="status">
+            {notice ?
+              <React.Fragment>
+                <p>{notice}</p>
+                <button type="button" className="button small transparent" onClick={() => setNotice("")}>
+                  <InterfaceText text={{en: "Dismiss", he: "סגירה"}} />
+                </button>
+              </React.Fragment> : null}
+          </div>
 
           <section className="devPocProfile">
             {editingProfile ?
@@ -1810,7 +1871,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
           {canCreate ? null :
             <ReconfirmEmail
               confirmationSent={!!state.confirmationSentAt}
-              onSend={() => run(sendConfirmation()).catch(() => {})}
+              onSend={() => run(sendConfirmation(), {quiet: true, refresh: true})}
             />}
 
           <div className="devPocSectionHeading">
@@ -1819,7 +1880,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
           </div>
 
           {showNewProject ?
-            <NewProjectPanel onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
+            <NewProjectPanel onCreate={onCreateProject} onCancel={cancelNewProject} /> :
             state.projects.length === 0 ?
             <div className="devPocEmpty">
               <h2><InterfaceText text={{en: "No projects yet", he: "עדיין אין פרויקטים"}} /></h2>
@@ -1844,7 +1905,6 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
               canCreateKeys={canCreate}
               run={run}
               setConfirm={setConfirm}
-              notice={setNotice}
               onToggleExpand={() => toggleExpand(p)}
               onDeleted={projectDeleted}
             />
@@ -1998,7 +2058,7 @@ const loginMethod = (socialProviders) => {
   return {en: "Apple Sign-In with", he: "התחברות דרך אפל עם"};
 };
 
-const AccountTab = ({settings, socialProviders}) => {
+const AccountTab = ({settings, socialProviders, onEmailChanged}) => {
   const torahSpecific = !!settings.torahSpecific;
   const translationLanguages = settings.translationLanguages || [];
 
@@ -2034,7 +2094,7 @@ const AccountTab = ({settings, socialProviders}) => {
         email_notifications: emailNotifications,
         interface_language: torahSpecific ? interfaceLanguage : undefined,
         textual_custom: torahSpecific ? textualCustom : undefined,
-        reading_history: (torahSpecific ? readingHistory : undefined) === "true",
+        reading_history: torahSpecific ? readingHistory === "true" : undefined,
         translation_language_preference: torahSpecific ? transPref : undefined,
         translation_language_preference_suggested: true,
       },
@@ -2081,10 +2141,8 @@ const AccountTab = ({settings, socialProviders}) => {
         Sefaria.track.event("Reader", "Set Translation Language Preference", transPref);
         saved.current.translationLanguage = transPref;
       }
-      const detail = {
-        translationLanguagePreference: profile.settings.translation_language_preference,
-        readingHistory: profile.settings.reading_history,
-      };
+      const detail = {translationLanguagePreference: profile.settings.translation_language_preference};
+      if (torahSpecific) { detail.readingHistory = profile.settings.reading_history; }
       const newTextualCustom = profile.settings.textual_custom;
       if (newTextualCustom !== saved.current.textualCustom) {  // only check change here because it triggers an API call to re-fetch calendars
         detail.textualCustom = newTextualCustom;
@@ -2104,6 +2162,8 @@ const AccountTab = ({settings, socialProviders}) => {
       setEmailError("");
       rememberAccountSettings({email: emailFields.email});
       setEmail(emailFields.email);
+      Sefaria._email = emailFields.email;
+      if (onEmailChanged) { onEmailChanged(); }
       setEmailOk(Sefaria._("Email was successfully changed!"));
       setEditingEmail(false);
     });
@@ -2333,6 +2393,10 @@ const SAVE_FAILED = {
 };
 const CONNECTED_MS = 8000;
 const CONFIRMATION_POLL_MS = 3000;
+const CONFIRMATION_FAST_POLL_MS = 60 * 1000;
+const CONFIRMATION_MAX_POLL_MS = 60 * 1000;
+/* How long an emailed confirmation link works, as the server's CONFIRMATION_LINK_MAX_AGE. */
+const CONFIRMATION_LINK_MS = 3 * 24 * 60 * 60 * 1000;
 const SETUP_MS = 1200;
 const ARRIVAL_HIGHLIGHT_MS = 2400;
 
@@ -2421,6 +2485,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
   /* A short loader before developer settings appear, so the change doesn't read as a reload. */
   const showDeveloper = (onReady) => {
     setSettingUp(true);
+    setNotice("");
     clearTimeout(setupTimer.current);
     setupTimer.current = setTimeout(() => {
       setSettingUp(false);
@@ -2429,7 +2494,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
     }, SETUP_MS);
   };
 
-  const startDeveloper = () => run(enableDeveloper()).then(() => showDeveloper(), () => {});
+  const startDeveloper = () => run(enableDeveloper(), {quiet: true, refresh: true}).then(() => showDeveloper());
 
   const closeConfirm = (confirmed) => {
     if (confirmed && confirm && confirm.onConfirm) { confirm.onConfirm(); }
@@ -2437,27 +2502,61 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
   };
 
   /* The confirmation link may be opened anywhere, and opening it turns developer settings on,
-     so a page waiting for it checks every few seconds, and at once when a tab in this browser
-     signals it. */
+     so a page waiting for it checks every few seconds for the first minute and less often after
+     that, and at once when a tab in this browser signals it. It pauses while the tab is hidden,
+     and stops when the session ends or the link has expired. */
   const awaitingConfirmation = !accountVerified(developerState) && !!developerState.confirmationSentAt;
+  const confirmationSentAt = awaitingConfirmation ? developerState.confirmationSentAt : null;
   useEffect(() => {
-    if (!awaitingConfirmation) { return undefined; }
+    if (!confirmationSentAt) { return undefined; }
+    const expiresAt = Date.parse(confirmationSentAt) + CONFIRMATION_LINK_MS;
+    const expired = () => Date.now() >= expiresAt;
     let active = true;
-    const check = () => readState().then(server => {
-      if (active && server.emailVerified) {
-        active = false;
-        emailConfirmed(server);
+    let timer = null;
+    let waitingSince = Date.now();
+    let delay = CONFIRMATION_POLL_MS;
+    const stop = () => { active = false; clearTimeout(timer); };
+    const schedule = () => {
+      clearTimeout(timer);
+      if (!active || document.hidden) { return; }
+      if (expired()) { stop(); return; }
+      timer = setTimeout(check, delay);
+      if (Date.now() - waitingSince >= CONFIRMATION_FAST_POLL_MS) {
+        delay = Math.min(delay * 2, CONFIRMATION_MAX_POLL_MS);
       }
-    }).catch(() => {});
-    const timer = setInterval(check, CONFIRMATION_POLL_MS);
-    const onStorage = (e) => { if (e.key === CONFIRMATION_SIGNAL_KEY) { check(); } };
-    window.addEventListener("storage", onStorage);
-    return () => {
-      active = false;
-      clearInterval(timer);
-      window.removeEventListener("storage", onStorage);
     };
-  }, [awaitingConfirmation]);
+    const check = () => {
+      if (!active) { return; }
+      if (expired()) { stop(); return; }
+      readState().then(server => {
+        if (!active) { return; }
+        if (server.emailVerified) {
+          stop();
+          emailConfirmed(server);
+        } else {
+          schedule();
+        }
+      }, err => {
+        if (!active) { return; }
+        if (err.status === 401) { stop(); } else { schedule(); }
+      });
+    };
+    const onStorage = (e) => { if (e.key === CONFIRMATION_SIGNAL_KEY) { check(); } };
+    const onVisibility = () => {
+      if (document.hidden) { clearTimeout(timer); return; }
+      waitingSince = Date.now();
+      delay = CONFIRMATION_POLL_MS;
+      check();
+    };
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisibility);
+    schedule();
+    return () => {
+      stop();
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [confirmationSentAt]);
 
   const emailConfirmed = (server) => {
     setMockEmailOpen(false);
@@ -2467,6 +2566,14 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
       clearTimeout(connectedTimer.current);
       connectedTimer.current = setTimeout(() => setConnectedMessage(""), CONNECTED_MS);
     });
+  };
+
+  /* A new account email is unverified, so the developer tab stops offering new projects and keys
+     at once, then shows what the server says. */
+  const developerEmailChanged = () => {
+    setDeveloperState(state => ({...state, ssoConnected: false, emailVerified: false, confirmationSentAt: null}));
+    setShowNewProject(false);
+    readState().then(server => { if (pageMounted.current) { setDeveloperState(server); } }, () => {});
   };
 
   const mock = (action, fields) => run(mockAction(action, fields)).then(() => {
@@ -2485,7 +2592,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
   const tabs = SETTINGS_TABS.filter(t => t.tab !== "developer" || hasDeveloper);
 
   const panels = {
-    account: <AccountTab settings={settings} socialProviders={socialProviders} />,
+    account: <AccountTab settings={settings} socialProviders={socialProviders} onEmailChanged={hasDeveloper ? developerEmailChanged : null} />,
     developer: (
       <DeveloperTab
         state={developerState}
@@ -2610,6 +2717,14 @@ export const EmailLinkPage = ({link}) => {
       },
       action: continueLink,
     },
+    "address-in-use": {
+      title: {en: "This link is no longer valid", he: "הקישור כבר אינו בתוקף"},
+      body: {
+        en: <React.Fragment>This address can't be confirmed for this account. If you need help, email <ContactLink />.</React.Fragment>,
+        he: <React.Fragment>אי אפשר לאשר את הכתובת הזו עבור החשבון הזה. לעזרה, כתבו אל <ContactLink />.</React.Fragment>,
+      },
+      action: continueLink,
+    },
   }[status];
   if (!content) { return null; }
   return (
@@ -2621,10 +2736,9 @@ export const EmailLinkPage = ({link}) => {
               <h1><InterfaceText text={content.title} /></h1>
               <p><InterfaceText text={content.body} /></p>
               {content.action ? <div className="devPocActions">{content.action}</div> : null}
-              {sent ?
-                <p role="status">
-                  <InterfaceText text={{en: "We sent a new link. Check your email.", he: "שלחנו קישור חדש. בדקו את תיבת הדוא״ל."}} />
-                </p> : null}
+              <p className="devPocStatus" role="status">
+                {sent ? <InterfaceText text={{en: "We sent a new link. Check your email.", he: "שלחנו קישור חדש. בדקו את תיבת הדוא״ל."}} /> : null}
+              </p>
               {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
             </div>
           </div>

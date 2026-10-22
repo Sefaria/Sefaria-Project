@@ -265,6 +265,8 @@ describe('Account tab save', () => {
     expect(payload.settings).not.toHaveProperty('interface_language');
     expect(payload.settings).not.toHaveProperty('textual_custom');
     expect(payload.settings).not.toHaveProperty('translation_language_preference');
+    expect(payload.settings).not.toHaveProperty('reading_history');
+    expect(settingsUpdated.mock.calls[0][0].detail).not.toHaveProperty('readingHistory');
   });
 });
 
