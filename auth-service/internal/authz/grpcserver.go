@@ -69,7 +69,8 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 		}, nil
 	}
 	slog.Info("deny", "transport", "grpc", "code", d.Code, "key_prefix", Prefix(r.APIKey), "origin", r.Origin, "path", r.Path)
-	headers := []*corev3.HeaderValueOption{hdr("content-type", "application/json")}
+	// Envoy sends a denial without passing it upstream, so it carries its own CORS header for pages to read it.
+	headers := []*corev3.HeaderValueOption{hdr("content-type", "application/json"), hdr("access-control-allow-origin", "*")}
 	if d.Status == 401 {
 		headers = append(headers, hdr("www-authenticate", `ApiKey realm="sefaria"`))
 	}

@@ -118,6 +118,7 @@ TEMPLATES = [
 
 MIDDLEWARE = [
     'django_hosts.middleware.HostsRequestMiddleware',  # must be first
+    'sefaria.system.middleware.ApiCorsPreflightMiddleware',
     'sefaria.system.middleware.SessionCookieDomainMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
