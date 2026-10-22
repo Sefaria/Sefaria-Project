@@ -16,7 +16,7 @@ spec:
   extAuth:
     failOpen: {{ .Values.authService.extAuth.failOpen }}        # auth service down → anonymous tier
     timeout: {{ .Values.authService.extAuth.timeout }}          # EG default is 10s
-    headersToExtAuth: [x-api-key, authorization, origin]
+    headersToExtAuth: [x-api-key, authorization, origin{{ if .Values.authService.spikeLimit.enabled }}, x-spike-unit{{ end }}]
     grpc:
       backendRefs:
         - name: auth-service-{{ .Values.deployEnv }}
