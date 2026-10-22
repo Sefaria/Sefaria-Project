@@ -1,21 +1,17 @@
 """
 Developer settings API edges: other accounts' objects, malformed requests, website origins,
 key slots, claiming and consent, and confirmation links for an address another account holds.
-
-Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
-the `failing` marker, so the default CI run (-m "not failing") leaves them out; select them
-with -k known_gap.
 """
 import json
 
-import pytest
 from allauth.account.models import EmailAddress
 from django.test import Client, override_settings
 
 from powered_by import developer
 from powered_by.models import ApiKey, Project, SubmissionSource
 from powered_by.tests.developer_api_test import PROFILE, PROJECT, DeveloperApiTestCase, gallery_ids
-from reader.conftest import create_test_user, purge_test_profiles
+from reader.conftest import create_test_user, page_props, purge_test_profiles
+from sefaria.model.user_profile import UserProfile
 
 
 def snapshot(*querysets):
@@ -254,11 +250,13 @@ class AddressTakenTest(DeveloperApiTestCase):
         purge_test_profiles(self.holder)
         super().tearDown()
 
-    @pytest.mark.failing
-    def test_N_C16_a_link_for_an_address_verified_by_another_account_shows_a_page_known_gap_N_C16(self):
+    def test_N_C16_a_link_for_an_address_verified_by_another_account_shows_a_page(self):
         key = developer.confirmation_for(self.user).key
 
         response = Client().get("/settings/developer/confirm-email/" + key)
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(page_props(response.content.decode("utf-8"))["initialDeveloperEmailLink"],
+                         {"status": "address-in-use", "key": key})
         self.assertFalse(EmailAddress.objects.get(user=self.user).verified)
+        self.assertFalse(UserProfile(id=self.user.id).settings.get(developer.ENABLED_SETTING))

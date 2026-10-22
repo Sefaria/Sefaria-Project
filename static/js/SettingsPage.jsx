@@ -2607,6 +2607,14 @@ export const EmailLinkPage = ({link}) => {
       },
       action: continueLink,
     },
+    "address-in-use": {
+      title: {en: "This link is no longer valid", he: "הקישור כבר אינו בתוקף"},
+      body: {
+        en: <React.Fragment>This address can't be confirmed for this account. If you need help, email <ContactLink />.</React.Fragment>,
+        he: <React.Fragment>אי אפשר לאשר את הכתובת הזו עבור החשבון הזה. לעזרה, כתבו אל <ContactLink />.</React.Fragment>,
+      },
+      action: continueLink,
+    },
   }[status];
   if (!content) { return null; }
   return (

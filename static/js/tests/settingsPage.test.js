@@ -795,6 +795,13 @@ describe('a confirmation link that cannot confirm', () => {
     expect(container.querySelector('[data-agent-action="continue-to-developer-settings"]')).toBeTruthy();
   });
 
+  it('says a link for an address another account confirmed is no longer valid', () => {
+    renderLink('address-in-use');
+    expect(container.querySelector('h1').textContent).toBe('This link is no longer valid');
+    expect(container.querySelector('a[href="mailto:hello@sefaria.org"]')).toBeTruthy();
+    expect(container.querySelector('[data-agent-action="continue-to-developer-settings"]')).toBeTruthy();
+  });
+
   it('rejects a link for an address that is no longer the account email', () => {
     renderLink('not-account-email');
     expect(container.querySelector('h1').textContent).toBe('This link is no longer valid');

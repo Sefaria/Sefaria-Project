@@ -162,6 +162,7 @@ LINK_PAGE_TITLES = {
     developer.LinkStatus.ALREADY_CONFIRMED: "Already confirmed",
     developer.LinkStatus.EXPIRED: "This link has expired",
     developer.LinkStatus.NOT_ACCOUNT_EMAIL: "This link is no longer valid",
+    developer.LinkStatus.ADDRESS_IN_USE: "This link is no longer valid",
 }
 
 

@@ -74,6 +74,7 @@ class LinkStatus:
     ALREADY_CONFIRMED = "already-confirmed"
     EXPIRED = "expired"
     NOT_ACCOUNT_EMAIL = "not-account-email"
+    ADDRESS_IN_USE = "address-in-use"
     INVALID = "invalid"
 
 
@@ -213,6 +214,11 @@ def is_account_email(address):
     return address.email.lower() == (address.user.email or "").lower()
 
 
+def verified_elsewhere(address):
+    """Another account already verified this address, so allauth won't verify it for this one."""
+    return EmailAddress.objects.filter(email__iexact=address.email, verified=True).exclude(user=address.user_id).exists()
+
+
 def confirm_email(request, key):
     """
     Confirms the address behind an emailed link and turns developer settings on for its
@@ -229,6 +235,8 @@ def confirm_email(request, key):
         return LinkStatus.ALREADY_CONFIRMED
     if link_expired(key):
         return LinkStatus.EXPIRED
+    if verified_elsewhere(address):
+        return LinkStatus.ADDRESS_IN_USE
     if EmailConfirmationHMAC(address).confirm(request) is None:
         return LinkStatus.INVALID
     profile = UserProfile(id=address.user_id)
