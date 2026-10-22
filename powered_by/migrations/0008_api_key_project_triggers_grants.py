@@ -89,6 +89,14 @@ CREATE TABLE IF NOT EXISTS api_key_project_remap (
 )
 """
 
+# The same record on other databases (SQLite stores a UUID as 32 hex characters).
+_REMAP_TABLE_PORTABLE_SQL = """
+CREATE TABLE IF NOT EXISTS api_key_project_remap (
+  key_id         char(32) PRIMARY KEY,
+  api_project_id integer NOT NULL
+)
+"""
+
 _RECORD_REMAP_SQL = """
 INSERT INTO api_key_project_remap (key_id, api_project_id)
 SELECT id, project_id FROM powered_by_apikey
@@ -163,14 +171,70 @@ END $$;
 """
 
 
+def _remap_records(schema_editor):
+    """Key id (hex) -> recorded API project id, or {} when the rollback left no record."""
+    with schema_editor.connection.cursor() as cursor:
+        try:
+            cursor.execute("SELECT key_id, api_project_id FROM api_key_project_remap")
+        except Exception:
+            return {}
+        return {str(key_id).replace("-", ""): api_project_id for key_id, api_project_id in cursor.fetchall()}
+
+
+def _point_keys_with_models(apps, schema_editor):
+    """Forward on a database without the Postgres SQL (SQLite): the same record-and-restore through the models.
+    Keys still hold profile ids here; foreign key checks are off for the whole migration and run again at its end."""
+    alias = schema_editor.connection.alias
+    ApiKey, ApiProject = apps.get_model("powered_by", "ApiKey"), apps.get_model("powered_by", "ApiProject")
+    records = _remap_records(schema_editor)
+    by_profile = {}
+    for api_project in ApiProject.objects.using(alias).all():
+        by_profile.setdefault(api_project.profile_id, []).append(api_project)
+    for key in ApiKey.objects.using(alias).all():
+        candidates = by_profile.get(key.project_id)
+        if not candidates:
+            continue
+        recorded = records.get(key.id.hex)
+        if recorded in {c.id for c in candidates}:
+            chosen = recorded
+        else:
+            # A live key never goes to a deleted project; then the project with the profile's own id; then a live
+            # one; then the newest.
+            chosen = sorted(candidates, key=lambda c: (
+                not (c.deleted_at is None or key.revoked_at is not None), c.id != key.project_id,
+                c.deleted_at is not None, -c.id))[0].id
+        if chosen != key.project_id:
+            ApiKey.objects.using(alias).filter(pk=key.pk).update(project_id=chosen)
+    schema_editor.execute("DROP TABLE IF EXISTS api_key_project_remap")
+
+
+def _record_and_remap_with_models(apps, schema_editor):
+    """Reverse on a database without the Postgres SQL: record each key's API project, then give every key its
+    profile's id, so the reverse AlterField finds keys that point at profiles."""
+    alias = schema_editor.connection.alias
+    ApiKey = apps.get_model("powered_by", "ApiKey")
+    schema_editor.execute(_REMAP_TABLE_PORTABLE_SQL)
+    profile_of = dict(apps.get_model("powered_by", "ApiProject").objects.using(alias).values_list("id", "profile_id"))
+    with schema_editor.connection.cursor() as cursor:
+        for key in ApiKey.objects.using(alias).all():
+            cursor.execute(
+                "INSERT OR REPLACE INTO api_key_project_remap (key_id, api_project_id) VALUES (%s, %s)",
+                [key.id.hex, key.project_id])
+    for key in ApiKey.objects.using(alias).all():
+        profile_id = profile_of.get(key.project_id)
+        if profile_id is not None and profile_id != key.project_id:
+            ApiKey.objects.using(alias).filter(pk=key.pk).update(project_id=profile_id)
+
+
 def backfill_missing_api_projects(apps, schema_editor):
     # Forward only. A key an older image wrote after 0007 may point at a profile with no api_project row,
     # and the new FK would refuse it. Re-running the idempotent 0007 insert gives it one. Its deferred FK
-    # events must be settled before the ALTER TABLE below. On SQLite the backfill runs through the models,
-    # ids stay equal to the profile ids there, and the keys already point at them.
+    # events must be settled before the ALTER TABLE below. On SQLite the backfill and the key mapping run through
+    # the models, with the same record-and-restore as the Postgres SQL.
     backfill = importlib.import_module("powered_by.migrations.0007_api_project_backfill")
     backfill.forward(apps, schema_editor)
     if schema_editor.connection.vendor != "postgresql":
+        _point_keys_with_models(apps, schema_editor)
         return
     # The key FK still targets powered_by_project and the new ids are not profile ids, so it moves to
     # api_project around the UPDATE, as the reverse remap does the other way.
@@ -190,6 +254,7 @@ def remap_keys_to_profile_ids(apps, schema_editor):
     # Reverse only. Drops the FK to api_project, remaps the keys, and points the FK at powered_by_project,
     # so the reverse AlterField finds the key column in its target state.
     if schema_editor.connection.vendor != "postgresql":
+        _record_and_remap_with_models(apps, schema_editor)
         return
     with schema_editor.connection.cursor() as cursor:
         cursor.execute(_API_PROJECT_FK_SQL)

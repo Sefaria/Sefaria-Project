@@ -82,6 +82,9 @@ def _forward_with_models(apps, schema_editor):
     keyed = set(ApiKey.objects.using(alias).values_list("project_id", flat=True))
     has_api_project = set(ApiProject.objects.using(alias).values_list("profile_id", flat=True))
     taken = set(ApiProject.objects.using(alias).values_list("id", flat=True))
+    # A fallback id is above every API project id and every profile id, so it can never meet an id a later
+    # profile is about to take for itself.
+    fallback = max(taken | set(Project.objects.using(alias).values_list("id", flat=True)) | {0}) + 1
     unknown = 0
     for profile in Project.objects.using(alias).order_by("id"):
         if profile.pk in has_api_project:
@@ -90,10 +93,12 @@ def _forward_with_models(apps, schema_editor):
             continue
         tier = _normalised_tier(profile.tier)
         unknown += tier != profile.tier
+        new_id = profile.pk
+        if new_id in taken:
+            new_id, fallback = fallback, fallback + 1
         ApiProject.objects.using(alias).create(
-            id=None if profile.pk in taken else profile.pk, profile_id=profile.pk, owner_id=profile.owner_id,
-            tier_id=tier, deleted_at=profile.deleted_at)
-        taken.add(profile.pk)
+            id=new_id, profile_id=profile.pk, owner_id=profile.owner_id, tier_id=tier, deleted_at=profile.deleted_at)
+        taken.add(new_id)
     _warn_unknown_tiers(unknown)
 
 

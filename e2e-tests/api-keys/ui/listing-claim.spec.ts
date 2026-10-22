@@ -11,7 +11,7 @@ import { t } from '../../globals';
 const SUITE = 'projects';
 const OWNER = 'listingOwner';
 
-type Listing = { id: number; name: string; ownerId: number | null; isPublished: boolean; consentToDisplay: boolean; deleted: boolean };
+type Listing = { id: number; name: string; ownerId: number | null; apiProjectId: number | null; isPublished: boolean; consentToDisplay: boolean; deleted: boolean };
 
 /** Runs listing_fixtures.py with the local stack's Django settings and returns its JSON line. */
 function listingFixture(...args: string[]): Listing {
@@ -86,19 +86,24 @@ test.describe('developer settings: "Is this your project?"', () => {
     const response = await claim;
     expect(response.status()).toBe(200);
     const body = await response.json();
-    expect(body.projectId).toBe(String(listing.id));
+    const apiProjectId = listingFixture('show', '--id', String(listing.id)).apiProjectId;
+    expect(body.projectId).toMatch(/^\d+$/);
+    expect(body.projectId).toBe(String(apiProjectId));
 
     await expect(dialog).toHaveCount(0);
     const card = dev.projectCard(listing.name);
     await expect(card.locator('button.devPocProjectToggle')).toHaveAttribute('aria-expanded', 'true');
-    await expect(page).toHaveURL(new RegExp(`/settings/developer/projects/${listing.id}$`));
+    await expect(page).toHaveURL(new RegExp(`/settings/developer/projects/${apiProjectId}$`));
     await expect(card).toContainText(`Public: this is the ${listing.name} listing on Powered by Sefaria.`);
     await card.getByRole('button', { name: 'Edit project' }).click();
     await expect(card.locator('.devPocLinked')).toContainText('Linked');
 
     const row = listingFixture('show', '--id', String(listing.id));
     expect(row.ownerId).toBe(findAccount(SUITE, OWNER).id);
+    expect(row.apiProjectId).toBe(apiProjectId);
     expect(row.consentToDisplay).toBe(true);
+    expect({ isPublished: row.isPublished, consentToDisplay: row.consentToDisplay })
+      .toEqual({ isPublished: listing.isPublished, consentToDisplay: listing.consentToDisplay });
   });
 
   test('N-C14: "No, it\'s not mine" stops the question for good', async () => {
@@ -187,7 +192,7 @@ test.describe('developer settings: "Is this your project?"', () => {
       expect(response.json.error).toBe('No such listing.');
     }
     expect(listingFixture('show', '--id', String(listing.id)).ownerId).toBeNull();
-    expect((await state(other.page)).projects.some((p: any) => p.id === String(listing.id))).toBe(false);
+    expect((await state(other.page)).projects.some((p: any) => p.name === listing.name)).toBe(false);
 
     await openDeveloper(page);
     await expect(dev.listingDialog()).toContainText(listing.name);
@@ -203,7 +208,8 @@ test.describe('developer settings: "Is this your project?"', () => {
     await expect(dev.projectCard(listing.name)).toHaveCount(1, { timeout: t(15000) });
     await page.waitForTimeout(2000);
 
-    expect((await state(page)).projects.filter((p: any) => p.id === String(listing.id)).length).toBe(1);
+    const apiProjectId = String(listingFixture('show', '--id', String(listing.id)).apiProjectId);
+    expect((await state(page)).projects.filter((p: any) => p.id === apiProjectId).length).toBe(1);
     await expect(page.locator('.devPocNotice[role="status"]'), `claim responses: ${JSON.stringify(statuses)}`).toHaveCount(0);
   });
 

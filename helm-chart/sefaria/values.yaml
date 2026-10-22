@@ -421,6 +421,11 @@ ingress:
 gateway:
   enabled: true
   className: envoy
+  # Serve the app on HTTPS listeners only and answer port 80 with a 301 to HTTPS. Needed for the x-sefaria-* header
+  # strip to cover every request (templates/gateway/clienttrafficpolicy.yaml), so it is applied automatically when
+  # authService.enabled regardless of this value. Off by default otherwise: it changes what a plain HTTP request to the
+  # origin gets.
+  redirectHttpToHttps: false
   alpnProtocols:
     - http/1.1
   annotations:
