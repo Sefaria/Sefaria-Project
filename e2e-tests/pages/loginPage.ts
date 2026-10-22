@@ -1,5 +1,6 @@
 import { Page, expect } from "@playwright/test";
-import { LANGUAGES, testUser } from "../globals";
+import { LANGUAGES, testUser, t } from "../globals";
+import { AUTH_LABELS } from "../constants";
 import { HelperBase } from "./helperBase";
 import { changeLanguage, clickContinueWithEmail } from "../utils";
 
@@ -37,6 +38,12 @@ export class LoginPage extends HelperBase{
         // await for the page to load after login
         await this.page.waitForLoadState('domcontentloaded');
         await changeLanguage(this.page, this.language);
+    }
+
+    /** The email sign-up form (AuthPage's RegisterView) is shown. */
+    async expectEmailSignupFormShown(): Promise<void> {
+        const label = AUTH_LABELS.FIRST_NAME[this.language === LANGUAGES.HE ? LANGUAGES.HE : LANGUAGES.EN];
+        await expect(this.page.getByPlaceholder(label)).toBeVisible({ timeout: t(15000) });
     }
 
 }

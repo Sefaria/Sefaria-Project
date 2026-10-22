@@ -129,6 +129,12 @@ export class LibraryAssistantPage extends HelperBase {
     return this.page.locator('.message.user');
   }
 
+  /** Assistant answers only: not the welcome bubble (inside `.empty-state`),
+   *  the loading bubble (no `.message-content`) or the per-chat limit notice. */
+  private get answers() {
+    return this.page.locator('.message.assistant:not(.limit-message):not(.empty-state *):has(.message-content)');
+  }
+
   private get thinkingIndicator() {
     return this.page.locator('.thinking-content');
   }
@@ -283,6 +289,15 @@ export class LibraryAssistantPage extends HelperBase {
     await expect(this.userMessages.last()).toContainText(text, { timeout: t(5000) });
   }
 
+  /** An answer arrived and it isn't a failed one. Unlike `waitForResponse()`,
+   *  which only waits for the input to re-enable (that also happens after an error). */
+  async expectAnswerShown(): Promise<void> {
+    const answer = this.answers.last();
+    await expect(answer).toBeVisible({ timeout: t(60000) });
+    await expect(answer).not.toHaveClass(/\bfailed\b/);
+    await expect(answer.locator('.message-content')).not.toBeEmpty();
+  }
+
   async expectInputCleared(): Promise<void> {
     await expect(this.textarea).toHaveValue('', { timeout: t(5000) });
   }
@@ -376,5 +391,86 @@ export class LibraryAssistantPage extends HelperBase {
   /** Assert there are no user-sent message bubbles in the log. */
   async expectNoUserMessages(): Promise<void> {
     await expect(this.userMessages).toHaveCount(0, { timeout: t(5000) });
+  }
+
+  // --- The assistant's saved chat in the browser (localStorage, `lc_chatbot:` keys) ---
+
+  /** Mark the free answers as used up, as the widget does at the limit; shown after a reload. */
+  async seedFreeAnswersUsedUp(): Promise<void> {
+    await this.page.evaluate(() => localStorage.setItem('lc_chatbot:anon_limit_reached', 'true'));
+  }
+
+  // --- Sefaria's sign-up options in the login prompt (light DOM, the widget's signup-options slot) ---
+
+  private get signupOptions() {
+    return this.page.locator('lc-chatbot > [slot="signup-options"]');
+  }
+
+  /** One option: 'google' | 'apple' | 'email'. */
+  signupOption(provider: 'google' | 'apple' | 'email') {
+    return this.signupOptions.locator(`[data-provider="${provider}"]`);
+  }
+
+  /** Which of Google / Apple this sandbox has client IDs for (Email is always offered). */
+  async configuredProviders(): Promise<Array<'google' | 'apple' | 'email'>> {
+    const ids = await this.page.evaluate(() => ({
+      google: !!(window as any).Sefaria?.googleClientId,
+      apple: !!(window as any).Sefaria?.appleClientId,
+    }));
+    return [...(ids.google ? ['google' as const] : []), ...(ids.apple ? ['apple' as const] : []), 'email'];
+  }
+
+  async expectSignupOptionsShown(): Promise<void> {
+    for (const provider of await this.configuredProviders()) {
+      await expect(this.signupOption(provider)).toBeVisible({ timeout: t(10000) });
+    }
+  }
+
+  async expectSignupOptionsHidden(): Promise<void> {
+    await expect(this.signupOption('email')).toBeHidden();
+  }
+
+  async expectNoSignupOptions(): Promise<void> {
+    await expect(this.signupOptions).toHaveCount(0);
+  }
+
+  /** Google's real (invisible) button sits inside the Google circle; the click itself can't be automated. */
+  async expectGoogleButtonOverGoogleOption(): Promise<void> {
+    await expect(this.signupOption('google').locator('.sefaria-provider-sdk-overlay iframe')).toHaveCount(1, { timeout: t(15000) });
+  }
+
+  /** Stub Apple's popup, so a click on the Apple option starts sign-up without leaving the page. */
+  async stubAppleSignIn(): Promise<void> {
+    await this.page.waitForFunction(() => (window as any).AppleID?.auth, null, { timeout: t(15000) });
+    await this.page.evaluate(() => {
+      (window as any).AppleID.auth.signIn = () => new Promise(() => {});
+    });
+  }
+
+  /** Record GA4 events from here on (Sefaria's sign-up analytics go through window.gtag). */
+  async recordAnalyticsEvents(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as any).__gaEvents = [];
+      (window as any).gtag = (command: string, name: string, params: object) => {
+        if (command === 'event') (window as any).__gaEvents.push({ name, ...params });
+      };
+    });
+  }
+
+  async analyticsEvents(): Promise<Array<Record<string, any>>> {
+    return this.page.evaluate(() => (window as any).__gaEvents || []);
+  }
+
+  /** Put a saved chat in localStorage, as a logged-in user's session leaves it. */
+  async seedSavedChat(): Promise<void> {
+    await this.page.evaluate(() => {
+      localStorage.setItem('lc_chatbot:session', JSON.stringify({ sessionId: 'sess_e2e', lastActivity: new Date().toISOString() }));
+      localStorage.setItem('lc_chatbot:messages:sess_e2e', JSON.stringify([{ role: 'user', content: 'a saved question' }]));
+    });
+  }
+
+  /** The `lc_chatbot:` localStorage keys currently on this origin. */
+  async savedChatKeys(): Promise<string[]> {
+    return this.page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('lc_chatbot:')));
   }
 }

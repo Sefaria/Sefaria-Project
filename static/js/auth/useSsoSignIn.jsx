@@ -27,7 +27,7 @@ import Sefaria from '../sefaria/sefaria';
  * is currently mounted register its own local `setError` as where that failure should surface,
  * so it shows in place rather than forcing a navigation to ChooseView.
  */
-export function useProviderTriggers({ next, tracking }) {
+export function useProviderTriggers({ next, tracking, onGoogleClick }) {
   const [googleReady, setGoogleReady] = useState(false);
   const [appleReady, setAppleReady] = useState(false);
   const [ssoLoading, setSsoLoading] = useState(false);
@@ -41,6 +41,10 @@ export function useProviderTriggers({ next, tracking }) {
   // re-run just because e.g. an unrelated form field changed.
   const trackingRef = useRef(tracking);
   trackingRef.current = tracking;
+  // Optional: told about a click on Google's button, which (a cross-origin iframe) the page
+  // itself never sees. In a ref for the same reason as tracking.
+  const onGoogleClickRef = useRef(onGoogleClick);
+  onGoogleClickRef.current = onGoogleClick;
 
   const setActiveErrorHandler = useCallback((handler) => {
     activeErrorHandlerRef.current = handler || (() => {});
@@ -108,6 +112,7 @@ export function useProviderTriggers({ next, tracking }) {
   // click_listener, see renderButton config), so method_chosen/process_started fire
   // synchronously here instead of being synthesized in onGoogleResult.
   const onGoogleButtonClicked = useCallback(() => {
+    onGoogleClickRef.current?.();
     const attemptId = trackingRef.current.chooseMethod(AUTH_METHOD.GOOGLE);
     trackingRef.current.startProcess();
     if (Sefaria.ssoUseRedirect()) {
@@ -305,4 +310,18 @@ export function useProviderTriggers({ next, tracking }) {
   return {
     googleReady, appleReady, ssoLoading, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
   };
+}
+
+/**
+ * useProviderError — a view's error state, registered while the view is mounted as where a
+ * Google/Apple failure surfaces (useProviderTriggers' `setActiveErrorHandler`). Returns
+ * [error, setError]; the view can set its own errors too, shown in the same ErrorBanner.
+ */
+export function useProviderError(setActiveErrorHandler) {
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    setActiveErrorHandler?.(setError);
+    return () => setActiveErrorHandler?.(null);
+  }, [setActiveErrorHandler]);
+  return [error, setError];
 }
