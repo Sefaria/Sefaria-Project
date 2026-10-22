@@ -708,7 +708,7 @@ class TestSessionIDAuthMiddlewareUserMCP:
         ("post", "/api/sheets/715437/add"),
         ("get", "/api/profile"),
         ("post", "/api/sheets/715437"),
-        ("get", "/api/admin/mcp-token"),
+        ("delete", "/api/admin/topic-prompts/64f0a1b2c3d4e5f601234567"),
     ])
     def test_mcp_token_rejected_elsewhere(self, django_user_model, method, path):
         user = django_user_model.objects.create_user(username=f"mcp-off-{method}-{abs(hash(path))}", password="pass", is_staff=True)
