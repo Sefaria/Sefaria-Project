@@ -821,3 +821,40 @@ describe('after the account email changes', () => {
     expect(developerPanel().querySelector('[data-agent-action="new-project"]')).toBeTruthy();
   });
 });
+
+/* Back brings the page back from browser history, which holds no settings. */
+describe('developer settings after Back', () => {
+  const remount = () => {
+    ReactDOM.unmountComponentAtNode(container);
+    act(() => {
+      ReactDOM.render(<SettingsPage tab="developer" projectId={null} setTab={() => {}} setProjectId={() => {}} />, container);
+    });
+  };
+
+  it('shows the latest projects at once, then reloads them from the server', async () => {
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    act(() => { visibilityRadio('public').click(); });
+    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projectId: 'proj01', projects: [publicProject()] });
+    await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
+
+    let answer;
+    global.fetch = jest.fn(() => new Promise(resolve => { answer = resolve; }));
+    remount();
+    expect(lastRequest()).toMatchObject({ url: '/api/developer/state', method: 'GET' });
+    expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(2);
+    expect(developerPanel().textContent).toContain('Daf Tracker');
+
+    const server = { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ name: 'Mishnah Tracker' })] };
+    await act(async () => { answer({ ok: true, json: () => Promise.resolve(server) }); await flush(); });
+    expect(developerPanel().textContent).toContain('Mishnah Tracker');
+  });
+
+  it('has no developer tab where developer settings are off', async () => {
+    mount('account', null);
+    await act(async () => { remount(); await flush(); });
+    expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(1);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});

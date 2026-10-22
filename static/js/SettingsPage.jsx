@@ -1913,6 +1913,13 @@ const MockEmailDialog = ({confirmationKey, onCancel}) => {
 
 /* ---- Account settings tab ---- */
 
+/* The settings this page last showed or saved. ReaderApp leaves them out of browser history, so
+   a page that Back or Forward brings back renders these, and API keys never reach history. */
+const latestSettings = {account: undefined, developer: undefined};
+const rememberAccountSettings = (changes) => {
+  latestSettings.account = {...latestSettings.account, ...changes};
+};
+
 /* Switching tabs or opening a project adds history entries, so Cancel steps back until it
    leaves settings. */
 const SETTINGS_PATH = /^\/settings(\/|$)/;
@@ -2049,6 +2056,16 @@ const AccountTab = ({settings, socialProviders}) => {
         alert(data.error);
         return;
       }
+      rememberAccountSettings({
+        emailNotifications,
+        libraryAssistantEnabled: libraryAssistant === "true",
+        ...(torahSpecific ? {
+          interfaceLanguage,
+          textualCustom,
+          readingHistory: readingHistory === "true",
+          translationLanguagePreference: transPref === undefined ? settings.translationLanguagePreference : transPref,
+        } : {}),
+      });
       alert(Sefaria._("Settings Saved"));
       Sefaria.track.event("Settings", "Settings Save", emailNotifications);
       const languageChanged = interfaceLanguage !== saved.current.interfaceLanguage;
@@ -2085,6 +2102,7 @@ const AccountTab = ({settings, socialProviders}) => {
         return;
       }
       setEmailError("");
+      rememberAccountSettings({email: emailFields.email});
       setEmail(emailFields.email);
       setEmailOk(Sefaria._("Email was successfully changed!"));
       setEditingEmail(false);
@@ -2094,7 +2112,11 @@ const AccountTab = ({settings, socialProviders}) => {
   const disconnectGauth = () => {
     $.get("/unlink-gauth?redirect=0", (data) => {
       if ("error" in data) { setGauthError(data.error); }
-      else { setGauthError(""); setGauthEmail(""); }
+      else {
+        rememberAccountSettings({sheetsExport: {gauthEmail: null}});
+        setGauthError("");
+        setGauthEmail("");
+      }
     });
   };
 
@@ -2315,12 +2337,16 @@ const SETUP_MS = 1200;
 const ARRIVAL_HIGHLIGHT_MS = 2400;
 
 const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab, setProjectId}) => {
-  const settings = accountSettings || {};
-  const socialProviders = settings.socialProviders || [];
+  const [restored] = useState(() => !accountSettings);
+  const [settings] = useState(() => (restored ? latestSettings.account : accountSettings));
+  const [hasDeveloper] = useState(() => !!(restored ? latestSettings.developer : initialDeveloper));
+  const socialProviders = (settings && settings.socialProviders) || [];
 
-  const [developerState, setDeveloperState] = useState(() => ({...emptyState(), ...(initialDeveloper || {})}));
+  const [developerState, setDeveloperState] = useState(() => ({
+    ...emptyState(), ...((restored ? latestSettings.developer : initialDeveloper) || {}),
+  }));
   const [expandedProjectId, setExpandedProjectId] = useState(() => (
-    projectId && ((initialDeveloper || {}).projects || []).some(p => p.id === projectId) ? projectId : null
+    projectId && developerState.projects.some(p => p.id === projectId) ? projectId : null
   ));
   const [showNewProject, setShowNewProject] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
@@ -2349,6 +2375,16 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
 
   const pageMounted = useRef(true);
   useEffect(() => () => { pageMounted.current = false; }, []);
+
+  /* Restored with nothing remembered, the page can't know the current settings, so it reloads them. */
+  useEffect(() => {
+    if (!settings) { window.location.reload(); return; }
+    if (!restored) { latestSettings.account = settings; }
+    if (restored && hasDeveloper) {
+      readState().then(server => { if (pageMounted.current) { setDeveloperState(server); } }, () => {});
+    }
+  }, []);
+  useEffect(() => { latestSettings.developer = hasDeveloper ? developerState : null; }, [developerState]);
 
   /* Every API call answers with the whole developer state, which replaces the page's copy. A
      failure leaves a notice, unless the caller shows the error itself ({quiet: true}); either
@@ -2443,8 +2479,10 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
     }
   }, () => {});
 
+  if (!settings) { return null; }
+
   /* The server sends no developer state where developer settings are off, and then there is no developer tab. */
-  const tabs = SETTINGS_TABS.filter(t => t.tab !== "developer" || initialDeveloper);
+  const tabs = SETTINGS_TABS.filter(t => t.tab !== "developer" || hasDeveloper);
 
   const panels = {
     account: <AccountTab settings={settings} socialProviders={socialProviders} />,
@@ -2488,7 +2526,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
               ))}
             </div>
           </div>
-          {initialDeveloper ? <AgentInstructions /> : null}
+          {hasDeveloper ? <AgentInstructions /> : null}
         </div>
       </div>
       <div className="devPocPage">

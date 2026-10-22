@@ -375,3 +375,61 @@ describe('Account tab Google Drive disconnect', () => {
     expect(container.querySelector('#gauth-email-change').style.display).toBe('');
   });
 });
+
+/* Back and Forward bring the page back from browser history, which holds no settings: the page
+   gets no accountSettings or initialDeveloper, as ReaderApp leaves them out of history. */
+describe('Account tab after Back', () => {
+  const remount = () => {
+    ReactDOM.unmountComponentAtNode(container);
+    act(() => {
+      ReactDOM.render(
+        <SettingsPage tab="account" projectId={null} setTab={() => {}} setProjectId={() => {}} />,
+        container,
+      );
+    });
+  };
+
+  it('shows the saved settings, not the ones the page first loaded with', () => {
+    mount();
+    choose('emailNotifications', 'weekly');
+    choose('readingHistory', 'false');
+    save();
+    remount();
+    expect(option('emailNotifications', 'weekly').classList).toContain('on');
+    expect(option('readingHistory', 'false').classList).toContain('on');
+  });
+
+  it('saves the current settings again rather than the old ones', () => {
+    mount();
+    choose('emailNotifications', 'never');
+    save();
+    remount();
+    const { payload } = save();
+    expect(payload.settings.email_notifications).toBe('never');
+    expect(payload.settings.reading_history).toBe(true);
+  });
+
+  it('shows a changed email and a disconnected Google Drive', () => {
+    mount({ sheetsExport: { gauthEmail: 'tova@gmail.com' } });
+    act(() => { container.querySelector('#change-email').click(); });
+    typeInto(container.querySelector('#username-change-edit #email'), 'new@example.org');
+    act(() => { container.querySelector('#update-email').click(); });
+    act(() => { lastPost().callback({ status: 'ok' }); });
+    act(() => { container.querySelector('#disconnect-gauth-email').click(); });
+    const [, callback] = $.get.mock.calls[$.get.mock.calls.length - 1];
+    act(() => { callback({ status: 'ok' }); });
+    remount();
+    expect(container.querySelector('#email-display').value).toBe('new@example.org');
+    expect(container.querySelector('#gauth-email-change').style.display).toBe('none');
+  });
+
+  it('starts from the server values on a page load', () => {
+    mount();
+    choose('emailNotifications', 'weekly');
+    save();
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+    mount({ emailNotifications: 'never' });
+    expect(option('emailNotifications', 'never').classList).toContain('on');
+  });
+});
