@@ -36,6 +36,7 @@ from sefaria.model.collection import Collection, CollectionSet, process_sheet_de
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.system.cache import django_cache
 from sefaria.utils.util import strip_tags, get_redirect_to_help_center
+from sefaria.utils.chatbot import MCP_TOKEN_AUDIENCE
 from sefaria.constants.model import get_direction_from_legacy_lang
 from sefaria.site.site_settings import SITE_SETTINGS
 
@@ -588,6 +589,16 @@ def save_sheet_api(request):
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
         sheet = json.loads(j)
+        if not isinstance(sheet, dict):
+            return jsonResponse({"error": "Sheet JSON must be an object."}, status=400)
+
+        if getattr(request, "auth_via", None) == MCP_TOKEN_AUDIENCE:
+            # An MCP token may only create new, unlisted sheets: this endpoint also updates and
+            # publishes existing ones, which the user's MCP grant does not cover.
+            if "id" in sheet:
+                return jsonResponse({"error": "MCP clients can only create new sheets."}, status=403)
+            sheet["status"] = "unlisted"
+            sheet.pop("displayedCollection", None)
 
         if apikey:
             if "id" in sheet:
