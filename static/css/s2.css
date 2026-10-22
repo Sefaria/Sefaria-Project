@@ -17560,6 +17560,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 /* outranks the page's reset, which gives paragraphs the inherited colour */
 .devPocPage p.devPocHelp { color: #626971; }
 .devPocMuted { color: #626971; font-weight: 400; }
+/* A live region waiting for its message takes no space. */
+.devPocPage .devPocStatus:empty { margin: 0; }
 
 .devPocOnboarding { max-width: 560px; }
 .devPocNoviceChoice { padding-bottom: var(--devPoc-s3); border-bottom: 1px solid var(--devPoc-line); }

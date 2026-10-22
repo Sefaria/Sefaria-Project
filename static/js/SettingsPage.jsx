@@ -480,7 +480,7 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
 
   if (settingUp) {
     return (
-      <div className={"devPocNotice devPocSettingUp " + cardClass} role="status">
+      <div className={"devPocNotice devPocSettingUp " + cardClass}>
         <span className="devPocSpinner" aria-hidden="true" />
         <strong><InterfaceText text={{en: "Setting up developer settings…", he: "מכינים את הגדרות המפתחים…"}} /></strong>
       </div>
@@ -505,8 +505,9 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
             <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
           </button>
         </div>
-        {resent ?
-          <p className="devPocHelp" role="status"><InterfaceText text={{en: "Sent again.", he: "נשלח שוב."}} /></p> : null}
+        <p className="devPocHelp devPocStatus" role="status">
+          {resent ? <InterfaceText text={{en: "Sent again.", he: "נשלח שוב."}} /> : null}
+        </p>
         {errorMessage}
         <p className="devPocHelp">
           <InterfaceText text={{
@@ -582,13 +583,13 @@ const ReconfirmEmail = ({confirmationSent, onSend}) => {
           he: <React.Fragment>כתובת הדוא״ל של החשבון שונתה ל־{emailText}. הפרויקטים והמפתחות שלכם ממשיכים לעבוד. כדי ליצור פרויקטים ומפתחות חדשים, אשרו את הכתובת החדשה.</React.Fragment>,
         }} />
       </p>
-      {confirmationSent ?
-        <p className="devPocHelp" role="status">
+      <p className="devPocHelp devPocStatus" role="status">
+        {confirmationSent ?
           <InterfaceText text={{
             en: <React.Fragment>We sent a confirmation link to {emailText}. It works for 3 days.</React.Fragment>,
             he: <React.Fragment>שלחנו קישור לאישור אל {emailText}. הקישור בתוקף 3 ימים.</React.Fragment>,
-          }} />
-        </p> : null}
+          }} /> : null}
+      </p>
       <div className="devPocActions">
         <button className="button small white" type="button" data-agent-action="send-confirmation" onClick={send}>
           <InterfaceText text={confirmationSent ?
@@ -1403,7 +1404,7 @@ const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDel
       <span><InterfaceText text={{en: "Created " + formatDate(apiKey.created), he: "נוצר ב־" + formatDate(apiKey.created)}} /></span>
     </div>
     {isNew ?
-      <p className="devPocKeyReady" role="status">
+      <p className="devPocKeyReady">
         <InterfaceText text={{en: "Ready to use. Copy it into your tool.", he: "מוכן לשימוש. העתיקו אותו לכלי שלכם."}} />
       </p> : null}
     {project.websiteUrl ?
@@ -1550,8 +1551,12 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
             </button>
           </div>
         </form> : null}
+      <p className="sr-only" role="status">
+        {phase === "setting-up" ? <InterfaceText text={{en: "Setting up your key…", he: "מכינים את המפתח…"}} /> :
+          newKeyId ? <InterfaceText text={{en: "Ready to use. Copy it into your tool.", he: "מוכן לשימוש. העתיקו אותו לכלי שלכם."}} /> : null}
+      </p>
       {phase === "setting-up" ?
-        <div className="devPocNotice devPocSettingUp" role="status">
+        <div className="devPocNotice devPocSettingUp">
           <span className="devPocSpinner" aria-hidden="true" />
           <span>
             <strong><InterfaceText text={{en: "Setting up your key…", he: "מכינים את המפתח…"}} /></strong>
@@ -1803,8 +1808,12 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
         </a>
       </header>
 
-      {connectedMessage ?
-        <div className="devPocSuccess" role="status"><p>{connectedMessage}</p></div> : null}
+      <p className="sr-only" role="status">
+        {settingUp ? <InterfaceText text={{en: "Setting up developer settings…", he: "מכינים את הגדרות המפתחים…"}} /> : null}
+      </p>
+      <div className={connectedMessage ? "devPocSuccess" : "sr-only"} role="status">
+        {connectedMessage ? <p>{connectedMessage}</p> : null}
+      </div>
 
       {!developerOn || settingUp ?
         <GetStarted
@@ -1819,13 +1828,15 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
         !state.profile ?
         <ProfileOnboarding onSave={profile => run(saveProfile(profile), {quiet: true})} /> :
         <React.Fragment>
-          {notice ?
-            <div className="devPocNotice" role="status">
-              <p>{notice}</p>
-              <button type="button" className="button small transparent" onClick={() => setNotice("")}>
-                <InterfaceText text={{en: "Dismiss", he: "סגירה"}} />
-              </button>
-            </div> : null}
+          <div className={notice ? "devPocNotice" : "sr-only"} role="status">
+            {notice ?
+              <React.Fragment>
+                <p>{notice}</p>
+                <button type="button" className="button small transparent" onClick={() => setNotice("")}>
+                  <InterfaceText text={{en: "Dismiss", he: "סגירה"}} />
+                </button>
+              </React.Fragment> : null}
+          </div>
 
           <section className="devPocProfile">
             {editingProfile ?
@@ -2725,10 +2736,9 @@ export const EmailLinkPage = ({link}) => {
               <h1><InterfaceText text={content.title} /></h1>
               <p><InterfaceText text={content.body} /></p>
               {content.action ? <div className="devPocActions">{content.action}</div> : null}
-              {sent ?
-                <p role="status">
-                  <InterfaceText text={{en: "We sent a new link. Check your email.", he: "שלחנו קישור חדש. בדקו את תיבת הדוא״ל."}} />
-                </p> : null}
+              <p className="devPocStatus" role="status">
+                {sent ? <InterfaceText text={{en: "We sent a new link. Check your email.", he: "שלחנו קישור חדש. בדקו את תיבת הדוא״ל."}} /> : null}
+              </p>
               {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
             </div>
           </div>

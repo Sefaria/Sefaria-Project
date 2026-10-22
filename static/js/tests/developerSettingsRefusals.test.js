@@ -168,6 +168,16 @@ describe('errors before setup', () => {
     expect(developerPanel().textContent).toContain("You've asked for 5 links today.");
   });
 
+  it('says "Sent again." in a live region that was already in the page', async () => {
+    mount('developer', LINK_SENT);
+    const region = developerPanel().querySelector('.devPocSsoPrompt [role="status"]');
+    expect(region.textContent).toBe('');
+    respondWith(LINK_SENT);
+    await clickAndSettle(buttonNamed(developerPanel(), 'Resend the link'));
+    expect(developerPanel().querySelector('.devPocSsoPrompt [role="status"]')).toBe(region);
+    expect(region.textContent).toBe('Sent again.');
+  });
+
   it('does not say "Sent again." when the resend was refused, and shows why', async () => {
     mount('developer', LINK_SENT);
     respondError(429, 'Wait a minute before asking for another email.');

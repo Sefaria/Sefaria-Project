@@ -555,6 +555,23 @@ describe('keys', () => {
     jest.useRealTimers();
   });
 
+  it('announces setting up and ready through a live region that was already in the page', async () => {
+    jest.useFakeTimers();
+    mountProject(publicProject());
+    act(() => { container.querySelector('[data-agent-action="new-key"]').click(); });
+    const region = container.querySelector('.devPocSection p.sr-only[role="status"]');
+    expect(region.textContent).toBe('');
+    typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
+    respondWith({ ...DEVELOPER_ON, profile: PROFILE, keyId: 'k1', projects: [projectWithKey()] });
+    await act(async () => { container.querySelector('[data-agent-action="create-key"]').click(); await flush(); });
+    expect(container.querySelector('.devPocSection p.sr-only[role="status"]')).toBe(region);
+    expect(region.textContent).toBe('Setting up your key…');
+    await act(async () => { jest.advanceTimersByTime(4000); await flush(); });
+    expect(region.textContent).toBe('Ready to use. Copy it into your tool.');
+    expect(container.querySelector('.devPocKeyReady').getAttribute('role')).toBeNull();
+    jest.useRealTimers();
+  });
+
   it('says so when the key could not be created', async () => {
     jest.useFakeTimers();
     mountProject(publicProject());
