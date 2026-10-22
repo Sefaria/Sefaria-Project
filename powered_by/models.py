@@ -216,6 +216,101 @@ class Project(models.Model):
         return contents
 
 
+class ApiTier(models.Model):
+    """
+    An access tier for API projects. Its limits are the default for every project on the tier.
+    The slug is the primary key, so a project's tier reads as a name ("developer", "partner").
+    """
+    id = models.CharField(max_length=20, primary_key=True, help_text="Slug, e.g. developer.")
+    name = models.CharField(max_length=100)
+    per_minute_per_project = models.PositiveIntegerField(
+        help_text="Requests per minute allowed for each API project on this tier.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "api_tier"
+        verbose_name = "API tier"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+
+
+class ApiTierMeterLimit(models.Model):
+    """
+    A monthly usage limit for one meter (a kind of API usage) on one tier, per API project.
+    """
+    tier = models.ForeignKey(
+        ApiTier, on_delete=models.CASCADE, related_name="meter_limits",
+        help_text="The tier this limit belongs to.",
+    )
+    meter = models.SlugField(max_length=50, help_text="Meter name, e.g. default.")
+    monthly_per_project = models.BigIntegerField(
+        help_text="Units of this meter allowed per API project per month.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "api_tier_meter_limit"
+        verbose_name = "API tier meter limit"
+        constraints = [
+            models.UniqueConstraint(fields=["tier", "meter"], name="api_tier_meter_limit_unique"),
+        ]
+
+    def __str__(self):
+        return f"{self.tier_id} {self.meter}"
+
+
+class ApiProject(models.Model):
+    """
+    An API project: the unit that holds API keys and is limited by its tier. It is linked to a
+    Powered by Sefaria Project (the profile). A profile has at most one live (not deleted) API
+    project; a deleted one frees the profile for a new one.
+    """
+    profile = models.ForeignKey(
+        Project, on_delete=models.PROTECT, related_name="api_projects",
+        help_text="The Powered by Sefaria profile this API project belongs to.",
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="api_projects",
+        help_text="The account that manages this API project.",
+    )
+    contact_email = models.EmailField(
+        blank=True, default="", db_default="",
+        help_text="Contact address for this API project.",
+    )
+    tier = models.ForeignKey(
+        ApiTier, on_delete=models.PROTECT, default="developer", db_default="developer",
+        help_text="API access tier of this project.",
+    )
+    deleted_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="When the API project was deleted. The row stays; a deleted project is not live.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "api_project"
+        verbose_name = "API project"
+        ordering = ["-created_at"]
+        permissions = [("change_tier", "Can change an API project's tier")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["profile"],
+                condition=models.Q(deleted_at__isnull=True),
+                name="api_project_one_live_per_profile",
+            ),
+        ]
+
+    def __str__(self):
+        return f"API project {self.pk} for {self.profile_id}"
+
+
 KEY_PREFIX = "sfr_"
 KEY_ALPHABET = string.ascii_letters + string.digits
 KEY_LENGTH = 32
