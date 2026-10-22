@@ -47,6 +47,13 @@ spec:
             - { name: GRPC_ADDR, value: ":9090" }
             - { name: AUTH_MODE, value: {{ .Values.authService.mode | quote }} }
             - { name: GATED_PATHS, value: {{ .Values.authService.gatedPaths | quote }} }
+            {{- $meters := list }}
+            {{- range $meter, $prefixes := .Values.authService.meters }}
+            {{- range $prefixes }}{{ $meters = append $meters (printf "%s=%s" $meter .) }}{{ end }}
+            {{- end }}
+            {{- if $meters }}
+            - { name: METERED_PATHS, value: {{ join "," $meters | quote }} }
+            {{- end }}
             - { name: HELP_URL, value: {{ .Values.authService.helpURL | quote }} }
             - { name: RELOAD_INTERVAL, value: {{ .Values.authService.reloadInterval | quote }} }
             - { name: PG_NOTIFY_CHANNEL, value: {{ .Values.authService.push.pgChannel | quote }} }

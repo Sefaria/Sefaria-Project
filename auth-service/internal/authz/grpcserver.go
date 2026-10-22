@@ -11,6 +11,7 @@ import (
 	typev3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	rpcstatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type Recorder interface {
@@ -43,6 +44,20 @@ func hdr(k, v string) *corev3.HeaderValueOption {
 	}
 }
 
+// limitMetadata is the ext_authz dynamic metadata for an allowed keyed request: the project's per-minute limit, and
+// its monthly limit for the metered product when the tier has a row for it. Envoy files it under the ext_authz
+// namespace, and the gateway's BackendTrafficPolicy reads it with limit.fromMetadata. Anonymous and unkeyed requests
+// carry none.
+func limitMetadata(d Decision) (*structpb.Struct, error) {
+	fields := map[string]any{
+		"limit_minute": map[string]any{"requests_per_unit": float64(d.PerMinute), "unit": "MINUTE"},
+	}
+	if d.MonthlyLimit != nil {
+		fields["limit_month_"+d.Meter] = map[string]any{"requests_per_unit": float64(*d.MonthlyLimit), "unit": "MONTH"}
+	}
+	return structpb.NewStruct(fields)
+}
+
 func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*authv3.CheckResponse, error) {
 	_ = ctx
 	t0 := time.Now()
@@ -56,17 +71,28 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 	d := Decide(s.l, s.o.Cfg, r)
 	s.rec.Observe(d.Result, d.Allow, time.Since(t0))
 	if d.Allow {
-		return &authv3.CheckResponse{
+		resp := &authv3.CheckResponse{
 			Status: &rpcstatus.Status{Code: int32(codes.OK)},
 			HttpResponse: &authv3.CheckResponse_OkResponse{OkResponse: &authv3.OkHttpResponse{
 				Headers: []*corev3.HeaderValueOption{
 					hdr("x-sefaria-project", d.Project),
 					hdr("x-sefaria-tier", d.Tier),
 					hdr("x-sefaria-auth-result", d.Result),
+					hdr("x-sefaria-meter", d.Meter),
 				},
 				QueryParametersToRemove: []string{"api_key"},
 			}},
-		}, nil
+		}
+		if d.Keyed {
+			md, err := limitMetadata(d)
+			if err != nil {
+				// Without metadata the gateway's fromMetadata rules fall back to their static limits: fail open, never unlimited.
+				slog.Error("limit metadata", "err", err, "project", d.Project)
+			} else {
+				resp.DynamicMetadata = md
+			}
+		}
+		return resp, nil
 	}
 	slog.Info("deny", "transport", "grpc", "code", d.Code, "key_prefix", Prefix(r.APIKey), "origin", r.Origin, "path", r.Path)
 	// Envoy sends a denial without passing it upstream, so it carries its own CORS header for pages to read it.

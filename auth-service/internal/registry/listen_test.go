@@ -26,7 +26,7 @@ func freshSchema(t *testing.T) (*sql.DB, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, q := range []string{"DROP TABLE IF EXISTS powered_by_apikey, powered_by_project", string(schema)} {
+	for _, q := range []string{"DROP TABLE IF EXISTS powered_by_apikey, api_project, api_tier_meter_limit, api_tier, powered_by_project", string(schema)} {
 		if _, err := db.Exec(q); err != nil {
 			t.Fatalf("%s: %v", q, err)
 		}
@@ -80,14 +80,23 @@ func TestListenDeliversPlainSQLChanges(t *testing.T) {
 	notices, established := startListener(t, dsn, "authsvc-listener-test1")
 	wait(t, established, 5*time.Second, "LISTEN established")
 
-	exec(t, db, `INSERT INTO powered_by_project(id,tier) VALUES (1,'developer')`)
+	exec(t, db, `INSERT INTO powered_by_project(id) VALUES (1)`)
+	exec(t, db, `INSERT INTO api_project(id,profile_id) VALUES (1,1)`)
 	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label) VALUES ('sfr_listen0000000000000000000000001',1,'k')`)
 	if n := wait(t, notices, time.Second, "key INSERT"); n.Table != "powered_by_apikey" || n.Op != "INSERT" || n.Age < 0 || n.Age > time.Second {
 		t.Fatalf("insert notice: %+v", n)
 	}
-	exec(t, db, `UPDATE powered_by_project SET tier='partner' WHERE id=1`)
-	if n := wait(t, notices, time.Second, "project tier UPDATE"); n.Table != "powered_by_project" || n.Op != "UPDATE" {
+	exec(t, db, `UPDATE api_project SET tier_id='partner' WHERE id=1`)
+	if n := wait(t, notices, time.Second, "api project tier UPDATE"); n.Table != "api_project" || n.Op != "UPDATE" {
 		t.Fatalf("tier notice: %+v", n)
+	}
+	exec(t, db, `UPDATE api_tier SET per_minute_per_project=120 WHERE id='partner'`)
+	if n := wait(t, notices, time.Second, "api tier UPDATE"); n.Table != "api_tier" || n.Op != "UPDATE" {
+		t.Fatalf("tier limit notice: %+v", n)
+	}
+	exec(t, db, `INSERT INTO api_tier_meter_limit(tier_id,meter,monthly_per_project) VALUES ('partner','semantic',1000)`)
+	if n := wait(t, notices, time.Second, "meter limit INSERT"); n.Table != "api_tier_meter_limit" || n.Op != "INSERT" {
+		t.Fatalf("meter limit notice: %+v", n)
 	}
 	exec(t, db, `UPDATE powered_by_apikey SET allowed_origins='["https://a.example.org"]' WHERE project_id=1`)
 	if n := wait(t, notices, time.Second, "origins UPDATE"); n.Table != "powered_by_apikey" || n.Op != "UPDATE" {
@@ -98,8 +107,9 @@ func TestListenDeliversPlainSQLChanges(t *testing.T) {
 		t.Fatalf("revoke notice: %+v", n)
 	}
 	exec(t, db, `DELETE FROM powered_by_apikey`)
+	exec(t, db, `DELETE FROM api_project`)
 	exec(t, db, `DELETE FROM powered_by_project`)
-	for _, table := range []string{"powered_by_apikey", "powered_by_project"} {
+	for _, table := range []string{"powered_by_apikey", "api_project", "powered_by_project"} {
 		if n := wait(t, notices, time.Second, table+" DELETE"); n.Table != table || n.Op != "DELETE" {
 			t.Fatalf("delete notice: %+v", n)
 		}
@@ -116,6 +126,7 @@ func TestListenReconnectsAndReestablishes(t *testing.T) {
 	wait(t, established, 5*time.Second, "LISTEN re-established after the backend was terminated")
 
 	exec(t, db, `INSERT INTO powered_by_project(id) VALUES (2)`)
+	exec(t, db, `INSERT INTO api_project(id,profile_id) VALUES (2,2)`)
 	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label) VALUES ('sfr_listen0000000000000000000000002',2,'k')`)
 	wait(t, notices, time.Second, "notice on the new connection")
 }
@@ -125,6 +136,7 @@ func TestListenReconnectsAndReestablishes(t *testing.T) {
 func TestListenIgnoresBookkeepingWrites(t *testing.T) {
 	db, dsn := freshSchema(t)
 	exec(t, db, `INSERT INTO powered_by_project(id,project_name) VALUES (3,'p3')`)
+	exec(t, db, `INSERT INTO api_project(id,profile_id) VALUES (3,3)`)
 	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label,allowed_origins) VALUES ('sfr_listen0000000000000000000000003',3,'k','["https://a.example.org"]')`)
 	notices, established := startListener(t, dsn, "authsvc-listener-test3")
 	wait(t, established, 5*time.Second, "LISTEN established")
@@ -132,6 +144,7 @@ func TestListenIgnoresBookkeepingWrites(t *testing.T) {
 	exec(t, db, `UPDATE powered_by_apikey SET last_used_at=now()`)
 	exec(t, db, `UPDATE powered_by_apikey SET key=key, project_id=project_id, label=label, allowed_origins=allowed_origins, revoked_at=revoked_at, created_at=created_at`)
 	exec(t, db, `UPDATE powered_by_project SET project_name='renamed', tier=tier`)
+	exec(t, db, `UPDATE api_project SET tier_id=tier_id, deleted_at=deleted_at, updated_at=now()`)
 	select {
 	case n := <-notices:
 		t.Fatalf("bookkeeping write notified: %+v", n)

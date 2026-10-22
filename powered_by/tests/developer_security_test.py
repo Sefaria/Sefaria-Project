@@ -19,7 +19,7 @@ from django.test import Client, override_settings
 from sentry_sdk.transport import Transport
 
 from powered_by import developer
-from powered_by.models import ApiKey, Project, SubmissionSource
+from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
 from powered_by.tests.developer_api_test import DeveloperApiTestCase
 from sefaria.model.user_profile import UserProfile
 from sefaria.settings_utils import scrub_api_keys
@@ -146,11 +146,11 @@ class ProjectCapTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 400)
         self.assertIn("at most {} projects".format(developer.MAX_PROJECTS_PER_ACCOUNT), body["error"])
-        self.assertEqual(Project.objects.filter(owner=self.user).count(), developer.MAX_PROJECTS_PER_ACCOUNT)
+        self.assertEqual(ApiProject.objects.filter(owner=self.user).count(), developer.MAX_PROJECTS_PER_ACCOUNT)
 
     def test_N_CR7_a_deleted_project_frees_a_slot(self):
         self.fill()
-        self.call("delete", "projects/{}".format(Project.objects.filter(owner=self.user).first().id))
+        self.call("delete", "projects/{}".format(ApiProject.objects.filter(owner=self.user).first().id))
 
         self.assertEqual(self.create("again")[0], 200)
 
@@ -162,7 +162,7 @@ class ProjectCapTest(DeveloperApiTestCase):
         status, body = self.call("post", "listings/{}/claim".format(listing.id))
 
         self.assertEqual(status, 400)
-        self.assertIsNone(Project.objects.get(id=listing.id).owner)
+        self.assertFalse(ApiProject.objects.filter(profile_id=listing.id).exists())
 
     def test_N_CR7_staff_raise_the_cap_with_the_group(self):
         self.fill()
@@ -181,12 +181,13 @@ class DeletedProjectGalleryTest(DeveloperApiTestCase):
     def test_N_CR14_a_deleted_project_marked_published_is_not_public(self):
         project_id = self.create_project(visibility="public")["id"]
         self.assertEqual(self.call("delete", "projects/" + project_id)[0], 200)
-        Project.objects.filter(id=int(project_id)).update(is_published=True, consent_to_display=True)
+        Project.objects.filter(api_projects__id=int(project_id)).update(is_published=True, consent_to_display=True)
+        profile_id = ApiProject.objects.get(id=int(project_id)).profile_id
 
         response = Client().get("/api/powered-by")
 
         self.assertEqual(response.status_code, 200)
-        self.assertNotIn(int(project_id), [p["id"] for p in json.loads(response.content)["projects"]])
+        self.assertNotIn(profile_id, [p["id"] for p in json.loads(response.content)["projects"]])
 
 
 @override_settings(DEVELOPER_SETTINGS_MOCKS=True, ALLOWED_HOSTS=["*"])

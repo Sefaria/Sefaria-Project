@@ -17,7 +17,7 @@ from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
 from powered_by import developer
-from powered_by.models import ApiKey, Project, SubmissionSource
+from powered_by.models import ApiKey, ApiProject, ApiTier, Project, SubmissionSource
 from reader.conftest import create_test_user, page_props, purge_test_profiles
 
 
@@ -28,6 +28,15 @@ PROJECT = {"name": "Daf Portal", "description": "A daily page companion.", "orga
 
 def gallery_ids():
     return [p["id"] for p in json.loads(Client().get("/api/powered-by").content)["projects"]]
+
+
+def make_api_project(user, **fields):
+    """A settings-made profile with its live API project, owned by user."""
+    profile = Project.objects.create(
+        submission_source=SubmissionSource.DEVELOPER_SETTINGS, submission_date=timezone.now(),
+        project_name="Race", **fields,
+    )
+    return ApiProject.objects.create(profile=profile, owner=user)
 
 
 @override_settings(DEVELOPER_SETTINGS_ENABLED=True)
@@ -331,7 +340,7 @@ class EmailChangeTest(DeveloperApiTestCase):
         self.assertEqual(self.call("post", "projects", {"project": PROJECT})[0], 403)
         self.assertEqual(self.call("post", "projects/{}/keys".format(self.project["id"]), {"label": "Two"})[0], 403)
         self.assertEqual(self.call("post", "listings/{}/claim".format(listing.id))[0], 403)
-        self.assertIsNone(Project.objects.get(id=listing.id).owner)
+        self.assertFalse(ApiProject.objects.filter(profile_id=listing.id).exists())
 
     def test_existing_projects_and_keys_can_still_be_managed(self):
         self.assertEqual(self.call("post", "projects/" + self.project["id"],
@@ -386,17 +395,18 @@ class ProjectTest(DeveloperApiTestCase):
     def test_a_project_is_a_powered_by_row_owned_by_the_account(self):
         project = self.create_project()
 
-        row = Project.objects.get(id=int(project["id"]))
-        self.assertEqual(row.owner, self.user)
+        api_project = ApiProject.objects.get(id=int(project["id"]))
+        row = api_project.profile
+        self.assertEqual(api_project.owner, self.user)
         self.assertEqual(row.submission_source, SubmissionSource.DEVELOPER_SETTINGS)
-        self.assertEqual(row.tier, "developer")
+        self.assertEqual(api_project.tier_id, "developer")
         self.assertFalse(row.consent_to_display)
         self.assertEqual(project["visibility"], "private")
         self.assertFalse(project["linkedListing"])
 
     def test_a_public_project_is_listed_and_a_private_one_is_not(self):
-        public = Project.objects.get(id=int(self.create_project(visibility="public")["id"]))
-        private = Project.objects.get(id=int(self.create_project(visibility="private")["id"]))
+        public = ApiProject.objects.get(id=int(self.create_project(visibility="public")["id"])).profile
+        private = ApiProject.objects.get(id=int(self.create_project(visibility="private")["id"])).profile
 
         self.assertTrue(public.consent_to_display)
         self.assertFalse(private.consent_to_display)
@@ -416,7 +426,7 @@ class ProjectTest(DeveloperApiTestCase):
         status, state = self.call("post", "projects/" + project["id"], {"project": {**PROJECT, "visibility": "private"}})
 
         self.assertEqual(status, 200)
-        row = Project.objects.get(id=int(project["id"]))
+        row = ApiProject.objects.get(id=int(project["id"])).profile
         self.assertFalse(row.consent_to_display)
         self.assertTrue(row.is_published, "the owner doesn't change the staff publish gate")
         self.assertNotIn(row.id, gallery_ids())
@@ -430,7 +440,7 @@ class ProjectTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 200)
         self.assertEqual(state["projects"], [])
-        self.assertIsNotNone(Project.objects.get(id=int(project["id"])).deleted_at)
+        self.assertIsNotNone(ApiProject.objects.get(id=int(project["id"])).deleted_at)
         self.assertTrue(all(k.revoked_at for k in ApiKey.objects.filter(project_id=int(project["id"]))))
 
     def test_another_account_cannot_see_or_change_the_project(self):
@@ -480,7 +490,7 @@ class KeyTest(DeveloperApiTestCase):
         self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, ["https://dafportal.org"])
         self.assertTrue(state["projects"][0]["keys"][0]["restrictToWebsite"])
 
-    def test_a_new_website_moves_restricted_keys_and_no_website_frees_them(self):
+    def test_a_new_website_moves_restricted_keys_and_no_website_is_refused_while_a_key_is_restricted(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
         unrestricted = self.create_key(self.project["id"], "Local")["keyId"]
         self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
@@ -490,7 +500,12 @@ class KeyTest(DeveloperApiTestCase):
         self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://new.example.org"])
         self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
-        self.call("post", url, {"project": {**PROJECT, "websiteUrl": ""}})
+        status, _ = self.call("post", url, {"project": {**PROJECT, "websiteUrl": ""}})
+        self.assertEqual(status, 400)
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://new.example.org"])
+
+        self.call("post", "keys/" + restricted, {"restrictToWebsite": False})
+        self.assertEqual(self.call("post", url, {"project": {**PROJECT, "websiteUrl": ""}})[0], 200)
         self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, [])
 
     def test_a_key_cannot_be_restricted_without_a_website(self):
@@ -529,7 +544,8 @@ class ListingTest(DeveloperApiTestCase):
         status, state = self.call("post", "listings/{}/claim".format(self.listing.id))
 
         self.assertEqual(status, 200)
-        self.assertEqual(Project.objects.get(id=self.listing.id).owner, self.user)
+        self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
+        self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).profile_id, self.listing.id)
         self.assertIsNone(state["yourListing"])
         project = state["projects"][0]
         self.assertTrue(project["linkedListing"])
@@ -537,18 +553,21 @@ class ListingTest(DeveloperApiTestCase):
 
     def test_claiming_keeps_the_listing_consent_and_publish_flags(self):
         for consent, published in ((True, False), (False, True)):
-            Project.objects.filter(id=self.listing.id).update(owner=None, consent_to_display=consent, is_published=published)
+            ApiProject.objects.filter(profile_id=self.listing.id).update(deleted_at=timezone.now())
+            Project.objects.filter(id=self.listing.id).update(consent_to_display=consent, is_published=published)
 
-            self.assertEqual(self.call("post", "listings/{}/claim".format(self.listing.id))[0], 200)
+            status, state = self.call("post", "listings/{}/claim".format(self.listing.id))
+            self.assertEqual(status, 200)
 
             row = Project.objects.get(id=self.listing.id)
             self.assertEqual((row.consent_to_display, row.is_published), (consent, published))
             self.assertNotIn(row.id, gallery_ids())
+            self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
 
     def test_deleting_the_account_revokes_keys_deletes_projects_and_releases_listings(self):
-        self.call("post", "listings/{}/claim".format(self.listing.id))
+        claimed = self.call("post", "listings/{}/claim".format(self.listing.id))[1]["projectId"]
         own = self.create_project()
-        claimed_key = self.create_key(str(self.listing.id))["keyId"]
+        claimed_key = self.create_key(claimed)["keyId"]
         own_key = self.create_key(own["id"])["keyId"]
 
         user_id = self.user.id
@@ -556,9 +575,13 @@ class ListingTest(DeveloperApiTestCase):
         self.user.id = user_id
 
         self.assertTrue(all(k.revoked_at for k in ApiKey.objects.filter(id__in=[claimed_key, own_key])))
-        self.assertIsNone(Project.objects.get(id=self.listing.id).owner)
-        self.assertIsNone(Project.objects.get(id=self.listing.id).deleted_at)
-        self.assertIsNotNone(Project.objects.get(id=int(own["id"])).deleted_at)
+        self.assertIsNone(ApiProject.objects.get(id=int(claimed)).owner)
+        self.assertIsNotNone(ApiProject.objects.get(id=int(claimed)).deleted_at)
+        self.assertIsNotNone(ApiProject.objects.get(id=int(own["id"])).deleted_at)
+        listing = Project.objects.get(id=self.listing.id)
+        self.assertTrue(listing.consent_to_display and listing.is_published)
+        self.assertIsNone(listing.deleted_at)
+        self.assertFalse(ApiProject.objects.filter(profile_id=self.listing.id, deleted_at__isnull=True).exists())
 
     def test_a_dismissed_listing_is_not_offered_again(self):
         state = self.call("post", "listings/{}/dismiss".format(self.listing.id))[1]
@@ -575,7 +598,7 @@ class ListingTest(DeveloperApiTestCase):
 
     def test_a_listing_owned_by_another_account_is_not_offered(self):
         other = create_test_user("devapiowner")
-        Project.objects.filter(id=self.listing.id).update(owner=other)
+        ApiProject.objects.create(profile=self.listing, owner=other)
 
         self.assertIsNone(self.call("get", "state")[1]["yourListing"])
 
@@ -689,7 +712,7 @@ class MockTest(DeveloperApiTestCase):
         self.set_up_developer()
         state = self.call("post", "mock", {"action": "create-listing"})[1]
         listing_id = state["yourListing"]["id"]
-        self.call("post", "listings/{}/claim".format(listing_id))
+        claimed = self.call("post", "listings/{}/claim".format(listing_id))[1]["projectId"]
         own = self.create_project()
 
         state = self.call("post", "mock", {"action": "start-over", "ssoOverride": False, "emailVerified": False})[1]
@@ -697,8 +720,10 @@ class MockTest(DeveloperApiTestCase):
         self.assertEqual(state["projects"], [])
         self.assertIsNone(state["profile"])
         self.assertFalse(state["emailVerified"])
-        self.assertIsNone(Project.objects.get(id=int(listing_id)).owner)
-        self.assertIsNotNone(Project.objects.get(id=int(own["id"])).deleted_at)
+        self.assertIsNotNone(ApiProject.objects.get(id=int(claimed)).deleted_at)
+        self.assertIsNotNone(ApiProject.objects.get(id=int(own["id"])).deleted_at)
+        self.assertFalse(ApiProject.objects.filter(profile_id=int(listing_id), deleted_at__isnull=True).exists())
+        self.assertTrue(Project.objects.filter(id=int(listing_id), consent_to_display=True).exists())
 
 
 def test_origin_of_is_the_browser_origin():
@@ -804,13 +829,15 @@ class KeyCreationRaceTest(TransactionTestCase):
     def setUp(self):
         self.user = create_test_user("devrace")
         purge_test_profiles(self.user)
-        self.project = Project.objects.create(
-            submission_source=SubmissionSource.DEVELOPER_SETTINGS, project_name="Race",
-            owner=self.user, is_published=False)
+        # A TransactionTestCase flush empties api_tier, and an API project needs its tier.
+        ApiTier.objects.get_or_create(id="developer", defaults={"name": "Developer", "per_minute_per_project": 1})
+        self.project = make_api_project(self.user, is_published=False)
 
     def tearDown(self):
         ApiKey.objects.filter(project=self.project).delete()
+        profile = self.project.profile
         self.project.delete()
+        profile.delete()
         purge_test_profiles(self.user)
 
     def test_create_key_waits_for_a_delete_in_progress_and_then_finds_no_project(self):

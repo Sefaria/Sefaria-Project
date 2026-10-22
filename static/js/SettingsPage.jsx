@@ -1581,20 +1581,10 @@ const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm
     }, 0);
   };
 
-  /* Rejects with the error for the form to show; a saved project closes the editor. */
-  const saveProject = (fields) => {
-    const losingUrl = !!project.websiteUrl && !fields.websiteUrl.trim();
-    const restrictedKeys = project.keys.filter(k => k.restrictToWebsite).map(k => k.label);
-    return run(updateProject(project.id, fields), {quiet: true}).then(() => {
-      setEditing(false);
-      if (losingUrl && restrictedKeys.length) {
-        notice(Sefaria._v({
-          en: restrictedKeys.join(", ") + " now works anywhere again, because the project no longer has a website.",
-          he: restrictedKeys.join(", ") + " עובד שוב בכל מקום, כי לפרויקט כבר אין אתר.",
-        }));
-      }
-    });
-  };
+  /* Rejects with the server's error for the form to show (clearing the website is refused while a
+     key is restricted to it); the form keeps what was typed. A saved project closes the editor. */
+  const saveProject = (fields) =>
+    run(updateProject(project.id, fields), {quiet: true}).then(() => { setEditing(false); });
 
   const keyLabels = project.keys.map(k => k.label).join(", ");
   const keysText = project.keys.length
