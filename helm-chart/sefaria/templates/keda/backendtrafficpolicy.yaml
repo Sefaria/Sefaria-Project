@@ -28,6 +28,16 @@ spec:
             fromMetadata:
               namespace: envoy.filters.http.ext_authz
               key: limit_minute
+        - clientSelectors:
+            - headers:
+                - name: x-sefaria-project
+                  type: Distinct
+          limit:
+            requests: 1000
+            unit: Month
+            fromMetadata:
+              namespace: envoy.filters.http.ext_authz
+              key: limit_month
 {{- end }}
   responseOverride:
     - match:

@@ -57,12 +57,19 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 	d := Decide(s.l, s.o.Cfg, r)
 	s.rec.Observe(d.Result, d.Allow, time.Since(t0))
 	if d.Allow {
-		// Spike: a fixed limit stands in for the registry's tier numbers.
-		meta, err := structpb.NewStruct(map[string]any{
-			"limit_minute": map[string]any{"requests_per_unit": 3, "unit": "MINUTE"},
-		})
-		if err != nil {
-			return nil, err
+		// Spike: fixed limits stand in for the registry's tier numbers. Only keyed requests get one, so anonymous
+		// traffic (empty project header) keeps the chart's static default. A request header picks the unit.
+		var meta *structpb.Struct
+		if d.Project != "" {
+			key, unit := "limit_minute", "MINUTE"
+			if strings.EqualFold(h["x-spike-unit"], "month") {
+				key, unit = "limit_month", "MONTH"
+			}
+			var err error
+			meta, err = structpb.NewStruct(map[string]any{key: map[string]any{"requests_per_unit": 3, "unit": unit}})
+			if err != nil {
+				return nil, err
+			}
 		}
 		return &authv3.CheckResponse{
 			Status:          &rpcstatus.Status{Code: int32(codes.OK)},

@@ -139,3 +139,21 @@ func TestCheckDenyHasNoLimitMetadata(t *testing.T) {
 		t.Fatalf("a denial must carry no limit metadata: %v", resp.GetDynamicMetadata())
 	}
 }
+
+func TestCheckAnonymousAllowHasNoLimitMetadata(t *testing.T) {
+	s := NewGRPCServer(reg, Options{Cfg: enforce}, NopRecorder{})
+	resp, _ := s.Check(context.Background(), checkReq("/api/texts/Genesis.1", map[string]string{}))
+	if resp.Status.Code != int32(codes.OK) || resp.GetDynamicMetadata() != nil {
+		t.Fatalf("anonymous allow must carry no limit metadata: %v", resp)
+	}
+}
+
+func TestCheckSpikeUnitHeaderSelectsMonth(t *testing.T) {
+	s := NewGRPCServer(reg, Options{Cfg: enforce}, NopRecorder{})
+	resp, _ := s.Check(context.Background(), checkReq("/api/texts/Genesis.1", map[string]string{"x-api-key": alpha, "x-spike-unit": "MONTH"}))
+	f := resp.GetDynamicMetadata().GetFields()
+	lim := f["limit_month"].GetStructValue().GetFields()
+	if _, minute := f["limit_minute"]; minute || lim["unit"].GetStringValue() != "MONTH" || lim["requests_per_unit"].GetNumberValue() != 3 {
+		t.Fatalf("metadata=%v", f)
+	}
+}
