@@ -206,3 +206,40 @@ describe('errors before setup', () => {
     expect(developerPanel().textContent).not.toContain('Wait a minute');
   });
 });
+
+describe('key-create errors', () => {
+  const startKey = (keys) => {
+    jest.useFakeTimers();
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [project({ keys })] }, { projectId: 'proj01' });
+    act(() => { container.querySelector('[data-agent-action="new-key"]').click(); });
+  };
+  const submitKey = async () => {
+    await act(async () => { container.querySelector('[data-agent-action="create-key"]').click(); await flush(); });
+    await advance(4000);
+  };
+
+  it('limits the label to 100 characters, and shows the server\'s reason for a refused label', async () => {
+    startKey([]);
+    const input = container.querySelector('#devPocKeyLabel');
+    expect(input.maxLength).toBe(100);
+    typeInto(input, 'x'.repeat(101));
+    respondError(400, 'The key name can be at most 100 characters.');
+    await submitKey();
+    expect(developerPanel().querySelector('[role="alert"]').textContent).toContain('The key name can be at most 100 characters.');
+    expect(developerPanel().textContent).not.toContain('Please try again');
+  });
+
+  it('shows the key-limit message when another tab took the last slot, and refreshes the count', async () => {
+    startKey([key(1), key(2), key(3), key(4)]);
+    typeInto(container.querySelector('#devPocKeyLabel'), 'Fifth');
+    serve({
+      'POST projects/proj01/keys': [400, { error: 'A project can have at most 5 keys.' }],
+      'GET state': [200, { ...DEVELOPER_ON, profile: PROFILE, maxKeysPerProject: 5, projects: [project({ keys: [1, 2, 3, 4, 5].map(n => key(n)) })] }],
+    });
+    await submitKey();
+    expect(developerPanel().textContent).toContain('A project can have at most 5 keys.');
+    expect(developerPanel().textContent).toContain('5 of 5 keys');
+    act(() => { buttonNamed(developerPanel(), 'Close').click(); });
+    expect(container.querySelector('#devPocKeyLabel')).toBeNull();
+  });
+});

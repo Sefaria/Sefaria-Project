@@ -1420,12 +1420,14 @@ const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDel
 
 
 const KEY_HIGHLIGHT_MS = 4000;
+const KEY_LABEL_MAX_LENGTH = 100;
 
 const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite}) => {
   const [creating, setCreating] = useState(false);   // showing the label form
   const [label, setLabel] = useState("");
   const [phase, setPhase] = useState("idle");        // idle | setting-up | error
   const [error, setError] = useState("");
+  const [createError, setCreateError] = useState("");
   const [newKeyId, setNewKeyId] = useState(null);
   const mounted = useRef(true);
   const highlightTimer = useRef(null);
@@ -1446,14 +1448,18 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
     setError("");
     setPhase("setting-up");
     const minimum = new Promise(resolve => setTimeout(resolve, KEY_SETUP_MS));
-    const created = run(createKey(project.id, label.trim()), {quiet: true});
+    const created = run(createKey(project.id, label.trim()), {quiet: true, refresh: true});
     Promise.all([created, minimum]).then(([data]) => {
       if (!mounted.current) { return; }
       setPhase("idle"); setCreating(false); setLabel("");
       setNewKeyId(data.keyId);
       clearTimeout(highlightTimer.current);
       highlightTimer.current = setTimeout(() => setNewKeyId(null), KEY_HIGHLIGHT_MS);
-    }, () => { if (mounted.current) { setPhase("error"); } });
+    }, err => {
+      if (!mounted.current) { return; }
+      setCreateError(err.message);
+      setPhase("error");
+    });
   };
 
   const toggleRestriction = (keyId, on) => run(setKeyRestriction(keyId, on)).catch(() => {});
@@ -1523,6 +1529,7 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
               dir="auto"
               placeholder={Sefaria._v({en: "e.g. My website", he: "למשל: האתר שלי"})}
               value={label}
+              maxLength={KEY_LABEL_MAX_LENGTH}
               onChange={e => setLabel(e.target.value)}
             />
           </div>
@@ -1547,9 +1554,9 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
       {phase === "error" ?
         <div className="devPocWarning" role="alert">
           <strong><InterfaceText text={{en: "We couldn't create your key.", he: "לא הצלחנו ליצור את המפתח."}} /></strong>
-          <p><InterfaceText text={{en: "Nothing was created. Please try again.", he: "שום דבר לא נוצר. נסו שוב."}} /></p>
-          <button type="button" className="button small white" onClick={() => setPhase("idle")}>
-            <InterfaceText text={{en: "Try again", he: "לנסות שוב"}} />
+          <p>{createError || <InterfaceText text={{en: "Nothing was created. Please try again.", he: "שום דבר לא נוצר. נסו שוב."}} />}</p>
+          <button type="button" className="button small white" onClick={() => { setPhase("idle"); if (atLimit) { setCreating(false); } }}>
+            <InterfaceText text={atLimit ? {en: "Close", he: "סגירה"} : {en: "Try again", he: "לנסות שוב"}} />
           </button>
         </div> : null}
 

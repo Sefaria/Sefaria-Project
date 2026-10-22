@@ -150,40 +150,6 @@ afterEach(() => {
   container = null;
 });
 
-describe('key-create errors', () => {
-  const startKey = (keys) => {
-    jest.useFakeTimers();
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [project({ keys })] }, { projectId: 'proj01' });
-    act(() => { container.querySelector('[data-agent-action="new-key"]').click(); });
-  };
-  const submitKey = async () => {
-    await act(async () => { container.querySelector('[data-agent-action="create-key"]').click(); await flush(); });
-    await advance(4000);
-  };
-
-  it('stops or explains a label over 100 characters @known-gap N-C12', async () => {
-    startKey([]);
-    const input = container.querySelector('#devPocKeyLabel');
-    const limited = input.maxLength === 100;
-    typeInto(input, 'x'.repeat(101));
-    respondError(400, 'The key name can be at most 100 characters.');
-    await submitKey();
-    expect(limited || developerPanel().textContent.includes('The key name can be at most 100 characters.')).toBe(true);
-  });
-
-  it('shows the key-limit message when another tab took the last slot, and refreshes the count @known-gap N-C12', async () => {
-    startKey([key(1), key(2), key(3), key(4)]);
-    typeInto(container.querySelector('#devPocKeyLabel'), 'Fifth');
-    serve({
-      'POST projects/proj01/keys': [400, { error: 'A project can have at most 5 keys.' }],
-      'GET state': [200, { ...DEVELOPER_ON, profile: PROFILE, projects: [project({ keys: [1, 2, 3, 4, 5].map(n => key(n)) })] }],
-    });
-    await submitKey();
-    expect(developerPanel().textContent).toContain('A project can have at most 5 keys.');
-    expect(developerPanel().textContent).toContain('5 of 5 keys');
-  });
-});
-
 describe('an internationalised website address', () => {
   it('is refused, or kept the way browsers send it (punycode) @known-gap C7', () => {
     const { valid, url } = parseWebsite('דוגמה.co.il');
