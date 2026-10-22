@@ -240,4 +240,16 @@ var linkerV3Config = config({
     ]
 })
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig, linkerV3Config];
+// Dedicated browser app: bundle React locally instead of depending on reader globals.
+var inquiryAtlasConfig = config({
+    context: path.resolve('./static/js'),
+    entry: './inquiry-atlas',
+    mode: 'development',
+    output: {
+        path: path.resolve(buildDir + 'inquiry-atlas'),
+        filename: 'inquiry-atlas.js'
+    }
+});
+inquiryAtlasConfig.externals = {};
+
+module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig, linkerV3Config, inquiryAtlasConfig];
