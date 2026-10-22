@@ -2,10 +2,15 @@
 """
 Powered by listings for the projects suite, on the local stack only.
 
-A listing is a Project row with no owner whose creator_email is an account's email, as if the
-public form had submitted it. The UI cannot make one without the test controls, so the listing
-specs make them here, through the ORM, with the run marker in notes so the seed teardown removes
-them.
+A listing is a Project (profile) row with no live ApiProject whose creator_email is an account's
+email, as if the public form had submitted it. The UI cannot make one without the test controls, so
+the listing specs make them here, through the ORM, with the run marker in notes so the seed teardown
+removes them.
+
+Ownership lives on the live ApiProject (ApiProject.owner), not on the profile: `give` makes an
+account the owner the way a claim does, by creating ApiProject(profile=listing, owner=account).
+`show` reports that owner (ownerId, null when no live ApiProject) and that ApiProject's id
+(apiProjectId, null when none). Listing ids and api_project ids are independent sequences.
 
     python listing_fixtures.py create --email <fixture email> --name <name> --marker <marker> [--consent yes|no]
     python listing_fixtures.py give --id <listing id> --to <fixture email>
@@ -31,7 +36,7 @@ from django.conf import settings  # noqa: E402
 from django.contrib.auth.models import User  # noqa: E402
 from django.utils import timezone  # noqa: E402
 
-from powered_by.models import Project, SubmissionSource  # noqa: E402
+from powered_by.models import ApiProject, Project, SubmissionSource  # noqa: E402
 
 FIXTURE_EMAIL = re.compile(r"^apikeys-e2e-projects-[a-z0-9]+@example\.com$")
 MARKER = re.compile(r"^E2E api-keys \S+ \(temporary\)$")
@@ -60,11 +65,17 @@ def fixture_listing(listing_id):
     return project
 
 
+def live_api_project(project):
+    return project.api_projects.filter(deleted_at__isnull=True).select_related("owner").first()
+
+
 def describe(project):
+    api_project = live_api_project(project)
     return {
         "id": project.id,
         "name": project.project_name,
-        "ownerId": project.owner_id,
+        "ownerId": api_project.owner_id if api_project else None,
+        "apiProjectId": api_project.id if api_project else None,
         "isPublished": project.is_published,
         "consentToDisplay": project.consent_to_display,
         "deleted": project.deleted_at is not None,
@@ -105,8 +116,9 @@ def main():
         )
     elif args.command == "give":
         project = fixture_listing(args.id)
-        project.owner = fixture_user(args.to)
-        project.save(update_fields=["owner"])
+        if live_api_project(project) is not None:
+            raise SystemExit("Refusing: listing {} already has a live API project.".format(args.id))
+        ApiProject.objects.create(profile=project, owner=fixture_user(args.to))
     else:
         project = fixture_listing(args.id)
     print(json.dumps(describe(project)))

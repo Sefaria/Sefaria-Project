@@ -45,6 +45,23 @@ class BackfillTakenIdTest(MigrationTestCase):
             BACKFILL.forward(None, schema_editor)
         self.assertEqual(self.api_project_rows(), before)
 
+    def test_a_fallback_id_never_meets_a_later_profile_id(self):
+        # API project 1 belongs to profile 3; profiles 1 and 2 have none. Profile 1 needs a fallback id, which must
+        # not be 2, the id profile 2 takes next.
+        apps = self.migrate(BEFORE)
+        Project, ApiProject = apps.get_model("powered_by", "Project"), apps.get_model("powered_by", "ApiProject")
+        for pk in (1, 2, 3):
+            Project.objects.create(id=pk, project_name=f"Profile {pk}", submission_source="developer_settings", tier="developer")
+        ApiProject.objects.create(id=1, profile_id=3, tier_id="developer")
+
+        self.migrate(AFTER)
+
+        rows = {row[1]: row[0] for row in self.api_project_rows()}
+        self.assertEqual(set(rows), {1, 2, 3})
+        self.assertEqual(len(set(rows.values())), 3)
+        self.assertEqual((rows[3], rows[2]), (1, 2))
+        self.assertGreater(rows[1], 3)
+
     def test_new_rows_after_the_backfill_do_not_collide_with_it(self):
         apps = self.migrate(BEFORE)
         wanted = self.make_project(apps, "Wants its own id")
@@ -176,3 +193,58 @@ class SqliteBackfillTest(TransactionTestCase):
         self.assertEqual(rows, [(profile.pk, profile.pk)])
         self.assertNotIn(listing.pk, [profile_id for _, profile_id in rows])
         self.assertEqual(ApiKey.objects.using(self.ALIAS).get(id=key.id).project_id, profile.pk)
+
+    def rows(self, sql):
+        with self.sqlite.cursor() as cursor:
+            cursor.execute(sql)
+            return cursor.fetchall()
+
+    def make_profile(self, apps, pk, name="Profile"):
+        return apps.get_model("powered_by", "Project").objects.using(self.ALIAS).create(
+            id=pk, project_name=f"{name} {pk}", submission_source="developer_settings", tier="developer")
+
+    def test_a_fallback_id_never_meets_a_later_profile_id(self):
+        # API project 1 belongs to profile 3; profiles 1 and 2 have none. Profile 1's own id is taken, so it needs a
+        # fallback id, which must not be 2 (profile 2's own id, used next) or any other id already in play.
+        apps = self.migrate(BEFORE)
+        ApiProject = apps.get_model("powered_by", "ApiProject")
+        for pk in (1, 2, 3):
+            self.make_profile(apps, pk)
+        ApiProject.objects.using(self.ALIAS).create(id=1, profile_id=3, tier_id="developer")
+
+        self.migrate(AFTER)
+
+        rows = dict(self.rows("SELECT profile_id, id FROM api_project"))
+        self.assertEqual(set(rows), {1, 2, 3})
+        self.assertEqual(len(set(rows.values())), 3)
+        self.assertEqual(rows[3], 1)
+        self.assertEqual(rows[2], 2)
+        self.assertGreater(rows[1], 3)
+
+    def key_projects(self):
+        return dict(self.rows("SELECT label, project_id FROM powered_by_apikey"))
+
+    def test_keys_come_back_to_their_own_api_project_after_a_rollback_on_sqlite(self):
+        apps = self.migrate(LATEST)
+        ApiProject, ApiKey = apps.get_model("powered_by", "ApiProject"), apps.get_model("powered_by", "ApiKey")
+        first, second = self.make_profile(apps, 1), self.make_profile(apps, 2)
+        # Each API project holds the other profile's id, and a third profile has a deleted and a replacement one.
+        on_second_id = ApiProject.objects.using(self.ALIAS).create(id=2, profile=first, tier_id="developer")
+        on_first_id = ApiProject.objects.using(self.ALIAS).create(id=1, profile=second, tier_id="partner")
+        third = self.make_profile(apps, 3)
+        deleted = ApiProject.objects.using(self.ALIAS).create(id=3, profile=third, tier_id="developer", deleted_at=timezone.now())
+        replacement = ApiProject.objects.using(self.ALIAS).create(id=30, profile=third, tier_id="developer")
+        for label, project in (("first-key", on_second_id), ("second-key", on_first_id), ("old", deleted), ("live", replacement)):
+            ApiKey.objects.using(self.ALIAS).create(
+                project=project, label=label, revoked_at=timezone.now() if label == "old" else None)
+        before = self.key_projects()
+        self.assertEqual(before, {"first-key": 2, "second-key": 1, "old": 3, "live": 30})
+
+        self.migrate(AFTER)
+        # Rolled back, every key holds its profile's id again.
+        self.assertEqual(self.key_projects(), {"first-key": 1, "second-key": 2, "old": 3, "live": 3})
+        self.migrate(LATEST)
+
+        self.assertEqual(self.key_projects(), before)
+        self.assertEqual(self.rows("SELECT name FROM sqlite_master WHERE name = 'api_key_project_remap'"), [])
+

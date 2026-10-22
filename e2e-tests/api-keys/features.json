@@ -373,6 +373,34 @@
        "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::KeyRemapRoundTripTest::test_keys_without_a_record_go_to_the_live_api_project"
       }
      ]
+    },
+    {
+     "id": "F-MODEL-02.e16",
+     "scenario": "backfill fallback id when API project 1 belongs to profile 3 and profiles 1 and 2 have none (Postgres and SQLite)",
+     "expected": "fallback ids are above every API project and profile id, so profile 1 gets a new id and profile 2 keeps its own; no unique-key failure",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::BackfillTakenIdTest::test_a_fallback_id_never_meets_a_later_profile_id"
+      },
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::SqliteBackfillTest::test_a_fallback_id_never_meets_a_later_profile_id"
+      }
+     ]
+    },
+    {
+     "id": "F-MODEL-02.e17",
+     "scenario": "rollback to 0007 and a new forward run on SQLite with swapped ids and a deleted plus a replacement API project",
+     "expected": "the same record-and-restore as Postgres: every key ends on the API project it started on; the record table is dropped",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "pytest",
+       "ref": "powered_by/tests/migration_api_project_roundtrip_test.py::SqliteBackfillTest::test_keys_come_back_to_their_own_api_project_after_a_rollback_on_sqlite"
+      }
+     ]
     }
    ]
   },
@@ -2701,6 +2729,39 @@
        "scope": "poc"
       }
      ]
+    },
+    {
+     "id": "F-HDR-02.e5",
+     "scenario": "the chart's ClientTrafficPolicy (header strip, client IP detection) on a Gateway whose port-80 listeners are shared by every environment",
+     "expected": "it targets each HTTPS listener by sectionName (targetRefs, never the Gateway or a port-80 listener), so Envoy Gateway accepts it; port 80 serves only a redirect whenever the auth service is on, so no unstripped request reaches the app",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/render-check.sh",
+       "contains": "the ClientTrafficPolicy targets exactly the HTTPS"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/render-check.sh",
+       "contains": "no ClientTrafficPolicy targetRef is a port-80 listener"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/render-check.sh",
+       "contains": "the app HTTPRoute is served on the HTTPS listeners only"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/render-check.sh",
+       "contains": "port 80 serves only the redirect route"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/Makefile",
+       "contains": "ClientTrafficPolicy targets HTTPS listeners only, with the auth service off"
+      }
+     ]
     }
    ]
   },
@@ -4547,6 +4608,24 @@
       {
        "kind": "pytest",
        "ref": "powered_by/tests/developer_api_test.py::KeyTest::test_restricting_a_key_allows_only_the_project_website_origin"
+      }
+     ]
+    },
+    {
+     "id": "F-SITE-01.e6",
+     "scenario": "in the settings page, clear the website of a project with a restricted key",
+     "expected": "the server's refusal is shown in the form, the form stays open with the empty website; the Playwright specs expect the refusal and a passing path once the restriction is off",
+     "severity": "P1",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "static/js/tests/settingsPage.test.js",
+       "contains": "keeps the edit form and its empty website when clearing the website is refused"
+      },
+      {
+       "kind": "file",
+       "ref": "e2e-tests/api-keys/ui/projects.spec.ts",
+       "contains": "clearing the website is refused while a key is restricted"
       }
      ]
     }

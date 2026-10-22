@@ -111,7 +111,7 @@ test.describe('developer settings: projects', () => {
     await expect(page).toHaveURL(/\/texts$/, { timeout: t(10000) });
   });
 
-  test('C4 (UI): a restriction follows a website change, and clearing the website lifts it with a notice', async ({ account }) => {
+  test('C4 (UI): a restriction follows a website change, and clearing the website is refused while a key is restricted', async ({ account }) => {
     const { page } = await openAccount(account, SUITE, 'otherAccount');
     await openDeveloper(page);
     const name = unique('C4 website');
@@ -142,6 +142,27 @@ test.describe('developer settings: projects', () => {
     let row = (await state(page)).projects.find((p: any) => p.id === id).keys.find((k: any) => k.id === keyId);
     expect(row.restrictToWebsite).toBe(true);
 
+    const refusal = 'Turn off the website restriction on your keys before removing the website.';
+    await card.getByRole('button', { name: 'Edit project' }).click();
+    await card.locator('#devPocProjectUrl').fill('');
+    save = dev.waitForApi(`projects/${id}`);
+    await dev.action('save-project', card).click();
+    await dev.action('save-without-website').click();
+    expect((await save).status()).toBe(400);
+
+    await expect(card.locator('.devPocWarning[role="alert"]')).toContainText(refusal);
+    await expect(card.locator('#devPocProjectUrl')).toHaveValue('');
+    let after = (await state(page)).projects.find((p: any) => p.id === id);
+    expect(after.websiteUrl).toBe('https://c4-new.example.com');
+    expect(after.keys.find((k: any) => k.id === keyId).restrictToWebsite).toBe(true);
+
+    // The way through: turn the restriction off on the key, then clear the website.
+    await card.getByRole('button', { name: 'Cancel' }).click();
+    const unrestrict = dev.waitForApi(new RegExp(`/api/developer/keys/${keyId}$`));
+    await dev.restrictionSwitch(card, label).click();
+    expect((await unrestrict).status()).toBe(200);
+    await expect(dev.restrictionSwitch(card, label)).not.toBeChecked();
+
     await card.getByRole('button', { name: 'Edit project' }).click();
     await card.locator('#devPocProjectUrl').fill('');
     save = dev.waitForApi(`projects/${id}`);
@@ -149,14 +170,10 @@ test.describe('developer settings: projects', () => {
     await dev.action('save-without-website').click();
     expect((await save).status()).toBe(200);
 
-    const notice = page.locator('.devPocNotice[role="status"]');
-    await expect(notice).toContainText(`${label} now works anywhere again, because the project no longer has a website.`);
     await expect(dev.restrictionSwitch(card, label)).toHaveCount(0);
     await expect(card.getByRole('button', { name: 'Add your website' })).toBeVisible();
-    row = (await state(page)).projects.find((p: any) => p.id === id).keys.find((k: any) => k.id === keyId);
-    expect(row.restrictToWebsite).toBe(false);
-
-    await notice.getByRole('button', { name: 'Dismiss' }).click();
-    await expect(notice).toHaveCount(0);
+    after = (await state(page)).projects.find((p: any) => p.id === id);
+    expect(after.websiteUrl).toBeFalsy();
+    expect(after.keys.find((k: any) => k.id === keyId).restrictToWebsite).toBe(false);
   });
 });

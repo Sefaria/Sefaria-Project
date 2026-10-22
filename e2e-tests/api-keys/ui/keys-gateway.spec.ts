@@ -129,7 +129,7 @@ test.describe('keys x gateway', () => {
     }
   });
 
-  test('C4: the restriction follows the website; clearing it lifts the restriction and says so', async ({ account, gw, target }) => {
+  test('C4: the restriction follows the website; clearing the website is refused while a key is restricted', async ({ account, gw, target }) => {
     test.setTimeout(t(180000));
     const { page } = await account('keys', 'setUp');
     const dev = await openDeveloperSettings(page);
@@ -176,14 +176,31 @@ test.describe('keys x gateway', () => {
       timings.moveWebsite = toB.elapsedMs;
       expect(toB.elapsedMs, `restriction follows the website to site-b: ${summary(toB.last)}`).toBeDefined();
 
+      // Clearing the website while the key is restricted is refused; nothing changes at the gateway.
+      await card.getByRole('button', { name: 'Edit project' }).click();
+      await card.locator('#devPocProjectUrl').fill('');
+      const refused = waitForDeveloperApi(dev.page, /\/api\/developer\/projects\/[^/]+$/);
+      await dev.action('save-project', card).click();
+      await dev.action('save-without-website').click();
+      expect((await refused).status()).toBe(400);
+      await expect(card.locator('.devPocWarning[role="alert"]'))
+        .toContainText('Turn off the website restriction on your keys before removing the website.');
+      await expect(card.locator('#devPocProjectUrl')).toHaveValue('');
+      const stillB = await poll(verdicts, onlyFrom('b'), { timeoutMs: 5000 });
+      expect(stillB.elapsedMs, `the refused save left the key restricted to site-b: ${summary(stillB.last)}`).toBeDefined();
+
+      // Turn the restriction off first, then clearing the website works.
+      await card.getByRole('button', { name: 'Cancel' }).click();
+      const unrestricting = waitForDeveloperApi(dev.page, /\/api\/developer\/keys\/[^/]+$/);
+      await toggle.click();
+      expect((await unrestricting).status()).toBe(200);
+      await expect(toggle).not.toBeChecked();
       const cleared = await saveWebsite(dev, card, '');
-      await expect(page.locator('.devPocNotice[role="status"]').filter({ hasText: 'now works anywhere again' }))
-        .toContainText(`${label} now works anywhere again, because the project no longer has a website.`);
       await expect(toggle).toHaveCount(0);
       await expect(keyRow(card, label).getByRole('button', { name: 'Add your website' })).toBeVisible();
       const free = await poll(verdicts, anywhere, { startedAt: cleared.respondedAt, timeoutMs: 10000 });
       timings.clearWebsite = free.elapsedMs;
-      expect(free.elapsedMs, `clearing the website lifts the restriction: ${summary(free.last)}`).toBeDefined();
+      expect(free.elapsedMs, `turning the restriction off and clearing the website: ${summary(free.last)}`).toBeDefined();
 
       for (const [step, ms] of Object.entries(timings)) {
         expect(ms!, `${step}: change-to-gateway time`).toBeLessThanOrEqual(PROPAGATION_MS);
