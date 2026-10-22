@@ -15,7 +15,7 @@ from django.contrib.sessions.backends.db import SessionStore
 from django.test import RequestFactory, TestCase, override_settings
 
 from powered_by import developer, developer_mocks
-from powered_by.models import ApiKey, Project
+from powered_by.models import ApiKey, ApiProject, Project
 from sefaria.system.database import db
 
 
@@ -57,7 +57,7 @@ class SeedApiKeysE2eTest(TestCase):
     def test_reset_then_teardown_leaves_no_rows(self):
         seed.add_legacy_key("callers.legacy", base=BASE)
         self.assertEqual(User.objects.filter(id__gte=uid(1), id__lte=uid(999)).count(), len(seed.ACCOUNTS))
-        self.assertTrue(ApiKey.objects.filter(project__notes=seed.marker_for("test-local")).exists())
+        self.assertTrue(ApiKey.objects.filter(project__profile__notes=seed.marker_for("test-local")).exists())
 
         seed.teardown(base=BASE)
 
@@ -100,14 +100,14 @@ class SeedApiKeysE2eTest(TestCase):
                                                 "websiteUrl": "", "visibility": "public", "aiAssisted": False})
         developer.create_key(owner, made.id, "ui key")
         listing_owner = User.objects.get(id=uid(202))
-        developer.claim_listing(listing_owner, Project.objects.get(owner__isnull=True,
-                                                                   creator_email=listing_owner.email).id)
+        developer.claim_listing(listing_owner, Project.objects.get(creator_email=listing_owner.email).id)
         developer_mocks.create_listing(User.objects.get(id=uid(601)))
         stranger = User.objects.create_user(id=BASE + 1000, username="seed-test-stranger",
                                             email="seed-test-stranger@example.com", password="x")
-        kept = Project.objects.create(submission_source="manual", project_name="Kept", owner=stranger,
+        kept = Project.objects.create(submission_source="manual", project_name="Kept",
                                       notes="E2E api-keys not a marker")
-        ApiKey.objects.create(project=kept, label="kept")
+        kept_api_project = ApiProject.objects.create(profile=kept, owner=stranger)
+        ApiKey.objects.create(project=kept_api_project, label="kept")
 
         seed.teardown(base=BASE)
 
@@ -125,7 +125,8 @@ class SeedApiKeysE2eTest(TestCase):
 
         seed.teardown(base=BASE)
 
-        self.assertTrue(ApiKey.objects.filter(project__notes=seed.SENTINEL_NOTE, revoked_at__isnull=True).exists())
+        self.assertTrue(ApiKey.objects.filter(project__profile__notes=seed.SENTINEL_NOTE,
+                                              revoked_at__isnull=True).exists())
         seed.teardown(include_sentinel=True, base=BASE)
         self.assert_nothing_left()
 
@@ -146,10 +147,12 @@ class SeedApiKeysE2eTest(TestCase):
 
 class SeedGuardTest(TestCase):
 
-    def guard(self, target, mocks=True, **db):
+    CAULDRON_HOSTS = {"library": "https://www.apikeys-pipeline.cauldron.sefaria.org"}
+
+    def guard(self, target, mocks=True, domains=CAULDRON_HOSTS, **db):
         fake = SimpleNamespace(DATABASES={"default": {"ENGINE": "django.db.backends.postgresql",
                                                       "NAME": "sefaria_auth", **db}},
-                               DEVELOPER_SETTINGS_MOCKS=mocks, DOMAIN_MODULES={})
+                               DEVELOPER_SETTINGS_MOCKS=mocks, DOMAIN_MODULES=domains)
         with patch("django.conf.settings", fake):
             seed.guard_target(target)
 
@@ -172,3 +175,8 @@ class SeedGuardTest(TestCase):
             self.guard("cauldron", HOST="127.0.0.1", PORT="55432")
         with self.assertRaises(SystemExit):
             self.guard("cauldron", mocks=False, HOST="postgres-18", PORT="5432")
+
+    def test_cauldron_host_must_be_the_named_cauldrons(self):
+        other = {"library": "https://www.authpoc.cauldron.sefaria.org"}
+        with self.assertRaises(SystemExit):
+            self.guard("cauldron", domains=other, HOST="postgres-18", PORT="5432")

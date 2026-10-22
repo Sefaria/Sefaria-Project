@@ -13,7 +13,7 @@ from allauth.account.models import EmailAddress
 from django.test import Client, override_settings
 
 from powered_by import developer
-from powered_by.models import ApiKey, Project, SubmissionSource
+from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
 from powered_by.tests.developer_api_test import PROFILE, PROJECT, DeveloperApiTestCase, gallery_ids
 from reader.conftest import create_test_user, purge_test_profiles
 
@@ -38,17 +38,18 @@ class OtherAccountTest(DeveloperApiTestCase):
         self.call("post", "enable", client=self.other_client)
         assert self.call("post", "profile", {"profile": PROFILE}, client=self.other_client)[0] == 200
         self.listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK, creator_email=self.other.email, owner=self.user,
+            submission_source=SubmissionSource.FORMSTACK, creator_email=self.other.email,
             project_name="Owned by A, submitted with B's email", project_link="https://listing.example.org",
             consent_to_display=True,
         )
+        ApiProject.objects.create(profile=self.listing, owner=self.user)
 
     def tearDown(self):
         purge_test_profiles(self.other)
         super().tearDown()
 
     def test_C5_every_action_on_another_accounts_objects_is_not_found_and_changes_nothing(self):
-        before = snapshot(Project.objects.filter(id__in=[int(self.project["id"]), self.listing.id]),
+        before = snapshot(ApiProject.objects.filter(id=int(self.project["id"])), Project.objects.filter(id=self.listing.id),
                           ApiKey.objects.filter(project_id=int(self.project["id"])))
         actions = (
             ("post", "projects/" + self.project["id"], {"project": {**PROJECT, "name": "Hijacked", "visibility": "public"}}),
@@ -63,7 +64,7 @@ class OtherAccountTest(DeveloperApiTestCase):
             status, _ = self.call(method, url, body, client=self.other_client)
             self.assertEqual(status, 404, url)
 
-        after = snapshot(Project.objects.filter(id__in=[int(self.project["id"]), self.listing.id]),
+        after = snapshot(ApiProject.objects.filter(id=int(self.project["id"])), Project.objects.filter(id=self.listing.id),
                          ApiKey.objects.filter(project_id=int(self.project["id"])))
         self.assertEqual(after, before)
         self.assertEqual(self.call("get", "state", client=self.other_client)[1]["projects"], [])
@@ -87,7 +88,7 @@ class MalformedRequestTest(DeveloperApiTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(json.loads(response.content)["error"], "Request is too large.")
-        self.assertEqual(Project.objects.filter(owner=self.user).count(), 1)
+        self.assertEqual(ApiProject.objects.filter(owner=self.user).count(), 1)
 
     def test_C6_a_body_that_is_not_json_is_refused(self):
         for url in ("projects", "projects/{}/keys".format(self.project["id"]), "profile"):
@@ -112,7 +113,7 @@ class MalformedRequestTest(DeveloperApiTestCase):
             response = self.post_raw(url, json.dumps(body), client=client)
             self.assertEqual(response.status_code, 403, url)
 
-        self.assertEqual(Project.objects.filter(owner=self.user).count(), 1)
+        self.assertEqual(ApiProject.objects.filter(owner=self.user).count(), 1)
         self.assertEqual(ApiKey.objects.filter(project_id=int(self.project["id"])).count(), keys_before)
 
     def test_C6_a_logged_out_new_link_request_without_a_csrf_token_is_forbidden(self):
@@ -198,7 +199,8 @@ class ClaimConsentTest(DeveloperApiTestCase):
 
     def edit(self, visibility):
         fields = {**PROJECT, "name": "Said no", "websiteUrl": "https://saidno.example.org", "visibility": visibility}
-        status, state = self.call("post", "projects/{}".format(self.listing.id), {"project": fields})
+        api_id = ApiProject.objects.get(profile_id=self.listing.id).id
+        status, state = self.call("post", "projects/{}".format(api_id), {"project": fields})
         self.assertEqual(status, 200, state)
         return Project.objects.get(id=self.listing.id)
 
@@ -207,7 +209,7 @@ class ClaimConsentTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 200, state)
         row = Project.objects.get(id=self.listing.id)
-        self.assertEqual(row.owner, self.user)
+        self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
         self.assertFalse(row.consent_to_display)
         self.assertFalse(row.is_published)
         self.assertEqual(state["projects"][0]["visibility"], "private")

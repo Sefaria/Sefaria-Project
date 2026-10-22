@@ -11,7 +11,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from powered_by.models import ApiKey, Project, SubmissionSource
+from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
 from reader.conftest import create_test_user, purge_test_profiles
 
 
@@ -71,8 +71,8 @@ def form_data(html):
     return data
 
 
-def admin_url(view, *args):
-    return reverse("admin:powered_by_project_" + view, args=args, urlconf="sefaria.urls_library")
+def admin_url(view, *args, model="project"):
+    return reverse("admin:powered_by_" + model + "_" + view, args=args, urlconf="sefaria.urls_library")
 
 
 def row(model, pk):
@@ -93,7 +93,8 @@ class ProjectAdminTest(TestCase):
             sefaria_tools_used=["API"], tags=["Liturgy"], notes="Checked by staff.", consent_to_display=True,
             is_published=True,
         )
-        self.key = ApiKey.objects.create(project=self.listing, label="Production",
+        self.api_project = ApiProject.objects.create(profile=self.listing)
+        self.key = ApiKey.objects.create(project=self.api_project, label="Production",
                                          allowed_origins=["https://tehillimcircle.org"])
 
     def tearDown(self):
@@ -110,6 +111,17 @@ class ProjectAdminTest(TestCase):
     def save(self, data):
         return self.client.post(self.change_url(), data)
 
+    def api_change_url(self):
+        return admin_url("change", self.api_project.pk, model="apiproject")
+
+    def api_change_form(self):
+        response = self.client.get(self.api_change_url())
+        self.assertEqual(response.status_code, 200)
+        return form_data(response.content.decode())
+
+    def api_save(self, data):
+        return self.client.post(self.api_change_url(), data)
+
     def test_N_M11_the_changelist_renders(self):
         response = self.client.get(admin_url("changelist"))
 
@@ -117,7 +129,7 @@ class ProjectAdminTest(TestCase):
         self.assertContains(response, "Tehillim Circle")
 
     def test_N_M11_the_change_form_renders_with_the_key_inline(self):
-        response = self.client.get(self.change_url())
+        response = self.client.get(self.api_change_url())
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Production")
@@ -135,10 +147,10 @@ class ProjectAdminTest(TestCase):
         self.assertEqual(row(ApiKey, self.key.pk), key_before)
 
     def test_N_M11_an_invalid_origin_is_rejected(self):
-        data = self.change_form()
+        data = self.api_change_form()
         data["api_keys-0-allowed_origins"] = '["https://tehillimcircle.org/with/a/path"]'
 
-        response = self.save(data)
+        response = self.api_save(data)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(ApiKey.objects.get(pk=self.key.pk).allowed_origins, ["https://tehillimcircle.org"])
@@ -155,28 +167,27 @@ class ProjectAdminTest(TestCase):
         self.assertTrue(Project.objects.filter(pk=self.listing.pk).exists())
         self.assertTrue(ApiKey.objects.filter(pk=self.key.pk).exists())
 
-    @pytest.mark.failing
     def test_N_M11_clearing_revoked_at_does_not_bring_a_key_back_known_gap_N_M11(self):
         ApiKey.objects.filter(pk=self.key.pk).update(revoked_at=timezone.now())
-        data = self.change_form()
+        data = self.api_change_form()
         data["api_keys-0-revoked_at_0"] = ""
         data["api_keys-0-revoked_at_1"] = ""
 
-        self.save(data)
+        self.api_save(data)
 
         self.assertIsNotNone(ApiKey.objects.get(pk=self.key.pk).revoked_at)
 
     @pytest.mark.failing
     def test_N_M11_a_sixth_active_key_cannot_be_added_known_gap_N_M11(self):
         for n in range(4):
-            ApiKey.objects.create(project=self.listing, label="Key {}".format(n))
-        data = self.change_form()
+            ApiKey.objects.create(project=self.api_project, label="Key {}".format(n))
+        data = self.api_change_form()
         total = int(data["api_keys-TOTAL_FORMS"])
         data["api_keys-TOTAL_FORMS"] = str(total + 1)
         data["api_keys-{}-label".format(total)] = "Sixth"
         data["api_keys-{}-allowed_origins".format(total)] = "[]"
-        data["api_keys-{}-project".format(total)] = str(self.listing.pk)
+        data["api_keys-{}-project".format(total)] = str(self.api_project.pk)
 
-        self.save(data)
+        self.api_save(data)
 
-        self.assertEqual(ApiKey.objects.filter(project=self.listing, revoked_at__isnull=True).count(), 5)
+        self.assertEqual(ApiKey.objects.filter(project=self.api_project, revoked_at__isnull=True).count(), 5)

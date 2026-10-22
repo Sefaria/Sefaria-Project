@@ -313,7 +313,7 @@ def _create_developer_project(user, suite, role, key_specs, notes):
     from powered_by import developer
     from powered_by.models import Project
 
-    project = developer.create_project(user, {
+    api_project = developer.create_project(user, {
         "name": "E2E {} {}".format(suite, role),
         "description": "Temporary end-to-end test project.",
         "organization": "",
@@ -321,16 +321,16 @@ def _create_developer_project(user, suite, role, key_specs, notes):
         "visibility": "private",
         "aiAssisted": False,
     })
-    Project.objects.filter(id=project.id).update(notes=notes, is_published=False, consent_to_display=False)
+    Project.objects.filter(id=api_project.profile_id).update(notes=notes, is_published=False, consent_to_display=False)
     for name, options in key_specs:
-        api_key = developer.create_key(user, project.id, name)
+        api_key = developer.create_key(user, api_project.id, name)
         if options.get("restricted"):
             developer.set_key_restriction(user, str(api_key.id), True)
         if options.get("revoked"):
             developer.revoke_key(user, str(api_key.id))
     if role == "deletedProject":
-        developer.delete_project(user, project.id)
-    return project
+        developer.delete_project(user, api_project.id)
+    return api_project
 
 
 def _create_listing(user, suite, role, notes):
@@ -377,7 +377,8 @@ def ensure_sentinel(password, base=None):
     from powered_by.models import ApiKey
 
     uid = account_id(SENTINEL[0], base)
-    if ApiKey.objects.filter(project__owner_id=uid, project__notes=SENTINEL_NOTE, revoked_at__isnull=True).exists():
+    if ApiKey.objects.filter(project__owner_id=uid, project__profile__notes=SENTINEL_NOTE,
+                             revoked_at__isnull=True).exists():
         return False
     _seed_account(SENTINEL, password, marker=None, base=base, notes=SENTINEL_NOTE)
     return True
@@ -386,18 +387,24 @@ def ensure_sentinel(password, base=None):
 # --- Teardown -----------------------------------------------------------------
 
 def _fixture_projects(include_sentinel=False, base=None):
+    """
+    The fixture profiles: marked ones, ones that have an API project owned by a fixture account, and
+    unclaimed listings with a fixture email. The profile is the project; its API projects hang off it.
+    """
     from django.db.models import Q
-    from powered_by.models import Project
+    from powered_by.models import ApiProject, Project
 
     ids = fixture_ids(include_sentinel, base)
     emails = fixture_emails(include_sentinel)
-    query = Q(notes__regex=MARKER_RE.pattern) | Q(owner_id__in=ids) | Q(owner__isnull=True, creator_email__in=emails)
+    live_profiles = ApiProject.objects.filter(deleted_at__isnull=True).values("profile_id")
+    query = (Q(notes__regex=MARKER_RE.pattern) | Q(api_projects__owner_id__in=ids)
+             | (Q(creator_email__in=emails) & ~Q(id__in=live_profiles)))
     if include_sentinel:
         query |= Q(notes=SENTINEL_NOTE)
     projects = Project.objects.filter(query)
     if not include_sentinel:
-        projects = projects.exclude(notes=SENTINEL_NOTE).exclude(owner_id=account_id(SENTINEL[0], base))
-    return projects
+        projects = projects.exclude(notes=SENTINEL_NOTE).exclude(api_projects__owner_id=account_id(SENTINEL[0], base))
+    return projects.distinct()
 
 
 def teardown_plan(include_sentinel=False, base=None):
@@ -410,7 +417,7 @@ def teardown_plan(include_sentinel=False, base=None):
     return {
         "users": list(User.objects.filter(id__in=ids).order_by("id").values_list("id", flat=True)),
         "projects": projects,
-        "keys": ApiKey.objects.filter(project_id__in=[p[0] for p in projects]).count(),
+        "keys": ApiKey.objects.filter(project__profile_id__in=[p[0] for p in projects]).count(),
         "legacyKeys": _legacy_db().apikeys.count_documents({"uid": {"$in": ids}}),
         "profiles": _legacy_db().profiles.count_documents({"id": {"$in": ids}}),
     }
@@ -423,19 +430,22 @@ def _legacy_db():
 
 def teardown(include_sentinel=False, base=None):
     """
-    Keys, then projects (by marker, by fixture owner, or unclaimed with a fixture email), then
-    legacy keys and Mongo profiles by the exact id list, then the accounts by that list.
+    Keys, then API projects, then profiles (the fixture profiles, by marker, by fixture owner, or
+    unclaimed with a fixture email), then legacy keys and Mongo profiles by the exact id list, then
+    the accounts by that list.
     """
     from django.contrib.auth.models import User
     from django.db import transaction
-    from powered_by.models import ApiKey, Project
+    from powered_by.models import ApiKey, ApiProject, Project
 
     ids = fixture_ids(include_sentinel, base)
     db = _legacy_db()
     with transaction.atomic():
-        projects = list(_fixture_projects(include_sentinel, base).values_list("id", flat=True))
-        keys = ApiKey.objects.filter(project_id__in=projects).delete()[0]
-        project_count = Project.objects.filter(id__in=projects).delete()[0]
+        profile_ids = list(_fixture_projects(include_sentinel, base).values_list("id", flat=True))
+        api_projects = ApiProject.objects.filter(profile_id__in=profile_ids)
+        keys = ApiKey.objects.filter(project__in=api_projects).delete()[0]
+        api_projects.delete()
+        project_count = Project.objects.filter(id__in=profile_ids).delete()[0]
         users = User.objects.filter(id__in=ids).count()
         User.objects.filter(id__in=ids).delete()
     legacy = db.apikeys.delete_many({"uid": {"$in": ids}}).deleted_count
@@ -455,19 +465,19 @@ def leftovers(include_sentinel=False, base=None):
 
     base = ID_BASE if base is None else base
     in_band = Q(id__gte=base + 1, id__lte=base + 999)
-    owned = Q(owner_id__gte=base + 1, owner_id__lte=base + 999)
+    owned = Q(api_projects__owner_id__gte=base + 1, api_projects__owner_id__lte=base + 999)
     mongo_band = {"$gte": base + 1, "$lte": base + 999}
     if not include_sentinel:
         sentinel_id = account_id(SENTINEL[0], base)
         in_band &= ~Q(id=sentinel_id)
-        owned &= ~Q(owner_id=sentinel_id)
+        owned &= ~Q(api_projects__owner_id=sentinel_id)
         mongo_band["$ne"] = sentinel_id
-    projects = Project.objects.filter(Q(notes__regex=MARKER_RE.pattern) | owned)
+    projects = Project.objects.filter(Q(notes__regex=MARKER_RE.pattern) | owned).distinct()
     db = _legacy_db()
     return {
         "users": User.objects.filter(in_band).count(),
         "projects": projects.count(),
-        "keys": ApiKey.objects.filter(project__in=projects).count(),
+        "keys": ApiKey.objects.filter(project__profile__in=projects).count(),
         "profiles": db.profiles.count_documents({"id": mongo_band}),
         "legacyKeys": db.apikeys.count_documents({"uid": mongo_band}),
     }
@@ -537,7 +547,7 @@ def current_run_id(base=None):
 
 def build_manifest(target, password_file="", base=None):
     from django.contrib.auth.models import User
-    from powered_by.models import ApiKey, SubmissionSource
+    from powered_by.models import ApiKey, ApiProject, SubmissionSource
 
     roles = _role_by_id(base)
     run_id = current_run_id(base)
@@ -554,17 +564,21 @@ def build_manifest(target, password_file="", base=None):
 
     projects, keys = [], []
     for project in _fixture_projects(include_sentinel=True, base=base).order_by("id"):
-        owner_spec = roles.get(project.owner_id) or next(
+        # A developer project's id is its API project's id; a listing has no API project, so its id is the profile's.
+        api_project = ApiProject.objects.filter(profile=project).order_by("-id").first()
+        owner_id = api_project.owner_id if api_project else None
+        owner_spec = roles.get(owner_id) or next(
             (s for s in roles.values() if account_email(s[1], s[2]) == (project.creator_email or "").lower()), None)
         suite, role = (owner_spec[1], owner_spec[2]) if owner_spec else ("", "")
+        is_developer = project.submission_source == SubmissionSource.DEVELOPER_SETTINGS
         projects.append({
-            "suite": suite, "role": role, "id": project.id, "name": project.project_name,
-            "kind": "developer" if project.submission_source == SubmissionSource.DEVELOPER_SETTINGS else "listing",
-            "deleted": project.deleted_at is not None, "ownerId": project.owner_id,
+            "suite": suite, "role": role, "id": api_project.id if is_developer and api_project else project.id,
+            "name": project.project_name, "kind": "developer" if is_developer else "listing",
+            "deleted": bool(api_project and api_project.deleted_at), "ownerId": owner_id,
         })
-        for api_key in ApiKey.objects.filter(project=project).order_by("created_at"):
+        for api_key in ApiKey.objects.filter(project__profile=project).order_by("created_at"):
             keys.append({
-                "suite": suite, "role": role, "name": api_key.label, "id": str(api_key.id), "projectId": project.id,
+                "suite": suite, "role": role, "name": api_key.label, "id": str(api_key.id), "projectId": api_key.project_id,
                 "value": api_key.key, "allowedOrigins": list(api_key.allowed_origins or []),
                 "revoked": api_key.revoked_at is not None,
             })
@@ -594,10 +608,10 @@ def report(stream, base=None):
     from allauth.account.models import EmailAddress
     from django.contrib.auth.models import User
     from powered_by import developer
-    from powered_by.models import ApiKey, Project
+    from powered_by.models import ApiKey, ApiProject
     from sefaria.model.user_profile import UserProfile
 
-    print("run marker: {}".format(marker_for(current_run_id(base)) if current_run_id(base) else "(none)"), file=stream)
+    print("run marker:{}".format(marker_for(current_run_id(base)) if current_run_id(base) else "(none)"), file=stream)
     header = "{:<28} {:>10} {:<8} {:<5} {:<4} {:<4} {:<4} {:>4} {:>8} {:>4}".format(
         "role", "id", "state", "user", "ver", "sso", "dev", "proj", "keys", "list")
     print(header, file=stream)
@@ -611,10 +625,10 @@ def report(stream, base=None):
         verified = EmailAddress.objects.filter(user=user, email__iexact=user.email, verified=True).exists()
         sso = user.socialaccount_set.filter(provider="google").exists()
         dev = bool(settings.get(developer.ENABLED_SETTING) and settings.get(developer.PROFILE_SETTING))
-        owned = Project.objects.filter(owner=user)
+        owned = ApiProject.objects.filter(owner=user, deleted_at__isnull=True)
         active = ApiKey.objects.filter(project__owner=user, revoked_at__isnull=True).count()
         total = ApiKey.objects.filter(project__owner=user).count()
-        listings = Project.objects.filter(owner__isnull=True, creator_email__iexact=user.email).count()
+        listings = developer.listings_submitted_by(user).count()
         print("{:<28} {:>10} {:<8} {:<5} {:<4} {:<4} {:<4} {:>4} {:>8} {:>4}".format(
             role_key(spec[1], spec[2]), uid, spec[3], "yes", _yn(verified), _yn(sso), _yn(dev),
             owned.count(), "{}/{}".format(active, total), listings), file=stream)

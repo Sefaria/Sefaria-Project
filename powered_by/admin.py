@@ -1,14 +1,30 @@
+from django import forms
 from django.contrib import admin
+from django.db.models import Prefetch
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .models import ApiKey, ApiProject, Project
 
 
+class ApiKeyForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # A revoked key stays revoked: a disabled field ignores whatever the form posts.
+        if self.instance.revoked_at is not None:
+            self.fields["revoked_at"].disabled = True
+
+
 class ApiKeyInline(admin.TabularInline):
     model = ApiKey
+    form = ApiKeyForm
     extra = 0
     can_delete = False
     fields = ("label", "key", "allowed_origins", "created_at", "revoked_at", "last_used_at")
     readonly_fields = ("key", "created_at", "last_used_at")
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Project)
@@ -21,6 +37,7 @@ class ProjectAdmin(admin.ModelAdmin):
         "submission_source",
         "consent_to_display",
         "last_checked",
+        "live_api_project",
     )
     list_filter = (
         "status",
@@ -33,9 +50,24 @@ class ProjectAdmin(admin.ModelAdmin):
         "is_buggy",
     )
     search_fields = ("project_name", "creator", "creator_email", "submitter")
-    readonly_fields = ("created_at", "updated_at")
-    raw_id_fields = ("owner",)
+    readonly_fields = ("created_at", "updated_at", "live_api_project")
     date_hierarchy = "created_at"
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related(Prefetch(
+            "api_projects", queryset=ApiProject.objects.filter(deleted_at__isnull=True),
+            to_attr="live_api_projects",
+        ))
+
+    @admin.display(description="API project")
+    def live_api_project(self, obj):
+        if obj.pk is None:
+            return "-"
+        live = obj.live_api_projects
+        if not live:
+            return "-"
+        return format_html('<a href="{}">API project {}</a>',
+                           reverse("admin:powered_by_apiproject_change", args=[live[0].pk]), live[0].pk)
 
     fieldsets = (
         ("Submission", {
@@ -86,11 +118,9 @@ class ProjectAdmin(admin.ModelAdmin):
         }),
         ("Developer settings", {
             "fields": (
-                "owner",
-                "tier",
                 "organization",
                 "consent_withdrawn_at",
-                "deleted_at",
+                "live_api_project",
             ),
         }),
     )
@@ -98,8 +128,14 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(ApiProject)
 class ApiProjectAdmin(admin.ModelAdmin):
-    # Placeholder for the keys inline, which moved here from the profile admin when the keys moved to the
-    # API project; the full admin (tier permission, listing guard) follows with the writer changes.
     list_display = ("id", "profile", "owner", "tier", "deleted_at")
     raw_id_fields = ("profile", "owner")
+    readonly_fields = ("deleted_at", "created_at", "updated_at")
     inlines = (ApiKeyInline,)
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly = super().get_readonly_fields(request, obj)
+        # Only the change_tier permission may move a project to another tier.
+        if request.user.has_perm("powered_by.change_tier"):
+            return readonly
+        return readonly + ("tier",)

@@ -6,6 +6,7 @@ import re
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import URLValidator, validate_email
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
@@ -13,7 +14,7 @@ from django.views.decorators.http import require_http_methods
 
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.client.util import jsonResponse
-from .models import Project, SubmissionSource, TechnicalExperience
+from .models import ApiProject, Project, SubmissionSource, TechnicalExperience
 
 
 REQUIRED_FIELDS = ("project_name", "project_link")
@@ -274,8 +275,19 @@ def powered_by_api(request):
         return _powered_by_post(request)
 
     authenticated = request.user.is_staff
-    queryset = Project.objects.all() if authenticated else Project.objects.filter(
-        is_published=True, consent_to_display=True, deleted_at__isnull=True)
+    if authenticated:
+        queryset = Project.objects.all()
+    else:
+        # A profile with an internal-tier live API project is never listed. A settings-created profile
+        # is listed only while it has a live API project; a legacy listing needs none.
+        live_api_projects = ApiProject.objects.filter(profile=OuterRef("pk"), deleted_at__isnull=True)
+        queryset = Project.objects.filter(
+            is_published=True, consent_to_display=True, deleted_at__isnull=True,
+        ).filter(
+            ~Exists(live_api_projects.filter(tier_id="internal")),
+        ).filter(
+            ~Q(submission_source=SubmissionSource.DEVELOPER_SETTINGS) | Exists(live_api_projects),
+        )
     projects = [project.contents(authenticated=authenticated) for project in queryset]
     return jsonResponse({"projects": projects})
 

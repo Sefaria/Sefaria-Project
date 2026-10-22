@@ -6,15 +6,16 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connection, transaction
 from django.test import TestCase
 
-from powered_by.models import ApiKey, Project, SubmissionSource
+from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
 
 
 class AllowedOriginsTest(TestCase):
     databases = "__all__"
 
     def setUp(self):
-        self.project = Project.objects.create(
+        profile = Project.objects.create(
             submission_source=SubmissionSource.MANUAL, project_name="Origins", is_published=False)
+        self.project = ApiProject.objects.create(profile=profile)
 
     def make(self, origins):
         return ApiKey(project=self.project, label="k", allowed_origins=origins)
