@@ -15,6 +15,7 @@ helm-lint:
 	cd .. && ct lint --charts helm-chart/sefaria --validate-maintainers=false
 helm-render:
 	$(RENDER) > /tmp/authpoc-render.yaml && kubeconform -strict -ignore-missing-schemas -summary /tmp/authpoc-render.yaml && bash scripts/render-check.sh /tmp/authpoc-render.yaml
+	bash scripts/ratelimit-check.sh
 crd-gate:
 	bash scripts/crd-gate.sh $(CTX)
 shellcheck:
