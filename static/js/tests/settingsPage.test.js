@@ -598,6 +598,31 @@ describe('dialog keyboard behaviour', () => {
     document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }));
   });
 
+  const description = (dialog) => dialog.getAttribute('aria-describedby').split(' ')
+    .map(id => dialog.querySelector('#' + id).textContent).join(' ');
+
+  it('read their body as the description when they open', () => {
+    expect(description(openDeleteKey().dialog)).toContain('The key stops working right away');
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    act(() => { visibilityRadio('public').click(); });
+    act(() => { buttonNamed(container, 'Show me what will be public').click(); });
+    expect(description(container.querySelector('[aria-labelledby="devPocPublicTitle"]'))).toContain('anyone will be able to see');
+    act(() => { buttonNamed(container, 'Close').click(); });
+    submitProject();
+    const noWebsite = description(container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]'));
+    expect(noWebsite).toContain('A website helps your project');
+    expect(noWebsite).toContain('You can add it later');
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING });
+    expect(description(yourListingDialog())).toContain('Mishnah Yomit Tracker');
+  });
+
   it("closes on Escape without the key reaching the panel around the page", () => {
     const outer = jest.fn();
     container = document.createElement('div');

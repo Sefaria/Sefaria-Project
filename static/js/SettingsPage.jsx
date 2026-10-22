@@ -815,8 +815,8 @@ const ProfileForm = ({profile, onSave, onCancel}) => {
 
 
 /* A listing's public fields only: what anyone can already see on Powered by Sefaria. */
-const ListingSummary = ({listing}) => (
-  <div className="devPocListingSummary">
+const ListingSummary = ({id, listing}) => (
+  <div className="devPocListingSummary" id={id}>
     <strong dir="auto">{listing.name}</strong> <span className="devPocMuted" dir="ltr">({listing.url})</span>
     <p className="devPocHelp" dir="auto">{listing.description}</p>
   </div>
@@ -958,17 +958,18 @@ const YourListingDialog = ({listing, onYes, onNo, onLater}) => {
     });
   };
   return (
-    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocYourListingTitle">
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocYourListingTitle"
+      aria-describedby="devPocYourListingBody devPocYourListingSummary devPocYourListingAfter">
       <section className="devPocDialog">
         <h2 id="devPocYourListingTitle"><InterfaceText text={{en: "Is this your project?", he: "האם זה הפרויקט שלך?"}} /></h2>
-        <p>
+        <p id="devPocYourListingBody">
           <InterfaceText text={{
             en: "This project on Powered by Sefaria was submitted with your email address.",
             he: "הפרויקט הזה ב־Powered by Sefaria נשלח עם כתובת האימייל שלך.",
           }} />
         </p>
-        <ListingSummary listing={listing} />
-        <p>
+        <ListingSummary id="devPocYourListingSummary" listing={listing} />
+        <p id="devPocYourListingAfter">
           <InterfaceText text={{
             en: "If it's yours, we'll add it to your projects with these details, so you can create an API key for it. It stays public, like the listing, and you can edit it afterwards.",
             he: "אם הוא שלך, נוסיף אותו לפרויקטים שלך עם הפרטים האלה, כדי שתוכלו ליצור לו מפתח API. הוא יישאר ציבורי, כמו הרישום, ואפשר לערוך אותו אחר כך.",
@@ -1004,10 +1005,10 @@ const MakePrivateDialog = ({onConfirm, onCancel}) => {
   const cancelRef = useRef(null);
   useDialogKeys(cancelRef, onCancel);
   return (
-    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPrivateTitle">
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPrivateTitle" aria-describedby="devPocPrivateBody">
       <section className="devPocDialog">
         <h2 id="devPocPrivateTitle"><InterfaceText text={{en: "Make this project private?", he: "להפוך את הפרויקט לפרטי?"}} /></h2>
-        <p>
+        <p id="devPocPrivateBody">
           <InterfaceText text={{en: "The project will be marked private.", he: "הפרויקט יסומן כפרטי."}} />{" "}
           <PublishedCopiesWarning />
         </p>
@@ -1038,10 +1039,10 @@ const PublicPreviewDialog = ({fields, onClose}) => {
   ].filter(row => row.value || !row.optional);
 
   return (
-    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPublicTitle">
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPublicTitle" aria-describedby="devPocPublicBody">
       <section className="devPocDialog">
         <h2 id="devPocPublicTitle"><InterfaceText text={{en: "What will be public", he: "מה יהיה ציבורי"}} /></h2>
-        <p>
+        <p id="devPocPublicBody">
           <InterfaceText text={{
             en: "If Sefaria features it on Powered by Sefaria, anyone will be able to see:",
             he: "אם ספריא תציג אותו ב־Powered by Sefaria, כל אחד יוכל לראות:",
@@ -1076,11 +1077,12 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => {
   const addRef = useRef(null);
   useDialogKeys(addRef, onAddWebsite);
   return (
-    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocNoWebsiteTitle">
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocNoWebsiteTitle"
+      aria-describedby="devPocNoWebsiteBody devPocNoWebsiteReasons devPocNoWebsiteLater">
       <section className="devPocDialog">
         <h2 id="devPocNoWebsiteTitle"><InterfaceText text={{en: "Save without a website?", he: "לשמור בלי אתר?"}} /></h2>
-        <p><InterfaceText text={{en: "A website helps your project in two ways:", he: "אתר עוזר לפרויקט שלכם בשתי דרכים:"}} /></p>
-        <ul className="devPocList">
+        <p id="devPocNoWebsiteBody"><InterfaceText text={{en: "A website helps your project in two ways:", he: "אתר עוזר לפרויקט שלכם בשתי דרכים:"}} /></p>
+        <ul className="devPocList" id="devPocNoWebsiteReasons">
           <li><InterfaceText text={{en: "We show it alongside your project on Powered by Sefaria.", he: "נציג אותו לצד הפרויקט ב־Powered by Sefaria."}} /></li>
           <li>
             <InterfaceText text={{
@@ -1089,7 +1091,7 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => {
             }} />
           </li>
         </ul>
-        <p>
+        <p id="devPocNoWebsiteLater">
           <InterfaceText text={{
             en: <React.Fragment>No website yet? That's fine. You can add it later with <strong>Edit project</strong>.</React.Fragment>,
             he: <React.Fragment>עדיין אין אתר? זה בסדר. אפשר להוסיף אותו מאוחר יותר דרך <strong>עריכת הפרויקט</strong>.</React.Fragment>,
@@ -1717,10 +1719,10 @@ const ConfirmDialog = ({confirm, onClose}) => {
   const cancelRef = useRef(null);
   useDialogKeys(cancelRef, () => onClose(false));
   return (
-    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocConfirmTitle">
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocConfirmTitle" aria-describedby="devPocConfirmBody">
       <section className="devPocDialog">
         <h2 id="devPocConfirmTitle" dir="auto">{confirm.title}</h2>
-        <p>{confirm.body}</p>
+        <p id="devPocConfirmBody">{confirm.body}</p>
         <div className="devPocActions">
           <button type="button" className="button small white" ref={cancelRef} onClick={() => onClose(false)}>
             <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
