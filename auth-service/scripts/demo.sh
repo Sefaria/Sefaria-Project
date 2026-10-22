@@ -4,7 +4,7 @@
 # [SKIP id]. The script exits 1 if and only if a MISMATCH printed. e2e-tests/api-keys/check_features.py reads the
 # `prove <id>` lines inside the section_* functions below, so keep each id literal.
 #
-#   demo.sh [--target local|cauldron] [--pause] [--offline] [--read-only | --allow-mutating] [--list-sections]
+#   demo.sh [--target local|cauldron] [--pause] [--offline] [--read-only | --allow-mutating] [--pg-integration] [--list-sections]
 #
 #   --target local     the local stack (auth-service/dev/local-stack, compose project sefaria-apikeys-stack), default
 #   --target cauldron  the cauldron named by APIKEYS_CAULDRON (default apikeys-pipeline, the shared one; kubectl on the
@@ -14,6 +14,8 @@
 #   --allow-mutating   also run the mutating_* functions: SQL writes, a stopped auth service, a dropped listener.
 #                      On --target cauldron it needs APIKEYS_CAULDRON=<name> and APIKEYS_ALLOW_MUTATING_ON=<same name>,
 #                      and the name must not be a shared cauldron (apikeys-pipeline, authpoc, api-keys-poc).
+#   --pg-integration   hand PG_TEST_DSN to the Go tests, which then run their database tests: they truncate and rebuild
+#                      the schema in that database, so only name a scratch one. Without it PG_TEST_DSN is unset for them.
 #   --list-sections    print the section function names and exit without running anything
 #
 # Optional keys, read from the environment (a key is never printed in full; 12 characters at most):
@@ -29,6 +31,7 @@ PAUSE=false
 OFFLINE=false
 READ_ONLY=true
 ALLOW_MUTATING=false
+PG_INTEGRATION=false
 TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/apikeys-demo.XXXXXX")  # new_tmp runs in subshells, so files live in one dir the EXIT trap removes
 
 DEV_CTX=gke_development-205018_us-east1-b_cluster-1
@@ -113,7 +116,7 @@ trap cleanup EXIT
 trap 'exit 130' INT TERM   # route signals through the EXIT trap so every mutation is undone
 
 usage() {
-  printf 'Usage: %s [--target local|cauldron] [--pause] [--offline] [--read-only|--allow-mutating] [--list-sections]\n' "$0"
+  printf 'Usage: %s [--target local|cauldron] [--pause] [--offline] [--read-only|--allow-mutating] [--pg-integration] [--list-sections]\n' "$0"
 }
 
 list_sections() {
@@ -132,6 +135,7 @@ while (($#)); do
     --offline) OFFLINE=true ;;
     --read-only) READ_ONLY=true; ALLOW_MUTATING=false ;;
     --allow-mutating) READ_ONLY=false; ALLOW_MUTATING=true ;;
+    --pg-integration) PG_INTEGRATION=true ;;
     --list-sections) list_sections; exit 0 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'error: unknown flag %s\n' "$1" >&2; usage >&2; exit 2 ;;
@@ -459,12 +463,15 @@ section_built() {
 
   output=$(new_tmp)
   if command -v go >/dev/null 2>&1; then
+    # The Go registry tests truncate and rebuild the schema of PG_TEST_DSN: only an explicit flag passes it on.
+    # env reads options only before the first NAME=value, so -u comes first.
     local -a goenv=(env)
+    $PG_INTEGRATION || goenv+=(-u PG_TEST_DSN)
     $OFFLINE && goenv+=(GOPROXY=off)
     capture_shell 'cd auth-service && go test -count=1 ./...' "$output" bash -c 'cd "$1" && shift && exec "$@"' _ "$AUTH_SERVICE" "${goenv[@]}" go test -count=1 ./...
     rc=$?
     awk '$1 == "ok" || $1 == "FAIL" { printf "  %-7s %s\n", $1, $2 }' "$output"
-    prove F-SCHEMA-01.e1 'go test ./... passes (the registry tests on the schema fixture skip without PG_TEST_DSN)' test "$rc" -eq 0
+    prove F-SCHEMA-01.e1 'go test ./... passes (the registry tests on the schema fixture skip unless --pg-integration passes PG_TEST_DSN)' test "$rc" -eq 0
   else
     skip_unavailable F-SCHEMA-01.e1 'go is not installed here; run-checks.sh go runs the same tests'
   fi

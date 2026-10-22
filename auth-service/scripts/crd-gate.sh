@@ -19,4 +19,5 @@ check clienttrafficpolicy.spec.headers.earlyRequestHeaders.remove        yes "st
 check backendtrafficpolicy.spec.rateLimit.global.rules.limit.fromMetadata   no  "[EG >=1.9] per-project limits from ext_authz metadata (authService.rateLimit)"
 check backendtrafficpolicy.spec.rateLimit.global.rules.shared            no  "[EG >=1.3] one counter across hosts and route matches"
 check backendtrafficpolicy.spec.rateLimit.global.rules.clientSelectors.headers.invert no "[EG >=1.8] the missing-or-malformed tier catch-all"
+check backendtrafficpolicy.spec.rateLimit.global.rules.clientSelectors.path no "[seen on EG 1.9.1] rules 3-4 count API paths only (authService.rateLimit.apiPathPrefix)"
 exit $rc

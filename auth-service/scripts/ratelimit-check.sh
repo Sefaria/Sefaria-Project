@@ -21,6 +21,9 @@ assert "$(yq "$RULES | map(.shared | tostring) | join(\",\")" "$ON")" "true,true
 assert "$(yq "$RULES | .[1].clientSelectors[0].headers[1] | .name + \":\" + .value" "$ON")" "x-sefaria-meter:semantic" "rule 2 selects the meter"
 assert "$(yq "$RULES | .[3].clientSelectors[0].headers[0] | .name + \":\" + .type + \":\" + (.invert | tostring)" "$ON")" "x-sefaria-tier:RegularExpression:true" "rule 4 is the inverted-tier catch-all"
 assert "$(yq "$RULES | .[3].clientSelectors[0].sourceCIDR.type" "$ON")" Distinct "rule 4 splits per client IP (fail-open outage is not one shared bucket)"
+assert "$(yq "$RULES | map(.clientSelectors[0].path | (.type // \"none\") + \":\" + (.value // \"\")) | join(\",\")" "$ON")" "none:,none:,PathPrefix:/api/,PathPrefix:/api/" "rules 3-4 count API requests only; pages and static files are not rate limited, rules 1-2 are unchanged"
+assert "$(yq "$RULES | .[2].clientSelectors[0] | keys | join(\",\")" "$ON")" "headers,path,sourceCIDR" "rule 3 keeps its tier and per-IP selectors next to the path"
+assert "$(yq "$RULES | .[3].clientSelectors[0] | keys | join(\",\")" "$ON")" "headers,path,sourceCIDR" "rule 4 keeps its tier and per-IP selectors next to the path"
 KEDA=(--set keda.enabled=true --set keda.splash.enabled=true)
 helm template x "$C" "${BASE[@]}" "${KEDA[@]}" --set authService.rateLimit.enabled=true > "$ON"
 assert "$(grep -c 'kind: BackendTrafficPolicy' "$ON" || true)" 1 "one BackendTrafficPolicy per HTTPRoute with KEDA splash and rate limiting on"

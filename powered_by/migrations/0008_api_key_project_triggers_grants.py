@@ -16,7 +16,7 @@ Operations, in list order:
      call apikeys_notify(), and grants the auth service reader role SELECT on the columns it loads from
      the three API tables. Every 0004 trigger is kept unchanged.
 
-Forward operations therefore run the backfill, AlterField, the noop, then the triggers. Django unapplies in reverse
+Reverse leaves api_key_project_remap (key id -> its API project) and the next forward run restores from it, then drops it. Forward operations therefore run the backfill, AlterField, the noop, then the triggers. Django unapplies in reverse
 list order: the triggers, then the remap, then the AlterField.
 
 Notifications fire only on changes the auth service reads: an API project's tier or deletion, a tier's
@@ -79,16 +79,38 @@ SELECT conname FROM pg_constraint
 WHERE conrelid = 'powered_by_apikey'::regclass AND contype = 'f' AND confrelid = 'api_project'::regclass
 """
 
-# Forward counterpart of the remap below: after a rollback every key holds its profile id, and a profile whose
-# API project has another id would leave the new FK without a target. A key whose project_id is no api_project
-# id is pointed at its profile's live API project (a deleted one if none is live).
+# The record the reverse leaves: each key's exact API project, so a rollback and a new forward run put every key
+# back where it was (an API project's id need not equal its profile's id, and a profile can have a deleted
+# API project beside a replacement). It lives only between the two runs.
+_REMAP_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS api_key_project_remap (
+  key_id         uuid PRIMARY KEY,
+  api_project_id integer NOT NULL
+)
+"""
+
+_RECORD_REMAP_SQL = """
+INSERT INTO api_key_project_remap (key_id, api_project_id)
+SELECT id, project_id FROM powered_by_apikey
+ON CONFLICT (key_id) DO UPDATE SET api_project_id = EXCLUDED.api_project_id
+"""
+
+# Forward: before 0008 every key holds a PROFILE id, so whether an API project with that id exists says nothing.
+# A key with a record goes back to its recorded API project, provided that project still belongs to the profile
+# the key holds. Any other key goes to an API project of its profile: a live key never to a deleted project,
+# then the project that has the profile's own id (what 0007 created), then a live one, then the newest.
 _POINT_KEYS_AT_API_PROJECTS_SQL = """
 UPDATE powered_by_apikey k
-SET project_id = (SELECT a.id FROM api_project a WHERE a.profile_id = k.project_id
-                  ORDER BY (a.deleted_at IS NULL) DESC, a.id LIMIT 1)
-WHERE NOT EXISTS (SELECT 1 FROM api_project a WHERE a.id = k.project_id)
-  AND EXISTS (SELECT 1 FROM api_project a WHERE a.profile_id = k.project_id);
+SET project_id = COALESCE(
+  (SELECT r.api_project_id FROM api_key_project_remap r JOIN api_project a ON a.id = r.api_project_id
+   WHERE r.key_id = k.id AND a.profile_id = k.project_id),
+  (SELECT a.id FROM api_project a WHERE a.profile_id = k.project_id
+   ORDER BY (a.deleted_at IS NULL OR k.revoked_at IS NOT NULL) DESC, (a.id = k.project_id) DESC,
+            (a.deleted_at IS NULL) DESC, a.id DESC LIMIT 1))
+WHERE EXISTS (SELECT 1 FROM api_project a WHERE a.profile_id = k.project_id);
 """
+
+_DROP_REMAP_TABLE_SQL = "DROP TABLE IF EXISTS api_key_project_remap"
 
 _PROFILE_FK_SQL = """
 SELECT conname FROM pg_constraint
@@ -144,10 +166,12 @@ END $$;
 def backfill_missing_api_projects(apps, schema_editor):
     # Forward only. A key an older image wrote after 0007 may point at a profile with no api_project row,
     # and the new FK would refuse it. Re-running the idempotent 0007 insert gives it one. Its deferred FK
-    # events must be settled before the ALTER TABLE below.
+    # events must be settled before the ALTER TABLE below. On SQLite the backfill runs through the models,
+    # ids stay equal to the profile ids there, and the keys already point at them.
+    backfill = importlib.import_module("powered_by.migrations.0007_api_project_backfill")
+    backfill.forward(apps, schema_editor)
     if schema_editor.connection.vendor != "postgresql":
         return
-    importlib.import_module("powered_by.migrations.0007_api_project_backfill").forward(apps, schema_editor)
     # The key FK still targets powered_by_project and the new ids are not profile ids, so it moves to
     # api_project around the UPDATE, as the reverse remap does the other way.
     with schema_editor.connection.cursor() as cursor:
@@ -155,7 +179,9 @@ def backfill_missing_api_projects(apps, schema_editor):
         for (name,) in cursor.fetchall():
             cursor.execute(f'ALTER TABLE powered_by_apikey DROP CONSTRAINT "{name}"')
         cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+        cursor.execute(_REMAP_TABLE_SQL)
         cursor.execute(_POINT_KEYS_AT_API_PROJECTS_SQL)
+        cursor.execute(_DROP_REMAP_TABLE_SQL)
         cursor.execute(_POINT_FK_SQL)
         cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
 
@@ -170,6 +196,8 @@ def remap_keys_to_profile_ids(apps, schema_editor):
         for (name,) in cursor.fetchall():
             cursor.execute(f'ALTER TABLE powered_by_apikey DROP CONSTRAINT "{name}"')
         cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+        cursor.execute(_REMAP_TABLE_SQL)
+        cursor.execute(_RECORD_REMAP_SQL)
         cursor.execute(_REMAP_SQL)
         cursor.execute(_REMAP_FK_SQL)
 

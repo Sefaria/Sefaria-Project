@@ -242,6 +242,9 @@ authService:
     defaults:
       perMinutePerProject: 60
       monthlyPerProject: 100000
+    # Rules 3 and 4 (per client IP) count only requests under this path prefix: pages, /static/ and other assets are not
+    # rate limited. Rules 1 and 2 count keyed requests wherever they go.
+    apiPathPrefix: /api/
     anonymousPerIP: 20       # anonymous: best-effort per client IP
     anonymousShared: 40      # anything with a missing or unknown tier, at the anonymous limits
   # Adds sefariaProject, sefariaTier and sefariaAuthResult to the nginx access log, next to the caller-classification fields.
