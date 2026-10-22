@@ -20,6 +20,7 @@ assert "$(yq "$RULES | .[0].clientSelectors[0].headers[0].invert" "$ON")" true "
 assert "$(yq "$RULES | map(.shared | tostring) | join(\",\")" "$ON")" "true,true,null,null" "rules 1-2 are shared across hosts and route matches"
 assert "$(yq "$RULES | .[1].clientSelectors[0].headers[1] | .name + \":\" + .value" "$ON")" "x-sefaria-meter:semantic" "rule 2 selects the meter"
 assert "$(yq "$RULES | .[3].clientSelectors[0].headers[0] | .name + \":\" + .type + \":\" + (.invert | tostring)" "$ON")" "x-sefaria-tier:RegularExpression:true" "rule 4 is the inverted-tier catch-all"
+assert "$(yq "$RULES | .[3].clientSelectors[0].sourceCIDR.type" "$ON")" Distinct "rule 4 splits per client IP (fail-open outage is not one shared bucket)"
 KEDA=(--set keda.enabled=true --set keda.splash.enabled=true)
 helm template x "$C" "${BASE[@]}" "${KEDA[@]}" --set authService.rateLimit.enabled=true > "$ON"
 assert "$(grep -c 'kind: BackendTrafficPolicy' "$ON" || true)" 1 "one BackendTrafficPolicy per HTTPRoute with KEDA splash and rate limiting on"

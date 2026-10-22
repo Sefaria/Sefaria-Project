@@ -48,9 +48,10 @@ spec:
               sourceCIDR: { type: Distinct, value: 0.0.0.0/0 }
           limit: { requests: {{ $rl.anonymousPerIP }}, unit: Minute }{{ if $rl.headers }}
           xRateLimitHeaders: DraftVersion03{{ end }}
-        - clientSelectors:                         # 4. a missing or malformed tier (not a tier slug), at the anonymous limits
+        - clientSelectors:                         # 4. a missing or malformed tier (not a tier slug), per client IP at the shared anonymous limit
             - headers:
                 - { name: x-sefaria-tier, type: RegularExpression, value: "^[a-z][a-z0-9_-]*$", invert: true }
+              sourceCIDR: { type: Distinct, value: 0.0.0.0/0 }   # per client IP: during an auth outage nobody shares one bucket
           limit: { requests: {{ $rl.anonymousShared }}, unit: Minute }{{ if $rl.headers }}
           xRateLimitHeaders: DraftVersion03{{ end }}
   responseOverride:                                # agent-readable 429 (product spec)
