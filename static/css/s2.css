@@ -5375,7 +5375,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   font-style: normal;
   font-weight: 400;
-  line-height: normal;
+  line-height: 24px;
   color: var(--darker-grey);
   margin: 0;
 }
