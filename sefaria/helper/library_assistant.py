@@ -33,7 +33,7 @@ the assistant switches from opt-in to opt-out, and rollback is unsetting the key
 """
 
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_ANONYMOUS_ENABLED
+from remote_config.keys import CHATBOT_ANONYMOUS_ENABLED, CHATBOT_ANONYMOUS_FREE_ANSWERS
 from sefaria.constants.model import LIBRARY_ASSISTANT_SETTING_KEY
 from sefaria.model.user_profile import UserProfile
 
@@ -71,6 +71,14 @@ def is_enabled_for_anonymous():
     Whether logged-out visitors get the Library Assistant.
     """
     return normalize(remoteConfigCache.get(CHATBOT_ANONYMOUS_ENABLED, default=True))
+
+
+def anonymous_free_answers():
+    """
+    How many free answers a logged-out visitor gets (remote config), or None when
+    not set. The chat server enforces it; the assistant gets it only for analytics.
+    """
+    return remoteConfigCache.get(CHATBOT_ANONYMOUS_FREE_ANSWERS, default=None)
 
 
 def is_enabled_for_user(user):

@@ -30,6 +30,7 @@ const ProviderButton = ({
   id,
   trackingRef = null,
   variant = 'standard',
+  featureName,
 }) => {
   const config = PROVIDERS[provider];
   if (!config) return null;
@@ -56,6 +57,7 @@ const ProviderButton = ({
         ref={trackingRef}
         className={`sefaria-provider-button-shell${isIcon ? ' sefaria-provider-button-shell--icon' : ''}${disabled ? ' is-disabled' : ''}`}
         data-provider={provider}
+        data-feature-name={featureName}
         tabIndex={-1}
       >
         <div className={`sefaria-provider-button${variantClass}`} aria-hidden="true">
@@ -71,6 +73,7 @@ const ProviderButton = ({
       type="button"
       className={`sefaria-provider-button${variantClass}`}
       data-provider={provider}
+      data-feature-name={featureName}
       aria-label={isIcon ? Sefaria._(text) : undefined}
       onClick={onClick}
       disabled={disabled}
@@ -88,6 +91,8 @@ ProviderButton.propTypes = {
   id: PropTypes.string,
   trackingRef: PropTypes.func,
   variant: PropTypes.oneOf(['standard', 'icon']),
+  // For a host's click analytics (e.g. the Library Assistant's `data-feature-name` clicks).
+  featureName: PropTypes.string,
 };
 
 export default ProviderButton;

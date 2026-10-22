@@ -15,12 +15,19 @@ import { useAuthTracking } from './useAuthTracking.js';
  * are on the page whether or not anyone means to sign up. Email hands over to `onEmailClick`,
  * which opens AuthPage's email form; AuthPage reports that sign-up itself.
  */
-const SignupOptions = ({ source, next, onEmailClick }) => {
+const SignupOptions = ({ source, next, onEmailClick, featureName }) => {
   const { googleClientId, appleClientId } = Sefaria;
   const tracking = useAuthTracking({ flow: 'register', source, lazy: true });
+  // A click on Google's button happens inside Google's cross-origin iframe, so the page never
+  // sees it; pass it on as a click on the Google circle, like the other options' clicks (for the
+  // host's click analytics).
+  const googleCircleElRef = useRef(null);
+  const onGoogleClick = () => {
+    googleCircleElRef.current?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  };
   const {
     googleReady, appleReady, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
-  } = useProviderTriggers({ next, tracking });
+  } = useProviderTriggers({ next, tracking, onGoogleClick });
   const [error] = useProviderError(setActiveErrorHandler);
 
   // Google's button is created at the size of the circle it covers, so the circle is handed over
@@ -28,6 +35,7 @@ const SignupOptions = ({ source, next, onEmailClick }) => {
   // (the assistant shows its slot only in the login prompt).
   const observerRef = useRef(null);
   const googleCircleRef = useCallback((el) => {
+    googleCircleElRef.current = el;
     observerRef.current?.disconnect();
     observerRef.current = null;
     if (!el) return;
@@ -44,12 +52,18 @@ const SignupOptions = ({ source, next, onEmailClick }) => {
       <ErrorBanner error={error} registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple} />
       <div className="sefaria-signup-options-buttons">
         {googleClientId && (
-          <ProviderButton variant="icon" provider="google" disabled={!googleReady} trackingRef={googleCircleRef} />
+          <ProviderButton
+            variant="icon" provider="google" featureName={featureName}
+            disabled={!googleReady} trackingRef={googleCircleRef}
+          />
         )}
         {appleClientId && (
-          <ProviderButton variant="icon" provider="apple" disabled={!appleReady} onClick={triggerApple} />
+          <ProviderButton
+            variant="icon" provider="apple" featureName={featureName}
+            disabled={!appleReady} onClick={triggerApple}
+          />
         )}
-        <ProviderButton variant="icon" provider="email" onClick={onEmailClick} />
+        <ProviderButton variant="icon" provider="email" featureName={featureName} onClick={onEmailClick} />
       </div>
       {overlayNode}
     </div>
@@ -60,6 +74,8 @@ SignupOptions.propTypes = {
   source: PropTypes.string.isRequired,
   next: PropTypes.string.isRequired,
   onEmailClick: PropTypes.func.isRequired,
+  // For the host's click analytics, on every option (`data-feature-name`).
+  featureName: PropTypes.string,
 };
 
 export default SignupOptions;

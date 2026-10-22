@@ -276,9 +276,12 @@ test.describe('Library Assistant — visibility boundaries', () => {
     // The assistant isn't shown on the login and registration screens.
     await pm.onLibraryAssistant().expectNotPresent();
     const events = await pm.onLibraryAssistant().analyticsEvents();
-    expect(events.map((e) => e.name)).toEqual(['auth_flow_started', 'auth_method_chosen', 'auth_process_started']);
-    expect(events[0]).toMatchObject({ source: 'rate_limit_login_button', flow_intent: 'registration' });
-    expect(events[1]).toMatchObject({ method: 'email' });
+    const auth = events.filter((e) => e.name.startsWith('auth_'));
+    expect(auth.map((e) => e.name)).toEqual(['auth_flow_started', 'auth_method_chosen', 'auth_process_started']);
+    expect(auth[0]).toMatchObject({ source: 'rate_limit_login_button', flow_intent: 'registration' });
+    expect(auth[1]).toMatchObject({ method: 'email' });
+    // The assistant reports the click too.
+    expect(events).toContainEqual(expect.objectContaining({ name: 'assistant_click', feature_name: 'rate_limit_login_button' }));
   });
 
   test('LA-LOGGED-OUT-007: Apple starts Apple sign-up, reported as a sign-up from the assistant', async ({ context }) => {
@@ -291,9 +294,12 @@ test.describe('Library Assistant — visibility boundaries', () => {
     await pm.onLibraryAssistant().signupOption('apple').click();
 
     const events = await pm.onLibraryAssistant().analyticsEvents();
-    expect(events.map((e) => e.name)).toEqual(['auth_flow_started', 'auth_method_chosen', 'auth_process_started']);
-    expect(events[0]).toMatchObject({ source: 'rate_limit_login_button', flow_intent: 'registration' });
-    expect(events[1]).toMatchObject({ method: 'apple' });
+    const auth = events.filter((e) => e.name.startsWith('auth_'));
+    expect(auth.map((e) => e.name)).toEqual(['auth_flow_started', 'auth_method_chosen', 'auth_process_started']);
+    expect(auth[0]).toMatchObject({ source: 'rate_limit_login_button', flow_intent: 'registration' });
+    expect(auth[1]).toMatchObject({ method: 'apple' });
+    // The assistant reports the click too.
+    expect(events).toContainEqual(expect.objectContaining({ name: 'assistant_click', feature_name: 'rate_limit_login_button' }));
   });
 
   // A click on Google's own button can't be automated; this checks it's in place.

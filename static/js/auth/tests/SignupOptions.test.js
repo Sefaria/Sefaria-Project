@@ -41,6 +41,7 @@ jest.mock('../../sefaria/sefaria', () => ({
 }));
 
 const SOURCE = 'rate_limit_login_button';
+const FEATURE_NAME = 'rate_limit_login_button';
 let container = null;
 let onEmailClick;
 let observers;
@@ -69,7 +70,7 @@ function mount() {
   document.body.appendChild(container);
   act(() => {
     ReactDOM.render(
-      React.createElement(SignupOptions, { source: SOURCE, next: '/texts', onEmailClick }),
+      React.createElement(SignupOptions, { source: SOURCE, next: '/texts', onEmailClick, featureName: FEATURE_NAME }),
       container,
     );
   });
@@ -167,6 +168,27 @@ describe('SignupOptions', () => {
     expect(fireFlowStarted).toHaveBeenCalledWith(expect.any(String), SOURCE, 'registration');
     const [flowId] = fireFlowStarted.mock.calls[0];
     expect(fireMethodChosen).toHaveBeenCalledWith(flowId, expect.any(String), 'google');
+  });
+
+  it("each option carries the feature name, for the host's click analytics", () => {
+    mount();
+
+    expect(googleCircle().getAttribute('data-feature-name')).toBe(FEATURE_NAME);
+    expect(button('auth.continue_with_apple').getAttribute('data-feature-name')).toBe(FEATURE_NAME);
+    expect(button('auth.continue_with_email').getAttribute('data-feature-name')).toBe(FEATURE_NAME);
+  });
+
+  it("a click on Google's button reaches the page as a click on the Google circle", () => {
+    // Google's button is a cross-origin iframe: its clicks never reach the page by themselves.
+    mount();
+    setVisible(true);
+    act(() => { jest.runOnlyPendingTimers(); });
+    const clicked = [];
+    container.addEventListener('click', (e) => clicked.push(e.target));
+
+    act(() => { googleClickListener()(); });
+
+    expect(clicked).toEqual([googleCircle()]);
   });
 
   it('a failed sign-in shows an error with the options', () => {

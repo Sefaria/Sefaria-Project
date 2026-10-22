@@ -237,3 +237,26 @@ class LoggedOutVisitorTest(TestCase):
             props = chatbot_access_props(self.request(), None)
         self.assertFalse(props["chatbot_enabled"])
         self.assertIsNone(props["chatbot_user_token"])
+
+    def test_gets_the_free_answer_limit_for_analytics(self):
+        with self.switch(**{library_assistant.CHATBOT_ANONYMOUS_FREE_ANSWERS: 2}):
+            props = chatbot_access_props(self.request(), None)
+        self.assertEqual(props["chatbot_anon_free_answers"], 2)
+
+    def test_no_limit_set_means_none_passed(self):
+        with self.switch():
+            props = chatbot_access_props(self.request(), None)
+        self.assertIsNone(props["chatbot_anon_free_answers"])
+
+
+class LoggedInFreeAnswerLimitTest(LibraryAssistantUserTestCase):
+    def test_a_logged_in_user_gets_no_free_answer_limit(self):
+        request = mock.Mock()
+        request.user = self.user
+        cache = mock.Mock()
+        cache.get.side_effect = lambda key, default=None: (
+            2 if key == library_assistant.CHATBOT_ANONYMOUS_FREE_ANSWERS else default
+        )
+        with mock.patch("sefaria.helper.library_assistant.remoteConfigCache", cache):
+            props = chatbot_access_props(request, UserProfile(id=self.user.id))
+        self.assertNotIn("chatbot_anon_free_answers", props)

@@ -304,6 +304,7 @@ def chatbot_access_props(request, profile):
             props["in_chatbot_experiment"] = True
     elif library_assistant.is_enabled_for_anonymous():
         props["chatbot_enabled"] = True
+        props["chatbot_anon_free_answers"] = library_assistant.anonymous_free_answers()
     return props
 
 

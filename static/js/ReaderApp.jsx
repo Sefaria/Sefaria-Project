@@ -2641,6 +2641,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   max-input-chars={this.props.chatbot_max_input_chars}
                   max-prompts={this.props.chatbot_max_prompts}
                   interface-lang={Sefaria._getShortInterfaceLang()}
+                  anon-free-answers={this.props.chatbot_anon_free_answers ?? undefined}
                 >
                   {!Sefaria._uid && (
                     // Shown in the assistant's login prompt (its signup-options slot). They stay in
@@ -2648,6 +2649,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                     <div slot="signup-options">
                       <SignupOptions
                         source={CHATBOT_SIGNUP_SOURCE}
+                        featureName={CHATBOT_SIGNUP_SOURCE}
                         next={this.authNext()}
                         onEmailClick={this.handleChatbotEmailSignup}
                       />
