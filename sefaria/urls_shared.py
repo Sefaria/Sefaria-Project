@@ -108,6 +108,7 @@ shared_patterns = [
     re_path(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
     re_path(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     path('api/name/<path:name>', reader_views.name_api),
+    re_path(r'^api/search-autocorrect/?$', reader_views.search_autocorrect_api),
 
     # Linker editor (staff-only): edit index linker metadata (match templates, address types,
     # node properties, NonUniqueTerms). Node key paths are dot-separated keys, e.g. "Berakhot.Intro".
@@ -131,7 +132,7 @@ shared_patterns = [
     path('_api/linker-admin/dataset/ref', linker_api_views.LinkerAdminAddRefDatasetView.as_view()),
     path('_api/linker-admin/dataset/ref-part', linker_api_views.LinkerAdminAddRefPartDatasetView.as_view()),
 
-    path('api/ref/<str:tref>', api_views.RefView.as_view()),
+    path('api/ref/<path:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     re_path(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
     path('api/words/completion/<path:word>/<path:lexicon>', reader_views.dictionary_completion_api),
@@ -326,7 +327,9 @@ shared_patterns = [
 shared_patterns += site_urlpatterns
 shared_patterns += staticfiles_urlpatterns()
 shared_patterns += [
-    re_path(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
+    # WSGI decodes %2F in text node titles before URL resolution. The catchall
+    # must pass the resulting slash to Ref, which validates the full title.
+    re_path(r'^(?P<tref>.+?)/?$', reader_views.catchall)
 ]
 
 # Keep admin accessible
