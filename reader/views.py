@@ -81,7 +81,7 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
-from powered_by.developer import developer_state, settings_enabled as developer_settings_enabled
+from powered_by.developer import developer_state, session_login, settings_enabled as developer_settings_enabled
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -4598,7 +4598,7 @@ def settings_page(request, tab="account", project_id=None):
         "initialSettingsTab": tab,
         "initialDeveloperProjectId": project_id,
         "initialAccountSettings": _account_settings_props(request, profile),
-        "initialDeveloper": developer_state(request) if developer_on else None,
+        "initialDeveloper": developer_state(request) if developer_on and session_login(request) else None,
     }
     titles = {
         "account": "Account Settings",

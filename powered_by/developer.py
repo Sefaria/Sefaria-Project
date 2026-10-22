@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 from allauth.account import app_settings as account_settings
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import SESSION_KEY, get_user_model
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
@@ -90,6 +90,15 @@ def origin_of(url):
     if parts.port and parts.port != DEFAULT_PORTS.get(scheme):
         origin += ":{}".format(parts.port)
     return origin
+
+
+def session_login(request):
+    """
+    The user signed in through this browser's session cookie. Other ways a request can carry a
+    user, such as the Library Assistant's X-Session-ID token, don't count for developer settings.
+    """
+    user = request.user
+    return user.is_authenticated and request.session.get(SESSION_KEY) == str(user.pk)
 
 
 # --- Verification ------------------------------------------------------------

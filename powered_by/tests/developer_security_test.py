@@ -45,15 +45,13 @@ class SessionIdHeaderTest(DeveloperApiTestCase):
         client.cookies["csrftoken"] = CSRF_TOKEN
         return client
 
-    @pytest.mark.failing
-    def test_N_CR1_the_state_is_not_served_to_the_session_id_header_known_gap_N_CR1(self):
+    def test_N_CR1_the_state_is_not_served_to_the_session_id_header(self):
         response = Client().get("/api/developer/state", HTTP_X_SESSION_ID=self.token)
 
         self.assertEqual(response.status_code, 401)
         self.assertFalse(self.key_value in response.content.decode(), "the response carries the key value")
 
-    @pytest.mark.failing
-    def test_N_CR1_keys_cannot_be_created_or_revoked_with_the_session_id_header_known_gap_N_CR1(self):
+    def test_N_CR1_keys_cannot_be_created_or_revoked_with_the_session_id_header(self):
         client = self.header_client()
 
         created = client.post("/api/developer/projects/{}/keys".format(self.project["id"]),
@@ -64,6 +62,18 @@ class SessionIdHeaderTest(DeveloperApiTestCase):
         self.assertEqual(revoked.status_code, 401)
         self.assertEqual(ApiKey.objects.filter(project_id=int(self.project["id"])).count(), 1)
         self.assertIsNone(ApiKey.objects.get(id=self.key_id).revoked_at)
+
+    def test_N_CR1_the_settings_page_carries_no_developer_state_for_the_session_id_header(self):
+        response = Client().get("/settings/developer", HTTP_X_SESSION_ID=self.token)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.key_value in response.content.decode(), "the page carries the key value")
+
+    def test_N_CR1_a_session_login_with_the_header_still_works(self):
+        response = self.client.get("/api/developer/state", HTTP_X_SESSION_ID=self.token)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.key_value, response.content.decode())
 
 
 class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
