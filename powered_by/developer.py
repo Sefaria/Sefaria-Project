@@ -26,6 +26,10 @@ from .models import ApiKey, Project, SubmissionSource
 
 
 MAX_KEYS_PER_PROJECT = 5
+MAX_PROJECTS_PER_ACCOUNT = 10
+# Staff raise an account's project limit in admin by adding it to this group.
+RAISED_PROJECT_LIMIT_GROUP = "Developer project limit raised"
+RAISED_MAX_PROJECTS_PER_ACCOUNT = 100
 MAX_DESCRIPTION_LENGTH = 150
 MAX_PROFILE_DESCRIPTION_LENGTH = 300
 
@@ -506,8 +510,24 @@ def _lock_owned_project(user, project_id):
         raise LookupError("No such project.")
 
 
+def max_projects(user):
+    if user.groups.filter(name=RAISED_PROJECT_LIMIT_GROUP).exists():
+        return RAISED_MAX_PROJECTS_PER_ACCOUNT
+    return MAX_PROJECTS_PER_ACCOUNT
+
+
+def _check_project_limit(user):
+    """Call inside transaction.atomic(): holds the account's row lock so concurrent creates count each other."""
+    _lock_account(user)
+    limit = max_projects(user)
+    if owned_projects(user).count() >= limit:
+        raise InputError("An account can have at most {} projects. To add more, contact hello@sefaria.org.".format(limit))
+
+
+@transaction.atomic
 def create_project(user, data):
     fields = clean_project_fields(data)
+    _check_project_limit(user)
     project = Project(
         submission_source=SubmissionSource.DEVELOPER_SETTINGS,
         submission_date=timezone.now(),
@@ -549,10 +569,12 @@ def delete_project(user, project_id):
     project.save()
 
 
+@transaction.atomic
 def claim_listing(user, listing_id):
     """
     Makes an unclaimed Powered by listing submitted with this account's email one of its projects.
     """
+    _check_project_limit(user)
     try:
         project = unclaimed_listings(user, UserProfile(id=user.id)).get(id=int(listing_id))
     except (Project.DoesNotExist, ValueError):

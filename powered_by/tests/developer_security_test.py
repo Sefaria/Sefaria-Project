@@ -14,11 +14,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 import sentry_sdk
 from allauth.account.models import EmailAddress
+from django.contrib.auth.models import Group
 from django.test import Client, override_settings
 from sentry_sdk.transport import Transport
 
 from powered_by import developer
-from powered_by.models import ApiKey, Project
+from powered_by.models import ApiKey, Project, SubmissionSource
 from powered_by.tests.developer_api_test import DeveloperApiTestCase
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.chatbot import build_chatbot_user_token
@@ -115,21 +116,49 @@ class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
 
 
 class ProjectCapTest(DeveloperApiTestCase):
-    """N-CR7: one account cannot create projects without limit."""
-
-    ATTEMPTS = 25
+    """N-CR7: an account can have MAX_PROJECTS_PER_ACCOUNT projects, unless staff raise its limit."""
 
     def setUp(self):
         super().setUp()
         self.set_up_developer()
 
-    @pytest.mark.failing
-    def test_N_CR7_creating_projects_is_capped_per_account_known_gap_N_CR7(self):
-        statuses = [self.call("post", "projects", {"project": {"name": "Project {}".format(n), "visibility": "private"}})[0]
-                    for n in range(self.ATTEMPTS)]
+    def create(self, n):
+        return self.call("post", "projects", {"project": {"name": "Project {}".format(n), "visibility": "private"}})
 
-        self.assertTrue(set(statuses) - {200}, "all {} projects were created".format(self.ATTEMPTS))
-        self.assertLess(Project.objects.filter(owner=self.user).count(), self.ATTEMPTS)
+    def fill(self):
+        for n in range(developer.MAX_PROJECTS_PER_ACCOUNT):
+            self.assertEqual(self.create(n)[0], 200)
+
+    def test_N_CR7_creating_projects_is_capped_per_account(self):
+        self.fill()
+
+        status, body = self.create("over")
+
+        self.assertEqual(status, 400)
+        self.assertIn("at most {} projects".format(developer.MAX_PROJECTS_PER_ACCOUNT), body["error"])
+        self.assertEqual(Project.objects.filter(owner=self.user).count(), developer.MAX_PROJECTS_PER_ACCOUNT)
+
+    def test_N_CR7_a_deleted_project_frees_a_slot(self):
+        self.fill()
+        self.call("delete", "projects/{}".format(Project.objects.filter(owner=self.user).first().id))
+
+        self.assertEqual(self.create("again")[0], 200)
+
+    def test_N_CR7_claiming_a_listing_counts_toward_the_cap(self):
+        self.fill()
+        listing = Project.objects.create(submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
+                                         project_name="Submitted", consent_to_display=True, is_published=True)
+
+        status, body = self.call("post", "listings/{}/claim".format(listing.id))
+
+        self.assertEqual(status, 400)
+        self.assertIsNone(Project.objects.get(id=listing.id).owner)
+
+    def test_N_CR7_staff_raise_the_cap_with_the_group(self):
+        self.fill()
+        self.user.groups.add(Group.objects.get_or_create(name=developer.RAISED_PROJECT_LIMIT_GROUP)[0])
+
+        self.assertEqual(self.create("over")[0], 200)
 
 
 class DeletedProjectGalleryTest(DeveloperApiTestCase):
