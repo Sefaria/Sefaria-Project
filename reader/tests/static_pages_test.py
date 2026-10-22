@@ -101,6 +101,32 @@ class SettingsPageTest(SettingsPageTestCase):
             self.assertIn("/login", response["Location"])
 
 
+@override_settings(DEVELOPER_SETTINGS_ENABLED=True, DEVELOPER_SETTINGS_STAFF_ONLY=True)
+class SettingsPageStaffOnlyTest(SettingsPageTestCase):
+    """
+    With DEVELOPER_SETTINGS_STAFF_ONLY, only staff get the developer tab.
+    """
+
+    def test_non_staff_get_the_account_tab_alone(self):
+        props = self.props_for("/settings/account")
+
+        self.assertIsNone(props["initialDeveloper"])
+        for url in ("/settings/developer", "/settings/developer/projects/abc123"):
+            self.assertEqual(self.client.get(url).status_code, 404, url)
+
+    def test_the_developer_tab_is_not_found_logged_out(self):
+        self.assertEqual(self.client.get("/settings/developer").status_code, 404)
+
+    def test_staff_get_the_developer_tab(self):
+        self.user.is_staff = True
+        self.user.save()
+
+        self.assertIsNotNone(self.props_for("/settings/account")["initialDeveloper"])
+        props = self.props_for("/settings/developer")
+        self.assertEqual(props["initialSettingsTab"], "developer")
+        self.assertEqual(props["initialDeveloper"]["projects"], [])
+
+
 @override_settings(DEVELOPER_SETTINGS_ENABLED=False)
 class SettingsPageWithoutDeveloperSettingsTest(SettingsPageTestCase):
     """

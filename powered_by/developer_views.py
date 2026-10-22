@@ -24,11 +24,12 @@ MAX_BODY_BYTES = 16 * 1024
 
 def requires_developer_settings(view):
     """
-    The view exists only where DEVELOPER_SETTINGS_ENABLED is on; elsewhere it is a 404.
+    The view exists only where DEVELOPER_SETTINGS_ENABLED is on, and with DEVELOPER_SETTINGS_STAFF_ONLY
+    only for staff; elsewhere it is a 404.
     """
     @wraps(view)
     def wrapper(request, *args, **kwargs):
-        if not developer.settings_enabled():
+        if not developer.settings_enabled(request.user):
             raise Http404
         return view(request, *args, **kwargs)
     return wrapper

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # E3: the chart rendered with authService off and on. Desired: off renders no gateway-auth objects and is
-# byte-identical to master; on is sane (render-check.sh, helm-matrix); DEVELOPER_SETTINGS_MOCKS and _ENABLED are off
+# byte-identical to master; on is sane (render-check.sh, helm-matrix); DEVELOPER_SETTINGS_MOCKS, _ENABLED and _STAFF_ONLY are off
 # outside cauldrons. Uses the chart's own values per deployEnv; the infrastructure repo's per-environment values are
 # a manual check. Helm runs in the alpine/helm image; yq is local.
 #   e3-helm.sh [BASE_REF]   compare against BASE_REF (default: the merge base with origin/master), and report the
@@ -32,9 +32,9 @@ for env in staging preprod prod; do
   strip="$(yq -N 'select(.kind == "ClientTrafficPolicy") | .spec.headers.earlyRequestHeaders.remove' "$OUT/$env.off.yaml" | grep -c 'x-sefaria' || true)"
   check E3 "$env off: the ClientTrafficPolicy strips no x-sefaria-* headers" "$strip" 0
   diff <(normalize <"$OUT/$env.base.yaml") <(normalize <"$OUT/$env.off.yaml") >"$OUT/$env.base.diff"
-  other="$(grep '^[<>]' "$OUT/$env.base.diff" | grep -vcE '^> +DEVELOPER_SETTINGS_(MOCKS|ENABLED)(: "False"| = os.getenv\("DEVELOPER_SETTINGS_(MOCKS|ENABLED)", "False"\))' || true)"
+  other="$(grep '^[<>]' "$OUT/$env.base.diff" | grep -vcE '^> +DEVELOPER_SETTINGS_(MOCKS|ENABLED|STAFF_ONLY)(: "False"| = os.getenv\("DEVELOPER_SETTINGS_(MOCKS|ENABLED|STAFF_ONLY)", "False"\))' || true)"
   if [ "$other" = 0 ]; then
-    pass "E3 $env off: identical to the merge base's chart except the two DEVELOPER_SETTINGS_* flags, both False ($(grep -c '^>' "$OUT/$env.base.diff") added lines)"
+    pass "E3 $env off: identical to the merge base's chart except the DEVELOPER_SETTINGS_* flags, all False ($(grep -c '^>' "$OUT/$env.base.diff") added lines)"
   else
     fail "E3 $env off: $other unexpected lines differ from the merge base's chart ($OUT/$env.base.diff)"
   fi
@@ -45,7 +45,7 @@ for env in staging preprod prod; do
     info "E3 $env off: $(grep -c '^[<>]' "$OUT/$env.master.diff") lines differ from origin/master's chart (master has moved on; see $OUT/$env.master.diff)"
   fi
   flags="$(yq -N 'select(.kind == "ConfigMap") | .data | with_entries(select(.key | test("^DEVELOPER_SETTINGS_"))) | to_entries | .[] | .key + "=" + .value' "$OUT/$env.off.yaml" | sort -u | paste -sd, -)"
-  check E3 "$env: developer settings flags off by default" "$flags" "DEVELOPER_SETTINGS_ENABLED=False,DEVELOPER_SETTINGS_MOCKS=False"
+  check E3 "$env: developer settings flags off by default" "$flags" "DEVELOPER_SETTINGS_ENABLED=False,DEVELOPER_SETTINGS_MOCKS=False,DEVELOPER_SETTINGS_STAFF_ONLY=False"
 done
 
 # On: render-check.sh and the helm-matrix assertions, through a helm shim that runs the container.

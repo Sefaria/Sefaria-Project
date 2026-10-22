@@ -4589,10 +4589,10 @@ def _account_settings_props(request, profile):
 def settings_page(request, tab="account", project_id=None):
     """
     Account and developer settings, as one React page. Without DEVELOPER_SETTINGS_ENABLED
-    there is no developer tab: its URLs are a 404 (gated in urls_library.py, before the login
+    (or for non-staff, with DEVELOPER_SETTINGS_STAFF_ONLY) there is no developer tab: its URLs are a 404 (gated in urls_library.py, before the login
     check) and the page gets no developer state.
     """
-    developer_on = developer_settings_enabled()
+    developer_on = developer_settings_enabled(request.user)
     profile = UserProfile(id=request.user.id)
     props = {
         "initialSettingsTab": tab,

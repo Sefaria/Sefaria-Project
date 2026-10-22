@@ -64,8 +64,10 @@ class LinkStatus:
     INVALID = "invalid"
 
 
-def settings_enabled():
-    return bool(getattr(settings, "DEVELOPER_SETTINGS_ENABLED", False))
+def settings_enabled(user):
+    if not getattr(settings, "DEVELOPER_SETTINGS_ENABLED", False):
+        return False
+    return not getattr(settings, "DEVELOPER_SETTINGS_STAFF_ONLY", False) or bool(getattr(user, "is_staff", False))
 
 
 def mocks_enabled():
