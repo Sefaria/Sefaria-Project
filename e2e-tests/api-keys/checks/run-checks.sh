@@ -192,21 +192,53 @@ row_counts() {
     || fail "row counts"
 }
 
-seeded_round_trip() { # load the dev-shape seed at 0005, migrate forward and back, compare row counts
-  local seed="$HERE/testenv/seed_dev_shape.sql" before latest back
+scalar() { # one query on $DJANGO_DB, rows printed bare; the caller checks the status
+  docker exec "$PG_NAME" psql -U postgres -d "$DJANGO_DB" -Atc "$1"
+}
+
+SEEDED_API_PROJECTS=8 # seed rows 9104-9111 have a key or an owner or a developer-settings submission
+
+limits_snapshot() { # every limits row, in id order, so a re-run can be compared with the first one
+  scalar "select project_id, tier from powered_by_projectlimits order by project_id"
+}
+
+check_seeded_limits() { # at latest: one row per seeded API project, the partner one, the gold one normalised
+  local rows partner_rows gold_tier
+  rows="$(scalar "select count(*) from powered_by_projectlimits")" || { fail "counting limits rows"; return 1; }
+  [ "$rows" = "$SEEDED_API_PROJECTS" ] || fail "limits rows at latest: $rows, expected $SEEDED_API_PROJECTS"
+  partner_rows="$(scalar "select count(*) from powered_by_projectlimits where tier = 'partner'")" \
+    || { fail "counting partner limits rows"; return 1; }
+  [ "$partner_rows" = "$1" ] || fail "partner limits rows: $partner_rows, seeded partner projects: $1"
+  gold_tier="$(scalar "select tier from powered_by_projectlimits where project_id = 9111")" \
+    || { fail "reading the gold project's limits row"; return 1; }
+  [ "$gold_tier" = developer ] || fail "gold project's limits tier: '$gold_tier', expected developer"
+  [ "$(scalar "select count(*) from powered_by_projectlimits where project_id in (9101, 9102, 9103)")" = 0 ] \
+    || fail "ownerless keyless listings 9101-9103 got a limits row"
+}
+
+seeded_round_trip() { # load the dev-shape seed at 0005, migrate forward and back, compare counts and limits rows
+  local seed="$HERE/testenv/seed_dev_shape.sql" before latest back partner_projects limits_first partner_frozen
   step "2b. seeded round trip ($seed)"
   psql_ -c "DROP DATABASE IF EXISTS $DJANGO_DB" -c "CREATE DATABASE $DJANGO_DB" || { fail "resetting $DJANGO_DB"; return 1; }
   manage migrate powered_by 0005 || return 1
   docker exec -i "$PG_NAME" psql -U postgres -d "$DJANGO_DB" -v ON_ERROR_STOP=1 -q <"$seed" \
     || { fail "loading $seed"; return 1; }
   before="$(row_counts)"
+  partner_projects="$(scalar "select count(*) from powered_by_project where tier = 'partner'")" \
+    || { fail "counting the seeded partner projects"; return 1; }
   manage migrate || return 1
   latest="$(row_counts)"
+  check_seeded_limits "$partner_projects" || return 1
+  limits_first="$(limits_snapshot)"
   manage migrate powered_by 0005 || return 1
   back="$(row_counts)"
   [ "$before" = "$back" ] || fail "row counts changed across forward and back: at 0005 [$before], after reverse [$back]"
+  partner_frozen="$(scalar "select tier from powered_by_project where id = 9106")" \
+    || { fail "reading the seeded partner project's frozen tier"; return 1; }
+  [ "$partner_frozen" = partner ] || fail "seeded partner project's frozen tier after reverse: '$partner_frozen', expected partner"
   manage migrate powered_by || return 1
-  echo "(projects, keys): at 0005 [$before], at latest [$latest], back at 0005 [$back]"
+  [ "$(limits_snapshot)" = "$limits_first" ] || fail "limits rows changed across forward, reverse and forward"
+  echo "(projects, keys): at 0005 [$before], at latest [$latest], back at 0005 [$back]; limits rows: $SEEDED_API_PROJECTS"
 }
 
 cmd_migrations() {
