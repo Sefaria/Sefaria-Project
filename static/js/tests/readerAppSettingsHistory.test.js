@@ -34,6 +34,17 @@ jest.mock("../Misc", () => new Proxy({}, {
 jest.mock("../ImageCropper", () => new Proxy({}, {
   get: (_t, prop) => (prop === "__esModule" ? true : () => null),
 }));
+// json-edit-react and react-simple-wysiwyg touch the DOM at import time in ways jsdom doesn't support.
+jest.mock("json-edit-react", () => new Proxy({}, {
+  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
+}));
+jest.mock("react-simple-wysiwyg", () => new Proxy({}, {
+  get: (_t, prop) => {
+    if (prop === "__esModule") { return true; }
+    if (prop === "createButton") { return () => (() => null); }
+    return () => null;
+  },
+}));
 
 import { ReaderApp } from '../ReaderApp.jsx';
 
