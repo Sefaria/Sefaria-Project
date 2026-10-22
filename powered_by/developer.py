@@ -47,6 +47,10 @@ CONFIRMATION_LINK_MAX_AGE = timedelta(days=account_settings.EMAIL_CONFIRMATION_E
 SSO_PROVIDERS = ("google", "apple")
 DISMISSED_LISTINGS_SETTING = "developer_dismissed_listings"
 
+# Written only through developer settings; the generic profile APIs drop them.
+DEVELOPER_PROFILE_SETTINGS = (ENABLED_SETTING, PROFILE_SETTING, CONFIRMATION_SENT_SETTING, CONFIRMATION_SENT_TO_SETTING,
+                              CONFIRMATION_SENDS_SETTING, DISMISSED_LISTINGS_SETTING)
+
 MOCK_SSO_SESSION_KEY = "developer_mock_sso"
 
 _url_validator = URLValidator(schemes=["http", "https"])
@@ -335,6 +339,14 @@ def clean_profile(data):
         except ValidationError:
             raise InputError("The additional email is not a valid address.")
     return profile
+
+
+def drop_developer_settings(profile_settings):
+    """Removes the developer settings from profile settings a client sent, in place."""
+    if isinstance(profile_settings, dict):
+        for key in DEVELOPER_PROFILE_SETTINGS:
+            profile_settings.pop(key, None)
+    return profile_settings
 
 
 def save_profile(user, data):

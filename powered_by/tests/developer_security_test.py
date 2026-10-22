@@ -98,21 +98,30 @@ class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
         settings = UserProfile(id=self.user.id).settings
         return {k: settings.get(k) for k in self.FORGED}
 
-    @pytest.mark.failing
-    def test_N_CR2_the_profile_api_ignores_developer_settings_known_gap_N_CR2(self):
+    def test_N_CR2_the_profile_api_ignores_developer_settings(self):
         response = self.client.post("/api/profile", {"json": json.dumps({"settings": self.FORGED})})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.developer_settings(), self.before)
 
-    @pytest.mark.failing
-    def test_N_CR2_profile_sync_ignores_developer_settings_known_gap_N_CR2(self):
+    def test_N_CR2_profile_sync_ignores_developer_settings(self):
         settings = {**self.FORGED, "time_stamp": int(time.time()) + 1000}
 
         response = self.client.post("/api/profile/sync?no_return=1", {"settings": json.dumps(settings)})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.developer_settings(), self.before)
+
+    def test_N_CR2_every_developer_setting_is_dropped(self):
+        forged = {**self.FORGED, developer.CONFIRMATION_SENT_SETTING: "x", developer.CONFIRMATION_SENT_TO_SETTING: "x",
+                  "reading_history": False}
+
+        self.client.post("/api/profile", {"json": json.dumps({"settings": forged})})
+
+        settings = UserProfile(id=self.user.id).settings
+        self.assertIs(settings.get("reading_history"), False, "other settings still save")
+        for key in developer.DEVELOPER_PROFILE_SETTINGS:
+            self.assertEqual(settings.get(key), self.before.get(key), key)
 
 
 class ProjectCapTest(DeveloperApiTestCase):
