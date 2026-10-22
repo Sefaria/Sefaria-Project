@@ -11,6 +11,7 @@ import (
 	typev3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	rpcstatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type Recorder interface {
@@ -56,8 +57,16 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 	d := Decide(s.l, s.o.Cfg, r)
 	s.rec.Observe(d.Result, d.Allow, time.Since(t0))
 	if d.Allow {
+		// Spike: a fixed limit stands in for the registry's tier numbers.
+		meta, err := structpb.NewStruct(map[string]any{
+			"limit_minute": map[string]any{"requests_per_unit": 3, "unit": "MINUTE"},
+		})
+		if err != nil {
+			return nil, err
+		}
 		return &authv3.CheckResponse{
-			Status: &rpcstatus.Status{Code: int32(codes.OK)},
+			Status:          &rpcstatus.Status{Code: int32(codes.OK)},
+			DynamicMetadata: meta,
 			HttpResponse: &authv3.CheckResponse_OkResponse{OkResponse: &authv3.OkHttpResponse{
 				Headers: []*corev3.HeaderValueOption{
 					hdr("x-sefaria-project", d.Project),

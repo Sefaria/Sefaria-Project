@@ -119,3 +119,23 @@ func TestGRPCObserveMode(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckAllowCarriesLimitMetadata(t *testing.T) {
+	s := NewGRPCServer(reg, Options{Cfg: enforce}, NopRecorder{})
+	resp, err := s.Check(context.Background(), checkReq("/api/texts/Genesis.1", map[string]string{"x-api-key": alpha}))
+	if err != nil || resp.Status.Code != int32(codes.OK) {
+		t.Fatalf("err=%v resp=%v", err, resp)
+	}
+	lim := resp.GetDynamicMetadata().GetFields()["limit_minute"].GetStructValue().GetFields()
+	if lim["requests_per_unit"].GetNumberValue() != 3 || lim["unit"].GetStringValue() != "MINUTE" {
+		t.Fatalf("limit_minute=%v", lim)
+	}
+}
+
+func TestCheckDenyHasNoLimitMetadata(t *testing.T) {
+	s := NewGRPCServer(reg, Options{Cfg: enforce}, NopRecorder{})
+	resp, _ := s.Check(context.Background(), checkReq("/api/knn-search", map[string]string{}))
+	if resp.GetDynamicMetadata() != nil {
+		t.Fatalf("a denial must carry no limit metadata: %v", resp.GetDynamicMetadata())
+	}
+}

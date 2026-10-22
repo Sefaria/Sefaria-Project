@@ -11,6 +11,24 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: {{ .Values.deployEnv }}
+{{- if .Values.authService.spikeLimit.enabled }}
+  # Spike (never merged): the limit comes from the ext_authz dynamic metadata; 1000/Minute applies when absent.
+  # Same object as the splash override because two policies on one HTTPRoute conflict.
+  rateLimit:
+    type: Global
+    global:
+      rules:
+        - clientSelectors:
+            - headers:
+                - name: x-sefaria-project
+                  type: Distinct
+          limit:
+            requests: 1000
+            unit: Minute
+            fromMetadata:
+              namespace: envoy.filters.http.ext_authz
+              key: limit_minute
+{{- end }}
   responseOverride:
     - match:
         statusCodes:

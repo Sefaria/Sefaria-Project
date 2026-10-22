@@ -190,6 +190,9 @@ authService:
   # to the HTTPRoute: every request goes through the auth service (failOpen: true, so an outage degrades to the
   # anonymous tier). No JWT verification and no rate limiting in Phase 1. Off by default everywhere.
   enabled: false
+  # Throwaway spike: a global rate limit read from ext_authz dynamic metadata. Never merged.
+  spikeLimit:
+    enabled: false
   # enforce: unknown/revoked keys get the product-spec 401/403. observe: never denies; records what
   # would have been rejected in x-sefaria-auth-result (dark launch).
   mode: enforce
