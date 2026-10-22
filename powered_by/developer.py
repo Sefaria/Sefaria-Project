@@ -17,7 +17,7 @@ from django.contrib.auth import SESSION_KEY, get_user_model
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from sefaria.model.user_profile import UserProfile
@@ -270,8 +270,12 @@ def unclaimed_listings(user, profile):
 
 
 def listings_submitted_by(user):
-    """Profiles submitted outside developer settings with this account's email and no live API project."""
-    return (Project.objects.filter(creator_email__iexact=user.email)
+    """
+    Profiles submitted outside developer settings with this account's email and no live API project.
+    A profile an older image or staff soft-deleted (its frozen deleted_at, which the public endpoint also honours) is
+    not offered: claiming it would hand out a listing that stays hidden from the public endpoint for good.
+    """
+    return (Project.objects.filter(creator_email__iexact=user.email, deleted_at__isnull=True)
             .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS)
             .exclude(id__in=ApiProject.objects.filter(deleted_at__isnull=True).values("profile_id")))
 
@@ -315,6 +319,10 @@ FIELD_LABELS = {
     "websiteUrl": "The website",
     "contactEmail": "The contact email",
 }
+
+
+# api_project.contact_email is a varchar(254), the length of an email address.
+CONTACT_EMAIL_MAX_LENGTH = 254
 
 
 def _text(data, field, max_length=255):
@@ -476,7 +484,7 @@ def clean_project_fields(data):
         "visibility": data.get("visibility"),
         "aiAssisted": bool(data.get("aiAssisted")),
         # None when the request leaves it out, so an edit keeps the stored address.
-        "contactEmail": _text(data, "contactEmail") if "contactEmail" in data else None,
+        "contactEmail": _text(data, "contactEmail", CONTACT_EMAIL_MAX_LENGTH) if "contactEmail" in data else None,
     }
     if not fields["name"]:
         raise InputError("Give the project a name.")
@@ -618,7 +626,15 @@ def claim_listing(user, listing_id):
         listing = unclaimed_listings(user, UserProfile(id=user.id)).get(id=int(listing_id))
     except (Project.DoesNotExist, ValueError):
         raise LookupError("No such listing.")
-    return ApiProject.objects.create(profile=listing, owner=user)
+    # The savepoint keeps the request's transaction usable when another claim or an admin made a live API project
+    # for this profile after the check above; that is the partial unique index, and the listing is simply taken.
+    try:
+        with transaction.atomic():
+            return ApiProject.objects.create(profile=listing, owner=user)
+    except IntegrityError as error:
+        if "api_project_one_live_per_profile" not in str(error) and "api_project.profile_id" not in str(error):
+            raise
+        raise LookupError("No such listing.")
 
 
 @transaction.atomic

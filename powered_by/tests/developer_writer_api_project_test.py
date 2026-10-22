@@ -3,8 +3,13 @@ The developer settings writer on API projects: the state shape, the website rest
 a claimed legacy listing across account deletion, the unpublishing of a deleted settings-made
 project, and ids that are API project ids rather than profile ids.
 """
+from unittest.mock import patch
+
 from allauth.account.models import EmailAddress
 from django.test import Client
+from django.utils import timezone
+
+from powered_by import developer
 
 from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
 from powered_by.tests.developer_api_test import PROFILE, PROJECT, DeveloperApiTestCase
@@ -198,3 +203,91 @@ class ContactEmailEditTest(DeveloperApiTestCase):
         self.call("post", "projects/" + project_id, {"project": {**PROJECT, "contactEmail": ""}})
 
         self.assertEqual(ApiProject.objects.get(id=int(project_id)).contact_email, "")
+
+
+def email_of_length(length):
+    """A valid address of exactly `length` characters (local part 64, domain labels of at most 63)."""
+    local = "a" * 64
+    domain_length = length - len(local) - 1
+    labels, remaining = [], domain_length
+    while remaining > 0:
+        take = min(63, remaining - (0 if remaining <= 63 else 2))
+        labels.append("b" * take)
+        remaining -= take + 1
+    address = local + "@" + ".".join(labels)
+    assert len(address) == length and all(0 < len(l) <= 63 for l in labels), (length, [len(l) for l in labels])
+    return address
+
+
+class ContactEmailLengthTest(DeveloperApiTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+
+    def test_contact_email_of_254_characters_is_stored_and_255_is_refused(self):
+        longest = email_of_length(254)
+        status, state = self.call("post", "projects", {"project": {**PROJECT, "contactEmail": longest}})
+        self.assertEqual(status, 200, state)
+        self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).contact_email, longest)
+
+        before = ApiProject.objects.count()
+        status, state = self.call("post", "projects", {"project": {**PROJECT, "name": "Too long", "contactEmail": email_of_length(255)}})
+
+        self.assertEqual(status, 400, state)
+        self.assertIn("254", state["error"])
+        self.assertEqual(ApiProject.objects.count(), before)
+
+    def test_an_edit_with_a_255_character_contact_email_is_refused_and_keeps_the_stored_one(self):
+        project_id = self.call("post", "projects", {"project": {**PROJECT, "contactEmail": "dev@example.org"}})[1]["projectId"]
+
+        status, state = self.call("post", "projects/" + project_id, {"project": {**PROJECT, "contactEmail": email_of_length(255)}})
+
+        self.assertEqual(status, 400, state)
+        self.assertEqual(ApiProject.objects.get(id=int(project_id)).contact_email, "dev@example.org")
+
+
+class ClaimGuardsTest(DeveloperApiTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+
+    def make_listing(self, **fields):
+        return Project.objects.create(
+            submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
+            project_name="Tehillim Circle", project_link="https://tehillimcircle.org",
+            consent_to_display=True, is_published=True, **fields)
+
+    def test_a_claim_that_loses_a_race_for_the_listing_is_refused_not_a_server_error(self):
+        listing = self.make_listing()
+        rival = create_test_user("devapirival")
+        purge_test_profiles(rival)
+
+        class Stale:
+            """The eligibility check answered before the rival's API project existed: it still finds the listing."""
+            def get(self, **kwargs):
+                return Project.objects.get(**kwargs)
+
+        try:
+            ApiProject.objects.create(profile=listing, owner=rival)   # committed by the rival after the check
+            with patch.object(developer, "unclaimed_listings", lambda user, profile: Stale()):
+                status, state = self.call("post", "listings/{}/claim".format(listing.id))
+
+            self.assertEqual(status, 404, state)
+            self.assertEqual(list(ApiProject.objects.filter(profile=listing, deleted_at__isnull=True).values_list("owner_id", flat=True)),
+                             [rival.id])
+            self.assertEqual(self.call("get", "state")[0], 200)   # the request's transaction is still usable
+        finally:
+            purge_test_profiles(rival)
+
+    def test_a_soft_deleted_legacy_listing_is_not_offered_and_a_claim_of_it_is_refused(self):
+        listing = self.make_listing(deleted_at=timezone.now())
+
+        state = self.call("get", "state")[1]
+        status, claimed = self.call("post", "listings/{}/claim".format(listing.id))
+
+        self.assertIsNone(state["yourListing"])
+        self.assertEqual(status, 404, claimed)
+        self.assertFalse(ApiProject.objects.filter(profile=listing).exists())
+
