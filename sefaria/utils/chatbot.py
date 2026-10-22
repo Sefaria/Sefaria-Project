@@ -52,10 +52,11 @@ def _decrypt_chatbot_user_token(token, secret):
     return payload
 
 
-def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS, aud=None):
+def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS, aud=None, state=None):
     """
     Build an encrypted user token. `aud` scopes the token to a consumer other than the chatbot
-    (e.g. MCP_TOKEN_AUDIENCE); chatbot tokens carry no audience.
+    (e.g. MCP_TOKEN_AUDIENCE); chatbot tokens carry no audience. `state` ties an mcp-login token to
+    the one sign-in flow it was issued for, so it cannot complete another.
     """
     if not user_id or not secret:
         return None
@@ -68,6 +69,8 @@ def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HO
     }
     if aud:
         payload["aud"] = aud
+    if state:
+        payload["state"] = state
     payload_bytes = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
     key = _derive_key(secret)
     aesgcm = AESGCM(key)

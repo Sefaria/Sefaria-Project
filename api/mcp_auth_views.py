@@ -56,6 +56,7 @@ def mcp_authorize(request):
         secret,
         ttl_hours=MCP_LOGIN_TOKEN_TTL_MINUTES / 60,
         aud=MCP_LOGIN_TOKEN_AUDIENCE,
+        state=state,
     )
     response = HttpResponse(HANDOFF_PAGE.format(
         action=html.escape(redirect_uri),

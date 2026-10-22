@@ -589,6 +589,8 @@ def save_sheet_api(request):
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
         sheet = json.loads(j)
+        if not isinstance(sheet, dict):
+            return jsonResponse({"error": "Sheet JSON must be an object."}, status=400)
 
         if getattr(request, "auth_via", None) == MCP_TOKEN_AUDIENCE:
             # An MCP token may only create new, unlisted sheets: this endpoint also updates and

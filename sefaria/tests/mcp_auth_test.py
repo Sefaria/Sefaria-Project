@@ -40,6 +40,8 @@ def test_signed_in_user_is_handed_to_the_callback(mcp_settings, django_user_mode
     assert _field(body, "state") == STATE
     token = _field(body, "token")
     assert get_user_id_from_chatbot_user_token(token, SECRET, aud=MCP_LOGIN_TOKEN_AUDIENCE) == user.id
+    # Bound to this flow, so the chatbot can refuse it for any other.
+    assert _decrypt_chatbot_user_token(token, SECRET)["state"] == STATE
     assert token not in response.get("Location", "")
 
 
@@ -143,6 +145,13 @@ class TestMCPSheetSaves:
         saved = save.call_args.args[0]
         assert saved["status"] == "unlisted"
         assert "displayedCollection" not in saved
+
+    @pytest.mark.parametrize("body", [[], "sheet", 3])
+    def test_non_object_json_is_a_400(self, django_user_model, body):
+        user = django_user_model.objects.create_user(username=f"mcp-bad-json-{body!r}", password="pass")
+        response, save = self._post(user, body)
+        assert response.status_code == 400
+        save.assert_not_called()
 
     def test_other_callers_are_unchanged(self, django_user_model):
         user = django_user_model.objects.create_user(username="mcp-browser", password="pass")
