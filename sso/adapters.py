@@ -15,6 +15,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from google.cloud.exceptions import GoogleCloudError
 from PIL import Image
 
+from api.tasks import dispatch_copy_learning_level_from_ac
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.file import get_resized_file
@@ -156,7 +157,9 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         After the base implementation creates the Django User and SocialAccount
         row, we:
-        1. Create the MongoDB UserProfile (slug, language setting, Gravatar pic)
+        1. Create the MongoDB UserProfile (slug, language setting, Gravatar pic),
+           then start copying their newsletter learning level from ActiveCampaign
+           in the background
         2. Register the user in Salesforce CRM — wrapped in its own try/except
            so a CRM outage doesn't affect the user or profile already created above
 
@@ -179,6 +182,8 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         import_gravatar(p)
         p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
+        # After the last save: the copy runs in the background and only fills in an empty learning level
+        dispatch_copy_learning_level_from_ac(p)
 
         try:
             CrmMediator().create_crm_user(

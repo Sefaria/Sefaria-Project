@@ -34,6 +34,7 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 | File | Role |
 | --- | --- |
 | [`../support/strapi-har-fixture.js`](../support/strapi-har-fixture.js) | RETIRED record/replay wrapper over `routeFromHAR` — no spec imports it since the 2026-08-31 migration; kept as reference for how the recordings were made. |
+| [`../support/har-replay.js`](../support/har-replay.js) | `harPathForBaseURL(context, harPath, baseURL)` — shared by every HAR fixture (this one and the newsletter suite's `har-fixture.js`). Recordings are made at `http://localhost:8000`, but `routeFromHAR` matches the full URL, host included; this returns a temp copy pointed at the run's host (e.g. the merge queue's sandbox), deleted when the context closes. Start any new HAR-backed fixture from it. |
 | [`strapi.scenario-payloads.js`](strapi.scenario-payloads.js) | `SCENARIO_PAYLOADS` — factory-built, deep-equal replicas of the fourteen recordings, attached to `SCENARIOS.<name>.payload`. |
 | [`../support/strapi-payload-factory.js`](../support/strapi-payload-factory.js) | Builds a synthetic response body: `banner`/`modal`/`sidebarAd` document builders, `strapiPayload`, `targetCountries`, and the `daysFromNow`/`hoursFromNow` helpers measured from `SYNTHETIC_NOW`. Pure — no Playwright import. |
 | [`../support/strapi-payload-fixture.js`](../support/strapi-payload-fixture.js) | `routeWithStrapiPayload(context, payload, {status, rawBody})` plus `expectStrapiServed` — fulfils the endpoint from a built payload, matching the URL glob alone. |
