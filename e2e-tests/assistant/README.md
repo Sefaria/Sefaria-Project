@@ -342,3 +342,42 @@ Written **test-first** from the "Library Assistant behavior stories for automate
 npx playwright test --project=chrome-assistant library-assistant-q4-desktop
 npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library library-assistant-phone
 ```
+
+### Search with no results (LA-NULL-*)
+
+Also test-first, same helpers as above.
+
+| File | What |
+| --- | --- |
+| [library-assistant-null-search-desktop.spec.ts](library-assistant-null-search-desktop.spec.ts) | Every LA-NULL story on desktop (`chrome-assistant`) |
+| [../mobile web/library-assistant-null-search-phone.spec.ts](../mobile%20web/library-assistant-null-search-phone.spec.ts) | The `@phone` ones: LA-NULL-1, LA-NULL-5, LA-NULL-16 and LA-NULL-19 (mobile config) |
+| [../support/nullStateRecorder.ts](../support/nullStateRecorder.ts) | Records every version of the "no results" box from before the page loads (LA-NULL-3) |
+
+- **"Assistant on"** is `enLAUser` / `heLAUser`; **"assistant off"** is `enUser`, which never gets the assistant.
+- **The question the button sends** is read from Sefaria's `search.null.library_assistant_question` key.
+- **"Library Assistant" in the text is a link** (LA-NULL-16 → 18) that sends the same question as the button; the two share one "already asked". It's part of the sentence, not a button, so LA-NULL-1's "no button on the page" check leaves it out. LA-NULL-18 also needs the widget change from Sefaria/ai-chatbot#242 (commit 0efd3cf).
+- **Logged-out stories are `test.fixme` placeholders** (the logged-out rows of LA-NULL-1 and LA-NULL-16, the logged-out part of LA-NULL-17, and LA-NULL-8 → 12): the assistant doesn't load for logged-out visitors yet, and there is no free-answer count or login prompt to drive. Each placeholder lists its steps.
+
+```bash
+npx playwright test --project=chrome-assistant library-assistant-null-search-desktop
+npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library library-assistant-null-search-phone
+```
+
+### QA changes (LA-QA-*)
+
+Stories added after QA on phones and the header pill. Every test is tagged `@qa`, so they can run apart from the original-spec stories. There is no LA-QA-1 (that change was dropped).
+
+| File | What |
+| --- | --- |
+| [library-assistant-qa-desktop.spec.ts](library-assistant-qa-desktop.spec.ts) | LA-QA-4 (header pill shortens or hides), and the desktop half of LA-QA-6 and LA-QA-7 |
+| [../mobile web/library-assistant-qa-phone.spec.ts](../mobile%20web/library-assistant-qa-phone.spec.ts) | LA-QA-2, 3, 5, 8, and the phone half of LA-QA-6 and LA-QA-7 (mobile config) |
+| [../support/longConversation.ts](../support/longConversation.ts) | Builds a chat long enough to scroll, for the "where is the chat scrolled" stories |
+
+- **The keyboard stories are `test.fixme` placeholders** (LA-QA-2, LA-QA-3, LA-QA-5): a browser emulating a phone has no on-screen keyboard. LA-QA-8 runs, but its "while the keyboard closes" step is skipped (noted in the report).
+- **LA-QA-4's logged-out rows are placeholders**; only the signed-in row runs, as the stories say for builds without the logged-out assistant.
+- **Changed with these:** LA-ENTRY-2 now checks 1000px instead of 900px (at 900px the pill reads "✦ Ask"), LA-NOTE-3 checks the assistant opens on the start of the late answer, and LA-NULL-9's placeholder steps allow "where the visitor left it".
+
+```bash
+npx playwright test --project=chrome-assistant library-assistant-qa-desktop
+npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library library-assistant-qa-phone
+```

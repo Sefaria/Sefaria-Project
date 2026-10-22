@@ -102,7 +102,8 @@ for (const { lang, label, gap, side } of positionExamples) {
 // Fixed entry points: the header pill
 // ---------------------------------------------------------------------------
 
-for (const width of [1280, 900]) {
+// Not 900px: there the pill now reads "✦ Ask" (LA-QA-4); at 1000px it still reads "✦ Library Assistant".
+for (const width of [1280, 1000]) {
   test.describe(`Library Assistant desktop — header pill at ${width}px`, () => {
     test.use({ viewport: { width, height: DESKTOP.height } });
     let la: LibraryAssistantQ4Page;
@@ -217,11 +218,12 @@ test.describe('Library Assistant desktop — answer-ready notification', () => {
     expect(pingCount, 'the dot should send out a fading ping with each bounce').toBeGreaterThanOrEqual(2);
   });
 
-  test('LA-NOTE-3: Opening clears the dot', { tag: ['@e2e', '@desktop', '@phone'] }, async () => {
+  test('LA-NOTE-3: Opening clears the dot, and the assistant opens on the start of that answer', { tag: ['@e2e', '@desktop', '@phone'] }, async () => {
     mock.releaseAnswers();
     await la.expectAnswerReadyDot();
     await la.openWithAskButton();
     await la.expectConversationContains(LATE_ANSWER);
+    await la.expectChatShowsStartOf(LATE_ANSWER);
     await la.expectNoAnswerReadyDot();
     await la.closeWithMinimize();
     await la.expectNoAnswerReadyDot();

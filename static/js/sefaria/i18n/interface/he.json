@@ -669,5 +669,6 @@
     "search.null.topics.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל הנושאים או שאלו את עוזר הספרייה.",
     "search.null.books.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בספרייה או שאלו את עוזר הספרייה.",
     "search.null.authors.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל המחברים או שאלו את עוזר הספרייה.",
+    "search.null.library_assistant_question": "חיפשתי \"{query}\" בספריא ואין תוצאות. אפשר לעזור לי למצוא מקורות, ספרים, מחברים ו/או נושאים רלוונטיים?",
     "header.library_assistant_short": "שאלו"
 }

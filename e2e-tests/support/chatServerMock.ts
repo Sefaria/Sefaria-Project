@@ -71,26 +71,45 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 };
 
+export interface AskedQuestion {
+  text: string;
+  /** Which chat the widget sent it in. A different sessionId means a new chat. */
+  sessionId: string;
+}
+
 export class ChatServerMock {
   /** The text of every question the widget has sent, in order. */
   readonly questions: string[] = [];
 
+  /** Every question the widget has sent, in order, with the chat it was sent in. */
+  readonly asked: AskedQuestion[] = [];
+
   private readonly sessions = new Map<string, HistoryMessage[]>();
   private readonly savedChats: SavedChat[];
+  private readonly listAskedChats: boolean;
   private readonly queuedAnswers: string[] = [];
   private holding = false;
   private heldAnswers: Array<() => void> = [];
   private counter = 0;
 
-  private constructor(savedChats: SavedChat[]) {
-    this.savedChats = savedChats;
+  private constructor(savedChats: SavedChat[], listAskedChats: boolean) {
+    this.savedChats = [...savedChats];
+    this.listAskedChats = listAskedChats;
     for (const chat of savedChats) {
       this.sessions.set(chat.sessionId, this.buildTurn(chat.sessionId, '', chat.question, chat.answerMarkdown, ''));
     }
   }
 
-  static async install(context: BrowserContext, options: { savedChats?: SavedChat[] } = {}): Promise<ChatServerMock> {
-    const mock = new ChatServerMock(options.savedChats ?? []);
+  /**
+   * `listAskedChats: true` makes every chat the widget starts during the test show up
+   * in chat history too (titled with its first question), the way the real server lists
+   * them. Off by default so the history list holds exactly the `savedChats`.
+   */
+  static async install(
+    context: BrowserContext,
+    options: { savedChats?: SavedChat[]; listAskedChats?: boolean } = {},
+  ): Promise<ChatServerMock> {
+    const mock = new ChatServerMock(options.savedChats ?? [], options.listAskedChats ?? false);
     await context.route((url) => mock.isChatServerUrl(url), (route) => mock.handle(route));
     return mock;
   }
@@ -116,6 +135,20 @@ export class ChatServerMock {
   /** Wait until the widget has sent at least `count` questions. */
   async waitForQuestion(count = 1): Promise<void> {
     await expect.poll(() => this.questions.length, { timeout: t(15000) }).toBeGreaterThanOrEqual(count);
+  }
+
+  /**
+   * Check that the number of questions sent stays at `count` for a while — for
+   * "nothing new is sent" steps. A question goes out a moment after a click, so
+   * checking just once, right after the click, could miss it.
+   */
+  async expectQuestionCountStays(count: number, ms = 1500): Promise<void> {
+    const end = Date.now() + t(ms);
+    while (Date.now() < end) {
+      expect(this.questions, `no new question should be sent (expected ${count})`).toHaveLength(count);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    expect(this.questions, `no new question should be sent (expected ${count})`).toHaveLength(count);
   }
 
   // ---------------------------------------------------------------------------
@@ -195,6 +228,10 @@ export class ChatServerMock {
     const question: string = body.text ?? '';
     const sessionId: string = body.sessionId ?? 'sess_mock';
     this.questions.push(question);
+    this.asked.push({ text: question, sessionId });
+    if (this.listAskedChats && !this.savedChats.some((chat) => chat.sessionId === sessionId)) {
+      this.savedChats.unshift({ sessionId, title: question, question, answerMarkdown: '' });
+    }
     const answer = this.queuedAnswers.shift() ?? DEFAULT_ANSWER;
 
     if (this.holding) {
