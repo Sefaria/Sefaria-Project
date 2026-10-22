@@ -1,26 +1,11 @@
 # auth-service/Makefile — run from this directory
-CTX     ?= gke_development-205018_us-east1-b_cluster-1
-ENV     ?= authpoc
-NS      ?= default
-KUBECTL  = kubectl --context $(CTX) -n $(NS)
-CHART    = ../helm-chart/sefaria
-RENDER   = helm template $(ENV) $(CHART) --set deployEnv=$(ENV) --set gateway.enabled=true --set authService.enabled=true --set authService.image.tag=test
-
-.PHONY: test build helm-lint helm-render helm-matrix crd-gate shellcheck
+.PHONY: test build helm-lint helm-matrix
 test:
 	go vet ./... && go test -race -count=1 ./...
 build:
 	mkdir -p bin && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o bin/authsvc ./cmd/authsvc
 helm-lint:
 	cd .. && ct lint --charts helm-chart/sefaria --validate-maintainers=false
-helm-render:
-	$(RENDER) > /tmp/authpoc-render.yaml && kubeconform -strict -ignore-missing-schemas -summary /tmp/authpoc-render.yaml && bash scripts/render-check.sh /tmp/authpoc-render.yaml
-	bash scripts/ratelimit-check.sh
-crd-gate:
-	bash scripts/crd-gate.sh $(CTX)
-shellcheck:
-	shellcheck -S warning scripts/*.sh
-	bash scripts/test-policy-gate.sh
 helm-matrix:
 	@set -e; C=../helm-chart/sefaria; \
 	echo "== flag off: no auth objects"; helm template x $$C --set deployEnv=x | yq 'select(.kind == "SecurityPolicy" or (.metadata.name | test("auth-service"))) | .kind' | grep -c . | grep -qx 0; \

@@ -42,26 +42,12 @@ leaves only the periodic reload.
 
 PG_DSN comes from the cluster Secret `auth-service-registry` (key `AUTH_PG_DSN`): a read-only role
 on `sefaria_auth` that can connect, LISTEN, and SELECT the columns the loader reads.
-`scripts/provision-cluster-registry.sh` creates the role and the SOPS-encrypted Secret file; run it
-after the Django migrations. A new column in the load query needs a matching GRANT; a role provisioned before deleted projects were loaded as revoked needs `GRANT SELECT (deleted_at) ON powered_by_project TO auth_service_reader;`.
+The role and the SOPS-encrypted Secret are created once per cluster after the Django migrations; the steps are in the
+Sefaria wiki page `projects/api-key-program/tooling`. A new column in the load query needs a matching GRANT; a role provisioned before deleted projects were loaded as revoked needs `GRANT SELECT (deleted_at) ON powered_by_project TO auth_service_reader;`.
 
 ## Checks
 
 `make test` (Go vet and race tests; the Postgres tests run when `PG_TEST_DSN` is set, as they do in
 the Continuous workflow's auth-service job),
-`make helm-matrix`, `make helm-render`, `make shellcheck`.
-
-## Demo
-
-`scripts/demo.sh` walks through what is built, deployed, enforced, safe and propagated. Every section
-prints the feature ids it proves (`FEATURES: ...`) and each check prints `[OK id]`, `[MISMATCH id]` or
-`[SKIP id]`; the last line is `DEMO RESULT: ok=N mismatch=M skipped=K`. Targets: `--target local`
-(default, the local stack in `dev/local-stack`) and `--target cauldron` (the cauldron named by
-`APIKEYS_CAULDRON`, default the shared `apikeys-pipeline`, through `kubectl` on the dev context only;
-`DEMO_HOST` overrides the site; `--allow-mutating` there needs `APIKEYS_CAULDRON` set explicitly). The demo is read-only by default;
-`--allow-mutating` also runs the sections that write SQL, drop the listener connection or stop the
-auth service (each is undone on exit). `--offline` runs only the checks that need no network, docker
-or cluster, `--pause` waits between sections, and `--list-sections` prints the section names. A
-`MISMATCH` means the target behaves differently from what the feature id promises, and the script then
-exits 1; a `SKIP` means the check could not run here (read-only, POC only, or a tool is missing), not
-that it passed. An unknown flag exits 2.
+`make helm-matrix`. The local stack, the demo script, the drills and the end-to-end suites are in the Sefaria wiki page
+`projects/api-key-program/tooling`.

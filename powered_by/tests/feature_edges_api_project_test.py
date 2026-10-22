@@ -1,7 +1,6 @@
 """
-Edge cases of the API project model that the other powered_by tests do not prove one by one. Each test
-is cited by an edge case in e2e-tests/api-keys/features.json (F-MODEL, F-WRITE, F-ADMIN, F-LIST,
-F-SCHEMA); the docstring of a test names the case it backs.
+Edge cases of the API project model that the other powered_by tests do not prove one by one (model, writer,
+admin, public listing, Go fixture parity); the docstring of a test names the case it backs.
 
 The raw SQL tests need PostgreSQL; the migration tests move the real schema and reuse the helpers of
 the trigger migration test.
@@ -92,7 +91,6 @@ class ApiProjectSchemaEdgesTest(TestCase):
         self.profile = make_profile("Edge profile")
 
     def test_new_api_project_defaults_to_developer_in_python_and_raw_insert(self):
-        # F-MODEL-01.e3
         created = ApiProject.objects.create(profile=self.profile)
         self.assertEqual(created.tier_id, "developer")
         self.assertIsNotNone(created.created_at)
@@ -111,7 +109,7 @@ class ApiProjectSchemaEdgesTest(TestCase):
 
     @unittest.skipUnless(POSTGRES, "raw SQL constraint check needs PostgreSQL")
     def test_an_api_project_needs_an_existing_profile(self):
-        # F-MODEL-01.e4: the foreign key refuses a row for a profile that does not exist.
+        # The foreign key refuses a row for a profile that does not exist.
         missing = self.profile.pk + 1_000_000
         with self.assertRaises(IntegrityError), transaction.atomic():
             query("INSERT INTO api_project (profile_id, created_at, updated_at) VALUES (%s, now(), now())"
@@ -119,7 +117,6 @@ class ApiProjectSchemaEdgesTest(TestCase):
             connection.check_constraints()
 
     def test_column_inventory_of_the_api_project_and_key_tables(self):
-        # F-MODEL-01.e5
         self.assertEqual(
             table_columns("api_project"),
             {"id", "profile_id", "owner_id", "contact_email", "tier_id", "deleted_at", "created_at", "updated_at"})
@@ -130,7 +127,6 @@ class ApiProjectSchemaEdgesTest(TestCase):
         self.assertFalse([name for name in key_columns if "tier" in name], "a key has no tier of its own")
 
     def test_profile_table_keeps_its_metadata_and_the_frozen_columns(self):
-        # F-MODEL-01.e6
         columns = table_columns("powered_by_project")
         for name in ("project_name", "project_link", "project_desc", "organization", "vibe_coded",
                      "consent_to_display", "consent_withdrawn_at", "notes"):
@@ -139,7 +135,6 @@ class ApiProjectSchemaEdgesTest(TestCase):
             self.assertIn(frozen, columns, "an older image still reads and writes " + frozen)
 
     def test_an_api_project_with_keys_cannot_be_deleted_and_a_profile_with_one_cannot_either(self):
-        # F-MODEL-01.e7
         api_project = ApiProject.objects.create(profile=self.profile)
         ApiKey.objects.create(project=api_project, label="Protects the project")
 
@@ -153,7 +148,7 @@ class ApiProjectSchemaEdgesTest(TestCase):
 
     @unittest.skipUnless(POSTGRES, "raw SQL constraint check needs PostgreSQL")
     def test_an_old_image_cannot_hard_delete_a_profile_that_has_an_api_project(self):
-        # F-MODEL-05.e5: older code deletes with raw-looking SQL and knows nothing of api_project.
+        # Older code deletes with raw-looking SQL and knows nothing of api_project.
         ApiProject.objects.create(profile=self.profile)
 
         with self.assertRaises(IntegrityError), transaction.atomic():
@@ -163,19 +158,16 @@ class ApiProjectSchemaEdgesTest(TestCase):
         self.assertTrue(Project.objects.filter(pk=self.profile.pk).exists())
 
     def test_no_pending_model_changes_in_powered_by(self):
-        # F-MODEL-01.e8
         try:
             call_command("makemigrations", "powered_by", check=True, dry_run=True, verbosity=0)
         except SystemExit:
             self.fail("powered_by has model changes that no migration holds")
 
     def test_change_tier_permission_is_declared(self):
-        # F-MODEL-01.e10
         self.assertTrue(Permission.objects.filter(
             codename="change_tier", content_type__app_label="powered_by", content_type__model="apiproject").exists())
 
     def test_the_key_inline_has_no_tier_and_the_profile_admin_does_not_offer_the_frozen_columns(self):
-        # F-ADMIN-01.e4 and F-ADMIN-01.e5
         self.assertNotIn("tier", ApiKeyInline.fields)
         self.assertNotIn("tier", {field.name for field in ApiKey._meta.get_fields()})
 
@@ -190,7 +182,6 @@ class ApiProjectSchemaEdgesTest(TestCase):
         self.assertTrue({"tier", "owner", "deleted_at"}.isdisjoint(offered), offered)
 
     def test_listing_responses_never_expose_tier_limits_or_keys(self):
-        # F-LIST-01.e2
         profile = Project.objects.create(
             submission_source=SubmissionSource.FORMSTACK, project_name="Exposure check",
             project_link="https://exposure.example.org", is_published=True, consent_to_display=True)
@@ -220,7 +211,6 @@ class ApiProjectWriterEdgesTest(DeveloperApiTestCase):
         self.set_up_developer()
 
     def test_a_failed_project_create_leaves_neither_profile_nor_api_project(self):
-        # F-WRITE-01.e1
         profiles, api_projects = Project.objects.count(), ApiProject.objects.count()
 
         with patch.object(ApiProject.objects, "create", side_effect=RuntimeError("boom")):
@@ -231,7 +221,7 @@ class ApiProjectWriterEdgesTest(DeveloperApiTestCase):
         self.assertEqual(ApiProject.objects.count(), api_projects)
 
     def test_every_key_of_a_project_has_the_tier_of_its_api_project(self):
-        # F-WRITE-01.e3: a key has no tier; the project's tier reaches keys made before and after a change,
+        # A key has no tier; the project's tier reaches keys made before and after a change,
         # live or revoked.
         project = self.create_project()
         api_id = int(project["id"])
@@ -247,7 +237,6 @@ class ApiProjectWriterEdgesTest(DeveloperApiTestCase):
         self.assertEqual(keys.filter(revoked_at__isnull=False).count(), 1)
 
     def test_revoking_every_key_keeps_the_api_project_and_its_tier(self):
-        # F-WRITE-01.e7
         project = self.create_project()
         api_id = int(project["id"])
         ApiProject.objects.filter(id=api_id).update(tier_id="partner")
@@ -261,7 +250,7 @@ class ApiProjectWriterEdgesTest(DeveloperApiTestCase):
         self.assertEqual(ApiKey.objects.filter(project_id=api_id, revoked_at__isnull=True).count(), 0)
 
     def test_the_writer_never_writes_the_frozen_profile_columns(self):
-        # F-MODEL-01.e9: tier, owner and deleted_at of the profile belong to older images.
+        # Tier, owner and deleted_at of the profile belong to older images.
         project = self.create_project(visibility="public")
         self.assertEqual(self.call("post", "projects/" + project["id"],
                                    {"project": {**PROJECT, "name": "Renamed"}})[0], 200)
@@ -303,7 +292,6 @@ class ProfileAdminEdgesTest(TestCase):
         purge_test_profiles(self.staff)
 
     def test_saving_a_profile_without_changes_creates_no_api_project(self):
-        # F-ADMIN-01.e6
         url = admin_url("change", self.listing.pk)
         data = form_data(self.client.get(url).content.decode())
 
@@ -318,13 +306,11 @@ class TriggerInventoryEdgesTest(TestCase):
     databases = "__all__"
 
     def test_the_notify_triggers_are_exactly_the_ten_of_the_api_project_design(self):
-        # F-MODEL-03.e6
         names = {(table, name) for table, name, _ in trigger_rows()}
 
         self.assertEqual(names, KEY_TRIGGERS | API_TRIGGERS)
 
     def test_api_project_update_notifies_on_tier_or_deletion_and_delete_is_a_statement_trigger(self):
-        # F-MODEL-03.e4 and F-MODEL-03.e5
         definitions = {name: definition.lower() for _, name, definition in trigger_rows()}
 
         update = definitions["apikeys_notify_api_project_update"]
@@ -338,7 +324,6 @@ class TriggerInventoryEdgesTest(TestCase):
         self.assertIn("for each statement", delete)
 
     def test_the_profile_triggers_stay_for_older_images(self):
-        # F-MODEL-03.e10
         definitions = {name: definition.lower() for table, name, definition in trigger_rows()
                        if table == "powered_by_project"}
 
@@ -361,13 +346,12 @@ class OldImageEdgesTest(TestCase):
         return api_project, ApiKey.objects.create(project=api_project, label="Older image key")
 
     def test_old_loader_join_still_returns_a_migrated_key(self):
-        # F-MODEL-05.e2
         _, api_key = self.make_key_on_a_migrated_project("partner")
 
         self.assertEqual(query(self.OLD_LOADER, [api_key.key]), [(api_key.key, "partner")])
 
     def test_a_tier_changed_on_the_api_project_is_invisible_to_the_old_query(self):
-        # F-MODEL-05.e3: documented limit. The old query reads the frozen column.
+        # Documented limit. The old query reads the frozen column.
         api_project, api_key = self.make_key_on_a_migrated_project("developer")
         ApiProject.objects.filter(pk=api_project.pk).update(tier_id="partner")
 
@@ -386,7 +370,7 @@ class MigrationEdgesTest(MigrationTestCase):
         return {(table, name) for table, name, _ in trigger_rows()}
 
     def test_applying_the_trigger_step_sends_a_notify(self):
-        # F-MODEL-03.e7: a waiting auth service reloads at once when the schema moves.
+        # A waiting auth service reloads at once when the schema moves.
         apps = self.migrate(LATEST)
         listener = self.listen_ready()
 
@@ -396,7 +380,6 @@ class MigrationEdgesTest(MigrationTestCase):
         self.assertIn("api_project", self.notified_tables(listener))
 
     def test_reversing_the_trigger_step_restores_the_key_and_profile_triggers_only(self):
-        # F-MODEL-03.e8
         self.migrate(LATEST)
         self.assertEqual(self.trigger_names(), KEY_TRIGGERS | API_TRIGGERS)
 
@@ -405,7 +388,6 @@ class MigrationEdgesTest(MigrationTestCase):
         self.assertEqual(self.trigger_names(), KEY_TRIGGERS)
 
     def test_a_missing_reader_role_is_not_an_error(self):
-        # F-MODEL-04.e2
         apps = self.migrate(LATEST)
 
         with connection.schema_editor() as editor:
@@ -417,7 +399,7 @@ class MigrationEdgesTest(MigrationTestCase):
 @unittest.skipUnless(POSTGRES, "the fixture and the triggers exist on PostgreSQL only")
 class FixtureApiTablesTest(TestCase):
     """
-    F-SCHEMA-01.e3, .e4 and .e7: the auth service's Go fixture matches Django for the API tables it reads.
+    The auth service's Go fixture matches Django for the API tables it reads.
     Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry the
     `failing` marker, so the default CI run (-m "not failing") leaves them out.
     """
@@ -461,7 +443,6 @@ class FixtureApiTablesTest(TestCase):
         return {name: normalise(definition.replace(schema + ".", "")) for name, definition in rows}
 
     def test_the_columns_the_loader_reads_match(self):
-        # F-SCHEMA-01.e3
         def loader_columns(schema):
             return {row for row in self.columns(schema) if row[1] in LOADER_COLUMNS[row[0]]}
 
@@ -472,12 +453,12 @@ class FixtureApiTablesTest(TestCase):
         self.assertEqual(fixture, django)
 
     def test_the_foreign_keys_the_loader_joins_on_exist_in_both(self):
-        # F-SCHEMA-01.e4: an unknown tier is refused by the foreign key, in the fixture as in Django.
+        # An unknown tier is refused by the foreign key, in the fixture as in Django.
         self.assertLessEqual(LOADER_FOREIGN_KEYS, self.foreign_keys(self.SCHEMA))
         self.assertLessEqual(LOADER_FOREIGN_KEYS, self.foreign_keys("public"))
 
     def test_the_api_table_triggers_are_identical(self):
-        # F-SCHEMA-01.e7: the fixture's api_tier and meter-limit triggers match Django's by name and definition.
+        # The fixture's api_tier and meter-limit triggers match Django's by name and definition.
         fixture, django = self.triggers(self.SCHEMA), self.triggers("public")
 
         self.assertEqual(fixture, django)

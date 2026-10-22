@@ -218,7 +218,7 @@ authService:
     pgChannel: sefaria_apikeys
   postgres:
     # The key registry: Django's powered_by tables in sefaria_auth on the cluster's shared Postgres, read by
-    # every auth service in the cluster through a read-only role (auth-service/scripts/provision-cluster-registry.sh).
+    # every auth service in the cluster through a read-only role (provisioning runbook: wiki page projects/api-key-program/tooling).
     # The chart never runs a Postgres of its own. The Secret is a cluster-level object from the infrastructure
     # repo, not per release.
     secrets:
