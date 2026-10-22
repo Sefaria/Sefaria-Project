@@ -4689,6 +4689,29 @@
      "status": "planned",
      "tracking": "FU-OUTAGE-1",
      "planned_check": "drill: scale the auth service to zero on a cauldron, burst past the static limit, expect 429 and no 5xx"
+    },
+    {
+     "id": "F-OUTAGE-01.e4",
+     "scenario": "a logged-out browser loads a page: the HTML, /static/ files and data scripts go through the same HTTPRoute as the API",
+     "expected": "rules 3 and 4 (per client IP) select only the API path prefix, so pages and static assets are never counted or limited, in normal operation or during an auth outage; rules 1 and 2 are unchanged",
+     "severity": "P0",
+     "checks": [
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/ratelimit-check.sh",
+       "contains": "rules 3-4 count API requests only"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/ratelimit-check.sh",
+       "contains": "rule 3 keeps its tier and per-IP selectors next to the path"
+      },
+      {
+       "kind": "file",
+       "ref": "auth-service/scripts/ratelimit-check.sh",
+       "contains": "rule 4 keeps its tier and per-IP selectors next to the path"
+      }
+     ]
     }
    ]
   },

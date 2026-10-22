@@ -42,15 +42,17 @@ spec:
             unit: Month
             fromMetadata: { namespace: envoy.filters.http.ext_authz, key: limit_month_{{ $meter }} }
         {{- end }}
-        - clientSelectors:                         # 3. unkeyed (anonymous and embed): best-effort per client IP
+        - clientSelectors:                         # 3. unkeyed (anonymous and embed): best-effort per client IP, API requests only
             - headers:
                 - { name: x-sefaria-tier, type: RegularExpression, value: "^(anonymous|embed)$" }
+              path: { type: PathPrefix, value: {{ $rl.apiPathPrefix | quote }} }   # API requests only: pages and static files are not counted
               sourceCIDR: { type: Distinct, value: 0.0.0.0/0 }
           limit: { requests: {{ $rl.anonymousPerIP }}, unit: Minute }{{ if $rl.headers }}
           xRateLimitHeaders: DraftVersion03{{ end }}
-        - clientSelectors:                         # 4. a missing or malformed tier (not a tier slug), per client IP at the shared anonymous limit
+        - clientSelectors:                         # 4. a missing or malformed tier (not a tier slug), API requests only, per client IP at the shared anonymous limit
             - headers:
                 - { name: x-sefaria-tier, type: RegularExpression, value: "^[a-z][a-z0-9_-]*$", invert: true }
+              path: { type: PathPrefix, value: {{ $rl.apiPathPrefix | quote }} }   # API requests only, so an auth outage does not count pages and assets
               sourceCIDR: { type: Distinct, value: 0.0.0.0/0 }   # per client IP: during an auth outage nobody shares one bucket
           limit: { requests: {{ $rl.anonymousShared }}, unit: Minute }{{ if $rl.headers }}
           xRateLimitHeaders: DraftVersion03{{ end }}
