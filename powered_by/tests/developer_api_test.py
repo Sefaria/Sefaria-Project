@@ -254,6 +254,7 @@ class ConfirmationLinkTest(DeveloperApiTestCase):
 
     def test_a_link_for_an_address_that_is_no_longer_the_account_email_is_rejected(self):
         key = self.link_key()
+        old_email = self.user.email
         self.user.email = "tova.new@example.org"
         self.user.save()
 
@@ -261,17 +262,31 @@ class ConfirmationLinkTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 200)
         self.assertEqual(link["status"], "not-account-email")
-        self.assertFalse(EmailAddress.objects.get(user=self.user, email__iexact=link_address(key)).verified)
+        self.assertFalse(EmailAddress.objects.filter(email__iexact=old_email, verified=True).exists())
         self.assertEqual(self.new_link(key), 404)
         self.assertEqual(len(mail.outbox), 0)
+
+    def test_changing_the_account_email_removes_the_old_address(self):
+        EmailAddress.objects.create(user=self.user, email=self.user.email, primary=True, verified=True)
+        old_email = self.user.email
+
+        self.user.email = "tova.new@example.org"
+        self.user.save()
+
+        self.assertFalse(EmailAddress.objects.filter(user=self.user, email__iexact=old_email).exists())
+
+    def test_saving_the_account_without_changing_its_email_keeps_the_address(self):
+        EmailAddress.objects.create(user=self.user, email=self.user.email, primary=True, verified=True)
+
+        self.user.first_name = "Tova"
+        self.user.save()
+        self.user.save(update_fields=["last_login"])
+
+        self.assertTrue(EmailAddress.objects.get(user=self.user).verified)
 
     def test_a_link_we_did_not_sign_is_not_found(self):
         self.assertEqual(self.open_link("not-a-key")[0], 404)
         self.assertEqual(self.new_link("not-a-key"), 404)
-
-
-def link_address(key):
-    return developer.address_of_link(key).email
 
 
 class ResendLimitTest(DeveloperApiTestCase):

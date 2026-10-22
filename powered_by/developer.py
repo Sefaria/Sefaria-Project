@@ -166,6 +166,15 @@ def account_verified(request):
     return sso_connected(request) or email_verified(request.user)
 
 
+def forget_email_address(user, email):
+    """
+    Called when the account email changes away from `email`. allauth's login backend accepts any
+    address with a row in EmailAddress, so a row left for the old address would keep it working
+    as a login, while password reset only knows the account email.
+    """
+    EmailAddress.objects.filter(user=user, email__iexact=email).delete()
+
+
 def confirmation_for(user):
     address = account_email_address(user)
     if address is None:
@@ -176,11 +185,18 @@ def confirmation_for(user):
     return EmailConfirmationHMAC(address)
 
 
-def address_of_link(key):
-    """The address an emailed link was sent for, however old the link, or None if we didn't sign it."""
+def _address_id_of_link(key):
+    """The EmailAddress id an emailed link was signed for, however old the link, or None if we didn't sign it."""
     try:
-        pk = signing.loads(key, salt=account_settings.SALT)
+        return signing.loads(key, salt=account_settings.SALT)
     except signing.BadSignature:
+        return None
+
+
+def address_of_link(key):
+    """The address an emailed link was sent for, or None if we didn't sign it or the address is gone."""
+    pk = _address_id_of_link(key)
+    if pk is None:
         return None
     return EmailAddress.objects.select_related("user").filter(pk=pk).first()
 
@@ -203,10 +219,11 @@ def confirm_email(request, key):
     account. Opening it needs no login. Returns a LinkStatus: a link for an address that is no
     longer the account email is refused, as is one older than the link lifetime.
     """
-    address = address_of_link(key)
-    if address is None:
+    if _address_id_of_link(key) is None:
         return LinkStatus.INVALID
-    if not is_account_email(address):
+    address = address_of_link(key)
+    # A missing address was removed from its account when the account email changed.
+    if address is None or not is_account_email(address):
         return LinkStatus.NOT_ACCOUNT_EMAIL
     if address.verified:
         return LinkStatus.ALREADY_CONFIRMED
