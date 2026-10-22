@@ -10,8 +10,10 @@ import { BrowserContext, Page } from '@playwright/test';
  * it. So a small script is put into the page before it loads. It uses a
  * MutationObserver (a browser feature that calls us back every time the page's
  * content changes, before the browser paints that change), and each time it
- * writes down two things about the "no results" box: is the Browse button
- * there, and what does the body text say.
+ * writes down three things about the "no results" box: is the Browse button
+ * there, what does the body text say, and can it be seen. The page keeps the
+ * body hidden while it waits to learn whether the assistant is there, so text
+ * that's in the page but hidden never reached the reader's eyes.
  *
  * Class names are used here (not roles or text) on purpose: this is not finding
  * something to click, it's watching the raw page for a state that may exist for
@@ -26,6 +28,8 @@ export interface NullStateRecord {
   hasBrowseButton: boolean;
   /** Body text with non-breaking spaces turned into normal spaces and runs of spaces collapsed. */
   body: string;
+  /** False while the page hides the body (style="visibility: hidden"). */
+  bodyVisible: boolean;
 }
 
 export async function installNullStateRecorder(context: BrowserContext): Promise<void> {
@@ -38,10 +42,12 @@ export async function installNullStateRecorder(context: BrowserContext): Promise
     const record = () => {
       document.querySelectorAll('.noSearchResults').forEach((box) => {
         const img = box.querySelector('img.noSearchResults-image') as HTMLImageElement | null;
+        const body = box.querySelector('.noSearchResults-body');
         const entry = {
           image: (img?.getAttribute('src') || '').replace(/^.*NoResults|\.svg.*$/g, ''),
           hasBrowseButton: !!box.querySelector('.noSearchResults-cta'),
-          body: (box.querySelector('.noSearchResults-body')?.textContent || '').replace(/ /g, ' ').replace(/\s+/g, ' ').trim(),
+          body: (body?.textContent || '').replace(/ /g, ' ').replace(/\s+/g, ' ').trim(),
+          bodyVisible: !!body && getComputedStyle(body).visibility !== 'hidden',
         };
         // Only keep changes, so the list stays short.
         const key = JSON.stringify(entry);
@@ -49,7 +55,10 @@ export async function installNullStateRecorder(context: BrowserContext): Promise
       });
     };
     const start = () => {
-      new MutationObserver(record).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+      // Watching `style` too, because unhiding the body changes only that attribute
+      new MutationObserver(record).observe(document.documentElement, {
+        childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['style'],
+      });
       record();
     };
     if (document.documentElement) start();

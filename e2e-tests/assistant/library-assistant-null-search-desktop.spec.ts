@@ -229,7 +229,11 @@ test.describe('Search with no results — no flash of the wrong version', () => 
       const records = await readNullStateRecords(page);
 
       expect(records.length, 'the recorder should have seen the empty-search box').toBeGreaterThan(0);
-      const wrong = records.filter((r) => r.hasBrowseButton === assistantOn || wrongTexts.includes(r.body));
+      // While the page waits to learn whether the assistant is there, the body is in the page but
+      // hidden and there's no button: the reader sees neither version, which is allowed
+      const seen = records.filter((r) => r.bodyVisible || r.hasBrowseButton);
+      expect(seen.length, 'the empty-search box should end up visible').toBeGreaterThan(0);
+      const wrong = seen.filter((r) => r.hasBrowseButton === assistantOn || wrongTexts.includes(r.body));
       expect(wrong, `every version of the box that ever appeared (${JSON.stringify(records)})`).toEqual([]);
     });
   }
