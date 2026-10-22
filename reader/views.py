@@ -41,6 +41,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
+from django.views.decorators.clickjacking import xframe_options_deny
 from django.contrib.auth.models import User
 from django import http
 from django.utils import timezone
@@ -4615,6 +4616,7 @@ def _account_settings_props(request, profile):
     }
 
 
+@xframe_options_deny
 @login_required
 @ensure_csrf_cookie
 def settings_page(request, tab="account", project_id=None):

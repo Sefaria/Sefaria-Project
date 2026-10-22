@@ -30,6 +30,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
+from django.views.decorators.clickjacking import xframe_options_deny
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
@@ -93,6 +95,7 @@ class StaticViewMixin:
         context['renderStatic'] = True
         return context
 
+@method_decorator(xframe_options_deny, name="dispatch")
 class CustomLoginView(LoginView):
     authentication_form = SefariaLoginForm
     template_name = 'base.html'
@@ -137,6 +140,7 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
         return super().get_next_page()
 
 
+@method_decorator(xframe_options_deny, name="dispatch")
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
     template_name = 'base.html'
@@ -255,6 +259,7 @@ def _web_register_errors(form):
     return errors
 
 
+@xframe_options_deny
 def register(request):
     if request.user.is_authenticated:
         return redirect("/")
