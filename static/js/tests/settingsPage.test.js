@@ -503,6 +503,20 @@ describe('key cards', () => {
     expect(restriction.querySelector('.devPocExplainer').textContent).toContain('only works on your website');
   });
 
+  it('give each control a spoken name that starts with its visible text and names the key', () => {
+    const twoKeys = publicProject({ keys: [
+      { id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false },
+      { id: 'k2', label: 'Staging', value: 'sfr_test_y', created: null, restrictToWebsite: false },
+    ] });
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [twoKeys] }, { projectId: 'proj01' });
+    const visibleSwitchText = container.querySelector('.devPocRestrictionRow label > span').textContent;
+    expect(visibleSwitchText).toBe('Only accept requests from daftracker.org');
+    const switches = Array.from(container.querySelectorAll('.devPocSwitch')).map(s => s.getAttribute('aria-label'));
+    expect(switches).toEqual([visibleSwitchText + ' (Production)', visibleSwitchText + ' (Staging)']);
+    const deletes = Array.from(container.querySelectorAll('.devPocKeyHeading button')).map(b => b.getAttribute('aria-label'));
+    expect(deletes).toEqual(['Delete key Production', 'Delete key Staging']);
+  });
+
   it("names the origin with the website's own scheme", () => {
     const httpProject = publicProject({ websiteUrl: 'http://example.org/app', keys: projectWithKey().keys });
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [httpProject] }, { projectId: 'proj01' });

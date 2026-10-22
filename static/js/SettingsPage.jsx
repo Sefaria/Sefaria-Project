@@ -1282,8 +1282,8 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
             onChange={e => onToggle(e.target.checked)}
             aria-describedby={summaryId}
             aria-label={Sefaria._v({
-              en: "Only accept requests with " + apiKey.label + " from " + host,
-              he: "לקבל בקשות עם " + apiKey.label + " רק מ־" + host,
+              en: "Only accept requests from " + host + " (" + apiKey.label + ")",
+              he: "לקבל בקשות רק מ־ " + host + " (" + apiKey.label + ")",
             })}
           />
           <span>
@@ -1387,7 +1387,12 @@ const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDel
   <article className={"devPocKey" + (isNew ? " devPocKeyNew" : "")}>
     <div className="devPocKeyHeading">
       <strong dir="auto">{apiKey.label}</strong>
-      <button type="button" className="button small transparent devPocDanger" onClick={onDelete}>
+      <button
+        type="button"
+        className="button small transparent devPocDanger"
+        aria-label={Sefaria._v({en: "Delete key " + apiKey.label, he: "מחיקת המפתח " + apiKey.label})}
+        onClick={onDelete}
+      >
         <InterfaceText text={{en: "Delete key", he: "מחיקת המפתח"}} />
       </button>
     </div>
