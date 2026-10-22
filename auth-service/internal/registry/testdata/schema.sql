@@ -1,4 +1,4 @@
--- Test fixture only. Mirrors the tables and NOTIFY triggers that the Django models and migrations in powered_by/
+-- Test fixture only. Ids are 32-bit like Django's AutoField. Mirrors the tables and NOTIFY triggers that the Django models and migrations in powered_by/
 -- create in sefaria_auth; Django owns the real schema. powered_by_project is reduced to the columns the auth service
 -- reads (id, name, the legacy tier column it must ignore, deleted_at). Keep these tables and the triggers identical
 -- to the Django migration.
@@ -20,15 +20,15 @@ INSERT INTO api_tier (id, name, per_minute_per_project) VALUES
   ('partner', 'Partner', 300),
   ('internal', 'Internal', 6000);
 CREATE TABLE api_tier_meter_limit (
-  id                  bigserial PRIMARY KEY,
+  id                  serial PRIMARY KEY,
   tier_id             text NOT NULL REFERENCES api_tier(id),
   meter               text NOT NULL,
   monthly_per_project bigint NOT NULL,
   UNIQUE (tier_id, meter)
 );
 CREATE TABLE api_project (
-  id            bigserial PRIMARY KEY,
-  profile_id    bigint NOT NULL REFERENCES powered_by_project(id),
+  id            serial PRIMARY KEY,
+  profile_id    integer NOT NULL REFERENCES powered_by_project(id),
   owner_id      int,
   contact_email text,
   tier_id       text NOT NULL DEFAULT 'developer' REFERENCES api_tier(id),
@@ -40,7 +40,7 @@ CREATE UNIQUE INDEX api_project_profile_live ON api_project (profile_id) WHERE d
 CREATE TABLE powered_by_apikey (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   key             varchar(100) NOT NULL UNIQUE,
-  project_id      bigint NOT NULL REFERENCES api_project(id),
+  project_id      integer NOT NULL REFERENCES api_project(id),
   label           varchar(100) NOT NULL,
   allowed_origins jsonb NOT NULL DEFAULT '[]',
   created_at      timestamptz NOT NULL DEFAULT now(),
