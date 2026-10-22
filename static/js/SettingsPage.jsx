@@ -2025,7 +2025,7 @@ const loginMethod = (socialProviders) => {
   return {en: "Apple Sign-In with", he: "התחברות דרך אפל עם"};
 };
 
-const AccountTab = ({settings, socialProviders}) => {
+const AccountTab = ({settings, socialProviders, onEmailChanged}) => {
   const torahSpecific = !!settings.torahSpecific;
   const translationLanguages = settings.translationLanguages || [];
 
@@ -2129,6 +2129,8 @@ const AccountTab = ({settings, socialProviders}) => {
       setEmailError("");
       rememberAccountSettings({email: emailFields.email});
       setEmail(emailFields.email);
+      Sefaria._email = emailFields.email;
+      if (onEmailChanged) { onEmailChanged(); }
       setEmailOk(Sefaria._("Email was successfully changed!"));
       setEditingEmail(false);
     });
@@ -2495,6 +2497,14 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
     });
   };
 
+  /* A new account email is unverified, so the developer tab stops offering new projects and keys
+     at once, then shows what the server says. */
+  const developerEmailChanged = () => {
+    setDeveloperState(state => ({...state, ssoConnected: false, emailVerified: false, confirmationSentAt: null}));
+    setShowNewProject(false);
+    readState().then(server => { if (pageMounted.current) { setDeveloperState(server); } }, () => {});
+  };
+
   const mock = (action, fields) => run(mockAction(action, fields)).then(() => {
     if (action === "start-over") {
       setShowNewProject(false);
@@ -2511,7 +2521,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
   const tabs = SETTINGS_TABS.filter(t => t.tab !== "developer" || hasDeveloper);
 
   const panels = {
-    account: <AccountTab settings={settings} socialProviders={socialProviders} />,
+    account: <AccountTab settings={settings} socialProviders={socialProviders} onEmailChanged={hasDeveloper ? developerEmailChanged : null} />,
     developer: (
       <DeveloperTab
         state={developerState}

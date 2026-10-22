@@ -134,17 +134,21 @@ const pressOn = (target, keyName, init = {}) => {
 
 beforeEach(() => {
   Sefaria.interfaceLang = 'english';
+  Sefaria._email = 'tova@example.org';
   respondWith({});
   window.scrollTo = jest.fn();
   $.post.mockReset();
 });
 
+/* Unmounted before the real timers return, so the page clears the fake timers it set. */
 afterEach(() => {
+  if (container) {
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+    container = null;
+  }
+  jest.clearAllTimers();
   jest.useRealTimers();
-  if (!container) { return; }
-  ReactDOM.unmountComponentAtNode(container);
-  container.remove();
-  container = null;
 });
 
 describe('errors before setup', () => {
@@ -241,5 +245,23 @@ describe('key-create errors', () => {
     expect(developerPanel().textContent).toContain('5 of 5 keys');
     act(() => { buttonNamed(developerPanel(), 'Close').click(); });
     expect(container.querySelector('#devPocKeyLabel')).toBeNull();
+  });
+});
+
+describe('changing the email in the Account tab', () => {
+  it('asks to confirm the new address on the Developer tab without a reload', () => {
+    const setUp = { developerEnabled: true, ssoConnected: false, emailVerified: true, profile: PROFILE, projects: [project()] };
+    mount('account', setUp);
+    act(() => { container.querySelector('#change-email').click(); });
+    typeInto(container.querySelector('#username-change-edit #email'), 'new@example.org');
+    typeInto(container.querySelector('#username-change-edit #confirmEmail'), 'new@example.org');
+    typeInto(container.querySelector('#username-change-edit #confirmPassword'), 'secret');
+    act(() => { container.querySelector('#update-email').click(); });
+    const [, , callback] = $.post.mock.calls[$.post.mock.calls.length - 1];
+    respondWith({ ...setUp, emailVerified: false });
+    act(() => { callback({ status: 'ok' }); });
+    render({ tab: 'developer' });
+    expect(developerPanel().querySelector('[aria-label="Confirm your new email"]')).toBeTruthy();
+    expect(developerPanel().querySelector('[data-agent-action="new-project"]')).toBeNull();
   });
 });
