@@ -7,9 +7,11 @@ reported that address as verified, or it was confirmed through the emailed link 
 EmailAddress). Changing the account email therefore ends verification until the new address is
 confirmed; existing keys keep working, but no new project or key can be created.
 """
+import ipaddress
 from datetime import datetime, timedelta
 from urllib.parse import urlsplit
 
+import idna
 from allauth.account import app_settings as account_settings
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
@@ -92,6 +94,18 @@ def iso(dt):
 DEFAULT_PORTS = {"http": 80, "https": 443}
 
 
+def _origin_host(hostname):
+    """A host as browsers write it in the Origin header: punycode for a non-Latin name, IPv6 in brackets."""
+    try:
+        return "[{}]".format(ipaddress.IPv6Address(hostname).compressed)
+    except ValueError:
+        pass
+    try:
+        return idna.encode(hostname, uts46=True).decode("ascii")
+    except idna.IDNAError:
+        return hostname.lower()
+
+
 def origin_of(url):
     """
     The browser Origin of a URL: scheme://host[:port], lowercase, without a default port. The
@@ -99,7 +113,7 @@ def origin_of(url):
     """
     parts = urlsplit(url)
     scheme = parts.scheme.lower()
-    origin = "{}://{}".format(scheme, (parts.hostname or "").lower())
+    origin = "{}://{}".format(scheme, _origin_host(parts.hostname or ""))
     if parts.port and parts.port != DEFAULT_PORTS.get(scheme):
         origin += ":{}".format(parts.port)
     return origin

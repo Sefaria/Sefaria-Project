@@ -147,12 +147,10 @@ class WebsiteOriginTest(DeveloperApiTestCase):
         self.assertEqual(status, 200)
         self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, [browser_origin])
 
-    @pytest.mark.failing
-    def test_C7_an_internationalised_host_is_refused_or_stored_as_punycode_known_gap_C7(self):
+    def test_C7_an_internationalised_host_is_refused_or_stored_as_punycode(self):
         self.assert_refused_or_stored_as_browsers_send_it("https://bücher.example/app", "https://xn--bcher-kva.example")
 
-    @pytest.mark.failing
-    def test_C7_an_ipv6_host_is_refused_or_stored_with_brackets_known_gap_C7(self):
+    def test_C7_an_ipv6_host_is_refused_or_stored_with_brackets(self):
         self.assert_refused_or_stored_as_browsers_send_it("http://[::1]:8080/", "http://[::1]:8080")
 
     def test_C7_a_trailing_dot_host_is_refused_or_stored_with_the_dot(self):

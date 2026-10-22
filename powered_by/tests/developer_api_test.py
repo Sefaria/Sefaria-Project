@@ -729,6 +729,11 @@ def test_origin_of_is_the_browser_origin():
     assert origin_of("https://Example.org/app?x=1") == "https://example.org"
     assert origin_of("https://example.org:443/") == "https://example.org"
     assert origin_of("http://localhost:3000/") == "http://localhost:3000"
+    assert origin_of("https://bücher.example/app") == "https://xn--bcher-kva.example"
+    assert origin_of("https://BÜCHER.example") == "https://xn--bcher-kva.example"
+    assert origin_of("http://[::1]:8080/") == "http://[::1]:8080"
+    assert origin_of("http://[0:0::1]:80/") == "http://[::1]"
+    assert origin_of("http://127.0.0.1:8000/") == "http://127.0.0.1:8000"
 
 
 class ProjectLockTest(DeveloperApiTestCase):
