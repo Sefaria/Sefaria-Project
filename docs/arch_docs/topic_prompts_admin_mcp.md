@@ -1,6 +1,12 @@
 # Topic Prompts Admin MCP — Audit & Architecture Spec
 
-Status: v1 implemented (branch `feature/admin-mcp-topic-prompts` + separate repo [Sefaria/sefaria-admin-mcp](https://github.com/Sefaria/sefaria-admin-mcp)) · Author: Akiva Berger · 2026-10-11
+Status: v2 implemented (branch `feature/mcp-user-auth` here + the AI chatbot's `/mcp/admin` endpoint). v1's stdio server ([Sefaria/sefaria-admin-mcp](https://github.com/Sefaria/sefaria-admin-mcp)) and its minted 12-hour admin tokens are retired · Author: Akiva Berger · 2026-10-11, updated 2026-10-21
+
+> **2026-10-21 change.** The tools now live in the AI chatbot's MCP server at `https://chat.sefaria.org/mcp/admin`,
+> behind the same "sign in with Sefaria" OAuth flow as `/mcp/user`. The admin token minting page, `ADMIN_MCP_TOKEN_SECRET`
+> and the `admin-mcp` audience are gone. Staff sign in as themselves; the chatbot mints a 5-minute `mcp` token per tool
+> call, which Sefaria accepts on the two topic-prompt routes for staff only. Sections 2.2–2.3 and 4–7 below describe
+> v1 where they differ, and are kept for the design history.
 
 ## Goal
 
@@ -150,7 +156,20 @@ API-key and auth-service work lands, host it at e.g. `adminmcp.sefaria.org` with
 OAuth discovery docs (never the empty stubs — see the wiki's `sefaria-mcp/oauth-discovery` page).
 v1's API surface doesn't change. Only the MCP→Django credential changes, from API key to user token.
 
-### 2.3 Auth: admin MCP tokens (implemented)
+### 2.3 Auth (v2, implemented)
+
+| | Chatbot token | MCP token |
+|---|---|---|
+| Payload | `{id, user_id, expiration}` | the same, plus `aud: "mcp"` |
+| Secret | `CHATBOT_USER_ID_SECRET` | `MCP_TOKEN_SECRET`, shared with the AI chatbot (unset = feature off) |
+| Accepted on | every path **except** `/api/admin/*` | `SessionIDAuthMiddleware.MCP_ROUTES` (sheets), and `MCP_ADMIN_ROUTES` (`GET /api/admin/topic-prompts`, `PATCH /api/admin/topic-prompts/<id>`) for `is_staff` users only |
+| CSRF | enforced | skipped |
+| Lifetime | 72h | 5 minutes, minted per tool call by the chatbot for the user who signed in |
+
+The view checks `is_staff` again. Edits are audited with `via: "mcp"` (or `"session"` for a browser).
+Revoking: a user's OAuth grant is revoked at the chatbot; rotating `MCP_TOKEN_SECRET` cuts off every MCP client at once.
+
+### 2.3a Auth v1: admin MCP tokens (retired)
 
 This reuses the Library Assistant token flow (`sefaria/utils/chatbot.py` + `SessionIDAuthMiddleware`)
 and fences it off with an audience claim and a separate secret:

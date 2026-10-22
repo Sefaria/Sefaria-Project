@@ -156,8 +156,10 @@ MANAGERS = ADMINS
 
 SECRET_KEY = 'insert your long random secret key here !'
 CHATBOT_USER_ID_SECRET = 'insert your chatbot user id secret here'
-# Secret for admin MCP tokens minted at /api/admin/mcp-token. Leave as None to disable admin MCP access.
-ADMIN_MCP_TOKEN_SECRET = None
+# Secret shared with the AI chatbot for MCP sign-in, and the chatbot callback URLs it may
+# redirect to (e.g. ["http://localhost:8001/oauth/sefaria/callback"]). None disables MCP sign-in.
+MCP_TOKEN_SECRET = None
+MCP_AUTH_CALLBACK_URLS = []
 
 
 EMAIL_HOST = 'localhost'

@@ -1,4 +1,5 @@
 import os
+import re
 import resource
 import sys
 import tempfile
@@ -16,7 +17,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token, ADMIN_MCP_TOKEN_AUDIENCE
+from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token, MCP_TOKEN_AUDIENCE
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.utils.views_utils import add_query_param, mark_no_applink, is_aasa_excluded, AASA_EXCLUDED_PATHS
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port, referer_is_sefaria_domain, redirect_target_is_sefaria_domain
@@ -366,12 +367,22 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
 
     Two token types share the header, each encrypted with its own secret:
     - Chatbot tokens (no audience, CHATBOT_USER_ID_SECRET): accepted on any path except
-      ADMIN_MCP_PATH_PREFIX. CSRF is still enforced.
-    - Admin MCP tokens (audience ADMIN_MCP_TOKEN_AUDIENCE, ADMIN_MCP_TOKEN_SECRET): accepted only
-      on ADMIN_MCP_PATH_PREFIX and only for staff. CSRF is skipped, since a browser never attaches
-      this header on its own.
+      ADMIN_PATH_PREFIX. CSRF is still enforced.
+    - MCP tokens (audience MCP_TOKEN_AUDIENCE, MCP_TOKEN_SECRET): minted per tool call by the AI
+      chatbot's MCP server for a user who signed in at /api/mcp/authorize. Accepted only on
+      MCP_ROUTES, the sheet API calls its tools make, and on MCP_ADMIN_ROUTES for staff only.
+      CSRF is skipped, since a browser never attaches this header on its own.
     """
-    ADMIN_MCP_PATH_PREFIX = "/api/admin/"
+    ADMIN_PATH_PREFIX = "/api/admin/"
+    MCP_ROUTES = (
+        ("GET", re.compile(r"^/api/sheets/user/\d+(/.*)?$")),
+        ("GET", re.compile(r"^/api/sheets/\d+/?$")),
+        ("POST", re.compile(r"^/api/sheets/?$")),
+    )
+    MCP_ADMIN_ROUTES = (
+        ("GET", re.compile(r"^/api/admin/topic-prompts/?$")),
+        ("PATCH", re.compile(r"^/api/admin/topic-prompts/[^/]+/?$")),
+    )
 
     def process_request(self, request):
         if getattr(request, "user", None) and request.user.is_authenticated:
@@ -382,8 +393,12 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
         if not encrypted_session_id:
             return
 
-        if request.path.startswith(self.ADMIN_MCP_PATH_PREFIX):
-            self._authenticate_admin_mcp(request, encrypted_session_id)
+        if request.path.startswith(self.ADMIN_PATH_PREFIX):
+            if self._matches(request, self.MCP_ADMIN_ROUTES):
+                self._authenticate_mcp(request, encrypted_session_id, staff_only=True)
+            return
+
+        if self._matches(request, self.MCP_ROUTES) and self._authenticate_mcp(request, encrypted_session_id):
             return
 
         user_id = get_user_id_from_chatbot_user_token(
@@ -394,18 +409,23 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
         if user:
             self._set_user(request, user)
 
-    def _authenticate_admin_mcp(self, request, token):
+    @staticmethod
+    def _matches(request, routes):
+        return any(request.method == method and pattern.match(request.path) for method, pattern in routes)
+
+    def _authenticate_mcp(self, request, token, staff_only=False):
         user_id = get_user_id_from_chatbot_user_token(
             token,
-            getattr(settings, "ADMIN_MCP_TOKEN_SECRET", None),
-            aud=ADMIN_MCP_TOKEN_AUDIENCE,
+            getattr(settings, "MCP_TOKEN_SECRET", None),
+            aud=MCP_TOKEN_AUDIENCE,
         )
         user = self._get_active_user(user_id)
-        if not user or not user.is_staff:
-            return
+        if not user or (staff_only and not user.is_staff):
+            return False
         self._set_user(request, user)
-        request.auth_via = ADMIN_MCP_TOKEN_AUDIENCE
+        request.auth_via = MCP_TOKEN_AUDIENCE
         request._dont_enforce_csrf_checks = True
+        return True
 
     @staticmethod
     def _get_active_user(user_id):

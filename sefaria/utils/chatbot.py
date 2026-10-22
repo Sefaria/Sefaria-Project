@@ -11,8 +11,13 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 DEFAULT_TTL_HOURS = 72
-ADMIN_MCP_TOKEN_AUDIENCE = "admin-mcp"
-ADMIN_MCP_DEFAULT_TTL_HOURS = 12
+# MCP sign-in (api/mcp_auth_views.py). Both audiences use MCP_TOKEN_SECRET, shared with the
+# AI chatbot. Sefaria mints mcp-login tokens to prove who signed in; the chatbot's MCP server mints
+# short-lived mcp tokens per tool call, which Sefaria accepts only on the API routes its tools use
+# (see SessionIDAuthMiddleware).
+MCP_LOGIN_TOKEN_AUDIENCE = "mcp-login"
+MCP_LOGIN_TOKEN_TTL_MINUTES = 5
+MCP_TOKEN_AUDIENCE = "mcp"
 NONCE_SIZE_BYTES = 12
 
 
@@ -47,10 +52,11 @@ def _decrypt_chatbot_user_token(token, secret):
     return payload
 
 
-def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS, aud=None):
+def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS, aud=None, state=None):
     """
     Build an encrypted user token. `aud` scopes the token to a consumer other than the chatbot
-    (e.g. ADMIN_MCP_TOKEN_AUDIENCE); chatbot tokens carry no audience.
+    (e.g. MCP_TOKEN_AUDIENCE); chatbot tokens carry no audience. `state` ties an mcp-login token to
+    the one sign-in flow it was issued for, so it cannot complete another.
     """
     if not user_id or not secret:
         return None
@@ -63,6 +69,8 @@ def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HO
     }
     if aud:
         payload["aud"] = aud
+    if state:
+        payload["state"] = state
     payload_bytes = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
     key = _derive_key(secret)
     aesgcm = AESGCM(key)
