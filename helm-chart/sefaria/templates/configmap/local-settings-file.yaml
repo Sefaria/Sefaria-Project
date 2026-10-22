@@ -180,6 +180,8 @@ data:
 
     SECRET_KEY = os.getenv("SECRET_KEY")
     CHATBOT_USER_ID_SECRET = os.getenv("CHATBOT_USER_ID_SECRET")
+    MCP_TOKEN_SECRET = os.getenv("MCP_TOKEN_SECRET")
+    MCP_AUTH_CALLBACK_URLS = [url.strip() for url in os.getenv("MCP_AUTH_CALLBACK_URLS", "").split(",") if url.strip()]
     CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
 
     EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
@@ -404,5 +406,6 @@ data:
 
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
     SEMANTIC_SEARCH_API_TOKEN = os.getenv("SEMANTIC_SEARCH_API_TOKEN", "")
+    SEMANTIC_SEARCH_TABLE_VERSION = os.getenv("SEMANTIC_SEARCH_TABLE_VERSION", "new")
 
     FAIL_IF_NODE_SSR_UNAVAILABLE = False

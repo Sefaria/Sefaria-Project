@@ -80,6 +80,14 @@ STATICFILES_DIRS = [
 SECRET_KEY = ''
 CHATBOT_USER_ID_SECRET = 'secret'
 SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
+# Secret shared with the AI chatbot for MCP sign-in (see api/mcp_auth_views.py and
+# SessionIDAuthMiddleware). Unset disables MCP sign-in and MCP token access. Read from the
+# environment here so a deployment's env secret enables it even when its local_settings doesn't
+# define it.
+MCP_TOKEN_SECRET = os.getenv("MCP_TOKEN_SECRET") or None
+# Where /api/mcp/authorize may send a sign-in result: the chatbot's OAuth callback URLs,
+# comma-separated, matched exactly.
+MCP_AUTH_CALLBACK_URLS = [url.strip() for url in os.getenv("MCP_AUTH_CALLBACK_URLS", "").split(",") if url.strip()]
 CHATBOT_USE_LOCAL_SCRIPT = False
 
 TEMPLATES = [
@@ -193,7 +201,7 @@ INSTALLED_APPS = (
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
 
 SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
-SEMANTIC_SEARCH_TABLE_VERSION = os.environ.get("SEMANTIC_SEARCH_TABLE_VERSION", "legacy")
+SEMANTIC_SEARCH_TABLE_VERSION = os.environ.get("SEMANTIC_SEARCH_TABLE_VERSION", "new")
 
 # Deployed app version (semantic-release tag), set as a pod env var by the Helm chart.
 # Empty in local dev, where no deploy has happened.

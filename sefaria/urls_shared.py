@@ -7,6 +7,8 @@ import sourcesheets.views as sheets_views
 import remote_config.views as remote_config_views
 import api.views as api_views
 import api.linker_admin_views as linker_api_views
+import api.admin_mcp_views as admin_mcp_views
+import api.mcp_auth_views as mcp_auth_views
 import api.lexicon_admin_views as lexicon_api_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
@@ -106,6 +108,7 @@ shared_patterns = [
     re_path(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
     re_path(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     path('api/name/<path:name>', reader_views.name_api),
+    re_path(r'^api/search-autocorrect/?$', reader_views.search_autocorrect_api),
 
     # Linker editor (staff-only): edit index linker metadata (match templates, address types,
     # node properties, NonUniqueTerms). Node key paths are dot-separated keys, e.g. "Berakhot.Intro".
@@ -129,7 +132,7 @@ shared_patterns = [
     path('_api/linker-admin/dataset/ref', linker_api_views.LinkerAdminAddRefDatasetView.as_view()),
     path('_api/linker-admin/dataset/ref-part', linker_api_views.LinkerAdminAddRefPartDatasetView.as_view()),
 
-    path('api/ref/<str:tref>', api_views.RefView.as_view()),
+    path('api/ref/<path:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     re_path(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
     path('api/words/completion/<path:word>/<path:lexicon>', reader_views.dictionary_completion_api),
@@ -213,6 +216,10 @@ shared_patterns = [
     path('api/topics/pools/<path:pool_name>', reader_views.topic_pool_api),
     re_path(r'^_api/topics/featured-topic/?$', reader_views.featured_topic_api),
     re_path(r'^api/topics/trending/?$', reader_views.trending_topics_api),
+    path('api/admin/topic-prompts', admin_mcp_views.TopicPromptsView.as_view()),
+    path('api/admin/topic-prompts/<str:link_id>', admin_mcp_views.TopicPromptView.as_view()),
+    # Sign-in handoff for the AI chatbot's MCP server (chat.sefaria.org/mcp/user and /mcp/admin).
+    path('api/mcp/authorize', mcp_auth_views.mcp_authorize),
     path('api/ref-topic-links/bulk', reader_views.topic_ref_bulk_api),
     path('api/ref-topic-links/<path:tref>', reader_views.topic_ref_api),
     path('api/v2/topics/<path:topic>', reader_views.topics_api, {'v2': True}),
@@ -323,7 +330,9 @@ shared_patterns = [
 shared_patterns += site_urlpatterns
 shared_patterns += staticfiles_urlpatterns()
 shared_patterns += [
-    re_path(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
+    # WSGI decodes %2F in text node titles before URL resolution. The catchall
+    # must pass the resulting slash to Ref, which validates the full title.
+    re_path(r'^(?P<tref>.+?)/?$', reader_views.catchall)
 ]
 
 # Keep admin accessible

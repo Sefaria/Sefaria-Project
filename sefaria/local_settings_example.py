@@ -156,6 +156,10 @@ MANAGERS = ADMINS
 
 SECRET_KEY = 'insert your long random secret key here !'
 CHATBOT_USER_ID_SECRET = 'insert your chatbot user id secret here'
+# Secret shared with the AI chatbot for MCP sign-in, and the chatbot callback URLs it may
+# redirect to (e.g. ["http://localhost:8001/oauth/sefaria/callback"]). None disables MCP sign-in.
+MCP_TOKEN_SECRET = None
+MCP_AUTH_CALLBACK_URLS = []
 
 
 EMAIL_HOST = 'localhost'
@@ -387,4 +391,4 @@ CHATBOT_USE_LOCAL_SCRIPT = True
 
 GEMINI_API_KEY = ""  # API key for Gemini embedding model (used by semantic search)
 SEMANTIC_SEARCH_API_TOKEN = ""  # Bearer token for the /api/knn-search endpoint
-SEMANTIC_SEARCH_TABLE_VERSION = "legacy"  # "legacy" uses library_chunks; "new" uses chunk_metadata + vectors
+SEMANTIC_SEARCH_TABLE_VERSION = os.getenv("SEMANTIC_SEARCH_TABLE_VERSION", "new")  # "legacy" uses library_chunks; "new" uses chunk_metadata + vectors
