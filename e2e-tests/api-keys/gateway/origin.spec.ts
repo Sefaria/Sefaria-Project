@@ -40,7 +40,7 @@ test.describe('gateway origin restriction', () => {
         expect(r.code).toBe('origin_not_allowed');
         expect(r.headers['www-authenticate'], 'a 403 carries no www-authenticate').toBeUndefined();
         expect(r.error).toContain(named);
-        expect(r.help).toBe('https://developers.sefaria.org/help/origin_not_allowed');
+        expect(r.help).toBe('https://developers.sefaria.org/#origin_not_allowed');
       }
     });
   }

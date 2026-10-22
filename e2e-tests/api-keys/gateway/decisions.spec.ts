@@ -11,7 +11,7 @@ const REVOKED = { suite: 'gateway', name: 'revoked' };
 const DELETED = { suite: 'gateway', name: 'deletedProject' };
 const TIER_KEY = { suite: 'gateway', name: 'full5.1' };
 
-const DENIAL_HELP = 'https://developers.sefaria.org/help/';
+const DENIAL_HELP = 'https://developers.sefaria.org/#';
 const WWW_AUTH = 'ApiKey realm="sefaria"';
 
 test.describe('gateway decisions', () => {
@@ -220,7 +220,7 @@ test.describe('gateway decisions', () => {
     await expect.poll(tierOf, { timeout: 5000, intervals: [100] }).toBe('developer');
   });
 
-  test('N-CR10: every help URL in a denial body resolves to a page @known-gap N-CR10', async ({ target }) => {
+  test('N-CR10: every help URL in a denial body resolves to a page', async ({ target }) => {
     const helps = new Set<string>();
     const required = await rawRequest({ target: target.name, path: GATED });
     const invalid = await rawRequest({ target: target.name, path: GATED, headers: { 'x-api-key': unknownKey() } });
@@ -228,7 +228,7 @@ test.describe('gateway decisions', () => {
       target: target.name, path: GATED, headers: { 'x-api-key': keyValue({ suite: 'gateway', name: 'restricted' }) },
     });
     for (const r of [required, invalid, origin]) {
-      expect(r.help, summary(r)).toMatch(/^https:\/\/developers\.sefaria\.org\/help\//);
+      expect(r.help, summary(r)).toMatch(/^https:\/\/developers\.sefaria\.org\/#/);
       helps.add(r.help!);
     }
     expect(helps.size).toBe(3);
