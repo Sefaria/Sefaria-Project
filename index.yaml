@@ -198,9 +198,9 @@ entries:
     version: 0.91.0-featuremcp-user-auth.1
   - apiVersion: v2
     appVersion: v7.6.2
-    created: "2026-10-22T08:15:41.530750488Z"
+    created: "2026-10-22T08:16:18.529058289Z"
     description: Chart to deploy complete Sefaria environment
-    digest: 3f71bdd724c54d93a70f2857f40f15847a984f9d9cb8ccd73fe491ba83271fb1
+    digest: 71144484ab2060debf4034adc81b99261202f5b5a048005b1ed38c0635a9d2d8
     home: https://sefaria.org
     icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
     maintainers:
@@ -22980,4 +22980,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-10-22T08:15:41.528173422Z"
+generated: "2026-10-22T08:16:18.525442735Z"
