@@ -160,7 +160,8 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
         has_open_bracket = re.search(r'\[[^]]+$', curr_span.text) is not None
         
         if has_open_paren or has_open_bracket:
-            for temp_end in range(curr_end, curr_end+5):
+            # Stay within the document: an unclosed delimiter at the end of the text has nothing to extend over
+            for temp_end in range(curr_end, min(curr_end+5, len(curr_span.doc.text))):
                 char = curr_span.doc.text[temp_end]
                 if (has_open_paren and char == ")") or (has_open_bracket and char == "]"):
                     curr_end = temp_end + 1
