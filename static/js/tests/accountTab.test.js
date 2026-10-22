@@ -433,3 +433,13 @@ describe('Account tab after Back', () => {
     expect(option('emailNotifications', 'never').classList).toContain('on');
   });
 });
+
+describe('Account tab in Hebrew', () => {
+  it('has Hebrew placeholders on the email change form', () => {
+    const he = require('../sefaria/i18n/interface/he.json');
+    mount();
+    const placeholders = Array.from(container.querySelectorAll('#username-change-edit input')).map(i => i.placeholder);
+    expect(placeholders).toHaveLength(3);
+    placeholders.forEach(id => expect(he[id]).toMatch(/[֐-׿]/));
+  });
+});
