@@ -462,7 +462,18 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
                      onCancelConfirmation}) => {
   const [asking, setAsking] = useState(false);
   const [resent, setResent] = useState(false);
-  const start = () => { if (verified) { onStart(); } else { setAsking(true); } };
+  const [error, setError] = useState("");
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
+  /* onStart, onSendConfirmation and onCancelConfirmation reject with the server's reason, shown here. */
+  const attempt = (request, onDone) => {
+    setError("");
+    setResent(false);
+    Promise.resolve(request()).then(() => { if (mounted.current && onDone) { onDone(); } },
+      err => { if (mounted.current) { setError(err.message || Sefaria._v(SAVE_FAILED)); } });
+  };
+  const start = () => { if (verified) { attempt(onStart); } else { setError(""); setAsking(true); } };
+  const errorMessage = error ? <p className="devPocWarning" role="alert">{error}</p> : null;
   const cardClass = "devPocCard" + (highlight ? " settingsHighlight" : "");
   const email = accountEmail();
   const emailText = email ? <bdi dir="ltr"><strong>{email}</strong></bdi> : null;
@@ -487,15 +498,16 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
           }} />
         </p>
         <div className="devPocActions">
-          <button className="button small white" type="button" data-agent-action="resend-confirmation" onClick={() => { onSendConfirmation(); setResent(true); }}>
+          <button className="button small white" type="button" data-agent-action="resend-confirmation" onClick={() => attempt(onSendConfirmation, () => setResent(true))}>
             <InterfaceText text={{en: "Resend the link", he: "שליחה חוזרת של הקישור"}} />
           </button>
-          <button className="button small transparent" type="button" onClick={() => { onCancelConfirmation(); setAsking(false); setResent(false); }}>
+          <button className="button small transparent" type="button" onClick={() => attempt(onCancelConfirmation, () => setAsking(false))}>
             <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
           </button>
         </div>
         {resent ?
           <p className="devPocHelp" role="status"><InterfaceText text={{en: "Sent again.", he: "נשלח שוב."}} /></p> : null}
+        {errorMessage}
         <p className="devPocHelp">
           <InterfaceText text={{
             en: "Not there? Check your spam folder. Wrong address? Change it in Account settings first.",
@@ -517,13 +529,14 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
           }} />
         </p>
         <div className="devPocActions">
-          <button className="button small blue" type="button" data-agent-action="send-confirmation" onClick={onSendConfirmation}>
+          <button className="button small blue" type="button" data-agent-action="send-confirmation" onClick={() => attempt(onSendConfirmation)}>
             <InterfaceText text={{en: "Email me a confirmation link", he: "שלחו לי קישור לאישור"}} />
           </button>
-          <button className="button small transparent" type="button" onClick={() => setAsking(false)}>
+          <button className="button small transparent" type="button" onClick={() => { setError(""); setAsking(false); }}>
             <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
           </button>
         </div>
+        {errorMessage}
       </div>
     );
   }
@@ -542,6 +555,7 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
           <InterfaceText text={{en: "Get started", he: "בואו נתחיל"}} />
         </button>
       </div>
+      {errorMessage}
     </div>
   );
 };
@@ -552,6 +566,13 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
 const ReconfirmEmail = ({confirmationSent, onSend}) => {
   const email = accountEmail();
   const emailText = <bdi dir="ltr"><strong>{email}</strong></bdi>;
+  const [error, setError] = useState("");
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
+  const send = () => {
+    setError("");
+    Promise.resolve(onSend()).catch(err => { if (mounted.current) { setError(err.message || Sefaria._v(SAVE_FAILED)); } });
+  };
   return (
     <div className="devPocNotice devPocReconfirm" role="region" aria-label={Sefaria._v({en: "Confirm your new email", he: "אישור כתובת הדוא״ל החדשה"})}>
       <h2><InterfaceText text={{en: "Confirm your new email address", he: "אישור כתובת הדוא״ל החדשה"}} /></h2>
@@ -569,12 +590,13 @@ const ReconfirmEmail = ({confirmationSent, onSend}) => {
           }} />
         </p> : null}
       <div className="devPocActions">
-        <button className="button small white" type="button" data-agent-action="send-confirmation" onClick={onSend}>
+        <button className="button small white" type="button" data-agent-action="send-confirmation" onClick={send}>
           <InterfaceText text={confirmationSent ?
             {en: "Resend the link", he: "שליחה חוזרת של הקישור"} :
             {en: "Email me a confirmation link", he: "שלחו לי קישור לאישור"}} />
         </button>
       </div>
+      {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
     </div>
   );
 };
@@ -1762,8 +1784,8 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
           settingUp={settingUp}
           highlight={highlight}
           onStart={onStart}
-          onSendConfirmation={() => run(sendConfirmation()).catch(() => {})}
-          onCancelConfirmation={() => run(cancelConfirmation()).catch(() => {})}
+          onSendConfirmation={() => run(sendConfirmation(), {quiet: true, refresh: true})}
+          onCancelConfirmation={() => run(cancelConfirmation(), {quiet: true, refresh: true})}
         /> :
         !state.profile ?
         <ProfileOnboarding onSave={profile => run(saveProfile(profile), {quiet: true})} /> :
@@ -1809,7 +1831,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
           {canCreate ? null :
             <ReconfirmEmail
               confirmationSent={!!state.confirmationSentAt}
-              onSend={() => run(sendConfirmation()).catch(() => {})}
+              onSend={() => run(sendConfirmation(), {quiet: true, refresh: true})}
             />}
 
           <div className="devPocSectionHeading">
@@ -2417,6 +2439,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
   /* A short loader before developer settings appear, so the change doesn't read as a reload. */
   const showDeveloper = (onReady) => {
     setSettingUp(true);
+    setNotice("");
     clearTimeout(setupTimer.current);
     setupTimer.current = setTimeout(() => {
       setSettingUp(false);
@@ -2425,7 +2448,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
     }, SETUP_MS);
   };
 
-  const startDeveloper = () => run(enableDeveloper()).then(() => showDeveloper(), () => {});
+  const startDeveloper = () => run(enableDeveloper(), {quiet: true, refresh: true}).then(() => showDeveloper());
 
   const closeConfirm = (confirmed) => {
     if (confirmed && confirm && confirm.onConfirm) { confirm.onConfirm(); }

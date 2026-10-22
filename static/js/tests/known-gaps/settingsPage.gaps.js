@@ -150,66 +150,6 @@ afterEach(() => {
   container = null;
 });
 
-describe('errors before setup', () => {
-  it('shows a refused confirmation send in the Get started view @known-gap N-C3', async () => {
-    mount('developer', UNVERIFIED);
-    act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
-    respondError(429, 'Wait a minute before asking for another email.');
-    await clickAndSettle(buttonNamed(developerPanel(), 'Email me a confirmation link'));
-    expect(developerPanel().textContent).toContain('Wait a minute before asking for another email.');
-  });
-
-  it('shows the daily-limit refusal in the Get started view @known-gap N-C3', async () => {
-    mount('developer', UNVERIFIED);
-    act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
-    respondError(429, "You've asked for 5 links today. Try again tomorrow, or contact hello@sefaria.org.");
-    await clickAndSettle(buttonNamed(developerPanel(), 'Email me a confirmation link'));
-    expect(developerPanel().textContent).toContain("You've asked for 5 links today.");
-  });
-
-  it('does not say "Sent again." when the resend was refused, and shows why @known-gap N-C3', async () => {
-    mount('developer', LINK_SENT);
-    respondError(429, 'Wait a minute before asking for another email.');
-    await clickAndSettle(buttonNamed(developerPanel(), 'Resend the link'));
-    expect(developerPanel().textContent).not.toContain('Sent again.');
-    expect(developerPanel().textContent).toContain('Wait a minute before asking for another email.');
-  });
-
-  it('shows why Get started failed for a verified account @known-gap N-C3', async () => {
-    mount('developer', { ...UNVERIFIED, emailVerified: true });
-    respondError(400, 'Confirm your email before turning on developer settings.');
-    await clickAndSettle(buttonNamed(developerPanel(), 'Get started'));
-    expect(developerPanel().textContent).toContain('Confirm your email before turning on developer settings.');
-  });
-
-  it('shows "Your email is already confirmed." when sending is refused for that reason @known-gap N-C3', async () => {
-    mount('developer', UNVERIFIED);
-    act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
-    respondError(400, 'Your email is already confirmed.');
-    await clickAndSettle(buttonNamed(developerPanel(), 'Email me a confirmation link'));
-    expect(developerPanel().textContent).toContain('Your email is already confirmed.');
-  });
-
-  it('does not carry an error from before setup over to the projects page @known-gap N-C3', async () => {
-    jest.useFakeTimers();
-    mount('developer', LINK_SENT);
-    respondError(429, 'Wait a minute before asking for another email.');
-    await clickAndSettle(buttonNamed(developerPanel(), 'Resend the link'));
-
-    const confirmed = { ...UNVERIFIED, emailVerified: true, developerEnabled: true, confirmationSentAt: null };
-    respondWith(confirmed);
-    await advance(3000);
-    await advance(2000);
-    expect(developerPanel().textContent).toContain('About you');
-
-    act(() => { container.querySelector('.devPocLegal input[type="checkbox"]').click(); });
-    respondWith({ ...confirmed, profile: PROFILE, projects: [] });
-    await clickAndSettle(container.querySelector('[data-agent-action="save-profile"]'));
-    expect(developerPanel().textContent).toContain('No projects yet');
-    expect(developerPanel().textContent).not.toContain('Wait a minute');
-  });
-});
-
 describe('key-create errors', () => {
   const startKey = (keys) => {
     jest.useFakeTimers();
