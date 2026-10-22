@@ -1,0 +1,3 @@
+.wrap { position: relative; display: inline-flex; flex: none; }
+.launcher { display: inline-flex; padding: 0; border: 0; background: none; cursor: pointer; color: #666; }
+.pop { position: absolute; z-index: 60; inset-inline-end: -8px; top: calc(100% + 12px); }

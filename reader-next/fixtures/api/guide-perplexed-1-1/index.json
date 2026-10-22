@@ -1,0 +1,383 @@
+{
+  "title": "Guide for the Perplexed",
+  "categories": [
+    "Jewish Thought",
+    "Rishonim"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "introduction-of-ibn-tibon"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "he",
+            "text": "פתיחת אבן תיבון",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Introduction of Ibn Tibon",
+            "primary": true
+          }
+        ],
+        "key": "Introduction of Ibn Tibon"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "letter-to-r-joseph-son-of-judah"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "he",
+            "text": "איגרת אל ר' יוסף ש\"ץ ב\"ר יהודה",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Letter to R Joseph son of Judah",
+            "primary": true
+          }
+        ],
+        "key": "Letter to R Joseph son of Judah"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "prefatory-remarks"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "lang": "he",
+            "text": "פתיחת הרמב\"ם",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Prefatory Remarks",
+            "primary": true
+          }
+        ],
+        "key": "Prefatory Remarks"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "introduction"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "lang": "he",
+                "text": "הקדמה",
+                "primary": true
+              },
+              {
+                "lang": "en",
+                "text": "Introduction",
+                "primary": true
+              }
+            ],
+            "key": "Introduction"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 2,
+            "addressTypes": [
+              "Perek",
+              "Integer"
+            ],
+            "sectionNames": [
+              "Chapter",
+              "Paragraph"
+            ],
+            "lengths": [
+              76
+            ],
+            "default": true,
+            "key": "default"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "part-1"
+            ]
+          }
+        ],
+        "numeric_equivalent": 1,
+        "titles": [
+          {
+            "lang": "he",
+            "text": "חלק א'",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Part 1",
+            "primary": true
+          }
+        ],
+        "key": "Part 1"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "introduction"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "text": "Introduction",
+                "lang": "en",
+                "primary": true
+              },
+              {
+                "text": "הקדמה",
+                "lang": "he",
+                "primary": true
+              }
+            ],
+            "key": "Part 2 Introduction"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 2,
+            "addressTypes": [
+              "Perek",
+              "Integer"
+            ],
+            "sectionNames": [
+              "Chapter",
+              "Paragraph"
+            ],
+            "lengths": [
+              48
+            ],
+            "default": true,
+            "key": "default"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "part-2"
+            ]
+          }
+        ],
+        "numeric_equivalent": 2,
+        "titles": [
+          {
+            "lang": "he",
+            "text": "חלק ב'",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Part 2",
+            "primary": true
+          }
+        ],
+        "key": "Part 2"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": [
+              "Integer"
+            ],
+            "sectionNames": [
+              "Paragraph"
+            ],
+            "match_templates": [
+              {
+                "term_slugs": [
+                  "introduction"
+                ]
+              }
+            ],
+            "titles": [
+              {
+                "text": "Introduction",
+                "lang": "en",
+                "primary": true
+              },
+              {
+                "text": "הקדמה",
+                "lang": "he",
+                "primary": true
+              }
+            ],
+            "key": "Part 3 Introduction"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 2,
+            "addressTypes": [
+              "Perek",
+              "Integer"
+            ],
+            "sectionNames": [
+              "Chapter",
+              "Paragraph"
+            ],
+            "lengths": [
+              54
+            ],
+            "default": true,
+            "key": "default"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [
+          {
+            "term_slugs": [
+              "part-3"
+            ]
+          }
+        ],
+        "numeric_equivalent": 3,
+        "titles": [
+          {
+            "lang": "he",
+            "text": "חלק ג'",
+            "primary": true
+          },
+          {
+            "lang": "en",
+            "text": "Part 3",
+            "primary": true
+          }
+        ],
+        "key": "Part 3"
+      }
+    ],
+    "nodeType": "SchemaNode",
+    "match_templates": [
+      {
+        "term_slugs": [
+          "sefer",
+          "guide-for-the-perplexed1"
+        ]
+      },
+      {
+        "term_slugs": [
+          "guide-for-the-perplexed1"
+        ]
+      }
+    ],
+    "titles": [
+      {
+        "text": "More Nevuchim",
+        "lang": "en"
+      },
+      {
+        "text": "Moreh Nebuchim",
+        "lang": "en"
+      },
+      {
+        "text": "Moreh Nevukhim",
+        "lang": "en"
+      },
+      {
+        "text": "Guide of the Perplexed",
+        "lang": "en"
+      },
+      {
+        "text": "מורה נבוכים",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "ספר המורה",
+        "lang": "he"
+      },
+      {
+        "text": "Guide for the Perplexed",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Guide for the Perplexed"
+  },
+  "authors": [
+    "rambam"
+  ],
+  "enDesc": "The Guide for the Perplexed, written by Maimonides (Rambam), contains the author’s philosophical views. It is written in the form of a letter to his student, Rabbi Joseph ben Judah of Ceuta. Originally written in Judeo-Arabic, it was later translated to Hebrew (1204). The Guide includes Rambam’s objection to anthropomorphism, an explanation of the Biblical account of creation, and a description of the Merkavah.",
+  "heDesc": "",
+  "enShortDesc": "Maimonides’ 12th-century philosophical masterwork, written as a letter to his student demonstrating the compatibility of Judaism and philosophy.",
+  "heShortDesc": "יצירת המופת של הרמב\"ם שנכתבה במאה ה-12 כאיגרת לתלמידיו שבה הוא מצביע על ההתאמה בין עיקרי היהדות ובין הפילוסופיה.",
+  "pubDate": [
+    1475
+  ],
+  "compDate": [
+    1190
+  ],
+  "compPlace": "Fustat",
+  "pubPlace": "Rome",
+  "era": "RI"
+}

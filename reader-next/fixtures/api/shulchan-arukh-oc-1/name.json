@@ -1,0 +1,144 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Shulchan Arukh, Orach Chayim",
+    "Shulchan Arukh",
+    "Shulchan Arukh HaRav",
+    "Shulchan Arukh HaRav, Orach Chayim",
+    "Netiv Chayim on Shulchan Arukh, Orach Chayim",
+    "Taz on Shulchan Arukh, Orach Chayim",
+    "Ba'er Hetev on Shulchan Arukh, Orach Chayim",
+    "Be'er HaGolah on Shulchan Arukh, Orach Chayim",
+    "Eshel Avraham on Shulchan Arukh, Orach Chayim",
+    "Ateret Zekenim on Shulchan Arukh, Orach Chayim"
+  ],
+  "completion_objects": [
+    {
+      "title": "Shulchan Arukh, Orach Chayim",
+      "key": "Shulchan Arukh, Orach Chayim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Shulchan Arukh",
+      "type": "TocCategory",
+      "key": [
+        "Halakhah",
+        "Shulchan Arukh"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Shulchan Arukh",
+      "type": "Topic",
+      "key": "shulchan-arukh",
+      "is_primary": true,
+      "order": 4999967,
+      "topic_pools": [
+        "sheets"
+      ]
+    },
+    {
+      "title": "Shulchan Arukh HaRav",
+      "key": "Shulchan Arukh HaRav",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Shulchan Arukh HaRav",
+      "type": "TocCategory",
+      "key": [
+        "Halakhah",
+        "Shulchan Arukh HaRav"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Shulchan Arukh HaRav, Orach Chayim",
+      "key": "Shulchan Arukh HaRav, Orach Chayim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Netiv Chayim on Shulchan Arukh, Orach Chayim",
+      "key": "Netiv Chayim on Shulchan Arukh, Orach Chayim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Taz on Shulchan Arukh, Orach Chayim",
+      "key": "Turei Zahav on Shulchan Arukh, Orach Chayim",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Ba'er Hetev on Shulchan Arukh, Orach Chayim",
+      "key": "Ba'er Hetev on Shulchan Arukh, Orach Chayim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Be'er HaGolah on Shulchan Arukh, Orach Chayim",
+      "key": "Be'er HaGolah on Shulchan Arukh, Orach Chayim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Eshel Avraham on Shulchan Arukh, Orach Chayim",
+      "key": "Eshel Avraham on Shulchan Arukh, Orach Chayim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Ateret Zekenim on Shulchan Arukh, Orach Chayim",
+      "key": "Ateret Zekenim on Shulchan Arukh, Orach Chayim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Shulchan Arukh, Orach Chayim",
+  "url": "Shulchan_Arukh,_Orach_Chayim",
+  "index": "Shulchan Arukh, Orach Chayim",
+  "book": "Shulchan Arukh, Orach Chayim",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Siman",
+    "Seif"
+  ],
+  "heSectionNames": [
+    "סימן",
+    "סעיף"
+  ],
+  "addressExamples": [
+    "3",
+    "6"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳"
+  ]
+}

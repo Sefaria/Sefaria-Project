@@ -1,0 +1,96 @@
+{
+  "title": "On the Account of the World's Creation",
+  "categories": [
+    "Second Temple",
+    "Philo"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "sharedTitle": "Introduction",
+        "key": "Introduction"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": [
+          "Integer",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Chapter",
+          "Paragraph"
+        ],
+        "default": true,
+        "key": "default"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "text": "Appendix",
+            "lang": "en",
+            "primary": true
+          },
+          {
+            "text": "הערות",
+            "lang": "he",
+            "primary": true
+          }
+        ],
+        "key": "Appendix"
+      }
+    ],
+    "titles": [
+      {
+        "text": "On the Account of the World's Creation Given by Moses",
+        "lang": "en"
+      },
+      {
+        "text": "De Opficio Mundi",
+        "lang": "en"
+      },
+      {
+        "text": "De M. Opif.",
+        "lang": "en"
+      },
+      {
+        "text": "De O. M.",
+        "lang": "en"
+      },
+      {
+        "text": "על בריאת העולם",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "On the Account of the World's Creation",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "On the Account of the World's Creation"
+  },
+  "authors": [
+    "philo-of-alexandria"
+  ],
+  "enDesc": "",
+  "heDesc": "",
+  "enShortDesc": "",
+  "heShortDesc": ""
+}

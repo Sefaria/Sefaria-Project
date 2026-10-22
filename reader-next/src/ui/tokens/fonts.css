@@ -1,0 +1,26 @@
+/* Self-hosted text and UI faces (Fontsource, SIL OFL / Apache). Served with the app so they can be preloaded
+   alongside the page: from a third-party stylesheet they arrived after first paint and reflowed the text. */
+@import "@fontsource/crimson-text/400.css";
+@import "@fontsource/crimson-text/400-italic.css";
+@import "@fontsource/crimson-text/600.css";
+@import "@fontsource/heebo/400.css";
+@import "@fontsource/heebo/500.css";
+@import "@fontsource/heebo/700.css";
+@import "@fontsource/roboto/400.css";
+@import "@fontsource/roboto/400-italic.css";
+@import "@fontsource/roboto/500.css";
+@import "@fontsource/roboto/700.css";
+@import "@fontsource/miriam-libre/400.css";
+@import "@fontsource/miriam-libre/700.css";
+
+/* Taamey Frank CLM: the main Hebrew text face (open licence, see public/fonts/Taamey-Frank/LICENSE.txt).
+   Latin/punctuation ranges are the same as the old client so mixed Hebrew/English runs stay balanced. */
+@font-face { font-family: "Taamey Frank"; src: url("/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf") format("truetype"); font-style: normal; font-weight: 400 500; font-display: swap; unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F; }
+@font-face { font-family: "Taamey Frank"; src: url("/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf") format("truetype"); font-style: normal; font-weight: 600 900; font-display: swap; unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F; }
+@font-face { font-family: "Taamey Frank"; src: url("/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf") format("truetype"); font-style: italic; font-weight: 400 500; font-display: swap; unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F; }
+@font-face { font-family: "Taamey Frank"; src: url("/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf") format("truetype"); font-style: italic; font-weight: 600 900; font-display: swap; unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F; }
+
+/* Cardo covers ONLY Greek and combining marks, exactly as on sefaria.org (static/css/font-faces.css): it comes first in the text
+   stacks for Greek, and everything Latin falls through to Adobe Garamond Pro. Giving Cardo the whole Latin range (as Fontsource does)
+   made every English text Cardo — the visible face difference against the live site. */
+@font-face { font-family: "Cardo"; src: url("/fonts/Cardo-Regular.ttf") format("truetype"); font-display: swap; unicode-range: U+0300-036F, U+0370-03FF, U+1D00-1D7F, U+1DBF, U+1F00-1FFF, U+2126, U+AB65, U+10140-1018F, U+101A0, U+1D200-1D24F; }

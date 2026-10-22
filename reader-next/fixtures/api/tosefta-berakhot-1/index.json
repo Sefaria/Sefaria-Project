@@ -1,0 +1,88 @@
+{
+  "title": "Tosefta Berakhot",
+  "categories": [
+    "Tosefta",
+    "Vilna Edition",
+    "Seder Zeraim"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Integer"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Tosefta"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "tosefta",
+          "berakhot"
+        ]
+      }
+    ],
+    "lengths": [
+      7,
+      151
+    ],
+    "titles": [
+      {
+        "lang": "en",
+        "text": "Tos. Berakhot"
+      },
+      {
+        "lang": "en",
+        "text": "Tosefta Berachot"
+      },
+      {
+        "lang": "en",
+        "text": "T. Berakhot"
+      },
+      {
+        "lang": "en",
+        "text": "Tosefta Brachot"
+      },
+      {
+        "lang": "en",
+        "text": "Tos. Berachot"
+      },
+      {
+        "lang": "en",
+        "text": "Tosef. Ber."
+      },
+      {
+        "text": "תוספתא ברכות",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Tosefta Berakhot",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Tosefta Berakhot"
+  },
+  "order": [
+    1
+  ],
+  "authors": [],
+  "enDesc": "Berakhot (“Blessings”) is the first tractate of Zeraim (“Seeds”), the first order of the Mishnah, and the only tractate in Zeraim included in the Babylonian Talmud. Its nine chapters discuss the laws of prayers, focusing on the Shema, the Amidah, and blessings, including those recited in the context of eating.",
+  "enShortDesc": "Blessings and prayers, focusing on Shema and the Amidah.",
+  "heShortDesc": "ברכות ותפילות, בדגש על קריאת שמע ועל תפילת העמידה.",
+  "pubDate": [
+    1521
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    190,
+    230
+  ],
+  "compPlace": "Talmudic Israel",
+  "pubPlace": "Venice",
+  "era": "T",
+  "is_cited": true
+}

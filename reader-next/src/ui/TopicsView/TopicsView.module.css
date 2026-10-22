@@ -1,0 +1,21 @@
+.list { list-style: none; margin: 0; padding: 0; }
+.item { padding-block: var(--sefaria-space-4); border-block-end: 1px solid var(--sefaria-color-border); }
+.item:last-child { border-block-end: 0; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sefaria-space-2); }
+.title { font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-large, 1.25rem); color: var(--sefaria-color-text); text-decoration: none; }
+.title[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.title:hover { text-decoration: underline; }
+.dots { flex: none; width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 50%; background: var(--sefaria-color-surface-subtle, #f0f0ee); color: var(--sefaria-color-text-muted); cursor: help; font-size: 1.1rem; line-height: 1; }
+.desc { margin-block-start: var(--sefaria-space-2); font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-sans-small); line-height: 1.5; color: var(--sefaria-color-text-secondary); }
+.desc[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.desc p { margin: 0; }
+.desc a { color: var(--sefaria-color-link, #4b71b7); text-decoration: underline; }
+.empty { margin: var(--sefaria-space-6) 0; font-family: var(--sefaria-font-ui-en); color: var(--sefaria-color-text-secondary); }
+
+/* VERIFIED on sefaria.org (1280px): 18px black serif names; 13px/18px grey descriptions with plain blue links; a 22px grey-ground round button (#ededec) with three dots */
+.title { font-size: 18px; color: #000; }
+.item { padding-block: 22px; border-block-end-color: #e5e5e4; }
+.head { align-items: center; }
+.dots { width: 22px; height: 22px; background: #ededec; font-size: 12px; color: #000; letter-spacing: 0; }
+.desc { margin-block-start: 6px; font-size: 13px; line-height: 18px; color: #666; }
+.desc a { text-decoration: underline; } /* a deliberate difference: links in running text keep an underline (WCAG 1.4.1) */

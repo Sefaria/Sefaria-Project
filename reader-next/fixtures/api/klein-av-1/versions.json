@@ -1,0 +1,32 @@
+[
+  {
+    "status": "locked",
+    "priority": "",
+    "license": "CC-BY-NC",
+    "versionNotes": "",
+    "formatAsPoetry": "",
+    "digitizedBySefaria": true,
+    "method": "",
+    "heversionSource": "",
+    "versionUrl": "",
+    "versionTitleInHebrew": "כרטא תשמ״ז",
+    "versionNotesInHebrew": "",
+    "shortVersionTitle": "",
+    "shortVersionTitleInHebrew": "",
+    "extendedNotes": "",
+    "extendedNotesHebrew": "",
+    "purchaseInformationImage": "https://storage.googleapis.com/sefaria-physical-editions/dd3b43cf67a3fb5c2e58b568c437ede5.png",
+    "purchaseInformationURL": "http://store.carta-jerusalem.com/hebrew-script/119-a-comprehensive-etymological-dictionary-of-the-hebrew-language-for-readers-of-english.html",
+    "hasManuallyWrappedRefs": "",
+    "language": "en",
+    "title": "Klein Dictionary",
+    "versionSource": "https://www.nli.org.il/he/books/NNL01",
+    "versionTitle": "Carta Jerusalem; 1st edition, 1987",
+    "actualLanguage": "en",
+    "languageFamilyName": "english",
+    "isSource": true,
+    "isPrimary": true,
+    "direction": "ltr",
+    "firstSectionRef": "Klein Dictionary, א"
+  }
+]

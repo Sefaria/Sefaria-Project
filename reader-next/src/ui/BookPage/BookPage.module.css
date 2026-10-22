@@ -1,0 +1,25 @@
+.title { margin: 0; font-family: var(--sefaria-font-text-en); font-size: 30px; font-weight: 400; color: #000; }
+.title[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.category { display: inline-block; margin-block: 14px 24px; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: #6f6f6f; text-decoration: none; }
+.category[lang="he"] { text-transform: none; letter-spacing: 0; }
+.dedication { margin-block-end: 20px; font-family: var(--sefaria-font-text-en); color: var(--sefaria-color-text-secondary); }
+a.read { display: inline-flex; margin-block-end: 32px; padding: 10px 14px; height: auto; font-size: 16px; font-weight: 400; } /* 124 x 39, 16px (VERIFIED) */
+.tabs { display: flex; gap: 30px; border-block-end: 1px solid var(--sefaria-color-border); margin-block-end: 24px; }
+.tab { padding: 0 0 12px; font-size: 22px; color: var(--sefaria-color-text-secondary); text-decoration: none; border-block-end: 3px solid transparent; margin-block-end: -1px; }
+.tab[data-current] { color: var(--sefaria-color-text); border-block-end-color: var(--sefaria-color-border); }
+.sideTitle { margin: 0 0 12px; padding-block-end: 12px; border-block-end: 1px solid var(--sefaria-color-border); font-size: 22px; font-weight: 500; color: var(--sefaria-color-text-secondary); }
+.about { font-size: 16px; line-height: 1.5; color: var(--sefaria-color-text-secondary); }
+.about p { margin: 0 0 12px; }
+.versions { display: flex; flex-direction: column; gap: 28px; }
+.attribution { margin-block: -8px 28px; font-family: var(--sefaria-font-text-en); font-size: 24px; font-style: italic; color: #666; } .attribution a { color: inherit; text-decoration: none; } .attribution a:hover { text-decoration: underline; }
+.attribution[lang="he"], .attribution a[lang="he"] { font-family: var(--sefaria-font-text-he); font-style: normal; }
+
+/* "Composed: Talmudic Babylon, c.450 – c.550 CE" / "Author: …": grey label, black value (VERIFIED) */
+.meta { margin-block-end: 24px; font-size: 16px; line-height: 1.2; color: #000; }
+.metaLabel { color: var(--sefaria-color-text-secondary); }
+.meta a { color: inherit; text-decoration: none; }
+.meta a:hover { text-decoration: underline; }
+
+/* On a phone the About text is part of the page (no sidebar module): metadata and description under Start Reading (VERIFIED, phone User-Agent) */
+.phoneOnly { display: none; margin-block-end: 32px; }
+@media (max-width: 842px) { .phoneOnly { display: block; } .desktopOnly { display: none; } }

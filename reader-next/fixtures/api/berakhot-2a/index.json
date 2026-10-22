@@ -1,0 +1,1123 @@
+{
+  "title": "Berakhot",
+  "categories": [
+    "Talmud",
+    "Bavli",
+    "Seder Zeraim"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Talmud",
+      "Integer"
+    ],
+    "sectionNames": [
+      "Daf",
+      "Line"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "talmud",
+          "bavli",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "talmud",
+          "bavli",
+          "tractate",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "talmud",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "bavli",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "gemara",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "bavli",
+          "tractate",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "gemara",
+          "tractate",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "tractate",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "berakhot"
+        ]
+      }
+    ],
+    "lengths": [
+      127,
+      2749
+    ],
+    "titles": [
+      {
+        "lang": "en",
+        "text": "Berachoth"
+      },
+      {
+        "lang": "en",
+        "text": "Berachot"
+      },
+      {
+        "lang": "en",
+        "text": "Berakhoth"
+      },
+      {
+        "lang": "en",
+        "text": "Brachot"
+      },
+      {
+        "lang": "en",
+        "text": "Tractate Berakhot"
+      },
+      {
+        "lang": "en",
+        "text": "Berachos"
+      },
+      {
+        "lang": "en",
+        "text": "Masekhet Berakhot"
+      },
+      {
+        "lang": "en",
+        "text": "Talmud Berakhot"
+      },
+      {
+        "lang": "en",
+        "text": "Berakot"
+      },
+      {
+        "lang": "en",
+        "text": "Ber."
+      },
+      {
+        "lang": "en",
+        "text": "B’rakhoth"
+      },
+      {
+        "lang": "en",
+        "text": "T.B. Berakhoth"
+      },
+      {
+        "lang": "he",
+        "text": "בְּרָכוֹת"
+      },
+      {
+        "lang": "he",
+        "text": "ברכו'"
+      },
+      {
+        "text": "BT Berakhot",
+        "lang": "en"
+      },
+      {
+        "text": "ברכות",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Berakhot",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Berakhot",
+    "checkFirst": {
+      "he": "משנה ברכות",
+      "en": "Mishnah Berakhot"
+    }
+  },
+  "alt_structs": {
+    "Chapters": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Berakhot 2a:1-13a:15",
+          "includeSections": true,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "first"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "perek",
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "perek",
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "perek",
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "perek",
+                "chapter-17"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 1,
+          "titles": [
+            {
+              "primary": true,
+              "lang": "en",
+              "text": "Chapter 1; MeEimatai"
+            },
+            {
+              "primary": true,
+              "lang": "he",
+              "text": "מאימתי"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Berakhot 13a:16-17b:11",
+          "includeSections": true,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "second"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "perek",
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "perek",
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "perek",
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "perek",
+                "chapter-27"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 2,
+          "titles": [
+            {
+              "primary": true,
+              "lang": "en",
+              "text": "Chapter 2; Hayah Korei"
+            },
+            {
+              "primary": true,
+              "lang": "he",
+              "text": "היה קורא"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Berakhot 17b:12-26a:10",
+          "includeSections": true,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "third"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "perek",
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "perek",
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "perek",
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "perek",
+                "chapter-37"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 3,
+          "titles": [
+            {
+              "primary": true,
+              "lang": "en",
+              "text": "Chapter 3; Mi SheMeto"
+            },
+            {
+              "primary": true,
+              "lang": "he",
+              "text": "מי שמתו"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Berakhot 26a:11-30b:13",
+          "includeSections": true,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "fourth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "perek",
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "perek",
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "perek",
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "perek",
+                "chapter-47"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 4,
+          "titles": [
+            {
+              "primary": true,
+              "lang": "en",
+              "text": "Chapter 4; Tefillat HaShachar"
+            },
+            {
+              "primary": true,
+              "lang": "he",
+              "text": "תפלת השחר"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Berakhot 30b:14-34b:32",
+          "includeSections": true,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "fifth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "perek",
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "perek",
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "perek",
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "perek",
+                "chapter-57"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 5,
+          "titles": [
+            {
+              "primary": true,
+              "lang": "en",
+              "text": "Chapter 5; Ein Omdin"
+            },
+            {
+              "primary": true,
+              "lang": "he",
+              "text": "אין עומדין"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Berakhot 35a:1-45a:3",
+          "includeSections": true,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "sixth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "perek",
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "perek",
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "perek",
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "perek",
+                "chapter-65"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 6,
+          "titles": [
+            {
+              "primary": true,
+              "lang": "en",
+              "text": "Chapter 6; Keitzad Mevarchin"
+            },
+            {
+              "primary": true,
+              "lang": "he",
+              "text": "כיצד מברכין"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Berakhot 45a:4-51b:10",
+          "includeSections": true,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "seventh"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "perek",
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "perek",
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "perek",
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "perek",
+                "chapter-75"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 7,
+          "titles": [
+            {
+              "primary": true,
+              "lang": "en",
+              "text": "Chapter 7; Sheloshah SheAchlu"
+            },
+            {
+              "primary": true,
+              "lang": "he",
+              "text": "שלשה שאכלו"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Berakhot 51b:11-53b:33",
+          "includeSections": true,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "eighth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "perek",
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "perek",
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "perek",
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "perek",
+                "chapter-85"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 8,
+          "titles": [
+            {
+              "primary": true,
+              "lang": "en",
+              "text": "Chapter 8; Ellu Devarim"
+            },
+            {
+              "primary": true,
+              "lang": "he",
+              "text": "אלו דברים"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Berakhot 54a:1-64a:15",
+          "includeSections": true,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "ninth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "last"
+              ]
+            },
+            {
+              "term_slugs": [
+                "last"
+              ]
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "bavli",
+                "perek",
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "bavli",
+                "perek",
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "talmud",
+                "perek",
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "gemara",
+                "perek",
+                "chapter-95"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 9,
+          "titles": [
+            {
+              "primary": true,
+              "lang": "en",
+              "text": "Chapter 9; HaRoeh"
+            },
+            {
+              "primary": true,
+              "lang": "he",
+              "text": "הרואה"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "default_struct": "Chapters",
+  "exclude_structs": [
+    "schema"
+  ],
+  "order": [
+    1,
+    1
+  ],
+  "authors": [],
+  "enDesc": "Berakhot (“Blessings”) is the first tractate of Zeraim (“Seeds”), the first order of the Mishnah, and the only tractate in Zeraim included in the Babylonian Talmud. Its nine chapters discuss the laws of prayers, focusing on the Shema, the Amidah, and blessings, including those recited in the context of eating.",
+  "enShortDesc": "Blessings and prayers, focusing on Shema and the Amidah.",
+  "heShortDesc": "ברכות ותפילות, בדגש על קריאת שמע ועל תפילת העמידה.",
+  "pubDate": [
+    1483
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    450,
+    550
+  ],
+  "compPlace": "Talmudic Babylon",
+  "pubPlace": "Soncino",
+  "era": "A",
+  "is_cited": true,
+  "corpora": [
+    "Bavli"
+  ]
+}

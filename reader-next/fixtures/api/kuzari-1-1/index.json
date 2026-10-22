@@ -1,0 +1,100 @@
+{
+  "title": "Kuzari",
+  "categories": [
+    "Jewish Thought",
+    "Rishonim"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Integer"
+    ],
+    "sectionNames": [
+      "Essay",
+      "Statement"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "kuzari"
+        ]
+      }
+    ],
+    "lengths": [
+      5,
+      350
+    ],
+    "titles": [
+      {
+        "text": "Hakuzari",
+        "lang": "en"
+      },
+      {
+        "text": "Kitab al Khazari",
+        "lang": "en"
+      },
+      {
+        "text": "Sefer HaKuzari",
+        "lang": "en"
+      },
+      {
+        "text": "Cusari",
+        "lang": "en"
+      },
+      {
+        "text": "Sefer Kuzari",
+        "lang": "en"
+      },
+      {
+        "text": "Ha-Kuzari",
+        "lang": "en"
+      },
+      {
+        "text": "Sefer Ha-Kuzari",
+        "lang": "en"
+      },
+      {
+        "text": "The Kuzari",
+        "lang": "en"
+      },
+      {
+        "text": "הכוזרי",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "ספר הכוזרי",
+        "lang": "he"
+      },
+      {
+        "text": "כוזרי",
+        "lang": "he"
+      },
+      {
+        "text": "Kuzari",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Kuzari"
+  },
+  "authors": [
+    "yehuda-halevi"
+  ],
+  "enDesc": "The Kuzari was written by Judah Halevi (Spain, 1075–1141 CE). Originally written in Arabic, it describes how the king of the Khazars — an Asian tribe that converted to Judaism in the eighth century) — in an attempt to determine which is the true religion, invites representatives of each of the three major religions to come and explain his beliefs. The group includes a Muslim imam, a Christian priest, and a rabbi. The king is won over by the rabbi's arguments, and in the ensuing dialogue, the rabbi demonstrates the superiority of Judaism by bringing clear proof to the biblical account of the giving of the Torah at Sinai and explains the commandments in rational terms. Instead of using complicated philosophical ideas, he bases his arguments on history, tradition, and common sense. In the introduction, the author states that the purpose of his work is to reply to the attacks of those who wish to denigrate Judaism. The Kuzari is considered one of the most important works of Jewish religious apologetic and has been reprinted many times in several languages.",
+  "heDesc": "",
+  "enShortDesc": "12th-century philosophical and apologetic dialogue between a rabbi and a pagan king about the truth and superiority of Judaism",
+  "heShortDesc": "ספר מהמאה ה-12 שכתב רבי יהודה הלוי, המעוצב כשיחה בין רב למלך פגאני על עליונותה של היהדות.",
+  "pubDate": [
+    1506
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1120,
+    1140
+  ],
+  "pubPlace": "Fano",
+  "era": "RI"
+}

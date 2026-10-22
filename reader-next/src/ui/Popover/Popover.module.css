@@ -1,0 +1,5 @@
+.root { position: relative; display: inline-block; }
+.panel { position: absolute; top: calc(100% + 4px); z-index: var(--sefaria-z-overlay); min-width: 240px; max-width: min(92vw, 360px); padding: var(--sefaria-space-4); background: var(--sefaria-color-surface); color: var(--sefaria-color-text); border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-lg); box-shadow: var(--sefaria-shadow-1); font-size: var(--sefaria-text-sans-small); }
+.end { inset-inline-end: 0; }
+.start { inset-inline-start: 0; }
+.flush { padding: 0; min-width: 0; border-radius: 5px; border-color: transparent; }

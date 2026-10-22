@@ -1,0 +1,10 @@
+.page { display: grid; grid-template-columns: minmax(0, 1fr) 420px; min-height: 100%; font-family: var(--sefaria-font-ui-en); }
+.page[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.main { padding: var(--_top, 56px) 97px 80px 98px; max-width: 100%; box-sizing: border-box; min-width: 0; }
+.side { background: var(--sefaria-color-surface-subtle, #fbfbfa); padding: var(--_top, 56px) 44px 40px; display: flex; flex-direction: column; gap: 40px; min-width: 0; }
+.footer { margin-block-start: auto; padding-block-start: 24px; }
+@media (max-width: 842px) {
+  .page { grid-template-columns: 1fr; }
+  .main { padding: 24px 16px 40px; }
+  .side { padding: 24px 16px 40px; }
+}

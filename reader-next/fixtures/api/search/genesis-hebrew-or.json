@@ -1,0 +1,419 @@
+{
+ "took": 5,
+ "timed_out": false,
+ "_shards": {
+  "total": 1,
+  "successful": 1,
+  "skipped": 0,
+  "failed": 0
+ },
+ "hits": {
+  "total": {
+   "value": 8,
+   "relation": "eq"
+  },
+  "max_score": null,
+  "hits": [
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (Miqra according to the Masorah [he])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "Miqra according to the Masorah",
+     "lang": "he",
+     "version_priority": 0,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר׃",
+     "naive_lemmatizer": "וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר׃",
+     "hebrew_version_title": "מקרא על פי המסורה",
+     "languageFamilyName": "hebrew",
+     "isPrimary": true
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "וַיֹּאמֶר אֱלֹהִים יְהִי <b>אוֹר</b> וַיְהִי־<b>אוֹר</b>׃"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (Tanach with Ta'amei Hamikra [he])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "Tanach with Ta'amei Hamikra",
+     "lang": "he",
+     "version_priority": 1,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר׃",
+     "naive_lemmatizer": "וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר׃",
+     "hebrew_version_title": "תנ״ך מלווה בטעמי מקרא",
+     "languageFamilyName": "hebrew",
+     "isPrimary": true
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "וַיֹּאמֶר אֱלֹהִים יְהִי <b>אוֹר</b> וַיְהִי־<b>אוֹר</b>׃"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (Tanach with Nikkud [he])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "Tanach with Nikkud",
+     "lang": "he",
+     "version_priority": 3,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר׃",
+     "naive_lemmatizer": "וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר׃",
+     "hebrew_version_title": "תנ״ך עם ניקוד",
+     "languageFamilyName": "hebrew",
+     "isPrimary": true
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "וַיֹּאמֶר אֱלֹהִים יְהִי <b>אוֹר</b> וַיְהִי־<b>אוֹר</b>׃"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 1:3 (Tanach with Text Only [he])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "version": "Tanach with Text Only",
+     "lang": "he",
+     "version_priority": 2,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000010003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 2957846.0221024584,
+     "comp_date": -1400,
+     "exact": "ויאמר אלהים יהי אור ויהי אור",
+     "naive_lemmatizer": "ויאמר אלהים יהי אור ויהי אור",
+     "hebrew_version_title": "תנ״ך - טקסט בלבד",
+     "languageFamilyName": "hebrew",
+     "isPrimary": true
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "ויאמר אלהים יהי <b>אור</b> ויהי <b>אור</b>"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000010003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 44:3 (Miqra according to the Masorah [he])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 44:3",
+     "heRef": "בראשית מ״ד:ג׳",
+     "version": "Miqra according to the Masorah",
+     "lang": "he",
+     "version_priority": 0,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000440003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 15574.13581584111,
+     "comp_date": -1400,
+     "exact": "הַבֹּקֶר אוֹר וְהָאֲנָשִׁים שֻׁלְּחוּ הֵמָּה וַחֲמֹרֵיהֶם׃",
+     "naive_lemmatizer": "הַבֹּקֶר אוֹר וְהָאֲנָשִׁים שֻׁלְּחוּ הֵמָּה וַחֲמֹרֵיהֶם׃",
+     "hebrew_version_title": "מקרא על פי המסורה",
+     "languageFamilyName": "hebrew",
+     "isPrimary": true
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "הַבֹּקֶר <b>אוֹר</b> וְהָאֲנָשִׁים שֻׁלְּחוּ הֵמָּה וַחֲמֹרֵיהֶם׃"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000440003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 44:3 (Tanach with Nikkud [he])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 44:3",
+     "heRef": "בראשית מ״ד:ג׳",
+     "version": "Tanach with Nikkud",
+     "lang": "he",
+     "version_priority": 3,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000440003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 15574.13581584111,
+     "comp_date": -1400,
+     "exact": "הַבֹּקֶר אוֹר וְהָאֲנָשִׁים שֻׁלְּחוּ הֵמָּה וַחֲמֹרֵיהֶם׃",
+     "naive_lemmatizer": "הַבֹּקֶר אוֹר וְהָאֲנָשִׁים שֻׁלְּחוּ הֵמָּה וַחֲמֹרֵיהֶם׃",
+     "hebrew_version_title": "תנ״ך עם ניקוד",
+     "languageFamilyName": "hebrew",
+     "isPrimary": true
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "הַבֹּקֶר <b>אוֹר</b> וְהָאֲנָשִׁים שֻׁלְּחוּ הֵמָּה וַחֲמֹרֵיהֶם׃"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000440003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 44:3 (Tanach with Text Only [he])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 44:3",
+     "heRef": "בראשית מ״ד:ג׳",
+     "version": "Tanach with Text Only",
+     "lang": "he",
+     "version_priority": 2,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000440003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 15574.13581584111,
+     "comp_date": -1400,
+     "exact": "הבקר אור והאנשים שלחו המה וחמריהם",
+     "naive_lemmatizer": "הבקר אור והאנשים שלחו המה וחמריהם",
+     "hebrew_version_title": "תנ״ך - טקסט בלבד",
+     "languageFamilyName": "hebrew",
+     "isPrimary": true
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "הבקר <b>אור</b> והאנשים שלחו המה וחמריהם"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000440003"
+    ]
+   },
+   {
+    "_index": "text-b",
+    "_id": "Genesis 44:3 (Tanach with Ta'amei Hamikra [he])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 44:3",
+     "heRef": "בראשית מ״ד:ג׳",
+     "version": "Tanach with Ta'amei Hamikra",
+     "lang": "he",
+     "version_priority": 1,
+     "titleVariants": [
+      "Bereshit",
+      "Gen",
+      "Gen.",
+      "Breishit",
+      "Bereishit",
+      "Beresheet",
+      "Bereshith",
+      "Bereishis",
+      "B’resh.",
+      "B’reshith",
+      "Genèse",
+      "Beresheit",
+      "Gn.",
+      "Genesis"
+     ],
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "order": "A00000000000440003",
+     "path": "Tanakh/Torah/Genesis",
+     "pagesheetrank": 15574.13581584111,
+     "comp_date": -1400,
+     "exact": "הַבֹּקֶר אוֹר וְהָאֲנָשִׁים שֻׁלְּחוּ הֵמָּה וַחֲמֹרֵיהֶם׃",
+     "naive_lemmatizer": "הַבֹּקֶר אוֹר וְהָאֲנָשִׁים שֻׁלְּחוּ הֵמָּה וַחֲמֹרֵיהֶם׃",
+     "hebrew_version_title": "תנ״ך מלווה בטעמי מקרא",
+     "languageFamilyName": "hebrew",
+     "isPrimary": true
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "הַבֹּקֶר <b>אוֹר</b> וְהָאֲנָשִׁים שֻׁלְּחוּ הֵמָּה וַחֲמֹרֵיהֶם׃"
+     ]
+    },
+    "sort": [
+     -1400,
+     "A00000000000440003"
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,4 @@
+.wrap { position: relative; }
+.toggle { position: absolute; inset-block-start: 0; inset-inline-end: 0; z-index: 2; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; }
+.toggle img { opacity: 0.4; }
+.toggle:hover img { opacity: 0.7; }

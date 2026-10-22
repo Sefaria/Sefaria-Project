@@ -1,0 +1,114 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Guide for the Perplexed",
+    "Guide for the Perplexed, Part 1",
+    "Guide for the Perplexed, Part 2",
+    "Guide for the Perplexed, Part 3",
+    "Guide for the Perplexed, Prefatory Remarks",
+    "Guide for the Perplexed, Part 1, Introduction",
+    "Guide for the Perplexed, Part 2, Introduction",
+    "Guide for the Perplexed, Part 3, Introduction",
+    "Guide for the Perplexed, Introduction of Ibn Tibon",
+    "Guide for the Perplexed, Letter to R Joseph son of Judah"
+  ],
+  "completion_objects": [
+    {
+      "title": "Guide for the Perplexed",
+      "key": "Guide for the Perplexed",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Guide for the Perplexed, Part 1",
+      "key": "Guide for the Perplexed, Part 1",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Guide for the Perplexed, Part 2",
+      "key": "Guide for the Perplexed, Part 2",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Guide for the Perplexed",
+      "type": "TocCategory",
+      "key": [
+        "Jewish Thought",
+        "Guide for the Perplexed"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Guide for the Perplexed, Part 3",
+      "key": "Guide for the Perplexed, Part 3",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Guide for the Perplexed, Prefatory Remarks",
+      "key": "Guide for the Perplexed, Prefatory Remarks",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Guide for the Perplexed, Part 1, Introduction",
+      "key": "Guide for the Perplexed, Part 1, Introduction",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Guide for the Perplexed, Part 2, Introduction",
+      "key": "Guide for the Perplexed, Part 2, Introduction",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Guide for the Perplexed, Part 3, Introduction",
+      "key": "Guide for the Perplexed, Part 3, Introduction",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Guide for the Perplexed, Introduction of Ibn Tibon",
+      "key": "Guide for the Perplexed, Introduction of Ibn Tibon",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Guide for the Perplexed, Letter to R Joseph son of Judah",
+      "key": "Guide for the Perplexed, Letter to R Joseph son of Judah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Guide for the Perplexed",
+  "url": "Guide_for_the_Perplexed",
+  "index": "Guide for the Perplexed",
+  "book": "Guide for the Perplexed",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": []
+}

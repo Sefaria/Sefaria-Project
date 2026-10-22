@@ -1,0 +1,18 @@
+/* Minimal global base. Components style themselves; this only sets the document defaults. */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--sefaria-color-page);
+  color: var(--sefaria-color-text);
+  font-family: var(--sefaria-font-ui-en);
+  font-size: var(--sefaria-text-sans-body);
+  line-height: var(--sefaria-leading-ui);
+}
+/* Font choice follows the `lang` attribute carried by payload data and InterfaceText, not a CSS flag. */
+:lang(he), :lang(arc), :lang(yi) { font-family: var(--sefaria-font-ui-he); }
+::selection { background: var(--sefaria-color-selection); }
+:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

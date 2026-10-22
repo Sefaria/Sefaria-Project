@@ -81,6 +81,14 @@ http {
     keepalive 32;
   }
 
+  {{- if eq .Values.nodejs.mode "reader" }}
+  # the new reader client (values: nodejs.mode reader) answers page requests first
+  upstream nodeupstream {
+    server node-{{ .Values.deployEnv }}:3000;
+    keepalive 32;
+  }
+  {{- end }}
+
   upstream elasticsearch_upstream {
     server ${SEARCH_HOST}:9200;
     keepalive 32;
@@ -175,6 +183,59 @@ http {
       alias /app/robots.txt;
     }
 
+    {{- if eq $.Values.nodejs.mode "reader" }}
+    # Pages go to the new reader client first; it hands what it does not render (Django's pages, its 404s, writes) to Varnish.
+    # If the client is down, Varnish/Django answers instead.
+    location / {
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      proxy_pass http://nodeupstream;
+      error_page 502 503 504 = @varnish;
+    }
+
+    # The API and Django's assets never need the client
+    location /api/ {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnishupstream;
+    }
+
+
+    location @varnish {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnishupstream;
+    }
+
+    {{- else }}
     location / {
       {{- if $.Values.instrumentation.enabled }}
       opentracing on;
@@ -190,6 +251,8 @@ http {
       proxy_set_header X-Internal-Proxy 1;
       proxy_pass http://varnishupstream;
     }
+
+    {{- end }}
 
     location /static/mobile/message-en.json {
       return 301 ${STRAPI_LOCATION}/api/mobile-message;

@@ -1,0 +1,29 @@
+.module { display: flex; flex-direction: column; gap: 12px; font-size: 16px; line-height: 1.45; color: var(--sefaria-color-text-secondary); }
+.title { margin: 0; padding-block-end: 12px; border-block-end: 1px solid var(--sefaria-color-border); font-size: 22px; font-weight: 500; color: var(--sefaria-color-text-secondary); }
+.body { margin: 0; }
+.body p { margin: 0 0 12px; }
+.inText { color: inherit; text-decoration: underline; }
+.button { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; padding: 10px 16px; border-radius: 6px; background: var(--sefaria-color-brand, #18345d); color: #fff; font-size: 16px; text-decoration: none; }
+.button:hover { opacity: 0.9; }
+.links { display: flex; flex-direction: column; gap: 10px; }
+.link { display: flex; align-items: center; gap: 10px; color: var(--sefaria-color-text-secondary); text-decoration: none; }
+.link:hover { color: var(--sefaria-color-text); text-decoration: underline; }
+.ref { font-family: var(--sefaria-font-text-en); font-size: 18px; color: var(--sefaria-color-text); text-decoration: none; }
+.ref:hover { text-decoration: underline; }
+.langs { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.langs a { color: var(--sefaria-color-text-secondary); text-decoration: none; }
+.langs a:hover { text-decoration: underline; }
+.section { display: flex; flex-direction: column; gap: 4px; }
+.sectionTitle { color: var(--sefaria-color-text-muted); font-size: 14px; }
+.all { color: var(--sefaria-color-text-secondary); text-decoration: none; }
+.all:hover { text-decoration: underline; }
+.footer { display: flex; flex-wrap: wrap; gap: 8px 16px; padding-block-start: 16px; border-block-start: 1px solid var(--sefaria-color-border); font-size: 14px; }
+.footer a { color: var(--sefaria-color-text-muted); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+.upper { text-transform: uppercase; letter-spacing: 0.04em; font-size: 16px; }
+
+/* Measured on sefaria.org (1280px): body text 16px on a ~19px line, headings 22px/25px, labels 16px, "All …" links 14px */
+.module { line-height: 1.2; }
+.title { line-height: 25px; }
+.sectionTitle { font-size: 16px; color: #666; }
+.all { font-size: 14px; }

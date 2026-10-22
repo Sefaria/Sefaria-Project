@@ -1,0 +1,8 @@
+.title { margin: var(--sefaria-space-8) 0 var(--sefaria-space-6); text-align: center; font-weight: 300; letter-spacing: 1px; font-size: 1.1em; }
+.box { display: inline-block; padding-block-end: var(--sefaria-space-1); border-block-end: 4px solid var(--sefaria-color-border-title); margin: 0; font-weight: inherit; font-size: inherit; }
+.title [lang="he"] { font-family: var(--sefaria-font-text-he); }
+.title [lang="en"] { font-family: var(--sefaria-font-text-en); }
+
+.parashah { margin: var(--sefaria-space-8) 0 var(--sefaria-space-4); font-family: var(--sefaria-font-text-en); text-align: center; font-size: var(--sefaria-text-serif-h3); letter-spacing: 1px; font-weight: 400; }
+.title + .parashah { margin-block-start: var(--sefaria-space-2); }
+.parashah[data-aliyah="true"] { font-size: 18px; text-transform: uppercase; }

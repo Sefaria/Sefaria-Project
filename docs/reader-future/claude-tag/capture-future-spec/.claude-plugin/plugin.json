@@ -1,0 +1,6 @@
+{
+  "name": "capture-future-spec",
+  "version": "1.0.0",
+  "description": "Keeps Sefaria's future-reader product and architecture specification (docs/reader-future on the reader-next branch of Sefaria/Sefaria-Project) current from the #reader-future Slack conversation, organised by the Feature Atlas's 29 product areas.",
+  "author": { "name": "Sefaria" }
+}

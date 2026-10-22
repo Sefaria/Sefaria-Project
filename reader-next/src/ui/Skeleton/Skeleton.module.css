@@ -1,0 +1,10 @@
+.skeleton {
+  display: block;
+  width: var(--_w, 100%);
+  height: var(--_h, 1em);
+  border-radius: var(--sefaria-radius-sm);
+  background: linear-gradient(90deg, var(--sefaria-color-skeleton) 25%, var(--sefaria-color-skeleton-shimmer) 37%, var(--sefaria-color-skeleton) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer { from { background-position: 100% 50%; } to { background-position: 0 50%; } }

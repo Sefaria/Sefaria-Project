@@ -1,0 +1,4 @@
+.view { padding-block: var(--sefaria-space-4); }
+.search { margin-block-end: 12px; }
+.results { margin-block-start: var(--sefaria-space-4); }
+.message { margin: var(--sefaria-space-6) 0; font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); color: var(--sefaria-color-text-secondary); }

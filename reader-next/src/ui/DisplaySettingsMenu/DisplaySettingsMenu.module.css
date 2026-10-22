@@ -1,0 +1,12 @@
+/* Measured on sefaria.org (2026-10-05): a 258px white card (radius 5), 12px around the language rows, 20px beside the other lines,
+   1px #ededec rules, 14px Roboto throughout. */
+.menu { display: flex; flex-direction: column; width: 258px; padding: 0; font-size: 14px; color: #000; }
+.languages { padding: 18px 12px 17px; }
+.divider { border: 0; border-top: 1px solid #ededec; margin: 0; }
+.line { display: flex; align-items: center; justify-content: space-between; min-height: 58px; padding-inline: 20px; }
+.lineLabel { font-size: 14px; }
+.fontSize { display: flex; align-items: center; justify-content: space-between; min-height: 50px; padding-inline: 13px; }
+.round { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 26px; padding: 0; border: 0; background: none; color: #666; cursor: pointer; }
+.round:disabled { opacity: 0.35; cursor: not-allowed; }
+.round:hover:not(:disabled) { color: #000; }
+.menu :global([role="switch"]) { padding-inline: 20px; min-height: 49px; }
