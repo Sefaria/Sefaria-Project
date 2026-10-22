@@ -32,7 +32,9 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import Sefaria from '../sefaria/sefaria';
 import SettingsPage, { EmailConfirmedPage, EmailLinkPage } from '../SettingsPage.jsx';
-import { parseWebsite } from '../developerSettingsApi';
+import { parseWebsite, serverErrorText } from '../developerSettingsApi';
+
+const HEBREW = /[֐-׿]/;
 
 let container = null;
 
@@ -648,6 +650,53 @@ describe('Hebrew interface', () => {
     Sefaria.interfaceLang = 'hebrew';
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING });
     expect(yourListingDialog().textContent).toContain('האם זה הפרויקט שלך?');
+  });
+
+  it('shows a server error from the developer API in Hebrew', async () => {
+    Sefaria.interfaceLang = 'hebrew';
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    act(() => { visibilityRadio('private').click(); });
+    global.fetch = jest.fn(() => Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: 'Give the project a name.' }) }));
+    await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
+    expect(developerPanel().querySelector('[role="alert"]').textContent).toBe('נא לתת לפרויקט שם.');
+  });
+});
+
+describe('server errors in Hebrew', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const serverSource = ['developer.py', 'developer_views.py']
+    .map(file => fs.readFileSync(path.join(__dirname, '../../../powered_by', file), 'utf8')).join('\n');
+  const fixedMessages = Array.from(
+    serverSource.matchAll(/(?:InputError|PermissionError|LookupError)\("([^"{}]+)"\)|"error": "([^"{}]+)"/g),
+    match => match[1] || match[2],
+  );
+  beforeEach(() => { Sefaria.interfaceLang = 'hebrew'; });
+
+  it('translates every fixed message the developer API sends', () => {
+    expect(fixedMessages.length).toBeGreaterThan(15);
+    fixedMessages.forEach(message => expect([message, serverErrorText(message)]).toEqual([message, expect.stringMatching(HEBREW)]));
+  });
+
+  it('translates messages that carry a number or a field name', () => {
+    [
+      'An account can have at most 10 projects. To add more, contact hello@sefaria.org.',
+      'A project can have at most 5 keys.',
+      "You've asked for 5 links today. Try again tomorrow, or contact hello@sefaria.org.",
+      'The project name can be at most 255 characters.',
+      'The website must be text.',
+      'Wait a minute before asking for another email.',
+      'A key is restricted to this website. Turn off the restriction on every key before removing the website.',
+    ].forEach(message => expect(serverErrorText(message)).toMatch(HEBREW));
+    expect(serverErrorText('A project can have at most 5 keys.')).toContain('5');
+  });
+
+  it('leaves an unknown message, and every message on the English site, as it is', () => {
+    expect(serverErrorText('Something new.')).toBe('Something new.');
+    Sefaria.interfaceLang = 'english';
+    expect(serverErrorText('Give the project a name.')).toBe('Give the project a name.');
   });
 });
 

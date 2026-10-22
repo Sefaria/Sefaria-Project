@@ -286,18 +286,6 @@ describe('the confirmation poll', () => {
   });
 });
 
-describe('Hebrew interface', () => {
-  it('shows a server error from the developer API in Hebrew @known-gap N-CR15', async () => {
-    Sefaria.interfaceLang = 'hebrew';
-    openNewProject();
-    fillProject({ website: 'daftracker.org' });
-    respondError(400, 'Give the project a name.');
-    await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
-    const alert = developerPanel().querySelector('[role="alert"]');
-    expect(alert.textContent).toMatch(HEBREW);
-  });
-});
-
 describe('changing the email in the Account tab', () => {
   it('asks to confirm the new address on the Developer tab without a reload @known-gap N-C8', () => {
     const setUp = { developerEnabled: true, ssoConnected: false, emailVerified: true, profile: PROFILE, projects: [project()] };
