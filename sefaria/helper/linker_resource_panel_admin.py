@@ -69,14 +69,14 @@ def _ref_part_label(part_type_name: str, lang: str) -> str:
         raise InputError(f"No ref-part model label for {part_type_name} in language '{lang}'")
 
 
-def _required(payload: dict, key: str) -> Any:
+def required_field(payload: dict, key: str) -> Any:
     value = payload.get(key)
     if value is None or value == "":
         raise InputError(f"Missing required field: {key}")
     return value
 
 
-def _normalize_char_range(raw_char_range: Any) -> list[int]:
+def normalize_char_range(raw_char_range: Any) -> list[int]:
     if isinstance(raw_char_range, str):
         raw_char_range = raw_char_range.split("-")
     if not isinstance(raw_char_range, list) or len(raw_char_range) != 2:
@@ -100,7 +100,7 @@ def _chunk_query(ref: str, version_title: str, lang: str) -> dict:
     return {"ref": ref, "versionTitle": version_title, "language": lang}
 
 
-def _load_chunks(ref: str, version_title: str, lang: str) -> dict:
+def load_chunks(ref: str, version_title: str, lang: str) -> dict:
     """Load the LinkerOutput and MarkedUpTextChunk docs for a ref/version/lang once, keyed by class."""
     query = _chunk_query(ref, version_title, lang)
     return {klass: klass().load(query) for klass in (LinkerOutput, MarkedUpTextChunk)}
@@ -137,7 +137,7 @@ def _update_deleted_marker(payload: dict, deleted: bool, chunk) -> bool:
     return updated
 
 
-def _delete_generated_link(source_ref: str, target_refs: set[str], user_id: Optional[int]) -> bool:
+def delete_generated_links(source_ref: str, target_refs: set[str], user_id: Optional[int]) -> bool:
     # Callers pass already-normalized refs (see set_linker_citation_deleted).
     deleted = False
     for target_ref in target_refs:
@@ -153,9 +153,9 @@ def _delete_generated_link(source_ref: str, target_refs: set[str], user_id: Opti
 
 
 def rerun_linker_for_segment(payload: dict, user_id: Optional[int]) -> dict:
-    ref = Ref(_required(payload, "ref")).normal()
-    version_title = _required(payload, "versionTitle")
-    lang = _required(payload, "lang")
+    ref = Ref(required_field(payload, "ref")).normal()
+    version_title = required_field(payload, "versionTitle")
+    lang = required_field(payload, "lang")
     tc = TextChunk(Ref(ref), lang=lang, vtitle=version_title)
     if not tc.text:
         raise InputError(f"No text found for {ref}, {lang}, {version_title}")
@@ -178,21 +178,21 @@ def rerun_linker_for_segment(payload: dict, user_id: Optional[int]) -> dict:
 
 def set_linker_citation_deleted(payload: dict, user_id: Optional[int], deleted: bool) -> dict:
     normalized = {
-        "ref": Ref(_required(payload, "ref")).normal(),
-        "versionTitle": _required(payload, "versionTitle"),
-        "lang": _required(payload, "lang"),
-        "text": _required(payload, "text"),
-        "charRange": _normalize_char_range(_required(payload, "charRange")),
-        "targetRef": Ref(_required(payload, "targetRef")).normal(),
+        "ref": Ref(required_field(payload, "ref")).normal(),
+        "versionTitle": required_field(payload, "versionTitle"),
+        "lang": required_field(payload, "lang"),
+        "text": required_field(payload, "text"),
+        "charRange": normalize_char_range(required_field(payload, "charRange")),
+        "targetRef": Ref(required_field(payload, "targetRef")).normal(),
     }
-    chunks = _load_chunks(normalized["ref"], normalized["versionTitle"], normalized["lang"])
+    chunks = load_chunks(normalized["ref"], normalized["versionTitle"], normalized["lang"])
     normalized["targetRefs"] = _target_ref_aliases(normalized, chunks)
 
     mutc_updated = _update_deleted_marker(normalized, deleted, chunks[MarkedUpTextChunk])
     linker_output_updated = _update_deleted_marker(normalized, deleted, chunks[LinkerOutput])
     link_deleted = False
     if deleted:
-        link_deleted = _delete_generated_link(normalized["ref"], normalized["targetRefs"], user_id)
+        link_deleted = delete_generated_links(normalized["ref"], normalized["targetRefs"], user_id)
     else:
         rerun_linker_for_segment(normalized, user_id)
 
@@ -321,25 +321,12 @@ def parse_linker_citation_sync(payload: dict, timeout: int = 20) -> dict:
         raise InputError("Linker parse timed out; the task queue may be busy. Try again in a moment.")
 
 
-def parse_linker_citations_batch_sync(payloads: list[dict], timeout: int = 60) -> list[dict]:
-    if not isinstance(payloads, list):
-        raise InputError("payloads must be a list")
-    from celery.exceptions import TimeoutError as CeleryTimeoutError
-    from sefaria.helper.linker.tasks import parse_linker_citations_batch_task
-    from sefaria.celery_setup.config import CeleryQueue
-    async_result = parse_linker_citations_batch_task.apply_async(args=(payloads,), queue=CeleryQueue.TASKS.value)
-    try:
-        return async_result.get(timeout=timeout)
-    except CeleryTimeoutError:
-        raise InputError("Linker parse timed out; the task queue may be busy. Try again in a moment.")
-
-
 def parse_linker_citation(payload: dict) -> dict:
     """
     Runs on a Celery worker (see parse_linker_citation_task in helper.linker.tasks) — never
     call this directly from a web request.
     """
-    parts = _required(payload, "parts")
+    parts = required_field(payload, "parts")
     lang = payload.get("lang", "he")
     context_ref = payload.get("contextRef")
     prev_trefs = payload.get("prevRefs") or []
@@ -371,12 +358,6 @@ def parse_linker_citation(payload: dict) -> dict:
         },
         "parsings": [_serialize_resolved_ref(resolved_ref) for resolved_ref in resolved_refs],
     }
-
-
-def parse_linker_citations_batch(payloads: list[dict]) -> list[dict]:
-    if not isinstance(payloads, list):
-        raise InputError("payloads must be a list")
-    return [parse_linker_citation(payload) for payload in payloads]
 
 
 # ---------------------------------------------------------------------------
@@ -423,9 +404,9 @@ def add_ref_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
     Capture a named-entity ("ref") model training example for a whole segment: the normalized
     segment text plus every non-deleted citation/person span from the current linker output.
     """
-    ref = Ref(_required(payload, "ref")).normal()
-    version_title = _required(payload, "versionTitle")
-    lang = _required(payload, "lang")
+    ref = Ref(required_field(payload, "ref")).normal()
+    version_title = required_field(payload, "versionTitle")
+    lang = required_field(payload, "lang")
 
     tc = TextChunk(Ref(ref), lang=lang, vtitle=version_title)
     original_text = tc.text
@@ -465,7 +446,7 @@ def add_ref_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
     raw_char_range = payload.get("charRange")
     if raw_char_range not in (None, ""):
         possibly_bad_citation = list(normalizer.norm_to_unnorm_indices(
-            original_text, [tuple(_normalize_char_range(raw_char_range))], reverse=True
+            original_text, [tuple(normalize_char_range(raw_char_range))], reverse=True
         )[0])
 
     return _upsert_dataset_example(
@@ -565,10 +546,10 @@ def add_ref_part_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
     Capture a "ref part" model training example for a single citation: the normalized citation
     text plus its ref parts (offsets relative to the citation text). `ref` is the segment ref.
     """
-    ref = Ref(_required(payload, "ref")).normal()
-    version_title = _required(payload, "versionTitle")
-    lang = _required(payload, "lang")
-    char_range = _normalize_char_range(_required(payload, "charRange"))
+    ref = Ref(required_field(payload, "ref")).normal()
+    version_title = required_field(payload, "versionTitle")
+    lang = required_field(payload, "lang")
+    char_range = normalize_char_range(required_field(payload, "charRange"))
 
     chunk = LinkerOutput().load(_chunk_query(ref, version_title, lang))
     if not chunk:

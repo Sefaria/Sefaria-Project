@@ -101,7 +101,7 @@
   color: #555;
   font-size: 13px;
   line-height: 1.9;
-  height: 300px;
+  flex-shrink: 0;
 }
 
 .lbcShortcuts kbd {
@@ -272,6 +272,12 @@
   justify-content: flex-end;
 }
 
+.lbcDatasetStatus {
+  flex-basis: 100%;
+  margin-bottom: 0;
+  text-align: right;
+}
+
 .lbcDatasetReason input {
   min-height: 30px;
   min-width: 220px;
@@ -352,13 +358,6 @@
   min-width: 84px;
 }
 
-.lbcNavStatusGroup {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
 @media (max-width: 900px) {
   .linkerBulkCorrector {
     position: static;
@@ -369,8 +368,6 @@
   .lbcSidebar {
     border-right: 0;
     border-bottom: 1px solid #ddd8cf;
-    position: static;
-    height: auto;
     overflow-y: visible;
   }
 

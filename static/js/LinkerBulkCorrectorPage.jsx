@@ -2,25 +2,14 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import classNames from 'classnames';
 import Sefaria from './sefaria/sefaria';
 import { GeneralAutocomplete } from './GeneralAutocomplete';
+import { LinkerPartChip, LinkerParsingList, LinkerTestStringBox } from './LinkerAdminParts';
 
 const STORAGE_KEY = 'linkerBulkCorrectorState';
 const HISTORY_KEY = 'linkerBulkCorrectorHistory';
+const HISTORY_SIZE = 10;
 const STATUS_OPTIONS = ['unparsed', 'ambiguous', 'parsed'];
-const LINKER_PART_COLORS = {
-  NAMED: "#dbeafe",
-  NUMBERED: "#dcfce7",
-  DH: "#fef3c7",
-  RANGE: "#fce7f3",
-  RANGE_SYMBOL: "#ede9fe",
-  IBID: "#e0f2fe",
-  RELATIVE: "#ffedd5",
-  NON_CTS: "#f3f4f6",
-};
-const CONTEXT_PART_CLASSES = ["ContextPart", "TermContext", "SectionContext"];
-const CONTEXT_TYPE_LABELS = {
-  CURRENT_BOOK: "curr. book",
-  IBID: "ibid",
-};
+const BULK_POLL_MS = 1500;
+const EMPTY_STATS = {totalCitations: 0, parsedCitations: 0};
 
 const defaultDataset = {
   type: 'book',
@@ -32,10 +21,10 @@ const defaultDataset = {
 
 const apiPost = (path, payload) => Sefaria.apiRequestWithBody(path, {}, payload, 'POST');
 
+// apiRequestWithBody rejects with an Error; _ApiPromise (jQuery) rejects with a jqXHR.
+const errorMessage = (e) => e?.responseJSON?.error || e?.message || String(e);
+
 const loadStored = (key, fallback) => {
-  if (typeof localStorage === 'undefined') {
-    return fallback;
-  }
   try {
     return JSON.parse(localStorage.getItem(key)) || fallback;
   } catch {
@@ -43,11 +32,18 @@ const loadStored = (key, fallback) => {
   }
 };
 
+const saveStored = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Storage is a convenience; ignore quota/availability errors.
+  }
+};
+
 const resultKey = (item) => item ? `${item.ref}|${item.versionTitle}|${item.language}|${item.charRange?.join('-')}` : '';
 
 // CRRD test string (paste into linker_test.py). item.refParts already has RANGE parts flattened
-// into NUMBERED/RANGE_SYMBOL/NUMBERED (mirrors LinkerAdminBox's linkerPartsFromSpan), so no range
-// sections need to be passed through separately here.
+// into NUMBERED/RANGE_SYMBOL/NUMBERED, so no range sections need to be passed separately.
 const getCrrdTestString = (item) => {
   if (!item?.refParts?.length) { return null; }
   const parts = Sefaria._getLinkerTestStringForParts(
@@ -59,15 +55,6 @@ const getCrrdTestString = (item) => {
 
 const SmallMeta = ({item}) => (
   <div className="lbcMeta">{item.versionTitle} ({item.language})</div>
-);
-
-const StatusToggle = ({status, selected, onClick}) => (
-  <button
-    type="button"
-    className={classNames('lbcSegmentButton', {active: selected})}
-    onClick={onClick}>
-    {status}
-  </button>
 );
 
 const IndexTitleAutocomplete = ({value, onChange}) => {
@@ -136,123 +123,82 @@ const IndexTitleAutocomplete = ({value, onChange}) => {
   );
 };
 
-const matchedPartCount = (parsing) => (parsing.pairings || []).reduce((n, pairing) => n + (pairing.parts?.length || 0), 0);
+const DatasetExampleControls = ({item}) => {
+  const [action, setAction] = useState(null);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [error, setError] = useState(null);
 
-const LinkerPartChip = ({part, contextType}) => {
-  const contextLabel = contextType && CONTEXT_PART_CLASSES.includes(part.class)
-    ? (CONTEXT_TYPE_LABELS[contextType] || contextType)
-    : null;
-  return (
-    <span className="linkerAdminPartChip" style={{backgroundColor: LINKER_PART_COLORS[part.type] || "#f3f4f6"}}>
-      <span className="linkerAdminPartText">{part.text}</span>
-      <span className="linkerAdminPartType">{part.type}</span>
-      {contextLabel ? <span className="linkerAdminPartContext">from {contextLabel}</span> : null}
-    </span>
-  );
-};
-
-const LinkerPairings = ({pairings, contextType}) => {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="linkerAdminPairings">
-      <button className="linkerAdminDisclosure" onClick={() => setOpen(!open)} aria-expanded={open}>
-        <img
-          src="/static/icons/chevron-down.svg"
-          className={classNames("linkerAdminDisclosureChevron", {open})}
-          alt=""
-          aria-hidden={true}
-        />
-        Ref Part / Node Pairings
-      </button>
-      {open ? (pairings || []).map((pairing, i) => {
-        const pairingRef = pairing.ref || pairing.node?.ref;
-        return (
-          <div className="linkerAdminPairing" key={i}>
-            <div>{(pairing.parts || []).map((part, j) => <LinkerPartChip key={j} part={part} contextType={contextType} />)}</div>
-            <div className="linkerAdminNode">
-              {pairingRef
-                ? <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(pairingRef)}`} target="_blank">{pairingRef}</a>
-                : (pairing.node?.key || "No node")}
-            </div>
-          </div>
-        );
-      }) : null}
-    </div>
-  );
-};
-
-const ResultDetails = ({item, onReparse, reparsing}) => {
-  const [datasetAction, setDatasetAction] = useState(null);
-  const [datasetReason, setDatasetReason] = useState('');
-  const [datasetBusy, setDatasetBusy] = useState(false);
-  const [datasetMessage, setDatasetMessage] = useState(null);
-  const [datasetError, setDatasetError] = useState(null);
-  const [testStringCopied, setTestStringCopied] = useState(false);
-
-  useEffect(() => {
-    setDatasetAction(null);
-    setDatasetReason('');
-    setDatasetMessage(null);
-    setDatasetError(null);
-    setTestStringCopied(false);
-  }, [resultKey(item)]);
-
-  if (!item) {
-    return <div className="lbcEmpty">Search for a book to load citations.</div>;
-  }
-
-  const testStringCrrd = getCrrdTestString(item);
-  const copyTestString = () => {
-    if (!testStringCrrd) { return; }
-    const input = document.getElementById("lbcTestString");
-    if (input) {
-      input.select();
-      input.setSelectionRange(0, 99999); // for mobile devices
-    }
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(testStringCrrd);
-    } else { // fallback if navigator.clipboard is unavailable
-      document.execCommand('copy');
-    }
-    setTestStringCopied(true);
-    setTimeout(() => setTestStringCopied(false), 2000);
+  const open = (nextAction) => {
+    setAction(nextAction);
+    setReason('');
+    setMessage(null);
+    setError(null);
   };
 
-  const openDatasetAction = (action) => {
-    setDatasetAction(action);
-    setDatasetReason('');
-    setDatasetMessage(null);
-    setDatasetError(null);
-  };
-
-  const submitDatasetExample = async () => {
-    const reason = datasetReason.trim();
-    if (!datasetAction || !reason) { return; }
-    setDatasetBusy(true);
-    setDatasetMessage(null);
-    setDatasetError(null);
+  const submit = async () => {
+    const trimmedReason = reason.trim();
+    if (!action || !trimmedReason || busy) { return; }
+    setBusy(true);
+    setMessage(null);
+    setError(null);
     try {
-      const isRefPart = datasetAction === 'ref-part';
+      const isRefPart = action === 'ref-part';
       const result = await apiPost(
         isRefPart ? '/_api/linker-admin/dataset/ref-part' : '/_api/linker-admin/dataset/ref',
         {
           ref: item.ref,
           lang: item.language,
           versionTitle: item.versionTitle,
-          reason,
+          reason: trimmedReason,
           charRange: item.charRange,
         },
       );
-      setDatasetMessage(`Saved ${isRefPart ? 'Ref Part' : 'Ref'} dataset example (${result.numEntities} labels)`);
-      setDatasetAction(null);
-      setDatasetReason('');
+      setMessage(`Saved ${isRefPart ? 'Ref Part' : 'Ref'} dataset example (${result.numEntities} labels)`);
+      setAction(null);
+      setReason('');
     } catch (e) {
-      setDatasetError(e.message || String(e));
+      setError(errorMessage(e));
     } finally {
-      setDatasetBusy(false);
+      setBusy(false);
     }
   };
 
+  return (
+    <>
+      <button type="button" className="button small" onClick={() => open('ref')} disabled={busy}>
+        + Ref Dataset
+      </button>
+      <button type="button" className="button small" onClick={() => open('ref-part')} disabled={busy}>
+        + Ref Part Dataset
+      </button>
+      {action ? (
+        <div className="lbcDatasetReason">
+          <input
+            type="text"
+            placeholder="Reason"
+            value={reason}
+            onChange={event => setReason(event.target.value)}
+            onKeyDown={event => { if (event.key === 'Enter') { submit(); } }}
+            autoFocus
+          />
+          <button type="button" className="button small" onClick={submit} disabled={busy || !reason.trim()}>
+            Save
+          </button>
+        </div>
+      ) : null}
+      {message ? <div className="linkerAdminMessage lbcDatasetStatus">{message}</div> : null}
+      {error ? <div className="lbcError lbcDatasetStatus">{error}</div> : null}
+    </>
+  );
+};
+
+const ResultDetails = ({item, onReparse, reparsing}) => {
+  if (!item) {
+    return <div className="lbcEmpty">Search for a book to load citations.</div>;
+  }
+  const testStringCrrd = getCrrdTestString(item);
   return (
     <div className="lbcResult">
       <div className="lbcResultHeader">
@@ -265,35 +211,10 @@ const ResultDetails = ({item, onReparse, reparsing}) => {
           <button type="button" className="button small" onClick={onReparse} disabled={reparsing}>
             {reparsing ? 'Re-parsing' : 'Re-parse'}
           </button>
-          <button type="button" className="button small" onClick={() => openDatasetAction('ref')} disabled={datasetBusy}>
-            + Ref Dataset
-          </button>
-          <button type="button" className="button small" onClick={() => openDatasetAction('ref-part')} disabled={datasetBusy}>
-            + Ref Part Dataset
-          </button>
-          {datasetAction ? (
-            <div className="lbcDatasetReason">
-              <input
-                type="text"
-                placeholder="Reason"
-                value={datasetReason}
-                onChange={event => setDatasetReason(event.target.value)}
-                onKeyDown={event => {
-                  if (event.key === 'Enter' && datasetReason.trim()) {
-                    submitDatasetExample();
-                  }
-                }}
-                autoFocus
-              />
-              <button type="button" className="button small" onClick={submitDatasetExample} disabled={datasetBusy || !datasetReason.trim()}>
-                Save
-              </button>
-            </div>
-          ) : null}
+          {/* Keyed by citation so its reason/message state resets when the citation changes. */}
+          <DatasetExampleControls key={resultKey(item)} item={item} />
         </div>
       </div>
-      {datasetMessage ? <div className="linkerAdminMessage">{datasetMessage}</div> : null}
-      {datasetError ? <div className="lbcError">{datasetError}</div> : null}
       <div className="lbcSnippet" dir={item.language === 'he' ? 'rtl' : 'ltr'} dangerouslySetInnerHTML={{__html: item.snippet?.html || ''}} />
       <div className="lbcColumns">
         <section>
@@ -301,54 +222,35 @@ const ResultDetails = ({item, onReparse, reparsing}) => {
           <div className="linkerAdminParts">
             {(item.refParts || []).map((part, i) => <LinkerPartChip key={i} part={part} />)}
           </div>
-          {testStringCrrd ? (
-            <div className="linkerAdminSection">
-              <div className="linkerAdminSectionTitle">CRRD Test String</div>
-              <div className="linkerAdminTestStringBox" onClick={copyTestString} title="Click to copy">
-                <input
-                  id="lbcTestString"
-                  className="linkerAdminTestStringInput"
-                  type="text"
-                  readOnly
-                  value={testStringCrrd}
-                />
-                <img src="/static/icons/copy.svg" className="linkerAdminCopyIcon" aria-hidden="true" alt="" />
-              </div>
-              {testStringCopied ? <div className="linkerAdminMessage">Copied to clipboard</div> : null}
-            </div>
-          ) : null}
+          {testStringCrrd ? <LinkerTestStringBox testString={testStringCrrd} /> : null}
         </section>
         <section>
           <h3>Options Considered</h3>
-          <div className="linkerAdminParsingList">
-            {(item.parsings || [])
-              .map((parsing, i) => ({parsing, i}))
-              .sort((a, b) => (a.parsing.valid === b.parsing.valid)
-                ? (matchedPartCount(b.parsing) - matchedPartCount(a.parsing))
-                : (a.parsing.valid ? -1 : 1))
-              .map(({parsing, i}) => (
-                <div className={classNames("linkerAdminParsing", {valid: parsing.valid, invalid: !parsing.valid})} key={`${resultKey(item)}-${i}`}>
-                  <div className="linkerAdminParsingRef">{parsing.ref || "No Ref"}</div>
-                  {!parsing.valid ? <div className="linkerAdminInvalidReason">{parsing.disqualificationReason}</div> : null}
-                  <LinkerPairings pairings={parsing.pairings || []} contextType={parsing.contextType} />
-                </div>
-              ))}
-          </div>
+          <LinkerParsingList parsings={item.parsings || []} keyPrefix={resultKey(item)} />
         </section>
       </div>
     </div>
   );
 };
 
+const BulkTaskStatus = ({task}) => (
+  <div className={task.state === 'FAILURE' ? 'lbcError' : 'lbcTask'}>
+    Re-parse: {task.current || 0} / {task.total ?? '?'} ({task.state})
+    {task.skipped ? `, skipped ${task.skipped}` : ''}
+    {task.error ? `: ${task.error}` : ''}
+  </div>
+);
+
 const LinkerBulkCorrectorPage = () => {
-  const stored = loadStored(STORAGE_KEY, {});
+  const [stored] = useState(() => loadStored(STORAGE_KEY, {}));
   const [dataset, setDataset] = useState(stored.dataset || defaultDataset);
-  const [page, setPage] = useState(stored.page || 0);
+  // Position of `item` in the filtered dataset; null when unknown (an entry outside the current dataset).
+  const [page, setPage] = useState(stored.page !== undefined ? stored.page : 0);
   const [item, setItem] = useState(stored.item || null);
   const [total, setTotal] = useState(stored.total || 0);
-  const [stats, setStats] = useState(stored.stats || {totalCitations: 0, parsedCitations: 0});
+  const [stats, setStats] = useState(stored.stats || EMPTY_STATS);
   const [statsBookTitle, setStatsBookTitle] = useState(stored.statsBookTitle || stored.dataset?.bookTitle || '');
-  const [history, setHistory] = useState(loadStored(HISTORY_KEY, []));
+  const [history, setHistory] = useState(() => loadStored(HISTORY_KEY, []));
   const [loading, setLoading] = useState(false);
   const [activeAction, setActiveAction] = useState(null);
   const [reparsing, setReparsing] = useState(false);
@@ -362,83 +264,68 @@ const LinkerBulkCorrectorPage = () => {
     lang: dataset.lang || null,
   }), [dataset]);
 
-  const persistState = useCallback((next = {}) => {
-    if (typeof localStorage === 'undefined') { return; }
-    const state = {dataset: normalizedDataset, page, item, total, stats, statsBookTitle, ...next};
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  useEffect(() => {
+    saveStored(STORAGE_KEY, {dataset: normalizedDataset, page, item, total, stats, statsBookTitle});
   }, [normalizedDataset, page, item, total, stats, statsBookTitle]);
 
-  useEffect(() => {
-    persistState();
-  }, [persistState]);
-
-  const rememberItem = useCallback((nextItem) => {
+  const showItem = useCallback((nextItem, position) => {
+    setItem(nextItem);
+    setPage(position);
     if (!nextItem) { return; }
     setHistory(prev => {
-      const filtered = prev.filter(entry => resultKey(entry) !== resultKey(nextItem));
-      const next = [nextItem, ...filtered].slice(0, 10);
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-      }
+      const next = [nextItem, ...prev.filter(entry => resultKey(entry) !== resultKey(nextItem))].slice(0, HISTORY_SIZE);
+      saveStored(HISTORY_KEY, next);
       return next;
     });
   }, []);
 
-  const applySearchResponse = useCallback((data) => {
-    const nextItem = data.results?.[0] || null;
-    setPage(data.page || 0);
-    setTotal(data.total || 0);
-    setStats(data.stats || {totalCitations: 0, parsedCitations: 0});
-    setItem(nextItem);
-    rememberItem(nextItem);
-    setStatsBookTitle(data.dataset?.bookTitle || '');
-    setDataset(prev => (data.dataset?.bookTitle && data.dataset.bookTitle !== prev.bookTitle)
-      ? {...prev, bookTitle: data.dataset.bookTitle}
-      : prev);
-  }, [rememberItem]);
-
-  const search = useCallback(async (nextPage = 0) => {
-    if (!normalizedDataset.bookTitle) { return; }
+  // Runs an API action with the shared loading/spinner/error state; ignored while another is in flight.
+  const runAction = useCallback(async (action, request) => {
+    if (loading) { return; }
     setLoading(true);
-    setActiveAction('search');
+    setActiveAction(action);
     setError(null);
     try {
-      const data = await apiPost('/_api/linker-bulk-corrector/search', {dataset: normalizedDataset, page: nextPage, pageSize: 1});
-      applySearchResponse(data);
+      await request();
     } catch (e) {
-      setError(e.message || String(e));
+      setError(errorMessage(e));
     } finally {
       setLoading(false);
       setActiveAction(null);
     }
-  }, [normalizedDataset, applySearchResponse]);
+  }, [loading]);
 
-  const navigate = useCallback(async (direction) => {
-    if (!item) {
-      search(0);
+  const search = useCallback(() => {
+    if (!normalizedDataset.bookTitle) { return; }
+    runAction('search', async () => {
+      const data = await apiPost('/_api/linker-bulk-corrector/search', {dataset: normalizedDataset, page: 0});
+      showItem(data.result, data.page);
+      setTotal(data.total);
+      setStats(data.stats);
+      setStatsBookTitle(data.dataset.bookTitle);
+      setDataset(prev => ({...prev, bookTitle: data.dataset.bookTitle}));
+    });
+  }, [normalizedDataset, runAction, showItem]);
+
+  const navigate = useCallback((direction, cursorItem = item) => {
+    if (!cursorItem) {
+      search();
       return;
     }
-    setLoading(true);
-    setActiveAction(direction);
-    setError(null);
-    try {
-      const cursor = {ref: item.ref, charRange: item.charRange};
+    runAction(direction, async () => {
+      const cursor = {ref: cursorItem.ref, charRange: cursorItem.charRange};
       const data = await apiPost('/_api/linker-bulk-corrector/navigate', {dataset: normalizedDataset, direction, cursor});
       if (data.found) {
-        setItem(data.item);
-        rememberItem(data.item);
-        setPage(data.position || 0);
+        showItem(data.item, data.position);
+      } else if (direction === 'current') {
+        // Not in the current dataset (e.g. a history entry from another book): show it as last seen.
+        showItem(cursorItem, null);
       }
-    } catch (e) {
-      setError(e.message || String(e));
-    } finally {
-      setLoading(false);
-      setActiveAction(null);
-    }
-  }, [item, normalizedDataset, rememberItem, search]);
+    });
+  }, [item, normalizedDataset, runAction, search, showItem]);
 
   const reparseCurrent = useCallback(async () => {
-    if (!item) { return; }
+    if (!item || reparsing) { return; }
     setReparsing(true);
     setError(null);
     try {
@@ -448,36 +335,64 @@ const LinkerBulkCorrectorPage = () => {
         language: item.language,
         charRange: item.charRange,
       });
-      setItem(data);
-      rememberItem(data);
+      showItem(data, page);
     } catch (e) {
-      setError(e.message || String(e));
+      setError(errorMessage(e));
     } finally {
       setReparsing(false);
     }
-  }, [item, rememberItem]);
+  }, [item, page, reparsing, showItem]);
+
+  const bulkTaskId = bulkTask?.taskId;
+  const bulkTaskRunning = !!bulkTask && !['SUCCESS', 'FAILURE'].includes(bulkTask.state);
+  const statusLabel = (dataset.status || []).join(' + ') || 'no status selected';
 
   const reparseDataset = useCallback(async () => {
-    if (!normalizedDataset.bookTitle) { return; }
+    if (!normalizedDataset.bookTitle || bulkTaskRunning) { return; }
+    const confirmed = window.confirm(
+      `Re-parse and save every ${statusLabel} citation in ${normalizedDataset.bookTitle}? ` +
+      'This rewrites stored citations and their links.'
+    );
+    if (!confirmed) { return; }
     setError(null);
-    const data = await apiPost('/_api/linker-bulk-corrector/reparse-dataset', {dataset: normalizedDataset});
-    setBulkTask({task_id: data.task_id, current: 0, total: null, state: 'PENDING'});
-  }, [normalizedDataset]);
+    try {
+      const data = await apiPost('/_api/linker-bulk-corrector/reparse-dataset', {dataset: normalizedDataset});
+      setBulkTask({taskId: data.task_id, state: 'PENDING', current: 0, total: null, skipped: 0});
+    } catch (e) {
+      setError(errorMessage(e));
+    }
+  }, [normalizedDataset, bulkTaskRunning, statusLabel]);
 
   useEffect(() => {
-    if (!bulkTask?.task_id || bulkTask.state === 'SUCCESS' || bulkTask.state === 'FAILURE') { return undefined; }
-    const timer = setInterval(async () => {
-      const data = await Sefaria._ApiPromise(`${Sefaria.apiHost}/api/async/${bulkTask.task_id}`);
-      setBulkTask({
-        ...bulkTask,
-        state: data.status || data.state,
-        current: data.meta?.current ?? data.current ?? bulkTask.current,
-        total: data.meta?.total ?? data.total ?? bulkTask.total,
-        skipped: data.meta?.skipped ?? data.result?.skipped ?? bulkTask.skipped,
-      });
-    }, 1500);
-    return () => clearInterval(timer);
-  }, [bulkTask]);
+    if (!bulkTaskId) { return undefined; }
+    let cancelled = false;
+    let timer;
+    const poll = async () => {
+      let data;
+      try {
+        data = await Sefaria._ApiPromise(`${Sefaria.apiHost}/api/async/${bulkTaskId}`);
+      } catch (e) {
+        // The status endpoint responds 500 when the task itself failed.
+        if (!cancelled) { setBulkTask(prev => ({...prev, state: 'FAILURE', error: errorMessage(e)})); }
+        return;
+      }
+      if (cancelled) { return; }
+      const progress = data.result || data.meta || {};
+      setBulkTask(prev => ({
+        ...prev,
+        state: data.state,
+        current: progress.current ?? prev.current,
+        total: progress.total ?? prev.total,
+        skipped: progress.skipped ?? prev.skipped,
+      }));
+      if (!data.ready) { timer = setTimeout(poll, BULK_POLL_MS); }
+    };
+    timer = setTimeout(poll, BULK_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [bulkTaskId]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -501,7 +416,18 @@ const LinkerBulkCorrectorPage = () => {
   };
 
   const parsedPct = stats.totalCitations ? Math.round((stats.parsedCitations / stats.totalCitations) * 100) : 0;
-  const statusLabel = (dataset.status || []).join(' + ') || 'no status selected';
+  const editorBookTitle = statsBookTitle || normalizedDataset.bookTitle;
+
+  const navButton = (direction, label) => (
+    <button
+      type="button"
+      className={classNames('button', {disabled: loading && activeAction !== direction})}
+      onClick={() => navigate(direction)}
+      disabled={loading}
+    >
+      {activeAction === direction ? <span className="lbcSpinner" /> : label}
+    </button>
+  );
 
   return (
     <div className="linkerBulkCorrector sans-serif">
@@ -517,9 +443,9 @@ const LinkerBulkCorrectorPage = () => {
           ) : null}
         </section>
         <section className="lbcHistory">
-          <h2>Previous 10</h2>
+          <h2>Previous {HISTORY_SIZE}</h2>
           {history.map(entry => (
-            <button type="button" key={resultKey(entry)} onClick={() => setItem(entry)}>
+            <button type="button" key={resultKey(entry)} onClick={() => navigate('current', entry)}>
               <span>{entry.ref}</span>
               <SmallMeta item={entry} />
             </button>
@@ -534,7 +460,9 @@ const LinkerBulkCorrectorPage = () => {
       </aside>
       <main className="lbcMain">
         <div className="lbcSearch">
+          {/* Remount when a search canonicalizes the title: the autocomplete input is uncontrolled. */}
           <IndexTitleAutocomplete
+            key={statsBookTitle}
             value={dataset.bookTitle}
             onChange={bookTitle => setDataset({...dataset, bookTitle})}
           />
@@ -551,51 +479,43 @@ const LinkerBulkCorrectorPage = () => {
           </select>
           <div className="lbcSegmented">
             {STATUS_OPTIONS.map(status => (
-              <StatusToggle key={status} status={status} selected={(dataset.status || []).includes(status)} onClick={() => toggleStatus(status)} />
+              <button
+                type="button"
+                key={status}
+                className={classNames('lbcSegmentButton', {active: (dataset.status || []).includes(status)})}
+                onClick={() => toggleStatus(status)}>
+                {status}
+              </button>
             ))}
           </div>
           <button
             type="button"
             className={classNames('button', {disabled: loading && activeAction !== 'search'})}
-            onClick={() => search(0)}
+            onClick={search}
             disabled={loading}
           >
             {activeAction === 'search' ? <span className="lbcSpinner" /> : 'Search'}
           </button>
-          <button type="button" className="button" onClick={reparseDataset} disabled={loading}>Re-parse Results</button>
+          <button type="button" className="button" onClick={reparseDataset} disabled={loading || bulkTaskRunning}>
+            Re-parse Results
+          </button>
           <button
             type="button"
             className="button"
-            onClick={() => window.open(`/linker-editor?book=${encodeURIComponent(statsBookTitle || normalizedDataset.bookTitle)}`, '_blank', 'noopener')}
-            disabled={!(statsBookTitle || normalizedDataset.bookTitle)}
+            onClick={() => window.open(`/linker-editor?book=${encodeURIComponent(editorBookTitle)}`, '_blank', 'noopener')}
+            disabled={!editorBookTitle}
           >
             Linker Editor
           </button>
         </div>
         {error ? <div className="lbcError">{error}</div> : null}
-        {bulkTask ? <div className="lbcTask">Re-parse: {bulkTask.current || 0} / {bulkTask.total || '?'} ({bulkTask.state}){bulkTask.skipped ? `, skipped ${bulkTask.skipped}` : ''}</div> : null}
+        {bulkTask ? <BulkTaskStatus task={bulkTask} /> : null}
         <ResultDetails item={item} onReparse={reparseCurrent} reparsing={reparsing} />
       </main>
       <nav className="lbcNavOverlay">
-        <button
-          type="button"
-          className={classNames('button', {disabled: loading && activeAction !== 'backward'})}
-          onClick={() => navigate('backward')}
-          disabled={loading}
-        >
-          {activeAction === 'backward' ? <span className="lbcSpinner" /> : 'Back'}
-        </button>
-        <div className="lbcNavStatusGroup">
-          <span>{item ? `${page + 1} / ${total || '?'} (${statusLabel})` : 'No item'}</span>
-        </div>
-        <button
-          type="button"
-          className={classNames('button', {disabled: loading && activeAction !== 'forward'})}
-          onClick={() => navigate('forward')}
-          disabled={loading}
-        >
-          {activeAction === 'forward' ? <span className="lbcSpinner" /> : 'Forward'}
-        </button>
+        {navButton('backward', 'Back')}
+        <span>{item ? `${page != null ? page + 1 : '?'} / ${total || '?'} (${statusLabel})` : 'No item'}</span>
+        {navButton('forward', 'Forward')}
       </nav>
     </div>
   );

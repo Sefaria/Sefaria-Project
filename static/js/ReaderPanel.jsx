@@ -1112,11 +1112,7 @@ class ReaderPanel extends Component {
       );
 
     } else if (this.state.menuOpen === "linkerBulkCorrector") {
-      menu = (
-        <LinkerBulkCorrectorPage
-          interfaceLang={this.props.interfaceLang}
-        />
-      );
+      menu = <LinkerBulkCorrectorPage />;
 
     } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
       menu = (

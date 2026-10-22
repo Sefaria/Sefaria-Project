@@ -1,42 +1,29 @@
-from django.views import View
-
-from sefaria.client.util import jsonResponse
 from sefaria.helper import linker_bulk_corrector
-from sefaria.system.exceptions import InputError
-from .views import _load_json_body, StaffRequiredMixin
+from .linker_admin_views import LinkerAdminAPIView
 
 
-class LinkerBulkCorrectorAPIView(StaffRequiredMixin, View):
-
-    def _handle(self, request, handler, status=200):
-        body, err = _load_json_body(request, empty_as_object=True)
-        if err:
-            return err
-        try:
-            return jsonResponse(handler(body), status=status)
-        except InputError as e:
-            return jsonResponse({"error": str(e)}, status=400)
-
-
-class LinkerBulkCorrectorSearchView(LinkerBulkCorrectorAPIView):
+class LinkerBulkCorrectorSearchView(LinkerAdminAPIView):
 
     def post(self, request):
         return self._handle(request, linker_bulk_corrector.search_citations)
 
 
-class LinkerBulkCorrectorNavigateView(LinkerBulkCorrectorAPIView):
+class LinkerBulkCorrectorNavigateView(LinkerAdminAPIView):
 
     def post(self, request):
         return self._handle(request, linker_bulk_corrector.navigate_dataset)
 
 
-class LinkerBulkCorrectorReparseCitationView(LinkerBulkCorrectorAPIView):
+class LinkerBulkCorrectorReparseCitationView(LinkerAdminAPIView):
 
     def post(self, request):
-        return self._handle(request, linker_bulk_corrector.reparse_citation)
+        return self._handle(
+            request,
+            lambda body: linker_bulk_corrector.reparse_citation(body, request.user.id),
+        )
 
 
-class LinkerBulkCorrectorReparseDatasetView(LinkerBulkCorrectorAPIView):
+class LinkerBulkCorrectorReparseDatasetView(LinkerAdminAPIView):
 
     def post(self, request):
         return self._handle(
