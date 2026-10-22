@@ -14,6 +14,7 @@ spec:
 {{- if .Values.authService.spikeLimit.enabled }}
   # Spike (never merged): the limit comes from the ext_authz dynamic metadata; 1000/Minute applies when absent.
   # Same object as the splash override because two policies on one HTTPRoute conflict.
+  # The month rule reads limit_month, which the auth service stamps when the request carries x-spike-unit: MONTH.
   rateLimit:
     type: Global
     global:
