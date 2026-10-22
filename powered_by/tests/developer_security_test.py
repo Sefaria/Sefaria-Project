@@ -22,6 +22,7 @@ from powered_by import developer
 from powered_by.models import ApiKey, Project, SubmissionSource
 from powered_by.tests.developer_api_test import DeveloperApiTestCase
 from sefaria.model.user_profile import UserProfile
+from sefaria.settings_utils import scrub_api_keys
 from sefaria.utils.chatbot import build_chatbot_user_token
 
 CHATBOT_SECRET = "developer-security-test-secret"
@@ -238,8 +239,7 @@ class SentryKeyValueTest(DeveloperApiTestCase):
         sentry_sdk.get_global_scope().set_client(None)
         super().tearDown()
 
-    @pytest.mark.failing
-    def test_N_CR6_a_sentry_event_from_a_developer_view_carries_no_key_value_known_gap_N_CR6(self):
+    def test_N_CR6_a_sentry_event_from_a_developer_view_carries_no_key_value(self):
         def failing_json_response(data, callback=None, status=200):
             raise RuntimeError("could not serialise the developer state")
 
@@ -251,3 +251,15 @@ class SentryKeyValueTest(DeveloperApiTestCase):
         events = "\n".join(self.transport.payloads)
         self.assertIn("could not serialise the developer state", events)
         self.assertFalse(self.key_value[:12] in events, "the Sentry event carries the key value")
+
+
+def test_N_CR6_scrub_api_keys_replaces_key_values_at_any_depth():
+    key = "sfr_" + "Ab1" * 10 + "Cd"
+    event = {"message": "bad key " + key, "frames": [{"vars": {"value": "'{}'".format(key), "n": 3}}],
+             "extra": ("x", key)}
+
+    scrubbed = scrub_api_keys(event)
+
+    assert key[:8] not in json.dumps(scrubbed)
+    assert scrubbed["message"] == "bad key sfr_[Filtered]"
+    assert scrubbed["frames"][0]["vars"]["n"] == 3
