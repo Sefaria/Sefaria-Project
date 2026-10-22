@@ -15,6 +15,11 @@ type Key struct {
 	Tier           string   `json:"tier"`
 	AllowedOrigins []string `json:"allowed_origins"`
 	Revoked        bool     `json:"revoked"`
+	// PerMinute is the tier's requests-per-minute limit for the key's API project (api_tier.per_minute_per_project).
+	PerMinute int `json:"per_minute"`
+	// MonthlyLimits maps a meter to the tier's monthly limit for the API project (api_tier_meter_limit). A meter
+	// without a row for the tier is absent.
+	MonthlyLimits map[string]int64 `json:"monthly_limits"`
 }
 
 var ErrEmptyReload = errors.New("registry: refusing to replace a non-empty key set with an empty one")

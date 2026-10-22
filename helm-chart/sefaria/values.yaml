@@ -225,6 +225,27 @@ authService:
       dsn:
         ref: auth-service-registry
         key: AUTH_PG_DSN
+  # Metered products: meter name -> path prefixes. The auth service stamps x-sefaria-meter with the meter of the
+  # request path (none elsewhere), and the monthly limit of a project for that meter comes from the api_tier_meter_limit
+  # table, not from here. The meter name is the same slug as api_tier_meter_limit.meter and limit_month_<meter>.
+  meters:
+    semantic: ["/api/knn-search"]
+  rateLimit:
+    enabled: false          # needs the controller's rateLimit.backend (infrastructure repo) and Envoy Gateway >= 1.9
+    retryAfterSeconds: 60
+    # Per-rule x-ratelimit-* response headers (DraftVersion03). Needs Envoy Gateway >= 1.9.
+    headers: false
+    # The limit of a keyed request comes from its project's tier (api_tier, api_tier_meter_limit) through ext_authz
+    # dynamic metadata, so a tier limit changes without a deploy. The numbers below are the static fallbacks Envoy
+    # uses when the auth service is down (fail-open) or sends no metadata. Test-sized placeholders; production
+    # numbers come from the tier tables.
+    defaults:
+      perMinutePerProject: 60
+      monthlyPerProject: 100000
+    anonymousPerIP: 20       # anonymous: best-effort per client IP
+    anonymousShared: 40      # anything with a missing or unknown tier, at the anonymous limits
+  # Adds sefariaProject, sefariaTier and sefariaAuthResult to the nginx access log, next to the caller-classification fields.
+  nginxLogFields: true
   monitoring:
     enabled: true
 

@@ -16,4 +16,7 @@ check securitypolicy.spec.extAuth.headersToExtAuth                       yes ""
 check securitypolicy.spec.extAuth.failOpen                               yes "auth service down -> anonymous tier"
 check securitypolicy.spec.extAuth.timeout                                yes "default 10s -- must be set"
 check clienttrafficpolicy.spec.headers.earlyRequestHeaders.remove        yes "strips client-sent x-sefaria-* before ext_authz"
+check backendtrafficpolicy.spec.rateLimit.global.rules.limit.fromMetadata   no  "[EG >=1.9] per-project limits from ext_authz metadata (authService.rateLimit)"
+check backendtrafficpolicy.spec.rateLimit.global.rules.shared            no  "[EG >=1.3] one counter across hosts and route matches"
+check backendtrafficpolicy.spec.rateLimit.global.rules.clientSelectors.headers.invert no "[EG >=1.8] the missing-or-malformed tier catch-all"
 exit $rc

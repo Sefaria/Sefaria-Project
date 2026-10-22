@@ -7,7 +7,8 @@ import (
 
 func TestLoadAll(t *testing.T) {
 	db, _ := freshSchema(t)
-	exec(t, db, `INSERT INTO powered_by_project(id,project_name,tier) VALUES (1,'Alpha','developer'), (2,'Beta','partner')`)
+	exec(t, db, `INSERT INTO powered_by_project(id,project_name) VALUES (1,'Alpha'), (2,'Beta')`)
+	exec(t, db, `INSERT INTO api_project(id,profile_id,tier_id) VALUES (1,1,'developer'), (2,2,'partner')`)
 	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label,allowed_origins) VALUES
 		('sfr_alpha000000000000000000000000001',1,'Default key','[]'),
 		('sfr_beta0000000000000000000000000001',2,'Web','["https://beta.example.org","https://www.beta.example.org"]'),
@@ -40,6 +41,7 @@ func TestLoadAll(t *testing.T) {
 func TestLoadAllSkipsNonArrayOrigins(t *testing.T) {
 	db, _ := freshSchema(t)
 	exec(t, db, `INSERT INTO powered_by_project(id) VALUES (1)`)
+	exec(t, db, `INSERT INTO api_project(id,profile_id) VALUES (1,1)`)
 	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label,allowed_origins) VALUES
 		('sfr_bad00000000000000000000000000001',1,'Bad','"https://x.example.org"'),
 		('sfr_good0000000000000000000000000001',1,'Good','["https://ok.example.org"]')`)
@@ -57,10 +59,11 @@ func TestLoadAllSkipsNonArrayOrigins(t *testing.T) {
 	}
 }
 
-// Keys of a soft-deleted project are still loaded, marked revoked, so they are denied.
-func TestLoadAllMarksDeletedProjectKeysRevoked(t *testing.T) {
+// Keys of a soft-deleted API project are still loaded, marked revoked, so they are denied.
+func TestLoadMarksDeletedProjectKeysRevoked(t *testing.T) {
 	db, _ := freshSchema(t)
-	exec(t, db, `INSERT INTO powered_by_project(id,deleted_at) VALUES (1,NULL), (2,now())`)
+	exec(t, db, `INSERT INTO powered_by_project(id) VALUES (1), (2)`)
+	exec(t, db, `INSERT INTO api_project(id,profile_id,deleted_at) VALUES (1,1,NULL), (2,2,now())`)
 	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label) VALUES
 		('sfr_live0000000000000000000000000001',1,'Live'),
 		('sfr_gone0000000000000000000000000001',2,'Gone')`)
@@ -85,6 +88,7 @@ func TestLoadAllMarksDeletedProjectKeysRevoked(t *testing.T) {
 func TestDeletingTheOnlyKeyedProjectRevokesItImmediately(t *testing.T) {
 	db, _ := freshSchema(t)
 	exec(t, db, `INSERT INTO powered_by_project(id) VALUES (1)`)
+	exec(t, db, `INSERT INTO api_project(id,profile_id) VALUES (1,1)`)
 	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label) VALUES ('sfr_only0000000000000000000000000001',1,'Only')`)
 	r := New()
 	keys, err := LoadAll(context.Background(), db)
@@ -98,7 +102,7 @@ func TestDeletingTheOnlyKeyedProjectRevokesItImmediately(t *testing.T) {
 		t.Fatalf("key must start live: %+v", k)
 	}
 
-	exec(t, db, `UPDATE powered_by_project SET deleted_at = now() WHERE id = 1`)
+	exec(t, db, `UPDATE api_project SET deleted_at = now() WHERE id = 1`)
 	keys, err = LoadAll(context.Background(), db)
 	if err != nil {
 		t.Fatal(err)
@@ -111,5 +115,48 @@ func TestDeletingTheOnlyKeyedProjectRevokesItImmediately(t *testing.T) {
 	}
 	if k, ok := r.Lookup("sfr_only0000000000000000000000000001"); !ok || !k.Revoked {
 		t.Fatalf("key must now be revoked: %+v", k)
+	}
+}
+
+// The key's tier comes from api_project and its limits from api_tier and api_tier_meter_limit, joined per project.
+func TestLoadJoinsApiProjectAndTier(t *testing.T) {
+	db, _ := freshSchema(t)
+	exec(t, db, `INSERT INTO powered_by_project(id) VALUES (1), (2)`)
+	exec(t, db, `UPDATE api_tier SET per_minute_per_project=60 WHERE id='developer'`)
+	exec(t, db, `UPDATE api_tier SET per_minute_per_project=300 WHERE id='partner'`)
+	exec(t, db, `INSERT INTO api_tier_meter_limit(tier_id,meter,monthly_per_project) VALUES
+		('developer','semantic',1000), ('partner','semantic',50000)`)
+	exec(t, db, `INSERT INTO api_project(id,profile_id,tier_id) VALUES (1,1,'developer'), (2,2,'partner')`)
+	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label) VALUES
+		('sfr_dev00000000000000000000000000001',1,'Dev'),
+		('sfr_par00000000000000000000000000001',2,'Partner')`)
+	keys, err := LoadAll(context.Background(), db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := New()
+	r.Replace(keys)
+	dev, _ := r.Lookup("sfr_dev00000000000000000000000000001")
+	if dev.ProjectID != "1" || dev.Tier != "developer" || dev.PerMinute != 60 || dev.MonthlyLimits["semantic"] != 1000 {
+		t.Fatalf("developer key: %+v", dev)
+	}
+	par, _ := r.Lookup("sfr_par00000000000000000000000000001")
+	if par.ProjectID != "2" || par.Tier != "partner" || par.PerMinute != 300 || par.MonthlyLimits["semantic"] != 50000 {
+		t.Fatalf("partner key: %+v", par)
+	}
+}
+
+// An old image still writes powered_by_project.tier; the tier that counts is the one on the API project.
+func TestLoadIgnoresLegacyTierColumn(t *testing.T) {
+	db, _ := freshSchema(t)
+	exec(t, db, `INSERT INTO powered_by_project(id,tier) VALUES (1,'partner')`)
+	exec(t, db, `INSERT INTO api_project(id,profile_id,tier_id) VALUES (1,1,'developer')`)
+	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label) VALUES ('sfr_legacy000000000000000000000000001',1,'Legacy')`)
+	keys, err := LoadAll(context.Background(), db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(keys) != 1 || keys[0].Tier != "developer" {
+		t.Fatalf("legacy tier column must be ignored, got %+v", keys)
 	}
 }

@@ -15,6 +15,7 @@ helm-lint:
 	cd .. && ct lint --charts helm-chart/sefaria --validate-maintainers=false
 helm-render:
 	$(RENDER) > /tmp/authpoc-render.yaml && kubeconform -strict -ignore-missing-schemas -summary /tmp/authpoc-render.yaml && bash scripts/render-check.sh /tmp/authpoc-render.yaml
+	bash scripts/ratelimit-check.sh
 crd-gate:
 	bash scripts/crd-gate.sh $(CTX)
 shellcheck:
@@ -29,5 +30,5 @@ helm-matrix:
 	echo "== grpc"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="SecurityPolicy") | .spec.extAuth.grpc.backendRefs[0].port' | grep -qx 9090; \
 	echo "== no jwt block"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="SecurityPolicy") | .spec.jwt' | grep -qx null; \
 	echo "== enabled without an image tag fails"; ! helm template x $$C --set deployEnv=x --set authService.enabled=true >/dev/null 2>&1; \
-	echo "== client x-sefaria-* stripped only when enabled"; helm template x $$C --set deployEnv=x --set gateway.enabled=true --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="ClientTrafficPolicy") | .spec.headers.earlyRequestHeaders.remove | length' | grep -qx 3; [ "$$(helm template x $$C --set deployEnv=x --set gateway.enabled=true | grep -c earlyRequestHeaders)" = 0 ]; \
+	echo "== client x-sefaria-* stripped only when enabled"; helm template x $$C --set deployEnv=x --set gateway.enabled=true --set authService.enabled=true --set authService.image.tag=test | yq 'select(.kind=="ClientTrafficPolicy") | .spec.headers.earlyRequestHeaders.remove | length' | grep -qx 4; [ "$$(helm template x $$C --set deployEnv=x --set gateway.enabled=true | grep -c earlyRequestHeaders)" = 0 ]; \
 	echo "helm-matrix OK"
