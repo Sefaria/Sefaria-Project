@@ -197,6 +197,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.91.0-preprod.1.tgz
     version: 0.91.0-preprod.1
   - apiVersion: v2
+    appVersion: v7.6.2
+    created: "2026-10-22T09:42:33.421327293Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 95a7c0f7b1ee36d6c219eca17282186f5f917a6ee5f6dc9a0b027940d96b2f83
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.91.0-pocfrommetadata-spike.1.tgz
+    version: 0.91.0-pocfrommetadata-spike.1
+  - apiVersion: v2
     appVersion: v7.5.6
     created: "2026-10-21T12:00:57.257434497Z"
     description: Chart to deploy complete Sefaria environment
@@ -23025,4 +23040,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-10-22T09:25:47.766964233Z"
+generated: "2026-10-22T09:42:33.416643418Z"
