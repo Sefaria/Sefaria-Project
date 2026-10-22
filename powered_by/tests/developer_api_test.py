@@ -605,6 +605,54 @@ class DeveloperSettingsOffTest(TestCase):
         self.assertEqual(Client().get("/api/developer-poc/powered-by-submissions").status_code, 404)
 
 
+@override_settings(DEVELOPER_SETTINGS_STAFF_ONLY=True)
+class DeveloperSettingsStaffOnlyTest(DeveloperApiTestCase):
+    """
+    With DEVELOPER_SETTINGS_STAFF_ONLY, staff get developer settings and everyone else gets what
+    they would with DEVELOPER_SETTINGS_ENABLED off.
+    """
+
+    def make_staff(self):
+        self.user.is_staff = True
+        self.user.save()
+
+    def test_the_developer_api_is_not_found_for_non_staff(self):
+        for method, url in (("get", "state"), ("post", "enable"), ("post", "confirmation"), ("post", "projects"),
+                            ("post", "projects/1/keys"), ("delete", "keys/1"), ("post", "listings/1/claim"),
+                            ("post", "mock")):
+            response = self.client.generic(method.upper(), "/api/developer/" + url, "{}", content_type="application/json")
+            self.assertEqual(response.status_code, 404, url)
+
+    def test_the_confirmation_link_and_the_powered_by_form_are_not_found_for_non_staff(self):
+        EmailAddress.objects.create(user=self.user, email=self.user.email, primary=True, verified=False)
+        key = developer.confirmation_for(self.user).key
+
+        self.assertEqual(self.client.get("/settings/developer/confirm-email/" + key).status_code, 404)
+        self.assertEqual(self.client.get("/settings/developer/email-confirmed").status_code, 404)
+        self.assertEqual(self.client.get("/powered-by/form").status_code, 404)
+        self.assertFalse(EmailAddress.objects.get(user=self.user).verified)
+
+    def test_the_developer_api_is_not_found_logged_out(self):
+        self.assertEqual(Client().get("/api/developer/state").status_code, 404)
+
+    def test_staff_can_set_up_and_create_a_key(self):
+        self.make_staff()
+        self.set_up_developer()
+        project = self.create_project()
+
+        state = self.create_key(project["id"])
+
+        self.assertEqual(len(next(p for p in state["projects"] if p["id"] == project["id"])["keys"]), 1)
+
+    def test_staff_can_open_the_confirmation_link(self):
+        self.make_staff()
+        EmailAddress.objects.create(user=self.user, email=self.user.email, primary=True, verified=False)
+        key = developer.confirmation_for(self.user).key
+
+        self.assertEqual(self.client.get("/settings/developer/confirm-email/" + key).status_code, 302)
+        self.assertTrue(EmailAddress.objects.get(user=self.user).verified)
+
+
 class MockTest(DeveloperApiTestCase):
 
     def test_the_test_controls_are_off_by_default(self):

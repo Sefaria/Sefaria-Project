@@ -657,6 +657,8 @@ localSettings:
   DEVELOPER_SETTINGS_MOCKS: "False"
   # The developer tab in settings and its routes; off means they return 404.
   DEVELOPER_SETTINGS_ENABLED: "False"
+  # With DEVELOPER_SETTINGS_ENABLED on, limits the developer tab and its routes to staff.
+  DEVELOPER_SETTINGS_STAFF_ONLY: "False"
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"

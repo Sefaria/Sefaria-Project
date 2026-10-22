@@ -356,6 +356,10 @@ DEVELOPER_SETTINGS_MOCKS = False
 # /powered-by/form). Off: the tab is absent and the routes return 404.
 DEVELOPER_SETTINGS_ENABLED = False
 
+# With DEVELOPER_SETTINGS_ENABLED on, limits developer settings to staff (is_staff); everyone else
+# gets what they would with it off.
+DEVELOPER_SETTINGS_STAFF_ONLY = False
+
 # Elasticsearch index names, defaulted here (before local_settings is imported) so that a
 # deployment whose local_settings.py predates one of these constants still boots. Without a
 # default, an omitted name is simply undefined, and `global_settings`
