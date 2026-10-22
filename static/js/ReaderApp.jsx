@@ -41,6 +41,8 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import Bookshelf from './sefaria/bookshelf';
+import { BookshelfOverlay } from './Bookshelf';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
@@ -239,6 +241,8 @@ class ReaderApp extends Component {
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
+    Bookshelf.mergeAfterLogin();
+    this.noteBookshelfBook();
     if (Sefaria._uid) {
       // A logged in user is automatically a returning visitor
       Sefaria.markUserAsReturningVisitor();
@@ -272,6 +276,7 @@ class ReaderApp extends Component {
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
+    this.noteBookshelfBook();
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
 
     if (this.justPopped) {
@@ -2166,12 +2171,24 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
   }
+  noteBookshelfBook() {
+    // Bookshelf POC: count each time a book is opened in the main text panel (not moves within it).
+    const panel = this.state.panels.find(p => p.mode === "Text" || p.mode === "TextAndConnections");
+    const ref = panel && (panel.currentlyVisibleRef || (panel.refs && panel.refs[0]));
+    const book = ref ? Sefaria.parseRef(ref).book : null;
+    if (book !== this._bookshelfBook) {
+      this._bookshelfBook = book;
+      Bookshelf.noteBookOpened(book);
+    }
+  }
   saveLastPlace(panel, n, openingSidebar) {
     //openingSidebar is true when you call `saveLastPlace` at the time you're opening the sidebar. In this case, `doesPanelHaveSidebar` will be false
     const hasSidebar = this.doesPanelHaveSidebar(n) || openingSidebar;
     // if panel is sheet, panel.refs isn't set
     if ((panel.mode !== 'Sheet' && !panel.refs.length ) || panel.mode === 'Connections') { return; }
-    Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
+    const historyObject = this.getHistoryObject(panel, hasSidebar);
+    Sefaria.saveUserHistory(historyObject);
+    if (Sefaria.is_history_enabled) { Bookshelf.noteHistory(historyObject); }
   }
   currentlyConnecting() {
     // returns true if there is currently an "Add Connections" Panel open
@@ -2634,6 +2651,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               )}
               </main>
               {signUpModal}
+              <BookshelfOverlay />
               <CookiesNotification />
             </div>
             <BannerImpressionProbe />

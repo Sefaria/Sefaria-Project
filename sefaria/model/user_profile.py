@@ -441,6 +441,9 @@ class UserProfile(object):
         self.is_sustainer = False
         self.experiments = False
 
+        # Bookshelf POC: books the user keeps on the homepage, newest first
+        self.bookshelf = []
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         if profile: # overwrite if fake profile in db
@@ -758,6 +761,7 @@ class UserProfile(object):
             "attr_time_stamps":      self.attr_time_stamps,
             "is_sustainer":          self.is_sustainer,
             "experiments":           self.experiments,
+            "bookshelf":             self.bookshelf,
             "tag_order":             getattr(self, "tag_order", None),
             "last_sync_web":         self.last_sync_web,
             "profile_pic_url":       self.profile_pic_url,

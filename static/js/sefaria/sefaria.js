@@ -21,6 +21,7 @@ let Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
+  bookshelf: [],  // Bookshelf POC: [{book, added}] for logged-in users
   VOICES_MODULE,
   LIBRARY_MODULE,
   apiHost: "" 
@@ -4040,6 +4041,7 @@ Sefaria.unpackBaseProps = function(props){
       "saved",
       "userHistory",
       "last_place",
+      "bookshelf",
       "interfaceLang",
       "countryCode",
       "multiPanel",
@@ -4132,6 +4134,7 @@ Sefaria.resetCache = function() {
 
     // Caches that are user-level or can grow unbounded
     this.last_place = [];   // Code smell: user state stored in library
+    this.bookshelf = [];
     this._parseRef = {};
     this._texts = {};
     this._textsStore = {};

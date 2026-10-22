@@ -17111,3 +17111,300 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+
+/* Bookshelf POC: reader star, promo modal, toast, homepage section */
+.rightButtons .bookshelfStar {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--dark-grey);
+}
+.bookshelfStar .bookshelfStarIcon {
+  margin-top: 3px;
+}
+.bookshelfStar:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+.bookshelfStar.pulse .bookshelfStarIcon {
+  animation: bookshelfStarPulse 0.6s ease-out 1;
+}
+@keyframes bookshelfStarPulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+.bookshelfToast {
+  position: fixed;
+  top: 128px;
+  right: 24px;
+  z-index: 1002;
+  width: 320px;
+  box-sizing: border-box;
+  padding: 12px 32px 12px 14px;
+  background: var(--white);
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--near-black);
+}
+.bookshelfToast a {
+  color: var(--inline-link-blue);
+  text-decoration: underline;
+}
+.bookshelfToastCheck {
+  color: var(--midrash-green);
+}
+.bookshelfToastHint {
+  margin-top: 6px;
+  color: var(--dark-grey);
+}
+.bookshelfToastHint .bookshelfStarIcon {
+  width: 15px;
+  height: 15px;
+  vertical-align: -2px;
+}
+.bookshelfToastClose {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--dark-grey);
+  cursor: pointer;
+}
+
+.bookshelfPromo .bookshelfPromoBody {
+  font-size: 13px;
+  line-height: 19px;
+  margin: 0 0 18px;
+}
+.bookshelfPromo #interruptingMessageClose {
+  background: none;
+  border: none;
+  color: var(--white);
+}
+.bookshelfLinkButton {
+  background: none;
+  border: none;
+  color: var(--white);
+  text-decoration: underline;
+  font-size: inherit;
+  cursor: pointer;
+}
+.bookshelfPromoShelf {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--white);
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  text-align: start;
+}
+.bookshelfPromoShelfTitle {
+  font-family: var(--english-serif-font-family);
+  font-size: 14px;
+  color: var(--near-black);
+  margin-bottom: 8px;
+}
+.bookshelfPromoSlots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.bookshelfPromoSlot {
+  position: relative;
+  height: 86px;
+  border: 1px dashed var(--light-grey);
+  background: var(--lightest-grey);
+}
+.bookshelfPromoCard {
+  position: absolute;
+  inset: -1px;
+  padding: 7px 8px 10px;
+  background: var(--white);
+  border: 1px solid var(--lighter-grey);
+  border-top: 3px solid var(--tanakh-teal);
+  animation: bookshelfCardSlide 4s ease-out infinite, bookshelfCardGlow 4s ease-out infinite;
+}
+.bookshelfPromoCardTitle {
+  font-family: var(--english-serif-font-family);
+  font-size: 13px;
+  color: var(--near-black);
+}
+.bookshelfPromoCardRef {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--dark-grey);
+  margin: 2px 0 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bookshelfPromoCardButton {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 3px;
+  line-height: 15px;
+  background: var(--sefaria-blue);
+  color: var(--white);
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 11px;
+}
+@keyframes bookshelfCardSlide {
+  0%, 8% { transform: translate(70px, -60px) scale(1.08); opacity: 0; }
+  30% { opacity: 1; }
+  48%, 88% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0; }
+}
+@keyframes bookshelfCardGlow {
+  0%, 46% { box-shadow: 0 0 0 0 rgba(204, 180, 121, 0); }
+  54% { box-shadow: 0 0 0 4px rgba(204, 180, 121, 0.7); }
+  70%, 100% { box-shadow: 0 0 0 0 rgba(204, 180, 121, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bookshelfPromoCard,
+  .bookshelfStar.pulse .bookshelfStarIcon {
+    animation: none;
+  }
+}
+
+.bookshelfHome {
+  margin-bottom: 30px;
+}
+.bookshelfHome .bookshelfHomeTitle {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  margin: 0 0 15px;
+  color: var(--dark-grey);
+}
+.bookshelfGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.bookshelfCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--lighter-grey);
+  border-top: 4px solid var(--lighter-grey);
+  background: var(--white);
+}
+.bookshelfCard .bookshelfCardTitle {
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--english-serif-font-family);
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0;
+  color: var(--near-black);
+}
+.bookshelfCardPlace {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--dark-grey);
+  margin: 6px 0 14px;
+}
+.bookshelfCard .bookshelfCardButton {
+  margin: auto 0 0;
+  padding: 8px 14px;
+  font-size: 14px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.bookshelfSignUpSlot {
+  border-style: dashed;
+  border-color: var(--light-grey);
+  border-top: 4px solid var(--lighter-grey);
+  background: var(--lightest-grey);
+}
+.bookshelfSignUpSlot .bookshelfCardTitle {
+  color: var(--dark-grey);
+}
+.bookshelfSignUpLinks {
+  margin-top: auto;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  color: var(--dark-grey);
+}
+.bookshelfSignUpLinks a {
+  font-family: inherit;
+  color: var(--inline-link-blue);
+  text-decoration: underline;
+}
+/* Promo modal matches the bookshelf mockup: compact, centered, inline button (drifts from SignUpModal on purpose) */
+.bookshelfPromo #interruptingMessage.sefariaModalContentBox {
+  width: 380px;
+  max-width: calc(100% - 32px);
+  box-sizing: border-box;
+  padding: 26px 32px;
+}
+.bookshelfPromo .sefariaModalContent {
+  align-items: center;
+  text-align: center;
+  height: auto;
+}
+.bookshelfPromo .sefariaModalContent h2 {
+  font-size: 21px;
+  line-height: 1.25;
+  margin: 0 0 8px;
+}
+.bookshelfPromo .sefariaModalContent .button {
+  width: auto;
+  margin: 0;
+  padding: 10px 26px;
+  font-size: 14px;
+  line-height: 18px;
+}
+.bookshelfPromo .sefariaModalBottomContent {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--white);
+}
+.bookshelfPromo .bookshelfLinkButton {
+  font-size: 12px;
+}
+.bookshelfPromo #interruptingMessageClose.sefariaModalClose {
+  top: 8px;
+  right: 12px;
+  font-size: 18px;
+  line-height: 1;
+}
+.bookshelfPromo .sefariaModalBottomContent a {
+  text-decoration: underline;
+}
+/* The sign-up wall has no shelf preview, so it gets more room to carry the page */
+.bookshelfPromo.bookshelfPromoLimit #interruptingMessage.sefariaModalContentBox {
+  width: 460px;
+  padding: 44px 48px 36px;
+}
+.bookshelfPromoLimit .sefariaModalContent h2 {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+.bookshelfPromoLimit .bookshelfPromoBody {
+  font-size: 16px;
+  line-height: 22px;
+  margin-bottom: 26px;
+}
+.bookshelfPromoLimit .sefariaModalContent .button {
+  padding: 12px 40px;
+  font-size: 16px;
+}
+.bookshelfPromoLimit .sefariaModalBottomContent {
+  margin-top: 16px;
+  font-size: 14px;
+}
