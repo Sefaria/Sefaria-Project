@@ -559,7 +559,7 @@ The LA chatbot (`<lc-chatbot>`) is a Svelte custom element with an **open shadow
 **Locators:**
 
 - Playwright's `getByRole`, `getByLabel`, `getByText`, and default CSS all pierce the open shadow root. No special syntax.
-- **Labels are language-specific** (the component is i18n'd) — never hardcode them in a test; go through the page object, which resolves them from `LA_LABELS[this.language]`. The live-verified English/Hebrew strings are tabulated in [assistant/README.md](assistant/README.md) §11 (e.g. EN `Close` / `Send` / `Dock Assistant`; HE `סגירה` / `שליחה` / `הצמדת עוזר הספרייה`). The old pre-i18n labels (`Close assistant`, `Send message`, `Dock assistant to side`, …) are gone from prod.
+- **Labels are language-specific** (the component is i18n'd) — never hardcode them in a test; go through the page object, which looks each one up by translation key in ai-chatbot's locale files (needs `AI_CHATBOT_REPO_PATH`). The keys and today's English strings are tabulated in [assistant/README.md](assistant/README.md) §11.
 - Do not reach for `page.evaluate(host.shadowRoot.querySelector(...))` unless role/label/CSS truly can't reach the element.
 
 **Quirks that bite tests if you don't know them:**
@@ -570,7 +570,7 @@ The LA chatbot (`<lc-chatbot>`) is a Svelte custom element with an **open shadow
 - Storage state captured by `goToPageWithUser` may include chat localStorage from the first login. Use `.last()` on `.message.user` / `.message.assistant` rather than strict counts.
 - The LA is **absent** on `voices.*` and for logged-out users — that's intentional behavior, covered by `LA-NEG-*` tests in [assistant/library-assistant.spec.ts](assistant/library-assistant.spec.ts).
 
-**Bilingual:** The LA is now bilingual (English on `www.*`, Hebrew on `www.*.il`). The deployed component runs a `svelte-i18n` build, so labels are language-specific — the page object is parameterized (`LA_LABELS[this.language]` in [pages/libraryAssistantPage.ts](pages/libraryAssistantPage.ts)) with strings **verified against the live component** in both languages. Hebrew coverage mirrors the English suite in [assistant/library-assistant-hebrew.spec.ts](assistant/library-assistant-hebrew.spec.ts). Testing the Hebrew LA requires a logged-in session on the `.org.il` domain, which is why it uses a dedicated Hebrew-preference account logged in natively there (`heLAUser`, §10) — documented fully in [assistant/README.md](assistant/README.md) §12.
+**Bilingual:** The LA is now bilingual (English on `www.*`, Hebrew on `www.*.il`). The deployed component runs a `svelte-i18n` build, so labels are language-specific — the page object ([pages/libraryAssistantPage.ts](pages/libraryAssistantPage.ts)) looks every label up by translation key for the active language. Hebrew coverage mirrors the English suite in [assistant/library-assistant-hebrew.spec.ts](assistant/library-assistant-hebrew.spec.ts). Testing the Hebrew LA requires a logged-in session on the `.org.il` domain, which is why it uses a dedicated Hebrew-preference account logged in natively there (`heLAUser`, §10) — documented fully in [assistant/README.md](assistant/README.md) §12.
 
 **Organization:**
 
