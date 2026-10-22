@@ -22,6 +22,7 @@ def make_project(**overrides):
         project_name="Example Project",
         project_link="https://example.com",
         is_published=True,
+        consent_to_display=True,
     )
     defaults.update(overrides)
     return Project.objects.create(**defaults)
@@ -62,7 +63,8 @@ def test_contents_defaults_to_unauthenticated():
 def projects(db):
     published = make_project(project_name="Published", is_published=True)
     unpublished = make_project(project_name="Unpublished", is_published=False)
-    return {"published": published, "unpublished": unpublished}
+    unconsented = make_project(project_name="Unconsented", consent_to_display=False)
+    return {"published": published, "unpublished": unpublished, "unconsented": unconsented}
 
 
 @pytest.mark.django_db
@@ -99,7 +101,7 @@ def test_staff_sees_all_projects_with_private_fields(client, projects):
 
     data = client.get("/api/powered-by").json()["projects"]
     names = {p["project_name"] for p in data}
-    assert names == {"Published", "Unpublished"}
+    assert names == {"Published", "Unpublished", "Unconsented"}
     for project in data:
         for field in PRIVATE_FIELDS:
             assert field in project
@@ -530,6 +532,7 @@ def test_post_ignores_staff_only_fields_on_create(client):
     body = {
         "project_name": "New Project", "project_link": "https://newproject.example.com",
         "is_published": True, "featured": True, "tags": ["AI"], "is_buggy": True,
+        "consent_to_display": True,
     }
     response = post_powered_by(client, body)
     assert response.status_code == 201
@@ -578,6 +581,7 @@ def test_post_cannot_alter_an_existing_published_project(client):
         "project_name": "Defaced Name",
         "project_link": "https://livesite.example.com",
         "is_published": True,
+        "consent_to_display": True,
     }
     response = post_powered_by(client, body)
     assert response.status_code == 201
@@ -603,12 +607,27 @@ def test_post_always_defaults_submission_source_and_date(client):
 
 
 @pytest.mark.django_db
-def test_post_create_defaults_published(client):
-    body = {"project_name": "Brand New Project", "project_link": "https://brandnew.example.com"}
+def test_post_with_consent_is_published(client):
+    body = {"project_name": "Brand New Project", "project_link": "https://brandnew.example.com",
+            "consent_to_display": True}
     response = post_powered_by(client, body)
     assert response.status_code == 201
     project = Project.objects.get(project_link="https://brandnew.example.com")
     assert project.is_published is True
+    names = [p["project_name"] for p in client.get("/api/powered-by").json()["projects"]]
+    assert "Brand New Project" in names
+
+
+@pytest.mark.django_db
+def test_post_without_consent_is_not_published(client):
+    body = {"project_name": "Unconsented Project", "project_link": "https://unconsented.example.com"}
+    response = post_powered_by(client, body)
+    assert response.status_code == 201
+    project = Project.objects.get(project_link="https://unconsented.example.com")
+    assert project.consent_to_display is False
+    assert project.is_published is False
+    names = [p["project_name"] for p in client.get("/api/powered-by").json()["projects"]]
+    assert "Unconsented Project" not in names
 
 
 @pytest.mark.django_db
