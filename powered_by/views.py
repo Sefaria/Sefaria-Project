@@ -274,7 +274,8 @@ def powered_by_api(request):
         return _powered_by_post(request)
 
     authenticated = request.user.is_staff
-    queryset = Project.objects.all() if authenticated else Project.objects.filter(is_published=True)
+    queryset = Project.objects.all() if authenticated else Project.objects.filter(
+        is_published=True, consent_to_display=True, deleted_at__isnull=True)
     projects = [project.contents(authenticated=authenticated) for project in queryset]
     return jsonResponse({"projects": projects})
 
@@ -315,16 +316,16 @@ def _powered_by_post(request):
 
     cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
     cleaned.setdefault("submission_date", timezone.now())
-    # A submitter who explicitly declines display consent is never auto-published.
-    if cleaned.get("consent_to_display") is False:
+    # Only a submitter who explicitly consents is published; a missing or false consent is not.
+    if cleaned.get("consent_to_display") is not True:
         cleaned["is_published"] = False
 
     # No upsert: project_link is a public field (visible via GET), so keying
     # a write off it would let anyone overwrite an existing project's data by
     # POSTing its project_link back with different content. Every POST
-    # inserts a new row instead; is_published defaults to True (model
-    # default), and staff can unpublish and reconcile any resulting
-    # project_link duplicates on the admin side.
+    # inserts a new row instead; it is published only with consent, and
+    # staff can unpublish and reconcile any resulting project_link
+    # duplicates on the admin side.
     project = Project.objects.create(**cleaned)
     authenticated = request.user.is_staff
     return jsonResponse({"project": project.contents(authenticated=authenticated)}, status=201)

@@ -2,7 +2,9 @@
 
 from django.urls import re_path
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.views.generic.base import RedirectView
 import reader.views as reader_views
+from powered_by.developer_views import requires_developer_settings
 import dedications.views as dedications_views
 from sefaria.settings import STATIC_URL
 from sites.sefaria.site_settings import SITE_SETTINGS
@@ -24,7 +26,6 @@ static_pages = [
     "linker",
     "ios",
     "mobile",
-    "app",
     "sefaria-edition",
     "sefaria-community-translation",
     "contributed-to-sefaria",
@@ -64,6 +65,8 @@ static_pages_by_lang = [
 
 # Static and Semi Static Content
 site_urlpatterns = [
+    # Unlike a plain HttpResponsePermanentRedirect, query_string=True preserves UTM campaign parameters.
+    re_path(r'^app/?$', RedirectView.as_view(url='/mobile', permanent=True, query_string=True)),
     re_path(r'^metrics/?$', reader_views.metrics),
     re_path(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     re_path(r'^(favicon\.ico|apple-touch-icon\.png|favicon\.svg)/?$', reader_views.module_favicon),
@@ -74,6 +77,7 @@ site_urlpatterns = [
     re_path(r'^llms\.txt/?$', reader_views.serve_llms_txt),
     re_path(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
     re_path(r'^(%s)/?$' % "|".join(static_pages_by_lang), reader_views.serve_static, {"by_lang": True}),
+    re_path(r'^(api-terms)/?$', requires_developer_settings(reader_views.serve_static)),
     re_path(r'^dedication/(?P<slug>[\w-]+)/?$', dedications_views.dedication),
     re_path(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?
     re_path(r'^health-check/?$', reader_views.application_health_api),

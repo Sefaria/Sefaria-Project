@@ -156,7 +156,9 @@ web:
 nameService:
   # Standalone autocomplete ("name") service.  Runs the web image with
   # NAME_SERVICE=true, serving only /api/name and the other completion
-  # endpoints (see sefaria/urls_name.py); varnish routes those paths to it
+  # endpoints (see sefaria/urls_name.py) -- including /api/search-autocorrect,
+  # which needs the top-n-grams table and entity alt-title index only this
+  # service loads; varnish routes those paths to it
   # and web and task pods then run with DISABLE_AUTOCOMPLETER=true.
   # Rebuild signals reach the name service over the multiserver Redis
   # channel -- do not disable MULTISERVER_ENABLED while this is on, or
@@ -193,7 +195,7 @@ authService:
   mode: enforce
   # Comma-separated path prefixes that require a key (401 api_key_required without one).
   gatedPaths: "/api/knn-search"
-  helpURL: https://developers.sefaria.org/help/
+  helpURL: https://developers.sefaria.org/#
   # One is enough for a cauldron (failOpen covers the restart gap); production sets more. A PDB is
   # rendered only when this is > 1.
   replicaCount: 1
@@ -212,12 +214,13 @@ authService:
   reloadInterval: 60s       # full reload from Postgres; also the revocation SLA when LISTEN/NOTIFY is down
   push:
     # Key changes reach every auth service in the cluster through Postgres LISTEN/NOTIFY on the key registry:
-    # triggers in the registry schema NOTIFY on this channel whatever the writer. The name is fixed in the schema.
+    # triggers from the Django powered_by migrations NOTIFY on this channel whatever the writer. The name is fixed there.
     pgChannel: sefaria_apikeys
   postgres:
-    # The cluster's one key registry: a database in the cluster's shared Postgres, read by every auth
-    # service in the cluster. The chart never runs a Postgres of its own. The Secret is a cluster-level
-    # object from the infrastructure repo, not per release.
+    # The key registry: Django's powered_by tables in sefaria_auth on the cluster's shared Postgres, read by
+    # every auth service in the cluster through a read-only role (auth-service/scripts/provision-cluster-registry.sh).
+    # The chart never runs a Postgres of its own. The Secret is a cluster-level object from the infrastructure
+    # repo, not per release.
     secrets:
       dsn:
         ref: auth-service-registry
@@ -536,6 +539,19 @@ cronJobs:
   # Settings for regenerating long cached data
   regenerate:
     enabled: true
+  # Rebuilds the search auto-correction table and uploads it to gs://sefaria-search-autocorrect.
+  # Every environment's name service loads that one object, so enable in production only --
+  # anywhere else would overwrite prod's table. Single-threaded; peak memory is the bigram
+  # level's shard counters plus the carried phrase table (raise --num-shards to lower it).
+  buildTopNGramsForSearchAutocorrect:
+    enabled: false
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "1"
+      limits:
+        memory: "12Gi"
+        cpu: "2"
   dailyEmailNotifications:
     enabled: false
   embedLibraryToPgvector:
@@ -637,6 +653,12 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
+  # Developer settings test controls; for branch cauldrons only.
+  DEVELOPER_SETTINGS_MOCKS: "False"
+  # The developer tab in settings and its routes; off means they return 404.
+  DEVELOPER_SETTINGS_ENABLED: "False"
+  # With DEVELOPER_SETTINGS_ENABLED on, limits the developer tab and its routes to staff.
+  DEVELOPER_SETTINGS_STAFF_ONLY: "False"
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"

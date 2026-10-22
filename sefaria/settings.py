@@ -118,6 +118,7 @@ TEMPLATES = [
 
 MIDDLEWARE = [
     'django_hosts.middleware.HostsRequestMiddleware',  # must be first
+    'sefaria.system.middleware.ApiCorsPreflightMiddleware',
     'sefaria.system.middleware.SessionCookieDomainMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -193,7 +194,7 @@ INSTALLED_APPS = (
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
 
 SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
-SEMANTIC_SEARCH_TABLE_VERSION = os.environ.get("SEMANTIC_SEARCH_TABLE_VERSION", "legacy")
+SEMANTIC_SEARCH_TABLE_VERSION = os.environ.get("SEMANTIC_SEARCH_TABLE_VERSION", "new")
 
 # Deployed app version (semantic-release tag), set as a pod env var by the Helm chart.
 # Empty in local dev, where no deploy has happened.
@@ -347,6 +348,18 @@ CACHES = {
     }
 }
 
+
+# Developer settings test controls (SSO and email mocks, mock Powered by listings). local_settings
+# turns them on where Google refuses the origin and no email is sent, such as branch cauldrons.
+DEVELOPER_SETTINGS_MOCKS = False
+
+# The developer tab in settings and its routes (/api/developer/*, the email confirmation link,
+# /powered-by/form). Off: the tab is absent and the routes return 404.
+DEVELOPER_SETTINGS_ENABLED = False
+
+# With DEVELOPER_SETTINGS_ENABLED on, limits developer settings to staff (is_staff); everyone else
+# gets what they would with it off.
+DEVELOPER_SETTINGS_STAFF_ONLY = False
 
 # Elasticsearch index names, defaulted here (before local_settings is imported) so that a
 # deployment whose local_settings.py predates one of these constants still boots. Without a

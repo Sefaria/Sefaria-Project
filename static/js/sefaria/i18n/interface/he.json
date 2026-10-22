@@ -1,5 +1,8 @@
 {
     "about_box.about_this_text": "אודות ספר זה",
+    "account_settings.confirm_new_email": "אימות כתובת דוא״ל חדשה",
+    "account_settings.new_email": "כתובת דוא״ל חדשה",
+    "account_settings.password": "סיסמה",
     "add_connection_box.commentary": "פירוש",
     "add_connection_box.ein_mishpat_ner_mitsvah": "עין משפט / נר מצווה",
     "add_connection_box.mesorat_hashas": "מסורת הש\"ס",
@@ -668,5 +671,9 @@
     "search.null.sources.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בספרייה או שאלו את עוזר הספרייה.",
     "search.null.topics.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל הנושאים או שאלו את עוזר הספרייה.",
     "search.null.books.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בספרייה או שאלו את עוזר הספרייה.",
-    "search.null.authors.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל המחברים או שאלו את עוזר הספרייה."
+    "search.null.authors.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל המחברים או שאלו את עוזר הספרייה.",
+    "header.library_assistant_short": "שאלו",
+    "search.autocorrect.results_shown": "מוצגות תוצאות עבור",
+    "search.autocorrect.original_term": "חיפוש של",
+    "search.suggestions.prefix": "האם התכוונת ל:"
 }

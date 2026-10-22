@@ -1,5 +1,8 @@
 {
     "about_box.about_this_text": "About This Text",
+    "account_settings.confirm_new_email": "Confirm New Email",
+    "account_settings.new_email": "New Email",
+    "account_settings.password": "Password",
     "add_connection_box.commentary": "Commentary",
     "add_connection_box.ein_mishpat_ner_mitsvah": "Ein Mishpat / Ner Mitsvah",
     "add_connection_box.mesorat_hashas": "Mesorat HaShas",
@@ -668,5 +671,9 @@
     "search.null.sources.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
     "search.null.books.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
     "search.null.authors.body.library_assistant": "Try a different search term, browse all Authors or ask the Library Assistant for help.",
-    "search.null.topics.body.library_assistant": "Try a different search term, browse all Topics or ask the Library Assistant for help."
+    "search.null.topics.body.library_assistant": "Try a different search term, browse all Topics or ask the Library Assistant for help.",
+    "header.library_assistant_short": "Ask",
+    "search.autocorrect.results_shown": "These are results for",
+    "search.autocorrect.original_term": "Search instead for",
+    "search.suggestions.prefix": "Did you mean:"
 }

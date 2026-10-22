@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.89.2-prod.1"
+      version: "0.91.0-prod.1"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
@@ -45,7 +45,7 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v7.2.3-prod.2"
+        tag: "v7.6.0-prod.1"
       replicaCount: 7
       resources:
         web:
@@ -92,7 +92,7 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v7.2.3-prod.2"
+        tag: "v7.6.0-prod.1"
       replicaCount: 4
       resources:
         requests:
@@ -184,7 +184,7 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v7.2.3-prod.2"
+        tag: "v7.6.0-prod.1"
       SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
       SEARCH_PORT: "9200"
       SEARCH_PATH: ""
@@ -201,7 +201,7 @@ spec:
     monitor:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v7.2.3-prod.2"
+        tag: "v7.6.0-prod.1"
       replicaCount: 1
       resources:
         requests:
@@ -235,6 +235,8 @@ spec:
       trends:
         enabled: true
       weeklyEmailNotifications:
+        enabled: true
+      buildTopNGramsForSearchAutocorrect:
         enabled: true
     secrets:
       localSettings:

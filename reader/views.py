@@ -81,6 +81,7 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
+from powered_by.developer import developer_state, drop_developer_settings, session_login, settings_enabled as developer_settings_enabled
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -522,8 +523,30 @@ def catchall(request, tref, sheet=None):
         return text_panels(request, ref=tref, sheet=sheet)
 
 
+def _full_title_tref(tref, lang, version):
+    """
+    A title can itself contain segments that resemble the legacy
+    /<ref>/<lang>/<version> route (e.g. "Book/en/Part"). Return the rejoined
+    string if it is exactly a canonical ref, otherwise None.
+
+    This is deliberately strict: the legacy parser and partial matches would
+    accept "Genesis.1.1/en/Some_Version" as Ref("Genesis") and drop the
+    section and version.
+    """
+    full_tref = f"{tref}/{lang}/{version}"
+    try:
+        oref = Ref(full_tref)
+    except InputError:
+        return None
+    return full_tref if oref.url(False) == full_tref else None
+
+
 @ensure_csrf_cookie
 def old_versions_redirect(request, tref, lang, version):
+    full_tref = _full_title_tref(tref, lang, version)
+    if full_tref:
+        return catchall(request, full_tref)
+
     url = "/{}?v{}={}".format(tref, lang, version)
     response = redirect(iri_to_uri(url), permanent=True)
     params = request.GET.urlencode()
@@ -647,6 +670,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
         "tab": search_params["search_tab"],
+        "searchDisableAutocorrect": search_params["disable_autocorrect"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -1080,6 +1104,8 @@ def get_search_params(get_dict, i=None):
         # `tab` is the text/sheet search type; `search_tab` is the active results tab
         # on the search page (sources/books/authors/topics).
         "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
+        # Set by "Search instead for <query>": search `query` exactly as typed.
+        "disable_autocorrect": get_dict.get(get_param("disable_autocorrect", i)) == "1",
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -1121,6 +1147,7 @@ def search(request):
         "initialMenu": "search",
         "initialQuery": search_params["query"],
         "initialSearchTab": search_params["search_tab"],
+        "initialSearchDisableAutocorrect": search_params["disable_autocorrect"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -2025,6 +2052,10 @@ def social_image_api(request, tref):
 @catch_error_as_json
 @csrf_exempt
 def old_text_versions_api_redirect(request, tref, lang, version):
+    full_tref = _full_title_tref(tref, lang, version)
+    if full_tref:
+        return texts_api(request, full_tref)
+
     url = "/api/texts/{}?v{}={}".format(tref, lang, version)
     response = redirect(iri_to_uri(url), permanent=True)
     params = request.GET.urlencode()
@@ -3098,9 +3129,9 @@ def get_name_completions(name, limit, topic_override=False, types=None, topic_po
     ref = None
     topic = None
     if topic_override:
-        topic_set = TopicSet({"titles.text": re.compile(fr'^{re.escape(name)}$', flags=re.IGNORECASE)}, sort=[("numSources", -1)], limit=1)
-        if topic_set.count() > 0:
-            topic = topic_set.array()[0]
+        matching_topics = TopicSet({"titles.text": re.compile(fr'^{re.escape(name)}$', flags=re.IGNORECASE)}).array()
+        if len(matching_topics) > 0:
+            topic = max(matching_topics, key=lambda t: t.total_sources)
     try:
         ref = Ref(name)
         inode = ref.index_node
@@ -3587,7 +3618,7 @@ def topic_page(request, slug, test_version=None):
     return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
-        "noindex":        not topic_obj.should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY),
+        "noindex":        not topic_obj.should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY, textual_only=True),
     })
 
 @catch_error_as_json
@@ -3597,7 +3628,7 @@ def topics_list_api(request):
     """
     limit = int(request.GET.get("limit", 1000))
     minify = bool(int(request.GET.get("minify", 1)))
-    all_topics = get_all_topics(limit, active_module=request.active_module, min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY)
+    all_topics = get_all_topics(limit, active_module=request.active_module, min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY, textual_only=True)
     all_topics_json = []
     for topic in all_topics:
         topic_json = topic.contents(minify=minify, with_html=True)
@@ -4163,6 +4194,7 @@ def profile_api(request, slug=None):
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
+        drop_developer_settings(profileUpdate.get("settings"))
         la_key = library_assistant.SETTING_KEY
         if la_key in profileUpdate.get("settings", {}):
             # Public endpoint — coerce so a posted "false" can't read as truthy.
@@ -4340,7 +4372,6 @@ def profile_upload_photo(request):
 
         profile.update({"profile_pic_url": big_pic_url, "profile_pic_url_small": small_pic_url})
         profile.save()
-        public_user_data(request.user.id, ignore_cache=True)  # reset user data cache
         return jsonResponse({"urls": [big_pic_url, small_pic_url]})
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -4377,6 +4408,7 @@ def profile_sync_api(request):
             field_data = json.loads(post[field])
             if field == "settings":
                 settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
+                drop_developer_settings(field_data)
                 try:
                     # mobile app is sending time_stamps as strings. for now, patch by casting server-side. can be None if user hasn't updated settings yet.
                     settings_time_stamp = 0 if settings_time_stamp is None else int(settings_time_stamp)
@@ -4553,29 +4585,61 @@ def edit_profile(request):
     })
 
 
-@login_required
-@ensure_csrf_cookie
-def account_settings(request):
+def _account_settings_props(request, profile):
     """
-    Page for managing a user's account settings.
+    The values the account tab of the settings page renders.
     """
-    profile = UserProfile(id=request.user.id)
-    # TEMPORARY (goes with the experiments framework): only gates the parked
-    # Experiments toggle in the template, not the Library Assistant one.
-    experiments_available = user_has_experiments(request.user)
-    return render_template(request,'account_settings.html', {"headerMode": True}, {
-        'user': request.user,
-        'profile': profile,
-        'experiments_available': experiments_available,
-        'social_providers': list(request.user.socialaccount_set.values_list('provider', flat=True)),
+    translation_languages = [
+        {"code": lang, "name": Locale(lang).languages[lang].capitalize()}
+        for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']
+    ]
+    return {
+        "emailNotifications": profile.settings.get("email_notifications"),
+        "interfaceLanguage": profile.settings.get("interface_language"),
+        "translationLanguagePreference": profile.settings.get("translation_language_preference")
+            or request.COOKIES.get("translation_language_preference", None),
+        "translationLanguages": translation_languages,
+        "readingHistory": profile.settings.get("reading_history", True),
+        "textualCustom": profile.settings.get("textual_custom"),
         # The toggle must render the *effective* value: a user who is on through the
         # legacy rule has no setting key yet, and must still see "On".
-        'library_assistant_enabled': library_assistant.is_enabled(profile),
-        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
-        'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
-        'diaspora': request.diaspora,
-        "renderStatic": True
-    })
+        "libraryAssistantEnabled": library_assistant.is_enabled(profile),
+        # TEMPORARY (goes with the experiments framework): only gates the parked
+        # Experiments toggle.
+        "experimentsAvailable": user_has_experiments(request.user),
+        "email": request.user.email,
+        "socialProviders": list(request.user.socialaccount_set.values_list('provider', flat=True)),
+        "sheetsExport": {"gauthEmail": profile.gauth_email or None},
+        "torahSpecific": SITE_SETTINGS["TORAH_SPECIFIC"],
+        "diaspora": request.diaspora,
+    }
+
+
+@login_required
+@ensure_csrf_cookie
+def settings_page(request, tab="account", project_id=None):
+    """
+    Account and developer settings, as one React page. Without DEVELOPER_SETTINGS_ENABLED
+    (or for non-staff, with DEVELOPER_SETTINGS_STAFF_ONLY) there is no developer tab: its URLs are a 404 (gated in urls_library.py, before the login
+    check) and the page gets no developer state.
+    """
+    developer_on = developer_settings_enabled(request.user)
+    profile = UserProfile(id=request.user.id)
+    props = {
+        "initialSettingsTab": tab,
+        "initialDeveloperProjectId": project_id,
+        "initialAccountSettings": _account_settings_props(request, profile),
+        "initialDeveloper": developer_state(request) if developer_on and session_login(request) else None,
+    }
+    titles = {
+        "account": "Account Settings",
+        "developer": "Developer Settings",
+    }
+    descs = {
+        "account": "Manage your Sefaria account settings.",
+        "developer": "Register your projects and manage keys for the Sefaria API.",
+    }
+    return menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
 
 
 @ensure_csrf_cookie
@@ -4921,6 +4985,26 @@ def dummy_search_api(request):
     })
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
+
+
+@catch_error_as_json
+def search_autocorrect_api(request):
+    """
+    GET /api/search-autocorrect?q=<query>
+    -> {"corrected_query": str|None, "suggested_queries": [str]|None}, at most one set.
+
+    The client calls this before searching and searches the correction it returns. Served by
+    the name service, which holds the tables. Varnish caches by URL, so don't add per-request
+    parameters beyond `q`.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    query = request.GET.get("q", "").strip()
+    result = library.autocorrect_query(query) if query else None
+    return jsonResponse({
+        "corrected_query": result.corrected_query if result else None,
+        "suggested_queries": result.suggested_queries if result else None,
+    })
 
 
 @csrf_exempt

@@ -4,6 +4,9 @@ from django.contrib import admin
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from functools import partial
 import reader.views as reader_views
+import powered_by.poc_views as powered_by_poc_views
+import powered_by.developer_views as developer_views
+import powered_by.developer_mocks as developer_mocks
 import sefaria.views as sefaria_views
 from sefaria.urls_shared import shared_patterns, maintenance_patterns
 from sefaria.settings import DOWN_FOR_MAINTENANCE
@@ -43,9 +46,26 @@ urlpatterns = [
     path('visualize/timeline', reader_views.visualize_timeline),
     re_path(r'^visualize/unique-words-by-commentator', reader_views.unique_words_viz),
 
-    re_path(r'^settings/account?$', reader_views.account_settings),
+    re_path(r'^settings/account/?$', partial(reader_views.settings_page, tab="account")),
     path('settings/account/user', reader_views.account_user_update),
     re_path(r'^settings/profile/?$', reader_views.settings_profile_redirect),
+    re_path(r'^settings/developer/?$', developer_views.requires_developer_settings(partial(reader_views.settings_page, tab="developer"))),
+    path('settings/developer/projects/<str:project_id>', developer_views.requires_developer_settings(partial(reader_views.settings_page, tab="developer"))),
+    path('settings/developer/confirm-email/<str:key>', developer_views.confirm_email, name="developer_confirm_email"),
+    path('settings/developer/email-confirmed', developer_views.email_confirmed_page),
+    path('api/developer/state', developer_views.state_api),
+    path('api/developer/enable', developer_views.enable_api),
+    path('api/developer/profile', developer_views.profile_api),
+    path('api/developer/confirmation', developer_views.confirmation_api),
+    path('api/developer/confirmation/new-link', developer_views.new_link_api),
+    path('api/developer/projects', developer_views.projects_api),
+    path('api/developer/projects/<str:project_id>', developer_views.project_api),
+    path('api/developer/projects/<str:project_id>/keys', developer_views.project_keys_api),
+    path('api/developer/keys/<str:key_id>', developer_views.key_api),
+    re_path(r'^api/developer/listings/(?P<listing_id>\d+)/(?P<action>claim|dismiss)$', developer_views.listing_api),
+    path('api/developer/mock', developer_mocks.mock_api),
+    re_path(r'^powered-by/form/?$', powered_by_poc_views.powered_by_form_page),
+    path('api/developer-poc/powered-by-submissions', powered_by_poc_views.powered_by_poc_submissions_api),
 
     re_path(r'^community/?$', reader_views.community_to_voices_redirect),
 
@@ -67,8 +87,9 @@ urlpatterns = [
     re_path(r'^activity/leaderboard?$', reader_views.leaderboard),
     path('activity/<int:page>', reader_views.global_activity),
     re_path(r'^activity/(?P<slug>[^/]+)/(?P<page>\d+)?$', reader_views.user_activity),
-    re_path(r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<page>\d+)$', reader_views.segment_history),
-    re_path(r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)$', reader_views.segment_history),
+    # tref may contain a slash: WSGI decodes the %2F that Ref.url() emits for titles.
+    re_path(r'^activity/(?P<tref>.+?)/(?P<lang>.{2})/(?P<version>.+)/(?P<page>\d+)$', reader_views.segment_history),
+    re_path(r'^activity/(?P<tref>.+?)/(?P<lang>.{2})/(?P<version>.+)$', reader_views.segment_history),
 
     path('random/link', reader_views.random_redirect),
     re_path(r'^random/?$', reader_views.random_text_page),

@@ -42,7 +42,7 @@ func TestDecideEnforce(t *testing.T) {
 		{"revoked key", Request{Path: "/x", APIKey: revoked}, false, 401, "api_key_invalid", "", "", "api_key_invalid"},
 		{"registered origin ok", Request{Path: "/x", APIKey: beta, Origin: "https://beta.example.org"}, true, 200, "", "proj_beta", "partner", "ok"},
 		{"registered origin mismatch", Request{Path: "/x", APIKey: beta, Origin: "https://evil.example.org"}, false, 403, "origin_not_allowed", "", "", "origin_not_allowed"},
-		{"registered origin, server call without Origin", Request{Path: "/x", APIKey: beta}, true, 200, "", "proj_beta", "partner", "ok"},
+		{"registered origin, call without Origin refused", Request{Path: "/x", APIKey: beta}, false, 403, "origin_not_allowed", "", "", "origin_not_allowed"},
 		{"anonymous", Request{Path: "/api/texts/Genesis.1"}, true, 200, "", "", "anonymous", "anonymous"},
 		{"embed by Origin", Request{Path: "/api/texts/Genesis.1", Origin: "https://embed-one.example.org"}, true, 200, "", "", "embed", "embed"},
 		{"bearer without key defers to Envoy", Request{Path: "/x", Authorization: "Bearer abc.def.ghi"}, true, 200, "", "", "anonymous", "jwt_pending"},
