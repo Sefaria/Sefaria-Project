@@ -421,6 +421,29 @@ describe('making a public project private', () => {
   });
 });
 
+describe('removing the website', () => {
+  const clearWebsite = (keys) => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ keys })] }, { projectId: 'proj01' });
+    act(() => { buttonNamed(container, 'Edit project').click(); });
+    typeInto(container.querySelector('#devPocProjectUrl'), '');
+    respondWith({});
+    act(() => { container.querySelector('[data-agent-action="save-project"]').click(); });
+  };
+  const restricted = { id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: true };
+
+  it('is refused while a key is restricted to it, before anything is sent', () => {
+    clearWebsite([restricted]);
+    expect(container.querySelector('[role="alert"]').textContent).toContain('Turn off the restriction on every key');
+    expect(container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]')).toBeNull();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('asks the usual question when no key is restricted', () => {
+    clearWebsite([{ ...restricted, restrictToWebsite: false }]);
+    expect(container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]')).toBeTruthy();
+  });
+});
+
 describe('deleting a project', () => {
   const withKey = (extra) => publicProject({
     keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false }],

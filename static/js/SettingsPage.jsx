@@ -1086,9 +1086,14 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => {
 };
 
 
+const WEBSITE_IN_USE = {
+  en: "A key is restricted to this website. Turn off the restriction on every key before removing the website.",
+  he: "יש מפתח שמוגבל לאתר הזה. כבו את ההגבלה בכל המפתחות לפני הסרת האתר.",
+};
+
 /* One form for creating and editing a project. A missing website asks once before saving,
    and the website field gets focus if the developer goes back to add one. */
-const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, onSave, onCancel, onDelete}) => {
+const ProjectForm = ({initial, savedVisibility, websiteRequired, linkedListingName, submitLabel, onSave, onCancel, onDelete}) => {
   const [fields, setFields] = useState(initial);
   const [error, setError] = useState("");
   const [askWebsite, setAskWebsite] = useState(false);
@@ -1137,6 +1142,10 @@ const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, 
     }
     if (!fields.visibility) {
       setError(Sefaria._v({en: "Choose whether the project is public or private.", he: "נא לבחור אם הפרויקט ציבורי או פרטי."}));
+      return;
+    }
+    if (!fields.websiteUrl.trim() && websiteRequired) {
+      setError(Sefaria._v(WEBSITE_IN_USE));
       return;
     }
     setError("");
@@ -1568,7 +1577,7 @@ const listingStatus = (project) => {
 };
 
 
-const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm, onToggleExpand, onDeleted, notice}) => {
+const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm, onToggleExpand, onDeleted}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
 
@@ -1582,19 +1591,7 @@ const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm
   };
 
   /* Rejects with the error for the form to show; a saved project closes the editor. */
-  const saveProject = (fields) => {
-    const losingUrl = !!project.websiteUrl && !fields.websiteUrl.trim();
-    const restrictedKeys = project.keys.filter(k => k.restrictToWebsite).map(k => k.label);
-    return run(updateProject(project.id, fields), {quiet: true}).then(() => {
-      setEditing(false);
-      if (losingUrl && restrictedKeys.length) {
-        notice(Sefaria._v({
-          en: restrictedKeys.join(", ") + " now works anywhere again, because the project no longer has a website.",
-          he: restrictedKeys.join(", ") + " עובד שוב בכל מקום, כי לפרויקט כבר אין אתר.",
-        }));
-      }
-    });
-  };
+  const saveProject = (fields) => run(updateProject(project.id, fields), {quiet: true}).then(() => setEditing(false));
 
   const keyLabels = project.keys.map(k => k.label).join(", ");
   const keysText = project.keys.length
@@ -1666,6 +1663,7 @@ const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm
                   websiteUrl: project.websiteUrl, visibility: project.visibility, aiAssisted: project.aiAssisted,
                 }}
                 savedVisibility={project.visibility}
+                websiteRequired={project.keys.some(k => k.restrictToWebsite)}
                 linkedListingName={project.linkedListing ? project.name : null}
                 submitLabel={{en: "Save project", he: "שמירת הפרויקט"}}
                 onSave={saveProject}
@@ -1844,7 +1842,6 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
               canCreateKeys={canCreate}
               run={run}
               setConfirm={setConfirm}
-              notice={setNotice}
               onToggleExpand={() => toggleExpand(p)}
               onDeleted={projectDeleted}
             />

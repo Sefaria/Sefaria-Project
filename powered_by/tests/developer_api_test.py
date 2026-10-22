@@ -480,18 +480,40 @@ class KeyTest(DeveloperApiTestCase):
         self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, ["https://dafportal.org"])
         self.assertTrue(state["projects"][0]["keys"][0]["restrictToWebsite"])
 
-    def test_a_new_website_moves_restricted_keys_and_no_website_frees_them(self):
+    def test_a_new_website_moves_restricted_keys(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
         unrestricted = self.create_key(self.project["id"], "Local")["keyId"]
         self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
-        url = "projects/" + self.project["id"]
 
-        self.call("post", url, {"project": {**PROJECT, "websiteUrl": "https://new.example.org"}})
+        self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": "https://new.example.org"}})
+
         self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://new.example.org"])
         self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
-        self.call("post", url, {"project": {**PROJECT, "websiteUrl": ""}})
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, [])
+    def test_the_website_cannot_be_removed_while_a_key_is_restricted_to_it(self):
+        restricted = self.create_key(self.project["id"], "Production")["keyId"]
+        self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
+        url = "projects/" + self.project["id"]
+
+        status, state = self.call("post", url, {"project": {**PROJECT, "name": "Renamed", "websiteUrl": ""}})
+
+        self.assertEqual(status, 400)
+        self.assertEqual(state["error"], developer.WEBSITE_IN_USE_ERROR)
+        project = Project.objects.get(id=int(self.project["id"]))
+        self.assertEqual((project.project_name, project.project_link), (PROJECT["name"], PROJECT["websiteUrl"]))
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://dafportal.org"])
+
+    def test_the_website_can_be_removed_once_no_live_key_is_restricted(self):
+        restricted = self.create_key(self.project["id"], "Production")["keyId"]
+        self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
+        self.call("delete", "keys/" + restricted)
+        unrestricted = self.create_key(self.project["id"], "Local")["keyId"]
+
+        status, state = self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": ""}})
+
+        self.assertEqual(status, 200, state)
+        self.assertEqual(state["projects"][0]["websiteUrl"], "")
+        self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
     def test_a_key_cannot_be_restricted_without_a_website(self):
         self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": ""}})
