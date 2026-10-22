@@ -274,7 +274,8 @@ def powered_by_api(request):
         return _powered_by_post(request)
 
     authenticated = request.user.is_staff
-    queryset = Project.objects.all() if authenticated else Project.objects.filter(is_published=True)
+    queryset = Project.objects.all() if authenticated else Project.objects.filter(
+        is_published=True, consent_to_display=True, deleted_at__isnull=True)
     projects = [project.contents(authenticated=authenticated) for project in queryset]
     return jsonResponse({"projects": projects})
 

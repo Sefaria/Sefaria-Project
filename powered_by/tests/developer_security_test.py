@@ -178,11 +178,10 @@ class DeletedProjectGalleryTest(DeveloperApiTestCase):
         super().setUp()
         self.set_up_developer()
 
-    @pytest.mark.failing
-    def test_N_CR14_a_deleted_project_marked_published_is_not_public_known_gap_N_CR14(self):
+    def test_N_CR14_a_deleted_project_marked_published_is_not_public(self):
         project_id = self.create_project(visibility="public")["id"]
         self.assertEqual(self.call("delete", "projects/" + project_id)[0], 200)
-        Project.objects.filter(id=int(project_id)).update(is_published=True)
+        Project.objects.filter(id=int(project_id)).update(is_published=True, consent_to_display=True)
 
         response = Client().get("/api/powered-by")
 

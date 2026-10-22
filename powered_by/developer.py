@@ -490,17 +490,14 @@ def _apply_fields(project, fields):
 
 def _set_visibility(project, visibility):
     """
-    Public projects are listed on Powered by Sefaria, as rows from the public form are when
-    their submitter consents; staff can still unpublish one.
+    Public is the owner's consent to be listed on Powered by Sefaria. The listing shows only
+    while staff also leave it published, and only staff change is_published.
     """
     if visibility == "public":
-        if not project.consent_to_display:
-            project.is_published = True
         project.consent_to_display = True
         project.consent_withdrawn_at = None
     elif project.consent_to_display:
         project.consent_to_display = False
-        project.is_published = False
         project.consent_withdrawn_at = timezone.now()
 
 
@@ -546,7 +543,6 @@ def create_project(user, data):
         owner=user,
         creator=user.get_full_name(),
         creator_email=user.email,
-        is_published=fields["visibility"] == "public",
         consent_to_display=fields["visibility"] == "public",
     )
     _apply_fields(project, fields)
@@ -592,7 +588,6 @@ def claim_listing(user, listing_id):
     except (Project.DoesNotExist, ValueError):
         raise LookupError("No such listing.")
     project.owner = user
-    _set_visibility(project, "public")
     project.save()
     return project
 

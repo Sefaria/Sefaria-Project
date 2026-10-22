@@ -14,7 +14,7 @@ from django.test import Client, override_settings
 
 from powered_by import developer
 from powered_by.models import ApiKey, Project, SubmissionSource
-from powered_by.tests.developer_api_test import PROFILE, PROJECT, DeveloperApiTestCase
+from powered_by.tests.developer_api_test import PROFILE, PROJECT, DeveloperApiTestCase, gallery_ids
 from reader.conftest import create_test_user, purge_test_profiles
 
 
@@ -202,8 +202,7 @@ class ClaimConsentTest(DeveloperApiTestCase):
         self.assertEqual(status, 200, state)
         return Project.objects.get(id=self.listing.id)
 
-    @pytest.mark.failing
-    def test_N_C15_claiming_a_listing_whose_submitter_said_no_keeps_it_unpublished_known_gap_N_D8(self):
+    def test_N_C15_claiming_a_listing_whose_submitter_said_no_keeps_it_unpublished(self):
         status, state = self.call("post", "listings/{}/claim".format(self.listing.id))
 
         self.assertEqual(status, 200, state)
@@ -213,16 +212,26 @@ class ClaimConsentTest(DeveloperApiTestCase):
         self.assertFalse(row.is_published)
         self.assertEqual(state["projects"][0]["visibility"], "private")
 
-    def test_N_C15_the_owner_picking_public_publishes_a_claimed_listing(self):
+    def test_N_C15_the_owner_picking_public_lists_a_claimed_listing_staff_left_published(self):
+        Project.objects.filter(id=self.listing.id).update(is_published=True)
+        self.call("post", "listings/{}/claim".format(self.listing.id))
+        self.assertNotIn(self.listing.id, gallery_ids())
+
+        row = self.edit("public")
+
+        self.assertTrue(row.consent_to_display)
+        self.assertIn(self.listing.id, gallery_ids())
+
+    def test_N_C15_the_owner_picking_public_does_not_publish_an_unpublished_listing(self):
         self.call("post", "listings/{}/claim".format(self.listing.id))
 
         row = self.edit("public")
 
         self.assertTrue(row.consent_to_display)
-        self.assertTrue(row.is_published)
+        self.assertFalse(row.is_published)
+        self.assertNotIn(self.listing.id, gallery_ids())
 
-    @pytest.mark.failing
-    def test_N_C15_a_staff_unpublish_holds_when_the_owner_toggles_private_and_public_known_gap_N_D8(self):
+    def test_N_C15_a_staff_unpublish_holds_when_the_owner_toggles_private_and_public(self):
         self.call("post", "listings/{}/claim".format(self.listing.id))
         self.edit("public")
         Project.objects.filter(id=self.listing.id).update(is_published=False)

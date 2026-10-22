@@ -22,6 +22,7 @@ def make_project(**overrides):
         project_name="Example Project",
         project_link="https://example.com",
         is_published=True,
+        consent_to_display=True,
     )
     defaults.update(overrides)
     return Project.objects.create(**defaults)
@@ -62,7 +63,8 @@ def test_contents_defaults_to_unauthenticated():
 def projects(db):
     published = make_project(project_name="Published", is_published=True)
     unpublished = make_project(project_name="Unpublished", is_published=False)
-    return {"published": published, "unpublished": unpublished}
+    unconsented = make_project(project_name="Unconsented", consent_to_display=False)
+    return {"published": published, "unpublished": unpublished, "unconsented": unconsented}
 
 
 @pytest.mark.django_db
@@ -99,7 +101,7 @@ def test_staff_sees_all_projects_with_private_fields(client, projects):
 
     data = client.get("/api/powered-by").json()["projects"]
     names = {p["project_name"] for p in data}
-    assert names == {"Published", "Unpublished"}
+    assert names == {"Published", "Unpublished", "Unconsented"}
     for project in data:
         for field in PRIVATE_FIELDS:
             assert field in project
