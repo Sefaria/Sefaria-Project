@@ -37,7 +37,7 @@ def requires_developer_settings(view):
 
 def developer_api(func=None, login=True):
     """
-    JSON endpoints, logged in unless login=False: parses a JSON body into request.json, and maps
+    JSON endpoints, logged in through the browser session unless login=False: parses a JSON body into request.json, and maps
     input errors to 400, missing setup to 403, unknown or unowned objects to 404 and a repeated
     request to 429.
     """
@@ -46,7 +46,7 @@ def developer_api(func=None, login=True):
 
     @wraps(func)
     def wrapper(request, *args, **kwargs):
-        if login and not request.user.is_authenticated:
+        if login and not developer.session_login(request):
             return jsonResponse({"error": "Log in to use developer settings."}, status=401)
         request.json = {}
         if request.body:

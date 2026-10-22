@@ -9,7 +9,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse, HttpResponseRedirect
-from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware, LocationSettingsMiddleware, WebSessionRedirectMiddleware
+from sefaria.system.middleware import ApiCorsPreflightMiddleware, ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware, LocationSettingsMiddleware, WebSessionRedirectMiddleware
 from sefaria.utils.chatbot import build_chatbot_user_token
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
@@ -855,3 +855,41 @@ class TestWebSessionRedirectMiddleware:
         )
 
         assert 'no_applink' not in result['Location']
+
+
+class TestApiCorsPreflightMiddleware:
+
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = ApiCorsPreflightMiddleware(get_response=lambda r: HttpResponse("view"))
+
+    def preflight(self, path, method="GET"):
+        return self.factory.options(path, HTTP_ORIGIN="https://site-a.example.org",
+                                    HTTP_ACCESS_CONTROL_REQUEST_METHOD=method,
+                                    HTTP_ACCESS_CONTROL_REQUEST_HEADERS="x-api-key")
+
+    def test_an_api_preflight_allows_the_x_api_key_header_from_any_origin(self):
+        for path, method in (("/api/v3/texts/Genesis.1.1", "GET"), ("/api/texts/Genesis.1.1", "GET"),
+                             ("/api/knn-search", "POST")):
+            response = self.middleware(self.preflight(path, method))
+
+            assert response.status_code == 204
+            assert response["Access-Control-Allow-Origin"] == "*"
+            assert "x-api-key" in [h.strip().lower() for h in response["Access-Control-Allow-Headers"].split(",")]
+            assert method in response["Access-Control-Allow-Methods"]
+
+    def test_other_requests_reach_the_view(self):
+        requests = (
+            self.preflight("/texts/Genesis.1.1"),
+            self.factory.options("/api/v3/texts/Genesis.1.1"),
+            self.factory.get("/api/v3/texts/Genesis.1.1", HTTP_ORIGIN="https://site-a.example.org"),
+        )
+        for request in requests:
+            assert self.middleware(request).content == b"view"
+
+    def test_the_middleware_is_installed(self, client):
+        response = client.options("/api/knn-search", HTTP_ORIGIN="https://site-a.example.org",
+                                  HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST", HTTP_ACCESS_CONTROL_REQUEST_HEADERS="x-api-key")
+
+        assert response.status_code == 204
+        assert "X-API-Key" in response["Access-Control-Allow-Headers"]

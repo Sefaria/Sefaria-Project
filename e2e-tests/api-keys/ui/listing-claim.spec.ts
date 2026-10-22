@@ -207,7 +207,7 @@ test.describe('developer settings: "Is this your project?"', () => {
     await expect(page.locator('.devPocNotice[role="status"]'), `claim responses: ${JSON.stringify(statuses)}`).toHaveCount(0);
   });
 
-  test('N-C14: claiming a listing whose submitter said No keeps it unpublished and private @known-gap N-D8', async () => {
+  test('N-C14: claiming a listing whose submitter said No keeps it unpublished and private', async () => {
     const listing = createListing(unique('N-C14 no consent'), 'no');
     expect(listing.isPublished).toBe(false);
     await openDeveloper(page);

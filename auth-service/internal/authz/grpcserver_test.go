@@ -92,6 +92,15 @@ func TestGRPCCheckDeny(t *testing.T) {
 	if d == nil || int(d.Status.Code) != 403 || d.Body == "" {
 		t.Fatalf("denied=%v", d)
 	}
+	cors := false
+	for _, h := range d.Headers {
+		if h.Header.Key == "access-control-allow-origin" && h.Header.Value == "*" {
+			cors = true
+		}
+	}
+	if !cors {
+		t.Fatalf("a denial must be readable by a page on another origin: %v", d.Headers)
+	}
 	resp, _ = s.Check(context.Background(), checkReq("/api/knn-search", map[string]string{}))
 	if int(resp.GetDeniedResponse().Status.Code) != 401 {
 		t.Fatalf("gated path without key should be 401, got %v", resp.GetDeniedResponse())

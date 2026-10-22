@@ -9,7 +9,7 @@ x-authsvc: &authsvc
     GRPC_ADDR: ":9090"
     AUTH_MODE: ${AUTH_MODE:-enforce}
     GATED_PATHS: ${GATED_PATHS:-/api/knn-search}
-    HELP_URL: ${HELP_URL:-https://developers.sefaria.org/help/}
+    HELP_URL: ${HELP_URL:-https://developers.sefaria.org/#}
     RELOAD_INTERVAL: ${RELOAD_INTERVAL:-60s}
     PG_NOTIFY_CHANNEL: ${PG_NOTIFY_CHANNEL-sefaria_apikeys}
     PG_DSN: ${PG_DSN:-postgres://auth_service_reader:reader@pg:5432/sefaria_auth?sslmode=disable}

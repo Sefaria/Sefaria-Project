@@ -14,13 +14,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 import sentry_sdk
 from allauth.account.models import EmailAddress
+from django.contrib.auth.models import Group
 from django.test import Client, override_settings
 from sentry_sdk.transport import Transport
 
 from powered_by import developer
-from powered_by.models import ApiKey, Project
+from powered_by.models import ApiKey, Project, SubmissionSource
 from powered_by.tests.developer_api_test import DeveloperApiTestCase
 from sefaria.model.user_profile import UserProfile
+from sefaria.settings_utils import scrub_api_keys
 from sefaria.utils.chatbot import build_chatbot_user_token
 
 CHATBOT_SECRET = "developer-security-test-secret"
@@ -45,15 +47,13 @@ class SessionIdHeaderTest(DeveloperApiTestCase):
         client.cookies["csrftoken"] = CSRF_TOKEN
         return client
 
-    @pytest.mark.failing
-    def test_N_CR1_the_state_is_not_served_to_the_session_id_header_known_gap_N_CR1(self):
+    def test_N_CR1_the_state_is_not_served_to_the_session_id_header(self):
         response = Client().get("/api/developer/state", HTTP_X_SESSION_ID=self.token)
 
         self.assertEqual(response.status_code, 401)
         self.assertFalse(self.key_value in response.content.decode(), "the response carries the key value")
 
-    @pytest.mark.failing
-    def test_N_CR1_keys_cannot_be_created_or_revoked_with_the_session_id_header_known_gap_N_CR1(self):
+    def test_N_CR1_keys_cannot_be_created_or_revoked_with_the_session_id_header(self):
         client = self.header_client()
 
         created = client.post("/api/developer/projects/{}/keys".format(self.project["id"]),
@@ -64,6 +64,18 @@ class SessionIdHeaderTest(DeveloperApiTestCase):
         self.assertEqual(revoked.status_code, 401)
         self.assertEqual(ApiKey.objects.filter(project_id=int(self.project["id"])).count(), 1)
         self.assertIsNone(ApiKey.objects.get(id=self.key_id).revoked_at)
+
+    def test_N_CR1_the_settings_page_carries_no_developer_state_for_the_session_id_header(self):
+        response = Client().get("/settings/developer", HTTP_X_SESSION_ID=self.token)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.key_value in response.content.decode(), "the page carries the key value")
+
+    def test_N_CR1_a_session_login_with_the_header_still_works(self):
+        response = self.client.get("/api/developer/state", HTTP_X_SESSION_ID=self.token)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.key_value, response.content.decode())
 
 
 class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
@@ -87,15 +99,13 @@ class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
         settings = UserProfile(id=self.user.id).settings
         return {k: settings.get(k) for k in self.FORGED}
 
-    @pytest.mark.failing
-    def test_N_CR2_the_profile_api_ignores_developer_settings_known_gap_N_CR2(self):
+    def test_N_CR2_the_profile_api_ignores_developer_settings(self):
         response = self.client.post("/api/profile", {"json": json.dumps({"settings": self.FORGED})})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.developer_settings(), self.before)
 
-    @pytest.mark.failing
-    def test_N_CR2_profile_sync_ignores_developer_settings_known_gap_N_CR2(self):
+    def test_N_CR2_profile_sync_ignores_developer_settings(self):
         settings = {**self.FORGED, "time_stamp": int(time.time()) + 1000}
 
         response = self.client.post("/api/profile/sync?no_return=1", {"settings": json.dumps(settings)})
@@ -103,23 +113,62 @@ class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.developer_settings(), self.before)
 
+    def test_N_CR2_every_developer_setting_is_dropped(self):
+        forged = {**self.FORGED, developer.CONFIRMATION_SENT_SETTING: "x", developer.CONFIRMATION_SENT_TO_SETTING: "x",
+                  "reading_history": False}
+
+        self.client.post("/api/profile", {"json": json.dumps({"settings": forged})})
+
+        settings = UserProfile(id=self.user.id).settings
+        self.assertIs(settings.get("reading_history"), False, "other settings still save")
+        for key in developer.DEVELOPER_PROFILE_SETTINGS:
+            self.assertEqual(settings.get(key), self.before.get(key), key)
+
 
 class ProjectCapTest(DeveloperApiTestCase):
-    """N-CR7: one account cannot create projects without limit."""
-
-    ATTEMPTS = 25
+    """N-CR7: an account can have MAX_PROJECTS_PER_ACCOUNT projects, unless staff raise its limit."""
 
     def setUp(self):
         super().setUp()
         self.set_up_developer()
 
-    @pytest.mark.failing
-    def test_N_CR7_creating_projects_is_capped_per_account_known_gap_N_CR7(self):
-        statuses = [self.call("post", "projects", {"project": {"name": "Project {}".format(n), "visibility": "private"}})[0]
-                    for n in range(self.ATTEMPTS)]
+    def create(self, n):
+        return self.call("post", "projects", {"project": {"name": "Project {}".format(n), "visibility": "private"}})
 
-        self.assertTrue(set(statuses) - {200}, "all {} projects were created".format(self.ATTEMPTS))
-        self.assertLess(Project.objects.filter(owner=self.user).count(), self.ATTEMPTS)
+    def fill(self):
+        for n in range(developer.MAX_PROJECTS_PER_ACCOUNT):
+            self.assertEqual(self.create(n)[0], 200)
+
+    def test_N_CR7_creating_projects_is_capped_per_account(self):
+        self.fill()
+
+        status, body = self.create("over")
+
+        self.assertEqual(status, 400)
+        self.assertIn("at most {} projects".format(developer.MAX_PROJECTS_PER_ACCOUNT), body["error"])
+        self.assertEqual(Project.objects.filter(owner=self.user).count(), developer.MAX_PROJECTS_PER_ACCOUNT)
+
+    def test_N_CR7_a_deleted_project_frees_a_slot(self):
+        self.fill()
+        self.call("delete", "projects/{}".format(Project.objects.filter(owner=self.user).first().id))
+
+        self.assertEqual(self.create("again")[0], 200)
+
+    def test_N_CR7_claiming_a_listing_counts_toward_the_cap(self):
+        self.fill()
+        listing = Project.objects.create(submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
+                                         project_name="Submitted", consent_to_display=True, is_published=True)
+
+        status, body = self.call("post", "listings/{}/claim".format(listing.id))
+
+        self.assertEqual(status, 400)
+        self.assertIsNone(Project.objects.get(id=listing.id).owner)
+
+    def test_N_CR7_staff_raise_the_cap_with_the_group(self):
+        self.fill()
+        self.user.groups.add(Group.objects.get_or_create(name=developer.RAISED_PROJECT_LIMIT_GROUP)[0])
+
+        self.assertEqual(self.create("over")[0], 200)
 
 
 class DeletedProjectGalleryTest(DeveloperApiTestCase):
@@ -129,11 +178,10 @@ class DeletedProjectGalleryTest(DeveloperApiTestCase):
         super().setUp()
         self.set_up_developer()
 
-    @pytest.mark.failing
-    def test_N_CR14_a_deleted_project_marked_published_is_not_public_known_gap_N_CR14(self):
+    def test_N_CR14_a_deleted_project_marked_published_is_not_public(self):
         project_id = self.create_project(visibility="public")["id"]
         self.assertEqual(self.call("delete", "projects/" + project_id)[0], 200)
-        Project.objects.filter(id=int(project_id)).update(is_published=True)
+        Project.objects.filter(id=int(project_id)).update(is_published=True, consent_to_display=True)
 
         response = Client().get("/api/powered-by")
 
@@ -190,8 +238,7 @@ class SentryKeyValueTest(DeveloperApiTestCase):
         sentry_sdk.get_global_scope().set_client(None)
         super().tearDown()
 
-    @pytest.mark.failing
-    def test_N_CR6_a_sentry_event_from_a_developer_view_carries_no_key_value_known_gap_N_CR6(self):
+    def test_N_CR6_a_sentry_event_from_a_developer_view_carries_no_key_value(self):
         def failing_json_response(data, callback=None, status=200):
             raise RuntimeError("could not serialise the developer state")
 
@@ -203,3 +250,15 @@ class SentryKeyValueTest(DeveloperApiTestCase):
         events = "\n".join(self.transport.payloads)
         self.assertIn("could not serialise the developer state", events)
         self.assertFalse(self.key_value[:12] in events, "the Sentry event carries the key value")
+
+
+def test_N_CR6_scrub_api_keys_replaces_key_values_at_any_depth():
+    key = "sfr_" + "Ab1" * 10 + "Cd"
+    event = {"message": "bad key " + key, "frames": [{"vars": {"value": "'{}'".format(key), "n": 3}}],
+             "extra": ("x", key)}
+
+    scrubbed = scrub_api_keys(event)
+
+    assert key[:8] not in json.dumps(scrubbed)
+    assert scrubbed["message"] == "bad key sfr_[Filtered]"
+    assert scrubbed["frames"][0]["vars"]["n"] == 3

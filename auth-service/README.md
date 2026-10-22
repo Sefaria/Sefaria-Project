@@ -37,7 +37,7 @@ everything listed as out, is in PR #3736.
 
 Env vars (cmd/authsvc): HTTP_ADDR=:8080 GRPC_ADDR=:9090 AUTH_MODE=enforce|observe
 GATED_PATHS=/api/knn-search PG_DSN PG_NOTIFY_CHANNEL=sefaria_apikeys RELOAD_INTERVAL=60s
-HELP_URL=https://developers.sefaria.org/help/. An empty PG_NOTIFY_CHANNEL disables the listener and
+HELP_URL=https://developers.sefaria.org/#. An empty PG_NOTIFY_CHANNEL disables the listener and
 leaves only the periodic reload.
 
 PG_DSN comes from the cluster Secret `auth-service-registry` (key `AUTH_PG_DSN`): a read-only role

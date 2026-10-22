@@ -123,8 +123,8 @@ for h in bare voices; do
 done
 req bare /texts;                     expect N-A8 301 "" "" "allowed request on the bare host gets nginx's 301"
 for code in api_key_required api_key_invalid origin_not_allowed; do
-  s="$(curl -s -o /dev/null -m 20 -w '%{http_code}' "https://developers.sefaria.org/help/$code")"
-  [ "$s" = 200 ] && line N-CR10 pass "help/$code -> $s" || line N-CR10 GAP "help/$code -> $s (want 200; N-CR10)"
+  s="$(curl -s -o /dev/null -m 20 -w '%{http_code}' "https://developers.sefaria.org/#$code")"
+  [ "$s" = 200 ] && line N-CR10 pass "#$code -> $s" || line N-CR10 GAP "#$code -> $s (want 200; N-CR10)"
 done
 
 if [ "$TARGET" = cauldron ]; then

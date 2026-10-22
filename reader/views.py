@@ -81,7 +81,7 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
-from powered_by.developer import developer_state, settings_enabled as developer_settings_enabled
+from powered_by.developer import developer_state, drop_developer_settings, session_login, settings_enabled as developer_settings_enabled
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -4194,6 +4194,7 @@ def profile_api(request, slug=None):
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
+        drop_developer_settings(profileUpdate.get("settings"))
         la_key = library_assistant.SETTING_KEY
         if la_key in profileUpdate.get("settings", {}):
             # Public endpoint — coerce so a posted "false" can't read as truthy.
@@ -4407,6 +4408,7 @@ def profile_sync_api(request):
             field_data = json.loads(post[field])
             if field == "settings":
                 settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
+                drop_developer_settings(field_data)
                 try:
                     # mobile app is sending time_stamps as strings. for now, patch by casting server-side. can be None if user hasn't updated settings yet.
                     settings_time_stamp = 0 if settings_time_stamp is None else int(settings_time_stamp)
@@ -4627,7 +4629,7 @@ def settings_page(request, tab="account", project_id=None):
         "initialSettingsTab": tab,
         "initialDeveloperProjectId": project_id,
         "initialAccountSettings": _account_settings_props(request, profile),
-        "initialDeveloper": developer_state(request) if developer_on else None,
+        "initialDeveloper": developer_state(request) if developer_on and session_login(request) else None,
     }
     titles = {
         "account": "Account Settings",

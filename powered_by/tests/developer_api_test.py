@@ -26,6 +26,10 @@ PROJECT = {"name": "Daf Portal", "description": "A daily page companion.", "orga
            "websiteUrl": "https://dafportal.org/app", "visibility": "private", "aiAssisted": True}
 
 
+def gallery_ids():
+    return [p["id"] for p in json.loads(Client().get("/api/powered-by").content)["projects"]]
+
+
 @override_settings(DEVELOPER_SETTINGS_ENABLED=True)
 class DeveloperApiTestCase(TestCase):
     databases = "__all__"
@@ -390,28 +394,32 @@ class ProjectTest(DeveloperApiTestCase):
         self.assertEqual(project["visibility"], "private")
         self.assertFalse(project["linkedListing"])
 
-    def test_a_public_project_is_published_and_a_private_one_is_not(self):
+    def test_a_public_project_is_listed_and_a_private_one_is_not(self):
         public = Project.objects.get(id=int(self.create_project(visibility="public")["id"]))
         private = Project.objects.get(id=int(self.create_project(visibility="private")["id"]))
 
-        self.assertTrue(public.is_published)
-        self.assertFalse(private.is_published)
+        self.assertTrue(public.consent_to_display)
+        self.assertFalse(private.consent_to_display)
+        self.assertTrue(public.is_published and private.is_published, "staff haven't unpublished either")
+        listed = gallery_ids()
+        self.assertIn(public.id, listed)
+        self.assertNotIn(private.id, listed)
 
     def test_a_project_needs_a_name_and_a_visibility_and_a_valid_website(self):
         for fields in ({"name": ""}, {"visibility": None}, {"websiteUrl": "not a site"}):
             status, _ = self.call("post", "projects", {"project": {**PROJECT, **fields}})
             self.assertEqual(status, 400, fields)
 
-    def test_making_a_public_project_private_withdraws_consent_and_unpublishes_it(self):
+    def test_making_a_public_project_private_withdraws_consent_and_unlists_it(self):
         project = self.create_project(visibility="public")
-        Project.objects.filter(id=int(project["id"])).update(is_published=True)
 
         status, state = self.call("post", "projects/" + project["id"], {"project": {**PROJECT, "visibility": "private"}})
 
         self.assertEqual(status, 200)
         row = Project.objects.get(id=int(project["id"]))
         self.assertFalse(row.consent_to_display)
-        self.assertFalse(row.is_published)
+        self.assertTrue(row.is_published, "the owner doesn't change the staff publish gate")
+        self.assertNotIn(row.id, gallery_ids())
         self.assertIsNotNone(state["projects"][0]["consentWithdrawnAt"])
 
     def test_deleting_a_project_revokes_its_keys_and_keeps_the_rows(self):
@@ -527,14 +535,15 @@ class ListingTest(DeveloperApiTestCase):
         self.assertTrue(project["linkedListing"])
         self.assertEqual(project["visibility"], "public")
 
-    def test_claiming_makes_a_private_listing_public(self):
-        Project.objects.filter(id=self.listing.id).update(consent_to_display=False, is_published=False)
+    def test_claiming_keeps_the_listing_consent_and_publish_flags(self):
+        for consent, published in ((True, False), (False, True)):
+            Project.objects.filter(id=self.listing.id).update(owner=None, consent_to_display=consent, is_published=published)
 
-        self.call("post", "listings/{}/claim".format(self.listing.id))
+            self.assertEqual(self.call("post", "listings/{}/claim".format(self.listing.id))[0], 200)
 
-        row = Project.objects.get(id=self.listing.id)
-        self.assertTrue(row.consent_to_display)
-        self.assertTrue(row.is_published)
+            row = Project.objects.get(id=self.listing.id)
+            self.assertEqual((row.consent_to_display, row.is_published), (consent, published))
+            self.assertNotIn(row.id, gallery_ids())
 
     def test_deleting_the_account_revokes_keys_deletes_projects_and_releases_listings(self):
         self.call("post", "listings/{}/claim".format(self.listing.id))

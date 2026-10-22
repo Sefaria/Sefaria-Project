@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 from allauth.account import app_settings as account_settings
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import SESSION_KEY, get_user_model
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
@@ -26,6 +26,10 @@ from .models import ApiKey, Project, SubmissionSource
 
 
 MAX_KEYS_PER_PROJECT = 5
+MAX_PROJECTS_PER_ACCOUNT = 10
+# Staff raise an account's project limit in admin by adding it to this group.
+RAISED_PROJECT_LIMIT_GROUP = "Developer project limit raised"
+RAISED_MAX_PROJECTS_PER_ACCOUNT = 100
 MAX_DESCRIPTION_LENGTH = 150
 MAX_PROFILE_DESCRIPTION_LENGTH = 300
 
@@ -42,6 +46,10 @@ CONFIRMATION_DAILY_LIMIT = 5
 CONFIRMATION_LINK_MAX_AGE = timedelta(days=account_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS)
 SSO_PROVIDERS = ("google", "apple")
 DISMISSED_LISTINGS_SETTING = "developer_dismissed_listings"
+
+# Written only through developer settings; the generic profile APIs drop them.
+DEVELOPER_PROFILE_SETTINGS = (ENABLED_SETTING, PROFILE_SETTING, CONFIRMATION_SENT_SETTING, CONFIRMATION_SENT_TO_SETTING,
+                              CONFIRMATION_SENDS_SETTING, DISMISSED_LISTINGS_SETTING)
 
 MOCK_SSO_SESSION_KEY = "developer_mock_sso"
 
@@ -92,6 +100,15 @@ def origin_of(url):
     if parts.port and parts.port != DEFAULT_PORTS.get(scheme):
         origin += ":{}".format(parts.port)
     return origin
+
+
+def session_login(request):
+    """
+    The user signed in through this browser's session cookie. Other ways a request can carry a
+    user, such as the Library Assistant's X-Session-ID token, don't count for developer settings.
+    """
+    user = request.user
+    return user.is_authenticated and request.session.get(SESSION_KEY) == str(user.pk)
 
 
 # --- Verification ------------------------------------------------------------
@@ -326,6 +343,14 @@ def clean_profile(data):
     return profile
 
 
+def drop_developer_settings(profile_settings):
+    """Removes the developer settings from profile settings a client sent, in place."""
+    if isinstance(profile_settings, dict):
+        for key in DEVELOPER_PROFILE_SETTINGS:
+            profile_settings.pop(key, None)
+    return profile_settings
+
+
 def save_profile(user, data):
     profile = UserProfile(id=user.id)
     profile.settings[PROFILE_SETTING] = clean_profile(data)
@@ -467,17 +492,14 @@ def _apply_fields(project, fields):
 
 def _set_visibility(project, visibility):
     """
-    Public projects are listed on Powered by Sefaria, as rows from the public form are when
-    their submitter consents; staff can still unpublish one.
+    Public is the owner's consent to be listed on Powered by Sefaria. The listing shows only
+    while staff also leave it published, and only staff change is_published.
     """
     if visibility == "public":
-        if not project.consent_to_display:
-            project.is_published = True
         project.consent_to_display = True
         project.consent_withdrawn_at = None
     elif project.consent_to_display:
         project.consent_to_display = False
-        project.is_published = False
         project.consent_withdrawn_at = timezone.now()
 
 
@@ -499,15 +521,30 @@ def _lock_owned_project(user, project_id):
         raise LookupError("No such project.")
 
 
+def max_projects(user):
+    if user.groups.filter(name=RAISED_PROJECT_LIMIT_GROUP).exists():
+        return RAISED_MAX_PROJECTS_PER_ACCOUNT
+    return MAX_PROJECTS_PER_ACCOUNT
+
+
+def _check_project_limit(user):
+    """Call inside transaction.atomic(): holds the account's row lock so concurrent creates count each other."""
+    _lock_account(user)
+    limit = max_projects(user)
+    if owned_projects(user).count() >= limit:
+        raise InputError("An account can have at most {} projects. To add more, contact hello@sefaria.org.".format(limit))
+
+
+@transaction.atomic
 def create_project(user, data):
     fields = clean_project_fields(data)
+    _check_project_limit(user)
     project = Project(
         submission_source=SubmissionSource.DEVELOPER_SETTINGS,
         submission_date=timezone.now(),
         owner=user,
         creator=user.get_full_name(),
         creator_email=user.email,
-        is_published=fields["visibility"] == "public",
         consent_to_display=fields["visibility"] == "public",
     )
     _apply_fields(project, fields)
@@ -542,16 +579,17 @@ def delete_project(user, project_id):
     project.save()
 
 
+@transaction.atomic
 def claim_listing(user, listing_id):
     """
     Makes an unclaimed Powered by listing submitted with this account's email one of its projects.
     """
+    _check_project_limit(user)
     try:
         project = unclaimed_listings(user, UserProfile(id=user.id)).get(id=int(listing_id))
     except (Project.DoesNotExist, ValueError):
         raise LookupError("No such listing.")
     project.owner = user
-    _set_visibility(project, "public")
     project.save()
     return project
 
