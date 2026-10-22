@@ -298,8 +298,8 @@
 }
 
 .sefaria-provider-button--icon {
-  width: 40px;
-  height: 40px;
+  width: var(--lc-signup-option-size, 40px);
+  height: var(--lc-signup-option-size, 40px);
   padding: 0;
   border: 1px solid var(--light-blue-border);
   border-radius: 50%;
@@ -312,24 +312,28 @@
   outline-offset: 2px;
 }
 .sefaria-provider-button--icon .sefaria-provider-button-icon {
-  width: 18px;
-  height: 18px;
-  flex-basis: 18px;
+  width: var(--lc-signup-icon-size, 18px);
+  height: var(--lc-signup-icon-size, 18px);
+  flex-basis: var(--lc-signup-icon-size, 18px);
 }
 .sefaria-provider-button--icon[data-provider=apple] .sefaria-provider-button-icon {
-  width: 17px;
-  height: 17px;
-  flex-basis: 17px;
+  width: var(--lc-signup-apple-icon-size, 20px);
+  height: var(--lc-signup-apple-icon-size, 20px);
+  flex-basis: var(--lc-signup-apple-icon-size, 20px);
 }
 
 .sefaria-provider-button-shell--icon {
-  width: 40px;
-  height: 40px;
+  width: var(--lc-signup-option-size, 40px);
+  height: var(--lc-signup-option-size, 40px);
   border-radius: 50%;
   overflow: hidden;
 }
 .sefaria-provider-button-shell--icon:hover .sefaria-provider-button {
   border-color: var(--light-blue-border);
+}
+.sefaria-provider-button-shell--icon:focus-within {
+  outline: 2px solid var(--sefaria-blue);
+  outline-offset: 2px;
 }
 
 .sefaria-divider {
