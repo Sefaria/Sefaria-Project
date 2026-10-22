@@ -19,8 +19,8 @@ MONGO_PORT=27017
 DJANGO_DB=sefaria_auth
 GO_DB=authsvc_go
 PG_DSN_GO="postgres://postgres:pg@127.0.0.1:$PG_PORT/$GO_DB?sslmode=disable"
-SCHEMA_SQL="select conname, pg_get_constraintdef(oid) from pg_constraint where conrelid in ('powered_by_apikey'::regclass,to_regclass('powered_by_projectlimits')) and contype='c' order by 1;
-select tgname, pg_get_triggerdef(oid) from pg_trigger where not tgisinternal and tgrelid in ('powered_by_apikey'::regclass,'powered_by_project'::regclass,to_regclass('powered_by_projectlimits')) order by 1;"
+SCHEMA_SQL="select conname, pg_get_constraintdef(oid) from pg_constraint where conrelid in ('powered_by_apikey'::regclass,to_regclass('api_project'),to_regclass('api_tier'),to_regclass('api_tier_meter_limit')) and contype='c' order by 1;
+select tgname, pg_get_triggerdef(oid) from pg_trigger where not tgisinternal and tgrelid in ('powered_by_apikey'::regclass,'powered_by_project'::regclass,to_regclass('api_project'),to_regclass('api_tier'),to_regclass('api_tier_meter_limit')) order by 1;"
 FAILS=0
 SUBCOMMAND_ARGS=()  # set by main: the arguments after the subcommand name
 
@@ -182,7 +182,7 @@ manage() { # run manage.py, print the command and its status, count a failure
   return "$rc"
 }
 
-schema_dump() { # apikey and limits CHECK constraints and the non-internal triggers of the three tables
+schema_dump() { # apikey and api_project tier CHECK constraints and the non-internal triggers of the tables
   echo "-- schema $1"
   docker exec "$PG_NAME" psql -U postgres -d "$DJANGO_DB" -Atc "$SCHEMA_SQL" || fail "schema dump $1"
 }
@@ -199,25 +199,27 @@ scalar() { # one query on $DJANGO_DB, rows printed bare; the caller checks the s
 
 SEEDED_API_PROJECTS=8 # seed rows 9104-9111 have a key or an owner or a developer-settings submission
 
-limits_snapshot() { # every limits row, in id order, so a re-run can be compared with the first one
-  scalar "select project_id, tier from powered_by_projectlimits order by project_id"
+limits_snapshot() { # every api_project row, in id order, so a re-run can be compared with the first one
+  scalar "select id, profile_id, owner_id, tier_id, deleted_at is not null from api_project order by id"
 }
 
-check_seeded_limits() { # at latest: one row per seeded API project, the partner one, the gold one normalised
+check_seeded_limits() { # at latest: one api_project row per seeded API project, the partner one, the gold one normalised
   local rows partner_rows gold_tier
-  rows="$(scalar "select count(*) from powered_by_projectlimits")" || { fail "counting limits rows"; return 1; }
-  [ "$rows" = "$SEEDED_API_PROJECTS" ] || fail "limits rows at latest: $rows, expected $SEEDED_API_PROJECTS"
-  partner_rows="$(scalar "select count(*) from powered_by_projectlimits where tier = 'partner'")" \
-    || { fail "counting partner limits rows"; return 1; }
-  [ "$partner_rows" = "$1" ] || fail "partner limits rows: $partner_rows, seeded partner projects: $1"
-  gold_tier="$(scalar "select tier from powered_by_projectlimits where project_id = 9111")" \
-    || { fail "reading the gold project's limits row"; return 1; }
-  [ "$gold_tier" = developer ] || fail "gold project's limits tier: '$gold_tier', expected developer"
-  [ "$(scalar "select count(*) from powered_by_projectlimits where project_id in (9101, 9102, 9103)")" = 0 ] \
-    || fail "ownerless keyless listings 9101-9103 got a limits row"
+  rows="$(scalar "select count(*) from api_project")" || { fail "counting api_project rows"; return 1; }
+  [ "$rows" = "$SEEDED_API_PROJECTS" ] || fail "api_project rows at latest: $rows, expected $SEEDED_API_PROJECTS"
+  partner_rows="$(scalar "select count(*) from api_project where tier_id = 'partner'")" \
+    || { fail "counting partner api_project rows"; return 1; }
+  [ "$partner_rows" = "$1" ] || fail "partner api_project rows: $partner_rows, seeded partner projects: $1"
+  gold_tier="$(scalar "select tier_id from api_project where profile_id = 9111")" \
+    || { fail "reading the gold project's api_project row"; return 1; }
+  [ "$gold_tier" = developer ] || fail "gold project's api_project tier: '$gold_tier', expected developer"
+  [ "$(scalar "select count(*) from api_project where profile_id in (9101, 9102, 9103)")" = 0 ] \
+    || fail "ownerless keyless listings 9101-9103 got an api_project row"
+  [ "$(scalar "select count(*) from api_project where profile_id = 9107 and deleted_at is not null")" = 1 ] \
+    || fail "soft-deleted project 9107 has no deleted_at on its api_project row"
 }
 
-seeded_round_trip() { # load the dev-shape seed at 0005, migrate forward and back, compare counts and limits rows
+seeded_round_trip() { # load the dev-shape seed at 0005, migrate forward and back, compare counts and api_project rows
   local seed="$HERE/testenv/seed_dev_shape.sql" before latest back partner_projects limits_first partner_frozen
   step "2b. seeded round trip ($seed)"
   psql_ -c "DROP DATABASE IF EXISTS $DJANGO_DB" -c "CREATE DATABASE $DJANGO_DB" || { fail "resetting $DJANGO_DB"; return 1; }
@@ -238,8 +240,8 @@ seeded_round_trip() { # load the dev-shape seed at 0005, migrate forward and bac
     || { fail "reading the seeded partner project's frozen tier"; return 1; }
   [ "$partner_frozen" = partner ] || fail "seeded partner project's frozen tier after reverse: '$partner_frozen', expected partner"
   manage migrate powered_by || return 1
-  [ "$(limits_snapshot)" = "$limits_first" ] || fail "limits rows changed across forward, reverse and forward"
-  echo "(projects, keys): at 0005 [$before], at latest [$latest], back at 0005 [$back]; limits rows: $SEEDED_API_PROJECTS"
+  [ "$(limits_snapshot)" = "$limits_first" ] || fail "api_project rows changed across forward, reverse and forward"
+  echo "(projects, keys): at 0005 [$before], at latest [$latest], back at 0005 [$back]; api_project rows: $SEEDED_API_PROJECTS"
 }
 
 cmd_migrations() {
