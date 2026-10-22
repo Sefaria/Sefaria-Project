@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	pathpkg "path"
+	"regexp"
 	"strings"
 
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
@@ -40,14 +41,21 @@ type Decision struct {
 	Code    string
 	Project string
 	Tier    string
-	Result  string
-	Message string
+	// Meter is the metered product the request counts against, MeterNone off every metered path.
+	Meter string
+	// Keyed is true when an active key was allowed; only then do PerMinute and MonthlyLimit carry the tier's numbers.
+	Keyed        bool
+	PerMinute    int
+	MonthlyLimit *int64
+	Result       string
+	Message      string
 }
 
 type Config struct {
 	Mode       Mode
 	GatedPaths []string
 	HelpURL    string
+	Meters     []Meter
 }
 
 func allow(project, tier, result string) Decision {
@@ -61,23 +69,85 @@ func deny(cfg Config, status int, code, message string) Decision {
 	return Decision{Status: status, Code: code, Result: code, Message: message}
 }
 
-// gated matches on the decoded, cleaned path so /api/%6bnn-search or //api/knn-search cannot
+// cleanPath decodes and cleans a request path so /api/%6bnn-search or //api/knn-search cannot
 // slip past a prefix that the upstream router would still resolve (security review, finding H).
-func gated(cfg Config, raw string) bool {
+func cleanPath(raw string) string {
 	path := raw
 	if u, err := url.PathUnescape(raw); err == nil {
 		path = u
 	}
-	path = pathpkg.Clean("/" + path)
+	return pathpkg.Clean("/" + path)
+}
+
+func hasPrefix(raw, path, p string) bool {
+	return p != "" && (strings.HasPrefix(path, p) || strings.HasPrefix(raw, p))
+}
+
+// gated matches on the decoded, cleaned path.
+func gated(cfg Config, raw string) bool {
+	path := cleanPath(raw)
 	for _, p := range cfg.GatedPaths {
-		if p != "" && (strings.HasPrefix(path, p) || strings.HasPrefix(raw, p)) {
+		if hasPrefix(raw, path, p) {
 			return true
 		}
 	}
 	return false
 }
 
+// MeterNone is the x-sefaria-meter value of a request that belongs to no metered product.
+const MeterNone = "none"
+
+// Meter maps a path prefix to the metered product whose monthly quota the request counts against.
+type Meter struct{ Name, Prefix string }
+
+var meterName = regexp.MustCompile(`^[a-z][a-z0-9_-]*$`)
+
+// ParseMeters parses METERED_PATHS, comma-separated meter=prefix entries such as semantic=/api/knn-search. A meter
+// may list several prefixes. Empty input is no meters; a malformed entry is an error, so a typo cannot silently
+// leave a product unmetered.
+func ParseMeters(spec string) ([]Meter, error) {
+	if strings.TrimSpace(spec) == "" {
+		return nil, nil
+	}
+	var out []Meter
+	for _, entry := range strings.Split(spec, ",") {
+		name, prefix, ok := strings.Cut(strings.TrimSpace(entry), "=")
+		name, prefix = strings.TrimSpace(name), strings.TrimSpace(prefix)
+		switch {
+		case !ok:
+			return nil, fmt.Errorf("METERED_PATHS entry %q is not meter=prefix", entry)
+		case !meterName.MatchString(name) || name == MeterNone:
+			return nil, fmt.Errorf("METERED_PATHS meter name %q must match %s and not be %q", name, meterName, MeterNone)
+		case !strings.HasPrefix(prefix, "/"):
+			return nil, fmt.Errorf("METERED_PATHS prefix %q for %s must start with /", prefix, name)
+		}
+		out = append(out, Meter{Name: name, Prefix: prefix})
+	}
+	return out, nil
+}
+
+// meterFor matches on the same decoded, cleaned path as gated. The longest matching prefix wins; off every
+// metered path the meter is MeterNone.
+func meterFor(cfg Config, raw string) string {
+	path := cleanPath(raw)
+	best, name := -1, MeterNone
+	for _, m := range cfg.Meters {
+		if hasPrefix(raw, path, m.Prefix) && len(m.Prefix) > best {
+			best, name = len(m.Prefix), m.Name
+		}
+	}
+	return name
+}
+
+// Decide returns the decision for one request. Meter is set on every decision, denied ones included.
 func Decide(l Lookup, cfg Config, r Request) Decision {
+	meter := meterFor(cfg, r.Path)
+	d := decide(l, cfg, r, meter)
+	d.Meter = meter
+	return d
+}
+
+func decide(l Lookup, cfg Config, r Request, meter string) Decision {
 	if r.APIKey != "" {
 		k, ok := l.Lookup(r.APIKey)
 		if !ok || k.Revoked {
@@ -90,7 +160,13 @@ func Decide(l Lookup, cfg Config, r Request) Decision {
 			}
 			return deny(cfg, 403, CodeOriginNotAllowed, fmt.Sprintf("This key only accepts requests from its registered website, and %s is not one. Turn the restriction off for keys used from a server, script, app or agent.", origin))
 		}
-		return allow(k.ProjectID, k.Tier, "ok")
+		d := allow(k.ProjectID, k.Tier, "ok")
+		d.Keyed = true
+		d.PerMinute = k.PerMinute
+		if v, ok := k.MonthlyLimits[meter]; ok && meter != MeterNone {
+			d.MonthlyLimit = &v
+		}
+		return d
 	}
 	// Browser CORS preflights do not carry application credentials. Let Envoy
 	// answer OPTIONS requests with an Origin header before applying path gates.

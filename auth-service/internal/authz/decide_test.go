@@ -61,15 +61,25 @@ func TestDecideEnforce(t *testing.T) {
 	}
 }
 
+func withKeyed(d Decision) Decision {
+	d.Keyed = true
+	return d
+}
+
+func withMeter(d Decision, meter string) Decision {
+	d.Meter = meter
+	return d
+}
+
 func TestDecidePreflight(t *testing.T) {
 	for _, tc := range []struct {
 		name string
 		r    Request
 		want Decision
 	}{
-		{"preflight", Request{Method: "OPTIONS", Path: "/x", Origin: "https://embed.example.org"}, allow("", TierEmbed, "preflight")},
-		{"key takes precedence", Request{Method: "OPTIONS", Path: "/api/knn-search", Origin: "https://embed.example.org", APIKey: alpha}, allow("proj_alpha", "developer", "ok")},
-		{"other method is not preflight", Request{Method: "GET", Path: "/api/knn-search", Origin: "https://embed.example.org"}, deny(enforce, 401, CodeKeyRequired, "This route requires an x-api-key header.")},
+		{"preflight", Request{Method: "OPTIONS", Path: "/x", Origin: "https://embed.example.org"}, withMeter(allow("", TierEmbed, "preflight"), MeterNone)},
+		{"key takes precedence", Request{Method: "OPTIONS", Path: "/api/knn-search", Origin: "https://embed.example.org", APIKey: alpha}, withKeyed(withMeter(allow("proj_alpha", "developer", "ok"), MeterNone))},
+		{"other method is not preflight", Request{Method: "GET", Path: "/api/knn-search", Origin: "https://embed.example.org"}, withMeter(deny(enforce, 401, CodeKeyRequired, "This route requires an x-api-key header."), MeterNone)},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := Decide(reg, enforce, tc.r); got != tc.want {
