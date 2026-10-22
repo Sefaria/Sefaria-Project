@@ -20,36 +20,52 @@ spec:
       # service fills from the project's tier tables; `requests` is the static fallback when the auth service is down
       # (fail-open) or sends no metadata, so nothing is ever unlimited.
       rules:
-        - clientSelectors:                         # 1. per minute, per project
+        - clientSelectors:                         # 1. per minute, per project (keyed requests only)
             - headers:
+                - { name: x-sefaria-tier, type: RegularExpression, value: "^(anonymous|embed)$", invert: true }
                 - { name: x-sefaria-project, type: Distinct }
+          shared: true                             # one counter per project across hosts and route matches
           limit:
             requests: {{ $rl.defaults.perMinutePerProject }}
             unit: Minute
             fromMetadata: { namespace: envoy.filters.http.ext_authz, key: limit_minute }{{ if $rl.headers }}
           xRateLimitHeaders: DraftVersion03{{ end }}
         {{- range $meter, $_ := .Values.authService.meters }}
-        - clientSelectors:                         # 2. per month, per project, one rule per meter
+        - clientSelectors:                         # 2. per month, per project, one rule per meter (keyed requests only)
             - headers:
+                - { name: x-sefaria-tier, type: RegularExpression, value: "^(anonymous|embed)$", invert: true }
                 - { name: x-sefaria-meter, type: Exact, value: {{ $meter }} }
                 - { name: x-sefaria-project, type: Distinct }
+          shared: true
           limit:
             requests: {{ int64 $rl.defaults.monthlyPerProject }}
             unit: Month
             fromMetadata: { namespace: envoy.filters.http.ext_authz, key: limit_month_{{ $meter }} }
         {{- end }}
-        - clientSelectors:                         # 3. anonymous: best-effort per client IP
+        - clientSelectors:                         # 3. unkeyed (anonymous and embed): best-effort per client IP
             - headers:
-                - { name: x-sefaria-tier, type: Exact, value: anonymous }
+                - { name: x-sefaria-tier, type: RegularExpression, value: "^(anonymous|embed)$" }
               sourceCIDR: { type: Distinct, value: 0.0.0.0/0 }
           limit: { requests: {{ $rl.anonymousPerIP }}, unit: Minute }{{ if $rl.headers }}
           xRateLimitHeaders: DraftVersion03{{ end }}
-        - clientSelectors:                         # 4. a missing or unknown tier, at the anonymous limits
+        - clientSelectors:                         # 4. a missing or malformed tier (not a tier slug), at the anonymous limits
             - headers:
-                - { name: x-sefaria-tier, type: RegularExpression, value: "^(developer|partner|internal|anonymous|embed)$", invert: true }
+                - { name: x-sefaria-tier, type: RegularExpression, value: "^[a-z][a-z0-9_-]*$", invert: true }
           limit: { requests: {{ $rl.anonymousShared }}, unit: Minute }{{ if $rl.headers }}
           xRateLimitHeaders: DraftVersion03{{ end }}
   responseOverride:                                # agent-readable 429 (product spec)
+    {{- if and .Values.keda.enabled .Values.keda.splash.enabled }}
+    # The KEDA splash override rides here: two BackendTrafficPolicies on one HTTPRoute do not merge.
+    - match:
+        statusCodes:
+          {{- toYaml .Values.keda.splash.statusCodes | nindent 10 }}
+      response:
+        contentType: text/html
+        body:
+          type: Inline
+          inline: |
+{{ .Values.keda.splash.body | nindent 12 }}
+    {{- end }}
     - match:
         statusCodes:
           - { type: Value, value: 429 }
