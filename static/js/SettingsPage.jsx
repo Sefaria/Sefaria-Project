@@ -2031,7 +2031,7 @@ const AccountTab = ({settings, socialProviders}) => {
         email_notifications: emailNotifications,
         interface_language: torahSpecific ? interfaceLanguage : undefined,
         textual_custom: torahSpecific ? textualCustom : undefined,
-        reading_history: (torahSpecific ? readingHistory : undefined) === "true",
+        reading_history: torahSpecific ? readingHistory === "true" : undefined,
         translation_language_preference: torahSpecific ? transPref : undefined,
         translation_language_preference_suggested: true,
       },
@@ -2078,10 +2078,8 @@ const AccountTab = ({settings, socialProviders}) => {
         Sefaria.track.event("Reader", "Set Translation Language Preference", transPref);
         saved.current.translationLanguage = transPref;
       }
-      const detail = {
-        translationLanguagePreference: profile.settings.translation_language_preference,
-        readingHistory: profile.settings.reading_history,
-      };
+      const detail = {translationLanguagePreference: profile.settings.translation_language_preference};
+      if (torahSpecific) { detail.readingHistory = profile.settings.reading_history; }
       const newTextualCustom = profile.settings.textual_custom;
       if (newTextualCustom !== saved.current.textualCustom) {  // only check change here because it triggers an API call to re-fetch calendars
         detail.textualCustom = newTextualCustom;
