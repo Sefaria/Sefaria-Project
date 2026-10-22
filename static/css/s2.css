@@ -5410,6 +5410,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: underline;
 }
 
+/* Purple-800, the same as the floating Ask button's hover (ai-chatbot's AskLauncher) */
+.noSearchResults-assistantLink:hover {
+  color: #653259;
+  text-decoration: underline;
+}
+
 /* Desktop, assistant off (only the browse button): tighter heading, body and button */
 @media (min-width: 541px) {
   .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-textGroup {
