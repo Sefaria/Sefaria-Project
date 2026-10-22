@@ -5633,19 +5633,49 @@ def dynamic_manifest(request, filename):
     scope = "/"
     start_url = "/"
 
+    # Add-to-home-screen POC: a page can ask for its own mini-app manifest,
+    # e.g. ?start=/parashat-hashavua&name=Parashah&id=parashah
+    def _same_site_path(value):
+        return value if (value.startswith("/") and not value.startswith("//") and "\\" not in value and len(value) <= 300) else None
+
+    page_start = _same_site_path(request.GET.get("start", ""))
+    page_name = request.GET.get("name", "").strip()[:30] or None
+    page_id = re.sub(r"[^a-z0-9-]", "", request.GET.get("id", "").lower())[:40] or None
+
     context = {
         'active_module': active_module,
         'lang': lang,
-        'start_url': start_url,
+        'start_url': page_start or start_url,
         'scope': scope,
         'is_hebrew': lang in ('hebrew', 'he'),
+        'page_name': page_name,
+        'page_id': page_id,
     }
-    
+
     response = render(request, 'manifest.json', context, content_type='application/manifest+json')
-    
+
     # Use Vary headers to cache different variants based on language preference and host
     # This should work with the  existing Varnish config and LanguageSettingsMiddleware
     response["Vary"] = "Accept-Language, Host"
-    response["Cache-Control"] = "max-age=2592000"  # 30 days - manifests are static metadata
-    
+    if page_start or page_name or page_id:
+        response["Cache-Control"] = "no-cache"
+    else:
+        response["Cache-Control"] = "max-age=2592000"  # 30 days - manifests are static metadata
+
+    return response
+
+
+def service_worker(request):
+    """
+    Minimal pass-through service worker for the add-to-home-screen POC.
+    Served from the site root so its scope covers every page.
+    """
+    script = (
+        "self.addEventListener('install', function () { self.skipWaiting(); });\n"
+        "self.addEventListener('activate', function (event) { event.waitUntil(self.clients.claim()); });\n"
+        "self.addEventListener('fetch', function () {});\n"
+    )
+    response = http.HttpResponse(script, content_type='application/javascript')
+    response["Service-Worker-Allowed"] = "/"
+    response["Cache-Control"] = "no-cache"
     return response
