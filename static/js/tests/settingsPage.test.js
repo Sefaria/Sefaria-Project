@@ -501,6 +501,14 @@ describe('key cards', () => {
     expect(restriction.querySelector('.devPocExplainer').textContent).toContain('only works on your website');
   });
 
+  it("names the origin with the website's own scheme", () => {
+    const httpProject = publicProject({ websiteUrl: 'http://example.org/app', keys: projectWithKey().keys });
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [httpProject] }, { projectId: 'proj01' });
+    const summary = container.querySelector('.devPocRestrictionSummary');
+    expect(summary.textContent).toContain('Origin header is http://example.org.');
+    expect(summary.textContent).not.toContain('https://example.org');
+  });
+
   it('show when a key was created, with no usage information', () => {
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }, { projectId: 'proj01' });
     const meta = container.querySelector('.devPocKeyMeta').textContent;

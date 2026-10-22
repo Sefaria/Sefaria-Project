@@ -210,16 +210,6 @@ describe('errors before setup', () => {
   });
 });
 
-describe('a restricted key on an http:// website', () => {
-  it('names the origin the gateway checks, with its real scheme @known-gap N-C11', () => {
-    const httpProject = project({ websiteUrl: 'http://example.org', keys: [key(1, { restrictToWebsite: true })] });
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [httpProject] }, { projectId: 'proj01' });
-    const summary = container.querySelector('.devPocRestrictionSummary');
-    expect(summary.textContent).toContain('Origin header is http://example.org');
-    expect(summary.textContent).not.toContain('https://example.org');
-  });
-});
-
 describe('key-create errors', () => {
   const startKey = (keys) => {
     jest.useFakeTimers();

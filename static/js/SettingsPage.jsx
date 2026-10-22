@@ -25,6 +25,7 @@ import {
   setKeyRestriction,
   updateProject,
   websiteHost,
+  websiteOrigin,
 } from './developerSettingsApi';
 
 /* Account and developer settings, one page with a tab per settings section. The developer tab
@@ -1247,7 +1248,7 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
   const [explained, setExplained] = useState(false);
   const explainerId = "devPocRestrictionHelp-" + apiKey.id;
   const summaryId = "devPocRestrictionSummary-" + apiKey.id;
-  const origin = <code dir="ltr">https://{host}</code>;
+  const origin = <code dir="ltr">{websiteOrigin(project.websiteUrl)}</code>;
   return (
     <div className="devPocRestriction">
       <div className="devPocRestrictionRow">
