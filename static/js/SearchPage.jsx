@@ -27,6 +27,104 @@ import SearchTabsMobileWeb from './SearchTabsMobileWeb';
 import SearchAnalytics, { tabLabel } from './sefaria/searchAnalytics';
 
 
+/**
+ * One banner above the tabs, since the correction applies to all of them. The search bar keeps
+ * what the user typed, so this is the only place the correction shows. Renders either the
+ * "results for X / search instead for Y" state (`correctedQuery`) or the "did you mean" state
+ * (`suggestedQueries`); the server never sends both.
+ */
+const SearchAutocorrectBanner = ({correctedQuery, originalQuery, onSearchOriginal, suggestedQueries, onSearchSuggestion}) => {
+  // Always rendered, even empty: a live region mounted together with its content isn't
+  // reliably announced by screen readers.
+  return (
+    <div role="status">
+      {correctedQuery ?
+        <SearchAutocorrectBannerContent
+            correctedQuery={correctedQuery}
+            originalQuery={originalQuery}
+            onSearchOriginal={onSearchOriginal}/>
+      : (suggestedQueries && suggestedQueries.length > 0) ?
+        <SearchSuggestedQueriesBannerContent
+            suggestedQueries={suggestedQueries}
+            onSearchSuggestion={onSearchSuggestion}/>
+      : null}
+    </div>
+  );
+};
+SearchAutocorrectBanner.propTypes = {
+  correctedQuery:      PropTypes.string,
+  originalQuery:       PropTypes.string,
+  onSearchOriginal:    PropTypes.func,
+  suggestedQueries:    PropTypes.arrayOf(PropTypes.string),
+  onSearchSuggestion:  PropTypes.func,
+};
+
+// A query's script can differ from the interface language. `dir` keeps the label and query from
+// reordering each other; `lang` lets screen readers switch voice.
+const _queryLangProps = query => Sefaria.hebrew.isHebrew(query) ? {dir: "rtl", lang: "he"} : {dir: "ltr", lang: "en"};
+
+// For keyboard activation, focus moves to the search box, since the clicked term unmounts and
+// focus would otherwise drop to <body>. Not for clicks/taps, where it would pop up the mobile
+// keyboard.
+const _AutocorrectTerm = ({query, onClick, className}) => {
+  const handle = e => {
+    const searchInput = e.type === "keydown" && e.currentTarget.closest(".searchContent")?.querySelector(".searchPageSearchBar input");
+    onClick(query);
+    searchInput && searchInput.focus();
+  };
+  return (
+    <span
+        className={className}
+        {..._queryLangProps(query)}
+        role="button"
+        tabIndex="0"
+        onClick={handle}
+        onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handle(e); } }}
+    >
+      {query}
+    </span>
+  );
+};
+
+const SearchAutocorrectBannerContent = ({correctedQuery, originalQuery, onSearchOriginal}) => (
+  <div className="searchAutocorrectBanner">
+    <div className="searchAutocorrectBanner-line">
+      <InterfaceText>search.autocorrect.results_shown</InterfaceText>{" "}
+      <span className="searchAutocorrectBanner-corrected" {..._queryLangProps(correctedQuery)}>{correctedQuery}</span>
+    </div>
+    <div className="searchAutocorrectBanner-line searchAutocorrectBanner-secondary">
+      <InterfaceText>search.autocorrect.original_term</InterfaceText>{" "}
+      <_AutocorrectTerm query={originalQuery} onClick={() => onSearchOriginal && onSearchOriginal()}
+                        className="searchAutocorrectBanner-original"/>
+    </div>
+  </div>
+);
+SearchAutocorrectBannerContent.propTypes = {
+  correctedQuery:   PropTypes.string,
+  originalQuery:    PropTypes.string,
+  onSearchOriginal: PropTypes.func,
+};
+
+// Each suggestion is a full query, most likely first.
+const SearchSuggestedQueriesBannerContent = ({suggestedQueries, onSearchSuggestion}) => (
+  <div className="searchAutocorrectBanner">
+    <div className="searchAutocorrectBanner-line">
+      <InterfaceText>search.suggestions.prefix</InterfaceText>{" "}
+      {suggestedQueries.map((query, i) => (
+        <React.Fragment key={query}>
+          {i > 0 && <span className="searchAutocorrectBanner-separator">{", "}</span>}
+          <_AutocorrectTerm query={query} onClick={q => onSearchSuggestion && onSearchSuggestion(q)}
+                            className="searchAutocorrectBanner-original"/>
+        </React.Fragment>
+      ))}
+    </div>
+  </div>
+);
+SearchSuggestedQueriesBannerContent.propTypes = {
+  suggestedQueries:   PropTypes.arrayOf(PropTypes.string),
+  onSearchSuggestion: PropTypes.func,
+};
+
 const SearchPageSearchBar = ({query, onQueryChange}) => {
   const [value, setValue] = React.useState(query || "");
   React.useEffect(() => { setValue(query || ""); }, [query]);
@@ -107,9 +205,11 @@ const ENTITY_TABS = [
 // Exported so ElasticSearchQuerier can apply the same invalid-tab fallback as activeTab()
 // when it reads `tab` straight from props for analytics.
 export const ALL_TAB_IDS = ["sources", ...ENTITY_TABS.map(t => t.id)];
+// The /api/entity-search types. Exported for ElasticSearchQuerier's check that a query finds nothing.
+export const ENTITY_TYPES = ENTITY_TABS.map(t => t.type);
 
-const emptyEntityData  = () => Object.fromEntries(ENTITY_TABS.map(t => [t.type, null]));
-const defaultEntitySort = () => Object.fromEntries(ENTITY_TABS.map(t => [t.type, 'relevance']));
+const emptyEntityData  = () => Object.fromEntries(ENTITY_TYPES.map(type => [type, null]));
+const defaultEntitySort = () => Object.fromEntries(ENTITY_TYPES.map(type => [type, 'relevance']));
 
 
 const formatEntityYear = (year) => {
@@ -284,7 +384,12 @@ class SearchPage extends Component {
     // still matches: without this, a page that was already in flight when the sort changed
     // would land afterwards and mix rows from the old ordering into the new list. Kept off
     // `state` because it must update synchronously, before React re-renders.
-    this._entityFetchTokens = Object.fromEntries(ENTITY_TABS.map(t => [t.type, 0]));
+    this._entityFetchTokens = Object.fromEntries(ENTITY_TYPES.map(type => [type, 0]));
+    // For maybeAutoSwitchFromEmptyTab: whether the reader picked a tab for the query on screen,
+    // and which query/correction it has already decided for. Off `state` because they gate a
+    // side effect rather than rendering.
+    this._userSelectedTab = false;
+    this._autoSwitchDecidedFor = null;
   }
 
   makeBookCategoryFilters() {
@@ -436,6 +541,7 @@ class SearchPage extends Component {
     this.fetchEntityResults();
     this._onResize();  // first real viewport measurement; the constructor could not take one
     window.addEventListener('resize', this._onResize);
+    this.maybeAutoSwitchFromEmptyTab();
   }
 
   componentWillUnmount() {
@@ -460,13 +566,61 @@ class SearchPage extends Component {
       // A new query invalidates the category selections and their counts — both describe the
       // previous result set — so rebuild the filter tree unselected before refetching.
       this.setState({bookCategoryFilters: this.makeBookCategoryFilters(), bookCategoryCounts: null},
-                    () => this.resetEntityResults(ENTITY_TABS.map(t => t.type)));
+                    () => this.resetEntityResults(ENTITY_TYPES));
+      this._userSelectedTab = false;
+      this._autoSwitchDecidedFor = null;
+    } else if (prevProps.disableAutocorrect !== this.props.disableAutocorrect ||
+               prevProps.autocorrectResolved !== this.props.autocorrectResolved) {
+      // "Search instead for <query>" re-searches every tab, not just the one clicked on. So
+      // does the decision on whether to correct, which the entity tabs wait for. Same query,
+      // so category selections stay valid.
+      this.resetEntityResults(ENTITY_TYPES);
     }
+    this.maybeAutoSwitchFromEmptyTab();
   }
 
-  fetchEntityResults(types = ENTITY_TABS.map(t => t.type)) {
-    const query = this.props.query;
-    if (!query || this.props.searchInBook) { return; }
+  // If the current tab comes back empty, move to the first tab (in tab order) with results.
+  // A tab the reader clicked for an earlier query doesn't stop this; one clicked for the query
+  // on screen does. Tab counts arrive from independent fetches, so this runs on every update
+  // and returns undecided until each count it needs has loaded.
+  maybeAutoSwitchFromEmptyTab() {
+    if (this._userSelectedTab || !this.props.query || this.props.searchInBook) { return; }
+    const decisionKey = this.entityResultsKey();
+    if (this._autoSwitchDecidedFor === decisionKey) { return; }
+
+    // Sources first, then the entity tabs. null means no count yet for the search on screen.
+    const searchedText = this.searchedQuery();
+    const countOf = id => {
+      if (id === "sources") {
+        return this.props.totalsFor === searchedText ? this.props.totalResults?.getValue() : null;
+      }
+      const entry = this.state.entityData[ENTITY_TABS.find(t => t.id === id).type];
+      return entry?.forKey === this.entityResultsKey() ? entry.total : null;
+    };
+    const current = this.activeTab();
+    const currentCount = countOf(current);
+    if (currentCount === null || currentCount === undefined) { return; }
+    if (currentCount > 0) {
+      this._autoSwitchDecidedFor = decisionKey;  // the tab on screen has results -- stay
+      return;
+    }
+    for (const id of ALL_TAB_IDS) {
+      const count = countOf(id);
+      if (count === null || count === undefined) { return; }  // wait for it before deciding
+      if (count > 0) {
+        this._autoSwitchDecidedFor = decisionKey;
+        this.setTab(id, true);
+        return;
+      }
+    }
+    this._autoSwitchDecidedFor = decisionKey;  // every tab came back empty -- nowhere better to go
+  }
+
+  fetchEntityResults(types = ENTITY_TYPES) {
+    const query = this.searchedQuery();
+    // Until the decision on correcting is made, there's no telling which text to search.
+    if (!this.props.query || this.props.searchInBook || !this.props.autocorrectResolved) { return; }
+    const forKey = this.entityResultsKey();
     types.forEach(type => {
       const token = ++this._entityFetchTokens[type];
       // Analytics: each entity search is one of the four APIs whose return
@@ -481,7 +635,7 @@ class SearchPage extends Component {
           .then(data => {
             if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
             if (!this.props.compare) { SearchAnalytics.recordApiResult(type + 's', data.total); }
-            this.setState(prev => this.withCategoryCounts({...prev.entityData, [type]: this.makeEntityEntry(data)}, data));
+            this.setState(prev => this.withCategoryCounts({...prev.entityData, [type]: this.makeEntityEntry(data, [], forKey)}, data));
           })
           .catch((err) => {
             if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
@@ -493,12 +647,12 @@ class SearchPage extends Component {
             // newer request succeeded and the user is looking at results. Dropping the stale
             // report can't leave the event waiting forever, because whatever superseded this
             // request reports in its own place -- on success or on failure.
-            if (this.props.query === query && !this.props.compare) {
+            if (this.searchedQuery() === query && !this.props.compare) {
               SearchAnalytics.recordApiResult(type + 's', null, err?.message || String(err));
             }
             // Show the empty state rather than leaving the panel on the loading message.
             this.setState(prev => ({
-              entityData: {...prev.entityData, [type]: {hits: [], total: 0, moreToLoad: false, isLoadingMore: false}},
+              entityData: {...prev.entityData, [type]: {hits: [], total: 0, moreToLoad: false, isLoadingMore: false, forKey}},
               ...(type === 'book' ? {bookCategoryCounts: null} : {}),
             }));
           });
@@ -508,12 +662,23 @@ class SearchPage extends Component {
   // Normalize an API page into the paging entry the tab panels read. `total` is the full
   // match count (so the badge and "more to load" stay correct), `moreToLoad` compares it to
   // how many hits we've accumulated so far.
-  makeEntityEntry(data, prevHits = []) {
+  makeEntityEntry(data, prevHits = [], forKey = this.entityResultsKey()) {
     const hits = prevHits.concat(data.hits);
     // Cap at ES's default max_result_window so infinite scroll stops before sending an offset
     // that ES would reject. `total` is kept intact for the count badge.
     const loadableTotal = Math.min(data.total, ES_MAX_RESULT_WINDOW);
-    return {hits, total: data.total, moreToLoad: hits.length < loadableTotal, isLoadingMore: false};
+    return {hits, total: data.total, moreToLoad: hits.length < loadableTotal, isLoadingMore: false, forKey};
+  }
+
+  // The text actually searched: the correction, if one was made.
+  searchedQuery() {
+    return this.props.correctedQuery || this.props.query;
+  }
+
+  // Identifies the search the entity tabs show; stamped on each entityData entry so counts
+  // from a previous search aren't mistaken for the current one.
+  entityResultsKey() {
+    return `${this.props.query}||${this.props.correctedQuery || ""}`;
   }
 
   // Book responses carry `categoryCounts` for the sidebar; every other response leaves the
@@ -525,9 +690,10 @@ class SearchPage extends Component {
   }
 
   loadNextEntityPage(type) {
-    const query = this.props.query;
+    const query = this.searchedQuery();
     const cur = this.state.entityData[type];
     if (!cur || cur.isLoadingMore || !cur.moreToLoad) { return; }
+    const forKey = cur.forKey;
     // Not bumped, only captured: this extends the current result set rather than replacing
     // it, so the page is dropped if a sort/filter/query change intervenes.
     const token = this._entityFetchTokens[type];
@@ -544,7 +710,7 @@ class SearchPage extends Component {
             const prevEntry = prev.entityData[type];
             if (!prevEntry) { return null; }  // results were reset while this page was in flight
             return this.withCategoryCounts(
-                {...prev.entityData, [type]: this.makeEntityEntry(data, prevEntry.hits)}, data);
+                {...prev.entityData, [type]: this.makeEntityEntry(data, prevEntry.hits, forKey)}, data);
           });
         })
         .catch(() => {
@@ -573,10 +739,12 @@ class SearchPage extends Component {
     // double-reporting the move that is about to arrive as a props change.
     this._reportedTabTransition = tab;
     // replaceHistory is only passed (as true) by TabView's programmatic
-    // default-tab call on mount (Misc.jsx TabView.componentDidMount) -- that's
-    // not a user click, so don't report it. User clicks omit the argument.
+    // default-tab call on mount (Misc.jsx TabView.componentDidMount) and by
+    // maybeAutoSwitchFromEmptyTab() -- neither is a user click, so neither is reported or
+    // counts as the reader picking a tab.
     if (!replaceHistory) {
       this.reportTabChange(tab);
+      this._userSelectedTab = true;
     }
     this.setState({mobileFiltersOpen: false});
     this.props.setTab(tab, replaceHistory);
@@ -788,6 +956,14 @@ class SearchPage extends Component {
                       onQueryChange={this.props.onQueryChange}/>
                 </div>
 
+                <SearchAutocorrectBanner
+                    correctedQuery={this.props.correctedQuery}
+                    originalQuery={this.props.query}
+                    onSearchOriginal={this.props.onDisableAutocorrect}
+                    suggestedQueries={this.props.suggestedQueries}
+                    onSearchSuggestion={this.props.onQueryChange}
+                />
+
                 {this.props.isQueryRunning && !this.props.hits.length
                   ? <SearchLoadSkeleton />
                   : useDesktopTabs
@@ -826,8 +1002,16 @@ class SearchPage extends Component {
   }
 }
 
+SearchPage.defaultProps = {autocorrectResolved: true};
+
 SearchPage.propTypes = {
   query:                    PropTypes.string,
+  correctedQuery:           PropTypes.string,
+  suggestedQueries:         PropTypes.arrayOf(PropTypes.string),
+  disableAutocorrect:       PropTypes.bool,
+  // False while ElasticSearchQuerier is still deciding whether to correct the query.
+  autocorrectResolved:      PropTypes.bool,
+  onDisableAutocorrect:     PropTypes.func,
   tab:                      PropTypes.string,
   setTab:                   PropTypes.func,
   type:                      PropTypes.oneOf(["text", "sheet"]),
@@ -846,6 +1030,7 @@ SearchPage.propTypes = {
   moreToLoad:               PropTypes.bool,
   topics:                   PropTypes.array,
   totalResults:             PropTypes.object,
+  totalsFor:                PropTypes.string,
   sortTypeArray:            PropTypes.array,
 };
 
