@@ -112,9 +112,9 @@ def test_get_only(mcp_settings):
 
 @pytest.mark.django_db
 class TestMCPSheetSaves:
-    """An mcp token may only create new, unlisted sheets through POST /api/sheets/."""
+    """An mcp token creates unlisted sheets and updates only the user's own, keeping status and media."""
 
-    def _post(self, user, sheet, auth_via="mcp"):
+    def _post(self, user, sheet, auth_via="mcp", existing=None):
         import json
         from unittest.mock import patch
 
@@ -125,14 +125,63 @@ class TestMCPSheetSaves:
         request = RequestFactory().post("/api/sheets/", {"json": json.dumps(sheet)})
         request.user = user
         request.auth_via = auth_via
-        with patch("sourcesheets.views.save_sheet", side_effect=lambda s, uid, **kw: {"id": 7, **s}) as save:
+        stored = existing if existing is not None else {"error": "Sheet not found."}
+        with patch("sourcesheets.views.save_sheet", side_effect=lambda s, uid, **kw: {"id": 7, **s}) as save, \
+                patch("sourcesheets.views.get_sheet", return_value=stored):
             response = save_sheet_api(request)
         return response, save
 
-    def test_existing_sheet_ids_are_refused(self, django_user_model):
-        user = django_user_model.objects.create_user(username="mcp-update", password="pass")
-        response, save = self._post(user, {"id": 123, "title": "Mine", "sources": []})
+    @staticmethod
+    def _existing(owner, **fields):
+        return {"id": 123, "owner": owner, "status": "public", "dateModified": "2026-10-22T10:00:00",
+                "sources": [{"node": 1, "outsideText": "<p>Intro</p>"}], **fields}
+
+    def _update(self, **fields):
+        return {"id": 123, "title": "Mine", "lastModified": "2026-10-22T10:00:00",
+                "sources": [{"node": 1, "outsideText": "<p>Intro, edited</p>"}], **fields}
+
+    def test_owner_can_update_and_status_stays_as_it_was(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-update-own", password="pass")
+        response, save = self._post(user, self._update(status="unlisted", displayedCollection="x"),
+                                    existing=self._existing(user.id))
+        assert response.status_code == 200
+        saved = save.call_args.args[0]
+        assert saved["status"] == "public"
+        assert "displayedCollection" not in saved
+        assert saved["sources"][0]["outsideText"] == "<p>Intro, edited</p>"
+
+    def test_sheets_owned_by_someone_else_are_refused(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-update-other", password="pass")
+        response, save = self._post(user, self._update(), existing=self._existing(user.id + 1000))
         assert response.status_code == 403
+        save.assert_not_called()
+
+    def test_update_needs_last_modified(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-update-nolm", password="pass")
+        sheet = self._update()
+        del sheet["lastModified"]
+        response, save = self._post(user, sheet, existing=self._existing(user.id))
+        assert response.status_code == 400
+        save.assert_not_called()
+
+    def test_media_sources_cannot_be_removed(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-update-media", password="pass")
+        existing = self._existing(user.id, sources=[
+            {"node": 1, "outsideText": "<p>Intro</p>"},
+            {"node": 2, "media": "https://storage.googleapis.com/sheet-user-uploaded-media/a.png"},
+        ])
+        response, save = self._post(user, self._update(), existing=existing)
+        assert response.status_code == 403
+        save.assert_not_called()
+
+        kept = self._update(sources=existing["sources"])
+        response, save = self._post(user, kept, existing=existing)
+        assert response.status_code == 200
+
+    def test_unknown_sheet_is_a_404(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-update-missing", password="pass")
+        response, save = self._post(user, self._update())
+        assert response.status_code == 404
         save.assert_not_called()
 
     def test_new_sheets_are_forced_unlisted_and_out_of_collections(self, django_user_model):
