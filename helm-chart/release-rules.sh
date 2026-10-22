@@ -46,3 +46,4 @@ branches: [
   ]
 EOF
 fi
+# chart helper branch for the API project rework: publishes this branch under its own prerelease channel (see Task 8)
