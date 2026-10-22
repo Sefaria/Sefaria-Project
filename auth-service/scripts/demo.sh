@@ -579,7 +579,8 @@ section_registry() {
   printf '%s\n' "$out"
   prove F-MODEL-03.e6 'exactly the six expected notify triggers exist' test "$out" = "$EXPECTED_TRIGGERS"
   out=$(t_pg "select pg_get_triggerdef(oid) from pg_trigger where tgname = 'apikeys_notify_limits_update'")
-  prove F-MODEL-03.e6 'the limits update trigger fires on a tier change (its WHEN clause names OLD.tier)' contains "$out" 'OLD.tier'
+  # pg_get_triggerdef prints the WHEN clause lower-cased: ((old.tier)::text IS DISTINCT FROM (new.tier)::text)
+  prove F-MODEL-03.e6 'the limits update trigger fires on a tier change (its WHEN clause names old.tier)' contains "$out" '(old.tier)'
 
   expected_len=$(t_pg 'select count(*) from powered_by_apikey k join powered_by_project p on p.id = k.project_id')
   len=$(registry_len)
