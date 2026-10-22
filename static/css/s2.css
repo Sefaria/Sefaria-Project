@@ -17321,6 +17321,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocPage h2 { font-size: 20px; }
 .devPocPage h3 { font-size: 17px; }
 .devPocPage a { color: var(--devPoc-blue); }
+.devPocPage a.devPocContactLink { text-decoration: underline; }
 .devPocPage code {
   font-family: ui-monospace, Menlo, monospace;
   font-size: 13px;
@@ -17494,7 +17495,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #999;
+  color: #626971;
 }
 .settingsNav a {
   display: block;
@@ -17519,6 +17520,9 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 @media (prefers-reduced-motion: reduce) {
   .settingsHighlight { animation: none; outline: 2px solid #93b6d6; outline-offset: 2px; }
 }
+/* Muted text darkens while the highlight is on, to keep 4.5:1 on its blue. */
+.settingsHighlight { --devPoc-muted: #575d64; }
+.devPocPage .settingsHighlight .devPocHelp, .devPocPage .settingsHighlight .devPocMuted { color: #575d64; }
 
 .devPocPageHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s4); }
 .devPocPageHeader h1 { font-size: 26px; font-weight: 600; margin-bottom: var(--devPoc-s1); }

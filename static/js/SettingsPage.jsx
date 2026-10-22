@@ -822,7 +822,7 @@ const ListingSummary = ({listing}) => (
   </div>
 );
 
-const ContactLink = () => <a href={"mailto:" + CONTACT_EMAIL} dir="ltr">{CONTACT_EMAIL}</a>;
+const ContactLink = () => <a className="devPocContactLink" href={"mailto:" + CONTACT_EMAIL} dir="ltr">{CONTACT_EMAIL}</a>;
 
 const LinkedListingNote = ({name}) => (
   <p className="devPocHelp devPocLinked" role="status">
