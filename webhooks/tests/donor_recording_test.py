@@ -87,15 +87,10 @@ class TestDonorProfileUpdateAfterEvent:
 # ============================================================================
 
 @dataclass
-class FakeProfile:
-    id: int
-
-
-@dataclass
 class FakeProfileStore:
     """Stands in for both seams: records every lookup and update, and returns what the test chose."""
 
-    profile_to_find: FakeProfile | None = None
+    user_id_to_find: int | None = None
     update_matches_a_document: bool = True
     looked_up_addresses: list = field(default_factory=list)
     updates: list = field(default_factory=list)
@@ -103,17 +98,17 @@ class FakeProfileStore:
 
 @pytest.fixture
 def fake_profile_store(monkeypatch):
-    store = FakeProfileStore(profile_to_find=FakeProfile(id=7))
+    store = FakeProfileStore(user_id_to_find=7)
 
-    def find_existing_user_profile(email_address):
+    def find_user_id_ensuring_profile_document(email_address):
         store.looked_up_addresses.append(email_address)
-        return store.profile_to_find
+        return store.user_id_to_find
 
     def apply_update_to_user_profile(user_id, update):
         store.updates.append((user_id, update))
         return store.update_matches_a_document
 
-    monkeypatch.setattr(donor_recording, "find_existing_user_profile", find_existing_user_profile)
+    monkeypatch.setattr(donor_recording, "find_user_id_ensuring_profile_document", find_user_id_ensuring_profile_document)
     monkeypatch.setattr(donor_recording, "apply_update_to_user_profile", apply_update_to_user_profile)
     return store
 
@@ -128,7 +123,7 @@ class TestMarkExistingUserProfileAsDonor:
 
     def test_does_nothing_when_no_account_exists(self, fake_profile_store):
         """Donors without a Sefaria account are not recorded in this PR (the ledger is future work)."""
-        fake_profile_store.profile_to_find = None
+        fake_profile_store.user_id_to_find = None
 
         with capture_logs() as logs:
             mark_existing_user_profile_as_donor(DonorWithResolvedEmailAddress(DONOR_ADDRESS), salesforce_event())

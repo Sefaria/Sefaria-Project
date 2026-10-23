@@ -21,7 +21,7 @@ import requests
 from sefaria.donors.types import DonorEmailAddressCouldNotBeResolved, NormalizedEmailAddress
 from sefaria.donors.types import ReasonDonorEmailAddressCouldNotBeResolved as Reason
 from webhooks.adapters import classy_api
-from webhooks.adapters.classy_api import ClassyApiServerError, look_up_classy_supporter_email_address
+from webhooks.adapters.classy_api import ClassyApiTemporaryFailure, look_up_classy_supporter_email_address
 
 REAL_SUPPORTER_RESPONSE = json.loads((Path(__file__).parent / "fixtures" / "classy_supporter.json").read_text())
 
@@ -78,11 +78,19 @@ class TestLookUpClassySupporterEmailAddress:
         monkeypatch.setattr(classy_api.classy_api_session, "get", MagicMock(return_value=fake_response(200, body)))
         assert look_up_classy_supporter_email_address(5827) == DonorEmailAddressCouldNotBeResolved(Reason.CLASSY_SUPPORTER_HAS_NO_EMAIL_ADDRESS)
 
-    def test_server_errors_raise_so_the_task_retries(self, configured, monkeypatch):
-        """A 5xx is transient: it must raise, not return a final answer."""
-        monkeypatch.setattr(classy_api.classy_api_session, "get", MagicMock(return_value=fake_response(503)))
-        with pytest.raises(ClassyApiServerError):
+    @pytest.mark.parametrize("status_code", [503, 429, 408])
+    def test_temporary_failures_raise_so_the_task_retries(self, configured, monkeypatch, status_code):
+        """5xx, rate limiting (429) and request timeout (408) clear up by themselves: raise, don't answer."""
+        monkeypatch.setattr(classy_api.classy_api_session, "get", MagicMock(return_value=fake_response(status_code)))
+        with pytest.raises(ClassyApiTemporaryFailure):
             look_up_classy_supporter_email_address(5827)
+
+    def test_other_client_errors_are_not_retryable(self, configured, monkeypatch):
+        """Only 429 and 408 among the 4xx codes are temporary; a 400 is our request being wrong."""
+        monkeypatch.setattr(classy_api.classy_api_session, "get", MagicMock(return_value=fake_response(400)))
+        with pytest.raises(requests.HTTPError) as raised:
+            look_up_classy_supporter_email_address(5827)
+        assert not isinstance(raised.value, ClassyApiTemporaryFailure)
 
     @pytest.mark.parametrize("client_id, client_secret", [(None, "s"), ("i", None), ("", "")])
     def test_unconfigured_credentials_report_not_configured(self, monkeypatch, client_id, client_secret):
@@ -109,10 +117,11 @@ class TestLookUpClassySupporterEmailAddress:
         monkeypatch.setattr(classy_api.classy_api_session, "get", MagicMock(return_value=fake_response(403)))
         with pytest.raises(requests.HTTPError) as raised:
             look_up_classy_supporter_email_address(5827)
-        assert not isinstance(raised.value, ClassyApiServerError)
+        assert not isinstance(raised.value, ClassyApiTemporaryFailure)
 
-    def test_a_server_error_on_the_token_request_raises_so_the_task_retries(self, configured, monkeypatch):
-        """Classy being down while issuing tokens is as transient as it being down for lookups."""
-        monkeypatch.setattr(classy_api.classy_api_session, "post", MagicMock(return_value=fake_response(502)))
-        with pytest.raises(ClassyApiServerError):
+    @pytest.mark.parametrize("status_code", [502, 429])
+    def test_a_temporary_failure_on_the_token_request_raises_so_the_task_retries(self, configured, monkeypatch, status_code):
+        """Classy being down or rate limiting while issuing tokens is as temporary as it is for lookups."""
+        monkeypatch.setattr(classy_api.classy_api_session, "post", MagicMock(return_value=fake_response(status_code)))
+        with pytest.raises(ClassyApiTemporaryFailure):
             look_up_classy_supporter_email_address(5827)

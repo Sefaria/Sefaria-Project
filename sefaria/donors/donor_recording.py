@@ -5,7 +5,7 @@ Functional core, imperative shell:
   - donor_profile_update_after_event is the whole rule, as a pure function that returns a
     Mongo update pipeline.
   - mark_existing_user_profile_as_donor does the I/O through two small seams
-    (find_existing_user_profile, apply_update_to_user_profile). Tests replace the seams, and a
+    (find_user_id_ensuring_profile_document, apply_update_to_user_profile). Tests replace the seams, and a
     future sustainer sync or bulk import can call this same function without any webhook.
 
 The rule is applied by Mongo in ONE atomic update (an update pipeline, so MongoDB 4.2+), never
@@ -47,25 +47,26 @@ def donor_profile_update_after_event(occurred_at: datetime) -> list[dict]:
 
 
 def mark_existing_user_profile_as_donor(donor: DonorWithResolvedEmailAddress, event: EventIndicatingPersonIsDonor) -> None:
-    profile = find_existing_user_profile(donor.email_address)
-    if profile is None:
+    user_id = find_user_id_ensuring_profile_document(donor.email_address)
+    if user_id is None:
         # The email address is deliberately not logged.
         logger.info("donor_has_no_sefaria_account", event_id_assigned_by_source=event.event_id_assigned_by_source)
         return
     update = donor_profile_update_after_event(event.occurred_at_according_to_source)
-    if not apply_update_to_user_profile(profile.id, update):
-        # A Django user exists but Mongo has no profile document to update. Without this
-        # warning the donation would be dropped silently.
+    if not apply_update_to_user_profile(user_id, update):
+        # The profile document was there a moment ago (the lookup makes sure of it) and is gone
+        # now, for example deleted by an admin in between. Without this warning the donation
+        # would be dropped silently.
         logger.warning(
             "donor_profile_document_missing",
-            user_id=profile.id,
+            user_id=user_id,
             event_id_assigned_by_source=event.event_id_assigned_by_source,
         )
         return
     logger.info(
         "user_profile_marked_as_donor",
         event_id_assigned_by_source=event.event_id_assigned_by_source,
-        user_id=profile.id,
+        user_id=user_id,
     )
 
 
@@ -86,7 +87,12 @@ def most_recently_active_account(accounts):
     return max(accounts, key=lambda account: (account.last_login is not None, account.last_login or account.date_joined))
 
 
-def find_existing_user_profile(email_address: NormalizedEmailAddress):
+def find_user_id_ensuring_profile_document(email_address: NormalizedEmailAddress) -> int | None:
+    """
+    The id of the Sefaria account with this email address, or None when there is none. When
+    an id is returned, that user's profile document exists, so the donor update has something
+    to update.
+    """
     # Imported here rather than at module top: importing sefaria.model builds the library,
     # which needs Mongo. Keeping it out of module scope lets the pure decision above be
     # imported (and tested) with no database at all.
@@ -104,11 +110,14 @@ def find_existing_user_profile(email_address: NormalizedEmailAddress):
         # The address itself is deliberately not logged.
         logger.info("donor_email_matches_multiple_accounts", account_count=len(accounts), chosen_user_id=account.id)
 
-    # One accepted side effect, so this "find" seam is not strictly read-only: the constructor
-    # INSERTS a new profile document when the Django user has none (the
-    # `if self.exists() and not user_registration:` block in UserProfile.__init__). That is
-    # exactly what the user's next page view would do anyway.
-    return UserProfile(user_obj=account)
+    # Built only for its side effect, which is why this function doesn't just return account.id
+    # without it. A Django account can have no profile document: environments that share one
+    # user database keep separate profiles, and a profile is created the first time the user is
+    # seen in this one. The constructor does that creation (the `if self.exists() and not
+    # user_registration:` block in UserProfile.__init__). Without it the donor update would
+    # match no document and the donation would be lost.
+    UserProfile(user_obj=account)
+    return account.id
 
 
 def apply_update_to_user_profile(user_id: int, update: list[dict]) -> bool:

@@ -34,12 +34,18 @@ CLASSY_API_CLIENT_SECRET = getattr(settings, "CLASSY_API_CLIENT_SECRET", None)
 classy_api_session = requests.Session()
 
 
-class ClassyApiServerError(Exception):
-    """Classy answered 5xx. Transient: the Celery task retries it."""
+# 429 (Too Many Requests) means a burst of donations hit Classy's rate limit; 408 (Request
+# Timeout) means Classy gave up waiting on us. Both clear up on their own, like a 5xx, so
+# failing the task on them would lose a donation that a retry minutes later would record.
+TEMPORARY_CLIENT_ERROR_STATUS_CODES = frozenset({408, 429})
+
+
+class ClassyApiTemporaryFailure(Exception):
+    """Classy answered 5xx, 429 or 408: a failure that clears up by itself. The Celery task retries it."""
 
 
 def look_up_classy_supporter_email_address(classy_supporter_id: int) -> NormalizedEmailAddress | DonorEmailAddressCouldNotBeResolved:
-    # Raises (requests.Timeout, requests.ConnectionError, ClassyApiServerError) on transient
+    # Raises (requests.Timeout, requests.ConnectionError, ClassyApiTemporaryFailure) on transient
     # failures so the task can retry. Returns a final answer for everything retrying can't fix.
     if not (CLASSY_API_CLIENT_ID and CLASSY_API_CLIENT_SECRET):
         logger.warning("classy_api_not_configured", setting_names="CLASSY_API_CLIENT_ID, CLASSY_API_CLIENT_SECRET")
@@ -79,8 +85,9 @@ def _fetch_access_token() -> str:
 
 
 def _raise_for_unsuccessful_response(response: requests.Response) -> None:
-    # 5xx is transient (retry). Any other 4xx — bad credentials above all — is a configuration
-    # problem that retrying can't fix, so it raises HTTPError, fails the task and reaches Sentry.
-    if response.status_code >= 500:
-        raise ClassyApiServerError(f"Classy API answered {response.status_code}")
+    # 5xx, 429 and 408 are temporary (retry). Any other 4xx — bad credentials above all — is a
+    # configuration problem that retrying can't fix, so it raises HTTPError and fails the task
+    # at once.
+    if response.status_code >= 500 or response.status_code in TEMPORARY_CLIENT_ERROR_STATUS_CODES:
+        raise ClassyApiTemporaryFailure(f"Classy API answered {response.status_code}")
     response.raise_for_status()

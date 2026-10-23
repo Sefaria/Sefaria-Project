@@ -7,7 +7,6 @@ mocked at the one write boundary: sefaria.donors.donor_recording.apply_update_to
 """
 
 from contextlib import contextmanager
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
@@ -32,15 +31,10 @@ OCCURRED_AT = datetime(2026, 10, 22, 14, 3, 11, tzinfo=timezone.utc)
 CLASSY_EVENT_WITHOUT_ADDRESS = DonationReceivedFromClassy("msg_1", OCCURRED_AT, PersonAsIdentifiedByClassy(5827, None), 99)
 
 
-@dataclass
-class FakeProfile:
-    id: int
-
-
 @pytest.fixture
 def profile_writes(monkeypatch):
     writes = []
-    monkeypatch.setattr(donor_recording, "find_existing_user_profile", lambda email: FakeProfile(id=7))
+    monkeypatch.setattr(donor_recording, "find_user_id_ensuring_profile_document", lambda email: 7)
     monkeypatch.setattr(donor_recording, "apply_update_to_user_profile", lambda user_id, update: writes.append((user_id, update)) or True)
     return writes
 
@@ -79,11 +73,13 @@ class TestProcessEventTask:
     @pytest.mark.parametrize("transient_error", [
         requests.Timeout("slow"),
         requests.ConnectionError("down"),
-        tasks.ClassyApiServerError("503"),
+        tasks.ClassyApiTemporaryFailure("503"),
         tasks.AutoReconnect("mongo failover"),
+        tasks.DatabaseOperationalError("postgres connection lost"),
+        tasks.DatabaseInterfaceError("postgres connection already closed"),
     ])
     def test_transient_errors_are_retried(self, monkeypatch, profile_writes, transient_error):
-        """Timeouts, 5xx and Mongo failover schedule a retry with backoff."""
+        """Timeouts, temporary Classy failures, and Mongo or Postgres connection loss schedule a retry with backoff."""
         monkeypatch.setattr(tasks, "look_up_classy_supporter_email_address", lookup_raising(transient_error))
         scheduled = []
         monkeypatch.setattr(process_event_indicating_person_is_donor_task, "retry",
@@ -94,13 +90,13 @@ class TestProcessEventTask:
         assert scheduled == [tasks.retry_countdown_seconds(0)]
 
     def test_gives_up_after_the_last_retry_by_raising(self, monkeypatch, profile_writes):
-        """After MAX_RETRIES the original error propagates, so Celery marks the task failed and Sentry reports it."""
+        """After MAX_RETRIES the original error propagates, so Celery marks the task failed."""
         monkeypatch.setattr(tasks, "look_up_classy_supporter_email_address", lookup_raising(requests.Timeout("still slow")))
         with running_as_retry_number(MAX_RETRIES), pytest.raises(requests.Timeout):
             process_event_indicating_person_is_donor_task.run(serialize_event(CLASSY_EVENT_WITHOUT_ADDRESS))
 
     def test_a_non_transient_error_is_never_retried(self, monkeypatch, profile_writes):
-        """Bad credentials (HTTPError) cannot be fixed by waiting, so the task fails at once and reaches Sentry."""
+        """Bad credentials (HTTPError) cannot be fixed by waiting, so the task fails at once."""
         monkeypatch.setattr(tasks, "look_up_classy_supporter_email_address", lookup_raising(requests.HTTPError("401")))
         retry = MagicMock()
         monkeypatch.setattr(process_event_indicating_person_is_donor_task, "retry", retry)
