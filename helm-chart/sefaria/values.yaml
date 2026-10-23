@@ -455,6 +455,10 @@ secrets:
     #   SENTINEL_PASSWORD
     #   REDIS_URL
     #   MOBILE_APP_KEY:
+    #   CLASSY_WEBHOOK_SECRET
+    #   SALESFORCE_WEBHOOK_SECRET
+    #   CLASSY_API_CLIENT_ID
+    #   CLASSY_API_CLIENT_SECRET
   backupManager:
     # If you're using a reference to an existing secret then the data: section
     # should be commented out and vice-versa.

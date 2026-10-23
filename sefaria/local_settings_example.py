@@ -302,6 +302,22 @@ SLACK_URL = ''
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
+# Donor-status webhooks (webhooks/). Each is None by default, which turns that part off
+# without breaking anything: the endpoint answers 503 "<source>_webhook_not_configured" (so
+# the sender keeps retrying until it is set) and the warning log names the missing setting.
+#
+# The `whsec_...` signing secret GoFundMe Pro generates for our endpoint (Webhooks → Endpoints).
+CLASSY_WEBHOOK_SECRET = None
+# A shared secret WE choose (at least 32 random bytes, e.g.
+# `python -c "import secrets; print(secrets.token_urlsafe(32))"`), stored in the Salesforce
+# Named Credential and sent in the X-Sefaria-Webhook-Secret header.
+SALESFORCE_WEBHOOK_SECRET = None
+# OAuth client credentials from GoFundMe Pro's developer settings, used to look up a donor's
+# email address when the webhook payload lacks it. None → those donors are logged as
+# unresolved ("classy_api_not_configured") and skipped.
+CLASSY_API_CLIENT_ID = None
+CLASSY_API_CLIENT_SECRET = None
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

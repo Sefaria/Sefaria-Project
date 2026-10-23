@@ -9,7 +9,7 @@ logger = structlog.get_logger(__name__)
 app = Celery('sefaria')
 raw_config, redis_config, sentinel_config = generate_config_from_env()
 app.conf.update(**raw_config, result_expires=1800)
-app.autodiscover_tasks(packages=['sefaria.helper.llm', 'sefaria.helper.linker', 'sefaria.helper.crm', 'sefaria.helper.texts'])
+app.autodiscover_tasks(packages=['sefaria.helper.llm', 'sefaria.helper.linker', 'sefaria.helper.crm', 'sefaria.helper.texts', 'webhooks'])
 
 
 @worker_process_init.connect

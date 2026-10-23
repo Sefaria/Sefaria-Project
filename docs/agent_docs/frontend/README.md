@@ -129,6 +129,16 @@ Grouped by function:
 5. **`Sefaria.getBackgroundData()`** fires after unpacking: fetches `/api/background-data` to get additional data not included in the initial props.
 6. **`ReactDOM.hydrate`** attaches React to the server-rendered HTML in `#s2`, matching the existing DOM and adding event listeners.
 
+## Strapi Content Targeting (banners and modals)
+
+`static/js/sefaria/strapiSelection.js` decides which Strapi banner or modal a viewer sees: `isEligible` runs the `ELIGIBILITY_PREDICATES` list (locale, country, audience, donor audience, dismissal) against a viewer context from `buildViewerContext()`, then `selectContent` ranks the survivors. The GraphQL field lists that fetch the documents are in `static/js/context.js` (`bannerFields`, `modalFields`).
+
+- **Donor audience gate.** Two Strapi checkboxes, `showToDonor` and `showToNonDonor`, form an independent AND-ed filter (`matchesDonorAudience`), kept out of the existing user-kind flags so documents that never set them match and rank exactly as before. Neither or both ticked means unrestricted; one ticked restricts the document to confirmed donors or to everyone else.
+- **`isConfirmedDonor`** (in `buildViewerContext`) is `Sefaria.donor_status === 'donor'` or a sustainer. An `unknown` status and logged-out viewers count as non-donors. `Sefaria.donor_status` comes from `base_props` in `reader/views.py` via `Sefaria.unpackBaseProps` in `sefaria/sefaria.js`; the string values are mirrored in the `DonorStatus` map and defined by `DonorStatus` in `sefaria/donors/types.py`.
+- **Ranking.** Only donor-only documents (`isDonorOnly`) gain audience specificity in `audienceSpecificity`. A non-donor-only document is an exclusion ("everyone but donors"), so it is close to everyone and gains no rank.
+- **Deploy order.** Strapi must have both fields on both content types (banner and modal) before the query ships. `context.js` requests them by name, and GraphQL rejects the whole query if either is missing, which blanks every banner and modal.
+- **Tests.** Jest: `static/js/sefaria/tests/strapiSelection.test.js`. Playwright: `e2e-tests/tests/strapi-donor-audience.spec.js` and `strapi-donor-webhook-flow.spec.js`.
+
 ## Non-Obvious Patterns
 
 - **`react-class` base**: many components extend `Component` from `react-class` (not `React.Component`). This library auto-binds methods and provides some convenience features. New code should still use this pattern for consistency, or use function components with hooks.

@@ -25,6 +25,7 @@ from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.helper import library_assistant
+from sefaria.donors.types import DonorStatus
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY, \
     get_direction_from_legacy_lang, get_legacy_lang_from_direction
@@ -305,6 +306,8 @@ def base_props(request):
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "is_sustainer": profile.is_sustainer,
+            # Decoded here so a missing or unexpected stored value reaches the page as "unknown".
+            "donor_status": DonorStatus.from_stored_value(profile.donor_status).value,
             "experiments": profile.experiments,
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
@@ -327,6 +330,7 @@ def base_props(request):
             "is_moderator": False,
             "is_editor": False,
             "is_sustainer": False,
+            "donor_status": DonorStatus.UNKNOWN.value,
             "experiments": False,
             "full_name": "",
             "profile_pic_url": "",
@@ -4184,6 +4188,11 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
+        # Donor status is recorded only from verified webhooks (sefaria/donors/). Without this,
+        # any logged-in user could POST {"donor_status": "donor"} and mark themselves a donor,
+        # or store a non-date that would break the donor task's date comparison.
+        for donor_field in ("donor_status", "became_donor_at"):
+            profileUpdate.pop(donor_field, None)
         # TEMPORARY (goes with the experiments framework): legacy handling of the
         # `experiments` field.
         if "experiments" in profileUpdate and not user_has_experiments(request.user):

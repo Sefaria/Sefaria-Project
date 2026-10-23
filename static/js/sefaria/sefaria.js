@@ -4015,6 +4015,7 @@ Sefaria.unpackBaseProps = function(props){
       "is_moderator",
       "is_editor",
       "is_sustainer",
+      "donor_status",
       "experiments",
       "full_name",
       "profile_pic_url",

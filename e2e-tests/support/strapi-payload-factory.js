@@ -88,6 +88,12 @@ const WINDOW_FIELDS = {
   sidebarAd: ['startTime', 'endTime'],
 };
 
+// false, unlike the four user-kind boxes: for an independent AND gate, both-false means
+// "unrestricted", and it matches documents published before the fields existed. So existing
+// specs and narrowing helpers keep their meaning with no edits. Shared by banner and modal
+// because the two types gained the same pair of fields.
+const DONOR_AUDIENCE_UNRESTRICTED = Object.freeze({ showToDonor: false, showToNonDonor: false });
+
 /**
  * Every field the GraphQL query in static/js/context.js asks for, with a default.
  *
@@ -121,6 +127,7 @@ const FIELD_DEFAULTS = {
     showToReturningVisitors: true,
     showToSustainers: true,
     showToNonSustainers: true,
+    ...DONOR_AUDIENCE_UNRESTRICTED,
     shouldDeployOnMobile: true,
     countriesToTarget: null, // null targets everyone
     locale: null, // set per emitted row
@@ -144,6 +151,7 @@ const FIELD_DEFAULTS = {
     showToReturningVisitors: true,
     showToSustainers: true,
     showToNonSustainers: true,
+    ...DONOR_AUDIENCE_UNRESTRICTED,
     shouldDeployOnMobile: true,
     countriesToTarget: null,
     locale: null,

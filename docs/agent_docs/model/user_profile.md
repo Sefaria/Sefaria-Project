@@ -34,7 +34,7 @@ Manages user identity (profile data, social links, settings) and reading history
 - **Inherits**: `object` (NOT AbstractMongoRecord)
 - **Collection**: `profiles` (direct pymongo, not via abstract framework)
 - **Role**: The main user identity object. Combines Django User fields (first_name, last_name, email) with MongoDB profile fields (slug, bio, settings, social links, version preferences). Manages followers/followees, notifications, and delegates to UserHistory for reading history.
-- **Key fields**: `id` (Django user ID), `slug`, `settings` (dict with `email_notifications`, `interface_language`, `textual_custom`, `reading_history`, `translation_language_preference`), `version_preferences_by_corpus`, `attr_time_stamps`, `profile_pic_url`, `gauth_token`, `nationbuilder_id`, `sf_app_user_id`, `is_sustainer`
+- **Key fields**: `id` (Django user ID), `slug`, `settings` (dict with `email_notifications`, `interface_language`, `textual_custom`, `reading_history`, `translation_language_preference`), `version_preferences_by_corpus`, `attr_time_stamps`, `profile_pic_url`, `gauth_token`, `nationbuilder_id`, `sf_app_user_id`, `is_sustainer`, `donor_status`, `became_donor_at`
 - **Key methods**:
   - `__init__(user_obj, id, slug, email, user_registration)` -- Can load by any of id/slug/email/user_obj. Side effect: if a Django user exists but has no profile doc, one is auto-created on init (unless `user_registration=True`).
   - `save()` -- Writes to MongoDB `profiles` collection. If name changed, also updates Django User. If `reading_history` was toggled off, cascades a history delete.
@@ -56,6 +56,11 @@ Manages user identity (profile data, social links, settings) and reading history
 - **_normalize derives fields at write time.** `context_refs`, `categories`, `authors`, and `is_sheet` are computed from the ref during `_normalize()` and stored denormalized for fast downstream queries.
 - **Module-level cache.** `public_user_data_cache` is a module-level dict (not TTL-managed) that caches basic profile info by uid. It persists for the lifetime of the process.
 - **settings deep merge.** `update()` deep-merges `settings` and `version_preferences_by_corpus` rather than replacing them, so partial updates are safe.
+- **Donor fields (`donor_status`, `became_donor_at`).** Sit next to `is_sustainer` in `__init__` (defaults `"unknown"` and `None`) and are persisted by `to_mongo_dict`. `donor_status` is kept as a raw string, because `update()` copies Mongo values straight into `__dict__`; decode it with `DonorStatus.from_stored_value` (`sefaria/donors/types.py`), where a missing or unrecognized value means `unknown`. `became_donor_at` is the earliest date any source reported a donation.
+  - **Written only by webhooks**, in `sefaria/donors/donor_recording.py`, with one atomic `db.profiles.update_one` using an update *pipeline* (MongoDB 4.2+): `donor_status` set to `"donor"` and `became_donor_at` set to the aggregation `$min` of the stored and incoming dates. It must be the aggregation `$min`, not the `$min` update operator: profiles store `became_donor_at: null` by default and null sorts below every date, so the operator would keep the null forever. A profile with no matching Mongo document logs `donor_profile_document_missing`.
+  - **User input cannot set them**: the `profile_api` POST in `reader/views.py` pops both keys before `profile.update()`.
+  - **Stale write-back**: `save()` is a `replace_one` of the whole `to_mongo_dict()`, so a request that loaded the profile before a webhook landed and calls `save()` afterwards overwrites both fields with its stale values. The window is one request and is accepted.
+  - **API exposure**: only `donor_status` (decoded) is in `to_api_dict`; `became_donor_at` is not. `base_props` in `reader/views.py` sends the decoded status to the page as `donor_status`.
 
 ## Relationships
 - **Depends on**: `abstract` (AbstractMongoRecord/Set), `text` (Ref, TextChunk), `following` (FollowersSet, FolloweesSet), `blocking` (BlockersSet, BlockeesSet), `notification` (NotificationSet), `sefaria.sheets` (get_sheet_listing_data), `sefaria.system.database` (db), Django `auth.User`

@@ -46,6 +46,7 @@ from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
 from sefaria.constants.model import VOICES_MODULE, LIBRARY_ASSISTANT_SETTING_KEY
+from sefaria.donors.types import DonorStatus
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
@@ -438,6 +439,15 @@ class UserProfile(object):
         # Fundraising
         self.is_sustainer = False
         self.experiments = False
+        # The webhook path (sefaria/donors/donor_recording.py) writes these with one atomic
+        # update_one, not through save(). User input cannot set them: the profile_api POST in
+        # reader/views.py strips both. Caveat: save() replaces the WHOLE document (replace_one of
+        # to_mongo_dict), so a request that loaded this profile before a webhook landed and calls
+        # save() afterwards writes its stale values back over them. The window is one request and
+        # is accepted. Kept as the raw stored string, because update() copies Mongo values
+        # straight into __dict__; read it through DonorStatus.from_stored_value.
+        self.donor_status = DonorStatus.UNKNOWN.value
+        self.became_donor_at = None
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
@@ -716,6 +726,8 @@ class UserProfile(object):
             "version_preferences_by_corpus": self.version_preferences_by_corpus,
             "attr_time_stamps":      self.attr_time_stamps,
             "is_sustainer":          self.is_sustainer,
+            "donor_status":          self.donor_status,
+            "became_donor_at":       self.became_donor_at,
             "experiments":           self.experiments,
             "tag_order":             getattr(self, "tag_order", None),
             "last_sync_web":         self.last_sync_web,
@@ -757,6 +769,7 @@ class UserProfile(object):
         other_info = {
             "pinned_sheets":         self.pinned_sheets,
             "is_sustainer":          self.is_sustainer,
+            "donor_status":          DonorStatus.from_stored_value(self.donor_status).value,
             "experiments":           self.experiments,
         }
         dictionary.update(other_info)
