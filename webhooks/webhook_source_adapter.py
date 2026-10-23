@@ -72,8 +72,8 @@ def is_json_number(value: object) -> bool:
 
 
 def lowercase_header_names(headers: Mapping[str, str]) -> dict[str, str]:
-    # Django's request.headers is case-insensitive, but a plain dict (svix's verify, and every
-    # test) is not. Lowercasing once makes both behave the same.
+    # Django's request.headers is case-insensitive, but a plain dict (what the adapters and every
+    # test pass around) is not. Lowercasing once makes both behave the same.
     return {name.lower(): value for name, value in headers.items()}
 
 

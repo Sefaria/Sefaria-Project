@@ -1,12 +1,13 @@
 """
 Unit tests for webhooks/adapters/classy_webhook.py.
 
-Signatures are generated FRESH on every run with svix's own signer and the current time.
-Replaying a recorded signature would fail the library's 5-minute timestamp tolerance; the
-body is the durable artifact, the signature is always regenerated.
+Signatures are generated FRESH on every run with the current time. Replaying a recorded
+signature would fail the 5-minute timestamp tolerance; the body is the durable artifact, the
+signature is always regenerated. The signer is our own svix_signature_for, so on its own it
+would only prove the code agrees with itself; svix_signature_test.py pins it to the example
+Svix publishes.
 
-The fixture's envelope shape is an assumption until a real GoFundMe Pro delivery is captured
-(spec §12 item 1) — replace the fixture with the redacted capture and re-run these tests.
+The fixture is a real GoFundMe Pro delivery with every identifying value replaced.
 """
 
 import json
@@ -14,11 +15,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
-from svix.webhooks import Webhook
 
 from sefaria.donors.types import DonationReceivedFromClassy, NormalizedEmailAddress, PersonAsIdentifiedByClassy
 from webhooks.adapters import classy_webhook
 from webhooks.adapters.classy_webhook import parse_classy_transaction_payload, verify_classy_request_signature
+from webhooks.adapters.svix_signature import svix_signature_for
 from webhooks.webhook_source_adapter import (
     MalformedWebhookPayload,
     ReasonWebhookEventWasIgnored,
@@ -36,10 +37,10 @@ ALL_CLASSY_TRANSACTION_STATUSES = ["test", "canceled", "incomplete", "success", 
 
 
 def signed_headers(body: bytes, message_id="msg_2Kx", signed_at=None, secret=TEST_SECRET):
-    signed_at = signed_at or datetime.now(tz=timezone.utc)
-    signature = Webhook(secret).sign(message_id, signed_at, body.decode())
+    timestamp = int((signed_at or datetime.now(tz=timezone.utc)).timestamp())
+    signature = svix_signature_for(secret, message_id, timestamp, body)
     # Title-case on purpose: Django delivers headers that way, and verification must not care.
-    return {"Svix-Id": message_id, "Svix-Timestamp": str(int(signed_at.timestamp())), "Svix-Signature": signature}
+    return {"Svix-Id": message_id, "Svix-Timestamp": str(timestamp), "Svix-Signature": signature}
 
 
 def payload_with(**transaction_overrides):

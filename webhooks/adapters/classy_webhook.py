@@ -1,9 +1,8 @@
 """
 GoFundMe Pro (Classy) transaction webhooks, delivered by Svix.
 
-Verification uses the official svix library rather than hand-rolled HMAC: it handles both
-header prefixes (svix-* and webhook-*), the 5-minute timestamp tolerance, multiple
-signatures, and constant-time comparison.
+Signatures are checked by svix_signature.py, with the standard library only (that module
+explains why the svix package isn't used).
 
 Only allowlisted transaction fields are ever copied out of the payload. The real payload
 carries account numbers, card details, billing addresses, phone numbers and browser info;
@@ -11,12 +10,13 @@ none of them are stored or logged.
 """
 
 import json
+import time
 from collections.abc import Mapping
 
 from django.conf import settings
-from svix.webhooks import Webhook, WebhookVerificationError
 
 from sefaria.donors.types import DonationReceivedFromClassy, NormalizedEmailAddress, PersonAsIdentifiedByClassy
+from webhooks.adapters.svix_signature import is_valid_svix_signature
 from webhooks.webhook_source_adapter import (
     MalformedWebhookPayload,
     ParsedWebhookEvent,
@@ -47,10 +47,7 @@ def pick_allowlisted_transaction_fields(transaction: Mapping) -> dict:
 def verify_classy_request_signature(raw_body: bytes, headers: Mapping[str, str]) -> SignatureCheckResult:
     if not CLASSY_WEBHOOK_SECRET:
         return WebhookSecretNotConfigured("CLASSY_WEBHOOK_SECRET")
-    try:
-        # In svix 2.x verify() returns None and raises on failure; we parse the body ourselves.
-        Webhook(CLASSY_WEBHOOK_SECRET).verify(raw_body, lowercase_header_names(headers))
-    except WebhookVerificationError:
+    if not is_valid_svix_signature(CLASSY_WEBHOOK_SECRET, raw_body, headers, now=time.time()):
         return SignatureRejected()
     return SignatureVerified()
 

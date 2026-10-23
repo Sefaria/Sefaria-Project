@@ -14,17 +14,19 @@ from datetime import datetime, timezone
 import pytest
 from django.test import Client
 from structlog.testing import capture_logs
-from svix.webhooks import Webhook
 
 from webhooks import views
 from webhooks.adapters import classy_webhook, salesforce_webhook
+from webhooks.adapters.svix_signature import svix_signature_for
 from webhooks.dispatcher import EventCouldNotBeEnqueued, ProcessingMode
 
 CLASSY_SECRET = "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw"
 SALESFORCE_SECRET = "test-salesforce-webhook-secret-0123456789"
 DONOR_EMAIL = "secret-donor-address@example.org"
 CARD_NUMBER = "4111111111111111"
-WRONG_SECRET = "wrong-secret-that-must-not-be-logged"
+# Shaped like a Svix secret ("whsec_" + base64 of "wrong-secret-that-must-not-be-logged") so it
+# can sign a Classy request too; it is still just a string to the Salesforce header check.
+WRONG_SECRET = "whsec_d3Jvbmctc2VjcmV0LXRoYXQtbXVzdC1ub3QtYmUtbG9nZ2Vk"
 
 SALESFORCE_PAYLOAD = {
     "source": "salesforce",
@@ -72,9 +74,9 @@ CLASSY_PAYLOAD_WITH_CARD_DETAILS = {"eventType": "transaction.created", "data": 
 
 def post_classy(payload=CLASSY_PAYLOAD, secret=CLASSY_SECRET):
     body = json.dumps(payload).encode()
-    now = datetime.now(tz=timezone.utc)
-    headers = {"svix-id": "msg_1", "svix-timestamp": str(int(now.timestamp())),
-               "svix-signature": Webhook(secret).sign("msg_1", now, body.decode())}
+    timestamp = int(datetime.now(tz=timezone.utc).timestamp())
+    headers = {"svix-id": "msg_1", "svix-timestamp": str(timestamp),
+               "svix-signature": svix_signature_for(secret, "msg_1", timestamp, body)}
     return Client(enforce_csrf_checks=True).post("/api/webhooks/classy", data=body, content_type="application/json", headers=headers)
 
 
