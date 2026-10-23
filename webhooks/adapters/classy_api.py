@@ -52,6 +52,10 @@ def look_up_classy_supporter_email_address(classy_supporter_id: int) -> Normaliz
     )
     if response.status_code == 404:
         return DonorEmailAddressCouldNotBeResolved(ReasonDonorEmailAddressCouldNotBeResolved.CLASSY_SUPPORTER_NOT_FOUND)
+    # A supporter that exists but belongs to another organization answers 403, not 404 (checked
+    # against the live API). The supporter id comes from our own organization's webhook, so a 403
+    # means the API app is attached to the wrong organization: a configuration problem, which
+    # _raise_for_unsuccessful_response fails loudly on instead of reporting "not found".
     _raise_for_unsuccessful_response(response)
 
     email_address = NormalizedEmailAddress.parse(response.json().get("email_address"))

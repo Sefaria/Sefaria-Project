@@ -3,8 +3,16 @@ Unit tests for webhooks/adapters/classy_api.py.
 
 The module's session has a refuse-network adapter mounted by webhooks/conftest.py, so these
 tests replace the session's post/get with fakes. Anything they forget to fake fails loudly.
+
+The success path serves fixtures/classy_supporter.json, a real GET /2.0/supporters/{id}
+response with the identifying values replaced, so the field the code reads (email_address)
+is checked against what Classy actually sends, not against a guess. The token request was
+captured at the same time: its response has access_token, expires_in and token_type, and
+only access_token is read.
 """
 
+import json
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -14,6 +22,8 @@ from sefaria.donors.types import DonorEmailAddressCouldNotBeResolved, Normalized
 from sefaria.donors.types import ReasonDonorEmailAddressCouldNotBeResolved as Reason
 from webhooks.adapters import classy_api
 from webhooks.adapters.classy_api import ClassyApiServerError, look_up_classy_supporter_email_address
+
+REAL_SUPPORTER_RESPONSE = json.loads((Path(__file__).parent / "fixtures" / "classy_supporter.json").read_text())
 
 
 def fake_response(status_code, json_body=None):
@@ -39,8 +49,8 @@ def configured(monkeypatch):
 class TestLookUpClassySupporterEmailAddress:
 
     def test_returns_the_supporters_normalized_address(self, configured, monkeypatch):
-        """GET /2.0/supporters/{id} with the bearer token; email_address is normalized."""
-        get = MagicMock(return_value=fake_response(200, {"email_address": " Donor@Example.org "}))
+        """GET /2.0/supporters/{id} with the bearer token; the real response's email_address, normalized."""
+        get = MagicMock(return_value=fake_response(200, REAL_SUPPORTER_RESPONSE))
         monkeypatch.setattr(classy_api.classy_api_session, "get", get)
 
         assert look_up_classy_supporter_email_address(5827) == NormalizedEmailAddress("donor@example.org")
