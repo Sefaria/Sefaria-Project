@@ -31,7 +31,9 @@ def resolve_donor_email_address_for_event(
         case UserBecameDonorAccordingToSalesforce(person=person):
             return DonorWithResolvedEmailAddress(person.email_address)
         case DonationReceivedFromClassy(person=person):
-            return _resolve_classy_donor_email_address(person, look_up_classy_supporter_email_address)
+            return _resolve_classy_donor_email_address(
+                person, look_up_classy_supporter_email_address
+            )
         case unreachable:
             assert_never(unreachable)
 
@@ -46,7 +48,9 @@ def _resolve_classy_donor_email_address(
         case None:
             # The API call happens here, inside the Celery task, never in the endpoint: the
             # endpoint must answer GoFundMe Pro within 15 seconds, and a task can retry.
-            return _resolve_through_classy_lookup(look_up_classy_supporter_email_address(person.classy_supporter_id))
+            return _resolve_through_classy_lookup(
+                look_up_classy_supporter_email_address(person.classy_supporter_id)
+            )
         case unreachable:
             assert_never(unreachable)
 

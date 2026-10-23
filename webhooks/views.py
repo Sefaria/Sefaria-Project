@@ -57,14 +57,22 @@ def receive_salesforce_webhook(request) -> HttpResponse:
     return receive_webhook(SALESFORCE_WEBHOOK_ADAPTER, request.body, request.headers)
 
 
-def receive_webhook(adapter: WebhookSourceAdapter, raw_body: bytes, headers: Mapping[str, str]) -> HttpResponse:
+def receive_webhook(
+    adapter: WebhookSourceAdapter, raw_body: bytes, headers: Mapping[str, str]
+) -> HttpResponse:
     # Logs carry only the source, event id, outcome and reason — never the body, headers,
     # secrets or email addresses.
     webhook_source = adapter.webhook_source.value
     match adapter.verify_request_signature(raw_body, headers):
         case WebhookSecretNotConfigured(setting_name=setting_name):
-            logger.warning("webhook_secret_not_configured", webhook_source=webhook_source, setting_name=setting_name)
-            return JsonResponse({"error": f"{webhook_source}_webhook_not_configured"}, status=503)
+            logger.warning(
+                "webhook_secret_not_configured",
+                webhook_source=webhook_source,
+                setting_name=setting_name,
+            )
+            return JsonResponse(
+                {"error": f"{webhook_source}_webhook_not_configured"}, status=503
+            )
         case SignatureRejected():
             logger.warning("webhook_signature_rejected", webhook_source=webhook_source)
             return JsonResponse({"error": "invalid_signature"}, status=401)
@@ -78,24 +86,40 @@ def receive_webhook(adapter: WebhookSourceAdapter, raw_body: bytes, headers: Map
             logger.warning("webhook_payload_malformed", webhook_source=webhook_source)
             return JsonResponse({"error": "malformed_payload"}, status=400)
         case WebhookEventIgnored(reason=reason):
-            logger.info("webhook_event_ignored", webhook_source=webhook_source, reason=reason.value)
-            return JsonResponse({"status": "ignored", "reason": reason.value}, status=200)
-        case DonationReceivedFromClassy() | UserBecameDonorAccordingToSalesforce() as event:
+            logger.info(
+                "webhook_event_ignored",
+                webhook_source=webhook_source,
+                reason=reason.value,
+            )
+            return JsonResponse(
+                {"status": "ignored", "reason": reason.value}, status=200
+            )
+        case (
+            DonationReceivedFromClassy()
+            | UserBecameDonorAccordingToSalesforce() as event
+        ):
             return _accept_event(webhook_source, event)
         case unreachable:
             assert_never(unreachable)
 
 
-def _accept_event(webhook_source: str, event: EventIndicatingPersonIsDonor) -> HttpResponse:
+def _accept_event(
+    webhook_source: str, event: EventIndicatingPersonIsDonor
+) -> HttpResponse:
     try:
         processing_mode = enqueue_event_for_processing(event)
     except EventCouldNotBeEnqueued:
         # The dispatcher has already logged donor_event_enqueue_failed with the event id.
         return JsonResponse({"error": "enqueue_failed"}, status=503)
-    logger.info("webhook_event_accepted", webhook_source=webhook_source,
-                event_id_assigned_by_source=event.event_id_assigned_by_source,
-                processing_mode=processing_mode.value)
+    logger.info(
+        "webhook_event_accepted",
+        webhook_source=webhook_source,
+        event_id_assigned_by_source=event.event_id_assigned_by_source,
+        processing_mode=processing_mode.value,
+    )
     # processing_mode is sent only after verification and reveals nothing sensitive.
     # e2e-tests/tests/strapi-donor-webhook-flow.spec.js reads it to know whether processing
     # was queued or inline.
-    return JsonResponse({"status": "accepted", "processing_mode": processing_mode.value}, status=202)
+    return JsonResponse(
+        {"status": "accepted", "processing_mode": processing_mode.value}, status=202
+    )

@@ -25,7 +25,9 @@ def process_event_indicating_person_is_donor(
     event: EventIndicatingPersonIsDonor,
     look_up_classy_supporter_email_address: LookUpClassySupporterEmailAddress,
 ) -> None:
-    match resolve_donor_email_address_for_event(event, look_up_classy_supporter_email_address):
+    match resolve_donor_email_address_for_event(
+        event, look_up_classy_supporter_email_address
+    ):
         case DonorEmailAddressCouldNotBeResolved() as failure:
             logger.warning(
                 "donor_email_address_unresolved",

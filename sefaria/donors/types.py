@@ -55,7 +55,9 @@ class NormalizedEmailAddress:
         # Only a shape check, deliberately loose ("a@b@c" passes): the address is a lookup
         # key, never something we send mail to, so a stricter parser would only reject donors.
         local_part, at_sign, domain = normalized.partition("@")
-        if not (local_part and at_sign and domain) or any(character.isspace() for character in normalized):
+        if not (local_part and at_sign and domain) or any(
+            character.isspace() for character in normalized
+        ):
             return None
         return cls(normalized)
 
@@ -71,29 +73,31 @@ def as_utc_datetime(moment: datetime) -> datetime:
 
 @dataclass(frozen=True)
 class PersonAsIdentifiedByClassy:
-    classy_supporter_id: int                      # always present on a transaction
-    email_address: NormalizedEmailAddress | None  # member_email_address, when Classy sends it
+    classy_supporter_id: int  # always present on a transaction
+    email_address: (
+        NormalizedEmailAddress | None
+    )  # member_email_address, when Classy sends it
 
 
 @dataclass(frozen=True)
 class PersonAsIdentifiedBySalesforce:
-    email_address: NormalizedEmailAddress         # required by our payload contract
+    email_address: NormalizedEmailAddress  # required by our payload contract
     salesforce_contact_id: str
-    classy_supporter_id: int | None               # present when NPSP linked the records
+    classy_supporter_id: int | None  # present when NPSP linked the records
 
 
 @dataclass(frozen=True)
 class DonationReceivedFromClassy:
-    event_id_assigned_by_source: str              # svix-id: the same across retries of one message
-    occurred_at_according_to_source: datetime     # the transaction's updated_at
+    event_id_assigned_by_source: str  # svix-id: the same across retries of one message
+    occurred_at_according_to_source: datetime  # the transaction's updated_at
     person: PersonAsIdentifiedByClassy
     classy_transaction_id: int
 
 
 @dataclass(frozen=True)
 class UserBecameDonorAccordingToSalesforce:
-    event_id_assigned_by_source: str              # our sourceEventId
-    occurred_at_according_to_source: datetime     # occurredAt
+    event_id_assigned_by_source: str  # our sourceEventId
+    occurred_at_according_to_source: datetime  # occurredAt
     person: PersonAsIdentifiedBySalesforce
 
 
@@ -102,7 +106,7 @@ type EventIndicatingPersonIsDonor = DonationReceivedFromClassy | UserBecameDonor
 
 @dataclass(frozen=True)
 class DonorWithResolvedEmailAddress:
-    email_address: NormalizedEmailAddress         # non-optional: resolution guarantees it
+    email_address: NormalizedEmailAddress  # non-optional: resolution guarantees it
 
 
 class ReasonDonorEmailAddressCouldNotBeResolved(Enum):

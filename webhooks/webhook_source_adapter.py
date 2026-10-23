@@ -30,7 +30,7 @@ class SignatureRejected:
 
 @dataclass(frozen=True)
 class WebhookSecretNotConfigured:
-    setting_name: str   # named in the warning log so ops knows exactly what to set
+    setting_name: str  # named in the warning log so ops knows exactly what to set
 
 
 type SignatureCheckResult = SignatureVerified | SignatureRejected | WebhookSecretNotConfigured

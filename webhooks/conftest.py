@@ -34,7 +34,9 @@ from webhooks.adapters import classy_api
 class RefuseNetworkAdapter(BaseAdapter):
     """A requests adapter that fails every request instead of sending it."""
 
-    def send(self, request, stream=False, timeout=None, verify=True, cert=None, proxies=None):
+    def send(
+        self, request, stream=False, timeout=None, verify=True, cert=None, proxies=None
+    ):
         raise RuntimeError(
             f"Tests must not call the real Classy API ({request.method} {request.url}). "
             "Patch the session's get/post with a fake."
@@ -52,7 +54,9 @@ def refuse_real_classy_api_calls(monkeypatch):
     monkeypatch.setattr(
         classy_api.classy_api_session,
         "adapters",
-        OrderedDict([("https://", RefuseNetworkAdapter()), ("http://", RefuseNetworkAdapter())]),
+        OrderedDict(
+            [("https://", RefuseNetworkAdapter()), ("http://", RefuseNetworkAdapter())]
+        ),
     )
 
 
@@ -65,5 +69,7 @@ def refuse_real_profile_reads_and_writes(monkeypatch):
             "apply_update_to_user_profile with a fake."
         )
 
-    monkeypatch.setattr(donor_recording, "find_user_id_by_email_creating_profile_if_missing", refuse)
+    monkeypatch.setattr(
+        donor_recording, "find_user_id_by_email_creating_profile_if_missing", refuse
+    )
     monkeypatch.setattr(donor_recording, "apply_update_to_user_profile", refuse)

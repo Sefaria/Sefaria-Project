@@ -43,18 +43,24 @@ class SalesforceWebhookEventType(Enum):
     USER_BECAME_DONOR = "UserBecameDonor"
 
 
-def verify_salesforce_request_secret(raw_body: bytes, headers: Mapping[str, str]) -> SignatureCheckResult:
+def verify_salesforce_request_secret(
+    raw_body: bytes, headers: Mapping[str, str]
+) -> SignatureCheckResult:
     # Must come first: hmac.compare_digest("", "") is True, so an unset secret compared with an
     # empty header would pass. Failing closed here prevents that.
     if not SALESFORCE_WEBHOOK_SECRET:
         return WebhookSecretNotConfigured("SALESFORCE_WEBHOOK_SECRET")
     presented_secret = lowercase_header_names(headers).get(SECRET_HEADER_NAME, "")
-    if hmac.compare_digest(presented_secret.encode(), SALESFORCE_WEBHOOK_SECRET.encode()):
+    if hmac.compare_digest(
+        presented_secret.encode(), SALESFORCE_WEBHOOK_SECRET.encode()
+    ):
         return SignatureVerified()
     return SignatureRejected()
 
 
-def parse_salesforce_payload(raw_body: bytes, headers: Mapping[str, str]) -> ParsedWebhookEvent:
+def parse_salesforce_payload(
+    raw_body: bytes, headers: Mapping[str, str]
+) -> ParsedWebhookEvent:
     try:
         payload = json.loads(raw_body)
     except (ValueError, UnicodeDecodeError):
@@ -64,7 +70,9 @@ def parse_salesforce_payload(raw_body: bytes, headers: Mapping[str, str]) -> Par
             try:
                 event_type = SalesforceWebhookEventType(event_type_name)
             except ValueError:
-                return WebhookEventIgnored(ReasonWebhookEventWasIgnored.UNHANDLED_EVENT_TYPE)
+                return WebhookEventIgnored(
+                    ReasonWebhookEventWasIgnored.UNHANDLED_EVENT_TYPE
+                )
             match event_type:
                 case SalesforceWebhookEventType.USER_BECAME_DONOR:
                     return _user_became_donor_event_from_payload(payload)
@@ -76,15 +84,23 @@ def parse_salesforce_payload(raw_body: bytes, headers: Mapping[str, str]) -> Par
 
 def _user_became_donor_event_from_payload(payload: dict) -> ParsedWebhookEvent:
     match payload:
-        case {"sourceEventId": str() as source_event_id, "occurredAt": occurred_at_text,
-              "person": {"email": email_text, "salesforceContactId": str() as salesforce_contact_id} as person} \
-                if source_event_id and salesforce_contact_id:
+        case {
+            "sourceEventId": str() as source_event_id,
+            "occurredAt": occurred_at_text,
+            "person": {
+                "email": email_text,
+                "salesforceContactId": str() as salesforce_contact_id,
+            } as person,
+        } if source_event_id and salesforce_contact_id:
             email_address = NormalizedEmailAddress.parse(email_text)
             occurred_at = parse_timezone_aware_timestamp(occurred_at_text)
             classy_supporter_id = person.get("classySupporterId")
-            if (email_address is None or occurred_at is None
-                    or not _is_optional_int(classy_supporter_id)
-                    or not _is_valid_optional_donation(payload.get("donation"))):
+            if (
+                email_address is None
+                or occurred_at is None
+                or not _is_optional_int(classy_supporter_id)
+                or not _is_valid_optional_donation(payload.get("donation"))
+            ):
                 return MalformedWebhookPayload()
             return UserBecameDonorAccordingToSalesforce(
                 event_id_assigned_by_source=source_event_id,
@@ -109,7 +125,11 @@ def _is_valid_optional_donation(donation: object) -> bool:
     match donation:
         case None:
             return True
-        case {"amount": amount, "currency": str(), "frequency": str()} if is_json_number(amount):
+        case {
+            "amount": amount,
+            "currency": str(),
+            "frequency": str(),
+        } if is_json_number(amount):
             return True
         case _:
             return False

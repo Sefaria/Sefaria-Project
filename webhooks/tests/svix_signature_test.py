@@ -25,7 +25,9 @@ BODY = b'{"eventType":"transaction.created"}'
 NOW = 1_800_000_000
 
 
-def headers_for(body=BODY, message_id="msg_1", timestamp=NOW, secret=SECRET, prefix="svix"):
+def headers_for(
+    body=BODY, message_id="msg_1", timestamp=NOW, secret=SECRET, prefix="svix"
+):
     return {
         f"{prefix}-id": message_id,
         f"{prefix}-timestamp": str(timestamp),
@@ -41,12 +43,23 @@ class TestSvixPublishedExample:
 
     def test_signs_the_example_exactly_as_svix_does(self):
         """The independent check: Svix's documented signature for Svix's documented inputs."""
-        assert svix_signature_for(EXAMPLE_SECRET, EXAMPLE_MESSAGE_ID, EXAMPLE_TIMESTAMP, EXAMPLE_BODY) == EXAMPLE_SIGNATURE
+        assert (
+            svix_signature_for(
+                EXAMPLE_SECRET, EXAMPLE_MESSAGE_ID, EXAMPLE_TIMESTAMP, EXAMPLE_BODY
+            )
+            == EXAMPLE_SIGNATURE
+        )
 
     def test_accepts_the_example_delivery(self):
         """The documented headers verify, checked at the documented time."""
-        headers = {"svix-id": EXAMPLE_MESSAGE_ID, "svix-timestamp": str(EXAMPLE_TIMESTAMP), "svix-signature": EXAMPLE_SIGNATURE}
-        assert is_valid(headers, body=EXAMPLE_BODY, now=EXAMPLE_TIMESTAMP, secret=EXAMPLE_SECRET)
+        headers = {
+            "svix-id": EXAMPLE_MESSAGE_ID,
+            "svix-timestamp": str(EXAMPLE_TIMESTAMP),
+            "svix-signature": EXAMPLE_SIGNATURE,
+        }
+        assert is_valid(
+            headers, body=EXAMPLE_BODY, now=EXAMPLE_TIMESTAMP, secret=EXAMPLE_SECRET
+        )
 
 
 class TestWhatTheSignatureCovers:
@@ -82,12 +95,19 @@ class TestHeaders:
     def test_svix_names_win_when_both_are_present(self):
         """The svix library looks for svix-* first; a stale webhook-* value must not override it."""
         # The webhook-* values are wrong, so this only passes if the svix-* ones are used.
-        headers = {**headers_for(), "webhook-id": "msg_other", "webhook-timestamp": "0", "webhook-signature": "v1,AAAA"}
+        headers = {
+            **headers_for(),
+            "webhook-id": "msg_other",
+            "webhook-timestamp": "0",
+            "webhook-signature": "v1,AAAA",
+        }
         assert is_valid(headers)
 
     @pytest.mark.parametrize("missing", ["svix-id", "svix-timestamp", "svix-signature"])
     def test_a_missing_header_is_rejected(self, missing):
-        headers = {name: value for name, value in headers_for().items() if name != missing}
+        headers = {
+            name: value for name, value in headers_for().items() if name != missing
+        }
         assert not is_valid(headers)
 
 
@@ -96,7 +116,9 @@ class TestSignatureEntries:
     def test_any_matching_entry_is_enough(self):
         """While a secret is being rotated, Svix sends one entry per secret."""
         headers = headers_for()
-        headers["svix-signature"] = f"v1,c29tZXRoaW5nIGVsc2U= {headers['svix-signature']}"
+        headers["svix-signature"] = (
+            f"v1,c29tZXRoaW5nIGVsc2U= {headers['svix-signature']}"
+        )
         assert is_valid(headers)
 
     def test_a_correct_digest_under_another_version_is_rejected(self):
@@ -105,7 +127,9 @@ class TestSignatureEntries:
         headers["svix-signature"] = headers["svix-signature"].replace("v1,", "v1a,")
         assert not is_valid(headers)
 
-    @pytest.mark.parametrize("entry", ["", " ", "v1", "v1,", "v1,!!not base64!!", "v1,AAAA", "v1,ünïcode"])
+    @pytest.mark.parametrize(
+        "entry", ["", " ", "v1", "v1,", "v1,!!not base64!!", "v1,AAAA", "v1,ünïcode"]
+    )
     def test_garbled_entries_are_rejected_without_raising(self, entry):
         """Malformed input is a 401 (rejected), never a 500."""
         headers = {**headers_for(), "svix-signature": entry}
@@ -114,23 +138,30 @@ class TestSignatureEntries:
 
 class TestTimestamp:
 
-    @pytest.mark.parametrize("offset", [-TIMESTAMP_TOLERANCE_SECONDS, 0, TIMESTAMP_TOLERANCE_SECONDS])
+    @pytest.mark.parametrize(
+        "offset", [-TIMESTAMP_TOLERANCE_SECONDS, 0, TIMESTAMP_TOLERANCE_SECONDS]
+    )
     def test_accepted_within_five_minutes_either_way(self, offset):
         assert is_valid(headers_for(timestamp=NOW + offset))
 
-    @pytest.mark.parametrize("offset", [-TIMESTAMP_TOLERANCE_SECONDS - 1, TIMESTAMP_TOLERANCE_SECONDS + 1])
+    @pytest.mark.parametrize(
+        "offset", [-TIMESTAMP_TOLERANCE_SECONDS - 1, TIMESTAMP_TOLERANCE_SECONDS + 1]
+    )
     def test_rejected_outside_five_minutes(self, offset):
         """Too old is a replay; too far ahead means the clock or the header is wrong."""
         assert not is_valid(headers_for(timestamp=NOW + offset))
 
-    @pytest.mark.parametrize("timestamp_text", [
-        "soon",
-        " 1800000000",
-        "+1800000000",
-        "1800000000.0",
-        "1_800_000_000",
-        "١٨٠٠٠٠٠٠٠٠",   # Arabic-Indic digits: str.isdigit() and int() both accept these
-    ])
+    @pytest.mark.parametrize(
+        "timestamp_text",
+        [
+            "soon",
+            " 1800000000",
+            "+1800000000",
+            "1800000000.0",
+            "1_800_000_000",
+            "١٨٠٠٠٠٠٠٠٠",  # Arabic-Indic digits: str.isdigit() and int() both accept these
+        ],
+    )
     def test_a_timestamp_that_is_not_plain_digits_is_rejected(self, timestamp_text):
         headers = {**headers_for(), "svix-timestamp": timestamp_text}
         assert not is_valid(headers)

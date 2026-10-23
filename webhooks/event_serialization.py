@@ -38,7 +38,9 @@ def serialize_event(event: EventIndicatingPersonIsDonor) -> dict:
                 "classy_transaction_id": event.classy_transaction_id,
                 "person": {
                     "classy_supporter_id": person.classy_supporter_id,
-                    "email_address": person.email_address.value if person.email_address else None,
+                    "email_address": person.email_address.value
+                    if person.email_address
+                    else None,
                 },
             }
         case UserBecameDonorAccordingToSalesforce(person=person):
@@ -70,7 +72,9 @@ def deserialize_event(serialized: dict) -> EventIndicatingPersonIsDonor:
                 occurred_at_according_to_source=occurred_at,
                 person=PersonAsIdentifiedByClassy(
                     classy_supporter_id=person["classy_supporter_id"],
-                    email_address=NormalizedEmailAddress(email_address) if email_address else None,
+                    email_address=NormalizedEmailAddress(email_address)
+                    if email_address
+                    else None,
                 ),
                 classy_transaction_id=serialized["classy_transaction_id"],
             )

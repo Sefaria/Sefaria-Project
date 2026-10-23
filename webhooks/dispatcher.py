@@ -36,7 +36,8 @@ def enqueue_event_for_processing(event: EventIndicatingPersonIsDonor) -> Process
     if CELERY_ENABLED:
         try:
             process_event_indicating_person_is_donor_task.apply_async(
-                args=[serialized_event], queue=CeleryQueue.TASKS.value)
+                args=[serialized_event], queue=CeleryQueue.TASKS.value
+            )
         except Exception as error:
             # Deliberately broad: kombu, redis and socket errors all mean "not queued", and
             # every one of them must become a 503 so the sender's retry recovers the event.

@@ -42,19 +42,32 @@ def build_update_pipeline_marking_profile_as_donor(occurred_at: datetime) -> lis
     # earliest date. Doing the comparison in Python would read then write, and the later writer
     # could leave the later date. Keeping the earliest date is also what lets retries, duplicates
     # and out-of-order deliveries all converge on one value.
-    return [{"$set": {
-        "donor_status": DonorStatus.DONOR.value,
-        "became_donor_at": {"$min": ["$became_donor_at", as_utc_datetime(occurred_at)]},
-    }}]
+    return [
+        {
+            "$set": {
+                "donor_status": DonorStatus.DONOR.value,
+                "became_donor_at": {
+                    "$min": ["$became_donor_at", as_utc_datetime(occurred_at)]
+                },
+            }
+        }
+    ]
 
 
-def mark_existing_user_profile_as_donor(donor: DonorWithResolvedEmailAddress, event: EventIndicatingPersonIsDonor) -> None:
+def mark_existing_user_profile_as_donor(
+    donor: DonorWithResolvedEmailAddress, event: EventIndicatingPersonIsDonor
+) -> None:
     user_id = find_user_id_by_email_creating_profile_if_missing(donor.email_address)
     if user_id is None:
         # The email address is deliberately not logged.
-        logger.info("donor_has_no_sefaria_account", event_id_assigned_by_source=event.event_id_assigned_by_source)
+        logger.info(
+            "donor_has_no_sefaria_account",
+            event_id_assigned_by_source=event.event_id_assigned_by_source,
+        )
         return
-    update = build_update_pipeline_marking_profile_as_donor(event.occurred_at_according_to_source)
+    update = build_update_pipeline_marking_profile_as_donor(
+        event.occurred_at_according_to_source
+    )
     if not apply_update_to_user_profile(user_id, update):
         # The profile document was there a moment ago (the lookup makes sure of it) and is gone
         # now, for example deleted by an admin in between. Without this warning the donation
@@ -86,10 +99,18 @@ def most_recently_active_account(accounts):
     # The tuple's first element sorts "has logged in" above "never has", so the second
     # element only ever compares two last_login values or two date_joined values, never a
     # None with a date.
-    return max(accounts, key=lambda account: (account.last_login is not None, account.last_login or account.date_joined))
+    return max(
+        accounts,
+        key=lambda account: (
+            account.last_login is not None,
+            account.last_login or account.date_joined,
+        ),
+    )
 
 
-def find_user_id_by_email_creating_profile_if_missing(email_address: NormalizedEmailAddress) -> int | None:
+def find_user_id_by_email_creating_profile_if_missing(
+    email_address: NormalizedEmailAddress,
+) -> int | None:
     """
     The id of the Sefaria account with this email address, or None when there is none. When
     an id is returned, that user's profile document exists, so the donor update has something
@@ -110,7 +131,11 @@ def find_user_id_by_email_creating_profile_if_missing(email_address: NormalizedE
     account = most_recently_active_account(accounts)
     if len(accounts) > 1:
         # The address itself is deliberately not logged.
-        logger.info("donor_email_matches_multiple_accounts", account_count=len(accounts), chosen_user_id=account.id)
+        logger.info(
+            "donor_email_matches_multiple_accounts",
+            account_count=len(accounts),
+            chosen_user_id=account.id,
+        )
 
     # Built only for its side effect, which is why this function doesn't just return account.id
     # without it. A Django account can have no profile document: environments that share one
