@@ -48,6 +48,11 @@ from sefaria.system.exceptions import InputError, SheetNotFoundError
 from sefaria.constants.model import VOICES_MODULE, LIBRARY_ASSISTANT_SETTING_KEY
 from sefaria.donors.types import DonorStatus
 
+# Profile fields that save() writes only when it creates the document. Every other save leaves
+# them as stored, because the donor webhook can change them while a request holds an older copy
+# of the profile: writing that copy's value back, even "unknown", would undo the donation.
+FIELDS_ONLY_DONOR_RECORDING_WRITES = ("donor_status", "became_donor_at")
+
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
     from emailusernames.utils import get_user, user_exists
@@ -439,13 +444,11 @@ class UserProfile(object):
         # Fundraising
         self.is_sustainer = False
         self.experiments = False
-        # The webhook path (sefaria/donors/donor_recording.py) writes these with one atomic
-        # update_one, not through save(). User input cannot set them: the profile_api POST in
-        # reader/views.py strips both. Caveat: save() replaces the WHOLE document (replace_one of
-        # to_mongo_dict), so a request that loaded this profile before a webhook landed and calls
-        # save() afterwards writes its stale values back over them. The window is one request and
-        # is accepted. Kept as the raw stored string, because update() copies Mongo values
-        # straight into __dict__; read it through DonorStatus.from_stored_value.
+        # Only the donor webhook path (sefaria/donors/donor_recording.py) changes these, with one
+        # atomic update_one. save() writes them only when it creates the document (see
+        # FIELDS_ONLY_DONOR_RECORDING_WRITES), and user input cannot set them: the profile_api
+        # POST in reader/views.py strips both. Kept as the raw stored string, because update()
+        # copies Mongo values straight into __dict__; read it through DonorStatus.from_stored_value.
         self.donor_status = DonorStatus.UNKNOWN.value
         self.became_donor_at = None
 
@@ -559,7 +562,17 @@ class UserProfile(object):
 
         d = self.to_mongo_dict()
         if self._id:
-            db.profiles.replace_one({'_id': self._id}, d, upsert=True)
+            # $set of the listed fields, not replace_one of the whole document. A replace would
+            # write back every field as this object loaded it, undoing anything another writer
+            # changed in between (the donor webhook, or the spam dashboard's "reviewed" flag).
+            # $setOnInsert covers a document deleted since it was loaded: upsert recreates it,
+            # and only then are the donor fields written.
+            fields_written_on_creation_only = {name: d.pop(name) for name in FIELDS_ONLY_DONOR_RECORDING_WRITES}
+            db.profiles.update_one(
+                {'_id': self._id},
+                {'$set': d, '$setOnInsert': fields_written_on_creation_only},
+                upsert=True,
+            )
         else:
             inserted = db.profiles.insert_one(d)
             self._id = inserted.inserted_id

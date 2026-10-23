@@ -115,9 +115,9 @@ def apply_update_to_user_profile(user_id: int, update: list[dict]) -> bool:
     """Apply a Mongo update pipeline to the user's profile. True when a profile document was matched."""
     from sefaria.system.database import db
 
-    # update_one with a pipeline, not profile.save(). save() rewrites the whole document, so a
-    # settings change the user saves at the same moment could be lost. The pipeline writes
-    # only the decided fields. Bypassing save() loses nothing: UserProfile is not an
+    # update_one with a pipeline, not profile.save(): save() never writes the donor fields of an
+    # existing profile (FIELDS_ONLY_DONOR_RECORDING_WRITES in sefaria/model/user_profile.py), so
+    # this is the only way they change. Bypassing save() loses nothing: UserProfile is not an
     # AbstractMongoRecord (no notify() callbacks), and save()'s side effects don't apply to
     # these fields.
     result = db.profiles.update_one({"id": user_id}, update)
