@@ -43,6 +43,12 @@ class NormalizedEmailAddress:
 
     Constructing one directly is for values that are already normalized (tests,
     deserialization). `parse` is the way in for raw input.
+
+    Why not emailusernames.utils.get_user, which also ignores case: webhook input can be
+    missing, null, or padded with spaces, and get_user would crash on the first two and miss
+    the third. It also returns only the account whose username is the hash of the address,
+    while donor_recording.py queries email__iexact so it can choose among accounts that
+    share an address.
     """
 
     value: str
