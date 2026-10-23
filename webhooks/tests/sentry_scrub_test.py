@@ -118,3 +118,40 @@ class TestSentryInitWiring:
         before_send_transaction = self.captured_init_arguments(monkeypatch)["before_send_transaction"]
         event = {"request": {"url": WEBHOOK_URL, "headers": {"svix-signature": "v1,abc"}, "data": {"a": 1}}}
         assert before_send_transaction(event, {}) == {"request": {"url": WEBHOOK_URL, "headers": {}}}
+
+
+class TestRemoveDonorTaskPayloads:
+
+    def test_the_task_name_matches_the_registered_task(self):
+        """settings_utils can't import the task (settings load before apps), so the name is copied; a rename must fail here, not silently stop the scrubbing."""
+        from webhooks.tasks import process_event_indicating_person_is_donor_task
+        assert settings_utils.DONOR_TASK_NAME == process_event_indicating_person_is_donor_task.name
+
+    def test_donor_failure_without_http_request_loses_arguments_and_all_locals(self):
+        event = event_with_frame_variables(NON_WEBHOOK_URL)
+        event.pop("request")
+        frames = event["exception"]["values"][0]["stacktrace"]["frames"]
+        frames.append({"function": "request", "vars": {"client_secret": "oauth-secret"}})
+        event["extra"] = {"celery-job": {
+            "task_name": settings_utils.DONOR_TASK_NAME,
+            "args": [{"email": "donor@example.com"}],
+            "kwargs": {"serialized_event": {"email": "donor@example.com"}},
+        }, "diagnostic": "keep"}
+        scrubbed = remove_webhook_secrets_and_payloads(event)
+        assert scrubbed["extra"] == {
+            "celery-job": {"task_name": settings_utils.DONOR_TASK_NAME}, "diagnostic": "keep"}
+        assert all("vars" not in frame for frame in frames)
+        assert frames[1]["function"] == "request"
+
+    def test_donor_transaction_without_celery_job_loses_locals(self):
+        event = event_with_frame_variables(NON_WEBHOOK_URL)
+        event.pop("request")
+        event["transaction"] = settings_utils.DONOR_TASK_NAME
+        assert "vars" not in first_frame(remove_webhook_secrets_and_payloads(event))
+
+    def test_unrelated_task_keeps_arguments_and_locals(self):
+        event = event_with_frame_variables(NON_WEBHOOK_URL)
+        event["extra"] = {"celery-job": {"task_name": "other.task", "args": [1], "kwargs": {}}}
+        scrubbed = remove_webhook_secrets_and_payloads(event)
+        assert scrubbed["extra"]["celery-job"]["args"] == [1]
+        assert "vars" in first_frame(scrubbed)

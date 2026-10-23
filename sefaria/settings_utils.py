@@ -17,13 +17,15 @@ IGNORED_EXCEPTIONS = (
 # webhook's shared secret and the Svix signature. Stored lowercase; compared against name.lower().
 WEBHOOK_SECRET_HEADER_NAMES = frozenset({"x-sefaria-webhook-secret", "svix-signature", "webhook-signature"})
 WEBHOOK_URL_PATH_PREFIX = "/api/webhooks/"
+DONOR_TASK_NAME = "webhooks.process_event_indicating_person_is_donor"
 
 
 def remove_webhook_secrets_and_payloads(event: dict) -> dict:
     """
     Remove everything from a Sentry event that could carry a webhook secret or payload.
     Secret headers go from every event; for events from a webhook URL, the request body, query
-    string and the local variables of every stack frame go too.
+    string and the local variables of every stack frame go too. Donor Celery events also
+    lose task arguments and all frame locals, which can contain donor data and OAuth secrets.
     """
     request = event.get("request") or {}
 
@@ -37,15 +39,23 @@ def remove_webhook_secrets_and_payloads(event: dict) -> dict:
         # hold the secret header, and we have no way to remove just that entry.
         request.pop("headers")
 
-    if urlsplit(request.get("url") or "").path.startswith(WEBHOOK_URL_PATH_PREFIX):
+    celery_job = (event.get("extra") or {}).get("celery-job")
+    is_donor_task = (
+        isinstance(celery_job, dict) and celery_job.get("task_name") == DONOR_TASK_NAME
+    ) or event.get("transaction") == DONOR_TASK_NAME
+    if is_donor_task and isinstance(celery_job, dict):
+        celery_job.pop("args", None)
+        celery_job.pop("kwargs", None)
+
+    if urlsplit(request.get("url") or "").path.startswith(WEBHOOK_URL_PATH_PREFIX) or is_donor_task:
         # The Sentry Django integration can attach the parsed request body to an error event. A
         # Classy payload carries card, account, billing-address and phone fields that must never
         # be stored anywhere, so a webhook request's body and query string are dropped entirely.
         request.pop("data", None)
         request.pop("query_string", None)
         # Sentry also captures the local variables of each stack frame. In the webhook views
-        # those are raw_body, headers and presented_secret, so they are dropped for these events
-        # only. include_local_variables stays on for every other request, where it helps debugging.
+        # those are raw_body, headers and presented_secret. Donor tasks can also capture donor
+        # emails and OAuth credentials in library frames, so remove locals from every frame.
         for frame in iter_event_frames(event):
             frame.pop("vars", None)
     return event
