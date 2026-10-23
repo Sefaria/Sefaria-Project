@@ -52,7 +52,15 @@ def retry_countdown_seconds(retries_so_far: int) -> int:
     bind=True,
     name="webhooks.process_event_indicating_person_is_donor",
     max_retries=MAX_RETRIES,
-    acks_late=True,      # a worker that dies mid-task leaves the message to be re-delivered
+    # The sender already got a 202, so a lost message is a lost donation. acks_late keeps the
+    # message unacknowledged until the task finishes, but on its own that only covers the whole
+    # worker going away. When just the child process running the task dies (OOM kill, SIGKILL),
+    # the surviving parent sees WorkerLostError and acknowledges the message unless
+    # reject_on_worker_lost is set, which makes it put the message back on the queue instead.
+    # The cost: a task that kills its process every time would be redelivered forever. This task
+    # only decodes a small dict and makes a few lookups, so that isn't a realistic risk here.
+    acks_late=True,
+    reject_on_worker_lost=True,
     ignore_result=True,
 )
 def process_event_indicating_person_is_donor_task(self: Any, serialized_event: dict) -> None:

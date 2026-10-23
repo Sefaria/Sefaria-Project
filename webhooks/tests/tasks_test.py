@@ -12,7 +12,11 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
+from billiard.einfo import ExceptionInfo
+from billiard.exceptions import WorkerLostError
+from celery.contrib.testing.mocks import TaskMessage
 from celery.exceptions import Retry
+from celery.worker.request import Request
 from structlog.testing import capture_logs
 
 from sefaria.donors import donor_recording
@@ -125,12 +129,49 @@ class TestProcessEventTask:
         assert [tasks.retry_countdown_seconds(n) for n in range(MAX_RETRIES)] == [30, 60, 120, 240, 480]
 
     def test_task_options(self):
-        """acks_late re-delivers a task whose worker died mid-run; results are never stored."""
+        """Results are never stored; the name is what the dispatcher sends."""
         assert process_event_indicating_person_is_donor_task.name == "webhooks.process_event_indicating_person_is_donor"
-        assert process_event_indicating_person_is_donor_task.acks_late is True
         assert process_event_indicating_person_is_donor_task.ignore_result is True
         assert process_event_indicating_person_is_donor_task.max_retries == MAX_RETRIES
 
     def test_the_number_of_retries_is_the_one_the_spec_promises(self):
         """Spec: five retries."""
         assert MAX_RETRIES == 5
+
+
+class TestWorkerProcessDyingMidTask:
+    """
+    What the worker does with the broker message when the child process running the task is
+    killed. Runs Celery's own Request.on_failure, the code that decides between acknowledging
+    (message gone) and rejecting with requeue (message delivered again), with the WorkerLostError
+    the parent process raises in that situation.
+    """
+
+    def broker_message_outcome_after_worker_lost(self):
+        on_ack, on_reject = MagicMock(), MagicMock()
+        request = Request(TaskMessage(process_event_indicating_person_is_donor_task.name, args=({},)),
+                          app=process_event_indicating_person_is_donor_task.app,
+                          task=process_event_indicating_person_is_donor_task,
+                          on_ack=on_ack, on_reject=on_reject)
+        try:
+            raise WorkerLostError("Worker exited prematurely: signal 9 (SIGKILL).")
+        except WorkerLostError:
+            request.on_failure(ExceptionInfo())
+        return on_ack, on_reject
+
+    def test_the_message_is_requeued_instead_of_acknowledged(self):
+        on_ack, on_reject = self.broker_message_outcome_after_worker_lost()
+
+        on_ack.assert_not_called()
+        on_reject.assert_called_once()
+        requeue = on_reject.call_args.args[2]
+        assert requeue is True
+
+    def test_without_reject_on_worker_lost_the_message_would_be_lost(self, monkeypatch):
+        """Pins why the option is set: acks_late alone acknowledges, so the donation would be gone."""
+        monkeypatch.setattr(process_event_indicating_person_is_donor_task, "reject_on_worker_lost", False)
+
+        on_ack, on_reject = self.broker_message_outcome_after_worker_lost()
+
+        on_ack.assert_called_once()
+        on_reject.assert_not_called()
