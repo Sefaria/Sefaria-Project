@@ -1,6 +1,8 @@
 """
 How an accepted event reaches processing. The view calls this one function and never
-touches Celery, so adding the inbox later changes only this function and the task wrapper.
+touches Celery. That keeps a possible future "inbox" contained here: a database table that
+records every accepted event before it is queued, so a task lost after the 202 could be
+replayed. Adding it would change only this function and the task wrapper.
 """
 
 from enum import Enum
@@ -17,7 +19,8 @@ logger = structlog.get_logger(__name__)
 
 
 class ProcessingMode(Enum):
-    # Sent in the 202 body: the gold-standard e2e test reads it to know whether to wait at all.
+    # Sent in the 202 body: e2e-tests/tests/strapi-donor-webhook-flow.spec.js reads it to know
+    # whether to wait for a worker at all.
     QUEUED = "queued"
     INLINE = "inline"
 

@@ -7,10 +7,8 @@ is that nonsense cannot be constructed: there is no way to hand the profile-writ
 donor without an email address, because DonorWithResolvedEmailAddress requires one.
 
 This module imports ONLY the standard library. sefaria/model/user_profile.py imports it,
-and webhook adapters import it at request time, so it must never pull in sefaria.model.
-
-See docs/superpowers/specs/2026-10-22-donor-status-webhooks-design.md §4 for why each type
-exists.
+and webhook adapters import it at request time, so it must never pull in sefaria.model
+(importing that connects to Mongo and builds the library, and would also be a circular import).
 """
 
 from collections.abc import Callable
@@ -23,8 +21,9 @@ class DonorStatus(Enum):
     """The persisted donor status. The values are the strings stored in Mongo and sent to the frontend."""
 
     DONOR = "donor"
-    # Reserved for the refund work: nothing writes it yet, because neither source reports
-    # "not a donor". Defining it now keeps the persisted value set from changing later.
+    # Reserved for handling refunds later: nothing writes it yet, because neither source
+    # reports "not a donor". Defining it now means the set of stored values won't have to
+    # change when that work arrives.
     NON_DONOR = "non_donor"
     UNKNOWN = "unknown"
 

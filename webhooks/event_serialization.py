@@ -1,7 +1,8 @@
 """
 JSON codec for domain events, because Celery arguments must be JSON.
 
-The same codec is the natural storage format if an inbox is added (spec §11).
+The same codec would be the storage format if an inbox is ever added (see dispatcher.py for
+what that is).
 """
 
 from datetime import datetime

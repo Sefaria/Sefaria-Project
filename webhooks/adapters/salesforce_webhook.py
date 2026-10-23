@@ -1,8 +1,10 @@
 """
-Our own Salesforce payload, sent by a Streamscript from a record-triggered Flow.
+Our own Salesforce payload, sent by a Streamscript (the Salesforce tool that makes the outgoing
+HTTP request) from a record-triggered Flow (an automation that runs when a record changes).
 
-The contract is ours to define (spec §7). It is validated strictly, except that an unknown
-eventType is ignored with a 200, so Salesforce-side Flows can change after a Sefaria deploy.
+The payload shape is ours to define, since Salesforce has no standard format for this. It is
+validated strictly, except that an unknown eventType is ignored with a 200, so a Salesforce
+admin can add a new Flow before Sefaria supports its event without causing errors or retries.
 
 Verification is a shared secret in a header, compared in constant time. The request comes
 over HTTPS from a system we configure, and a header is what Streamscript sends most simply.

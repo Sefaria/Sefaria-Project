@@ -1,6 +1,7 @@
 """
-View tests for webhooks/views.py: the whole response table (spec §5.4) through Django's test
-Client. The dispatcher is patched, so nothing is queued and no profile is touched.
+View tests for webhooks/views.py: every response the endpoints can give (202, 200, 400, 401,
+405, 503), through Django's test Client. The dispatcher is patched, so nothing is queued and
+no profile is touched.
 
 Requires the services a full request needs: resolving any URL imports reader.views, which
 imports sefaria.model (Mongo), and the middleware stack may also use the configured cache or

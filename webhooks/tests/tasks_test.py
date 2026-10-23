@@ -134,8 +134,11 @@ class TestProcessEventTask:
         assert process_event_indicating_person_is_donor_task.ignore_result is True
         assert process_event_indicating_person_is_donor_task.max_retries == MAX_RETRIES
 
-    def test_the_number_of_retries_is_the_one_the_spec_promises(self):
-        """Spec: five retries."""
+    def test_the_number_of_retries_is_the_one_the_docs_promise(self):
+        """
+        docs/agent_docs/apps/README.md and the retry comment in tasks.py both promise five
+        retries (about 15 minutes), so changing the number has to update them too.
+        """
         assert MAX_RETRIES == 5
 
 

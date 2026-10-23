@@ -106,7 +106,7 @@ def _donation_event_from_successful_transaction(transaction: dict, message_id: s
 
 
 def _svix_message_id(headers: Mapping[str, str]) -> str | None:
-    # Svix sends svix-id; the Standard Webhooks spelling webhook-id is accepted too, since
-    # which one GoFundMe Pro sends is still to be confirmed (spec §12 item 2).
+    # Svix sends svix-id; the Standard Webhooks spelling webhook-id is accepted too, because
+    # nobody has yet confirmed which of the two GoFundMe Pro actually sends.
     lowercased = lowercase_header_names(headers)
     return lowercased.get("svix-id") or lowercased.get("webhook-id")

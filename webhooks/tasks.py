@@ -2,8 +2,8 @@
 The Celery task that processes one donor event. A thin wrapper: decode, call the domain,
 retry what is transient.
 
-Conventions follow sefaria/helper/crm/tasks.py (bind=True, acks_late, ignore_result,
-explicit self.retry).
+Conventions follow sefaria/helper/crm/tasks.py: bind=True (so the task receives itself as
+`self` and can read self.request and call self.retry), acks_late, and ignore_result.
 """
 
 from typing import Any

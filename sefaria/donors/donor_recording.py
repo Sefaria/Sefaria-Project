@@ -1,12 +1,13 @@
 """
 Recording donor status on a user's profile.
 
-Functional core, imperative shell:
-  - donor_profile_update_after_event is the whole rule, as a pure function that returns a
-    Mongo update pipeline.
-  - mark_existing_user_profile_as_donor does the I/O through two small seams
-    (find_user_id_ensuring_profile_document, apply_update_to_user_profile). Tests replace the seams, and a
-    future sustainer sync or bulk import can call this same function without any webhook.
+Split in two so the rule can be tested without a database:
+  - donor_profile_update_after_event is the whole rule, as a pure function (same input, same
+    output, no database access) that returns a Mongo update pipeline.
+  - mark_existing_user_profile_as_donor does the database work through two small seams
+    (find_user_id_ensuring_profile_document, apply_update_to_user_profile). A seam is a
+    function that tests can swap for a fake. A future sustainer sync or bulk import can call
+    this same function without any webhook.
 
 The rule is applied by Mongo in ONE atomic update (an update pipeline, so MongoDB 4.2+), never
 as read-then-write in Python, because two Celery workers can process the Classy event and the
@@ -29,8 +30,9 @@ logger = structlog.get_logger(__name__)
 
 
 def donor_profile_update_after_event(occurred_at: datetime) -> list[dict]:
-    # No current-status parameter yet: status only ever moves to DONOR. The refund work adds
-    # one, together with a match over the incoming event type.
+    # No current-status parameter yet: status only ever moves to DONOR. When refunds are
+    # handled (a refund could move a donor back to NON_DONOR), this will need the current
+    # status and the type of the incoming event.
     #
     # An update PIPELINE, not the $min update operator. Profiles store became_donor_at: null until
     # someone donates (UserProfile.to_mongo_dict writes the default), and the operator form compares

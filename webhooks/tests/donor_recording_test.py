@@ -122,7 +122,7 @@ class TestMarkExistingUserProfileAsDonor:
         assert fake_profile_store.updates == [(7, donor_profile_update_after_event(MIDDLE))]
 
     def test_does_nothing_when_no_account_exists(self, fake_profile_store):
-        """Donors without a Sefaria account are not recorded in this PR (the ledger is future work)."""
+        """A donor with no Sefaria account is only logged; remembering them until they sign up isn't built yet."""
         fake_profile_store.user_id_to_find = None
 
         with capture_logs() as logs:

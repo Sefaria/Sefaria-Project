@@ -2,9 +2,9 @@
 Svix webhook signatures, checked with the standard library only.
 
 Written here instead of installing the `svix` package: that package is an API client for
-Svix's service and brings 12 other packages (httpx, pydantic, ...), none of which take part
-in checking a signature. The check itself is short and Svix documents it as a supported way
-to verify: https://docs.svix.com/receiving/verifying-payloads/how-manual
+Svix's service and depends on an HTTP client and validation libraries (httpx, pydantic, ...),
+none of which take part in checking a signature. The check itself is short and Svix documents
+it as a supported way to verify: https://docs.svix.com/receiving/verifying-payloads/how-manual
 
 How Svix signs a delivery:
   - The secret is "whsec_" followed by base64; the HMAC key is the decoded base64.

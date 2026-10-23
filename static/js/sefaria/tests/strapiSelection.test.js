@@ -638,11 +638,11 @@ describe("buildViewerContext().hasDismissed — corrupted storage is not fatal",
 
 // ── Donor audience ──────────────────────────────────────────────────────────
 // showToDonor / showToNonDonor are an independent AND-ed filter on top of the audience gate
-// (spec §8.3), and only showToDonor adds ranking specificity (§8.4). The truth table below
-// checks T1–T8 (§8.5) exhaustively over every input the donor gate can see: the two donor
-// boxes, showTo, the four user-kind boxes, and whether the viewer is logged in / a confirmed
-// donor. Sustainer status, locale, country and dismissal are held fixed, so this is exhaustive
-// over those inputs, not a proof over the whole viewer context.
+// (matchesDonorAudience), and only showToDonor adds ranking specificity (isDonorOnly). The
+// truth table below checks T1–T8 exhaustively over every input the donor gate can see: the two
+// donor boxes, showTo, the four user-kind boxes, and whether the viewer is logged in / a
+// confirmed donor. Sustainer status, locale, country and dismissal are held fixed, so this is
+// exhaustive over those inputs, not a proof over the whole viewer context.
 
 const donorOnly = { showToDonor: true, showToNonDonor: false };
 const nonDonorOnly = { showToDonor: false, showToNonDonor: true };
@@ -822,7 +822,7 @@ describe("donor audience — formal guarantees T1–T8, exhaustively", function 
 });
 
 describe("buildViewerContext().isConfirmedDonor", function () {
-  // The ONE place "unknown" becomes "not a donor" (spec §8.2).
+  // The ONE place "unknown" becomes "not a donor".
   const Sefaria = require("../sefaria").default;
   let saved;
   beforeEach(function () { saved = { donor_status: Sefaria.donor_status, is_sustainer: Sefaria.is_sustainer }; });

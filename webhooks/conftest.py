@@ -7,11 +7,12 @@ sys._called_from_test is set, which sefaria/conftest.py does — and that confte
 apply under webhooks/):
 
   1. Call the real Classy API. For the duration of each test, the client's module-level
-     requests.Session gets adapters that refuse every request (same technique as the
-     newsletter branch's api/conftest.py). monkeypatch restores the real adapters afterwards.
+     requests.Session gets adapters that refuse every request. monkeypatch restores the
+     real adapters afterwards.
   2. Write to Mongo profiles, or construct a UserProfile for a real email address (the
      constructor SAVES a new profile document when a Django user exists without one — see
-     the `if self.exists() and not user_registration:` block in UserProfile.__init__). Both donor_recording seams (find_user_id_ensuring_profile_document,
+     the `if self.exists() and not user_registration:` block in UserProfile.__init__).
+     Both donor_recording seams (find_user_id_ensuring_profile_document,
      apply_update_to_user_profile) are replaced with functions that fail loudly; a test
      that needs them patches them with its own fake.
 

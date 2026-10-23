@@ -43,7 +43,8 @@ SALESFORCE_WEBHOOK_ADAPTER = WebhookSourceAdapter(
 
 
 # csrf_exempt: webhook senders have no CSRF token, and they are authenticated by the signature
-# check in receive_webhook instead. strapi_cache_invalidate is csrf_exempt for the same reason.
+# check in receive_webhook instead. strapi_cache_invalidate (sefaria/views.py) is csrf_exempt
+# for the same reason.
 @csrf_exempt
 @require_POST
 def receive_classy_webhook(request) -> HttpResponse:
@@ -94,6 +95,7 @@ def _accept_event(webhook_source: str, event: EventIndicatingPersonIsDonor) -> H
     logger.info("webhook_event_accepted", webhook_source=webhook_source,
                 event_id_assigned_by_source=event.event_id_assigned_by_source,
                 processing_mode=processing_mode.value)
-    # processing_mode is sent only after verification and reveals nothing sensitive. The
-    # gold-standard e2e test reads it to know whether processing was queued or inline.
+    # processing_mode is sent only after verification and reveals nothing sensitive.
+    # e2e-tests/tests/strapi-donor-webhook-flow.spec.js reads it to know whether processing
+    # was queued or inline.
     return JsonResponse({"status": "accepted", "processing_mode": processing_mode.value}, status=202)

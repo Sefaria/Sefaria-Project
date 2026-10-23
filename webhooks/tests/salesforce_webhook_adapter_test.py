@@ -1,5 +1,5 @@
 """
-Unit tests for webhooks/adapters/salesforce_webhook.py — our own payload contract (spec §7).
+Unit tests for webhooks/adapters/salesforce_webhook.py — our own payload contract.
 """
 
 import copy
