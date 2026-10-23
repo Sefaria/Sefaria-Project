@@ -112,6 +112,49 @@ const bothAudiencesPayload = (listedFirst) => strapiPayload({
     : [donorBanner(DONOR_ONLY, THANKS_BANNER), donorBanner(NON_DONOR_ONLY, ASK_BANNER)],
 });
 
+// The thank-you documents in the status-change tests get delays of their own (distinct from
+// every other delay in this file), so waitForTimerArmed on them proves selection chose the
+// thank-you and not the ask, which shares the default delays above.
+const THANKS_BANNER_DELAY_SECONDS = 4;
+const THANKS_MODAL_DELAY_SECONDS = 8;
+
+/**
+ * One ask and one thank-you per surface, live in the SAME date window (the factory default),
+ * for a viewer who becomes a donor between two page loads.
+ *
+ * ASK_WINS_IF_THE_DONOR_GATE_BREAKS: after the reload, "the thank-you shows" must be able to
+ * fail. A donor-only document counts as audience-restricted for ranking (specificity 1) and a
+ * non-donor-only one does not (0), so a plain ask would lose to the thank-you even with the
+ * donor gate deleted. The ask is therefore also `showTo: logged_in_only` (specificity 1, tying
+ * the thank-you; the viewer is logged in, so it stays eligible), both are English-only with the
+ * same window, and the ask is listed FIRST, so payload order makes it win any tie. With the
+ * gate working, the ask is filtered out for a donor and the thank-you is all that is left.
+ *
+ * Every document is named explicitly, so the ask's dismissal key can never be the thank-you's.
+ */
+const askThenThanksPayload = () => strapiPayload({
+  modals: [
+    modal({
+      shared: { showDelay: MODAL_DELAY_SECONDS, showTo: 'logged_in_only', internalModalName: 'donor-change-ask-modal', ...NON_DONOR_ONLY },
+      locales: { en: { modalText: ASK_MODAL } },
+    }),
+    modal({
+      shared: { showDelay: THANKS_MODAL_DELAY_SECONDS, internalModalName: 'donor-change-thanks-modal', ...DONOR_ONLY },
+      locales: { en: { modalText: THANKS_MODAL } },
+    }),
+  ],
+  banners: [
+    banner({
+      shared: { showDelay: BANNER_DELAY_SECONDS, showTo: 'logged_in_only', internalBannerName: 'donor-change-ask-banner', ...NON_DONOR_ONLY },
+      locales: { en: { bannerText: ASK_BANNER } },
+    }),
+    banner({
+      shared: { showDelay: THANKS_BANNER_DELAY_SECONDS, internalBannerName: 'donor-change-thanks-banner', ...DONOR_ONLY },
+      locales: { en: { bannerText: THANKS_BANNER } },
+    }),
+  ],
+});
+
 /** Flip props.donor_status to "donor" as the inline script assigns DJANGO_VARS. */
 async function presentAsConfirmedDonor(page) {
   await page.addInitScript(() => {
@@ -214,6 +257,51 @@ test.describe('Strapi donor audience — logged-in reader', () => {
       strapi = await open(page, context, bothAudiencesPayload(listedFirst), { expectLoggedIn: true });
       expect(await page.evaluate(() => window.Sefaria.donor_status)).toBe('donor'); // the lever worked
       await elapseBothDelays(page);
+      await expectSurfacesShow(page, { modalText: THANKS_MODAL, notModalText: ASK_MODAL, bannerText: THANKS_BANNER, notBannerText: ASK_BANNER });
+    }));
+
+  // The same viewer, with the ask and the thank-you both live in the same window, becomes a donor
+  // between two page loads. Donor status reaches the browser only in the server-rendered page
+  // props, and selection runs once per page load, so the change must take effect at the next
+  // full page load, with this browser's localStorage carried across it.
+  //
+  // Two variants, because the viewer may or may not have closed the ask:
+  //   - ignored: nothing was dismissed, so after the reload only the donor gate can hide the
+  //     ask. This is the variant that proves the gate (see ASK_WINS_IF_THE_DONOR_GATE_BREAKS).
+  //   - closed: the ask's dismissal key is now in localStorage. This proves that key belongs to
+  //     the ask alone and the thank-you still shows. It cannot detect a broken donor gate, since
+  //     the dismissal alone already hides the ask.
+  //
+  // The real webhook, server and worker path into the next page load is covered by
+  // strapi-donor-webhook-flow.spec.js; here the status flips through presentAsConfirmedDonor.
+  [{ closesTheAsk: false }, { closesTheAsk: true }].forEach(({ closesTheAsk }) =>
+    test(`a viewer who becomes a donor gets the thank-you on the next page load (ask ${closesTheAsk ? 'closed' : 'ignored'} first)`, async ({ page, context }) => {
+      strapi = await open(page, context, askThenThanksPayload(), { expectLoggedIn: true });
+
+      // Load 1, as a non-donor: the ask shows on both surfaces.
+      await elapseBothDelays(page);
+      await expectSurfacesShow(page, { modalText: ASK_MODAL, notModalText: THANKS_MODAL, bannerText: ASK_BANNER, notBannerText: THANKS_BANNER });
+      if (closesTheAsk) {
+        // The modal's overlay covers the banner, so close the modal first.
+        await page.locator('#interruptingMessageClose').click();
+        await expect(modalBox(page)).toHaveCount(0);
+        await page.locator('#bannerMessageClose').click();
+        await expect(bannerBox(page)).toHaveCount(0);
+      }
+
+      // The viewer is now a donor. Load 2 is a full page reload in the same browser context,
+      // so localStorage survives; the init scripts re-pin the clock and reset the timer record.
+      await presentAsConfirmedDonor(page);
+      const responsesBeforeReload = strapiResponseCount(page);
+      await page.reload();
+      await waitForStrapiResponse(page, responsesBeforeReload);
+      expect(await page.evaluate(() => window.Sefaria.donor_status)).toBe('donor'); // the lever worked
+
+      // Waiting for the thank-you's own delays proves selection chose it: if the donor gate were
+      // broken the ask would win, only the ask's delays would be armed, and these waits would fail.
+      await waitForTimerArmed(page, THANKS_BANNER_DELAY_SECONDS * 1000);
+      await waitForTimerArmed(page, THANKS_MODAL_DELAY_SECONDS * 1000);
+      await advanceBy(page, THANKS_MODAL_DELAY_SECONDS * 1000 + 1000);
       await expectSurfacesShow(page, { modalText: THANKS_MODAL, notModalText: ASK_MODAL, bannerText: THANKS_BANNER, notBannerText: ASK_BANNER });
     }));
 
