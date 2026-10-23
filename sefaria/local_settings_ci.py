@@ -176,6 +176,12 @@ REDIS_URL = "redis://127.0.0.1"
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
+# Donor-status webhooks: off in CI (see local_settings_example.py).
+CLASSY_WEBHOOK_SECRET = None
+SALESFORCE_WEBHOOK_SECRET = None
+CLASSY_API_CLIENT_ID = None
+CLASSY_API_CLIENT_SECRET = None
+
 ENABLE_LINKER = False
 GPU_SERVER_URL = "http://localhost:5000"
 

@@ -2,6 +2,9 @@
 import {
   ContentType,
   ShowTo,
+  DonorStatus,
+  CONTENT_FIELDS,
+  selectionPriorityKey,
   isEligible,
   selectContent,
   isPathExcluded,
@@ -16,6 +19,7 @@ const viewer = (overrides = {}) => ({
   countryCandidates: new Set(["us"]),
   isLoggedIn: false,
   isSustainer: false,
+  isConfirmedDonor: false,
   isReturningVisitor: false,
   isNewVisitor: true,
   hasDismissed: () => false,
@@ -34,6 +38,8 @@ const modal = (overrides = {}) => ({
   showToNewVisitors: false,
   showToSustainers: false,
   showToNonSustainers: false,
+  showToDonor: false,
+  showToNonDonor: false,
   countriesToTarget: { en: null, he: null },
   buttonURL: { en: null, he: null },
   ...overrides,
@@ -49,6 +55,8 @@ const banner = (overrides = {}) => ({
   showToNewVisitors: false,
   showToSustainers: false,
   showToNonSustainers: false,
+  showToDonor: false,
+  showToNonDonor: false,
   countriesToTarget: { en: null, he: null },
   buttonURL: { en: null, he: null },
   ...overrides,
@@ -626,4 +634,214 @@ describe("buildViewerContext().hasDismissed — corrupted storage is not fatal",
     expect(() => buildViewerContext().hasDismissed("modal_test")).not.toThrow();
     expect(buildViewerContext().hasDismissed("modal_test")).toBe(false);
   });
+});
+
+// ── Donor audience ──────────────────────────────────────────────────────────
+// showToDonor / showToNonDonor are an independent AND-ed filter on top of the audience gate
+// (matchesDonorAudience), and only showToDonor adds ranking specificity (isDonorOnly). The
+// truth table below checks T1–T8 exhaustively over every input the donor gate can see: the two
+// donor boxes, showTo, the four user-kind boxes, and whether the viewer is logged in / a
+// confirmed donor. Sustainer status, locale, country and dismissal are held fixed, so this is
+// exhaustive over those inputs, not a proof over the whole viewer context.
+
+const donorOnly = { showToDonor: true, showToNonDonor: false };
+const nonDonorOnly = { showToDonor: false, showToNonDonor: true };
+
+const DONOR = { isLoggedIn: true, isReturningVisitor: true, isNewVisitor: false, isConfirmedDonor: true };
+const LOGGED_IN_NON_DONOR = { isLoggedIn: true, isReturningVisitor: true, isNewVisitor: false, isConfirmedDonor: false };
+const LOGGED_OUT = { isLoggedIn: false, isConfirmedDonor: false };
+
+[
+  { label: "modal", build: modal, contentType: ContentType.MODAL },
+  { label: "banner", build: banner, contentType: ContentType.BANNER },
+].forEach(({ label, build, contentType }) => {
+  // internalModalName or internalBannerName — how a test tells which document won.
+  const nameField = CONTENT_FIELDS[contentType].name;
+  const named = (name, flags = {}) => build({ ...flags, [nameField]: name });
+
+  describe(`donor audience — ${label}`, function () {
+    it("shows a donor-only document to a donor", function () {
+      expect(isEligible(build(donorOnly), viewer(DONOR), contentType)).toBe(true);
+    });
+
+    it("hides a donor-only document from logged-in non-donors and logged-out viewers", function () {
+      expect(isEligible(build(donorOnly), viewer(LOGGED_IN_NON_DONOR), contentType)).toBe(false);
+      expect(isEligible(build(donorOnly), viewer(LOGGED_OUT), contentType)).toBe(false);
+    });
+
+    it("shows a non-donor-only document to non-donors, logged in or out", function () {
+      expect(isEligible(build(nonDonorOnly), viewer(LOGGED_IN_NON_DONOR), contentType)).toBe(true);
+      expect(isEligible(build(nonDonorOnly), viewer(LOGGED_OUT), contentType)).toBe(true);
+    });
+
+    it("hides a non-donor-only document from a donor", function () {
+      expect(isEligible(build(nonDonorOnly), viewer(DONOR), contentType)).toBe(false);
+    });
+
+    it("selection skips the wrong-audience document even when it is listed first", function () {
+      const winner = selectContent([named("ask", nonDonorOnly), named("thanks", donorOnly)], viewer(DONOR), contentType);
+      expect(winner[nameField]).toBe("thanks");
+    });
+
+    it("a donor-only document outranks an otherwise identical unrestricted one, for donors", function () {
+      const winner = selectContent([named("catch-all"), named("thanks", donorOnly)], viewer(DONOR), contentType);
+      expect(winner[nameField]).toBe("thanks");
+    });
+
+    it("a non-donor-only document does NOT outrank an unrestricted one (payload order decides)", function () {
+      const winner = selectContent([named("catch-all"), named("ask", nonDonorOnly)], viewer(LOGGED_OUT), contentType);
+      expect(winner[nameField]).toBe("catch-all");
+    });
+  });
+});
+
+describe("donor audience — formal guarantees T1–T8, exhaustively", function () {
+  // [[1, 2], ["a", "b"]] -> [[1, "a"], [1, "b"], [2, "a"], [2, "b"]]. Every way of picking one
+  // element from each list, so the table below is built without nested flatMap pyramids.
+  const cartesianProduct = (...lists) =>
+    lists.reduce((combinations, list) => combinations.flatMap((combination) =>
+      list.map((element) => [...combination, element])), [[]]);
+
+  const booleans = [false, true];
+  const showToValues = [ShowTo.LOGGED_IN_ONLY, ShowTo.LOGGED_OUT_ONLY, ShowTo.EVERYONE];
+  const kindBoxCombinations = cartesianProduct(booleans, booleans, booleans, booleans).map(
+    ([returning, isNew, sustainers, nonSustainers]) => ({
+      showToReturningVisitors: returning, showToNewVisitors: isNew,
+      showToSustainers: sustainers, showToNonSustainers: nonSustainers,
+    }));
+  // A confirmed donor must have an account, so "donor but logged out" is impossible and is left out.
+  const viewerKinds = [
+    { viewerIsDonor: false, viewerIsLoggedIn: false },
+    { viewerIsDonor: false, viewerIsLoggedIn: true },
+    { viewerIsDonor: true, viewerIsLoggedIn: true },
+  ].map(({ viewerIsDonor, viewerIsLoggedIn }) => ({
+    viewerIsDonor,
+    viewerIsLoggedIn,
+    viewerContext: viewer({
+      isLoggedIn: viewerIsLoggedIn, isConfirmedDonor: viewerIsDonor, isSustainer: false,
+      isReturningVisitor: viewerIsLoggedIn, isNewVisitor: !viewerIsLoggedIn, // a logged-in user is always a returning visitor
+    }),
+  }));
+  const cases = cartesianProduct(booleans, booleans, showToValues, kindBoxCombinations, viewerKinds).map(
+    ([showToDonor, showToNonDonor, showTo, kindBoxes, viewerKind]) =>
+      ({ showToDonor, showToNonDonor, showTo, kindBoxes, ...viewerKind }));
+
+  const documentFor = ({ showToDonor, showToNonDonor, showTo, kindBoxes }) =>
+    modal({ showTo, ...kindBoxes, showToDonor, showToNonDonor });
+  // The same document as a pre-existing one: both donor boxes unticked.
+  const documentWithoutDonorBoxes = (c) => modal({ showTo: c.showTo, ...c.kindBoxes });
+  // A document published before the donor fields existed: the fields are absent, not false.
+  const documentWithoutDonorFields = (c) => {
+    const doc = documentWithoutDonorBoxes(c);
+    delete doc.showToDonor;
+    delete doc.showToNonDonor;
+    return doc;
+  };
+  const isEligibleFor = (doc, c) => isEligible(doc, c.viewerContext, ContentType.MODAL);
+  const rankKeyFor = (doc, c) => selectionPriorityKey(doc, c.viewerContext, CONTENT_FIELDS[ContentType.MODAL]);
+
+  const isDonorOnlyCase = (c) => c.showToDonor && !c.showToNonDonor;
+  const isNonDonorOnlyCase = (c) => !c.showToDonor && c.showToNonDonor;
+
+  // The spec's three-case table, written out independently of the implementation.
+  // Neither or both boxes ticked: no restriction. Exactly one ticked: donors only, or non-donors only.
+  const donorGateAllows = ({ showToDonor, showToNonDonor, viewerIsDonor }) => {
+    if (showToDonor === showToNonDonor) return true;
+    return showToDonor ? viewerIsDonor : !viewerIsDonor;
+  };
+
+  it("covers all 576 viewer-valid combinations", function () {
+    // 2 (showToDonor) × 2 (showToNonDonor) × 3 (showTo) × 16 (kind boxes) × 3 (viewers). The spec's
+    // "about 768" counted a fourth viewer, donor-but-logged-out, which cannot exist (donor status
+    // needs an account).
+    expect(cases.length).toBe(576);
+  });
+
+  it("the donor gate is a pure AND on top of the existing eligibility", function () {
+    cases.forEach((c) =>
+      expect(isEligibleFor(documentFor(c), c)).toBe(isEligibleFor(documentWithoutDonorBoxes(c), c) && donorGateAllows(c)));
+  });
+
+  it("T1: documents with neither box (or without the fields at all) keep their eligibility and rank", function () {
+    cases.filter((c) => !c.showToDonor && !c.showToNonDonor).forEach((c) => {
+      expect(isEligibleFor(documentFor(c), c)).toBe(isEligibleFor(documentWithoutDonorFields(c), c));
+      expect(rankKeyFor(documentFor(c), c)).toEqual(rankKeyFor(documentWithoutDonorFields(c), c));
+    });
+  });
+
+  it("T2: a donor never sees a non-donor-only document", function () {
+    cases.filter((c) => c.viewerIsDonor && isNonDonorOnlyCase(c))
+      .forEach((c) => expect(isEligibleFor(documentFor(c), c)).toBe(false));
+  });
+
+  it("T3: a non-donor (logged in or out) never sees a donor-only document", function () {
+    cases.filter((c) => !c.viewerIsDonor && isDonorOnlyCase(c))
+      .forEach((c) => expect(isEligibleFor(documentFor(c), c)).toBe(false));
+  });
+
+  it("T4: donor-only and non-donor-only split every viewer exactly", function () {
+    // Wherever the document is visible at all without the donor boxes, exactly one of the two
+    // single-box variants shows it to this viewer.
+    cases.filter((c) => isDonorOnlyCase(c) && isEligibleFor(documentWithoutDonorBoxes(c), c)).forEach((c) => {
+      const shownWhenDonorOnly = isEligibleFor(documentFor(c), c);
+      const shownWhenNonDonorOnly = isEligibleFor(documentFor({ ...c, showToDonor: false, showToNonDonor: true }), c);
+      expect(shownWhenDonorOnly).not.toBe(shownWhenNonDonorOnly);
+    });
+  });
+
+  it("T5: both boxes ticked behaves exactly like neither", function () {
+    cases.filter((c) => c.showToDonor && c.showToNonDonor).forEach((c) => {
+      const withNeitherBox = { ...c, showToDonor: false, showToNonDonor: false };
+      expect(isEligibleFor(documentFor(c), c)).toBe(isEligibleFor(documentFor(withNeitherBox), c));
+      expect(rankKeyFor(documentFor(c), c)).toEqual(rankKeyFor(documentFor(withNeitherBox), c));
+    });
+  });
+
+  it("T6: for non-donors, every eligible document ranks exactly as before", function () {
+    cases.filter((c) => !c.viewerIsDonor && isEligibleFor(documentFor(c), c)).forEach((c) =>
+      expect(rankKeyFor(documentFor(c), c)).toEqual(rankKeyFor(documentWithoutDonorBoxes(c), c)));
+  });
+
+  it("T7: ticking donor-only never lowers a document's rank", function () {
+    // selectionPriorityKey returns [-countrySpecificity, -audienceSpecificity, -localeSpecificity,
+    // windowLength, windowStart], so index 1 is the audience tier. The values are negated, so a
+    // smaller number is a higher rank. That donor-only strictly RAISES rank is shown by the
+    // ranking example test above; this checks it is never lowered, over every combination.
+    const AUDIENCE_TIER_INDEX = 1;
+    cases.filter(isDonorOnlyCase).forEach((c) => {
+      const rankWithDonorOnly = rankKeyFor(documentFor(c), c)[AUDIENCE_TIER_INDEX];
+      const rankWithoutDonorBoxes = rankKeyFor(documentWithoutDonorBoxes(c), c)[AUDIENCE_TIER_INDEX];
+      expect(rankWithDonorOnly).toBeLessThanOrEqual(rankWithoutDonorBoxes);
+    });
+  });
+
+  it("T8: logged-out-only combined with donor-only matches nobody", function () {
+    cases.filter((c) => c.showTo === ShowTo.LOGGED_OUT_ONLY && isDonorOnlyCase(c))
+      .forEach((c) => expect(isEligibleFor(documentFor(c), c)).toBe(false));
+  });
+});
+
+describe("buildViewerContext().isConfirmedDonor", function () {
+  // The ONE place "unknown" becomes "not a donor".
+  const Sefaria = require("../sefaria").default;
+  let saved;
+  beforeEach(function () { saved = { donor_status: Sefaria.donor_status, is_sustainer: Sefaria.is_sustainer }; });
+  // A key that was absent before the test is deleted, not set to undefined, so the shared
+  // Sefaria object does not gain own keys that leak into other tests.
+  afterEach(function () {
+    Object.entries(saved).forEach(([key, value]) => (value === undefined ? delete Sefaria[key] : (Sefaria[key] = value)));
+  });
+
+  [
+    { donor_status: DonorStatus.DONOR, is_sustainer: false, expected: true },
+    { donor_status: DonorStatus.NON_DONOR, is_sustainer: false, expected: false },
+    { donor_status: DonorStatus.UNKNOWN, is_sustainer: false, expected: false },
+    { donor_status: undefined, is_sustainer: false, expected: false },
+    { donor_status: DonorStatus.UNKNOWN, is_sustainer: true, expected: true },   // a sustainer has donated at least once
+    { donor_status: DonorStatus.NON_DONOR, is_sustainer: true, expected: true },
+  ].forEach(({ donor_status, is_sustainer, expected }) =>
+    it(`donor_status=${donor_status}, is_sustainer=${is_sustainer} → ${expected}`, function () {
+      Object.assign(Sefaria, { donor_status, is_sustainer });
+      expect(buildViewerContext().isConfirmedDonor).toBe(expected);
+    }));
 });

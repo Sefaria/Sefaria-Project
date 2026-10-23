@@ -190,6 +190,7 @@ INSTALLED_APPS = (
     'semantic_search',
     'django.contrib.postgres',
     'sso.apps.SsoConfig',
+    'webhooks',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
