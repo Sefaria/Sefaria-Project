@@ -86,6 +86,16 @@ class TestRemoveWebhookPayloads:
         event = {"request": {"url": NON_WEBHOOK_URL + "?next=/api/webhooks/", "data": {"a": 1}}}
         assert "data" in remove_webhook_secrets_and_payloads(event)["request"]
 
+    def test_a_url_that_is_not_a_string_is_scrubbed_without_raising(self):
+        """Unrecognizable means unsafe: the body goes, and the hook doesn't raise (Sentry would drop the event)."""
+        event = {"request": {"url": [WEBHOOK_URL], "data": {"card_number": "4111"}, "query_string": "x=1"}}
+        assert remove_webhook_secrets_and_payloads(event) == {"request": {"url": [WEBHOOK_URL]}}
+
+    def test_an_event_without_a_url_keeps_its_data(self):
+        """Background events have no request URL; that alone must not strip their debugging context."""
+        event = event_with_frame_variables(None)
+        assert first_frame(remove_webhook_secrets_and_payloads(event))["vars"] == {"raw_body": "card details", "presented_secret": "s3cret"}
+
 
 class TestSentryInitWiring:
     """init_sentry must install the scrub on BOTH error events and transaction events."""

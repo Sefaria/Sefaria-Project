@@ -3,6 +3,7 @@ from django.http import Http404
 import sentry_sdk
 from urllib.parse import urlsplit
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.types import Event, Hint
 from sentry_sdk.utils import iter_event_frames
 from remote_config import remoteConfigCache
 from remote_config.keys import SENTRY_CONFIG_JSON
@@ -20,7 +21,7 @@ WEBHOOK_URL_PATH_PREFIX = "/api/webhooks/"
 DONOR_TASK_NAME = "webhooks.process_event_indicating_person_is_donor"
 
 
-def remove_webhook_secrets_and_payloads(event: dict) -> dict:
+def remove_webhook_secrets_and_payloads(event: Event) -> Event:
     """
     Remove everything from a Sentry event that could carry a webhook secret or payload.
     Secret headers go from every event; for events from a webhook URL, the request body, query
@@ -47,7 +48,13 @@ def remove_webhook_secrets_and_payloads(event: dict) -> dict:
         celery_job.pop("args", None)
         celery_job.pop("kwargs", None)
 
-    if urlsplit(request.get("url") or "").path.startswith(WEBHOOK_URL_PATH_PREFIX) or is_donor_task:
+    url = request.get("url")
+    # A url that isn't a string can't be checked, so it is scrubbed as if it were a webhook URL,
+    # the same rule as unfilterable headers above. Passing it to urlsplit would raise instead,
+    # and Sentry silently drops an event whose before_send raises. No url at all (a Celery
+    # event) is not a webhook request.
+    is_webhook_request = urlsplit(url).path.startswith(WEBHOOK_URL_PATH_PREFIX) if isinstance(url, str) else url is not None
+    if is_webhook_request or is_donor_task:
         # The Sentry Django integration can attach the parsed request body to an error event. A
         # Classy payload carries card, account, billing-address and phone fields that must never
         # be stored anywhere, so a webhook request's body and query string are dropped entirely.
@@ -90,7 +97,7 @@ def init_sentry(sentry_dsn, sentry_code_version, sentry_environment):
 
         return remove_webhook_secrets_and_payloads(event)
 
-    def before_send_transaction(event, hint):
+    def before_send_transaction(event: Event, hint: Hint) -> Event:
         # Sentry calls this hook with (event, hint), unlike our one-argument scrub function.
         return remove_webhook_secrets_and_payloads(event)
 
