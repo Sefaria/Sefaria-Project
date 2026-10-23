@@ -37,7 +37,7 @@ classy_api_session = requests.Session()
 # 429 (Too Many Requests) means a burst of donations hit Classy's rate limit; 408 (Request
 # Timeout) means Classy gave up waiting on us. Both clear up on their own, like a 5xx, so
 # failing the task on them would lose a donation that a retry minutes later would record.
-TEMPORARY_CLIENT_ERROR_STATUS_CODES = frozenset({408, 429})
+TIMEOUT_AND_RATE_LIMIT_STATUS_CODES = frozenset({408, 429})
 
 
 class ClassyApiTemporaryFailure(Exception):
@@ -88,6 +88,6 @@ def _raise_for_unsuccessful_response(response: requests.Response) -> None:
     # 5xx, 429 and 408 are temporary (retry). Any other 4xx — bad credentials above all — is a
     # configuration problem that retrying can't fix, so it raises HTTPError and fails the task
     # at once.
-    if response.status_code >= 500 or response.status_code in TEMPORARY_CLIENT_ERROR_STATUS_CODES:
+    if response.status_code >= 500 or response.status_code in TIMEOUT_AND_RATE_LIMIT_STATUS_CODES:
         raise ClassyApiTemporaryFailure(f"Classy API answered {response.status_code}")
     response.raise_for_status()

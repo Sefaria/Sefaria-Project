@@ -12,7 +12,7 @@ apply under webhooks/):
   2. Write to Mongo profiles, or construct a UserProfile for a real email address (the
      constructor SAVES a new profile document when a Django user exists without one — see
      the `if self.exists() and not user_registration:` block in UserProfile.__init__).
-     Both donor_recording seams (find_user_id_ensuring_profile_document,
+     Both donor_recording seams (find_user_id_by_email_creating_profile_if_missing,
      apply_update_to_user_profile) are replaced with functions that fail loudly; a test
      that needs them patches them with its own fake.
 
@@ -61,9 +61,9 @@ def refuse_real_profile_reads_and_writes(monkeypatch):
     def refuse(*args, **kwargs):
         raise RuntimeError(
             "Tests must not read or write real user profiles. Patch "
-            "sefaria.donors.donor_recording.find_user_id_ensuring_profile_document / "
+            "sefaria.donors.donor_recording.find_user_id_by_email_creating_profile_if_missing / "
             "apply_update_to_user_profile with a fake."
         )
 
-    monkeypatch.setattr(donor_recording, "find_user_id_ensuring_profile_document", refuse)
+    monkeypatch.setattr(donor_recording, "find_user_id_by_email_creating_profile_if_missing", refuse)
     monkeypatch.setattr(donor_recording, "apply_update_to_user_profile", refuse)

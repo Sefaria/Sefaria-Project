@@ -2,11 +2,11 @@
 Recording donor status on a user's profile.
 
 Split in two so the rule can be tested without a database:
-  - donor_profile_update_after_event is the whole rule, as a pure function (same input, same
-    output, no database access) that returns a Mongo update pipeline.
-  - mark_existing_user_profile_as_donor does the database work through two small seams
-    (find_user_id_ensuring_profile_document, apply_update_to_user_profile). A seam is a
-    function that tests can swap for a fake. A future sustainer sync or bulk import can call
+  - build_update_pipeline_marking_profile_as_donor is the whole rule, as a pure function
+    (same input, same output, no database access).
+  - mark_existing_user_profile_as_donor does the database work through two small seams:
+    find_user_id_by_email_creating_profile_if_missing and apply_update_to_user_profile. A
+    seam is a function that tests can swap for a fake. A future sustainer sync or bulk import can call
     this same function without any webhook.
 
 The rule is applied by Mongo in ONE atomic update (an update pipeline, so MongoDB 4.2+), never
@@ -29,7 +29,7 @@ from sefaria.donors.types import (
 logger = structlog.get_logger(__name__)
 
 
-def donor_profile_update_after_event(occurred_at: datetime) -> list[dict]:
+def build_update_pipeline_marking_profile_as_donor(occurred_at: datetime) -> list[dict]:
     # No current-status parameter yet: status only ever moves to DONOR. When refunds are
     # handled (a refund could move a donor back to NON_DONOR), this will need the current
     # status and the type of the incoming event.
@@ -49,12 +49,12 @@ def donor_profile_update_after_event(occurred_at: datetime) -> list[dict]:
 
 
 def mark_existing_user_profile_as_donor(donor: DonorWithResolvedEmailAddress, event: EventIndicatingPersonIsDonor) -> None:
-    user_id = find_user_id_ensuring_profile_document(donor.email_address)
+    user_id = find_user_id_by_email_creating_profile_if_missing(donor.email_address)
     if user_id is None:
         # The email address is deliberately not logged.
         logger.info("donor_has_no_sefaria_account", event_id_assigned_by_source=event.event_id_assigned_by_source)
         return
-    update = donor_profile_update_after_event(event.occurred_at_according_to_source)
+    update = build_update_pipeline_marking_profile_as_donor(event.occurred_at_according_to_source)
     if not apply_update_to_user_profile(user_id, update):
         # The profile document was there a moment ago (the lookup makes sure of it) and is gone
         # now, for example deleted by an admin in between. Without this warning the donation
@@ -89,7 +89,7 @@ def most_recently_active_account(accounts):
     return max(accounts, key=lambda account: (account.last_login is not None, account.last_login or account.date_joined))
 
 
-def find_user_id_ensuring_profile_document(email_address: NormalizedEmailAddress) -> int | None:
+def find_user_id_by_email_creating_profile_if_missing(email_address: NormalizedEmailAddress) -> int | None:
     """
     The id of the Sefaria account with this email address, or None when there is none. When
     an id is returned, that user's profile document exists, so the donor update has something
@@ -127,8 +127,8 @@ def apply_update_to_user_profile(user_id: int, update: list[dict]) -> bool:
     from sefaria.system.database import db
 
     # update_one with a pipeline, not profile.save(): save() never writes the donor fields of an
-    # existing profile (FIELDS_ONLY_DONOR_RECORDING_WRITES in sefaria/model/user_profile.py), so
-    # this is the only way they change. Bypassing save() loses nothing: UserProfile is not an
+    # existing profile (DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION in
+    # sefaria/model/user_profile.py), so this is the only way they change. Bypassing save() loses nothing: UserProfile is not an
     # AbstractMongoRecord (no notify() callbacks), and save()'s side effects don't apply to
     # these fields.
     result = db.profiles.update_one({"id": user_id}, update)

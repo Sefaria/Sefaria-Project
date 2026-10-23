@@ -1,9 +1,9 @@
 """
 Unit tests for sefaria/donors/donor_recording.py.
 
-The decision (donor_profile_update_after_event) is pure and tested directly. The shell
-(mark_existing_user_profile_as_donor) is tested with the fake_profile_store fixture patched
-over its two seams, so no Mongo or Postgres is involved — the autouse guard in
+The decision (build_update_pipeline_marking_profile_as_donor) is pure and tested directly.
+The shell (mark_existing_user_profile_as_donor) is tested with the fake_profile_store fixture
+patched over its two seams, so no Mongo or Postgres is involved — the autouse guard in
 webhooks/conftest.py makes any unpatched seam fail loudly.
 """
 
@@ -16,7 +16,7 @@ from structlog.testing import capture_logs
 
 from sefaria.donors import donor_recording
 from sefaria.donors.donor_recording import (
-    donor_profile_update_after_event,
+    build_update_pipeline_marking_profile_as_donor,
     mark_existing_user_profile_as_donor,
     most_recently_active_account,
 )
@@ -44,14 +44,14 @@ def salesforce_event(occurred_at=MIDDLE):
 
 
 # ============================================================================
-# donor_profile_update_after_event — the pure decision
+# build_update_pipeline_marking_profile_as_donor — the pure decision
 # ============================================================================
 
-class TestDonorProfileUpdateAfterEvent:
+class TestBuildUpdatePipelineMarkingProfileAsDonor:
 
     def test_sets_donor_status_and_keeps_the_earliest_date_with_aggregation_min(self):
         """One $set stage makes the user a donor and lets Mongo keep the earliest date atomically."""
-        assert donor_profile_update_after_event(MIDDLE) == [{"$set": {
+        assert build_update_pipeline_marking_profile_as_donor(MIDDLE) == [{"$set": {
             "donor_status": "donor",
             "became_donor_at": {"$min": ["$became_donor_at", MIDDLE]},
         }}]
@@ -63,21 +63,21 @@ class TestDonorProfileUpdateAfterEvent:
         would keep that null forever. The aggregation $min over "$became_donor_at" skips null and
         missing values.
         """
-        update = donor_profile_update_after_event(MIDDLE)
+        update = build_update_pipeline_marking_profile_as_donor(MIDDLE)
         assert isinstance(update, list)
         assert update[0]["$set"]["became_donor_at"]["$min"][0] == "$became_donor_at"
         assert not any("$min" in stage for stage in update)
 
     def test_naive_event_date_is_read_as_utc(self):
         """Mongo compares dates by instant, so a naive date is made UTC-aware before it is sent."""
-        decided_date = donor_profile_update_after_event(datetime(2026, 6, 1))[0]["$set"]["became_donor_at"]["$min"][1]
+        decided_date = build_update_pipeline_marking_profile_as_donor(datetime(2026, 6, 1))[0]["$set"]["became_donor_at"]["$min"][1]
         assert decided_date == MIDDLE
         assert decided_date.tzinfo is timezone.utc
 
     def test_aware_non_utc_event_date_is_converted_to_utc(self):
         """An offset timestamp keeps its instant; only the zone changes."""
         eastern = datetime(2026, 5, 31, 20, 0, tzinfo=timezone(timedelta(hours=-4)))
-        decided_date = donor_profile_update_after_event(eastern)[0]["$set"]["became_donor_at"]["$min"][1]
+        decided_date = build_update_pipeline_marking_profile_as_donor(eastern)[0]["$set"]["became_donor_at"]["$min"][1]
         assert decided_date == datetime(2026, 6, 1, tzinfo=timezone.utc)
         assert decided_date.tzinfo is timezone.utc
 
@@ -100,7 +100,7 @@ class FakeProfileStore:
 def fake_profile_store(monkeypatch):
     store = FakeProfileStore(user_id_to_find=7)
 
-    def find_user_id_ensuring_profile_document(email_address):
+    def find_user_id_by_email_creating_profile_if_missing(email_address):
         store.looked_up_addresses.append(email_address)
         return store.user_id_to_find
 
@@ -108,7 +108,8 @@ def fake_profile_store(monkeypatch):
         store.updates.append((user_id, update))
         return store.update_matches_a_document
 
-    monkeypatch.setattr(donor_recording, "find_user_id_ensuring_profile_document", find_user_id_ensuring_profile_document)
+    monkeypatch.setattr(donor_recording, "find_user_id_by_email_creating_profile_if_missing",
+                        find_user_id_by_email_creating_profile_if_missing)
     monkeypatch.setattr(donor_recording, "apply_update_to_user_profile", apply_update_to_user_profile)
     return store
 
@@ -119,7 +120,7 @@ class TestMarkExistingUserProfileAsDonor:
         """The seam receives exactly (user id, the pure update pipeline)."""
         mark_existing_user_profile_as_donor(DonorWithResolvedEmailAddress(DONOR_ADDRESS), salesforce_event(MIDDLE))
 
-        assert fake_profile_store.updates == [(7, donor_profile_update_after_event(MIDDLE))]
+        assert fake_profile_store.updates == [(7, build_update_pipeline_marking_profile_as_donor(MIDDLE))]
 
     def test_does_nothing_when_no_account_exists(self, fake_profile_store):
         """A donor with no Sefaria account is only logged; remembering them until they sign up isn't built yet."""

@@ -38,7 +38,7 @@ CLASSY_EVENT_WITHOUT_ADDRESS = DonationReceivedFromClassy("msg_1", OCCURRED_AT, 
 @pytest.fixture
 def profile_writes(monkeypatch):
     writes = []
-    monkeypatch.setattr(donor_recording, "find_user_id_ensuring_profile_document", lambda email: 7)
+    monkeypatch.setattr(donor_recording, "find_user_id_by_email_creating_profile_if_missing", lambda email: 7)
     monkeypatch.setattr(donor_recording, "apply_update_to_user_profile", lambda user_id, update: writes.append((user_id, update)) or True)
     return writes
 

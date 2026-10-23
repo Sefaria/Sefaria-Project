@@ -51,7 +51,7 @@ from sefaria.donors.types import DonorStatus
 # Profile fields that save() writes only when it creates the document. Every other save leaves
 # them as stored, because the donor webhook can change them while a request holds an older copy
 # of the profile: writing that copy's value back, even "unknown", would undo the donation.
-FIELDS_ONLY_DONOR_RECORDING_WRITES = ("donor_status", "became_donor_at")
+DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION = ("donor_status", "became_donor_at")
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
@@ -446,8 +446,8 @@ class UserProfile(object):
         self.experiments = False
         # Only the donor webhook path (sefaria/donors/donor_recording.py) changes these, with one
         # atomic update_one. save() writes them only when it creates the document (see
-        # FIELDS_ONLY_DONOR_RECORDING_WRITES), and user input cannot set them: the profile_api
-        # POST in reader/views.py strips both. Kept as the raw stored string, because update()
+        # DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION), and user input cannot set them:
+        # the profile_api POST in reader/views.py strips both. Kept as the raw stored string, because update()
         # copies Mongo values straight into __dict__; read it through DonorStatus.from_stored_value.
         self.donor_status = DonorStatus.UNKNOWN.value
         self.became_donor_at = None
@@ -567,7 +567,9 @@ class UserProfile(object):
             # changed in between (the donor webhook, or the spam dashboard's "reviewed" flag).
             # $setOnInsert covers a document deleted since it was loaded: upsert recreates it,
             # and only then are the donor fields written.
-            fields_written_on_creation_only = {name: d.pop(name) for name in FIELDS_ONLY_DONOR_RECORDING_WRITES}
+            fields_written_on_creation_only = {
+                name: d.pop(name) for name in DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION
+            }
             db.profiles.update_one(
                 {'_id': self._id},
                 {'$set': d, '$setOnInsert': fields_written_on_creation_only},

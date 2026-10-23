@@ -2,8 +2,8 @@
 UserProfile.save() against REAL MongoDB: what it writes, and what it leaves alone.
 
 save() updates an existing profile with $set of its fields, except the donor fields, which it
-writes only when it creates the document (FIELDS_ONLY_DONOR_RECORDING_WRITES). These tests pin
-both halves: the donor webhook's update survives a save from a request that loaded the profile
+writes only when it creates the document (DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION).
+These tests pin both halves: the donor webhook's update survives a save from a request that loaded the profile
 earlier, and every other field is still written exactly as before.
 
 Each test uses a user id far above any real one and deletes its profile document afterwards, so
@@ -16,7 +16,7 @@ from datetime import datetime
 
 import pytest
 
-from sefaria.model.user_profile import FIELDS_ONLY_DONOR_RECORDING_WRITES, UserProfile
+from sefaria.model.user_profile import DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION, UserProfile
 from sefaria.system.database import db
 
 DONATED_AT = datetime(2026, 9, 15, 16, 0)   # naive UTC, as pymongo returns it
@@ -87,7 +87,7 @@ class TestEverythingElseIsStillWritten:
         profile.save()
 
         expected = {name: value for name, value in profile.to_mongo_dict().items()
-                    if name not in FIELDS_ONLY_DONOR_RECORDING_WRITES}
+                    if name not in DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION}
         stored = stored_profile(unused_user_id)
         assert {name: stored[name] for name in expected} == expected
 

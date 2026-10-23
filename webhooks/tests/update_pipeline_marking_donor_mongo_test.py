@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from sefaria.donors import donor_recording
-from sefaria.donors.donor_recording import apply_update_to_user_profile, donor_profile_update_after_event
+from sefaria.donors.donor_recording import apply_update_to_user_profile, build_update_pipeline_marking_profile_as_donor
 from sefaria.system import database
 
 # Imported above, at collection time, so this is the real function. webhooks/conftest.py replaces
@@ -55,7 +55,7 @@ def scratch_profiles(monkeypatch):
 
 
 def record_donation(occurred_at):
-    return donor_recording.apply_update_to_user_profile(USER_ID, donor_profile_update_after_event(occurred_at))
+    return donor_recording.apply_update_to_user_profile(USER_ID, build_update_pipeline_marking_profile_as_donor(occurred_at))
 
 
 def stored_profile(profiles):
