@@ -36,7 +36,9 @@ export function placeOf(b: Pick<Bookmark, "book" | "ref">): string {
 
 const DAY = 86_400_000;
 export function relativeDay(updated: number, now: number, lang: "en" | "he"): string {
-  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: "auto" });
+  const fmt = new Intl.RelativeTimeFormat(lang, { numeric: "auto" });
+  // Hebrew dual forms come out as "לפני שבועיים (2)"
+  const rtf = { format: (n: number, unit: Intl.RelativeTimeFormatUnit) => fmt.format(n, unit).replace(/\s*\(\d+\)$/, "") };
   const days = Math.max(0, Math.floor((now - updated) / DAY));
   if (days < 7) return rtf.format(-days, "day");
   if (days < 30) return rtf.format(-Math.floor(days / 7), "week");

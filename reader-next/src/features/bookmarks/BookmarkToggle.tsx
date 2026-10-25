@@ -88,7 +88,7 @@ export function BookmarkToggle({ book, at, main = false }: { book: string; at: s
             <div className={styles.layout}>
               {mine ? (
                 <>
-                  <p className={styles.hint}><InterfaceText en="Your layout is saved with this bookmark as you change it." he="הפריסה שלך נשמרת עם הסימנייה בכל שינוי." /></p>
+                  <p className={styles.hint}><InterfaceText en="Your layout is saved with this bookmark as you change it." he="הפריסה נשמרת עם הסימנייה בכל שינוי." /></p>
                   {panelOrder(ws).length > 1 ? (
                     <Button size="sm" variant="secondary" block onClick={toStandard}>
                       <Icon name="columns" size="16px" />
@@ -98,14 +98,14 @@ export function BookmarkToggle({ book, at, main = false }: { book: string; at: s
                 </>
               ) : savedHasMore ? (
                 <>
-                  <p className={styles.hint}><InterfaceText en="Showing the standard layout. Your saved layout is kept." he="מוצגת הפריסה הרגילה. הפריסה השמורה שלך לא נמחקה." /></p>
+                  <p className={styles.hint}><InterfaceText en="Showing the standard layout. Your saved layout is kept." he="מוצגת הפריסה הרגילה. הפריסה השמורה לא נמחקה." /></p>
                   <Button size="sm" variant="secondary" block onClick={toMine}>
                     <Icon name="saved-layout" size="16px" />
-                    <InterfaceText en="Switch back to my layout" he="חזרה לפריסה שלי" />
+                    <InterfaceText en="Switch back to my layout" he="חזרה לפריסה השמורה" />
                   </Button>
                 </>
               ) : (
-                <p className={styles.hint}><InterfaceText en="Open a commentary beside the text and it is saved with this bookmark." he="פרשן שתפתחו לצד הטקסט יישמר עם הסימנייה." /></p>
+                <p className={styles.hint}><InterfaceText en="Open a commentary beside the text and it is saved with this bookmark." he="מפרש שייפתח לצד הטקסט יישמר עם הסימנייה." /></p>
               )}
             </div>
           ) : null}

@@ -23,7 +23,7 @@ export function Bookshelf() {
     <section className={styles.shelf} aria-labelledby="bookshelf-title">
       <div className={styles.head}>
         <h2 id="bookshelf-title" className={styles.title}>
-          <InterfaceText en="Continue learning" he="להמשיך ללמוד" />
+          <InterfaceText en="Continue learning" he="המשך לימוד" />
         </h2>
         <Link className={styles.all} href="/bookmarks">
           {books.length > SHOWN ? <InterfaceText en={`All ${books.length}`} he={`כל ה־${books.length}`} /> : <InterfaceText en="Bookmarks" he="סימניות" />}

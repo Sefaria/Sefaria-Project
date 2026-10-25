@@ -20,5 +20,6 @@ describe("bookmark labels", () => {
     expect(relativeDay(now - 2 * day, now, "en")).toBe("2 days ago");
     expect(relativeDay(now - 20 * day, now, "en")).toBe("2 weeks ago");
     expect(relativeDay(now - 400 * day, now, "en")).toBe("last year");
+    expect(relativeDay(now - 20 * day, now, "he")).not.toMatch(/\(/);
   });
 });

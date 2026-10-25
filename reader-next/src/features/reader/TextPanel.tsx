@@ -640,7 +640,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
             { key: "resources", label: <InterfaceText en="Resources" he="קישורים וכלים" />, icon: "layers", onSelect: () => openResources(menu.ref) },
             ...(myLayoutHere ? [{ key: "my-layout", label: <InterfaceText en="Open my saved layout" he="פתיחת הפריסה השמורה" />, icon: "saved-layout" as const, onSelect: () => void myLayoutHere() }] : []),
             bookmark
-              ? { key: "bookmark", label: bookmark.ref === menu.ref ? <InterfaceText en="Your bookmark is here" he="הסימנייה שלך כאן" /> : <InterfaceText en="Move bookmark here" he="העברת הסימנייה לכאן" />, icon: "bookmark", disabled: bookmark.ref === menu.ref, onSelect: () => moveBookmark(current.passage.indexTitle, menu.ref) }
+              ? { key: "bookmark", label: bookmark.ref === menu.ref ? <InterfaceText en="Your bookmark is here" he="הסימנייה כאן" /> : <InterfaceText en="Move bookmark here" he="העברת הסימנייה לכאן" />, icon: "bookmark", disabled: bookmark.ref === menu.ref, onSelect: () => moveBookmark(current.passage.indexTitle, menu.ref) }
               : { key: "bookmark", label: <InterfaceText en="Bookmark here" he="הוספת סימנייה כאן" />, icon: "bookmark", onSelect: () => addBookmark(current.passage.indexTitle, menu.ref) },
             ...(menuWord
               ? [{
