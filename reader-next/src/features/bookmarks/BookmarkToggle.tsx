@@ -12,7 +12,7 @@ import { ModeSwitch, modeHint } from "./ModeSwitch";
 import styles from "./BookmarkToggle.module.css";
 
 /**
- * The text panel's bookmark star. Clicking it on an unbookmarked book bookmarks the segment being read and opens a small
+ * The text panel's bookmark button. Clicking it on an unbookmarked book bookmarks the segment being read and opens a small
  * card; on a bookmarked book it opens the card, which moves, re-modes or removes the bookmark.
  */
 export function BookmarkToggle({ book, at }: { book: string; at: string }) {
@@ -36,7 +36,7 @@ export function BookmarkToggle({ book, at }: { book: string; at: string }) {
       open={open}
       onOpenChange={change}
       label={`Bookmark for ${book}`}
-      trigger={(p) => <IconButton {...p} icon="star" pressed={Boolean(bookmark)} label={bookmark ? `${book} is bookmarked` : `Bookmark ${book}`} />}
+      trigger={(p) => <IconButton {...p} icon="bookmark" pressed={Boolean(bookmark)} label={bookmark ? `${book} is bookmarked` : `Bookmark ${book}`} />}
     >
       {bookmark ? (
         <div className={styles.card}>

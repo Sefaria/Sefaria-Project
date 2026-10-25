@@ -20,13 +20,4 @@ test.describe("reading history and Save, signed out", () => {
     await expect.poll(async () => (await history())[0]?.ref).toBe("Genesis 1:3");
     expect(posts).toEqual([]);
   });
-
-  test("Save asks to sign up and sends nothing", async ({ page }) => {
-    const posts: string[] = [];
-    page.on("request", (r) => r.method() === "POST" && r.url().includes("/api/profile/sync") && posts.push(r.url()));
-    await open(page, "/Genesis.1?lang=en");
-    await page.locator("main header").first().getByRole("button", { name: /^Save "/ }).click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-    expect(posts).toEqual([]);
-  });
 });

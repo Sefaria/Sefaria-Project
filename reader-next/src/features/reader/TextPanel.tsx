@@ -43,7 +43,6 @@ import { ConnectionsPane } from "./ConnectionsPane";
 import { RefPreviews } from "../study/RefPreview";
 import styles from "./TextPanel.module.css";
 import { setMobileMenuOpen } from "../shell/mobile-menu";
-import { SignUpModal } from "~/ui/SignUpModal/SignUpModal";
 import type { ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
 import { SETTLE_MS } from "./use-reading-scroll";
@@ -54,7 +53,7 @@ import { legacyVersions } from "~/lib/user/history";
 import { linksQueryOptions } from "~/lib/connections/queries";
 import { linkedSegmentsIn, sectionOfSegment } from "~/lib/workspace/linked-verses";
 import { announceLinkedVerse, announceReading, onLinkedVerse, onReading } from "../workspace/linked-verse";
-import { useReaderHistory, useSaved, type PanelPlace } from "./use-reader-history";
+import { useReaderHistory, type PanelPlace } from "./use-reader-history";
 
 export interface TextPanelProps {
   panel: TextPanelState;
@@ -106,7 +105,6 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const location = useLocation();
   const qc = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [saveAsked, setSaveAsked] = useState(false);
   const id = panel.id;
   // The URL's versions when it names any, else what the loader resolved from the reader's preferences (VER-014).
   const versions = panel.versions.translation || panel.versions.primary ? panel.versions : data.versions;
@@ -575,7 +573,6 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     };
   }, [view, deferredRefs, sidebarSection, section.sectionRef, section.heSectionRef, section.indexTitle, panel.versions, settings.language]);
   useReaderHistory(viewer, place, Boolean(view));
-  const save = useSaved(viewer, place, () => setSaveAsked(true));
   const header = headerLabels({
     sectionRef: section.sectionRef, heSectionRef: section.heSectionRef, categories: section.categories,
     translationVersion: section.translationVersion, primaryVersion: section.primaryVersion, language: settings.language, interfaceLang,
@@ -713,12 +710,6 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
           <LayoutSwitch panel={id} book={current.passage.indexTitle} />
           <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} />
-          <IconButton
-            icon="bookmark"
-            pressed={viewer ? save.isSaved : undefined}
-            label={save.isSaved ? `Remove "${place?.ref ?? section.ref}"` : `Save "${place?.ref ?? section.ref}"`}
-            onClick={save.click}
-          />
           <Popover
             open={menuOpen}
             onOpenChange={setMenuOpen}
@@ -738,7 +729,6 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       />
       </div>
       {menu ? <ContextMenu x={menu.x} y={menu.y} label={menu.ref} groups={menuGroups} onClose={closeMenu} /> : null}
-      <SignUpModal kind={saveAsked ? "save" : undefined} onClose={() => setSaveAsked(false)} next={typeof window === "undefined" ? "/" : window.location.href} />
       <div ref={bannerBox}>
       {transBanner ? (
         <TextColumnBanner
