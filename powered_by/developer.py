@@ -19,12 +19,12 @@ from django.contrib.auth import SESSION_KEY, get_user_model
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.exceptions import InputError
-from .models import ApiKey, Project, SubmissionSource
+from .models import ApiKey, ApiProject, Project, SubmissionSource
 
 
 MAX_KEYS_PER_PROJECT = 5
@@ -270,18 +270,20 @@ def serialize_key(api_key):
     }
 
 
-def serialize_project(project):
-    keys = [k for k in project.api_keys.all() if k.revoked_at is None]
+def serialize_project(api_project):
+    profile = api_project.profile
+    keys = [k for k in api_project.api_keys.all() if k.revoked_at is None]
     return {
-        "id": str(project.id),
-        "name": project.project_name,
-        "description": project.project_desc,
-        "organization": project.organization,
-        "websiteUrl": project.project_link,
-        "visibility": "public" if project.consent_to_display else "private",
-        "aiAssisted": project.vibe_coded,
-        "linkedListing": project.submission_source != SubmissionSource.DEVELOPER_SETTINGS,
-        "consentWithdrawnAt": iso(project.consent_withdrawn_at),
+        "id": str(api_project.id),
+        "name": profile.project_name,
+        "description": profile.project_desc,
+        "organization": profile.organization,
+        "websiteUrl": profile.project_link,
+        "visibility": "public" if profile.consent_to_display else "private",
+        "aiAssisted": profile.vibe_coded,
+        "linkedListing": profile.submission_source != SubmissionSource.DEVELOPER_SETTINGS,
+        "consentWithdrawnAt": iso(profile.consent_withdrawn_at),
+        "contactEmail": api_project.contact_email,
         "keys": [serialize_key(k) for k in keys],
     }
 
@@ -296,8 +298,9 @@ def public_listing(project):
 
 
 def owned_projects(user):
-    return (Project.objects.filter(owner=user, deleted_at__isnull=True)
-            .prefetch_related("api_keys").order_by("-created_at"))
+    """The account's live API projects, each with its profile and keys."""
+    return (ApiProject.objects.filter(owner=user, deleted_at__isnull=True)
+            .select_related("profile").prefetch_related("api_keys").order_by("-created_at"))
 
 
 def unclaimed_listings(user, profile):
@@ -309,8 +312,14 @@ def unclaimed_listings(user, profile):
 
 
 def listings_submitted_by(user):
-    return (Project.objects.filter(owner__isnull=True, deleted_at__isnull=True, creator_email__iexact=user.email)
-            .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS))
+    """
+    Profiles submitted outside developer settings with this account's email and no live API project.
+    A profile an older image or staff soft-deleted (its frozen deleted_at, which the public endpoint also honours) is
+    not offered: claiming it would hand out a listing that stays hidden from the public endpoint for good.
+    """
+    return (Project.objects.filter(creator_email__iexact=user.email, deleted_at__isnull=True)
+            .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS)
+            .exclude(id__in=ApiProject.objects.filter(deleted_at__isnull=True).values("profile_id")))
 
 
 def developer_state(request):
@@ -350,7 +359,12 @@ FIELD_LABELS = {
     "name": "The project name",
     "organization": "The organization",
     "websiteUrl": "The website",
+    "contactEmail": "The contact email",
 }
+
+
+# api_project.contact_email is a varchar(254), the length of an email address.
+CONTACT_EMAIL_MAX_LENGTH = 254
 
 
 def _text(data, field, max_length=255):
@@ -511,6 +525,8 @@ def clean_project_fields(data):
         "websiteUrl": _text(data, "websiteUrl", 200),
         "visibility": data.get("visibility"),
         "aiAssisted": bool(data.get("aiAssisted")),
+        # None when the request leaves it out, so an edit keeps the stored address.
+        "contactEmail": _text(data, "contactEmail", CONTACT_EMAIL_MAX_LENGTH) if "contactEmail" in data else None,
     }
     if not fields["name"]:
         raise InputError("Give the project a name.")
@@ -521,6 +537,11 @@ def clean_project_fields(data):
             _url_validator(fields["websiteUrl"])
         except ValidationError:
             raise InputError("The website is not a valid web address.")
+    if fields["contactEmail"]:
+        try:
+            validate_email(fields["contactEmail"])
+        except ValidationError:
+            raise InputError("The contact email is not a valid address.")
     return fields
 
 
@@ -548,19 +569,24 @@ def _set_visibility(project, visibility):
 def get_owned_project(user, project_id):
     try:
         return owned_projects(user).get(id=int(project_id))
-    except (Project.DoesNotExist, ValueError):
+    except (ApiProject.DoesNotExist, ValueError):
         raise LookupError("No such project.")
 
 
 def _lock_owned_project(user, project_id):
     """
-    The owned, undeleted project with its row locked until the transaction ends, so key creation,
+    The owned, undeleted API project with its row locked until the transaction ends, so key creation,
     project edits and deletion of one project run one at a time. Call inside transaction.atomic().
+
+    The profile is read only after the lock is held: one joined into the locking query can be the version from
+    before the edit this lock waited for, since Postgres re-checks only the locked row.
     """
     try:
-        return Project.objects.select_for_update().get(id=int(project_id), owner=user, deleted_at__isnull=True)
-    except (Project.DoesNotExist, ValueError):
+        api_project = ApiProject.objects.select_for_update().get(id=int(project_id), owner=user, deleted_at__isnull=True)
+    except (ApiProject.DoesNotExist, ValueError):
         raise LookupError("No such project.")
+    api_project.profile = Project.objects.get(pk=api_project.profile_id)
+    return api_project
 
 
 def max_projects(user):
@@ -577,21 +603,27 @@ def _check_project_limit(user):
         raise InputError("An account can have at most {} projects. To add more, contact hello@sefaria.org.".format(limit))
 
 
+def _unpublish(profile):
+    profile.consent_to_display = False
+    profile.is_published = False
+    profile.save()
+
+
 @transaction.atomic
 def create_project(user, data):
+    """Creates the profile of a settings-made project and its API project. Returns the API project."""
     fields = clean_project_fields(data)
     _check_project_limit(user)
-    project = Project(
+    profile = Project(
         submission_source=SubmissionSource.DEVELOPER_SETTINGS,
         submission_date=timezone.now(),
-        owner=user,
         creator=user.get_full_name(),
         creator_email=user.email,
         consent_to_display=fields["visibility"] == "public",
     )
-    _apply_fields(project, fields)
-    project.save()
-    return project
+    _apply_fields(profile, fields)
+    profile.save()
+    return ApiProject.objects.create(profile=profile, owner=user, contact_email=fields["contactEmail"] or "")
 
 
 @transaction.atomic
@@ -600,63 +632,81 @@ def update_project(user, project_id, data):
     Restricted keys follow the website to a new address. The website can't be removed while any
     key is restricted to it: that would quietly let the key work from anywhere.
     """
-    project = _lock_owned_project(user, project_id)
+    api_project = _lock_owned_project(user, project_id)
+    profile = api_project.profile
     fields = clean_project_fields(data)
-    old_link = project.project_link
-    restricted_keys = project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[])
+    old_link = profile.project_link
+    restricted_keys = api_project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[])
     if old_link and not fields["websiteUrl"] and restricted_keys.exists():
         raise InputError(WEBSITE_IN_USE_ERROR)
-    _apply_fields(project, fields)
-    _set_visibility(project, fields["visibility"])
-    project.save()
-    if project.project_link != old_link:
+    _apply_fields(profile, fields)
+    _set_visibility(profile, fields["visibility"])
+    profile.save()
+    if fields["contactEmail"] is not None:
+        api_project.contact_email = fields["contactEmail"]
+    api_project.save()
+    if profile.project_link != old_link:
         for api_key in restricted_keys:
-            api_key.allowed_origins = [origin_of(project.project_link)]
+            api_key.allowed_origins = [origin_of(profile.project_link)]
             api_key.save(update_fields=["allowed_origins"])
     return get_owned_project(user, project_id)
 
 
 @transaction.atomic
 def delete_project(user, project_id):
-    project = _lock_owned_project(user, project_id)
+    soft_delete(_lock_owned_project(user, project_id))
+
+
+def soft_delete(api_project):
+    """Revokes the API project's keys and marks it deleted. Call inside transaction.atomic() with its row locked."""
     now = timezone.now()
-    project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
-    project.deleted_at = now
-    project.consent_to_display = False
-    project.is_published = False
-    project.save()
+    api_project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
+    if api_project.deleted_at is not None:
+        return
+    api_project.deleted_at = now
+    api_project.save()
+    # A legacy listing stays public and claimable: only a project made in developer settings is unpublished.
+    if api_project.profile.submission_source == SubmissionSource.DEVELOPER_SETTINGS:
+        _unpublish(api_project.profile)
 
 
 @transaction.atomic
 def claim_listing(user, listing_id):
     """
     Makes an unclaimed Powered by listing submitted with this account's email one of its projects.
+    Returns the new API project. The listing profile itself is not changed.
     """
     _check_project_limit(user)
     try:
-        project = unclaimed_listings(user, UserProfile(id=user.id)).get(id=int(listing_id))
+        listing = unclaimed_listings(user, UserProfile(id=user.id)).get(id=int(listing_id))
     except (Project.DoesNotExist, ValueError):
         raise LookupError("No such listing.")
-    project.owner = user
-    project.save()
-    return project
+    # The savepoint keeps the request's transaction usable when another claim or an admin made a live API project
+    # for this profile after the check above; that is the partial unique index, and the listing is simply taken.
+    try:
+        with transaction.atomic():
+            return ApiProject.objects.create(profile=listing, owner=user)
+    except IntegrityError as error:
+        if "api_project_one_live_per_profile" not in str(error) and "api_project.profile_id" not in str(error):
+            raise
+        raise LookupError("No such listing.")
 
 
 @transaction.atomic
 def release_account_projects(user):
     """
-    For an account being deleted: every key of its projects is revoked, projects it created
-    are deleted, and listings it claimed go back to unclaimed.
+    For an account being deleted: every key of its API projects is revoked, live API projects are
+    deleted (settings-made profiles are unpublished), and claimed listings go back to unclaimed.
     """
     now = timezone.now()
-    for project in Project.objects.filter(owner=user):
-        project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
-        if project.submission_source == SubmissionSource.DEVELOPER_SETTINGS and project.deleted_at is None:
-            project.deleted_at = now
-            project.consent_to_display = False
-            project.is_published = False
-        project.owner = None
-        project.save()
+    for api_project in ApiProject.objects.filter(owner=user).select_related("profile"):
+        api_project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
+        if api_project.deleted_at is None:
+            api_project.deleted_at = now
+            if api_project.profile.submission_source == SubmissionSource.DEVELOPER_SETTINGS:
+                _unpublish(api_project.profile)
+        api_project.owner = None
+        api_project.save()
 
 
 def dismiss_listing(user, listing_id):
@@ -690,18 +740,21 @@ def create_key(user, project_id, label):
 
 def get_owned_key(user, key_id):
     try:
-        return ApiKey.objects.select_related("project").get(
+        return ApiKey.objects.select_related("project__profile").get(
             id=key_id, revoked_at__isnull=True, project__owner=user, project__deleted_at__isnull=True,
         )
     except (ApiKey.DoesNotExist, ValidationError, ValueError):
         raise LookupError("No such key.")
 
 
+@transaction.atomic
 def set_key_restriction(user, key_id, restrict):
+    """Holds the API project's row lock, so a concurrent update_project can't remove the website under it."""
     api_key = get_owned_key(user, key_id)
-    if restrict and not api_key.project.project_link:
+    website = _lock_owned_project(user, api_key.project_id).profile.project_link
+    if restrict and not website:
         raise InputError("Add the project's website before restricting a key to it.")
-    api_key.allowed_origins = [origin_of(api_key.project.project_link)] if restrict else []
+    api_key.allowed_origins = [origin_of(website)] if restrict else []
     api_key.save(update_fields=["allowed_origins"])
     return api_key
 

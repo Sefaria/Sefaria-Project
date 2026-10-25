@@ -42,11 +42,12 @@ leaves only the periodic reload.
 
 PG_DSN comes from the cluster Secret `auth-service-registry` (key `AUTH_PG_DSN`): a read-only role
 on `sefaria_auth` that can connect, LISTEN, and SELECT the columns the loader reads.
-`scripts/provision-cluster-registry.sh` creates the role and the SOPS-encrypted Secret file; run it
-after the Django migrations. A new column in the load query needs a matching GRANT; a role provisioned before deleted projects were loaded as revoked needs `GRANT SELECT (deleted_at) ON powered_by_project TO auth_service_reader;`.
+The role and the SOPS-encrypted Secret are created once per cluster after the Django migrations; the steps are in the
+Sefaria wiki page `projects/api-key-program/tooling`. A new column in the load query needs a matching GRANT; a role provisioned before deleted projects were loaded as revoked needs `GRANT SELECT (deleted_at) ON powered_by_project TO auth_service_reader;`.
 
 ## Checks
 
 `make test` (Go vet and race tests; the Postgres tests run when `PG_TEST_DSN` is set, as they do in
 the Continuous workflow's auth-service job),
-`make helm-matrix`, `make helm-render`, `make shellcheck`.
+`make helm-matrix`. The local stack, the demo script, the drills and the end-to-end suites are in the Sefaria wiki page
+`projects/api-key-program/tooling`.

@@ -36,13 +36,14 @@ def start_over(request, sso_override, email_verified):
     released instead) and the account's verification is set as asked.
     """
     user = request.user
-    for project in developer.owned_projects(user):
-        if project.submission_source == SubmissionSource.DEVELOPER_SETTINGS:
-            developer.delete_project(user, project.id)
+    for api_project in developer.owned_projects(user):
+        if api_project.profile.submission_source == SubmissionSource.DEVELOPER_SETTINGS:
+            developer.delete_project(user, api_project.id)
         else:
-            project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=timezone.now())
-            project.owner = None
-            project.save()
+            # A claimed listing is released: its profile stays as it is and becomes claimable again.
+            api_project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=timezone.now())
+            api_project.deleted_at = timezone.now()
+            api_project.save()
     profile = UserProfile(id=user.id)
     for setting in (developer.ENABLED_SETTING, developer.PROFILE_SETTING,
                     developer.CONFIRMATION_SENT_SETTING, developer.CONFIRMATION_SENT_TO_SETTING,
