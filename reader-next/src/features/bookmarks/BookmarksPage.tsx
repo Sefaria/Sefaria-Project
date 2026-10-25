@@ -1,5 +1,4 @@
 import { removeBookmark, resetFurthest, setBookmarkMode, setDefaultBookmarkMode, sortedBookmarks, useBookmarks, useBookmarksLoaded, type Bookmark } from "~/lib/bookmarks";
-import { refToUrl } from "~/lib/ref/url";
 import { Button } from "~/ui/Button/Button";
 import { EmptyState } from "~/ui/Feedback/Feedback";
 import { Icon } from "~/ui/Icon/Icon";
@@ -7,22 +6,21 @@ import { IconButton } from "~/ui/IconButton/IconButton";
 import { Link } from "~/ui/Link/Link";
 import { ModeSwitch, modeHint } from "./ModeSwitch";
 import styles from "./BookmarksPage.module.css";
-import { bookOf } from "~/lib/bookmarks/layout";
-import { requestLayoutEntry } from "./layout-entry";
+import { useBookmarkHref } from "./my-layout";
 
 function Row({ bookmark: b }: { bookmark: Bookmark }) {
   const ahead = b.mode === "auto" && b.furthest && b.furthest !== b.ref ? b.furthest : undefined;
+  const hrefOf = useBookmarkHref();
   return (
-    // Going back to the book from here opens its saved layout.
-    <li className={styles.row} onClickCapture={(e) => (e.target as Element).closest("a") && requestLayoutEntry(bookOf(b.ref))}>
+    <li className={styles.row}>
       <div className={styles.main}>
         <h2 className={styles.book}>{b.book}</h2>
         <p className={styles.where}>
-          You're at <Link href={`/${refToUrl(b.ref)}`}>{b.ref}</Link>
+          You're at <Link href={hrefOf(b)}>{b.ref}</Link>
           {ahead ? (
             <span className={styles.furthest}>
               {" · furthest: "}
-              <Link href={`/${refToUrl(ahead)}`}>{ahead}</Link>
+              <Link href={hrefOf(b, ahead)}>{ahead}</Link>
               <button type="button" className={styles.reset} onClick={() => resetFurthest(b.book)}>
                 reset
               </button>
@@ -32,7 +30,7 @@ function Row({ bookmark: b }: { bookmark: Bookmark }) {
       </div>
       <div className={styles.controls}>
         <ModeSwitch value={b.mode} onChange={(m) => setBookmarkMode(b.book, m)} label={`Bookmark mode for ${b.book}`} />
-        <Button href={`/${refToUrl(b.ref)}`} size="sm" variant="primary">
+        <Button href={hrefOf(b)} size="sm" variant="primary">
           Continue
         </Button>
         <IconButton icon="close" size="sm" label={`Remove bookmark for ${b.book}`} onClick={() => removeBookmark(b.book)} />

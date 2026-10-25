@@ -1,9 +1,7 @@
 import { sortedBookmarks, useBookmarks, useBookmarksLoaded } from "~/lib/bookmarks";
-import { bookOf } from "~/lib/bookmarks/layout";
-import { refToUrl } from "~/lib/ref/url";
 import { Link } from "~/ui/Link/Link";
 import styles from "./Bookshelf.module.css";
-import { requestLayoutEntry } from "./layout-entry";
+import { useBookmarkHref } from "./my-layout";
 
 const SHOWN = 6;
 
@@ -12,6 +10,7 @@ export function Bookshelf() {
   const loaded = useBookmarksLoaded();
   const state = useBookmarks();
   const books = sortedBookmarks(state);
+  const hrefOf = useBookmarkHref();
   if (!loaded || !books.length) return null;
   return (
     <section className={styles.shelf} aria-labelledby="bookshelf-title">
@@ -22,7 +21,7 @@ export function Bookshelf() {
       <ul className={styles.cards}>
         {books.slice(0, SHOWN).map((b) => (
           <li key={b.book}>
-            <Link className={styles.card} href={`/${refToUrl(b.ref)}`} onClick={() => requestLayoutEntry(bookOf(b.ref))}>
+            <Link className={styles.card} href={hrefOf(b)}>
               <span className={styles.book}>{b.book}</span>
               <span className={styles.where}>{b.ref}</span>
               {b.layout ? <span className={styles.layout}>with your layout</span> : null}

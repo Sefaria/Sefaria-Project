@@ -9,7 +9,8 @@ import { compareRefs } from "./model";
 
 /**
  * A bookmark's "My layout" is the workspace query without panel 1's ref: the companions, each panel's language and
- * versions, the sidebar and its view, and the arrangement. Panel 1's position always comes from where the reader is going.
+ * versions, and the arrangement. Panel 1's position always comes from where the reader is going. The Resources sidebar is a
+ * moment, not part of the layout.
  */
 
 /** Query keys that describe a moment, not a setup: selection lookups, sidebar searches, a clicked name, the bk flag. */
@@ -26,14 +27,19 @@ const mainRefOf = (ws: Workspace): string | undefined => {
 
 type LayoutSearch = Record<string, string>;
 
+const withoutSidebars = (ws: Workspace): Workspace => ({
+  ...ws,
+  panels: Object.fromEntries(Object.entries(ws.panels).map(([id, p]) => [id, p && p.asides.length ? { ...p, asides: [], asideLayout: undefined } : p])),
+});
+
 /** The layout of what's on screen, as stored in a bookmark. */
 export function layoutSearchOf(ws: Workspace, defaults: UrlDefaults = DEFAULT_URL_DEFAULTS): LayoutSearch {
-  const enc = encodeWorkspace({ ...ws, bk: undefined }, defaults);
+  const enc = encodeWorkspace({ ...withoutSidebars(ws), bk: undefined }, defaults);
   if (!enc) return {};
   return Object.fromEntries(Object.entries(enc.search).filter(([k]) => !VOLATILE.test(k)));
 }
 
-/** More than the main text alone: another panel or a sidebar. */
+/** More than the main text alone: another panel (or a sidebar, in layouts saved before sidebars were left out). */
 export function layoutHasCompanions(search: LayoutSearch): boolean {
   return Object.keys(search).some((k) => PANEL_KEY.test(k) || k === "with");
 }
@@ -55,6 +61,37 @@ export function layoutModified(ws: Workspace, saved: LayoutSearch, defaults: Url
 /** The saved layout around `mainRef`, flagged as the viewer's own. Companion refs are as saved; see {@link placeCompanions}. */
 export function workspaceFromLayout(mainRef: string, saved: LayoutSearch): Workspace {
   return decodeWorkspace(mainRef, { ...saved, bk: "1" });
+}
+
+/**
+ * The workspace a bookmark link opens at `ref`: the saved layout (flagged as the viewer's own) when it has companions, else
+ * the main text alone. `extra` adds panel 1 query params such as a version. Companions open where they were saved and line
+ * up with the main text once it settles (scrolling together).
+ */
+export function bookmarkEntry(saved: LayoutSearch | undefined, ref: string, extra: LayoutSearch = {}): Workspace {
+  return saved && layoutHasCompanions(saved) ? decodeWorkspace(ref, { ...saved, ...extra, bk: "1" }) : decodeWorkspace(ref, extra);
+}
+
+const hasCompanionPanels = (ws: Workspace) => panelOrder(ws).length > 1;
+
+/**
+ * What a change from `prev` to `next` does to the bookmark of panel 1's book (`saved` is its layout; the caller has checked
+ * the bookmark exists and panel 1 shows its book). While My layout is on, any change to the arrangement is saved. Without
+ * it, opening a companion beside a bookmark that has no layout yet makes this arrangement My layout ("adopt").
+ */
+export function layoutAutosave(
+  prev: Workspace | undefined,
+  next: Workspace,
+  saved: LayoutSearch | undefined,
+  defaults: UrlDefaults = DEFAULT_URL_DEFAULTS,
+): { save: LayoutSearch; adopt: boolean } | undefined {
+  const main = mainRefOf(next);
+  if (!main) return undefined;
+  if (next.bk) return !saved || layoutModified(next, saved, defaults) ? { save: layoutSearchOf(next, defaults), adopt: false } : undefined;
+  if (saved && layoutHasCompanions(saved)) return undefined;
+  const before = prev && mainRefOf(prev);
+  const opened = prev && before && bookOf(before) === bookOf(main) && !hasCompanionPanels(prev) && hasCompanionPanels(next);
+  return opened ? { save: layoutSearchOf(next, defaults), adopt: true } : undefined;
 }
 
 /** The main text alone, in the reader's default language and versions. */

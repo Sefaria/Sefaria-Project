@@ -16,7 +16,6 @@ import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-me
 import { FocusControls } from "~/features/shell/FocusControls";
 import { useFullscreen, useHeaderCollapsed } from "~/features/shell/focus-mode";
 import { SkipLink } from "~/ui/SkipLink/SkipLink";
-import { useLayoutEntryTracker } from "~/features/bookmarks/layout-entry";
 import { CookieNotice } from "~/ui/CookieNotice/CookieNotice";
 import { BannerImpressionProbe } from "~/features/shell/BannerImpressionProbe";
 import { useViewer, viewerQuery } from "~/features/auth/viewer";
@@ -74,7 +73,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootComponent() {
   const { interfaceLang, settings } = Route.useRouteContext();
-  useLayoutEntryTracker();
   // Lets tests (and anything else that must wait for interactivity) know React has attached its handlers.
   useEffect(() => {
     document.documentElement.dataset.hydrated = "true";

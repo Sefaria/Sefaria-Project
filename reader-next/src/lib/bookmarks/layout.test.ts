@@ -4,8 +4,10 @@ import { parseSearch } from "~/lib/reader/search-serializer";
 import { closeAside, close, openAside, updatePanel } from "~/lib/workspace/ops";
 import { decodeWorkspace, workspaceUrl } from "~/lib/workspace/url";
 import {
+  bookmarkEntry,
   companionRefAt,
   keepsBookmarkFlag,
+  layoutAutosave,
   layoutHasCompanions,
   layoutModified,
   layoutSearchOf,
@@ -27,8 +29,10 @@ describe("layoutSearchOf", () => {
     expect(layoutHasCompanions(search)).toBe(true);
     expect(layoutHasCompanions(layoutSearchOf(decodeWorkspace("Berakhot 2a", {})))).toBe(false);
   });
-  it("counts a sidebar as a companion", () => {
-    expect(layoutHasCompanions(layoutSearchOf(openAside(decodeWorkspace("Genesis 1:1", {}), "p1", { kind: "connections", view: "Rashi" })))).toBe(true);
+  it("leaves the Resources sidebar out", () => {
+    const withSidebar = openAside(decodeWorkspace("Genesis 1:1", {}), "p1", { kind: "connections", view: "Rashi" });
+    expect(layoutSearchOf(withSidebar)).toEqual(layoutSearchOf(decodeWorkspace("Genesis 1:1", {})));
+    expect(layoutHasCompanions({ lang: "bi", with: "Rashi" })).toBe(true);
   });
 });
 
@@ -104,5 +108,51 @@ describe("the bk flag", () => {
     expect(stripBookmarkFlag("https://x/Berakhot.2a.1?bk=1&lang=bi")).toBe("https://x/Berakhot.2a.1?lang=bi");
     expect(stripBookmarkFlag("https://x/Berakhot.2a.1?bk=1")).toBe("https://x/Berakhot.2a.1");
     expect(stripBookmarkFlag("https://x/Berakhot.2a.1?lang=bi")).toBe("https://x/Berakhot.2a.1?lang=bi");
+  });
+});
+
+describe("bookmarkEntry", () => {
+  const saved = { lang: "he", p2: "Steinsaltz_on_Berakhot.5a.2", lang2: "he", layout: "r(1~65.6,2~34.4)" };
+  it("opens the saved layout at the bookmark, flagged as mine, in the link itself", () => {
+    const url = workspaceUrl(bookmarkEntry(saved, "Berakhot 5a:3"))!;
+    expect(url).toBe("/Berakhot.5a.3?lang=he&p2=Steinsaltz_on_Berakhot.5a.2&lang2=he&layout=r(1~65.6,2~34.4)&bk=1");
+  });
+  it("opens the main text alone when the layout has nothing beside it", () => {
+    expect(workspaceUrl(bookmarkEntry({ lang: "he" }, "Berakhot 5a:3"))).toBe("/Berakhot.5a.3?lang=bi");
+    expect(workspaceUrl(bookmarkEntry(undefined, "Berakhot 5a:3"))).toBe("/Berakhot.5a.3?lang=bi");
+  });
+  it("keeps a version asked for by the link", () => {
+    const ws = bookmarkEntry(saved, "Berakhot 5a:3", { vhe: "hebrew|William_Davidson_Edition_-_Vocalized_Aramaic" });
+    expect(ws.panels.p1).toMatchObject({ versions: { primary: "hebrew|William Davidson Edition - Vocalized Aramaic" } });
+    expect(ws.bk).toBe(true);
+  });
+});
+
+describe("layoutAutosave", () => {
+  const plain = (ref = "Berakhot 2a:1") => decodeWorkspace(ref, { lang: "bi" });
+  const saved = layoutSearchOf(berakhot());
+  it("saves a closed companion or a resize while My layout is on", () => {
+    expect(layoutAutosave(berakhot(), { ...close(berakhot(), "p2"), bk: true }, saved)).toEqual({ save: { lang: "bi" }, adopt: false });
+    const resized = decodeWorkspace("Berakhot 2a:1", { ...saved, layout: "r(1~50,2~50)", bk: "1" });
+    expect(layoutAutosave(berakhot(), resized, saved)?.save.layout).toBe("r(1~50,2~50)");
+  });
+  it("leaves the bookmark alone when only positions changed", () => {
+    const scrolled = updatePanel(updatePanel(berakhot(), "p1", { ref: "Berakhot 3a:4" }), "p2", { ref: "Rashi on Berakhot 3a:4:1" });
+    expect(layoutAutosave(berakhot(), scrolled, saved)).toBeUndefined();
+  });
+  it("never touches a saved layout from the standard layout", () => {
+    const standard = { ...berakhot(), bk: undefined };
+    expect(layoutAutosave(plain(), standard, saved)).toBeUndefined();
+    expect(layoutAutosave(standard, close(standard, "p2"), saved)).toBeUndefined();
+  });
+  it("adopts a first companion opened beside a bookmark that has no layout yet", () => {
+    const opened = { ...berakhot(), bk: undefined };
+    expect(layoutAutosave(plain(), opened, { lang: "bi" })).toEqual({ save: saved, adopt: true });
+    expect(layoutAutosave(plain(), opened, undefined)?.adopt).toBe(true);
+  });
+  it("does not adopt on arrival or when the main text changed book", () => {
+    const opened = { ...berakhot(), bk: undefined };
+    expect(layoutAutosave(undefined, opened, undefined)).toBeUndefined();
+    expect(layoutAutosave(plain("Shabbat 2a:1"), opened, undefined)).toBeUndefined();
   });
 });

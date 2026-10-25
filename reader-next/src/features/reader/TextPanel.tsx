@@ -32,7 +32,7 @@ import { ContextMenu, type ContextMenuGroup } from "~/ui/ContextMenu/ContextMenu
 import { commentariesOn, favouriteCommentaries, type CommentaryOnVerse } from "~/lib/study/favourite-commentaries";
 import { DefinitionCard, type DefinitionRequest } from "../study/DefinitionCard";
 import { BookmarkToggle } from "../bookmarks/BookmarkToggle";
-import { LayoutSwitch, useOpenMyLayout } from "../bookmarks/LayoutSwitch";
+import { useOpenMyLayout } from "../bookmarks/my-layout";
 import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
 import { rememberTranslation } from "~/lib/versions/prefs-source";
@@ -723,8 +723,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           <>
           {alone || id === "p1" ? null : <IconButton icon="link" label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
           <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
-          <LayoutSwitch panel={id} book={current.passage.indexTitle} />
-          <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} />
+          <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} main={id === "p1"} />
           <Popover
             open={menuOpen}
             onOpenChange={setMenuOpen}

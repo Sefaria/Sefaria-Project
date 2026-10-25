@@ -1,6 +1,5 @@
 import { useInfiniteQuery, useQueries, useQuery } from "@tanstack/react-query";
-import { bookOf } from "~/lib/bookmarks/layout";
-import { requestLayoutEntry } from "../bookmarks/layout-entry";
+import { bookmarkOfRef, useBookmarkHref } from "../bookmarks/my-layout";
 import { useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { tocQueryOptions } from "~/lib/catalog/toc";
@@ -142,12 +141,16 @@ export function SearchRoute() {
     return () => io.disconnect();
   }, [active.hasNextPage, active.isFetchingNextPage, active.fetchNextPage, hits?.length, entities.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // A result in a bookmarked book opens in the bookmark's saved layout.
+  const bookmarkHref = useBookmarkHref();
   const hitHref = (h: SearchHit) => {
     const s = h._source;
-    return `/${refToUrl(s.ref)}?${s.isPrimary ? "vhe" : "ven"}=${versionApiToParam(`${s.languageFamilyName}|${s.version}`)}`;
+    const key = s.isPrimary ? "vhe" : "ven";
+    const version = versionApiToParam(`${s.languageFamilyName}|${s.version}`);
+    const bookmark = bookmarkOfRef(s.ref);
+    return bookmark ? bookmarkHref(bookmark, s.ref, version ? { [key]: version } : {}) : `/${refToUrl(s.ref)}?${key}=${version}`;
   };
-  // A search result leads back into a bookmarked book's saved layout.
-  const openHit = (h: SearchHit) => (requestLayoutEntry(bookOf(h._source.ref)), void router.navigate({ ...(toRouterLocation(hitHref(h)) as object), state: { nav: "go", terms: highlightsOf(h) } } as never));
+  const openHit = (h: SearchHit) => void router.navigate({ ...(toRouterLocation(hitHref(h)) as object), state: { nav: "go", terms: highlightsOf(h) } } as never);
 
   const onToggle = (node: FilterNode) => {
     searchFlow.elementClicked({ elementType: "filter", elementValue: node.title, count: node.count });

@@ -143,6 +143,26 @@ These are defaults too (chosen by Claude to implement Daniel's feedback), not de
 | "Open in new page" | A real link (`target=_blank`) to the ref alone (`/Ref?lang=<source panel's language>`), so it opens in a new browser tab. The card closes. | As asked. Being a link also makes copy-link and middle-click work. | implemented |
 | Pinning | Unchanged: a click inside a hover card pins it, and a plain click on a link opens a pinned card. | Daniel is happy with it. | implemented (existing behavior) |
 
+| An overflow "…" menu for lower-priority icons in very narrow panels | Proposed: keep Close, Resources and Display settings; move Arrange, Bookmark and the scroll lock into "…". | This needs changes to `TextPanel.tsx`, which others are editing right now. | not yet |
+
+## Bookmarks and the layout
+
+A bookmark carries the arrangement around its book ("My layout"); there is no separate layout control. `bk=1` in the URL
+means My layout is on.
+
+| Situation | Default | Why | Status |
+|---|---|---|---|
+| Changing the arrangement while My layout is on (opening or closing a companion, resizing, a panel's language) | Saved to the bookmark straight away. There is no Save step. Where a companion has scrolled to does not count as a change. | Daniel: saving the layout is part of bookmarking. | implemented |
+| Switching to the standard layout (bookmark card) | The main text alone. The saved layout is kept, and the card offers "Switch back to my layout". Changes made in the standard layout never touch the saved one. | Lets you look at the plain text without losing your setup. | implemented |
+| Opening a commentary on a bookmarked book whose bookmark has no layout yet | The arrangement becomes My layout (`bk=1`) and is saved. | The reader is "with" the bookmark. | implemented |
+| The same, when the bookmark already has a layout and the standard layout is showing | Nothing is saved; the card offers to switch back. | Never overwrite a saved setup from the standard layout. | implemented |
+| Bookmarking (the bookmark button) | Saves the position and the arrangement on screen. With companions open, My layout turns on. | | implemented |
+| The Resources sidebar | Not part of the layout: opening or closing it saves nothing, and a bookmark link opens without it. Layouts saved earlier with a sidebar still open it. | The header opens and closes it on any click; saving that would surprise. | implemented |
+| Going back to a bookmark (Continue learning cards, the Bookmarks page, a search result in a bookmarked book) | The link itself carries the saved layout (`p2…&layout=…&bk=1`), so it opens the same way from a click, a new tab, a reload or before the page has finished loading. On arrival, companions move to the main text's verse. | The earlier hand-off between the link and the reader could silently fall back to the standard layout. | implemented |
+| Other ways into a bookmarked book (table of contents, a citation, a typed or shared URL) | Exactly what the URL says. "Open my saved layout" is in the Aa menu and the right-click menu. | The reader is probably looking something up. | implemented |
+| The scroll-together lock | Only on companion panels. Panel 1 leads, so it has no lock (it still follows a companion that is scrolled). | | implemented |
+| The old "Save" (saved items) buttons | Gone from the panel header and from the site header (desktop icon and the mobile menu entry). Bookmarks replace them. | | implemented |
+
 ## Known issues found while checking
 
 - Panels are keyed by position (`p1`, `p2`…). When a panel opens in the middle of the row, React reuses the component
