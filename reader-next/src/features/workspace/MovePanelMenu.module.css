@@ -1,0 +1,12 @@
+/* Sizes are set with the section's specificity: the panel header shrinks every button inside it in narrow panels. */
+.section { border-block-start: 1px solid var(--sefaria-color-border); }
+.section .toggle { display: flex; justify-content: space-between; width: 100%; height: auto; padding: var(--sefaria-space-3) var(--sefaria-space-4); border: 0; background: none; color: inherit; font: inherit; font-size: var(--sefaria-text-sans-small); text-align: start; cursor: pointer; }
+.toggle:hover, .toggle:focus-visible { background: var(--sefaria-color-highlight-soft); outline: none; }
+.menu { display: grid; gap: var(--sefaria-space-1); padding: 0 var(--sefaria-space-4) var(--sefaria-space-3); }
+.row { display: flex; align-items: center; gap: 4px; }
+.name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--sefaria-text-sans-small); }
+.section .place, .section .far { flex: none; height: 28px; padding: 0; border: 1px solid var(--sefaria-color-border); border-radius: 6px; background: none; color: inherit; cursor: pointer; font-size: 14px; }
+.section .place { width: 28px; }
+.section .far { flex: 1; font-size: var(--sefaria-text-sans-small); }
+.place:hover, .place:focus-visible, .far:hover, .far:focus-visible { background: var(--sefaria-color-highlight-soft); }
+.section .place:disabled, .section .far:disabled { opacity: 0.35; cursor: default; background: none; }

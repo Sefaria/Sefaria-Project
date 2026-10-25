@@ -1,0 +1,20 @@
+/* Where a dragged panel would land, drawn over the target (VS Code and Obsidian style). */
+.zone {
+  position: fixed; z-index: 1000; pointer-events: none; box-sizing: border-box;
+  background: color-mix(in srgb, var(--sefaria-color-focus) 18%, transparent);
+  border: 2px solid var(--sefaria-color-focus); border-radius: 4px;
+  transition: left 80ms ease, top 80ms ease, width 80ms ease, height 80ms ease;
+}
+.chip {
+  position: fixed; z-index: 1001; pointer-events: none; max-width: 240px; padding: 4px 10px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  background: var(--sefaria-color-surface); color: inherit; border: 1px solid var(--sefaria-color-border); border-radius: 6px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15); font-size: var(--sefaria-text-sans-small);
+}
+@media (prefers-reduced-motion: reduce) { .zone { transition: none; } }
+
+:global(html[data-panel-dragging]), :global(html[data-panel-dragging] *) { cursor: grabbing !important; user-select: none; }
+:global([data-leaf][data-dragged]) { opacity: 0.55; }
+@media (min-width: 843px) {
+  :global([role="group"][data-direction] [data-panel-drag] header) { cursor: grab; }
+}

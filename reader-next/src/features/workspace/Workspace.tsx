@@ -12,6 +12,7 @@ import type { WorkspaceRouteData } from "../reader/reader-route";
 import { TextPanel } from "../reader/TextPanel";
 import styles from "./Workspace.module.css";
 import { readNavState, useWorkspaceNav, WorkspaceNavProvider } from "./navigation";
+import { PanelDrag } from "./PanelDrag";
 
 /**
  * Everything on screen for a reader URL: the panels in the URL, arranged by the workspace layout and sized by
@@ -48,6 +49,7 @@ export function Workspace({ data }: { data: WorkspaceRouteData }) {
         <div ref={scrollerEl} className={styles.scroller}>
           <Panels layout={layout as LayoutNode<PanelId>} panels={ws.panels} label={order.length > 1 ? "Open texts" : undefined} renderLeaf={(id) => <PanelHost panel={ws.panels[id]!} data={data} innerSizes={sizes.inner[order.indexOf(id)]} alone={order.length === 1} />} />
         </div>
+        <PanelDrag scroller={scrollerEl} layout={ws.layout} panels={ws.panels} />
       </main>
     </WorkspaceNavProvider>
   );

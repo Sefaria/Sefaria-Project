@@ -13,9 +13,9 @@ import { highlightsOf, type SearchHit } from "~/lib/search/text-search";
 import { versionKey, type TranslationVersion } from "~/lib/versions/translations";
 import { isHighlighted } from "~/lib/text/plan";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
-import { close, closeAside, move, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
+import { close, closeAside, drop, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
 import { MIN_PANEL_WIDTH } from "~/lib/workspace/sizing";
-import { ArrangeMenu } from "../workspace/ArrangeMenu";
+import { MovePanelMenu } from "../workspace/MovePanelMenu";
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
 import { IconButton } from "~/ui/IconButton/IconButton";
@@ -679,6 +679,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     <div className={styles.text}>
       <div
         className={styles.headerHost}
+        data-panel-drag
         onClick={(e) => {
           if ((e.target as Element).closest("a, button, input, [role=dialog]")) return;
           if (view) closeSidebar();
@@ -705,7 +706,6 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
         end={
           <>
-          {alone ? null : <ArrangeMenu self={id} workspace={nav.current()} onMove={(target, placement) => apply((ws) => move(ws, id, target, placement), { state: { nav: "stay" } })} />}
           {alone ? null : <IconButton icon="link" label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
           <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
           <LayoutSwitch panel={id} book={current.passage.indexTitle} />
@@ -723,6 +723,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
                 Open my saved layout
               </button>
             ) : null}
+            {alone ? null : <MovePanelMenu self={id} workspace={nav.current()} onDrop={(d) => (setMenuOpen(false), apply((ws) => drop(ws, id, d), { state: { nav: "stay" } }))} />}
           </Popover>
           </>
         }
