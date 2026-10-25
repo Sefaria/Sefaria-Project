@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "~/ui/Link/Link";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
+import { Bookshelf } from "~/features/bookmarks/Bookshelf";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -20,6 +21,7 @@ function Home() {
   return (
     <div style={{ maxWidth: 640, margin: "0 auto", padding: "var(--sefaria-space-8) var(--sefaria-space-4)" }}>
       <h1><InterfaceText en="Sefaria Reader" he="קורא ספריא" /></h1>
+      <Bookshelf />
       <ul>
         {SAMPLES.map(([path, label, note]) => (
           <li key={path}>

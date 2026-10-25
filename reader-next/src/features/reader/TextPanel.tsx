@@ -31,7 +31,7 @@ import { ContextMenu, type ContextMenuGroup } from "~/ui/ContextMenu/ContextMenu
 import { commentariesOn, favouriteCommentaries, type CommentaryOnVerse } from "~/lib/study/favourite-commentaries";
 import { glossary, glossKey } from "~/lib/study/glossary";
 import { BookmarkToggle } from "../bookmarks/BookmarkToggle";
-import { LayoutSwitch } from "../bookmarks/LayoutSwitch";
+import { LayoutSwitch, useOpenMyLayout } from "../bookmarks/LayoutSwitch";
 import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
 import { rememberTranslation } from "~/lib/versions/prefs-source";
@@ -588,6 +588,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const favourites = favouriteCommentaries.use();
   const glossWords = glossary.use();
   const bookmark = useBookmark(current.passage.indexTitle);
+  const openMyLayout = useOpenMyLayout(current.passage.indexTitle);
+  const myLayoutHere = id === "p1" && openMyLayout && !nav.current().bk ? openMyLayout : undefined;
   const menuLinks = useQuery({ ...linksQueryOptions(menu ? sectionOfSegment(menu.ref) : ""), enabled: !!menu });
   const commentaries = menu && menuLinks.data ? commentariesOn(menuLinks.data, menu.ref, favourites).slice(0, 8) : [];
 
@@ -621,6 +623,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           key: "verse",
           items: [
             { key: "resources", label: "Resources", onSelect: () => openResources(menu.ref) },
+            ...(myLayoutHere ? [{ key: "my-layout", label: "Open my saved layout", onSelect: () => void myLayoutHere() }] : []),
             bookmark
               ? { key: "bookmark", label: bookmark.ref === menu.ref ? "Your bookmark is here" : "Move bookmark here", disabled: bookmark.ref === menu.ref, onSelect: () => moveBookmark(current.passage.indexTitle, menu.ref) }
               : { key: "bookmark", label: "Bookmark this book here", onSelect: () => addBookmark(current.passage.indexTitle, menu.ref) },
@@ -723,6 +726,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
             trigger={(p) => <IconButton {...p} icon="font-size" label="Text display options" />}
           >
             <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} />
+            {myLayoutHere ? (
+              <button type="button" className={styles.menuAction} onClick={() => (setMenuOpen(false), void myLayoutHere())}>
+                Open my saved layout
+              </button>
+            ) : null}
           </Popover>
           </>
         }

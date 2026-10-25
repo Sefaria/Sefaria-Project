@@ -32,3 +32,6 @@
 .favourite { flex: none; width: 32px; height: 28px; border: 0; background: none; color: var(--sefaria-color-text-muted); cursor: pointer; font-size: 15px; }
 .favourite[aria-pressed="true"] { color: #c99a2e; }
 .favourite:hover, .favourite:focus-visible { color: inherit; }
+/* An action under the display options (e.g. opening the book's saved layout). */
+.menuAction { display: block; width: 100%; padding: var(--sefaria-space-3) var(--sefaria-space-4); border: 0; border-block-start: 1px solid var(--sefaria-color-border); background: none; color: var(--sefaria-color-link, inherit); font: inherit; font-size: var(--sefaria-text-sans-small); text-align: start; cursor: pointer; }
+.menuAction:hover, .menuAction:focus-visible { background: var(--sefaria-color-highlight-soft); outline: none; }

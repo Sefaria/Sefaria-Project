@@ -1,0 +1,12 @@
+.shelf { margin-block: var(--sefaria-space-4) var(--sefaria-space-8); }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sefaria-space-3); margin-block-end: var(--sefaria-space-3); font-size: var(--sefaria-text-sans-small); }
+.title { margin: 0; font-size: 1.1rem; font-weight: 500; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--sefaria-space-3); margin: 0; padding: 0; list-style: none; }
+.card {
+  display: flex; flex-direction: column; gap: 2px; height: 100%; padding: var(--sefaria-space-3); border: 1px solid var(--sefaria-color-border);
+  border-radius: 8px; color: inherit; text-decoration: none; background: var(--sefaria-color-surface);
+}
+.card:hover, .card:focus-visible { border-color: var(--sefaria-color-focus); }
+.book { font-family: var(--sefaria-font-text-en); font-size: 1.05rem; }
+.where { color: var(--sefaria-color-text-secondary); font-size: var(--sefaria-text-sans-small); }
+.layout { color: var(--sefaria-color-text-muted); font-size: 12px; }

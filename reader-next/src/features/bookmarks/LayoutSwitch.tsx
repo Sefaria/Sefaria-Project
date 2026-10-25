@@ -24,13 +24,33 @@ export function LayoutSwitch({ panel, book }: { panel: PanelId; book: string }) 
   return panel === "p1" ? <Switch book={book} /> : null;
 }
 
-function Switch({ book }: { book: string }) {
+/**
+ * Opens My layout around where panel 1 is now, each companion placed through the links of that verse. Undefined when the
+ * book's bookmark has no layout beyond the main text.
+ */
+export function useOpenMyLayout(book: string): ((replace?: boolean) => Promise<void>) | undefined {
   const bookmark = useBookmark(book);
   const nav = useWorkspaceNav();
   const qc = useQueryClient();
+  const router = useRouter();
+  const saved = bookmark?.layout?.search;
+  if (saved === undefined || !layoutHasCompanions(saved)) return undefined;
+  return async (replace = false) => {
+    const main = panelAt(nav.current(), 0)?.ref;
+    if (!main) return;
+    const target: Workspace = workspaceFromLayout(main, saved);
+    const from = entryKey(router.state.location.state);
+    const links = panelOrder(target).length > 1 ? await qc.fetchQuery(linksQueryOptions(sectionOfSegment(main))).catch(() => []) : [];
+    if (entryKey(router.state.location.state) !== from) return; // the reader went elsewhere meanwhile
+    nav.go(placeCompanions(target, links), { replace, bk: true, state: { nav: "go" } });
+  };
+}
+
+function Switch({ book }: { book: string }) {
+  const bookmark = useBookmark(book);
+  const nav = useWorkspaceNav();
   const location = useLocation();
   const router = useRouter();
-  const currentKey = () => entryKey(router.state.location.state);
   const { settings } = useReaderSettings();
   const defaults = urlDefaultsFor(settings);
   const [open, setOpen] = useState(false);
@@ -41,18 +61,7 @@ function Switch({ book }: { book: string }) {
   const modified = mine && layoutModified(now, saved, defaults);
   const hasMoreNow = panelOrder(now).length > 1 || (panelAt(now, 0)?.asides.length ?? 0) > 0;
 
-  /** My layout around where panel 1 is now, each companion placed through the links of that verse. */
-  const openMine = async (replace: boolean) => {
-    if (saved === undefined) return;
-    const main = panelAt(nav.current(), 0)?.ref;
-    if (!main) return;
-    const target: Workspace = workspaceFromLayout(main, saved);
-    const from = currentKey();
-    const links = panelOrder(target).length > 1 ? await qc.fetchQuery(linksQueryOptions(sectionOfSegment(main))).catch(() => []) : [];
-    if (currentKey() !== from) return; // the reader went elsewhere meanwhile
-    nav.go(placeCompanions(target, links), { replace, bk: true, state: { nav: "go" } });
-  };
-
+  const openMine = useOpenMyLayout(book);
   const key = entryKey(location.state);
   useEffect(() => {
     if (!isReaderPath(location.pathname)) return;
@@ -60,7 +69,7 @@ function Switch({ book }: { book: string }) {
     if (!main || !takeLayoutEntry(key, bookOf(main))) return;
     const current = nav.current();
     if (current.bk || panelOrder(current).length > 1 || !savedHasMore) return;
-    void openMine(true);
+    void openMine?.(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
@@ -69,7 +78,7 @@ function Switch({ book }: { book: string }) {
   const close = () => setOpen(false);
   const choose = (next: "mine" | "standard") => {
     close();
-    if (next === "mine") return void (mine ? undefined : openMine(false));
+    if (next === "mine") return void (mine ? undefined : openMine?.(false));
     if (mine || hasMoreNow) nav.go(standardWorkspace(nav.current()), { bk: false, state: { nav: "stay", panel: "p1" } });
   };
   const save = () => {
@@ -105,7 +114,7 @@ function Switch({ book }: { book: string }) {
         <button type="button" className={styles.item} disabled={!canSave} onClick={save}>
           Save layout
         </button>
-        <button type="button" className={styles.item} disabled={!modified} onClick={() => (close(), void openMine(false))}>
+        <button type="button" className={styles.item} disabled={!modified} onClick={() => (close(), void openMine?.(false))}>
           Revert to saved
         </button>
         {modified ? <p className={styles.note}>Changes aren't saved until you Save layout.</p> : null}

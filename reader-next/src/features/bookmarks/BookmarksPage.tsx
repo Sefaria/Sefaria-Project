@@ -7,11 +7,14 @@ import { IconButton } from "~/ui/IconButton/IconButton";
 import { Link } from "~/ui/Link/Link";
 import { ModeSwitch, modeHint } from "./ModeSwitch";
 import styles from "./BookmarksPage.module.css";
+import { bookOf } from "~/lib/bookmarks/layout";
+import { requestLayoutEntry } from "./layout-entry";
 
 function Row({ bookmark: b }: { bookmark: Bookmark }) {
   const ahead = b.mode === "auto" && b.furthest && b.furthest !== b.ref ? b.furthest : undefined;
   return (
-    <li className={styles.row}>
+    // Going back to the book from here opens its saved layout.
+    <li className={styles.row} onClickCapture={(e) => (e.target as Element).closest("a") && requestLayoutEntry(bookOf(b.ref))}>
       <div className={styles.main}>
         <h2 className={styles.book}>{b.book}</h2>
         <p className={styles.where}>

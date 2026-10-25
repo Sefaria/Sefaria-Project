@@ -8,10 +8,19 @@ import { decodeWorkspace, type RawSearch } from "~/lib/workspace/url";
 import { entryKey } from "../workspace/navigation";
 
 /**
- * Which history entries were reached by an in-app navigation (a link, a search result, the table of contents, a bookmark),
- * and which books were on screen just before. Arriving that way at a bookmarked book that wasn't already on screen opens
- * My layout; a typed or shared URL, a reload, and back/forward open exactly what the URL says.
+ * My layout opens by itself only when the reader comes back to a book on purpose: through its bookmark (the bookmarks page,
+ * the bookshelf) or a search result. Those links call `requestLayoutEntry` just before navigating. Any other way in (the
+ * table of contents, a citation, a typed or shared URL, a reload, back/forward) opens exactly what the URL says: the reader
+ * is probably looking something up.
  */
+const REQUEST_TTL_MS = 10_000;
+let requested: { book: string; at: number } | null = null;
+
+/** The next in-app arrival at `book` (title as in its refs) opens My layout. */
+export function requestLayoutEntry(book: string) {
+  requested = { book, at: Date.now() };
+}
+
 const pushed = new Map<string, string[]>();
 
 function booksAt(location: { pathname: string; search: unknown }): string[] {
@@ -36,10 +45,12 @@ export function useLayoutEntryTracker() {
   }, [router]);
 }
 
-/** True once for an entry reached in-app at `book` from a page that didn't show it. */
+/** True once for an entry reached in-app at `book`, asked for by a bookmark or search link, from a page that didn't show it. */
 export function takeLayoutEntry(key: string | undefined, book: string): boolean {
   if (!key || !pushed.has(key)) return false;
   const before = pushed.get(key)!;
   pushed.delete(key);
-  return !before.includes(book);
+  const asked = requested !== null && requested.book === book && Date.now() - requested.at < REQUEST_TTL_MS;
+  if (asked) requested = null;
+  return asked && !before.includes(book);
 }
