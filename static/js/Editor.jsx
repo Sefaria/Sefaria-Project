@@ -21,6 +21,7 @@ import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import {SheetOptions} from "./sheets/SheetOptions";
+import {useAutosaveDebounce} from "./useAutosaveDebounce";
 
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
@@ -2779,26 +2780,12 @@ const SefariaEditor = (props) => {
     const [title, setTitle] = useState(sheet.title || "");
 
 
-    useEffect(
-        () => {
-            if (!canUseDOM) {
-                return
-            }
-
-            setHasUnsavedChanges(true);
-            // Update debounced value after delay
-            const handler = setTimeout( () => {
-                saveDocument(currentDocument);
-            }, 500);
-
-            // Cancel the timeout if value changes (also on delay change or unmount)
-            // This is how we prevent debounced value from updating if value is changed ...
-            // .. within the delay period. Timeout gets cleared and restarted.
-            return () => {
-                clearTimeout(handler);
-            };
-        },
-        [currentDocument[0].children[0], title, summary] // Only re-call effect if value or delay changes
+    // Debounced autosave: re-runs (and restarts the 500ms timer) when the content, title or summary changes.
+    useAutosaveDebounce(
+        saveDocument,
+        currentDocument,
+        [currentDocument[0].children[0], title, summary],
+        {enabled: canUseDOM, onSchedule: () => setHasUnsavedChanges(true)}
     );
 
 
