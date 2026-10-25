@@ -124,7 +124,7 @@ These are defaults too (chosen by Claude to implement Daniel's feedback), not de
 
 | Situation | Default | Why | Status |
 |---|---|---|---|
-| Rows in the right-click menu on a verse | Resources · Open my saved layout (only when one exists for this book, panel 1) · Bookmark here / Move bookmark here · Look up *word* (only over a Hebrew word) · the starred commentaries on this verse · All commentaries… · Copy with citation. Usually 6–8 rows. | Daniel asked for a shorter menu. | implemented |
+| Rows in the right-click menu on a verse | Resources · Open my saved layout (only when one exists for this book, in the main text's panel) · Bookmark here / Move bookmark here · Look up *word* (only over a Hebrew word) · the starred commentaries on this verse · All commentaries… · Copy with citation. Usually 6–8 rows. | Daniel asked for a shorter menu. | implemented |
 | Icons in the menu | Every row has one: layers (Resources), saved layout, bookmark, search (Look up), book (each commentary), list (All commentaries…), copy. | Consistency; the bookmark row needed one. | implemented |
 | Which commentaries the menu lists | Only starred ones that have something on this verse, in the reader's star order, at most 3. The default stars are Rashi, Tosafot and Ramban. Nothing starred on the verse: only "All commentaries…". | Daniel asked for favourites only. | implemented |
 | "All commentaries…" | Opens the sidebar on the verse's Commentary list (`with=Commentary ConnectionsList`). | The full list already exists there. | implemented |
@@ -152,15 +152,19 @@ means My layout is on.
 
 | Situation | Default | Why | Status |
 |---|---|---|---|
-| Changing the arrangement while My layout is on (opening or closing a companion, resizing, a panel's language) | Saved to the bookmark straight away. There is no Save step. Where a companion has scrolled to does not count as a change. | Daniel: saving the layout is part of bookmarking. | implemented |
+| Which panel is the main text | The first panel in reading order whose book has a bookmark; with none, panel 1. The bookmarked book can sit anywhere in the arrangement: left, right or inside a stack. | Daniel moved Berakhot to the right of Steinsaltz and expected it to stay there. Two bookmarked books on screen are rare; this is a default, not a decision. | implemented |
+| Where the main text sits in a saved layout | Kept. When panel 1 is a companion, the layout also saves panel 1's ref (`p1`), and reopening puts the bookmark's position into the panel showing the bookmarked book. A version the link asks for goes to that panel. Layouts saved before this (no `p1`) open with the main text first, as before. | The order you left is the order you come back to. | implemented |
+| A bookmark layout with the main text not first, on a phone | Single-panel mode shows panel 1, so the phone shows the companion, not the bookmarked text. | Single-panel mode predates the main-text rule. | not yet |
+| The `bk` flag | Lasts while the main text stays the same book: moving, opening, closing and resizing companions keep it. It drops when the main panel goes to another book. | | implemented |
+| Changing the arrangement while My layout is on (opening, closing or moving a companion, swapping panels, resizing, a panel's language) | Saved to the bookmark straight away. There is no Save step. Where a companion has scrolled to does not count as a change. | Daniel: saving the layout is part of bookmarking. | implemented |
 | Switching to the standard layout (bookmark card) | The main text alone. The saved layout is kept, and the card offers "Switch back to my layout". Changes made in the standard layout never touch the saved one. | Lets you look at the plain text without losing your setup. | implemented |
 | Opening a commentary on a bookmarked book whose bookmark has no layout yet | The arrangement becomes My layout (`bk=1`) and is saved. | The reader is "with" the bookmark. | implemented |
 | The same, when the bookmark already has a layout and the standard layout is showing | Nothing is saved; the card offers to switch back. | Never overwrite a saved setup from the standard layout. | implemented |
-| Bookmarking (the bookmark button) | Saves the position and the arrangement on screen. With companions open, My layout turns on. | | implemented |
+| Bookmarking (the bookmark button) | Saves the position and the arrangement on screen, with this panel as the main text (unless an earlier panel already shows a bookmarked book). With companions open, My layout turns on. | | implemented |
 | The Resources sidebar | Not part of the layout: opening or closing it saves nothing, and a bookmark link opens without it. Layouts saved earlier with a sidebar still open it. | The header opens and closes it on any click; saving that would surprise. | implemented |
 | Going back to a bookmark (Continue learning cards, the Bookmarks page, a search result in a bookmarked book) | The link itself carries the saved layout (`p2…&layout=…&bk=1`), so it opens the same way from a click, a new tab, a reload or before the page has finished loading. On arrival, companions move to the main text's verse. | The earlier hand-off between the link and the reader could silently fall back to the standard layout. | implemented |
 | Other ways into a bookmarked book (table of contents, a citation, a typed or shared URL) | Exactly what the URL says. "Open my saved layout" is in the Aa menu and the right-click menu. | The reader is probably looking something up. | implemented |
-| The scroll-together lock | Only on companion panels. Panel 1 leads, so it has no lock (it still follows a companion that is scrolled). | | implemented |
+| The scroll-together lock | Only on panels other than panel 1. Panel 1 leads, so it has no lock (it still follows a companion that is scrolled). When the main text is not panel 1, it gets the lock and panel 1 leads. | Unchanged by the main-text rule. | implemented (main-text-led not yet) |
 | The old "Save" (saved items) buttons | Gone from the panel header and from the site header (desktop icon and the mobile menu entry). Bookmarks replace them. | | implemented |
 
 ## Known issues found while checking
