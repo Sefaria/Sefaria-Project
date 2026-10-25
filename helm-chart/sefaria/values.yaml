@@ -156,7 +156,9 @@ web:
 nameService:
   # Standalone autocomplete ("name") service.  Runs the web image with
   # NAME_SERVICE=true, serving only /api/name and the other completion
-  # endpoints (see sefaria/urls_name.py); varnish routes those paths to it
+  # endpoints (see sefaria/urls_name.py) -- including /api/search-autocorrect,
+  # which needs the top-n-grams table and entity alt-title index only this
+  # service loads; varnish routes those paths to it
   # and web and task pods then run with DISABLE_AUTOCOMPLETER=true.
   # Rebuild signals reach the name service over the multiserver Redis
   # channel -- do not disable MULTISERVER_ENABLED while this is on, or
@@ -298,6 +300,14 @@ tasks:
   queues:
     llm: default-llm
   nodeAffinity: {}
+  # Dedicated workers for the interactive find-refs API (the linker), on their own queue so that
+  # bulk linking jobs on the shared tasks queue can't starve it. The shared tasks workers also consume
+  # this queue as overflow. When disabled, find-refs tasks go to the shared tasks queue.
+  # Resources default to tasks.resources.
+  findRefs:
+    enabled: false
+    replicaCount: 1
+    resources: {}
 
 # Takes the url of an NER server instance
 # Will automatically enable internal settings to communicate with the NER server
@@ -484,6 +494,19 @@ cronJobs:
   # Settings for regenerating long cached data
   regenerate:
     enabled: true
+  # Rebuilds the search auto-correction table and uploads it to gs://sefaria-search-autocorrect.
+  # Every environment's name service loads that one object, so enable in production only --
+  # anywhere else would overwrite prod's table. Single-threaded; peak memory is the bigram
+  # level's shard counters plus the carried phrase table (raise --num-shards to lower it).
+  buildTopNGramsForSearchAutocorrect:
+    enabled: false
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "1"
+      limits:
+        memory: "12Gi"
+        cpu: "2"
   dailyEmailNotifications:
     enabled: false
   embedLibraryToPgvector:
@@ -650,6 +673,9 @@ keda:
   monitor:
     enabled: true
   tasks:
+    enabled: true
+  # Only renders when tasks.findRefs.enabled is also true.
+  findRefs:
     enabled: true
   redis:
     enabled: true

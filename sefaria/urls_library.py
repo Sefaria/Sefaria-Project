@@ -71,8 +71,9 @@ urlpatterns = [
     re_path(r'^activity/leaderboard?$', reader_views.leaderboard),
     path('activity/<int:page>', reader_views.global_activity),
     re_path(r'^activity/(?P<slug>[^/]+)/(?P<page>\d+)?$', reader_views.user_activity),
-    re_path(r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<page>\d+)$', reader_views.segment_history),
-    re_path(r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)$', reader_views.segment_history),
+    # tref may contain a slash: WSGI decodes the %2F that Ref.url() emits for titles.
+    re_path(r'^activity/(?P<tref>.+?)/(?P<lang>.{2})/(?P<version>.+)/(?P<page>\d+)$', reader_views.segment_history),
+    re_path(r'^activity/(?P<tref>.+?)/(?P<lang>.{2})/(?P<version>.+)$', reader_views.segment_history),
 
     path('random/link', reader_views.random_redirect),
     re_path(r'^random/?$', reader_views.random_text_page),

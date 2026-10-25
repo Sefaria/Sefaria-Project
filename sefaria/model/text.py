@@ -2209,6 +2209,43 @@ class RefCacheType(type):
         except KeyError:
             pass
 
+    def remove_ref_from_cache(cls, index_title, tref):
+        """
+        Removes only the cached trefs/uids for one specific entry within Index `index_title`
+        (the entry named by `tref`, e.g. a dictionary headword) from the Ref cache, leaving
+        every other entry's cached refs in that same Index untouched. Every string this Index
+        has ever been constructed with is grouped under __index_tref_map[index_title]
+        regardless of which specific entry it names, so this filters that list down to the
+        ones naming this entry rather than dropping the whole Index's cache
+        (remove_index_from_cache) for what's usually a single-entry edit.
+
+        Takes a plain tref string, not a Ref, so this can be published as a multiserver
+        event ([index_title, tref] round-trips through JSON) and re-run identically on
+        every other server process, each reconstructing its own Ref to derive normal()/url()
+        from -- Ref objects themselves are per-process and can't be shared that way.
+        """
+        try:
+            trefs = cls.__index_tref_map[index_title]
+        except KeyError:
+            return
+        oref = cls(tref)
+        # A request's raw tref reaches Ref() as-is and gets cached under that literal string.
+        # For a URL-decoded request that literal string is oref.url() (spaces as "_"), not
+        # oref.normal() -- both forms must be matched to reach every real cache entry. A tref
+        # naming this entry either is one of these two forms exactly (no section) or continues
+        # with a separator -- ". "/" "/":" from DictionaryEntryNode's own parsing regex or
+        # other stored ref strings (e.g. links.refs), "_" from the url() form -- before a
+        # section number.
+        prefixes = "|".join(regex.escape(p) for p in {oref.normal(), oref.url()})
+        pattern = regex.compile(rf"^(?:{prefixes})(?:[. :_]|$)")
+        remaining = []
+        for tref in trefs:
+            if pattern.match(tref):
+                cls.__tref_oref_map.pop(tref, None)
+            else:
+                remaining.append(tref)
+        cls.__index_tref_map[index_title] = remaining
+
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
             tref = args[0]
@@ -4315,7 +4352,7 @@ class Ref(object, metaclass=RefCacheType):
         if not self._url or not encode_html:
             url = self.normal()
 
-            html_encoding_map = {'?': '%3F'}
+            html_encoding_map = {'%': '%25', '?': '%3F', '/': '%2F', '\\': '%5C'}
             pretty_url_map = {' ': '_', ':': '.'}
             replace_map = pretty_url_map if not encode_html else pretty_url_map | html_encoding_map
             for key, value in replace_map.items():
@@ -4511,6 +4548,12 @@ class Library(object):
 
         self.langs = ["en", "he"]
 
+        # Search auto-correction tables; populated by init_library_cache() where the
+        # autocompleters are (the name service), empty elsewhere.
+        self._top_n_grams_for_search_autocorrect = {}
+        self._entity_alt_index = {}
+        self._entity_owners = {}
+
         # Maps, keyed by language, from index key to array of titles
         self._index_title_maps = {lang:{} for lang in self.langs}
 
@@ -4586,10 +4629,14 @@ class Library(object):
         with build_pathway("_build_index_maps"):
             # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
             # simple texts
-            # Build the map record-by-record so one corrupt Index (e.g. accessing .title/.nodes
-            # raises) logs and is skipped rather than aborting the whole rebuild.
+            # Build the map record-by-record so one corrupt Index logs and is skipped rather than
+            # aborting the whole rebuild. TWO guards, covering two different failures: the
+            # with_skip_guard() call guards CONSTRUCTING each Index (a bad `schema` or missing
+            # `categories` raises inside IndexSet's own materialization, before this loop body ever
+            # runs), and the inner `with` guards USING it (.title/.nodes raising).
             self._index_map = {}
-            for i in IndexSet():
+            for i in IndexSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
+                                                "_build_index_maps index record", level="error"):
                 with skip_bad_record("reset_cache,startup", "_build_index_maps index record", record=getattr(i, "_id", None), level="error"):
                     if i.nodes:
                         self._index_map[i.title] = i
@@ -4605,6 +4652,12 @@ class Library(object):
                         tree_titles = tree.title_dict(lang)
                         self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
                         self._title_node_maps[lang].update(tree_titles)
+
+    def autocorrect_query(self, query):
+        """See sefaria.helper.top_n_grams_for_search_autocorrect.autocorrect_query."""
+        from sefaria.helper.top_n_grams_for_search_autocorrect import autocorrect_query
+        return autocorrect_query(query, self._top_n_grams_for_search_autocorrect, self._entity_alt_index,
+                                 self._entity_owners)
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
         """
@@ -4801,10 +4854,8 @@ class Library(object):
         unexplored_top_level = False    # example would be the first case of 'Holidays' encountered as it is top level,
                                         # this variable will allow us to force all top level categories to have children
         if topic is None:
-            ts = TopicSet({"isTopLevelDisplay": True})
-            # This top-level call is outside the per-child guard below, so build the
-            # top-level slug list record-by-record: one malformed top-level topic must
-            # not abort the whole topic-ToC build.
+            ts = TopicSet({"isTopLevelDisplay": True}).with_skip_guard(
+                skip_bad_record, "reset_toc,startup", "get_topic_toc_json_recursive top-level topic")
             children = []
             for t in ts:
                 with skip_bad_record("reset_toc,startup", "get_topic_toc_json_recursive top-level topic",
@@ -4813,7 +4864,7 @@ class Library(object):
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
-            topic_json = topic.contents(minify=True, children=children, with_html=True, min_sources_for_display=constants.MIN_SOURCES_FOR_TOPIC_DISPLAY)
+            topic_json = topic.contents(minify=True, children=children, with_html=True, min_sources_for_display=constants.MIN_SOURCES_FOR_TOPIC_DISPLAY, textual_only_for_display=True)
             unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
                                                                                           None) not in explored
             explored.add(topic.slug)
@@ -5004,6 +5055,16 @@ class Library(object):
             self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
             self._cross_lexicon_auto_completer_is_ready = True
 
+    def build_search_autocorrect_tables(self):
+        """Downloads the corpus table the CronJob built and builds the entity title index."""
+        if DISABLE_AUTOCOMPLETER:
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping search autocorrect tables.")
+            return
+        from sefaria.helper.top_n_grams_for_search_autocorrect import load_top_n_grams
+        from sefaria.helper.entity_alt_index import build_entity_alt_trie
+        with build_pathway("build_search_autocorrect_tables"):
+            self._top_n_grams_for_search_autocorrect = load_top_n_grams()
+            self._entity_alt_index, self._entity_owners = build_entity_alt_trie()
 
     def cross_lexicon_auto_completer(self):
         """
@@ -5310,7 +5371,8 @@ class Library(object):
         with build_pathway("build_term_mappings"):
             self._simple_term_mapping = {}
             self._full_term_mapping = {}
-            for term in TermSet():
+            for term in TermSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
+                                                  "build_term_mappings term"):
                 # One term with a missing/corrupt title_group must not abort startup.
                 with skip_bad_record("reset_cache,startup", "build_term_mappings term", record=getattr(term, "name", None)):
                     self._full_term_mapping[term.name] = term
@@ -5391,7 +5453,8 @@ class Library(object):
             from .topic import Topic, TopicSet
             # One topic with a missing/corrupt title_group must not abort startup.
             self._topic_mapping = {}
-            for t in TopicSet():
+            for t in TopicSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
+                                                "_build_topic_mapping topic"):
                 with skip_bad_record("reset_cache,startup", "_build_topic_mapping topic", record=getattr(t, "slug", None)):
                     self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
         return self._topic_mapping
@@ -5664,7 +5727,8 @@ class Library(object):
             # Build record-by-record so one malformed dictionary index (e.g. accessing
             # .title raises) is logged-and-skipped rather than aborting startup.
             self._virtual_books = []
-            for index in IndexSet({'lexiconName': {'$exists': True}}):
+            for index in IndexSet({'lexiconName': {'$exists': True}}).with_skip_guard(
+                    skip_bad_record, "startup", "build_virtual_books index"):
                 with skip_bad_record("startup", "build_virtual_books index", record=getattr(index, "_id", None)):
                     self._virtual_books.append(index.title)
         return self._virtual_books
