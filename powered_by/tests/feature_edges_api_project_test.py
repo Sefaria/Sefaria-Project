@@ -387,11 +387,12 @@ class MigrationEdgesTest(MigrationTestCase):
 
         self.assertEqual(self.trigger_names(), KEY_TRIGGERS)
 
-    def test_a_missing_reader_role_is_not_an_error(self):
+    def test_a_missing_reader_role_is_not_an_error_but_warns(self):
         apps = self.migrate(LATEST)
+        role = "apikeys_test_absent_role_%d" % os.getpid()
 
-        with connection.schema_editor() as editor:
-            TRIGGERS.update_triggers_and_grant(apps, editor, role="apikeys_test_absent_role_%d" % os.getpid())
+        with connection.schema_editor() as editor, self.assertWarnsRegex(UserWarning, role):
+            TRIGGERS.update_triggers_and_grant(apps, editor, role=role)
 
         self.assertEqual(self.trigger_names(), KEY_TRIGGERS | API_TRIGGERS)
 

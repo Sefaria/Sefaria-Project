@@ -650,9 +650,15 @@ def update_project(user, project_id, data):
 
 @transaction.atomic
 def delete_project(user, project_id):
-    api_project = _lock_owned_project(user, project_id)
+    soft_delete(_lock_owned_project(user, project_id))
+
+
+def soft_delete(api_project):
+    """Revokes the API project's keys and marks it deleted. Call inside transaction.atomic() with its row locked."""
     now = timezone.now()
     api_project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
+    if api_project.deleted_at is not None:
+        return
     api_project.deleted_at = now
     api_project.save()
     # A legacy listing stays public and claimable: only a project made in developer settings is unpublished.
@@ -737,9 +743,11 @@ def get_owned_key(user, key_id):
         raise LookupError("No such key.")
 
 
+@transaction.atomic
 def set_key_restriction(user, key_id, restrict):
+    """Holds the API project's row lock, so a concurrent update_project can't remove the website under it."""
     api_key = get_owned_key(user, key_id)
-    website = api_key.project.profile.project_link
+    website = _lock_owned_project(user, api_key.project_id).profile.project_link
     if restrict and not website:
         raise InputError("Add the project's website before restricting a key to it.")
     api_key.allowed_origins = [origin_of(website)] if restrict else []

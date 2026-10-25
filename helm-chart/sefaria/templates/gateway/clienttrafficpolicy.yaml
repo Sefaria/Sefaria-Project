@@ -6,12 +6,12 @@ metadata:
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
+  {{- if include "sefaria.httpsOnly" . }}
   # HTTPS listeners only. Gateways are merged into one Envoy, so every environment's port-80 listeners share one Envoy
   # listener, and Envoy Gateway rejects a ClientTrafficPolicy that targets them ("applied to multiple http (non https)
   # listeners ... on the same port"); a Gateway-wide targetRef is rejected whole, and then neither the header strip nor
   # the client IP detection below is applied. HTTPS listeners are split by SNI, so a policy per listener is accepted.
-  # Port 80 gets no policy, so it serves only redirects (automatic when authService.enabled, otherwise
-  # gateway.redirectHttpToHttps).
+  # Port 80 gets no policy, which is safe only because it serves nothing but the redirect (sefaria.httpsOnly).
   targetRefs:
     {{- range splitList "," (include "sefaria.gatewayListenerNames" (dict "root" $ "proto" "https")) }}
     - group: gateway.networking.k8s.io
@@ -19,6 +19,13 @@ spec:
       name: {{ $.Values.deployEnv }}
       sectionName: {{ . }}
     {{- end }}
+  {{- else }}
+  # Port 80 still serves the site here, so it keeps the client IP detection and escaped-slash handling below.
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ .Values.deployEnv }}
+  {{- end }}
   tls:
     alpnProtocols: {{ .Values.gateway.alpnProtocols | toJson | nindent 6 }}
   clientIPDetection:

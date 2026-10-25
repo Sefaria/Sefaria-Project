@@ -790,6 +790,15 @@ class ProjectLockTest(DeveloperApiTestCase):
 
         self.assertTrue(any("FOR UPDATE" in q["sql"] for q in queries))
 
+    def test_restricting_a_key_locks_the_project_row(self):
+        key_id = self.create_key(self.project["id"])["keyId"]
+
+        with CaptureQueriesContext(connection) as queries:
+            status, _ = self.call("post", "keys/" + key_id, {"restrictToWebsite": True})
+
+        self.assertEqual(status, 200)
+        self.assertTrue(any("FOR UPDATE" in q["sql"] and '"api_project"' in q["sql"] for q in queries))
+
 
 class ConfirmationLockTest(DeveloperApiTestCase):
 

@@ -4,6 +4,7 @@ N-M11: the Powered by admin with its API key inline.
 Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
 the `failing` marker, so the default CI run (-m "not failing") leaves them out.
 """
+from datetime import timedelta
 from html.parser import HTMLParser
 
 import pytest
@@ -166,6 +167,34 @@ class ProjectAdminTest(TestCase):
         self.assertIn(submitted.status_code, (200, 302))
         self.assertTrue(Project.objects.filter(pk=self.listing.pk).exists())
         self.assertTrue(ApiKey.objects.filter(pk=self.key.pk).exists())
+
+    def test_staff_can_soft_delete_an_api_project_and_revoke_its_keys(self):
+        settings_made = Project.objects.create(submission_source=SubmissionSource.DEVELOPER_SETTINGS,
+                                               project_name="Settings project", consent_to_display=True, is_published=True)
+        other = ApiProject.objects.create(profile=settings_made)
+        other_key = ApiKey.objects.create(project=other, label="Other")
+
+        response = self.client.post(admin_url("changelist", model="apiproject"), {
+            "action": "soft_delete_and_revoke_keys", "_selected_action": [self.api_project.pk, other.pk],
+        })
+
+        self.assertEqual(response.status_code, 302)
+        for api_project, key in ((self.api_project, self.key), (other, other_key)):
+            self.assertIsNotNone(ApiProject.objects.get(pk=api_project.pk).deleted_at)
+            self.assertIsNotNone(ApiKey.objects.get(pk=key.pk).revoked_at)
+        # The same rule as delete_project: a legacy listing stays public, a settings-made profile is unpublished.
+        self.assertTrue(Project.objects.get(pk=self.listing.pk).is_published)
+        self.assertFalse(Project.objects.get(pk=settings_made.pk).is_published)
+
+    def test_soft_deleting_an_already_deleted_api_project_keeps_its_deletion_time(self):
+        deleted_at = timezone.now() - timedelta(days=3)
+        ApiProject.objects.filter(pk=self.api_project.pk).update(deleted_at=deleted_at)
+
+        self.client.post(admin_url("changelist", model="apiproject"), {
+            "action": "soft_delete_and_revoke_keys", "_selected_action": [self.api_project.pk],
+        })
+
+        self.assertEqual(ApiProject.objects.get(pk=self.api_project.pk).deleted_at, deleted_at)
 
     def test_N_M11_clearing_revoked_at_does_not_bring_a_key_back_known_gap_N_M11(self):
         ApiKey.objects.filter(pk=self.key.pk).update(revoked_at=timezone.now())

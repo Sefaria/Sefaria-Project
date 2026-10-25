@@ -1,9 +1,11 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.db import transaction
 from django.db.models import Prefetch
 from django.urls import reverse
 from django.utils.html import format_html
 
+from . import developer
 from .models import ApiKey, ApiProject, Project
 
 
@@ -132,6 +134,17 @@ class ApiProjectAdmin(admin.ModelAdmin):
     raw_id_fields = ("profile", "owner")
     readonly_fields = ("deleted_at", "created_at", "updated_at")
     inlines = (ApiKeyInline,)
+    actions = ("soft_delete_and_revoke_keys",)
+
+    @admin.action(description="Soft-delete and revoke keys", permissions=("change",))
+    def soft_delete_and_revoke_keys(self, request, queryset):
+        # The same steps as an owner deleting the project in developer settings; admin delete is a hard delete,
+        # which the key foreign key refuses once a project has keys.
+        with transaction.atomic():
+            for api_project in queryset.select_for_update(of=("self",)).select_related("profile"):
+                developer.soft_delete(api_project)
+        self.message_user(request, "Soft-deleted {} API project(s) and revoked their keys.".format(queryset.count()),
+                          messages.SUCCESS)
 
     def get_readonly_fields(self, request, obj=None):
         readonly = super().get_readonly_fields(request, obj)

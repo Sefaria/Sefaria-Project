@@ -5,7 +5,9 @@ id, so keys can keep pointing at the profile id until the key FK moves in 0008.
 A profile is an API project when it has an owner, a developer-settings submission, or a key. Ownerless
 keyless listings get no row. Forward only inserts missing rows, so a row an old image wrote, or a tier
 changed later on the api_project row, survives a re-run. Reverse deletes every api_project row; the
-profiles and keys are untouched.
+profiles and keys are untouched. It refuses to run while any row holds what forward can't rebuild from its
+profile: an owner, contact email, tier or deletion that new code wrote only on api_project (a project made
+or claimed in developer settings, a tier change, a soft-delete). Deleting those rows would lose that data.
 
 A tier outside developer, partner, internal is normalised to developer with a warning. The sequence of
 api_project.id is moved past the copied ids, so a row created afterwards cannot collide with one.
@@ -21,6 +23,7 @@ no sequence functions, the same rule runs through the historical models.
 import warnings
 
 from django.db import migrations
+from django.db.migrations.exceptions import IrreversibleError
 
 
 API_PROJECT = """(p.owner_id IS NOT NULL
@@ -115,7 +118,30 @@ def forward(apps, schema_editor):
     schema_editor.execute(SEQUENCE_SQL)
 
 
+def _rows_backfill_cannot_rebuild(apps, alias):
+    """Ids of api_project rows that differ from what forward would write from their profile today."""
+    ApiProject, ApiKey = apps.get_model("powered_by", "ApiProject"), apps.get_model("powered_by", "ApiKey")
+    keyed = set(ApiKey.objects.using(alias).values_list("project_id", flat=True))
+    lost = []
+    for row in ApiProject.objects.using(alias).select_related("profile").order_by("id"):
+        profile = row.profile
+        is_api_project = (profile.owner_id is not None or profile.submission_source == "developer_settings"
+                          or profile.pk in keyed)
+        if (not is_api_project or row.owner_id != profile.owner_id or row.contact_email
+                or row.tier_id != _normalised_tier(profile.tier) or row.deleted_at != profile.deleted_at):
+            lost.append(row.pk)
+    return lost
+
+
 def reverse(apps, schema_editor):
+    lost = _rows_backfill_cannot_rebuild(apps, schema_editor.connection.alias)
+    if lost:
+        raise IrreversibleError(
+            f"{len(lost)} api_project row(s) (ids {lost}) hold an owner, contact email, tier or deletion that "
+            "the backfill can't rebuild from their profiles, so rolling back would lose it. Copy what must be "
+            "kept (for example the owner back to powered_by_project.owner_id), delete those api_project rows, "
+            "then run the rollback again."
+        )
     if schema_editor.connection.vendor != "postgresql":
         apps.get_model("powered_by", "ApiProject").objects.using(schema_editor.connection.alias).all().delete()
         return

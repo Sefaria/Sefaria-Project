@@ -191,3 +191,35 @@ class ApiProjectBackfillMigrationTest(MigrationTestCase):
         self.migrate(AFTER)
 
         self.assertEqual(self.api_project_rows(), first)
+
+    def test_reverse_refuses_rows_the_backfill_cannot_rebuild(self):
+        apps = self.migrate(BEFORE)
+        rebuilt = self.make_project(apps, "Backfilled", owner=self.make_user(apps))
+        created = self.make_project(apps, "Made in settings after the deploy")
+        apps = self.migrate(AFTER)
+        ApiProject = apps.get_model("powered_by", "ApiProject")
+        # What new code writes only on api_project: an owner, a contact email, a tier, a soft-delete.
+        ApiProject.objects.filter(profile_id=created.pk).update(
+            owner=self.make_user(apps), contact_email="dev@example.invalid", tier="partner", deleted_at=timezone.now())
+        rows_before = self.api_project_rows()
+
+        with self.assertRaisesRegex(Exception, r"1 api_project row\(s\) \(ids \[%d\]\)" % self.api_project_by_profile()[created.pk][0]):
+            self.migrate(BEFORE)
+
+        self.assertEqual(self.api_project_rows(), rows_before)
+        self.assertIn(rebuilt.pk, self.api_project_by_profile())
+
+    def test_reverse_refuses_each_field_the_backfill_does_not_copy(self):
+        for field, value in (("contact_email", "dev@example.invalid"), ("tier_id", "partner"),
+                             ("deleted_at", timezone.now())):
+            with self.subTest(field=field):
+                apps = self.migrate(BEFORE)
+                profile = self.make_project(apps, "Project " + field, owner=self.make_user(apps))
+                apps = self.migrate(AFTER)
+                self.execute(f"UPDATE api_project SET {field} = %s WHERE profile_id = %s", [value, profile.pk])
+
+                with self.assertRaisesRegex(Exception, r"api_project row\(s\)"):
+                    self.migrate(BEFORE)
+
+                self.execute("DELETE FROM api_project")
+                self.migrate(BEFORE)

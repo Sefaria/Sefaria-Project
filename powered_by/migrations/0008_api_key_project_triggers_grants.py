@@ -29,6 +29,7 @@ service reloads after the schema moves. Postgres only for the SQL; elsewhere (SQ
 development) this migration only changes the foreign key.
 """
 import importlib
+import warnings
 
 from django.db import migrations, models
 import django.db.models.deletion
@@ -269,6 +270,15 @@ def remap_keys_to_profile_ids(apps, schema_editor):
 
 def update_triggers_and_grant(apps, schema_editor, role=READER_ROLE):
     if schema_editor.connection.vendor == "postgresql":
+        with schema_editor.connection.cursor() as cursor:
+            cursor.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", [role])
+            if cursor.fetchone() is None:
+                warnings.warn(
+                    f"Role {role} does not exist, so it was not granted the api_project, api_tier and "
+                    "api_tier_meter_limit columns. Grant them when the role is created (the reader-role "
+                    "provisioning runbook does), or the auth service cannot reload its registry.",
+                    stacklevel=2,
+                )
         schema_editor.execute(_FORWARD_SQL + _grant_sql(role) + _PAYLOAD_NOTIFY_SQL)
 
 
