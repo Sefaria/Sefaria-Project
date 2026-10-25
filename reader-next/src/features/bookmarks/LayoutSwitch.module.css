@@ -1,0 +1,12 @@
+.host { position: relative; display: inline-grid; }
+.button[aria-pressed="true"] svg { fill-opacity: 0.2; }
+.dot { position: absolute; top: var(--sefaria-space-2); inset-inline-end: var(--sefaria-space-2); width: 8px; height: 8px; border-radius: var(--sefaria-radius-round); background: var(--sefaria-color-attention); pointer-events: none; }
+.menu { display: grid; gap: var(--sefaria-space-1); min-width: 200px; }
+.group { display: grid; gap: var(--sefaria-space-1); }
+.item { display: flex; align-items: center; gap: var(--sefaria-space-2); width: 100%; padding: var(--sefaria-space-2) var(--sefaria-space-3); border: 0; border-radius: var(--sefaria-radius-md, 6px); background: none; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.item:hover:not(:disabled), .item:focus-visible { background: var(--sefaria-color-highlight-soft); }
+.item:disabled { color: var(--sefaria-color-text-muted); cursor: default; }
+.item[role="radio"]::before { content: ""; width: 8px; height: 8px; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-round); }
+.item[aria-checked="true"]::before { background: var(--sefaria-color-brand); border-color: var(--sefaria-color-brand); }
+.rule { width: 100%; margin: var(--sefaria-space-1) 0; border: 0; border-block-start: 1px solid var(--sefaria-color-border); }
+.note { margin: var(--sefaria-space-1) 0 0; padding-inline: var(--sefaria-space-3); color: var(--sefaria-color-text-muted); font-size: var(--sefaria-text-caption); }

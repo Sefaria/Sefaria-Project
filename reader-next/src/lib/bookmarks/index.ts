@@ -7,6 +7,7 @@ export {
   noteReading,
   removeBookmark,
   resetFurthest,
+  setBookmarkLayout,
   setBookmarkMode,
   setDefaultBookmarkMode,
   useBookmark,

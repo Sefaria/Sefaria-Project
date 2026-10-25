@@ -75,6 +75,7 @@ export function decodeWorkspace(firstRef: string, search: RawSearch): Workspace 
   return {
     panels: Object.fromEntries(panels.map((p) => [p.id, p])),
     layout: panels.length === 1 ? leaf(panels[0]!.id) : (decodeLayout(str(search.layout), panels.length) ?? row(...panels.map((p) => leaf(p.id)))),
+    ...(str(search.bk) === "1" ? { bk: true as const } : {}),
   };
 }
 
@@ -144,6 +145,7 @@ export function workspaceUrl(ws: Workspace, defaults: UrlDefaults = DEFAULT_URL_
   }
   const layout = encodeLayout(ws.layout);
   if (layout) url += `&layout=${layout}`;
+  if (ws.bk) url += "&bk=1";
   return url.replace(/\?/g, "%3F").replace("&", "?");
 }
 

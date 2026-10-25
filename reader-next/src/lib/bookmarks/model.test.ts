@@ -10,6 +10,7 @@ import {
   resetFurthest,
   setBookmarkMode,
   setDefaultMode,
+  setLayout,
   sortedBookmarks,
   type BookmarkState,
 } from "./model";
@@ -90,6 +91,21 @@ describe("auto mode", () => {
     s = setBookmarkMode(s, "Genesis", "auto", 3);
     expect(s.books.Genesis).toMatchObject({ mode: "auto", furthest: "Genesis 1:1" });
     expect(setBookmarkMode(s, "Genesis", "auto", 4)).toBe(s);
+  });
+});
+
+describe("saving a layout", () => {
+  const layout = { search: { lang: "bi", p2: "Rashi_on_Berakhot.2a.1.1", lang2: "he" } };
+  it("snapshots on create, and is replaced only by saving", () => {
+    let s = addBookmark(EMPTY_STATE, "Berakhot", "Berakhot 2a:1", 1, layout);
+    expect(s.books.Berakhot!.layout).toEqual(layout);
+    s = addBookmark(s, "Berakhot", "Berakhot 4a:1", 2);
+    expect(s.books.Berakhot!.layout).toEqual(layout);
+    s = setLayout(s, "Berakhot", { search: { lang: "he" } }, 5);
+    expect(s.books.Berakhot).toMatchObject({ layout: { search: { lang: "he" } }, ref: "Berakhot 4a:1", updated: 5 });
+    expect(setLayout(s, "Berakhot", { search: { lang: "he" } }, 6)).toBe(s);
+    expect(setLayout(s, "Shabbat", layout, 6)).toBe(s);
+    expect(parseState(JSON.stringify(s))).toEqual(s);
   });
 });
 

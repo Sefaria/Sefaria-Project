@@ -4,6 +4,10 @@ import { Button } from "~/ui/Button/Button";
 import { IconButton } from "~/ui/IconButton/IconButton";
 import { Link } from "~/ui/Link/Link";
 import { Popover } from "~/ui/Popover/Popover";
+import { bookOf, layoutHasCompanions, layoutSearchOf } from "~/lib/bookmarks/layout";
+import { panelAt } from "~/lib/workspace/ops";
+import { useReaderSettings } from "../reader/settings-context";
+import { urlDefaultsFor, useWorkspaceNav } from "../workspace/navigation";
 import { ModeSwitch, modeHint } from "./ModeSwitch";
 import styles from "./BookmarkToggle.module.css";
 
@@ -13,9 +17,18 @@ import styles from "./BookmarkToggle.module.css";
  */
 export function BookmarkToggle({ book, at }: { book: string; at: string }) {
   const bookmark = useBookmark(book);
+  const nav = useWorkspaceNav();
+  const { settings } = useReaderSettings();
   const [open, setOpen] = useState(false);
   const change = (next: boolean) => {
-    if (next && !bookmark) addBookmark(book, at);
+    if (next && !bookmark) {
+      // Bookmarking the main text also keeps what's on screen around it as My layout
+      const ws = nav.current();
+      const main = panelAt(ws, 0)?.ref;
+      const layout = main && bookOf(main) === bookOf(at) ? { search: layoutSearchOf(ws, urlDefaultsFor(settings)) } : undefined;
+      addBookmark(book, at, layout);
+      if (layout && layoutHasCompanions(layout.search)) nav.go(ws, { replace: true, bk: true, state: { nav: "stay" } });
+    }
     setOpen(next);
   };
   return (

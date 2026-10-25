@@ -31,6 +31,7 @@ import { ContextMenu, type ContextMenuGroup } from "~/ui/ContextMenu/ContextMenu
 import { commentariesOn, favouriteCommentaries, type CommentaryOnVerse } from "~/lib/study/favourite-commentaries";
 import { glossary, glossKey } from "~/lib/study/glossary";
 import { BookmarkToggle } from "../bookmarks/BookmarkToggle";
+import { LayoutSwitch } from "../bookmarks/LayoutSwitch";
 import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
 import { rememberTranslation } from "~/lib/versions/prefs-source";
@@ -697,6 +698,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           {alone ? null : <ArrangeMenu self={id} workspace={nav.current()} onMove={(target, placement) => apply((ws) => move(ws, id, target, placement), { state: { nav: "stay" } })} />}
           {alone ? null : <IconButton icon="link" label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
           <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
+          <LayoutSwitch panel={id} book={current.passage.indexTitle} />
           <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} />
           <IconButton
             icon="bookmark"

@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import * as model from "./model";
-import { EMPTY_STATE, type Bookmark, type BookmarkMode, type BookmarkState } from "./model";
+import { EMPTY_STATE, type Bookmark, type BookmarkLayout, type BookmarkMode, type BookmarkState } from "./model";
 
 /**
  * The reader's bookmarks, kept in this browser. Every change is written through to localStorage and announced to
@@ -47,7 +47,8 @@ const subscribe = (cb: () => void) => {
 };
 
 export const getBookmarks = (): BookmarkState => current();
-export const addBookmark = (book: string, ref: string) => commit(model.addBookmark(current(), book, ref, Date.now()));
+export const addBookmark = (book: string, ref: string, layout?: BookmarkLayout) => commit(model.addBookmark(current(), book, ref, Date.now(), layout));
+export const setBookmarkLayout = (book: string, layout: BookmarkLayout) => commit(model.setLayout(current(), book, layout, Date.now()));
 export const moveBookmark = (book: string, ref: string) => commit(model.moveBookmark(current(), book, ref, Date.now()));
 export const removeBookmark = (book: string) => commit(model.removeBookmark(current(), book));
 export const setBookmarkMode = (book: string, mode: BookmarkMode) => commit(model.setBookmarkMode(current(), book, mode, Date.now()));

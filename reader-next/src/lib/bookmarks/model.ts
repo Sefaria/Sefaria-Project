@@ -68,10 +68,19 @@ const later = (current: string | undefined, next: string): string => {
 
 const put = (state: BookmarkState, b: Bookmark): BookmarkState => ({ ...state, books: { ...state.books, [b.book]: b } });
 
-export function addBookmark(state: BookmarkState, book: string, ref: string, now: number): BookmarkState {
+/** `layout` is the snapshot taken when the bookmark is created; re-adding an existing bookmark keeps its layout. */
+export function addBookmark(state: BookmarkState, book: string, ref: string, now: number, layout?: BookmarkLayout): BookmarkState {
   const existing = state.books[book];
   const mode = existing?.mode ?? state.defaultMode;
-  return put(state, { book, ref, mode, updated: now, ...(mode === "auto" ? { furthest: ref } : {}), ...(existing?.layout ? { layout: existing.layout } : {}) });
+  const kept = layout ?? existing?.layout;
+  return put(state, { book, ref, mode, updated: now, ...(mode === "auto" ? { furthest: ref } : {}), ...(kept ? { layout: kept } : {}) });
+}
+
+/** Save the arrangement as this book's layout. Position and mode are untouched. */
+export function setLayout(state: BookmarkState, book: string, layout: BookmarkLayout, now: number): BookmarkState {
+  const b = state.books[book];
+  if (!b || (b.layout && JSON.stringify(b.layout.search) === JSON.stringify(layout.search))) return state;
+  return put(state, { ...b, layout, updated: now });
 }
 
 export function moveBookmark(state: BookmarkState, book: string, ref: string, now: number): BookmarkState {

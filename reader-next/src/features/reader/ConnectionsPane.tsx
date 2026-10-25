@@ -53,6 +53,7 @@ import { tocStructures, type TocIndexRecord } from "~/lib/toc/model";
 import { TocView } from "~/ui/TocView/TocView";
 import { mergeTextResultsVersions, searchPathQueryOptions, textSearchQueryOptions, type SearchHit } from "~/lib/search/text-search";
 import { versionApiToParam } from "~/lib/workspace/url";
+import { stripBookmarkFlag } from "~/lib/bookmarks/layout";
 import { SidebarSearch } from "~/ui/SidebarSearch/SidebarSearch";
 import { useLocation } from "@tanstack/react-router";
 import { currVersionsOf, sendFeedback } from "~/lib/feedback/feedback";
@@ -376,7 +377,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   }
 
   if (view.view === "mode" && view.mode === "Share") {
-    const url = typeof window === "undefined" ? location.href : new URL(location.href, window.location.origin).href;
+    const url = stripBookmarkFlag(typeof window === "undefined" ? location.href : new URL(location.href, window.location.origin).href);
     return (
       <ConnectionsPanel label="Share" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         <ShareView url={url} />
