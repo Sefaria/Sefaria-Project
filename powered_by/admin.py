@@ -5,7 +5,6 @@ from django.db.models import Prefetch
 from django.urls import reverse
 from django.utils.html import format_html
 
-from . import developer
 from .models import ApiKey, ApiProject, Project
 
 
@@ -139,7 +138,10 @@ class ApiProjectAdmin(admin.ModelAdmin):
     @admin.action(description="Soft-delete and revoke keys", permissions=("change",))
     def soft_delete_and_revoke_keys(self, request, queryset):
         # The same steps as an owner deleting the project in developer settings; admin delete is a hard delete,
-        # which the key foreign key refuses once a project has keys.
+        # which the key foreign key refuses once a project has keys. Imported here: developer imports sefaria.model,
+        # which connects to Mongo, and admin modules load at Django setup (collectstatic in the image build has no Mongo).
+        from . import developer
+
         with transaction.atomic():
             locked = list(queryset.select_for_update())
             # Profiles are read after the lock, so none is the version from before an edit the lock waited for.

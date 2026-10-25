@@ -220,3 +220,14 @@ class ProjectAdminTest(TestCase):
         self.api_save(data)
 
         self.assertEqual(ApiKey.objects.filter(project=self.api_project, revoked_at__isnull=True).count(), 5)
+
+
+def test_the_admin_module_does_not_import_sefaria_model_at_load():
+    # Admin modules load at Django setup, including collectstatic in the image build, which has no Mongo.
+    import ast
+    import powered_by.admin as admin_module
+
+    tree = ast.parse(open(admin_module.__file__).read())
+    top_level = [node for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))]
+    imported = {(node.module or "") + ":" + ",".join(alias.name for alias in node.names) for node in top_level}
+    assert not any("developer" in name or "sefaria" in name for name in imported), imported
