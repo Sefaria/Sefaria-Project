@@ -721,7 +721,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
         end={
           <>
-          {alone ? null : <IconButton icon="link" label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
+          {alone || id === "p1" ? null : <IconButton icon="link" label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
           <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
           <LayoutSwitch panel={id} book={current.passage.indexTitle} />
           <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} />
