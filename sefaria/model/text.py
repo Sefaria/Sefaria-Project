@@ -2323,6 +2323,9 @@ class Ref(object, metaclass=RefCacheType):
         '_range_depth', '_range_index', 'legacy_tref',
     )
 
+    # Upper bound on positions expanded by range_list() within one parent section.
+    MAX_RANGE_LIST_SIZE = 5000
+
     def __init__(self, tref=None, _obj=None):
         """
         Object is generally initialized with a textual reference - ``tref``
@@ -3775,6 +3778,10 @@ class Ref(object, metaclass=RefCacheType):
                 for oref in self.split_spanning_ref():
                     results += oref.range_list() if oref.is_range() else [oref] if oref.is_segment_level() else oref.all_subrefs()
             else:
+                # A same-parent range expands to one Ref per position. Ends beyond the cap are not real
+                # text, so refuse before building any Ref objects.
+                if self.toSections[-1] - self.sections[-1] + 1 > self.MAX_RANGE_LIST_SIZE:
+                    raise InputError("{} is too large to expand into individual references.".format(self.tref))
                 for s in range(self.sections[-1], self.toSections[-1] + 1):
                     d = self._core_dict()
                     d["sections"][-1] = s
