@@ -100,7 +100,23 @@ jobs:
           if [[ -n "${{ steps.semantic.outputs.new_release_version }}" ]]; then
             echo "chart_version=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT
           else
-            tag=$(git tag --points-at HEAD -l 'helm-chart-*' | head -1)
+            # No chart changes since the last release: reuse the nearest reachable chart tag. It may sit
+            # below HEAD (e.g. tagged by a concurrent master run on a commit since merged here).
+            # Consider only stable tags and this branch's prereleases, never feature-branch prereleases;
+            # the second --exclude keeps "-prod.N" from matching "-preprod.N".
+            branch="${GITHUB_REF_NAME}"
+            tag=""
+            best=-1
+            for t in \
+              "$(git describe --tags --abbrev=0 --match 'helm-chart-*' --exclude 'helm-chart-*-*' HEAD 2>/dev/null)" \
+              "$(git describe --tags --abbrev=0 --match "helm-chart-*-${branch}.*" --exclude "helm-chart-*-?*${branch}.*" HEAD 2>/dev/null)"; do
+              [[ -z "$t" ]] && continue
+              dist=$(git rev-list --count "${t}..HEAD")
+              if (( best < 0 || dist < best )); then
+                tag=$t
+                best=$dist
+              fi
+            done
             if [[ -n "$tag" ]]; then
               echo "chart_version=${tag#helm-chart-}" >> $GITHUB_OUTPUT
             else
