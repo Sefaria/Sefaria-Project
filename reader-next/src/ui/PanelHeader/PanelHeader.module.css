@@ -19,3 +19,17 @@
 .bar { height: var(--sefaria-reader-controls-height, 60px); min-height: 0; }
 .title { line-height: 21px; }
 .subtitle { line-height: 17px; }
+
+/* Long titles stay on one line and end in an ellipsis rather than spilling out of the fixed-height bar. */
+.title, .title > *, .subtitle > * { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+/* the title's own element carries its direction, so a Hebrew title is cut at its end, on the left */
+.title > * { display: block; }
+
+/* A narrow panel: the actions keep their natural width and the title takes what is left, instead of the actions
+   overflowing their third of the bar onto the title. */
+.header { container-type: inline-size; }
+@container (max-width: 520px) {
+  .bar { grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--sefaria-space-1); padding-inline: var(--sefaria-space-1); }
+  .end > * + * { margin-inline-start: 0; }
+  .end :is(button, a) { width: 30px; height: 32px; }
+}

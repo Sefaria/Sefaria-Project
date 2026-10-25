@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { CategoryColorLine } from "../CategoryColorLine/CategoryColorLine";
 import styles from "./PanelHeader.module.css";
 
@@ -25,13 +25,25 @@ export interface PanelHeaderProps {
  */
 export function PanelHeader({ title, subtitle, headingLevel = 1, start, end, category, sticky }: PanelHeaderProps) {
   const Heading = `h${headingLevel}` as "h1" | "h2" | "h3";
+  const heading = useRef<HTMLHeadingElement>(null);
+  // A title cut short by the ellipsis shows in full on hover.
+  useEffect(() => {
+    const el = heading.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const cut = (x: Element | null) => !!x && x.scrollWidth > x.clientWidth + 1;
+    const check = () => (cut(el) || cut(el.firstElementChild) ? el.setAttribute("title", el.textContent ?? "") : el.removeAttribute("title"));
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [title]);
   return (
     <header className={`${styles.header} ${sticky ? styles.sticky : ""}`}>
       {category ? <CategoryColorLine category={category} /> : null}
       <div className={styles.bar}>
         <div className={styles.start}>{start}</div>
         <div className={styles.center}>
-          <Heading className={styles.title}>{title}</Heading>
+          <Heading ref={heading} className={styles.title}>{title}</Heading>
           {subtitle ? <div className={styles.subtitle}>{subtitle}</div> : null}
         </div>
         <div className={styles.end}>{end}</div>
