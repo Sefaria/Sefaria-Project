@@ -1,0 +1,19 @@
+{% extends "email/base.html" %}
+{% load i18n %}
+{% load sefaria_tags %}
+
+{% block to %}
+{% blocktrans %}Hi {{ recipient }},{% endblocktrans %}
+{% endblock %}
+
+{% block body %}
+{% if daf_yomi_display %}
+    {% blocktrans %}You left off on Daf Yomi a few days ago - just a few clicks and you're back on {{ daf_yomi_display }}.{% endblocktrans %}
+{% else %}
+    {% blocktrans %}It's been {{ days_since }} days since you were last learning {{ ref }}. Pick up right where you left off.{% endblocktrans %}
+{% endif %}
+    <br><br>
+    <a href="{{ ref_url|absolute_url }}" style="display:inline-block;padding:10px 20px;background:#212E50;color:#fff;text-decoration:none;border-radius:4px">
+        {% blocktrans %}Continue Learning{% endblocktrans %}
+    </a>
+{% endblock %}
