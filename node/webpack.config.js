@@ -48,7 +48,7 @@ class CleanOldAssetsOnBuildPlugin {
 
 const buildDir = './static/bundles/';
 var baseConfig = {
-    devtool: 'source-map', //should have better performance on incremental build over `source-map`
+    devtool: 'hidden-source-map', // maps are written but not referenced from bundles; nginx does not serve them
     plugins: [
         new WatchRunPlugin(),
         new webpack.optimize.ModuleConcatenationPlugin() // puts all module code in one scope which is supposed to speed up run-time
@@ -129,6 +129,7 @@ var serverConfig = config({
     entry: './server',
     target: 'node',
     mode: 'development',  // can be overriden via cli
+    devtool: 'source-map', // source-map-support reads the map comment for server stack traces; the map is not served publicly
     externals: [nodeExternals()],
     output: {
         path: path.resolve(buildDir + 'server'),
@@ -231,6 +232,7 @@ var linkerV3Config = config({
     context: path.resolve('./static/js'),
     entry: './linker.v3/main',
     mode: 'development', // can be overriden via cli
+    devtool: 'source-map', // public on purpose: partners debug the embedded linker through linker.v3.js.map
     output: {
         path: path.resolve(buildDir + 'linker.v3'),
         filename: 'linker.v3.js'
