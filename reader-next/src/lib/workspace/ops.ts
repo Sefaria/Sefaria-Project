@@ -6,7 +6,7 @@
  * @feature SHL-047 Open connections list at panel
  * @feature SHL-048 Close panel
  */
-import { insert, leaf, leaves, move as moveLeaf, remove, type LayoutNode, type Placement } from "~/lib/layout/tree";
+import { insert, insertBeside, leaf, leaves, move as moveLeaf, remove, type LayoutNode, type Placement } from "~/lib/layout/tree";
 import type { AsideId, AsideState, PanelId, PanelState, Workspace } from "./types";
 
 /** A panel as the caller describes it: ids are assigned by the workspace. */
@@ -59,7 +59,10 @@ export function openOnly(_ws: Workspace, p: NewPanel): Workspace {
   return { panels: { [id]: materialise(id, p) }, layout: leaf(id) };
 }
 
-/** Open a panel next to another one (default: after it, in the same row). Opening into an empty workspace opens it alone. */
+/**
+ * Open a panel next to another one (default: after it, in the same row). Beside a stacked panel it opens beside the whole
+ * stack, at full height; above or below joins the stack. Opening into an empty workspace opens it alone.
+ */
 export function openNextTo(ws: Workspace, target: PanelId | null, p: NewPanel, placement: Placement = "after"): Workspace {
   return openNextToWithId(ws, target, p, placement)[0];
 }
@@ -72,7 +75,7 @@ export function openNextToWithId(ws: Workspace, target: PanelId | null, p: NewPa
     return openNextToWithId(ws, last, p, placement);
   }
   const tmp = "p0" as PanelId; // a temporary id no panel has: renumbering gives the new panel its place's id
-  const layout = insert(ws.layout, target, leaf(tmp), placement);
+  const layout = (placement === "before" || placement === "after" ? insertBeside : insert)(ws.layout, target, leaf(tmp), placement);
   const id = `p${leaves(layout).indexOf(tmp) + 1}` as PanelId;
   return [renumber({ panels: { ...ws.panels, [tmp]: materialise(tmp, p) }, layout }), id];
 }

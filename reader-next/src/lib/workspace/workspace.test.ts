@@ -101,6 +101,24 @@ describe("workspace operations", () => {
     expect(refs(ws)).toEqual(["Leviticus 1", "Exodus 1", "Genesis 1"]);
   });
 
+  it("a link opened from a stacked panel opens beside the stack; a companion opened below joins it", () => {
+    let ws = openAtEnd(openAtEnd(openOnly(EMPTY_WORKSPACE, text("Berakhot 2a")), text("Rashi on Berakhot 2a")), text("Tosafot on Berakhot 2a"));
+    ws = move(ws, "p3", "p2", "below");
+    expect(show(ws.layout)).toBe("row(p1,col(p2,p3))");
+    const [beside, opened] = openNextToWithId(ws, "p2", text("Genesis 1"));
+    expect(show(beside.layout)).toBe("row(p1,col(p2,p3),p4)");
+    expect(opened).toBe("p4");
+    expect(show(openNextTo(ws, "p3", text("Ritva on Berakhot 2a"), "below").layout)).toBe("row(p1,col(p2,p3,p4))");
+  });
+
+  it("closing the last companion leaves one panel and no layout to write", () => {
+    let ws = openAtEnd(openAtEnd(openOnly(EMPTY_WORKSPACE, text("Berakhot 2a")), text("Rashi on Berakhot 2a")), text("Tosafot on Berakhot 2a"));
+    ws = move(ws, "p3", "p2", "below");
+    ws = close(close(ws, "p3"), "p2");
+    expect(show(ws.layout)).toBe("p1");
+    expect(encodeWorkspace(ws)?.search.layout).toBeUndefined();
+  });
+
   it("ignores operations on panels that do not exist", () => {
     const ws = openOnly(EMPTY_WORKSPACE, text("Genesis 1"));
     expect(close(ws, "p9")).toBe(ws);
