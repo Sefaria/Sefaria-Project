@@ -1,4 +1,4 @@
-# Learning workspace: layout defaults
+# Learning workspace: defaults
 
 > **These are defaults chosen by Claude, not decisions by Daniel or any user.** Each was picked to get the experiment
 > working sensibly. All of them are open to change: when one feels wrong in use, change it here and in the code.
@@ -117,6 +117,31 @@ Status: **implemented** means it is in the code on this branch; **not yet** mean
 | The action icons crowd a panel under ~520px wide (six icons at 360px) | The icons keep their natural width (shrunk to 30px each), and the title gets what is left (about 100px at 360px). Before this, the icons overflowed their third of the bar onto the title. | Nothing is hidden, and nothing overlaps. | implemented |
 | An overflow "…" menu for lower-priority icons in very narrow panels | Proposed: keep Close, Resources and Display settings; move Bookmark, Save and the scroll lock into "…" (arranging has no icon any more). | This needs changes to `TextPanel.tsx`, which others are editing right now. | not yet |
 | The "Change the translation?" banner in a 360px panel | Its button and close icon overlap slightly. | Outside the layout work. | not yet |
+
+## Study tools: right-click menu, definitions, link previews
+
+These are defaults too (chosen by Claude to implement Daniel's feedback), not decisions.
+
+| Situation | Default | Why | Status |
+|---|---|---|---|
+| Rows in the right-click menu on a verse | Resources · Open my saved layout (only when one exists for this book, panel 1) · Bookmark here / Move bookmark here · Look up *word* (only over a Hebrew word) · the starred commentaries on this verse · All commentaries… · Copy with citation. Usually 6–8 rows. | Daniel asked for a shorter menu. | implemented |
+| Icons in the menu | Every row has one: layers (Resources), saved layout, bookmark, search (Look up), book (each commentary), list (All commentaries…), copy. | Consistency; the bookmark row needed one. | implemented |
+| Which commentaries the menu lists | Only starred ones that have something on this verse, in the reader's star order, at most 3. The default stars are Rashi, Tosafot and Ramban. Nothing starred on the verse: only "All commentaries…". | Daniel asked for favourites only. | implemented |
+| "All commentaries…" | Opens the sidebar on the verse's Commentary list (`with=Commentary ConnectionsList`). | The full list already exists there. | implemented |
+| Starring and unstarring a commentary | A star beside each commentator in the sidebar's Commentary list (not Quoting Commentary). The gold star beside a commentary in the right-click menu unstars it. Kept on this device (localStorage). | The menu no longer lists unstarred commentaries, so starring moved to the full list. | implemented |
+| Bookmark label | "Bookmark here" without a bookmark in this book, "Move bookmark here" with one, "Your bookmark is here" (greyed) on the verse that has it. | Shorter than "Bookmark this book here". | implemented |
+| "Always gloss this word on hover" | Removed, with its stored word list and the dotted underlines. | Daniel found it strange and doesn't want it. | implemented (removed) |
+| Selecting words in the text | Selecting (or double-clicking) up to three words in one verse that include Hebrew or Aramaic shows a definition card beside them, from the same dictionary lookup the sidebar uses, filtered to the dictionaries that apply to the text's category. Up to 3 entries, each cut at 220 characters. | Replaces the gloss-on-hover feature. | implemented |
+| Nothing found for a selection | No card at all. The card also stays hidden while the lookup is in flight, so it appears only once there is something to show. | No noise on ordinary selections. | implemented |
+| "Look up *word*" from the right-click menu | The same card, at the word. Here it says "Looking up…" while loading and "No definition found." when there is none. | The lookup was explicit, so silence would look broken. | implemented |
+| Closing the definition card | A click anywhere outside it, Escape (which then doesn't close the panel), scrolling, resizing the window, or a new selection. | As asked. | implemented |
+| The card's "Open in dictionary" | Opens the sidebar's dictionary view on the same words. | The full entries with sources and citations live there. | implemented |
+| Selecting words while the sidebar shows the dictionary | The sidebar follows the selection and no card appears. While the sidebar shows anything else (Resources, a commentary), selecting no longer switches it to the dictionary; the card shows instead. | One definition on screen at a time. sefaria.org switches an open sidebar to the dictionary; this experiment doesn't. | implemented |
+| English selections | No card. | The lookup supports Hebrew and Aramaic only (same rule as the sidebar). | implemented |
+| Link preview card layout | A shaded header with the ref as the title (serif, larger, ellipsis with the full title on hover) and a close button. The text sits in the body, slightly larger than before (58 instead of 54 on the reader's font scale). A footer row holds the actions. 380px wide, at most 340px tall. | Daniel asked for a cleaner card: a clear header, readable body and tidy buttons. | implemented |
+| "Open as new column" | Adds a panel for the ref in this workspace, right after the source panel, in the source panel's language. A comment on one base text opens as that text with the commentator in its sidebar (the app's usual rule for opening a link). The source panel and any other open panel stay. On a phone the panel goes there instead. | As asked. The old "Open on page" closed the panel next to the source first. | implemented |
+| "Open in new page" | A real link (`target=_blank`) to the ref alone (`/Ref?lang=<source panel's language>`), so it opens in a new browser tab. The card closes. | As asked. Being a link also makes copy-link and middle-click work. | implemented |
+| Pinning | Unchanged: a click inside a hover card pins it, and a plain click on a link opens a pinned card. | Daniel is happy with it. | implemented (existing behavior) |
 
 ## Known issues found while checking
 
