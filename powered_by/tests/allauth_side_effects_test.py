@@ -2,14 +2,10 @@
 N-M12: developer email confirmation writes allauth EmailAddress rows. Email login and password
 reset must treat such an account exactly like one that never confirmed, before and after the
 account email changes.
-
-Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
-the `failing` marker, so the default CI run (-m "not failing") leaves them out.
 """
 import json
 import re
 
-import pytest
 from django.core import mail
 from django.test import Client, TestCase, override_settings
 
@@ -73,8 +69,7 @@ class EmailAddressSideEffectsTest(TestCase):
         self.assertEqual(plain, {"login": 200, "reset": (200, True)})
         self.assertEqual(self.outcomes(self.confirmed), plain)
 
-    @pytest.mark.failing
-    def test_N_M12_after_an_email_change_the_old_address_no_longer_logs_in_known_gap_N_M12(self):
+    def test_N_M12_after_an_email_change_the_old_address_no_longer_logs_in(self):
         plain = self.outcomes(self.plain, self.change_email(self.plain))
         confirmed_old = self.change_email(self.confirmed)
         client = Client()

@@ -263,6 +263,7 @@ class ConfirmationLinkTest(DeveloperApiTestCase):
 
     def test_a_link_for_an_address_that_is_no_longer_the_account_email_is_rejected(self):
         key = self.link_key()
+        old_email = self.user.email
         self.user.email = "tova.new@example.org"
         self.user.save()
 
@@ -270,17 +271,31 @@ class ConfirmationLinkTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 200)
         self.assertEqual(link["status"], "not-account-email")
-        self.assertFalse(EmailAddress.objects.get(user=self.user, email__iexact=link_address(key)).verified)
+        self.assertFalse(EmailAddress.objects.filter(email__iexact=old_email, verified=True).exists())
         self.assertEqual(self.new_link(key), 404)
         self.assertEqual(len(mail.outbox), 0)
+
+    def test_changing_the_account_email_removes_the_old_address(self):
+        EmailAddress.objects.create(user=self.user, email=self.user.email, primary=True, verified=True)
+        old_email = self.user.email
+
+        self.user.email = "tova.new@example.org"
+        self.user.save()
+
+        self.assertFalse(EmailAddress.objects.filter(user=self.user, email__iexact=old_email).exists())
+
+    def test_saving_the_account_without_changing_its_email_keeps_the_address(self):
+        EmailAddress.objects.create(user=self.user, email=self.user.email, primary=True, verified=True)
+
+        self.user.first_name = "Tova"
+        self.user.save()
+        self.user.save(update_fields=["last_login"])
+
+        self.assertTrue(EmailAddress.objects.get(user=self.user).verified)
 
     def test_a_link_we_did_not_sign_is_not_found(self):
         self.assertEqual(self.open_link("not-a-key")[0], 404)
         self.assertEqual(self.new_link("not-a-key"), 404)
-
-
-def link_address(key):
-    return developer.address_of_link(key).email
 
 
 class ResendLimitTest(DeveloperApiTestCase):
@@ -490,23 +505,40 @@ class KeyTest(DeveloperApiTestCase):
         self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, ["https://dafportal.org"])
         self.assertTrue(state["projects"][0]["keys"][0]["restrictToWebsite"])
 
-    def test_a_new_website_moves_restricted_keys_and_no_website_is_refused_while_a_key_is_restricted(self):
+    def test_a_new_website_moves_restricted_keys(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
         unrestricted = self.create_key(self.project["id"], "Local")["keyId"]
         self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
-        url = "projects/" + self.project["id"]
 
-        self.call("post", url, {"project": {**PROJECT, "websiteUrl": "https://new.example.org"}})
+        self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": "https://new.example.org"}})
+
         self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://new.example.org"])
         self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
-        status, _ = self.call("post", url, {"project": {**PROJECT, "websiteUrl": ""}})
-        self.assertEqual(status, 400)
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://new.example.org"])
+    def test_the_website_cannot_be_removed_while_a_key_is_restricted_to_it(self):
+        restricted = self.create_key(self.project["id"], "Production")["keyId"]
+        self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
+        url = "projects/" + self.project["id"]
 
-        self.call("post", "keys/" + restricted, {"restrictToWebsite": False})
-        self.assertEqual(self.call("post", url, {"project": {**PROJECT, "websiteUrl": ""}})[0], 200)
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, [])
+        status, state = self.call("post", url, {"project": {**PROJECT, "name": "Renamed", "websiteUrl": ""}})
+
+        self.assertEqual(status, 400)
+        self.assertEqual(state["error"], developer.WEBSITE_IN_USE_ERROR)
+        project = ApiProject.objects.get(id=int(self.project["id"])).profile
+        self.assertEqual((project.project_name, project.project_link), (PROJECT["name"], PROJECT["websiteUrl"]))
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://dafportal.org"])
+
+    def test_the_website_can_be_removed_once_no_live_key_is_restricted(self):
+        restricted = self.create_key(self.project["id"], "Production")["keyId"]
+        self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
+        self.call("delete", "keys/" + restricted)
+        unrestricted = self.create_key(self.project["id"], "Local")["keyId"]
+
+        status, state = self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": ""}})
+
+        self.assertEqual(status, 200, state)
+        self.assertEqual(state["projects"][0]["websiteUrl"], "")
+        self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
     def test_a_key_cannot_be_restricted_without_a_website(self):
         self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": ""}})
@@ -732,6 +764,11 @@ def test_origin_of_is_the_browser_origin():
     assert origin_of("https://Example.org/app?x=1") == "https://example.org"
     assert origin_of("https://example.org:443/") == "https://example.org"
     assert origin_of("http://localhost:3000/") == "http://localhost:3000"
+    assert origin_of("https://bücher.example/app") == "https://xn--bcher-kva.example"
+    assert origin_of("https://BÜCHER.example") == "https://xn--bcher-kva.example"
+    assert origin_of("http://[::1]:8080/") == "http://[::1]:8080"
+    assert origin_of("http://[0:0::1]:80/") == "http://[::1]"
+    assert origin_of("http://127.0.0.1:8000/") == "http://127.0.0.1:8000"
 
 
 class ProjectLockTest(DeveloperApiTestCase):

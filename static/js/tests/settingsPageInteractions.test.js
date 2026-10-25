@@ -43,7 +43,7 @@ const PROFILE = {
   termsAccepted: true, developerNews: false, notADeveloper: false,
 };
 const UNVERIFIED = { developerEnabled: false, ssoConnected: false, emailVerified: false };
-const LINK_SENT = { ...UNVERIFIED, confirmationSentAt: '2026-10-11T00:00:00Z' };
+const LINK_SENT = { ...UNVERIFIED, confirmationSentAt: new Date().toISOString() };
 const LISTING = {
   id: '42', name: 'Mishnah Yomit Tracker', url: 'https://mishnahtracker.app',
   description: 'Track your daily two mishnayot and share progress with a study group.',

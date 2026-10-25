@@ -7,9 +7,11 @@ reported that address as verified, or it was confirmed through the emailed link 
 EmailAddress). Changing the account email therefore ends verification until the new address is
 confirmed; existing keys keep working, but no new project or key can be created.
 """
+import ipaddress
 from datetime import datetime, timedelta
 from urllib.parse import urlsplit
 
+import idna
 from allauth.account import app_settings as account_settings
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
@@ -55,6 +57,9 @@ MOCK_SSO_SESSION_KEY = "developer_mock_sso"
 
 _url_validator = URLValidator(schemes=["http", "https"])
 
+WEBSITE_IN_USE_ERROR = ("A key is restricted to this website. Turn off the restriction on every key "
+                        "before removing the website.")
+
 
 class CooldownError(Exception):
     """Too soon to send another confirmation email; retry_after is in whole seconds."""
@@ -69,6 +74,7 @@ class LinkStatus:
     ALREADY_CONFIRMED = "already-confirmed"
     EXPIRED = "expired"
     NOT_ACCOUNT_EMAIL = "not-account-email"
+    ADDRESS_IN_USE = "address-in-use"
     INVALID = "invalid"
 
 
@@ -89,6 +95,18 @@ def iso(dt):
 DEFAULT_PORTS = {"http": 80, "https": 443}
 
 
+def _origin_host(hostname):
+    """A host as browsers write it in the Origin header: punycode for a non-Latin name, IPv6 in brackets."""
+    try:
+        return "[{}]".format(ipaddress.IPv6Address(hostname).compressed)
+    except ValueError:
+        pass
+    try:
+        return idna.encode(hostname, uts46=True).decode("ascii")
+    except idna.IDNAError:
+        return hostname.lower()
+
+
 def origin_of(url):
     """
     The browser Origin of a URL: scheme://host[:port], lowercase, without a default port. The
@@ -96,7 +114,7 @@ def origin_of(url):
     """
     parts = urlsplit(url)
     scheme = parts.scheme.lower()
-    origin = "{}://{}".format(scheme, (parts.hostname or "").lower())
+    origin = "{}://{}".format(scheme, _origin_host(parts.hostname or ""))
     if parts.port and parts.port != DEFAULT_PORTS.get(scheme):
         origin += ":{}".format(parts.port)
     return origin
@@ -149,6 +167,15 @@ def account_verified(request):
     return sso_connected(request) or email_verified(request.user)
 
 
+def forget_email_address(user, email):
+    """
+    Called when the account email changes away from `email`. allauth's login backend accepts any
+    address with a row in EmailAddress, so a row left for the old address would keep it working
+    as a login, while password reset only knows the account email.
+    """
+    EmailAddress.objects.filter(user=user, email__iexact=email).delete()
+
+
 def confirmation_for(user):
     address = account_email_address(user)
     if address is None:
@@ -159,11 +186,18 @@ def confirmation_for(user):
     return EmailConfirmationHMAC(address)
 
 
-def address_of_link(key):
-    """The address an emailed link was sent for, however old the link, or None if we didn't sign it."""
+def _address_id_of_link(key):
+    """The EmailAddress id an emailed link was signed for, however old the link, or None if we didn't sign it."""
     try:
-        pk = signing.loads(key, salt=account_settings.SALT)
+        return signing.loads(key, salt=account_settings.SALT)
     except signing.BadSignature:
+        return None
+
+
+def address_of_link(key):
+    """The address an emailed link was sent for, or None if we didn't sign it or the address is gone."""
+    pk = _address_id_of_link(key)
+    if pk is None:
         return None
     return EmailAddress.objects.select_related("user").filter(pk=pk).first()
 
@@ -180,21 +214,29 @@ def is_account_email(address):
     return address.email.lower() == (address.user.email or "").lower()
 
 
+def verified_elsewhere(address):
+    """Another account already verified this address, so allauth won't verify it for this one."""
+    return EmailAddress.objects.filter(email__iexact=address.email, verified=True).exclude(user=address.user_id).exists()
+
+
 def confirm_email(request, key):
     """
     Confirms the address behind an emailed link and turns developer settings on for its
     account. Opening it needs no login. Returns a LinkStatus: a link for an address that is no
     longer the account email is refused, as is one older than the link lifetime.
     """
-    address = address_of_link(key)
-    if address is None:
+    if _address_id_of_link(key) is None:
         return LinkStatus.INVALID
-    if not is_account_email(address):
+    address = address_of_link(key)
+    # A missing address was removed from its account when the account email changed.
+    if address is None or not is_account_email(address):
         return LinkStatus.NOT_ACCOUNT_EMAIL
     if address.verified:
         return LinkStatus.ALREADY_CONFIRMED
     if link_expired(key):
         return LinkStatus.EXPIRED
+    if verified_elsewhere(address):
+        return LinkStatus.ADDRESS_IN_USE
     if EmailConfirmationHMAC(address).confirm(request) is None:
         return LinkStatus.INVALID
     profile = UserProfile(id=address.user_id)
@@ -582,13 +624,17 @@ def create_project(user, data):
 
 @transaction.atomic
 def update_project(user, project_id, data):
+    """
+    Restricted keys follow the website to a new address. The website can't be removed while any
+    key is restricted to it: that would quietly let the key work from anywhere.
+    """
     api_project = _lock_owned_project(user, project_id)
     profile = api_project.profile
     fields = clean_project_fields(data)
-    restricted = api_project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[])
-    if not fields["websiteUrl"] and restricted.exists():
-        raise InputError("Turn off the website restriction on your keys before removing the website.")
     old_link = profile.project_link
+    restricted_keys = api_project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[])
+    if old_link and not fields["websiteUrl"] and restricted_keys.exists():
+        raise InputError(WEBSITE_IN_USE_ERROR)
     _apply_fields(profile, fields)
     _set_visibility(profile, fields["visibility"])
     profile.save()
@@ -596,9 +642,8 @@ def update_project(user, project_id, data):
         api_project.contact_email = fields["contactEmail"]
     api_project.save()
     if profile.project_link != old_link:
-        new_origins = [origin_of(profile.project_link)] if profile.project_link else []
-        for api_key in restricted:
-            api_key.allowed_origins = new_origins
+        for api_key in restricted_keys:
+            api_key.allowed_origins = [origin_of(profile.project_link)]
             api_key.save(update_fields=["allowed_origins"])
     return get_owned_project(user, project_id)
 

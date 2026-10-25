@@ -24,6 +24,12 @@ def delete_user_account(uid, confirm=True):
             print("Canceled.")
             return
 
+    # Before anything is deleted, so a failure here leaves the whole account in place.
+    django_user = User.objects.filter(id=uid).first()
+    if django_user is not None:
+        from powered_by import developer
+        developer.release_account_projects(django_user)
+
     try:
         crm_mediator = CrmMediator()
         if not crm_mediator.mark_for_review_in_crm(profile=user):

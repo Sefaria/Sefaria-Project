@@ -2,10 +2,9 @@
 N-M5: deleting an account (sefaria.utils.user.delete_user_account) with and without developer
 projects, and when the powered_by deletion hook fails.
 
-Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
-the `failing` marker, so the default CI run (-m "not failing") leaves them out. The whole class
-is `deep`: delete_user_account updates every sheet that lists the user in `likes`, a scan of the
-full sheets collection that can outlast pymongo's socket timeout on a loaded Mongo.
+The whole class is `deep`: delete_user_account updates every sheet that lists the user in
+`likes`, a scan of the full sheets collection that can outlast pymongo's socket timeout on a
+loaded Mongo.
 """
 from unittest.mock import MagicMock, patch
 
@@ -96,8 +95,7 @@ class DeleteAccountTest(TestCase):
         self.assertTrue(listing.consent_to_display and listing.is_published)
         self.assertIsNotNone(ApiKey.objects.get(id=key.id).revoked_at)
 
-    @pytest.mark.failing
-    def test_N_M5_a_failing_deletion_hook_leaves_no_half_deleted_account_known_gap_N_M5(self):
+    def test_N_M5_a_failing_deletion_hook_leaves_no_half_deleted_account(self):
         self.developer_project()
 
         with patch("powered_by.developer.release_account_projects", side_effect=RuntimeError("hook failed")):

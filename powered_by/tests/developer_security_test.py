@@ -1,8 +1,8 @@
 """
 Security and abuse edges of developer settings: other ways to authenticate (N-CR1), developer
 state written through the generic profile APIs (N-CR2), a per-account project cap (N-CR7),
-deleted projects in the public gallery (N-CR14), the test controls outside cauldrons (N-CR18)
-and key values in Sentry events (N-CR6).
+deleted projects in the public gallery (N-CR14), the test controls outside cauldrons (N-CR18),
+key values in Sentry events (N-CR6) and framing by another site (N-CR5).
 
 Tests whose name ends in known_gap_<id> assert the desired behaviour and fail today. They carry
 the `failing` marker, so the default CI run (-m "not failing") leaves them out.
@@ -201,6 +201,27 @@ class MocksOutsideCauldronsTest(DeveloperApiTestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertFalse(EmailAddress.objects.filter(user=self.user, verified=True).exists())
+
+
+class FrameProtectionTest(DeveloperApiTestCase):
+    """N-CR5: settings and login pages refuse to be framed by another site."""
+
+    def assert_not_frameable(self, response):
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get("X-Frame-Options"), "DENY")
+
+    def test_N_CR5_the_settings_pages_cannot_be_framed(self):
+        self.assert_not_frameable(self.client.get("/settings/account"))
+        self.assert_not_frameable(self.client.get("/settings/developer"))
+
+    def test_N_CR5_the_login_and_register_pages_cannot_be_framed(self):
+        self.assert_not_frameable(Client().get("/login"))
+        self.assert_not_frameable(Client().get("/register"))
+
+    def test_N_CR5_the_confirmation_link_pages_cannot_be_framed(self):
+        self.verify_email()
+        self.assert_not_frameable(Client().get("/settings/developer/confirm-email/" + developer.confirmation_for(self.user).key))
+        self.assert_not_frameable(Client().get("/settings/developer/email-confirmed"))
 
 
 class CapturingTransport(Transport):
