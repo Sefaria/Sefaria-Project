@@ -30,7 +30,7 @@ import { rememberPlace } from "~/lib/reader/last-place";
 import { addBookmark, moveBookmark, noteReading, useBookmark } from "~/lib/bookmarks";
 import { ContextMenu, type ContextMenuGroup } from "~/ui/ContextMenu/ContextMenu";
 import { commentariesOn, favouriteCommentaries, type CommentaryOnVerse } from "~/lib/study/favourite-commentaries";
-import { glossary, glossKey } from "~/lib/study/glossary";
+import { DefinitionCard, type DefinitionRequest } from "../study/DefinitionCard";
 import { BookmarkToggle } from "../bookmarks/BookmarkToggle";
 import { LayoutSwitch, useOpenMyLayout } from "../bookmarks/LayoutSwitch";
 import { refToUrl } from "~/lib/ref/url";
@@ -46,7 +46,7 @@ import { setMobileMenuOpen } from "../shell/mobile-menu";
 import type { ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
 import { SETTLE_MS } from "./use-reading-scroll";
-import { TextColumn } from "./TextColumn";
+import { TextColumn, type SegmentMenuRequest } from "./TextColumn";
 import { readerAnalytics } from "~/lib/analytics";
 import { useViewer } from "~/features/auth/viewer";
 import { legacyVersions } from "~/lib/user/history";
@@ -67,6 +67,9 @@ export interface TextPanelProps {
 const SINGLE_PANEL_QUERY = "(max-width: 842px)";
 const isSinglePanel = () => typeof window !== "undefined" && window.matchMedia(SINGLE_PANEL_QUERY).matches;
 const MAIN = "main" as const;
+const HEBREW_LETTER = /[\u05D0-\u05EA]/;
+/** The most starred commentaries the right-click menu lists. */
+const MENU_FAVOURITES = 3;
 const ASIDE_SHARE_KEY = "sefaria-reader:aside-share";
 function readAsideShare(): number | undefined {
   try {
@@ -258,19 +261,29 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   viewRef.current = view;
   const currentRef = useRef(current.ref);
   currentRef.current = current.ref;
-  /** Open the resources sidebar on a verse (the right-click and the panel header; a plain click only marks the verse). */
+  /**
+   * Open the resources sidebar on a verse (the right-click and the panel header; a plain click only marks the verse), on
+   * `show` if given, else on the view it already shows.
+   */
   const openResources = useCallback(
-    (ref: string) => {
+    (ref: string, show?: ConnectionsView) => {
       apply(
         (ws) => {
           const existing = ws.panels[id]?.asides.find((a) => a.kind === "connections");
           // choosing another verse ends a name's card (the old closeNamedEntityInConnectionPanel)
           const keep = existing?.entity ? undefined : existing?.view;
-          return openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: keep ?? formatWith({ view: "resources" }), ...(existing ? {} : { lang: newSidebarLang }) });
+          const next = show ? formatWith(show) : (keep ?? formatWith({ view: "resources" }));
+          return openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: next, ...(existing ? {} : { lang: newSidebarLang }) });
         },
         { state: { nav: "select", panel: id, ref } },
       );
     },
+    [apply, id, newSidebarLang],
+  );
+  /** The dictionary sidebar on words of a verse. */
+  const openDictionary = useCallback(
+    (words: string, ref: string) =>
+      apply((ws) => openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: "Lexicon", lookup: words, ...(ws.panels[id]?.asides.length ? {} : { lang: newSidebarLang }) }), { state: { nav: "select", panel: id, ref } }),
     [apply, id, newSidebarLang],
   );
 
@@ -438,15 +451,20 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [onCitationClick, onRefClick],
   );
 
-  // Words selected in the text: with the sidebar open, a lookup of up to three Hebrew words in one segment switches it
-  // to the dictionaries. A selection never opens a closed sidebar. (VERIFIED on sefaria.org; unlike there, the URL
-  // follows every lookup, not just the first.) CON-042, TXD-059
+  // Words selected in the text (up to three Hebrew words in one segment): their definition shows in a card beside them.
+  // When the sidebar already shows the dictionary, it follows the selection instead. CON-042, TXD-059
+  const [definition, setDefinition] = useState<DefinitionRequest | null>(null);
+  const closeDefinition = useCallback(() => setDefinition(null), []);
   const onSelectWords = useCallback(
-    (words: string, refs: string[]) => {
-      if (!asideRef.current.length || refs.length !== 1 || !shouldActivateLookup(words)) return;
+    (words: string, refs: string[], rect: DOMRect) => {
+      if (refs.length !== 1 || !shouldActivateLookup(words)) return;
       const ref = refs[0]!;
-      const inLexicon = parseWith(asideRef.current[0]?.view)?.view === "mode" && (parseWith(asideRef.current[0]?.view) as { mode?: string }).mode === "Lexicon";
-      apply((ws) => openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: "Lexicon", lookup: words }), { replace: inLexicon, state: { nav: "select", panel: id, ref } });
+      const shown = parseWith(asideRef.current[0]?.view);
+      if (shown?.view === "mode" && shown.mode === "Lexicon") {
+        apply((ws) => openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: "Lexicon", lookup: words }), { replace: true, state: { nav: "select", panel: id, ref } });
+        return;
+      }
+      setDefinition({ words, segmentRef: ref, anchor: { left: rect.left, top: rect.top, bottom: rect.bottom }, explicit: false });
     },
     [apply, id],
   );
@@ -581,15 +599,14 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── the right-click menu on a verse ─────────────────────────────────────────────────────────────────
-  const [menu, setMenu] = useState<{ ref: string; x: number; y: number; word?: string } | null>(null);
+  const [menu, setMenu] = useState<SegmentMenuRequest | null>(null);
   const closeMenu = useCallback(() => setMenu(null), []);
   const favourites = favouriteCommentaries.use();
-  const glossWords = glossary.use();
   const bookmark = useBookmark(current.passage.indexTitle);
   const openMyLayout = useOpenMyLayout(current.passage.indexTitle);
   const myLayoutHere = id === "p1" && openMyLayout && !nav.current().bk ? openMyLayout : undefined;
   const menuLinks = useQuery({ ...linksQueryOptions(menu ? sectionOfSegment(menu.ref) : ""), enabled: !!menu });
-  const commentaries = menu && menuLinks.data ? commentariesOn(menuLinks.data, menu.ref, favourites).slice(0, 8) : [];
+  const starred = menu && menuLinks.data ? commentariesOn(menuLinks.data, menu.ref, favourites).filter((c) => c.favourite).slice(0, MENU_FAVOURITES) : [];
 
   /** A commentator on the verse: scrolled to if already open, else opened beside this text (stacked under other companions). */
   const openCommentary = useCallback(
@@ -615,48 +632,48 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     void navigator.clipboard?.writeText(`${text}\n— ${ref} (${window.location.origin}/${refToUrl(ref)})`);
   }, []);
 
+  const menuWord = menu?.word && HEBREW_LETTER.test(menu.word) ? menu.word : undefined;
   const menuGroups: ContextMenuGroup[] = menu
     ? [
         {
           key: "verse",
           items: [
-            { key: "resources", label: "Resources", onSelect: () => openResources(menu.ref) },
-            ...(myLayoutHere ? [{ key: "my-layout", label: "Open my saved layout", onSelect: () => void myLayoutHere() }] : []),
+            { key: "resources", label: "Resources", icon: "layers", onSelect: () => openResources(menu.ref) },
+            ...(myLayoutHere ? [{ key: "my-layout", label: "Open my saved layout", icon: "saved-layout" as const, onSelect: () => void myLayoutHere() }] : []),
             bookmark
-              ? { key: "bookmark", label: bookmark.ref === menu.ref ? "Your bookmark is here" : "Move bookmark here", disabled: bookmark.ref === menu.ref, onSelect: () => moveBookmark(current.passage.indexTitle, menu.ref) }
-              : { key: "bookmark", label: "Bookmark this book here", onSelect: () => addBookmark(current.passage.indexTitle, menu.ref) },
+              ? { key: "bookmark", label: bookmark.ref === menu.ref ? "Your bookmark is here" : "Move bookmark here", icon: "bookmark", disabled: bookmark.ref === menu.ref, onSelect: () => moveBookmark(current.passage.indexTitle, menu.ref) }
+              : { key: "bookmark", label: "Bookmark here", icon: "bookmark", onSelect: () => addBookmark(current.passage.indexTitle, menu.ref) },
+            ...(menuWord
+              ? [{
+                  key: "lookup",
+                  label: <>Look up <bdi lang="he" className={styles.menuWord}>{menuWord}</bdi></>,
+                  icon: "search" as const,
+                  onSelect: () => {
+                    const r = menu.wordRect;
+                    setDefinition({ words: menuWord, segmentRef: menu.ref, anchor: r ? { left: r.left, top: r.top, bottom: r.bottom } : { left: menu.x, top: menu.y, bottom: menu.y }, explicit: true });
+                  },
+                }]
+              : []),
           ],
         },
         {
-          key: "word",
-          items: menu.word && /[\u05D0-\u05EA]/.test(menu.word)
-            ? [
-                glossWords.includes(glossKey(menu.word))
-                  ? { key: "gloss", label: `Stop glossing “${menu.word}”`, onSelect: () => glossary.remove(glossKey(menu.word!)) }
-                  : { key: "gloss", label: `Gloss “${menu.word}” on hover`, onSelect: () => glossary.add(glossKey(menu.word!)) },
-                {
-                  key: "lookup",
-                  label: `Look up “${menu.word}”`,
-                  onSelect: () => apply((ws) => openAside(updatePanel(ws, id, { ref: menu.ref }), id, { kind: "connections", view: "Lexicon", lookup: menu.word, ...(ws.panels[id]?.asides.length ? {} : { lang: newSidebarLang }) }), { state: { nav: "select", panel: id, ref: menu.ref } }),
-                },
-              ]
-            : [],
-        },
-        {
           key: "commentaries",
-          heading: menuLinks.isPending ? "Commentaries…" : commentaries.length ? "Commentaries on this verse" : undefined,
-          items: commentaries.map((c) => ({
-            key: c.book,
-            label: c.favourite ? `★ ${c.name}` : c.name,
-            onSelect: () => openCommentary(c, menu.ref),
-            trailing: (
-              <button type="button" className={styles.favourite} aria-pressed={c.favourite} aria-label={c.favourite ? `Remove ${c.name} from favourites` : `Add ${c.name} to favourites`} title={c.favourite ? "Remove from favourites" : "Add to favourites"} onClick={() => favouriteCommentaries.toggle(c.name)}>
-                {c.favourite ? "★" : "☆"}
-              </button>
-            ),
-          })),
+          items: [
+            ...starred.map((c) => ({
+              key: c.book,
+              label: c.name,
+              icon: "book" as const,
+              onSelect: () => openCommentary(c, menu.ref),
+              trailing: (
+                <button type="button" className={styles.favourite} aria-pressed="true" aria-label={`Remove ${c.name} from favourites`} title="Remove from favourites" onClick={() => favouriteCommentaries.remove(c.name)}>
+                  ★
+                </button>
+              ),
+            })),
+            { key: "all-commentaries", label: "All commentaries…", icon: "list", onSelect: () => openResources(menu.ref, { view: "category", category: "Commentary" }) },
+          ],
         },
-        { key: "copy", items: [{ key: "cite", label: "Copy with citation", onSelect: () => copyWithCitation(menu.ref) }] },
+        { key: "copy", items: [{ key: "cite", label: "Copy with citation", icon: "copy", onSelect: () => copyWithCitation(menu.ref) }] },
       ]
     : [];
 
@@ -730,6 +747,15 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       />
       </div>
       {menu ? <ContextMenu x={menu.x} y={menu.y} label={menu.ref} groups={menuGroups} onClose={closeMenu} /> : null}
+      {definition ? (
+        <DefinitionCard
+          key={`${definition.words}|${definition.segmentRef}|${definition.anchor.left}|${definition.anchor.top}`}
+          {...definition}
+          categories={current.passage.categories}
+          onClose={closeDefinition}
+          onOpenDictionary={() => openDictionary(definition.words, definition.segmentRef)}
+        />
+      ) : null}
       <div ref={bannerBox}>
       {transBanner ? (
         <TextColumnBanner

@@ -1,8 +1,0 @@
-.card {
-  position: fixed; z-index: var(--sefaria-z-overlay); max-width: 290px; padding: var(--sefaria-space-2) var(--sefaria-space-3);
-  border: 1px solid var(--sefaria-color-border); border-radius: 8px; background: var(--sefaria-color-surface);
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); pointer-events: none;
-}
-.entry { margin: 0; line-height: 1.4; }
-.entry + .entry { margin-block-start: var(--sefaria-space-1); }
-.muted { color: var(--sefaria-color-text-muted); font-size: 12px; }

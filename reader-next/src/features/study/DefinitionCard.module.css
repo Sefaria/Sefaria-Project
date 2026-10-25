@@ -1,0 +1,57 @@
+.card {
+  position: fixed;
+  z-index: var(--sefaria-z-overlay);
+  width: min(320px, calc(100vw - 24px));
+  max-height: 360px;
+  display: flex;
+  flex-direction: column;
+  background: var(--sefaria-color-surface);
+  color: var(--sefaria-color-text);
+  border: 1px solid var(--sefaria-color-border);
+  border-radius: var(--sefaria-radius-lg);
+  box-shadow: var(--sefaria-shadow-modal), var(--sefaria-shadow-1);
+  font-family: var(--sefaria-font-ui-en);
+  font-size: var(--sefaria-text-sans-small);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--sefaria-space-2);
+  padding: var(--sefaria-space-1) var(--sefaria-space-1) var(--sefaria-space-1) var(--sefaria-space-3);
+  border-bottom: 1px solid var(--sefaria-color-border);
+}
+.words {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: start;
+  font-family: var(--sefaria-font-text-he);
+  font-size: 1.25rem;
+}
+
+.entries { margin: 0; padding: var(--sefaria-space-2) var(--sefaria-space-3); list-style: none; overflow-y: auto; overscroll-behavior: contain; }
+.entry { display: grid; gap: 2px; line-height: 1.45; }
+.entry + .entry { margin-block-start: var(--sefaria-space-2); padding-block-start: var(--sefaria-space-2); border-block-start: 1px solid var(--sefaria-color-border); }
+.headword { justify-self: start; font-family: var(--sefaria-font-text-he); font-size: 1.1rem; font-weight: 600; }
+.meaning { color: var(--sefaria-color-text); }
+.source { color: var(--sefaria-color-text-muted); font-size: 12px; }
+.empty { margin: 0; padding: var(--sefaria-space-2) var(--sefaria-space-3); color: var(--sefaria-color-text-secondary); }
+
+.footer { display: flex; justify-content: flex-end; padding: var(--sefaria-space-1); border-top: 1px solid var(--sefaria-color-border); }
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--sefaria-space-1) var(--sefaria-space-2);
+  border: 0;
+  border-radius: var(--sefaria-radius-sm);
+  background: none;
+  color: var(--sefaria-color-link);
+  font: inherit;
+  cursor: pointer;
+}
+.action:hover { background: var(--sefaria-color-surface-muted); }
+.action:focus-visible { outline: 2px solid var(--sefaria-color-focus); }

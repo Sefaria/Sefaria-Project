@@ -1,18 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { RelatedLink } from "~/lib/connections/links";
 import { commentariesOn } from "./favourite-commentaries";
-import { glossKey, wordsIn } from "./glossary";
-
-describe("glossKey", () => {
-  it("drops vowels, cantillation and surrounding punctuation", () => {
-    expect(glossKey("בְּרֵאשִׁ֖ית,")).toBe("בראשית");
-    expect(glossKey("(Light)")).toBe("Light");
-  });
-});
+import { wordsIn } from "./words";
 
 describe("wordsIn", () => {
   it("finds words with their offsets", () => {
     expect(wordsIn("בְּרֵאשִׁ֖ית בָּרָ֣א").map((w) => w.word)).toEqual(["בְּרֵאשִׁ֖ית", "בָּרָ֣א"]);
+  });
+  it("leaves quotes around a word out, and keeps gershayim inside it", () => {
+    expect(wordsIn("“(Light)” רז״ל").map((w) => [w.word, w.start])).toEqual([["Light", 2], ["רז״ל", 10]]);
   });
 });
 

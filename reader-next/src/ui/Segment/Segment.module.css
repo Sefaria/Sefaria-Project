@@ -13,8 +13,6 @@
 /* Corresponds to the verse the reader picked, in this panel or another. */
 .segment[data-linked="true"] { background: var(--sefaria-color-highlight-soft); box-shadow: inset 3px 0 0 var(--sefaria-color-focus); }
 .segment[data-selectable="true"] { cursor: pointer; }
-/* A word the reader marked for a gloss (its meaning shows on hover). */
-.segment :global(mark[data-gloss]) { background: none; color: inherit; text-decoration: underline dotted var(--sefaria-color-focus); text-decoration-thickness: 2px; text-underline-offset: 4px; cursor: help; }
 .segment:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 4px; }
 
 .body { display: block; margin: 0; text-align: justify; }
