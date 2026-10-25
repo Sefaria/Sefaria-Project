@@ -63,7 +63,9 @@ describe('Header Library Assistant pill', () => {
     render();
     expect(order()).toEqual(['link', 'link', 'donate', 'assistant', 'search']);
     expect(item().classList.contains('libraryAssistantPill')).toBe(true);
-    expect(item().textContent).toBe('header.library_assistant');
+    expect(item().querySelector('.libraryAssistantLabel').textContent).toBe('header.library_assistant');
+    // The short label CSS shows instead where the header is crowded
+    expect(item().querySelector('.libraryAssistantShortLabel').textContent).toBe('header.library_assistant_short');
   });
 
   it('opens the widget', () => {

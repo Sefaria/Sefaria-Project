@@ -102,7 +102,12 @@ for (const { lang, label, gap, side } of positionExamples) {
 // Fixed entry points: the header pill
 // ---------------------------------------------------------------------------
 
-for (const width of [1280, 900]) {
+// As the window narrows the pill goes from the full label to "Ask" to hidden, never back
+const headerPillWidths = [
+  { width: 1280, shows: 'the full label' },
+  { width: 1130, shows: '"Ask"' },
+];
+for (const { width, shows } of headerPillWidths) {
   test.describe(`Library Assistant desktop — header pill at ${width}px`, () => {
     test.use({ viewport: { width, height: DESKTOP.height } });
     let la: LibraryAssistantQ4Page;
@@ -111,13 +116,22 @@ for (const width of [1280, 900]) {
       ({ la } = await start(context));
     });
 
-    test(`LA-ENTRY-2: Header pill on the large and medium headers — ${width}px`, { tag: '@e2e' }, async () => {
+    test(`LA-ENTRY-2: Header pill shows ${shows} — ${width}px`, { tag: '@e2e' }, async () => {
       await la.expectHeaderPillJustBeforeSearchBox();
       await la.clickHeaderPill();
       await la.expectAssistantOpen();
     });
   });
 }
+
+test.describe('Library Assistant desktop — header pill at 1100px', () => {
+  test.use({ viewport: { width: 1100, height: DESKTOP.height } });
+
+  test('LA-ENTRY-2: No header pill where even "Ask" would crowd the header — 1100px', { tag: '@e2e' }, async ({ context }) => {
+    const { la } = await start(context);
+    await la.expectNoHeaderPill();
+  });
+});
 
 test.describe('Library Assistant desktop — header pill', () => {
   let la: LibraryAssistantQ4Page;
