@@ -141,7 +141,11 @@ class ApiProjectAdmin(admin.ModelAdmin):
         # The same steps as an owner deleting the project in developer settings; admin delete is a hard delete,
         # which the key foreign key refuses once a project has keys.
         with transaction.atomic():
-            for api_project in queryset.select_for_update(of=("self",)).select_related("profile"):
+            locked = list(queryset.select_for_update())
+            # Profiles are read after the lock, so none is the version from before an edit the lock waited for.
+            profiles = Project.objects.in_bulk([api_project.profile_id for api_project in locked])
+            for api_project in locked:
+                api_project.profile = profiles[api_project.profile_id]
                 developer.soft_delete(api_project)
         self.message_user(request, "Soft-deleted {} API project(s) and revoked their keys.".format(queryset.count()),
                           messages.SUCCESS)

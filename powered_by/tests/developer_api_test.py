@@ -934,14 +934,16 @@ class KeyCreationRaceTest(TransactionTestCase):
         self.assertFalse(ApiKey.objects.filter(project=self.project).exists())
 
 
+
 class KeyRestrictionRaceTest(TransactionTestCase):
+    """A second writer waits for update_project's project lock, then must see the profile update_project wrote."""
     databases = "__all__"
 
     def setUp(self):
         self.user = create_test_user("devrestrictrace")
         purge_test_profiles(self.user)
         ApiTier.objects.get_or_create(id="developer", defaults={"name": "Developer", "per_minute_per_project": 1})
-        self.project = make_api_project(self.user, is_published=False, project_link="https://dafportal.org")
+        self.project = make_api_project(self.user, is_published=False, project_link=PROJECT["websiteUrl"])
         self.key = ApiKey.objects.create(project=self.project, label="Production")
 
     def tearDown(self):
@@ -951,47 +953,66 @@ class KeyRestrictionRaceTest(TransactionTestCase):
         profile.delete()
         purge_test_profiles(self.user)
 
-    def test_restricting_a_key_waits_for_a_website_removal_and_then_sees_no_website(self):
-        removing = threading.Event()
-        release = threading.Event()
-        outcome = {}
+    def wait_until_a_backend_waits_on_a_lock(self):
+        with connection.cursor() as cursor:
+            for _ in range(100):
+                cursor.execute("SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() "
+                               "AND wait_event_type = 'Lock' AND pid <> pg_backend_pid()")
+                if cursor.fetchone()[0]:
+                    return
+                time.sleep(0.05)
+        self.fail("the second writer never waited for the project row lock")
+
+    def race(self, website, second_writer):
+        """Runs update_project to `website`, holding its lock until second_writer is waiting on it."""
+        holding, release, outcome = threading.Event(), threading.Event(), {}
         clean = developer.clean_project_fields
 
         def blocking_clean(data):
-            """update_project cleans the fields after taking the lock: hold the lock here."""
-            removing.set()
+            # update_project cleans the fields after taking the lock: hold the lock here.
+            holding.set()
             assert release.wait(10)
             return clean(data)
 
-        def remove_website():
+        def run(name, call):
             try:
-                with patch.object(developer, "clean_project_fields", blocking_clean):
-                    developer.update_project(self.user, self.project.id, {**PROJECT, "websiteUrl": ""})
+                call()
             except BaseException as e:
-                outcome["remove"] = e
+                outcome[name] = e
             finally:
                 connections.close_all()
 
-        def restrict():
-            try:
-                developer.set_key_restriction(self.user, self.key.id, True)
-            except BaseException as e:
-                outcome["restrict"] = e
-            finally:
-                connections.close_all()
+        def first():
+            with patch.object(developer, "clean_project_fields", blocking_clean):
+                developer.update_project(self.user, self.project.id, {**PROJECT, "websiteUrl": website})
 
-        remover = threading.Thread(target=remove_website)
-        restricter = threading.Thread(target=restrict)
-        remover.start()
-        self.assertTrue(removing.wait(10))
-        restricter.start()
-        restricter.join(0.5)
-        self.assertTrue(restricter.is_alive(), "set_key_restriction must wait for the project row lock")
+        threads = [threading.Thread(target=run, args=("first", first)),
+                   threading.Thread(target=run, args=("second", second_writer))]
+        try:
+            threads[0].start()
+            self.assertTrue(holding.wait(10))
+            threads[1].start()
+            self.wait_until_a_backend_waits_on_a_lock()
+        finally:
+            release.set()
+            for thread in threads:
+                thread.join(10)
+        self.assertNotIn("first", outcome)
+        return outcome.get("second")
 
-        release.set()
-        remover.join(10)
-        restricter.join(10)
+    def test_restricting_a_key_waits_for_a_website_removal_and_then_sees_no_website(self):
+        error = self.race("", lambda: developer.set_key_restriction(self.user, self.key.id, True))
 
-        self.assertNotIn("remove", outcome)
-        self.assertIsInstance(outcome.get("restrict"), developer.InputError)
+        self.assertIsInstance(error, developer.InputError)
         self.assertEqual(ApiKey.objects.get(id=self.key.id).allowed_origins, [])
+
+    def test_an_edit_waiting_for_a_website_change_moves_restricted_keys_from_the_new_website(self):
+        developer.set_key_restriction(self.user, self.key.id, True)
+
+        # The waiting edit puts the original website back; it must see the website the first edit wrote.
+        error = self.race("https://new.example.org",
+                          lambda: developer.update_project(self.user, self.project.id, PROJECT))
+
+        self.assertIsNone(error)
+        self.assertEqual(ApiProject.objects.get(id=self.project.id).profile.project_link, PROJECT["websiteUrl"])
+        self.assertEqual(ApiKey.objects.get(id=self.key.id).allowed_origins, ["https://dafportal.org"])

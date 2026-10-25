@@ -577,12 +577,16 @@ def _lock_owned_project(user, project_id):
     """
     The owned, undeleted API project with its row locked until the transaction ends, so key creation,
     project edits and deletion of one project run one at a time. Call inside transaction.atomic().
+
+    The profile is read only after the lock is held: one joined into the locking query can be the version from
+    before the edit this lock waited for, since Postgres re-checks only the locked row.
     """
     try:
-        return (ApiProject.objects.select_for_update(of=("self",)).select_related("profile")
-                .get(id=int(project_id), owner=user, deleted_at__isnull=True))
+        api_project = ApiProject.objects.select_for_update().get(id=int(project_id), owner=user, deleted_at__isnull=True)
     except (ApiProject.DoesNotExist, ValueError):
         raise LookupError("No such project.")
+    api_project.profile = Project.objects.get(pk=api_project.profile_id)
+    return api_project
 
 
 def max_projects(user):
@@ -747,10 +751,7 @@ def get_owned_key(user, key_id):
 def set_key_restriction(user, key_id, restrict):
     """Holds the API project's row lock, so a concurrent update_project can't remove the website under it."""
     api_key = get_owned_key(user, key_id)
-    api_project = _lock_owned_project(user, api_key.project_id)
-    # A separate read after the lock: a profile joined into the locking query can be the version from before
-    # the update_project this one waited for (Postgres re-checks only the locked row).
-    website = Project.objects.values_list("project_link", flat=True).get(pk=api_project.profile_id)
+    website = _lock_owned_project(user, api_key.project_id).profile.project_link
     if restrict and not website:
         raise InputError("Add the project's website before restricting a key to it.")
     api_key.allowed_origins = [origin_of(website)] if restrict else []
