@@ -932,3 +932,66 @@ class KeyCreationRaceTest(TransactionTestCase):
         self.assertIsInstance(outcome.get("create"), LookupError)
         self.assertFalse(ApiKey.objects.filter(project=self.project, revoked_at__isnull=True).exists())
         self.assertFalse(ApiKey.objects.filter(project=self.project).exists())
+
+
+class KeyRestrictionRaceTest(TransactionTestCase):
+    databases = "__all__"
+
+    def setUp(self):
+        self.user = create_test_user("devrestrictrace")
+        purge_test_profiles(self.user)
+        ApiTier.objects.get_or_create(id="developer", defaults={"name": "Developer", "per_minute_per_project": 1})
+        self.project = make_api_project(self.user, is_published=False, project_link="https://dafportal.org")
+        self.key = ApiKey.objects.create(project=self.project, label="Production")
+
+    def tearDown(self):
+        ApiKey.objects.filter(project=self.project).delete()
+        profile = self.project.profile
+        self.project.delete()
+        profile.delete()
+        purge_test_profiles(self.user)
+
+    def test_restricting_a_key_waits_for_a_website_removal_and_then_sees_no_website(self):
+        removing = threading.Event()
+        release = threading.Event()
+        outcome = {}
+        clean = developer.clean_project_fields
+
+        def blocking_clean(data):
+            """update_project cleans the fields after taking the lock: hold the lock here."""
+            removing.set()
+            assert release.wait(10)
+            return clean(data)
+
+        def remove_website():
+            try:
+                with patch.object(developer, "clean_project_fields", blocking_clean):
+                    developer.update_project(self.user, self.project.id, {**PROJECT, "websiteUrl": ""})
+            except BaseException as e:
+                outcome["remove"] = e
+            finally:
+                connections.close_all()
+
+        def restrict():
+            try:
+                developer.set_key_restriction(self.user, self.key.id, True)
+            except BaseException as e:
+                outcome["restrict"] = e
+            finally:
+                connections.close_all()
+
+        remover = threading.Thread(target=remove_website)
+        restricter = threading.Thread(target=restrict)
+        remover.start()
+        self.assertTrue(removing.wait(10))
+        restricter.start()
+        restricter.join(0.5)
+        self.assertTrue(restricter.is_alive(), "set_key_restriction must wait for the project row lock")
+
+        release.set()
+        remover.join(10)
+        restricter.join(10)
+
+        self.assertNotIn("remove", outcome)
+        self.assertIsInstance(outcome.get("restrict"), developer.InputError)
+        self.assertEqual(ApiKey.objects.get(id=self.key.id).allowed_origins, [])

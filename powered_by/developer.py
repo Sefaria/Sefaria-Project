@@ -747,7 +747,10 @@ def get_owned_key(user, key_id):
 def set_key_restriction(user, key_id, restrict):
     """Holds the API project's row lock, so a concurrent update_project can't remove the website under it."""
     api_key = get_owned_key(user, key_id)
-    website = _lock_owned_project(user, api_key.project_id).profile.project_link
+    api_project = _lock_owned_project(user, api_key.project_id)
+    # A separate read after the lock: a profile joined into the locking query can be the version from before
+    # the update_project this one waited for (Postgres re-checks only the locked row).
+    website = Project.objects.values_list("project_link", flat=True).get(pk=api_project.profile_id)
     if restrict and not website:
         raise InputError("Add the project's website before restricting a key to it.")
     api_key.allowed_origins = [origin_of(website)] if restrict else []
