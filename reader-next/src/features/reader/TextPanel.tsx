@@ -18,6 +18,7 @@ import { MIN_PANEL_WIDTH } from "~/lib/workspace/sizing";
 import { MovePanelMenu } from "../workspace/MovePanelMenu";
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
+import { Icon } from "~/ui/Icon/Icon";
 import { IconButton } from "~/ui/IconButton/IconButton";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { PanelHeader } from "~/ui/PanelHeader/PanelHeader";
@@ -636,15 +637,15 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         {
           key: "verse",
           items: [
-            { key: "resources", label: "Resources", icon: "layers", onSelect: () => openResources(menu.ref) },
-            ...(myLayoutHere ? [{ key: "my-layout", label: "Open my saved layout", icon: "saved-layout" as const, onSelect: () => void myLayoutHere() }] : []),
+            { key: "resources", label: <InterfaceText en="Resources" he="קישורים וכלים" />, icon: "layers", onSelect: () => openResources(menu.ref) },
+            ...(myLayoutHere ? [{ key: "my-layout", label: <InterfaceText en="Open my saved layout" he="פתיחת הפריסה השמורה" />, icon: "saved-layout" as const, onSelect: () => void myLayoutHere() }] : []),
             bookmark
-              ? { key: "bookmark", label: bookmark.ref === menu.ref ? "Your bookmark is here" : "Move bookmark here", icon: "bookmark", disabled: bookmark.ref === menu.ref, onSelect: () => moveBookmark(current.passage.indexTitle, menu.ref) }
-              : { key: "bookmark", label: "Bookmark here", icon: "bookmark", onSelect: () => addBookmark(current.passage.indexTitle, menu.ref) },
+              ? { key: "bookmark", label: bookmark.ref === menu.ref ? <InterfaceText en="Your bookmark is here" he="הסימנייה שלך כאן" /> : <InterfaceText en="Move bookmark here" he="העברת הסימנייה לכאן" />, icon: "bookmark", disabled: bookmark.ref === menu.ref, onSelect: () => moveBookmark(current.passage.indexTitle, menu.ref) }
+              : { key: "bookmark", label: <InterfaceText en="Bookmark here" he="הוספת סימנייה כאן" />, icon: "bookmark", onSelect: () => addBookmark(current.passage.indexTitle, menu.ref) },
             ...(menuWord
               ? [{
                   key: "lookup",
-                  label: <>Look up <bdi lang="he" className={styles.menuWord}>{menuWord}</bdi></>,
+                  label: <><InterfaceText en="Look up" he="חיפוש במילון:" /> <bdi lang="he" className={styles.menuWord}>{menuWord}</bdi></>,
                   icon: "search" as const,
                   onSelect: () => {
                     const r = menu.wordRect;
@@ -664,14 +665,14 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
               onSelect: () => openCommentary(c, menu.ref),
               trailing: (
                 <button type="button" className={styles.favourite} aria-pressed="true" aria-label={`Remove ${c.name} from favourites`} title="Remove from favourites" onClick={() => favouriteCommentaries.remove(c.name)}>
-                  ★
+                  <Icon name="star" size="16px" filled />
                 </button>
               ),
             })),
-            { key: "all-commentaries", label: "All commentaries…", icon: "list", onSelect: () => openResources(menu.ref, { view: "category", category: "Commentary" }) },
+            { key: "all-commentaries", label: <InterfaceText en="All commentaries…" he="כל המפרשים…" />, icon: "list", onSelect: () => openResources(menu.ref, { view: "category", category: "Commentary" }) },
           ],
         },
-        { key: "copy", items: [{ key: "cite", label: "Copy with citation", icon: "copy", onSelect: () => copyWithCitation(menu.ref) }] },
+        { key: "copy", items: [{ key: "cite", label: <InterfaceText en="Copy with citation" he="העתקה עם מראה מקום" />, icon: "copy", onSelect: () => copyWithCitation(menu.ref) }] },
       ]
     : [];
 
@@ -721,7 +722,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
         end={
           <>
-          {alone || id === "p1" ? null : <IconButton icon="link" label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
+          {alone || id === "p1" ? null : <IconButton icon={together ? "link" : "link-off"} label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
           <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
           <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} main={id === "p1"} />
           <Popover
@@ -734,7 +735,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
             <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} />
             {myLayoutHere ? (
               <button type="button" className={styles.menuAction} onClick={() => (setMenuOpen(false), void myLayoutHere())}>
-                Open my saved layout
+                <Icon name="saved-layout" size="18px" className={styles.menuActionIcon} />
+                <InterfaceText en="Open my saved layout" he="פתיחת הפריסה השמורה" />
               </button>
             ) : null}
             {alone ? null : <MovePanelMenu self={id} workspace={nav.current()} onDrop={(d) => (setMenuOpen(false), apply((ws) => drop(ws, id, d), { state: { nav: "stay" } }))} />}

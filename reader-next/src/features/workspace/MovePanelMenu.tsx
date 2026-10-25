@@ -1,17 +1,18 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { changes, dropFor, type Drop, type Zone } from "~/lib/layout/drop";
 import { panelOrder } from "~/lib/workspace/ops";
 import type { PanelId, Workspace } from "~/lib/workspace/types";
+import { Icon, type IconName } from "~/ui/Icon/Icon";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import styles from "./MovePanelMenu.module.css";
 
 /** Left and right are physical: the arrangement runs left to right in every interface language. */
-const ZONES: { zone: Zone; arrow: string; label: string }[] = [
-  { zone: "before", arrow: "←", label: "Left of" },
-  { zone: "above", arrow: "↑", label: "Above" },
-  { zone: "below", arrow: "↓", label: "Below" },
-  { zone: "after", arrow: "→", label: "Right of" },
-  { zone: "centre", arrow: "⇄", label: "Swap with" },
+const ZONES: { zone: Zone; icon: IconName; label: string }[] = [
+  { zone: "before", icon: "arrow-left", label: "Left of" },
+  { zone: "above", icon: "arrow-up", label: "Above" },
+  { zone: "below", icon: "arrow-down", label: "Below" },
+  { zone: "after", icon: "arrow-right", label: "Right of" },
+  { zone: "centre", icon: "swap", label: "Swap with" },
 ];
 
 /**
@@ -25,21 +26,24 @@ export function MovePanelMenu({ self, workspace, onDrop }: { self: PanelId; work
   if (!layout) return null;
   const order = panelOrder(workspace);
   const others = order.filter((id) => id !== self);
-  const button = (d: Drop<PanelId>, text: string, label: string, wide?: boolean) => (
-    <button key={label} type="button" className={wide ? styles.far : styles.place} aria-label={label} title={label} disabled={!changes(layout, self, d)} onClick={() => onDrop(d)}>
-      {text}
+  const button = (d: Drop<PanelId>, icon: IconName, label: string, text?: ReactNode) => (
+    <button key={label} type="button" className={text ? styles.far : styles.place} aria-label={label} title={label} disabled={!changes(layout, self, d)} onClick={() => onDrop(d)}>
+      {text && icon === "to-end" ? <span>{text}</span> : null}
+      <Icon name={icon} size="16px" />
+      {text && icon !== "to-end" ? <span>{text}</span> : null}
     </button>
   );
   return (
     <div className={styles.section}>
       <button type="button" className={styles.toggle} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <InterfaceText en="Move this panel" he="הזזת החלונית" /> <span aria-hidden="true">{open ? "▴" : "▾"}</span>
+        <InterfaceText en="Move this panel" he="הזזת החלונית" />
+        <Icon name="chevron-down" size="16px" className={styles.chevron} />
       </button>
       {open ? (
         <div className={styles.menu} dir="ltr">
           <div className={styles.row}>
-            {button({ kind: "dock", placement: "before" }, "⇤ Far left", "To the far left", true)}
-            {button({ kind: "dock", placement: "after" }, "Far right ⇥", "To the far right", true)}
+            {button({ kind: "dock", placement: "before" }, "to-start", "To the far left", <InterfaceText en="Far left" he="לקצה השמאלי" />)}
+            {button({ kind: "dock", placement: "after" }, "to-end", "To the far right", <InterfaceText en="Far right" he="לקצה הימני" />)}
           </div>
           {others.map((id) => {
             const p = workspace.panels[id];
@@ -47,7 +51,7 @@ export function MovePanelMenu({ self, workspace, onDrop }: { self: PanelId; work
             return (
               <div key={id} className={styles.row}>
                 <span className={styles.name} title={name}>{name}</span>
-                {ZONES.map(({ zone, arrow, label }) => button(dropFor(id, zone), arrow, `${label} ${name}`))}
+                <span className={styles.places}>{ZONES.map(({ zone, icon, label }) => button(dropFor(id, zone), icon, `${label} ${name}`))}</span>
               </div>
             );
           })}

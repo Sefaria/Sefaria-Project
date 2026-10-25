@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { entriesForCategories, lexiconQueryOptions, type EntrySense } from "~/lib/lexicon/lookup";
 import { Icon } from "~/ui/Icon/Icon";
 import { IconButton } from "~/ui/IconButton/IconButton";
+import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import styles from "./DefinitionCard.module.css";
 
 const WIDTH = 320;
@@ -106,7 +107,7 @@ export function DefinitionCard({ words, segmentRef, anchor, explicit, categories
       <footer className={styles.footer}>
         <button type="button" className={styles.action} onClick={() => (onClose(), onOpenDictionary())}>
           <Icon name="book" size="16px" />
-          Open in dictionary
+          <InterfaceText en="Open in dictionary" he="פתיחה במילון" />
         </button>
       </footer>
     </div>,

@@ -101,7 +101,7 @@ export function ContextMenu({ x, y, label, groups, onClose }: ContextMenuProps) 
                     item.onSelect?.();
                   }}
                 >
-                  {item.icon ? <Icon name={item.icon} size="16px" className={styles.icon} /> : null}
+                  {item.icon ? <Icon name={item.icon} size="18px" className={styles.icon} /> : null}
                   <span className={styles.label}>{item.label}</span>
                 </button>
                 {item.trailing}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { addBookmark, moveBookmark, removeBookmark, setBookmarkMode, useBookmark } from "~/lib/bookmarks";
 import { Button } from "~/ui/Button/Button";
+import { Icon } from "~/ui/Icon/Icon";
 import { IconButton } from "~/ui/IconButton/IconButton";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { Link } from "~/ui/Link/Link";
@@ -10,6 +11,7 @@ import { panelAt, panelOrder } from "~/lib/workspace/ops";
 import { useReaderSettings } from "../reader/settings-context";
 import { urlDefaultsFor, useWorkspaceNav } from "../workspace/navigation";
 import { ModeHint, ModeSwitch } from "./ModeSwitch";
+import { useBookmarkLabels } from "./labels";
 import { useLayoutAutosave, useOpenMyLayout } from "./my-layout";
 import styles from "./BookmarkToggle.module.css";
 
@@ -26,6 +28,8 @@ export function BookmarkToggle({ book, at, main = false }: { book: string; at: s
   const [open, setOpen] = useState(false);
   useLayoutAutosave(book, main);
   const openMine = useOpenMyLayout(book);
+  const labelsOf = useBookmarkLabels();
+  const labels = bookmark ? labelsOf(bookmark) : undefined;
   const ws = nav.current();
   const showsBook = (() => {
     const ref = panelAt(ws, 0)?.ref;
@@ -65,23 +69,29 @@ export function BookmarkToggle({ book, at, main = false }: { book: string; at: s
     >
       {bookmark ? (
         <div className={styles.card}>
-          <p className={styles.where}>
-            <InterfaceText en="Bookmarked at" he="הסימנייה ב־" /> <strong>{bookmark.ref}</strong>
-          </p>
+          <div className={styles.head}>
+            <Icon name="bookmark" filled size="18px" className={styles.mark} />
+            <p className={styles.where}>
+              <InterfaceText en="Bookmarked at" he="הסימנייה ב־" /> <strong lang={labels?.titleLang}>{labels?.titleLang === "he" ? `${labels.title} ${labels.place}` : bookmark.ref}</strong>
+            </p>
+          </div>
           {bookmark.mode === "manual" && bookmark.ref !== at ? (
-            <Button size="sm" variant="primary" onClick={() => moveBookmark(book, at)}>
+            <Button size="sm" variant="primary" block onClick={() => moveBookmark(book, at)}>
               <InterfaceText en="Move bookmark here" he="העברת הסימנייה לכאן" />
             </Button>
           ) : null}
-          <ModeSwitch value={bookmark.mode} onChange={(m) => setBookmarkMode(book, m)} />
-          <p className={styles.hint}><ModeHint mode={bookmark.mode} /></p>
+          <div className={styles.mode}>
+            <ModeSwitch value={bookmark.mode} onChange={(m) => setBookmarkMode(book, m)} block />
+            <p className={styles.hint}><ModeHint mode={bookmark.mode} /></p>
+          </div>
           {main && showsBook ? (
             <div className={styles.layout}>
               {mine ? (
                 <>
                   <p className={styles.hint}><InterfaceText en="Your layout is saved with this bookmark as you change it." he="הפריסה שלך נשמרת עם הסימנייה בכל שינוי." /></p>
                   {panelOrder(ws).length > 1 ? (
-                    <Button size="sm" variant="secondary" onClick={toStandard}>
+                    <Button size="sm" variant="secondary" block onClick={toStandard}>
+                      <Icon name="columns" size="16px" />
                       <InterfaceText en="Switch to the standard layout" he="מעבר לפריסה הרגילה" />
                     </Button>
                   ) : null}
@@ -89,7 +99,8 @@ export function BookmarkToggle({ book, at, main = false }: { book: string; at: s
               ) : savedHasMore ? (
                 <>
                   <p className={styles.hint}><InterfaceText en="Showing the standard layout. Your saved layout is kept." he="מוצגת הפריסה הרגילה. הפריסה השמורה שלך לא נמחקה." /></p>
-                  <Button size="sm" variant="secondary" onClick={toMine}>
+                  <Button size="sm" variant="secondary" block onClick={toMine}>
+                    <Icon name="saved-layout" size="16px" />
                     <InterfaceText en="Switch back to my layout" he="חזרה לפריסה שלי" />
                   </Button>
                 </>
