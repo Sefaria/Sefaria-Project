@@ -1,4 +1,4 @@
-export type { Bookmark, BookmarkMode, BookmarkState } from "./model";
+export type { Bookmark, BookmarkLayout, BookmarkMode, BookmarkState } from "./model";
 export { sortedBookmarks } from "./model";
 export {
   addBookmark,

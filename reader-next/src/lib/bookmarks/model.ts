@@ -15,14 +15,24 @@ export interface Bookmark {
   updated: number;
   /** Auto mode: the furthest segment reached since the bookmark was added or the furthest point was reset. */
   furthest?: string;
+  /** The workspace around the book, as the URL query that restores it. Carried through moves and mode changes. */
+  layout?: BookmarkLayout;
 }
 
+export interface BookmarkLayout {
+  search: Record<string, string>;
+}
+
+/** Version of the stored shape; bump it with a migration in `parseState` when a change can't be read as-is. */
+export const STATE_VERSION = 1;
+
 export interface BookmarkState {
+  version: typeof STATE_VERSION;
   defaultMode: BookmarkMode;
   books: Record<string, Bookmark>;
 }
 
-export const EMPTY_STATE: BookmarkState = { defaultMode: "auto", books: {} };
+export const EMPTY_STATE: BookmarkState = { version: STATE_VERSION, defaultMode: "auto", books: {} };
 
 /** "2b" → 5, "7" → 7: daf sides sort after their daf, numbers as numbers. */
 const addressRank = (a: string): number | undefined => {
@@ -59,8 +69,9 @@ const later = (current: string | undefined, next: string): string => {
 const put = (state: BookmarkState, b: Bookmark): BookmarkState => ({ ...state, books: { ...state.books, [b.book]: b } });
 
 export function addBookmark(state: BookmarkState, book: string, ref: string, now: number): BookmarkState {
-  const mode = state.books[book]?.mode ?? state.defaultMode;
-  return put(state, { book, ref, mode, updated: now, ...(mode === "auto" ? { furthest: ref } : {}) });
+  const existing = state.books[book];
+  const mode = existing?.mode ?? state.defaultMode;
+  return put(state, { book, ref, mode, updated: now, ...(mode === "auto" ? { furthest: ref } : {}), ...(existing?.layout ? { layout: existing.layout } : {}) });
 }
 
 export function moveBookmark(state: BookmarkState, book: string, ref: string, now: number): BookmarkState {
@@ -103,6 +114,11 @@ export function noteReading(state: BookmarkState, book: string, ref: string, now
   return put(state, { ...b, ref, furthest, updated: b.ref === ref ? b.updated : now });
 }
 
+const isLayout = (v: unknown): v is BookmarkLayout => {
+  const search = (v as { search?: unknown } | null | undefined)?.search;
+  return !!search && typeof search === "object" && Object.values(search).every((x) => typeof x === "string");
+};
+
 /** Reads stored JSON defensively: anything malformed is dropped rather than breaking the reader. */
 export function parseState(raw: string | null): BookmarkState {
   if (!raw) return EMPTY_STATE;
@@ -118,9 +134,10 @@ export function parseState(raw: string | null): BookmarkState {
         mode: b.mode === "manual" ? "manual" : "auto",
         updated: typeof b.updated === "number" ? b.updated : 0,
         ...(typeof b.furthest === "string" ? { furthest: b.furthest } : {}),
+        ...(isLayout(b.layout) ? { layout: { search: { ...b.layout.search } } } : {}),
       };
     }
-    return { defaultMode, books };
+    return { version: STATE_VERSION, defaultMode, books };
   } catch {
     return EMPTY_STATE;
   }

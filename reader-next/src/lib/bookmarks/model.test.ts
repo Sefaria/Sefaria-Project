@@ -11,6 +11,7 @@ import {
   setBookmarkMode,
   setDefaultMode,
   sortedBookmarks,
+  type BookmarkState,
 } from "./model";
 
 const manual = setDefaultMode(EMPTY_STATE, "manual");
@@ -97,15 +98,39 @@ describe("storage", () => {
     const s = addBookmark(manual, "Genesis", "Genesis 1:1", 5);
     expect(parseState(JSON.stringify(s))).toEqual(s);
     expect(parseState('{"books":{"X":{"mode":"auto"},"Y":{"ref":"Y 1","mode":"weird"}}}')).toEqual({
+      version: 1,
       defaultMode: "auto",
       books: { Y: { book: "Y", ref: "Y 1", mode: "auto", updated: 0 } },
     });
     expect(parseState("not json")).toEqual(EMPTY_STATE);
     expect(parseState(null)).toEqual(EMPTY_STATE);
   });
+  it("keeps a valid layout and drops a malformed one", () => {
+    const raw = { version: 1, books: { A: { ref: "A 1", mode: "auto", updated: 1, layout: { search: { layout: "r(1,2)", p2: "Rashi 1" } } }, B: { ref: "B 1", mode: "auto", updated: 1, layout: { search: { x: 3 } } } } };
+    const s = parseState(JSON.stringify(raw));
+    expect(s.books.A!.layout).toEqual({ search: { layout: "r(1,2)", p2: "Rashi 1" } });
+    expect(s.books.B!.layout).toBeUndefined();
+  });
   it("lists the most recently changed first", () => {
     let s = addBookmark(EMPTY_STATE, "Genesis", "Genesis 1:1", 1);
     s = addBookmark(s, "Exodus", "Exodus 1:1", 2);
     expect(sortedBookmarks(s).map((b) => b.book)).toEqual(["Exodus", "Genesis"]);
+  });
+});
+
+describe("layout", () => {
+  const layout = { search: { layout: "r(c(1,2)~33,3~67)", p2: "Rashi on Berakhot 2a" } };
+  it("survives moves, reading, mode changes, re-adding and furthest resets", () => {
+    const base = addBookmark(EMPTY_STATE, "Berakhot", "Berakhot 2a:1", 1);
+    let s: BookmarkState = { ...base, books: { Berakhot: { ...base.books.Berakhot!, layout } } };
+    s = noteReading(s, "Berakhot", "Berakhot 3a:1", 2);
+    s = noteReading(s, "Berakhot", "Berakhot 2b:1", 3);
+    s = resetFurthest(s, "Berakhot");
+    s = setBookmarkMode(s, "Berakhot", "manual", 4);
+    s = moveBookmark(s, "Berakhot", "Berakhot 5a:1", 5);
+    s = addBookmark(s, "Berakhot", "Berakhot 6a:1", 6);
+    s = setBookmarkMode(s, "Berakhot", "auto", 7);
+    expect(s.books.Berakhot!.layout).toEqual(layout);
+    expect(parseState(JSON.stringify(s)).books.Berakhot!.layout).toEqual(layout);
   });
 });
