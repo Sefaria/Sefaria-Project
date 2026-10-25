@@ -59,7 +59,7 @@ class WebsiteRestrictionTest(DeveloperApiTestCase):
         status, state = self.call("post", self.url, {"project": {**PROJECT, "websiteUrl": ""}})
 
         self.assertEqual(status, 400)
-        self.assertEqual(state["error"], "Turn off the website restriction on your keys before removing the website.")
+        self.assertEqual(state["error"], developer.WEBSITE_IN_USE_ERROR)
         self.assertEqual(Project.objects.get(api_projects__id=int(self.project["id"])).project_link,
                          PROJECT["websiteUrl"])
         self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://dafportal.org"])

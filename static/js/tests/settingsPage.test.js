@@ -383,9 +383,10 @@ describe('saving a project', () => {
     expect(container.querySelector('[role="alert"]').textContent).toContain('Give the project a name.');
   });
 
-  it('keeps the edit form and its empty website when clearing the website is refused', async () => {
-    const refusal = 'Turn off the website restriction on your keys before removing the website.';
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [{ id: 'proj01', name: 'Daf Tracker', description: 'A tracker', visibility: 'public', organization: '', websiteUrl: 'https://daftracker.org', aiAssisted: false, linkedListing: false, consentWithdrawnAt: null, keys: [{ id: 'k1', label: 'Site key', value: 'sfr_test_x', created: null, restrictToWebsite: true }] }] }, { projectId: 'proj01' });
+  it('keeps the edit form and its empty website when the server refuses clearing the website', async () => {
+    // The page is stale: a key was restricted elsewhere, so only the server knows to refuse.
+    const refusal = 'A key is restricted to this website. Turn off the restriction on every key before removing the website.';
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [{ id: 'proj01', name: 'Daf Tracker', description: 'A tracker', visibility: 'public', organization: '', websiteUrl: 'https://daftracker.org', aiAssisted: false, linkedListing: false, consentWithdrawnAt: null, keys: [{ id: 'k1', label: 'Site key', value: 'sfr_test_x', created: null, restrictToWebsite: false }] }] }, { projectId: 'proj01' });
     act(() => { buttonNamed(container, 'Edit project').click(); });
     typeInto(container.querySelector('#devPocProjectUrl'), '');
     global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: refusal }) }));

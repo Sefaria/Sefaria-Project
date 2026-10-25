@@ -33,6 +33,7 @@ const SERVER_ERRORS_HE = {
   "This link can't be renewed.": "אי אפשר לחדש את הקישור הזה.",
   "Accept the API terms to continue.": "כדי להמשיך יש לאשר את תנאי השימוש ב־API.",
   "The additional email is not a valid address.": "כתובת הדוא״ל הנוספת אינה תקינה.",
+  "The contact email is not a valid address.": "כתובת הדוא״ל ליצירת קשר אינה תקינה.",
   "Confirm your email before turning on developer settings.": "אשרו את כתובת הדוא״ל לפני הפעלת הגדרות המפתחים.",
   "Confirm your email before setting up developer settings.": "אשרו את כתובת הדוא״ל לפני הגדרת הגדרות המפתחים.",
   "Developer settings are not set up for this account.": "הגדרות המפתחים לא הוגדרו בחשבון הזה.",
