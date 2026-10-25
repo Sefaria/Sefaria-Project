@@ -1,5 +1,6 @@
-import { useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
-import type { LayoutNode } from "~/lib/layout/tree";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from "react";
+import { childMinimums, dragDivider, minExtent, overflows, toShares, type MinOf } from "~/lib/layout/extent";
+import type { Direction, LayoutNode } from "~/lib/layout/tree";
 import styles from "./SplitView.module.css";
 
 export interface SplitViewProps<Id extends string> {
@@ -8,10 +9,11 @@ export interface SplitViewProps<Id extends string> {
   /** What goes in each leaf. */
   renderLeaf: (id: Id) => ReactNode;
   /**
-   * Smallest size a leaf may be squeezed to, in px, along its split's direction. When the children cannot all
-   * fit, the split scrolls instead (the old reader's 360px panel minimum and sideways scrolling, SHL-039).
+   * Smallest size a leaf may be squeezed to, in px: one number for both directions, or per leaf and direction. When the
+   * children cannot all fit, the split scrolls and its children's shares become pixel lengths (the old reader's 360px panel
+   * minimum and sideways scrolling, SHL-039).
    */
-  minLeafSize?: number;
+  minLeafSize?: number | MinOf<Id>;
   /** Lines between children. */
   dividers?: boolean;
   className?: string;
@@ -21,12 +23,10 @@ export interface SplitViewProps<Id extends string> {
   onResize?: (path: number[], sizes: number[]) => void;
 }
 
-/** Smallest share a child can be dragged down to. */
-const MIN_SHARE = 0.12;
-interface Live { key: string; sizes: number[] }
+interface Live { key: string; sizes: number[]; lengths: number[] }
 interface Shared<Id extends string> {
   renderLeaf: (id: Id) => ReactNode;
-  minLeafSize: number;
+  minOf: MinOf<Id>;
   dividers: boolean;
   onResize?: SplitViewProps<Id>["onResize"];
   live: Live | null;
@@ -38,16 +38,41 @@ interface Shared<Id extends string> {
  * workspace (panels) and for each panel (its main view and side panels). In a right-to-left interface rows run
  * right to left, as the old reader's panels did.
  *
- * @feature SHL-039 Panel cap and widths
+ * While the children fit, a divider trades space between its two neighbours. Once they do not, the split scrolls, every
+ * child keeps at least its minimum, and a divider resizes only the child before it (the split grows or shrinks).
  */
 export function SplitView<Id extends string>({ node, renderLeaf, minLeafSize = 0, dividers = true, className, label, onResize }: SplitViewProps<Id>) {
   const [live, setLive] = useState<Live | null>(null);
-  return <Node node={node} path={[]} shared={{ renderLeaf, minLeafSize, dividers, onResize, live, setLive }} className={className} label={label} root />;
+  const minOf: MinOf<Id> = typeof minLeafSize === "function" ? minLeafSize : () => minLeafSize;
+  return <Node node={node} path={[]} shared={{ renderLeaf, minOf, dividers, onResize, live, setLive }} className={className} label={label} root />;
 }
 
+/** The element's visible inner length along `dir`, kept up to date (undefined until measured, as in the server render). */
+function useInnerLength(ref: RefObject<HTMLElement | null>, dir: Direction | undefined): number | undefined {
+  const [length, setLength] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !dir || typeof ResizeObserver === "undefined") return;
+    const read = () => setLength(dir === "row" ? el.clientWidth : el.clientHeight);
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, dir]);
+  return length;
+}
+
+const KEY_STEP: Record<string, { dir: Direction; sign: number }> = {
+  ArrowLeft: { dir: "row", sign: -1 },
+  ArrowRight: { dir: "row", sign: 1 },
+  ArrowUp: { dir: "column", sign: -1 },
+  ArrowDown: { dir: "column", sign: 1 },
+};
+
 function Node<Id extends string>({ node, path, shared, className, label, root }: { node: LayoutNode<Id>; path: number[]; shared: Shared<Id>; className?: string; label?: string; root?: boolean }) {
-  const { renderLeaf, minLeafSize, dividers, onResize, live } = shared;
+  const { renderLeaf, minOf, dividers, onResize, live } = shared;
   const splitEl = useRef<HTMLDivElement>(null);
+  const available = useInnerLength(splitEl, node.type === "split" ? node.direction : undefined);
   if (node.type === "leaf") {
     return (
       <div className={[styles.leaf, root ? styles.fill : "", className].filter(Boolean).join(" ")} data-leaf={node.id}>
@@ -57,79 +82,83 @@ function Node<Id extends string>({ node, path, shared, className, label, root }:
   }
   const n = node.children.length;
   const key = path.join(".");
-  const sizes = live?.key === key ? live.sizes : node.children.map((_, i) => node.sizes?.[i] ?? 1 / n);
+  const dir = node.direction;
+  const dragging = live?.key === key ? live : null;
+  const sizes = dragging ? dragging.sizes : node.children.map((_, i) => node.sizes?.[i] ?? 1 / n);
+  // Leaves need their minimum; a nested split needs room for all of its leaves side by side.
+  const ownMins = node.children.map((c) => minExtent(c, dir, minOf));
+  const overflowing = overflows(ownMins, available);
+  const mins = dragging && overflowing ? dragging.lengths : childMinimums(sizes, ownMins, available);
 
-  /** Shares after moving the line before child `i` by `delta` (a fraction of the split). */
-  const shifted = (from: number[], i: number, delta: number) => {
-    const next = [...from];
-    const pair = next[i - 1]! + next[i]!;
-    const before = Math.min(pair - MIN_SHARE, Math.max(MIN_SHARE, next[i - 1]! + delta));
-    next[i - 1] = before;
-    next[i] = pair - before;
-    return next;
-  };
+  /** The children's lengths as laid out now. */
+  const measure = () => [...(splitEl.current?.children ?? [])].map((c) => (dir === "row" ? (c as HTMLElement).offsetWidth : (c as HTMLElement).offsetHeight));
+  /** Pointer and arrow movement → movement toward the split's end (a right-to-left row runs the other way). */
+  const sign = () => (dir === "row" && splitEl.current && getComputedStyle(splitEl.current).direction === "rtl" ? -1 : 1);
+
   const startDrag = (i: number) => (e: PointerEvent<HTMLDivElement>) => {
-    const el = splitEl.current;
-    if (!el || e.button !== 0) return;
+    if (!splitEl.current || e.button !== 0) return;
     e.preventDefault();
-    const row = node.direction === "row";
-    const rect = el.getBoundingClientRect();
-    const length = row ? rect.width : rect.height;
-    const flip = row && getComputedStyle(el).direction === "rtl" ? -1 : 1;
-    const origin = row ? e.clientX : e.clientY;
-    const start = sizes;
-    let latest = start;
+    const s = sign();
+    const origin = dir === "row" ? e.clientX : e.clientY;
+    const start = measure();
+    let latest: Live | null = null;
     const handle = e.currentTarget;
     handle.setPointerCapture(e.pointerId);
     const move = (ev: globalThis.PointerEvent) => {
-      latest = shifted(start, i, (flip * ((row ? ev.clientX : ev.clientY) - origin)) / length);
-      shared.setLive({ key, sizes: latest });
+      const lengths = dragDivider(start, ownMins, i, s * ((dir === "row" ? ev.clientX : ev.clientY) - origin), overflowing);
+      latest = { key, sizes: toShares(lengths), lengths };
+      shared.setLive(latest);
     };
     const end = () => {
       handle.removeEventListener("pointermove", move);
       handle.removeEventListener("pointerup", end);
       handle.removeEventListener("pointercancel", end);
       shared.setLive(null);
-      if (latest !== start) onResize?.(path, latest);
+      if (latest) onResize?.(path, latest.sizes);
     };
     handle.addEventListener("pointermove", move);
     handle.addEventListener("pointerup", end);
     handle.addEventListener("pointercancel", end);
   };
   const keyResize = (i: number) => (e: KeyboardEvent<HTMLDivElement>) => {
-    const step = { ArrowLeft: -0.05, ArrowUp: -0.05, ArrowRight: 0.05, ArrowDown: 0.05 }[e.key];
-    if (step === undefined) return;
+    const step = KEY_STEP[e.key];
+    if (!step || step.dir !== dir) return;
     e.preventDefault();
-    onResize?.(path, shifted(sizes, i, step));
+    const lengths = measure();
+    const visible = available ?? lengths.reduce((a, b) => a + b, 0);
+    onResize?.(path, toShares(dragDivider(lengths, ownMins, i, sign() * step.sign * Math.max(24, visible * 0.05), overflowing)));
   };
+  // Double-clicking a divider gives its split equal shares again.
+  const reset = () => onResize?.(path, node.children.map(() => 1 / n));
 
   return (
     <div
       ref={splitEl}
       className={[styles.split, root ? styles.fill : "", className].filter(Boolean).join(" ")}
-      data-direction={node.direction}
+      data-direction={dir}
       data-dividers={dividers ? "true" : undefined}
+      data-overflowing={overflowing ? "true" : undefined}
       role={label ? "group" : undefined}
       aria-label={label}
     >
       {node.children.map((child, i) => {
-        const share = sizes[i]!;
-        // Leaves need the minimum; a nested split needs room for all of its leaves side by side.
-        const min = minLeafSize * (node.direction === "row" ? leafCountAcross(child, "row") : leafCountAcross(child, "column"));
-        const style = { "--share": share, "--min": `${min}px` } as CSSProperties;
+        const style = { "--share": sizes[i], "--min": `${Math.round(mins[i]!)}px` } as CSSProperties;
         return (
           <div key={child.type === "leaf" ? child.id : `split-${i}`} className={styles.cell} style={style}>
             {onResize && i > 0 ? (
               <div
                 className={styles.handle}
                 role="separator"
-                aria-orientation={node.direction === "row" ? "vertical" : "horizontal"}
+                aria-orientation={dir === "row" ? "vertical" : "horizontal"}
                 aria-label="Resize"
                 aria-valuenow={Math.round(sizes[i - 1]! * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
                 tabIndex={0}
-                data-dragging={live?.key === key ? "true" : undefined}
+                data-dragging={dragging ? "true" : undefined}
                 onPointerDown={startDrag(i)}
                 onKeyDown={keyResize(i)}
+                onDoubleClick={reset}
               />
             ) : null}
             <Node node={child} path={[...path, i]} shared={shared} />
@@ -138,11 +167,4 @@ function Node<Id extends string>({ node, path, shared, className, label, root }:
       })}
     </div>
   );
-}
-
-/** How many leaves sit side by side along `dir` (a column inside a row counts as its widest row, and so on). */
-function leafCountAcross<Id extends string>(node: LayoutNode<Id>, dir: "row" | "column"): number {
-  if (node.type === "leaf") return 1;
-  const counts = node.children.map((c) => leafCountAcross(c, dir));
-  return node.direction === dir ? counts.reduce((a, b) => a + b, 0) : Math.max(...counts);
 }

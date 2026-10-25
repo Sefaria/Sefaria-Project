@@ -27,6 +27,16 @@ describe("SplitView", () => {
     expect(first!.style.getPropertyValue("--min")).toBe("100px"); // along the column it is one leaf tall
   });
 
+  it("takes a minimum per leaf and direction (a panel with a sidebar is wider; a stacked panel is shorter)", () => {
+    const minOf = (id: string, dir: "row" | "column") => (dir === "row" ? (id === "a" ? 720 : 360) : 240);
+    const { container } = render(<SplitView minLeafSize={minOf} node={row(leaf("a"), column(leaf("b"), leaf("c")))} renderLeaf={(id) => id} />);
+    const [a, bc] = [...container.querySelectorAll<HTMLElement>('[data-direction="row"] > div')];
+    expect(a!.style.getPropertyValue("--min")).toBe("720px");
+    expect(bc!.style.getPropertyValue("--min")).toBe("360px");
+    const b = container.querySelector<HTMLElement>('[data-direction="column"] > div');
+    expect(b!.style.getPropertyValue("--min")).toBe("240px");
+  });
+
   it("can be named as a group", () => {
     render(<SplitView label="Open texts" node={row(leaf("a"), leaf("b"))} renderLeaf={(id) => id} />);
     expect(screen.getByRole("group", { name: "Open texts" })).toBeInTheDocument();

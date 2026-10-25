@@ -14,6 +14,7 @@ import { versionKey, type TranslationVersion } from "~/lib/versions/translations
 import { isHighlighted } from "~/lib/text/plan";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
 import { close, closeAside, move, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
+import { MIN_PANEL_WIDTH } from "~/lib/workspace/sizing";
 import { ArrangeMenu } from "../workspace/ArrangeMenu";
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
@@ -793,6 +794,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       <SplitView
         node={frame}
         onResize={onFrameResize}
+        minLeafSize={MIN_PANEL_WIDTH}
         renderLeaf={(leafId) =>
           leafId === MAIN ? (
             main
