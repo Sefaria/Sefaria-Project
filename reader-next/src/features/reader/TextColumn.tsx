@@ -29,6 +29,8 @@ export interface TextColumnProps {
   terms?: readonly string[];
   /** A segment the reader selected (clicked): becomes the focus without scrolling. */
   selected?: string;
+  /** Segments marked as corresponding to the verse picked in this or another panel; `scroll` brings the first into view. */
+  linked?: { refs: readonly string[]; scroll: boolean };
   /** The reader selected words in the text (mouse up with a selection inside the column). */
   onSelectWords?: (words: string, segmentRefs: string[]) => void;
   /** Put the reader back at a saved place when `token` changes (back/forward). */
@@ -50,6 +52,8 @@ export interface TextColumnProps {
   /** Scrolling paused on a new current segment. */
   onSettled?: (segmentRef: string, passage: TextPassage) => void;
   onSelectSegment?: TextSectionProps["onSelectSegment"];
+  /** Right-click on a segment. */
+  onOpenResources?: (segmentRef: string) => void;
   onRefClick?: TextSectionProps["onRefClick"];
   onEntityClick?: TextSectionProps["onEntityClick"];
 }
@@ -181,6 +185,21 @@ export function TextColumn(props: TextColumnProps) {
     [onSelectSegment],
   );
 
+  // Linked segments: a DOM attribute like the focus, repainted when sections arrive or swap.
+  const linkedEls = useRef<Element[]>([]);
+  const paintLinked = useCallback(() => {
+    linkedEls.current.forEach((el) => el.removeAttribute("data-linked"));
+    const refs = propsRef.current.linked?.refs ?? [];
+    linkedEls.current = refs.flatMap((r) => [...(contentRef.current?.querySelectorAll(`[role="group"][data-ref="${CSS.escape(r)}"]`) ?? [])]);
+    linkedEls.current.forEach((el) => el.setAttribute("data-linked", "true"));
+  }, []);
+  useLayoutEffect(() => {
+    paintLinked();
+    const first = props.linked?.refs[0];
+    if (props.linked?.scroll && first) engine.scrollToSegment(first);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.linked]);
+
   // A clicked segment becomes current without moving the page.
   useEffect(() => {
     if (selected) engine.setFocus(selected);
@@ -207,6 +226,7 @@ export function TextColumn(props: TextColumnProps) {
   useLayoutEffect(() => {
     engine.restore();
     engine.check();
+    paintLinked();
     // Sections were replaced (another translation): the current verse's passage object changed, so tell the
     // panel (its header names the version; its sidebar marks the current one).
     const f = focusRef.current;
@@ -270,6 +290,13 @@ export function TextColumn(props: TextColumnProps) {
           e.clipboardData.setData("text/html", html);
           e.clipboardData.setData("text/plain", text);
           e.preventDefault();
+        }}
+        onContextMenu={(e) => {
+          const ref = (e.target as Element).closest<HTMLElement>('[role="group"][data-ref]')?.dataset.ref;
+          if (!ref || !props.onOpenResources || (e.target as Element).closest("a")) return;
+          e.preventDefault();
+          engine.setFocus(ref);
+          props.onOpenResources(ref);
         }}
         onMouseUp={() => {
           const sel = window.getSelection();

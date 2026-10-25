@@ -1,6 +1,8 @@
 /* Desktop: the panel fills its workspace cell; the text column and each side panel scroll on their own. */
 .panel { display: flex; flex: 1; min-width: 0; min-height: 0; height: 100%; background: var(--sefaria-color-surface, #fff); }
 .text { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+/* Clicking the header's empty space toggles the resources sidebar; `contents` keeps the header sticky. */
+.headerHost { display: contents; cursor: pointer; }
 .aside { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
 
 /* Phone (old single-panel mode): the page scrolls, so the browser can collapse its address bar. A side panel

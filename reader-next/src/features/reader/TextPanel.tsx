@@ -42,6 +42,9 @@ import { TextColumn } from "./TextColumn";
 import { readerAnalytics } from "~/lib/analytics";
 import { useViewer } from "~/features/auth/viewer";
 import { legacyVersions } from "~/lib/user/history";
+import { linksQueryOptions } from "~/lib/connections/queries";
+import { linkedSegmentsIn, sectionOfSegment } from "~/lib/workspace/linked-verses";
+import { announceLinkedVerse, onLinkedVerse } from "../workspace/linked-verse";
 import { useReaderHistory, useSaved, type PanelPlace } from "./use-reader-history";
 
 export interface TextPanelProps {
@@ -225,14 +228,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   viewRef.current = view;
   const currentRef = useRef(current.ref);
   currentRef.current = current.ref;
-  const onSelectSegment = useCallback(
+  /** Open the resources sidebar on a verse (the right-click and the panel header; a plain click only marks the verse). */
+  const openResources = useCallback(
     (ref: string) => {
-      readerAnalytics.segmentClicked(ref, !viewRef.current);
-      // Selecting the verse that is already current while the sidebar is open closes the sidebar.
-      if (viewRef.current && currentRef.current === ref) {
-        apply((ws) => closeAside(updatePanel(ws, id, { ref }), id), { state: { nav: "select", panel: id, ref } });
-        return;
-      }
       apply(
         (ws) => {
           const existing = ws.panels[id]?.asides.find((a) => a.kind === "connections");
@@ -244,6 +242,44 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       );
     },
     [apply, id, newSidebarLang],
+  );
+
+  // ── linked verses: a clicked verse is marked here, and what corresponds to it in every other panel ────
+  const [linked, setLinked] = useState<{ refs: readonly string[]; scroll: boolean } | undefined>(undefined);
+  const linkedRef = useRef(linked);
+  linkedRef.current = linked;
+  const bookRef = useRef(current.passage.indexTitle);
+  bookRef.current = current.passage.indexTitle;
+  const onSelectSegment = useCallback(
+    (ref: string) => {
+      readerAnalytics.segmentClicked(ref, !viewRef.current);
+      const again = linkedRef.current?.refs.length === 1 && linkedRef.current.refs[0] === ref;
+      setLinked(again ? undefined : { refs: [ref], scroll: false });
+      announceLinkedVerse(again ? null : { from: id, ref, book: bookRef.current });
+      // An open sidebar follows the clicked verse.
+      if (viewRef.current) apply((ws) => updatePanel(ws, id, { ref }), { state: { nav: "select", panel: id, ref } });
+    },
+    [apply, id],
+  );
+  useEffect(
+    () =>
+      onLinkedVerse((v) => {
+        if (v?.from === id) return;
+        if (!v) return setLinked(undefined);
+        const mine = bookRef.current;
+        const found =
+          v.book === mine
+            ? Promise.resolve([v.ref])
+            : qc.fetchQuery(linksQueryOptions(sectionOfSegment(v.ref))).then((links) => linkedSegmentsIn(links, v.ref, v.book, mine), () => []);
+        void found.then((refs) => {
+          setLinked({ refs, scroll: true });
+          const first = refs[0];
+          if (!first || rootEl.current?.querySelector(`[role="group"][data-ref="${CSS.escape(first)}"]`)) return;
+          // Not in the loaded sections: the panel goes there.
+          apply((ws) => updatePanel(ws, id, { ref: first }), { replace: true, state: { nav: "go", panel: id } });
+        });
+      }),
+    [apply, id, qc],
   );
 
   /**
@@ -488,6 +524,14 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   const main = (
     <div className={styles.text}>
+      <div
+        className={styles.headerHost}
+        onClick={(e) => {
+          if ((e.target as Element).closest("a, button, input, [role=dialog]")) return;
+          if (view) closeSidebar();
+          else openResources(current.ref ?? data.ref);
+        }}
+      >
       <PanelHeader
         sticky
         category={section.categories}
@@ -508,6 +552,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
         end={
           <>
+          <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
           <IconButton
             icon="bookmark"
             pressed={viewer ? save.isSaved : undefined}
@@ -526,6 +571,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           </>
         }
       />
+      </div>
       <SignUpModal kind={saveAsked ? "save" : undefined} onClose={() => setSaveAsked(false)} next={typeof window === "undefined" ? "/" : window.location.href} />
       <div ref={bannerBox}>
       {transBanner ? (
@@ -549,12 +595,14 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         target={entry.current.target}
         terms={navState.mine && navState.kind === "go" ? readNavState(location.state).terms : undefined}
         selected={selected}
+        linked={linked}
         showFocus={Boolean(view)}
         connectionsOnScreen={Boolean(view)}
         linkFilter={linkFilter}
         onFocus={onFocus}
         onSettled={onSettled}
         onSelectSegment={onSelectSegment}
+        onOpenResources={openResources}
         onEntityClick={onEntityClick}
         onRefClick={onCitationClick}
         onSelectWords={onSelectWords}
