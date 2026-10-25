@@ -292,6 +292,8 @@ def update(user, klass, attrs, **kwargs):
             obj = klass().load_by_id(attrs[klass.id_field])
         else:
             obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
+    if obj is None:
+        raise InputError('{} record not found for update'.format(klass.__name__))
     old_dict = obj.contents(**kwargs)
     obj.load_from_dict(attrs).save()
     model.log_update(user, klass, old_dict, obj.contents(**kwargs), **kwargs)
