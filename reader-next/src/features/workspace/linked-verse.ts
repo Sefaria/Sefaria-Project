@@ -17,3 +17,15 @@ export function onLinkedVerse(listener: (v: LinkedVerse | null) => void): () => 
   listeners.add(listener);
   return () => void listeners.delete(listener);
 }
+
+/** The verse a panel's reader settled on while scrolling; panels that scroll together follow it. */
+const readingListeners = new Set<(v: LinkedVerse) => void>();
+
+export function announceReading(v: LinkedVerse) {
+  readingListeners.forEach((l) => l(v));
+}
+
+export function onReading(listener: (v: LinkedVerse) => void): () => void {
+  readingListeners.add(listener);
+  return () => void readingListeners.delete(listener);
+}

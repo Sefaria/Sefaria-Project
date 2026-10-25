@@ -34,6 +34,8 @@ export interface TextColumnProps {
   selected?: string;
   /** Segments marked as corresponding to the verse picked in this or another panel; `scroll` brings the first into view. */
   linked?: { refs: readonly string[]; scroll: boolean };
+  /** Bring this segment to the reading line (scrolling together with another panel); a new object each time. */
+  follow?: { ref: string };
   /** The reader selected words in the text (mouse up with a selection inside the column). */
   onSelectWords?: (words: string, segmentRefs: string[]) => void;
   /** Put the reader back at a saved place when `token` changes (back/forward). */
@@ -202,6 +204,11 @@ export function TextColumn(props: TextColumnProps) {
     if (props.linked?.scroll && first) engine.scrollToSegment(first);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.linked]);
+
+  useLayoutEffect(() => {
+    if (props.follow) engine.scrollToSegment(props.follow.ref);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.follow]);
 
   // A clicked segment becomes current without moving the page.
   useEffect(() => {

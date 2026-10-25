@@ -50,7 +50,7 @@ import { useViewer } from "~/features/auth/viewer";
 import { legacyVersions } from "~/lib/user/history";
 import { linksQueryOptions } from "~/lib/connections/queries";
 import { linkedSegmentsIn, sectionOfSegment } from "~/lib/workspace/linked-verses";
-import { announceLinkedVerse, onLinkedVerse } from "../workspace/linked-verse";
+import { announceLinkedVerse, announceReading, onLinkedVerse, onReading } from "../workspace/linked-verse";
 import { useReaderHistory, useSaved, type PanelPlace } from "./use-reader-history";
 
 export interface TextPanelProps {
@@ -190,8 +190,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   const asideRef = useRef(panel.asides);
   asideRef.current = panel.asides;
+  // Scrolling together: a settled verse is announced unless this panel is only following another one.
+  const followingUntil = useRef(0);
   const onSettled = useCallback(
-    (ref: string) => {
+    (ref: string, passage?: TextPassage) => {
+      if (passage && performance.now() > followingUntil.current) announceReading({ from: id, ref, book: passage.indexTitle });
       if (asideRef.current.length) setSelection([ref]);
       // The address bar always names the verse being read (like the old reader), without moving anything.
       apply((ws) => updatePanel(ws, id, { ref }), { replace: true, state: { nav: "scroll", panel: id } });
@@ -299,6 +302,35 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           if (!first || rootEl.current?.querySelector(`[role="group"][data-ref="${CSS.escape(first)}"]`)) return;
           // Not in the loaded sections: the panel goes there.
           apply((ws) => updatePanel(ws, id, { ref: first }), { replace: true, state: { nav: "go", panel: id } });
+        });
+      }),
+    [apply, id, qc],
+  );
+
+  // Scroll together (on by default; the header's link button locks this panel where it is).
+  const [together, setTogether] = useState(true);
+  const togetherRef = useRef(together);
+  togetherRef.current = together;
+  const [follow, setFollow] = useState<{ ref: string } | undefined>(undefined);
+  useEffect(
+    () =>
+      onReading((v) => {
+        if (v.from === id || !togetherRef.current) return;
+        const mine = bookRef.current;
+        const found =
+          v.book === mine
+            ? Promise.resolve([v.ref])
+            : qc.fetchQuery(linksQueryOptions(sectionOfSegment(v.ref))).then((links) => linkedSegmentsIn(links, v.ref, v.book, mine), () => []);
+        void found.then((refs) => {
+          const first = refs[0];
+          if (!first) return;
+          if (rootEl.current?.querySelector(`[role="group"][data-ref="${CSS.escape(first)}"]`)) {
+            followingUntil.current = performance.now() + 1000;
+            setFollow({ ref: first });
+          } else {
+            followingUntil.current = performance.now() + 2500;
+            apply((ws) => updatePanel(ws, id, { ref: first }), { replace: true, state: { nav: "go", panel: id } });
+          }
         });
       }),
     [apply, id, qc],
@@ -663,6 +695,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         end={
           <>
           {alone ? null : <ArrangeMenu self={id} workspace={nav.current()} onMove={(target, placement) => apply((ws) => move(ws, id, target, placement), { state: { nav: "stay" } })} />}
+          {alone ? null : <IconButton icon="link" label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
           <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
           <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} />
           <IconButton
@@ -709,6 +742,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         terms={navState.mine && navState.kind === "go" ? readNavState(location.state).terms : undefined}
         selected={selected}
         linked={linked}
+        follow={follow}
         showFocus={Boolean(view)}
         connectionsOnScreen={Boolean(view)}
         linkFilter={linkFilter}
