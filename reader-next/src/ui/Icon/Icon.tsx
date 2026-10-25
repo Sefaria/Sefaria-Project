@@ -12,10 +12,10 @@ const PATHS = {
   "chevron-right": "M9 5l7 7-7 7",
   "chevron-down": "M5 9l7 7 7-7",
   "chevron-up": "M5 15l7-7 7 7",
-  maximize: "M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5",
-  minimize: "M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5",
+  maximize: "M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15",
+  minimize: "M9 4v3.5A1.5 1.5 0 0 1 7.5 9H4M20 9h-3.5A1.5 1.5 0 0 1 15 7.5V4M15 20v-3.5a1.5 1.5 0 0 1 1.5-1.5H20M4 15h3.5A1.5 1.5 0 0 1 9 16.5V20",
   check: "M5 12.5l4.5 4.5L19 7.5",
-  bookmark: "M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z",
+  bookmark: "M6.5 4.5A1.5 1.5 0 0 1 8 3h8a1.5 1.5 0 0 1 1.5 1.5V20.5L12 16.75 6.5 20.5z",
   edit: "M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4",
   globe: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.5 3.8 5.6 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.6-3.8-9S9.5 5.5 12 3z",
   plus: "M12 5v14M5 12h14",
@@ -38,8 +38,8 @@ const PATHS = {
   scroll: "M8 4h10a2 2 0 0 1 2 2v1h-4M8 4a2 2 0 0 0-2 2v12a2 2 0 0 1-2 2h10a2 2 0 0 0 2-2V7M8 4a2 2 0 0 1 2 2v1M9 11h5M9 14h5",
   audio: "M4 10h3l4-4v12l-4-4H4zM15 9a4 4 0 0 1 0 6M17.5 6.5a7.5 7.5 0 0 1 0 11",
   "file-plus": "M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10.5A.5.5 0 0 1 6.5 20V4a.5.5 0 0 1 .5-.5zM14 3.5v4h4M12 11v6M9 14h6",
-  columns: "M4 5h16v14H4zM12 5v14",
-  "saved-layout": "M4 5h16v14H4zM13 5v14M13 12h7",
+  columns: "M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM12 4v16",
+  "saved-layout": "M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM10 4v16M14 4v5.5l1.75-1.25 1.75 1.25V4",
   note: "M5 4h14v11l-5 5H5zM14 20v-5h5M8 9h8M8 12h5",
   share: "M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM21 6a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM21 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM7.7 10.9l8.6-3.8M7.7 13.1l8.6 3.8",
   message: "M4 5h16v11H9l-5 4z",
@@ -47,20 +47,30 @@ const PATHS = {
   play: "M8 5l11 7-11 7z",
   pause: "M9 5v14M15 5v14",
   mail: "M4 6h16v12H4zM4 7l8 6 8-6",
-  copy: "M9 9h10v11H9zM5 15V4h10",
+  copy: "M9 9.5A1.5 1.5 0 0 1 10.5 8h8A1.5 1.5 0 0 1 20 9.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 9 18.5zM5.5 16A1.5 1.5 0 0 1 4 14.5v-9A1.5 1.5 0 0 1 5.5 4h8A1.5 1.5 0 0 1 15 5.5",
   facebook: "M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z",
   "x-social": "M5 4l14 16M19 4L5 20",
   clock: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2",
-  star: "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z",
+  star: "M12 3.5l2.6 5.3 5.9.85-4.25 4.15 1 5.85L12 16.9l-5.25 2.75 1-5.85L3.5 9.65l5.9-.85z",
   user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-4 3.6-6 8-6s8 2 8 6",
-  link: "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1",
+  link: "M9.5 14.5l5-5M11 6.5l1.25-1.25a4 4 0 0 1 5.66 5.66L16.66 12.16M13 17.5l-1.25 1.25a4 4 0 0 1-5.66-5.66L7.34 11.84",
   help: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.4M12 17h.01",
   grid: "M5 5h.01M12 5h.01M19 5h.01M5 12h.01M12 12h.01M19 12h.01M5 19h.01M12 19h.01M19 19h.01",
   "sort-arrows": "M7 4v16M7 4L4 7.5M7 4l3 3.5M17 20V4M17 20l-3-3.5M17 20l3-3.5",
   "circle-minus": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12h8",
   "circle-plus": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12h8M12 8v8",
   keyboard: "M3 6h18v12H3zM6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M7 14h10",
-  layers: "M12 3l9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 16l9 5 9-5",
+  "link-off": "M11 6.5l1.25-1.25a4 4 0 0 1 5.66 5.66L16.66 12.16M13 17.5l-1.25 1.25a4 4 0 0 1-5.66-5.66L7.34 11.84M8.5 3.5v2M3.5 8.5h2M15.5 20.5v-2M20.5 15.5h-2",
+  "header-hide": "M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM4 8.5h16M9 15.5l3-3 3 3",
+  "header-show": "M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM4 8.5h16M9 12.5l3 3 3-3",
+  "arrow-left":"M19 12H5M11 6l-6 6 6 6",
+  "arrow-right": "M5 12h14M13 6l6 6-6 6",
+  "arrow-up": "M12 19V5M6 11l6-6 6 6",
+  "arrow-down": "M12 5v14M6 13l6 6 6-6",
+  swap: "M4 8.5h15M15.5 5l3.5 3.5-3.5 3.5M20 15.5H5M8.5 12L5 15.5 8.5 19",
+  "to-start": "M4.5 5v14M20 12H9M14 7l-5 5 5 5",
+  "to-end": "M19.5 5v14M4 12h11M10 7l5 5-5 5",
+  layers: "M12 3l8.5 4.25L12 11.5 3.5 7.25zM3.5 11.75L12 16l8.5-4.25M3.5 16.25L12 20.5l8.5-4.25",
   pen: "M4 20l1-4L16 5l3 3L8 19l-4 1zM14 7l3 3",
   school: "M3 9l9-4 9 4-9 4zM7 11v5c3 2 7 2 10 0v-5M21 9v6",
   settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1",
@@ -73,6 +83,10 @@ export const ICON_NAMES = Object.keys(PATHS) as IconName[];
 /** Filled variants (the path is filled instead of stroked). */
 const FILLED: ReadonlySet<IconName> = new Set<IconName>([]);
 
+/** Closed shapes that read well filled, for an "on" state (a saved bookmark, a favourite). Open shapes show "on" another way. */
+const FILLABLE: ReadonlySet<IconName> = new Set<IconName>(["bookmark", "star"]);
+export const canFill = (name: IconName) => FILLABLE.has(name);
+
 export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, "name"> {
   name: IconName;
   /** CSS size (px number or any length). Default 1.25em so it scales with surrounding text. */
@@ -84,7 +98,7 @@ export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, "name"> {
 }
 
 export function Icon({ name, size = "1.25em", label, filled, ...rest }: IconProps) {
-  const fill = filled || FILLED.has(name);
+  const fill = (filled && FILLABLE.has(name)) || FILLED.has(name);
   return (
     <svg
       viewBox="0 0 24 24"

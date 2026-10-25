@@ -1,9 +1,9 @@
-/* A small pill in the bottom corner, clear of the headers and the cookie notice. */
+/* A small pill in the bottom corner, clear of the headers and the cookie notice; quiet until the pointer or focus reaches it. */
 .controls {
-  position: fixed; inset-block-end: var(--sefaria-space-3); inset-inline-end: var(--sefaria-space-3); z-index: var(--sefaria-z-panel-chrome);
-  display: flex; gap: 2px; padding: 2px; border: 1px solid var(--sefaria-color-border); border-radius: 999px;
-  background: var(--sefaria-color-surface); box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
-  opacity: 0.45; transition: opacity 0.15s;
+  position: fixed; inset-block-end: var(--sefaria-space-4); inset-inline-end: var(--sefaria-space-4); z-index: var(--sefaria-z-panel-chrome);
+  display: flex; align-items: center; gap: 3px; padding: 3px; border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-pill);
+  background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-menu);
+  opacity: 0.55; transition: opacity 0.15s;
 }
 .controls:hover, .controls:focus-within { opacity: 1; }
 @media (max-width: 842px) { .controls { display: none; } }

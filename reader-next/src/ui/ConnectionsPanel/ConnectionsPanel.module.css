@@ -17,6 +17,7 @@
 /* A Commentary book row with its favourite star. */
 .starRow { display: flex; align-items: center; }
 .starRow > a { flex: 1; min-width: 0; }
-.star { flex: none; width: 32px; height: 32px; border: 0; background: none; color: var(--sefaria-color-text-muted); font-size: 16px; cursor: pointer; }
-.star[aria-pressed="true"] { color: #c99a2e; }
-.star:hover, .star:focus-visible { color: var(--sefaria-color-text); }
+.star { flex: none; display: inline-grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: var(--sefaria-radius-md); background: none; color: var(--sefaria-color-text-muted); cursor: pointer; }
+.star[aria-pressed="true"] { color: var(--sefaria-color-star); }
+.star:hover, .star:focus-visible { background: var(--sefaria-color-hover); color: var(--sefaria-color-text); }
+.star[aria-pressed="true"]:hover { color: var(--sefaria-color-star); }

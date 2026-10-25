@@ -38,6 +38,12 @@
   --sefaria-color-highlight-soft: light-dark(#f0f7ff, #1f2b38);
   --sefaria-color-highlight-voices: light-dark(#f1fcf5, #1d2d22);
   --sefaria-color-selection: light-dark(#d2dcff, #3b4a78);
+  /* Controls and menu rows: hover, and an "on" toggle drawn as a tint behind the icon. */
+  --sefaria-color-hover: light-dark(#f0f0ef, #2f2f2d);
+  --sefaria-color-pressed: light-dark(#e7edf5, #24324a);
+  --sefaria-color-pressed-hover: light-dark(#dce5f0, #2b3b57);
+  /* A favourite (starred commentator). */
+  --sefaria-color-star: light-dark(#c99a2e, #e2b75a);
 
   /* ── Colour: semantic ─────────────────────────────── */
   --sefaria-color-danger: light-dark(#c03522, #f0897a);
@@ -135,6 +141,8 @@
   --sefaria-shadow-card: 0 0 10px -1px rgb(83 83 83 / 0.04);
   --sefaria-shadow-raised: 0 4px 4px 0 rgb(0 0 0 / 0.25);
   --sefaria-shadow-modal: 0 2px 10px rgb(0 0 0 / 0.1);
+  /* Menus, popovers and floating cards: one soft lift for all of them. */
+  --sefaria-shadow-menu: 0 1px 2px rgb(0 0 0 / 0.06), 0 6px 20px rgb(0 0 0 / 0.1);
   /* The edge of a row that scrolls sideways, where more panels are hidden. */
   --sefaria-shadow-scroll-edge: rgb(0 0 0 / 0.14);
 

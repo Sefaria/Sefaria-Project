@@ -4,6 +4,7 @@ import type { Catalog } from "~/lib/catalog/toc";
 import { categoryDescription, categoryLabel } from "~/lib/connections/terms";
 import type { CategorySummary } from "~/lib/connections/summary";
 import { withHref, type ConnectionsView } from "~/lib/connections/url";
+import { Icon } from "../Icon/Icon";
 import { categoryColor } from "../tokens/category-color";
 import { FilterRow } from "./FilterRow";
 import styles from "./ConnectionsPanel.module.css";
@@ -77,7 +78,7 @@ export function CategoryView({ hrefFor, categories, catalog, basePath, search = 
                 <div key={b.book} className={styles.starRow}>
                   {row}
                   <button type="button" className={styles.star} aria-pressed={starred} aria-label={starred ? `Remove ${b.book} from favourites` : `Add ${b.book} to favourites`} title={starred ? "Remove from favourites" : "Add to favourites (shown in the right-click menu)"} onClick={() => onToggleFavourite(b.book)}>
-                    {starred ? "★" : "☆"}
+                    <Icon name="star" size="16px" filled={starred} />
                   </button>
                 </div>
               );

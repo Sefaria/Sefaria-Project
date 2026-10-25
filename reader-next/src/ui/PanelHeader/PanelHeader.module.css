@@ -13,7 +13,11 @@
 
 /* VERIFIED on sefaria.org: the controls sit in the text's own 700px column, not at the panel's edges; 18px icons about 36px apart */
 .end > * + * { margin-inline-start: -3px; }
-.end svg { width: 18px; height: 18px; }
+/* Four actions (link, resources, bookmark, display) keep their size: the end column grows to fit them rather than squeezing the buttons. */
+.end > * { flex: none; }
+.bar { grid-template-columns: minmax(48px, 1fr) minmax(0, 3fr) minmax(max-content, 1fr); }
+/* Sizes apply to the bar's own controls, not to what their popovers contain. */
+.end svg:not([role="dialog"] *) { width: 18px; height: 18px; }
 
 /* Always 60px, whatever the lines under the title (a version choice must never move the text below): the title 21px, each line 17px */
 .bar { height: var(--sefaria-reader-controls-height, 60px); min-height: 0; }
@@ -31,5 +35,5 @@
 @container (max-width: 520px) {
   .bar { grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--sefaria-space-1); padding-inline: var(--sefaria-space-1); }
   .end > * + * { margin-inline-start: 0; }
-  .end :is(button, a) { width: 30px; height: 32px; }
+  .end :is(button, a):not([role="dialog"] *) { width: 32px; height: 32px; }
 }
