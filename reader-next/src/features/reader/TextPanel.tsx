@@ -123,6 +123,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [settings0, noHebrew, noEnglish],
   );
 
+  // A text opened from this panel (a citation, a link in a comment, Open in the sidebar) opens in the language the reader chose
+  // here; a target with no Hebrew still falls back to bilingual on its own.
+  const openLang = languageToParam(settings0.language);
+
   /** Apply an operation to the workspace as it is now, and go there. */
   const apply = useCallback(
     (op: (ws: Workspace) => Workspace, opts: { replace?: boolean; state?: NavState } = {}) => nav.go(op(nav.current()), opts),
@@ -340,7 +344,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   /**
    * "Open" from the sidebar (a connected text, a translation's or a version's Open Text), exactly as sefaria.org: the sidebar is
    * replaced by a new text panel right after this one, showing that text as itself (a comment is not turned into its base text),
-   * in the version chosen if any; bilingual when this panel is, else in the sidebar's language. This panel keeps its verse.
+   * in the version chosen if any, in this panel's language. This panel keeps its verse.
    * VERIFIED: Genesis 1:1 + Rashi → Open → /Genesis.1.1?lang=bi&aliyot=0&p2=Rashi_on_Genesis.1.1.1&lang2=bi (50/50).
    * Old ReaderPanel.handleTextListClick → showBaseText → openPanelAt(replace). Phones: this panel goes there. CON-033, VER-011
    */
@@ -351,12 +355,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         apply((ws) => closeAside(updatePanel(ws, id, { ref, versions: { ...versions } }), id), { state: { nav: "go", panel: id } });
         return;
       }
-      const aside = before.panels[id]?.asides.find((a) => a.kind === "connections");
-      const lang = settings.language === "bilingual" ? "bi" : aside?.lang === "he" ? "he" : aside?.lang === "en" ? "en" : settings.language === "hebrew" ? "he" : "en";
-      const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "text", ref, versions: { ...versions }, lang });
+      const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "text", ref, versions: { ...versions }, lang: openLang });
       nav.go(after, { state: { nav: "go", panel: opened } });
     },
-    [apply, nav, id, settings.language],
+    [apply, nav, id, openLang],
   );
   const openTextHere = useCallback((ref: string) => openFromSidebar(ref), [openFromSidebar]);
 
@@ -388,7 +390,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // A comment opens as its base text with the commentator alongside. SHL-049, TXT-015, CON-038
   const onRefClick = useCallback(
     (ref: string) => {
-      void panelForRef(qc, ref).then((target) => {
+      void panelForRef(qc, ref, { lang: openLang }).then((target) => {
         const before = nav.current();
         if (isSinglePanel()) {
           nav.go(replace(before, id, target), { state: { nav: "go" } });
@@ -398,7 +400,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         nav.go(after, { state: { nav: "go", panel: opened } });
       });
     },
-    [qc, id, nav],
+    [qc, id, nav, openLang],
   );
 
   // A citation in the text, exactly as sefaria.org (owner decision 2026-10-06; ReaderApp.handleCitationClick): whatever is next to
@@ -409,7 +411,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     (ref: string, e?: React.MouseEvent) => {
       readerAnalytics.citationClicked(ref);
       const verse = (e?.target as Element | undefined)?.closest<HTMLElement>("[data-ref]")?.dataset.ref;
-      void panelForRef(qc, ref).then((target) => {
+      void panelForRef(qc, ref, { lang: openLang }).then((target) => {
         const before = nav.current();
         if (isSinglePanel()) {
           nav.go(replace(before, id, target), { state: { nav: "go" } });
@@ -427,7 +429,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         nav.go(after, { state: { nav: "go", panel: opened } });
       });
     },
-    [qc, id, nav],
+    [qc, id, nav, openLang],
   );
 
   // Words selected in the text: with the sidebar open, a lookup of up to three Hebrew words in one segment switches it
