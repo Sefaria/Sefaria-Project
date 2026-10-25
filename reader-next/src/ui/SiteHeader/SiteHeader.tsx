@@ -163,6 +163,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
                 <div className={`${styles.menuItem} ${styles.menuName}`}><strong>{viewer.name}</strong></div>
                 <div className={styles.sep} />
                 <A href={`${LIBRARY}/settings/account`} className={styles.menuItem}>{t("Account Settings", "הגדרות")}</A>
+                <A href={`${LIBRARY}/history`} className={styles.menuItem}>{t("Reading History", "היסטוריית קריאה")}</A>
                 <A href={`${LIBRARY}/torahtracker`} className={styles.menuItem}>{t("Torah Tracker", "לימוד במספרים")}</A>
                 <div className={styles.sep} />
                 <div className={styles.menuHeading}>{t("Site Language", "שפת האתר")}</div>
@@ -203,6 +204,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
         <A href={donateHref("MobileNavMenu")} className={styles.menuItem} target="_blank"><Icon name="star" /><InterfaceText en="Donate" he="תרומה" /></A>
         {viewer ? (
           <>
+            <A href={`${LIBRARY}/history`} className={styles.menuItem}><Icon name="clock" /><InterfaceText en="Reading History" he="היסטוריית קריאה" /></A>
             <A href={`${LIBRARY}/settings/account`} className={styles.menuItem}><Icon name="settings" /><InterfaceText en="Account Settings" he="הגדרות" /></A>
           </>
         ) : null}

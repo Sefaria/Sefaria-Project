@@ -38,6 +38,8 @@
 .legend dt { font-weight: 500; }
 .legend dt::after { content: ":"; }
 .legend dd { margin: 0; }
+.history { display: inline-flex; align-items: center; gap: var(--sefaria-space-1); color: var(--sefaria-color-text-muted); font-size: var(--sefaria-text-caption); text-decoration: none; }
+.history:hover { color: var(--sefaria-color-text); text-decoration: underline; }
 
 /* Phone: the controls go on their own line under the book, mode at the start and Continue at the end. */
 @media (max-width: 600px) {

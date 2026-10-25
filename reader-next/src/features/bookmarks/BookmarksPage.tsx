@@ -1,5 +1,7 @@
 import { removeBookmark, resetFurthest, setBookmarkMode, setDefaultBookmarkMode, sortedBookmarks, useBookmarks, useBookmarksLoaded, type Bookmark } from "~/lib/bookmarks";
+import { useViewer } from "~/features/auth/viewer";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
+import { LIBRARY } from "~/lib/shell/links";
 import { Button } from "~/ui/Button/Button";
 import { EmptyState } from "~/ui/Feedback/Feedback";
 import { Icon } from "~/ui/Icon/Icon";
@@ -32,7 +34,7 @@ function Row({ bookmark: b }: { bookmark: Bookmark }) {
         </p>
         {ahead ? (
           <p className={styles.furthest}>
-            <InterfaceText en="Furthest:" he="הכי רחוק:" />{" "}
+            <InterfaceText en="Furthest:" he="הגעת עד:" />{" "}
             <Link href={hrefOf(b, ahead)} aria-label={ahead} lang={l.titleLang}>{l.titleLang === "he" ? hebrewPlace(aheadPlace!) : aheadPlace}</Link>
             <button type="button" className={styles.reset} onClick={() => resetFurthest(b.book)}>
               <InterfaceText en="reset" he="איפוס" />
@@ -60,6 +62,7 @@ export function BookmarksPage() {
   const state = useBookmarks();
   const loaded = useBookmarksLoaded();
   const he = useInterfaceLang() === "hebrew";
+  const viewer = useViewer();
   const list = sortedBookmarks(state);
   if (!loaded) return <div className={styles.page} />;
   return (
@@ -92,6 +95,11 @@ export function BookmarksPage() {
                 <dd><ModeHint mode="auto" /></dd>
               </div>
             </dl>
+            {viewer ? (
+              <a href={`${LIBRARY}/history`} className={styles.history}>
+                <Icon name="clock" size="1em" /> <InterfaceText en="Reading history" he="היסטוריית קריאה" />
+              </a>
+            ) : null}
           </footer>
         </>
       ) : (
