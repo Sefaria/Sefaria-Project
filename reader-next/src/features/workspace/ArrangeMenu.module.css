@@ -1,0 +1,6 @@
+.menu { display: grid; gap: var(--sefaria-space-1); padding: var(--sefaria-space-3); min-width: 260px; }
+.title { margin: 0 0 var(--sefaria-space-1); color: var(--sefaria-color-text-muted); font-size: var(--sefaria-text-sans-small); }
+.row { display: flex; align-items: center; gap: 4px; }
+.name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--sefaria-text-sans-small); }
+.place { width: 28px; height: 28px; border: 1px solid var(--sefaria-color-border); border-radius: 6px; background: none; color: inherit; cursor: pointer; font-size: 14px; }
+.place:hover, .place:focus-visible { background: var(--sefaria-color-highlight-soft); }

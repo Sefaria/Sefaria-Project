@@ -13,7 +13,8 @@ import { highlightsOf, type SearchHit } from "~/lib/search/text-search";
 import { versionKey, type TranslationVersion } from "~/lib/versions/translations";
 import { isHighlighted } from "~/lib/text/plan";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
-import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
+import { close, closeAside, move, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
+import { ArrangeMenu } from "../workspace/ArrangeMenu";
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
 import { IconButton } from "~/ui/IconButton/IconButton";
@@ -59,6 +60,22 @@ export interface TextPanelProps {
 const SINGLE_PANEL_QUERY = "(max-width: 842px)";
 const isSinglePanel = () => typeof window !== "undefined" && window.matchMedia(SINGLE_PANEL_QUERY).matches;
 const MAIN = "main" as const;
+const ASIDE_SHARE_KEY = "sefaria-reader:aside-share";
+function readAsideShare(): number | undefined {
+  try {
+    const v = Number(typeof window === "undefined" ? NaN : window.localStorage.getItem(ASIDE_SHARE_KEY));
+    return v > 0 && v < 1 ? v : undefined;
+  } catch {
+    return undefined;
+  }
+}
+function writeAsideShare(v: number) {
+  try {
+    window.localStorage.setItem(ASIDE_SHARE_KEY, String(v));
+  } catch {
+    // storage unavailable: the share lasts for this page only
+  }
+}
 
 /** The panel added by an operation (the id in `after` that was not in `before`). */
 
@@ -515,12 +532,20 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Main view and side panels, arranged by the panel's own layout (default: side panels in a column).
+  // Main view and side panels, arranged by the panel's own layout (default: side panels in a column). A dragged divider
+  // between them is remembered on this device for every panel.
+  const [asideShare, setAsideShare] = useState<number | undefined>(undefined);
+  useEffect(() => setAsideShare(readAsideShare()), []);
   const frame: LayoutNode<typeof MAIN | AsideId> = useMemo(() => {
     if (!panel.asides.length) return leaf(MAIN);
     const asides = panel.asideLayout ?? split("column", panel.asides.map((a) => leaf(a.id)));
-    return split("row", [leaf(MAIN), asides], innerSizes && innerSizes.length === 2 ? innerSizes : [0.68, 0.32]);
-  }, [panel.asides, panel.asideLayout, innerSizes]);
+    return split("row", [leaf(MAIN), asides], asideShare ? [1 - asideShare, asideShare] : innerSizes && innerSizes.length === 2 ? innerSizes : [0.68, 0.32]);
+  }, [panel.asides, panel.asideLayout, innerSizes, asideShare]);
+  const onFrameResize = useCallback((path: number[], shares: number[]) => {
+    if (path.length || shares.length !== 2) return;
+    setAsideShare(shares[1]!);
+    writeAsideShare(shares[1]!);
+  }, []);
 
   const main = (
     <div className={styles.text}>
@@ -552,6 +577,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
         end={
           <>
+          {alone ? null : <ArrangeMenu self={id} workspace={nav.current()} onMove={(target, placement) => apply((ws) => move(ws, id, target, placement), { state: { nav: "stay" } })} />}
           <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
           <IconButton
             icon="bookmark"
@@ -626,6 +652,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     >
       <SplitView
         node={frame}
+        onResize={onFrameResize}
         renderLeaf={(leafId) =>
           leafId === MAIN ? (
             main

@@ -21,6 +21,7 @@ import { refToUrl, urlToRef } from "~/lib/ref/url";
 import { decodeVtitle, encodeVtitle, versionParamToApi } from "~/lib/reader/url-state";
 import type { AsideState, PanelId, TextPanelState, Workspace } from "./types";
 import { panelOrder } from "./ops";
+import { decodeLayout, encodeLayout } from "./layout-param";
 
 export type RawSearch = Record<string, string | number | undefined>;
 
@@ -73,7 +74,7 @@ export function decodeWorkspace(firstRef: string, search: RawSearch): Workspace 
   });
   return {
     panels: Object.fromEntries(panels.map((p) => [p.id, p])),
-    layout: panels.length === 1 ? leaf(panels[0]!.id) : row(...panels.map((p) => leaf(p.id))),
+    layout: panels.length === 1 ? leaf(panels[0]!.id) : (decodeLayout(str(search.layout), panels.length) ?? row(...panels.map((p) => leaf(p.id)))),
   };
 }
 
@@ -141,6 +142,8 @@ export function workspaceUrl(ws: Workspace, defaults: UrlDefaults = DEFAULT_URL_
     }
     url += `&lang${i + 1}=${cur.lang}${"aliyot" in cur ? `&aliyot${i + 1}=${cur.aliyot}` : ""}`;
   }
+  const layout = encodeLayout(ws.layout);
+  if (layout) url += `&layout=${layout}`;
   return url.replace(/\?/g, "%3F").replace("&", "?");
 }
 

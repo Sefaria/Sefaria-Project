@@ -1,6 +1,6 @@
 import { useLocation } from "@tanstack/react-router";
 import { Suspense, useMemo } from "react";
-import { leaves, withSizes, type LayoutNode } from "~/lib/layout/tree";
+import { leaves, setSizesAt, withSizes, type LayoutNode } from "~/lib/layout/tree";
 import { urlToRef } from "~/lib/ref/url";
 import { legacyRowSizes, MIN_PANEL_WIDTH } from "~/lib/workspace/sizing";
 import type { PanelId, PanelState } from "~/lib/workspace/types";
@@ -10,7 +10,7 @@ import { SplitView } from "~/ui/SplitView/SplitView";
 import type { WorkspaceRouteData } from "../reader/reader-route";
 import { TextPanel } from "../reader/TextPanel";
 import styles from "./Workspace.module.css";
-import { WorkspaceNavProvider } from "./navigation";
+import { useWorkspaceNav, WorkspaceNavProvider } from "./navigation";
 
 /**
  * Everything on screen for a reader URL: the panels in the URL, arranged by the workspace layout and sized by
@@ -38,14 +38,23 @@ export function Workspace({ data }: { data: WorkspaceRouteData }) {
   return (
     <WorkspaceNavProvider>
       <main className={styles.workspace}>
-        <SplitView<PanelId>
-          node={layout as LayoutNode<PanelId>}
-          minLeafSize={MIN_PANEL_WIDTH}
-          label={order.length > 1 ? "Open texts" : undefined}
-          renderLeaf={(id) => <PanelHost panel={ws.panels[id]!} data={data} innerSizes={sizes.inner[order.indexOf(id)]} alone={order.length === 1} />}
-        />
+        <Panels layout={layout as LayoutNode<PanelId>} label={order.length > 1 ? "Open texts" : undefined} renderLeaf={(id) => <PanelHost panel={ws.panels[id]!} data={data} innerSizes={sizes.inner[order.indexOf(id)]} alone={order.length === 1} />} />
       </main>
     </WorkspaceNavProvider>
+  );
+}
+
+/** The panels' split view; a dragged divider writes the new shares into the URL's layout. */
+function Panels({ layout, label, renderLeaf }: { layout: LayoutNode<PanelId>; label?: string; renderLeaf: (id: PanelId) => React.ReactNode }) {
+  const nav = useWorkspaceNav();
+  return (
+    <SplitView<PanelId>
+      node={layout}
+      minLeafSize={MIN_PANEL_WIDTH}
+      label={label}
+      renderLeaf={renderLeaf}
+      onResize={(path, shares) => nav.go({ ...nav.current(), layout: setSizesAt(layout, path, shares) }, { replace: true, state: { nav: "stay" } })}
+    />
   );
 }
 

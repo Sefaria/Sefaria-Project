@@ -135,3 +135,11 @@ export function withSizes<Id extends string>(tree: LayoutNode<Id>, policy: (spli
   const sizes = tree.sizes ?? rescale(policy(self));
   return sizes ? { ...self, sizes } : self;
 }
+
+/** Set the sizes of the split reached by `path` (child indexes from the root). */
+export function setSizesAt<Id extends string>(tree: LayoutNode<Id>, path: readonly number[], sizes: number[]): LayoutNode<Id> {
+  if (tree.type === "leaf") return tree;
+  if (!path.length) return sizes.length === tree.children.length ? { ...tree, sizes: rescale(sizes) } : tree;
+  const [head, ...rest] = path;
+  return { ...tree, children: tree.children.map((c, i) => (i === head ? setSizesAt(c, rest, sizes) : c)) };
+}
