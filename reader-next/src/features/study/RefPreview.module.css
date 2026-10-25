@@ -10,7 +10,9 @@
   border: 1px solid var(--sefaria-color-border);
   border-radius: var(--sefaria-radius-lg);
   box-shadow: var(--sefaria-shadow-modal), var(--sefaria-shadow-1);
+  font-family: var(--sefaria-font-ui-en);
   font-size: var(--sefaria-text-sans-small);
+  overflow: hidden;
 }
 .card:focus { outline: none; }
 .card:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
@@ -20,8 +22,10 @@
   display: flex;
   align-items: center;
   gap: var(--sefaria-space-2);
-  padding: var(--sefaria-space-1) var(--sefaria-space-1) var(--sefaria-space-1) var(--sefaria-space-3);
+  min-height: 44px;
+  padding: var(--sefaria-space-1) var(--sefaria-space-1) var(--sefaria-space-1) var(--sefaria-space-4);
   border-bottom: 1px solid var(--sefaria-color-border);
+  background: var(--sefaria-color-surface-muted);
   user-select: none;
 }
 .card[data-pinned="true"] .header { cursor: move; touch-action: none; }
@@ -32,26 +36,43 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 500;
+  font-family: var(--sefaria-font-text-en);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.title[lang="he"] { font-family: var(--sefaria-font-text-he); font-size: 1.15rem; }
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sefaria-space-3) var(--sefaria-space-4);
+  line-height: 1.5;
 }
 
-.open {
-  flex: none;
+.message { margin: 0; color: var(--sefaria-color-text-secondary); }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sefaria-space-1);
   padding: var(--sefaria-space-1) var(--sefaria-space-2);
+  border-top: 1px solid var(--sefaria-color-border);
+}
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px var(--sefaria-space-2);
   border: 0;
   border-radius: var(--sefaria-radius-sm);
   background: none;
   color: var(--sefaria-color-link);
   font: inherit;
+  text-decoration: none;
   cursor: pointer;
 }
-.open:hover { background: var(--sefaria-color-surface-muted); }
-.open:focus-visible { outline: 2px solid var(--sefaria-color-focus); }
-
-.body {
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: var(--sefaria-space-2) var(--sefaria-space-4) var(--sefaria-space-3);
-}
-
-.message { margin: 0; color: var(--sefaria-color-text-secondary); }
+.action:hover { background: var(--sefaria-color-surface-muted); }
+.action:focus-visible { outline: 2px solid var(--sefaria-color-focus); }

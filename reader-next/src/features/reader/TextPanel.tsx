@@ -445,11 +445,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [qc, id, nav, openLang],
   );
 
-  // A ref link opens a preview card first; its "Open on page" opens the text as a click on the link used to.
-  const openPreviewed = useCallback(
-    (ref: string, link: HTMLAnchorElement | null) => (link && !link.closest(`.${styles.aside}`) ? onCitationClick(ref, { target: link }) : onRefClick(ref)),
-    [onCitationClick, onRefClick],
-  );
+  // A ref link opens a preview card first; from there the text opens as a new column beside this panel, or on a page of
+  // its own in this panel's language.
+  const previewPageHref = useCallback((ref: string) => `/${refToUrl(ref)}?lang=${openLang}`, [openLang]);
 
   // Words selected in the text (up to three Hebrew words in one segment): their definition shows in a card beside them.
   // When the sidebar already shows the dictionary, it follows the selection instead. CON-042, TXD-059
@@ -856,7 +854,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           ) : null
         }
       />
-      <RefPreviews root={rootEl} language={settings0.language} onOpen={openPreviewed} />
+      <RefPreviews root={rootEl} language={settings0.language} onOpenColumn={onRefClick} pageHref={previewPageHref} />
     </section>
   );
 }

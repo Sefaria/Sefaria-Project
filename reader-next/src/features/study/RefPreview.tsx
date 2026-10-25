@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import type { ContentLanguage } from "~/lib/reader/settings";
 import { textQueryOptions } from "~/lib/text/queries";
+import { Icon } from "~/ui/Icon/Icon";
 import { IconButton } from "~/ui/IconButton/IconButton";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { ReaderSurface } from "~/ui/ReaderSurface/ReaderSurface";
@@ -16,7 +17,7 @@ import styles from "./RefPreview.module.css";
 export const HOVER_DELAY_MS = 500;
 export const CLOSE_GRACE_MS = 300;
 const MAX_PINNED = 6;
-const PREVIEW_FONT_SIZE = 54;
+const PREVIEW_FONT_SIZE = 58;
 const SCROLL_TOLERANCE_PX = 24;
 
 const LINK = "a.ref-link";
@@ -40,8 +41,10 @@ export interface RefPreviewsProps {
   /** The element whose ref links preview on hover and open a pinned card on a plain click. */
   root: RefObject<HTMLElement | null>;
   language: ContentLanguage;
-  /** "Open on page": `link` is the link in `root` the card came from, or null for a link inside another card. */
-  onOpen: (ref: string, link: HTMLAnchorElement | null) => void;
+  /** "Open as new column": a panel for the ref beside this one, in this workspace. */
+  onOpenColumn: (ref: string) => void;
+  /** The address of the ref on a page of its own ("Open in new page"). */
+  pageHref: (ref: string) => string;
 }
 
 const viewport = () => ({ width: window.innerWidth, height: window.innerHeight });
@@ -51,7 +54,7 @@ const viewport = () => ({ width: window.innerWidth, height: window.innerHeight }
  * both; clicking inside the card pins it. A plain click on a link opens a pinned card at once (modifier clicks still
  * follow the link). Pinned cards stay until closed, can be dragged by their header, and several can be open at once.
  */
-export function RefPreviews({ root, language, onOpen }: RefPreviewsProps) {
+export function RefPreviews({ root, language, onOpenColumn, pageHref }: RefPreviewsProps) {
   const [cards, setCards] = useState<Card[]>([]);
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
@@ -191,7 +194,8 @@ export function RefPreviews({ root, language, onOpen }: RefPreviewsProps) {
           autoFocus={c.focus}
           onPin={() => (pin(c.id), toFront(c.id))}
           onClose={(restoreFocus) => close(c.id, restoreFocus)}
-          onOpen={() => (close(c.id, false), onOpen(c.ref, c.link))}
+          pageHref={pageHref(c.ref)}
+          onOpenColumn={() => (close(c.id, false), onOpenColumn(c.ref))}
           onMove={(p) => move(c.id, p)}
           onPointerEnter={cancelClose}
           onPointerLeave={c.pinned ? undefined : scheduleClose}
@@ -216,15 +220,17 @@ export interface RefPreviewCardProps {
   autoFocus?: boolean;
   onPin: () => void;
   onClose: (restoreFocus: boolean) => void;
-  onOpen: () => void;
+  onOpenColumn: () => void;
+  /** Where "Open in new page" goes (a new browser tab). */
+  pageHref: string;
   onMove: (position: CardPosition) => void;
   onPointerEnter?: () => void;
   onPointerLeave?: () => void;
   onRefClick?: (ref: string, event: MouseEvent) => void;
 }
 
-/** One preview: the cited text in the panel's language, its title, Open on page and close. */
-export function RefPreviewCard({ previewRef, language, pinned, position, z = 0, autoFocus, onPin, onClose, onOpen, onMove, onPointerEnter, onPointerLeave, onRefClick }: RefPreviewCardProps) {
+/** One preview: its title, the cited text in the panel's language, and the ways to open it. */
+export function RefPreviewCard({ previewRef, language, pinned, position, z = 0, autoFocus, onPin, onClose, onOpenColumn, pageHref, onMove, onPointerEnter, onPointerLeave, onRefClick }: RefPreviewCardProps) {
   const he = useInterfaceLang() === "hebrew";
   const { data: passage, isError } = useQuery(textQueryOptions(previewRef));
   const cardEl = useRef<HTMLDivElement>(null);
@@ -277,12 +283,9 @@ export function RefPreviewCard({ previewRef, language, pinned, position, z = 0, 
       onKeyDown={onKeyDown}
     >
       <header className={styles.header} onPointerDown={pinned ? onHeaderDown : undefined} onPointerMove={onHeaderMove} onPointerUp={onHeaderUp} onPointerCancel={onHeaderUp}>
-        <span className={styles.title} lang={titleLang} dir={titleLang === "he" ? "rtl" : "ltr"}>
+        <span className={styles.title} lang={titleLang} dir={titleLang === "he" ? "rtl" : "ltr"} title={title}>
           {title}
         </span>
-        <button type="button" className={styles.open} onClick={onOpen}>
-          <InterfaceText en="Open on page" he="פתיחה בדף" />
-        </button>
         <IconButton icon="close" size="sm" label={he ? "סגירה" : "Close"} onClick={() => onClose(true)} />
       </header>
       <div className={styles.body}>
@@ -307,6 +310,16 @@ export function RefPreviewCard({ previewRef, language, pinned, position, z = 0, 
           <SkeletonText lines={3} />
         )}
       </div>
+      <footer className={styles.actions}>
+        <button type="button" className={styles.action} onClick={onOpenColumn}>
+          <Icon name="columns" size="16px" />
+          <InterfaceText en="Open as new column" he="פתיחה בטור חדש" />
+        </button>
+        <a className={styles.action} href={pageHref} target="_blank" rel="noopener" onClick={() => onClose(false)}>
+          <Icon name="external-link" size="16px" />
+          <InterfaceText en="Open in new page" he="פתיחה בדף חדש" />
+        </a>
+      </footer>
     </div>
   );
 }

@@ -21,7 +21,7 @@ const passage: TextPassage = {
   segments: [{ ref: "Exodus 12:2", address: ["12", "2"], sectionRef: "Exodus 12", primary: "הַחֹדֶשׁ הַזֶּה לָכֶם", translation: "This month shall mark for you" }],
 };
 
-function Harness({ language, onOpen }: { language: ContentLanguage; onOpen: (ref: string, link: HTMLAnchorElement | null) => void }) {
+function Harness({ language, onOpen }: { language: ContentLanguage; onOpen: (ref: string) => void }) {
   const root = useRef<HTMLElement>(null);
   return (
     <>
@@ -30,7 +30,7 @@ function Harness({ language, onOpen }: { language: ContentLanguage; onOpen: (ref
           See <a className="ref-link" data-sefaria-ref="Exodus 12:2" href="/Exodus.12.2">Exodus 12:2</a> and more.
         </p>
       </section>
-      <RefPreviews root={root} language={language} onOpen={onOpen} />
+      <RefPreviews root={root} language={language} onOpenColumn={onOpen} pageHref={(ref) => `/${ref.replace(/ /g, ".").replace(":", ".")}?lang=bi`} />
     </>
   );
 }
@@ -108,11 +108,14 @@ describe("RefPreviews", () => {
     expect(screen.getByRole("dialog").getAttribute("aria-label")).toBe("שמות י״ב:ב׳");
   });
 
-  it("Open on page hands over the ref and the link, and closes the card; × closes it", () => {
+  it("Open as new column hands over the ref and closes the card; Open in new page is a link to a new tab; × closes it", () => {
     const { link, onOpen } = setup();
     fireEvent.click(link);
-    fireEvent.click(screen.getByRole("button", { name: "Open on page" }));
-    expect(onOpen).toHaveBeenCalledWith("Exodus 12:2", link);
+    const page = screen.getByRole("link", { name: "Open in new page" });
+    expect(page.getAttribute("href")).toBe("/Exodus.12.2?lang=bi");
+    expect(page.getAttribute("target")).toBe("_blank");
+    fireEvent.click(screen.getByRole("button", { name: "Open as new column" }));
+    expect(onOpen).toHaveBeenCalledWith("Exodus 12:2");
     expect(card()).toBeNull();
     fireEvent.click(link);
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
