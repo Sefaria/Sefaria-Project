@@ -1,10 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { Icon, type IconName } from "../Icon/Icon";
 import styles from "./ContextMenu.module.css";
 
 export interface ContextMenuItem {
   key: string;
   label: ReactNode;
+  icon?: IconName;
   onSelect?: () => void;
   disabled?: boolean;
   /** A small control at the end of the row (e.g. a favourite star); it acts on its own. */
@@ -99,7 +101,8 @@ export function ContextMenu({ x, y, label, groups, onClose }: ContextMenuProps) 
                     item.onSelect?.();
                   }}
                 >
-                  {item.label}
+                  {item.icon ? <Icon name={item.icon} size="16px" className={styles.icon} /> : null}
+                  <span className={styles.label}>{item.label}</span>
                 </button>
                 {item.trailing}
               </div>

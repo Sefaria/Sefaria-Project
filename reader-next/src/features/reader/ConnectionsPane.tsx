@@ -15,6 +15,7 @@ import type { Segment, TextPassage } from "~/lib/text/model";
 import { segmentsInRef, containingSectionRef } from "~/lib/text/segments-in-ref";
 import { textQueryOptions } from "~/lib/text/queries";
 import { CategoryView } from "~/ui/ConnectionsPanel/CategoryView";
+import { favouriteCommentaries } from "~/lib/study/favourite-commentaries";
 import { ConnectionsPanel, ResourcesTitle } from "~/ui/ConnectionsPanel/ConnectionsPanel";
 import { ResourcesView } from "~/ui/ConnectionsPanel/ResourcesView";
 import { TextList, type LinkedTextItem } from "~/ui/ConnectionsPanel/TextList";
@@ -143,6 +144,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const qcNotes = useQueryClient();
   const interfaceLang = useInterfaceLang();
   const hebrew = interfaceLang === "hebrew";
+  const favourites = favouriteCommentaries.use();
   const catalogQ = useQuery(tocQueryOptions());
   const linksQ = useQuery(linksQueryOptions(sectionRef));
   const catalog = catalogQ.data;
@@ -602,7 +604,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const label = categoryLabel(view.category, catalog);
     return (
       <ConnectionsPanel label={view.category} back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        {linksQ.isPending ? <LoadingState /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} />}
+        {linksQ.isPending ? <LoadingState /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} favourites={favourites} onToggleFavourite={favouriteCommentaries.toggle} />}
       </ConnectionsPanel>
     );
   }

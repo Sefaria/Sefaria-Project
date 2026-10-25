@@ -8,8 +8,10 @@
 .heading { padding: var(--sefaria-space-1) var(--sefaria-space-3) 2px; color: var(--sefaria-color-text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
 .row { display: flex; align-items: center; }
 .item {
-  flex: 1; min-width: 0; padding: 6px var(--sefaria-space-3); border: 0; background: none; color: inherit; font: inherit;
-  text-align: start; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sefaria-space-2); padding: 6px var(--sefaria-space-3);
+  border: 0; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer;
 }
+.icon { flex: none; color: var(--sefaria-color-text-secondary); }
+.label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item:hover, .item:focus-visible { background: var(--sefaria-color-highlight-soft); outline: none; }
 .item[aria-disabled="true"] { color: var(--sefaria-color-text-muted); cursor: default; background: none; }

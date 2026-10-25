@@ -11,9 +11,9 @@ const meta = {
     label: "Genesis 1:3",
     onClose: fn(),
     groups: [
-      { key: "main", items: [{ key: "res", label: "Resources", onSelect: fn() }, { key: "bm", label: "Move bookmark here", onSelect: fn() }] },
-      { key: "com", heading: "Commentaries", items: [{ key: "rashi", label: "Rashi", onSelect: fn() }, { key: "ramban", label: "Ramban", onSelect: fn() }] },
-      { key: "copy", items: [{ key: "cite", label: "Copy with citation", onSelect: fn() }, { key: "off", label: "Unavailable", disabled: true }] },
+      { key: "main", items: [{ key: "res", label: "Resources", icon: "layers", onSelect: fn() }, { key: "bm", label: "Move bookmark here", icon: "bookmark", onSelect: fn() }] },
+      { key: "com", items: [{ key: "rashi", label: "Rashi", icon: "star", onSelect: fn() }, { key: "all", label: "All commentaries…", icon: "list", onSelect: fn() }] },
+      { key: "copy", items: [{ key: "cite", label: "Copy with citation", icon: "copy", onSelect: fn() }, { key: "off", label: "Unavailable", disabled: true }] },
     ],
   },
 } satisfies Meta<typeof ContextMenu>;
