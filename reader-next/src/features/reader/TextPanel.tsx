@@ -33,7 +33,7 @@ import { ContextMenu, type ContextMenuGroup } from "~/ui/ContextMenu/ContextMenu
 import { commentariesOn, favouriteCommentaries, type CommentaryOnVerse } from "~/lib/study/favourite-commentaries";
 import { DefinitionCard, type DefinitionRequest } from "../study/DefinitionCard";
 import { BookmarkToggle } from "../bookmarks/BookmarkToggle";
-import { useOpenMyLayout } from "../bookmarks/my-layout";
+import { useIsMainPanel, useOpenMyLayout } from "../bookmarks/my-layout";
 import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
 import { rememberTranslation } from "~/lib/versions/prefs-source";
@@ -603,7 +603,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const favourites = favouriteCommentaries.use();
   const bookmark = useBookmark(current.passage.indexTitle);
   const openMyLayout = useOpenMyLayout(current.passage.indexTitle);
-  const myLayoutHere = id === "p1" && openMyLayout && !nav.current().bk ? openMyLayout : undefined;
+  const isMainPanel = useIsMainPanel(id, current.passage.indexTitle);
+  const myLayoutHere = isMainPanel && openMyLayout && !nav.current().bk ? openMyLayout : undefined;
   const menuLinks = useQuery({ ...linksQueryOptions(menu ? sectionOfSegment(menu.ref) : ""), enabled: !!menu });
   const starred = menu && menuLinks.data ? commentariesOn(menuLinks.data, menu.ref, favourites).filter((c) => c.favourite).slice(0, MENU_FAVOURITES) : [];
 
@@ -724,7 +725,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           <>
           {alone || id === "p1" ? null : <IconButton icon={together ? "link" : "link-off"} label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
           <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
-          <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} main={id === "p1"} />
+          <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} panel={id} />
           <Popover
             open={menuOpen}
             onOpenChange={setMenuOpen}

@@ -7,39 +7,38 @@ import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { Link } from "~/ui/Link/Link";
 import { Popover } from "~/ui/Popover/Popover";
 import { bookOf, layoutHasCompanions, layoutSearchOf, standardWorkspace } from "~/lib/bookmarks/layout";
-import { panelAt, panelOrder } from "~/lib/workspace/ops";
+import { panelOrder } from "~/lib/workspace/ops";
+import type { PanelId } from "~/lib/workspace/types";
 import { useReaderSettings } from "../reader/settings-context";
 import { urlDefaultsFor, useWorkspaceNav } from "../workspace/navigation";
 import { ModeHint, ModeSwitch } from "./ModeSwitch";
 import { useBookmarkLabels } from "./labels";
-import { useLayoutAutosave, useOpenMyLayout } from "./my-layout";
+import { useIsMainPanel, useLayoutAutosave, useOpenMyLayout } from "./my-layout";
 import styles from "./BookmarkToggle.module.css";
 
 /**
  * The text panel's bookmark button. Clicking it on an unbookmarked book bookmarks the segment being read, keeps the
  * arrangement on screen as the bookmark's layout, and opens a small card; on a bookmarked book it opens the card, which moves,
- * re-modes or removes the bookmark and switches between My layout and the standard one. In the main panel (`main`) the
- * arrangement saves to the bookmark as it changes while My layout is on.
+ * re-modes or removes the bookmark and switches between My layout and the standard one. In the main panel (`mainPanelOf`,
+ * wherever it sits) the arrangement saves to the bookmark as it changes while My layout is on.
  */
-export function BookmarkToggle({ book, at, main = false }: { book: string; at: string; main?: boolean }) {
+export function BookmarkToggle({ book, at, panel }: { book: string; at: string; panel: PanelId }) {
   const bookmark = useBookmark(book);
   const nav = useWorkspaceNav();
   const { settings } = useReaderSettings();
   const [open, setOpen] = useState(false);
+  const main = useIsMainPanel(panel, book);
+  const showsBook = useIsMainPanel(panel, book, true);
   useLayoutAutosave(book, main);
   const openMine = useOpenMyLayout(book);
   const labelsOf = useBookmarkLabels();
   const labels = bookmark ? labelsOf(bookmark) : undefined;
   const ws = nav.current();
-  const showsBook = (() => {
-    const ref = panelAt(ws, 0)?.ref;
-    return Boolean(ref && bookOf(ref) === bookOf(at));
-  })();
   const mine = main && showsBook && Boolean(ws.bk);
   const savedHasMore = Boolean(bookmark?.layout && layoutHasCompanions(bookmark.layout.search));
   const change = (next: boolean) => {
     if (next && !bookmark) {
-      const layout = showsBook ? { search: layoutSearchOf(ws, urlDefaultsFor(settings)) } : undefined;
+      const layout = showsBook ? { search: layoutSearchOf(ws, urlDefaultsFor(settings), bookOf(at)) } : undefined;
       addBookmark(book, at, layout);
       if (layout && layoutHasCompanions(layout.search)) nav.go(ws, { replace: true, bk: true, state: { nav: "stay" } });
     }
@@ -47,7 +46,7 @@ export function BookmarkToggle({ book, at, main = false }: { book: string; at: s
   };
   const toStandard = () => {
     setOpen(false);
-    nav.go(standardWorkspace(nav.current()), { bk: false, state: { nav: "stay", panel: "p1" } });
+    nav.go(standardWorkspace(nav.current(), bookOf(at)), { bk: false, state: { nav: "stay", panel: "p1" } });
   };
   const toMine = () => {
     setOpen(false);

@@ -1,18 +1,29 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useRouter } from "@tanstack/react-router";
 import { useCallback, useEffect } from "react";
-import { getBookmarks, setBookmarkLayout, useBookmark, type Bookmark } from "~/lib/bookmarks";
-import { bookmarkEntry, bookOf, layoutAutosave, layoutHasCompanions, placeCompanions, workspaceFromLayout } from "~/lib/bookmarks/layout";
+import { getBookmarks, setBookmarkLayout, useBookmark, useBookmarks, type Bookmark } from "~/lib/bookmarks";
+import { bookmarkEntry, bookOf, layoutAutosave, layoutHasCompanions, mainPanelOf, panelShowing, placeCompanions, workspaceFromLayout } from "~/lib/bookmarks/layout";
 import { linksQueryOptions } from "~/lib/connections/queries";
 import { sectionOfSegment } from "~/lib/workspace/linked-verses";
-import { panelAt, panelOrder } from "~/lib/workspace/ops";
-import type { Workspace } from "~/lib/workspace/types";
+import { panelOrder } from "~/lib/workspace/ops";
+import type { PanelId, Workspace } from "~/lib/workspace/types";
 import { useReaderSettings } from "../reader/settings-context";
 import { entryKey, readNavState, urlDefaultsFor, useWorkspaceNav, workspaceHref } from "../workspace/navigation";
 
 /**
- * Opens My layout around where panel 1 is now, each companion placed through the links of that verse. Undefined when the
- * book's bookmark has no layout beyond the main text.
+ * Whether `panel` is the main text (`mainPanelOf`). With `ifBookmarked`, whether it would be once `book` (the panel's book) is
+ * bookmarked.
+ */
+export function useIsMainPanel(panel: PanelId, book: string, ifBookmarked = false): boolean {
+  const { books } = useBookmarks();
+  const nav = useWorkspaceNav();
+  useLocation();
+  return mainPanelOf(nav.current(), (b) => Boolean(books[b]) || (ifBookmarked && b === book))?.id === panel;
+}
+
+/**
+ * Opens My layout around where the panel showing `book` is now, each companion placed through the links of that verse.
+ * Undefined when the book's bookmark has no layout beyond the main text.
  */
 export function useOpenMyLayout(book: string): ((replace?: boolean) => Promise<void>) | undefined {
   const bookmark = useBookmark(book);
@@ -22,13 +33,13 @@ export function useOpenMyLayout(book: string): ((replace?: boolean) => Promise<v
   const saved = bookmark?.layout?.search;
   if (saved === undefined || !layoutHasCompanions(saved)) return undefined;
   return async (replace = false) => {
-    const main = panelAt(nav.current(), 0)?.ref;
+    const main = panelShowing(nav.current(), book)?.ref;
     if (!main) return;
     const target: Workspace = workspaceFromLayout(main, saved);
     const from = entryKey(router.state.location.state);
     const links = panelOrder(target).length > 1 ? await qc.fetchQuery(linksQueryOptions(sectionOfSegment(main))).catch(() => []) : [];
     if (entryKey(router.state.location.state) !== from) return; // the reader went elsewhere meanwhile
-    nav.go(placeCompanions(target, links), { replace, bk: true, state: { nav: "go" } });
+    nav.go(placeCompanions(target, links, book), { replace, bk: true, state: { nav: "go" } });
   };
 }
 
@@ -47,13 +58,16 @@ export function useBookmarkHref(): (b: Bookmark, ref?: string, extra?: Record<st
 export const bookmarkOfRef = (ref: string): Bookmark | undefined => getBookmarks().books[bookOf(ref)];
 
 /**
- * The workspace panel 1 last showed, kept outside the component: panel 1 remounts when the arrangement around it changes
- * shape. It is forgotten once no reader is on screen, so coming back counts as arriving.
+ * The workspace the main panel last showed, kept outside the component: the main panel remounts when it moves or the
+ * arrangement around it changes shape. It is forgotten once no reader is on screen, so coming back counts as arriving.
  */
 let lastSeen: Workspace | undefined;
 let mounted = 0;
 
-/** Keeps the bookmark of panel 1's book in step with the arrangement on screen (see `layoutAutosave`). Mount once, in panel 1. */
+/**
+ * Keeps the bookmark of the main text's book in step with the arrangement on screen (see `layoutAutosave`). Enable it in one
+ * panel only, the main one (`mainPanelOf`).
+ */
 export function useLayoutAutosave(book: string, enabled: boolean) {
   const nav = useWorkspaceNav();
   const { settings } = useReaderSettings();
@@ -76,18 +90,18 @@ export function useLayoutAutosave(book: string, enabled: boolean) {
     const before = lastSeen;
     lastSeen = ws;
     const b = getBookmarks().books[book];
-    const main = panelAt(ws, 0)?.ref;
-    if (!b || !main || bookOf(main) !== bookOf(b.ref)) return;
+    const main = panelShowing(ws, book)?.ref;
+    if (!b || !main) return;
     // Arriving in My layout (a bookmark link, a reload): companions saved elsewhere move to the main text's verse.
     if (!before && ws.bk && panelOrder(ws).length > 1) {
       const from = entryKey(router.state.location.state);
       void qc.fetchQuery(linksQueryOptions(sectionOfSegment(main))).then((links) => {
         if (entryKey(router.state.location.state) !== from) return;
-        const placed = placeCompanions(nav.current(), links);
+        const placed = placeCompanions(nav.current(), links, book);
         if (nav.href(placed) !== nav.href(nav.current())) nav.go(placed, { replace: true, state: { nav: "go" } });
       }, () => undefined);
     }
-    const change = layoutAutosave(before, ws, b.layout?.search, urlDefaultsFor(settings));
+    const change = layoutAutosave(before, ws, b.layout?.search, book, urlDefaultsFor(settings));
     if (!change) return;
     setBookmarkLayout(book, { search: change.save });
     if (change.adopt) {
