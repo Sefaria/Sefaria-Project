@@ -42,6 +42,20 @@ describe("SplitView", () => {
     expect(screen.getByRole("group", { name: "Open texts" })).toBeInTheDocument();
   });
 
+  it("can fix the direction rows run in while leaves keep the page's", () => {
+    const { container } = render(<SplitView dir="ltr" leafDir="rtl" node={row(leaf("a"), column(leaf("b"), leaf("c")))} renderLeaf={(id) => id} />);
+    expect(container.querySelector<HTMLElement>("[data-direction]")!.dir).toBe("ltr");
+    expect([...container.querySelectorAll<HTMLElement>("[data-leaf]")].map((e) => e.dir)).toEqual(["rtl", "rtl", "rtl"]);
+  });
+
+  it("with a scrolling parent, the outermost split is as wide as all of its leaves need", () => {
+    const { container } = render(<SplitView parentScrolls minLeafSize={100} node={column(row(leaf("a"), leaf("b"), leaf("c")), leaf("d"))} renderLeaf={(id) => id} />);
+    const root = container.querySelector<HTMLElement>("[data-direction]")!;
+    expect(root.style.minWidth).toBe("300px");
+    expect(root.dataset.parentScrolls).toBe("true");
+    expect(container.querySelector<HTMLElement>('[data-direction="row"]')!.dataset.parentScrolls).toBeUndefined();
+  });
+
   it("a single leaf renders without a split", () => {
     const { container } = render(<SplitView node={leaf("a")} renderLeaf={(id) => id} />);
     expect(container.querySelector("[data-direction]")).toBeNull();

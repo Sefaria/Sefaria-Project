@@ -5,6 +5,7 @@ import { urlToRef } from "~/lib/ref/url";
 import { legacyRowSizes, MIN_PANEL_HEIGHT, panelMinWidth } from "~/lib/workspace/sizing";
 import type { PanelId, PanelState } from "~/lib/workspace/types";
 import { decodeWorkspace, type RawSearch } from "~/lib/workspace/url";
+import { dirOf, useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { LoadingState } from "~/ui/Feedback/Feedback";
 import { SplitView } from "~/ui/SplitView/SplitView";
 import type { WorkspaceRouteData } from "../reader/reader-route";
@@ -35,26 +36,37 @@ export function Workspace({ data }: { data: WorkspaceRouteData }) {
   }, [ws.layout, sizes.panels]);
 
   const mainEl = useRef<HTMLElement>(null);
+  const scrollerEl = useRef<HTMLDivElement>(null);
   const navState = readNavState(location.state);
-  useOverflowHints(mainEl);
+  useOverflowHints(mainEl, scrollerEl);
   useRevealOpenedPanel(mainEl, navState.nav === "go" ? navState.panel : undefined, order.length);
 
   if (!layout) return null;
   return (
     <WorkspaceNavProvider>
       <main ref={mainEl} className={styles.workspace}>
-        <Panels layout={layout as LayoutNode<PanelId>} panels={ws.panels} label={order.length > 1 ? "Open texts" : undefined} renderLeaf={(id) => <PanelHost panel={ws.panels[id]!} data={data} innerSizes={sizes.inner[order.indexOf(id)]} alone={order.length === 1} />} />
+        <div ref={scrollerEl} className={styles.scroller}>
+          <Panels layout={layout as LayoutNode<PanelId>} panels={ws.panels} label={order.length > 1 ? "Open texts" : undefined} renderLeaf={(id) => <PanelHost panel={ws.panels[id]!} data={data} innerSizes={sizes.inner[order.indexOf(id)]} alone={order.length === 1} />} />
+        </div>
       </main>
     </WorkspaceNavProvider>
   );
 }
 
-/** The panels' split view; a dragged divider writes the new shares into the URL's layout. */
+/**
+ * The panels' split view; a dragged divider writes the new shares into the URL's layout. The arrangement is the same in
+ * both interface languages (panel 1 on the left); only what is inside a panel follows the interface's direction. The
+ * workspace, not a split inside it, scrolls sideways.
+ */
 function Panels({ layout, panels, label, renderLeaf }: { layout: LayoutNode<PanelId>; panels: Record<PanelId, PanelState>; label?: string; renderLeaf: (id: PanelId) => React.ReactNode }) {
   const nav = useWorkspaceNav();
+  const leafDir = dirOf(useInterfaceLang());
   return (
     <SplitView<PanelId>
       node={layout}
+      dir="ltr"
+      leafDir={leafDir}
+      parentScrolls
       minLeafSize={(id, dir) => (dir === "row" ? panelMinWidth(panels[id]) : MIN_PANEL_HEIGHT)}
       label={label}
       renderLeaf={renderLeaf}
@@ -63,48 +75,33 @@ function Panels({ layout, panels, label, renderLeaf }: { layout: LayoutNode<Pane
   );
 }
 
-/** The workspace's outermost split, when there is one (a single panel has none). */
-const outerSplit = (main: HTMLElement) => {
-  const el = main.firstElementChild as HTMLElement | null;
-  return el?.dataset.direction ? el : null;
-};
-
-/** Marks the workspace when panels are hidden past either end of the row, for the edge shadows. */
-function useOverflowHints(mainEl: React.RefObject<HTMLElement | null>) {
+/** Marks the workspace when panels are hidden past its left or right edge, for the edge shadows. */
+function useOverflowHints(mainEl: React.RefObject<HTMLElement | null>, scrollerEl: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const main = mainEl.current;
-    if (!main || typeof ResizeObserver === "undefined") return;
-    let row: HTMLElement | null = null;
+    const scroller = scrollerEl.current;
+    if (!main || !scroller || typeof ResizeObserver === "undefined") return;
+    let content: Element | null = null;
     const update = () => {
-      const el = outerSplit(main);
-      if (el !== row) {
-        row?.removeEventListener("scroll", update);
-        el?.addEventListener("scroll", update, { passive: true });
-        if (el) {
-          ro.observe(el);
-          mo.observe(el, { childList: true });
-        }
-        row = el;
-      }
-      // the row's length changes with its cells' widths
-      for (const cell of el?.children ?? []) ro.observe(cell);
-      // scrollLeft runs negative in a right-to-left row
-      const scrolled = el ? Math.abs(el.scrollLeft) : 0;
-      const hidden = el?.dataset.direction === "row" ? el.scrollWidth - el.clientWidth : 0;
-      main.toggleAttribute("data-more-start", hidden > 1 && scrolled > 1);
-      main.toggleAttribute("data-more-end", hidden > 1 && scrolled < hidden - 1);
+      const el = scroller.firstElementChild;
+      if (el && el !== content) ro.observe(el);
+      content = el;
+      const hidden = scroller.scrollWidth - scroller.clientWidth;
+      main.toggleAttribute("data-more-start", hidden > 1 && scroller.scrollLeft > 1);
+      main.toggleAttribute("data-more-end", hidden > 1 && scroller.scrollLeft < hidden - 1);
     };
     const ro = new ResizeObserver(update);
-    ro.observe(main);
+    ro.observe(scroller);
     const mo = new MutationObserver(update);
-    mo.observe(main, { childList: true });
+    mo.observe(scroller, { childList: true });
+    scroller.addEventListener("scroll", update, { passive: true });
     update();
     return () => {
       ro.disconnect();
       mo.disconnect();
-      row?.removeEventListener("scroll", update);
+      scroller.removeEventListener("scroll", update);
     };
-  }, [mainEl]);
+  }, [mainEl, scrollerEl]);
 }
 
 /**

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from "react";
-import { childMinimums, dragDivider, minExtent, overflows, toShares, type MinOf } from "~/lib/layout/extent";
+import { childMinimums, dragDivider, minExtent, overflows, toShares, trackLength, type MinOf } from "~/lib/layout/extent";
 import type { Direction, LayoutNode } from "~/lib/layout/tree";
 import styles from "./SplitView.module.css";
 
@@ -21,6 +21,17 @@ export interface SplitViewProps<Id extends string> {
   label?: string;
   /** Makes the lines between children draggable: called once a drag ends with the split's path (child indexes) and new shares. */
   onResize?: (path: number[], sizes: number[]) => void;
+  /**
+   * The direction rows run in, whatever the page's. Leaves get `leafDir` back, so only the arrangement is fixed: the workspace
+   * keeps panel 1 on the left in every interface language.
+   */
+  dir?: "ltr" | "rtl";
+  leafDir?: "ltr" | "rtl";
+  /**
+   * The parent element scrolls sideways instead of the outermost split: the split takes the width all of its leaves need,
+   * and the parent's width is what has to fit. Nested rows then never scroll on their own.
+   */
+  parentScrolls?: boolean;
 }
 
 interface Live { key: string; sizes: number[]; lengths: number[] }
@@ -31,34 +42,36 @@ interface Shared<Id extends string> {
   onResize?: SplitViewProps<Id>["onResize"];
   live: Live | null;
   setLive: (l: Live | null) => void;
+  leafDir?: "ltr" | "rtl";
+  parentScrolls: boolean;
 }
 
 /**
  * Lays out a layout tree: rows and columns of leaves with fractional sizes. The one layout primitive for the
- * workspace (panels) and for each panel (its main view and side panels). In a right-to-left interface rows run
- * right to left, as the old reader's panels did.
+ * workspace (panels) and for each panel (its main view and side panels). Rows run in the page's direction unless `dir`
+ * fixes it.
  *
  * While the children fit, a divider trades space between its two neighbours. Once they do not, the split scrolls, every
  * child keeps at least its minimum, and a divider resizes only the child before it (the split grows or shrinks).
  */
-export function SplitView<Id extends string>({ node, renderLeaf, minLeafSize = 0, dividers = true, className, label, onResize }: SplitViewProps<Id>) {
+export function SplitView<Id extends string>({ node, renderLeaf, minLeafSize = 0, dividers = true, className, label, onResize, dir, leafDir, parentScrolls = false }: SplitViewProps<Id>) {
   const [live, setLive] = useState<Live | null>(null);
   const minOf: MinOf<Id> = typeof minLeafSize === "function" ? minLeafSize : () => minLeafSize;
-  return <Node node={node} path={[]} shared={{ renderLeaf, minOf, dividers, onResize, live, setLive }} className={className} label={label} root />;
+  return <Node node={node} path={[]} shared={{ renderLeaf, minOf, dividers, onResize, live, setLive, leafDir, parentScrolls }} className={className} label={label} dir={dir} root />;
 }
 
 /** The element's visible inner length along `dir`, kept up to date (undefined until measured, as in the server render). */
-function useInnerLength(ref: RefObject<HTMLElement | null>, dir: Direction | undefined): number | undefined {
+function useInnerLength(ref: RefObject<HTMLElement | null>, dir: Direction | undefined, ofParent = false): number | undefined {
   const [length, setLength] = useState<number | undefined>(undefined);
   useEffect(() => {
-    const el = ref.current;
+    const el = ofParent ? ref.current?.parentElement : ref.current;
     if (!el || !dir || typeof ResizeObserver === "undefined") return;
     const read = () => setLength(dir === "row" ? el.clientWidth : el.clientHeight);
     read();
     const ro = new ResizeObserver(read);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [ref, dir]);
+  }, [ref, dir, ofParent]);
   return length;
 }
 
@@ -69,13 +82,15 @@ const KEY_STEP: Record<string, { dir: Direction; sign: number }> = {
   ArrowDown: { dir: "column", sign: 1 },
 };
 
-function Node<Id extends string>({ node, path, shared, className, label, root }: { node: LayoutNode<Id>; path: number[]; shared: Shared<Id>; className?: string; label?: string; root?: boolean }) {
-  const { renderLeaf, minOf, dividers, onResize, live } = shared;
+function Node<Id extends string>({ node, path, shared, className, label, dir: fixedDir, root }: { node: LayoutNode<Id>; path: number[]; shared: Shared<Id>; className?: string; label?: string; dir?: "ltr" | "rtl"; root?: boolean }) {
+  const { renderLeaf, minOf, dividers, onResize, live, leafDir } = shared;
   const splitEl = useRef<HTMLDivElement>(null);
-  const available = useInnerLength(splitEl, node.type === "split" ? node.direction : undefined);
+  // With `parentScrolls`, the outermost row has to fit its parent rather than itself.
+  const parentScrolls = Boolean(root && shared.parentScrolls);
+  const available = useInnerLength(splitEl, node.type === "split" ? node.direction : undefined, parentScrolls && node.type === "split" && node.direction === "row");
   if (node.type === "leaf") {
     return (
-      <div className={[styles.leaf, root ? styles.fill : "", className].filter(Boolean).join(" ")} data-leaf={node.id}>
+      <div className={[styles.leaf, root ? styles.fill : "", className].filter(Boolean).join(" ")} data-leaf={node.id} dir={leafDir}>
         {renderLeaf(node.id)}
       </div>
     );
@@ -89,6 +104,13 @@ function Node<Id extends string>({ node, path, shared, className, label, root }:
   const ownMins = node.children.map((c) => minExtent(c, dir, minOf));
   const overflowing = overflows(ownMins, available);
   const mins = dragging && overflowing ? dragging.lengths : childMinimums(sizes, ownMins, available);
+  // The outermost split of a scrolling parent is as wide as its leaves need: the overflowing row's track, else their minimum.
+  const rootStyle: CSSProperties | undefined = parentScrolls
+    ? {
+        minWidth: `${Math.round(minExtent(node, "row", minOf))}px`,
+        ...(dir === "row" && overflowing ? { width: `${Math.round(dragging ? dragging.lengths.reduce((a, b) => a + b, 0) : trackLength(sizes, ownMins))}px` } : {}),
+      }
+    : undefined;
 
   /** The children's lengths as laid out now. */
   const measure = () => [...(splitEl.current?.children ?? [])].map((c) => (dir === "row" ? (c as HTMLElement).offsetWidth : (c as HTMLElement).offsetHeight));
@@ -138,6 +160,9 @@ function Node<Id extends string>({ node, path, shared, className, label, root }:
       data-direction={dir}
       data-dividers={dividers ? "true" : undefined}
       data-overflowing={overflowing ? "true" : undefined}
+      data-parent-scrolls={parentScrolls ? "true" : undefined}
+      dir={fixedDir}
+      style={rootStyle}
       role={label ? "group" : undefined}
       aria-label={label}
     >

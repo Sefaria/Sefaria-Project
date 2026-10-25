@@ -3,6 +3,7 @@
 .split { display: flex; min-width: 0; min-height: 0; }
 .split[data-direction="row"] { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
 .split[data-direction="column"] { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+.split[data-parent-scrolls="true"] { overflow-x: visible; }
 .cell { display: flex; position: relative; flex: var(--share) 1 0; min-width: 0; min-height: 0; }
 .split[data-direction="row"] > .cell { min-width: var(--min); }
 .split[data-direction="column"] > .cell { min-height: var(--min); }
