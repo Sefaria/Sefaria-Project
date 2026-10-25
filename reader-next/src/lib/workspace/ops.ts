@@ -6,6 +6,7 @@
  * @feature SHL-047 Open connections list at panel
  * @feature SHL-048 Close panel
  */
+import { applyDrop, type Drop } from "~/lib/layout/drop";
 import { insert, insertBeside, leaf, leaves, move as moveLeaf, remove, type LayoutNode, type Placement } from "~/lib/layout/tree";
 import type { AsideId, AsideState, PanelId, PanelState, Workspace } from "./types";
 
@@ -105,10 +106,17 @@ export function updatePanel(ws: Workspace, target: PanelId, patch: Partial<Omit<
   return { ...ws, panels: { ...ws.panels, [target]: { ...p, ...patch } as PanelState } };
 }
 
-/** Rearrange (future drag and drop): put a panel before/after/above/below another. */
+/** Rearrange: put a panel before/after/above/below another. */
 export function move(ws: Workspace, id: PanelId, target: PanelId, placement: Placement): Workspace {
   if (!ws.layout || !ws.panels[id] || !ws.panels[target]) return ws;
   return renumber({ ...ws, layout: moveLeaf(ws.layout, id, target, placement) });
+}
+
+/** Rearrange by drag and drop: beside another panel ({@link move}), in its place (swap), or at one end of the workspace. */
+export function drop(ws: Workspace, id: PanelId, d: Drop<PanelId>): Workspace {
+  if (d.kind === "beside") return move(ws, id, d.target, d.placement);
+  if (!ws.layout || !ws.panels[id] || (d.kind === "swap" && !ws.panels[d.target])) return ws;
+  return renumber({ ...ws, layout: applyDrop(ws.layout, id, d) });
 }
 
 // ── side panels ─────────────────────────────────────────────────────────────────────────────────────────

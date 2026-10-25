@@ -133,7 +133,27 @@ export function sameShape<Id extends string>(a: LayoutNode<Id>, b: LayoutNode<Id
   return a.direction === b.direction && a.children.length === b.children.length && a.children.every((c, i) => sameShape(c, b.children[i]!));
 }
 
-/** Move an existing leaf next to another (future drag and drop). Moving a leaf onto itself is a no-op. */
+/** Exchange the places of two leaves, sizes and all. */
+export function swap<Id extends string>(tree: LayoutNode<Id>, a: Id, b: Id): LayoutNode<Id> {
+  if (a === b) return tree;
+  if (!contains(tree, a) || !contains(tree, b)) throw new Error(`swap: no leaf ${contains(tree, a) ? b : a}`);
+  const visit = (n: LayoutNode<Id>): LayoutNode<Id> =>
+    n.type === "leaf" ? (n.id === a ? leaf(b) : n.id === b ? leaf(a) : n) : { ...n, children: n.children.map(visit) };
+  return visit(tree);
+}
+
+/** Move a leaf to one end of the whole arrangement, spanning its full height (`before`/`after`) or width (`above`/`below`). */
+export function dock<Id extends string>(tree: LayoutNode<Id>, id: Id, placement: Placement): LayoutNode<Id> {
+  if (!contains(tree, id)) throw new Error(`dock: no leaf ${id}`);
+  const without = remove(tree, id);
+  if (!without) return tree;
+  const dir = directionOf(placement);
+  const after = isAfter(placement);
+  if (without.type === "split" && without.direction === dir) return normalize(spliceChild(without, after ? without.children.length : 0, leaf(id)));
+  return normalize({ type: "split", direction: dir, children: after ? [without, leaf(id)] : [leaf(id), without] });
+}
+
+/** Move an existing leaf next to another (drag and drop). Moving a leaf onto itself is a no-op. */
 export function move<Id extends string>(tree: LayoutNode<Id>, id: Id, target: Id, placement: Placement): LayoutNode<Id> {
   if (id === target) return tree;
   if (!contains(tree, id)) throw new Error(`move: no leaf ${id}`);
