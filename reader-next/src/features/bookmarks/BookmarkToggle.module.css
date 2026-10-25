@@ -1,0 +1,7 @@
+.card { display: grid; gap: var(--sefaria-space-3); justify-items: start; }
+.where { margin: 0; color: var(--sefaria-color-text-secondary); }
+.where strong { color: var(--sefaria-color-text); font-weight: 500; }
+.hint { margin: calc(-1 * var(--sefaria-space-2)) 0 0; color: var(--sefaria-color-text-muted); font-size: var(--sefaria-text-caption); }
+.footer { display: flex; justify-content: space-between; align-items: center; gap: var(--sefaria-space-3); width: 100%; padding-block-start: var(--sefaria-space-2); border-block-start: 1px solid var(--sefaria-color-border); }
+.link { color: var(--sefaria-color-link); text-decoration: none; }
+.link:hover { text-decoration: underline; }

@@ -26,6 +26,8 @@ import type { SavedPosition } from "~/lib/reader/position-store";
 import { indexMetaQueryOptions } from "~/lib/text/commentary";
 import { TextColumnBanner } from "~/ui/TextColumnBanner/TextColumnBanner";
 import { rememberPlace } from "~/lib/reader/last-place";
+import { noteReading } from "~/lib/bookmarks";
+import { BookmarkToggle } from "../bookmarks/BookmarkToggle";
 import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
 import { rememberTranslation } from "~/lib/versions/prefs-source";
@@ -409,6 +411,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   useEffect(() => {
     if (current.ref) rememberPlace(current.passage.indexTitle, current.ref);
   }, [current.ref, current.passage.indexTitle]);
+  useEffect(() => {
+    if (current.ref) noteReading(current.passage.indexTitle, current.ref);
+  }, [current.ref, current.passage.indexTitle]);
 
   // A highlighted name in the text opens the Lexicon sidebar on who or what it is (CON-045, TXD-022). The segment it stands
   // in becomes the selection; the sidebar then belongs to this panel. Plain clicks only (a modified click opens the topic
@@ -579,6 +584,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           <>
           {alone ? null : <ArrangeMenu self={id} workspace={nav.current()} onMove={(target, placement) => apply((ws) => move(ws, id, target, placement), { state: { nav: "stay" } })} />}
           <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
+          <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} />
           <IconButton
             icon="bookmark"
             pressed={viewer ? save.isSaved : undefined}
