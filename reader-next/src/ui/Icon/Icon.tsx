@@ -12,6 +12,8 @@ const PATHS = {
   "chevron-right": "M9 5l7 7-7 7",
   "chevron-down": "M5 9l7 7 7-7",
   "chevron-up": "M5 15l7-7 7 7",
+  maximize: "M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5",
+  minimize: "M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5",
   check: "M5 12.5l4.5 4.5L19 7.5",
   bookmark: "M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z",
   edit: "M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4",

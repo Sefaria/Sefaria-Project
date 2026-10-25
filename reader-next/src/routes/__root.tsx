@@ -13,6 +13,8 @@ import { isReaderPath } from "~/lib/reader/paths";
 import { useHeaderSearch } from "~/features/shell/useHeaderSearch";
 import { SiteHeader } from "~/ui/SiteHeader/SiteHeader";
 import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-menu";
+import { FocusControls } from "~/features/shell/FocusControls";
+import { useFullscreen, useHeaderCollapsed } from "~/features/shell/focus-mode";
 import { SkipLink } from "~/ui/SkipLink/SkipLink";
 import { CookieNotice } from "~/ui/CookieNotice/CookieNotice";
 import { BannerImpressionProbe } from "~/features/shell/BannerImpressionProbe";
@@ -101,6 +103,8 @@ function Shell() {
   const reading = isReaderPath(loc.pathname) && !book;
   const search = useHeaderSearch();
   const menuOpen = useMobileMenuOpen();
+  const headerCollapsed = useHeaderCollapsed();
+  const fullscreen = useFullscreen();
   const viewer = useViewer();
   // visitor marking and once-per-session events (the old ReaderApp mount)
   useAppAnalytics(!!viewer);
@@ -129,8 +133,9 @@ function Shell() {
     [router],
   );
   return (
-    <div ref={appRef} className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined}>
+    <div ref={appRef} className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined} data-header={reading && (headerCollapsed || fullscreen) ? "collapsed" : undefined}>
       <SkipLink />
+      {reading ? <FocusControls /> : null}
       <div className={appCss.header}>
         <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} viewer={viewer} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} />
       </div>
