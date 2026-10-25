@@ -22,17 +22,18 @@ Status: **implemented** means it is in the code on this branch; **not yet** mean
 
 | Situation | Default | Why | Status |
 |---|---|---|---|
-| The panels' minimum widths add up to more than the window | The row scrolls sideways. Every panel keeps at least its minimum width; nothing squishes. | The old reader did the same once panels passed its "panel cap". | implemented |
+| The panels' minimum widths add up to more than the window | The whole workspace scrolls sideways as one page, with the browser's normal scrollbar at the bottom of the window. Every panel keeps at least its minimum width; nothing squishes. | The old reader did the same once panels passed its "panel cap". | implemented |
+| What scrolls sideways | The workspace itself, never a split inside it. A stack, or a row nested in a stack, is given the width all of its panels need, so a panel spanning the full width under a row of columns scrolls along with them. (Before, a row nested in a stack scrolled on its own inside its cell.) | One scroller is predictable. | implemented (checked in a browser) |
 | Is there a limit on the number of panels? | No limit. The old reader's `panelCap` was never a limit: it was the point where widths switched from percentages to 360px and the row began to scroll. Nothing in the new reader caps the number of panels. | Daniel asked for many columns. | implemented (nothing to remove) |
 | Widths once the row overflows | Shares turn into pixel widths. The panel that is narrowest for its share sits at its minimum, and the others keep their proportions to it. With equal shares every panel is 360px wide. | It keeps a panel you widened wide, and it needs nothing in the URL beyond the shares. | implemented |
-| How the row signals that more panels are off screen | A soft shadow on the edge where panels are hidden (both edges when scrolled to the middle), and a thin horizontal scrollbar. | macOS hides scrollbars until you scroll, so a shadow is the only hint there. | implemented |
+| How the row signals that more panels are off screen | A soft shadow on the edge where panels are hidden (both edges when scrolled to the middle), and the normal horizontal scrollbar. | macOS hides scrollbars until you scroll, so a shadow is the only hint there. | implemented |
 | Scrolling sideways with a mouse | The browser's own behavior: trackpad swipe, Shift + wheel, or the scrollbar. The vertical wheel scrolls the text under the pointer. | Taking over the wheel would fight reading. | implemented (browser default) |
 | Snap scrolling to panel edges | Off. | Snapping fights drag-resizing and partial views of a panel. | not yet (deliberately off) |
 | A panel opens off screen (from a link, the sidebar, or the right-click menu) | The row scrolls smoothly until the new panel is visible (instantly when the reader has asked for reduced motion), and keyboard focus moves into the new panel. | You should see what you just opened. | implemented |
 | A panel off screen is sent somewhere (a link inside it) | It scrolls into view. Focus stays where it was. | Only opening a new panel moves focus. | implemented |
 | Keyboard focus moves into a panel that is off screen (Tab) | The browser scrolls it into view. | Built into the browser. | implemented (browser default) |
 | Panel headers while scrolling sideways | Each header stays at the top of its own panel and moves sideways with the panel. | Each header belongs to its panel. | implemented (checked in a browser) |
-| Hebrew interface (RTL) | The row runs right to left, starts at the right, and scrolls left. The shadows and drag directions are mirrored. | Matches the old reader. | implemented (checked in a browser) |
+| Hebrew interface (RTL) | The arrangement is identical to the English one: panel 1 on the left, the same widths and the same stacks, starting scrolled to the left. Only what is inside each panel (headers, text, its sidebar) runs right to left. Divider dragging and arrow keys move the divider the way the pointer or arrow points in both languages. | One URL should look the same to every reader; the old reader mirrored the row. | implemented (checked in a browser) |
 | Performance with many panels | Every panel loads and renders its text. Nothing is virtualised. | Simple, and fine for a handful of panels. | not yet (lazy-render panels that are off screen if it gets slow) |
 
 ## Resizing
@@ -40,7 +41,7 @@ Status: **implemented** means it is in the code on this branch; **not yet** mean
 | Situation | Default | Why | Status |
 |---|---|---|---|
 | Dragging a divider while the panels fit | The two neighbouring panels trade width, and neither goes below its minimum. The total stays the window width. | The classic split-pane behavior. | implemented |
-| Dragging a divider while the row scrolls | Only the panel before the divider changes width (the left one, or the right one in RTL). The row gets longer or shorter, and the panels after it keep their widths and move along. | Like resizing spreadsheet columns. Trading width would leave panels stuck at their minimum, because in overflow they already are. | implemented |
+| Dragging a divider while the row scrolls | Only the panel before the divider (the left one) changes width. The row gets longer or shorter, and the panels after it keep their widths and move along. | Like resizing spreadsheet columns. Trading width would leave panels stuck at their minimum, because in overflow they already are. | implemented |
 | Dragging a divider to an extreme | It stops where a panel reaches its minimum (360px wide, 240px tall). Past that, nothing moves while the panels fit. While the row scrolls, widening has no upper limit. | No panel becomes unusable. | implemented |
 | Widening every panel while the row scrolls | When you let go, the panels settle back so that the narrowest one for its share is at its minimum. Their proportions are kept. | Shares cannot record "everything wider than the minimum". | implemented (known limitation) |
 | Shares in the URL | Percentages with one decimal (`~26.1`), never written as 0. Whole numbers still read. | Whole percentages made widths jump a few pixels on release, and a 0 dropped all of a split's shares. | implemented |
@@ -90,15 +91,22 @@ Status: **implemented** means it is in the code on this branch; **not yet** mean
 | A malformed parameter, or panels numbered out of reading order | It is ignored: panels show in the old reader's plain row with its widths, and the address bar drops the parameter. | Panel numbers follow reading order, so anything else is corrupt. | implemented |
 | A plain row with no resized shares | No `layout` parameter is written, so old links and old-style URLs stay identical. | Compatibility with sefaria.org URLs. | implemented (existing behavior) |
 
-## Arrange menu
+## Arranging panels (drag and drop)
 
 | Situation | Default | Why | Status |
 |---|---|---|---|
-| Only one panel | The menu is not shown. | Nothing to arrange. | implemented (existing behavior) |
-| Two panels | Every move is offered. A move that would change nothing (for example, "Left of" the panel already to the right) is greyed out. | | implemented |
-| Two panels showing the same text | Each is listed with its position ("2. Genesis 1"). | Otherwise the entries look identical. | implemented |
-| Hebrew interface | "Left of" and "Right of" mean what the arrows show on screen, which in a right-to-left row are the opposite of "before" and "after". | Rows run right to left there. | implemented |
-| "Right of" a panel that is inside a stack | It goes beside that one panel, inside the stack (a row within the stack). | Arranging is explicit, unlike opening a link. | implemented (existing behavior) |
+| How to move a panel | Press on its header (anywhere but a button, the title link included) and drag. There is no arrange icon. | Daniel asked for drag and drop instead of an icon. | implemented |
+| Telling a click from a drag | The press becomes a drag after 6px of movement. A shorter press stays a click (the header still opens or closes Resources; the title still links). The click that ends a drag is swallowed. | | implemented |
+| Where it can land | Over another panel: its left or right half puts the panel beside it, its top or bottom half stacks it above or below. The middle 40% of the panel (both ways) swaps the two panels, each keeping the other's size. The highlighted part shows where it will go, as in VS Code and Obsidian. | Swap is the one centre action that needs no tabs. | implemented |
+| Beside a panel inside a stack | Beside that one panel, inside the stack (a small row within the stack), as VS Code does. To put a panel beside a whole stack at full height, drop it at the far left or far right end of the workspace. | Precise drops, plus one way to reach the outer ends. | implemented |
+| The ends of the workspace | Within 40px of the workspace's left or right edge: while the row can scroll that way, it scrolls; once at the end, the panel docks there at full height. | Lets you reach panels that are off screen while dragging. | implemented |
+| A drop that would change nothing | No highlight, and letting go does nothing (for example, the left half of the panel already to the right). | | implemented |
+| Feedback while dragging | The dragged panel fades, a small label with its title follows the pointer, and the cursor is a closed hand. Escape cancels. | | implemented |
+| Touch | Not supported: a touch on the header scrolls or taps as before. | Phones show one panel; tablets need a long-press gesture that has not been designed. | not yet |
+| Keyboard and screen readers | "Move this panel" in the panel's display options (the Aa menu) lists the other panels with left, above, below, right and swap buttons, plus "Far left" and "Far right". Moves that would change nothing are disabled. Left and right are physical in both languages. | Every drag has a keyboard equivalent without a header icon. | implemented |
+| Only one panel | No dragging and no "Move this panel". | Nothing to arrange. | implemented |
+| History | A move adds a history entry, so Back undoes it. | Moves are deliberate, unlike resizing. | implemented (existing behavior) |
+| Panel numbers after a move | Panels are renumbered in reading order (left to right, top to bottom), as before. | Panel numbers follow reading order in the URL. | implemented (existing behavior) |
 
 ## Panel header in a narrow panel
 
@@ -107,7 +115,7 @@ Status: **implemented** means it is in the code on this branch; **not yet** mean
 | Very long titles | One line ending in an ellipsis (at the left for a Hebrew title). Hovering shows the full title. | The header is always 60px tall, so wrapped titles spilled out of it. | implemented |
 | Version and attribution lines | One line each, with an ellipsis. | Same reason. | implemented |
 | The action icons crowd a panel under ~520px wide (six icons at 360px) | The icons keep their natural width (shrunk to 30px each), and the title gets what is left (about 100px at 360px). Before this, the icons overflowed their third of the bar onto the title. | Nothing is hidden, and nothing overlaps. | implemented |
-| An overflow "…" menu for lower-priority icons in very narrow panels | Proposed: keep Close, Resources and Display settings; move Arrange, Bookmark, Save and the scroll lock into "…". | This needs changes to `TextPanel.tsx`, which others are editing right now. | not yet |
+| An overflow "…" menu for lower-priority icons in very narrow panels | Proposed: keep Close, Resources and Display settings; move Bookmark, Save and the scroll lock into "…" (arranging has no icon any more). | This needs changes to `TextPanel.tsx`, which others are editing right now. | not yet |
 | The "Change the translation?" banner in a 360px panel | Its button and close icon overlap slightly. | Outside the layout work. | not yet |
 
 ## Known issues found while checking
