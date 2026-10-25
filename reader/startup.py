@@ -44,6 +44,9 @@ def init_library_cache():
         library.init_shared_cache()
 
         if not settings.DISABLE_AUTOCOMPLETER:
+            logger.info("Building Search Autocorrect Tables")
+            library.build_search_autocorrect_tables()
+
             logger.info("Initializing Full Auto Completer")
             library.build_full_auto_completer()
 

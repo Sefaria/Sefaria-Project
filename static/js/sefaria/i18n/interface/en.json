@@ -668,5 +668,9 @@
     "search.null.sources.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
     "search.null.books.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
     "search.null.authors.body.library_assistant": "Try a different search term, browse all Authors or ask the Library Assistant for help.",
-    "search.null.topics.body.library_assistant": "Try a different search term, browse all Topics or ask the Library Assistant for help."
+    "search.null.topics.body.library_assistant": "Try a different search term, browse all Topics or ask the Library Assistant for help.",
+    "header.library_assistant_short": "Ask",
+    "search.autocorrect.results_shown": "These are results for",
+    "search.autocorrect.original_term": "Search instead for",
+    "search.suggestions.prefix": "Did you mean:"
 }
