@@ -1,12 +1,54 @@
-.shelf { margin-block: var(--sefaria-space-4) var(--sefaria-space-8); }
-.head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sefaria-space-3); margin-block-end: var(--sefaria-space-3); font-size: var(--sefaria-text-sans-small); }
-.title { margin: 0; font-size: 1.1rem; font-weight: 500; }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--sefaria-space-3); margin: 0; padding: 0; list-style: none; }
+/* "Continue learning" on the library home: the same heading as "Browse the Library" below it, and one card per book in
+   the library's language (serif book name, the category colour as a line along the top). */
+.shelf { margin-block: var(--sefaria-space-2) var(--sefaria-space-10); }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sefaria-space-3); margin-block-end: var(--sefaria-space-4); }
+.title { margin: 0; font-size: 22px; font-weight: 500; line-height: 1.3; color: var(--sefaria-color-text-secondary); }
+.all { color: var(--sefaria-color-text-secondary); font-size: var(--sefaria-text-sans-small); text-decoration: none; }
+.all:hover { color: var(--sefaria-color-text); text-decoration: underline; }
+
+/* Three across where there is room: one card stays card-sized, six make two even rows. */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sefaria-space-3); margin: 0; padding: 0; list-style: none; }
+.item { min-width: 0; }
+
 .card {
-  display: flex; flex-direction: column; gap: 2px; height: 100%; padding: var(--sefaria-space-3); border: 1px solid var(--sefaria-color-border);
-  border-radius: 8px; color: inherit; text-decoration: none; background: var(--sefaria-color-surface);
+  display: flex; flex-direction: column; height: 100%; min-height: 128px; padding: 18px var(--sefaria-space-4) var(--sefaria-space-3);
+  border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-md);
+  box-shadow: inset 0 3px 0 var(--_line, var(--sefaria-color-border));
+  background: var(--sefaria-color-surface); color: var(--sefaria-color-text); text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.card:hover, .card:focus-visible { border-color: var(--sefaria-color-focus); }
-.book { font-family: var(--sefaria-font-text-en); font-size: 1.05rem; }
-.where { color: var(--sefaria-color-text-secondary); font-size: var(--sefaria-text-sans-small); }
-.layout { color: var(--sefaria-color-text-muted); font-size: 12px; }
+.card:hover { border-color: var(--sefaria-color-border-strong); box-shadow: inset 0 3px 0 var(--_line, var(--sefaria-color-border)), var(--sefaria-shadow-menu); }
+.card:focus-visible { outline-offset: 2px; }
+
+.book {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  font-family: var(--sefaria-font-text-en); font-size: 20px; line-height: 1.25;
+}
+.book:lang(he) { font-family: var(--sefaria-font-text-he); font-size: 22px; }
+.place { margin-block-start: var(--sefaria-space-1); color: var(--sefaria-color-text-secondary); font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); }
+.place:lang(he) { font-family: var(--sefaria-font-text-he); }
+
+.meta { display: flex; align-items: center; justify-content: space-between; gap: var(--sefaria-space-2); margin-block-start: auto; padding-block-start: var(--sefaria-space-3); font-size: var(--sefaria-text-caption); white-space: nowrap; }
+.when { display: inline-flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--sefaria-color-text-muted); }
+.layout { display: inline-flex; color: var(--sefaria-color-text-secondary); }
+.go { display: inline-flex; align-items: center; gap: var(--sefaria-space-1); color: var(--sefaria-color-brand); font-weight: 500; }
+/* With a pointer, the word shows on the card under it and the arrow alone marks the rest; on touch it always shows. */
+@media (hover: hover) {
+  .goText { opacity: 0; transition: opacity 0.15s; }
+  .card:hover .goText, .card:focus-visible .goText { opacity: 1; }
+}
+.arrow { transition: transform 0.15s; }
+.arrow:dir(rtl) { transform: scaleX(-1); }
+.card:hover .arrow { transform: translateX(2px); }
+.card:hover .arrow:dir(rtl) { transform: scaleX(-1) translateX(2px); }
+
+/* Phone: one swipeable row, so the shelf stays one card tall and the library is still in view below it. */
+@media (max-width: 600px) {
+  .cards {
+    display: flex; gap: var(--sefaria-space-3); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    margin-inline: calc(-1 * var(--sefaria-space-4)); padding-inline: var(--sefaria-space-4); scroll-padding-inline: var(--sefaria-space-4);
+  }
+  .cards::-webkit-scrollbar { display: none; }
+  .item { flex: 0 0 min(78%, 280px); scroll-snap-align: start; }
+  .item:only-child { flex-basis: 100%; }
+}
