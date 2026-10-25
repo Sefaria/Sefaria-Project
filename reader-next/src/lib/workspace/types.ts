@@ -51,6 +51,8 @@ export type PanelKind = PanelState["kind"];
 export interface Workspace {
   panels: Record<PanelId, PanelState>;
   layout: LayoutNode<PanelId> | null;
+  /** This is the viewer's saved layout for panel 1's book (`bk=1`). */
+  bk?: true;
 }
 
 export const EMPTY_WORKSPACE: Workspace = { panels: {}, layout: null };

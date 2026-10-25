@@ -16,7 +16,16 @@ import { Spinner } from "~/ui/Spinner/Spinner";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { TextSection, type TextSectionProps } from "~/ui/TextSection/TextSection";
 import styles from "./TextColumn.module.css";
+import { wordAtPoint } from "../study/word-at-point";
 import { INITIAL_POSITION_SCRIPT, useReadingScroll } from "./use-reading-scroll";
+
+export interface SegmentMenuRequest {
+  ref: string;
+  x: number;
+  y: number;
+  word?: string;
+  wordRect?: DOMRect;
+}
 
 export interface TextColumnProps {
   /** Sections the route loaded (already in the library cache). */
@@ -29,8 +38,12 @@ export interface TextColumnProps {
   terms?: readonly string[];
   /** A segment the reader selected (clicked): becomes the focus without scrolling. */
   selected?: string;
-  /** The reader selected words in the text (mouse up with a selection inside the column). */
-  onSelectWords?: (words: string, segmentRefs: string[]) => void;
+  /** Segments marked as corresponding to the verse picked in this or another panel; `scroll` brings the first into view. */
+  linked?: { refs: readonly string[]; scroll: boolean };
+  /** Bring this segment to the reading line (scrolling together with another panel); a new object each time. */
+  follow?: { ref: string };
+  /** The reader selected words in the text (mouse up with a selection inside the column), and where they are on screen. */
+  onSelectWords?: (words: string, segmentRefs: string[], rect: DOMRect) => void;
   /** Put the reader back at a saved place when `token` changes (back/forward). */
   restore?: { token: string; position: SavedPosition };
   /** Lets the owner read the reader's place on demand (to save it in history). Returns an unregister function. */
@@ -50,6 +63,8 @@ export interface TextColumnProps {
   /** Scrolling paused on a new current segment. */
   onSettled?: (segmentRef: string, passage: TextPassage) => void;
   onSelectSegment?: TextSectionProps["onSelectSegment"];
+  /** Right-click on a segment: where, and the word under the pointer with its place on screen. */
+  onSegmentMenu?: (menu: SegmentMenuRequest) => void;
   onRefClick?: TextSectionProps["onRefClick"];
   onEntityClick?: TextSectionProps["onEntityClick"];
 }
@@ -181,6 +196,26 @@ export function TextColumn(props: TextColumnProps) {
     [onSelectSegment],
   );
 
+  // Linked segments: a DOM attribute like the focus, repainted when sections arrive or swap.
+  const linkedEls = useRef<Element[]>([]);
+  const paintLinked = useCallback(() => {
+    linkedEls.current.forEach((el) => el.removeAttribute("data-linked"));
+    const refs = propsRef.current.linked?.refs ?? [];
+    linkedEls.current = refs.flatMap((r) => [...(contentRef.current?.querySelectorAll(`[role="group"][data-ref="${CSS.escape(r)}"]`) ?? [])]);
+    linkedEls.current.forEach((el) => el.setAttribute("data-linked", "true"));
+  }, []);
+  useLayoutEffect(() => {
+    paintLinked();
+    const first = props.linked?.refs[0];
+    if (props.linked?.scroll && first) engine.scrollToSegment(first);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.linked]);
+
+  useLayoutEffect(() => {
+    if (props.follow) engine.scrollToSegment(props.follow.ref);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.follow]);
+
   // A clicked segment becomes current without moving the page.
   useEffect(() => {
     if (selected) engine.setFocus(selected);
@@ -207,6 +242,7 @@ export function TextColumn(props: TextColumnProps) {
   useLayoutEffect(() => {
     engine.restore();
     engine.check();
+    paintLinked();
     // Sections were replaced (another translation): the current verse's passage object changed, so tell the
     // panel (its header names the version; its sidebar marks the current one).
     const f = focusRef.current;
@@ -271,6 +307,13 @@ export function TextColumn(props: TextColumnProps) {
           e.clipboardData.setData("text/plain", text);
           e.preventDefault();
         }}
+        onContextMenu={(e) => {
+          const ref = (e.target as Element).closest<HTMLElement>('[role="group"][data-ref]')?.dataset.ref;
+          if (!ref || !props.onSegmentMenu || (e.target as Element).closest("a")) return;
+          e.preventDefault();
+          const hit = wordAtPoint(e.clientX, e.clientY);
+          props.onSegmentMenu({ ref, x: e.clientX, y: e.clientY, word: hit?.word, wordRect: hit?.rect });
+        }}
         onMouseUp={() => {
           const sel = window.getSelection();
           const root = contentRef.current;
@@ -278,7 +321,7 @@ export function TextColumn(props: TextColumnProps) {
           const range = sel.getRangeAt(0);
           if (!root.contains(range.commonAncestorContainer)) return;
           const words = selectedText(range);
-          if (words) props.onSelectWords?.(words, segmentsInRange(root, range));
+          if (words) props.onSelectWords?.(words, segmentsInRange(root, range), range.getBoundingClientRect());
         }}
       >
         <div className={styles.edge} aria-hidden={!loading.up}>

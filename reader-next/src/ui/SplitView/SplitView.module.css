@@ -3,6 +3,7 @@
 .split { display: flex; min-width: 0; min-height: 0; }
 .split[data-direction="row"] { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
 .split[data-direction="column"] { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+.split[data-parent-scrolls="true"] { overflow-x: visible; }
 .cell { display: flex; position: relative; flex: var(--share) 1 0; min-width: 0; min-height: 0; }
 .split[data-direction="row"] > .cell { min-width: var(--min); }
 .split[data-direction="column"] > .cell { min-height: var(--min); }
@@ -10,3 +11,8 @@
 .split[data-dividers="true"][data-direction="column"] > .cell + .cell { border-block-start: 1px solid var(--sefaria-color-border); }
 .cell > .split, .cell > .leaf { flex: 1; }
 .leaf { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }
+/* A draggable line on the start edge of every cell after the first. */
+.handle { position: absolute; z-index: calc(var(--sefaria-z-panel-chrome, 100) + 1); touch-action: none; }
+.split[data-direction="row"] > .cell > .handle { inset-block: 0; inset-inline-start: -4px; width: 8px; cursor: col-resize; }
+.split[data-direction="column"] > .cell > .handle { inset-inline: 0; inset-block-start: -4px; height: 8px; cursor: row-resize; }
+.handle:hover, .handle:focus-visible, .handle[data-dragging="true"] { background: var(--sefaria-color-focus); opacity: 0.5; outline: none; }

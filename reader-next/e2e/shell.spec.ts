@@ -69,11 +69,11 @@ test.describe("phone", () => {
   });
 
   // @feature SHL-062 @feature SHL-074
-  test("reading: the panel's own header has the menu button (not Close), Save, and display options; the menu opens the site navigation", async ({ page }) => {
+  test("reading: the panel's own header has the menu button (not Close), Bookmark, and display options; the menu opens the site navigation", async ({ page }) => {
     await open(page, "/Genesis.1?lang=en");
     const bar = page.locator("main header").first();
     await expect(bar.getByRole("button", { name: "Close this text" })).toBeHidden();
-    await expect(bar.getByRole("button", { name: 'Save "Genesis 1"' })).toBeVisible();
+    await expect(bar.getByRole("button", { name: "Bookmark Genesis" })).toBeVisible();
     await bar.getByRole("button", { name: "Menu" }).click();
     const menu = page.getByRole("navigation", { name: "Mobile navigation menu" });
     await expect(menu.getByRole("link", { name: "Texts" })).toBeVisible();
@@ -93,14 +93,3 @@ test.describe("phone", () => {
 });
 
 
-// @feature SHL-074 @feature GUI-004
-test.describe("Save in the text header (signed out)", () => {
-  test.use({ viewport: { width: 1280, height: 900 } });
-  test("opens the 'Want to return to this text?' sign-up modal", async ({ page }) => {
-    await open(page, "/Genesis.1?lang=en");
-    await page.locator("main header").first().getByRole("button", { name: 'Save "Genesis 1"' }).click();
-    await expect(page.getByRole("dialog").getByRole("heading", { name: "Want to return to this text?" })).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog")).toHaveCount(0);
-  });
-});

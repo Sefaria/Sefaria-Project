@@ -1,6 +1,8 @@
 /* Desktop: the panel fills its workspace cell; the text column and each side panel scroll on their own. */
 .panel { display: flex; flex: 1; min-width: 0; min-height: 0; height: 100%; background: var(--sefaria-color-surface, #fff); }
 .text { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+/* Clicking the header's empty space toggles the resources sidebar; `contents` keeps the header sticky. */
+.headerHost { display: contents; cursor: pointer; }
 .aside { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
 
 /* Phone (old single-panel mode): the page scrolls, so the browser can collapse its address bar. A side panel
@@ -26,3 +28,12 @@
   .notPhone { display: none; }
   .onlyPhone { display: contents; }
 }
+/* The favourite star beside a commentator in the right-click menu. */
+.favourite { flex: none; display: inline-grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: var(--sefaria-radius-md); background: none; color: var(--sefaria-color-star); cursor: pointer; }
+.favourite:hover, .favourite:focus-visible { background: var(--sefaria-color-hover); }
+/* An action under the display options (opening the book's saved layout), laid out like a menu row. */
+.menuAction { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 20px; border: 0; border-block-start: 1px solid var(--sefaria-color-border); background: none; color: var(--sefaria-color-text); font: inherit; font-size: var(--sefaria-text-sans-small); text-align: start; white-space: nowrap; cursor: pointer; }
+.menuActionIcon { flex: none; color: var(--sefaria-color-text-secondary); }
+.menuAction:hover, .menuAction:focus-visible { background: var(--sefaria-color-hover); outline: none; }
+/* A Hebrew word named in the right-click menu. */
+.menuWord { font-family: var(--sefaria-font-text-he); font-size: 1.25em; }

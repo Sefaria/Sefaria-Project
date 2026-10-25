@@ -4,8 +4,10 @@ import type { Catalog } from "~/lib/catalog/toc";
 import { categoryDescription, categoryLabel } from "~/lib/connections/terms";
 import type { CategorySummary } from "~/lib/connections/summary";
 import { withHref, type ConnectionsView } from "~/lib/connections/url";
+import { Icon } from "../Icon/Icon";
 import { categoryColor } from "../tokens/category-color";
 import { FilterRow } from "./FilterRow";
+import styles from "./ConnectionsPanel.module.css";
 
 export interface CategoryViewProps {
   /** The rows to show (see `categoryView`): usually one category; Commentary shows two. */
@@ -20,6 +22,9 @@ export interface CategoryViewProps {
   /** The active filter, if any. */
   current?: string;
   onNavigate?: (href: string, event: MouseEvent) => void;
+  /** Starred commentators (by collective title): Commentary books get a star to add or remove them. */
+  favourites?: readonly string[];
+  onToggleFavourite?: (book: string) => void;
 }
 
 /**
@@ -29,7 +34,7 @@ export interface CategoryViewProps {
  * @feature CON-025 Category view with per-book filters
  * @feature CON-026 Text (book) filter chip
  */
-export function CategoryView({ hrefFor, categories, catalog, basePath, search = "", current, onNavigate }: CategoryViewProps) {
+export function CategoryView({ hrefFor, categories, catalog, basePath, search = "", current, onNavigate, favourites, onToggleFavourite }: CategoryViewProps) {
   const href_ = (v: ConnectionsView) => (hrefFor ? hrefFor(v) : withHref(basePath ?? "", v, search));
   return (
     <div>
@@ -50,7 +55,8 @@ export function CategoryView({ hrefFor, categories, catalog, basePath, search = 
               onNavigate={onNavigate}
               onTrack={() => readerAnalytics.categoryFilterClicked(c.category)}
             />
-            {c.books.map((b) => (
+            {c.books.map((b) => {
+              const row = (
               <FilterRow
                 key={b.book}
                 label={{ en: b.book, he: b.heBook }}
@@ -65,7 +71,18 @@ export function CategoryView({ hrefFor, categories, catalog, basePath, search = 
                 onNavigate={onNavigate}
                 onTrack={() => readerAnalytics.textFilterClicked(isQuoting ? `${b.book}|Quoting` : b.book)}
               />
-            ))}
+              );
+              if (!onToggleFavourite || c.category !== "Commentary") return row;
+              const starred = !!favourites?.includes(b.book);
+              return (
+                <div key={b.book} className={styles.starRow}>
+                  {row}
+                  <button type="button" className={styles.star} aria-pressed={starred} aria-label={starred ? `Remove ${b.book} from favourites` : `Add ${b.book} to favourites`} title={starred ? "Remove from favourites" : "Add to favourites (shown in the right-click menu)"} onClick={() => onToggleFavourite(b.book)}>
+                    <Icon name="star" size="16px" filled={starred} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         );
       })}

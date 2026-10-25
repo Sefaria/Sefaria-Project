@@ -1,11 +1,25 @@
-/* Desktop: a fixed-height page; panels sit side by side and scroll on their own. Past the minimum panel
-   width the row scrolls sideways (old panel cap). */
-.workspace { height: 100%; overflow: hidden; }
+/* Desktop: a fixed-height page; panels sit side by side and scroll on their own. When their minimum widths add up to
+   more than the window, the whole workspace scrolls sideways as one (old panel cap), with its scrollbar at the bottom of
+   the window, and a shadow on either edge says more panels are there. The arrangement runs left to right in every
+   interface language. */
+.workspace { height: 100%; overflow: hidden; position: relative; }
+.scroller { height: 100%; overflow-x: auto; overflow-y: hidden; }
+.workspace::before, .workspace::after {
+  content: ""; position: absolute; inset-block: 0; width: 16px; pointer-events: none; z-index: var(--sefaria-z-panel-chrome);
+  opacity: 0; transition: opacity 150ms ease;
+}
+.workspace::before { left: 0; background: linear-gradient(to right, var(--sefaria-shadow-scroll-edge), transparent); }
+.workspace::after { right: 0; background: linear-gradient(to left, var(--sefaria-shadow-scroll-edge), transparent); }
+.workspace[data-more-start]::before, .workspace[data-more-end]::after { opacity: 1; }
 
-/* Phone: one panel at a time (the first), and the page scrolls. */
+/* Phone: one panel at a time (the first in reading order, wherever the layout puts it), and the page scrolls. The layout
+   parameter stays in the address for when the window is wide again. */
 @media (max-width: 842px) {
-  .workspace { height: auto; overflow: visible; }
-  .workspace > :global([data-direction]) { display: block; overflow: visible; }
-  .workspace > :global([data-direction]) > div { display: block; min-width: 0 !important; }
-  .workspace > :global([data-direction]) > div:not(:first-child) { display: none; }
+  .workspace, .scroller { height: auto; overflow: visible; }
+  .workspace::before, .workspace::after { display: none; }
+  .workspace :global([data-direction]:has([data-leaf="p1"])) { display: block; overflow: visible; width: auto !important; min-width: 0 !important; }
+  .workspace :global([data-direction]:has([data-leaf="p1"]) > div) { display: block; min-width: 0 !important; min-height: 0 !important; border: 0 !important; }
+  .workspace :global([data-direction]:has([data-leaf="p1"]) > div:not(:has([data-leaf="p1"]))) { display: none; }
+  /* inside the panel, the text and its sidebar give up their minimum widths too */
+  .workspace :global([data-leaf="p1"] [data-direction] > div) { min-width: 0 !important; }
 }

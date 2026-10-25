@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Bookshelf } from "../bookmarks/Bookshelf";
 import { useMemo } from "react";
 import { tocQueryOptions } from "~/lib/catalog/toc";
 import { calendarsQueryOptions } from "~/lib/library/calendars";
@@ -32,6 +33,7 @@ export function LibraryRoute({ path }: { path: string[] }) {
     return (
       <LibraryHome
         tree={catalog.tree}
+        top={<Bookshelf />}
         footer={footer}
         sidebar={
           <>

@@ -2,6 +2,8 @@
 .app { display: flex; flex-direction: column; height: 100dvh; }
 .header { flex: none; }
 .main { flex: 1; min-height: 0; outline: none; }
+/* Focus reading: the site header folds away (desktop); FocusControls brings it back. */
+@media (min-width: 843px) { .app[data-header="collapsed"] .header { display: none; } }
 
 /* Phone: the page scrolls; a reader hides the site header (the panel has its own controls). */
 @media (max-width: 842px) {

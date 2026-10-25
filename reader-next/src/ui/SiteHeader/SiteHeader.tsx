@@ -141,10 +141,9 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
           <HeaderSearch {...search} />
           {viewer ? null : authLink("register", styles.signup, <InterfaceText en="Sign Up" he="להרשמה" />)}
           <div className={styles.icons}>
+            <Link className={styles.iconLink} href="/bookmarks" aria-label={t("Bookmarks", "סימניות")} title={t("Bookmarks", "סימניות")} data-testid="bookmarks-link"><Icon name="bookmark" size="1.3em" /></Link>
             <a className={styles.iconLink} href={HELP[lang]} target="_blank" rel="noopener noreferrer" aria-label={t("Help", "עזרה")} title={t("Help", "עזרה")}><Icon name="help" size="1.3em" /></a>
-            {viewer ? (
-              <a className={styles.iconLink} href={`${LIBRARY}/saved`} aria-label={t("Saved items", "שמורים")} title={t("Saved items", "שמורים")} data-testid="saved-link"><Icon name="bookmark" size="1.3em" /></a>
-            ) : (
+            {viewer ? null : (
               <Menu icon="globe" label={t("Toggle Interface Language Menu", "החלפת שפת הממשק")}>
                 <div className={styles.menuHeading}>{t("Site Language", "שפת האתר")}</div>
                 <LanguageLinks next={next} lang={lang} />
@@ -164,6 +163,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
                 <div className={`${styles.menuItem} ${styles.menuName}`}><strong>{viewer.name}</strong></div>
                 <div className={styles.sep} />
                 <A href={`${LIBRARY}/settings/account`} className={styles.menuItem}>{t("Account Settings", "הגדרות")}</A>
+                <A href={`${LIBRARY}/history`} className={styles.menuItem}>{t("Reading History", "היסטוריית קריאה")}</A>
                 <A href={`${LIBRARY}/torahtracker`} className={styles.menuItem}>{t("Torah Tracker", "לימוד במספרים")}</A>
                 <div className={styles.sep} />
                 <div className={styles.menuHeading}>{t("Site Language", "שפת האתר")}</div>
@@ -200,10 +200,11 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
         <A href={`${LIBRARY}/texts`} className={styles.menuItem}><Icon name="book" /><InterfaceText en="Texts" he="מקורות" /></A>
         <A href={`${LIBRARY}/topics`} className={styles.menuItem}><Icon name="hash" /><InterfaceText en="Topics" he="נושאים" /></A>
         <A href={`${LIBRARY}/calendars`} className={styles.menuItem}><Icon name="list" /><InterfaceText en="Learning Schedules" he="לוח לימוד יומי" /></A>
+        <Link href="/bookmarks" className={styles.menuItem}><Icon name="bookmark" /><InterfaceText en="Bookmarks" he="סימניות" /></Link>
         <A href={donateHref("MobileNavMenu")} className={styles.menuItem} target="_blank"><Icon name="star" /><InterfaceText en="Donate" he="תרומה" /></A>
         {viewer ? (
           <>
-            <A href={`${LIBRARY}/saved`} className={styles.menuItem}><Icon name="bookmark" /><InterfaceText en="Saved, History & Notes" he="שמורים, היסטוריה והערות" /></A>
+            <A href={`${LIBRARY}/history`} className={styles.menuItem}><Icon name="clock" /><InterfaceText en="Reading History" he="היסטוריית קריאה" /></A>
             <A href={`${LIBRARY}/settings/account`} className={styles.menuItem}><Icon name="settings" /><InterfaceText en="Account Settings" he="הגדרות" /></A>
           </>
         ) : null}

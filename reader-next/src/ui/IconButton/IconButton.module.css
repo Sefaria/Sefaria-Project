@@ -10,8 +10,13 @@
   color: var(--sefaria-color-text-secondary);
   font: inherit;
   cursor: pointer;
+  transition: background-color 0.12s, color 0.12s;
 }
-.iconButton:hover:not([aria-disabled="true"]) { background: var(--sefaria-color-surface-muted); color: var(--sefaria-color-text); }
+.iconButton:hover:not([aria-disabled="true"]) { background: var(--sefaria-color-hover); color: var(--sefaria-color-text); }
+.iconButton:focus-visible { outline-offset: -2px; }
+/* On: a shape that can fill (bookmark, star) fills in the brand colour; an open shape (layers, link) sits on a tinted disc. */
 .iconButton[aria-pressed="true"] { color: var(--sefaria-color-brand); }
+.iconButton[aria-pressed="true"].tinted { background: var(--sefaria-color-pressed); }
+.iconButton[aria-pressed="true"].tinted:hover:not([aria-disabled="true"]) { background: var(--sefaria-color-pressed-hover); color: var(--sefaria-color-brand); }
 .iconButton[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .sm { width: 32px; height: 32px; }

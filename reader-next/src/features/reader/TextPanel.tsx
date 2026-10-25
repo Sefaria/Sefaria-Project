@@ -1,4 +1,4 @@
-import { useQueryClient, useSuspenseQueries } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useSuspenseQueries } from "@tanstack/react-query";
 import { useLocation, useRouter } from "@tanstack/react-router";
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { leaf, split, type LayoutNode } from "~/lib/layout/tree";
@@ -13,9 +13,12 @@ import { highlightsOf, type SearchHit } from "~/lib/search/text-search";
 import { versionKey, type TranslationVersion } from "~/lib/versions/translations";
 import { isHighlighted } from "~/lib/text/plan";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
-import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
+import { close, closeAside, drop, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
+import { MIN_PANEL_WIDTH } from "~/lib/workspace/sizing";
+import { MovePanelMenu } from "../workspace/MovePanelMenu";
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
+import { Icon } from "~/ui/Icon/Icon";
 import { IconButton } from "~/ui/IconButton/IconButton";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { PanelHeader } from "~/ui/PanelHeader/PanelHeader";
@@ -25,6 +28,12 @@ import type { SavedPosition } from "~/lib/reader/position-store";
 import { indexMetaQueryOptions } from "~/lib/text/commentary";
 import { TextColumnBanner } from "~/ui/TextColumnBanner/TextColumnBanner";
 import { rememberPlace } from "~/lib/reader/last-place";
+import { addBookmark, moveBookmark, noteReading, useBookmark } from "~/lib/bookmarks";
+import { ContextMenu, type ContextMenuGroup } from "~/ui/ContextMenu/ContextMenu";
+import { commentariesOn, favouriteCommentaries, type CommentaryOnVerse } from "~/lib/study/favourite-commentaries";
+import { DefinitionCard, type DefinitionRequest } from "../study/DefinitionCard";
+import { BookmarkToggle } from "../bookmarks/BookmarkToggle";
+import { useIsMainPanel, useOpenMyLayout } from "../bookmarks/my-layout";
 import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
 import { rememberTranslation } from "~/lib/versions/prefs-source";
@@ -32,17 +41,20 @@ import { entryKey, navFor, readNavState, useWorkspaceNav, type NavState } from "
 import { panelForRef } from "../workspace/open-ref";
 import { toRouterLocation } from "../shared/RouterLink";
 import { ConnectionsPane } from "./ConnectionsPane";
+import { RefPreviews } from "../study/RefPreview";
 import styles from "./TextPanel.module.css";
 import { setMobileMenuOpen } from "../shell/mobile-menu";
-import { SignUpModal } from "~/ui/SignUpModal/SignUpModal";
 import type { ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
 import { SETTLE_MS } from "./use-reading-scroll";
-import { TextColumn } from "./TextColumn";
+import { TextColumn, type SegmentMenuRequest } from "./TextColumn";
 import { readerAnalytics } from "~/lib/analytics";
 import { useViewer } from "~/features/auth/viewer";
 import { legacyVersions } from "~/lib/user/history";
-import { useReaderHistory, useSaved, type PanelPlace } from "./use-reader-history";
+import { linksQueryOptions } from "~/lib/connections/queries";
+import { linkedSegmentsIn, sectionOfSegment } from "~/lib/workspace/linked-verses";
+import { announceLinkedVerse, announceReading, onLinkedVerse, onReading } from "../workspace/linked-verse";
+import { useReaderHistory, type PanelPlace } from "./use-reader-history";
 
 export interface TextPanelProps {
   panel: TextPanelState;
@@ -56,6 +68,25 @@ export interface TextPanelProps {
 const SINGLE_PANEL_QUERY = "(max-width: 842px)";
 const isSinglePanel = () => typeof window !== "undefined" && window.matchMedia(SINGLE_PANEL_QUERY).matches;
 const MAIN = "main" as const;
+const HEBREW_LETTER = /[\u05D0-\u05EA]/;
+/** The most starred commentaries the right-click menu lists. */
+const MENU_FAVOURITES = 3;
+const ASIDE_SHARE_KEY = "sefaria-reader:aside-share";
+function readAsideShare(): number | undefined {
+  try {
+    const v = Number(typeof window === "undefined" ? NaN : window.localStorage.getItem(ASIDE_SHARE_KEY));
+    return v > 0 && v < 1 ? v : undefined;
+  } catch {
+    return undefined;
+  }
+}
+function writeAsideShare(v: number) {
+  try {
+    window.localStorage.setItem(ASIDE_SHARE_KEY, String(v));
+  } catch {
+    // storage unavailable: the share lasts for this page only
+  }
+}
 
 /** The panel added by an operation (the id in `after` that was not in `before`). */
 
@@ -78,7 +109,6 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const location = useLocation();
   const qc = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [saveAsked, setSaveAsked] = useState(false);
   const id = panel.id;
   // The URL's versions when it names any, else what the loader resolved from the reader's preferences (VER-014).
   const versions = panel.versions.translation || panel.versions.primary ? panel.versions : data.versions;
@@ -96,6 +126,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     () => (noHebrew && settings0.language === "hebrew" ? { ...settings0, language: "bilingual" as const } : noEnglish && settings0.language === "english" ? { ...settings0, language: "hebrew" as const } : settings0),
     [settings0, noHebrew, noEnglish],
   );
+
+  // A text opened from this panel (a citation, a link in a comment, Open in the sidebar) opens in the language the reader chose
+  // here; a target with no Hebrew still falls back to bilingual on its own.
+  const openLang = languageToParam(settings0.language);
 
   /** Apply an operation to the workspace as it is now, and go there. */
   const apply = useCallback(
@@ -165,8 +199,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   const asideRef = useRef(panel.asides);
   asideRef.current = panel.asides;
+  // Scrolling together: a settled verse is announced unless this panel is only following another one.
+  const followingUntil = useRef(0);
   const onSettled = useCallback(
-    (ref: string) => {
+    (ref: string, passage?: TextPassage) => {
+      if (passage && performance.now() > followingUntil.current) announceReading({ from: id, ref, book: passage.indexTitle });
       if (asideRef.current.length) setSelection([ref]);
       // The address bar always names the verse being read (like the old reader), without moving anything.
       apply((ws) => updatePanel(ws, id, { ref }), { replace: true, state: { nav: "scroll", panel: id } });
@@ -225,31 +262,103 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   viewRef.current = view;
   const currentRef = useRef(current.ref);
   currentRef.current = current.ref;
-  const onSelectSegment = useCallback(
-    (ref: string) => {
-      readerAnalytics.segmentClicked(ref, !viewRef.current);
-      // Selecting the verse that is already current while the sidebar is open closes the sidebar.
-      if (viewRef.current && currentRef.current === ref) {
-        apply((ws) => closeAside(updatePanel(ws, id, { ref }), id), { state: { nav: "select", panel: id, ref } });
-        return;
-      }
+  /**
+   * Open the resources sidebar on a verse (the right-click and the panel header; a plain click only marks the verse), on
+   * `show` if given, else on the view it already shows.
+   */
+  const openResources = useCallback(
+    (ref: string, show?: ConnectionsView) => {
       apply(
         (ws) => {
           const existing = ws.panels[id]?.asides.find((a) => a.kind === "connections");
           // choosing another verse ends a name's card (the old closeNamedEntityInConnectionPanel)
           const keep = existing?.entity ? undefined : existing?.view;
-          return openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: keep ?? formatWith({ view: "resources" }), ...(existing ? {} : { lang: newSidebarLang }) });
+          const next = show ? formatWith(show) : (keep ?? formatWith({ view: "resources" }));
+          return openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: next, ...(existing ? {} : { lang: newSidebarLang }) });
         },
         { state: { nav: "select", panel: id, ref } },
       );
     },
     [apply, id, newSidebarLang],
   );
+  /** The dictionary sidebar on words of a verse. */
+  const openDictionary = useCallback(
+    (words: string, ref: string) =>
+      apply((ws) => openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: "Lexicon", lookup: words, ...(ws.panels[id]?.asides.length ? {} : { lang: newSidebarLang }) }), { state: { nav: "select", panel: id, ref } }),
+    [apply, id, newSidebarLang],
+  );
+
+  // ── linked verses: a clicked verse is marked here, and what corresponds to it in every other panel ────
+  const [linked, setLinked] = useState<{ refs: readonly string[]; scroll: boolean } | undefined>(undefined);
+  const linkedRef = useRef(linked);
+  linkedRef.current = linked;
+  const bookRef = useRef(current.passage.indexTitle);
+  bookRef.current = current.passage.indexTitle;
+  const onSelectSegment = useCallback(
+    (ref: string) => {
+      readerAnalytics.segmentClicked(ref, !viewRef.current);
+      const again = linkedRef.current?.refs.length === 1 && linkedRef.current.refs[0] === ref;
+      setLinked(again ? undefined : { refs: [ref], scroll: false });
+      announceLinkedVerse(again ? null : { from: id, ref, book: bookRef.current });
+      // An open sidebar follows the clicked verse.
+      if (viewRef.current) apply((ws) => updatePanel(ws, id, { ref }), { state: { nav: "select", panel: id, ref } });
+    },
+    [apply, id],
+  );
+  useEffect(
+    () =>
+      onLinkedVerse((v) => {
+        if (v?.from === id) return;
+        if (!v) return setLinked(undefined);
+        const mine = bookRef.current;
+        const found =
+          v.book === mine
+            ? Promise.resolve([v.ref])
+            : qc.fetchQuery(linksQueryOptions(sectionOfSegment(v.ref))).then((links) => linkedSegmentsIn(links, v.ref, v.book, mine), () => []);
+        void found.then((refs) => {
+          setLinked({ refs, scroll: true });
+          const first = refs[0];
+          if (!first || rootEl.current?.querySelector(`[role="group"][data-ref="${CSS.escape(first)}"]`)) return;
+          // Not in the loaded sections: the panel goes there.
+          apply((ws) => updatePanel(ws, id, { ref: first }), { replace: true, state: { nav: "go", panel: id } });
+        });
+      }),
+    [apply, id, qc],
+  );
+
+  // Scroll together (on by default; the header's link button locks this panel where it is).
+  const [together, setTogether] = useState(true);
+  const togetherRef = useRef(together);
+  togetherRef.current = together;
+  const [follow, setFollow] = useState<{ ref: string } | undefined>(undefined);
+  useEffect(
+    () =>
+      onReading((v) => {
+        if (v.from === id || !togetherRef.current) return;
+        const mine = bookRef.current;
+        const found =
+          v.book === mine
+            ? Promise.resolve([v.ref])
+            : qc.fetchQuery(linksQueryOptions(sectionOfSegment(v.ref))).then((links) => linkedSegmentsIn(links, v.ref, v.book, mine), () => []);
+        void found.then((refs) => {
+          const first = refs[0];
+          if (!first) return;
+          if (rootEl.current?.querySelector(`[role="group"][data-ref="${CSS.escape(first)}"]`)) {
+            followingUntil.current = performance.now() + 1000;
+            setFollow({ ref: first });
+          } else {
+            followingUntil.current = performance.now() + 2500;
+            apply((ws) => updatePanel(ws, id, { ref: first }), { replace: true, state: { nav: "go", panel: id } });
+          }
+        });
+      }),
+    [apply, id, qc],
+  );
 
   /**
    * "Open" from the sidebar (a connected text, a translation's or a version's Open Text), exactly as sefaria.org: the sidebar is
    * replaced by a new text panel right after this one, showing that text as itself (a comment is not turned into its base text),
-   * in the version chosen if any; bilingual when this panel is, else in the sidebar's language. This panel keeps its verse.
+   * in the version chosen if any, in this panel's language. This panel keeps its verse.
    * VERIFIED: Genesis 1:1 + Rashi → Open → /Genesis.1.1?lang=bi&aliyot=0&p2=Rashi_on_Genesis.1.1.1&lang2=bi (50/50).
    * Old ReaderPanel.handleTextListClick → showBaseText → openPanelAt(replace). Phones: this panel goes there. CON-033, VER-011
    */
@@ -260,12 +369,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         apply((ws) => closeAside(updatePanel(ws, id, { ref, versions: { ...versions } }), id), { state: { nav: "go", panel: id } });
         return;
       }
-      const aside = before.panels[id]?.asides.find((a) => a.kind === "connections");
-      const lang = settings.language === "bilingual" ? "bi" : aside?.lang === "he" ? "he" : aside?.lang === "en" ? "en" : settings.language === "hebrew" ? "he" : "en";
-      const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "text", ref, versions: { ...versions }, lang });
+      const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "text", ref, versions: { ...versions }, lang: openLang });
       nav.go(after, { state: { nav: "go", panel: opened } });
     },
-    [apply, nav, id, settings.language],
+    [apply, nav, id, openLang],
   );
   const openTextHere = useCallback((ref: string) => openFromSidebar(ref), [openFromSidebar]);
 
@@ -297,7 +404,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // A comment opens as its base text with the commentator alongside. SHL-049, TXT-015, CON-038
   const onRefClick = useCallback(
     (ref: string) => {
-      void panelForRef(qc, ref).then((target) => {
+      void panelForRef(qc, ref, { lang: openLang }).then((target) => {
         const before = nav.current();
         if (isSinglePanel()) {
           nav.go(replace(before, id, target), { state: { nav: "go" } });
@@ -307,7 +414,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         nav.go(after, { state: { nav: "go", panel: opened } });
       });
     },
-    [qc, id, nav],
+    [qc, id, nav, openLang],
   );
 
   // A citation in the text, exactly as sefaria.org (owner decision 2026-10-06; ReaderApp.handleCitationClick): whatever is next to
@@ -315,10 +422,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // this panel's current verse, and the cited text opens right after it. VERIFIED: [Ramban, Exodus 1] → citation →
   // [Ramban on Genesis 1:1:1, Exodus 12:2]; a second citation replaces the first.
   const onCitationClick = useCallback(
-    (ref: string, e?: React.MouseEvent) => {
+    (ref: string, e?: { target: EventTarget | null }) => {
       readerAnalytics.citationClicked(ref);
       const verse = (e?.target as Element | undefined)?.closest<HTMLElement>("[data-ref]")?.dataset.ref;
-      void panelForRef(qc, ref).then((target) => {
+      void panelForRef(qc, ref, { lang: openLang }).then((target) => {
         const before = nav.current();
         if (isSinglePanel()) {
           nav.go(replace(before, id, target), { state: { nav: "go" } });
@@ -336,18 +443,27 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         nav.go(after, { state: { nav: "go", panel: opened } });
       });
     },
-    [qc, id, nav],
+    [qc, id, nav, openLang],
   );
 
-  // Words selected in the text: with the sidebar open, a lookup of up to three Hebrew words in one segment switches it
-  // to the dictionaries. A selection never opens a closed sidebar. (VERIFIED on sefaria.org; unlike there, the URL
-  // follows every lookup, not just the first.) CON-042, TXD-059
+  // A ref link opens a preview card first; from there the text opens as a new column beside this panel, or on a page of
+  // its own in this panel's language.
+  const previewPageHref = useCallback((ref: string) => `/${refToUrl(ref)}?lang=${openLang}`, [openLang]);
+
+  // Words selected in the text (up to three Hebrew words in one segment): their definition shows in a card beside them.
+  // When the sidebar already shows the dictionary, it follows the selection instead. CON-042, TXD-059
+  const [definition, setDefinition] = useState<DefinitionRequest | null>(null);
+  const closeDefinition = useCallback(() => setDefinition(null), []);
   const onSelectWords = useCallback(
-    (words: string, refs: string[]) => {
-      if (!asideRef.current.length || refs.length !== 1 || !shouldActivateLookup(words)) return;
+    (words: string, refs: string[], rect: DOMRect) => {
+      if (refs.length !== 1 || !shouldActivateLookup(words)) return;
       const ref = refs[0]!;
-      const inLexicon = parseWith(asideRef.current[0]?.view)?.view === "mode" && (parseWith(asideRef.current[0]?.view) as { mode?: string }).mode === "Lexicon";
-      apply((ws) => openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: "Lexicon", lookup: words }), { replace: inLexicon, state: { nav: "select", panel: id, ref } });
+      const shown = parseWith(asideRef.current[0]?.view);
+      if (shown?.view === "mode" && shown.mode === "Lexicon") {
+        apply((ws) => openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: "Lexicon", lookup: words }), { replace: true, state: { nav: "select", panel: id, ref } });
+        return;
+      }
+      setDefinition({ words, segmentRef: ref, anchor: { left: rect.left, top: rect.top, bottom: rect.bottom }, explicit: false });
     },
     [apply, id],
   );
@@ -355,6 +471,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // Continue Reading on the book page resumes from here (BOK-003)
   useEffect(() => {
     if (current.ref) rememberPlace(current.passage.indexTitle, current.ref);
+  }, [current.ref, current.passage.indexTitle]);
+  useEffect(() => {
+    if (current.ref) noteReading(current.passage.indexTitle, current.ref);
   }, [current.ref, current.passage.indexTitle]);
 
   // A highlighted name in the text opens the Lexicon sidebar on who or what it is (CON-045, TXD-022). The segment it stands
@@ -471,7 +590,6 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     };
   }, [view, deferredRefs, sidebarSection, section.sectionRef, section.heSectionRef, section.indexTitle, panel.versions, settings.language]);
   useReaderHistory(viewer, place, Boolean(view));
-  const save = useSaved(viewer, place, () => setSaveAsked(true));
   const header = headerLabels({
     sectionRef: section.sectionRef, heSectionRef: section.heSectionRef, categories: section.categories,
     translationVersion: section.translationVersion, primaryVersion: section.primaryVersion, language: settings.language, interfaceLang,
@@ -479,15 +597,112 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Main view and side panels, arranged by the panel's own layout (default: side panels in a column).
+  // ── the right-click menu on a verse ─────────────────────────────────────────────────────────────────
+  const [menu, setMenu] = useState<SegmentMenuRequest | null>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
+  const favourites = favouriteCommentaries.use();
+  const bookmark = useBookmark(current.passage.indexTitle);
+  const openMyLayout = useOpenMyLayout(current.passage.indexTitle);
+  const isMainPanel = useIsMainPanel(id, current.passage.indexTitle);
+  const myLayoutHere = isMainPanel && openMyLayout && !nav.current().bk ? openMyLayout : undefined;
+  const menuLinks = useQuery({ ...linksQueryOptions(menu ? sectionOfSegment(menu.ref) : ""), enabled: !!menu });
+  const starred = menu && menuLinks.data ? commentariesOn(menuLinks.data, menu.ref, favourites).filter((c) => c.favourite).slice(0, MENU_FAVOURITES) : [];
+
+  /** A commentator on the verse: scrolled to if already open, else opened beside this text (stacked under other companions). */
+  const openCommentary = useCallback(
+    (c: CommentaryOnVerse, verse: string) => {
+      const ws = nav.current();
+      const order = panelOrder(ws);
+      setLinked({ refs: [verse], scroll: false });
+      if (order.some((pid) => { const p = ws.panels[pid]; return pid !== id && p?.kind === "text" && p.ref.startsWith(c.book); })) {
+        announceLinkedVerse({ from: id, ref: verse, book: bookRef.current });
+        return;
+      }
+      const companions = order.filter((pid) => pid !== id);
+      const lang = settings.language === "bilingual" ? "bi" : settings.language === "hebrew" ? "he" : "en";
+      const [after, opened] = companions.length
+        ? openNextToWithId(ws, companions.at(-1)!, { kind: "text", ref: c.ref, versions: {}, lang }, "below")
+        : openNextToWithId(ws, id, { kind: "text", ref: c.ref, versions: {}, lang });
+      nav.go(after, { state: { nav: "go", panel: opened } });
+    },
+    [nav, id, settings.language],
+  );
+  const copyWithCitation = useCallback((ref: string) => {
+    const text = rootEl.current?.querySelector<HTMLElement>(`[role="group"][data-ref="${CSS.escape(ref)}"]`)?.innerText.trim() ?? "";
+    void navigator.clipboard?.writeText(`${text}\n— ${ref} (${window.location.origin}/${refToUrl(ref)})`);
+  }, []);
+
+  const menuWord = menu?.word && HEBREW_LETTER.test(menu.word) ? menu.word : undefined;
+  const menuGroups: ContextMenuGroup[] = menu
+    ? [
+        {
+          key: "verse",
+          items: [
+            { key: "resources", label: <InterfaceText en="Resources" he="קישורים וכלים" />, icon: "layers", onSelect: () => openResources(menu.ref) },
+            ...(myLayoutHere ? [{ key: "my-layout", label: <InterfaceText en="Open my saved layout" he="פתיחת הפריסה השמורה" />, icon: "saved-layout" as const, onSelect: () => void myLayoutHere() }] : []),
+            bookmark
+              ? { key: "bookmark", label: bookmark.ref === menu.ref ? <InterfaceText en="Your bookmark is here" he="הסימנייה כאן" /> : <InterfaceText en="Move bookmark here" he="העברת הסימנייה לכאן" />, icon: "bookmark", disabled: bookmark.ref === menu.ref, onSelect: () => moveBookmark(current.passage.indexTitle, menu.ref) }
+              : { key: "bookmark", label: <InterfaceText en="Bookmark here" he="הוספת סימנייה כאן" />, icon: "bookmark", onSelect: () => addBookmark(current.passage.indexTitle, menu.ref) },
+            ...(menuWord
+              ? [{
+                  key: "lookup",
+                  label: <><InterfaceText en="Look up" he="חיפוש במילון:" /> <bdi lang="he" className={styles.menuWord}>{menuWord}</bdi></>,
+                  icon: "search" as const,
+                  onSelect: () => {
+                    const r = menu.wordRect;
+                    setDefinition({ words: menuWord, segmentRef: menu.ref, anchor: r ? { left: r.left, top: r.top, bottom: r.bottom } : { left: menu.x, top: menu.y, bottom: menu.y }, explicit: true });
+                  },
+                }]
+              : []),
+          ],
+        },
+        {
+          key: "commentaries",
+          items: [
+            ...starred.map((c) => ({
+              key: c.book,
+              label: c.name,
+              icon: "book" as const,
+              onSelect: () => openCommentary(c, menu.ref),
+              trailing: (
+                <button type="button" className={styles.favourite} aria-pressed="true" aria-label={`Remove ${c.name} from favourites`} title="Remove from favourites" onClick={() => favouriteCommentaries.remove(c.name)}>
+                  <Icon name="star" size="16px" filled />
+                </button>
+              ),
+            })),
+            { key: "all-commentaries", label: <InterfaceText en="All commentaries…" he="כל המפרשים…" />, icon: "list", onSelect: () => openResources(menu.ref, { view: "category", category: "Commentary" }) },
+          ],
+        },
+        { key: "copy", items: [{ key: "cite", label: <InterfaceText en="Copy with citation" he="העתקה עם מראה מקום" />, icon: "copy", onSelect: () => copyWithCitation(menu.ref) }] },
+      ]
+    : [];
+
+  // Main view and side panels, arranged by the panel's own layout (default: side panels in a column). A dragged divider
+  // between them is remembered on this device for every panel.
+  const [asideShare, setAsideShare] = useState<number | undefined>(undefined);
+  useEffect(() => setAsideShare(readAsideShare()), []);
   const frame: LayoutNode<typeof MAIN | AsideId> = useMemo(() => {
     if (!panel.asides.length) return leaf(MAIN);
     const asides = panel.asideLayout ?? split("column", panel.asides.map((a) => leaf(a.id)));
-    return split("row", [leaf(MAIN), asides], innerSizes && innerSizes.length === 2 ? innerSizes : [0.68, 0.32]);
-  }, [panel.asides, panel.asideLayout, innerSizes]);
+    return split("row", [leaf(MAIN), asides], asideShare ? [1 - asideShare, asideShare] : innerSizes && innerSizes.length === 2 ? innerSizes : [0.68, 0.32]);
+  }, [panel.asides, panel.asideLayout, innerSizes, asideShare]);
+  const onFrameResize = useCallback((path: number[], shares: number[]) => {
+    if (path.length || shares.length !== 2) return;
+    setAsideShare(shares[1]!);
+    writeAsideShare(shares[1]!);
+  }, []);
 
   const main = (
     <div className={styles.text}>
+      <div
+        className={styles.headerHost}
+        data-panel-drag
+        onClick={(e) => {
+          if ((e.target as Element).closest("a, button, input, [role=dialog]")) return;
+          if (view) closeSidebar();
+          else openResources(current.ref ?? data.ref);
+        }}
+      >
       <PanelHeader
         sticky
         category={section.categories}
@@ -508,12 +723,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
         end={
           <>
-          <IconButton
-            icon="bookmark"
-            pressed={viewer ? save.isSaved : undefined}
-            label={save.isSaved ? `Remove "${place?.ref ?? section.ref}"` : `Save "${place?.ref ?? section.ref}"`}
-            onClick={save.click}
-          />
+          {alone || isMainPanel ? null : <IconButton icon={together ? "link" : "link-off"} label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
+          <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
+          <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} panel={id} />
           <Popover
             open={menuOpen}
             onOpenChange={setMenuOpen}
@@ -522,11 +734,28 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
             trigger={(p) => <IconButton {...p} icon="font-size" label="Text display options" />}
           >
             <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} />
+            {myLayoutHere ? (
+              <button type="button" className={styles.menuAction} onClick={() => (setMenuOpen(false), void myLayoutHere())}>
+                <Icon name="saved-layout" size="18px" className={styles.menuActionIcon} />
+                <InterfaceText en="Open my saved layout" he="פתיחת הפריסה השמורה" />
+              </button>
+            ) : null}
+            {alone ? null : <MovePanelMenu self={id} workspace={nav.current()} onDrop={(d) => (setMenuOpen(false), apply((ws) => drop(ws, id, d), { state: { nav: "stay" } }))} />}
           </Popover>
           </>
         }
       />
-      <SignUpModal kind={saveAsked ? "save" : undefined} onClose={() => setSaveAsked(false)} next={typeof window === "undefined" ? "/" : window.location.href} />
+      </div>
+      {menu ? <ContextMenu x={menu.x} y={menu.y} label={menu.ref} groups={menuGroups} onClose={closeMenu} /> : null}
+      {definition ? (
+        <DefinitionCard
+          key={`${definition.words}|${definition.segmentRef}|${definition.anchor.left}|${definition.anchor.top}`}
+          {...definition}
+          categories={current.passage.categories}
+          onClose={closeDefinition}
+          onOpenDictionary={() => openDictionary(definition.words, definition.segmentRef)}
+        />
+      ) : null}
       <div ref={bannerBox}>
       {transBanner ? (
         <TextColumnBanner
@@ -549,12 +778,15 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         target={entry.current.target}
         terms={navState.mine && navState.kind === "go" ? readNavState(location.state).terms : undefined}
         selected={selected}
+        linked={linked}
+        follow={follow}
         showFocus={Boolean(view)}
         connectionsOnScreen={Boolean(view)}
         linkFilter={linkFilter}
         onFocus={onFocus}
         onSettled={onSettled}
         onSelectSegment={onSelectSegment}
+        onSegmentMenu={setMenu}
         onEntityClick={onEntityClick}
         onRefClick={onCitationClick}
         onSelectWords={onSelectWords}
@@ -578,6 +810,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     >
       <SplitView
         node={frame}
+        onResize={onFrameResize}
+        minLeafSize={MIN_PANEL_WIDTH}
         renderLeaf={(leafId) =>
           leafId === MAIN ? (
             main
@@ -622,6 +856,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           ) : null
         }
       />
+      <RefPreviews root={rootEl} language={settings0.language} onOpenColumn={onRefClick} pageHref={previewPageHref} />
     </section>
   );
 }

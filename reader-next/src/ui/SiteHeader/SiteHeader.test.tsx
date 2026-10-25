@@ -74,11 +74,12 @@ describe("SiteHeader", () => {
     render(<SiteHeader next="/login?next=%2FGenesis.1" search={STUB_SEARCH} />);
     expect(screen.getAllByRole("link", { name: "Sign Up" })[0]).toHaveAttribute("href", "/register?next=%2FGenesis.1");
   });
-  it("signed in: no Sign Up or language menu; Saved; the picture opens name, settings, language and Log Out", async () => {
+  it("signed in: no Sign Up, language menu or saved items; the picture opens name, settings, language and Log Out", async () => {
     render(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada Lovelace", profileUrl: "/profile/ada" }} />);
     expect(screen.queryByRole("link", { name: "Sign Up" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Toggle Interface Language Menu" })).toBeNull();
-    expect(screen.getByRole("link", { name: "Saved items" })).toHaveAttribute("href", "https://www.sefaria.org/saved");
+    expect(screen.queryByRole("link", { name: "Saved items" })).toBeNull();
+    expect(screen.getAllByRole("link", { name: "Bookmarks" })[0]).toHaveAttribute("href", "/bookmarks");
     await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
     const menu = screen.getByRole("dialog", { name: "Account menu" });
     expect(menu).toHaveTextContent("Ada Lovelace");

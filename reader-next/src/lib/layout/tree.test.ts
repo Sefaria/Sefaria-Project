@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { column, insert, leaf, leaves, move, normalize, remove, replaceLeaf, row, withSizes, type LayoutNode } from "./tree";
+import { column, insert, insertBeside, leaf, leaves, move, normalize, remove, replaceLeaf, row, sameShape, split, withSizes, type LayoutNode } from "./tree";
 
 const ids = (n: LayoutNode | null) => leaves(n);
 /** Compact picture of a tree: row(a,col(b,c)) */
@@ -78,5 +78,32 @@ describe("layout tree", () => {
     expect(t.type === "split" && t.sizes).toEqual([0.5, 0.5]);
     const kept = withSizes<string>({ type: "split", direction: "row", sizes: [0.7, 0.3], children: [leaf("a"), leaf("b")] }, () => [1, 1]);
     expect(kept.type === "split" && kept.sizes).toEqual([0.7, 0.3]);
+  });
+});
+
+describe("layout edge cases", () => {
+  it("closing a panel inside a stack: a stack of one becomes that panel, keeping the stack's share", () => {
+    const t = remove(split("row", [column(leaf("a"), leaf("b")), leaf("c")], [0.3, 0.7]), "b")!;
+    expect(show(t)).toBe("row(a,c)");
+    expect(t.type === "split" && t.sizes).toEqual([0.3, 0.7]);
+  });
+
+  it("closing a pinned panel shares its width out among the rest in proportion", () => {
+    const t = remove(split("row", [leaf("a"), leaf("b"), leaf("c")], [0.5, 0.25, 0.25]), "a")!;
+    expect(t.type === "split" && t.sizes).toEqual([0.5, 0.5]);
+  });
+
+  it("opening beside a stacked panel puts the new one beside the whole stack, at full height", () => {
+    expect(show(insertBeside(row(leaf("a"), column(leaf("b"), leaf("c"))), "b", leaf("n"), "after"))).toBe("row(a,col(b,c),n)");
+    expect(show(insertBeside(row(leaf("a"), column(leaf("b"), leaf("c"))), "c", leaf("n"), "before"))).toBe("row(a,n,col(b,c))");
+    expect(show(insertBeside(column(leaf("a"), leaf("b")), "a", leaf("n"), "after"))).toBe("row(col(a,b),n)");
+    // a direct child of the row: the same as insert
+    expect(show(insertBeside(row(leaf("a"), leaf("b")), "a", leaf("n"), "after"))).toBe("row(a,n,b)");
+  });
+
+  it("compares shapes without sizes", () => {
+    expect(sameShape(split("row", [leaf("a"), leaf("b")], [1, 3]), row(leaf("a"), leaf("b")))).toBe(true);
+    expect(sameShape(row(leaf("a"), leaf("b")), row(leaf("b"), leaf("a")))).toBe(false);
+    expect(sameShape(move(row(leaf("a"), leaf("b")), "a", "b", "before"), row(leaf("a"), leaf("b")))).toBe(true);
   });
 });

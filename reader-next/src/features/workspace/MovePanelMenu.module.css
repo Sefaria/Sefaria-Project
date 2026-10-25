@@ -1,0 +1,18 @@
+/* Laid out like the display menu's other lines: 20px in from the edge, a rule above. */
+.section { border-block-start: 1px solid var(--sefaria-color-border); }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--sefaria-space-2); width: 100%; min-height: 48px; padding: 0 20px; border: 0; background: none; color: var(--sefaria-color-text); font: inherit; font-size: var(--sefaria-text-sans-small); text-align: start; white-space: nowrap; cursor: pointer; }
+.toggle:hover, .toggle:focus-visible { background: var(--sefaria-color-hover); outline: none; }
+.chevron { flex: none; color: var(--sefaria-color-text-secondary); transition: transform 0.15s; }
+.toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+.menu { display: grid; gap: var(--sefaria-space-2); padding: 0 var(--sefaria-space-3) var(--sefaria-space-3); }
+.row { display: flex; align-items: center; gap: var(--sefaria-space-2); }
+.name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--sefaria-color-text-secondary); font-size: var(--sefaria-text-caption); }
+/* The five places beside one panel, as one segmented strip. */
+.places { flex: none; display: inline-flex; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); overflow: hidden; }
+.place, .far { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0; border: 0; background: none; color: var(--sefaria-color-text-secondary); font: inherit; font-size: var(--sefaria-text-caption); cursor: pointer; }
+.place { width: 30px; }
+.place + .place { border-inline-start: 1px solid var(--sefaria-color-border); }
+.far { flex: 1; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); white-space: nowrap; }
+.place:hover:not(:disabled), .place:focus-visible, .far:hover:not(:disabled), .far:focus-visible { background: var(--sefaria-color-hover); color: var(--sefaria-color-text); }
+.place:focus-visible, .far:focus-visible { outline-offset: -2px; }
+.place:disabled, .far:disabled { color: var(--sefaria-color-text-muted); opacity: 0.45; cursor: default; }
