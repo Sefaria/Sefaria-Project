@@ -16,6 +16,9 @@ import { Spinner } from "~/ui/Spinner/Spinner";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { TextSection, type TextSectionProps } from "~/ui/TextSection/TextSection";
 import styles from "./TextColumn.module.css";
+import { glossary } from "~/lib/study/glossary";
+import { GlossCard } from "../study/GlossCard";
+import { paintGlossMarks, wordAtPoint } from "../study/gloss-marks";
 import { INITIAL_POSITION_SCRIPT, useReadingScroll } from "./use-reading-scroll";
 
 export interface TextColumnProps {
@@ -52,8 +55,8 @@ export interface TextColumnProps {
   /** Scrolling paused on a new current segment. */
   onSettled?: (segmentRef: string, passage: TextPassage) => void;
   onSelectSegment?: TextSectionProps["onSelectSegment"];
-  /** Right-click on a segment. */
-  onOpenResources?: (segmentRef: string) => void;
+  /** Right-click on a segment: where, and the word under the pointer. */
+  onSegmentMenu?: (menu: { ref: string; x: number; y: number; word?: string }) => void;
   onRefClick?: TextSectionProps["onRefClick"];
   onEntityClick?: TextSectionProps["onEntityClick"];
 }
@@ -253,6 +256,13 @@ export function TextColumn(props: TextColumnProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections, filterKey, linksUpdatedKey]);
 
+  // Words marked for a gloss are underlined wherever they appear; hovering one shows its meaning.
+  const glossWords = glossary.use();
+  const [gloss, setGloss] = useState<{ el: HTMLElement; word: string; ref?: string } | null>(null);
+  useEffect(() => {
+    if (contentRef.current) paintGlossMarks(contentRef.current, new Set(glossWords));
+  }, [sections, settings, glossWords]);
+
   // Continuous layout: numbers of segments that begin on one line step apart (TXD-046)
   useEffect(() => {
     const el = contentRef.current;
@@ -293,11 +303,15 @@ export function TextColumn(props: TextColumnProps) {
         }}
         onContextMenu={(e) => {
           const ref = (e.target as Element).closest<HTMLElement>('[role="group"][data-ref]')?.dataset.ref;
-          if (!ref || !props.onOpenResources || (e.target as Element).closest("a")) return;
+          if (!ref || !props.onSegmentMenu || (e.target as Element).closest("a")) return;
           e.preventDefault();
-          engine.setFocus(ref);
-          props.onOpenResources(ref);
+          props.onSegmentMenu({ ref, x: e.clientX, y: e.clientY, word: wordAtPoint(e.clientX, e.clientY) });
         }}
+        onMouseOver={(e) => {
+          const mark = (e.target as Element).closest<HTMLElement>("mark[data-gloss]");
+          setGloss((g) => (mark ? (g?.el === mark ? g : { el: mark, word: mark.textContent ?? "", ref: mark.closest<HTMLElement>("[data-ref]")?.dataset.ref }) : g && null));
+        }}
+        onMouseLeave={() => setGloss(null)}
         onMouseUp={() => {
           const sel = window.getSelection();
           const root = contentRef.current;
@@ -334,6 +348,7 @@ export function TextColumn(props: TextColumnProps) {
           {last.next ? (loading.down ? <Spinner /> : null) : <InterfaceText en="End" he="סוף" />}
         </div>
       </div>
+      {gloss ? <GlossCard word={gloss.word} segmentRef={gloss.ref} rect={gloss.el.getBoundingClientRect()} /> : null}
       {/* Runs during HTML parsing on a server-rendered load: places a linked verse before first paint. */}
       <script dangerouslySetInnerHTML={{ __html: INITIAL_POSITION_SCRIPT }} />
     </div>

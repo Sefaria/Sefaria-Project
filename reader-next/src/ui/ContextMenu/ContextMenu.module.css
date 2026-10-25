@@ -1,0 +1,15 @@
+.menu {
+  position: fixed; z-index: var(--sefaria-z-overlay); min-width: 220px; max-width: 320px; max-height: 70vh; overflow-y: auto;
+  padding: var(--sefaria-space-1) 0; border: 1px solid var(--sefaria-color-border); border-radius: 8px;
+  background: var(--sefaria-color-surface); box-shadow: 0 6px 24px rgb(0 0 0 / 0.14);
+  font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small);
+}
+.group + .group { border-block-start: 1px solid var(--sefaria-color-border); margin-block-start: var(--sefaria-space-1); padding-block-start: var(--sefaria-space-1); }
+.heading { padding: var(--sefaria-space-1) var(--sefaria-space-3) 2px; color: var(--sefaria-color-text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.row { display: flex; align-items: center; }
+.item {
+  flex: 1; min-width: 0; padding: 6px var(--sefaria-space-3); border: 0; background: none; color: inherit; font: inherit;
+  text-align: start; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.item:hover, .item:focus-visible { background: var(--sefaria-color-highlight-soft); outline: none; }
+.item[aria-disabled="true"] { color: var(--sefaria-color-text-muted); cursor: default; background: none; }

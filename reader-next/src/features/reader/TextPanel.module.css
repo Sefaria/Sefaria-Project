@@ -28,3 +28,7 @@
   .notPhone { display: none; }
   .onlyPhone { display: contents; }
 }
+/* The favourite star beside a commentator in the right-click menu. */
+.favourite { flex: none; width: 32px; height: 28px; border: 0; background: none; color: var(--sefaria-color-text-muted); cursor: pointer; font-size: 15px; }
+.favourite[aria-pressed="true"] { color: #c99a2e; }
+.favourite:hover, .favourite:focus-visible { color: inherit; }

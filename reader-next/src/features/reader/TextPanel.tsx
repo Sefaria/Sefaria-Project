@@ -1,4 +1,4 @@
-import { useQueryClient, useSuspenseQueries } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useSuspenseQueries } from "@tanstack/react-query";
 import { useLocation, useRouter } from "@tanstack/react-router";
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { leaf, split, type LayoutNode } from "~/lib/layout/tree";
@@ -26,7 +26,10 @@ import type { SavedPosition } from "~/lib/reader/position-store";
 import { indexMetaQueryOptions } from "~/lib/text/commentary";
 import { TextColumnBanner } from "~/ui/TextColumnBanner/TextColumnBanner";
 import { rememberPlace } from "~/lib/reader/last-place";
-import { noteReading } from "~/lib/bookmarks";
+import { addBookmark, moveBookmark, noteReading, useBookmark } from "~/lib/bookmarks";
+import { ContextMenu, type ContextMenuGroup } from "~/ui/ContextMenu/ContextMenu";
+import { commentariesOn, favouriteCommentaries, type CommentaryOnVerse } from "~/lib/study/favourite-commentaries";
+import { glossary, glossKey } from "~/lib/study/glossary";
 import { BookmarkToggle } from "../bookmarks/BookmarkToggle";
 import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
@@ -537,6 +540,83 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── the right-click menu on a verse ─────────────────────────────────────────────────────────────────
+  const [menu, setMenu] = useState<{ ref: string; x: number; y: number; word?: string } | null>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
+  const favourites = favouriteCommentaries.use();
+  const glossWords = glossary.use();
+  const bookmark = useBookmark(current.passage.indexTitle);
+  const menuLinks = useQuery({ ...linksQueryOptions(menu ? sectionOfSegment(menu.ref) : ""), enabled: !!menu });
+  const commentaries = menu && menuLinks.data ? commentariesOn(menuLinks.data, menu.ref, favourites).slice(0, 8) : [];
+
+  /** A commentator on the verse: scrolled to if already open, else opened beside this text (stacked under other companions). */
+  const openCommentary = useCallback(
+    (c: CommentaryOnVerse, verse: string) => {
+      const ws = nav.current();
+      const order = panelOrder(ws);
+      setLinked({ refs: [verse], scroll: false });
+      if (order.some((pid) => { const p = ws.panels[pid]; return pid !== id && p?.kind === "text" && p.ref.startsWith(c.book); })) {
+        announceLinkedVerse({ from: id, ref: verse, book: bookRef.current });
+        return;
+      }
+      const companions = order.filter((pid) => pid !== id);
+      const lang = settings.language === "bilingual" ? "bi" : settings.language === "hebrew" ? "he" : "en";
+      const [after, opened] = companions.length
+        ? openNextToWithId(ws, companions.at(-1)!, { kind: "text", ref: c.ref, versions: {}, lang }, "below")
+        : openNextToWithId(ws, id, { kind: "text", ref: c.ref, versions: {}, lang });
+      nav.go(after, { state: { nav: "go", panel: opened } });
+    },
+    [nav, id, settings.language],
+  );
+  const copyWithCitation = useCallback((ref: string) => {
+    const text = rootEl.current?.querySelector<HTMLElement>(`[role="group"][data-ref="${CSS.escape(ref)}"]`)?.innerText.trim() ?? "";
+    void navigator.clipboard?.writeText(`${text}\n— ${ref} (${window.location.origin}/${refToUrl(ref)})`);
+  }, []);
+
+  const menuGroups: ContextMenuGroup[] = menu
+    ? [
+        {
+          key: "verse",
+          items: [
+            { key: "resources", label: "Resources", onSelect: () => openResources(menu.ref) },
+            bookmark
+              ? { key: "bookmark", label: bookmark.ref === menu.ref ? "Your bookmark is here" : "Move bookmark here", disabled: bookmark.ref === menu.ref, onSelect: () => moveBookmark(current.passage.indexTitle, menu.ref) }
+              : { key: "bookmark", label: "Bookmark this book here", onSelect: () => addBookmark(current.passage.indexTitle, menu.ref) },
+          ],
+        },
+        {
+          key: "word",
+          items: menu.word && /[\u05D0-\u05EA]/.test(menu.word)
+            ? [
+                glossWords.includes(glossKey(menu.word))
+                  ? { key: "gloss", label: `Stop glossing “${menu.word}”`, onSelect: () => glossary.remove(glossKey(menu.word!)) }
+                  : { key: "gloss", label: `Gloss “${menu.word}” on hover`, onSelect: () => glossary.add(glossKey(menu.word!)) },
+                {
+                  key: "lookup",
+                  label: `Look up “${menu.word}”`,
+                  onSelect: () => apply((ws) => openAside(updatePanel(ws, id, { ref: menu.ref }), id, { kind: "connections", view: "Lexicon", lookup: menu.word, ...(ws.panels[id]?.asides.length ? {} : { lang: newSidebarLang }) }), { state: { nav: "select", panel: id, ref: menu.ref } }),
+                },
+              ]
+            : [],
+        },
+        {
+          key: "commentaries",
+          heading: menuLinks.isPending ? "Commentaries…" : commentaries.length ? "Commentaries on this verse" : undefined,
+          items: commentaries.map((c) => ({
+            key: c.book,
+            label: c.favourite ? `★ ${c.name}` : c.name,
+            onSelect: () => openCommentary(c, menu.ref),
+            trailing: (
+              <button type="button" className={styles.favourite} aria-pressed={c.favourite} aria-label={c.favourite ? `Remove ${c.name} from favourites` : `Add ${c.name} to favourites`} title={c.favourite ? "Remove from favourites" : "Add to favourites"} onClick={() => favouriteCommentaries.toggle(c.name)}>
+                {c.favourite ? "★" : "☆"}
+              </button>
+            ),
+          })),
+        },
+        { key: "copy", items: [{ key: "cite", label: "Copy with citation", onSelect: () => copyWithCitation(menu.ref) }] },
+      ]
+    : [];
+
   // Main view and side panels, arranged by the panel's own layout (default: side panels in a column). A dragged divider
   // between them is remembered on this device for every panel.
   const [asideShare, setAsideShare] = useState<number | undefined>(undefined);
@@ -604,6 +684,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
       />
       </div>
+      {menu ? <ContextMenu x={menu.x} y={menu.y} label={menu.ref} groups={menuGroups} onClose={closeMenu} /> : null}
       <SignUpModal kind={saveAsked ? "save" : undefined} onClose={() => setSaveAsked(false)} next={typeof window === "undefined" ? "/" : window.location.href} />
       <div ref={bannerBox}>
       {transBanner ? (
@@ -634,7 +715,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         onFocus={onFocus}
         onSettled={onSettled}
         onSelectSegment={onSelectSegment}
-        onOpenResources={openResources}
+        onSegmentMenu={setMenu}
         onEntityClick={onEntityClick}
         onRefClick={onCitationClick}
         onSelectWords={onSelectWords}
