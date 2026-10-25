@@ -2,33 +2,54 @@
 """
 Export English text for training an English language model, as JSONL.
 
-Three sources, one doc per line, each tagged with `source` and a stable `id`:
+Three sources, one doc per line, each tagged with `source`, a stable `id`, a `words` count and a `split`
+("train", or "eval" for a stable ~EVAL_FRAC hash sample, so held-out text never reaches training):
 
-  source="version"  every English Version (actualLanguage == 'en'), one doc per ref (deduped within each index, see version_docs),
-                    id = "<ref>:<versionTitle>:<actualLanguage>"
-  source="sheet"    every public source sheet, one doc per user-generated node
-                    (`comment`, `outsideText`, and the English side of `outsideBiText`).
-                    Library text quoted in a sheet (`ref` sources) is skipped, since it is
-                    already covered by the versions.
-  source="webpage"  one doc per page in `webpages_text`, filtered for quality (see below).
+  source="version"  every English Version (actualLanguage == 'en'), grouped into passage-sized docs, see version_docs.
+                    id = "version:<ref>", where <ref> is the range the doc covers. `text` starts with that ref, so the
+                    model sees which work and place each passage comes from.
+  source="sheet"    one doc per public source sheet (split at node boundaries if over MAX_DOC_WORDS, see split_units):
+                    its title, then its nodes in order. User-generated nodes
+                    (`comment`, `outsideText`, both sides of `outsideBiText`) are kept as text. Library text quoted
+                    in a sheet (`ref` sources) is replaced by its citation, e.g. "[Genesis 1:1]", since that text is
+                    already covered by the versions. id = "sheet:<sheet id>", or "sheet:<sheet id>#<n>" for the parts of a split
+                    sheet; every part repeats the title and stays in the sheet's split.
+  source="webpage"  one doc per page in `webpages_text`, filtered for quality (see below). id = "webpage:<_id>", or
+                    "webpage:<_id>#<n>" if the page is over MAX_DOC_WORDS and is split at line boundaries (every part
+                    repeats the title and stays in the page's split).
 
-Version and sheet text is emitted as stored, including any HTML. Post-processing is left to the consumer.
+Version and sheet HTML is converted to plain text. Bold is kept as markdown `**...**`, because it carries meaning
+(in the Steinsaltz Talmud bold is the literal translation and plain text is the explanation; in commentaries bold
+is the quoted lemma). Footnotes are taken out of the running text and appended to the end of the doc under "Notes:".
 
-Webpages are the exception, because raw bodies are mostly site chrome. A page is kept only if its site
-is whitelisted in `websites`, and the emitted `text` is the cleaned body, not the stored one:
+Library text quoted verbatim elsewhere is not exported twice: a sheet or webpage paragraph is dropped when at
+least QUOTE_PARAGRAPH_FRAC of its words are in sentences that also appear in an English version. This needs the
+versions read first, so `--only sheets` / `--only webpages` still walk the versions (without writing them).
+
+Hebrew is kept where it sits inside English content (quotes, bilingual sheet nodes, Hebrew lines on an English
+page). A sheet or webpage is dropped only when more than MAX_HEBREW_LETTER_FRAC of its letters are Hebrew.
+
+Webpages need more cleanup, because raw bodies are mostly site chrome. A page is kept only if its site is
+whitelisted in `websites`, and the emitted `text` is the page title followed by the cleaned body, not the stored one:
   - lines on >= BOILERPLATE_MIN_FRAC of the same site's pages (nav, footers, cookie banners) are removed
-  - lines repeated within the page, and lines that are not mostly Latin script, are removed
+  - lines repeated within the page, and lines that are not mostly Latin or Hebrew script, are removed
+  - lines broken mid-sentence by the page's HTML layout are joined back together
+  - paragraphs that are mostly library quotes are removed (see above)
+  - short lines before the first prose line (section menus, bylines, tables of contents) are removed
 Then the cleaned text must pass every check below, otherwise the page is dropped:
   url_listing   URL is a search / tag / category / pagination / wiki-revision view, not an article
   too_short     fewer than MIN_PROSE_WORDS words in prose lines (lines of >= PROSE_LINE_MIN_WORDS words);
                 this also catches error pages, empty search results and menu-only pages
   low_prose     prose lines are under MIN_PROSE_FRAC of the words (link lists, tables of contents)
   repetitive    more than MAX_DUP_NGRAM_FRAC of the 8-word sequences are repeats (templated text, boilerplate loops)
-  not_english   under MIN_ENGLISH_STOPWORD_FRAC of the words are common English function words
+  not_english   under MIN_ENGLISH_STOPWORD_FRAC of the Latin-script words are common English function words
                 (Latin-script French / Portuguese / Dutch etc. pass the per-line script check but fail this)
+  hebrew_heavy  more than MAX_HEBREW_LETTER_FRAC of the letters are Hebrew
   code_dump     stack trace / SQL / PHP debug output
   error_page    error-page title ("Page Not Found"; or "Error"/"Forbidden" on a short page)
   duplicate     cleaned text identical to a page already exported
+  site_cap      the site already contributes SITE_WORD_CAP words. Kept pages are a stable hash sample of the
+                site's pages, so one large site (e.g. Times of Israel Blogs) cannot dominate the corpus.
 Per-reason counts are printed at the end.
 
 Usage:
@@ -36,12 +57,21 @@ Usage:
     ./run scripts/export_english_training_data.py --only sheets --limit 100 --out /path/out.jsonl
     ./run scripts/export_english_training_data.py --only webpages --limit 5000
     ./run scripts/export_english_training_data.py --exclude webpages
+    ./run scripts/export_english_training_data.py --site-word-cap 0   # no per-site cap
+    ./run scripts/export_english_training_data.py --max-tokens 7500   # size docs for ModernBERT's 8192-token context
+
+Doc length is measured in words by default (MIN_DOC_WORDS / MAX_DOC_WORDS). With --max-tokens it is measured in tokens
+of --tokenizer instead, because tokens per word varies a lot here (about 1.5 for English prose, over 10 for Hebrew-heavy
+sheets), so no word cap fits a fixed context. Leave some room under the model's limit: the ref, a repeated sheet or page
+title and "Notes:" are added to a doc after its segments are measured.
 """
 import argparse
+import hashlib
 import html
 import json
 import os
 import re
+import tempfile
 import time
 from collections import Counter, defaultdict
 from datetime import timedelta
@@ -50,16 +80,36 @@ from functools import lru_cache
 import django
 django.setup()
 from sefaria.system.database import db
-from sefaria.model import VersionSet
+from sefaria.model import VersionSet, Ref
+from sefaria.model.text import AbstractTextRecord
 from sefaria.sheets import get_sheet_language
 from sefaria.helper.webpages import site_data_for_domain, domain_for_url
 
 DEFAULT_OUT = "data/private/english_training_data.jsonl"
 
+EVAL_FRAC = 0.01
+
+# Version docs: segments are grouped by passage (Bavli sugyot, Tanakh stories) or else by section,
+# then short groups are merged with their neighbours and long ones split, at segment boundaries.
+# Sheets and webpages are not merged, but those over MAX_DOC_WORDS are split too (see split_units).
+MIN_DOC_WORDS = 100
+MAX_DOC_WORDS = 2000
+MIN_DOC_TOKENS = 200  # about MIN_DOC_WORDS words, at ~2 tokens per word
+DEFAULT_TOKENIZER = "answerdotai/ModernBERT-base"
+
+# Sheets
+MIN_SHEET_USER_WORDS = 20  # user-written words, not counting the title or ref citations
+
+# Library quotes in sheets and webpages
+QUOTE_MIN_WORDS = 8  # shorter sentences ("And God said:") are too common to count as a quote
+QUOTE_PARAGRAPH_FRAC = 0.5
+
+MAX_HEBREW_LETTER_FRAC = 0.5
+
 # Webpage quality thresholds, calibrated by hand on the 100k-page sample of `webpages_text`.
 BOILERPLATE_MIN_FRAC = 0.01  # a line on >= this share of a site's pages is site chrome...
 BOILERPLATE_MIN_DOCS = 5     # ...but never on fewer than this many pages
-ENGLISH_LINE_MIN_LATIN = 0.8
+SCRIPT_LINE_MIN_LATIN_OR_HEBREW = 0.8
 PROSE_LINE_MIN_WORDS = 8
 MIN_PROSE_WORDS = 100
 MIN_PROSE_FRAC = 0.6
@@ -67,6 +117,7 @@ MAX_DUP_NGRAM_FRAC = 0.2
 MIN_ENGLISH_STOPWORD_FRAC = 0.25
 NGRAM_SIZE = 8
 SHORT_ERROR_PAGE_WORDS = 300
+SITE_WORD_CAP = 10_000_000
 
 JUNK_TOKEN_RE = re.compile(r"\?lit\$\d+\$")  # leftover from a client-side templating library
 LISTING_URL_RE = re.compile(
@@ -79,6 +130,16 @@ CODE_DUMP_RE = re.compile(
 STRONG_ERROR_TITLE_RE = re.compile(r"not found|\b404\b|access denied|nothing found|no results|just a moment|are you a robot|captcha|^warning:|fatal error|WP_Error", re.I)
 # ...and words that are only an error page when the page is also short ("The Error of Nadav and Avihu" is an article).
 WEAK_ERROR_TITLE_RE = re.compile(r"\berror\b|forbidden|unavailable", re.I)
+
+# A line that ends like this is a complete line; anything else followed by a lowercase line was broken by layout.
+LINE_END_RE = re.compile(r"[.!?:;\"”’')\]]$")
+
+BOLD_RE = re.compile(r"<(b|strong)\b[^>]*>(\s*)(.*?)(\s*)</\1>", re.S | re.I)
+BLOCK_TAG_RE = re.compile(r"<br\s*/?>|</?(p|div|li|ul|ol|h\d|tr|blockquote)\b[^>]*>", re.I)
+TAG_RE = re.compile(r"<[^>]+>")
+FOOTNOTE_MARKER_RE = re.compile(r'<sup[^>]*class="footnote-marker"[^>]*>.*?</sup>', re.S)
+SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?;:])\s+")
+HEBREW_LETTER_RE = re.compile(r"[א-ת]")
 
 # Common English function words. Function words are ~35-45% of English prose and <10% of Portuguese, French, Dutch, etc.,
 # which a Latin-script check alone cannot tell apart from English.
@@ -135,75 +196,310 @@ def capped(total, limit):
     return min(total, limit) if limit else total
 
 
-def version_docs(limit=None):
-    """Yield one doc per ref. Within each index, versions are tried in Sefaria's preference order
-    (VersionSet default: priority desc, then _id) and a ref is taken from the first version that has it."""
+def stable_hash(s):
+    """Unlike hash(), the same across runs, so the eval split and site-cap sample are reproducible."""
+    return int(hashlib.md5(s.encode("utf-8")).hexdigest()[:12], 16)
+
+
+def split_for(key):
+    return "eval" if stable_hash(key) % 10000 < EVAL_FRAC * 10000 else "train"
+
+
+def word_count(text):
+    return len(text.split())
+
+
+class SizeLimits:
+    """How the length of a doc is measured, and the range its parts should fall in (see pack_groups)."""
+
+    def __init__(self, measure, min_size, max_size):
+        self.measure, self.min_size, self.max_size = measure, min_size, max_size
+
+
+WORD_LIMITS = SizeLimits(word_count, MIN_DOC_WORDS, MAX_DOC_WORDS)
+
+
+def token_limits(tokenizer_name, max_tokens):
+    """Limits measured in tokens of a Hugging Face tokenizer, with no special tokens counted."""
+    from transformers import AutoTokenizer
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+    tokenizer.model_max_length = int(1e9)  # silences the long-sequence warning; we only count
+    return SizeLimits(
+        lambda text: len(tokenizer(text, add_special_tokens=False)["input_ids"]),
+        min(MIN_DOC_TOKENS, max_tokens), max_tokens)
+
+
+def hebrew_letter_frac(text):
+    letters = sum(c.isalpha() for c in text)
+    return len(HEBREW_LETTER_RE.findall(text)) / letters if letters else 0.0
+
+
+def html_to_text(s):
+    """Plain text from stored HTML: block tags become line breaks, bold becomes **markdown bold**, other tags are dropped."""
+    s = BOLD_RE.sub(lambda m: "{}**{}**{}".format(m[2], m[3], m[4]) if m[3].strip() else m[2] + m[4], s)
+    s = html.unescape(TAG_RE.sub("", BLOCK_TAG_RE.sub("\n", s)))
+    lines = (re.sub(r"[ \t ]+", " ", line).strip() for line in s.split("\n"))
+    return "\n".join(line for line in lines if line)
+
+
+def clean_segment(s):
+    """Return (text, footnotes) for a stored segment, with footnotes and other inline tags taken out of the text."""
+    if "<sup" not in s and "<i" not in s:
+        return html_to_text(s), []
+    notes = [html_to_text(FOOTNOTE_MARKER_RE.sub("", fn)) for fn in AbstractTextRecord.find_all_footnotes(s)]
+    return html_to_text(AbstractTextRecord.strip_itags(s)), [n for n in notes if n]
+
+
+# Library quotes
+
+def quote_keys(text):
+    """Hash keys of the sentences of `text` long enough to identify a quote, with their word counts."""
+    for sentence in SENTENCE_SPLIT_RE.split(text.replace("**", "")):
+        normalized = re.sub(r"[^\w]+", " ", sentence.lower()).strip()
+        n = normalized.count(" ") + 1
+        if n >= QUOTE_MIN_WORDS:
+            yield hash(normalized), n
+
+
+def drop_library_quotes(lines, quote_index):
+    """Drop lines that are mostly sentences found in the library. Returns (kept lines, number dropped)."""
+    kept = []
+    for line in lines:
+        quoted = sum(n for key, n in quote_keys(line) if key in quote_index)
+        if quoted and quoted >= QUOTE_PARAGRAPH_FRAC * word_count(line):
+            continue
+        kept.append(line)
+    return kept, len(lines) - len(kept)
+
+
+# Versions
+
+@lru_cache(maxsize=None)
+def passage_for_segment():
+    """{segment ref: full_ref of the shortest passage containing it}. Passages exist for the Bavli (sugyot, mishnayot)
+    and Tanakh (biblical stories, which can overlap; the shortest wins, as in Passage.containing_segment)."""
+    best = {}
+    for passage in db.passage.find({}, {"full_ref": 1, "ref_list": 1}):
+        for tref in passage["ref_list"]:
+            if tref not in best or len(passage["ref_list"]) < best[tref][0]:
+                best[tref] = (len(passage["ref_list"]), passage["full_ref"])
+    log("passages: {:,} segments are in a passage".format(len(best)))
+    return {tref: full_ref for tref, (_, full_ref) in best.items()}
+
+
+def section_of(tref):
+    """'Genesis 1:3' -> 'Genesis 1', 'Berakhot 2a:4' -> 'Berakhot 2a', 'Sefer HaChinukh, Author's Introduction 3' ->
+    'Sefer HaChinukh, Author's Introduction'. String-based, because building a Ref for every segment is slow."""
+    return tref.rsplit(":", 1)[0] if ":" in tref else tref.rsplit(" ", 1)[0]
+
+
+def merge_orders(sequences):
+    """Merge segment orders from several versions of one text into one order. The first sequence is taken as is; a
+    segment only found in a later version goes right after the segment that precedes it in that version."""
+    next_of = defaultdict(list)
+    seen = set()
+    for seq in sequences:
+        prev = None
+        for tref in seq:
+            if tref not in seen:
+                seen.add(tref)
+                next_of[prev].insert(0, tref)
+            prev = tref
+    order, stack = [], [None]
+    while stack:
+        tref = stack.pop()
+        if tref is not None:
+            order.append(tref)
+        stack.extend(reversed(next_of[tref]))
+    return order
+
+
+def pack_groups(groups, limits=WORD_LIMITS):
+    """Merge runs of groups shorter than limits.min_size, then split groups longer than limits.max_size into
+    near-equal parts. Each group is a list of segment dicts with a `size`; splits are at segment boundaries, so only
+    a single segment larger than limits.max_size can make a part exceed it."""
+    merged, buf, buf_size = [], [], 0
+    for group in groups:
+        size = sum(seg["size"] for seg in group)
+        if buf and (buf_size >= limits.min_size or buf_size + size > limits.max_size):
+            merged.append(buf)
+            buf, buf_size = [], 0
+        buf, buf_size = buf + group, buf_size + size
+    if buf:
+        merged.append(buf)
+    for group in merged:
+        total = sum(seg["size"] for seg in group)
+        n_parts = max(1, -(-total // limits.max_size))
+        target = total / n_parts
+        part, part_size = [], 0
+        for seg in group:
+            if part and part_size + seg["size"] > limits.max_size:
+                yield part
+                part, part_size = [], 0
+            part.append(seg)
+            part_size += seg["size"]
+            if part_size >= target and len(part) < len(group):
+                yield part
+                part, part_size = [], 0
+        if part:
+            yield part
+
+
+def split_units(units, limits=WORD_LIMITS):
+    """Split a doc into parts of about limits.max_size. `units` is a list of line lists (a sheet node, a webpage
+    line) that are kept whole; returns the parts as flat line lists. A doc under the limit comes back as one part."""
+    segments = [{"lines": unit, "size": sum(limits.measure(line) for line in unit)} for unit in units]
+    return [[line for seg in part for line in seg["lines"]] for part in pack_groups([segments], limits)]
+
+
+def range_ref(first, last):
+    try:
+        return Ref(first).to(Ref(last)).normal() if first != last else Ref(first).normal()
+    except Exception:
+        return "{} - {}".format(first, last) if first != last else first
+
+
+def version_doc(segments):
+    ref = range_ref(segments[0]["ref"], segments[-1]["ref"])
+    text = ref + "\n\n" + "\n".join(seg["text"] for seg in segments)
+    notes = [note for seg in segments for note in seg["notes"]]
+    if notes:
+        text += "\n\nNotes:\n" + "\n".join(notes)
+    return {
+        "id": "version:{}".format(ref),
+        "source": "version",
+        "split": split_for(ref),
+        "versions": sorted({seg["version"] for seg in segments}),
+        "words": word_count(text),
+        "text": text,
+    }
+
+
+def version_docs(limit=None, quote_index=None, limits=WORD_LIMITS):
+    """Yield passage-sized docs for every English text. Within each index, versions are tried in Sefaria's preference
+    order (VersionSet default: priority desc, then _id) and a ref is taken from the first version that has it.
+    Segments are grouped by passage where one exists, else by section, then packed (see pack_groups) to `limits`.
+    The sentences of every segment are added to `quote_index`, for drop_library_quotes."""
+    passages = passage_for_segment()
     titles = sorted(db.texts.distinct("title", {"actualLanguage": "en"}))[:limit or None]
     progress = Progress("versions (indexes)", len(titles), every=100)
     n_docs = 0
     for title in titles:
-        progress.tick(lambda: "{:,} refs exported".format(n_docs))
-        seen_refs = set()
+        progress.tick(lambda: "{:,} docs exported".format(n_docs))
+        segments, orders = {}, []
         for version in VersionSet({"title": title, "actualLanguage": "en"}):
-            docs = []
+            order = []
 
             def action(segment_str, tref, he_tref, v):
-                if tref not in seen_refs and isinstance(segment_str, str) and segment_str.strip():
-                    seen_refs.add(tref)
-                    docs.append({
-                        "id": "{}:{}:{}".format(tref, v.versionTitle, v.actualLanguage),
-                        "source": "version",
-                        "text": segment_str,
-                    })
+                if not isinstance(segment_str, str) or not segment_str.strip():
+                    return
+                order.append(tref)
+                if tref not in segments:
+                    text, notes = clean_segment(segment_str)
+                    if text:
+                        segments[tref] = {"ref": tref, "text": text, "notes": notes, "size": limits.measure(text), "version": v.versionTitle}
 
             try:
                 version.walk_thru_contents(action)
             except Exception as e:  # e.g. version whose Index no longer exists
                 log("Skipping {} / {}: {}: {}".format(version.title, version.versionTitle, type(e).__name__, e))
                 continue
-            n_docs += len(docs)
-            yield from docs
-    progress.finish("{:,} refs exported".format(n_docs))
+            orders.append(order)
+
+        groups, prev_key = [], None
+        for tref in merge_orders(orders):
+            if tref not in segments:
+                continue
+            seg = segments[tref]
+            if quote_index is not None:
+                quote_index.update(key for key, _ in quote_keys(seg["text"]))
+            key = passages.get(tref) or section_of(tref)
+            if key != prev_key:
+                groups.append([])
+                prev_key = key
+            groups[-1].append(seg)
+        for group in pack_groups(groups, limits):
+            n_docs += 1
+            yield version_doc(group)
+    progress.finish("{:,} docs exported".format(n_docs))
 
 
-def user_generated_text(source):
-    """Return (node_type, text) for a user-generated English sheet node, or None for anything else."""
+def build_quote_index(limit=None):
+    """Walk the versions only to collect their sentences, when versions are not being exported."""
+    quote_index = set()
+    log("Building the library quote index from the versions (not exporting them)")
+    for _ in version_docs(limit, quote_index):
+        pass
+    return quote_index
+
+
+# Sheets
+
+def user_generated_texts(source):
+    """User-written text of a sheet node, as a list (both sides of a bilingual node); empty for library sources."""
     if "comment" in source:
-        return "comment", source["comment"]
+        return [source["comment"]]
     if "outsideText" in source:
-        return "outsideText", source["outsideText"]
+        return [source["outsideText"]]
     if "outsideBiText" in source:
-        return "outsideBiText", (source["outsideBiText"] or {}).get("en", "")
-    return None
+        bitext = source["outsideBiText"] or {}
+        return [bitext.get("he", ""), bitext.get("en", "")]
+    return []
 
 
-def sheet_docs(limit=None):
-    cursor = db.sheets.find({"status": "public"}, {"id": 1, "title": 1, "sources": 1, "owner": 1, "dateCreated": 1})
+def sheet_docs(limit=None, quote_index=None, rejected=None, limits=WORD_LIMITS):
+    """Yield one doc per public sheet. `rejected` is a Counter that collects the reason for every dropped sheet."""
+    quote_index = quote_index if quote_index is not None else set()
+    rejected = rejected if rejected is not None else Counter()
+    cursor = db.sheets.find({"status": "public"}, {"id": 1, "title": 1, "sources": 1})
     if limit:
         cursor = cursor.limit(limit)
     progress = Progress("sheets", capped(db.sheets.count_documents({"status": "public"}), limit), every=10000)
     n_docs = 0
     for sheet in cursor:
-        progress.tick(lambda: "{:,} nodes exported".format(n_docs))
-        sheet_language = get_sheet_language(sheet)
-        for position, source in enumerate(sheet.get("sources", [])):
-            node = user_generated_text(source)
-            if not node or not node[1] or not node[1].strip():
+        progress.tick(lambda: "{:,} sheets exported".format(n_docs))
+        title = html_to_text(sheet.get("title") or "").replace("\n", " ")
+        nodes, user_lines = [], []  # nodes: one list of lines per sheet node, the units a long sheet is split between
+        for source in sheet.get("sources", []):
+            if source.get("ref"):
+                nodes.append(["[{}]".format(source["ref"])])
                 continue
-            node_type, text = node
-            n_docs += 1
+            for raw in user_generated_texts(source):
+                kept, _ = drop_library_quotes(html_to_text(raw or "").split("\n"), quote_index)
+                kept = [line for line in kept if line]
+                if kept:
+                    nodes.append(kept)
+                user_lines += kept
+        user_text = "\n".join(user_lines)
+        if not user_text:
+            rejected["empty"] += 1
+            continue
+        if word_count(user_text) < MIN_SHEET_USER_WORDS:
+            rejected["too_short"] += 1
+            continue
+        if hebrew_letter_frac(user_text) > MAX_HEBREW_LETTER_FRAC:
+            rejected["hebrew_heavy"] += 1
+            continue
+        n_docs += 1
+        parts = split_units(([[title]] if title else []) + nodes, limits)
+        for i, part in enumerate(parts, 1):
+            text = "\n".join(([title] if title and i > 1 else []) + part)
             yield {
-                "id": "sheet:{}:{}".format(sheet["id"], source.get("node", position)),
+                "id": "sheet:{}".format(sheet["id"]) + ("#{}".format(i) if len(parts) > 1 else ""),
                 "source": "sheet",
+                "split": split_for("sheet:{}".format(sheet["id"])),
                 "sheet_id": sheet["id"],
-                "node": source.get("node"),
-                "position": position,
-                "node_type": node_type,
-                "sheet_language": sheet_language,
+                "sheet_language": get_sheet_language(sheet),
+                "title": title,
+                "part": i,
+                "parts": len(parts),
+                "words": word_count(text),
                 "text": text,
             }
-    progress.finish("{:,} nodes exported".format(n_docs))
+    progress.finish("{:,} sheets exported, rejected: {}".format(n_docs, dict(rejected)))
 
+
+# Webpages
 
 def whitelisted_site_name(url):
     """Return the name of the whitelisted site `url` belongs to, or None if the site is unknown or not whitelisted."""
@@ -230,10 +526,11 @@ def line_key(line):
     return hash(re.sub(r"\d+", "#", line.lower()))
 
 
-def is_english_line(line):
+def is_allowed_script_line(line):
+    """Mostly Latin or Hebrew letters. Hebrew lines are kept here; pages that are mostly Hebrew are dropped later."""
     letters = [c for c in line if c.isalpha()]
-    latin = sum(c.isascii() or "À" <= c <= "ɏ" for c in letters)
-    return bool(letters) and latin / len(letters) >= ENGLISH_LINE_MIN_LATIN
+    allowed = sum(c.isascii() or "À" <= c <= "ɏ" or "א" <= c <= "ת" for c in letters)
+    return bool(letters) and allowed / len(letters) >= SCRIPT_LINE_MIN_LATIN_OR_HEBREW
 
 
 def find_site_boilerplate(limit=None):
@@ -258,15 +555,35 @@ def find_site_boilerplate(limit=None):
 
 
 def clean_lines(lines, site_boilerplate):
-    """Drop site chrome, lines repeated within the page, and non-English lines."""
+    """Drop site chrome, lines repeated within the page, and lines in scripts other than Latin and Hebrew."""
     kept, seen = [], set()
     for line in lines:
         key = line_key(line)
-        if key in site_boilerplate or key in seen or not is_english_line(line):
+        if key in site_boilerplate or key in seen or not is_allowed_script_line(line):
             continue
         seen.add(key)
         kept.append(line)
     return kept
+
+
+def join_broken_lines(lines):
+    """Join a line that does not end a sentence to a following line that starts lowercase
+    ("A central aspect of this mitzvah is encouraging them" + "and praying for their recovery.")."""
+    joined = []
+    for line in lines:
+        if joined and not LINE_END_RE.search(joined[-1]) and line[0].islower():
+            joined[-1] += " " + line
+        else:
+            joined.append(line)
+    return joined
+
+
+def drop_preamble(lines):
+    """Drop the short lines before the first prose line: section menus, bylines, tables of contents."""
+    for i, line in enumerate(lines):
+        if word_count(line) >= PROSE_LINE_MIN_WORDS:
+            return lines[i:]
+    return lines
 
 
 def repeated_ngram_frac(words):
@@ -280,14 +597,15 @@ def webpage_quality(url, title, lines):
     """Return (reject_reason or None, metrics) for the cleaned `lines` of a page."""
     text = "\n".join(lines)
     words = re.findall(r"\w+", text.lower())
-    alpha_words = re.findall(r"[^\W\d_]+", text.lower())
+    latin_words = re.findall(r"[a-zÀ-ɏ]+", text.lower())
     prose_words = sum(len(line.split()) for line in lines if len(line.split()) >= PROSE_LINE_MIN_WORDS)
     metrics = {
         "words": len(words),
         "prose_words": prose_words,
         "prose_frac": round(prose_words / len(words), 3) if words else 0.0,
         "repeated_ngram_frac": round(repeated_ngram_frac(words), 3),
-        "english_stopword_frac": round(sum(w in ENGLISH_STOPWORDS for w in alpha_words) / max(len(alpha_words), 1), 3),
+        "english_stopword_frac": round(sum(w in ENGLISH_STOPWORDS for w in latin_words) / max(len(latin_words), 1), 3),
+        "hebrew_letter_frac": round(hebrew_letter_frac(text), 3),
     }
     if LISTING_URL_RE.search(url):
         reason = "url_listing"
@@ -295,6 +613,8 @@ def webpage_quality(url, title, lines):
         reason = "error_page"
     elif prose_words < MIN_PROSE_WORDS:
         reason = "too_short"
+    elif metrics["hebrew_letter_frac"] > MAX_HEBREW_LETTER_FRAC:
+        reason = "hebrew_heavy"
     elif metrics["english_stopword_frac"] < MIN_ENGLISH_STOPWORD_FRAC:
         reason = "not_english"
     elif metrics["prose_frac"] < MIN_PROSE_FRAC:
@@ -310,38 +630,73 @@ def webpage_quality(url, title, lines):
     return reason, metrics
 
 
-def webpage_docs(limit=None, rejected=None):
-    """Yield quality-filtered webpage docs. `rejected` is a Counter that collects the reason for every dropped page."""
+def webpage_docs(limit=None, quote_index=None, rejected=None, site_word_cap=SITE_WORD_CAP, tmp_dir=None, limits=WORD_LIMITS):
+    """Yield quality-filtered webpage docs. `rejected` is a Counter that collects the reason for every dropped page.
+    Pages that pass are written to a temp file first, so that each site's cap can be applied to a stable hash
+    sample of all its pages rather than to whichever pages the cursor returns first."""
+    quote_index = quote_index if quote_index is not None else set()
     rejected = rejected if rejected is not None else Counter()
     boilerplate = find_site_boilerplate(limit)
     exported_texts = set()
-    progress = Progress("webpages pass 2/2 (filter + export)", capped(db.webpages_text.estimated_document_count(), limit), every=10000)
-    for page in db.webpages_text.find({}, limit=limit or 0):
-        progress.tick(lambda: "{:,} kept, {:,} rejected".format(len(exported_texts), sum(rejected.values())))
-        site = whitelisted_site_name(page["url"])
-        if not site:
-            rejected["not_whitelisted"] += 1
-            continue
-        title = normalize_line(page.get("title") or "")
-        lines = clean_lines(body_lines(page.get("body") or ""), boilerplate[site])
-        reason, metrics = webpage_quality(page["url"], title, lines)
-        text = "\n".join(lines)
-        if not reason and hash(text) in exported_texts:
-            reason = "duplicate"
-        if reason:
-            rejected[reason] += 1
-            continue
-        exported_texts.add(hash(text))
-        yield {
-            "id": "webpage:{}".format(page["_id"]),
-            "source": "webpage",
-            "url": page["url"],
-            "site": site,
-            "title": title,
-            "text": text,
-            **metrics,
-        }
-    progress.finish("{:,} kept, {:,} rejected".format(len(exported_texts), sum(rejected.values())))
+    candidates = defaultdict(list)  # site -> [(url hash, words, [temp file offset of each part])]
+    progress = Progress("webpages pass 2/2 (filter)", capped(db.webpages_text.estimated_document_count(), limit), every=10000)
+    with tempfile.TemporaryFile(dir=tmp_dir) as tmp:
+        for page in db.webpages_text.find({}, limit=limit or 0):
+            progress.tick(lambda: "{:,} passed, {:,} rejected".format(len(exported_texts), sum(rejected.values())))
+            site = whitelisted_site_name(page["url"])
+            if not site:
+                rejected["not_whitelisted"] += 1
+                continue
+            title = normalize_line(page.get("title") or "")
+            lines = join_broken_lines(clean_lines(body_lines(page.get("body") or ""), boilerplate[site]))
+            lines, _ = drop_library_quotes(lines, quote_index)
+            lines = drop_preamble(lines)
+            reason, metrics = webpage_quality(page["url"], title, lines)
+            body = "\n".join(lines)
+            if not reason and hash(body) in exported_texts:
+                reason = "duplicate"
+            if reason:
+                rejected[reason] += 1
+                continue
+            exported_texts.add(hash(body))
+            parts = split_units([[line] for line in lines], limits)
+            offsets, page_words = [], 0
+            for i, part in enumerate(parts, 1):
+                part_body = "\n".join(part)
+                text = title + "\n\n" + part_body if title and title != lines[0] else part_body
+                doc = {
+                    "id": "webpage:{}".format(page["_id"]) + ("#{}".format(i) if len(parts) > 1 else ""),
+                    "source": "webpage",
+                    "split": split_for(page["url"]),
+                    "url": page["url"],
+                    "site": site,
+                    "title": title,
+                    "part": i,
+                    "parts": len(parts),
+                    **metrics,
+                    "words": word_count(text),
+                    "text": text,
+                }
+                offsets.append(tmp.tell())
+                page_words += doc["words"]
+                tmp.write((json.dumps(doc, ensure_ascii=False) + "\n").encode("utf-8"))
+            candidates[site].append((stable_hash(page["url"]), page_words, offsets))
+        progress.finish("{:,} passed, {:,} rejected".format(len(exported_texts), sum(rejected.values())))
+
+        keep = []
+        for site, pages in candidates.items():
+            site_words = 0
+            for _, words, offsets in sorted(pages):  # a page's parts are kept or dropped together
+                if site_word_cap and site_words + words > site_word_cap:
+                    rejected["site_cap"] += 1
+                    continue
+                site_words += words
+                keep.extend(offsets)
+            if site_word_cap and site_words >= 0.9 * site_word_cap:
+                log("site cap: {} kept {:,} words".format(site, site_words))
+        for offset in sorted(keep):
+            tmp.seek(offset)
+            yield json.loads(tmp.readline())
 
 
 def main():
@@ -350,28 +705,42 @@ def main():
     parser.add_argument("--only", choices=["versions", "sheets", "webpages"], help="export just one source")
     parser.add_argument("--exclude", nargs="+", choices=["versions", "sheets", "webpages"], default=[], help="skip these sources")
     parser.add_argument("--limit", type=int, help="max indexes / sheets / webpages to read, for testing")
+    parser.add_argument("--site-word-cap", type=int, default=SITE_WORD_CAP, help="max words per website, 0 for no cap (default: %(default)s)")
+    parser.add_argument("--max-tokens", type=int, help="measure doc length in tokens and split docs above this many, instead of MAX_DOC_WORDS words")
+    parser.add_argument("--tokenizer", default=DEFAULT_TOKENIZER, help="tokenizer for --max-tokens (default: %(default)s)")
     args = parser.parse_args()
+    limits = token_limits(args.tokenizer, args.max_tokens) if args.max_tokens else WORD_LIMITS
 
-    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
-    counts = {"version": 0, "sheet": 0, "webpage": 0}
-    rejected = Counter()
+    def wanted(source):
+        return args.only in (None, source) and source not in args.exclude
+
+    out_dir = os.path.dirname(os.path.abspath(args.out))
+    os.makedirs(out_dir, exist_ok=True)
+    counts, words = Counter(), Counter()
+    rejected = {"sheet": Counter(), "webpage": Counter()}
+    quote_index = set()
+    if not wanted("versions") and (wanted("sheets") or wanted("webpages")):
+        quote_index = build_quote_index(args.limit)
     with open(args.out, "w", encoding="utf-8") as fout:
         generators = []
-        if args.only in (None, "versions") and "versions" not in args.exclude:
-            generators.append(version_docs(args.limit))
-        if args.only in (None, "sheets") and "sheets" not in args.exclude:
-            generators.append(sheet_docs(args.limit))
-        if args.only in (None, "webpages") and "webpages" not in args.exclude:
-            generators.append(webpage_docs(args.limit, rejected))
+        # Versions must come first: they fill quote_index, which the sheets and webpages are checked against.
+        if wanted("versions"):
+            generators.append(version_docs(args.limit, quote_index, limits))
+        if wanted("sheets"):
+            generators.append(sheet_docs(args.limit, quote_index, rejected["sheet"], limits))
+        if wanted("webpages"):
+            generators.append(webpage_docs(args.limit, quote_index, rejected["webpage"], args.site_word_cap, out_dir, limits))
         for gen in generators:
             for doc in gen:
                 fout.write(json.dumps(doc, ensure_ascii=False) + "\n")
                 counts[doc["source"]] += 1
+                words[doc["source"]] += doc["words"]
                 if sum(counts.values()) % 100000 == 0:
-                    log("written so far: {} ({:.2f} GB)".format(counts, fout.tell() / 1e9))
-    log("Wrote {} to {} ({:.2f} GB)".format(counts, args.out, os.path.getsize(args.out) / 1e9))
-    if rejected:
-        log("Webpages rejected: {}".format(dict(rejected.most_common())))
+                    log("written so far: {} ({:.2f} GB)".format(dict(counts), fout.tell() / 1e9))
+    log("Wrote {} docs, {} words to {} ({:.2f} GB)".format(dict(counts), dict(words), args.out, os.path.getsize(args.out) / 1e9))
+    for source, reasons in rejected.items():
+        if reasons:
+            log("{} rejected: {}".format(source, dict(reasons.most_common())))
 
 
 if __name__ == "__main__":
