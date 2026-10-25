@@ -39,6 +39,7 @@ import { entryKey, navFor, readNavState, useWorkspaceNav, type NavState } from "
 import { panelForRef } from "../workspace/open-ref";
 import { toRouterLocation } from "../shared/RouterLink";
 import { ConnectionsPane } from "./ConnectionsPane";
+import { RefPreviews } from "../study/RefPreview";
 import styles from "./TextPanel.module.css";
 import { setMobileMenuOpen } from "../shell/mobile-menu";
 import { SignUpModal } from "~/ui/SignUpModal/SignUpModal";
@@ -408,7 +409,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // this panel's current verse, and the cited text opens right after it. VERIFIED: [Ramban, Exodus 1] → citation →
   // [Ramban on Genesis 1:1:1, Exodus 12:2]; a second citation replaces the first.
   const onCitationClick = useCallback(
-    (ref: string, e?: React.MouseEvent) => {
+    (ref: string, e?: { target: EventTarget | null }) => {
       readerAnalytics.citationClicked(ref);
       const verse = (e?.target as Element | undefined)?.closest<HTMLElement>("[data-ref]")?.dataset.ref;
       void panelForRef(qc, ref, { lang: openLang }).then((target) => {
@@ -430,6 +431,12 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       });
     },
     [qc, id, nav, openLang],
+  );
+
+  // A ref link opens a preview card first; its "Open on page" opens the text as a click on the link used to.
+  const openPreviewed = useCallback(
+    (ref: string, link: HTMLAnchorElement | null) => (link && !link.closest(`.${styles.aside}`) ? onCitationClick(ref, { target: link }) : onRefClick(ref)),
+    [onCitationClick, onRefClick],
   );
 
   // Words selected in the text: with the sidebar open, a lookup of up to three Hebrew words in one segment switches it
@@ -822,6 +829,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           ) : null
         }
       />
+      <RefPreviews root={rootEl} language={settings0.language} onOpen={openPreviewed} />
     </section>
   );
 }
