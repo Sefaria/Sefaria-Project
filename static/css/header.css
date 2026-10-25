@@ -139,11 +139,10 @@
 }
 
 /* As the window narrows the pill only shrinks, never grows back: the full label, then "Ask"
-   (or its Hebrew), then hidden. The widths come from the most crowded header (logged
-   out; English for the full label, Hebrew for the short one), so the pill always stays 16px
-   from "Donate" and never pushes the header's icons off screen. Sefaria's large header
-   (1087px and up) holds more than the medium one, which is why even "Ask" stops fitting at
-   1117px. The pill is in $exclude-flex, so the .headerInner catch-all doesn't override these. */
+   (or its Hebrew), then hidden. The widths come from the most crowded header (logged out;
+   English for the full label, Hebrew for the short one), so the pill always stays 16px from
+   "Donate" and never pushes the header's icons off screen. The pill is in $exclude-flex, so
+   the .headerInner catch-all doesn't override these. */
 .textLink.libraryAssistantLink .libraryAssistantShortLabel {
   display: none;
 }
@@ -156,7 +155,7 @@
     display: inline;
   }
 }
-@media (max-width: 1117px) {
+@media (max-width: 899px) {
   .textLink.libraryAssistantLink,
   .textLink.libraryAssistantLink:is(:hover, :focus, :active) {
     display: none;
