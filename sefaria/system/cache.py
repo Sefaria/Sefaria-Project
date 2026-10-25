@@ -1,6 +1,7 @@
 
 import hashlib
 import sys
+import threading
 from datetime import datetime
 from functools import wraps
 from typing import Optional, Any, Union
@@ -180,26 +181,50 @@ def delete_template_cache(fragment_name='', *args):
     delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args]).encode('utf-8')).hexdigest()))
 
 
+def _now_timestamp() -> float:
+    return datetime.now().timestamp()
+
+
 class InMemoryCache():
-    data = {}
-    timeouts = {}
+    """
+    Per-process cache with optional per-key timeouts and a bounded number of entries.
+    State is per instance. When the bound is exceeded, the least recently set entry is evicted.
+    """
+    DEFAULT_MAX_ENTRIES = 10000
+
+    def __init__(self, max_entries: int = DEFAULT_MAX_ENTRIES):
+        self.data = {}
+        self.timeouts = {}
+        self.max_entries = max_entries
+        self._lock = threading.Lock()
 
     def set(self, key, val, timeout=None):
-        self.data[key] = val
-        if timeout:
-            self.timeouts[key] = (timeout, datetime.now().timestamp())
+        with self._lock:
+            self.data.pop(key, None)
+            self.data[key] = val
+            if timeout:
+                self.timeouts[key] = (timeout, _now_timestamp())
+            else:
+                self.timeouts.pop(key, None)
+            while len(self.data) > self.max_entries:
+                oldest = next(iter(self.data))
+                del self.data[oldest]
+                self.timeouts.pop(oldest, None)
 
     def get(self, key):
-        timeout = self.timeouts.get(key, None)
-        if timeout and timeout[0] + timeout[1] < datetime.now().timestamp():
-            self.set(key, None, timeout=timeout[0])
-            return None
+        with self._lock:
+            timeout = self.timeouts.get(key, None)
+            if timeout and timeout[0] + timeout[1] < _now_timestamp():
+                self.data.pop(key, None)
+                self.timeouts.pop(key, None)
+                return None
 
-        return self.data.get(key,  None)
+            return self.data.get(key, None)
 
     def reset_all(self):
-        for k in self.data:
-            self.data[k] = None
+        with self._lock:
+            self.data.clear()
+            self.timeouts.clear()
 
 
 in_memory_cache = InMemoryCache()
