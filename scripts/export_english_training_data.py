@@ -22,6 +22,8 @@ Version and sheet HTML is converted to plain text. Bold is kept as markdown `**.
 (in the Steinsaltz Talmud bold is the literal translation and plain text is the explanation; in commentaries bold
 is the quoted lemma). Footnotes are taken out of the running text and appended to the end of the doc under "Notes:".
 
+URLs are removed from all text (an `<a>` tag is dropped, and so is a bare link), since they are noise to a language model.
+
 Library text quoted verbatim elsewhere is not exported twice: a sheet or webpage paragraph is dropped when at
 least QUOTE_PARAGRAPH_FRAC of its words are in sentences that also appear in an English version. This needs the
 versions read first, so `--only sheets` / `--only webpages` still walk the versions (without writing them).
@@ -52,18 +54,34 @@ Then the cleaned text must pass every check below, otherwise the page is dropped
                 site's pages, so one large site (e.g. Times of Israel Blogs) cannot dominate the corpus.
 Per-reason counts are printed at the end.
 
+Dedupe. Once everything is exported, one more pass removes duplicates, so the model cannot memorize repeated text and
+the eval split cannot leak into training. Eval docs go first and are never dropped for matching a train doc; a train
+doc that matches an eval doc is dropped. Within a split, docs are taken in source-priority order (versions, sheets,
+webpages), so the canonical copy survives. For each doc, in order:
+  exact       cleaned text identical to an earlier doc
+  near        MinHash over word 5-grams at >= NEAR_DUP_THRESHOLD similarity to an earlier doc
+  paragraph   paragraphs of >= LONG_PARAGRAPH_MIN_WORDS words that are in an earlier doc are removed (this catches
+              quotations); a doc left too short is dropped
+Docs and words after every stage are logged per source and saved to <out>.stats.json.
+
+Context length. Docs are sized with a ModernBERT tokenizer (--tokenizer), and the last step re-measures every doc as
+the model will see it (the `tokens` field, plus [CLS] and [SEP]) and drops any that still exceed MODEL_CONTEXT_TOKENS.
+Footnotes count towards a doc's size. A sheet node, webpage line or text segment that alone exceeds --max-tokens is
+split at line, then sentence, then word boundaries.
+
 Usage:
     ./run scripts/export_english_training_data.py
     ./run scripts/export_english_training_data.py --only sheets --limit 100 --out /path/out.jsonl
     ./run scripts/export_english_training_data.py --only webpages --limit 5000
     ./run scripts/export_english_training_data.py --exclude webpages
     ./run scripts/export_english_training_data.py --site-word-cap 0   # no per-site cap
-    ./run scripts/export_english_training_data.py --max-tokens 7500   # size docs for ModernBERT's 8192-token context
+    ./run scripts/export_english_training_data.py --max-tokens 0      # measure docs in words (MAX_DOC_WORDS), no tokenizer
 
-Doc length is measured in words by default (MIN_DOC_WORDS / MAX_DOC_WORDS). With --max-tokens it is measured in tokens
-of --tokenizer instead, because tokens per word varies a lot here (about 1.5 for English prose, over 10 for Hebrew-heavy
-sheets), so no word cap fits a fixed context. Leave some room under the model's limit: the ref, a repeated sheet or page
-title and "Notes:" are added to a doc after its segments are measured.
+Doc length is measured in tokens of --tokenizer (ModernBERT's) by default, with docs split above --max-tokens, because
+tokens per word varies a lot here (about 1.5 for English prose, over 10 for Hebrew-heavy sheets), so no word cap fits a
+fixed context. --max-tokens leaves room under the model's limit: the ref and a repeated sheet or page title are added
+to a doc after its segments are measured. With --max-tokens 0 length is measured in words (MIN_DOC_WORDS /
+MAX_DOC_WORDS) and the context check is skipped.
 """
 import argparse
 import hashlib
@@ -76,6 +94,8 @@ import time
 from collections import Counter, defaultdict
 from datetime import timedelta
 from functools import lru_cache
+
+import numpy as np
 
 import django
 django.setup()
@@ -96,6 +116,10 @@ MIN_DOC_WORDS = 100
 MAX_DOC_WORDS = 2000
 MIN_DOC_TOKENS = 200  # about MIN_DOC_WORDS words, at ~2 tokens per word
 DEFAULT_TOKENIZER = "answerdotai/ModernBERT-base"
+DEFAULT_MAX_TOKENS = 7500  # leaves ~700 tokens of the 8192 for the ref, a repeated title and [CLS]/[SEP]
+MODEL_CONTEXT_TOKENS = 8192
+MODERNBERT_VOCAB_SIZE = 50368  # counting its added special tokens
+SPECIAL_TOKENS = 2  # [CLS] and [SEP]
 
 # Sheets
 MIN_SHEET_USER_WORDS = 20  # user-written words, not counting the title or ref citations
@@ -105,6 +129,14 @@ QUOTE_MIN_WORDS = 8  # shorter sentences ("And God said:") are too common to cou
 QUOTE_PARAGRAPH_FRAC = 0.5
 
 MAX_HEBREW_LETTER_FRAC = 0.5
+
+# Dedupe
+LONG_PARAGRAPH_MIN_WORDS = 15
+MIN_DEDUPED_DOC_WORDS = 50  # a text or sheet doc that loses paragraphs to dedupe must keep this many words (webpages: MIN_PROSE_WORDS of prose)
+SHINGLE_SIZE = 5            # words per MinHash shingle
+NUM_PERM = 128              # MinHash signature length
+LSH_BANDS = 16              # 128 / 16 = 8 rows per band; candidates are then verified against NEAR_DUP_THRESHOLD
+NEAR_DUP_THRESHOLD = 0.8
 
 # Webpage quality thresholds, calibrated by hand on the 100k-page sample of `webpages_text`.
 BOILERPLATE_MIN_FRAC = 0.01  # a line on >= this share of a site's pages is site chrome...
@@ -137,6 +169,10 @@ LINE_END_RE = re.compile(r"[.!?:;\"”’')\]]$")
 BOLD_RE = re.compile(r"<(b|strong)\b[^>]*>(\s*)(.*?)(\s*)</\1>", re.S | re.I)
 BLOCK_TAG_RE = re.compile(r"<br\s*/?>|</?(p|div|li|ul|ol|h\d|tr|blockquote)\b[^>]*>", re.I)
 TAG_RE = re.compile(r"<[^>]+>")
+# A URL, without the punctuation that ends the sentence it sits in, and without markdown bold markers around it.
+URL_RE = re.compile(r"""(?:https?://|\bwww\.)[^\s<>*]*[^\s<>*.,;:!?'")\]”’]""", re.I)
+EMPTY_BOLD_RE = re.compile(r"\*\*\s*\*\*")
+WORD_RE = re.compile(r"\w+")
 FOOTNOTE_MARKER_RE = re.compile(r'<sup[^>]*class="footnote-marker"[^>]*>.*?</sup>', re.S)
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?;:])\s+")
 HEBREW_LETTER_RE = re.compile(r"[א-ת]")
@@ -212,21 +248,26 @@ def word_count(text):
 class SizeLimits:
     """How the length of a doc is measured, and the range its parts should fall in (see pack_groups)."""
 
-    def __init__(self, measure, min_size, max_size):
-        self.measure, self.min_size, self.max_size = measure, min_size, max_size
+    def __init__(self, measure, min_size, max_size, in_tokens=False):
+        self.measure, self.min_size, self.max_size, self.in_tokens = measure, min_size, max_size, in_tokens
 
 
 WORD_LIMITS = SizeLimits(word_count, MIN_DOC_WORDS, MAX_DOC_WORDS)
 
 
-def token_limits(tokenizer_name, max_tokens):
-    """Limits measured in tokens of a Hugging Face tokenizer, with no special tokens counted."""
-    from transformers import AutoTokenizer
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-    tokenizer.model_max_length = int(1e9)  # silences the long-sequence warning; we only count
+def token_limits(tokenizer, max_tokens):
+    """Limits measured in tokens of a Hugging Face tokenizer (a hub name, or the path of a tokenizer.json), with no
+    special tokens counted. Uses the `tokenizers` library alone, so `transformers` is not needed."""
+    from tokenizers import Tokenizer
+    tk = Tokenizer.from_file(tokenizer) if os.path.exists(tokenizer) else Tokenizer.from_pretrained(tokenizer)
+    tk.no_truncation()
+    log("tokenizer: {} (vocab size {:,}), docs up to {:,} tokens".format(tokenizer, tk.get_vocab_size(), max_tokens))
+    if tk.get_vocab_size() != MODERNBERT_VOCAB_SIZE:
+        raise SystemExit("{} has {:,} tokens; ModernBERT's tokenizer has {:,}, so counts would not match the model's".format(
+            tokenizer, tk.get_vocab_size(), MODERNBERT_VOCAB_SIZE))
     return SizeLimits(
-        lambda text: len(tokenizer(text, add_special_tokens=False)["input_ids"]),
-        min(MIN_DOC_TOKENS, max_tokens), max_tokens)
+        lambda text: len(tk.encode(text, add_special_tokens=False).ids),
+        min(MIN_DOC_TOKENS, max_tokens), max_tokens, in_tokens=True)
 
 
 def hebrew_letter_frac(text):
@@ -238,6 +279,7 @@ def html_to_text(s):
     """Plain text from stored HTML: block tags become line breaks, bold becomes **markdown bold**, other tags are dropped."""
     s = BOLD_RE.sub(lambda m: "{}**{}**{}".format(m[2], m[3], m[4]) if m[3].strip() else m[2] + m[4], s)
     s = html.unescape(TAG_RE.sub("", BLOCK_TAG_RE.sub("\n", s)))
+    s = EMPTY_BOLD_RE.sub(" ", URL_RE.sub(" ", s))
     lines = (re.sub(r"[ \t ]+", " ", line).strip() for line in s.split("\n"))
     return "\n".join(line for line in lines if line)
 
@@ -345,10 +387,49 @@ def pack_groups(groups, limits=WORD_LIMITS):
             yield part
 
 
+def cut_words(text, limits):
+    """Halve `text` at word boundaries until every piece is within limits.max_size (a single huge word stays whole)."""
+    words = text.split()
+    if len(words) < 2 or limits.measure(text) <= limits.max_size:
+        return [text]
+    half = len(words) // 2
+    return cut_words(" ".join(words[:half]), limits) + cut_words(" ".join(words[half:]), limits)
+
+
+def split_line(line, limits):
+    """Split a line longer than limits.max_size into pieces at sentence boundaries, cutting at word boundaries
+    any sentence that is itself too long."""
+    pieces, buf, buf_size = [], [], 0
+    for sentence in SENTENCE_SPLIT_RE.split(line):
+        for chunk in cut_words(sentence, limits):
+            size = limits.measure(chunk)
+            if buf and buf_size + size > limits.max_size:
+                pieces.append(" ".join(buf))
+                buf, buf_size = [], 0
+            buf.append(chunk)
+            buf_size += size
+    if buf:
+        pieces.append(" ".join(buf))
+    return pieces
+
+
 def split_units(units, limits=WORD_LIMITS):
     """Split a doc into parts of about limits.max_size. `units` is a list of line lists (a sheet node, a webpage
-    line) that are kept whole; returns the parts as flat line lists. A doc under the limit comes back as one part."""
-    segments = [{"lines": unit, "size": sum(limits.measure(line) for line in unit)} for unit in units]
+    line) that are kept whole, unless one alone is over the limit: that is broken into its lines, and a line that is
+    still over the limit into pieces (see split_line). Returns the parts as flat line lists. A doc under the limit
+    comes back as one part."""
+    lines = [line for unit in units for line in unit]
+    if limits.measure("\n".join(lines)) <= limits.max_size:
+        return [lines]
+    segments = []
+    for unit in units:
+        size = sum(limits.measure(line) for line in unit)
+        if size <= limits.max_size:
+            segments.append({"lines": unit, "size": size})
+            continue
+        for line in unit:
+            pieces = split_line(line, limits) if limits.measure(line) > limits.max_size else [line]
+            segments.extend({"lines": [piece], "size": limits.measure(piece)} for piece in pieces)
     return [[line for seg in part for line in seg["lines"]] for part in pack_groups([segments], limits)]
 
 
@@ -375,6 +456,35 @@ def version_doc(segments):
     }
 
 
+def fit_notes(text, notes, limits):
+    """The footnotes that fit alongside `text` within limits.max_size; the rest are dropped."""
+    used, kept = limits.measure(text), []
+    for note in notes:
+        size = limits.measure(note)
+        if used + size > limits.max_size:
+            break
+        used += size
+        kept.append(note)
+    return kept
+
+
+def make_segments(tref, text, notes, version, limits):
+    """Segment dicts for one stored segment: normally one, several if its text is over limits.max_size (they share
+    the ref). The size of a segment includes its footnotes, which are appended to the end of the doc."""
+    size = limits.measure(text)
+    if size <= limits.max_size:
+        pieces, sizes = [text], [size]
+    else:
+        pieces = ["\n".join(part) for part in split_units([text.split("\n")], limits)]
+        sizes = [limits.measure(piece) for piece in pieces]
+    notes = fit_notes(pieces[-1], notes, limits) if notes else []
+    sizes[-1] += sum(limits.measure(note) for note in notes)
+    return [
+        {"ref": tref, "text": piece, "notes": notes if i == len(pieces) - 1 else [], "size": size, "version": version}
+        for i, (piece, size) in enumerate(zip(pieces, sizes))
+    ]
+
+
 def version_docs(limit=None, quote_index=None, limits=WORD_LIMITS):
     """Yield passage-sized docs for every English text. Within each index, versions are tried in Sefaria's preference
     order (VersionSet default: priority desc, then _id) and a ref is taken from the first version that has it.
@@ -384,6 +494,7 @@ def version_docs(limit=None, quote_index=None, limits=WORD_LIMITS):
     titles = sorted(db.texts.distinct("title", {"actualLanguage": "en"}))[:limit or None]
     progress = Progress("versions (indexes)", len(titles), every=100)
     n_docs = 0
+    ref_counts = Counter()
     for title in titles:
         progress.tick(lambda: "{:,} docs exported".format(n_docs))
         segments, orders = {}, []
@@ -397,7 +508,7 @@ def version_docs(limit=None, quote_index=None, limits=WORD_LIMITS):
                 if tref not in segments:
                     text, notes = clean_segment(segment_str)
                     if text:
-                        segments[tref] = {"ref": tref, "text": text, "notes": notes, "size": limits.measure(text), "version": v.versionTitle}
+                        segments[tref] = make_segments(tref, text, notes, v.versionTitle, limits)
 
             try:
                 version.walk_thru_contents(action)
@@ -410,17 +521,21 @@ def version_docs(limit=None, quote_index=None, limits=WORD_LIMITS):
         for tref in merge_orders(orders):
             if tref not in segments:
                 continue
-            seg = segments[tref]
             if quote_index is not None:
-                quote_index.update(key for key, _ in quote_keys(seg["text"]))
+                quote_index.update(key for seg in segments[tref] for key, _ in quote_keys(seg["text"]))
             key = passages.get(tref) or section_of(tref)
             if key != prev_key:
                 groups.append([])
                 prev_key = key
-            groups[-1].append(seg)
+            groups[-1].extend(segments[tref])
         for group in pack_groups(groups, limits):
             n_docs += 1
-            yield version_doc(group)
+            doc = version_doc(group)
+            n_same_ref = ref_counts[doc["id"]]  # a segment split in pieces gives several docs the same ref
+            ref_counts[doc["id"]] += 1
+            if n_same_ref:
+                doc["id"] += "#{}".format(n_same_ref + 1)
+            yield doc
     progress.finish("{:,} docs exported".format(n_docs))
 
 
@@ -514,7 +629,7 @@ def whitelisted_site_name_for_domain(domain):
 
 
 def normalize_line(line):
-    return re.sub(r"\s+", " ", JUNK_TOKEN_RE.sub(" ", html.unescape(line))).strip()
+    return re.sub(r"\s+", " ", URL_RE.sub(" ", JUNK_TOKEN_RE.sub(" ", html.unescape(line)))).strip()
 
 
 def body_lines(body):
@@ -699,6 +814,171 @@ def webpage_docs(limit=None, quote_index=None, rejected=None, site_word_cap=SITE
             yield json.loads(tmp.readline())
 
 
+# Dedupe
+
+class NearDuplicateIndex:
+    """MinHash over word 5-grams, with LSH banding to find candidates. Candidates are then checked against the
+    full signature, so a pair is only a duplicate if its estimated Jaccard similarity is >= `threshold`."""
+
+    def __init__(self, num_perm=NUM_PERM, bands=LSH_BANDS, threshold=NEAR_DUP_THRESHOLD):
+        rng = np.random.default_rng(0)
+        odd = lambda size: rng.integers(1, 2 ** 63, size=size, dtype=np.uint64) | np.uint64(1)
+        self.shingle_multipliers = odd(SHINGLE_SIZE)
+        self.multipliers = odd(num_perm)
+        self.offsets = rng.integers(0, 2 ** 63, size=num_perm, dtype=np.uint64)
+        self.bands, self.rows, self.threshold = bands, num_perm // bands, threshold
+        self.buckets = {}     # hash of (band, band signature) -> index of the first doc in it
+        self.signatures = []  # signature of every indexed doc
+        self.splits = []      # split of every indexed doc
+
+    def signature(self, words):
+        word_hashes = np.array([hash(w) for w in words], dtype=np.int64).view(np.uint64)
+        n_shingles = len(word_hashes) - SHINGLE_SIZE + 1
+        if n_shingles < 1:
+            shingles = np.array([hash(" ".join(words))], dtype=np.int64).view(np.uint64)
+        else:  # wrapping uint64 arithmetic is intended: it mixes the 5 word hashes into one shingle hash
+            shingles = word_hashes[:n_shingles] * self.shingle_multipliers[0]
+            for i in range(1, SHINGLE_SIZE):
+                shingles = shingles + word_hashes[i:i + n_shingles] * self.shingle_multipliers[i]
+        signature = np.full(len(self.multipliers), np.iinfo(np.uint64).max, dtype=np.uint64)
+        for start in range(0, len(shingles), 2048):  # in chunks, to bound the (shingles x permutations) matrix
+            chunk = shingles[start:start + 2048]
+            hashed = (chunk[:, None] * self.multipliers[None, :] + self.offsets[None, :]) >> np.uint64(32)
+            signature = np.minimum(signature, hashed.min(axis=0))
+        return signature.astype(np.uint32)
+
+    def match_or_add(self, words, split):
+        """Return the split of an indexed doc that `words` is a near-duplicate of; or, if there is none, index
+        `words` under `split` and return None."""
+        signature = self.signature(words)
+        keys = [hash((band, signature[band * self.rows:(band + 1) * self.rows].tobytes())) for band in range(self.bands)]
+        for candidate in sorted({self.buckets[key] for key in keys if key in self.buckets}):
+            if (self.signatures[candidate] == signature).mean() >= self.threshold:
+                return self.splits[candidate]
+        index = len(self.signatures)
+        self.signatures.append(signature)
+        self.splits.append(split)
+        for key in keys:
+            self.buckets.setdefault(key, index)
+        return None
+
+
+def paragraph_key(line):
+    return hash(re.sub(r"\s+", " ", line.replace("**", "")).strip().lower())
+
+
+def too_short_after_dedupe(source, lines):
+    if source == "webpage":
+        return sum(word_count(line) for line in lines if word_count(line) >= PROSE_LINE_MIN_WORDS) < MIN_PROSE_WORDS
+    return word_count("\n".join(lines)) < MIN_DEDUPED_DOC_WORDS
+
+
+def drop_repeated_paragraphs(doc, seen_paragraphs):
+    """Remove from `doc` the long paragraphs already in `seen_paragraphs`. Returns False if the doc is left too short."""
+    lines = doc["text"].split("\n")
+    kept = [line for line in lines if word_count(line) < LONG_PARAGRAPH_MIN_WORDS or paragraph_key(line) not in seen_paragraphs]
+    if len(kept) < len(lines):
+        text_lines = []
+        for line in kept:  # collapse the blank lines the removed paragraphs leave behind
+            if line or (text_lines and text_lines[-1]):
+                text_lines.append(line)
+        while text_lines and not text_lines[-1].strip():
+            text_lines.pop()
+        if text_lines and text_lines[-1] == "Notes:":  # all its notes were removed
+            text_lines.pop()
+        if too_short_after_dedupe(doc["source"], [line for line in text_lines if line]):
+            return False
+        doc["text"] = "\n".join(text_lines)
+        doc["words"] = word_count(doc["text"])
+    seen_paragraphs.update(paragraph_key(line) for line in doc["text"].split("\n") if word_count(line) >= LONG_PARAGRAPH_MIN_WORDS)
+    return True
+
+
+class StageStats:
+    """Docs and words that are still in the corpus after each dedupe stage, per source."""
+    STAGES = ("exported", "exact_deduped", "near_deduped", "paragraph_deduped", "within_context")
+
+    def __init__(self):
+        self.docs = {stage: Counter() for stage in self.STAGES}
+        self.words = {stage: Counter() for stage in self.STAGES}
+
+    def add(self, stage, doc):
+        self.docs[stage][doc["source"]] += 1
+        self.words[stage][doc["source"]] += doc["words"]
+
+    def as_dict(self):
+        sources = ("version", "sheet", "webpage")
+        return {
+            stage: {
+                **{source: {"docs": self.docs[stage][source], "words": self.words[stage][source]} for source in sources},
+                "total": {"docs": sum(self.docs[stage].values()), "words": sum(self.words[stage].values())},
+            }
+            for stage in self.STAGES
+        }
+
+    def log(self):
+        columns = ("version", "sheet", "webpage", "total")
+        log("{:<18}".format("stage") + "".join("{:>13}{:>16}".format(c + " docs", c + " words") for c in columns))
+        for stage, row in self.as_dict().items():
+            log("{:<18}".format(stage) + "".join("{:>13,}{:>16,}".format(row[c]["docs"], row[c]["words"]) for c in columns))
+
+
+def read_docs(path, split):
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            doc = json.loads(line)
+            if doc["split"] == split:
+                yield doc
+
+
+def dedupe_docs(raw_path, n_docs, fout, limits, stats, rejected):
+    """Write the docs of `raw_path` to `fout` without duplicates, and (when sizes are in tokens) only those that fit the
+    model's context. Eval docs are indexed first, so a train doc that matches one is dropped. `rejected` counts
+    the reason for every dropped doc, as {(source, reason): n}."""
+    exact, near, paragraphs = {}, NearDuplicateIndex(), set()  # exact: hash of text -> split
+    progress = Progress("dedupe", n_docs, every=50000)
+    n_kept = 0
+    for split in ("eval", "train"):
+        for doc in read_docs(raw_path, split):
+            progress.tick(lambda: "{:,} kept, {:,} rejected".format(n_kept, sum(rejected.values())))
+            source = doc["source"]
+            stats.add("exported", doc)
+
+            def reject(reason):
+                rejected[(source, reason + ("_of_eval" if split == "train" and match == "eval" else ""))] += 1
+
+            key = hash(doc["text"])
+            match = exact.get(key)
+            if match:
+                reject("exact_duplicate")
+                continue
+            exact[key] = split
+            stats.add("exact_deduped", doc)
+
+            match = near.match_or_add(WORD_RE.findall(doc["text"].lower()), split)
+            if match:
+                reject("near_duplicate")
+                continue
+            stats.add("near_deduped", doc)
+
+            if not drop_repeated_paragraphs(doc, paragraphs):
+                match = None
+                reject("duplicate_paragraphs")
+                continue
+            stats.add("paragraph_deduped", doc)
+
+            if limits.in_tokens:
+                doc["tokens"] = limits.measure(doc["text"])
+                if doc["tokens"] + SPECIAL_TOKENS > MODEL_CONTEXT_TOKENS:
+                    match = None
+                    reject("over_context")
+                    continue
+            stats.add("within_context", doc)
+            fout.write(json.dumps(doc, ensure_ascii=False) + "\n")
+            n_kept += 1
+    progress.finish("{:,} kept, {:,} rejected".format(n_kept, sum(rejected.values())))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", default=DEFAULT_OUT, help="output JSONL path (default: %(default)s)")
@@ -706,8 +986,8 @@ def main():
     parser.add_argument("--exclude", nargs="+", choices=["versions", "sheets", "webpages"], default=[], help="skip these sources")
     parser.add_argument("--limit", type=int, help="max indexes / sheets / webpages to read, for testing")
     parser.add_argument("--site-word-cap", type=int, default=SITE_WORD_CAP, help="max words per website, 0 for no cap (default: %(default)s)")
-    parser.add_argument("--max-tokens", type=int, help="measure doc length in tokens and split docs above this many, instead of MAX_DOC_WORDS words")
-    parser.add_argument("--tokenizer", default=DEFAULT_TOKENIZER, help="tokenizer for --max-tokens (default: %(default)s)")
+    parser.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS, help="measure doc length in tokens and split docs above this many; 0 to measure in words, split above MAX_DOC_WORDS (default: %(default)s)")
+    parser.add_argument("--tokenizer", default=DEFAULT_TOKENIZER, help="tokenizer for --max-tokens: a Hugging Face name, or the path of a tokenizer.json (default: %(default)s)")
     args = parser.parse_args()
     limits = token_limits(args.tokenizer, args.max_tokens) if args.max_tokens else WORD_LIMITS
 
@@ -716,14 +996,16 @@ def main():
 
     out_dir = os.path.dirname(os.path.abspath(args.out))
     os.makedirs(out_dir, exist_ok=True)
+    raw_path = args.out + ".raw"
     counts, words = Counter(), Counter()
     rejected = {"sheet": Counter(), "webpage": Counter()}
     quote_index = set()
     if not wanted("versions") and (wanted("sheets") or wanted("webpages")):
         quote_index = build_quote_index(args.limit)
-    with open(args.out, "w", encoding="utf-8") as fout:
+    with open(raw_path, "w", encoding="utf-8") as fraw:
         generators = []
         # Versions must come first: they fill quote_index, which the sheets and webpages are checked against.
+        # The order here is also the priority when duplicates are removed.
         if wanted("versions"):
             generators.append(version_docs(args.limit, quote_index, limits))
         if wanted("sheets"):
@@ -732,15 +1014,28 @@ def main():
             generators.append(webpage_docs(args.limit, quote_index, rejected["webpage"], args.site_word_cap, out_dir, limits))
         for gen in generators:
             for doc in gen:
-                fout.write(json.dumps(doc, ensure_ascii=False) + "\n")
+                fraw.write(json.dumps(doc, ensure_ascii=False) + "\n")
                 counts[doc["source"]] += 1
                 words[doc["source"]] += doc["words"]
                 if sum(counts.values()) % 100000 == 0:
-                    log("written so far: {} ({:.2f} GB)".format(dict(counts), fout.tell() / 1e9))
-    log("Wrote {} docs, {} words to {} ({:.2f} GB)".format(dict(counts), dict(words), args.out, os.path.getsize(args.out) / 1e9))
+                    log("exported so far: {} ({:.2f} GB)".format(dict(counts), fraw.tell() / 1e9))
+    log("Exported {} docs, {} words, before deduping".format(dict(counts), dict(words)))
+    stats, dedupe_rejected = StageStats(), Counter()
+    with open(args.out, "w", encoding="utf-8") as fout:
+        dedupe_docs(raw_path, sum(counts.values()), fout, limits, stats, dedupe_rejected)
+    os.remove(raw_path)
+    log("Wrote {} docs, {} words to {} ({:.2f} GB)".format(
+        dict(stats.docs["within_context"]), dict(stats.words["within_context"]), args.out, os.path.getsize(args.out) / 1e9))
+    stats.log()
     for source, reasons in rejected.items():
         if reasons:
             log("{} rejected: {}".format(source, dict(reasons.most_common())))
+    by_source = {}
+    for (source, reason), n in dedupe_rejected.most_common():
+        by_source.setdefault(source, {})[reason] = n
+    log("Dropped by dedupe: {}".format(by_source))
+    with open(args.out + ".stats.json", "w") as fstats:
+        json.dump({"stages": stats.as_dict(), "rejected": {s: dict(r) for s, r in rejected.items()}, "dedupe_rejected": by_source}, fstats, indent=2)
 
 
 if __name__ == "__main__":
