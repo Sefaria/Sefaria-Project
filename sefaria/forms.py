@@ -10,6 +10,7 @@ import structlog
 from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
+from django.core.validators import validate_email
 from django.utils.translation import gettext_lazy as _
 
 from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
@@ -34,6 +35,36 @@ class SefariaDeleteUserForm(EmailAuthenticationForm):
 class SefariaDeleteSheet(forms.Form):
     sid = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'placeholder': _("Sheet ID to delete")}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Admin Password")}))
+
+
+class SefariaMergeAccountsForm(forms.Form):
+    source = forms.CharField(label=_("Source account (will be deleted)"), max_length=254,
+                             help_text=_("Enter the user ID or email address."))
+    destination = forms.CharField(label=_("Destination account (will remain)"), max_length=254,
+                                  help_text=_("Enter the user ID or email address."))
+    profile_mode = forms.ChoiceField(label=_("Profile information"), initial="fill", choices=(
+        ("fill", _("Fill empty destination fields")),
+        ("override", _("Replace destination fields with source fields (blank source fields are skipped)")),
+        ("none", _("Keep destination profile information")),
+    ))
+    password = forms.CharField(label=_("Your admin password"), strip=False,
+                               widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}))
+    accounts_quiet = forms.BooleanField(label=_(
+        "Both users have stopped editing and syncing, and their pending requests and jobs have finished."))
+    confirmation = forms.CharField(label=_("Type MERGE to confirm"))
+
+    def clean(self):
+        cleaned = super().clean()
+        for field in ("source", "destination"):
+            value = cleaned.get(field)
+            if value and not value.isdecimal():
+                try:
+                    validate_email(value)
+                except forms.ValidationError:
+                    self.add_error(field, _("Enter a user ID or a valid email address."))
+        if cleaned.get("confirmation") and cleaned["confirmation"] != "MERGE":
+            self.add_error("confirmation", _("Type MERGE exactly to confirm."))
+        return cleaned
 
 
 class SefariaLoginForm(EmailAuthenticationForm):

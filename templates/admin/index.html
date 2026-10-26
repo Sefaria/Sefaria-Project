@@ -1,0 +1,26 @@
+{% extends "admin/index.html" %}
+{% comment %}
+Adds a "Staff tools" box to the Django admin home page, below the usual list of
+models. The tools are Sefaria pages outside the Django admin, so without this
+box staff would have to know their URLs.
+
+This file has the same name as Django's own admin/index.html. The "extends" line
+above still loads Django's version, because Django skips the file doing the
+extending when it looks the name up.
+{% endcomment %}
+
+{% block content %}
+{# Django's own content block, copied so the box sits in the same column. #}
+<div id="content-main" class="app-list">
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+  <div class="module">
+    <table>
+      <caption>Staff tools</caption>
+      <tr>
+        <th scope="row"><a href="{% url 'merge/accounts' %}">Merge accounts</a></th>
+        <td></td>
+      </tr>
+    </table>
+  </div>
+</div>
+{% endblock %}

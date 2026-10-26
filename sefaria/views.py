@@ -23,6 +23,7 @@ from django.template.response import TemplateResponse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
@@ -31,6 +32,7 @@ from django.db import transaction
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
 from django.contrib.auth.views import LoginView, LogoutView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
@@ -46,7 +48,8 @@ from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
-from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
+from sefaria.forms import (SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm,
+                          SefariaDeleteSheet, SefariaMergeAccountsForm)
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
@@ -1380,6 +1383,124 @@ def delete_sheet_by_id(request):
 
         except:
             return jsonResponse({"failure": "sheet not deleted: try again or contact a developer"})
+
+
+@transaction.non_atomic_requests
+@staff_member_required
+@never_cache
+@csrf_protect
+@sensitive_post_parameters("password")
+@require_http_methods(["GET", "POST"])
+def merge_accounts(request):
+    """Staff form for merging two accounts. Runs the same merge as the command line.
+
+    The browser POSTs twice: first with action=preview to show who the accounts
+    are, then with action=merge once the staff member has confirmed.
+    """
+    if request.method == "GET":
+        # The "Merge into another account" link on a user's admin page passes
+        # that user as ?source=, so the form opens with the source filled in.
+        # Nothing is checked yet; that happens when the form is submitted.
+        form = SefariaMergeAccountsForm(initial={"source": request.GET.get("source", "")})
+        return render_template(request, "merge-accounts.html", None, {"form": form})
+
+    form = SefariaMergeAccountsForm(request.POST)
+    if not form.is_valid():
+        return _merge_form_errors(form)
+
+    # Check staff access and the password again on every POST, including the
+    # preview. An old browser session or the page's JavaScript is not enough.
+    operator = User.objects.get(id=request.user.id)
+    if not operator.is_active or not operator.is_staff:
+        return jsonResponse({"error": "An active staff account is required.", "retry_safe": True}, status=403)
+    if not operator.check_password(form.cleaned_data["password"]):
+        return jsonResponse({"errors": {"password": [{"message": "Incorrect admin password."}]},
+                             "retry_safe": True}, status=400)
+
+    action = request.POST.get("action")
+    if action not in ("preview", "merge"):
+        return jsonResponse({"error": "Choose preview or merge.", "retry_safe": True}, status=400)
+
+    accounts = _merge_accounts_from_form(form, operator)
+    if form.errors:
+        return _merge_form_errors(form)
+
+    if action == "preview":
+        return jsonResponse({field: {"id": account.id, "email": account.email, "name": account.get_full_name()}
+                             for field, account in accounts.items()})
+    return _run_account_merge(operator, accounts["source"], accounts["destination"],
+                              form.cleaned_data["profile_mode"])
+
+
+def _merge_form_errors(form):
+    # retry_safe tells the page nothing has changed yet, so the form can be fixed and sent again.
+    return jsonResponse({"errors": form.errors.get_json_data(), "retry_safe": True}, status=400)
+
+
+def _merge_accounts_from_form(form, operator):
+    """Look up the source and destination users. Problems are added to `form` as errors."""
+    accounts = {}
+    for field in ("source", "destination"):
+        account, error = _find_account(form.cleaned_data[field])
+        if error:
+            form.add_error(field, error)
+        else:
+            accounts[field] = account
+    if len(accounts) < 2:
+        return accounts
+
+    if accounts["source"].id == accounts["destination"].id:
+        form.add_error("destination", "Source and destination accounts must be different.")
+    for field, account in accounts.items():
+        # As the source, the operator's own account would be deleted mid-request.
+        # As the destination, it would lose its staff access.
+        if account.id == operator.id:
+            form.add_error(field, "You can't merge your own account. Ask another staff member.")
+        # Read the raw profile document: loading a UserProfile would create an empty one.
+        if not db.profiles.find_one({"id": account.id}, {"_id": 1}):
+            form.add_error(field, "This account does not have a profile.")
+    return accounts
+
+
+def _find_account(id_or_email):
+    """Return (user, None) if exactly one account matches, otherwise (None, error message)."""
+    query = {"id": int(id_or_email)} if id_or_email.isdecimal() else {"email__iexact": id_or_email}
+    try:
+        return User.objects.get(**query), None
+    except User.DoesNotExist:
+        return None, "Account not found."
+    except User.MultipleObjectsReturned:
+        return None, "Several accounts have this email address. Enter the user ID instead."
+
+
+def _run_account_merge(operator, source, destination, profile_mode):
+    from sefaria.utils.user import MergeNotStartedError, merge_user_accounts
+    try:
+        # The form has already checked staff access, the password, and the typed
+        # MERGE. confirm=False skips the command-line prompt, which would
+        # otherwise wait for keyboard input inside the web server.
+        result = merge_user_accounts(
+            source.id, destination.id,
+            fill_in_profile_data=profile_mode == "fill",
+            override_profile_data=profile_mode == "override",
+            confirm=False,
+        )
+    except MergeNotStartedError as error:
+        # Raised only before the merge changes anything, so the form can be fixed and resent.
+        return jsonResponse({"error": str(error), "retry_safe": True}, status=400)
+    except Exception:
+        # Anything else (even an InputError from code the merge calls) may have
+        # happened after some data moved, so never present it as safe to retry.
+        logger.exception("Admin account merge failed", operator_id=operator.id,
+                         from_uid=source.id, into_uid=destination.id)
+        return jsonResponse({"error": "The merge stopped. Some data may already have moved. "
+                             "Have a developer inspect both accounts before retrying.",
+                             "retry_safe": False}, status=500)
+    logger.info("Admin account merge completed", operator_id=operator.id,
+                from_uid=source.id, into_uid=destination.id, profile_mode=profile_mode)
+    return jsonResponse({"success": "Accounts merged. Source account %s was deleted; "
+                         "destination account %s remains." % (source.id, destination.id),
+                         "warnings": result["warnings"]})
 
 
 

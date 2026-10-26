@@ -295,6 +295,7 @@ shared_patterns = [
     re_path(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
     re_path(r'^admin/delete/user-account', sefaria_views.delete_user_by_email, name="delete/user-account"),
     re_path(r'^admin/delete/sheet$', sefaria_views.delete_sheet_by_id, name="delete/sheet"),
+    re_path(r'^admin/merge/accounts$', sefaria_views.merge_accounts, name="merge/accounts"),
     re_path(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
     re_path(r'^admin/rebuild/citation-links/(?P<title>.+)$', sefaria_views.rebuild_citation_links),
     re_path(r'^admin/rebuild/shared-cache', sefaria_views.rebuild_shared_cache),
