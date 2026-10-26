@@ -85,6 +85,18 @@ spec:
             topologyKey: kubernetes.io/hostname
         nodeAffinity:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      # Web and redis start together after a scale from zero; without this wait the first web
+      # container fails on "redis-<env>:6379 Connection refused" and only recovers on a restart.
+      initContainers:
+      - name: wait-for-redis
+        image: "{{ .Values.redis.containerImage.imageRegistry }}:{{ .Values.redis.containerImage.tag }}"
+        command: [ "sh", "-c", "for i in $(seq 1 90); do [ \"$(redis-cli -h redis-{{ .Values.deployEnv }} -p 6379 ping 2>/dev/null)\" = PONG ] && exit 0; echo \"waiting for redis-{{ .Values.deployEnv }}\"; sleep 2; done; exit 1" ]
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "10m"
+          limits:
+            memory: "64Mi"
       containers:
       - name: web
         image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
