@@ -122,9 +122,15 @@ spec:
                     --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" /storage/pg.dump
 
                   # Fail closed: if keys got through, this environment must not keep them.
-                  KEY_ROWS=$(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -tAc \
-                    "SELECT CASE WHEN to_regclass('public.powered_by_apikey') IS NULL THEN 0
-                     ELSE (SELECT count(*) FROM public.powered_by_apikey) END;")
+                  # Two queries: count(*) on a missing table errors even inside a CASE, and
+                  # the table is absent from dumps taken before Phase 1.
+                  KEY_ROWS=0
+                  HAS_KEYS_TABLE=$(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -tAc \
+                    "SELECT to_regclass('public.powered_by_apikey') IS NOT NULL;")
+                  if [[ "$HAS_KEYS_TABLE" == "t" ]]; then
+                    KEY_ROWS=$(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -tAc \
+                      "SELECT count(*) FROM public.powered_by_apikey;")
+                  fi
                   if [[ "$KEY_ROWS" -ne 0 ]]; then
                     echo "ERROR: $KEY_ROWS API keys were restored from the production dump; dropping the database."
                     "${PSQL[@]}" -c "DROP DATABASE IF EXISTS \"$PGDATABASE\" WITH (FORCE);"
