@@ -640,6 +640,26 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .interface-hebrew .mobileNavMenu .loginLink {
   padding-right: 0px !important;
 }
+.mobileNavMenu .mobileAuthFooter {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background-color: white;
+  border-top: 1px solid #EDEDEC;
+}
+.mobileNavMenu .mobileAuthFooter a.sefaria-common-button {
+  display: inline-flex;
+  padding: 0 20px;
+  font-size: 16px;
+}
+.mobileNavMenu .mobileAuthFooter a.sefaria-common-button.mobileAuthFooterLogin {
+  --theme-button-background: white;
+  --theme-button-text: var(--theme-primary);
+  --theme-button-border: var(--theme-primary);
+}
 .mobileNavMenu .profile-pic {
   display: inline-block;
   margin-inline-end: 11px;

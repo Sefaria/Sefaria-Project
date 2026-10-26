@@ -407,29 +407,24 @@ Header.propTypes = {
   notificationCount: PropTypes.number,
 };
 
-const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
-  const classes = classNames({accountLinks: !mobile, anon: !mobile});
-
+// Sign up / Log in pinned to the bottom of the mobile menu so logged-out users see them without scrolling
+const MobileAuthFooter = ({ openURL, close }) => {
+  const openAuth = (flow) => (e) => {
+    e.preventDefault();
+    openURL(`/${flow}`, undefined, undefined, undefined, 'nav_bar');
+    close?.();
+  };
   return (
-    <div className={classes}>
-      {loginOnly && (
-        <AuthNavLink flow='login' openURL={openURL} close={close}>
-          {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
-          <InterfaceText>header.log_in</InterfaceText>
-        </AuthNavLink>)}
-      {loginOnly ? null :
-        <span>
-          <AuthNavLink flow='register' openURL={openURL} close={close}>
-            {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
-            <InterfaceText>header.sign_up</InterfaceText>
-          </AuthNavLink>
-          <AuthNavLink flow='login' openURL={openURL} close={close}>
-            <InterfaceText>header.log_in</InterfaceText>
-          </AuthNavLink>
-        </span>}
+    <div className="mobileAuthFooter">
+      <Button size="fullwidth" href="/register" onClick={openAuth('register')}>
+        <InterfaceText>header.sign_up</InterfaceText>
+      </Button>
+      <Button size="fullwidth" className="mobileAuthFooterLogin" href="/login" onClick={openAuth('login')}>
+        <InterfaceText>header.log_in</InterfaceText>
+      </Button>
     </div>
   );
-}
+};
 
 const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications }) => {
   const classes = classNames({
@@ -477,8 +472,8 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           </a>
         </>
       }
-      <DonateLink classes={"blue"} source="MobileNavMenu">
-        <img src="/static/img/heart.png" alt={Sefaria._("common.donation_icon")} />
+      <DonateLink classes={""} source="MobileNavMenu">
+        <img src="/static/img/heart.png" className="blackIcon" alt={Sefaria._("common.donation_icon")} />
         <InterfaceText>header.donate</InterfaceText>
       </DonateLink>
       <div className="mobileAccountLinks">
@@ -585,18 +580,18 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <InterfaceText>header.more_from_sefaria</InterfaceText>
         </a>
 
-        <hr />
-
-        {Sefaria._uid ?
-          <a href={Sefaria.getLogoutUrl()} className="logout">
-            <img src="/static/icons/logout.svg" alt={Sefaria._("header.logout")} />
-            <InterfaceText>header.logout</InterfaceText>
-          </a>
-          :
-          <LoggedOutButtons mobile={true} loginOnly={false} openURL={openURL} close={close} />}
+        {Sefaria._uid &&
+          <>
+            <hr />
+            <a href={Sefaria.getLogoutUrl()} className="logout">
+              <img src="/static/icons/logout.svg" alt={Sefaria._("header.logout")} />
+              <InterfaceText>header.logout</InterfaceText>
+            </a>
+          </>}
 
         <hr />
       </div>
+      {!Sefaria._uid && <MobileAuthFooter openURL={openURL} close={close} />}
     </nav>
   );
 };
