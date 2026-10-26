@@ -258,6 +258,12 @@ export class LibraryAssistantQ4Page extends HelperBase {
     return new RegExp(`^\\s*✦?\\s*${escapeRegExp(this.s('header.library_assistant'))}\\s*$`);
   }
 
+  /** The header pill's label: "Library Assistant", or "Ask" where the header is crowded. */
+  private get headerPillLabel(): RegExp {
+    const labels = ['header.library_assistant', 'header.library_assistant_short'].map((key) => escapeRegExp(this.s(key)));
+    return new RegExp(`^\\s*✦?\\s*(${labels.join('|')})\\s*$`);
+  }
+
   // ---------------------------------------------------------------------------
   // Element accessors
   // ---------------------------------------------------------------------------
@@ -325,7 +331,7 @@ export class LibraryAssistantQ4Page extends HelperBase {
   }
 
   private get headerPill(): Locator {
-    const name = this.libraryAssistantLabel;
+    const name = this.headerPillLabel;
     return this.sefariaHeader.getByRole('button', { name }).or(this.sefariaHeader.getByRole('link', { name }));
   }
 
