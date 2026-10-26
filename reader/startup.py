@@ -45,6 +45,9 @@ def init_library_cache():
 
         # Built through gen_cache, so the first request doesn't count as a cold start and rebuild them.
         if not settings.DISABLE_AUTOCOMPLETER:
+            logger.info("Building Search Autocorrect Tables")
+            library.build_search_autocorrect_tables()
+
             logger.info("Initializing Full Auto Completer")
             gen_cache.get("full_auto_completer")
 

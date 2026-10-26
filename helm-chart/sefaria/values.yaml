@@ -156,7 +156,9 @@ web:
 nameService:
   # Standalone autocomplete ("name") service.  Runs the web image with
   # NAME_SERVICE=true, serving only /api/name and the other completion
-  # endpoints (see sefaria/urls_name.py); varnish routes those paths to it
+  # endpoints (see sefaria/urls_name.py) -- including /api/search-autocorrect,
+  # which needs the top-n-grams table and entity alt-title index only this
+  # service loads; varnish routes those paths to it
   # and web and task pods then run with DISABLE_AUTOCOMPLETER=true.
   # Topic edits and /admin/reset/ac bump a GenCache counter; each worker
   # notices on its next completion request and rebuilds.
@@ -464,6 +466,19 @@ cronJobs:
   # Settings for regenerating long cached data
   regenerate:
     enabled: true
+  # Rebuilds the search auto-correction table and uploads it to gs://sefaria-search-autocorrect.
+  # Every environment's name service loads that one object, so enable in production only --
+  # anywhere else would overwrite prod's table. Single-threaded; peak memory is the bigram
+  # level's shard counters plus the carried phrase table (raise --num-shards to lower it).
+  buildTopNGramsForSearchAutocorrect:
+    enabled: false
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "1"
+      limits:
+        memory: "12Gi"
+        cpu: "2"
   dailyEmailNotifications:
     enabled: false
   embedLibraryToPgvector:

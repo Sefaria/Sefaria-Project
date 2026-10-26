@@ -49,15 +49,15 @@ spec:
       replicaCount: 7
       resources:
         web:
-          gunicornWorkerCount: 5
-          gunicornThreadCount: 5
+          gunicornWorkerCount: 3
+          gunicornThreadCount: 8
           resources:
             requests:
               memory: "14Gi"
               cpu: "1500m"
             limits:
               memory: "18Gi"
-              cpu: "2"
+              cpu: "3"
       secrets:
         googleClient:
           ref: google-client-secret-production
@@ -211,6 +211,8 @@ spec:
       trends:
         enabled: true
       weeklyEmailNotifications:
+        enabled: true
+      buildTopNGramsForSearchAutocorrect:
         enabled: true
     secrets:
       localSettings:

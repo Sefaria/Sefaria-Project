@@ -192,6 +192,8 @@ data:
 
     SECRET_KEY = os.getenv("SECRET_KEY")
     CHATBOT_USER_ID_SECRET = os.getenv("CHATBOT_USER_ID_SECRET")
+    MCP_TOKEN_SECRET = os.getenv("MCP_TOKEN_SECRET")
+    MCP_AUTH_CALLBACK_URLS = [url.strip() for url in os.getenv("MCP_AUTH_CALLBACK_URLS", "").split(",") if url.strip()]
     CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
 
     EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
