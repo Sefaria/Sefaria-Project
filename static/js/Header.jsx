@@ -407,35 +407,19 @@ Header.propTypes = {
   notificationCount: PropTypes.number,
 };
 
-// Sign up / Log in pinned to the bottom of the mobile menu so logged-out users see them without scrolling
-const MobileAuthFooter = ({ openURL, close }) => {
+// Sign up / Log in at the top of the mobile menu so logged-out users see them as soon as the menu opens
+const MobileAuthButtons = ({ openURL, close }) => {
   const openAuth = (flow) => (e) => {
     e.preventDefault();
     openURL(`/${flow}`, undefined, undefined, undefined, 'nav_bar');
     close?.();
   };
-  // Shadow on the footer only while more menu sits below it, so the footer doesn't read as the end of the menu
-  const footerRef = useRef(null);
-  const [hasMoreBelow, setHasMoreBelow] = useState(false);
-  useEffect(() => {
-    const menu = footerRef.current?.closest('.mobileNavMenu');
-    if (!menu) { return; }
-    const update = () => setHasMoreBelow(menu.scrollTop + menu.clientHeight < menu.scrollHeight - 1);
-    update();
-    menu.addEventListener('scroll', update, { passive: true });
-    const observer = new ResizeObserver(update);  // also fires when the menu opens (display: none -> block)
-    observer.observe(menu);
-    return () => {
-      menu.removeEventListener('scroll', update);
-      observer.disconnect();
-    };
-  }, []);
   return (
-    <div className={classNames({ mobileAuthFooter: 1, hasMoreBelow })} ref={footerRef}>
+    <div className="mobileAuthButtons">
       <Button size="fullwidth" href="/register" onClick={openAuth('register')}>
         <InterfaceText>header.sign_up</InterfaceText>
       </Button>
-      <Button size="fullwidth" className="mobileAuthFooterLogin" href="/login" onClick={openAuth('login')}>
+      <Button size="fullwidth" className="mobileAuthButtonsLogin" href="/login" onClick={openAuth('login')}>
         <InterfaceText>header.log_in</InterfaceText>
       </Button>
     </div>
@@ -460,6 +444,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           hideHebrewKeyboard={true}
         />
       </div>
+      {!Sefaria._uid && <MobileAuthButtons openURL={openURL} close={close} />}
       {module === Sefaria.LIBRARY_MODULE &&
         <>
           <a href="/texts" onClick={close} className="textsPageLink">
@@ -607,7 +592,6 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
 
         <hr />
       </div>
-      {!Sefaria._uid && <MobileAuthFooter openURL={openURL} close={close} />}
     </nav>
   );
 };
