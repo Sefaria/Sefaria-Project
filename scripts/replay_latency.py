@@ -58,6 +58,7 @@ EXCLUDED_URL_PATTERNS = [
     re.compile(r"chatbot_version="),  # creates a Django session row
     re.compile(r"set-language-cookie"),  # writes a profile when authenticated
     re.compile(r"^/search"),  # search page SSR not audited
+    re.compile(r"^/api/name/"),  # served by the separate name pod; web has DISABLE_AUTOCOMPLETER and returns 500
 ]
 
 
@@ -170,6 +171,10 @@ def cmd_run(args):
         "wall_seconds": wall,
         "throughput_rps": len(results) / wall,
         "summary": summary,
+        "failures": sorted(
+            ((u, st, round(secs, 3)) for u, st, secs in results if not str(st).startswith(("2", "3"))), key=lambda r: -r[2]
+        )[:50],
+        "slowest": sorted(((u, st, round(secs, 3)) for u, st, secs in results), key=lambda r: -r[2])[:20],
     }
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     out_path = RESULTS_DIR / f"{args.label}.json"
