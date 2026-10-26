@@ -166,7 +166,7 @@ export class DeveloperSettingsPage extends HelperBase {
     }
 
     restrictionSwitch(project: Locator, label: string): Locator {
-        return project.getByRole('checkbox', { name: new RegExp(`Only accept requests with ${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} from`) });
+        return project.getByRole('checkbox', { name: new RegExp(`^Only accept requests from .+ \\(${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)$`) });
     }
 
     // Test controls (DEVELOPER_SETTINGS_MOCKS only)

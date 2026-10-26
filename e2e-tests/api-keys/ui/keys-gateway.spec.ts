@@ -179,12 +179,18 @@ test.describe('keys x gateway', () => {
       // Clearing the website while the key is restricted is refused; nothing changes at the gateway.
       await card.getByRole('button', { name: 'Edit project' }).click();
       await card.locator('#devPocProjectUrl').fill('');
-      const refused = waitForDeveloperApi(dev.page, /\/api\/developer\/projects\/[^/]+$/);
+      // The form refuses before asking about a missing website, so no save request is sent.
+      let saveSent = false;
+      const onRequest = (r: { method(): string; url(): string }) => {
+        if (r.method() === 'POST' && /\/api\/developer\/projects\/[^/]+$/.test(new URL(r.url()).pathname)) saveSent = true;
+      };
+      dev.page.on('request', onRequest);
       await dev.action('save-project', card).click();
-      await dev.action('save-without-website').click();
-      expect((await refused).status()).toBe(400);
       await expect(card.locator('.devPocWarning[role="alert"]'))
-        .toContainText('Turn off the website restriction on your keys before removing the website.');
+        .toContainText('Turn off the restriction on every key before removing the website.');
+      dev.page.off('request', onRequest);
+      expect(saveSent, 'clearing a restricted website sent a save request').toBe(false);
+      await expect(dev.action('save-without-website')).toHaveCount(0);
       await expect(card.locator('#devPocProjectUrl')).toHaveValue('');
       const stillB = await poll(verdicts, onlyFrom('b'), { timeoutMs: 5000 });
       expect(stillB.elapsedMs, `the refused save left the key restricted to site-b: ${summary(stillB.last)}`).toBeDefined();

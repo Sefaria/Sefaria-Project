@@ -813,7 +813,7 @@ test.describe('developer settings: keyboard, names, live regions and zoom (C10)'
       await expect(row.getByRole('button', { name: 'Hide key', exact: true })).toHaveAttribute('aria-pressed', 'true');
       await expect(row.getByRole('button', { name: 'Copy key', exact: true })).toBeVisible();
       await expect(projectCard(page).locator('button.devPocProjectToggle')).toHaveAttribute('aria-expanded', 'true');
-      await expect(row.locator('input.devPocSwitch')).toHaveAccessibleName(/^Only accept requests with .+ from /);
+      await expect(row.locator('input.devPocSwitch')).toHaveAccessibleName(/^Only accept requests from .+ \(.+\)$/);
       await expect(projectCard(page).locator('.devPocExplainerToggle').first()).toHaveAttribute('aria-expanded', 'false');
     } finally {
       await closeQuietly(context);
