@@ -2,6 +2,7 @@ import { expect, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t } from '../globals';
+import { assistantKeys, assistantString, escapeRegExp } from '../support/assistantStrings';
 
 /**
  * Page object for the Sefaria Library Assistant (`<lc-chatbot>` web component).
@@ -10,16 +11,14 @@ import { LANGUAGES, t } from '../globals';
  * engine pierces open shadow DOM for role/label/CSS locators, so everything here
  * uses `page.*` directly — no special pierce syntax.
  *
- * **Bilingual.** The deployed component runs a svelte-i18n build (`interface-lang`
- * = `en` / `he`) and renders every label from a catalog. This POM is therefore
- * language-parameterized: all visible/aria labels come from `LA_LABELS[this.language]`.
- * The strings below were captured from the LIVE deployed component (not guessed
- * from source) in both English and Hebrew — see assistant/README.md §"Label reference".
+ * **Bilingual.** The component runs a svelte-i18n build (`interface-lang` = `en` /
+ * `he`) and renders every label from a catalog. Labels are read from that catalog
+ * by translation key (support/assistantStrings.ts, which needs AI_CHATBOT_REPO_PATH),
+ * never typed out here, so a copy edit in Weblate doesn't break the suite.
  */
 
 type LALabelSet = {
   openAssistant: string;
-  triggerLabel: string;
   chatWindow: string;
   close: string;
   dock: string;
@@ -27,44 +26,77 @@ type LALabelSet = {
   moreOptions: string;
   promptInput: string;
   send: string;
+  /** The Stop button that replaces Send while an answer is being written. */
+  stop: string;
   /** aria-label of the "Restart conversation" menu item. */
   restartMenuItemAria: string;
   /** The moderator-only first menu item ("Settings"), shown only when `is-moderator`. */
   settingsMenuText: string;
-  /** Visible menu-item texts in order that EVERY user sees (excludes "Settings"). */
+  /**
+   * Visible menu-item texts in order that EVERY user sees (excludes "Settings"),
+   * with the panel floating — the dock item reads "undock" when the panel is docked.
+   */
   menuTextsBase: string[];
+  /** Every message the "thinking" indicator can show: the first one, the rotation, the last one. */
+  thinkingMessages: string[];
 };
 
-export const LA_LABELS: Record<string, LALabelSet> = {
-  [LANGUAGES.EN]: {
-    openAssistant: 'Open Library Assistant',
-    triggerLabel: 'LIBRARY ASSISTANT',
-    chatWindow: 'Chat window',
-    close: 'Close',
-    dock: 'Dock Assistant',
-    undock: 'Undock Assistant',
-    moreOptions: 'More options',
-    promptInput: 'Prompt input',
-    send: 'Send',
-    restartMenuItemAria: 'Restart convo',
-    settingsMenuText: 'Settings',
-    menuTextsBase: ['Restart chat', 'Give feedback', 'Help', 'Opt out in Settings'],
-  },
-  [LANGUAGES.HE]: {
-    openAssistant: 'פתיחת עוזר הספרייה',
-    triggerLabel: 'עוזר הספרייה',
-    chatWindow: 'חלון שיחה',
-    close: 'סגירה',
-    dock: 'הצמדת עוזר הספרייה',
-    undock: 'חזרה למצב צף',
-    moreOptions: 'אפשרויות נוספות',
-    promptInput: 'שדה טקסט',
-    send: 'שליחה',
-    restartMenuItemAria: 'התחלת שיחה מחדש',
-    settingsMenuText: 'הגדרות',
-    menuTextsBase: ['התחלת שיחה מחדש', 'שליחת משוב', 'עזרה', 'כיבוי בהגדרת'],
-  },
-};
+/** The widget's translation key for each label (keys are in ai-chatbot's src/i18n/locales). */
+const LA_LABEL_KEYS = {
+  openAssistant: 'assistant.header.openAssistant',
+  chatWindow: 'assistant.header.chatWindow',
+  close: 'assistant.header.close.tooltip',
+  dock: 'assistant.header.dock.tooltip',
+  undock: 'assistant.header.undock.tooltip',
+  moreOptions: 'assistant.header.moreOptions',
+  promptInput: 'assistant.input.aria',
+  send: 'assistant.input.send.tooltip',
+  stop: 'assistant.stop.aria',
+  restartMenuItemAria: 'assistant.menu.restart.aria',
+  settingsMenuText: 'assistant.menu.settings',
+  menuTextsBase: [
+    'assistant.history.header.new.tooltip',
+    'assistant.menu.dock',
+    'assistant.menu.feedback',
+    'assistant.menu.help',
+    'assistant.menu.optout',
+  ],
+  thinkingFirst: 'assistant.loading.initial',
+  // The widget rotates through every numbered key, so new ones added in Weblate count too.
+  thinkingRotation: /^assistant\.thinking\.array\.\d+$/,
+  thinkingLast: 'assistant.thinking.final',
+} as const;
+
+// Built on first use, not at import: every spec imports this file through the
+// PageManager, and only the LA specs need the ai-chatbot checkout.
+const labelCache = new Map<string, LALabelSet>();
+
+function labelsFor(language: string): LALabelSet {
+  const cached = labelCache.get(language);
+  if (cached) return cached;
+  const s = (key: string) => assistantString(key, language);
+  const labels: LALabelSet = {
+    openAssistant: s(LA_LABEL_KEYS.openAssistant),
+    chatWindow: s(LA_LABEL_KEYS.chatWindow),
+    close: s(LA_LABEL_KEYS.close),
+    dock: s(LA_LABEL_KEYS.dock),
+    undock: s(LA_LABEL_KEYS.undock),
+    moreOptions: s(LA_LABEL_KEYS.moreOptions),
+    promptInput: s(LA_LABEL_KEYS.promptInput),
+    send: s(LA_LABEL_KEYS.send),
+    stop: s(LA_LABEL_KEYS.stop),
+    restartMenuItemAria: s(LA_LABEL_KEYS.restartMenuItemAria),
+    settingsMenuText: s(LA_LABEL_KEYS.settingsMenuText),
+    menuTextsBase: LA_LABEL_KEYS.menuTextsBase.map(s),
+    thinkingMessages: [
+      LA_LABEL_KEYS.thinkingFirst,
+      ...assistantKeys(LA_LABEL_KEYS.thinkingRotation),
+      LA_LABEL_KEYS.thinkingLast,
+    ].map(s),
+  };
+  labelCache.set(language, labels);
+  return labels;
+}
 
 export class LibraryAssistantPage extends HelperBase {
   constructor(page: Page, language: string) {
@@ -73,13 +105,14 @@ export class LibraryAssistantPage extends HelperBase {
 
   /** Label set for the active interface language (defaults to English). */
   private get L(): LALabelSet {
-    return LA_LABELS[this.language] ?? LA_LABELS[LANGUAGES.EN];
+    return labelsFor(this.language === LANGUAGES.HE ? LANGUAGES.HE : LANGUAGES.EN);
   }
 
   /**
-   * Visible menu-item texts expected in the More-options dropdown, in order.
-   * The "Settings" item only renders for staff/moderator accounts (the chatbot's
-   * `is-moderator` branch), so pass the account's moderator status.
+   * Visible menu-item texts expected in the More-options dropdown, in order, with
+   * the panel floating (call `ensureFloating()` first). The "Settings" item only
+   * renders for staff/moderator accounts (the chatbot's `is-moderator` branch), so
+   * pass the account's moderator status.
    */
   expectedMenuTexts(isModerator: boolean): string[] {
     return isModerator
@@ -135,8 +168,12 @@ export class LibraryAssistantPage extends HelperBase {
     return this.page.locator('.message.assistant:not(.limit-message):not(.empty-state *):has(.message-content)');
   }
 
+  private get stopBtn() {
+    return this.page.getByRole('button', { name: this.L.stop, exact: true });
+  }
+
   private get thinkingIndicator() {
-    return this.page.locator('.thinking-content');
+    return this.page.locator('.lc-thinking-block');
   }
 
   private get moreOptionsBtn() {
@@ -307,11 +344,14 @@ export class LibraryAssistantPage extends HelperBase {
     await expect(this.textarea).toBeEnabled({ timeout: t(5000) });
   }
 
-  // UX-027: input + send disabled during in-flight send
-  async expectInputDisabledDuringSend(): Promise<void> {
-    await expect(this.textarea).toBeDisabled({ timeout: t(5000) });
-    await expect(this.sendBtn).toBeDisabled({ timeout: t(5000) });
+  // UX-027: while an answer is being written, the input is disabled and the Send
+  // button is replaced by a Stop button. These only last until the answer is done
+  // (about a second against a local backend), so none of them may wait for the end.
+  async expectInputDisabledAndStopShownDuringSend(): Promise<void> {
     await expect(this.thinkingIndicator).toBeVisible({ timeout: t(5000) });
+    await expect(this.textarea).toBeDisabled({ timeout: t(5000) });
+    await expect(this.stopBtn).toBeVisible({ timeout: t(5000) });
+    await expect(this.sendBtn).toHaveCount(0, { timeout: t(5000) });
   }
 
   // Wait for response → textarea re-enables
@@ -320,12 +360,12 @@ export class LibraryAssistantPage extends HelperBase {
   }
 
   // UX-036: thinking indicator appears while awaiting a response.
-  // NOTE: the deployed component renders the thinking label as "Thinking" in BOTH
-  // English and Hebrew interfaces (the Hebrew string is not yet wired in prod), so
-  // this assertion is intentionally language-invariant.
+  // The indicator starts on "Thinking" and then rotates through other messages
+  // ("Searching the library", ...), so accept any of them.
   async expectThinkingVisible(): Promise<void> {
     await expect(this.thinkingIndicator).toBeVisible({ timeout: t(10000) });
-    await expect(this.thinkingIndicator).toContainText('Thinking', { timeout: t(5000) });
+    const anyMessage = new RegExp(this.L.thinkingMessages.map(escapeRegExp).join('|'));
+    await expect(this.thinkingIndicator).toContainText(anyMessage, { timeout: t(5000) });
   }
 
   async expectThinkingGone(): Promise<void> {
@@ -367,10 +407,16 @@ export class LibraryAssistantPage extends HelperBase {
 
   /**
    * Close the open menu by clicking outside it (in the messages log area).
-   * Avoids clicking header buttons that would trigger other actions.
+   * Avoids clicking header buttons that would trigger other actions. The open menu
+   * hangs down over the top of the log, so click the part of the log below it.
    */
   async clickOutsideMenu(): Promise<void> {
-    await this.messagesLog.click({ position: { x: 50, y: 50 } });
+    const menu = await this.menuDropdown.boundingBox();
+    const log = await this.messagesLog.boundingBox();
+    if (!menu || !log) throw new Error('the open menu and the messages log should both be on screen');
+    const y = Math.max(log.y, menu.y + menu.height) + 10;
+    if (y >= log.y + log.height) throw new Error('the open menu covers the whole messages log');
+    await this.page.mouse.click(log.x + 10, y);
     await this.expectMenuHidden();
   }
 
