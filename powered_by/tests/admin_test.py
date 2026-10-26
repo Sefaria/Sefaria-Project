@@ -182,8 +182,8 @@ class ProjectAdminTest(TestCase):
         for api_project, key in ((self.api_project, self.key), (other, other_key)):
             self.assertIsNotNone(ApiProject.objects.get(pk=api_project.pk).deleted_at)
             self.assertIsNotNone(ApiKey.objects.get(pk=key.pk).revoked_at)
-        # The same rule as delete_project: a legacy listing stays public, a settings-made profile is unpublished.
-        self.assertTrue(Project.objects.get(pk=self.listing.pk).is_published)
+        # The same rule as delete_project: the profile is unpublished, a claimed listing included.
+        self.assertFalse(Project.objects.get(pk=self.listing.pk).is_published)
         self.assertFalse(Project.objects.get(pk=settings_made.pk).is_published)
 
     def test_soft_deleting_an_already_deleted_api_project_keeps_its_deletion_time(self):

@@ -275,7 +275,7 @@ const TestPanel = ({state, mock, onOpenMockEmail}) => {
             ))}
           </div>
           <p className="devPocPanelNote">
-            Each deletes this account's projects (revoking their keys), releases claimed listings and starts at "Get started".
+            Each deletes this account's projects (revoking their keys), claimed listings included, and starts at "Get started". "Add a listing submitted with my email" makes a new one to claim.
           </p>
         </div>
 

@@ -1,6 +1,6 @@
 """
 The developer settings writer on API projects: the state shape, the website restriction on update,
-a claimed legacy listing across account deletion, the unpublishing of a deleted settings-made
+a claimed legacy listing deleted with its account, the unpublishing of a deleted settings-made
 project, and ids that are API project ids rather than profile ids.
 """
 from unittest.mock import patch
@@ -86,7 +86,7 @@ class WebsiteRestrictionTest(DeveloperApiTestCase):
 
 class ClaimedListingAccountDeletionTest(DeveloperApiTestCase):
 
-    def test_claimed_legacy_listing_after_account_deletion_is_public_claimable_and_keeps_edits(self):
+    def test_claimed_legacy_listing_is_unpublished_with_the_account_and_not_claimable_again(self):
         self.set_up_developer()
         email = self.user.email
         listing = Project.objects.create(
@@ -108,7 +108,9 @@ class ClaimedListingAccountDeletionTest(DeveloperApiTestCase):
         self.user.delete()
         self.user.id = user_id
 
-        self.assertEqual(Project.objects.filter(id=listing.id).values().get(), profile_before)
+        unpublished = {**profile_before, "consent_to_display": False, "is_published": False}
+        profile_after = Project.objects.filter(id=listing.id).values().get()
+        self.assertEqual({**profile_after, "updated_at": None}, {**unpublished, "updated_at": None})
         api_project = ApiProject.objects.get(id=int(api_id))
         self.assertIsNone(api_project.owner_id)
         self.assertIsNotNone(api_project.deleted_at)
@@ -127,9 +129,7 @@ class ClaimedListingAccountDeletionTest(DeveloperApiTestCase):
 
             status, state = self.call("post", "listings/{}/claim".format(listing.id), client=client)
 
-            self.assertEqual(status, 200, state)
-            self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, other)
-            self.assertEqual(Project.objects.get(id=listing.id).project_name, "Tehillim Circle Renamed")
+            self.assertEqual(status, 404, state)
         finally:
             purge_test_profiles(other)
 

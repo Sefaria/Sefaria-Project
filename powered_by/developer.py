@@ -313,13 +313,13 @@ def unclaimed_listings(user, profile):
 
 def listings_submitted_by(user):
     """
-    Profiles submitted outside developer settings with this account's email and no live API project.
-    A profile an older image or staff soft-deleted (its frozen deleted_at, which the public endpoint also honours) is
+    Profiles submitted outside developer settings with this account's email and no API project. A listing whose
+    API project was deleted was deleted with it, so it is not offered again. A profile an older image or staff soft-deleted (its frozen deleted_at, which the public endpoint also honours) is
     not offered: claiming it would hand out a listing that stays hidden from the public endpoint for good.
     """
     return (Project.objects.filter(creator_email__iexact=user.email, deleted_at__isnull=True)
             .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS)
-            .exclude(id__in=ApiProject.objects.filter(deleted_at__isnull=True).values("profile_id")))
+            .exclude(id__in=ApiProject.objects.values("profile_id")))
 
 
 def developer_state(request):
@@ -665,9 +665,7 @@ def soft_delete(api_project):
         return
     api_project.deleted_at = now
     api_project.save()
-    # A legacy listing stays public and claimable: only a project made in developer settings is unpublished.
-    if api_project.profile.submission_source == SubmissionSource.DEVELOPER_SETTINGS:
-        _unpublish(api_project.profile)
+    _unpublish(api_project.profile)
 
 
 @transaction.atomic
@@ -695,16 +693,15 @@ def claim_listing(user, listing_id):
 @transaction.atomic
 def release_account_projects(user):
     """
-    For an account being deleted: every key of its API projects is revoked, live API projects are
-    deleted (settings-made profiles are unpublished), and claimed listings go back to unclaimed.
+    For an account being deleted: every key of its API projects is revoked and live API projects are
+    deleted with their profiles unpublished, claimed listings included.
     """
     now = timezone.now()
     for api_project in ApiProject.objects.filter(owner=user).select_related("profile"):
         api_project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
         if api_project.deleted_at is None:
             api_project.deleted_at = now
-            if api_project.profile.submission_source == SubmissionSource.DEVELOPER_SETTINGS:
-                _unpublish(api_project.profile)
+            _unpublish(api_project.profile)
         api_project.owner = None
         api_project.save()
 

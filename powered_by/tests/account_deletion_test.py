@@ -81,7 +81,7 @@ class DeleteAccountTest(TestCase):
         self.assertFalse(profile.consent_to_display)
         self.assertTrue(all(k.revoked_at for k in ApiKey.objects.filter(id__in=[k.id for k in keys])))
 
-    def test_N_M5_a_claimed_listing_is_released_and_its_keys_revoked(self):
+    def test_N_M5_a_claimed_listing_is_deleted_with_the_account_and_its_keys_revoked(self):
         listing, key = self.claimed_listing()
 
         self.assertTrue(delete_user_account(self.uid, confirm=False))
@@ -92,7 +92,7 @@ class DeleteAccountTest(TestCase):
         self.assertIsNotNone(project.deleted_at)
         listing.refresh_from_db()
         self.assertIsNone(listing.deleted_at)
-        self.assertTrue(listing.consent_to_display and listing.is_published)
+        self.assertFalse(listing.consent_to_display or listing.is_published)
         self.assertIsNotNone(ApiKey.objects.get(id=key.id).revoked_at)
 
     def test_N_M5_a_failing_deletion_hook_leaves_no_half_deleted_account(self):
