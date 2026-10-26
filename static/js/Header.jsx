@@ -414,8 +414,24 @@ const MobileAuthFooter = ({ openURL, close }) => {
     openURL(`/${flow}`, undefined, undefined, undefined, 'nav_bar');
     close?.();
   };
+  // Shadow on the footer only while more menu sits below it, so the footer doesn't read as the end of the menu
+  const footerRef = useRef(null);
+  const [hasMoreBelow, setHasMoreBelow] = useState(false);
+  useEffect(() => {
+    const menu = footerRef.current?.closest('.mobileNavMenu');
+    if (!menu) { return; }
+    const update = () => setHasMoreBelow(menu.scrollTop + menu.clientHeight < menu.scrollHeight - 1);
+    update();
+    menu.addEventListener('scroll', update, { passive: true });
+    const observer = new ResizeObserver(update);  // also fires when the menu opens (display: none -> block)
+    observer.observe(menu);
+    return () => {
+      menu.removeEventListener('scroll', update);
+      observer.disconnect();
+    };
+  }, []);
   return (
-    <div className="mobileAuthFooter">
+    <div className={classNames({ mobileAuthFooter: 1, hasMoreBelow })} ref={footerRef}>
       <Button size="fullwidth" href="/register" onClick={openAuth('register')}>
         <InterfaceText>header.sign_up</InterfaceText>
       </Button>
