@@ -107,11 +107,29 @@ spec:
                   "${PSQL[@]}" -c "DROP DATABASE IF EXISTS \"$PGDATABASE\" WITH (FORCE);"
                   "${PSQL[@]}" -c "CREATE DATABASE \"$PGDATABASE\" TEMPLATE template0 ENCODING 'UTF8';"
 
+                  # Prod's backup keeps the API keys (plaintext until KMS lands) for disaster
+                  # recovery, so the copy into other environments must not carry them: drop
+                  # that table's data entry from the restore list. The table itself is still
+                  # created, so the migrations recorded in django_migrations stay true.
+                  pg_restore -l /storage/pg.dump > /storage/restore.list
+                  grep -v -E ' TABLE DATA public powered_by_apikey ' /storage/restore.list > /storage/restore.filtered.list || true
+
                   # --single-transaction: a mid-restore failure rolls back rather than
                   # leaving a half-populated database.
                   echo "Restoring PostgreSQL data..."
                   pg_restore --no-owner --no-privileges --exit-on-error --single-transaction \
+                    --use-list=/storage/restore.filtered.list \
                     --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" /storage/pg.dump
+
+                  # Fail closed: if keys got through, this environment must not keep them.
+                  KEY_ROWS=$(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -tAc \
+                    "SELECT CASE WHEN to_regclass('public.powered_by_apikey') IS NULL THEN 0
+                     ELSE (SELECT count(*) FROM public.powered_by_apikey) END;")
+                  if [[ "$KEY_ROWS" -ne 0 ]]; then
+                    echo "ERROR: $KEY_ROWS API keys were restored from the production dump; dropping the database."
+                    "${PSQL[@]}" -c "DROP DATABASE IF EXISTS \"$PGDATABASE\" WITH (FORCE);"
+                    exit 1
+                  fi
 
                   # A dump lacking --section=post-data restores cleanly but carries no
                   # indexes or constraints. Fail rather than sit silently unindexed.
