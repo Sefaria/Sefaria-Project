@@ -1327,8 +1327,9 @@ export class LibraryAssistantQ4Page extends HelperBase {
     expect(inLiveRegion, 'the announcement should be inside a live region so screen readers read it').toBe(true);
   }
 
+  /** "Ask Library Assistant: your answer is ready" — starts with the words the button shows. */
   async expectAskButtonNamedAnswerReady(): Promise<void> {
-    await expect(this.askButton).toHaveAccessibleName(this.a('assistant.header.open_ready_response'), { timeout: t(10000) });
+    await expect(this.askButton).toHaveAccessibleName(this.a('assistant.floating_button.aria_ready'), { timeout: t(10000) });
   }
 
   /**
