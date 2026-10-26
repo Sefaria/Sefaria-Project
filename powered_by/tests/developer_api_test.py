@@ -810,6 +810,27 @@ class ProjectLockTest(DeveloperApiTestCase):
         self.assertEqual(status, 200)
         self.assertTrue(any("FOR UPDATE" in q["sql"] and '"api_project"' in q["sql"] for q in queries))
 
+    def test_releasing_an_account_locks_its_project_rows_before_writing_profiles(self):
+        with CaptureQueriesContext(connection) as queries:
+            developer.release_account_projects(self.user)
+
+        sqls = [q["sql"] for q in queries]
+        lock = next(i for i, sql in enumerate(sqls) if "FOR UPDATE" in sql and '"api_project"' in sql)
+        profile_write = next(i for i, sql in enumerate(sqls)
+                             if sql.startswith("UPDATE") and '"{}"'.format(Project._meta.db_table) in sql)
+        self.assertLess(lock, profile_write)
+
+    def test_claiming_a_listing_locks_the_listing_row(self):
+        listing = Project.objects.create(submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
+                                         project_name="Locked", project_link="https://locked.example.org")
+
+        with CaptureQueriesContext(connection) as queries:
+            status, _ = self.call("post", "listings/{}/claim".format(listing.id))
+
+        self.assertEqual(status, 200)
+        self.assertTrue(any("FOR UPDATE" in q["sql"] and '"{}"'.format(Project._meta.db_table) in q["sql"]
+                            for q in queries))
+
 
 class ConfirmationLockTest(DeveloperApiTestCase):
 

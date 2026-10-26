@@ -676,7 +676,10 @@ def claim_listing(user, listing_id):
     """
     _check_project_limit(user)
     try:
-        listing = unclaimed_listings(user, UserProfile(id=user.id)).get(id=int(listing_id))
+        listing_id = int(listing_id)
+        # Locked before the check: a concurrent claim, or a staff-made API project's foreign key, waits for this one.
+        Project.objects.select_for_update().get(id=listing_id)
+        listing = unclaimed_listings(user, UserProfile(id=user.id)).get(id=listing_id)
     except (Project.DoesNotExist, ValueError):
         raise LookupError("No such listing.")
     # The savepoint keeps the request's transaction usable when another claim or an admin made a live API project
@@ -694,14 +697,14 @@ def claim_listing(user, listing_id):
 def release_account_projects(user):
     """
     For an account being deleted: every key of its API projects is revoked and live API projects are
-    deleted with their profiles unpublished, claimed listings included.
+    deleted with their profiles unpublished, claimed listings included. The API project rows are locked
+    first, in the same order as project edits and key creation take them, then the profiles are read.
     """
-    now = timezone.now()
-    for api_project in ApiProject.objects.filter(owner=user).select_related("profile"):
-        api_project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
-        if api_project.deleted_at is None:
-            api_project.deleted_at = now
-            _unpublish(api_project.profile)
+    locked = list(ApiProject.objects.select_for_update().filter(owner=user).order_by("id"))
+    profiles = Project.objects.in_bulk([api_project.profile_id for api_project in locked])
+    for api_project in locked:
+        api_project.profile = profiles[api_project.profile_id]
+        soft_delete(api_project)
         api_project.owner = None
         api_project.save()
 
