@@ -604,7 +604,10 @@ section_registry() {
   printf '    auth-service replicas=%s  listener connections=%s\n' "$replicas" "$listeners"
   prove F-REG-06.e4 'every auth-service replica holds a listener connection' test "$listeners" = "$replicas"
   out=$(t_pg 'select pg_notification_queue_usage()' postgres)
-  prove F-REG-02 "notification queue usage is 0 (it is ${out:-unknown})" test "$out" = 0
+  # A fraction of the 8 GB queue; one in-flight notification page shows as ~2e-06, so "drained" is
+  # anything under 0.1%, not an exact 0.
+  prove F-REG-02 "notification queue is drained, usage under 0.1% (it is ${out:-unknown})" \
+    awk -v u="${out:-x}" 'BEGIN { exit !(u ~ /^[0-9.eE+-]+$/ && u + 0 < 0.001) }'
 
   out=$(t_pg "select string_agg(t || '.' || c || '=' || has_column_privilege('auth_service_reader', t, c, 'SELECT'), ' ' order by t, c) from (values ('api_project','id'),('api_project','tier_id'),('api_project','deleted_at'),('api_project','profile_id'),('api_project','owner_id'),('api_project','contact_email'),('api_tier','id'),('api_tier','per_minute_per_project'),('api_tier_meter_limit','tier_id'),('api_tier_meter_limit','meter'),('api_tier_meter_limit','monthly_per_project')) v(t, c)")
   printf '    reader grants: %s\n' "$out"

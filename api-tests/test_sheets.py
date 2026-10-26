@@ -46,7 +46,7 @@ def test_get_sheet_by_id(api):
 
 
 def test_user_sheets(api):
-    r = api.get("/api/sheets/user/1")
+    r = api.get("/api/sheets/user/1/")  # the route requires the trailing slash
     assert r.status_code == 200
     body = r.json()
     assert isinstance(body, (list, dict))

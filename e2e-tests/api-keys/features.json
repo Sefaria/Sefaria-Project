@@ -2354,7 +2354,7 @@
     {
      "id": "F-DEC-06.e1",
      "scenario": "%6b, //, ./, %2F variants of the gated path",
-     "expected": "gated; /API/ is not gated and Django 404s it",
+     "expected": "gated; /API/ is not gated and Django refuses it (404, or the CSRF 403 over HTTPS)",
      "severity": "P0",
      "checks": [
       {

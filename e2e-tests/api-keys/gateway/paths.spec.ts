@@ -7,6 +7,16 @@ function expectRequired(r: RawResult, what: string) {
   expect(answeredByGateway(r), `${what} reached an upstream`).toBe(true);
 }
 
+/**
+ * Django refused the request without running a view: a 404, or, on the HTTPS cauldron, the CSRF
+ * 403 a Referer-less POST gets first. The knn view is CSRF-exempt, so that 403 also proves the
+ * request never reached it.
+ */
+function expectDjangoRefusal(r: RawResult, what: string) {
+  const csrf = r.status === 403 && /CSRF verification failed/.test(r.body);
+  expect(r.status === 404 || csrf, `${what}: ${summary(r)}`).toBe(true);
+}
+
 test.describe('gateway path gating', () => {
   const variants = [
     '/api/%6bnn-search',
@@ -27,19 +37,26 @@ test.describe('gateway path gating', () => {
     });
   }
 
-  test('A6a: /api%2Fknn-search is redirected to the gated path, which then denies', async ({ target }) => {
+  test('A6a: /api%2Fknn-search is redirected to the gated path (or denied directly), and denied', async ({ target }) => {
     for (const path of ['/api%2Fknn-search', '/api%2fknn-search', '/x/..%2Fapi/knn-search']) {
       const r = await rawRequest({ target: target.name, path });
-      expect(r.status, `${path}: ${summary(r)}`).toBe(307);
-      expect(r.headers['location']).toBe(GATED);
-      expectRequired(await rawRequest({ target: target.name, path: r.headers['location'] }), `${path} followed`);
+      // The cluster's ClientTrafficPolicy keeps escaped slashes unchanged (N-M9), so there the gate
+      // may deny the path directly instead of redirecting first, as N-A1 allows locally.
+      const allowed = target.name === 'local' ? [307] : [307, 401];
+      expect(allowed, `${path}: ${summary(r)}`).toContain(r.status);
+      if (r.status === 307) {
+        expect(r.headers['location'], path).toBe(GATED);
+        expectRequired(await rawRequest({ target: target.name, path: r.headers['location'] }), `${path} followed`);
+      } else {
+        expectRequired(r, path);
+      }
     }
   });
 
-  test('A6c: /API/knn-search is not gated, and Django 404s it, so it is not a bypass', async ({ target }) => {
+  test('A6c: /API/knn-search is not gated, and Django refuses it, so it is not a bypass', async ({ target }) => {
     for (const path of ['/API/knn-search', '/api/KNN-search']) {
       const r = await rawRequest({ target: target.name, path, method: 'POST', body: '{}' });
-      expect(r.status, `${path}: ${summary(r)}`).toBe(404);
+      expectDjangoRefusal(r, path);
       expect(r.code).toBeUndefined();
       expect(answeredByGateway(r)).toBe(false);
     }
@@ -56,7 +73,9 @@ test.describe('gateway path gating', () => {
     ];
     for (const [path, allowed] of cases) {
       const r = await rawRequest({ target: target.name, path, method: 'POST', body: '{}' });
-      expect.soft(allowed, `${path}: ${summary(r)}`).toContain(r.status);
+      // A 404 from Django may arrive as its CSRF 403 on the HTTPS cauldron; see expectDjangoRefusal.
+      const csrf = r.status === 403 && /CSRF verification failed/.test(r.body);
+      expect.soft(allowed, `${path}: ${summary(r)}`).toContain(csrf ? 404 : r.status);
       if (r.status === 401) expect.soft(r.code, path).toBe('api_key_required');
     }
   });
