@@ -24,8 +24,8 @@ name the cauldron.
   - the `auth_service_reader` role
   - Envoy Gateway or KEDA objects
   - the infrastructure repo
-- No pod deletes, restarts, scale/patch/apply/edit, or `flux reconcile`, without Daniel's explicit go-ahead. F-series
-  drills also need Yotam.
+- No pod deletes, restarts, scale/patch/apply/edit, or `flux reconcile` without the owner's explicit go-ahead: Daniel's
+  on the shared `apikeys-pipeline`, Yotam's on `apisplit` (his dedicated cauldron). F-series drills also need Yotam.
 - Never use `create-cauldron.sh` or `repoint-cauldron.sh`. Never force-push the cauldrons repo. Edit only
   `apikeys-pipeline.yaml` there, and only on a go-ahead: all five tags plus the chart version, keeping `pinned`,
   `authService` and the flags. Revert to roll back.
@@ -62,7 +62,7 @@ name the cauldron.
 ## Seeded runs
 
 Seeding the cauldron (fixture accounts, projects and keys written through the ORM in the web pod) is a cluster write.
-The seeder also refuses any cauldron write unless `APIKEYS_ALLOW_MUTATING_ON` equals `APIKEYS_CAULDRON`. It needs Daniel's own go-ahead, which is not recorded, so this runner has no seeded mode. When it is approved, the
+The seeder also refuses any cauldron write unless `APIKEYS_ALLOW_MUTATING_ON` equals `APIKEYS_CAULDRON`. It needs the owner's go-ahead (Daniel on `apikeys-pipeline`, Yotam on `apisplit`; both cauldrons read one shared `sefaria_auth` registry, so seeded rows show on both), which is not recorded, so this runner has no seeded mode. When it is approved, the
 seeded flow is: the same preflight and snapshot; require the script's `--leftovers` to print 0; seed once with the
 script and password on stdin (`python - --target cauldron --reset --manifest-stdout`) into the manifest above;
 run `--project=apikeys` with the setup project, but only when no local suite is running, because the setup project
