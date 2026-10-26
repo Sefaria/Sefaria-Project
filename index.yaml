@@ -107,6 +107,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.1-fixweb-wait-for-redis.1.tgz
     version: 0.92.1-fixweb-wait-for-redis.1
   - apiVersion: v2
+    appVersion: v7.10.0
+    created: "2026-10-26T14:08:10.909099706Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 64faafac99f336a57989ddc02bf0bcc4cac0970bbd874e5f221c12c8b50e29a8
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.1-fixsync-skip-api-keys.1.tgz
+    version: 0.92.1-fixsync-skip-api-keys.1
+  - apiVersion: v2
     appVersion: v7.8.0
     created: "2026-10-25T07:33:31.892150596Z"
     description: Chart to deploy complete Sefaria environment
@@ -23340,4 +23355,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-10-26T11:47:36.767740902Z"
+generated: "2026-10-26T14:08:10.904879583Z"
