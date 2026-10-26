@@ -2,7 +2,7 @@ import http from 'http';
 import https from 'https';
 import path from 'path';
 import { spawnSync } from 'child_process';
-import { CAULDRON_HOST, CAULDRON_KUBE_CONTEXT, LOCAL_PORTS, REPO_ROOT, TargetName, maskSecrets } from '../env';
+import { CAULDRON_HOST, CAULDRON_KUBE_CONTEXT, CAULDRON_NAME, LOCAL_PORTS, REPO_ROOT, TargetName, maskSecrets } from '../env';
 
 /**
  * Requests the Playwright request context cannot make: the path is sent byte for byte (no URL
@@ -145,9 +145,15 @@ export function authsvcLogSince(since: Date): string[] {
   return maskSecrets(out.stdout + out.stderr).split('\n').filter(Boolean);
 }
 
-/** Raw text of an unmasked log search: does any line since `since` contain `needle`? (Never print the result.) */
-export function authsvcLogContains(since: Date, needle: string): boolean {
-  const out = sh('docker', ['logs', '--since', since.toISOString(), AUTHSVC_CONTAINER]);
+/**
+ * Raw text of an unmasked log search: does any line since `since` contain `needle`? (Never print the result.)
+ * Locally it reads the stack's container; on the cauldron, every auth-service replica through read-only kubectl logs.
+ */
+export function authsvcLogContains(since: Date, needle: string, target: TargetName = 'local'): boolean {
+  const out = target === 'cauldron'
+    ? kubectlReadOnly(['logs', '-n', 'default', '-l', `app=auth-service-${CAULDRON_NAME}`, '--since-time', since.toISOString(), '--tail=-1', '--max-log-requests=10'])
+    : sh('docker', ['logs', '--since', since.toISOString(), AUTHSVC_CONTAINER]);
+  if (target === 'cauldron' && out.status !== 0) throw new Error(`kubectl logs failed: ${maskSecrets(out.stderr.trim())}`);
   return (out.stdout + out.stderr).includes(needle);
 }
 

@@ -46,7 +46,9 @@ test.describe('onboarding.ssoUnverified: email changes', () => {
     await sessionReady(ROLE);
   });
 
-  test.afterEach(async () => {
+  // A skipped test (any target without the local stack) has nothing to reset, and the reset needs the stack's Python.
+  test.afterEach(async ({}, testInfo) => {
+    if (testInfo.status === 'skipped') return;
     await fixtures.reset(ROLE, 'F5');
   });
 

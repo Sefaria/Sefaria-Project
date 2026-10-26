@@ -57,8 +57,8 @@ test.describe('gateway decisions', () => {
     expect(r.headers['content-type']).toBe('application/json');
     expect(answeredByGateway(r)).toBe(true);
 
-    await expect.poll(() => authsvcLogContains(since, `key_prefix=${key.slice(0, 12)} `), { timeout: 5000 }).toBe(true);
-    expect(authsvcLogContains(since, key), 'the full key value is in the auth-service log').toBe(false);
+    await expect.poll(() => authsvcLogContains(since, `key_prefix=${key.slice(0, 12)} `, target.name), { timeout: 5000 }).toBe(true);
+    expect(authsvcLogContains(since, key, target.name), 'the full key value is in the auth-service log').toBe(false);
   });
 
   const invalidOnUngated: Array<{ label: string; value: () => string }> = [

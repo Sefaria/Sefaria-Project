@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { Page } from '@playwright/test';
 import { test, expect, pageFetch } from '../fixtures';
 import { findAccount } from '../env';
@@ -10,6 +12,7 @@ import { SUITE, addListing, closeOwnContexts, openAs, developerState, openSettin
 const PASSWORD = 'password';
 const GAUTH = 'gauth';
 const HEBREW = 'hebrew';
+const HE_STRINGS: Record<string, string> = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../static/js/sefaria/i18n/interface/he.json'), 'utf-8'));
 
 type Server = { name: string; host?: string };
 const SERVERS: Server[] = [
@@ -200,15 +203,16 @@ test.describe('account settings: password account', () => {
 
 test.describe('account settings: Hebrew interface', () => {
   test.describe.configure({ timeout: t(180000) });
-  test('N-M2: the change-email fields have Hebrew placeholders @known-gap N-M2', async ({ account, browser, target }) => {
+  test('N-M2: the change-email fields have Hebrew placeholders', async ({ account, browser, target }) => {
     const { page } = await openAs(account, browser, target, HEBREW, { lang: 'hebrew' });
     await openSettings(page);
     await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
     await page.locator('#change-email').click();
     await expect(page.locator('#username-change-edit')).toBeVisible();
-    expect.soft(await page.locator('#username-change-edit #email').getAttribute('placeholder')).toBe('כתובת דוא״ל חדשה');
-    expect.soft(await page.locator('#username-change-edit #confirmEmail').getAttribute('placeholder')).toBe('וידוא כתובת מייל חדשה');
-    expect.soft(await page.locator('#username-change-edit #confirmPassword').getAttribute('placeholder')).toBe('סיסמא');
+    // The wording is owned by the interface strings, so the test reads it from there.
+    expect.soft(await page.locator('#username-change-edit #email').getAttribute('placeholder')).toBe(HE_STRINGS['account_settings.new_email']);
+    expect.soft(await page.locator('#username-change-edit #confirmEmail').getAttribute('placeholder')).toBe(HE_STRINGS['account_settings.confirm_new_email']);
+    expect.soft(await page.locator('#username-change-edit #confirmPassword').getAttribute('placeholder')).toBe(HE_STRINGS['account_settings.password']);
   });
 });
 
