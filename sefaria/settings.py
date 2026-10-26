@@ -171,6 +171,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'emailusernames',
     'guides',
+    'inquiry.apps.InquiryConfig',
     'sefaria.gauth',
     'django_topics.apps.DjangoTopicsAppConfig',
     'powered_by.apps.PoweredByAppConfig',
@@ -451,3 +452,8 @@ HEADLESS_FRONTEND_URLS = {'account_confirm_email': '/'}
 
 ROOT_HOSTCONF = 'sefaria.hosts'
 DEFAULT_HOST = 'library'
+
+# Staff-only live reading map at /inquiry/atlas/ (see inquiry/README.md).
+INQUIRY_ATLAS_ENABLED = os.environ.get('INQUIRY_ATLAS_ENABLED', '0') == '1'
+
+INQUIRY_ATLAS_DEMO_ENABLED = os.environ.get('INQUIRY_ATLAS_DEMO_ENABLED', '0') == '1'

@@ -163,3 +163,10 @@ Grouped by function:
 1. Add the data to the Django view's `props` dict
 2. Handle it in `Sefaria.unpackDataFromProps()` to cache it client-side
 3. Add a getter/cache pattern in `sefaria.js` (e.g., `Sefaria._myData = {}; Sefaria.getMyData = function(key) { ... }`)
+
+## Live reading map
+
+`static/js/inquiry-atlas.jsx` mounts `inquiry/LearningActivityAtlas.jsx` as a standalone React app at
+`/inquiry/atlas/` (own webpack config, `npm run build-inquiry-atlas`; React is bundled, not taken from
+reader globals). The component polls the activity API and renders the side panel; `inquiry/atlasCanvas.js`
+draws the map on a canvas with D3 zoom and a `requestAnimationFrame` loop for halos and moving dots.

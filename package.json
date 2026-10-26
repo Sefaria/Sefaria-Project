@@ -64,7 +64,9 @@
     "test:voices-topics": "playwright test --project=chrome-voices-topics",
     "scss": "sass --watch static/css:static/css",
     "scss-compile": "sass static/css:static/css",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build-inquiry-atlas": "webpack --config ./node/webpack.inquiry-atlas.js",
+    "watch-inquiry-atlas": "webpack --config ./node/webpack.inquiry-atlas.js --watch"
   },
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.6",

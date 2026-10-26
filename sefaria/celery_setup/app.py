@@ -9,7 +9,7 @@ logger = structlog.get_logger(__name__)
 app = Celery('sefaria')
 raw_config, redis_config, sentinel_config = generate_config_from_env()
 app.conf.update(**raw_config, result_expires=1800)
-app.autodiscover_tasks(packages=['sefaria.helper.llm', 'sefaria.helper.linker', 'sefaria.helper.crm', 'sefaria.helper.texts'])
+app.autodiscover_tasks(packages=['sefaria.helper.llm', 'sefaria.helper.linker', 'sefaria.helper.crm', 'sefaria.helper.texts', 'inquiry'])
 
 
 @worker_process_init.connect
@@ -51,3 +51,12 @@ def _sync_multiserver_before_task(**kwargs):
             server_coordinator.sync()
     except Exception:
         logger.exception("multiserver_coordinator:sync_failed")
+
+# Optional: where a beat scheduler runs, refresh the live reading map snapshot on a timer.
+# Without beat, the atlas API enqueues the same task while someone has the page open.
+from sefaria.settings import INQUIRY_ATLAS_ENABLED
+if INQUIRY_ATLAS_ENABLED:
+    from sefaria.celery_setup.config import CeleryQueue
+    app.conf.beat_schedule = {**(app.conf.beat_schedule or {}), "inquiry-live-atlas": {
+        "task": "inquiry.refresh_activity", "schedule": 5.0,
+        "options": {"queue": CeleryQueue.TASKS.value, "expires": 4}}}

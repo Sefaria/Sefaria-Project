@@ -1,0 +1,16 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sefaria · Learning activity atlas</title>
+  <link rel="stylesheet" href="{% static 'css/inquiry-atlas.css' %}">
+</head>
+<body>
+  <div id="inquiry-atlas-root"></div>
+  <noscript>The learning activity atlas requires JavaScript.</noscript>
+  {{ atlas_config|json_script:"inquiry-atlas-config" }}
+  <script defer src="{% static 'bundles/inquiry-atlas/inquiry-atlas.js' %}"></script>
+</body>
+</html>
