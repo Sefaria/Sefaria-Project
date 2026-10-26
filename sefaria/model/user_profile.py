@@ -62,6 +62,7 @@ from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_r
 from sefaria.model.blocking import BlockersSet, BlockeesSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
+from sefaria.system.cache import gen_cache
 from sefaria.utils.util import epoch_time
 from django.utils import translation
 
@@ -469,8 +470,8 @@ class UserProfile(object):
     def full_name(self):
         return self.first_name + " " + self.last_name
 
-    # Profile fields that public_user_data() exposes. A change to one of them is
-    # broadcast so other servers drop their cached copy; other fields are not.
+    # Profile fields that public_user_data() exposes. A change to one of them bumps the
+    # GenCache generation so other servers drop their cached copy; other fields do not.
     public_data_fields = ["first_name", "last_name", "slug", "profile_pic_url_small",
                           "position", "organization"]
 
@@ -593,21 +594,17 @@ class UserProfile(object):
 
     def _publish_public_data_invalidation(self):
         """
-        Tell the other server processes to drop this user's cached public data.
+        Tell the other server processes to drop their cached public user data.
 
         Only called when a public field changed (_public_data_updated), because
-        profile_sync_api saves profiles on every reading-history sync and the
-        multiserver channel is meant for infrequent events.
+        profile_sync_api saves profiles on every reading-history sync and every
+        invalidation makes each process refresh.
 
-        Best-effort: listeners only check for events every few requests, and
-        publish_event ignores Redis errors. PUBLIC_USER_DATA_CACHE_TTL bounds how
-        long any process can serve stale data if a message is missed.
+        Best-effort: GenCache fails open if Redis is unreachable, and other processes only
+        re-check the generation every few seconds. PUBLIC_USER_DATA_CACHE_TTL bounds how
+        long any process can serve stale data if a bump is missed.
         """
-        from sefaria.settings import MULTISERVER_ENABLED
-        from sefaria.system.multiserver.coordinator import server_coordinator
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event(
-                "user_profile", "invalidate_public_user_data_cache", [self.id])
+        gen_cache.invalidate(PUBLIC_USER_DATA_GEN_KEY)
 
     def errors(self):
         """
@@ -915,6 +912,11 @@ def email_unread_notifications(timeframe):
 PUBLIC_USER_DATA_CACHE_TTL = 10 * 60
 public_user_data_cache = {}
 
+# GenCache key bumped when any user's public data changes. The generation is shared by all
+# users, so a bump makes every process drop all of its cached public user data.
+PUBLIC_USER_DATA_GEN_KEY = "public_user_data"
+gen_cache.register(PUBLIC_USER_DATA_GEN_KEY, public_user_data_cache.clear)
+
 
 def _get_cached_public_user_data(uid):
     """Returns the cached data for `uid`, or None if it is missing or expired."""
@@ -931,6 +933,7 @@ def _get_cached_public_user_data(uid):
 def public_user_data(uid, ignore_cache=False):
     """Returns a dictionary with common public data for `uid`"""
     if not ignore_cache:
+        gen_cache.get(PUBLIC_USER_DATA_GEN_KEY)  # clears the local cache if another process bumped the generation
         cached = _get_cached_public_user_data(uid)
         if cached is not None:
             return cached
@@ -959,9 +962,8 @@ def invalidate_public_user_data_cache(uid):
     """
     Drop `uid`'s cached public data so the next read rebuilds it from the DBs.
 
-    Called by UserProfile.save(), and on other servers through the multiserver
-    coordinator's "user_profile" target (sefaria/system/multiserver/coordinator.py).
-    A uid that isn't cached is ignored.
+    Called by UserProfile.save(). Other servers drop their copies through the
+    PUBLIC_USER_DATA_GEN_KEY GenCache generation. A uid that isn't cached is ignored.
     """
     public_user_data_cache.pop(uid, None)
 
