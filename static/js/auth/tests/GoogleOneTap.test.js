@@ -175,6 +175,23 @@ describe('auth path guard', () => {
   });
 });
 
+describe('another Google sign-in button on the page', () => {
+  afterEach(() => { document.querySelectorAll('.sefaria-provider-sdk-overlay').forEach((el) => el.remove()); });
+
+  it('does not show One Tap, which would take over that button\'s sign-in', () => {
+    // Google's real button is placed over a .sefaria-provider-sdk-overlay (useSsoSignIn.jsx),
+    // e.g. by the Library Assistant's sign-up options.
+    const overlay = document.createElement('div');
+    overlay.className = 'sefaria-provider-sdk-overlay';
+    document.body.appendChild(overlay);
+    mount();
+    flushInitialDelay();
+
+    expect(window.google.accounts.id.initialize).not.toHaveBeenCalled();
+    expect(window.google.accounts.id.prompt).not.toHaveBeenCalled();
+  });
+});
+
 describe('prompt() moment listener', () => {
   // Regression coverage for a live finding (2026-08-10): calling prompt() with no
   // argument at all silently drops the credential under FedCM -- no error, no call to

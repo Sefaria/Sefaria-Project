@@ -1,5 +1,5 @@
-import { test, Page } from '@playwright/test';
-import { goToPageWithLang, goToPageWithUser } from '../utils';
+import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS } from '../constants';
@@ -193,16 +193,135 @@ test.describe('Library Assistant — visibility boundaries', () => {
     await pm.onLibraryAssistant().expectNotPresent();
   });
 
-  test('LA-NEG-003: Does not appear for a logged-out user on the library home', async ({ context }) => {
+  test('LA-LOGGED-OUT-001: Appears for a logged-out user on the library home', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().expectNotPresent();
+    await pm.onLibraryAssistant().waitForReady();
   });
 
-  test('LA-NEG-004: Does not appear for a logged-out user on a reader page', async ({ context }) => {
+  test('LA-LOGGED-OUT-002: Appears for a logged-out user on a reader page', async ({ context }) => {
     const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+  });
+
+  // The whole chain for a logged-out visitor: Sefaria renders the widget without a
+  // user, the widget sends its anonymous ID, and the real chat server answers.
+  test('LA-LOGGED-OUT-003: A logged-out user can ask a question and get an answer', async ({ context }) => {
+    test.setTimeout(t(90000));
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    const prompt = '<AUTO TEST> Say hi in one short word';
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().ensureOpen();
+    await pm.onLibraryAssistant().typeMessage(prompt);
+    await pm.onLibraryAssistant().sendViaEnter();
+    await pm.onLibraryAssistant().expectUserMessageShown(prompt);
+    await pm.onLibraryAssistant().expectAnswerShown();
+  });
+
+  // Once the free answers are used up, the widget's login prompt shows Sefaria's sign-up
+  // options (Google, Apple, Email), which Sefaria puts in the widget's signup-options slot.
+  // Getting there for real takes real answers, so the widget's "used up" flag is seeded.
+  async function openWithFreeAnswersUsedUp(context: BrowserContext) {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().seedFreeAnswersUsedUp();
+    await page.reload();
+    await hideAllModalsAndPopups(page);
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().ensureOpen();
+    return { page, pm };
+  }
+
+  test('LA-LOGGED-OUT-005: The sign-up options appear in the assistant once the free answers are used up', async ({ context }) => {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().ensureOpen();
+    await pm.onLibraryAssistant().expectSignupOptionsHidden();
+
+    const usedUp = await openWithFreeAnswersUsedUp(context);
+
+    await usedUp.pm.onLibraryAssistant().expectSignupOptionsShown();
+  });
+
+  test('LA-LOGGED-OUT-006: Email opens the sign-up form in-page, reported as an email sign-up from the assistant', async ({ context }) => {
+    const { pm } = await openWithFreeAnswersUsedUp(context);
+    await pm.onLibraryAssistant().recordAnalyticsEvents();
+
+    await pm.onLibraryAssistant().signupOption('email').click();
+
+    await pm.onLoginPage().expectEmailSignupFormShown();
+    // The assistant isn't shown on the login and registration screens.
     await pm.onLibraryAssistant().expectNotPresent();
+    const events = await pm.onLibraryAssistant().analyticsEvents();
+    const auth = events.filter((e) => e.name.startsWith('auth_'));
+    expect(auth.map((e) => e.name)).toEqual(['auth_flow_started', 'auth_method_chosen', 'auth_process_started']);
+    expect(auth[0]).toMatchObject({ source: 'rate_limit_login_button', flow_intent: 'registration' });
+    expect(auth[1]).toMatchObject({ method: 'email' });
+    // The assistant reports the click too.
+    expect(events).toContainEqual(expect.objectContaining({ name: 'assistant_click', feature_name: 'rate_limit_login_button' }));
+  });
+
+  test('LA-LOGGED-OUT-007: Apple starts Apple sign-up, reported as a sign-up from the assistant', async ({ context }) => {
+    const { pm } = await openWithFreeAnswersUsedUp(context);
+    test.skip(!(await pm.onLibraryAssistant().configuredProviders()).includes('apple'),
+      'Apple sign-in is not configured on this sandbox');
+    await pm.onLibraryAssistant().stubAppleSignIn();
+    await pm.onLibraryAssistant().recordAnalyticsEvents();
+
+    await pm.onLibraryAssistant().signupOption('apple').click();
+
+    const events = await pm.onLibraryAssistant().analyticsEvents();
+    const auth = events.filter((e) => e.name.startsWith('auth_'));
+    expect(auth.map((e) => e.name)).toEqual(['auth_flow_started', 'auth_method_chosen', 'auth_process_started']);
+    expect(auth[0]).toMatchObject({ source: 'rate_limit_login_button', flow_intent: 'registration' });
+    expect(auth[1]).toMatchObject({ method: 'apple' });
+    // The assistant reports the click too.
+    expect(events).toContainEqual(expect.objectContaining({ name: 'assistant_click', feature_name: 'rate_limit_login_button' }));
+  });
+
+  // A click on Google's own button can't be automated; this checks it's in place.
+  test('LA-LOGGED-OUT-008: Google\'s own sign-in button covers the Google option', async ({ context }) => {
+    const { pm } = await openWithFreeAnswersUsedUp(context);
+    test.skip(!(await pm.onLibraryAssistant().configuredProviders()).includes('google'),
+      'Google sign-in is not configured on this sandbox');
+
+    await pm.onLibraryAssistant().expectGoogleButtonOverGoogleOption();
+  });
+
+  test('LA-LOGGED-OUT-009: A logged-in user\'s assistant has no sign-up options', async ({ context }) => {
+    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+
+    await pm.onLibraryAssistant().expectNoSignupOptions();
+  });
+
+  // Logout (from any module) sets the lc_chatbot_clear cookie; the next Library page
+  // clears the assistant's saved chat so the next visitor on this browser doesn't see it.
+  // The logout itself isn't performed: it would destroy a shared auth session (rule §2.21).
+  test('LA-LOGGED-OUT-004: After a logout the next Library page clears the saved chat', async ({ context }) => {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().seedSavedChat();
+    expect(await pm.onLibraryAssistant().savedChatKeys()).not.toEqual([]);
+    // Set the way logout sets it: on the shared cookie domain (www.x.org → .x.org) on a
+    // deployed sandbox, host-only on a local one (localhost / an IP has no shared domain).
+    const libraryHost = new URL(MODULE_URLS.EN.LIBRARY).hostname;
+    const isLocalHost = !libraryHost.includes('.') || /^\d+(\.\d+){3}$/.test(libraryHost);
+    const clearCookie = isLocalHost
+      ? { name: 'lc_chatbot_clear', value: '1', url: MODULE_URLS.EN.LIBRARY }
+      : { name: 'lc_chatbot_clear', value: '1', domain: '.' + libraryHost.split('.').slice(1).join('.'), path: '/' };
+    await context.addCookies([clearCookie]);
+
+    await page.reload();
+
+    expect(await pm.onLibraryAssistant().savedChatKeys()).toEqual([]);
+    const cookies = await context.cookies(MODULE_URLS.EN.LIBRARY);
+    expect(cookies.find((c) => c.name === 'lc_chatbot_clear')).toBeUndefined();
   });
 });
 

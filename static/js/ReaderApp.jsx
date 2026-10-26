@@ -43,8 +43,13 @@ import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import AuthPage from './auth/AuthPage';
+import SignupOptions from './auth/SignupOptions';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingAuthAttempt } from './auth/authAnalytics.js';
+
+// The signup source of the Library Assistant's sign-up options (its login prompt, once a
+// logged-out visitor's free answers are used up).
+const CHATBOT_SIGNUP_SOURCE = 'rate_limit_login_button';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -141,9 +146,19 @@ class ReaderApp extends Component {
   setEditorSaveState = (nextState) => {
     this.setState({ editorSaveState: nextState });
     };
-  handleAuthNavigate = (path, source = null) => {
-    // Hide the sign up modal and show the auth page, with the given path and source.
-    this.setState({ showAuth: true, authPath: path, authSource: source, showSignUpModal: false });
+  handleAuthNavigate = (path, source = null, view = null) => {
+    // Hide the sign up modal and show the auth page, with the given path and source, on the
+    // given view (AuthPage's initialView; its choose card when null).
+    this.setState({ showAuth: true, authPath: path, authSource: source, authView: view, showSignUpModal: false });
+  }
+  authNext() {
+    // Where to return after logging in. If the auth page is already open, keep its own `next`
+    // rather than nesting /login?next=... inside a new one.
+    return this.state.showAuth ? nextFromPath(this.state.authPath) : Sefaria.util.currentPath();
+  }
+  handleChatbotEmailSignup = () => {
+    // Email in the Library Assistant's sign-up options: the email sign-up form, in-page.
+    this.handleAuthNavigate(withNext('/register', this.authNext()), CHATBOT_SIGNUP_SOURCE, 'email');
   }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
@@ -1373,8 +1388,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
 
     if (isAuthPath(path)) {
-      const next = this.state.showAuth ? nextFromPath(this.state.authPath) : Sefaria.util.currentPath();
-      this.handleAuthNavigate(withNext(path, next), signupSource);
+      this.handleAuthNavigate(withNext(path, this.authNext()), signupSource);
       return true;
     }
 
@@ -2424,7 +2438,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
     const chatbotHiddenByRemoteConfig = this.props.remoteConfig?.chatbot?.hide === 1;
     // On phones the widget itself becomes a full-screen sheet, opened from its own button or the mobile menu.
-    const displayChatbot = this.props.chatbot_enabled && !!this.props.chatbot_user_token && isLibraryModule && !chatbotHiddenByRemoteConfig;
+    // A logged-out visitor has no chatbot_user_token; chatbot_enabled alone decides. Not on the
+    // login and registration screens, which logged-out visitors reach from the assistant itself;
+    // it comes back once they leave them.
+    const displayChatbot = this.props.chatbot_enabled && isLibraryModule && !this.state.showAuth && !chatbotHiddenByRemoteConfig;
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
@@ -2597,6 +2614,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   <AuthPage
                     initialPath={this.state.authPath}
                     authSource={this.state.authSource}
+                    initialView={this.state.authView}
                     resetValid={this.props.authResetValid}
                     onNavigate={this.handleAuthNavigate}
                   />
@@ -2607,7 +2625,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 )}
                 {displayChatbot && (
                 <lc-chatbot
-                  user-id={this.props.chatbot_user_token}
+                  user-id={this.props.chatbot_user_token || undefined}
                   api-base-url={chatBotApiBaseUrl}
                   origin={this.props.chatbot_origin}
                   is-moderator={this.props.is_moderator || undefined}
@@ -2617,7 +2635,21 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   max-input-chars={this.props.chatbot_max_input_chars}
                   max-prompts={this.props.chatbot_max_prompts}
                   interface-lang={Sefaria._getShortInterfaceLang()}
-                />
+                  anon-free-answers={this.props.chatbot_anon_free_answers ?? undefined}
+                >
+                  {!Sefaria._uid && (
+                    // Shown in the assistant's login prompt (its signup-options slot). They stay in
+                    // this page's DOM, so Sefaria's own sign-in code and styles work as usual.
+                    <div slot="signup-options">
+                      <SignupOptions
+                        source={CHATBOT_SIGNUP_SOURCE}
+                        featureName={CHATBOT_SIGNUP_SOURCE}
+                        next={this.authNext()}
+                        onEmailClick={this.handleChatbotEmailSignup}
+                      />
+                    </div>
+                  )}
+                </lc-chatbot>
               )}
               </main>
               {signUpModal}

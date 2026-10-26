@@ -13,6 +13,13 @@ from django.utils.dateparse import parse_datetime
 DEFAULT_TTL_HOURS = 72
 NONCE_SIZE_BYTES = 12
 
+# Set on logout from any module. The next Library page load clears the Library
+# Assistant's localStorage (templates/base.html) and deletes the cookie, so the next
+# visitor or user on this browser doesn't see the previous user's chat. A cookie,
+# because localStorage is per subdomain: a logout on voices.* can't reach www.*'s.
+CLEAR_STORAGE_COOKIE = "lc_chatbot_clear"
+CLEAR_STORAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60
+
 
 def _hash_user_id(user_id):
     return hashlib.sha256(str(user_id).encode("utf-8")).hexdigest()
@@ -76,3 +83,18 @@ def get_user_id_from_chatbot_user_token(token, secret):
         return user_id if user_id > 0 else None
     except (binascii.Error, InvalidTag, KeyError, TypeError, ValueError):
         return None
+
+
+def mark_chatbot_storage_for_clearing(request, response):
+    """Ask the next Library page load to clear the Library Assistant's localStorage."""
+    response.set_cookie(
+        CLEAR_STORAGE_COOKIE,
+        "1",
+        max_age=CLEAR_STORAGE_COOKIE_MAX_AGE,
+        # The session cookie's domain (SessionCookieDomainMiddleware), e.g. '.sefaria.org',
+        # so a logout on voices.* is seen on www.*.
+        domain=getattr(request, "_cookie_domain", None),
+        samesite="Lax",
+        secure=request.is_secure(),
+    )
+    return response
