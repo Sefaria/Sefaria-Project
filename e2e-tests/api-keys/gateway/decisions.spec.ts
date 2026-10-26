@@ -70,15 +70,21 @@ test.describe('gateway decisions', () => {
   for (const { label, value } of invalidOnUngated) {
     test(`A2b: ${label} on ungated paths is let through as anonymous @known-gap D2`, async ({ target }) => {
       const key = value();
-      const invalidBefore = await authsvcCounter('authsvc_decisions_total', { result: 'api_key_invalid' });
+      // The decision counter and the echo upstream exist on the local stack only (as in A1).
+      const local = target.name === 'local';
+      const invalidBefore = local ? await authsvcCounter('authsvc_decisions_total', { result: 'api_key_invalid' }) : 0;
       for (const path of [UNGATED, '/', '/static/css/s2.css']) {
         const r = await rawRequest({ target: target.name, path, headers: { 'x-api-key': key } });
         expect.soft([200, 301, 302], `${path}: ${summary(r)}`).toContain(r.status);
       }
-      const echoed = await rawRequest({ target: target.name, host: 'echo', path: UNGATED, headers: { 'x-api-key': key } });
-      expect.soft(stamped(echoed), summary(echoed)).toEqual({ tier: 'anonymous', project: '', result: 'api_key_invalid' });
-      const invalidAfter = await authsvcCounter('authsvc_decisions_total', { result: 'api_key_invalid' });
-      expect(invalidAfter, 'the decision is still recorded as api_key_invalid').toBeGreaterThanOrEqual(invalidBefore + 4);
+      if (target.hasEcho) {
+        const echoed = await rawRequest({ target: target.name, host: 'echo', path: UNGATED, headers: { 'x-api-key': key } });
+        expect.soft(stamped(echoed), summary(echoed)).toEqual({ tier: 'anonymous', project: '', result: 'api_key_invalid' });
+      }
+      if (local) {
+        const invalidAfter = await authsvcCounter('authsvc_decisions_total', { result: 'api_key_invalid' });
+        expect(invalidAfter, 'the decision is still recorded as api_key_invalid').toBeGreaterThanOrEqual(invalidBefore + 4);
+      }
     });
   }
 
