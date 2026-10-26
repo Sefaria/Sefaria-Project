@@ -23,6 +23,7 @@ after deploying the branch the pods are replaced, so pick a fresh pod then. `loc
 import argparse
 import asyncio
 import json
+import re
 import statistics
 import sys
 import time
@@ -49,13 +50,30 @@ def route_key(url):
     return f"page:{segments[0]}" if segments[0] in PAGE_PREFIXES else "page:ref"
 
 
+# URLs that audits found can write to the shared prod DB, or that were never audited. See the audit notes in the PR.
+EXCLUDED_URL_PATTERNS = [
+    re.compile(r"^/Sheet[._ ]"),  # page route: make_sheet_panel_dict does db.sheets $inc views
+    re.compile(r"/Sheet[._ %]"),  # sheet refs on API routes, excluded conservatively
+    re.compile(r"^/sheets"),  # sheet pages increment the view counter
+    re.compile(r"chatbot_version="),  # creates a Django session row
+    re.compile(r"set-language-cookie"),  # writes a profile when authenticated
+    re.compile(r"^/search"),  # search page SSR not audited
+]
+
+
 def load_replay(limit=None):
     rows = []
+    excluded = 0
     with open(REPLAY_FILE) as fin:
         for line in fin:
-            rows.append(json.loads(line)["url"])
+            url = json.loads(line)["url"]
+            if any(p.search(url) for p in EXCLUDED_URL_PATTERNS):
+                excluded += 1
+                continue
+            rows.append(url)
             if limit and len(rows) >= limit:
                 break
+    print(f"excluded {excluded} urls that are unsafe or unaudited")
     return rows
 
 
