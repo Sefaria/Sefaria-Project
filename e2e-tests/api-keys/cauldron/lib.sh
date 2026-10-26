@@ -6,11 +6,11 @@
 
 KCTX=gke_development-205018_us-east1-b_cluster-1
 NS=default
-# The target cauldron is named once. The defaults keep the shared apikeys-pipeline cauldron; the names below
+# The target cauldron is named once. The default is apisplit, the phase-1 cauldron (apikeys-pipeline was deleted on 2026-10-26); the names below
 # follow helm-chart/sefaria (service auth-service-<env>, deploy <env>-auth-service, labels app=web-<env>,
 # app=nginx-<env>, deployEnv=<env>, HelmRelease <env>).
-CAULDRON=${APIKEYS_CAULDRON:-apikeys-pipeline}
-APIKEYS_PR=${APIKEYS_PR:-3798}
+CAULDRON=${APIKEYS_CAULDRON:-apisplit}
+APIKEYS_PR=${APIKEYS_PR:-3774}
 [[ $CAULDRON =~ ^[a-z0-9-]+$ ]] || { printf 'STOP: APIKEYS_CAULDRON=%s is not a cauldron name\n' "$CAULDRON" >&2; exit 1; }
 HOST=www.$CAULDRON.cauldron.sefaria.org
 BASE="https://$HOST"

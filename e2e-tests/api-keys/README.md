@@ -2,7 +2,7 @@
 
 Playwright suites for the API key gateway (Envoy ext_authz + the Go auth service) and the developer settings UI.
 They run against exactly two targets: the local Docker stack (`auth-service/dev/local-stack/`) or the
-default cauldron (`apikeys-pipeline`, or `$APIKEYS_CAULDRON`). Names, ports, accounts and the manifest format are fixed in [CONTRACT.md](CONTRACT.md);
+default cauldron (`apisplit`, or `$APIKEYS_CAULDRON`). Names, ports, accounts and the manifest format are fixed in [CONTRACT.md](CONTRACT.md);
 the case list is [`../test-plans/sc-47260-api-keys.md`](../test-plans/sc-47260-api-keys.md).
 
 The projects `apikeys-setup` and `apikeys` exist only when `APIKEYS_TARGET` is set **and** the manifest exists, so
@@ -24,9 +24,9 @@ temporary directory and swaps it in at the end, so a run already in progress nev
 
 The seed script and the setup both read the shared password from `APIKEYS_E2E_PASSWORD_FILE` (default
 `.claude/scratch/api-keys-e2e/password`). On the cauldron, use `e2e-tests/api-keys/cauldron/run.sh`, which
-preflights, seeds through the web pod, runs with at most 2 workers and always tears down.
-`APIKEYS_CAULDRON` names the target cauldron (default `apikeys-pipeline`) and `APIKEYS_PR` the pull request
-whose merge commit the images must match (default 3798); both runner and `demo.sh` derive every host and
+preflights, snapshots and runs the fixture-free cases with at most 2 workers. Seeded runs follow the
+"Seeded runs" section of `cauldron/SAFETY.md`. `APIKEYS_CAULDRON` names the target cauldron (default `apisplit`)
+and `APIKEYS_PR` the pull request whose merge commit the images must match (default 3774); both runner and `demo.sh` derive every host and
 resource name from them.
 
 ## What the scaffold gives a spec

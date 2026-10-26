@@ -179,7 +179,7 @@ def read_password(preamble=None):
 # --- Target guard ---------------------------------------------------------------
 
 def cauldron_name():
-    name = os.environ.get("APIKEYS_CAULDRON", "apikeys-pipeline")
+    name = os.environ.get("APIKEYS_CAULDRON", "apisplit")
     if not re.fullmatch(r"[a-z0-9-]+", name):
         raise SystemExit("Refusing: APIKEYS_CAULDRON={!r} is not a cauldron name.".format(name))
     return name

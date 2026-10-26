@@ -7,7 +7,7 @@
 #   demo.sh [--target local|cauldron] [--pause] [--offline] [--read-only | --allow-mutating] [--pg-integration] [--list-sections]
 #
 #   --target local     the local stack (auth-service/dev/local-stack, compose project sefaria-apikeys-stack), default
-#   --target cauldron  the cauldron named by APIKEYS_CAULDRON (default apikeys-pipeline, the shared one; kubectl on the
+#   --target cauldron  the cauldron named by APIKEYS_CAULDRON (default apisplit, the phase-1 cauldron; kubectl on the
 #                      dev cluster only; DEMO_HOST overrides the site)
 #   --offline          only the checks that need no network, docker or cluster (built, coverage, read more)
 #   --read-only        default: nothing is written, stopped or scaled; mutating sections print [SKIP ...]
@@ -40,7 +40,7 @@ STACK_PG=sefaria-apikeys-stack-pg-1
 SENTINEL_NOTES='E2E api-keys stack sentinel (local only)'
 CTX=${CTX:-$DEV_CTX}
 NS=${NS:-default}
-CAULDRON_ENV=${APIKEYS_CAULDRON:-apikeys-pipeline}
+CAULDRON_ENV=${APIKEYS_CAULDRON:-apisplit}
 CAULDRON_HOST=${DEMO_HOST:-https://www.$CAULDRON_ENV.cauldron.sefaria.org}
 EXPECTED_TRIGGERS='apikeys_notify_api_project_delete on api_project
 apikeys_notify_api_project_update on api_project

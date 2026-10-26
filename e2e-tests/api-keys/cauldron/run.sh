@@ -59,13 +59,22 @@ preflight() {
   sefaria="$(printf '%s\n' "$imgs" | grep -oE 'sefaria-[a-z0-9-]+:sha-[0-9a-f]+' | sort -u)"
   [ "$(printf '%s\n' "$sefaria" | grep -c .)" -ge 4 ] || die "fewer than 4 distinct sefaria images found: $sefaria"
   bad="$(printf '%s\n' "$sefaria" | grep -v ":sha-$short\$" || true)"
-  [ -z "$bad" ] || die "pin is stale or moved (merge sha $short): $bad. Do not bump; report it."
+  # GitHub can regenerate the trial merge after CI has built it: a new sha with the same two parents is the same code.
+  local same="" tag parents want
+  if [ -n "$bad" ]; then
+    want="$(gh api "repos/Sefaria/Sefaria-Project/commits/$merge" -q '[.parents[].sha]|join(",")')" || die "gh api failed"
+    for tag in $(printf '%s\n' "$bad" | sed -E 's/.*:sha-//' | sort -u); do
+      parents="$(gh api "repos/Sefaria/Sefaria-Project/commits/$tag" -q '[.parents[].sha]|join(",")' 2>/dev/null || true)"
+      [ -n "$parents" ] && [ "$parents" = "$want" ] || die "pin is stale or moved (merge sha $short): $bad. Do not bump; report it."
+      same="$same $tag"
+    done
+  fi
   hr="$(kc get helmrelease "$CAULDRON" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}')"
   [ "$hr" = True ] || die "HelmRelease Ready=$hr"
   authlog="$(kc logs "$AUTH_DEPLOY" 2>/dev/null | grep -oE 'registry loaded keys=[0-9]+.{0,60}' | tail -1)"
   [ -n "$authlog" ] || die "auth service log has no 'registry loaded keys='"
   AUTH_POD_START="$(auth_pod_state)"
-  rec N-E6 pass "images: $(printf '%s ' $sefaria)= merge_commit_sha $short; HelmRelease Ready=True; auth log '$authlog'"
+  rec N-E6 pass "images: $(printf '%s ' $sefaria)= merge_commit_sha $short${same:+ (built as$same, a regenerated trial merge with the same parents)}; HelmRelease Ready=True; auth log '$authlog'"
 }
 
 # --- warm-up --------------------------------------------------------------------------------------

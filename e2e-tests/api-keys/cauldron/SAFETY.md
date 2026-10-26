@@ -1,9 +1,9 @@
 # Cauldron runner: safety rules
 
 `run.sh` prints this file before it does anything. It targets only
-`https://www.$APIKEYS_CAULDRON.cauldron.sefaria.org` (default `apikeys-pipeline`, the shared cauldron; set
-`APIKEYS_CAULDRON=apisplit` for the dedicated one; `APIKEYS_PR` names the PR whose merge commit the images must
-match, default 3798) and the dev cluster context
+`https://www.$APIKEYS_CAULDRON.cauldron.sefaria.org` (default `apisplit`, the phase-1 cauldron; the shared
+`apikeys-pipeline` was deleted on 2026-10-26; `APIKEYS_PR` names the PR whose merge commit the images must
+match, default 3774) and the dev cluster context
 `gke_development-205018_us-east1-b_cluster-1` (the default context on some machines is production).
 
 `auth-service/scripts/demo.sh --target cauldron --allow-mutating` needs `APIKEYS_CAULDRON=<name>` and
@@ -24,11 +24,13 @@ name the cauldron.
   - the `auth_service_reader` role
   - Envoy Gateway or KEDA objects
   - the infrastructure repo
-- No pod deletes, restarts, scale/patch/apply/edit, or `flux reconcile` without the owner's explicit go-ahead: Daniel's
-  on the shared `apikeys-pipeline`, Yotam's on `apisplit` (his dedicated cauldron). F-series drills also need Yotam.
+- No pod deletes, restarts, scale/patch/apply/edit, or `flux reconcile` without the cauldron owner's explicit go-ahead
+  (Yotam's on `apisplit`; Daniel's on any shared cauldron). F-series drills also need Yotam.
 - Never use `create-cauldron.sh` or `repoint-cauldron.sh`. Never force-push the cauldrons repo. Edit only
-  `apikeys-pipeline.yaml` there, and only on a go-ahead: all five tags plus the chart version, keeping `pinned`,
-  `authService` and the flags. Revert to roll back.
+  `apisplit.yaml` there, and only on a go-ahead: all five tags plus the chart version, keeping `pinned`,
+  `authService` and the flags. Pin the tag CI actually built (read it from the Continuous Image Build log), not the
+  PR's `merge_commit_sha`: GitHub can regenerate the trial merge after CI checks it out, and a tag that does not exist
+  leaves the Helm upgrade waiting for its full timeout. Revert to roll back.
 - Never touch existing rows:
   - the 16 keys and 143 projects
   - the 5 mock rows
@@ -62,7 +64,7 @@ name the cauldron.
 ## Seeded runs
 
 Seeding the cauldron (fixture accounts, projects and keys written through the ORM in the web pod) is a cluster write.
-The seeder also refuses any cauldron write unless `APIKEYS_ALLOW_MUTATING_ON` equals `APIKEYS_CAULDRON`. It needs the owner's go-ahead (Daniel on `apikeys-pipeline`, Yotam on `apisplit`; both cauldrons read one shared `sefaria_auth` registry, so seeded rows show on both), which is not recorded, so this runner has no seeded mode. When it is approved, the
+The seeder also refuses any cauldron write unless `APIKEYS_ALLOW_MUTATING_ON` equals `APIKEYS_CAULDRON`. It needs the cauldron owner's go-ahead (Yotam on `apisplit`). Every cauldron's auth service reads the one shared `sefaria_auth` registry, so seeded rows show on all of them. The go-ahead is not recorded, so this runner has no seeded mode. When it is approved, the
 seeded flow is: the same preflight and snapshot; require the script's `--leftovers` to print 0; seed once with the
 script and password on stdin (`python - --target cauldron --reset --manifest-stdout`) into the manifest above;
 run `--project=apikeys` with the setup project, but only when no local suite is running, because the setup project
