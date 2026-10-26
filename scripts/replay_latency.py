@@ -35,6 +35,7 @@ RESULTS_DIR = Path("data/private/replay_results")
 PAGE_PREFIXES = {"topics", "texts", "collections", "calendars", "community", "visualize"}
 MIN_COUNT_FOR_VERDICT = 100  # routes with fewer samples are reported but never decide go/no-go
 REGRESSION_MARGIN = 0.10  # allowed p95 regression beyond the measured noise floor
+MAX_P95_NOISE = 0.50  # per-route p95 whose baseline spread exceeds this cannot decide a verdict
 MIN_OK_SHARE = 0.90  # runs with fewer 2xx/3xx than this are invalid, not "fast"
 
 
@@ -201,30 +202,52 @@ def pooled(labels, key, metric):
     return statistics.fmean(values) if values else None
 
 
+def spread(values):
+    mean = statistics.fmean(values)
+    return (max(values) - min(values)) / mean
+
+
+def judge(base_runs, cand_runs, extract, higher_is_worse=True):
+    """Return (base mean, cand mean, relative delta in the bad direction, baseline noise)."""
+    base_vals, cand_vals = [extract(r) for r in base_runs], [extract(r) for r in cand_runs]
+    base, cand = statistics.fmean(base_vals), statistics.fmean(cand_vals)
+    delta = (cand - base) / base
+    return base, cand, (delta if higher_is_worse else -delta), spread(base_vals)
+
+
 def cmd_compare(args):
     if len(args.baseline) < 2:
         sys.exit("need at least 2 baseline runs to measure the noise floor")
-    print(f"noise floor = relative p95 gap between baseline runs; verdict margin = noise + {REGRESSION_MARGIN:.0%}")
-    print(f"{'route':32} {'n':>6} {'base p95':>9} {'cand p95':>9} {'delta':>8} {'noise':>7}  verdict")
-    base_all = load_run(args.baseline[0])["summary"]
+    base_runs, cand_runs = [load_run(l) for l in args.baseline], [load_run(l) for l in args.candidate]
+    print(f"regression = worse than baseline by more than that metric's own baseline spread + {REGRESSION_MARGIN:.0%}")
+    print(f"p50 and throughput decide; p95 decides only where its baseline spread is under {MAX_P95_NOISE:.0%} (else shown as noisy)\n")
+    print(f"{'route':24} {'n':>6} | {'p50 base':>9} {'cand':>7} {'delta':>7} {'noise':>6} | {'p95 base':>9} {'cand':>7} {'delta':>7} {'noise':>6}  verdict")
+    counts = base_runs[0]["summary"]
     failed = []
-    for key in sorted(base_all, key=lambda k: -base_all[k]["count"]):
-        base_p95 = pooled(args.baseline, key, "p95")
-        cand_p95 = pooled(args.candidate, key, "p95")
-        if base_p95 is None or cand_p95 is None:
+    for key in sorted(counts, key=lambda k: -counts[k]["count"]):
+        if any(key not in r["summary"] for r in base_runs + cand_runs):
             continue
-        p95s = [load_run(l)["summary"][key]["p95"] for l in args.baseline]
-        noise = (max(p95s) - min(p95s)) / base_p95
-        delta = (cand_p95 - base_p95) / base_p95
-        count = base_all[key]["count"]
+        b50, c50, d50, n50 = judge(base_runs, cand_runs, lambda r: r["summary"][key]["p50"])
+        b95, c95, d95, n95 = judge(base_runs, cand_runs, lambda r: r["summary"][key]["p95"])
+        count = counts[key]["count"]
+        notes = []
         if count < MIN_COUNT_FOR_VERDICT:
             verdict = "n too small"
-        elif delta > noise + REGRESSION_MARGIN:
-            verdict = "REGRESSION"
-            failed.append(key)
         else:
-            verdict = "ok"
-        print(f"{key:32} {count:>6} {base_p95*1000:>8.0f}ms {cand_p95*1000:>8.0f}ms {delta:>+7.1%} {noise:>6.1%}  {verdict}")
+            bad50 = d50 > n50 + REGRESSION_MARGIN
+            bad95 = d95 > n95 + REGRESSION_MARGIN and n95 <= MAX_P95_NOISE
+            if n95 > MAX_P95_NOISE:
+                notes.append("p95 noisy")
+            if bad50 or bad95:
+                failed.append(f"{key} ({'p50' if bad50 else ''}{'+' if bad50 and bad95 else ''}{'p95' if bad95 else ''})")
+            verdict = ("REGRESSION" if (bad50 or bad95) else "ok") + (f" [{', '.join(notes)}]" if notes else "")
+        print(f"{key:24} {count:>6} | {b50*1000:>7.0f}ms {c50*1000:>5.0f}ms {d50:>+7.1%} {n50:>6.1%} | {b95*1000:>7.0f}ms {c95*1000:>5.0f}ms {d95:>+7.1%} {n95:>6.1%}  {verdict}")
+
+    bt, ct, dt, nt = judge(base_runs, cand_runs, lambda r: r["throughput_rps"], higher_is_worse=False)
+    thr_bad = dt > nt + REGRESSION_MARGIN
+    print(f"\nthroughput: {bt:.1f} -> {ct:.1f} req/s ({-dt:+.1%}, baseline spread {nt:.1%})  {'REGRESSION' if thr_bad else 'ok'}")
+    if thr_bad:
+        failed.append("throughput")
 
     print("\nstatus-code check (route=ALL):")
     invalid = []
@@ -236,8 +259,9 @@ def cmd_compare(args):
             if ok_share < MIN_OK_SHARE:
                 invalid.append(label)
     if invalid:
-        sys.exit(f"\nINVALID: {', '.join(invalid)} have <{MIN_OK_SHARE:.0%} 2xx/3xx responses (bad port-forward?). Latency is meaningless.")
-    print("\nNO-GO: " + ", ".join(failed) if failed else "\nGO: no route regressed beyond noise + margin")
+        sys.exit(f"\nINVALID: {', '.join(invalid)} have <{MIN_OK_SHARE:.0%} 2xx/3xx responses. Latency is meaningless.")
+    print("\nNO-GO: " + ", ".join(failed) if failed else "\nGO: nothing regressed beyond its noise + margin")
+    sys.exit(1 if failed else 0)
 
 
 def main():
