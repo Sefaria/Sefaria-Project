@@ -313,13 +313,13 @@ def unclaimed_listings(user, profile):
 
 def listings_submitted_by(user):
     """
-    Profiles submitted outside developer settings with this account's email and no live API project.
-    A profile an older image or staff soft-deleted (its frozen deleted_at, which the public endpoint also honours) is
+    Profiles submitted outside developer settings with this account's email and no API project. A listing whose
+    API project was deleted was deleted with it, so it is not offered again. A profile an older image or staff soft-deleted (its frozen deleted_at, which the public endpoint also honours) is
     not offered: claiming it would hand out a listing that stays hidden from the public endpoint for good.
     """
     return (Project.objects.filter(creator_email__iexact=user.email, deleted_at__isnull=True)
             .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS)
-            .exclude(id__in=ApiProject.objects.filter(deleted_at__isnull=True).values("profile_id")))
+            .exclude(id__in=ApiProject.objects.values("profile_id")))
 
 
 def developer_state(request):
@@ -665,9 +665,7 @@ def soft_delete(api_project):
         return
     api_project.deleted_at = now
     api_project.save()
-    # A legacy listing stays public and claimable: only a project made in developer settings is unpublished.
-    if api_project.profile.submission_source == SubmissionSource.DEVELOPER_SETTINGS:
-        _unpublish(api_project.profile)
+    _unpublish(api_project.profile)
 
 
 @transaction.atomic
@@ -678,7 +676,10 @@ def claim_listing(user, listing_id):
     """
     _check_project_limit(user)
     try:
-        listing = unclaimed_listings(user, UserProfile(id=user.id)).get(id=int(listing_id))
+        listing_id = int(listing_id)
+        # Locked before the check: a concurrent claim, or a staff-made API project's foreign key, waits for this one.
+        Project.objects.select_for_update().get(id=listing_id)
+        listing = unclaimed_listings(user, UserProfile(id=user.id)).get(id=listing_id)
     except (Project.DoesNotExist, ValueError):
         raise LookupError("No such listing.")
     # The savepoint keeps the request's transaction usable when another claim or an admin made a live API project
@@ -695,16 +696,15 @@ def claim_listing(user, listing_id):
 @transaction.atomic
 def release_account_projects(user):
     """
-    For an account being deleted: every key of its API projects is revoked, live API projects are
-    deleted (settings-made profiles are unpublished), and claimed listings go back to unclaimed.
+    For an account being deleted: every key of its API projects is revoked and live API projects are
+    deleted with their profiles unpublished, claimed listings included. The API project rows are locked
+    first, in the same order as project edits and key creation take them, then the profiles are read.
     """
-    now = timezone.now()
-    for api_project in ApiProject.objects.filter(owner=user).select_related("profile"):
-        api_project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
-        if api_project.deleted_at is None:
-            api_project.deleted_at = now
-            if api_project.profile.submission_source == SubmissionSource.DEVELOPER_SETTINGS:
-                _unpublish(api_project.profile)
+    locked = list(ApiProject.objects.select_for_update().filter(owner=user).order_by("id"))
+    profiles = Project.objects.in_bulk([api_project.profile_id for api_project in locked])
+    for api_project in locked:
+        api_project.profile = profiles[api_project.profile_id]
+        soft_delete(api_project)
         api_project.owner = None
         api_project.save()
 

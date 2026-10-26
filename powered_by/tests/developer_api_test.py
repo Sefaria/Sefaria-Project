@@ -585,7 +585,7 @@ class ListingTest(DeveloperApiTestCase):
 
     def test_claiming_keeps_the_listing_consent_and_publish_flags(self):
         for consent, published in ((True, False), (False, True)):
-            ApiProject.objects.filter(profile_id=self.listing.id).update(deleted_at=timezone.now())
+            ApiProject.objects.filter(profile_id=self.listing.id).delete()
             Project.objects.filter(id=self.listing.id).update(consent_to_display=consent, is_published=published)
 
             status, state = self.call("post", "listings/{}/claim".format(self.listing.id))
@@ -596,7 +596,7 @@ class ListingTest(DeveloperApiTestCase):
             self.assertNotIn(row.id, gallery_ids())
             self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
 
-    def test_deleting_the_account_revokes_keys_deletes_projects_and_releases_listings(self):
+    def test_deleting_the_account_revokes_keys_and_deletes_projects_and_claimed_listings(self):
         claimed = self.call("post", "listings/{}/claim".format(self.listing.id))[1]["projectId"]
         own = self.create_project()
         claimed_key = self.create_key(claimed)["keyId"]
@@ -611,9 +611,20 @@ class ListingTest(DeveloperApiTestCase):
         self.assertIsNotNone(ApiProject.objects.get(id=int(claimed)).deleted_at)
         self.assertIsNotNone(ApiProject.objects.get(id=int(own["id"])).deleted_at)
         listing = Project.objects.get(id=self.listing.id)
-        self.assertTrue(listing.consent_to_display and listing.is_published)
+        self.assertFalse(listing.consent_to_display or listing.is_published)
         self.assertIsNone(listing.deleted_at)
         self.assertFalse(ApiProject.objects.filter(profile_id=self.listing.id, deleted_at__isnull=True).exists())
+
+    def test_deleting_a_claimed_listing_unpublishes_it_and_it_is_not_offered_again(self):
+        claimed = self.call("post", "listings/{}/claim".format(self.listing.id))[1]["projectId"]
+
+        status, state = self.call("delete", "projects/" + claimed)
+
+        self.assertEqual(status, 200, state)
+        self.assertIsNone(state["yourListing"])
+        listing = Project.objects.get(id=self.listing.id)
+        self.assertFalse(listing.consent_to_display or listing.is_published)
+        self.assertEqual(self.call("post", "listings/{}/claim".format(self.listing.id))[0], 404)
 
     def test_a_dismissed_listing_is_not_offered_again(self):
         state = self.call("post", "listings/{}/dismiss".format(self.listing.id))[1]
@@ -740,7 +751,7 @@ class MockTest(DeveloperApiTestCase):
         self.assertEqual(self.call("post", "enable")[0], 200)
 
     @override_settings(DEVELOPER_SETTINGS_MOCKS=True)
-    def test_a_mock_listing_is_offered_and_starting_over_releases_it(self):
+    def test_a_mock_listing_is_offered_and_starting_over_deletes_it(self):
         self.set_up_developer()
         state = self.call("post", "mock", {"action": "create-listing"})[1]
         listing_id = state["yourListing"]["id"]
@@ -755,7 +766,7 @@ class MockTest(DeveloperApiTestCase):
         self.assertIsNotNone(ApiProject.objects.get(id=int(claimed)).deleted_at)
         self.assertIsNotNone(ApiProject.objects.get(id=int(own["id"])).deleted_at)
         self.assertFalse(ApiProject.objects.filter(profile_id=int(listing_id), deleted_at__isnull=True).exists())
-        self.assertTrue(Project.objects.filter(id=int(listing_id), consent_to_display=True).exists())
+        self.assertFalse(Project.objects.get(id=int(listing_id)).consent_to_display)
 
 
 def test_origin_of_is_the_browser_origin():
@@ -798,6 +809,27 @@ class ProjectLockTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 200)
         self.assertTrue(any("FOR UPDATE" in q["sql"] and '"api_project"' in q["sql"] for q in queries))
+
+    def test_releasing_an_account_locks_its_project_rows_before_writing_profiles(self):
+        with CaptureQueriesContext(connection) as queries:
+            developer.release_account_projects(self.user)
+
+        sqls = [q["sql"] for q in queries]
+        lock = next(i for i, sql in enumerate(sqls) if "FOR UPDATE" in sql and '"api_project"' in sql)
+        profile_write = next(i for i, sql in enumerate(sqls)
+                             if sql.startswith("UPDATE") and '"{}"'.format(Project._meta.db_table) in sql)
+        self.assertLess(lock, profile_write)
+
+    def test_claiming_a_listing_locks_the_listing_row(self):
+        listing = Project.objects.create(submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
+                                         project_name="Locked", project_link="https://locked.example.org")
+
+        with CaptureQueriesContext(connection) as queries:
+            status, _ = self.call("post", "listings/{}/claim".format(listing.id))
+
+        self.assertEqual(status, 200)
+        self.assertTrue(any("FOR UPDATE" in q["sql"] and '"{}"'.format(Project._meta.db_table) in q["sql"]
+                            for q in queries))
 
 
 class ConfirmationLockTest(DeveloperApiTestCase):

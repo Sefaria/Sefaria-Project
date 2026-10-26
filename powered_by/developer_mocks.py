@@ -32,18 +32,12 @@ def set_email_verified(user, verified):
 
 def start_over(request, sso_override, email_verified):
     """
-    Clears the account's developer settings: its projects are deleted (claimed listings are
-    released instead) and the account's verification is set as asked.
+    Clears the account's developer settings: its projects are deleted, claimed listings included,
+    and the account's verification is set as asked.
     """
     user = request.user
     for api_project in developer.owned_projects(user):
-        if api_project.profile.submission_source == SubmissionSource.DEVELOPER_SETTINGS:
-            developer.delete_project(user, api_project.id)
-        else:
-            # A claimed listing is released: its profile stays as it is and becomes claimable again.
-            api_project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=timezone.now())
-            api_project.deleted_at = timezone.now()
-            api_project.save()
+        developer.delete_project(user, api_project.id)
     profile = UserProfile(id=user.id)
     for setting in (developer.ENABLED_SETTING, developer.PROFILE_SETTING,
                     developer.CONFIRMATION_SENT_SETTING, developer.CONFIRMATION_SENT_TO_SETTING,
