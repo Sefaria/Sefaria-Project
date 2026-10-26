@@ -63,8 +63,8 @@ describe('Header Library Assistant pill', () => {
     render();
     expect(order()).toEqual(['link', 'link', 'donate', 'assistant', 'search']);
     expect(item().classList.contains('libraryAssistantPill')).toBe(true);
-    // Both labels are rendered; header.scss shows one of them depending on the screen width
     expect(item().querySelector('.libraryAssistantLabel').textContent).toBe('header.library_assistant');
+    // The short label CSS shows instead where the header is crowded
     expect(item().querySelector('.libraryAssistantShortLabel').textContent).toBe('header.library_assistant_short');
   });
 

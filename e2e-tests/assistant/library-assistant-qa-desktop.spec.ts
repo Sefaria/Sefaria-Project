@@ -77,7 +77,7 @@ const PILL_WORDING: Record<PillLabel, string> = {
 const pillExamples: Array<{ who: 'logged out' | 'signed in'; lang: string; label: string; width: number; pill: PillLabel }> = [
   { who: 'logged out', lang: LANGUAGES.EN, label: 'English', width: 870, pill: 'hidden' },
   { who: 'logged out', lang: LANGUAGES.EN, label: 'English', width: 930, pill: 'short' },
-  { who: 'logged out', lang: LANGUAGES.EN, label: 'English', width: 1000, pill: 'full' },
+  { who: 'logged out', lang: LANGUAGES.EN, label: 'English', width: 1000, pill: 'short' },
   { who: 'logged out', lang: LANGUAGES.EN, label: 'English', width: 1100, pill: 'short' },
   { who: 'logged out', lang: LANGUAGES.EN, label: 'English', width: 1280, pill: 'full' },
   { who: 'signed in', lang: LANGUAGES.EN, label: 'English', width: 930, pill: 'short' },
