@@ -31,6 +31,7 @@ import { getCsrfToken } from '../sefaria/csrf';
 const AuthPage = ({
   initialPath = '/login',
   authSource = null,
+  initialView = null,
   resetValid = null,
   onNavigate,
 }) => {
@@ -81,6 +82,13 @@ const AuthPage = ({
     tracking.startProcess();
     setView('email');
   };
+  // Opened straight on the email sign-up form (the Library Assistant's Email option): the same
+  // as clicking Email on the card, so it's reported the same way. Runs after useAuthTracking's
+  // own effect, which starts the flow.
+  useEffect(() => {
+    if (initialView === 'email' && flow === 'register') onEmailClick();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   let content;
   if (view === 'email' && flow === 'register') {
@@ -158,6 +166,7 @@ const AuthPage = ({
 AuthPage.propTypes = {
   initialPath: PropTypes.string,
   authSource: PropTypes.string,
+  initialView: PropTypes.oneOf(['email']),
   resetValid: PropTypes.bool,
   onNavigate: PropTypes.func,
 };

@@ -324,6 +324,71 @@ $stroke-strong:   1.5px;
   }
 }
 
+// Round, icon-only provider buttons (ProviderButton variant="icon") in a row: the sign-up
+// options outside AuthPage (SignupOptions, in the Library Assistant's login prompt).
+.sefaria-signup-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $sp-2;
+
+  &-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+  }
+}
+
+// Sizes: 40px circles with 18px icons. A host can set the variables for a bigger layout (the
+// assistant's phone layout: 48px, 22px, Apple 25px). Apple's box is bigger than the others
+// because apple.svg has space around the logo: a 20px box draws it 17px tall (25px → 21px).
+.sefaria-provider-button--icon {
+  width: var(--lc-signup-option-size, 40px);
+  height: var(--lc-signup-option-size, 40px);
+  padding: 0;
+  border: 1px solid var(--light-blue-border);
+  border-radius: 50%;
+
+  &:hover {
+    border-color: var(--light-blue-border);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--sefaria-blue);
+    outline-offset: 2px;
+  }
+
+  .sefaria-provider-button-icon {
+    width: var(--lc-signup-icon-size, 18px);
+    height: var(--lc-signup-icon-size, 18px);
+    flex-basis: var(--lc-signup-icon-size, 18px);
+  }
+  &[data-provider="apple"] .sefaria-provider-button-icon {
+    width: var(--lc-signup-apple-icon-size, 20px);
+    height: var(--lc-signup-apple-icon-size, 20px);
+    flex-basis: var(--lc-signup-apple-icon-size, 20px);
+  }
+}
+
+// Google's: the real Google button is placed over this circle, clipped to it.
+.sefaria-provider-button-shell--icon {
+  width: var(--lc-signup-option-size, 40px);
+  height: var(--lc-signup-option-size, 40px);
+  border-radius: 50%;
+  overflow: hidden;
+
+  &:hover .sefaria-provider-button {
+    border-color: var(--light-blue-border);
+  }
+
+  // Keyboard focus lands on Google's (invisible) button inside, never on the circle itself,
+  // so the ring goes on the circle while anything inside it has focus.
+  &:focus-within {
+    outline: 2px solid var(--sefaria-blue);
+    outline-offset: 2px;
+  }
+}
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Divider ("or" / "או")

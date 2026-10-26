@@ -108,3 +108,33 @@ class RemoteConfigAPITest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["features.reader.new_nav"])
+
+
+class ChatbotAnonymousFreeAnswersMigrationTest(TestCase):
+    """Migration 0002 creates the free-answers entry the chatbot server reads."""
+    databases = "__all__"
+
+    def setUp(self):
+        remoteConfigCache.reload()
+
+    def test_entry_exists_with_the_default_and_is_served(self):
+        from remote_config.keys import CHATBOT_ANONYMOUS_FREE_ANSWERS
+
+        entry = RemoteConfigEntry.objects.get(key=CHATBOT_ANONYMOUS_FREE_ANSWERS)
+        self.assertEqual(entry.parse_value(), 2)
+        self.assertTrue(entry.is_active)
+
+        # What /api/remote-config serves (remote_config.views returns get_all()).
+        self.assertEqual(remoteConfigCache.get_all()[CHATBOT_ANONYMOUS_FREE_ANSWERS], 2)
+
+    def test_does_not_overwrite_an_admin_value(self):
+        from importlib import import_module
+        from django.apps import apps
+        from remote_config.keys import CHATBOT_ANONYMOUS_FREE_ANSWERS
+
+        RemoteConfigEntry.objects.filter(key=CHATBOT_ANONYMOUS_FREE_ANSWERS).update(raw_value="5")
+        migration = import_module("remote_config.migrations.0002_chatbot_anonymous_free_answers")
+
+        migration.create_entry(apps, None)
+
+        self.assertEqual(RemoteConfigEntry.objects.get(key=CHATBOT_ANONYMOUS_FREE_ANSWERS).raw_value, "5")

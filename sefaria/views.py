@@ -62,6 +62,7 @@ from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
+from sefaria.utils.chatbot import mark_chatbot_storage_for_clearing
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
 from sefaria.helper.skip_tracking import build_pathway
@@ -119,6 +120,10 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
         # Django >= 5.0 dropped GET on LogoutView. Existing <a href="/logout?next=..."> links
         # in the header / mobile menu still rely on GET, so route GET through the same flow as POST.
         return self.post(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        return mark_chatbot_storage_for_clearing(request, response)
 
     def get_next_page(self):
         next_page = self.request.GET.get('next')
