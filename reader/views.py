@@ -4188,9 +4188,10 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
-        # Donor status is recorded only from verified webhooks (sefaria/donors/). Without this,
-        # any logged-in user could POST {"donor_status": "donor"} and mark themselves a donor,
-        # or store a non-date that would break the donor task's date comparison.
+        # Donor status is recorded only from verified webhooks (sefaria/donors/), and
+        # is_sustainer only by the CRM sync. Without this, any logged-in user could POST
+        # {"donor_status": "donor"} or {"is_sustainer": true} and be targeted as a donor, or
+        # store a non-date that would break the donor task's date comparison.
         for donor_field in ("donor_status", "became_donor_at", "is_sustainer"):
             profileUpdate.pop(donor_field, None)
         # TEMPORARY (goes with the experiments framework): legacy handling of the

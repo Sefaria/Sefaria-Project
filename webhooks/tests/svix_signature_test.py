@@ -35,7 +35,7 @@ def headers_for(
     }
 
 
-def is_valid(headers, body=BODY, now=NOW, secret=SECRET):
+def is_valid(headers, body=BODY, now: float = NOW, secret=SECRET):
     return is_valid_svix_signature(secret, body, headers, now=now)
 
 
@@ -165,6 +165,19 @@ class TestTimestamp:
     def test_a_timestamp_that_is_not_plain_digits_is_rejected(self, timestamp_text):
         headers = {**headers_for(), "svix-timestamp": timestamp_text}
         assert not is_valid(headers)
+
+    @pytest.mark.parametrize(
+        "digit_count",
+        [
+            400,  # int() works, but `now - timestamp` raises OverflowError (too big for a float)
+            5000,  # int() itself raises ValueError (Python's 4300-digit limit)
+        ],
+    )
+    def test_an_oversized_timestamp_is_rejected_without_raising(self, digit_count):
+        headers = {**headers_for(), "svix-timestamp": "9" * digit_count}
+        # A float, as time.time() gives in production: NOW is an int, and int minus int never
+        # overflows, so with NOW the 400-digit case would pass even without the fix.
+        assert not is_valid(headers, now=float(NOW))
 
 
 class TestSecret:

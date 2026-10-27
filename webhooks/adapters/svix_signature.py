@@ -61,15 +61,17 @@ def is_valid_svix_signature(
     # covers the exact text, so a reformatted timestamp is not the one that was signed.
     if not (timestamp_text.isascii() and timestamp_text.isdigit()):
         return False
+    # isdigit does not bound the length, and this runs before the signature is checked, so an
+    # unsigned request can send any number of digits. Past 4300 digits int() raises ValueError
+    # (Python's limit); below that, a value too big for a float makes `now - timestamp` raise
+    # OverflowError. Either one is a rejected request, not a 500.
     try:
         timestamp = int(timestamp_text)
         if abs(now - timestamp) > TIMESTAMP_TOLERANCE_SECONDS:
             return False
     except (ValueError, OverflowError):
         return False
-    expected = svix_signature_for(
-        secret, message_id, timestamp, raw_body
-    ).encode()
+    expected = svix_signature_for(secret, message_id, timestamp, raw_body).encode()
     # Every entry is compared, even after a match, so the response time doesn't reveal which
     # entry matched. compare_digest on the base64 text (not on decoded bytes) means a garbled
     # entry is simply unequal; decoding it first could raise.
