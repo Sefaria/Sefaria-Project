@@ -646,6 +646,7 @@ describe("buildViewerContext().hasDismissed — corrupted storage is not fatal",
 
 const donorOnly = { showToDonor: true, showToNonDonor: false };
 const nonDonorOnly = { showToDonor: false, showToNonDonor: true };
+const bothDonorBoxes = { showToDonor: true, showToNonDonor: true };
 
 const DONOR = { isLoggedIn: true, isReturningVisitor: true, isNewVisitor: false, isConfirmedDonor: true };
 const LOGGED_IN_NON_DONOR = { isLoggedIn: true, isReturningVisitor: true, isNewVisitor: false, isConfirmedDonor: false };
@@ -676,6 +677,13 @@ const LOGGED_OUT = { isLoggedIn: false, isConfirmedDonor: false };
 
     it("hides a non-donor-only document from a donor", function () {
       expect(isEligible(build(nonDonorOnly), viewer(DONOR), contentType)).toBe(false);
+    });
+
+    // T5 below proves "both" behaves like "neither"; this states the business rule directly.
+    it("shows a document with both boxes ticked to everyone", function () {
+      expect(isEligible(build(bothDonorBoxes), viewer(DONOR), contentType)).toBe(true);
+      expect(isEligible(build(bothDonorBoxes), viewer(LOGGED_IN_NON_DONOR), contentType)).toBe(true);
+      expect(isEligible(build(bothDonorBoxes), viewer(LOGGED_OUT), contentType)).toBe(true);
     });
 
     it("selection skips the wrong-audience document even when it is listed first", function () {

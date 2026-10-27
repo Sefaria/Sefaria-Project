@@ -140,7 +140,9 @@ const matchesAudience = (doc, ctx) => {
 
 // Neither or both boxes ticked means no donor restriction. Otherwise the document goes only
 // to confirmed donors, or only to everyone else (unknown and logged-out viewers included —
-// see isConfirmedDonor in buildViewerContext).
+// see isConfirmedDonor in buildViewerContext). AND-ed with showTo, so donor-only plus
+// logged_out_only matches nobody: a confirmed donor is always logged in. Strapi does not prevent
+// that combination (see T8 in the tests).
 const matchesDonorAudience = (doc, ctx) => {
   const [toDonors, toNonDonors] = donorAudienceFlags(doc);
   if (toDonors === toNonDonors) return true;

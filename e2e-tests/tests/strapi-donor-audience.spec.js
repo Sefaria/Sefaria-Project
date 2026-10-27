@@ -22,6 +22,8 @@
  * gate works the control is all that is eligible, its timer arms, and it is what appears. If
  * the gate is broken the gated document wins instead (see CONTROL_DOES_NOT_OUTRANK below), the
  * control's timer never arms, and waitForTimerArmed fails loudly instead of the test passing.
+ * The both-boxes tests use the same payload the other way round: there the gated document must
+ * win, and the control appearing means the gate hid it (see expectTheBothBoxesDocumentRenders).
  *
  * Logged-in tests need e2e-tests/auth_english_user.json (global-setup writes it when
  * PLAYWRIGHT_USER_EMAIL / PLAYWRIGHT_USER_PASSWORD are set) and SKIP without it. That account
@@ -65,6 +67,8 @@ const bannerBox = (page) => page.locator('#bannerMessage');
 
 const DONOR_ONLY = { showToDonor: true, showToNonDonor: false };
 const NON_DONOR_ONLY = { showToDonor: false, showToNonDonor: true };
+// Ticking both boxes is the same as ticking neither: no donor restriction.
+const BOTH_DONOR_BOXES = { showToDonor: true, showToNonDonor: true };
 
 const donorModal = (flags, text) =>
   modal({ shared: { showDelay: MODAL_DELAY_SECONDS, ...flags }, locales: { en: { modalText: text } } });
@@ -96,6 +100,9 @@ const gatedPlusControlPayload = (flags, { modalText, bannerText }) => strapiPayl
   modals: [donorModal(flags, modalText), controlModal()],
   banners: [donorBanner(flags, bannerText), controlBanner()],
 });
+
+const EVERYONE_MODAL = 'Synthetic both-donor-boxes modal';
+const EVERYONE_BANNER = 'Synthetic both-donor-boxes banner';
 
 const ASK_MODAL = 'Synthetic non-donor ask modal';
 const ASK_BANNER = 'Synthetic non-donor ask banner';
@@ -219,6 +226,23 @@ async function expectOnlyTheControlRenders(page, { gatedModalText, gatedBannerTe
   });
 }
 
+/**
+ * Assert the both-boxes document renders, with the unrestricted control listed AFTER it
+ * (gatedPlusControlPayload). Neither is audience-restricted for ranking, so they tie and payload
+ * order picks the both-boxes document. If the gate wrongly hid it, the control would be selected
+ * instead, the both-boxes document's own delays would never arm, and the waits below would fail.
+ */
+async function expectTheBothBoxesDocumentRenders(page) {
+  await elapseBothDelays(page);
+  await expectSurfacesShow(page, {
+    modalText: EVERYONE_MODAL, notModalText: CONTROL_MODAL,
+    bannerText: EVERYONE_BANNER, notBannerText: CONTROL_BANNER,
+  });
+}
+
+const bothBoxesPlusControlPayload = () =>
+  gatedPlusControlPayload(BOTH_DONOR_BOXES, { modalText: EVERYONE_MODAL, bannerText: EVERYONE_BANNER });
+
 test.describe('Strapi donor audience — anonymous reader (a non-donor)', () => {
   let strapi;
   test.afterEach(() => expectStrapiServed(strapi));
@@ -235,6 +259,11 @@ test.describe('Strapi donor audience — anonymous reader (a non-donor)', () => 
   test('never sees donor-only content on either surface', async ({ page, context }) => {
     strapi = await open(page, context, gatedPlusControlPayload(DONOR_ONLY, { modalText: THANKS_MODAL, bannerText: THANKS_BANNER }));
     await expectOnlyTheControlRenders(page, { gatedModalText: THANKS_MODAL, gatedBannerText: THANKS_BANNER });
+  });
+
+  test('sees content with both donor boxes ticked on both surfaces', async ({ page, context }) => {
+    strapi = await open(page, context, bothBoxesPlusControlPayload());
+    await expectTheBothBoxesDocumentRenders(page);
   });
 });
 
@@ -311,5 +340,17 @@ test.describe('Strapi donor audience — logged-in reader', () => {
       { expectLoggedIn: true });
     expect(await page.evaluate(() => window.Sefaria.donor_status)).toBe('donor'); // else the control proves nothing
     await expectOnlyTheControlRenders(page, { gatedModalText: ASK_MODAL, gatedBannerText: ASK_BANNER });
+  });
+
+  test('a logged-in non-donor sees content with both donor boxes ticked on both surfaces', async ({ page, context }) => {
+    strapi = await open(page, context, bothBoxesPlusControlPayload(), { expectLoggedIn: true });
+    await expectTheBothBoxesDocumentRenders(page);
+  });
+
+  test('a confirmed donor sees content with both donor boxes ticked on both surfaces', async ({ page, context }) => {
+    await presentAsConfirmedDonor(page);
+    strapi = await open(page, context, bothBoxesPlusControlPayload(), { expectLoggedIn: true });
+    expect(await page.evaluate(() => window.Sefaria.donor_status)).toBe('donor'); // the lever worked
+    await expectTheBothBoxesDocumentRenders(page);
   });
 });
