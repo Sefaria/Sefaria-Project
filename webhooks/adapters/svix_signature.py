@@ -61,10 +61,14 @@ def is_valid_svix_signature(
     # covers the exact text, so a reformatted timestamp is not the one that was signed.
     if not (timestamp_text.isascii() and timestamp_text.isdigit()):
         return False
-    if abs(now - int(timestamp_text)) > TIMESTAMP_TOLERANCE_SECONDS:
+    try:
+        timestamp = int(timestamp_text)
+        if abs(now - timestamp) > TIMESTAMP_TOLERANCE_SECONDS:
+            return False
+    except (ValueError, OverflowError):
         return False
     expected = svix_signature_for(
-        secret, message_id, int(timestamp_text), raw_body
+        secret, message_id, timestamp, raw_body
     ).encode()
     # Every entry is compared, even after a match, so the response time doesn't reveal which
     # entry matched. compare_digest on the base64 text (not on decoded bytes) means a garbled
