@@ -308,7 +308,7 @@
     "text",
     "type"
    ],
-   "schema_sha": "7e591325cdfd"
+   "schema_sha": "86ae83d45412"
   },
   "linker_editor_history": {
    "optional": [
@@ -331,7 +331,7 @@
     "spans",
     "versionTitle"
    ],
-   "schema_sha": "7165554218ee"
+   "schema_sha": "050e43080135"
   },
   "links": {
    "optional": [
@@ -404,7 +404,7 @@
     "spans",
     "versionTitle"
    ],
-   "schema_sha": "0f2d6882929a"
+   "schema_sha": "27251b2e2320"
   },
   "media": {
    "optional": [],
@@ -494,7 +494,7 @@
     "name",
     "slug"
    ],
-   "schema_sha": "1bfa42f00877"
+   "schema_sha": "d7bfe92798a5"
   },
   "ref_data": {
    "optional": [],
@@ -680,6 +680,7 @@
     "image",
     "isAmbiguous",
     "isTopLevelDisplay",
+    "numSourceSheets",
     "numSources",
     "parasha",
     "portal_slug",
