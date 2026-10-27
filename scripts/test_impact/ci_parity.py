@@ -50,7 +50,8 @@ DEFAULT_BASELINE_PATHS = ["./sefaria", "./sso", "./reader", "./powered_by"]
 BASELINE_OVERLAY_FILES = (
     "sefaria/conftest.py", "sefaria/system/database.py",
     "sefaria/local_settings_pytest.py", "sefaria/local_settings.py",
-    "sefaria/tests/fixtures/mongo/_base.json",
+    "sefaria/tests/mongo_shapes.py", "sefaria/tests/fixture_schema.py",  # imported by sefaria/conftest.py
+    "sefaria/tests/fixtures/mongo/_base.json", "sefaria/tests/fixtures/mongo/_shapes.json",
 )
 
 
