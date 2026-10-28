@@ -24,9 +24,7 @@ from webhooks.webhook_source_adapter import (
     MalformedWebhookPayload,
     ParsedWebhookEvent,
     ReasonWebhookEventWasIgnored,
-    SignatureCheckResult,
     SignatureRejected,
-    SignatureVerified,
     WebhookEventIgnored,
     WebhookSecretNotConfigured,
     is_json_integer,
@@ -45,17 +43,16 @@ class SalesforceWebhookEventType(Enum):
 
 def verify_salesforce_request_secret(
     raw_body: bytes, headers: Mapping[str, str]
-) -> SignatureCheckResult:
+) -> None:
     # Must come first: hmac.compare_digest("", "") is True, so an unset secret compared with an
     # empty header would pass. Failing closed here prevents that.
     if not SALESFORCE_WEBHOOK_SECRET:
-        return WebhookSecretNotConfigured("SALESFORCE_WEBHOOK_SECRET")
+        raise WebhookSecretNotConfigured("SALESFORCE_WEBHOOK_SECRET")
     presented_secret = lowercase_header_names(headers).get(SECRET_HEADER_NAME, "")
-    if hmac.compare_digest(
+    if not hmac.compare_digest(
         presented_secret.encode(), SALESFORCE_WEBHOOK_SECRET.encode()
     ):
-        return SignatureVerified()
-    return SignatureRejected()
+        raise SignatureRejected()
 
 
 def parse_salesforce_payload(
@@ -64,7 +61,7 @@ def parse_salesforce_payload(
     try:
         payload = json.loads(raw_body)
     except (ValueError, UnicodeDecodeError):
-        return MalformedWebhookPayload()
+        raise MalformedWebhookPayload()
     match payload:
         case {"source": "salesforce", "eventType": str() as event_type_name}:
             try:
@@ -79,7 +76,7 @@ def parse_salesforce_payload(
                 case unreachable:
                     assert_never(unreachable)
         case _:
-            return MalformedWebhookPayload()
+            raise MalformedWebhookPayload()
 
 
 def _user_became_donor_event_from_payload(payload: dict) -> ParsedWebhookEvent:
@@ -101,7 +98,7 @@ def _user_became_donor_event_from_payload(payload: dict) -> ParsedWebhookEvent:
                 or not _is_optional_int(classy_supporter_id)
                 or not _is_valid_optional_donation(payload.get("donation"))
             ):
-                return MalformedWebhookPayload()
+                raise MalformedWebhookPayload()
             return UserBecameDonorAccordingToSalesforce(
                 event_id_assigned_by_source=source_event_id,
                 occurred_at_according_to_source=occurred_at,
@@ -112,7 +109,7 @@ def _user_became_donor_event_from_payload(payload: dict) -> ParsedWebhookEvent:
                 ),
             )
         case _:
-            return MalformedWebhookPayload()
+            raise MalformedWebhookPayload()
 
 
 def _is_optional_int(value: object) -> bool:

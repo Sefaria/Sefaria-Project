@@ -21,7 +21,6 @@ from webhooks.dispatcher import EventCouldNotBeEnqueued, enqueue_event_for_proce
 from webhooks.webhook_source_adapter import (
     MalformedWebhookPayload,
     SignatureRejected,
-    SignatureVerified,
     WebhookEventIgnored,
     WebhookSecretNotConfigured,
     WebhookSource,
@@ -63,28 +62,28 @@ def receive_webhook(
     # Logs carry only the source, event id, outcome and reason — never the body, headers,
     # secrets or email addresses.
     webhook_source = adapter.webhook_source.value
-    match adapter.verify_request_signature(raw_body, headers):
-        case WebhookSecretNotConfigured(setting_name=setting_name):
-            logger.warning(
-                "webhook_secret_not_configured",
-                webhook_source=webhook_source,
-                setting_name=setting_name,
-            )
-            return JsonResponse(
-                {"error": f"{webhook_source}_webhook_not_configured"}, status=503
-            )
-        case SignatureRejected():
-            logger.warning("webhook_signature_rejected", webhook_source=webhook_source)
-            return JsonResponse({"error": "invalid_signature"}, status=401)
-        case SignatureVerified():
-            pass
-        case unreachable:
-            assert_never(unreachable)
+    # One try for both steps is still verify-then-parse: when verification raises, the parser
+    # never runs. Every refusal and its status code is answered here, in one place.
+    try:
+        adapter.verify_request_signature(raw_body, headers)
+        parsed_event = adapter.parse_verified_payload(raw_body, headers)
+    except WebhookSecretNotConfigured as error:
+        logger.warning(
+            "webhook_secret_not_configured",
+            webhook_source=webhook_source,
+            setting_name=error.setting_name,
+        )
+        return JsonResponse(
+            {"error": f"{webhook_source}_webhook_not_configured"}, status=503
+        )
+    except SignatureRejected:
+        logger.warning("webhook_signature_rejected", webhook_source=webhook_source)
+        return JsonResponse({"error": "invalid_signature"}, status=401)
+    except MalformedWebhookPayload:
+        logger.warning("webhook_payload_malformed", webhook_source=webhook_source)
+        return JsonResponse({"error": "malformed_payload"}, status=400)
 
-    match adapter.parse_verified_payload(raw_body, headers):
-        case MalformedWebhookPayload():
-            logger.warning("webhook_payload_malformed", webhook_source=webhook_source)
-            return JsonResponse({"error": "malformed_payload"}, status=400)
+    match parsed_event:
         case WebhookEventIgnored(reason=reason):
             logger.info(
                 "webhook_event_ignored",

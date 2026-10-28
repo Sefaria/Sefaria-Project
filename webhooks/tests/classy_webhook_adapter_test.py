@@ -24,7 +24,6 @@ from webhooks.webhook_source_adapter import (
     MalformedWebhookPayload,
     ReasonWebhookEventWasIgnored,
     SignatureRejected,
-    SignatureVerified,
     WebhookEventIgnored,
     WebhookSecretNotConfigured,
 )
@@ -86,10 +85,8 @@ class TestVerifyClassyRequestSignature:
     def test_accepts_a_freshly_signed_body(self):
         """A body signed with our secret just now verifies."""
         body = body_of(FIXTURE)
-        assert (
-            verify_classy_request_signature(body, signed_headers(body))
-            == SignatureVerified()
-        )
+        # Returning at all is the verdict: a rejection raises.
+        assert verify_classy_request_signature(body, signed_headers(body)) is None
 
     def test_rejects_a_tampered_body(self):
         """Changing the donation amount after signing breaks the signature."""
@@ -103,10 +100,8 @@ class TestVerifyClassyRequestSignature:
             )
         )
         assert tampered_body != body
-        assert (
+        with pytest.raises(SignatureRejected):
             verify_classy_request_signature(tampered_body, headers)
-            == SignatureRejected()
-        )
 
     def test_rejects_an_expired_signature(self):
         """A delivery signed more than 5 minutes ago is refused (replay protection)."""
@@ -114,28 +109,29 @@ class TestVerifyClassyRequestSignature:
         stale = signed_headers(
             body, signed_at=datetime.now(tz=timezone.utc) - timedelta(minutes=10)
         )
-        assert verify_classy_request_signature(body, stale) == SignatureRejected()
+        with pytest.raises(SignatureRejected):
+            verify_classy_request_signature(body, stale)
 
     def test_rejects_missing_signature_headers(self):
         """No Svix headers at all is a rejection, not a crash."""
-        assert (
-            verify_classy_request_signature(body_of(FIXTURE), {}) == SignatureRejected()
-        )
+        with pytest.raises(SignatureRejected):
+            verify_classy_request_signature(body_of(FIXTURE), {})
 
     def test_rejects_a_body_signed_with_another_secret(self):
         """Someone else's Svix endpoint secret does not verify against ours."""
         body = body_of(FIXTURE)
         other = signed_headers(body, secret="whsec_" + "A" * 32)
-        assert verify_classy_request_signature(body, other) == SignatureRejected()
+        with pytest.raises(SignatureRejected):
+            verify_classy_request_signature(body, other)
 
     @pytest.mark.parametrize("unset", [None, ""])
     def test_an_unset_secret_reports_not_configured(self, monkeypatch, unset):
         """Fail closed: an unset secret must never read as an empty secret that anything matches."""
         monkeypatch.setattr(classy_webhook, "CLASSY_WEBHOOK_SECRET", unset)
         body = body_of(FIXTURE)
-        assert verify_classy_request_signature(
-            body, signed_headers(body)
-        ) == WebhookSecretNotConfigured("CLASSY_WEBHOOK_SECRET")
+        with pytest.raises(WebhookSecretNotConfigured) as raised:
+            verify_classy_request_signature(body, signed_headers(body))
+        assert raised.value.setting_name == "CLASSY_WEBHOOK_SECRET"
 
 
 # ============================================================================
@@ -238,10 +234,8 @@ class TestParseClassyTransactionPayload:
     )
     def test_malformed_bodies_are_reported_as_malformed(self, body):
         """Anything we can't read as the contract is a 400, never a crash or a silent accept."""
-        assert (
+        with pytest.raises(MalformedWebhookPayload):
             parse_classy_transaction_payload(body, {"svix-id": "msg_x"})
-            == MalformedWebhookPayload()
-        )
 
     def test_webhook_id_is_used_when_svix_id_is_absent(self):
         """The Standard Webhooks spelling of the id header is accepted too."""
@@ -251,7 +245,5 @@ class TestParseClassyTransactionPayload:
 
     def test_a_successful_donation_without_any_id_header_is_malformed(self):
         """Without the svix id there is no idempotency key, so the delivery is rejected."""
-        assert (
+        with pytest.raises(MalformedWebhookPayload):
             parse_classy_transaction_payload(body_of(FIXTURE), {})
-            == MalformedWebhookPayload()
-        )

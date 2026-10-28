@@ -1,8 +1,12 @@
 """
-What every webhook source adapter provides, and the result types they all return.
+What every webhook source adapter provides, and the types they all return or raise.
 
-Each source parses a differently shaped payload, but every adapter returns THESE types. That
-is what lets one view function, one dispatcher and one Celery task serve every source.
+Each source parses a differently shaped payload, but every adapter uses THESE types. That is
+what lets one view function, one dispatcher and one Celery task serve every source.
+
+A request that is refused (secret not configured, bad signature, malformed payload) raises one
+of the exceptions below, and receive_webhook in views.py turns each into its status code. An
+ignored event is returned instead, because it is a successful delivery (200), not an error.
 """
 
 from collections.abc import Callable, Mapping
@@ -18,22 +22,17 @@ class WebhookSource(Enum):
     SALESFORCE = "salesforce"
 
 
-@dataclass(frozen=True)
-class SignatureVerified:
-    pass
+class WebhookSecretNotConfigured(Exception):
+    """The endpoint's secret setting is unset. Answered 503, so the sender retries while ops sets it."""
+
+    def __init__(self, setting_name: str):
+        super().__init__(setting_name)
+        # Named in the warning log so ops knows exactly what to set. Only the name, never a value.
+        self.setting_name = setting_name
 
 
-@dataclass(frozen=True)
-class SignatureRejected:
-    pass
-
-
-@dataclass(frozen=True)
-class WebhookSecretNotConfigured:
-    setting_name: str  # named in the warning log so ops knows exactly what to set
-
-
-type SignatureCheckResult = SignatureVerified | SignatureRejected | WebhookSecretNotConfigured
+class SignatureRejected(Exception):
+    """The signature or shared secret didn't match. Answered 401."""
 
 
 class ReasonWebhookEventWasIgnored(Enum):
@@ -46,18 +45,20 @@ class WebhookEventIgnored:
     reason: ReasonWebhookEventWasIgnored
 
 
-@dataclass(frozen=True)
-class MalformedWebhookPayload:
-    pass
+class MalformedWebhookPayload(Exception):
+    """The verified body isn't the payload the source promised. Answered 400."""
 
 
-type ParsedWebhookEvent = EventIndicatingPersonIsDonor | WebhookEventIgnored | MalformedWebhookPayload
+type ParsedWebhookEvent = EventIndicatingPersonIsDonor | WebhookEventIgnored
 
 
 @dataclass(frozen=True)
 class WebhookSourceAdapter:
     webhook_source: WebhookSource
-    verify_request_signature: Callable[[bytes, Mapping[str, str]], SignatureCheckResult]
+    # Returns only when the sender is verified. Raises WebhookSecretNotConfigured or
+    # SignatureRejected otherwise.
+    verify_request_signature: Callable[[bytes, Mapping[str, str]], None]
+    # Raises MalformedWebhookPayload for a body it can't read as the source's contract.
     parse_verified_payload: Callable[[bytes, Mapping[str, str]], ParsedWebhookEvent]
 
 

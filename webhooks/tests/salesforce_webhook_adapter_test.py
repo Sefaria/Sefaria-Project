@@ -15,7 +15,6 @@ from webhooks.webhook_source_adapter import (
     MalformedWebhookPayload,
     ReasonWebhookEventWasIgnored,
     SignatureRejected,
-    SignatureVerified,
     WebhookEventIgnored,
     WebhookSecretNotConfigured,
 )
@@ -74,11 +73,12 @@ class TestVerifySalesforceRequestSecret:
 
     def test_accepts_the_configured_secret(self):
         """The header carries the secret from the Salesforce Named Credential."""
+        # Returning at all is the verdict: a rejection raises.
         assert (
             verify_salesforce_request_secret(
                 b"{}", {"X-Sefaria-Webhook-Secret": TEST_SECRET}
             )
-            == SignatureVerified()
+            is None
         )
 
     def test_header_name_is_case_insensitive(self):
@@ -87,7 +87,7 @@ class TestVerifySalesforceRequestSecret:
             verify_salesforce_request_secret(
                 b"{}", {"x-sefaria-webhook-secret": TEST_SECRET}
             )
-            == SignatureVerified()
+            is None
         )
 
     @pytest.mark.parametrize(
@@ -96,15 +96,16 @@ class TestVerifySalesforceRequestSecret:
     )
     def test_rejects_a_missing_empty_or_wrong_secret(self, headers):
         """Anything but the exact secret is a 401."""
-        assert verify_salesforce_request_secret(b"{}", headers) == SignatureRejected()
+        with pytest.raises(SignatureRejected):
+            verify_salesforce_request_secret(b"{}", headers)
 
     @pytest.mark.parametrize("unset", [None, ""])
     def test_unset_secret_plus_empty_header_is_not_configured(self, monkeypatch, unset):
         """hmac.compare_digest('', '') is True, so an unset secret must fail closed BEFORE any comparison."""
         monkeypatch.setattr(salesforce_webhook, "SALESFORCE_WEBHOOK_SECRET", unset)
-        assert verify_salesforce_request_secret(
-            b"{}", {"X-Sefaria-Webhook-Secret": ""}
-        ) == WebhookSecretNotConfigured("SALESFORCE_WEBHOOK_SECRET")
+        with pytest.raises(WebhookSecretNotConfigured) as raised:
+            verify_salesforce_request_secret(b"{}", {"X-Sefaria-Webhook-Secret": ""})
+        assert raised.value.setting_name == "SALESFORCE_WEBHOOK_SECRET"
 
 
 # ============================================================================
@@ -176,11 +177,11 @@ class TestParseSalesforcePayload:
     )
     def test_contract_violations_are_malformed(self, payload):
         """A Flow pointed at the wrong endpoint or sending the wrong shape gets a clear 400."""
-        assert (
-            parse_salesforce_payload(body_of(payload), {}) == MalformedWebhookPayload()
-        )
+        with pytest.raises(MalformedWebhookPayload):
+            parse_salesforce_payload(body_of(payload), {})
 
     @pytest.mark.parametrize("body", [b"not json", b"[]", b"null"])
     def test_unreadable_bodies_are_malformed(self, body):
         """Non-JSON or non-object bodies never crash the parser."""
-        assert parse_salesforce_payload(body, {}) == MalformedWebhookPayload()
+        with pytest.raises(MalformedWebhookPayload):
+            parse_salesforce_payload(body, {})
