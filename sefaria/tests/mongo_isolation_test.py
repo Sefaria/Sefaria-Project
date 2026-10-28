@@ -63,3 +63,11 @@ def test_reader_before_sefaria_arg_order():
 def test_mock_session_has_no_real_client():
     from sefaria.system import database
     assert type(database.client).__module__.startswith("mongomock") and database.MONGO_PORT == 27099
+
+
+def test_reader_then_repo_root_args_do_not_double_register():
+    # `pytest reader/tests .` registered sefaria.conftest twice under different names (ValueError)
+    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "--collect-only", "reader/tests/static_pages_test.py", "."],
+                       cwd=ROOT, capture_output=True, text=True, env={**os.environ, **MOCK}, timeout=300)
+    assert "already registered" not in r.stdout + r.stderr, (r.stdout + r.stderr)[-800:]
+    assert r.returncode == 0, (r.stdout + r.stderr)[-800:]
