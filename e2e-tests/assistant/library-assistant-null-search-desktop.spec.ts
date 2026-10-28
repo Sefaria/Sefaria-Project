@@ -46,8 +46,9 @@ import { longAnswer } from '../support/longConversation';
  * them the way ai-chatbot's server does (server/chat/anon_access.py), including the
  * rule that the empty-search question never uses up the last one, once per visitor.
  * The widget sends that question with context.source "search_no_results", which is
- * how the server tells it apart. The logged-out rows of LA-NULL-1 and LA-NULL-16, and
- * the logged-out LA-NULL-17, are still test.fixme placeholders.
+ * how the server tells it apart. Each runs again with the link in the text in place of the
+ * button (LA-NULL-17, logged out). The logged-out rows of LA-NULL-1 and LA-NULL-16 are
+ * still test.fixme placeholders.
  *
  * Run: npx playwright test --project=chrome-assistant library-assistant-null-search-desktop
  */
@@ -453,10 +454,8 @@ test.describe('Search with no results — the assistant\'s name in the text is a
     await la.expectChatInHistory(EARLIER_QUESTION);
   });
 
-  test.fixme('LA-NULL-17: The link, logged out — LA-NULL-8 to LA-NULL-12 hold for the link as for the button', LOGGED_OUT_TAGS, async () => {
-    // Steps once it's built: run each of LA-NULL-8 → LA-NULL-12 (below) with
-    // clickToAsk('link', la, search) in place of la.clickSearchLauncher().
-  });
+  // LA-NULL-17, logged out (LA-NULL-8 → LA-NULL-12 hold for the link as for the button):
+  // those tests, below, run with the link too.
 
   // The story says to run it both ways: link first, then button first.
   for (const first of ['link', 'button'] as const) {
@@ -525,12 +524,17 @@ async function askFromAskButton(la: LibraryAssistantQ4Page, mock: ChatServerMock
   await la.closeWithMinimize();
 }
 
-/** Click "Search with Library Assistant" on the empty search for `query` and wait for the answer. */
-async function askAboutSearch(la: LibraryAssistantQ4Page, mock: ChatServerMock, search: SearchPage, query = QUERY) {
+/**
+ * On the empty search for `query`, click "Search with Library Assistant" (or the assistant's
+ * name in the text, `via` the link) and wait for the answer.
+ */
+async function askAboutSearch(
+  la: LibraryAssistantQ4Page, mock: ChatServerMock, search: SearchPage, via: 'button' | 'link', query = QUERY,
+) {
   await searchWithNoResults(search, query);
   const count = mock.questions.length;
   mock.answerNextWith(SEARCH_ANSWER);
-  await la.clickSearchLauncher();
+  await clickToAsk(via, la, search);
   await mock.waitForQuestion(count + 1);
   expect(mock.asked[count].text).toBe(searchQuestion(query));
   expect(mock.asked[count].source, 'the widget should say the question is from the empty search').toBe('search_no_results');
@@ -541,104 +545,109 @@ const LAST_QUESTION = 'And where is the blessing over the lights?';
 const LAST_ANSWER = 'The blessing is in Shabbat 23a (last answer).';
 
 test.describe('Search with no results — logged out', () => {
-  test('LA-NULL-8: Logged out — the question goes into the visitor\'s one chat, under the earlier one', DESKTOP_TAGS, async ({ context }) => {
-    const { mock, la, search } = await startLoggedOut(context, 3);
-    await askFromAskButton(la, mock, EARLIER_QUESTION, EARLIER_ANSWER);
+  // Each story by the button, then by the link in the text (LA-NULL-17, logged out)
+  for (const via of ['button', 'link'] as const) {
+    const title = (story: string) => (via === 'button' ? story : `LA-NULL-17: The link, logged out — ${story}`);
 
-    await askAboutSearch(la, mock, search);
-    expect(mock.asked[1].sessionId, 'the search question should go to the same chat').toBe(mock.asked[0].sessionId);
-    const text = await la.conversationText();
-    for (const line of [EARLIER_QUESTION, EARLIER_ANSWER, searchQuestion(QUERY), SEARCH_ANSWER]) {
-      expect(text, `the chat should still show "${line}"`).toContain(line);
-    }
-    expect(text.indexOf(searchQuestion(QUERY)), 'the search question should be under the earlier answer')
-      .toBeGreaterThan(text.indexOf(EARLIER_ANSWER));
-  });
+    test(title('LA-NULL-8: Logged out — the question goes into the visitor\'s one chat, under the earlier one'), DESKTOP_TAGS, async ({ context }) => {
+      const { mock, la, search } = await startLoggedOut(context, 3);
+      await askFromAskButton(la, mock, EARLIER_QUESTION, EARLIER_ANSWER);
 
-  test('LA-NULL-9: Logged out at the limit — opens on the last chat, scrolled to the end, with the login prompt; nothing sent', DESKTOP_TAGS, async ({ context }) => {
-    // One free answer, used on the earlier question: that answer brings the login prompt.
-    const { page, mock, la, search } = await startLoggedOut(context, 1);
-    await askFromAskButton(la, mock, EARLIER_QUESTION, longAnswer('Earlier answer'), 'Earlier answer, paragraph 10:');
-    // A later visit: the reload forgets where the chat was, so it opens at the end (LA-QA-7).
-    // The used-up free answers are kept in the browser, so the login prompt is still there.
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    await hideAllModalsAndPopups(page);
-    await la.waitForReady();
-    await la.ensureClosed();
+      await askAboutSearch(la, mock, search, via);
+      expect(mock.asked[1].sessionId, 'the search question should go to the same chat').toBe(mock.asked[0].sessionId);
+      const text = await la.conversationText();
+      for (const line of [EARLIER_QUESTION, EARLIER_ANSWER, searchQuestion(QUERY), SEARCH_ANSWER]) {
+        expect(text, `the chat should still show "${line}"`).toContain(line);
+      }
+      expect(text.indexOf(searchQuestion(QUERY)), 'the search question should be under the earlier answer')
+        .toBeGreaterThan(text.indexOf(EARLIER_ANSWER));
+    });
 
-    await searchWithNoResults(search);
-    await la.expectLauncherReads('search');
-    await la.clickSearchLauncher();
-    await la.expectConversationContains(EARLIER_QUESTION);
-    await la.expectLoginPrompt();
-    await la.expectChatAtBottom();
-    await mock.expectQuestionCountStays(1);
-    await la.expectConversationLacks(searchQuestion(QUERY));
-  });
+    test(title('LA-NULL-9: Logged out at the limit — opens on the last chat, scrolled to the end, with the login prompt; nothing sent'), DESKTOP_TAGS, async ({ context }) => {
+      // One free answer, used on the earlier question: that answer brings the login prompt.
+      const { page, mock, la, search } = await startLoggedOut(context, 1);
+      await askFromAskButton(la, mock, EARLIER_QUESTION, longAnswer('Earlier answer'), 'Earlier answer, paragraph 10:');
+      // A later visit: the reload forgets where the chat was, so it opens at the end (LA-QA-7).
+      // The used-up free answers are kept in the browser, so the login prompt is still there.
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await hideAllModalsAndPopups(page);
+      await la.waitForReady();
+      await la.ensureClosed();
 
-  test('LA-NULL-9: Logged out at the limit — scrolled where the visitor left the chat during this visit (LA-QA-7); nothing sent', DESKTOP_TAGS, async ({ context }) => {
-    test.setTimeout(t(90000));
-    const { mock, la, search } = await startLoggedOut(context, 1);
-    mock.answerNextWith(longAnswer('Earlier answer', 20));
-    await la.openWithAskButton();
-    await la.askQuestion(EARLIER_QUESTION);
-    await la.expectConversationContains('Earlier answer, paragraph 20:');
-    await la.expectLoginPrompt();
-    const leftAt = await la.scrollChatTo(0.4);
-    const { maxScroll } = await la.chatScroll();
-    expect(leftAt, 'the chat should be scrolled partway up').toBeGreaterThan(2);
-    expect(maxScroll - leftAt, 'the chat should be scrolled partway up').toBeGreaterThan(2);
-    await la.closeWithMinimize();
+      await searchWithNoResults(search);
+      await la.expectLauncherReads('search');
+      await clickToAsk(via, la, search);
+      await la.expectConversationContains(EARLIER_QUESTION);
+      await la.expectLoginPrompt();
+      await la.expectChatAtBottom();
+      await mock.expectQuestionCountStays(1);
+      await la.expectConversationLacks(searchQuestion(QUERY));
+    });
 
-    await searchWithNoResults(search);
-    await la.clickSearchLauncher();
-    await la.expectLoginPrompt();
-    await la.expectChatScrolledTo(leftAt);
-    await mock.expectQuestionCountStays(1);
-  });
+    test(title('LA-NULL-9: Logged out at the limit — scrolled where the visitor left the chat during this visit (LA-QA-7); nothing sent'), DESKTOP_TAGS, async ({ context }) => {
+      test.setTimeout(t(90000));
+      const { mock, la, search } = await startLoggedOut(context, 1);
+      mock.answerNextWith(longAnswer('Earlier answer', 20));
+      await la.openWithAskButton();
+      await la.askQuestion(EARLIER_QUESTION);
+      await la.expectConversationContains('Earlier answer, paragraph 20:');
+      await la.expectLoginPrompt();
+      const leftAt = await la.scrollChatTo(0.4);
+      const { maxScroll } = await la.chatScroll();
+      expect(leftAt, 'the chat should be scrolled partway up').toBeGreaterThan(2);
+      expect(maxScroll - leftAt, 'the chat should be scrolled partway up').toBeGreaterThan(2);
+      await la.closeWithMinimize();
 
-  test('LA-NULL-10: The search question never uses up the last free answer', DESKTOP_TAGS, async ({ context }) => {
-    const { mock, la, search } = await startLoggedOut(context, 2);
-    await askFromAskButton(la, mock, EARLIER_QUESTION, EARLIER_ANSWER);
-    expect(mock.freeAnswersLeft(), 'one free answer left').toBe(1);
+      await searchWithNoResults(search);
+      await clickToAsk(via, la, search);
+      await la.expectLoginPrompt();
+      await la.expectChatScrolledTo(leftAt);
+      await mock.expectQuestionCountStays(1);
+    });
 
-    await askAboutSearch(la, mock, search);
-    await la.expectNoLoginPrompt();
-    expect(await la.freeAnswersLeftInWidget(), 'the search answer should leave the last free answer').toBe(1);
+    test(title('LA-NULL-10: The search question never uses up the last free answer'), DESKTOP_TAGS, async ({ context }) => {
+      const { mock, la, search } = await startLoggedOut(context, 2);
+      await askFromAskButton(la, mock, EARLIER_QUESTION, EARLIER_ANSWER);
+      expect(mock.freeAnswersLeft(), 'one free answer left').toBe(1);
 
-    // Their own next question uses it: it is answered, and the login prompt appears.
-    mock.answerNextWith(LAST_ANSWER);
-    await la.askQuestion(LAST_QUESTION);
-    await la.expectConversationContains(LAST_ANSWER);
-    await la.expectLoginPrompt();
-  });
+      await askAboutSearch(la, mock, search, via);
+      await la.expectNoLoginPrompt();
+      expect(await la.freeAnswersLeftInWidget(), 'the search answer should leave the last free answer').toBe(1);
 
-  test('LA-NULL-11: That exception happens once per visitor', DESKTOP_TAGS, async ({ context }) => {
-    const { mock, la, search } = await startLoggedOut(context, 2);
-    await askFromAskButton(la, mock, EARLIER_QUESTION, EARLIER_ANSWER);
-    // The first search question at the last free answer didn't count…
-    await askAboutSearch(la, mock, search);
-    await la.expectNoLoginPrompt();
-    await la.closeWithMinimize('search');
+      // Their own next question uses it: it is answered, and the login prompt appears.
+      mock.answerNextWith(LAST_ANSWER);
+      await la.askQuestion(LAST_QUESTION);
+      await la.expectConversationContains(LAST_ANSWER);
+      await la.expectLoginPrompt();
+    });
 
-    // …so a second one, with that same one free answer left, does.
-    await askAboutSearch(la, mock, search, SECOND_QUERY);
-    await la.expectLoginPrompt();
-    expect(await la.freeAnswersLeftInWidget()).toBe(0);
-  });
+    test(title('LA-NULL-11: That exception happens once per visitor'), DESKTOP_TAGS, async ({ context }) => {
+      const { mock, la, search } = await startLoggedOut(context, 2);
+      await askFromAskButton(la, mock, EARLIER_QUESTION, EARLIER_ANSWER);
+      // The first search question at the last free answer didn't count…
+      await askAboutSearch(la, mock, search, via);
+      await la.expectNoLoginPrompt();
+      await la.closeWithMinimize('search');
 
-  test('LA-NULL-12: A search question counts like any other when it isn\'t the last', DESKTOP_TAGS, async ({ context }) => {
-    const { mock, la, search } = await startLoggedOut(context, 2);
+      // …so a second one, with that same one free answer left, does.
+      await askAboutSearch(la, mock, search, via, SECOND_QUERY);
+      await la.expectLoginPrompt();
+      expect(await la.freeAnswersLeftInWidget()).toBe(0);
+    });
 
-    await askAboutSearch(la, mock, search);
-    // Nothing on screen shows the count, so check the one the widget keeps.
-    expect(await la.freeAnswersLeftInWidget(), 'the search answer should use up a free answer').toBe(1);
-    await la.expectNoLoginPrompt();
+    test(title('LA-NULL-12: A search question counts like any other when it isn\'t the last'), DESKTOP_TAGS, async ({ context }) => {
+      const { mock, la, search } = await startLoggedOut(context, 2);
 
-    // The next question is the last free one.
-    mock.answerNextWith(LAST_ANSWER);
-    await la.askQuestion(LAST_QUESTION);
-    await la.expectConversationContains(LAST_ANSWER);
-    await la.expectLoginPrompt();
-  });
+      await askAboutSearch(la, mock, search, via);
+      // Nothing on screen shows the count, so check the one the widget keeps.
+      expect(await la.freeAnswersLeftInWidget(), 'the search answer should use up a free answer').toBe(1);
+      await la.expectNoLoginPrompt();
+
+      // The next question is the last free one.
+      mock.answerNextWith(LAST_ANSWER);
+      await la.askQuestion(LAST_QUESTION);
+      await la.expectConversationContains(LAST_ANSWER);
+      await la.expectLoginPrompt();
+    });
+  }
 });
