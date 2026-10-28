@@ -4,8 +4,8 @@ title: Connections & resources sidebar
 domain: Reader
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
 ---
 # Connections & resources sidebar — architecture
 
@@ -23,11 +23,11 @@ _Not discussed yet: how `master` does it, how `reader-next` does it, and what di
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- The sidebar is a subcomponent of its main reader panel, not a separate top-level panel; see [Reader shell & panels](../reader-shell/architecture.md). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [Reader shell & panels](../reader-shell/architecture.md): owns the sidebar and opens new panels from it.
 
 ## Risks and open questions
 
