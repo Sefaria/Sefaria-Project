@@ -20,7 +20,7 @@ const MODULE_URLS = {
   },
   HE: {
     LIBRARY: `https://www.${SANDBOX_DOMAIN_IL}`,
-    VOICES: `https://chiburim.${SANDBOX_DOMAIN_IL}`
+    VOICES: `https://${process.env.SANDBOX_HE_VOICES_HOST ?? 'chiburim'}.${SANDBOX_DOMAIN_IL}`
   }
 } as const;
 
