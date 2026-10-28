@@ -43,7 +43,7 @@ def test_fixture_diff_is_last_step(wf, job):
 
 
 def test_corpus_job_has_no_fixture_diff_step(wf):
-    assert all(FIXTURE_DIFF not in r for r in _runs(wf, "pytest-corpus-job"))
+    assert all(FIXTURE_DIFF not in r for r in _runs(wf, "pytest-corpus-shards"))
 
 
 def test_no_mongo_job_runs_fixture_checker(wf):

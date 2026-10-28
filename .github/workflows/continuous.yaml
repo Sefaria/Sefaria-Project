@@ -352,16 +352,50 @@ jobs:
         run: git diff --exit-code -- sefaria/tests/fixtures/mongo
   # Tests marked needs_corpus: the mocked library cannot represent them (real
   # texts/links, the full ~6,600-index library, Mongo features mongomock lacks).
-  # They run against a real MongoDB on this runner, restored from Sefaria's public
-  # dump_small (see build/ci/restore-test-mongo.sh). No cluster, no cloud credentials.
-  pytest-corpus-job:
-    name: "Continuous Testing: PyTest (corpus)"
+  # They run against a real MongoDB on each shard's runner, restored from Sefaria's
+  # public dump_small (see build/ci/restore-test-mongo.sh). No cluster, no cloud
+  # credentials.
+  #
+  # The corpus tests are split across parallel shards, each with its own restored
+  # Mongo. Shards "ref" and "chunk-text" own explicit files (the slowest ones, so
+  # the work is balanced); shard "rest" takes everything else by --ignoring those
+  # files, so a new needs_corpus test file lands in a shard without editing this
+  # list. Rebalance from the `--durations` table each shard prints. The parity
+  # check (scripts/test_impact/ci_parity.py) expands this matrix, so the union of
+  # shards is still verified against master.
+  pytest-corpus-shards:
+    name: "Continuous Testing: PyTest (corpus shard ${{ matrix.shard }})"
     needs: [ check-python-files ]
     if: >
       github.event.pull_request.draft == false &&
       needs.check-python-files.outputs.python_files_changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: ref
+            paths: sefaria/model/tests/ref_test.py sefaria/model/tests/topic_test.py
+            ignore: ""
+          - shard: chunk-text
+            paths: >-
+              sefaria/model/tests/chunk_test.py
+              sefaria/model/tests/text_test.py
+              sefaria/model/tests/lexicon_test.py
+              sefaria/model/tests/manuscript_test.py
+              sefaria/model/tests/link_test.py
+            ignore: ""
+          - shard: rest
+            paths: ./sefaria ./sso ./reader ./powered_by
+            ignore: >-
+              --ignore=sefaria/model/tests/ref_test.py
+              --ignore=sefaria/model/tests/topic_test.py
+              --ignore=sefaria/model/tests/chunk_test.py
+              --ignore=sefaria/model/tests/text_test.py
+              --ignore=sefaria/model/tests/lexicon_test.py
+              --ignore=sefaria/model/tests/manuscript_test.py
+              --ignore=sefaria/model/tests/link_test.py
     env:
       SEFARIA_TEST_MONGO: "1"
       LOCAL_TEST_MONGO_PORT: "27017"
@@ -381,9 +415,28 @@ jobs:
         run: bash build/ci/restore-test-mongo.sh
       - name: Run corpus pytest tests
         run: >
-          python -m pytest -q --reuse-db
+          python -m pytest -q --reuse-db --durations=15
           -m "needs_corpus and not deep and not failing"
-          ./sefaria ./sso ./reader ./powered_by
+          ${{ matrix.ignore }} ${{ matrix.paths }}
+
+  # The required check. Keeps the name "Continuous Testing: PyTest (corpus)" and
+  # fails if any shard did not succeed (a cancelled or skipped shard counts as a
+  # failure whenever Python files changed).
+  pytest-corpus-job:
+    name: "Continuous Testing: PyTest (corpus)"
+    needs: [ check-python-files, pytest-corpus-shards ]
+    if: >
+      always() &&
+      github.event.pull_request.draft == false &&
+      needs.check-python-files.outputs.python_files_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every corpus shard passed
+        run: |
+          if [ "${{ needs.pytest-corpus-shards.result }}" != "success" ]; then
+            echo "A corpus shard did not succeed: ${{ needs.pytest-corpus-shards.result }}"
+            exit 1
+          fi
   ending-notification:
     name: "Continuous Testing: Notifications"
     runs-on: ubuntu-latest
