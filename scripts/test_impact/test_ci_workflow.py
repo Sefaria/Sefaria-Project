@@ -99,3 +99,44 @@ def test_scripts_parse():
     import subprocess
     for name in ("restore-test-mongo.sh", "prepare-pytest-runner.sh"):
         subprocess.run(["bash", "-n", os.path.join(ROOT, "build", "ci", name)], check=True)
+
+
+def _run_restore(tmp_path, **env):
+    """Run restore-test-mongo.sh with fake docker/curl; returns (proc, logged docker argument lines)."""
+    import io, subprocess, tarfile
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    log = tmp_path / "docker.log"
+    (bin_dir / "docker").write_text(f'#!/bin/bash\necho "$@" >> {log}\n[ "$1" = exec ] && echo 1\nexit 0\n')
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tf:
+        pass
+    (tmp_path / "empty.tgz").write_bytes(buf.getvalue())
+    (bin_dir / "curl").write_text(f'#!/bin/bash\ncat {tmp_path / "empty.tgz"}\n')
+    (bin_dir / "df").write_text("#!/bin/bash\nexit 0\n")  # /mnt exists only on the runner
+    for name in ("docker", "curl", "df"):
+        (bin_dir / name).chmod(0o755)
+    proc = subprocess.run(["bash", os.path.join(ROOT, "build", "ci", "restore-test-mongo.sh")], capture_output=True, text=True,
+                          env={**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}", "WORK": str(tmp_path / "work"), **env})
+    return proc, log.read_text().splitlines() if log.exists() else []
+
+
+def test_restore_defaults_keep_four_parallel_collections_and_no_mongod_args(tmp_path):
+    proc, calls = _run_restore(tmp_path)
+    assert proc.returncode == 0, proc.stderr
+    start = next(c for c in calls if c.startswith("run -d"))
+    assert start.endswith("mongo:4.4")
+    assert "--numParallelCollections 4 " in next(c for c in calls if "mongorestore" in c)
+
+
+def test_restore_accepts_mongod_args_and_parallelism(tmp_path):
+    proc, calls = _run_restore(tmp_path, MONGOD_ARGS="--wiredTigerCacheSizeGB 1", RESTORE_PARALLEL="1")
+    assert proc.returncode == 0, proc.stderr
+    assert next(c for c in calls if c.startswith("run -d")).endswith("mongo:4.4 --wiredTigerCacheSizeGB 1")
+    assert "--numParallelCollections 1 " in next(c for c in calls if "mongorestore" in c)
+
+
+@pytest.mark.parametrize("bad", ["0", "x", "-1", "2 3"])
+def test_restore_rejects_bad_parallelism(tmp_path, bad):
+    proc, calls = _run_restore(tmp_path, RESTORE_PARALLEL=bad)
+    assert proc.returncode == 2 and "RESTORE_PARALLEL" in proc.stderr and calls == []
