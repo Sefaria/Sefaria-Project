@@ -1,6 +1,6 @@
 import { test, expect, BrowserContext } from '@playwright/test';
-import { goToPageWithUser, hideAllModalsAndPopups, installEntitySearchMock } from '../utils';
-import { BROWSER_SETTINGS, LANGUAGES } from '../globals';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups, installEntitySearchMock } from '../utils';
+import { BROWSER_SETTINGS, LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { SearchPage, SearchTabId } from '../pages/searchPage';
 import { LibraryAssistantQ4Page } from '../pages/libraryAssistantQ4Page';
@@ -9,6 +9,7 @@ import { ChatServerMock } from '../support/chatServerMock';
 import { sefariaString } from '../support/assistantStrings';
 import { installNullStateRecorder, readNullStateRecords } from '../support/nullStateRecorder';
 import { TOPIC_HITS } from '../fixtures/entitySearchFixtures';
+import { longAnswer } from '../support/longConversation';
 
 /**
  * "Search with no results" (LA-NULL-*) — the stories tagged @desktop.
@@ -40,11 +41,13 @@ import { TOPIC_HITS } from '../fixtures/entitySearchFixtures';
  *    `search.null.library_assistant_question` (added in commit f55ec7e3bf), so we
  *    no longer need to copy it from the story text.
  *
- * Logged-out stories (the logged-out row of LA-NULL-1, LA-NULL-8 → LA-NULL-12)
- * are written as test.fixme placeholders: the assistant doesn't load for
- * logged-out visitors yet (sefaria/helper/library_assistant.py), and there is no
- * "free answers" count or login prompt in the widget to drive or check. Each
- * placeholder spells out its steps so it can be filled in once that design exists.
+ * Logged-out stories LA-NULL-8 → LA-NULL-12 run as a visitor nobody logged in as
+ * (goToPageWithLang). The fake chat server gives them a few free answers and counts
+ * them the way ai-chatbot's server does (server/chat/anon_access.py), including the
+ * rule that the empty-search question never uses up the last one, once per visitor.
+ * The widget sends that question with context.source "search_no_results", which is
+ * how the server tells it apart. The logged-out rows of LA-NULL-1 and LA-NULL-16, and
+ * the logged-out LA-NULL-17, are still test.fixme placeholders.
  *
  * Run: npx playwright test --project=chrome-assistant library-assistant-null-search-desktop
  */
@@ -491,47 +494,151 @@ test.describe('Search with no results — the assistant\'s name in the text is a
 });
 
 // ---------------------------------------------------------------------------
-// Logged-out stories: placeholders until the logged-out assistant exists
+// LA-NULL-8 → LA-NULL-12: logged out, with a few free answers
 // ---------------------------------------------------------------------------
 
-test.describe('Search with no results — logged out (not built yet)', () => {
-  test.fixme('LA-NULL-8: Logged out — the question goes into the visitor\'s one chat, under the earlier one', LOGGED_OUT_TAGS, async () => {
-    // Steps once it's built:
-    //  1. Logged out (goToPageWithLang), fake chat server installed, free answers left.
-    //  2. Ask EARLIER_QUESTION from "✦ Ask"; wait for its answer; close.
-    //  3. searchWithNoResults(); clickSearchLauncher().
-    //  4. mock.asked[1].sessionId === mock.asked[0].sessionId (same chat), and the
-    //     conversation shows EARLIER_QUESTION above searchQuestion(QUERY).
+/**
+ * Logged-out start: like startWithAssistant, but nobody is logged in, and the fake
+ * chat server gives this visitor `freeAnswers` free answers.
+ */
+async function startLoggedOut(context: BrowserContext, freeAnswers: number) {
+  const mock = await ChatServerMock.install(context, { freeAnswers });
+  await installEntitySearchMock(context, NO_ENTITY_HITS);
+  const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+  const pm = new PageManager(page, LANGUAGES.EN);
+  await hideAllModalsAndPopups(page);
+  const la = pm.onLibraryAssistantQ4();
+  await la.waitForReady();
+  await la.ensureClosed();
+  return { page, mock, la, search: pm.onSearchPage() };
+}
+
+/**
+ * Ask `question` from "✦ Ask", wait for `answer`, and close the assistant again.
+ * `answerShows` is text the answer shows on screen, when `answer` is HTML.
+ */
+async function askFromAskButton(la: LibraryAssistantQ4Page, mock: ChatServerMock, question: string, answer: string, answerShows = answer) {
+  mock.answerNextWith(answer);
+  await la.openWithAskButton();
+  await la.askQuestion(question);
+  await la.expectConversationContains(answerShows);
+  await la.closeWithMinimize();
+}
+
+/** Click "Search with Library Assistant" on the empty search for `query` and wait for the answer. */
+async function askAboutSearch(la: LibraryAssistantQ4Page, mock: ChatServerMock, search: SearchPage, query = QUERY) {
+  await searchWithNoResults(search, query);
+  const count = mock.questions.length;
+  mock.answerNextWith(SEARCH_ANSWER);
+  await la.clickSearchLauncher();
+  await mock.waitForQuestion(count + 1);
+  expect(mock.asked[count].text).toBe(searchQuestion(query));
+  expect(mock.asked[count].source, 'the widget should say the question is from the empty search').toBe('search_no_results');
+  await la.expectConversationContains(SEARCH_ANSWER);
+}
+
+const LAST_QUESTION = 'And where is the blessing over the lights?';
+const LAST_ANSWER = 'The blessing is in Shabbat 23a (last answer).';
+
+test.describe('Search with no results — logged out', () => {
+  test('LA-NULL-8: Logged out — the question goes into the visitor\'s one chat, under the earlier one', DESKTOP_TAGS, async ({ context }) => {
+    const { mock, la, search } = await startLoggedOut(context, 3);
+    await askFromAskButton(la, mock, EARLIER_QUESTION, EARLIER_ANSWER);
+
+    await askAboutSearch(la, mock, search);
+    expect(mock.asked[1].sessionId, 'the search question should go to the same chat').toBe(mock.asked[0].sessionId);
+    const text = await la.conversationText();
+    for (const line of [EARLIER_QUESTION, EARLIER_ANSWER, searchQuestion(QUERY), SEARCH_ANSWER]) {
+      expect(text, `the chat should still show "${line}"`).toContain(line);
+    }
+    expect(text.indexOf(searchQuestion(QUERY)), 'the search question should be under the earlier answer')
+      .toBeGreaterThan(text.indexOf(EARLIER_ANSWER));
   });
 
-  test.fixme('LA-NULL-9: Logged out at the limit — opens on the last chat, scrolled to the end (or where the visitor left it), with the login prompt; nothing sent', LOGGED_OUT_TAGS, async () => {
-    // Steps once it's built:
-    //  1. Logged out with no free answers left (how to get there depends on how the count is kept).
-    //  2. searchWithNoResults(); clickSearchLauncher().
-    //  3. The assistant shows the last conversation with the login prompt, scrolled to the
-    //     bottom (la.expectChatAtBottom()) — or, if the visitor closed it partway up during
-    //     this visit, scrolled where they left it (la.expectChatScrolledTo(<where they left it>), LA-QA-7).
-    //  4. mock.expectQuestionCountStays(<count before the click>).
+  test('LA-NULL-9: Logged out at the limit — opens on the last chat, scrolled to the end, with the login prompt; nothing sent', DESKTOP_TAGS, async ({ context }) => {
+    // One free answer, used on the earlier question: that answer brings the login prompt.
+    const { mock, la, search } = await startLoggedOut(context, 1);
+    await askFromAskButton(la, mock, EARLIER_QUESTION, longAnswer('Earlier answer'), 'Earlier answer, paragraph 10:');
+
+    await searchWithNoResults(search);
+    await la.expectLauncherReads('search');
+    await la.clickSearchLauncher();
+    await la.expectConversationContains(EARLIER_QUESTION);
+    await la.expectLoginPrompt();
+    await la.expectChatAtBottom();
+    await mock.expectQuestionCountStays(1);
+    await la.expectConversationLacks(searchQuestion(QUERY));
   });
 
-  test.fixme('LA-NULL-10: The search question never uses up the last free answer', LOGGED_OUT_TAGS, async () => {
-    // Steps once it's built:
-    //  1. Logged out; ask 1 question of their own (1 free answer left).
-    //  2. searchWithNoResults(); clickSearchLauncher(); the answer arrives and no login prompt shows.
-    //  3. Ask another question of their own; it is answered and the login prompt appears.
+  // Fails today, as LA-QA-7 does: ai-chatbot's openPanel (LCChatbot.svelte) ends with a
+  // scrollToBottom, added with the login prompt (ai-chatbot e382ac5), that undoes the
+  // "reopen where the reader left the chat" just before it. Turn this on once that's fixed.
+  test.fixme('LA-NULL-9: Logged out at the limit — scrolled where the visitor left the chat during this visit (LA-QA-7); nothing sent', {
+    ...DESKTOP_TAGS,
+    annotation: { type: 'known bug', description: 'Reopening always scrolls to the bottom (ai-chatbot openPanel); LA-QA-7 fails the same way' },
+  }, async ({ context }) => {
+    test.setTimeout(t(90000));
+    const { mock, la, search } = await startLoggedOut(context, 1);
+    mock.answerNextWith(longAnswer('Earlier answer', 20));
+    await la.openWithAskButton();
+    await la.askQuestion(EARLIER_QUESTION);
+    await la.expectConversationContains('Earlier answer, paragraph 20:');
+    await la.expectLoginPrompt();
+    const leftAt = await la.scrollChatTo(0.4);
+    const { maxScroll } = await la.chatScroll();
+    expect(leftAt, 'the chat should be scrolled partway up').toBeGreaterThan(2);
+    expect(maxScroll - leftAt, 'the chat should be scrolled partway up').toBeGreaterThan(2);
+    await la.closeWithMinimize();
+
+    await searchWithNoResults(search);
+    await la.clickSearchLauncher();
+    await la.expectLoginPrompt();
+    await la.expectChatScrolledTo(leftAt);
+    await mock.expectQuestionCountStays(1);
   });
 
-  test.fixme('LA-NULL-11: That exception happens once per visitor', LOGGED_OUT_TAGS, async () => {
-    // Steps once it's built:
-    //  1. Logged out; already had one search question that didn't count; 1 free answer left.
-    //  2. searchWithNoResults(SECOND_QUERY); clickSearchLauncher().
-    //  3. The answer arrives and the login prompt appears.
+  test('LA-NULL-10: The search question never uses up the last free answer', DESKTOP_TAGS, async ({ context }) => {
+    const { mock, la, search } = await startLoggedOut(context, 2);
+    await askFromAskButton(la, mock, EARLIER_QUESTION, EARLIER_ANSWER);
+    expect(mock.freeAnswersLeft(), 'one free answer left').toBe(1);
+
+    await askAboutSearch(la, mock, search);
+    await la.expectNoLoginPrompt();
+    expect(await la.freeAnswersLeftInWidget(), 'the search answer should leave the last free answer').toBe(1);
+
+    // Their own next question uses it: it is answered, and the login prompt appears.
+    mock.answerNextWith(LAST_ANSWER);
+    await la.askQuestion(LAST_QUESTION);
+    await la.expectConversationContains(LAST_ANSWER);
+    await la.expectLoginPrompt();
   });
 
-  test.fixme('LA-NULL-12: A search question counts like any other when it isn\'t the last', LOGGED_OUT_TAGS, async () => {
-    // Steps once it's built:
-    //  1. Logged out with 2 free answers left.
-    //  2. searchWithNoResults(); clickSearchLauncher(); wait for the answer.
-    //  3. The visitor has 1 free answer left (check however the design shows it).
+  test('LA-NULL-11: That exception happens once per visitor', DESKTOP_TAGS, async ({ context }) => {
+    const { mock, la, search } = await startLoggedOut(context, 2);
+    await askFromAskButton(la, mock, EARLIER_QUESTION, EARLIER_ANSWER);
+    // The first search question at the last free answer didn't count…
+    await askAboutSearch(la, mock, search);
+    await la.expectNoLoginPrompt();
+    await la.closeWithMinimize('search');
+
+    // …so a second one, with that same one free answer left, does.
+    await askAboutSearch(la, mock, search, SECOND_QUERY);
+    await la.expectLoginPrompt();
+    expect(await la.freeAnswersLeftInWidget()).toBe(0);
+  });
+
+  test('LA-NULL-12: A search question counts like any other when it isn\'t the last', DESKTOP_TAGS, async ({ context }) => {
+    const { mock, la, search } = await startLoggedOut(context, 2);
+
+    await askAboutSearch(la, mock, search);
+    // Nothing on screen shows the count, so check the one the widget keeps.
+    expect(await la.freeAnswersLeftInWidget(), 'the search answer should use up a free answer').toBe(1);
+    await la.expectNoLoginPrompt();
+
+    // The next question is the last free one.
+    mock.answerNextWith(LAST_ANSWER);
+    await la.askQuestion(LAST_QUESTION);
+    await la.expectConversationContains(LAST_ANSWER);
+    await la.expectLoginPrompt();
   });
 });

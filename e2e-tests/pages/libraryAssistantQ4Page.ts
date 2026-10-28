@@ -1168,6 +1168,34 @@ export class LibraryAssistantQ4Page extends HelperBase {
     await expect(this.conversation).toContainText(text, { timeout: t(15000) });
   }
 
+  /** The login prompt a logged-out visitor sees in place of the text box once their free answers are used up. */
+  private get loginPrompt(): Locator {
+    return this.dialog.getByText(this.a('assistant.anon.limit_reached'), { exact: true });
+  }
+
+  async expectLoginPrompt(): Promise<void> {
+    await expect(this.loginPrompt).toBeVisible({ timeout: t(10000) });
+    await expect(this.textBox).toBeHidden();
+  }
+
+  /** The conversation's text, top to bottom — for "this message is under that one". */
+  async conversationText(): Promise<string> {
+    return (await this.conversation.innerText()).replace(/\s+/g, ' ');
+  }
+
+  /** Free answers left, as the widget last heard from the chat server (it keeps the count in localStorage). */
+  async freeAnswersLeftInWidget(): Promise<number | null> {
+    return this.page.evaluate(() => {
+      const value = localStorage.getItem('lc_chatbot:anon_responses_remaining');
+      return value === null ? null : JSON.parse(value);
+    });
+  }
+
+  async expectNoLoginPrompt(): Promise<void> {
+    await expect(this.textBox).toBeVisible({ timeout: t(10000) });
+    await expect(this.loginPrompt).toBeHidden();
+  }
+
   /** LA-PHONE-3: tap a link in an answer; the same tab goes to the linked page. */
   async followAnswerLink(linkText: string, expectedUrl: RegExp): Promise<void> {
     const link = this.conversation.getByRole('link', { name: linkText }).last();
