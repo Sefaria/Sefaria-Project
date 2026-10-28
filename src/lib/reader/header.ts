@@ -20,6 +20,7 @@ import type { InterfaceLang } from "~/lib/i18n/interface-lang";
 import type { VersionMeta } from "~/lib/text/model";
 import type { LabelLang } from "./labels";
 import type { ContentLanguage } from "./settings";
+import { encodeHebrewNumeral } from "~/lib/ref/hebrew-numerals";
 
 export interface CategoryAttribution {
   categories: readonly string[];
@@ -79,4 +80,16 @@ export function headerLabels(i: HeaderInput): HeaderLabels {
     ...(attr ? { attribution: { text: attr[lang], link: attr.link } } : {}),
     ...(showsVersion && shortName ? { version: attr ? `(${shortName})` : shortName } : {}),
   };
+}
+
+/**
+ * The section's name narrowed to the verses of a kept range that it shows, as the old header does for a Torah portion or aliyah
+ * ("Genesis 6:9-22" / "בראשית ו׳:ט׳-כ״ב" while chapter 6 of Genesis 6:9-11:32 is on screen). `verses` are the section's
+ * highlighted verse numbers, in order.
+ */
+export function narrowToVerses<T extends Pick<HeaderInput, "sectionRef" | "heSectionRef">>(i: T, verses: readonly number[]): T {
+  const first = verses[0], last = verses[verses.length - 1];
+  if (first === undefined || last === undefined) return i;
+  const span = (f: (n: number) => string) => (first === last ? f(first) : `${f(first)}-${f(last)}`);
+  return { ...i, sectionRef: `${i.sectionRef}:${span(String)}`, heSectionRef: `${i.heSectionRef}:${span((n) => encodeHebrewNumeral(n))}` };
 }

@@ -86,6 +86,8 @@ export const DEFAULT_URL_DEFAULTS: UrlDefaults = { lang: "bi", aliyot: 0 };
 
 /** The old Sefaria.titleIsTorah: the five books of the Torah (not their commentaries). */
 const isTorah = (ref: string) => /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/.test(ref);
+/** Onkelos shows aliyot too (TXT-004) but is not in titleIsTorah, so the old client never writes its `aliyot`. */
+const isOnkelos = (ref: string) => /^Onkelos (Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/.test(ref);
 
 /** One entry of the old client's flat panel list. */
 type Hist =
@@ -107,7 +109,9 @@ function histories(ws: Workspace, d: UrlDefaults): Hist[] {
     const p = ws.panels[id];
     if (!p || p.kind !== "text") continue;
     const url = refToUrl(p.ref);
-    const aliyot = isTorah(p.ref) ? (p.aliyot ?? d.aliyot) : undefined;
+    // An Onkelos panel keeps an `aliyot` its URL set: the old client applies it to the panel but drops it from the address, which
+    // here (the URL is the state) would turn the aliyot off again at the first rewrite. One it never had is not written, as before.
+    const aliyot = isTorah(p.ref) ? (p.aliyot ?? d.aliyot) : isOnkelos(p.ref) ? p.aliyot : undefined;
     out.push({ mode: "Text", url, versions: versionPairs(p), lang: p.lang ?? d.lang, ...(aliyot !== undefined ? { aliyot } : {}) });
     const a = p.asides.find((x) => x.kind === "connections");
     if (a) out.push({ mode: "Connections", url, sources: a.view, lang: a.lang ?? "bi", vside: a.vside, lookup: a.lookup, sbsq: a.sbsq, entity: a.entity });

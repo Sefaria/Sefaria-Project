@@ -166,3 +166,35 @@ test.describe("crawler-visible navigation", () => {
 });
 
 void scrollTop;
+
+// @feature TXT-002 @feature BOK-018 @feature TXD-013
+test.describe("verse ranges (verified on sefaria.org 2026-10-28)", () => {
+  test("a Torah portion stays in the address, highlighted, and the header names its verses", async ({ page }) => {
+    await open(page, "/Genesis.6.9-11.32?lang=bi");
+    await page.waitForTimeout(1500);
+    expect(new URL(page.url()).pathname).toBe("/Genesis.6.9-11.32");
+    await expect(page.locator('[data-highlighted="true"]').first()).toBeVisible();
+    await expect(page.locator("main header").first()).toContainText("Genesis 6:9-22");
+  });
+
+  test("an aliyah from the contents stays too", async ({ page }) => {
+    await open(page, "/Genesis.7.1-16?lang=bi");
+    await page.waitForTimeout(1500);
+    expect(new URL(page.url()).pathname).toBe("/Genesis.7.1-16");
+    await expect(page.locator('[data-highlighted="true"]')).toHaveCount(16);
+  });
+
+  test("a short range that is not a portion collapses to its first verse", async ({ page }) => {
+    await open(page, "/Genesis.1.3-5?lang=bi");
+    await expect.poll(() => new URL(page.url()).pathname).toBe("/Genesis.1.3");
+    await expect(page.locator('[data-highlighted="true"]')).toHaveCount(0);
+  });
+
+  // @feature TXT-004 @feature RTE-046
+  test("Onkelos keeps aliyot=1 from its address", async ({ page }) => {
+    await open(page, "/Onkelos_Genesis.2?lang=bi&aliyot=1");
+    await page.waitForTimeout(1000);
+    expect(new URL(page.url()).searchParams.get("aliyot")).toBe("1");
+    await expect(page.getByRole("heading", { name: "Bereshit: Second" })).toBeVisible();
+  });
+});

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categoryAttribution, headerLabels, type HeaderInput } from "./header";
+import { categoryAttribution, headerLabels, type HeaderInput, narrowToVerses } from "./header";
 
 const genesis: HeaderInput = {
   sectionRef: "Genesis 1", heSectionRef: "בראשית א׳", categories: ["Tanakh", "Torah"],
@@ -54,4 +54,14 @@ describe("header labels (verified on sefaria.org)", () => {
     expect(categoryAttribution(["Talmud"])).toBeUndefined();
     expect(categoryAttribution(undefined)).toBeUndefined();
   });
+});
+
+// @feature TXD-013 @feature TXT-002
+describe("narrowToVerses", () => {
+  const base = { sectionRef: "Genesis 6", heSectionRef: "בראשית ו׳" };
+  it("names the kept range's verses in this section", () => {
+    expect(narrowToVerses(base, [9, 10, 22])).toEqual({ sectionRef: "Genesis 6:9-22", heSectionRef: "בראשית ו׳:ט׳-כ״ב" });
+    expect(narrowToVerses(base, [9])).toEqual({ sectionRef: "Genesis 6:9", heSectionRef: "בראשית ו׳:ט׳" });
+  });
+  it("leaves the section alone when none of it is in the range", () => expect(narrowToVerses(base, [])).toBe(base));
 });

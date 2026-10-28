@@ -141,6 +141,17 @@ describe("URL codec (old grammar)", () => {
     expect((ws.panels.p2 as TextPanelState).lang).toBe("en");
   });
 
+  // @feature TXT-003 @feature TXT-004 @feature RTE-046
+  it("an Onkelos panel keeps the aliyot its URL set; Torah URLs are unchanged", () => {
+    const on = decodeWorkspace("Onkelos Genesis 2", { lang: "bi", aliyot: "1" });
+    expect((on.panels.p1 as TextPanelState).aliyot).toBe(1);
+    expect(workspaceUrl(on)).toBe("/Onkelos_Genesis.2?lang=bi&aliyot=1");
+    // one it never had is not written (as sefaria.org)
+    expect(workspaceUrl(decodeWorkspace("Onkelos Genesis 2", { lang: "bi" }))).toBe("/Onkelos_Genesis.2?lang=bi");
+    expect(workspaceUrl(decodeWorkspace("Genesis 2", { lang: "bi" }))).toBe("/Genesis.2?lang=bi&aliyot=0");
+    expect(workspaceUrl(decodeWorkspace("Rashi on Genesis 2:1:1", { lang: "bi", aliyot: "1" }))).toBe("/Rashi_on_Genesis.2.1.1?lang=bi");
+  });
+
   it("reads per-panel sidebars, versions and aliyot", () => {
     const ws = decodeWorkspace("Genesis 1", { p2: "Exodus.1", lang2: "en", aliyot2: "0", p3: "Leviticus.1.3", w3: "Rashi", vhe3: "hebrew|Miqra_according_to_the_Masorah" });
     expect(refs(ws)).toEqual(["Genesis 1", "Exodus 1", "Leviticus 1:3"]);

@@ -9,6 +9,7 @@ import type { ReaderSettings } from "~/lib/reader/settings";
 import { cleanCopy } from "~/lib/reader/copy";
 import { spreadNumbers } from "~/lib/reader/spread-numbers";
 import type { TextPassage } from "~/lib/text/model";
+import type { Highlight } from "~/lib/text/plan";
 import type { SavedPosition } from "~/lib/reader/position-store";
 import { segmentsInRange, selectedText } from "~/lib/reader/selection";
 import { selectionKey, textQueryOptions, type VersionSelection } from "~/lib/text/queries";
@@ -27,6 +28,8 @@ export interface TextColumnProps {
   target?: string;
   /** Words a search matched, highlighted in the `target` segment (SRC-058). */
   terms?: readonly string[];
+  /** A verse range the URL keeps highlighted (a Torah portion or aliyah); may span sections. */
+  highlight?: Highlight | null;
   /** A segment the reader selected (clicked): becomes the focus without scrolling. */
   selected?: string;
   /** The reader selected words in the text (mouse up with a selection inside the column). */
@@ -66,7 +69,7 @@ export interface TextColumnProps {
  * @feature TXD-056 Loading placeholders and book title header
  */
 export function TextColumn(props: TextColumnProps) {
-  const { initial, versions, settings, target, terms, selected, showFocus, connectionsOnScreen, linkFilter = [], onSelectSegment, onRefClick, onEntityClick } = props;
+  const { initial, versions, settings, target, terms, highlight, selected, showFocus, connectionsOnScreen, linkFilter = [], onSelectSegment, onRefClick, onEntityClick } = props;
   // A text opened in a column (the old TextColumn.componentDidMount): select_content with its book and category (ANL-009)
   useEffect(() => {
     const p = initial[0];
@@ -297,6 +300,7 @@ export function TextColumn(props: TextColumnProps) {
             settings={settings}
             scrollTargetRef={target}
             terms={terms}
+            highlight={highlight}
             linkCounts={countsBySection.get(p.ref)}
             onSelectSegment={handleSelect}
             onRefClick={onRefClick}
