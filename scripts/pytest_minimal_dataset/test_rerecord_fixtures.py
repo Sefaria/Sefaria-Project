@@ -230,3 +230,17 @@ def test_help_documents_flags_and_teardown(capsys):
     for flag in ("--only", "--mongo-port", "--restore", "--output-dir", "--prune"):
         assert flag in text
     assert "docker rm -f sefaria-fixtures-mongo" in text
+
+
+def test_prune_drops_orphan_shape_entries(tmp_path, committed):
+    shapes = {"format": 1, "schema": {}, "shapes": {NODEID: {}, "gone_test.py::test_old": {"c": ["f"]}}}
+    (committed / "_shapes.json").write_text(json.dumps(shapes))
+    rc, fake, out = run_main(tmp_path, ["--prune"])
+    assert list(json.loads((out / "_shapes.json").read_text())["shapes"]) == [NODEID]
+    assert "gone_test.py::test_old" in json.loads((committed / "_shapes.json").read_text())["shapes"]
+
+
+def test_no_prune_keeps_orphan_shape_entries(tmp_path, committed):
+    (committed / "_shapes.json").write_text(json.dumps({"format": 1, "schema": {}, "shapes": {"gone::t": {}}}))
+    rc, fake, out = run_main(tmp_path, [])
+    assert "gone::t" in json.loads((out / "_shapes.json").read_text())["shapes"]

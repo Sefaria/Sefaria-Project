@@ -136,6 +136,23 @@ def orphans(collected, output_dir):
     return sorted(subject.split(" (")[0] for kind, subject, _ in findings if kind == "orphan")
 
 
+def prune_shapes(collected, output_dir):
+    """Drop _shapes.json entries of tests that are no longer collected. Returns the removed node ids."""
+    path = os.path.join(output_dir, "_shapes.json")
+    if not os.path.isfile(path):
+        return []
+    with open(path) as fh:
+        payload = json.load(fh)
+    shapes = payload.get("shapes", {})
+    gone = sorted(set(shapes) - set(collected))
+    if gone:
+        payload["shapes"] = {nid: v for nid, v in shapes.items() if nid in set(collected)}
+        with open(path, "w") as fh:
+            json.dump(payload, fh, indent=1, sort_keys=True)
+            fh.write("\n")
+    return gone
+
+
 def verify(output_dir, runner):
     ok = True
     rc = shapes_run("check", (), output_dir, runner)  # whole selection: every fixture must pass its shapes
@@ -210,6 +227,8 @@ def main(argv=None, runner=subprocess.run, probe=default_probe, collect=default_
             for name in orphans(collected, output_dir):
                 os.remove(os.path.join(output_dir, name))
                 print(f"pruned {name}")
+            for nid in prune_shapes(collected, output_dir):
+                print(f"pruned shape entry {nid}")
         if write_manifest(output_dir, stamp_path, runner) != 0:
             print("manifest rewrite failed", file=sys.stderr)
             return 1

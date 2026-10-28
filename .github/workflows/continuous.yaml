@@ -217,9 +217,8 @@ jobs:
   # talk to a real mongod.
   #
   # pytest-job keeps the required check name "Continuous Testing: PyTest".
-  # sefaria/tests/fixtures/mongo/_not-mockable.json is empty: tests the mock cannot
-  # represent carry needs_corpus instead, so every job's collection (and the parity
-  # check) still sees them.
+  # Tests the mock cannot represent carry needs_corpus, so every job's collection
+  # (and the parity check) still sees them.
   #
   # Tests that the mocked library genuinely cannot represent (they need the full
   # ~6,600-index corpus, real Elasticsearch, or a Mongo feature mongomock does not
