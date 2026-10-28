@@ -95,40 +95,43 @@ class ElasticSearchQuerier extends Component {
     constructor(props) {
       super(props);
       this.querySize = {"text": 100, "sheet": 20};
-      this.state = {
-        runningQueries: null,
-        isQueryRunning: false,
-        moreToLoad:     true,
-        totals:         new SearchTotal(),
-        pagesLoaded:    0,
-        hits:           [],
-        error:          false,
-        topics:         []
-      }
 
       // Load search results from cache so they are available for immediate render
 
       const args = this._getQueryArgs(props);
+      let hits = [];
+      let totals = new SearchTotal();
+      let pagesLoaded = 0;
       let cachedQuery = Sefaria.search.getCachedQuery(args);
       while (cachedQuery) {
           // Load all pages of results that are available in cache, so if page X was
           // previously loaded it will be returned.
           //console.log("Loaded cached query for")
           //console.log(args);
-          this.state.hits = this.state.hits.concat(cachedQuery.hits.hits);
-          this.state.totals = cachedQuery.hits.total;
-          this.state.pagesLoaded += 1;
-          args.start = this.state.pagesLoaded * this.querySize[this.props.searchState.type];
+          hits = hits.concat(cachedQuery.hits.hits);
+          totals = cachedQuery.hits.total;
+          pagesLoaded += 1;
+          args.start = pagesLoaded * this.querySize[this.props.searchState.type];
           if (this.props.searchState.type === "text") {
             // Since texts only have one filter type, aggregations are only requested once on first page
             args.aggregationsToUpdate = [];
           }
           cachedQuery = Sefaria.search.getCachedQuery(args);
       }
-      // With nothing cached, the query componentDidMount is about to start counts as running
-      // already. Otherwise the first render reads the empty starting totals as "0 results" and
-      // flashes NoSearchResults (which also relabels the Library Assistant's Ask button).
-      this.state.isQueryRunning = !!props.query && this.state.pagesLoaded === 0;
+
+      this.state = {
+        runningQueries: null,
+        // With nothing cached, the query componentDidMount is about to start counts as running
+        // already. Otherwise the first render reads the empty starting totals as "0 results" and
+        // flashes NoSearchResults (which also relabels the Library Assistant's Ask button).
+        isQueryRunning: !!props.query && pagesLoaded === 0,
+        moreToLoad:     true,
+        totals,
+        pagesLoaded,
+        hits,
+        error:          false,
+        topics:         []
+      }
     }
     componentDidMount() {
         // Search analytics (sc-46034) cover the main search page only -- not
