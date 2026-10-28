@@ -312,3 +312,57 @@ R-11, R-14, R-17…R-22). These replace work-plan items A2, A5, C1, C3 and C5 in
 Process rule for the remaining build (any model): a change is done when it passes CI including the architecture test; anything that talks
 to something outside the client (analytics, chatbot, URLs, Django) carries a contract test against master; no new persisted query class
 without a size estimate.
+
+## 6. Status (2026-10-29)
+
+All four batches of §5 were worked through in `sefaria-reader`, one local commit per batch, each change with a test that fails without
+it, then a code review of the batch's diff and its fixes. Not yet synced into `reader-next/` or pushed.
+
+| Batch | Commit | Findings |
+|-------|--------|----------|
+| 0 | `d580d7a` | R-01, R-02, R-03, R-04, R-05, R-06, R-07, R-08, R-23, R-27 |
+| 1 | `8d1931c` | R-13, R-33; R-30 and R-32 as an enforced baseline (architecture test, story matrix) |
+| 2a | `ce87423` | R-16, R-24 (and the root of R-04: a structured URL encoder) |
+| 2b | `07ccfc4` | R-09, R-28, R-35, R-36 (404 vs 503; the route manifest itself is not built) |
+| 2c | `23bac7e` | R-10, R-11, R-17, R-18, R-19, R-20, R-21, R-22 |
+| 2d | `398d885` | R-12, R-25, R-26 |
+| 3 | `5e6463e` | R-15 (part), R-31, R-18 follow-up, most of the low list |
+
+**Fixed in Batch 3**
+- R-15, in part: the toolkit's zod validators run in development and tests only, loaded lazily (production pages no longer carry them);
+  Sentry session replay is loaded only when a replay rate is above 0. Reader page (`/Genesis.1`, production build, JS
+  before interactive): 1.07 MB raw / 320 KB gzip → 973 KB / 308 KB; the `toc` chunk 58 → 24 KB gzip; the Sentry chunk (after hydration)
+  148 → 89 KB gzip. The larger cuts (NavPage and NavSidebar, 45 KB gzip; the sidebar) wait for the route manifest.
+  Tried and reverted, each for a bug a test caught: a lazy book page (typing into its server-rendered dictionary box before the chunk
+  arrived was lost) and a lazy sidebar (a server-rendered sidebar whose chunk was still loading at hydration left a Suspense boundary
+  that React later hid; the hidden observers cancelled a fetch the route was waiting for, and the page showed "CancelledError").
+  Both belong to the route manifest, where the router loads a page's chunks before it hydrates.
+- R-31: one tab stop in the text (the verse being read), arrow keys move between verses, the selected verse is `aria-current`; the sort
+  menu follows the ARIA menu pattern (focus on open, arrows, Home/End, Escape back to its button); Escape in the mobile menu returns
+  focus to the menu button. axe stays clean on the 11 key pages.
+- R-18 follow-up: a commentary range across chapters (`Rashi on Genesis 1:31:1-2:2:1`) got refs one level too deep
+  (`…1:31:1:1`) and no range. The special case for spanning refs is gone (the API's tree is the same as for any range); the range keeps
+  its sections and highlight, arrives at its first comment and collapses like any range. Cache buster bumped.
+- Low: book dedication sanitized; server functions exempt from the "every write goes to Django" rule; `setAnalyticsUser` uses
+  `gtag('set')` (a second `config` would send a second page_view); the server's per-request query client schedules no gc timers (each
+  request's data was held for up to 6 hours); connected-text links use `refToUrl`; smooth scrolling respects reduced motion; 24 abandoned
+  debug scripts removed (`scripts/probes/` kept: the feature atlas cites them as evidence).
+
+**New findings**
+
+| ID | Sev | Area | Finding |
+|----|-----|------|---------|
+| R-37 | H | auth | master moved Google sign-in and One Tap to `/api/auth/google/callback` (returns `outcome`); the reader-next backend does not have it. Switch when master is merged into reader-next. |
+| R-38 | M | reader | Fast flinging through a long chapter jumps on a production build (the e2e smoothness test fails there, also at `384f904`, so it predates this review; dev builds pass). |
+| R-39 | M | data | A query cancelled because its last observer unmounted (a Suspense boundary hidden, a panel closed) rejects every other caller waiting on the same fetch with `CancelledError`, including a route loader, which then shows the error page. Seen with the lazy sidebar; the cause is general. Loaders should not share a fetch an observer can cancel, or should retry a `CancelledError` once. |
+
+**Still open**
+- R-14 (catalog serialized into `/texts` and `/search`): needs the catalog-slice design (`shouldDehydrateQuery` by class, a node-side
+  catalog cache, dehydrate only the slice rendered).
+- R-36's route manifest (with it: page-kind code splitting, the lazy sidebar and book page above).
+- R-29 (last reading place in localStorage, not tied to the user) and R-34 (password-reset resend, a Django change on master).
+- R-30 and R-32 debt: the baselines may only shrink; nothing was paid down yet.
+- Dark mode: 72 dark stories fail (report only) until every colour is a token.
+- Low items left: API `warnings` ignored; raw `fetch` in calendars, name, topics-toc, search and completion bypasses the error model;
+  the sidebar shows "no connections" for a moment at a chapter boundary; `persistHydrated` can write an entry twice.
+- `.github/workflows/reader-next-client.yaml` (CI for `reader-next/`) is written but not committed.
