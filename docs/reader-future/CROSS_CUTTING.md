@@ -13,6 +13,17 @@ links each item to the areas it touches.
 _Today: the new client's component library is React + Storybook (`reader-next/src/ui`), tokens in
 `reader-next/src/ui/tokens`._
 
+## Integrations: other applications driving the reader
+
+- **TanStack Router is the reader's state layer; other applications must be able to update reader state easily; every integration
+  event sefaria.org's reader handles keeps its effect (parity).** — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · areas: [routing](routing/architecture.md),
+  [ai](ai/architecture.md), [reader-shell](reader-shell/architecture.md), [sheets-editor](sheets-editor/architecture.md),
+  [accounts](accounts/architecture.md), [linker-embeds](linker-embeds/architecture.md)
+  - Today's events: `sefaria:bootstrap-url` (the assistant opens a ref or page), `sefaria:settings-updated` (account settings), the
+    `refresh-editor` BroadcastChannel (add to sheet). None is handled by the new client yet. Inventory: `routing/architecture.md`.
+  - Shape: a typed command layer over `router.navigate`, a legacy-event adapter, a state-changed event from
+    `router.subscribe("onResolved")`; optional window global and `postMessage`. — *proposed* (Claude Tag draft) · `routing/architecture.md`
+
 ## Data layer and caching
 
 _Not discussed yet. Today: TanStack Query with IndexedDB persistence per query (`reader-next/src/lib/cache`)._

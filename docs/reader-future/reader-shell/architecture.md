@@ -28,6 +28,8 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 ## Dependencies on other areas
 
 - Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): each panel's `data-anl-batch` (panel_type, panel_number, content_lang, panel_name, `static/js/ReaderPanel.jsx:706-713`, `:1183`) is missing in reader-next; page views on client-side navigation must match sefaria.org; "Open Connections Panel from Header" is not sent. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
+- [URLs & routing](../routing/architecture.md) → Integrations: integration commands (the chatbot's `sefaria:bootstrap-url`, SHL-068) use
+  the panel operations and need the unsaved-changes guard and a rule for which panel they target.
 
 ## Risks and open questions
 
