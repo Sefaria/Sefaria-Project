@@ -529,6 +529,10 @@ DisplaySettingsMenu, settings, toc). **Verdict: aliyot work and match sefaria.or
 Ordered by dependency, not by size. Each step names its subsystem; S/M/L is complexity. Bugs from the consolidation (§D) ride along with
 the step that touches the same code.
 
+**Phase 0 — review fixes.** The adversarial code review (`CODE_REVIEW_2026-10-28.md`) found critical issues (XSS, open redirect,
+a URL crash, unbounded SSR fan-out, GA4 stream already broken, half-dark site for dark-OS users). Its Batch 0 comes before Phase A,
+and its Batch 2 replaces A2, A5, C1, C3 and C5 below.
+
 **Phase A — foundations (unblock everything else)**
 
 | # | Step | § | Where | Size |
