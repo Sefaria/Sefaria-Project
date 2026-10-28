@@ -4,7 +4,7 @@ import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, use
 import { leaf, split, type LayoutNode } from "~/lib/layout/tree";
 import { formatWith, parseWith, type ConnectionsView } from "~/lib/connections/url";
 import { displayMenuAvailability, hasNikud, layoutKeyFor, type ReaderSettings } from "~/lib/reader/settings";
-import { headerLabels } from "~/lib/reader/header";
+import { headerLabels, narrowToVerses } from "~/lib/reader/header";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { applySearchToSettings, languageToParam } from "~/lib/reader/url-state";
 import type { TextPassage, VersionMeta } from "~/lib/text/model";
@@ -12,6 +12,7 @@ import { shouldActivateLookup } from "~/lib/lexicon/lookup";
 import { highlightsOf, type SearchHit } from "~/lib/search/text-search";
 import { versionKey, type TranslationVersion } from "~/lib/versions/translations";
 import { isHighlighted } from "~/lib/text/plan";
+import { startsParashahOrAliyah } from "~/lib/reader/parashah";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
 import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
@@ -174,9 +175,14 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [apply, id],
   );
 
-  // A range URL ("Genesis 1:3-5") collapses to its first verse once the column settles, as in the old reader
-  // (verified on sefaria.org: the range is never highlighted as a whole, even with the sidebar open).
-  const isRangeArrival = (kind === undefined || kind === "go") && urlSegments.length > 1;
+  // A range URL ("Genesis 1:3-5") collapses to its first verse once the column settles, as in the old reader. A Torah
+  // portion or aliyah range (the book TOC's links, /Parashat_X) stays in the URL and highlighted, as sefaria.org keeps it.
+  const keepsRange = useMemo(() => {
+    const p = initial[0]!;
+    return startsParashahOrAliyah(p, p.segments.find((s) => s.ref === urlSegments[0]));
+  }, [initial, urlSegments]);
+  const isRangeArrival = (kind === undefined || kind === "go") && urlSegments.length > 1 && !keepsRange;
+  const rangeHighlight = keepsRange && urlSegments.length > 1 ? data.highlight : null;
   useEffect(() => {
     if (!isRangeArrival) return;
     const t = setTimeout(() => onSettled(urlSegments[0]!), SETTLE_MS);
@@ -472,10 +478,15 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   }, [view, deferredRefs, sidebarSection, section.sectionRef, section.heSectionRef, section.indexTitle, panel.versions, settings.language]);
   useReaderHistory(viewer, place, Boolean(view));
   const save = useSaved(viewer, place, () => setSaveAsked(true));
-  const header = headerLabels({
+  // a kept Torah portion / aliyah range names its verses in this section, as the old header does
+  const rangeVerses = useMemo(
+    () => (rangeHighlight ? section.segments.filter((s) => isHighlighted(s.address, rangeHighlight, section.addressTypes)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite) : []),
+    [rangeHighlight, section],
+  );
+  const header = headerLabels(narrowToVerses({
     sectionRef: section.sectionRef, heSectionRef: section.heSectionRef, categories: section.categories,
     translationVersion: section.translationVersion, primaryVersion: section.primaryVersion, language: settings.language, interfaceLang,
-  });
+  }, rangeVerses));
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -547,6 +558,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         onSections={onSections}
         settings={settings}
         target={entry.current.target}
+        highlight={rangeHighlight}
         terms={navState.mine && navState.kind === "go" ? readNavState(location.state).terms : undefined}
         selected={selected}
         showFocus={Boolean(view)}
