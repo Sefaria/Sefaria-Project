@@ -6,7 +6,8 @@ import pytest, yaml
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "continuous.yaml")
-FIXTURE_DIFF = "git diff --exit-code -- sefaria/tests/fixtures/mongo"
+FIXTURE_STEP_NAME = "Fixtures were not rewritten by the tests"
+FIXTURE_DIFF = "git diff --exit-code -- sefaria/tests/fixtures/mongo"  # the old step: blind to new files
 MOCKED_JOBS = ["pytest-no-mongo-job", "pytest-job", "pytest-linker-job"]
 
 
@@ -38,12 +39,13 @@ def _run_line(wf, job):
 @pytest.mark.parametrize("job", MOCKED_JOBS)
 def test_fixture_diff_is_last_step(wf, job):
     last = _steps(wf, job)[-1]
-    assert last.get("run") == FIXTURE_DIFF, (job, last)
-    assert last.get("name") == "Fixtures were not rewritten by the tests", job
+    assert last.get("name") == FIXTURE_STEP_NAME, (job, last)
+    assert "git status --porcelain -- sefaria/tests/fixtures/mongo" in last["run"], (job, last)
+    assert FIXTURE_DIFF not in last["run"], job
 
 
 def test_corpus_job_has_no_fixture_diff_step(wf):
-    assert all(FIXTURE_DIFF not in r for r in _runs(wf, "pytest-corpus-job"))
+    assert all("sefaria/tests/fixtures/mongo" not in r for r in _runs(wf, "pytest-corpus-job"))
 
 
 def test_no_mongo_job_runs_fixture_checker(wf):
@@ -66,7 +68,7 @@ def test_no_mongo_job_has_single_parity_step(wf):
 def test_parity_step_uses_baseline_ref_on_pull_request(wf):
     run = next(s["run"] for s in _steps(wf, "pytest-no-mongo-job") if "ci_parity.py" in s.get("run", ""))
     assert 'if [ "${{ github.event_name }}" = "pull_request" ]; then' in run
-    assert 'git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"' in run
+    assert 'git fetch --no-tags --depth=1 origin "$BASE_REF"' in run
     assert "ARGS+=(--baseline-ref FETCH_HEAD)" in run
     assert run.rstrip().endswith('python scripts/test_impact/ci_parity.py "${ARGS[@]}"')
 
@@ -98,3 +100,45 @@ def test_no_mongo_run_line_keeps_paths_and_marker(wf):
 
 def test_no_stale_pytest_ini_comment_above_run_step(wf_text):
     assert "pytest.ini's python_files does not list scripts/" not in wf_text
+
+
+def test_parity_step_gets_base_ref_through_env_not_inline(wf):
+    step = next(s for s in _steps(wf, "pytest-no-mongo-job") if "ci_parity.py" in s.get("run", ""))
+    assert step["env"] == {"BASE_REF": "${{ github.base_ref }}"}
+    assert "github.base_ref" not in step["run"]  # expression injection: a branch name must not become shell
+
+
+@pytest.fixture
+def fixture_repo(tmp_path):
+    import subprocess
+    git = lambda *a: subprocess.run(["git", *a], cwd=tmp_path, check=True, capture_output=True)
+    git("init", "-q")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "t")
+    (tmp_path / "sefaria/tests/fixtures/mongo").mkdir(parents=True)
+    (tmp_path / "sefaria/tests/fixtures/mongo/a.json").write_text("{}")
+    git("add", "-A")
+    git("commit", "-qm", "init")
+    return tmp_path
+
+
+def _drift_step_rc(wf, repo):
+    import subprocess
+    run = next(s for s in _steps(wf, "pytest-job") if s.get("name") == FIXTURE_STEP_NAME)["run"]
+    return subprocess.run(["bash", "-e", "-c", run], cwd=repo, capture_output=True, text=True)
+
+
+def test_drift_step_passes_on_clean_tree(wf, fixture_repo):
+    assert _drift_step_rc(wf, fixture_repo).returncode == 0
+
+
+def test_drift_step_catches_modified_fixture(wf, fixture_repo):
+    (fixture_repo / "sefaria/tests/fixtures/mongo/a.json").write_text('{"x": 1}')
+    r = _drift_step_rc(wf, fixture_repo)
+    assert r.returncode == 1 and "a.json" in r.stdout
+
+
+def test_drift_step_catches_untracked_fixture(wf, fixture_repo):
+    (fixture_repo / "sefaria/tests/fixtures/mongo/new_test.json").write_text("{}")
+    r = _drift_step_rc(wf, fixture_repo)
+    assert r.returncode == 1 and "new_test.json" in r.stdout
