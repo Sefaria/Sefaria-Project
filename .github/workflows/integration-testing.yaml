@@ -95,7 +95,10 @@ jobs:
       - variables
     strategy:
       matrix:
-        app: [ asset, linker ]
+        # build/linker was deleted in Aug 2025 (its work moved to the tasks pod), the same
+        # change that removed it from continuous.yaml. Building it failed every run here,
+        # which skipped Playwright entirely.
+        app: [ asset ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
