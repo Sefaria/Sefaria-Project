@@ -23,15 +23,32 @@ _Not discussed yet: how `master` does it, how `reader-next` does it, and what di
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Version defaults belong in the effective-preferences object: `resolvePanelVersions(prefs, text, url)` returns the source and
+  translation to request, where each came from (`url`, `profile` / `cookie` corpus preference, translation language, `text`
+  default), and a `fallback` reason when the preferred one is missing. It is the current `resolveTranslation`
+  (`reader-next/src/lib/versions/preferences.ts:86-103`) plus the source side. Stores stay `version_preferences_by_corpus`
+  (profile field and cookie) and `translation_language_preference`. — *proposed* (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629) ·
+  inventory and gaps in [Language & accessibility → Preference defaults](../i18n-a11y/architecture.md#preference-defaults-inventory)
 
 ## Dependencies on other areas
+
+- [Language & accessibility](../i18n-a11y/architecture.md): the effective-preferences object, the stores and the sign-in merge.
 
 - Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): `onClick_version_title`, `onClick_select_version`, Choose Version and Version Download are sent; Set Translation Language Preference and Set Version Preference are not. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
 
 ## Risks and open questions
 
-_None yet._
+Read from the code; *ideas* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629). Full list: [i18n-a11y Risks](../i18n-a11y/architecture.md#risks-and-open-questions).
+- `reader-next` reads version and translation-language preferences from cookies only, and writes neither to the profile
+  (`reader-next/src/lib/versions/prefs-source.ts:10-25`). No JSON GET returns a signed-in reader's `version_preferences_by_corpus`
+  (`sefaria/model/user_profile.py:768-801`).
+- Missing preferred translation or language: falls through to the API's highest-priority translation in any language, and the
+  reader is not told (`sefaria/model/text_request_adapter.py:102-103`).
+- A source-version choice is never remembered (`static/js/sefaria/sefaria.js:1115`). Texts without a corpus cannot carry any
+  preference.
+- Should a source-version preference be stored under the existing `{corpus: {he: title}}` key, which the format already allows?
 
 ## Decisions
 

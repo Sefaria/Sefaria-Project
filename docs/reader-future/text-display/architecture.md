@@ -29,8 +29,14 @@ _Not discussed yet._
 _Items carry a status: idea · proposed · agreed · decided._
 
 - Dark mode is supported: every colour in the client comes from a design token with a light and a dark value; no hard-coded colours in components. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · see `../CROSS_CUTTING.md` → Design system
+- Display settings, theme included (`ReaderSettings`, `reader-next/src/lib/reader/settings.ts:19-44`), are the `display` group
+  of the effective-preferences object. Each value carries its source (`cookie` or `site` today). They are stored only in
+  host-only cookies, never in the profile, in both clients (`reader/views.py:351-362`). Whether to add profile keys is open. —
+  *proposed* (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629) · [Language & accessibility → Effective preferences](../i18n-a11y/architecture.md#target-architecture)
 
 ## Dependencies on other areas
+
+- Settings and defaults: [Language & accessibility](../i18n-a11y/architecture.md) (inventory, effective-preferences object, gaps).
 
 - Dark mode: [Language & accessibility](../i18n-a11y/architecture.md) (contrast in both themes), [SSR, SEO & platform](../platform-seo/architecture.md) (theme on first paint, `theme-color` meta PLT-010, mobile web PLT-019), [Sheets: viewing](../sheets-view/architecture.md) and [Linker & embeds](../linker-embeds/architecture.md) (content with its own colours).
 - Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): `select_content`, the copy events, `print`, segment, citation, named-entity and language clicks are sent with legacy names; `onclick_ToolTipped` (save and display-settings buttons) is not. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).

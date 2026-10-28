@@ -26,14 +26,25 @@ _Not discussed yet._
 _Items carry a status: idea · proposed · agreed · decided._
 
 - Dark mode is a supported theme, so accessibility checks (text and control contrast, visible focus) cover dark as well as light. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · see `../text-display/product.md`
+- Readers get more control over defaults on the settings page: interface language, content language, translation language,
+  preferred version per corpus, and display settings. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)
+  - Each setting shows its current value and where it came from ("from your location", "from your browser", "this text's
+    default", "you chose"), with a way to change it or reset it to the default. — *proposed* (Claude Tag draft) · same source ·
+    see `architecture.md` → Effective preferences
+  - Signed-in readers keep their choices on every device (profile). Signed-out readers keep them in the browser (cookies), as today.
+    — *proposed* · same source
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **Change**: a default the site guessed (location, domain) is not saved as if the reader chose it. Today a location-based domain
+  redirect, or signing up, writes the guess into the cookie or profile. — *idea* · same source · `architecture.md` Risks 1–2
+- **New**: when the preferred translation language or version is missing for a text, the reader sees which version is shown
+  instead. Today it changes silently. — *idea* · same source · `architecture.md` Risks 10
 
 ## Open questions
 
-_None yet._
+- Which settings belong on the page at launch, and which stay automatic (Israel / diaspora calendar, translation suggestion)?
+  · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)
 
 ## Decisions
 

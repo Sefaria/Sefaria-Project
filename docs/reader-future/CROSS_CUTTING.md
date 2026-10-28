@@ -34,7 +34,14 @@ _Not discussed yet._
 
 ## Accessibility and languages
 
-_Not discussed yet. See also the `i18n-a11y` area._
+- **Preferences and defaults in one object.** Every default behind interface language, content language, translation language,
+  version choice, calendars and display settings is resolved by one pure function into a `ReaderPreferences` object. Each field
+  carries its value and where it came from, for the reader and for a settings page that gives readers more control. Storage stays
+  as today: profile fields when signed in, the existing cookies otherwise. — *proposed* (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629) ·
+  areas: [i18n-a11y](i18n-a11y/architecture.md) (inventory, object, gaps), [versions](versions/architecture.md),
+  [text-display](text-display/architecture.md), [accounts](accounts/architecture.md), [calendars](calendars/architecture.md)
+
+See also the `i18n-a11y` area.
 
 ## Analytics parity
 
