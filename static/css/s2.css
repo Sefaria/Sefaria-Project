@@ -640,24 +640,34 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .interface-hebrew .mobileNavMenu .loginLink {
   padding-right: 0px !important;
 }
-.mobileNavMenu .mobileAuthButtons {
+.mobileNavMenu .mobileAuthRow {
   display: flex;
-  gap: 8px;
-  padding: 12px 16px;
+  align-items: center;
+  min-height: 52px;
+  padding-inline: 16px;
   border-bottom: 1px solid #EDEDEC;
 }
-.mobileNavMenu .mobileAuthButtons a.sefaria-common-button {
-  display: inline-flex;
-  flex: 1;
-  width: auto;
-  height: 44px;
-  padding: 0 12px;
-  font-size: 16px;
+.mobileNavMenu .mobileAuthRow > img {
+  width: 24px;
+  height: 24px;
+  margin-inline-end: 4px;
 }
-.mobileNavMenu .mobileAuthButtons a.sefaria-common-button.mobileAuthButtonsLogin {
-  --theme-button-background: white;
-  --theme-button-text: var(--theme-primary);
-  --theme-button-border: var(--theme-primary);
+.mobileNavMenu .mobileAuthRow a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  color: var(--theme-primary);
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.mobileNavMenu .mobileAuthRowDivider {
+  width: 1px;
+  height: 20px;
+  background-color: #EDEDEC;
 }
 .mobileNavMenu .profile-pic {
   display: inline-block;

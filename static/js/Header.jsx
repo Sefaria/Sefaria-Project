@@ -407,21 +407,23 @@ Header.propTypes = {
   notificationCount: PropTypes.number,
 };
 
-// Sign up / Log in at the top of the mobile menu so logged-out users see them as soon as the menu opens
-const MobileAuthButtons = ({ openURL, close }) => {
+// Log in / Sign up as one light row at the top of the mobile menu so logged-out users see them as soon as the menu opens
+const MobileAuthRow = ({ openURL, close }) => {
   const openAuth = (flow) => (e) => {
     e.preventDefault();
     openURL(`/${flow}`, undefined, undefined, undefined, 'nav_bar');
     close?.();
   };
   return (
-    <div className="mobileAuthButtons">
-      <Button size="fullwidth" href="/register" onClick={openAuth('register')}>
-        <InterfaceText>header.sign_up</InterfaceText>
-      </Button>
-      <Button size="fullwidth" className="mobileAuthButtonsLogin" href="/login" onClick={openAuth('login')}>
+    <div className="mobileAuthRow">
+      <img src="/static/icons/circle-user.svg" alt="" />
+      <a href="/login" onClick={openAuth('login')}>
         <InterfaceText>header.log_in</InterfaceText>
-      </Button>
+      </a>
+      <span className="mobileAuthRowDivider" aria-hidden="true"></span>
+      <a href="/register" onClick={openAuth('register')}>
+        <InterfaceText>header.sign_up</InterfaceText>
+      </a>
     </div>
   );
 };
@@ -444,7 +446,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           hideHebrewKeyboard={true}
         />
       </div>
-      {!Sefaria._uid && <MobileAuthButtons openURL={openURL} close={close} />}
+      {!Sefaria._uid && <MobileAuthRow openURL={openURL} close={close} />}
       {module === Sefaria.LIBRARY_MODULE &&
         <>
           <a href="/texts" onClick={close} className="textsPageLink">
