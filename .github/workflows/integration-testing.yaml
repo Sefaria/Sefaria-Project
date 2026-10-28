@@ -223,10 +223,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
-      
+          node-version: '22'   # matches build/base-node
+
+      # package-lock.json is out of sync with package.json, so `npm ci` refuses to
+      # install. The Jest job and the node/web images already use `npm install`.
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
