@@ -10,7 +10,8 @@ import time
 import pytest
 
 from sefaria.model import user_profile as up
-from sefaria.model.user_profile import UserProfile, public_user_data_cache
+from sefaria.model.user_profile import UserProfile, public_user_data_cache, PUBLIC_USER_DATA_GEN_KEY
+from sefaria.system.cache import GenCache
 
 
 FAKE_UID = 999999999
@@ -125,3 +126,38 @@ def test_save_broadcasts_only_when_flagged(profile, monkeypatch):
     profile.save()
     assert published == [FAKE_UID]
     assert profile._public_data_updated is False, "flag must reset so it fires once"
+
+
+# --- Cross-server invalidation through GenCache -------------------------------
+
+class _FakeRedis(object):
+    def __init__(self):
+        self.store = {}
+
+    def get(self, key):
+        return self.store.get(key)
+
+    def set(self, key, value):
+        self.store[key] = value
+
+
+def test_publish_bumps_the_generation(profile, monkeypatch):
+    redis = _FakeRedis()
+    monkeypatch.setattr(up, "gen_cache", GenCache(redis, 0, 0))
+    profile._publish_public_data_invalidation()
+    assert f"gen:{PUBLIC_USER_DATA_GEN_KEY}" in redis.store
+
+
+def test_peer_bump_clears_this_process_cache(profile):
+    redis = _FakeRedis()
+    this_process, peer = GenCache(redis, 0, 0), GenCache(redis, 0, 0)
+    this_process.register(PUBLIC_USER_DATA_GEN_KEY, public_user_data_cache.clear)
+    this_process.get(PUBLIC_USER_DATA_GEN_KEY)   # first access, so later gets compare generations
+
+    public_user_data_cache[FAKE_UID] = (time.monotonic() + 60, {"name": "Old Name"})
+    this_process.get(PUBLIC_USER_DATA_GEN_KEY)
+    assert FAKE_UID in public_user_data_cache, "no bump yet, so the entry stays"
+
+    peer.invalidate(PUBLIC_USER_DATA_GEN_KEY)
+    this_process.get(PUBLIC_USER_DATA_GEN_KEY)
+    assert FAKE_UID not in public_user_data_cache
