@@ -34,7 +34,7 @@ class Project(models.Model):
         "project_name", "project_link", "project_source_code",
         "project_reach", "project_desc", "project_category",
         "image_url", "has_pbs_logo", "tags", "status",
-        "is_buggy", "last_checked", "consent_to_display",
+        "is_buggy", "last_checked",
         "is_published", "featured",
     )
 
@@ -42,7 +42,7 @@ class Project(models.Model):
     # see contents() and powered_by.views.powered_by_api.
     PRIVATE_FIELDS = (
         "creator", "creator_email", "is_developer", "job_title", "found_sefaria",
-        "submitter", "salesforce_id", "notes",
+        "submitter", "salesforce_id", "notes", "request_not_to_publish",
     )
 
     # --- Submission metadata ------------------------------------------------
@@ -122,8 +122,10 @@ class Project(models.Model):
         null=True, blank=True,
         help_text="When project_link was last verified by the liveness job.",
     )
-    consent_to_display = models.BooleanField(
-        default=False, help_text="Submitter consented to public display.",
+    request_not_to_publish = models.BooleanField(
+        default=False,
+        help_text="Submitter asked not to be displayed publicly. Consent is assumed unless this is set; "
+                  "setting it forces is_published to False.",
     )
     is_published = models.BooleanField(
         default=True, help_text="Editorial publish gate, controls visibility on the public site.",
@@ -158,6 +160,14 @@ class Project(models.Model):
 
     def __str__(self):
         return self.project_name
+
+    def save(self, *args, **kwargs):
+        if self.request_not_to_publish:
+            self.is_published = False
+            update_fields = kwargs.get("update_fields")
+            if update_fields is not None and "request_not_to_publish" in update_fields:
+                kwargs["update_fields"] = {*update_fields, "is_published"}
+        super().save(*args, **kwargs)
 
     def contents(self, authenticated=False):
         """

@@ -346,7 +346,7 @@ def test_translate_formstack_converts_yes_no_radios_to_booleans():
     cleaned = translate_formstack_payload(body)
     assert cleaned["is_developer"] is True
     assert cleaned["vibe_coded"] is False
-    assert cleaned["consent_to_display"] is True
+    assert cleaned["request_not_to_publish"] is False
     assert cleaned["has_pbs_logo"] is False
 
 
@@ -433,7 +433,7 @@ def test_post_creates_project_from_formstack_payload(client):
     assert project.project_name == "Formstack Project"
     assert project.creator == "Ada Lovelace"
     assert project.creator_email == "ada@example.com"
-    assert project.consent_to_display is True
+    assert project.request_not_to_publish is False
     assert project.submission_source == "formstack"
 
 
@@ -612,7 +612,7 @@ def test_post_create_defaults_published(client):
 
 
 @pytest.mark.django_db
-def test_post_declined_consent_is_not_published(client):
+def test_post_request_not_to_publish_is_not_published(client):
     body = {
         "FormID": "12345",
         "Field179244711": "Private Project",
@@ -622,7 +622,7 @@ def test_post_declined_consent_is_not_published(client):
     response = post_powered_by(client, body)
     assert response.status_code == 201
     project = Project.objects.get(project_link="https://private.example.com")
-    assert project.consent_to_display is False
+    assert project.request_not_to_publish is True
     assert project.is_published is False
 
 
@@ -638,3 +638,34 @@ def test_delete_method_returns_405(client):
 def test_put_method_returns_405(client):
     response = client.put("/api/powered-by", data=_json.dumps({}), content_type="application/json")
     assert response.status_code == 405
+
+
+@pytest.mark.django_db
+def test_post_without_consent_answer_is_published(client):
+    body = {"project_name": "Silent Project", "project_link": "https://silent.example.com"}
+    assert post_powered_by(client, body).status_code == 201
+    project = Project.objects.get(project_link="https://silent.example.com")
+    assert project.request_not_to_publish is False
+    assert project.is_published is True
+
+
+@pytest.mark.django_db
+def test_post_clean_body_request_not_to_publish_unpublishes(client):
+    body = {
+        "project_name": "Opt Out", "project_link": "https://optout.example.com",
+        "request_not_to_publish": True,
+    }
+    assert post_powered_by(client, body).status_code == 201
+    assert Project.objects.get(project_link="https://optout.example.com").is_published is False
+
+
+@pytest.mark.django_db
+def test_saving_request_not_to_publish_forces_unpublished():
+    project = Project.objects.create(
+        project_name="P", project_link="https://p.example.com", submission_source="manual",
+    )
+    assert project.is_published is True
+    project.request_not_to_publish = True
+    project.save(update_fields=["request_not_to_publish"])
+    project.refresh_from_db()
+    assert project.is_published is False
