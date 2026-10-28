@@ -33,6 +33,7 @@ _SHAPES_FILE = os.path.join(_MONGO_FIXTURE_DIR, "_shapes.json")
 # check (default): fail a needs_mongo test that touches Mongo beyond its recorded shape;
 # write: record the shapes; off: neither.
 _SHAPES_MODE = os.environ.get("SEFARIA_FIXTURE_SHAPES", "check")
+_SHAPES_MODES = ("check", "write", "off")
 _SHAPES = None
 _written_shapes = {}
 
@@ -259,14 +260,44 @@ def _flush_shapes():
     from sefaria.tests.fixture_schema import schema_digests
     merged = {"shapes": {}}
     if os.path.isfile(_SHAPES_FILE):
-        with open(_SHAPES_FILE) as f:
-            merged = json.load(f)
+        try:
+            with open(_SHAPES_FILE) as f:
+                merged = json.load(f)
+        except ValueError:
+            # A corrupt file cannot be merged; write mode regenerates it from this run.
+            import warnings
+            warnings.warn(f"{_SHAPES_FILE} is not valid JSON; rewriting it from this run's shapes only")
+            merged = {"shapes": {}}
     shapes = merged.get("shapes", {})
     shapes.update({nodeid: {c: sorted(fields) for c, fields in cols.items()} for nodeid, cols in _written_shapes.items()})
     payload = {"format": 1, "schema": schema_digests(), "shapes": shapes}
     with open(_SHAPES_FILE, "w") as f:
         json.dump(payload, f, indent=1, sort_keys=True)
         f.write("\n")
+
+
+def _validate_session_env(environ):
+    """Refuse a misconfigured mocked-Mongo session before any test runs (UsageError exits 4)."""
+    mode = environ.get("SEFARIA_FIXTURE_SHAPES", "check")
+    if mode not in _SHAPES_MODES:
+        raise pytest.UsageError(
+            f"SEFARIA_FIXTURE_SHAPES={mode!r} is not one of {', '.join(_SHAPES_MODES)}; "
+            "an unknown value would silently skip the shape check")
+    if environ.get("SEFARIA_MOCK_MONGO_INCOMPLETE_OK") == "1" and environ.get("CI") == "true":
+        raise pytest.UsageError("SEFARIA_MOCK_MONGO_INCOMPLETE_OK is not allowed when CI=true")
+
+
+def pytest_sessionstart(session):
+    if _MOCK_MONGO_ENABLED:
+        _validate_session_env(os.environ)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Keep each phase's report on the item so _seed_mock_mongo can tell whether the test passed."""
+    outcome = yield
+    report = outcome.get_result()
+    setattr(item, "rep_" + report.when, report)
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -325,12 +356,10 @@ def _build_real_mongo_library_toc():
 _library_stale = False
 
 
-def _fixture_path_or_fail(nodeid, incomplete_ok, ci):
+def _fixture_path_or_fail(nodeid, incomplete_ok):
     path = _mongo_fixture_path(nodeid)
     if os.path.isfile(path):
         return path
-    if incomplete_ok and ci:
-        raise pytest.UsageError("SEFARIA_MOCK_MONGO_INCOMPLETE_OK is not allowed when CI=true")
     # A missing fixture must FAIL by default, not skip: skipping makes a marked set
     # exit 0 while almost nothing ran (measured: 3 passed, 73 skipped), the
     # false-green shape this pipeline already has a history of. INCOMPLETE_OK is
@@ -369,16 +398,24 @@ def reseed_mock_db(active_db, overlay_path=None, rebuild=True):
 _loaded_shapes = None
 
 
-def _verify_shapes(nodeid, observed, flags, needs_corpus):
-    """Record (write) or check (check) what the test touched against its fixture's recorded shape."""
+def _verify_shapes(nodeid, observed, flags, needs_corpus, passed=True):
+    """Record (write) or check (check) what the test touched against its fixture's recorded shape.
+
+    Write mode records passed tests only: a failed test stopped part-way, so its shape is incomplete.
+    """
     global _loaded_shapes
     if _SHAPES_MODE == "off":
         return
     if _SHAPES_MODE == "write":
-        _written_shapes[nodeid] = {c: set(f) for c, f in observed.items()}
+        if passed:
+            _written_shapes[nodeid] = {c: set(f) for c, f in observed.items()}
         return
     if _loaded_shapes is None:
-        _loaded_shapes = load_shapes(_SHAPES_FILE) or {}
+        try:
+            _loaded_shapes = load_shapes(_SHAPES_FILE) or {}
+        except (ValueError, AttributeError) as exc:
+            pytest.fail(f"{_SHAPES_FILE} is not valid shapes JSON ({exc}).\n"
+                        "Fix: python scripts/pytest_minimal_dataset/rerecord_fixtures.py", pytrace=False)
     recorded = _loaded_shapes.get(nodeid)
     if recorded is None:
         pytest.fail(f"No recorded Mongo shape for {nodeid} in {_SHAPES_FILE}.\n"
@@ -402,8 +439,7 @@ def _seed_mock_mongo(request):
         yield
         return
 
-    path = _fixture_path_or_fail(request.node.nodeid, os.environ.get("SEFARIA_MOCK_MONGO_INCOMPLETE_OK") == "1",
-                                 os.environ.get("CI") == "true")
+    path = _fixture_path_or_fail(request.node.nodeid, os.environ.get("SEFARIA_MOCK_MONGO_INCOMPLETE_OK") == "1")
 
     from sefaria.system import database
 
@@ -413,8 +449,10 @@ def _seed_mock_mongo(request):
         reseed_mock_db(active_db, path)
         with _SHAPES.recording() as observed:
             yield
+        call_report = getattr(request.node, "rep_call", None)
         _verify_shapes(request.node.nodeid, observed, _SHAPES.flags,
-                       request.node.get_closest_marker("needs_corpus") is not None)
+                       request.node.get_closest_marker("needs_corpus") is not None,
+                       passed=call_report is not None and call_report.passed)
     finally:
         # Back to the session's starting state (sentinel + shared base), not an
         # empty DB: a later test in the same process that is not needs_mongo --
