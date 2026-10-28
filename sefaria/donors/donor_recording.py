@@ -122,9 +122,17 @@ def find_user_id_by_email_creating_profile_if_missing(
     from django.contrib.auth.models import User
     from sefaria.model.user_profile import UserProfile
 
-    # The Django account is looked up here rather than with UserProfile(email=...): that
-    # constructor calls User.objects.get, and its bare `except` turns an address shared by
-    # two accounts into a placeholder profile, which would be logged as "no account".
+    # An address can belong to more than one account. emailusernames prevents duplicates only
+    # through the username, which it sets to a hash of the email; nothing makes email itself
+    # unique. An account with any other username (one created with an explicit username, for
+    # example) is invisible to that check, so signing up again with its address succeeds.
+    # That is why this filters and picks an account instead of calling get, and why it doesn't
+    # use UserProfile(email=...): that constructor calls User.objects.get, and its bare
+    # `except` turns an address shared by two accounts into a placeholder profile, which
+    # would be logged as "no account".
+    # TODO: count the accounts whose username isn't the hash of their email, merge the
+    # duplicates, then add a unique constraint on the lowercased email. After that this can
+    # use get, and most_recently_active_account can go.
     accounts = list(User.objects.filter(email__iexact=email_address.value))
     if not accounts:
         return None
