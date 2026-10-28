@@ -669,3 +669,30 @@ def test_saving_request_not_to_publish_forces_unpublished():
     project.save(update_fields=["request_not_to_publish"])
     project.refresh_from_db()
     assert project.is_published is False
+
+
+# --- migration 0003: explicit refusals only ---------------------------------
+
+@pytest.mark.django_db
+def test_migration_0003_flags_only_explicit_refusals():
+    from importlib import import_module
+    from django.apps import apps
+
+    migration = import_module("powered_by.migrations.0003_request_not_to_publish")
+    name, link = migration.EXPLICIT_REFUSALS[0]
+    refused = make_project(project_name=name, project_link=link, is_published=True)
+    # Same name, different link: must not be caught by the name alone.
+    other_link = make_project(project_name=name, project_link="https://example.com/other", is_published=True)
+    # Unpublished Formstack row that never refused: must stay a consenting row.
+    unanswered = make_project(submission_source="formstack", is_published=False)
+
+    migration.consent_to_request_not_to_publish(apps, None)
+
+    for p in (refused, other_link, unanswered):
+        p.refresh_from_db()
+    assert refused.request_not_to_publish is True
+    assert refused.is_published is False
+    assert other_link.request_not_to_publish is False
+    assert other_link.is_published is True
+    assert unanswered.request_not_to_publish is False
+    assert unanswered.is_published is False  # editorial state untouched
