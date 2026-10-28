@@ -88,10 +88,14 @@ const WINDOW_FIELDS = {
   sidebarAd: ['startTime', 'endTime'],
 };
 
-// false, unlike the four user-kind boxes: for an independent AND gate, both-false means
-// "unrestricted", and it matches documents published before the fields existed. So existing
-// specs and narrowing helpers keep their meaning with no edits. Shared by banner and modal
-// because the two types gained the same pair of fields.
+// The default donor checkboxes for banners and modals (sidebar ads don't have them): both
+// unticked, which means "no donor restriction" (matchesDonorAudience in
+// static/js/sefaria/strapiSelection.js). That is also how real documents published before these
+// fields existed arrive, so every spec written before them still describes the same content.
+// A spec narrows the audience by ticking one box, e.g. { showToDonor: true }.
+//
+// The four user-kind boxes below (showToNewVisitors etc.) default to TICKED instead, because
+// that is what the recordings contain; a spec narrows those by unticking the others.
 const DONOR_AUDIENCE_UNRESTRICTED = Object.freeze({ showToDonor: false, showToNonDonor: false });
 
 /**
