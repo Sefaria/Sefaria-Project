@@ -6,6 +6,8 @@ document: product
 owner: unassigned
 status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-15
+
+updated: 2026-10-19
 ---
 # Saved, history & notes — product specification
 
@@ -15,7 +17,8 @@ updated: 2026-10-15
 
 ## Summary
 
-_Not discussed yet._
+Bookmarking is to be rebuilt, and the reader should know where each reader is up to in a text. Neither is in the first
+iteration; the architecture should leave room for both. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Who it is for and what they need
 
@@ -24,14 +27,25 @@ _Not discussed yet._
 ## Target behaviour in the future reader
 
 - Signed-in readers can save panel layouts (study sessions) and reopen them. See [Reader shell & panels](../reader-shell/product.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+- **Where I'm up to.** For each text, the reader remembers the last verse (segment) read and offers to resume there, on the
+  book page's Continue Reading and wherever else it helps. Signed in: across devices; signed out: on this device. Not in the
+  first iteration. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Bookmarks, rebuilt.** Places a reader saves on purpose, kept apart from the automatic "where I'm up to" but pointing at the
+  same kind of place (a verse in a text, in the versions read). Not in the first iteration. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **change** · Continue Reading follows the account when signed in. sefaria.org does; `reader-next` keeps it on this device
+  only. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **change** · Resume to the verse read, not the section (sefaria.org resumes to the section, or to the verse chosen in the
+  sidebar). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Open questions
 
-_None yet._
+- One place per text, or per text and translation? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- Are places kept while signed out carried into the account on sign-in? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- Does turning reading history off also stop tracking where I'm up to? (Suggested: yes.) — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- Does resuming highlight the verse, or only scroll to it? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Decisions
 

@@ -6,6 +6,8 @@ document: architecture
 owner: unassigned
 status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-15
+
+updated: 2026-10-19
 ---
 # Reader shell & panels — architecture
 
@@ -27,6 +29,13 @@ Each main reader panel owns its sidebar (the connections / resources panel) as a
 - Each main reader panel has its sidebar (connections / resources) as a subcomponent; the sidebar is not a separate top-level panel. — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 - Opening a text from a sidebar = close the owning panel's sidebar, then insert a new main panel next to that panel (to its left, per the thread; see below). — *proposed* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 - The panel state model stays extensible for future panel-management features. — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
+- **One "now reading" signal per panel.** The reading-scroll engine reports the focused and the settled segment
+  ([`src/features/reader/use-reading-scroll.ts:30-33`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/use-reading-scroll.ts#L30-L33)); `TextColumn` passes them up with their passage
+  ([`src/features/reader/TextColumn.tsx:154-163`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextColumn.tsx#L154-L163)); `TextPanel` then wires four consumers separately: the URL
+  ([`src/features/reader/TextPanel.tsx:168-175`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L168-L175)), last place ([`src/features/reader/TextPanel.tsx:355-358`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L355-L358)), reading history
+  ([`src/features/reader/TextPanel.tsx:462-473`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L462-L473)) and back/forward ([`src/features/reader/TextPanel.tsx:143-146`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L143-L146)). Gather them
+  behind one hook that emits `{work, ref, versions, structure?}` on settle, so a reading-position tracker is one more
+  subscriber, not a fifth wiring. See [Saved, history & notes](../user-library/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Assessment: advanced panel management
 
@@ -52,6 +61,7 @@ Requested in the thread ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/
 - [Language & accessibility](../i18n-a11y/architecture.md): whether "left" follows the interface direction; keyboard and screen-reader support for moving panels.
 - [URLs & routing](../routing/architecture.md) and [Saved, history & notes](../user-library/architecture.md): sharing and saving panel states.
 - [Text display](../text-display/architecture.md): inline commentary in the text column.
+- [Saved, history & notes](../user-library/architecture.md): reading position and history subscribe to the panel's signal.
 
 ## Risks and open questions
 
