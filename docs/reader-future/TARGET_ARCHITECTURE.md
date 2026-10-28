@@ -510,7 +510,7 @@ DisplaySettingsMenu, settings, toc). **Verdict: aliyot work and match sefaria.or
   - `isTorah` matches only Genesis to Deuteronomy, so the panel state drops `aliyot`. Legacy drops it from the URL too, but still applies it.
   - Fix: keep `panel.aliyot` in state when the URL does not write it. Better, decide "is Torah" from the index's `Parasha` alt structure, as `isTorahBook` in `src/lib/toc/model.ts:271` already does (F8).
 
-**Fixed 2026-10-28** in `~/Sefaria/dev/sefaria-reader` (not yet committed or synced into `reader-next/`):
+**Fixed 2026-10-28** (sefaria-reader `384f904`, synced into `reader-next/`):
 - **A.** A range that starts at a portion or aliyah marker stays in the URL, is highlighted across chapters, and the header names its verses in the current chapter ("Genesis 6:9-22"; `narrowToVerses` in `src/lib/reader/header.ts`). Short arbitrary ranges still collapse, as on sefaria.org.
   The column had never passed a range highlight to its sections, so this also adds that wiring (`TextColumn` `highlight` prop).
 - **B.** An Onkelos panel keeps an `aliyot` its URL set. Torah and other URLs are byte-identical to before (legacy-URL tests pass).
@@ -549,7 +549,7 @@ the step that touches the same code.
 | B3 | `web-vitals` → GA4 `web_vitals` event (sampled), Sentry tracing rate; field dashboard | 6.10 | RN + INF | S |
 | B4 | `src/lib/integration`: commands, legacy adapters (`bootstrap-url` honouring `replaceHistory`, `settings-updated`), `state-changed`, `<lc-chatbot>`, contract test, `INTEGRATION.md` | 6.12 | RN | M |
 | B5 | Stacks + `layout=`, dividers, drag + keyboard move, phone rule | 6.2 | RN | M |
-| B6 | ~~Aliyot fixes found in §9~~ done 2026-10-28 (sync into `reader-next/` pending) | 9 | RN | S |
+| B6 | ~~Aliyot fixes found in §9~~ done 2026-10-28 | 9 | RN | S |
 
 **Phase C — proposed, now accepted in principle (D5, D6)**
 
@@ -583,8 +583,8 @@ What someone picking this up tomorrow needs to know, checked on 2026-10-28.
 
 | Item | State | Risk / action |
 |---|---|---|
-| `~/Sefaria/dev/sefaria-reader` | The client's development repo; **no git remote**; clean; HEAD `a8e5366` | Single copy on one laptop. Either push it to GitHub or make `reader-next/` on `reader-next` the only source and retire the subtree flow. |
-| `reader-next` branch | `837d585`; `reader-next/` is a squashed subtree of `sefaria-reader` (last squash `34c9ec1..a8e5366`, in sync) | Update with `git subtree pull --prefix=reader-next ../sefaria-reader main --squash`. |
+| `~/Sefaria/dev/sefaria-reader` | The client's development repo; **no git remote**; clean; HEAD `384f904` | Single copy on one laptop. Either push it to GitHub or make `reader-next/` on `reader-next` the only source and retire the subtree flow. |
+| `reader-next` branch | `837d585`; `reader-next/` is a squashed subtree of `sefaria-reader` (last squash `a8e5366..384f904`, in sync) | Update with `git subtree pull --prefix=reader-next ../sefaria-reader main --squash`. |
 | Worktree | `~/Sefaria/dev/Sefaria-Project-reader-next` on `reader-next`, clean | Use it for reader-next work; this file lives there. |
 | Open PRs into `reader-next` | #3818, #3821, #3822, #3826, #3870, #3907 (spec digests), #3892 (POC, do not merge) | GitHub reports all mergeable individually, but merged in date order #3822, #3826 and #3907 conflict with each other (additive: keep both sides). Merge them before the next digest so Claude Tag works on one base. |
 | Decisions | 2026-10-28 rows added to `DECISIONS.md` here; #3907 adds three more 2026-10-28 rows | Post D1–D7 in #reader-future as `Decision:` messages so the channel record matches. |
