@@ -5410,9 +5410,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 
+/* The assistant's name stays on one line wherever the text wraps */
 .noSearchResults-assistantLink {
   color: var(--chatbot-purple);
   text-decoration: underline;
+  white-space: nowrap;
 }
 
 .noSearchResults-assistantLink:hover {

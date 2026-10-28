@@ -656,10 +656,10 @@
     "search.result_card.one_more_version": "1 more version",
     "search.result_card.more_versions": "{count} more versions",
     "header.library_assistant": "Library Assistant",
-    "search.no_results.sources.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
-    "search.no_results.books.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
-    "search.no_results.authors.body.library_assistant": "Try a different search term, browse all Authors or ask the Library Assistant for help.",
-    "search.no_results.topics.body.library_assistant": "Try a different search term, browse all Topics or ask the Library Assistant for help.",
+    "search.no_results.sources.body.library_assistant": "Try a different search term, browse the Library or {br}ask the {assistant} for help.",
+    "search.no_results.books.body.library_assistant": "Try a different search term, browse the Library or {br}ask the {assistant} for help.",
+    "search.no_results.authors.body.library_assistant": "Try a different search term, browse all Authors or {br}ask the {assistant} for help.",
+    "search.no_results.topics.body.library_assistant": "Try a different search term, browse all Topics or {br}ask the {assistant} for help.",
     "search.no_results.library_assistant_question": "I searched for \"{query}\" on Sefaria and got no results. Can you help me find relevant sources, books, authors, and/or topics?",
     "header.library_assistant_short": "Ask"
 }

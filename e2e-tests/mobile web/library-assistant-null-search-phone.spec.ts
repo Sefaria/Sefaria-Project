@@ -5,7 +5,7 @@ import { PageManager } from '../pages/pageManager';
 import { SearchPage, SearchTabId } from '../pages/searchPage';
 import { MODULE_URLS, librarySearchUrl } from '../constants';
 import { ChatServerMock } from '../support/chatServerMock';
-import { sefariaString } from '../support/assistantStrings';
+import { noResultsAssistantBody, sefariaString } from '../support/assistantStrings';
 
 /**
  * "Search with no results" (LA-NULL-*) on phones — the stories tagged @phone
@@ -97,7 +97,7 @@ test.describe('Search with no results — assistant on: the page text (phone)', 
       // A link in the sentence isn't a button, so it doesn't count here (see nullStateButtonHrefs).
       expect(await search.nullStateButtonHrefs(), 'no button on the page itself').toEqual([]);
       await expect.poll(() => search.nullStateBodyText(), { message: 'assistant version of the text' })
-        .toBe(sefariaString(`search.no_results.${tab}.body.library_assistant`, LANGUAGES.EN));
+        .toBe(noResultsAssistantBody(tab, LANGUAGES.EN));
       const phrase = sefariaString('header.library_assistant', LANGUAGES.EN);
       expect(await search.nullStateLinesUsedBy(phrase), `"${phrase}" should sit on one line`).toBe(1);
       await search.expectNullStateAssistantLink();

@@ -656,10 +656,10 @@
     "search.result_card.one_more_version": "1 גרסה נוספת",
     "search.result_card.more_versions": "{count} גרסאות נוספות",
     "header.library_assistant": "עוזר הספרייה",
-    "search.no_results.sources.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בספרייה או שאלו את עוזר הספרייה.",
-    "search.no_results.topics.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל הנושאים או שאלו את עוזר הספרייה.",
-    "search.no_results.books.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בספרייה או שאלו את עוזר הספרייה.",
-    "search.no_results.authors.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל המחברים או שאלו את עוזר הספרייה.",
+    "search.no_results.sources.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בספרייה או {br}שאלו את {assistant}.",
+    "search.no_results.topics.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל הנושאים או {br}שאלו את {assistant}.",
+    "search.no_results.books.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בספרייה או {br}שאלו את {assistant}.",
+    "search.no_results.authors.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל המחברים או {br}שאלו את {assistant}.",
     "search.no_results.library_assistant_question": "חיפשתי \"{query}\" בספריא ואין תוצאות. אפשר לעזור לי למצוא מקורות, ספרים, מחברים ו/או נושאים רלוונטיים?",
     "header.library_assistant_short": "שאלו"
 }

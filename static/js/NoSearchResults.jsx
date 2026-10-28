@@ -65,16 +65,10 @@ function useAssistantAvailability(onPage) {
   return availability;
 }
 
-// Keep the assistant's name on one line wherever the text wraps
-const keepNameTogether = (text) => text.replace(/Library Assistant/g, 'Library Assistant').replace(/עוזר הספרייה/g, 'עוזר הספרייה');
-
-// The assistant's name in the body is a link that opens it and asks the search, like the
-// floating "Search with Library Assistant" button. The body breaks after its last "or" ("או").
-function linkAssistantName(text, query) {
-  const match = /Library Assistant|עוזר הספרייה/g;
-  const all = [...text.matchAll(match)];
-  if (!all.length) { return text; }
-  const {index, 0: name} = all[all.length - 1];
+// The body that points to the assistant. Its translation marks where the line breaks ({br})
+// and where the assistant's name goes ({assistant}); the name is a link that opens the
+// assistant and asks about the search, like the floating "Search with Library Assistant" button.
+function renderAssistantBody(text, query) {
   const open = (e) => {
     e.preventDefault();
     document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {
@@ -82,13 +76,13 @@ function linkAssistantName(text, query) {
       question: getAssistantNoResultsQuestion(query),
     }}));
   };
-  const before = text.slice(0, index);
-  const or = before.includes(' או ') ? ' או ' : ' or ';
-  const orAt = before.lastIndexOf(or);
-  // The space after "or" stays before the break: it's invisible at the end of a line, and keeps
-  // the text reading "or ask" (not "orask") for screen readers and copying
-  const lead = orAt === -1 ? before : <>{before.slice(0, orAt + or.length)}<br />{before.slice(orAt + or.length)}</>;
-  return <>{lead}<a href="#" onClick={open} className="noSearchResults-assistantLink">{name}</a>{text.slice(index + name.length)}</>;
+  return text.split(/(\{br\}|\{assistant\})/).map((part, i) => {
+    if (part === '{br}') { return <br key={i} />; }
+    if (part === '{assistant}') {
+      return <a key={i} href="#" onClick={open} className="noSearchResults-assistantLink">{Sefaria._('header.library_assistant')}</a>;
+    }
+    return part;
+  });
 }
 
 function NoSearchResults({ mode, query }) {
@@ -127,7 +121,7 @@ function NoSearchResults({ mode, query }) {
           <p className="noSearchResults-heading serif">{heading}</p>
           <p className="noSearchResults-body">
             {hasAssistant
-              ? linkAssistantName(keepNameTogether(Sefaria._(key('body.library_assistant'))), query)
+              ? renderAssistantBody(Sefaria._(key('body.library_assistant')), query)
               : <InterfaceText>{key('body')}</InterfaceText>}
           </p>
         </div>

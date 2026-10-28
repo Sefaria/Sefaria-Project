@@ -5,6 +5,7 @@
 const mockStrings = {
   "header.library_assistant": "Library Assistant",
   "search.no_results.sources.h1": "No sources found for “{query}”",
+  "search.no_results.sources.body.library_assistant": "Try a different search term, browse the Library or {br}ask the {assistant} for help.",
   "search.no_results.library_assistant_question": "I searched for \"{query}\" and got no results.",
 };
 jest.mock("../sefaria/sefaria", () => ({ __esModule: true, default: {
@@ -58,11 +59,29 @@ describe("NoSearchResults", function () {
   });
 
   describe("with the assistant on", () => {
-    it.each(["sources", "books", "authors", "topics"])("shows no button and the assistant body on %s", function (mode) {
+    it.each(["books", "authors", "topics"])("shows no button and the assistant body on %s", function (mode) {
       render(mode);
       expect(ctas()).toHaveLength(0);
       expect(body()).toBe(`search.no_results.${mode}.body.library_assistant`);
       expect(isPending()).toBe(false);
+    });
+
+    it("links the assistant's name and breaks the line where the translation says", function () {
+      render("sources");
+      expect(ctas()).toHaveLength(0);
+      expect(body()).toBe("Try a different search term, browse the Library or ask the Library Assistant for help.");
+      const link = bodyElement().querySelector("a.noSearchResults-assistantLink");
+      expect(link.textContent).toBe("Library Assistant");
+      expect(bodyElement().innerHTML).toContain("browse the Library or <br>ask the ");
+    });
+
+    it("asks the assistant about the search when its name is clicked", function () {
+      render("sources");
+      const open = jest.fn();
+      document.addEventListener("chatbot:open", open);
+      act(() => { bodyElement().querySelector("a").click(); });
+      document.removeEventListener("chatbot:open", open);
+      expect(lastDetail(open)).toEqual({source: "search_no_results", question: "I searched for \"minkeee\" and got no results."});
     });
 
     it("turns the floating Ask button into the search action, asking about the query as typed", function () {
@@ -130,6 +149,7 @@ describe("NoSearchResults", function () {
       expect(ctas()).toHaveLength(1);
       render("sources", { onPage: true });
       expect(ctas()).toHaveLength(0);
+      expect(bodyElement().querySelector("a.noSearchResults-assistantLink")).not.toBeNull();
     });
   });
 });

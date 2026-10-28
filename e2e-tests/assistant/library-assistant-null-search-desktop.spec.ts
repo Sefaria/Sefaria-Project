@@ -6,7 +6,7 @@ import { SearchPage, SearchTabId } from '../pages/searchPage';
 import { LibraryAssistantQ4Page } from '../pages/libraryAssistantQ4Page';
 import { MODULE_URLS, MODULE_TEXTS, librarySearchUrl } from '../constants';
 import { ChatServerMock } from '../support/chatServerMock';
-import { sefariaString } from '../support/assistantStrings';
+import { noResultsAssistantBody, sefariaString } from '../support/assistantStrings';
 import { installNullStateRecorder, readNullStateRecords } from '../support/nullStateRecorder';
 import { TOPIC_HITS } from '../fixtures/entitySearchFixtures';
 import { longAnswer } from '../support/longConversation';
@@ -192,7 +192,7 @@ test.describe('Search with no results — assistant on: the page text (desktop)'
       // A link in the sentence isn't a button, so it doesn't count here (see nullStateButtonHrefs).
       expect(await search.nullStateButtonHrefs(), 'no button on the page itself').toEqual([]);
       await expect.poll(() => search.nullStateBodyText(), { message: 'assistant version of the text' })
-        .toBe(sefariaString(`search.no_results.${tab}.body.library_assistant`, LANGUAGES.EN));
+        .toBe(noResultsAssistantBody(tab, LANGUAGES.EN));
       const phrase = sefariaString('header.library_assistant', LANGUAGES.EN);
       expect(await search.nullStateLinesUsedBy(phrase), `"${phrase}" should sit on one line`).toBe(1);
       await search.expectNullStateAssistantLink();
@@ -226,7 +226,7 @@ test.describe('Search with no results — no flash of the wrong version', () => 
         await search.waitForNullState();
       }
 
-      const assistantTexts = ALL_TABS.map((tab) => sefariaString(`search.no_results.${tab}.body.library_assistant`, LANGUAGES.EN));
+      const assistantTexts = ALL_TABS.map((tab) => noResultsAssistantBody(tab, LANGUAGES.EN));
       const plainTexts = ALL_TABS.map((tab) => sefariaString(`search.no_results.${tab}.body`, LANGUAGES.EN));
       const wrongTexts = assistantOn ? plainTexts : assistantTexts;
       const records = await readNullStateRecords(page);
