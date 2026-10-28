@@ -21,6 +21,8 @@ _Today: TanStack Query with IndexedDB persistence per query (`reader-next/src/li
   adapters, not screens. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - A change of response shape bumps the cache buster (`reader-next/src/lib/cache/policies.ts:31`), so old disk entries are dropped
   rather than misread. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- Connection data: counts kept long on disk, multi-MB link arrays not persisted; see [Connections](connections/architecture.md#target-architecture).
+  — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 
 ### Assessment: a new backend text model
 
@@ -61,6 +63,9 @@ Risks and open questions:
   on 100% of pages. — [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489) · Hotjar [1](https://insights.hotjar.com/r?site=2695522&recording=112659731199) · [2](https://insights.hotjar.com/r?site=2695522&recording=112659747044) · [3](https://insights.hotjar.com/r?site=2695522&recording=112659758294) · [4](https://insights.hotjar.com/r?site=2695522&recording=112659767062) · forwarded in [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048275276949)
 - Detail and open questions (RUM tool; LCP, INP and CLS targets): [platform-seo product](platform-seo/product.md),
   [platform-seo architecture](platform-seo/architecture.md), [text-display architecture](text-display/architecture.md).
+- `/api/related` is the reader's heaviest call (Genesis 1: 12.3 MB, 504 when not cached). Ideas: stored per-segment counts,
+  sheets as counts, leaner link rows, no connection requests with the sidebar closed and dots off; see
+  [Public API](api-data/architecture.md) and [Connections](connections/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322132117529) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 
 ## Accessibility and languages
 
