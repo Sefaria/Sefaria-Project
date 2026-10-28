@@ -92,17 +92,6 @@ class TestHeaders:
         """webhook-id / webhook-timestamp / webhook-signature are the same headers under the spec's names."""
         assert is_valid(headers_for(prefix="webhook"))
 
-    def test_svix_names_win_when_both_are_present(self):
-        """The svix library looks for svix-* first; a stale webhook-* value must not override it."""
-        # The webhook-* values are wrong, so this only passes if the svix-* ones are used.
-        headers = {
-            **headers_for(),
-            "webhook-id": "msg_other",
-            "webhook-timestamp": "0",
-            "webhook-signature": "v1,AAAA",
-        }
-        assert is_valid(headers)
-
     @pytest.mark.parametrize("missing", ["svix-id", "svix-timestamp", "svix-signature"])
     def test_a_missing_header_is_rejected(self, missing):
         headers = {

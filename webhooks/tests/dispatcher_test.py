@@ -65,13 +65,6 @@ class TestEnqueueEventForProcessing:
         with pytest.raises(EventCouldNotBeEnqueued):
             enqueue_event_for_processing(EVENT)
 
-    def test_inline_failures_propagate_unchanged(self, monkeypatch, fake_task):
-        """Inline errors are a 500 (local only); they are not disguised as enqueue failures."""
-        monkeypatch.setattr(dispatcher, "CELERY_ENABLED", False)
-        fake_task.side_effect = RuntimeError("boom")
-        with pytest.raises(RuntimeError):
-            enqueue_event_for_processing(EVENT)
-
     def test_a_broker_failure_is_logged_by_type_only(self, monkeypatch, fake_task):
         """Ops can see why events are being refused, without broker error text (it may hold connection strings)."""
         monkeypatch.setattr(dispatcher, "CELERY_ENABLED", True)

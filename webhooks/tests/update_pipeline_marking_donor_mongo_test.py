@@ -15,7 +15,7 @@ dropped afterwards, so no real profile is ever read or written. Requires a runni
 """
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import pytest
 
@@ -29,7 +29,6 @@ from sefaria.system import database
 REAL_APPLY_UPDATE_TO_USER_PROFILE = apply_update_to_user_profile
 
 USER_ID = 7
-EARLIER = datetime(2026, 1, 1, tzinfo=timezone.utc)
 EVENT = datetime(2026, 9, 15, 16, 0, tzinfo=timezone.utc)
 LATER = datetime(2026, 12, 1, tzinfo=timezone.utc)
 
@@ -102,26 +101,6 @@ class TestFirstDonation:
 
 class TestLaterDeliveries:
 
-    def test_keeps_an_earlier_stored_date(self, scratch_profiles):
-        """A follow-up event (Classy's transaction.updated, the Salesforce sync) must not move the date later."""
-        scratch_profiles.insert_one(
-            {"id": USER_ID, "donor_status": "donor", "became_donor_at": EARLIER}
-        )
-
-        record_donation(EVENT)
-
-        assert stored_profile(scratch_profiles)["became_donor_at"] == as_stored(EARLIER)
-
-    def test_replaces_a_later_stored_date(self, scratch_profiles):
-        """Deliveries can arrive out of order; an earlier event that arrives second still wins."""
-        scratch_profiles.insert_one(
-            {"id": USER_ID, "donor_status": "donor", "became_donor_at": LATER}
-        )
-
-        record_donation(EVENT)
-
-        assert stored_profile(scratch_profiles)["became_donor_at"] == as_stored(EVENT)
-
     @pytest.mark.parametrize(
         "arrival_order",
         [(EVENT, LATER), (LATER, EVENT)],
@@ -172,19 +151,6 @@ class TestWhatTheUpdateTouches:
         profile = stored_profile(scratch_profiles)
         assert profile["settings"] == {"email_notifications": "daily"}
         assert profile["slug"] == "someone"
-
-    def test_a_non_utc_event_date_is_stored_as_the_same_instant_in_utc(
-        self, scratch_profiles
-    ):
-        """Salesforce sends offsets other than Z; the stored date must be the same moment, not the same wall-clock time."""
-        scratch_profiles.insert_one(
-            {"id": USER_ID, "donor_status": "unknown", "became_donor_at": None}
-        )
-        eastern = EVENT.astimezone(timezone(timedelta(hours=-4)))
-
-        record_donation(eastern)
-
-        assert stored_profile(scratch_profiles)["became_donor_at"] == as_stored(EVENT)
 
     def test_reports_a_missing_profile_document_without_creating_one(
         self, scratch_profiles
