@@ -522,3 +522,9 @@ def test_oversized_overlay_warning_breaks_down_collections(tmp_path, capsys, mon
     docs = [{"_id": "t1", "title": "Exodus", "chapter": [], "language": "en"}]
     assert exp.write_fixture(str(tmp_path), NODEID, {"texts": docs}, []) is None
     assert "texts 1 docs" in capsys.readouterr().err
+
+
+def test_scan_of_collection_outside_skip_list_is_still_copied(monkeypatch):
+    monkeypatch.setattr(exp, "SCAN_COPY_LIMIT", 5)
+    ids = [f"g{n}" for n in range(9)]
+    assert exp.library_wide_scans(_scan("groups", ids, batch=3)) == (set(), [])

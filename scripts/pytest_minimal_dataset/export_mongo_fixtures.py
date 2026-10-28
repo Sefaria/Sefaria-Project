@@ -127,6 +127,11 @@ BASE_COLLECTIONS = ("index", "category", "term", "topic_data_sources", "topic_li
 # asserts on a specific document still gets it from its own filtered reads.
 # Smaller unfiltered reads (whole `websites`, `groups`, ...) are still copied.
 SCAN_COPY_LIMIT = 1000
+# Only these collections are skipped when scanned: the reviewed library-bootstrap
+# scans (index maps, TOC rebuild reading vstate, topic graph). A scan of any other
+# collection is still copied, so an oversized fixture fails loudly instead of
+# silently exporting no documents.
+SCAN_SKIP_COLLECTIONS = frozenset({"index", "vstate", "topics", "topic_links"})
 
 sys.path.insert(0, SCRIPT_DIR)
 from generate_minimal_dataset import (  # noqa: E402
@@ -243,7 +248,7 @@ def library_wide_scans(records):
     summary = []
     for origin, members in sorted(scans.items()):
         returned = sum(len(records[p].get("doc_ids") or []) for p in members)
-        if returned > SCAN_COPY_LIMIT:
+        if returned > SCAN_COPY_LIMIT and records[origin].get("collection") in SCAN_SKIP_COLLECTIONS:
             positions.update(members)
             summary.append((records[origin].get("collection"), returned))
     return positions, summary
