@@ -91,7 +91,7 @@ test.use({ viewport: DESKTOP });
 
 /** The question the button asks, in the given interface language, with the search filled in. */
 function searchQuestion(query: string, lang = LANGUAGES.EN): string {
-  return sefariaString('search.no_results.library_assistant_question', lang).replace(/\{query\}/g, query);
+  return sefariaString('search.no_results.library_assistant_question', lang).replace(/\{query\}/g, () => query);
 }
 
 /**

@@ -10,10 +10,14 @@ const CTA_HREFS = {
   topics:  '/topics',
 };
 
+// Put the search into a translation's {query}. A function as the replacement, so `$&` and the
+// like in the search are kept as typed (in a replacement string they're special patterns).
+const fillInQuery = (text, query) => text.replace(/\{query\}/g, () => query);
+
 // The question the Library Assistant is asked about a search that found nothing. The floating
 // button and the link in the body must send exactly the same text, so the widget can tell
 // they're the same question and only ask it once.
-const assistantNoResultsQuestion = (query) => Sefaria._('search.no_results.library_assistant_question').replace(/\{query\}/g, query);
+const getAssistantNoResultsQuestion = (query) => fillInQuery(Sefaria._('search.no_results.library_assistant_question'), query);
 
 // true: the widget is on the page and working. false: it isn't on the page.
 // null: its element is there but its script hasn't defined it yet (still loading, or failed).
@@ -39,7 +43,7 @@ function linkAssistantName(text, query) {
     e.preventDefault();
     document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {
       source: 'search_no_results',
-      question: assistantNoResultsQuestion(query),
+      question: getAssistantNoResultsQuestion(query),
     }}));
   };
   const before = text.slice(0, index);
@@ -53,7 +57,7 @@ function linkAssistantName(text, query) {
 
 function NoSearchResults({ mode, query }) {
   const key = (type) => `search.no_results.${mode}.${type}`;
-  const heading = Sefaria._(key('h1')).replace(/\{query\}/g, query);
+  const heading = fillInQuery(Sefaria._(key('h1')), query);
   // Only offer the assistant when its widget is on the page and working (checked after mount:
   // SSR has no document), and don't show either version until that's known, so switching tabs
   // never flashes the browse button. Once the app is running, a new tab can check straight away;
@@ -76,7 +80,7 @@ function NoSearchResults({ mode, query }) {
   // about this search when clicked. The widget (ai-chatbot) owns the label; null puts back "Ask".
   useEffect(() => {
     if (!hasAssistant) { return; }
-    const question = assistantNoResultsQuestion(query);
+    const question = getAssistantNoResultsQuestion(query);
     document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: {source: 'search_no_results', question}}));
     return () => document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: null}));
   }, [hasAssistant, query]);
