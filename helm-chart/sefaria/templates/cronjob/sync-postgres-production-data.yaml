@@ -111,8 +111,11 @@ spec:
                   # recovery, so the copy into other environments must not carry them: drop
                   # that table's data entry from the restore list. The table itself is still
                   # created, so the migrations recorded in django_migrations stay true.
+                  # STATISTICS DATA entries (pg_dump 18 writes them by default) carry the
+                  # column histograms and most-common values, which can hold key strings.
+                  # grep exits 1 on "no match" (fine); any other status is a real failure.
                   pg_restore -l /storage/pg.dump > /storage/restore.list
-                  grep -v -E ' TABLE DATA public powered_by_apikey ' /storage/restore.list > /storage/restore.filtered.list || true
+                  grep -v -E ' (TABLE|STATISTICS) DATA public powered_by_apikey( |$)' /storage/restore.list > /storage/restore.filtered.list || [[ $? -eq 1 ]]
 
                   # --single-transaction: a mid-restore failure rolls back rather than
                   # leaving a half-populated database.
@@ -131,8 +134,10 @@ spec:
                     KEY_ROWS=$(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -tAc \
                       "SELECT count(*) FROM public.powered_by_apikey;")
                   fi
-                  if [[ "$KEY_ROWS" -ne 0 ]]; then
-                    echo "ERROR: $KEY_ROWS API keys were restored from the production dump; dropping the database."
+                  KEY_STATS=$(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -tAc \
+                    "SELECT count(*) FROM pg_stats WHERE schemaname = 'public' AND tablename = 'powered_by_apikey' AND (most_common_vals IS NOT NULL OR histogram_bounds IS NOT NULL);")
+                  if [[ "$KEY_ROWS" -ne 0 || "$KEY_STATS" -ne 0 ]]; then
+                    echo "ERROR: $KEY_ROWS API keys and $KEY_STATS statistics rows for them were restored from the production dump; dropping the database."
                     "${PSQL[@]}" -c "DROP DATABASE IF EXISTS \"$PGDATABASE\" WITH (FORCE);"
                     exit 1
                   fi
