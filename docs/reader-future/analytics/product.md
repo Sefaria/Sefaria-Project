@@ -4,8 +4,8 @@ title: Analytics
 domain: Platform
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-28
 ---
 # Analytics — product specification
 
@@ -15,7 +15,9 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+Analytics in the future reader is a parity requirement: everything the team measures on sefaria.org today keeps being measured,
+the same way, so reports and dashboards carry across the switch without a break. Nothing new is added and nothing is dropped
+unless someone decides it. The event-by-event inventory and the gaps are in [architecture](architecture.md).
 
 ## Who it is for and what they need
 
@@ -23,19 +25,30 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Every analytics event and dimension the current reader sends is kept, captured the same way, through the same vanilla JS data
+  tag (`data-anl-*`). — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999) · ANL-001…017
+- Parity is checked against the event inventory before the new reader replaces a sefaria.org page. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **Keep**: all events, parameters, page views and user properties (ANL-001…017), the same tags (GTM, GA4, Simple Analytics,
+  Sentry, VWO, Hotjar, Unbounce) and the `data-anl-*` data tag (ANL-015). · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)
 
 ## Open questions
 
-_None yet._
+- Events that look unused today (ANL-010 page dimensions, `Display Option Click`, UA `Javascript Errors`): keep for parity, or drop?
+  See [architecture](architecture.md) → Risks and open questions.
 
 ## Decisions
 
-_None yet. Every decision is also logged in `../DECISIONS.md`._
+- 2026-10-28 — Analytics parity: keep every analytics event and dimension the current reader has, captured the same way, with the
+  same vanilla JS data tag. Akiva Berger (owner). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)
+- 2026-10-06 — One analytics module, same GA4/GTM property, same event names and parameters as sefaria.org. Akiva (owner).
+  `reader-next/docs/PHASE7_PLAN.md` §3
+
+_Every decision is also logged in `../DECISIONS.md`._
 
 ## Parked ideas
 

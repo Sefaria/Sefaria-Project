@@ -8,6 +8,8 @@ status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-16
 
 updated: 2026-10-19
+
+updated: 2026-10-28
 ---
 # Versions & translations — architecture
 
@@ -82,16 +84,28 @@ Each is an *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p179
   Today a segment carries one primary and one translation string, and a version is chosen per side as
   `languageFamilyName|versionTitle` (`reader-next/src/lib/text/model.ts:100-101`, `reader-next/src/lib/versions/preferences.ts:64`).
 
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Version defaults belong in the effective-preferences object: `resolvePanelVersions(prefs, text, url)` returns the source and
+  translation to request, where each came from (`url`, `profile` / `cookie` corpus preference, translation language, `text`
+  default), and a `fallback` reason when the preferred one is missing. It is the current `resolveTranslation`
+  (`reader-next/src/lib/versions/preferences.ts:86-103`) plus the source side. Stores stay `version_preferences_by_corpus`
+  (profile field and cookie) and `translation_language_preference`. — *proposed* (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629) ·
+  inventory and gaps in [Language & accessibility → Preference defaults](../i18n-a11y/architecture.md#preference-defaults-inventory)
+
 ## Dependencies on other areas
 
 - [URLs & routing](../routing/architecture.md): version parameter correction (RTE-028).
 - [Accounts & sign-in](../accounts/architecture.md): profile storage of preferences.
 - [Language & accessibility](../i18n-a11y/architecture.md): the same cookie / profile split for interface and content language.
 - [Text display & reading settings](../text-display/architecture.md): the proposed settings registry (PR #3822).
+- [Language & accessibility](../i18n-a11y/architecture.md): the effective-preferences object, the stores and the sign-in merge.
+- Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): `onClick_version_title`, `onClick_select_version`, Choose Version and Version Download are sent; Set Translation Language Preference and Set Version Preference are not. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
 
 ## Risks and open questions
 
 All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+
 - Sync version and translation-language preferences to the profile for signed-in readers: read the profile first and POST on
   each choice, as legacy does? Legacy reads a cookie for a signed-in reader with empty profile preferences but never saves it
   back.
@@ -99,6 +113,17 @@ All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGT
   fall back in the loader and use the API's warnings?
 - Version and translation-language preferences as entries in the proposed settings registry ("Settings → display model
   (proposal)" in Text display, PR #3822), with a per-corpus scope?
+
+Read from the code; *ideas* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629). Full list: [i18n-a11y Risks](../i18n-a11y/architecture.md#risks-and-open-questions).
+
+- `reader-next` reads version and translation-language preferences from cookies only, and writes neither to the profile
+  (`reader-next/src/lib/versions/prefs-source.ts:10-25`). No JSON GET returns a signed-in reader's `version_preferences_by_corpus`
+  (`sefaria/model/user_profile.py:768-801`).
+- Missing preferred translation or language: falls through to the API's highest-priority translation in any language, and the
+  reader is not told (`sefaria/model/text_request_adapter.py:102-103`).
+- A source-version choice is never remembered (`static/js/sefaria/sefaria.js:1115`). Texts without a corpus cannot carry any
+  preference.
+- Should a source-version preference be stored under the existing `{corpus: {he: title}}` key, which the format already allows?
 
 ## Decisions
 

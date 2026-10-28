@@ -8,6 +8,8 @@ status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 
 updated: 2026-10-18
+
+updated: 2026-10-28
 ---
 # Text display & reading settings — architecture
 
@@ -49,6 +51,11 @@ emulation, 4× CPU slow-down, 1.6 Mbps); indicative only.
   ported (TXD-057 partial in `rebuild-status.json`). A segment click opens the sidebar
   ([`src/features/reader/TextPanel.tsx:228-247`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/TextPanel.tsx#L228-L247)).
 
+**Colour theme.**
+
+- **Legacy (`master`)**: a `color` setting (default `light`) is read from a cookie on the server and applied as a class on each reader panel, with `.readerPanel.sepia` / `.dark` rules in `s2.css`; no control sets it (TXD-039, SHL-006; atlas refs `static/js/ReaderPanel.jsx:1159`, `reader/views.py:362`, `static/css/s2.css:1346-1354`).
+- **New (`reader-next`)**: colour tokens are defined with `light-dark()` and `color-scheme: light dark`, so with no explicit choice the page follows the OS setting; `:root[data-theme="light" | "dark" | "sepia"]` overrides it (`reader-next/src/ui/tokens/tokens.css:6-10`, `:151-160`). `ReaderSettings.color` (`light | sepia | dark`) is parsed from the old `color` cookie (`reader-next/src/lib/reader/settings.ts:17`, `:74`), but nothing in `src/` sets `data-theme` and the display settings menu has no theme control. About 100 lines in 41 component `*.module.css` files still use literal hex colours instead of tokens (e.g. `reader-next/src/ui/SegmentedControl/SegmentedControl.module.css:14-17`), so those parts do not change in dark mode.
+
 ## Target architecture
 
 - Repaints are monitored in production on interactions in the reading column (scroll, including infinite scroll; clicks on
@@ -63,6 +70,14 @@ Implications of ideas, not decisions.
 - A word-level click or double-click handler (tap or tap-and-hold on phones) finds the word under the pointer and opens the
   lightweight lookup described in [Connections](../connections/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Dark mode is supported: every colour in the client comes from a design token with a light and a dark value; no hard-coded colours in components. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · see `../CROSS_CUTTING.md` → Design system
+- Display settings, theme included (`ReaderSettings`, `reader-next/src/lib/reader/settings.ts:19-44`), are the `display` group
+  of the effective-preferences object. Each value carries its source (`cookie` or `site` today). They are stored only in
+  host-only cookies, never in the profile, in both clients (`reader/views.py:351-362`). Whether to add profile keys is open. —
+  *proposed* (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629) · [Language & accessibility → Effective preferences](../i18n-a11y/architecture.md#target-architecture)
+
 ## Dependencies on other areas
 
 - [SSR, SEO & platform](../platform-seo/architecture.md): load-time targets, SSR payload and production monitoring.
@@ -70,6 +85,9 @@ Implications of ideas, not decisions.
 - [Connections](../connections/architecture.md): the sidebar's open state and the lookup surface.
 - [Reader shell & panels](../reader-shell/architecture.md) and [URLs & routing](../routing/architecture.md): per-panel settings
   and their URL parameters, starting with inline commentary.
+- Settings and defaults: [Language & accessibility](../i18n-a11y/architecture.md) (inventory, effective-preferences object, gaps).
+- Dark mode: [Language & accessibility](../i18n-a11y/architecture.md) (contrast in both themes), [SSR, SEO & platform](../platform-seo/architecture.md) (theme on first paint, `theme-color` meta PLT-010, mobile web PLT-019), [Sheets: viewing](../sheets-view/architecture.md) and [Linker & embeds](../linker-embeds/architecture.md) (content with its own colours).
+- Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): `select_content`, the copy events, `print`, segment, citation, named-entity and language clicks are sent with legacy names; `onclick_ToolTipped` (save and display-settings buttons) is not. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
 
 ## Risks and open questions
 
@@ -85,6 +103,7 @@ Implications of ideas, not decisions.
 - A double-click starts with a single click: today the first click of a double-click on a segment runs the segment click in both
   clients
   ([`static/js/TextRange.jsx:523-525`](https://github.com/Sefaria/Sefaria-Project/blob/master/static/js/TextRange.jsx#L523-L525); [`src/ui/Segment/Segment.tsx:77-82`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/ui/Segment/Segment.tsx#L77-L82)).
+- **First paint.** An explicit theme must reach server rendering (cookie today) so the page does not flash the wrong theme; "follow the device" needs no script because `light-dark()` resolves in CSS. Which does the product want (see product Open questions)?
 
 ## Settings → display model (proposal)
 
@@ -160,7 +179,9 @@ new block kind, and parashah and aliyah headers move to the same `before` slot. 
 
 ## Decisions
 
-_None yet. Every decision is also logged in `../DECISIONS.md`._
+- 2026-10-28 — Dark mode is a supported feature of the future reader, on desktop and mobile. Akiva Berger (owner). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468)
+
+_Every decision is also logged in `../DECISIONS.md`._
 
 <!-- BASELINE:START (generated by docs/reader-future/tools/seed.py — do not edit by hand) -->
 

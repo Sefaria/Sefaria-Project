@@ -8,6 +8,8 @@ status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 
 updated: 2026-10-19
+
+updated: 2026-10-28
 ---
 # Language & accessibility — product specification
 
@@ -28,23 +30,39 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Dark mode is a supported theme, so accessibility checks (text and control contrast, visible focus) cover dark as well as light. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · see `../text-display/product.md`
+- Readers get more control over defaults on the settings page: interface language, content language, translation language,
+  preferred version per corpus, and display settings. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)
+  - Each setting shows its current value and where it came from ("from your location", "from your browser", "this text's
+    default", "you chose"), with a way to change it or reset it to the default. — *proposed* (Claude Tag draft) · same source ·
+    see `architecture.md` → Effective preferences
+  - Signed-in readers keep their choices on every device (profile). Signed-out readers keep them in the browser (cookies), as today.
+    — *proposed* · same source
 
 ## Changes from today (keep · change · drop · new)
 
 **Keep**
+
 - The header switch between English and Hebrew, sharing the `interfaceLang` and `contentLang` cookies with the old site so both
   agree while they coexist. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · I18-007, RTE-034
 - A link can set the text language per panel (`lang`, `lang<n>`), over the reader's saved choice. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · RTE-043
 
 **Change**
+
 - A signed-in reader's interface language is saved to their profile and followed on every page and device, as on sefaria.org
   today; the new client reads and writes only the cookie. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · I18-010, RTE-034
 
 **Drop**
+
 - The legacy quirks in [Legacy behaviour not to port](architecture.md#legacy-behaviour-not-to-port): browser language never
   reached, signed-in readers never get location or cookie, the text-language choice not shared between sefaria.org and
   sefaria.org.il. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639)
+- **Change**: a default the site guessed (location, domain) is not saved as if the reader chose it. Today a location-based domain
+  redirect, or signing up, writes the guess into the cookie or profile. — *idea* · same source · `architecture.md` Risks 1–2
+- **New**: when the preferred translation language or version is missing for a text, the reader sees which version is shown
+  instead. Today it changes silently. — *idea* · same source · `architecture.md` Risks 10
 
 ## Open questions
 
@@ -57,6 +75,8 @@ All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGT
 - Should menus and sidebars follow the interface language rather than the text setting, as on sefaria.org (SHL-013)?
 - Should the text-language choice be saved per reader in the profile? Neither client does today.
 - With no saved choice, should the browser's language count, or only the visitor's country?
+- Which settings belong on the page at launch, and which stay automatic (Israel / diaspora calendar, translation suggestion)?
+  · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)
 
 ## Decisions
 

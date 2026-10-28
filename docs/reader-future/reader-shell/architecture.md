@@ -8,6 +8,8 @@ status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 
 updated: 2026-10-19
+
+updated: 2026-10-28
 ---
 # Reader shell & panels — architecture
 
@@ -62,6 +64,9 @@ Requested in the thread ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/
 - [URLs & routing](../routing/architecture.md) and [Saved, history & notes](../user-library/architecture.md): sharing and saving panel states.
 - [Text display](../text-display/architecture.md): inline commentary in the text column.
 - [Saved, history & notes](../user-library/architecture.md): reading position and history subscribe to the panel's signal.
+- Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): each panel's `data-anl-batch` (panel_type, panel_number, content_lang, panel_name, `static/js/ReaderPanel.jsx:706-713`, `:1183`) is missing in reader-next; page views on client-side navigation must match sefaria.org; "Open Connections Panel from Header" is not sent. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
+- [URLs & routing](../routing/architecture.md) → Integrations: integration commands (the chatbot's `sefaria:bootstrap-url`, SHL-068) use
+  the panel operations and need the unsaved-changes guard and a rule for which panel they target.
 
 ## Risks and open questions
 

@@ -62,9 +62,27 @@ Today: the new client's component library is React + Storybook (`reader-next/src
   Its toolkit line numbers are from an older snapshot and have since moved.
 
 Open questions:
+
 - Is the toolkit Sefaria's embed product, the base for the next linker, or a separate community project, and who owns it?
 - Should the reader and the toolkit share one token set and one text pipeline, so a passage looks the same on sefaria.org and
   in an embed?
+- **Dark mode is supported**, on desktop and mobile, and is a high user priority. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468) · areas: [text-display](text-display/product.md), [i18n-a11y](i18n-a11y/product.md), [platform-seo](platform-seo/product.md), [sheets-view](sheets-view/product.md), [linker-embeds](linker-embeds/product.md)
+  - Every colour comes from a token with a light and a dark value; no hard-coded colours in components. — *decided* · same source
+  - Mobile web (the responsive reader) is in scope. The native apps should use the same theme tokens so the themes match. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468)
+
+_Today: the new client's component library is React + Storybook (`reader-next/src/ui`), tokens in
+`reader-next/src/ui/tokens`._
+
+## Integrations: other applications driving the reader
+
+- **TanStack Router is the reader's state layer; other applications must be able to update reader state easily; every integration
+  event sefaria.org's reader handles keeps its effect (parity).** — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · areas: [routing](routing/architecture.md),
+  [ai](ai/architecture.md), [reader-shell](reader-shell/architecture.md), [sheets-editor](sheets-editor/architecture.md),
+  [accounts](accounts/architecture.md), [linker-embeds](linker-embeds/architecture.md)
+  - Today's events: `sefaria:bootstrap-url` (the assistant opens a ref or page), `sefaria:settings-updated` (account settings), the
+    `refresh-editor` BroadcastChannel (add to sheet). None is handled by the new client yet. Inventory: `routing/architecture.md`.
+  - Shape: a typed command layer over `router.navigate`, a legacy-event adapter, a state-changed event from
+    `router.subscribe("onResolved")`; optional window global and `postMessage`. — *proposed* (Claude Tag draft) · `routing/architecture.md`
 
 ## Data layer and caching
 
@@ -131,6 +149,7 @@ Interface language, content language and version stickiness are mapped, as *idea
 See also the `i18n-a11y` area.
 
 **Atlas marks the code does not fully back** (found while mapping; the atlas files are not changed here):
+
 - RTE-028 *done*: no matching, redirect or removal of unmatched version parameters; title-only values are dropped
   ([`src/lib/reader/url-state.ts:51-54`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/reader/url-state.ts#L51-L54)).
 - RTE-034 *done*: cookie and redirect only; no profile save or domain switch, and Django's handler is bypassed
@@ -142,6 +161,25 @@ See also the `i18n-a11y` area.
   ([`src/features/reader/TextPanel.tsx:413-420`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L413-L420)).
 - SHL-014: done in the code and `FEATURES.md`, but missing from `rebuild-status.json` and "not started" in the
   [reader-shell](reader-shell/architecture.md) baseline.
+- **Preferences and defaults in one object.** Every default behind interface language, content language, translation language,
+  version choice, calendars and display settings is resolved by one pure function into a `ReaderPreferences` object. Each field
+  carries its value and where it came from, for the reader and for a settings page that gives readers more control. Storage stays
+  as today: profile fields when signed in, the existing cookies otherwise. — *proposed* (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629) ·
+  areas: [i18n-a11y](i18n-a11y/architecture.md) (inventory, object, gaps), [versions](versions/architecture.md),
+  [text-display](text-display/architecture.md), [accounts](accounts/architecture.md), [calendars](calendars/architecture.md)
+
+See also the `i18n-a11y` area.
+
+## Analytics parity
+
+- **Every current analytics event and dimension is kept and captured the same way, with the same vanilla JS data tag.** — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999) · areas: [analytics](analytics/architecture.md), [reader-shell](reader-shell/architecture.md), [text-display](text-display/architecture.md), [connections](connections/architecture.md), [versions](versions/architecture.md), [search](search/architecture.md), [accounts](accounts/architecture.md), [promotions](promotions/architecture.md)
+  - The new client loads the same tags as `templates/base.html` (GTM, GA4 `config`, `analyticsEventTracker.js`, Simple Analytics, Sentry, VWO, Hotjar, Unbounce), emits the same `data-anl-*` attributes on equivalent elements, fires every current event with the same names and parameters, and sends page views on client-side navigation as sefaria.org does. — *decided* · same source
+  - "The same way" under server rendering: the `data-anl-*` attributes are in the server-rendered HTML; the data tag listens before hydration, as `base.html` attaches it before the bundle; hydration and head re-renders send no second page view. — *proposed* · same source
+  - Parity is a launch requirement: checked against the inventory in [analytics/architecture.md](analytics/architecture.md#event-inventory) before the new client serves a page type in place of sefaria.org. — *proposed* · same source
+
+_Today: reader-next has one analytics module (`reader-next/src/lib/analytics/`) with a TypeScript port of the data tag; 33 of the 59
+rows in the event inventory are done; the rest are missing, partial or wait for features not built yet. GTM/GA4 configuration is not in
+the repository._
 
 ## Rollout and coexistence with the legacy client
 

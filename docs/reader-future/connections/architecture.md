@@ -8,6 +8,8 @@ status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 
 updated: 2026-10-18
+
+updated: 2026-10-28
 ---
 # Connections & resources sidebar — architecture
 
@@ -99,6 +101,7 @@ Implications of ideas, not decisions.
 - [Reader shell & panels](../reader-shell/architecture.md): panel and aside state in the workspace; single panel on phones (SHL-061).
 - [URLs & routing](../routing/architecture.md): sidebar and lookup state in the URL (`with=`, `lookup=`).
 - [Public API & data exports](../api-data/architecture.md): the related, links and counts endpoints and what is stored server-side.
+- Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): the sidebar's events (tools buttons, filters, lexicon, notes, add-to-sheet, feedback, Learning Guide) keep their legacy names. Missing or partial today: Prompt Login, Edit Text / Add Translation Click, Note Save Public, Text Filter in Recent, Outside Source, the sheet-list and guide events. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
 
 ## Risks and open questions
 

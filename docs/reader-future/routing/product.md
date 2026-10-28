@@ -6,6 +6,8 @@ document: product
 owner: unassigned
 status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-15
+
+updated: 2026-10-28
 ---
 # URLs & routing — product specification
 
@@ -15,27 +17,67 @@ updated: 2026-10-15
 
 ## Summary
 
-_Not discussed yet._
+**Integrations.** Other applications on the page steer and watch the reader: today the Library Assistant chatbot opens texts and
+topics in it, the account settings page pushes saved settings into it, and adding a source to a sheet refreshes open sheet editors.
+In the future reader TanStack Router holds the reader's state and the URL stays its source of truth. Any integration must be able to
+change that state easily, through one documented way, and every event sefaria.org's reader handles today keeps working with the same
+effect. [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
 
 ## Who it is for and what they need
 
-_Not discussed yet._
+- Teams that build on the reader (the Library Assistant first) need to move it (open a text, a topic, a sidebar, change language)
+  without knowing its internals, and to know where the reader is. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
 
 ## Target behaviour in the future reader
 
 - Shared panel layouts (splits, floating panels, sizes) would need URL support beyond sefaria.org's grammar, or a stored workspace id. See [Reader shell & panels](../reader-shell/architecture.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 
+_Items carry a status: idea · proposed · agreed · decided._
+
+- **Parity with today's integration events.** Every event subscription sefaria.org's reader has keeps working in the future reader,
+  with the same name, payload and effect: first `sefaria:bootstrap-url` (the chatbot opens a ref or a page in the reader), then
+  `sefaria:settings-updated` and the sheet editor's `refresh-editor` channel. Inventory and status: architecture → Integrations. —
+  *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · RTE-057 · SHL-068 · VER-001 · SHE-020
+- **Updating reader state is easy for any integration.** One documented way to open a ref or URL, open or close a sidebar, and
+  change display settings, usable by any script on the page. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
+- **The URL stays the source of truth.** What an integration changes is a navigation: it lands in history, back/forward, reload and
+  shared links exactly as a click would. — *agreed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · `reader-next/docs/WORKSPACE.md` ("The URL is still the state") ·
+  DECISIONS 2026-10-06 (URLs as sefaria.org writes them)
+- Integrations can also be told when the reader's state changes (what is open, in which language), instead of reading
+  `window.location` as the chatbot does now. — *idea* (Claude Tag draft, not yet discussed) · architecture → Integrations
+
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **Keep**: `sefaria:bootstrap-url` and `sefaria:settings-updated`, same names and payloads (RTE-057, SHL-068, VER-001); the
+  `refresh-editor` BroadcastChannel when add-to-sheet and the sheet editor are rebuilt (SHE-020). · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
+- **Change**: none decided. `replaceHistory` in `sefaria:bootstrap-url` is ignored by sefaria.org for refs (RTE-057 bug) although the
+  chatbot sends it: see Open questions.
+- **New**: a documented, versioned integration interface over the router (commands in, state-changed events out). — *proposed*
+  (Claude Tag draft) · architecture → Integrations
 
 ## Open questions
 
-_None yet._
+Integrations (2026-10-28):
+
+- **Legacy event names.** Kept for good, or kept as a shim over a new versioned interface and deprecated on a schedule?
+- **`replaceHistory`.** sefaria.org drops it for refs (it is passed as panel options, `static/js/ReaderApp.jsx:1306` on `master`), so
+  the chatbot's links push a history entry although they ask to replace. Is parity with the behaviour or with the intent?
+- **Which panel.** For a ref, sefaria.org's event closes every panel and opens the ref alone (`openPanel`, `ReaderApp.jsx:1730-1737`).
+  Keep that, or let an integration target a panel or open next to the current one?
+- **Same page only, or cross-origin too?** `postMessage` for iframes, embeds or other Sefaria sites; if so, which origins may send
+  commands (allowlist), and which commands are allowed from them?
+- **URL or ephemeral.** Which state an integration may set lives in the URL and which does not: segment highlight, search-term
+  highlight (history state today, SRC-058), scroll position, the assistant open or closed?
+- **Who owns the chatbot contract** (`Sefaria/ai-chatbot`): where it is written down, how changes on either side are coordinated, and
+  how preview builds (`?chatbot_version`, AI-005) are tested against the new client?
+- **`sefaria:settings-updated` receiver.** It is sent by the account settings page, which Django still serves; if that page does not
+  run the new client, the event has no receiver there. Port the page, or have the new client re-read settings when it regains focus?
 
 ## Decisions
 
-_None yet. Every decision is also logged in `../DECISIONS.md`._
+- 2026-10-28 — Reader state in the new client is managed with TanStack Router; other applications must be able to update it easily, and for parity every integration event sefaria.org's reader handles keeps its effect. Akiva Berger (owner). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
+
+_Every decision is also logged in `../DECISIONS.md`._
 
 ## Parked ideas
 

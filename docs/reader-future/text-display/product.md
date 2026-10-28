@@ -8,6 +8,8 @@ status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 
 updated: 2026-10-18
+
+updated: 2026-10-28
 ---
 # Text display & reading settings — product specification
 
@@ -26,7 +28,7 @@ Also proposed: reading settings reach the text in one uniform way, so a new sett
 
 ## Who it is for and what they need
 
-_Not discussed yet._
+- Readers want a dark theme, on phones as much as on desktop; the team treats it as a high user priority, and Rachel Buckman calls it likely the most requested feature. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793190851791229?thread_ts=1793181488.777949&cid=C0C9EGTL468)
 
 ## Target behaviour in the future reader
 
@@ -39,6 +41,11 @@ _Not discussed yet._
 - Selecting (highlighting) text triggers nothing; selection is for copying or keeping one's place. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468) · TXD-057 · TXD-059
 - On phones, tap and tap-and-hold could do different things. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Dark mode is a supported reading theme: readers can read in dark mode, and the reader is designed and tested for it. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · TXD-039 · SHL-006
+- Dark mode covers mobile: the phone (single-panel, responsive) reader is themed as fully as desktop. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468) · PLT-019
+
 ## Changes from today (keep · change · drop · new)
 
 - **Change:** on load sefaria.org paints the top of the chapter, then jumps to the linked segment; the new reader places it
@@ -48,6 +55,7 @@ _Not discussed yet._
 - **Change:** a word lookup starts from a click or double-click on the word, not from a selection (TXD-059). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - **Drop:** dictionary lookup on text selection (TXD-057, TXD-059). — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - **New:** _None recorded yet._
+- **Change**: dark mode goes from a hidden hook to a supported feature. On sefaria.org the reader has light, sepia and dark styles but no control to choose them; only a pre-existing `color` cookie turns them on (TXD-039, SHL-006, both tiered *optional* by the audit). In the future reader it is a supported feature with a control. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949)
 
 ## Open questions
 
@@ -58,6 +66,10 @@ _Not discussed yet._
   [Connections](../connections/product.md).
 - **Click or double-click** on a word to look it up? ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468))
 - **Phones:** which of tap and tap-and-hold does what? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792115591468479?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Default and control.** Follow the device setting (`prefers-color-scheme`) by default, an explicit choice, or both (light · dark · system)? Does sepia stay as a third theme?
+- **Scope.** Only the reader panels (as on sefaria.org today), or every page (header, library, search, topics, sheets, account)?
+- **Saving the choice.** Per browser (cookie, as today) or on the user's account, so it follows them across devices and the app?
+- **Content we do not control.** Sheets with inline colours, images, manuscripts and diagrams, and embedded or linker content: shown as authored, adapted, or framed on a light surface?
 
 ### Reading settings
 
@@ -73,7 +85,9 @@ be built is in [architecture](architecture.md#settings--display-model-proposal).
 
 ## Decisions
 
-_None yet. Every decision is also logged in `../DECISIONS.md`._
+- 2026-10-28 — Dark mode is a supported feature of the future reader, on desktop and mobile. Akiva Berger (owner). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468)
+
+_Every decision is also logged in `../DECISIONS.md`._
 
 ## Parked ideas
 
