@@ -82,3 +82,24 @@ def test_recording_flag_off_by_default(monkeypatch):
     import sefaria.conftest as c
     monkeypatch.delenv("SEFARIA_RECORD_MONGO", raising=False)
     assert c._recording_enabled() is False
+
+
+def test_find_records_the_open_cursor_id():
+    (rec,) = _run("find", {"find": "index", "filter": {}},
+                  {"cursor": {"firstBatch": [{"_id": ObjectId()}], "id": 4242}, "ok": 1.0})
+    assert rec["cursor_id"] == 4242
+
+
+def test_exhausted_find_has_no_cursor_id():
+    (rec,) = _run("find", {"find": "index", "filter": {"title": "Genesis"}},
+                  {"cursor": {"firstBatch": [], "id": 0}, "ok": 1.0})
+    assert rec["cursor_id"] is None
+
+
+def test_get_more_records_the_cursor_it_continues():
+    oid = ObjectId()
+    # The last batch reports id 0 (exhausted); the record keeps the id the command continued.
+    (rec,) = _run("getMore", {"getMore": 4242, "collection": "index"},
+                  {"cursor": {"nextBatch": [{"_id": oid}], "id": 0}, "ok": 1.0})
+    assert rec["command"] == "getMore" and rec["collection"] == "index"
+    assert rec["cursor_id"] == 4242 and rec["doc_ids"] == [str(oid)]
