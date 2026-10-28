@@ -557,8 +557,14 @@ test.describe('Search with no results — logged out', () => {
 
   test('LA-NULL-9: Logged out at the limit — opens on the last chat, scrolled to the end, with the login prompt; nothing sent', DESKTOP_TAGS, async ({ context }) => {
     // One free answer, used on the earlier question: that answer brings the login prompt.
-    const { mock, la, search } = await startLoggedOut(context, 1);
+    const { page, mock, la, search } = await startLoggedOut(context, 1);
     await askFromAskButton(la, mock, EARLIER_QUESTION, longAnswer('Earlier answer'), 'Earlier answer, paragraph 10:');
+    // A later visit: the reload forgets where the chat was, so it opens at the end (LA-QA-7).
+    // The used-up free answers are kept in the browser, so the login prompt is still there.
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await hideAllModalsAndPopups(page);
+    await la.waitForReady();
+    await la.ensureClosed();
 
     await searchWithNoResults(search);
     await la.expectLauncherReads('search');
@@ -570,13 +576,7 @@ test.describe('Search with no results — logged out', () => {
     await la.expectConversationLacks(searchQuestion(QUERY));
   });
 
-  // Fails today, as LA-QA-7 does: ai-chatbot's openPanel (LCChatbot.svelte) ends with a
-  // scrollToBottom, added with the login prompt (ai-chatbot e382ac5), that undoes the
-  // "reopen where the reader left the chat" just before it. Turn this on once that's fixed.
-  test.fixme('LA-NULL-9: Logged out at the limit — scrolled where the visitor left the chat during this visit (LA-QA-7); nothing sent', {
-    ...DESKTOP_TAGS,
-    annotation: { type: 'known bug', description: 'Reopening always scrolls to the bottom (ai-chatbot openPanel); LA-QA-7 fails the same way' },
-  }, async ({ context }) => {
+  test('LA-NULL-9: Logged out at the limit — scrolled where the visitor left the chat during this visit (LA-QA-7); nothing sent', DESKTOP_TAGS, async ({ context }) => {
     test.setTimeout(t(90000));
     const { mock, la, search } = await startLoggedOut(context, 1);
     mock.answerNextWith(longAnswer('Earlier answer', 20));
