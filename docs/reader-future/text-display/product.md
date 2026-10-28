@@ -19,7 +19,7 @@ _Not discussed yet._
 
 ## Who it is for and what they need
 
-- Readers want a dark theme, on phones as much as on desktop; the team treats it as a high user priority. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468)
+- Readers want a dark theme, on phones as much as on desktop; the team treats it as a high user priority, and Rachel Buckman calls it likely the most requested feature. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793190851791229?thread_ts=1793181488.777949&cid=C0C9EGTL468)
 
 ## Target behaviour in the future reader
 
