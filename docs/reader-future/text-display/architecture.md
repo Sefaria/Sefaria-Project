@@ -33,6 +33,7 @@ _Items carry a status: idea · proposed · agreed · decided._
 ## Dependencies on other areas
 
 - Dark mode: [Language & accessibility](../i18n-a11y/architecture.md) (contrast in both themes), [SSR, SEO & platform](../platform-seo/architecture.md) (theme on first paint, `theme-color` meta PLT-010, mobile web PLT-019), [Sheets: viewing](../sheets-view/architecture.md) and [Linker & embeds](../linker-embeds/architecture.md) (content with its own colours).
+- Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): `select_content`, the copy events, `print`, segment, citation, named-entity and language clicks are sent with legacy names; `onclick_ToolTipped` (save and display-settings buttons) is not. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
 
 ## Risks and open questions
 

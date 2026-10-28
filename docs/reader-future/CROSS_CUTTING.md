@@ -25,6 +25,17 @@ _Not discussed yet._
 
 _Not discussed yet. See also the `i18n-a11y` area._
 
+## Analytics parity
+
+- **Every current analytics event and dimension is kept and captured the same way, with the same vanilla JS data tag.** — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999) · areas: [analytics](analytics/architecture.md), [reader-shell](reader-shell/architecture.md), [text-display](text-display/architecture.md), [connections](connections/architecture.md), [versions](versions/architecture.md), [search](search/architecture.md), [accounts](accounts/architecture.md), [promotions](promotions/architecture.md)
+  - The new client loads the same tags as `templates/base.html` (GTM, GA4 `config`, `analyticsEventTracker.js`, Simple Analytics, Sentry, VWO, Hotjar, Unbounce), emits the same `data-anl-*` attributes on equivalent elements, fires every current event with the same names and parameters, and sends page views on client-side navigation as sefaria.org does. — *decided* · same source
+  - "The same way" under server rendering: the `data-anl-*` attributes are in the server-rendered HTML; the data tag listens before hydration, as `base.html` attaches it before the bundle; hydration and head re-renders send no second page view. — *proposed* · same source
+  - Parity is a launch requirement: checked against the inventory in [analytics/architecture.md](analytics/architecture.md#event-inventory) before the new client serves a page type in place of sefaria.org. — *proposed* · same source
+
+_Today: reader-next has one analytics module (`reader-next/src/lib/analytics/`) with a TypeScript port of the data tag; 33 of the 59
+rows in the event inventory are done; the rest are missing, partial or wait for features not built yet. GTM/GA4 configuration is not in
+the repository._
+
 ## Rollout and coexistence with the legacy client
 
 _Not discussed yet. Today: the new client answers page requests first and hands the rest to Django

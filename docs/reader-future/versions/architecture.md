@@ -4,8 +4,8 @@ title: Versions & translations
 domain: Reader
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-28
 ---
 # Versions & translations — architecture
 
@@ -27,7 +27,7 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): `onClick_version_title`, `onClick_select_version`, Choose Version and Version Download are sent; Set Translation Language Preference and Set Version Preference are not. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
 
 ## Risks and open questions
 

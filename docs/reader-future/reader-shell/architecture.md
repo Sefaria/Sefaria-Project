@@ -4,8 +4,8 @@ title: Reader shell & panels
 domain: Reader
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-28
 ---
 # Reader shell & panels — architecture
 
@@ -27,7 +27,7 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): each panel's `data-anl-batch` (panel_type, panel_number, content_lang, panel_name, `static/js/ReaderPanel.jsx:706-713`, `:1183`) is missing in reader-next; page views on client-side navigation must match sefaria.org; "Open Connections Panel from Header" is not sent. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
 
 ## Risks and open questions
 

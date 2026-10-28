@@ -4,8 +4,8 @@ title: Connections & resources sidebar
 domain: Reader
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-28
 ---
 # Connections & resources sidebar — architecture
 
@@ -27,7 +27,7 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): the sidebar's events (tools buttons, filters, lexicon, notes, add-to-sheet, feedback, Learning Guide) keep their legacy names. Missing or partial today: Prompt Login, Edit Text / Add Translation Click, Note Save Public, Text Filter in Recent, Outside Source, the sheet-list and guide events. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
 
 ## Risks and open questions
 
