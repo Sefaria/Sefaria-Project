@@ -29,7 +29,17 @@ SHARD_ENV_KEYS = (
     "SEARCH_PORT",
     "SEARCH_PATH",
     "SEARCH_SSL_ENABLE",
-    "REDIS_HOST",
+    # Shards boot Django, so they need the same Redis/Sentinel settings as this pod.
+    "REDIS_URL",
+    "REDIS_PORT",
+    "REDIS_PASSWORD",
+    "SENTINEL_HEADLESS_URL",
+    "SENTINEL_PASSWORD",
+    "SENTINEL_TRANSPORT_OPTS",
+    "SENTINEL_MASTER_SET",
+    "DEFAULT_CACHE_DB_NUM",
+    "SHARED_CACHE_DB_NUM",
+    "GENCACHE_REDIS_DB_NUM",
     "NODEJS_HOST",
     "VARNISH_HOST",
 )

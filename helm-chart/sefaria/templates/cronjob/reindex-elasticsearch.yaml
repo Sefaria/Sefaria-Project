@@ -74,8 +74,6 @@ spec:
               value: ""
             - name: SEARCH_SSL_ENABLE
               value: "false"
-            - name: REDIS_HOST
-              value: "redis-{{ .Values.deployEnv }}"
             - name: NODEJS_HOST
               value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             - name: VARNISH_HOST
@@ -90,6 +88,7 @@ spec:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
                 optional: true
+            {{- include "sefaria.secrets.redisSentinel" . | nindent 12 }}
             - configMapRef:
                 name: local-settings-{{ .Values.deployEnv }}
             - secretRef:

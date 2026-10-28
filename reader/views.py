@@ -14,7 +14,6 @@ from collections import OrderedDict
 from enum import Enum
 import pytz
 from html import unescape
-import redis
 import os
 import re
 import uuid
@@ -73,14 +72,13 @@ from sefaria.utils.views_utils import add_query_param, AASA_EXCLUDED_PATHS, NO_A
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, \
+    ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
     CHATBOT_API_BASE_URL, CELERY_ENABLED, DISABLE_AUTOCOMPLETER, APP_VERSION
 from sefaria.site.site_settings import SITE_SETTINGS
-from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
-from sefaria.system.cache import django_cache
+from sefaria.system.cache import django_cache, gen_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
@@ -673,6 +671,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
         "tab": search_params["search_tab"],
+        "searchDisableAutocorrect": search_params["disable_autocorrect"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -1106,6 +1105,8 @@ def get_search_params(get_dict, i=None):
         # `tab` is the text/sheet search type; `search_tab` is the active results tab
         # on the search page (sources/books/authors/topics).
         "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
+        # Set by "Search instead for <query>": search `query` exactly as typed.
+        "disable_autocorrect": get_dict.get(get_param("disable_autocorrect", i)) == "1",
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -1147,6 +1148,7 @@ def search(request):
         "initialMenu": "search",
         "initialQuery": search_params["query"],
         "initialSearchTab": search_params["search_tab"],
+        "initialSearchDisableAutocorrect": search_params["disable_autocorrect"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -3673,14 +3675,13 @@ def generate_topic_prompts_api(request, slug: str):
 def rebuild_full_auto_completer_across_servers():
     """
     Rebuilds the full auto completer locally and, when this server cannot serve
-    completion traffic itself (DISABLE_AUTOCOMPLETER), publishes the rebuild over
-    the multiserver channel so the name service picks it up.  When this server
-    holds its own completers the publish is skipped, preserving the historical
-    local-only rebuild semantics rather than triggering a fleet-wide build.
+    completion traffic itself (DISABLE_AUTOCOMPLETER), bumps GenCache's counter so the name
+    service picks it up. When this server holds its own completers the rebuild stays local
+    rather than triggering a fleet-wide build.
     """
     library.build_full_auto_completer()
-    if MULTISERVER_ENABLED and DISABLE_AUTOCOMPLETER:
-        server_coordinator.publish_event("library", "build_full_auto_completer")
+    if DISABLE_AUTOCOMPLETER:
+        gen_cache.mark_fresh("full_auto_completer")
 
 
 @staff_member_required
@@ -4376,7 +4377,6 @@ def profile_upload_photo(request):
 
         profile.update({"profile_pic_url": big_pic_url, "profile_pic_url_small": small_pic_url})
         profile.save()
-        public_user_data(request.user.id, ignore_cache=True)  # reset user data cache
         return jsonResponse({"urls": [big_pic_url, small_pic_url]})
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -4957,6 +4957,26 @@ def dummy_search_api(request):
     })
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
+
+
+@catch_error_as_json
+def search_autocorrect_api(request):
+    """
+    GET /api/search-autocorrect?q=<query>
+    -> {"corrected_query": str|None, "suggested_queries": [str]|None}, at most one set.
+
+    The client calls this before searching and searches the correction it returns. Served by
+    the name service, which holds the tables. Varnish caches by URL, so don't add per-request
+    parameters beyond `q`.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    query = request.GET.get("q", "").strip()
+    result = library.autocorrect_query(query) if query else None
+    return jsonResponse({
+        "corrected_query": result.corrected_query if result else None,
+        "suggested_queries": result.suggested_queries if result else None,
+    })
 
 
 @csrf_exempt
@@ -5547,27 +5567,22 @@ def application_health_api_nonlibrary(request):
 def application_health_api(request):
     """
     Defines the /healthz API endpoint which responds with
-        200 if the services Django depends on, Redis, Multiserver, and NodeJs
+        200 if the services Django depends on, Redis, and NodeJs
             are available.
         500 if any of the aforementioned services are not available
 
     {
         allReady: (true|false)
-        multiserverReady: (true|false)
         redisReady: (true|false)
         nodejsReady: (true|false)
     }
     """
     def isRedisReachable():
         try:
-            redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
-            return redis_client.ping() == True
+            return gen_cache.redis.ping()
         except Exception as e:
             logger.warn(f"Failed redis healthcheck. Error: {e}")
             return False
-
-    def isMultiserverReachable():
-        return True
 
     def isNodeJsReachable():
         url = NODE_HOST + "/healthz"
@@ -5585,12 +5600,11 @@ def application_health_api(request):
         except SystemError as ivne:
             return False
 
-    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable() and is_database_reachable()
+    allReady = isRedisReachable() and isNodeJsReachable() and is_database_reachable()
 
     resp = {
         'allReady': allReady,
         'dbConnected': f'Database Connection: {is_database_reachable()}',
-        'multiserverReady': isMultiserverReachable(),
         'redisReady': isRedisReachable(),
         'nodejsReady': isNodeJsReachable(),
         'revisionNumber': os.getenv("HELM_REVISION"),

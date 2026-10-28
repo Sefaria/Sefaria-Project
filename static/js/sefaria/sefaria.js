@@ -1447,6 +1447,19 @@ Sefaria = extend(Sefaria, {
         store: this._indexDetails
     });
   },
+  getRawIndex: async function(title) {
+    // Returns the Index record exactly as stored, bypassing all client-side caches, or null
+    // if it can't be loaded. Use this (not getIndexDetails) when the record will be posted
+    // back to /api/v2/raw/index. index_api is wrapped by catch_error_as_json, so a server-side
+    // failure comes back as HTTP 200 with an {error: ...} body.
+    const response = await fetch(`${Sefaria.apiHost}/api/v2/raw/index/${encodeURIComponent(title.replace(/ /g, "_"))}`, {
+      credentials: 'same-origin',
+      cache: 'no-store'
+    });
+    if (!response.ok) { return null; }
+    const data = await response.json();
+    return data && !data.error ? data : null;
+  },
   titleIsTorah: function(title){
       let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
       return torah_re.test(title)
