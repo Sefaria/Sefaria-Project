@@ -586,7 +586,7 @@ What someone picking this up tomorrow needs to know, checked on 2026-10-28.
 | `~/Sefaria/dev/sefaria-reader` | The client's development repo; **no git remote**; clean; HEAD `384f904` | Single copy on one laptop. Either push it to GitHub or make `reader-next/` on `reader-next` the only source and retire the subtree flow. |
 | `reader-next` branch | `837d585`; `reader-next/` is a squashed subtree of `sefaria-reader` (last squash `a8e5366..384f904`, in sync) | Update with `git subtree pull --prefix=reader-next ../sefaria-reader main --squash`. |
 | Worktree | `~/Sefaria/dev/Sefaria-Project-reader-next` on `reader-next`, clean | Use it for reader-next work; this file lives there. |
-| Open PRs into `reader-next` | #3818, #3821, #3822, #3826, #3870, #3907 (spec digests), #3892 (POC, do not merge) | GitHub reports all mergeable individually, but merged in date order #3822, #3826 and #3907 conflict with each other (additive: keep both sides). Merge them before the next digest so Claude Tag works on one base. |
+| Open PRs into `reader-next` | The six spec digests (#3818, #3821, #3822, #3826, #3870, #3907) are merged into this branch (#3916) with their conflicts resolved additively (no added line lost; checked by script) and closed. #3892 (POC, Daniel's) stays open as a reference. | Merge #3916 before the next evening digest so Claude Tag works on one base. |
 | Decisions | 2026-10-28 rows added to `DECISIONS.md` here; #3907 adds three more 2026-10-28 rows | Post D1–D7 in #reader-future as `Decision:` messages so the channel record matches. |
 
 **Tests and CI**
@@ -617,17 +617,80 @@ cauldrons need a published prerelease chart passed with `-c`).
 
 ---
 
-## 12. Open questions that remain
+## 12. Decisions still needed
 
-1. **Unbounce page list** — which page types host Unbounce banners (ask marketing).
-2. **VWO on reader pages** — is any VWO test targeting reader pages? If not, set `pageTypes` to exclude them at launch.
-3. **Node page caching** — should Varnish or Cloudflare cache anonymous node-rendered pages (big TTFB win; needs `Vary` on the
-   preference cookies)?
-4. **Adobe Garamond loading** — licence allows self-hosting? Otherwise async Typekit with size-matched fallbacks (F10 vs §6.11).
-5. **Data tag** — load the legacy `analyticsEventTracker.js` itself, or keep the TypeScript port with shared tests (conflict C3)?
-6. **"Beside"** — reading order (right in English, left in Hebrew, as today) or always one side (B2-2)?
-7. **Settings registry details** — scope per setting, keep legacy cookie names, ESLint vs vitest for the import ban (B4-6).
-8. **Vestigial analytics events** (UA dimensions, Display Option Click, UA JS errors) and `Sefaria.track` timing (A2-8).
-9. **Phone lookup gesture** (D6 left it open).
-10. **Range arrival** — done as: portion/aliyah ranges kept, short arbitrary ranges collapse (matches the sefaria.org probes). Revisit if product wants every range kept.
-11. **sefaria-reader repository** — push it, or make the branch the only source (§11)?
+Every open question in the 29 areas, `CROSS_CUTTING.md` and the closed PRs, checked against D1–D7. **Answered** questions are
+listed once so nobody re-asks them; the rest need a decision, each with a recommendation. Ordered by what they unblock.
+
+### 12.1 Answered by the 2026-10-28 decisions (no action)
+
+- RUM tool and LCP/INP/CLS targets; phone-profile lab gate (D1).
+- Page-hiding A/B and third-party scripts on reader pages; VWO/Hotjar/Unbounce (D2).
+- Dark mode default, sepia, scope, storage, content with its own colours, first paint (D3).
+- `replaceHistory`, which panel a ref opens in, cross-origin `postMessage`, chatbot contract owner, `settings-updated` receiver (D4).
+- Interface-language precedence, Hebrew content default for a Hebrew interface, menus following the interface, browser language
+  vs country: **legacy behaviour at launch** (D5); fixing the quirks is a post-launch decision (Q-P1 below). Location guesses not saved,
+  `.sefaria.org` cookies, content language and theme on the profile, sign-in merge (D5).
+- What selecting a word does with the sidebar closed (nothing), click vs double-click on desktop (double-click), whether the sidebar
+  opens on a segment click at launch (yes) (D6).
+- Which panel features the state model supports (stacks, resize, drag, stable ids; phone rule), keyboard equivalent for drag (D7).
+
+### 12.2 Decide before building Phase A–B (blocking)
+
+| # | Question | Recommendation | Area |
+|---|---|---|---|
+| Q-A1 | **Data tag: load the legacy `analyticsEventTracker.js`, or keep the TypeScript port?** | Keep the port, run it before hydration, and share one test suite of `data-anl-*` fixtures with the legacy file; the launch-gate diff proves parity either way. | analytics |
+| Q-A2 | **`Sefaria.track` timing**: drop events sent before GTM is ready (legacy) or send them (port)? | Match legacy until launch (the decided condition is "same stream"); revisit after the switch. | analytics |
+| Q-A3 | **Vestigial events** (`Display Option Click`, UA `Javascript Errors`, UA page dimensions ANL-010, `UI / …Accepted`) | Drop the UA-only ones (UA no longer collects); keep `Display Option Click` for parity. Confirm with whoever owns the GA4 reports. | analytics |
+| Q-A4 | **Auth event names**: `auth_*` (master now) vs `sign_up_*` (reader-next) | Follow master (`auth_*`): parity is with the live site. Recorded as a rule, not a choice. | analytics |
+| Q-A5 | **Unbounce page list; is any VWO test aimed at reader pages?** | Ask marketing; seed `thirdParty.*.pageTypes` from the answer. | analytics |
+| Q-P2 | **Adobe Garamond loading** (blocking Typekit CSS vs the LCP target) | Self-host if the Adobe licence allows web self-hosting; else load the kit async with size-matched fallbacks. Check the licence first. | text-display, platform |
+| Q-P3 | **Budget numbers for CI**: JS, CSS, hydration, TTFB | Set them at today's measured values on the Pixel 7 profile and ratchet down; fail CI on regression, not on an absolute goal. | platform |
+| Q-S1 | **Settings registry details**: scope per setting, keep legacy cookie names, ESLint vs vitest for the import ban | Keep legacy cookie names (F1 spirit); vitest architecture test (runs in the existing suite); scope per setting as listed in text-display's proposal. | text-display |
+| Q-R1 | **"Beside": reading order (today) or always left?** | Reading order, as today: right in English, left in Hebrew. | reader-shell |
+
+### 12.3 Decide before the matching Phase C work
+
+| # | Question | Recommendation | Area |
+|---|---|---|---|
+| Q-P1 | Fix legacy language quirks after launch (default `"english"` on every profile, `cf-ipcountry` before Accept-Language, domain vs choice)? | Yes, as one post-launch change with SEO review: store "unset", read Accept-Language before country, pin bots by domain. | i18n-a11y |
+| Q-P4 | `/interface/<lang>`: pass through to Django or reimplement? | Pass through to Django now (add `interface` to `DJANGO_PREFIXES`): it already saves the profile and switches domain. | i18n-a11y, routing |
+| Q-V1 | Unknown or title-only `ven`/`vhe` (RTE-028): redirect to the corrected link, or fall back quietly? | Fall back in the loader and use the API `warnings`; rewrite the URL to the corrected value with `replace` (no extra round trip). | versions |
+| Q-V2 | Keep the "read in your language" suggestion (VER-004)? | Keep, on the notice manager, after the notice manager exists. | versions |
+| Q-V3 | Remember a source-version choice (`{corpus: {he: title}}`)? | Yes; the format already allows it. | versions |
+| Q-U1 | Reading position: one per text, or per text and translation? | Per text, versions as attributes (the area's proposal). | user-library |
+| Q-U2 | Server storage for positions: reuse `UserHistory.last_place` or a new record? | New position record (segment-level, device); keep it out of the history list; coalesce writes. | user-library |
+| Q-U3 | Carry signed-out places into the account on sign-in? Does "history off" stop positions? Does resuming highlight the verse? | Carry over; yes, history off stops positions; scroll only, no highlight. | user-library |
+| Q-C1 | Lookup: rules for pop-up vs sidebar; a slider across dictionaries in the pop-up? | Pop-up shows the first dictionary entry with a "more" link to the sidebar's Lexicon; no slider at first. Decide after the cauldron test (D6). | connections |
+| Q-C2 | Phone lookup gesture (tap vs tap-and-hold) | Decide after the cauldron test; tap-and-hold collides with native selection. | connections |
+| Q-C3 | Keep the connection dots? | Keep; they become free once counts come with the text (Phase D). | connections |
+| Q-C4 | Is a sheet list ever shown in the reader, or only a count + link to Voices? | Count + link only; lets the server stop sending sheet rows (34–48% of `/api/related`). | connections, api-data |
+| Q-N1 | Notice caps (per session/day) and who sets them; never-limited notices; reader control; auto-close | Caps in the CMS per category with a code ceiling; cookie notice and action-triggered prompts never limited; "don't show again" per notice first, settings page later; no auto-close for notices that ask for an action. | promotions |
+| Q-I1 | Integrations: legacy event names forever, or a shim over the versioned interface? Which state an integration may set in the URL vs ephemerally? | Shim, deprecate after the chatbot moves to v1 commands; refs, panels and sidebar in the URL; highlights and scroll ephemeral (history state). | routing, ai |
+| Q-T1 | Sections kept in the column for a long session: limit? | Unload sections more than ~5 screens away once memory is measured on a phone; not before measuring. | text-display |
+| Q-T2 | Which interactions count for INP (scroll, sidebar open, segment click, settings)? | All four; record them in the RUM event's `page_type`/interaction name. | text-display, platform |
+| Q-T3 | Is "the repaint issue" one of the listed causes or a specific page to turn into a test? | Ask the reporter for the page; make it an e2e smoothness case. | platform |
+
+### 12.4 Decide before the area ports (Phase E)
+
+| # | Question | Recommendation | Area |
+|---|---|---|---|
+| Q-E1 | **Library / Voices host model** (RTE-001/004/039, PLT-014) in the new client | Model the module as part of the route context (host → module), one app serving both hosts; decide before porting topics or sheets. | routing, platform |
+| Q-E2 | **Panel-type registry**: may sheets, topics, profiles open inside a reader panel (SHL-034/060)? | Yes for sheets and the compare panel (atlas core); others stay pages. | reader-shell |
+| Q-E3 | **Rich-text editor framework** for the sheet editor and admin forms | Pick one before the sheets-editor port (legacy is Slate; staying on Slate eases the HTML import/export mapping). | sheets-editor |
+| Q-E4 | **i18n strings**: library and Weblate pipeline for the new client | A keyed JSON catalogue in the Weblate format already used, loaded per route; decide before the next page area. | i18n-a11y |
+| Q-E5 | **Static pages**: keep Django templates or move to CMS/MDX? | Keep Django templates behind the pass-through until the header can be rendered over them some other way; revisit with the CMS. | static-pages |
+| Q-E6 | **OpenAPI-generated API client** vs hand-written adapters | Hand-written adapters on the generated low-level client (keeps the adapter boundary). | api-data |
+| Q-E7 | **Admin tools**: port or keep in Django? | Keep in Django except the inline moderator buttons in the reader (ADM-030). | admin-tools |
+| Q-E8 | **Node page caching** for anonymous pages (Varnish/Cloudflare) | Yes, with `Vary` on the preference cookies; measure the TTFB win first. | platform |
+
+### 12.5 Later (no work depends on them yet)
+
+- **Shared workspaces:** URL only, or stored with an id; snapshot or live? (Recommendation: URL first; stored snapshots with the
+  user-state store later.)
+- **Inline commentary:** how many per panel; beside or instead of the sidebar's commentary view?
+- **Panel cap and overflow** beyond today's width rule; floating panels on phones.
+- **Backend text model:** how a URL names a non-default structure (parameter vs a title per structure).
+- **Toolkit:** is it Sefaria's embed product and the base for the next linker; who owns it; must embeds look exactly like
+  sefaria.org?
+- **`sefaria-reader` repository:** push it, or make `reader-next/` the only source (recommendation: push it now; it is a single copy).
