@@ -86,3 +86,11 @@ def test_unknown_shapes_mode_aborts_the_session():
 def test_incomplete_ok_in_ci_aborts_the_session_not_a_test():
     r = _session_exit(SEFARIA_MOCK_MONGO_INCOMPLETE_OK="1", CI="true")
     assert r.returncode == 4 and "INCOMPLETE_OK" in r.stdout + r.stderr, (r.stdout + r.stderr)[-800:]
+
+
+def test_incomplete_ok_in_ci_aborts_when_only_the_repo_root_is_collected():
+    # `pytest .` discovers sefaria/conftest.py during collection, after pytest_sessionstart fired
+    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "--collect-only", "."], cwd=ROOT, capture_output=True,
+                       text=True, env={**os.environ, **MOCK, "SEFARIA_MOCK_MONGO_INCOMPLETE_OK": "1", "CI": "true"},
+                       timeout=300)
+    assert r.returncode == 4 and "INCOMPLETE_OK" in r.stdout + r.stderr, (r.stdout + r.stderr)[-800:]

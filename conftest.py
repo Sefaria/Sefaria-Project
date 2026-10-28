@@ -13,3 +13,14 @@ def pytest_configure(config):
     mod = sys.modules.get("sefaria.conftest")
     if mod is not None and not config.pluginmanager.is_registered(mod):
         config.pluginmanager.register(mod, os.path.abspath(mod.__file__))
+
+
+def pytest_sessionstart(session):
+    """Validate the mocked-Mongo session env even when sefaria/conftest.py is only discovered during collection.
+
+    With `pytest .` that conftest loads after pytest_sessionstart has fired, so its own hook never runs;
+    this root conftest is always loaded first.
+    """
+    if os.environ.get("SEFARIA_MOCK_MONGO") == "1":
+        from sefaria.conftest import _validate_session_env
+        _validate_session_env(os.environ)
