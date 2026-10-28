@@ -622,7 +622,7 @@ def main():
     )
     ap.add_argument(
         "--source-stamp-json", metavar="PATH",
-        help="JSON object merged into the manifest's source (dump_url, last_modified, etag, recorded_at, git_sha)",
+        help="JSON object that replaces the manifest's source (dump_url, last_modified, etag, recorded_at, git_sha)",
     )
     args = ap.parse_args()
 

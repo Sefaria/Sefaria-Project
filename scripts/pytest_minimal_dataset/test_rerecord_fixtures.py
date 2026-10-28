@@ -102,10 +102,11 @@ def test_restore_never_with_empty_mongo_fails(tmp_path):
     assert not fake.find("export_mongo_fixtures.py")
 
 
-def test_refuses_non_loopback(tmp_path):
-    rc, fake, _ = run_main(tmp_path, ["--mongo-host", "db.example.com"])
-    assert rc != 0
-    assert fake.calls == []
+def test_mongo_host_option_is_gone(tmp_path):
+    # --mongo-host was only half wired (restore and recording ignored it); the source is always loopback
+    with pytest.raises(SystemExit) as exc:
+        run_main(tmp_path, ["--mongo-host", "db.example.com"])
+    assert exc.value.code == 2
 
 
 def test_order_of_steps(tmp_path):

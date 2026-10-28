@@ -35,7 +35,7 @@ PATHS = ["./sefaria", "./sso", "./reader", "./powered_by"]
 MOCK_ENV = {"SEFARIA_MOCK_MONGO": "1", "SEFARIA_TEST_MONGO": "1", "LOCAL_TEST_MONGO_PORT": "27099"}
 CONTAINER = "sefaria-fixtures-mongo"
 WORK = os.path.expanduser("~/.cache/sefaria-test-mongo")
-LOOPBACK = ("127.0.0.1", "localhost", "::1")
+MONGO_HOST = "127.0.0.1"  # the recording and export steps only ever talk to loopback
 MIN_INDEX_DOCS = 1000
 MAX_TOTAL = 20 * 1024 * 1024
 
@@ -173,7 +173,6 @@ def build_parser():
     parser.add_argument("--only", nargs="+", metavar="NODEID", default=[],
                         help="re-record just these test node ids (default: every needs_mongo test in the CI selection)")
     parser.add_argument("--mongo-port", type=int, default=27018, help="port of the loopback source Mongo (default 27018)")
-    parser.add_argument("--mongo-host", default="127.0.0.1", help="source Mongo host; only loopback is accepted")
     parser.add_argument("--restore", choices=("auto", "never", "force"), default="auto",
                         help="auto: reuse a Mongo on the port holding more than 1000 index docs, else restore the dump "
                              "into container sefaria-fixtures-mongo; never: fail unless one is there; force: always restore")
@@ -186,15 +185,12 @@ def build_parser():
 
 def main(argv=None, runner=subprocess.run, probe=default_probe, collect=default_collect):
     args = build_parser().parse_args(argv)
-    if args.mongo_host not in LOOPBACK:
-        print(f"refusing to record from non-loopback Mongo host {args.mongo_host!r}", file=sys.stderr)
-        return 2
     output_dir = os.path.abspath(args.output_dir)
     if output_dir != os.path.abspath(COMMITTED_DIR):
         shutil.copytree(COMMITTED_DIR, output_dir, dirs_exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
 
-    if not ensure_mongo(args.mongo_host, args.mongo_port, args.restore, runner, probe):
+    if not ensure_mongo(MONGO_HOST, args.mongo_port, args.restore, runner, probe):
         return 2
     stamp_fd, stamp_path = tempfile.mkstemp(suffix=".json", prefix="fixture-stamp-")
     try:
