@@ -5406,13 +5406,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .noSearchResults-assistantLink {
-  color: var(--mussar-purple);
+  color: var(--chatbot-purple);
   text-decoration: underline;
 }
 
-/* Purple-800, the same as the floating Ask button's hover (ai-chatbot's AskLauncher) */
 .noSearchResults-assistantLink:hover {
-  color: #653259;
+  color: var(--chatbot-purple-hover);
   text-decoration: underline;
 }
 

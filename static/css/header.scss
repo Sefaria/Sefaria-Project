@@ -164,7 +164,7 @@ $interfaces: english hebrew;
 }
 
 .textLink.libraryAssistantLink:is(:hover, :active) {
-  background: #653259; /* purple-800 */
+  background: var(--chatbot-purple-hover);
 }
 .libraryAssistantLink:focus-visible {
   outline: 2px solid var(--focus-blue);

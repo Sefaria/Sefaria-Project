@@ -162,7 +162,7 @@
   }
 }
 .textLink.libraryAssistantLink:is(:hover, :active) {
-  background: #653259; /* purple-800 */
+  background: var(--chatbot-purple-hover);
 }
 
 .libraryAssistantLink:focus-visible {

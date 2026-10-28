@@ -5,7 +5,8 @@
   --sefaria-purple: #7C416F;
   --sheets-green: #518159;
   --devportal-purple: var(--sefaria-purple); /* a distinct name for a distinct purpose, sharing the one purple */
-  --chatbot-purple: var(--sefaria-purple); /* the Library Assistant's entry points in the header and mobile menu */
+  --chatbot-purple: var(--sefaria-purple); /* the Library Assistant's entry points: the header, the mobile menu, the no-results page */
+  --chatbot-purple-hover: #653259; /* purple-800, the same entry points on hover, like the assistant's floating Ask button */
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
   --light-blue-border: #B8D3F0;  /* a light border on white, e.g. round sign-up buttons */
