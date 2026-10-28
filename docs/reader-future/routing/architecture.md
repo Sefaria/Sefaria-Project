@@ -69,6 +69,17 @@ linker (`static/js/linker.v3/`) runs on other sites and reaches the reader only 
   address bar keeps naming the verse being read ([`src/features/reader/TextPanel.tsx:168-175`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L168-L175)). No new URL grammar is needed
   unless works get several structures (open in the data-model assessment, `../CROSS_CUTTING.md`). See
   [Saved, history & notes](../user-library/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Purposeful entry is decided where the link is built, not by the reader.** Following the 2026-10-25 decision (below), the
+  links on the bookmark card, the bookshelf, `/bookmarks` and search results write the saved layout into the URL itself; table of
+  contents, citations and typed or shared URLs stay plain. The POC does exactly this ([`src/features/bookmarks/my-layout.ts:50-56`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/bookmarks/my-layout.ts#L50-L56),
+  [`src/features/search/SearchRoute.tsx:144-151`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/search/SearchRoute.tsx#L144-L151)), so a new tab, a reload or a link opened before hydration behaves the same, and
+  "a shared link opens exactly what it says" is just F1. If the reader needs to know how it was entered (analytics, offering "Open my
+  saved layout"), add an `entry` field to `NavState` ([`src/features/workspace/navigation.tsx:24-32`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/workspace/navigation.tsx#L24-L32)); it never changes what a URL
+  shows. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **New parameters stay additive.** `layout=` is written only when the arrangement is more than a plain row with default widths
+  ([`src/lib/workspace/layout-param.ts:10-14`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/workspace/layout-param.ts#L10-L14)), so legacy URLs are byte-identical; the POC's `bk=1` ("this is my layout") must be
+  dropped from every share and copy-link path (risk noted in [Saved, history & notes](../user-library/architecture.md)). "Open my
+  saved layout" is one more command for the command layer below (`openSavedLayout(work, {panel})`). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 _Items carry a status: idea · proposed · agreed · decided._
 
@@ -131,6 +142,8 @@ Integrations (product questions are in `product.md` → Open questions):
 ## Decisions
 
 - 2026-10-28 — Reader state in the new client is managed with TanStack Router; other applications must be able to update it easily, and for parity every integration event sefaria.org's reader handles keeps its effect. Akiva Berger (owner). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
+- 2026-10-25 — A bookmark's saved layout opens by itself only on purposeful entry (its bookmark, the bookshelf, a search result);
+  any other way in opens the book as usual, and "Open my saved layout" is one click away. Daniel Schreiber. [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 _Every decision is also logged in `../DECISIONS.md`._
 

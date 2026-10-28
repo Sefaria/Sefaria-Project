@@ -69,6 +69,23 @@ Implications of ideas, not decisions.
   [`src/features/reader/TextColumn.tsx:269`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/features/reader/TextColumn.tsx#L269)). — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468)
 - A word-level click or double-click handler (tap or tap-and-hold on phones) finds the word under the pointer and opens the
   lightweight lookup described in [Connections](../connections/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Segment actions in one registry** (learning workspace, PR #3892). Today a segment click is wired straight to opening the
+  sidebar ([`src/features/reader/TextPanel.tsx:228-247`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L228-L247)), and each interaction in the column is its own callback prop. The POC's
+  right-click menu is a plain UI component ([`src/ui/ContextMenu/ContextMenu.tsx:6-28`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/ui/ContextMenu/ContextMenu.tsx#L6-L28)), but its items are built inline in
+  `TextPanel` ([`src/features/reader/TextPanel.tsx:636`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/reader/TextPanel.tsx#L636)). Target: `defineAction({ id, label, icon, group, order, appliesTo(ctx), run(ctx) })`
+  with `ctx = { panel, ref, words?, selection?, link? }`. The right-click / long-press menu, the panel header, keyboard shortcuts and
+  the display menu are rendered from it, and the notice manager can offer an action as its button. Actions that navigate call the
+  command layer ([URLs & routing](../routing/architecture.md), Integrations), so a menu item, a shortcut and an integration do the
+  same thing. Bookmark here, look up, favourite commentaries, copy with citation, add to sheet, note, open in a new pane and share
+  each become one registration. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **What a click does is a choice of action.** Launch keeps "click opens the sidebar" (D6 in `TARGET_ARCHITECTURE.md`); the POC's
+  "click marks the verse in every pane; resources open from the menu or the pane header" ([`src/features/reader/TextPanel.tsx:297-308`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/reader/TextPanel.tsx#L297-L308))
+  is the same registry with another default, plus the panel link hub ([Reader shell](../reader-shell/architecture.md)). — *idea* ·
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920292160819?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Definition pop-up and saved words.** The POC's card reuses the lexicon adapter (`lexiconQueryOptions`, `entriesForCategories`,
+  [`src/features/study/DefinitionCard.tsx:4`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/study/DefinitionCard.tsx#L4)), as the lookup-surface idea above intends; it opens on a selection, where D6 chose
+  double-click, so the gesture is the action's trigger, not the lookup's. Saved words would be a list in the user-state store, and
+  showing them highlighted later is a display-model decorator (an `inline` slot below). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 _Items carry a status: idea · proposed · agreed · decided._
 
