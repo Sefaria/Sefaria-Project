@@ -43,7 +43,7 @@ describe("NoSearchResults", function () {
     it.each(["sources", "books", "authors", "topics"])("shows no button and the assistant body on %s", function (mode) {
       render(mode);
       expect(ctas()).toHaveLength(0);
-      expect(body()).toBe(`search.null.${mode}.body.library_assistant`);
+      expect(body()).toBe(`search.no_results.${mode}.body.library_assistant`);
     });
 
     it("turns the floating Ask button into the search action, asking about the query", function () {
@@ -52,7 +52,7 @@ describe("NoSearchResults", function () {
       render("sources");
       document.removeEventListener("chatbot:launcher", launcher);
       const detail = launcher.mock.calls[launcher.mock.calls.length - 1][0].detail;
-      expect(detail).toEqual({source: "search_no_results", question: "search.null.library_assistant_question"});
+      expect(detail).toEqual({source: "search_no_results", question: "search.no_results.library_assistant_question"});
     });
 
     it("puts the Ask button back when the page goes away", function () {
@@ -78,7 +78,7 @@ describe("NoSearchResults", function () {
       expect(container.querySelector(".noSearchResults-body").style.visibility).toBe("hidden");
       await act(async () => { jest.advanceTimersByTime(3000); });
       expect(ctas()).toHaveLength(1);
-      expect(body()).toBe("search.null.sources.body");
+      expect(body()).toBe("search.no_results.sources.body");
     });
   });
 
@@ -90,7 +90,7 @@ describe("NoSearchResults", function () {
       render(mode);
       expect(ctas()).toHaveLength(1);
       expect(ctas()[0].getAttribute("href")).toBe(href);
-      expect(body()).toBe(`search.null.${mode}.body`);
+      expect(body()).toBe(`search.no_results.${mode}.body`);
     });
 
     it("leaves the floating button alone", function () {

@@ -97,7 +97,7 @@ test.describe('Search with no results — assistant on: the page text (phone)', 
       // A link in the sentence isn't a button, so it doesn't count here (see nullStateButtonHrefs).
       expect(await search.nullStateButtonHrefs(), 'no button on the page itself').toEqual([]);
       await expect.poll(() => search.nullStateBodyText(), { message: 'assistant version of the text' })
-        .toBe(sefariaString(`search.null.${tab}.body.library_assistant`, LANGUAGES.EN));
+        .toBe(sefariaString(`search.no_results.${tab}.body.library_assistant`, LANGUAGES.EN));
       const phrase = sefariaString('header.library_assistant', LANGUAGES.EN);
       expect(await search.nullStateLinesUsedBy(phrase), `"${phrase}" should sit on one line`).toBe(1);
       await search.expectNullStateAssistantLink();

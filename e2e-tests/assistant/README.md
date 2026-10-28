@@ -362,7 +362,7 @@ Also test-first, same helpers as above.
 | [../support/nullStateRecorder.ts](../support/nullStateRecorder.ts) | Records every version of the "no results" box from before the page loads (LA-NULL-3) |
 
 - **"Assistant on"** is `enLAUser` / `heLAUser`; **"assistant off"** is `enUser`, which never gets the assistant.
-- **The question the button sends** is read from Sefaria's `search.null.library_assistant_question` key.
+- **The question the button sends** is read from Sefaria's `search.no_results.library_assistant_question` key.
 - **"Library Assistant" in the text is a link** (LA-NULL-16 → 18) that sends the same question as the button; the two share one "already asked". It's part of the sentence, not a button, so LA-NULL-1's "no button on the page" check leaves it out. LA-NULL-18 also needs the widget change from Sefaria/ai-chatbot#242 (commit 0efd3cf).
 - **Logged-out stories are `test.fixme` placeholders** (the logged-out rows of LA-NULL-1 and LA-NULL-16, the logged-out part of LA-NULL-17, and LA-NULL-8 → 12): the assistant doesn't load for logged-out visitors yet, and there is no free-answer count or login prompt to drive. Each placeholder lists its steps.
 

@@ -38,7 +38,7 @@ import { longAnswer } from '../support/longConversation';
  *    guaranteed. The Sources tab uses the real search, where "qqzzxxvvkk" finds nothing.
  *  - Copy is read by translation key (support/assistantStrings.ts), never by
  *    matching words. That includes the question the button sends:
- *    `search.null.library_assistant_question` (added in commit f55ec7e3bf), so we
+ *    `search.no_results.library_assistant_question` (added in commit f55ec7e3bf), so we
  *    no longer need to copy it from the story text.
  *
  * Logged-out stories LA-NULL-8 → LA-NULL-12 run as a visitor nobody logged in as
@@ -91,7 +91,7 @@ test.use({ viewport: DESKTOP });
 
 /** The question the button asks, in the given interface language, with the search filled in. */
 function searchQuestion(query: string, lang = LANGUAGES.EN): string {
-  return sefariaString('search.null.library_assistant_question', lang).replace(/\{query\}/g, query);
+  return sefariaString('search.no_results.library_assistant_question', lang).replace(/\{query\}/g, query);
 }
 
 /**
@@ -192,7 +192,7 @@ test.describe('Search with no results — assistant on: the page text (desktop)'
       // A link in the sentence isn't a button, so it doesn't count here (see nullStateButtonHrefs).
       expect(await search.nullStateButtonHrefs(), 'no button on the page itself').toEqual([]);
       await expect.poll(() => search.nullStateBodyText(), { message: 'assistant version of the text' })
-        .toBe(sefariaString(`search.null.${tab}.body.library_assistant`, LANGUAGES.EN));
+        .toBe(sefariaString(`search.no_results.${tab}.body.library_assistant`, LANGUAGES.EN));
       const phrase = sefariaString('header.library_assistant', LANGUAGES.EN);
       expect(await search.nullStateLinesUsedBy(phrase), `"${phrase}" should sit on one line`).toBe(1);
       await search.expectNullStateAssistantLink();
@@ -205,7 +205,7 @@ test.describe('Search with no results — assistant off: today\'s text and Brows
     test(`LA-NULL-2: Assistant off, ${tab} tab — one button to ${BROWSE_HREFS[tab]}, today's copy`, DESKTOP_TAGS, async ({ context }) => {
       const { search } = await openEmptySearch(context, BROWSER_SETTINGS.enUser, tab);
       expect(await search.nullStateButtonHrefs(), 'one button, the Browse link').toEqual([BROWSE_HREFS[tab]]);
-      expect(await search.nullStateBodyText()).toBe(sefariaString(`search.null.${tab}.body`, LANGUAGES.EN));
+      expect(await search.nullStateBodyText()).toBe(sefariaString(`search.no_results.${tab}.body`, LANGUAGES.EN));
     });
   }
 });
@@ -226,8 +226,8 @@ test.describe('Search with no results — no flash of the wrong version', () => 
         await search.waitForNullState();
       }
 
-      const assistantTexts = ALL_TABS.map((tab) => sefariaString(`search.null.${tab}.body.library_assistant`, LANGUAGES.EN));
-      const plainTexts = ALL_TABS.map((tab) => sefariaString(`search.null.${tab}.body`, LANGUAGES.EN));
+      const assistantTexts = ALL_TABS.map((tab) => sefariaString(`search.no_results.${tab}.body.library_assistant`, LANGUAGES.EN));
+      const plainTexts = ALL_TABS.map((tab) => sefariaString(`search.no_results.${tab}.body`, LANGUAGES.EN));
       const wrongTexts = assistantOn ? plainTexts : assistantTexts;
       const records = await readNullStateRecords(page);
 

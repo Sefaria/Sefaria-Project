@@ -13,7 +13,7 @@ const CTA_HREFS = {
 // The question the Library Assistant is asked about a search that found nothing. The floating
 // button and the link in the body must send exactly the same text, so the widget can tell
 // they're the same question and only ask it once.
-const assistantNoResultsQuestion = (query) => Sefaria._('search.null.library_assistant_question').replace(/\{query\}/g, query);
+const assistantNoResultsQuestion = (query) => Sefaria._('search.no_results.library_assistant_question').replace(/\{query\}/g, query);
 
 // true: the widget is on the page and working. false: it isn't on the page.
 // null: its element is there but its script hasn't defined it yet (still loading, or failed).
@@ -52,8 +52,8 @@ function linkAssistantName(text, query) {
 }
 
 function NoSearchResults({ mode, query }) {
-  const key = (type) => `search.null.${mode}.${type}`;
-  const heading = Sefaria._(key('h1')).replace(/\[query\]|\{userquery\}/g, query);
+  const key = (type) => `search.no_results.${mode}.${type}`;
+  const heading = Sefaria._(key('h1')).replace(/\{query\}/g, query);
   // Only offer the assistant when its widget is on the page and working (checked after mount:
   // SSR has no document), and don't show either version until that's known, so switching tabs
   // never flashes the browse button. Once the app is running, a new tab can check straight away;
