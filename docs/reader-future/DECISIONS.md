@@ -5,6 +5,7 @@ explicit "this is decided" in a thread), and mirrored in the area's own Decision
 
 | Date | Area | Decision | Decided by | Source |
 |---|---|---|---|---|
+| 2026-10-28 | text-display (cross-cutting) | Dark mode is a supported feature of the future reader, on desktop and mobile. | Akiva Berger (owner); mobile and priority stressed by Sarah Kreitman | [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468) |
 | 2026-10-06 | routing | Legacy URLs are read and written exactly as sefaria.org writes them, including its numbering (a sidebar takes a panel number slot). | Akiva (owner) | Claude Code session; recorded in `reader-next/docs/MULTIPANEL_PLAN.md` §3 |
 | 2026-10-06 | reader-shell | A citation in the text closes whatever is next to its panel and opens there, exactly as sefaria.org. | Akiva (owner) | `reader-next/docs/MULTIPANEL_PLAN.md` §3 |
 | 2026-10-06 | platform-seo | The new client replaces the legacy Node SSR server: page requests reach it first; it passes Django's pages, writes and its own 404s to Varnish. | Akiva (owner) | `reader-next/docs/DEPLOYMENT.md` |

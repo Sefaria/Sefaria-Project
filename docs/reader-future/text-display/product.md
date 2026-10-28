@@ -4,8 +4,8 @@ title: Text display & reading settings
 domain: Reader
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-28
 ---
 # Text display & reading settings — product specification
 
@@ -19,23 +19,31 @@ _Not discussed yet._
 
 ## Who it is for and what they need
 
-_Not discussed yet._
+- Readers want a dark theme, on phones as much as on desktop; the team treats it as a high user priority. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468)
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Dark mode is a supported reading theme: readers can read in dark mode, and the reader is designed and tested for it. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · TXD-039 · SHL-006
+- Dark mode covers mobile: the phone (single-panel, responsive) reader is themed as fully as desktop. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468) · PLT-019
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **Change**: dark mode goes from a hidden hook to a supported feature. On sefaria.org the reader has light, sepia and dark styles but no control to choose them; only a pre-existing `color` cookie turns them on (TXD-039, SHL-006, both tiered *optional* by the audit). In the future reader it is a supported feature with a control. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949)
 
 ## Open questions
 
-_None yet._
+- **Default and control.** Follow the device setting (`prefers-color-scheme`) by default, an explicit choice, or both (light · dark · system)? Does sepia stay as a third theme?
+- **Scope.** Only the reader panels (as on sefaria.org today), or every page (header, library, search, topics, sheets, account)?
+- **Saving the choice.** Per browser (cookie, as today) or on the user's account, so it follows them across devices and the app?
+- **Content we do not control.** Sheets with inline colours, images, manuscripts and diagrams, and embedded or linker content: shown as authored, adapted, or framed on a light surface?
 
 ## Decisions
 
-_None yet. Every decision is also logged in `../DECISIONS.md`._
+- 2026-10-28 — Dark mode is a supported feature of the future reader, on desktop and mobile. Akiva Berger (owner). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468)
+
+_Every decision is also logged in `../DECISIONS.md`._
 
 ## Parked ideas
 

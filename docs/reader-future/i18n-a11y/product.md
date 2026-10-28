@@ -4,8 +4,8 @@ title: Language & accessibility
 domain: Site & accounts
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-28
 ---
 # Language & accessibility — product specification
 
@@ -23,7 +23,9 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Dark mode is a supported theme, so accessibility checks (text and control contrast, visible focus) cover dark as well as light. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · see `../text-display/product.md`
 
 ## Changes from today (keep · change · drop · new)
 
