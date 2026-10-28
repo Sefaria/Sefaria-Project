@@ -357,8 +357,8 @@ jobs:
   # credentials.
   #
   # The corpus tests are split across parallel shards, each with its own restored
-  # Mongo. Shards "ref" and "chunk-text" own explicit files (the slowest ones, so
-  # the work is balanced); shard "rest" takes everything else by --ignoring those
+  # Mongo. Shards "category-search", "linking" and "model" own explicit files (balanced
+  # from the --durations tables of CI run 40683490931); shard "rest" takes everything else by --ignoring those
   # files, so a new needs_corpus test file lands in a shard without editing this
   # list. Rebalance from the `--durations` table each shard prints. The parity
   # check (scripts/test_impact/ci_parity.py) expands this matrix, so the union of
@@ -375,11 +375,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - shard: ref
-            paths: sefaria/model/tests/ref_test.py sefaria/model/tests/topic_test.py
-            ignore: ""
-          - shard: chunk-text
+          - shard: category-search
             paths: >-
+              sefaria/model/tests/category_test.py
+              sefaria/tests/search_dependencies_test.py
+              sefaria/tests/summaries_test.py
+            ignore: ""
+          - shard: linking
+            paths: >-
+              sefaria/helper/tests/auto_linking_test.py
+              sefaria/tests/links_test.py
+              sefaria/tests/texts_test.py
+            ignore: ""
+          - shard: model
+            paths: >-
+              sefaria/model/tests/ref_test.py
+              sefaria/model/tests/topic_test.py
               sefaria/model/tests/chunk_test.py
               sefaria/model/tests/text_test.py
               sefaria/model/tests/lexicon_test.py
@@ -389,6 +400,12 @@ jobs:
           - shard: rest
             paths: ./sefaria ./sso ./reader ./powered_by
             ignore: >-
+              --ignore=sefaria/model/tests/category_test.py
+              --ignore=sefaria/tests/search_dependencies_test.py
+              --ignore=sefaria/tests/summaries_test.py
+              --ignore=sefaria/helper/tests/auto_linking_test.py
+              --ignore=sefaria/tests/links_test.py
+              --ignore=sefaria/tests/texts_test.py
               --ignore=sefaria/model/tests/ref_test.py
               --ignore=sefaria/model/tests/topic_test.py
               --ignore=sefaria/model/tests/chunk_test.py
@@ -415,7 +432,7 @@ jobs:
         run: bash build/ci/restore-test-mongo.sh
       - name: Run corpus pytest tests
         run: >
-          python -m pytest -q --reuse-db --durations=15
+          python -m pytest -q --reuse-db --durations=40
           -m "needs_corpus and not deep and not failing"
           ${{ matrix.ignore }} ${{ matrix.paths }}
 
