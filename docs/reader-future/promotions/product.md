@@ -4,8 +4,8 @@ title: Promotions & CMS
 domain: Site & accounts
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-16
 ---
 # Promotions & CMS — product specification
 
@@ -23,7 +23,10 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- The number of pop-ups and banners a reader sees is limited, across all kinds (CMS messages, donation asks, prompts). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468) · PRM-013, PRM-014
+- Pop-ups and banners can close on their own after a time. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468) · PRM-010, PRM-011
+- Readers may get a place to control which pop-ups and banners they see. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- How this could be built: [architecture → Target architecture](architecture.md#target-architecture) (one notice manager).
 
 ## Changes from today (keep · change · drop · new)
 
@@ -31,7 +34,7 @@ _Not discussed yet._
 
 ## Open questions
 
-_None yet._
+- Which messages are never limited (cookie consent, a sign-up prompt after the reader pressed Save)? · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Decisions
 

@@ -4,8 +4,8 @@ title: Global UI
 domain: Site & accounts
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-16
 ---
 # Global UI — architecture
 
@@ -23,11 +23,13 @@ _Not discussed yet: how `master` does it, how `reader-next` does it, and what di
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- The `Modal`, cookie notice and sign-up modal are shown through the notice manager in
+  [Promotions & CMS](../promotions/architecture.md#target-architecture), not mounted by each feature, so caps, auto-close and
+  "don't show again" apply to them too. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [Promotions & CMS](../promotions/architecture.md): the notice manager for pop-ups and banners.
 
 ## Risks and open questions
 
