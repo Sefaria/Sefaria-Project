@@ -20,6 +20,13 @@
   justify-content: space-between;
   gap: 8px;
 }
+.sefaria-input-labelGroup {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
 .sefaria-input-label {
   font-size: 14px;
   line-height: 1.3;
@@ -77,6 +84,12 @@
 .sefaria-input--error .sefaria-input-control {
   border-color: #c03522;
 }
+.sefaria-input--readonly .sefaria-input-control, .sefaria-input--readonly .sefaria-input-control:hover {
+  background: #f5f5f5;
+  border-color: #e6e6e6;
+  color: #121212;
+  cursor: default;
+}
 .sefaria-input-reveal {
   position: absolute;
   inset-inline-end: 12px;
@@ -98,6 +111,41 @@
   height: 20px;
   display: block;
 }
+.sefaria-input-control--multiline {
+  height: auto;
+  min-height: 96px;
+  padding: 12px 16px;
+  resize: vertical;
+  font-family: inherit;
+}
+.sefaria-input-field.has-addon .sefaria-input-control {
+  padding-inline-end: 64px;
+}
+.sefaria-input-field.has-addon .sefaria-input-control--multiline {
+  padding-inline-end: 16px;
+  padding-bottom: 28px;
+}
+.sefaria-input-fieldAddon {
+  position: absolute;
+  inset-inline-end: 12px;
+  bottom: 8px;
+  pointer-events: none;
+  font-size: 12px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  color: #707070;
+}
+.sefaria-input-field.has-addon:not(:has(textarea)) .sefaria-input-fieldAddon {
+  bottom: auto;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.sefaria-input-hint {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #575757;
+}
 .sefaria-input-error {
   display: flex;
   align-items: center;
@@ -110,6 +158,215 @@
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+}
+
+.sefaria-select {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.sefaria-select-labelRow {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.sefaria-select-label {
+  font-size: 14px;
+  line-height: 18px;
+  color: #121212;
+}
+.sefaria-select-field {
+  position: relative;
+}
+.sefaria-select-control {
+  width: 100%;
+  box-sizing: border-box;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 16px;
+  border: 1px solid #e6e6e6;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #121212;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  text-align: start;
+  cursor: pointer;
+}
+.sefaria-select-control:hover:not(:disabled) {
+  border-color: var(--medium-grey-legacy);
+}
+.sefaria-select-control:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+.sefaria-select-control.is-placeholder {
+  color: var(--medium-grey-legacy);
+  font-size: 14px;
+}
+.sefaria-select-control:disabled {
+  background: #e6e6e6;
+  border-color: #999999;
+  color: #707070;
+  cursor: not-allowed;
+}
+.sefaria-select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sefaria-select-chevron {
+  flex: 0 0 16px;
+  color: #121212;
+  transition: transform 0.15s;
+}
+.sefaria-select.is-open .sefaria-select-chevron {
+  transform: rotate(180deg);
+}
+.sefaria-select--disabled .sefaria-select-chevron {
+  color: #999999;
+}
+.sefaria-select--disabled .sefaria-select-label {
+  color: #707070;
+}
+.sefaria-select--error .sefaria-select-control {
+  border-color: #c03522;
+}
+.sefaria-select-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  inset-inline: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.sefaria-select-item {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 16px;
+  font-size: 14px;
+  line-height: 21px;
+  color: #121212;
+  cursor: pointer;
+}
+.sefaria-select-item.is-active {
+  background: #eeeeee;
+}
+.sefaria-select-item.is-chosen {
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sefaria-select-chevron {
+    transition: none;
+  }
+}
+.sefaria-checkbox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sefaria-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 24px;
+  cursor: pointer;
+}
+.sefaria-checkbox-box {
+  position: relative;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+.sefaria-checkbox-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.sefaria-checkbox-input:disabled {
+  cursor: not-allowed;
+}
+.sefaria-checkbox-icon {
+  position: absolute;
+  inset: 0;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  color: #6f6f6f;
+}
+.sefaria-checkbox-icon--on {
+  display: none;
+  color: #18345d;
+}
+.sefaria-checkbox-input:checked ~ .sefaria-checkbox-icon--off {
+  display: none;
+}
+.sefaria-checkbox-input:checked ~ .sefaria-checkbox-icon--on {
+  display: block;
+}
+.sefaria-checkbox-input:hover:not(:disabled) ~ .sefaria-checkbox-icon--off {
+  color: #121212;
+}
+.sefaria-checkbox-input:focus-visible ~ .sefaria-checkbox-icon {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.sefaria-checkbox-input:disabled ~ .sefaria-checkbox-icon {
+  color: #999999;
+}
+.sefaria-checkbox-label {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #121212;
+}
+.sefaria-checkbox-label a {
+  color: var(--sefaria-blue);
+  text-decoration: underline;
+}
+.sefaria-checkbox-description, .sefaria-checkbox-error {
+  margin: 0;
+  padding-inline-start: 30px;
+}
+.sefaria-checkbox-description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #575757;
+}
+.sefaria-checkbox--error .sefaria-checkbox-icon {
+  color: #c03522;
+}
+.sefaria-checkbox--disabled .sefaria-checkbox-row {
+  cursor: not-allowed;
+}
+.sefaria-checkbox--disabled .sefaria-checkbox-label {
+  color: var(--medium-grey-legacy);
 }
 
 button.sefaria-common-button.auth-primary,
@@ -163,5 +420,3 @@ button.sefaria-common-button.auth-primary:disabled {
   height: 18px;
   flex: 0 0 18px;
 }
-
-/*# sourceMappingURL=common-component.css.map */

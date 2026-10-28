@@ -9686,7 +9686,7 @@ a .button:hover {
 
 }
 .button.extraSmall.reviewState.notReviewed {
-  background-color: #CB6158;
+  background-color: var(--responsa-red);
 }
 .button.extraSmall.reviewState.edited {
   background-color: #C3EB34;
@@ -15036,7 +15036,7 @@ span.ref-link-color-3 {color: blue}
   background-image: url("/static/img/mute.svg");
 }
 .beitMidrashContainer .muted .muteButton {
-  background-color: #CB6158;
+  background-color: var(--responsa-red);
 }
 
 .beitMidrashContainer #buttonHolder {
@@ -15054,7 +15054,7 @@ span.ref-link-color-3 {color: blue}
   height: 30px;
   border-radius: 6px;
   z-index: 1;
-  background-color: #CB6158;
+  background-color: var(--responsa-red);
   left: -8.5px;
   top: -3px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
@@ -15457,7 +15457,7 @@ span.ref-link-color-3 {color: blue}
   height: 30px;
   border-radius: 6px;
   z-index: 1;
-  background-color: #CB6158;
+  background-color: var(--responsa-red);
   left: -8.5px;
   top: -3px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
@@ -17093,7 +17093,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .readerNavMenu.settingsPage .content .contentInner {
   width: auto;
   max-width: none;
-  padding: 60px 20px 100px 100px;
+  padding: 32px 20px 100px 40px; /* top was 60px: the gap under the site header; left was 100px */
   margin: 0;
 }
 /* The account tab renders inside a reader panel, where static.css is not served and
@@ -17428,13 +17428,14 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
    beside the panel of the tab that is open. */
 .settingsShell {
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
+  grid-template-columns: 224px minmax(0, 1fr);   /* fits "Developer settings" beside its icon on one line */
   gap: 40px;
   align-items: start;
-  max-width: 890px;
+  max-width: 1160px;   /* was 924px: room for the developer table */
 }
 .settingsPanels { min-width: 0; }
 .settingsPanel > .devPocPage { max-width: 660px; }
+.settingsPanel > .devPocPage.devE { max-width: 896px; }
 .settingsNav {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -17442,28 +17443,37 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   font-size: 16px;
   text-align: start;
 }
+/* Same style as the page headings beside it ("Account Settings", "Developer Settings"). */
 .settingsNavTitle {
-  padding: 0 14px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #999;
+  padding: 0 12px 12px;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 100%;
+  color: var(--dark-grey);
 }
+/* Icon + label rows, after the Coinbase side nav. Design system tokens in comments. */
+.settingsNav { display: flex; flex-direction: column; gap: 4px; /* spacing-xsmall */ }
 .settingsNav a {
-  display: block;
-  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;                      /* spacing-medium */
+  padding: 12px;                  /* spacing-medium */
+  border-radius: 8px;
   font-size: 16px;
-  border-inline-start: 3px solid #dce0e4;
+  font-weight: 500;
+  line-height: 1.4;               /* en-system-body */
   text-decoration: none;
-  color: #18345d;
+  color: #121212;                 /* text-primary */
 }
-.settingsNav a:hover { background: #f4f7fa; }
+.settingsNav a:hover { background: #eeeeee; /* surface-hover */ }
+.settingsNav a:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; /* functional-focus-blue */ }
 .settingsNav a[aria-current="page"] {
-  background: #eaf0f6;
-  border-inline-start-color: #18345d;
+  background: #f2f5fa;            /* surface-selected */
+  color: #18345d;                 /* action-primary */
   font-weight: 600;
 }
+.settingsNavIcon { flex: 0 0 18px; width: 18px; height: 18px; /* icon size 18 */ }
+.settingsNav a { white-space: nowrap; }
 /* Marks what a deep link pointed at: a background that fades out once. */
 .settingsHighlight { animation: settingsHighlight 2.4s ease-out; }
 @keyframes settingsHighlight {
@@ -17475,7 +17485,15 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 }
 
 .devPocPageHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s4); }
-.devPocPageHeader h1 { font-size: 26px; font-weight: 600; margin-bottom: var(--devPoc-s1); }
+/* Same heading as the Account settings tab (#accountSettingsPage .headerWithButtons h1). */
+.devPocPage .devPocPageHeader h1 {
+  font-family: var(--english-sans-serif-font-family);
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 100%;
+  color: var(--dark-grey);
+  margin-bottom: var(--devPoc-s1);
+}
 .devPocPageHeader p { color: var(--devPoc-muted); }
 .devPocPageHeader p.devPocExportNote { margin-top: var(--devPoc-s1); font-size: 14px; }
 .devPocExportNote a { color: inherit; text-decoration: underline; }
@@ -17705,17 +17723,14 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   height: 18px;
   margin: 1px 0 0;
   padding: 0;
-  border: 1px solid #8a939c;
-  border-radius: 50%;
+  border: 0;
   background: transparent;
-  color: #626971;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 700;
+  color: #575757; /* text-secondary (the icon's stroke) */
   line-height: 1;
   cursor: pointer;
 }
-.devPocInfoButton:hover { border-color: var(--devPoc-blue); color: var(--devPoc-blue); }
+.devPocInfoButton svg { display: block; width: 18px; height: 18px; } /* DS icon size 18 */
+.devPocInfoButton:hover { color: #18345d; /* action-primary */ }
 .devPocTextButton {
   border: 0;
   padding: 0;
@@ -17770,7 +17785,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocField > label { display: block; height: auto; min-height: 0; margin: 0 0 var(--devPoc-s1); font-size: 14px; font-weight: 500; line-height: 1.5; }
 .devPocLabelRow { display: flex; align-items: center; gap: 4px; margin-bottom: var(--devPoc-s1); }
 .devPocLabelRow > label { margin-bottom: 0; }
-.devPocField input, .devPocField select, .devPocField textarea {
+.devPocField input:not(.sefaria-input-control), .devPocField select, .devPocField textarea {
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -17915,12 +17930,13 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 
 @media (max-width: 760px) {
   .settingsShell { display: block; max-width: none; }
-  .readerNavMenu.settingsPage .content .contentInner { padding: 40px 16px 60px; }
+  .readerNavMenu.settingsPage .content .contentInner { padding: 24px 16px 60px; }
   .settingsNav { display: flex; flex-wrap: wrap; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
   .settingsNavTitle { width: 100%; padding: 0 0 8px; }
-  .settingsNav a { border-inline-start: 0; border-bottom: 3px solid transparent; padding: 10px; }
+  .settingsNav { flex-direction: row; gap: 4px; }
+  .settingsNav a { gap: 8px; padding: 10px 12px; border-radius: 0; border-bottom: 3px solid transparent; }
   .settingsNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
-  .devPocPageHeader h1 { font-size: 22px; }
+  .settingsNavIcon { flex-basis: 18px; width: 18px; height: 18px; }
   .devPocPageHeader { flex-direction: column; gap: var(--devPoc-s2); }
   .devPocResult { flex-wrap: wrap; }
   .devPocProjectHeader { padding: var(--devPoc-s2); }
@@ -17999,3 +18015,469 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocMockEmail h2 { font-size: 20px; margin: 8px 0 12px; }
 .devPocMockEmailMeta { font-size: 12px; color: #626971; margin: 0; }
 .devPocMockEmailFoot { font-size: 12px; color: #626971; margin-top: 16px; }
+
+/* Developer settings setup (design trial): the entry state and "About you" as one white card in
+   the sign-in pages' style, built from the Sefaria Product Design tokens. Token names are in
+   the comments; the codebase has no variables for most of them. */
+.devPocPage .devSetupPageHeader { margin-bottom: 24px; /* spacing-2xlarge */ }
+.devPocPage .devSetup {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* spacing-3xlarge */
+  padding: 48px 40px; /* spacing-5xlarge, spacing-4xlarge */
+  background: #ffffff; /* surface-page */
+  border: 1px solid #ededec; /* border-width-thin, border-default */
+  border-radius: 16px; /* the sign-in card's radius */
+  box-shadow: 0 8px 16px 0 rgba(31, 31, 31, 0.05), 0 1px 2px 0 rgba(31, 31, 31, 0.04), 0 0 10px -1px rgba(83, 83, 83, 0.04); /* shadow-small */
+  color: #121212; /* text-primary */
+  font-size: 16px;
+  line-height: 1.4; /* en-system-body-regular */
+}
+.devPocPage .devSetupBack {
+  position: absolute;
+  top: 16px;
+  inset-inline-start: 16px;
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.devPocPage .devSetupBack:hover { background: #eeeeee; /* surface-hover */ }
+.devPocPage .devSetupBack:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; /* functional-focus-blue */ }
+.devPocPage .devSetupBack img { width: 24px; height: 24px; display: block; }
+.interface-hebrew .devPocPage .devSetupBack img { transform: scaleX(-1); }
+.devPocPage .devSetupBack + .devSetupHeader { padding-top: 24px; }
+.devPocPage .devSetupHeader { display: flex; flex-direction: column; gap: 12px; /* spacing-medium */ }
+.devPocPage .devSetupTitle {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-family: var(--english-serif-font-family);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.4; /* en-content-h2 */
+  color: #121212; /* text-primary */
+}
+.devPocPage .devSetupTitle:focus { outline: none; } /* a programmatic focus target only */
+.devPocPage .devSetupLead { font-size: 16px; line-height: 1.5; color: #575757; /* text-secondary */ }
+.devPocPage .devSetupLead strong { color: #121212; font-weight: 600; }
+.devPocPage .devSetupNote { font-size: 14px; line-height: 1.5; color: #575757; /* en-system-small, text-secondary */ }
+.devPocPage .devSetupNote:empty { display: none; }
+
+/* The three steps: a plain list on the way in, a progress row while setting up. */
+.devPocPage .devSetupSteps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* spacing-large */
+  margin: 0;
+  padding: 20px 24px; /* spacing-xlarge, spacing-2xlarge */
+  background: #fafafa; /* surface-subtle */
+  border-radius: 12px;
+}
+.devPocPage .devSetupStep { display: flex; align-items: center; gap: 12px; }
+.devPocPage .devSetupStepNum {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e4eaf3; /* surface-highlighted (navy-200) */
+  color: #18345d; /* action-primary */
+  font-size: 14px;
+  font-weight: 600;
+}
+.devPocPage .devSetupStepNum svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.devPocPage .devSetupStepLabel { font-size: 16px; color: #121212; }
+
+.devPocPage .devSetupSteps--compact {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 0;
+  background: none;
+  order: -1; /* sits above the heading */
+}
+/* a short rule between steps */
+.devPocPage .devSetupSteps--compact .devSetupStep + .devSetupStep::before {
+  content: "";
+  width: 24px;
+  height: 1px;
+  margin-inline-end: 4px;
+  background: #cccccc; /* gray-300 */
+}
+.devPocPage .devSetupSteps--compact .devSetupStepNum { flex-basis: 24px; width: 24px; height: 24px; font-size: 12px; }
+.devPocPage .devSetupSteps--compact .devSetupStepLabel { font-size: 14px; color: #575757; }
+.devPocPage .devSetupSteps--compact .is-current .devSetupStepNum { background: #18345d; color: #ffffff; /* action-primary, text-inverse */ }
+.devPocPage .devSetupSteps--compact .is-current .devSetupStepLabel { color: #121212; font-weight: 600; }
+.devPocPage .devSetupSteps--compact .is-next .devSetupStepNum { background: #ffffff; color: #707070; box-shadow: inset 0 0 0 1px #cccccc; /* text-muted, gray-300 */ }
+
+.devPocPage .devSetupEntry .sefaria-common-button.auth-primary,
+.devPocPage .devSetup .sefaria-common-button.fullwidth { height: 51px; /* the sign-in button */ }
+.devPocPage .devSetupActions { display: flex; flex-direction: column; gap: 8px; }
+/* Secondary button: an outline version of auth-primary. */
+.devPocPage button.sefaria-common-button.devSetupSecondary {
+  background: #ffffff;
+  border: 1.5px solid #18345d; /* border-width-medium, action-primary */
+  border-radius: 4px;
+  color: #18345d;
+  font-size: 16px;
+  font-weight: 600; /* en-system-body-strong */
+}
+.devPocPage button.sefaria-common-button.devSetupSecondary * { color: #18345d; }
+.devPocPage button.sefaria-common-button.devSetupSecondary:hover { background: #f2f5fa; /* surface-selected */ }
+.devPocPage .devSetup .sefaria-common-button:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+
+.devPocPage .devSetupLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 14px;
+  color: #575757;
+}
+.devPocPage .devSetupLinks a { display: inline-flex; align-items: center; gap: 4px; color: #575757; text-decoration: underline; }
+.devPocPage .devSetupLinks a:hover { color: #121212; }
+.devPocPage .devSetupLinksDot { color: #999999; }
+
+.devPocPage .devSetupLoading { flex-direction: row; align-items: center; gap: 12px; }
+
+/* About you */
+.devPocPage .devSetupForm { display: flex; flex-direction: column; gap: 32px; }
+.devPocPage .devSetupForm .sefaria-auth-fields { display: flex; flex-direction: column; gap: 24px; }
+.devPocPage .devSetupAccount {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 20px;
+  background: #fafafa; /* surface-subtle */
+  border-radius: 12px;
+}
+.devPocPage .devSetupAccountLabel { font-size: 12px; line-height: 20px; color: #575757; margin-bottom: 4px; /* en-system-caption */ }
+.devPocPage .devSetupAccountName { font-size: 16px; font-weight: 600; color: #121212; }
+.devPocPage .devSetupAccountEmail { font-size: 16px; color: #121212; }
+.devPocPage .devSetupAccount .devSetupNote { margin-top: 8px; }
+.devPocPage .devSetupOptional { font-size: 12px; font-weight: 400; color: #707070; /* en-system-caption, text-muted: 12px is the smallest DS size; #707070 is the lightest grey that still passes AA for text */ }
+.devPocPage .devSetupLegal {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 24px;
+  border-top: 1px solid #ededec; /* border-default */
+}
+
+@media (max-width: 760px) {
+  .devPocPage .devSetup { padding: 40px 20px 24px; gap: 24px; border-radius: 12px; }
+  .devPocPage .devSetupTitle { font-size: 24px; /* en-content-h3 */ }
+  .devPocPage .devSetupSteps { padding: 16px; }
+  .devPocPage .devSetupSteps--compact { padding: 0; }
+}
+/* the page's p reset would otherwise remove the checkbox text's indent */
+.devPocPage .sefaria-checkbox-description,
+.devPocPage .sefaria-checkbox-error { padding-inline-start: 30px; }
+
+/* ---- Developer settings, design trial E ----
+   Setup steps after OpenAI's onboarding, the home after the Coinbase keys page.
+   Values are Sefaria Product Design tokens (names in comments); the codebase has no variables for them. */
+.devPocPage.devE { max-width: 760px; }
+.devPocPage .devE-pageHeader { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 32px; }
+.devPocPage .devE-docs { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #18345d; }
+
+/* steps */
+.devPocPage .devE-wrap { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 8px 0 40px; }
+.devPocPage .devE-dots { display: flex; gap: 8px; /* spacing-small */ }
+.devPocPage .devE-dots span { width: 24px; height: 4px; border-radius: 2px; background: #ededec; /* border-default */ }
+.devPocPage .devE-dots span.on { background: #121212; /* text-primary */ }
+.devPocPage .devE-back { align-self: flex-start; border: 0; background: none; padding: 8px; margin-inline-start: -8px; border-radius: 4px; font: 500 14px/1 var(--english-sans-serif-font-family); color: #18345d; cursor: pointer; }
+.devPocPage .devE-back:hover { background: #f2f5fa; /* surface-selected */ }
+.devPocPage .devE-card { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 24px; }
+.devPocPage .devE-head { display: flex; flex-direction: column; align-items: center; gap: 12px; /* spacing-medium */ text-align: center; }
+.devPocPage .devE-ico { width: 48px; height: 48px; border-radius: 8px; border: 1px solid #ededec; display: grid; place-items: center; font: 600 14px/1 ui-monospace, Menlo, monospace; color: #18345d; background: #fff; }
+.devPocPage .devE-ico.ok { background: #eaf3ec; border-color: #eaf3ec; color: #1f4d29; font-size: 18px; }
+.devPocPage .devE-title { margin: 0; font-family: var(--english-sans-serif-font-family); font-size: 22px; font-weight: 400; line-height: 1.4; color: #121212; text-wrap: balance; /* en-system-h3, text-primary */ }
+.devPocPage .devE-title:focus { outline: none; }
+.devPocPage .devE-lead { margin: 0; font-size: 16px; line-height: 1.5; color: #575757; /* text-secondary */ }
+.devPocPage .devE-signed { margin: 8px 0 0; /* with the head gap: 16px under the title */ padding: 8px 16px; border-radius: 8px; background: #fafafa; /* surface-subtle */ font-size: 14px; color: #575757; }
+.devPocPage .devE-signed strong { color: #121212; font-weight: 600; }
+.devPocPage .devE-form { display: flex; flex-direction: column; gap: 20px; }
+.devPocPage .devE-form .sefaria-common-button.fullwidth { height: 51px; }
+.devPocPage .devE-legal { margin: -8px 0 0; text-align: center; font-size: 14px; line-height: 1.5; color: #575757; }
+.devPocPage .devE-legal a { color: #18345d; text-decoration: underline; }
+.devPocPage .devE-hint { margin: 0; font-size: 14px; line-height: 1.5; color: #575757; }
+.devPocPage .devE-textBtn { align-self: center; border: 0; background: none; padding: 4px; font: 500 14px/1.4 var(--english-sans-serif-font-family); color: #18345d; cursor: pointer; }
+.devPocPage .devE-textBtn:hover { color: #132b4c; text-decoration: underline; }
+.devPocPage .devE-start { align-self: flex-start; }
+.devPocPage .devE-select { appearance: auto; -webkit-appearance: auto; cursor: pointer; }
+.devPocPage .devE-countField { display: flex; flex-direction: column; gap: 4px; }
+.devPocPage .devE-count { align-self: flex-end; font: 400 12px/20px var(--english-sans-serif-font-family); font-variant-numeric: tabular-nums; color: #707070; /* en-system-caption, text-muted */ }
+.devPocPage .devE-keyRow { display: flex; align-items: center; gap: 8px; }
+.devPocPage .devE-mono { font-family: ui-monospace, Menlo, monospace; font-size: 14px; min-width: 0; }
+.devPocPage .devE-keyCopy { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 0; border-radius: 4px; background: none; color: #6f6f6f; cursor: pointer; /* icon-muted */ }
+.devPocPage .devE-keyCopy:hover { background: #eee; color: #121212; }
+.devPocPage .devE-keyCopy:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-keyCopied { flex: none; min-width: 56px; font: 400 14px/18px var(--english-sans-serif-font-family); color: #518159; /* feedback-success */ }
+.devPocPage .devE-try { display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid #ededec; border-radius: 12px; }
+.devPocPage .devE-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.devPocPage .devE-tabs button { border: 0; background: none; padding: 8px 12px; border-radius: 4px; font: 500 14px/18px var(--english-sans-serif-font-family); color: #575757; cursor: pointer; }
+.devPocPage .devE-tabs button[aria-selected="true"] { background: #f2f5fa; color: #18345d; }
+.devPocPage .devE-code { margin: 0; padding: 12px 16px; background: #fafafa; /* surface-subtle */ border-radius: 8px; overflow-x: auto; font: 400 12px/20px ui-monospace, Menlo, monospace; color: #121212; white-space: pre; text-align: left; }
+.devPocPage .devE-danger { padding-top: 20px; border-top: 1px solid #ededec; display: flex; flex-direction: column; gap: 12px; }
+.devPocPage .devE-danger p { margin: 0; font-size: 14px; }
+.devPocPage .devE-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.devPocPage .devE-red { color: #c03522 !important; /* feedback-error */ }
+.devPocPage .devE-muted { color: #707070 !important; }
+
+/* pills */
+.devPocPage .devE-pill { height: 40px; padding: 0 16px; border-radius: 4px; border: 1.5px solid #18345d; background: #18345d; color: #fff; /* action-primary, text-inverse; radius as auth-primary */ font: 600 14px/1 var(--english-sans-serif-font-family); cursor: pointer; white-space: nowrap; }
+.devPocPage .devE-pill:hover { background: #132b4c; border-color: #132b4c; /* action-primary-hover */ }
+.devPocPage .devE-pillSec { background: #ffffff; border-color: #575757; color: #575757; /* surface-page, action-secondary */ }
+.devPocPage .devE-pillSec:hover { background: #eeeeee; border-color: #333333; color: #333333; /* surface-hover, action-secondary-hover */ }
+.devPocPage .devE-pillDanger { background: #c03522; border-color: #c03522; /* feedback-error-border: the DS has no danger action token */ }
+.devPocPage .devE-pillDanger:hover { background: #a02c1c; border-color: #a02c1c; /* red-800 primitive */ }
+.devPocPage .devE-pill:disabled { background: #ededec; border-color: #ededec; color: #999999; cursor: not-allowed; /* text-disabled */ }
+.devPocPage .devE-wide { width: 100%; height: 48px; }
+.devPocPage .devE-pill:focus-visible, .devPocPage .devE-link:focus-visible, .devPocPage .devE-textBtn:focus-visible,
+.devPocPage .devE-back:focus-visible, .devPocPage .devE-ico:focus-visible, .devPocPage .devE-tabs button:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+
+/* home */
+.devPocPage .devE-home { display: flex; flex-direction: column; }
+.devPocPage .devE-toast { display: flex; align-items: center; gap: 8px; padding: 12px 16px; margin-bottom: 24px; border-radius: 8px; border: 1px solid #ededec; background: #fafafa; color: #121212; font-size: 14px; /* surface-subtle, border-default, text-primary */ }
+.devPocPage .devE-toastText { flex: 1; min-width: 0; }
+.devPocPage .devE-toastIcon { flex: 0 0 auto; width: 16px; height: 16px; color: #518159; font-weight: 700; /* feedback-success */ }
+.devPocPage .devE-toastWarn { background: #f9ebe9; border-color: #c03522; color: #c03522; /* feedback-error-background, -border, -text */ }
+.devPocPage .devE-toast .devE-textBtn { color: #18345d; }
+.devPocPage .devE-profile { margin: 0 0 32px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 14px; color: #575757; }
+.devPocPage .devE-profile .devE-link { margin-inline-start: 8px; }
+.devPocPage .devE-profileEdit { margin-bottom: 32px; padding: 20px; border: 1px solid #ededec; border-radius: 12px; }
+.devPocPage .devE-profileEdit h2 { margin-bottom: 16px; }
+.devPocPage .devE-link { border: 0; background: none; padding: 0; font: 500 14px/1.4 var(--english-sans-serif-font-family); color: #18345d; cursor: pointer; text-decoration: none; }
+.devPocPage .devE-link:hover { color: #132b4c; text-decoration: underline; /* text-link-hovered */ }
+.devPocPage .devE-dot { color: #cccccc; }
+/* trial E: the whole home reads as one table (toolbar, column heads, project group rows, key rows) */
+.devPocPage .devE-board { border: 1px solid #ededec; border-radius: 8px; background: #ffffff; /* border-default, surface-page */ }
+.devPocPage .devE-boardTop { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px 24px; flex-wrap: wrap; padding: 20px 16px; }
+.devPocPage .devE-boardTop > div { flex: 1 1 320px; min-width: 0; }
+.devPocPage .devE-h { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+.devPocPage .devE-sub { margin: 0; font-size: 14px; line-height: 1.5; color: #575757; max-width: 62ch; }
+.devPocPage .devE-sub code, .devPocPage .devE-sub .devE-link { font-size: 14px; }
+.devPocPage .devE-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px 16px 32px; border-top: 1px solid #ededec; }
+.devPocPage .devE-empty h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.devPocPage .devE-empty p { margin: 0 0 8px; font-size: 14px; color: #575757; }
+.devPocPage .devE-tableWrap { overflow: visible; /* lets the column tip show; the table stacks on narrow screens instead of scrolling */ }
+.devPocPage .devE-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.devPocPage .devE-table thead th { text-align: start; font: 500 12px/20px var(--english-sans-serif-font-family); color: #575757; padding: 8px 16px; white-space: nowrap; border-top: 1px solid #ededec; /* en-system-caption, text-secondary */ }
+.devPocPage .devE-table .devE-projRow th { text-align: start; font-weight: 400; padding: 16px; background: #fafafa; border-top: 1px solid #ededec; /* surface-subtle */ }
+.devPocPage .devE-projHead { display: flex; justify-content: space-between; align-items: center; gap: 12px 24px; flex-wrap: wrap; }
+.devPocPage .devE-projInfo { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.devPocPage .devE-projName { font-size: 16px; font-weight: 600; line-height: 1.3; color: #121212; }
+.devPocPage .devE-desc { font-size: 14px; line-height: 1.5; color: #575757; }
+.devPocPage .devE-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 14px; color: #575757; }
+.devPocPage .devE-meta .devE-link { font-size: 14px; }
+.devPocPage .devE-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.devPocPage .devE-table td { padding: 12px 16px; border-top: 1px solid #ededec; vertical-align: middle; }
+.devPocPage .devE-table .devE-keyRowT:hover td { background: #fafafa; }
+.devPocPage .devE-table td:nth-child(3) { white-space: nowrap; color: #575757; /* text-secondary */ }
+.devPocPage .devE-table td .devE-keyCopied { margin-inline-start: 8px; min-width: 0; }
+.devPocPage .devE-table .devE-end { text-align: end; white-space: nowrap; }
+.devPocPage .devE-table .devE-end .devE-link + .devE-link { margin-inline-start: 16px; }
+.devPocPage .devE-emptyRow td { color: #707070; }
+.devPocPage .devE-thTip { display: inline-flex; align-items: center; gap: 4px; }
+.devPocPage.devE .devE-thTip .devPocTip { align-self: center; }
+.devPocPage.devE .devE-thTip .devPocPopover { font-weight: 400; white-space: normal; inset-inline-start: auto; inset-inline-end: 0; }
+.devPocPage .devE-noSite { font-size: 14px; color: #707070; /* text-muted */ }
+.devPocPage .devE-new { margin-inline-start: 8px; font-size: 12px; line-height: 20px; font-weight: 500; color: #18345d; background: #e4eaf3; padding: 0 8px; border-radius: 4px; /* en-system-caption, surface-highlighted */ }
+.devPocPage .devE-chip { display: inline-flex; align-items: center; gap: 4px; background: #fafafa; border: 1px solid #ededec; border-radius: 4px; padding: 4px 4px 4px 8px; /* surface-subtle, border-default */ }
+.devPocPage .devE-chip code { font: 400 14px/18px ui-monospace, Menlo, monospace; color: #121212; white-space: nowrap; background: none; padding: 0; }
+.devPocPage .devE-ico { display: inline-grid; place-items: center; width: 24px; height: 24px; border: 0; background: none; color: #575757; border-radius: 4px; cursor: pointer; }
+.devPocPage .devE-ico:hover { background: #eeeeee; color: #121212; /* surface-hover */ }
+.devPocPage .devE-tog { display: inline-flex; align-items: center; vertical-align: middle; }
+@media (max-width: 760px) {
+  .devPocPage .devE-title { font-size: 22px; }
+  .devPocPage .devE-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .devPocPage .devE-table .devE-keyRowT { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 12px 16px; border-top: 1px solid #ededec; }
+  .devPocPage .devE-table .devE-keyRowT td { padding: 0; border: 0; background: none !important; }
+  .devPocPage .devE-table .devE-projRow, .devPocPage .devE-table .devE-projRow th { display: block; }
+  .devPocPage .devE-table td:first-child { font-weight: 500; }
+  .devPocPage .devE-table td[data-l]::before { content: attr(data-l); display: block; font-size: 12px; color: #707070; }
+  .devPocPage .devE-table td:first-child::before { display: none; }
+  .devPocPage .devE-emptyRow { display: block !important; }
+}
+/* trial E: the way in */
+.devPocPage .devE-path { list-style: none; margin: 0; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; /* spacing-large, spacing-xlarge, spacing-medium */ background: #fafafa; /* surface-subtle */ border-radius: 12px; }
+.devPocPage .devE-path li { display: flex; align-items: center; gap: 12px; font-size: 16px; color: #121212; }
+.devPocPage .devE-path .devE-n { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #e4eaf3; /* surface-highlighted */ color: #18345d; font-size: 14px; font-weight: 600; }
+.devPocPage .devE-links { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; font-size: 14px; color: #999999; }
+.devPocPage .devE-links a { display: inline-flex; align-items: center; gap: 4px; color: #575757; text-decoration: underline; }
+.devPocPage .devE-links a:hover { color: #121212; }
+/* trial E: optional fields say "Optional"; required fields carry no mark */
+.devPocPage .devE-opt { margin-inline-start: 4px; font: italic 400 12px/20px var(--english-sans-serif-font-family); color: #707070; /* en-system-caption, text-muted: the quietest text that still passes AA */ }
+/* A tip that opens over its label, so it never covers the field being typed in. */
+.devPocPopover.devPocPopoverAbove { top: auto; bottom: calc(100% + 8px); }
+.devPocPage.devE .devPocTip { position: relative; display: inline-flex; align-self: center; }
+/* trial E: a label's help icon sits on the label's centre line */
+.devPocPage.devE .sefaria-input-labelGroup { align-items: center; }
+.devPocPage.devE .devPocInfoButton { margin: 0; }
+/* trial E: the labelled stepper (replaces the plain dashes) */
+.devPocPage .devE-steps { list-style: none; margin: 0; padding: 0; width: 100%; max-width: 440px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; /* spacing-small */ }
+.devPocPage .devE-steps li { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.devPocPage .devE-stepBar { display: block; height: 4px; border-radius: 2px; background: #ededec; /* border-default */ }
+.devPocPage .devE-steps .is-done .devE-stepBar, .devPocPage .devE-steps .is-current .devE-stepBar { background: #18345d; /* action-primary */ }
+.devPocPage .devE-stepLabel { font: 400 12px/20px var(--english-sans-serif-font-family); color: #707070; /* en-system-caption, text-muted */ overflow-wrap: anywhere; }
+.devPocPage .devE-steps .is-done .devE-stepLabel { color: #575757; /* text-secondary */ }
+.devPocPage .devE-steps .is-current .devE-stepLabel { color: #121212; font-weight: 600; /* text-primary */ }
+@media (max-width: 480px) {
+  .devPocPage .devE-steps li:not(.is-current) .devE-stepLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+/* trial E: a note to read before acting */
+.devPocPage .devE-note { margin: 0; display: flex; gap: 8px; align-items: flex-start; padding: 12px 16px; border-radius: 8px; background: #fafafa; /* surface-subtle */ font-size: 14px; line-height: 21px; color: #575757; /* en-system-small-comfortable, text-secondary */ }
+.devPocPage .devE-noteIcon { flex: 0 0 18px; display: inline-flex; margin-top: 2px; color: #6f6f6f; /* icon-muted */ }
+.devPocPage .devE-noteIcon svg { width: 18px; height: 18px; }
+/* trial E: Back beside the step's main button */
+.devPocPage .devE-footer { display: flex; gap: 12px; /* spacing-medium */ }
+.devPocPage .devE-footer .sefaria-common-button.fullwidth { flex: 1; width: auto; }
+.devPocPage .devE-backBtn { flex: 0 0 auto; height: 51px; padding: 0 24px; border-radius: 4px; border: 1.5px solid #575757; background: #ffffff; color: #575757; font: 600 16px/1 var(--english-sans-serif-font-family); cursor: pointer; /* action-secondary, en-system-body-strong */ }
+.devPocPage .devE-backBtn:hover { border-color: #333333; color: #333333; background: #eeeeee; /* action-secondary-hover, surface-hover */ }
+.devPocPage .devE-backBtn:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+/* trial E: tighter steps, so a setup step fits one laptop screen (spacing tokens in comments) */
+.devPocPage .devE-pageHeader { margin-bottom: 24px; /* spacing-2xlarge */ }
+.devPocPage .devE-wrap { gap: 16px; padding: 0 0 24px; /* spacing-large */ }
+.devPocPage .devE-card { gap: 16px; }
+.devPocPage .devE-head { gap: 8px; /* spacing-small */ }
+.devPocPage .devE-ico { width: 40px; height: 40px; }
+.devPocPage .devE-form { gap: 16px; /* spacing-large */ }
+.devPocPage .devE-note { padding: 8px 12px; /* spacing-small, spacing-medium */ }
+.devPocPage .devE-legal { margin-top: -4px; }
+/* trial E: Back at the step's top-left, as the sign-in card's back arrow */
+.devPocPage .devE-head { position: relative; }
+.devPocPage .devE-stepBack { position: absolute; top: 0; inset-inline-start: -8px; display: inline-flex; width: 40px; height: 40px; padding: 8px; margin: 0; border: 0; border-radius: 4px; background: none; cursor: pointer; }
+.devPocPage .devE-stepBack:hover { background: #eeeeee; /* surface-hover */ }
+.devPocPage .devE-stepBack:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-stepBack img { width: 24px; height: 24px; display: block; }
+.interface-hebrew .devPocPage .devE-stepBack img { transform: scaleX(-1); }
+.devPocPage .devE-form { gap: 12px; /* spacing-medium */ }
+.devPocPage .devE-head:has(.devE-stepBack) { min-height: 40px; justify-content: center; }
+.devPocPage .devE-wrap { gap: 12px; }
+.devPocPage .devE-card { gap: 12px; }
+.devPocPage .devE .sefaria-input-control--multiline { min-height: 80px; }
+
+/* The account heading starts at the same height as the menu title and the developer heading,
+   instead of centring on the taller buttons beside it. */
+.settingsPanel #accountSettingsPage .headerWithButtons { align-items: flex-start; }
+/* trial E: the step's number in a circle beside its title (replaces the stepper) */
+.devPocPage .devE-title:has(.devE-stepN) { display: inline-flex; align-items: center; gap: 12px; /* spacing-medium */ }
+.devPocPage .devE-stepN { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center; background: #e4eaf3; color: #18345d; font: 600 14px/1 var(--english-sans-serif-font-family); /* surface-highlighted, action-primary: as the welcome list */ }
+/* trial E: the empty table, before the first project */
+.devPocPage .devE-table .devE-emptyTableRow td { padding: 32px 16px; /* spacing scale top step */ }
+.devPocPage .devE-table .devE-emptyTableRow:hover td { background: none; }
+.devPocPage .devE-emptyState { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.devPocPage .devE-emptyState h3 { margin: 0; font: 600 16px/1.4 var(--english-sans-serif-font-family); color: #121212; }
+.devPocPage .devE-emptyState p { margin: 0 0 8px; max-width: 44ch; font-size: 14px; line-height: 21px; color: #575757; /* en-system-small-comfortable, text-secondary */ }
+@media (max-width: 760px) {
+  .devPocPage .devE-table .devE-emptyTableRow, .devPocPage .devE-table .devE-emptyTableRow td { display: block; }
+}
+/* trial E: a link inside running text is underlined, so it doesn't rely on colour alone */
+.devPocPage .devE-inlineLink { color: #18345d; text-decoration: underline; /* text-link */ }
+.devPocPage .devE-inlineLink:hover { color: #132b4c; /* text-link-hovered */ }
+/* trial E: more room (was 12px throughout, squeezed to fit one laptop screen) */
+.devPocPage .devE-wrap { gap: 24px; /* spacing-2xlarge */ }
+.devPocPage .devE-card { gap: 24px; /* spacing-2xlarge: head to first field */ }
+.devPocPage .devE-form { gap: 20px; /* spacing-xlarge: between fields */ }
+/* ---- trial E: the projects table, cleaner pass (after Grok, ElevenLabs, WorkOS, Cohere API key pages) ---- */
+.devPocPage .devE-back { display: inline-flex; align-items: center; gap: 8px; padding: 4px 8px 4px 4px; margin-inline-start: -4px; color: #575757; /* text-secondary */ }
+.devPocPage .devE-back img { width: 18px; height: 18px; opacity: .75; }
+.devPocPage .devE-back:hover { background: #eeeeee; color: #121212; /* surface-hover, text-primary */ }
+.devPocPage .devE-sectionHead { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 24px; flex-wrap: wrap; margin-bottom: 16px; }
+.devPocPage .devE-sectionHead > div { flex: 1 1 320px; min-width: 0; }
+.devPocPage .devE-pill { display: inline-flex; align-items: center; gap: 8px; }
+.devPocPage .devE-board { border: 1px solid #ededec; border-radius: 8px; background: #ffffff; /* border-default, surface-page */ }
+.devPocPage .devE-table thead th { background: #fafafa; border-top: 0; border-bottom: 1px solid #ededec; padding: 10px 16px; font: 500 12px/20px var(--english-sans-serif-font-family); color: #707070; /* surface-subtle, en-system-caption, text-muted */ }
+.devPocPage .devE-table thead th:first-child { border-start-start-radius: 8px; }
+.devPocPage .devE-table thead th:last-child { border-start-end-radius: 8px; }
+.devPocPage .devE-table .devE-projRow th { background: #ffffff; padding: 20px 16px 12px; border-top: 1px solid #ededec; }
+.devPocPage .devE-table tbody:first-of-type .devE-projRow th { border-top: 0; }
+.devPocPage .devE-projHead { align-items: flex-start; }
+.devPocPage .devE-projInfo { gap: 2px; }
+.devPocPage .devE-projName { font-size: 16px; font-weight: 600; color: #121212; }
+.devPocPage .devE-meta { gap: 2px 8px; font-size: 14px; color: #707070; }
+.devPocPage .devE-meta .devE-desc { color: #575757; }
+.devPocPage .devE-actions { gap: 4px; }
+.devPocPage .devE-quiet { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid #ededec; border-radius: 4px; background: #ffffff; font: 500 14px/1 var(--english-sans-serif-font-family); color: #121212; cursor: pointer; /* border-default, text-primary */ }
+.devPocPage .devE-quiet svg { color: #6f6f6f; /* icon-muted */ }
+.devPocPage .devE-quiet:hover:not(:disabled) { background: #eeeeee; /* surface-hover */ }
+.devPocPage .devE-quiet:disabled { color: #999999; cursor: not-allowed; /* text-disabled */ }
+.devPocPage .devE-quiet:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-table td { padding: 10px 16px; border-top: 1px solid #eeeeee; /* border-subtle */ }
+.devPocPage .devE-table .devE-projRow + .devE-keyRowT td { border-top: 0; }
+.devPocPage .devE-table .devE-keyRowT td:first-child { color: #121212; font-weight: 400; }
+.devPocPage .devE-table .devE-keyRowT:hover td { background: #fafafa; }
+.devPocPage .devE-table .devE-group:last-child tr:last-child td:first-child { border-end-start-radius: 8px; }
+.devPocPage .devE-table .devE-group:last-child tr:last-child td:last-child { border-end-end-radius: 8px; }
+.devPocPage .devE-keyCell { display: inline-flex; align-items: center; gap: 4px; }
+.devPocPage .devE-keyText { font: 400 13px/20px ui-monospace, Menlo, monospace; color: #575757; background: none; padding: 0; letter-spacing: 0; white-space: nowrap; }
+.devPocPage .devE-ico { color: #6f6f6f; width: 32px; height: 32px; }
+.devPocPage .devE-icoDanger:hover { color: #c03522; background: #f9ebe9; /* feedback-error-text, feedback-error-background */ }
+.devPocPage .devE-table .devE-emptyRow td { padding: 12px 16px 16px; border-top: 0; font-size: 14px; color: #707070; }
+@media (max-width: 760px) {
+  .devPocPage .devE-table .devE-keyRowT { border-top: 1px solid #eeeeee; /* border-subtle */ }
+  .devPocPage .devE-table .devE-projRow + .devE-keyRowT { border-top: 0; }
+}
+.devPocPage .devE-projInfo .devE-desc { max-width: 60ch; font-size: 14px; line-height: 21px; color: #575757; /* en-system-small-comfortable, text-secondary */ }
+.devPocPage .devE-projInfo .devE-meta { margin-top: 4px; }
+/* trial E: the sign-in flow's spinner (auth.css .sefaria-auth-loading-spinner), at step size */
+.devPocPage .devE-spinner { display: block; order: -1; width: 32px; height: 32px; border: 3px solid rgba(24, 52, 93, 0.25); border-top-color: #18345d; border-radius: 50%; animation: sefaria-auth-spin 0.8s linear infinite; /* action-primary */ }
+@media (prefers-reduced-motion: reduce) { .devPocPage .devE-spinner { animation-duration: 2.4s; } }
+/* trial E: the delete-key modal, as the AI chatbot's "Delete chat?" modal (LCChatbot.svelte .delete-modal) */
+.devE-deleteStage { background: rgba(0, 0, 0, 0.4); animation: devEFadeIn .15s ease; }
+.devE-deleteModal { width: 300px; max-width: calc(100% - 32px); padding: 16px; border-radius: 8px; background: #ffffff; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); text-align: center; font-family: var(--english-sans-serif-font-family); animation: devESlideUp .2s ease; }
+.devE-deleteModal h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; line-height: 18px; color: #121212; }
+.devE-deleteModal p { margin: 0 0 16px; font-size: 12px; line-height: 16px; color: #575757; /* text-secondary */ }
+.devE-deleteActions { display: flex; flex-direction: row-reverse; justify-content: center; gap: 20px; }
+.devE-deleteBtn { flex: 0 0 auto; min-width: 65px; height: 34px; padding: 0 12px; border-radius: 4px; border: 1px solid #cccccc; background: #ffffff; color: #575757; font: 600 12px/1 var(--english-sans-serif-font-family); cursor: pointer; }
+.devE-deleteBtn:hover { background: #eeeeee; /* surface-hover */ }
+.devE-deleteBtnDanger { border: 0; background: #c03522; color: #ffffff; /* feedback-error-text as the chatbot's --lc-danger */ }
+.devE-deleteBtnDanger:hover { background: #a02c1c; }
+.devE-deleteBtn:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+@keyframes devEFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes devESlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .devE-deleteStage, .devE-deleteModal { animation: none; } }
+/* trial E: the AI prompt dialog, and the new key's row tinted for a moment instead of a message */
+.devE-aiDialog h2 { font-size: 16px; }
+.devE-aiDialog p { font-size: 14px; line-height: 21px; color: #575757; }
+.devE-aiDialog .devE-code { margin-top: 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.devE-dialogActions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.devPocPage .devE-table .devE-keyRowT.is-new td { animation: devENewRow 4s ease-out; }
+@keyframes devENewRow { 0%, 40% { background: #e4eaf3; } 100% { background: transparent; } /* surface-highlighted, fading */ }
+/* trial E: project row extras as chips; Add key is the row's primary action */
+.devPocPage .devE-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.devPocPage .devE-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border: 1px dashed #4f6f9a; border-radius: 14px; background: #ffffff; font: 500 14px/1 var(--english-sans-serif-font-family); color: #18345d; cursor: pointer; /* border-strong, text-link */ }
+.devPocPage .devE-chip:hover { background: #f2f5fa; border-style: solid; /* surface-selected */ }
+.devPocPage .devE-chip:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-chipDone { border: 1px solid #ededec; background: #fafafa; color: #575757; cursor: default; /* border-default, surface-subtle, text-secondary */ }
+.devPocPage .devE-chipDone svg { color: #518159; /* feedback-success */ }
+.devPocPage .devE-chipDone:first-child svg { color: #6f6f6f; /* icon-muted: the globe */ }
+.devPocPage .devE-pillSm { height: 32px; padding: 0 12px; font-size: 14px; }
+/* trial E: "Copied" appears beside the icons without taking room, so the column never widens */
+.devPocPage .devE-keyCell { position: relative; }
+.devPocPage .devE-table .devE-keyCell .devE-keyCopied { position: absolute; inset-inline-start: 100%; top: 50%; transform: translateY(-50%); margin-inline-start: 4px; white-space: nowrap; pointer-events: none; }
+/* trial E: the extras as icon text buttons (ghost), not outlined chips */
+.devPocPage .devE-chips { gap: 4px 16px; margin-top: 6px; margin-inline-start: -8px; }
+.devPocPage .devE-chip { height: 32px; padding: 0 8px; border: 0; border-radius: 4px; background: none; gap: 6px; font: 500 14px/1 var(--english-sans-serif-font-family); color: #18345d; /* text-link */ }
+.devPocPage .devE-chip svg { color: #18345d; }
+.devPocPage .devE-chip:hover { background: #eeeeee; border: 0; /* surface-hover */ }
+.devPocPage .devE-chipDone, .devPocPage .devE-chipDone:hover { background: none; color: #575757; font-weight: 400; cursor: default; /* text-secondary */ }
+/* trial E: the outlined button's edge has to show for it to read as the same height as the filled one beside it */
+.devPocPage .devE-quiet { border: 1px solid #cccccc; /* gray-300, as the AI chatbot's Cancel */ }
+.devE-deleteBtnPrimary { border: 0; background: #18345d; color: #ffffff; /* action-primary */ }
+.devE-deleteBtnPrimary:hover { background: #132b4c; /* action-primary-hover */ }

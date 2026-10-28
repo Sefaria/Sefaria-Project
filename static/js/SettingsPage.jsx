@@ -26,6 +26,12 @@ import {
   updateProject,
   websiteHost,
 } from './developerSettingsApi';
+import Input from './common/Input.jsx';
+import Checkbox from './common/Checkbox.jsx';
+import ToggleSwitch from './common/ToggleSwitch.jsx';
+import Select from './common/Select.jsx';
+import ErrorBanner from './auth/ErrorBanner.jsx';
+import { requiredFieldValidate } from './auth/utils';
 
 /* Account and developer settings, one page with a tab per settings section. The developer tab
    reads and writes the account's projects and API keys through developerSettingsApi.js. */
@@ -123,7 +129,30 @@ const keyboardFocused = (node) => {
    doesn't tick the label's checkbox. It is not a tab stop. Its text is the field's
    description (aria-describedby={tipId(fieldId)}) for assistive tech, kept hidden so it
    stays out of the label, and it opens while the field has keyboard focus. */
-const InfoTip = ({fieldId, wide, children}) => {
+/* Lucide "info" (lucide-static 1.49.0, the design system's icon), inline so it takes the
+   button's colour. */
+const InfoIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 16v-4" />
+    <path d="M12 8h.01" />
+  </svg>
+);
+
+/* Lucide "circle-question-mark" (in the design system's icon library), inline so it takes the
+   button's colour. */
+const HelpIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+    <path d="M12 17h.01" />
+  </svg>
+);
+
+/* icon: "info" (default) or "help". above: opens over the label instead of over the field. */
+const InfoTip = ({fieldId, wide, icon = "info", above = false, children}) => {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const field = document.getElementById(fieldId);
@@ -149,9 +178,9 @@ const InfoTip = ({fieldId, wide, children}) => {
         tabIndex={-1}
         aria-hidden="true"
         onClick={(e) => { e.preventDefault(); setOpen(o => !o); }}
-      >i</button>
+      >{icon === "help" ? <HelpIcon /> : <InfoIcon />}</button>
       {open ?
-        <span className={"devPocPopover" + (wide ? " devPocPopoverWide" : "")} aria-hidden="true">{children}</span> : null}
+        <span className={"devPocPopover" + (wide ? " devPocPopoverWide" : "") + (above ? " devPocPopoverAbove" : "")} aria-hidden="true">{children}</span> : null}
       <span id={tipId(fieldId)} hidden>{children}</span>
     </span>
   );
@@ -173,7 +202,7 @@ const useDialogKeys = (focusRef, onEscape) => {
     const onKeyDown = (e) => {
       if (e.key === "Escape") { onEscape(); return; }
       if (e.key !== "Tab" || !focusRef.current) { return; }
-      const dialog = focusRef.current.closest('[role="dialog"]');
+      const dialog = focusRef.current.closest('[role="dialog"], [role="alertdialog"]');
       const focusable = dialog ? Array.from(dialog.querySelectorAll(FOCUSABLE)) : [];
       if (!focusable.length) { return; }
       const first = focusable[0];
@@ -348,12 +377,26 @@ const TestPanel = ({state, mock, onOpenMockEmail}) => {
 /* One entry per settings section. A new section is an entry here, a panel in
    SettingsPage, and a URL in urls_library.py and ReaderApp's history. */
 const SETTINGS_TABS = [
-  {tab: "account", url: "/settings/account", label: {en: "Account settings", he: "הגדרות חשבון"}},
-  {tab: "developer", url: "/settings/developer", label: {en: "Developer settings", he: "הגדרות מפתחים"}},
+  {tab: "account", url: "/settings/account", label: {en: "Account Settings", he: "הגדרות חשבון"}},
+  {tab: "developer", url: "/settings/developer", label: {en: "Developer Settings", he: "הגדרות מפתחים"}},
 ];
 
 /* Tabs, not links: clicking switches the mounted tab and pushes the matching URL. The
    anchors keep the addresses linkable, so opening one in a new tab still works. */
+/* Tab icons: Lucide circle-user-round and code-xml, used from Lucide directly, not yet in our
+   icon library. 18px, the design system's icon size. */
+const SETTINGS_TAB_ICONS = {
+  account: [<circle key="a" cx="12" cy="12" r="10" />, <circle key="b" cx="12" cy="10" r="4" />,
+    <path key="c" d="M18 20a6 6 0 0 0-12 0" />],
+  developer: [<path key="a" d="m18 16 4-4-4-4" />, <path key="b" d="m6 8-4 4 4 4" />, <path key="c" d="m14.5 4-5 16" />],
+};
+const SettingsTabIcon = ({tab}) => SETTINGS_TAB_ICONS[tab] ? (
+  <svg className="settingsNavIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    {SETTINGS_TAB_ICONS[tab]}
+  </svg>
+) : null;
+
 const SettingsNav = ({tabs, tab, highlightTab, onSelect}) => (
   <nav className="settingsNav" aria-label={Sefaria._v({en: "Settings", he: "הגדרות"})}>
     <div className="settingsNavTitle"><InterfaceText text={{en: "Settings", he: "הגדרות"}} /></div>
@@ -369,7 +412,7 @@ const SettingsNav = ({tabs, tab, highlightTab, onSelect}) => (
           e.preventDefault();
           onSelect(t.tab);
         }}
-      ><InterfaceText text={t.label} /></a>
+      ><SettingsTabIcon tab={t.tab} /><InterfaceText text={t.label} /></a>
     ))}
   </nav>
 );
@@ -453,6 +496,61 @@ const AgentInstructions = () => (
 );
 
 
+/* The three steps of setting up, shown on the way in and as progress while setting up. */
+const SETUP_STEPS = [
+  {en: "Tell us about yourself", he: "ספרו לנו על עצמכם", short: {en: "About you", he: "קצת עליך"}},
+  {en: "Add your project", he: "הוסיפו את הפרויקט שלכם", short: {en: "Project", he: "פרויקט"}},
+  {en: "Create your API key", he: "צרו מפתח API", short: {en: "API key", he: "מפתח API"}},
+];
+
+const CheckGlyph = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5" /></svg>
+);
+
+/* `current` is the step in progress; -1 shows the steps as a plain list on the way in. */
+const SetupSteps = ({current = -1, compact = false}) => (
+  <ol className={"devSetupSteps" + (compact ? " devSetupSteps--compact" : "")}
+    aria-label={compact ? Sefaria._v({en: "Setup progress", he: "התקדמות ההגדרה"}) : undefined}>
+    {SETUP_STEPS.map((step, i) => {
+      const state = current < 0 ? "" : i < current ? " is-done" : i === current ? " is-current" : " is-next";
+      return (
+        <li key={i} className={"devSetupStep" + state} aria-current={i === current ? "step" : undefined}>
+          <span className="devSetupStepNum" aria-hidden="true">{i < current ? <CheckGlyph /> : i + 1}</span>
+          <span className="devSetupStepLabel"><InterfaceText text={compact ? step.short : {en: step.en, he: step.he}} /></span>
+        </li>
+      );
+    })}
+  </ol>
+);
+
+/* The setup card: one white panel per step, in the sign-in pages' style. A view the person
+   moved to (not the one the page opens on) takes focus on its heading, as the sign-in card does. */
+const SetupCard = ({titleId, title, lead, onBack, focusTitle = false, className = "", children}) => {
+  const titleRef = useRef(null);
+  useEffect(() => { if (focusTitle && titleRef.current) { titleRef.current.focus(); } }, []);
+  return (
+    <section className={"devSetup " + className} aria-labelledby={titleId}>
+      {onBack ?
+        <button type="button" className="devSetupBack" onClick={onBack} aria-label={Sefaria._v({en: "Back", he: "חזרה"})}>
+          <img src="/static/icons/arrow-left.svg" alt="" aria-hidden="true" />
+        </button> : null}
+      <div className="devSetupHeader">
+        <h2 id={titleId} className="devSetupTitle" ref={titleRef} tabIndex={-1}><InterfaceText text={title} /></h2>
+        {lead ? <p className="devSetupLead">{lead}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+};
+
+const PrimaryButton = ({children, type = "button", ...rest}) => (
+  <button type={type} className="sefaria-common-button auth-primary fullwidth" {...rest}>{children}</button>
+);
+
+const SecondaryButton = ({children, ...rest}) => (
+  <button type="button" className="sefaria-common-button fullwidth devSetupSecondary" {...rest}>{children}</button>
+);
+
 /* The one way in to developer settings. An account whose email is verified (by Google or
    Apple sign-in, or by an emailed confirmation link) goes straight in. Any other account
    confirms its email first with an emailed link, which leaves how it signs in unchanged.
@@ -462,86 +560,93 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
   const [asking, setAsking] = useState(false);
   const [resent, setResent] = useState(false);
   const start = () => { if (verified) { onStart(); } else { setAsking(true); } };
-  const cardClass = "devPocCard" + (highlight ? " settingsHighlight" : "");
   const email = accountEmail();
   const emailText = email ? <bdi dir="ltr"><strong>{email}</strong></bdi> : null;
 
   if (settingUp) {
     return (
-      <div className={"devPocNotice devPocSettingUp " + cardClass} role="status">
+      <section className="devSetup devSetupLoading" role="status">
         <span className="devPocSpinner" aria-hidden="true" />
-        <strong><InterfaceText text={{en: "Setting up developer settings…", he: "מכינים את הגדרות המפתחים…"}} /></strong>
-      </div>
+        <p className="devSetupLead"><InterfaceText text={{en: "Setting up developer settings…", he: "מכינים את הגדרות המפתחים…"}} /></p>
+      </section>
     );
   }
 
   if (!verified && confirmationSent) {
     return (
-      <div className={"devPocSsoPrompt " + cardClass} role="region" aria-label={Sefaria._v({en: "Check your email", he: "בדקו את תיבת הדוא״ל"})}>
-        <h2><InterfaceText text={{en: "Check your email", he: "בדקו את תיבת הדוא״ל"}} /></h2>
-        <p>
-          <InterfaceText text={{
-            en: <React.Fragment>We sent a confirmation link to {emailText}. Open it on any device, and developer settings continue here. The link works for 3 days.</React.Fragment>,
-            he: <React.Fragment>שלחנו קישור לאישור אל {emailText}. פתחו אותו בכל מכשיר, והגדרות המפתחים ימשיכו כאן. הקישור בתוקף 3 ימים.</React.Fragment>,
-          }} />
-        </p>
-        <div className="devPocActions">
-          <button className="button small white" type="button" data-agent-action="resend-confirmation" onClick={() => { onSendConfirmation(); setResent(true); }}>
-            <InterfaceText text={{en: "Resend the link", he: "שליחה חוזרת של הקישור"}} />
-          </button>
-          <button className="button small transparent" type="button" onClick={() => { onCancelConfirmation(); setAsking(false); setResent(false); }}>
-            <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
-          </button>
+      <SetupCard
+        titleId="devSetupCheckTitle"
+        title={{en: "Check your email", he: "בדקו את תיבת הדוא״ל"}}
+        lead={<InterfaceText text={{
+          en: <React.Fragment>We sent a link to {emailText}. Open it on any device to continue. It works for 3 days.</React.Fragment>,
+          he: <React.Fragment>שלחנו קישור אל {emailText}. פתחו אותו בכל מכשיר כדי להמשיך. הקישור בתוקף 3 ימים.</React.Fragment>,
+        }} />}
+        onBack={() => { onCancelConfirmation(); setAsking(false); setResent(false); }}
+        focusTitle
+      >
+        <div className="devSetupActions">
+          <SecondaryButton data-agent-action="resend-confirmation" onClick={() => { onSendConfirmation(); setResent(true); }}>
+            <InterfaceText text={{en: "Resend link", he: "שליחה חוזרת"}} />
+          </SecondaryButton>
+          <p className="devSetupNote" role="status">
+            {resent ? <InterfaceText text={{en: "Sent again.", he: "נשלח שוב."}} /> : null}
+          </p>
         </div>
-        {resent ?
-          <p className="devPocHelp" role="status"><InterfaceText text={{en: "Sent again.", he: "נשלח שוב."}} /></p> : null}
-        <p className="devPocHelp">
+        <p className="devSetupNote">
           <InterfaceText text={{
-            en: "Not there? Check your spam folder. Wrong address? Change it in Account settings first.",
-            he: "לא הגיע? בדקו בתיקיית הספאם. הכתובת שגויה? שנו אותה קודם בהגדרות החשבון.",
+            en: "Can't find it? Check your spam folder. Wrong address? Change it in Account settings.",
+            he: "לא מוצאים? בדקו בתיקיית הספאם. הכתובת שגויה? שנו אותה בהגדרות החשבון.",
           }} />
         </p>
-      </div>
+      </SetupCard>
     );
   }
 
   if (asking && !verified) {
     return (
-      <div className={"devPocSsoPrompt " + cardClass} role="region" aria-label={Sefaria._v({en: "Confirm your email", he: "אישור כתובת הדוא״ל"})}>
-        <h2><InterfaceText text={{en: "Confirm your email address", he: "אישור כתובת הדוא״ל"}} /></h2>
-        <p>
-          <InterfaceText text={{
-            en: <React.Fragment>We email you about your API keys, so first we check that {email ? emailText : "your account email"} is really yours. It's a one-time step, and you keep signing in the way you do now.</React.Fragment>,
-            he: <React.Fragment>אנחנו שולחים לך הודעות על מפתחות ה־API, ולכן קודם נוודא ש־{email ? emailText : "כתובת הדוא״ל של החשבון"} באמת שלך. זה צעד חד־פעמי, ודרך ההתחברות שלך לא משתנה.</React.Fragment>,
-          }} />
-        </p>
-        <div className="devPocActions">
-          <button className="button small blue" type="button" data-agent-action="send-confirmation" onClick={onSendConfirmation}>
-            <InterfaceText text={{en: "Email me a confirmation link", he: "שלחו לי קישור לאישור"}} />
-          </button>
-          <button className="button small transparent" type="button" onClick={() => setAsking(false)}>
-            <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
-          </button>
-        </div>
-      </div>
+      <SetupCard
+        titleId="devSetupConfirmTitle"
+        title={{en: "Confirm your email", he: "אישור כתובת הדוא״ל"}}
+        lead={<InterfaceText text={{
+          en: <React.Fragment>We'll send a link to {email ? emailText : "your account email"}. It's a one-time step, and you'll keep signing in the way you do now.</React.Fragment>,
+          he: <React.Fragment>נשלח קישור אל {email ? emailText : "כתובת הדוא״ל של החשבון"}. זה צעד חד־פעמי, ודרך ההתחברות שלך לא משתנה.</React.Fragment>,
+        }} />}
+        onBack={() => setAsking(false)}
+        focusTitle
+      >
+        <PrimaryButton data-agent-action="send-confirmation" onClick={onSendConfirmation}>
+          <InterfaceText text={{en: "Send confirmation link", he: "שליחת קישור לאישור"}} />
+        </PrimaryButton>
+      </SetupCard>
     );
   }
 
   return (
-    <div className={"devPocGetStarted " + cardClass}>
-      <h2><InterfaceText text={{en: "Build with the Sefaria API", he: "לבנות עם ה־API של ספריא"}} /></h2>
-      <p>
-        <InterfaceText text={{
-          en: "Get an API key to use Sefaria's texts in your own website, app or tool, and tell us what you're building.",
-          he: "קבלו מפתח API כדי להשתמש בטקסטים של ספריא באתר, באפליקציה או בכלי משלכם, וספרו לנו מה אתם בונים.",
-        }} />
+    <SetupCard
+      titleId="devSetupTitle"
+      title={{en: "Build with Sefaria's library", he: "לבנות עם הספרייה של ספריא"}}
+      lead={<InterfaceText text={{
+        en: "Get a free API key to use Sefaria's texts in your website, app or tool.",
+        he: "קבלו מפתח API בחינם כדי להשתמש בטקסטים של ספריא באתר, באפליקציה או בכלי שלכם.",
+      }} />}
+      className={"devSetupEntry" + (highlight ? " settingsHighlight" : "")}
+    >
+      <SetupSteps />
+      <PrimaryButton data-agent-action="get-started" onClick={start}>
+        <InterfaceText text={{en: "Get started", he: "בואו נתחיל"}} />
+      </PrimaryButton>
+      <p className="devSetupLinks">
+        <a href={API_DOCS_URL} target="_blank" rel="noreferrer">
+          <InterfaceText text={{en: "API documentation", he: "תיעוד ה־API"}} />
+          <ExternalIcon />
+        </a>
+        <span className="devSetupLinksDot" aria-hidden="true">·</span>
+        <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">
+          <InterfaceText text={{en: "Download the whole library", he: "הורדת הספרייה כולה"}} />
+          <ExternalIcon />
+        </a>
       </p>
-      <div className="devPocActions">
-        <button className="button small blue" type="button" data-agent-action="get-started" onClick={start}>
-          <InterfaceText text={{en: "Get started", he: "בואו נתחיל"}} />
-        </button>
-      </div>
-    </div>
+    </SetupCard>
   );
 };
 
@@ -595,49 +700,91 @@ const OptionalMark = () => (
   <span className="devPocMuted"><InterfaceText text={{en: "(optional)", he: "(לא חובה)"}} /></span>
 );
 
+/* Field errors follow the sign-in forms (static/js/auth/utils.js): a field is checked when it
+   loses focus and again on submit, and typing only clears an error once the value is valid.
+   Each rule is {id, validate}, where validate(fields) returns an error (a keyed string or a
+   node) or null. On submit every failing field shows its error and the first one gets focus. */
+const useFieldErrors = (rules) => {
+  const [fieldErrors, setFieldErrors] = useState({});
+  const setFieldError = (key, message) => setFieldErrors(f => ({...f, [key]: message || null}));
+  const check = (key, fields) => setFieldError(key, rules[key].validate(fields));
+  const clearIfValid = (key, fields) => {
+    if (rules[key] && fieldErrors[key] && !rules[key].validate(fields)) { setFieldError(key, null); }
+  };
+  const checkAll = (fields) => {
+    const all = {};
+    Object.keys(rules).forEach(key => { all[key] = rules[key].validate(fields) || null; });
+    setFieldErrors(all);
+    const failing = Object.keys(rules).filter(key => all[key]);
+    const first = failing.length && document.getElementById(rules[failing[0]].id);
+    if (first) { first.focus(); }
+    return failing.length === 0;
+  };
+  return {fieldErrors, check, clearIfValid, checkAll};
+};
+
+/* The Input's inline error, for controls that aren't an Input yet (checkboxes, radios). */
+const FieldError = ({id, error}) => error ? (
+  <div className="sefaria-input-error" id={id} role="alert">
+    <img className="sefaria-input-errorIcon" src="/static/icons/info-error.svg" alt="" aria-hidden="true" />
+    {typeof error === 'string' ? <InterfaceText>{error}</InterfaceText> : error}
+  </div>
+) : null;
+
+/* A failed save: the sign-in forms' error banner, at the top of the form. */
+const saveFailure = (err) => ({message: (err && err.message) || Sefaria._v(SAVE_FAILED)});
+
 /* Name and email come from the Sefaria account and are shown locked; an account without a
    name types one here instead. */
-const AboutYouFields = ({fields, set}) => {
+const AboutYouFields = ({fields, set, errors = {}, check = () => {}}) => {
   const name = accountName();
   const email = accountEmail();
   return (
     <React.Fragment>
       <div className="devPocField">
-        <label htmlFor="devPocName">
-          <InterfaceText text={{en: "Name", he: "שם"}} />
-        </label>
         {name ?
           <FieldNote fieldId="devPocName">
             <InterfaceText text={{en: "From your Sefaria account.", he: "מתוך חשבון ספריא שלך."}} />
           </FieldNote> : null}
         {name ?
-          <input id="devPocName" value={name} readOnly aria-readonly="true" aria-describedby={tipId("devPocName")} className="devPocLocked" dir="auto" /> :
-          <input id="devPocName" value={fields.developerName} onChange={e => set("developerName", e.target.value)} dir="auto" />}
+          <Input id="devPocName" label={<InterfaceText text={{en: "Name", he: "שם"}} />}
+            value={name} readOnly aria-readonly="true" aria-describedby={tipId("devPocName")} dir="auto" /> :
+          <Input id="devPocName" label={<InterfaceText text={{en: "Name", he: "שם"}} />}
+            value={fields.developerName} onChange={e => set("developerName", e.target.value)} dir="auto"
+            error={errors.developerName} onBlur={() => check("developerName")} />}
       </div>
       {email ?
         <div className="devPocField">
-          <label htmlFor="devPocEmail">
-            <InterfaceText text={{en: "Email", he: "דוא״ל"}} />
-          </label>
           <FieldNote fieldId="devPocEmail">
             <InterfaceText text={{
               en: "From your Sefaria account. We send project and key emails here.",
               he: "מתוך חשבון ספריא שלך. לכתובת הזו נשלח הודעות על פרויקטים ומפתחות.",
             }} />
           </FieldNote>
-          <input id="devPocEmail" type="email" value={email} readOnly aria-readonly="true" aria-describedby={tipId("devPocEmail")} className="devPocLocked" dir="ltr" />
+          <Input id="devPocEmail" type="email" inputDir="ltr" label={<InterfaceText text={{en: "Email", he: "דוא״ל"}} />}
+            value={email} readOnly aria-readonly="true" aria-describedby={tipId("devPocEmail")} />
         </div> : null}
       <div className="devPocField">
-        <label htmlFor="devPocEmail2">
-          <InterfaceText text={{en: "Also send project and key emails to", he: "לשלוח הודעות על פרויקטים ומפתחות גם אל"}} /> <OptionalMark />
-          <InfoTip fieldId="devPocEmail2">
-            <InterfaceText text={{
-              en: "Add another address, like a work address or a colleague who looks after the project, and it gets the same emails.",
-              he: "הוסיפו כתובת נוספת, למשל כתובת עבודה או של עמית שמטפל בפרויקט, והיא תקבל את אותן הודעות.",
-            }} />
-          </InfoTip>
-        </label>
-        <input id="devPocEmail2" type="email" dir="ltr" aria-describedby={tipId("devPocEmail2")} value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
+        <Input
+          id="devPocEmail2"
+          type="email"
+          inputDir="ltr"
+          label={<InterfaceText text={{en: "Also send project and key emails to", he: "לשלוח הודעות על פרויקטים ומפתחות גם אל"}} />}
+          labelAddon={<React.Fragment>
+            <OptionalMark />
+            <InfoTip fieldId="devPocEmail2">
+              <InterfaceText text={{
+                en: "Add another address, like a work address or a colleague who looks after the project, and it gets the same emails.",
+                he: "הוסיפו כתובת נוספת, למשל כתובת עבודה או של עמית שמטפל בפרויקט, והיא תקבל את אותן הודעות.",
+              }} />
+            </InfoTip>
+          </React.Fragment>}
+          aria-describedby={tipId("devPocEmail2")}
+          value={fields.additionalEmail}
+          onChange={e => set("additionalEmail", e.target.value)}
+          error={errors.additionalEmail}
+          onBlur={() => check("additionalEmail")}
+        />
       </div>
       <div className="devPocField">
         <label htmlFor="devPocDescription">
@@ -677,7 +824,7 @@ const AboutYouFields = ({fields, set}) => {
 
 /* The legal part of the profile: one required agreement (terms, and email about keys and
    projects) and one optional opt-in (developer news and promotions). */
-const LegalFields = ({fields, set, accepted}) => (
+const LegalFields = ({fields, set, accepted, errors = {}}) => (
   <section className="devPocLegal" aria-label={Sefaria._v({en: "Terms and emails", he: "תנאים והודעות דוא״ל"})}>
     {accepted ?
       <p className="devPocHelp devPocAccepted">
@@ -686,15 +833,19 @@ const LegalFields = ({fields, set, accepted}) => (
           he: <React.Fragment>אישרת את <TermsLink />, והסכמת שספריא תשלח לך הודעות דוא״ל על מפתחות ה־API ותיצור איתך קשר בנוגע לפרויקטים שלך.</React.Fragment>,
         }} />
       </p> :
-      <label className="devPocChoice">
-        <input type="checkbox" checked={fields.termsAccepted} onChange={e => set("termsAccepted", e.target.checked)} />
-        <span>
-          <InterfaceText text={{
-            en: <React.Fragment>I accept the <TermsLink />, and agree that Sefaria may email me about my API keys and contact me about my projects</React.Fragment>,
-            he: <React.Fragment>אני מאשר/ת את <TermsLink />, ומסכים/ה שספריא תשלח לי הודעות דוא״ל על מפתחות ה־API ותיצור איתי קשר בנוגע לפרויקטים שלי</React.Fragment>,
-          }} />
-        </span>
-      </label>}
+      <div className="devPocField">
+        <label className="devPocChoice">
+          <input type="checkbox" id="devPocTerms" checked={fields.termsAccepted} onChange={e => set("termsAccepted", e.target.checked)}
+            aria-invalid={errors.termsAccepted ? "true" : undefined} aria-describedby={errors.termsAccepted ? "devPocTerms-error" : undefined} />
+          <span>
+            <InterfaceText text={{
+              en: <React.Fragment>I accept the <TermsLink />, and agree that Sefaria may email me about my API keys and contact me about my projects</React.Fragment>,
+              he: <React.Fragment>אני מאשר/ת את <TermsLink />, ומסכים/ה שספריא תשלח לי הודעות דוא״ל על מפתחות ה־API ותיצור איתי קשר בנוגע לפרויקטים שלי</React.Fragment>,
+            }} />
+          </span>
+        </label>
+        <FieldError id="devPocTerms-error" error={errors.termsAccepted} />
+      </div>}
     <label className="devPocChoice">
       <input type="checkbox" id="devPocDeveloperNews" aria-describedby={tipId("devPocDeveloperNews")} checked={!!fields.developerNews} onChange={e => set("developerNews", e.target.checked)} />
       <span>
@@ -710,13 +861,34 @@ const LegalFields = ({fields, set, accepted}) => (
   </section>
 );
 
-const profileError = (fields) => {
-  if (!accountName() && !fields.developerName.trim()) { return Sefaria._v({en: "Enter your name.", he: "נא להזין שם."}); }
-  if (fields.additionalEmail.trim() && !/^\S+@\S+\.\S+$/.test(fields.additionalEmail.trim())) {
-    return Sefaria._v({en: "Enter a valid additional email, or leave it empty.", he: "נא להזין כתובת דוא״ל נוספת תקינה, או להשאיר את השדה ריק."});
-  }
-  if (!fields.termsAccepted) { return Sefaria._v({en: "Accept the API terms to continue.", he: "כדי להמשיך יש לאשר את תנאי השימוש ב־API."}); }
-  return "";
+const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
+
+const PROFILE_RULES = {
+  developerName: {id: "devPocName", validate: f => accountName() ? null : requiredFieldValidate(f.developerName)},
+  additionalEmail: {id: "devPocEmail2", validate: f =>
+    f.additionalEmail.trim() && !EMAIL_PATTERN.test(f.additionalEmail.trim()) ? "auth.invalid_email" : null},
+  termsAccepted: {id: "devPocTerms", validate: f => f.termsAccepted ? null :
+    <InterfaceText text={{en: "Accept the API terms to continue.", he: "כדי להמשיך יש לאשר את תנאי השימוש ב־API."}} />},
+};
+
+/* The state and submit for both profile forms. */
+const useProfileForm = (initial, onSave) => {
+  const [fields, setFields] = useState(initial);
+  const [banner, setBanner] = useState(null);
+  const {fieldErrors, check, clearIfValid, checkAll} = useFieldErrors(PROFILE_RULES);
+  const set = (key, value) => {
+    const next = {...fields, [key]: value};
+    setFields(next);
+    clearIfValid(key, next);
+  };
+  const submit = (e) => {
+    e.preventDefault();
+    setBanner(null);
+    if (checkAll(fields)) {
+      Promise.resolve(onSave(cleanProfile(fields))).catch(err => setBanner(saveFailure(err)));
+    }
+  };
+  return {fields, set, banner, submit, errors: fieldErrors, check: key => check(key, fields)};
 };
 
 const cleanProfile = (fields) => ({
@@ -726,57 +898,124 @@ const cleanProfile = (fields) => ({
   additionalEmail: fields.additionalEmail.trim(),
 });
 
-/* First visit: one form, with the legal part at the bottom. */
+/* First visit: step 1 of setup. Name and email come from the account and are shown, not
+   asked for; the legal part sits at the bottom. */
 const ProfileOnboarding = ({onSave}) => {
-  const [fields, setFields] = useState(emptyProfile);
-  const [error, setError] = useState("");
-  const set = (key, value) => { setFields(f => ({...f, [key]: value})); setError(""); };
-
-  const finish = (e) => {
-    e.preventDefault();
-    const problem = profileError(fields);
-    setError(problem);
-    if (!problem) {
-      Promise.resolve(onSave(cleanProfile(fields))).catch(err => setError(err.message || Sefaria._v(SAVE_FAILED)));
-    }
-  };
+  const {fields, set, banner, submit, errors, check} = useProfileForm(emptyProfile(), onSave);
+  const name = accountName();
+  const email = accountEmail();
+  const optional = <span className="devSetupOptional"><InterfaceText text={{en: "Optional", he: "לא חובה"}} /></span>;
 
   return (
-    <div className="devPocOnboarding devPocCard">
-      <h2><InterfaceText text={{en: "About you", he: "קצת עליך"}} /></h2>
-      <form className="devPocForm" onSubmit={finish}>
-        <AboutYouFields fields={fields} set={set} />
-        <LegalFields fields={fields} set={set} accepted={false} />
-        {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
-        <div className="devPocActions">
-          <button type="submit" className="button small blue" data-agent-action="save-profile">
-            <InterfaceText text={{en: "Continue", he: "המשך"}} />
-          </button>
+    <SetupCard
+      titleId="devSetupProfileTitle"
+      title={{en: "About you", he: "קצת עליך"}}
+      lead={<InterfaceText text={{
+        en: "So we know who's building with Sefaria, and where to send news about your keys.",
+        he: "כדי שנדע מי בונה עם ספריא, ולאן לשלוח עדכונים על המפתחות שלך.",
+      }} />}
+      className="devSetupProfile"
+    >
+      <SetupSteps current={0} compact />
+      <form className="devSetupForm" onSubmit={submit} noValidate>
+        <ErrorBanner error={banner} />
+
+        {name || email ?
+          <div className="devSetupAccount">
+            <p className="devSetupAccountLabel"><InterfaceText text={{en: "From your Sefaria account", he: "מתוך חשבון ספריא שלך"}} /></p>
+            {name ? <p className="devSetupAccountName" dir="auto">{name}</p> : null}
+            {email ? <p className="devSetupAccountEmail"><bdi dir="ltr">{email}</bdi></p> : null}
+            <p className="devSetupNote">
+              <InterfaceText text={{en: "We email you here about your projects and keys.", he: "לכאן נשלח הודעות על הפרויקטים והמפתחות שלך."}} />
+            </p>
+          </div> : null}
+
+        <div className="sefaria-auth-fields">
+          {name ? null :
+            <Input id="devPocName" label={<InterfaceText text={{en: "Name", he: "שם"}} />} dir="auto"
+              value={fields.developerName} onChange={e => set("developerName", e.target.value)}
+              error={errors.developerName} onBlur={() => check("developerName")} />}
+          <Input
+            id="devPocEmail2"
+            type="email"
+            inputDir="ltr"
+            label={<InterfaceText text={{en: "Also send these emails to", he: "לשלוח את ההודעות האלה גם אל"}} />}
+            labelAddon={optional}
+            hint={<InterfaceText text={{
+              en: "A work address, or a teammate who looks after the project.",
+              he: "כתובת עבודה, או עמית שמטפל בפרויקט.",
+            }} />}
+            placeholder="name@example.com"
+            value={fields.additionalEmail}
+            onChange={e => set("additionalEmail", e.target.value)}
+            error={errors.additionalEmail}
+            onBlur={() => check("additionalEmail")}
+          />
+          <Input
+            id="devPocDescription"
+            multiline
+            rows={3}
+            dir="auto"
+            label={<InterfaceText text={{en: "Tell us about yourself", he: "ספרו לנו על עצמכם"}} />}
+            labelAddon={optional}
+            placeholder={Sefaria._v({
+              en: "Who you are, where you work or study, what you like to build",
+              he: "מי אתם, איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות",
+            })}
+            value={fields.description}
+            onChange={e => set("description", e.target.value)}
+          />
+          <Checkbox
+            id="devPocNotADeveloper"
+            checked={!!fields.notADeveloper}
+            onChange={e => set("notADeveloper", e.target.checked)}
+            label={<InterfaceText text={{en: "I don't write code myself", he: "אני לא כותב/ת קוד בעצמי"}} />}
+            description={<InterfaceText text={{
+              en: "For example, you build with AI tools, or someone else writes the code.",
+              he: "למשל, אתם בונים בעזרת כלי בינה מלאכותית, או שמישהו אחר כותב את הקוד.",
+            }} />}
+          />
         </div>
+
+        <div className="devSetupLegal">
+          <Checkbox
+            id="devPocTerms"
+            checked={fields.termsAccepted}
+            onChange={e => set("termsAccepted", e.target.checked)}
+            error={errors.termsAccepted}
+            label={<InterfaceText text={{
+              en: <React.Fragment>I accept the <TermsLink />, and agree that Sefaria may email me about my keys and projects</React.Fragment>,
+              he: <React.Fragment>אני מאשר/ת את <TermsLink />, ומסכים/ה שספריא תשלח לי הודעות על המפתחות והפרויקטים שלי</React.Fragment>,
+            }} />}
+          />
+          <Checkbox
+            id="devPocDeveloperNews"
+            checked={!!fields.developerNews}
+            onChange={e => set("developerNews", e.target.checked)}
+            label={<InterfaceText text={{en: "Send me Sefaria's developer newsletter", he: "שלחו לי את הניוזלטר למפתחים של ספריא"}} />}
+            description={<InterfaceText text={{
+              en: "New features, events and ideas. Unsubscribe any time.",
+              he: "תכונות חדשות, אירועים ורעיונות. אפשר לבטל בכל עת.",
+            }} />}
+          />
+        </div>
+
+        <PrimaryButton type="submit" data-agent-action="save-profile">
+          <InterfaceText text={{en: "Continue", he: "המשך"}} />
+        </PrimaryButton>
       </form>
-    </div>
+    </SetupCard>
   );
 };
 
 const ProfileForm = ({profile, onSave, onCancel}) => {
-  const [fields, setFields] = useState({...emptyProfile(), ...profile});
-  const [error, setError] = useState("");
-  const set = (key, value) => { setFields(f => ({...f, [key]: value})); setError(""); };
-
-  const submit = (e) => {
-    e.preventDefault();
-    const problem = profileError(fields);
-    setError(problem);
-    if (!problem) {
-      Promise.resolve(onSave(cleanProfile(fields))).catch(err => setError(err.message || Sefaria._v(SAVE_FAILED)));
-    }
-  };
+  const {fields, set, banner, submit, errors, check} = useProfileForm({...emptyProfile(), ...profile}, onSave);
 
   return (
-    <form className="devPocForm" onSubmit={submit}>
-      <AboutYouFields fields={fields} set={set} />
-      <LegalFields fields={fields} set={set} accepted={!!(profile && profile.termsAccepted)} />
-      {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
+    <form className="devPocForm" onSubmit={submit} noValidate>
+      <ErrorBanner error={banner} />
+      <AboutYouFields fields={fields} set={set} errors={errors} check={check} />
+      <LegalFields fields={fields} set={set} accepted={!!(profile && profile.termsAccepted)} errors={errors} />
       <div className="devPocActions">
         <button type="submit" className="button small blue" data-agent-action="save-profile">
           <InterfaceText text={{en: "Save profile", he: "שמירת פרופיל"}} />
@@ -812,25 +1051,25 @@ const LinkedListingNote = ({name}) => (
 );
 
 
-const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPublic, linkedNote}) => (
+const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPublic, linkedNote, errors = {}, check = () => {}}) => (
   <React.Fragment>
     {linkedNote}
     <div className="devPocField">
-      <label htmlFor="devPocProjectName"><InterfaceText text={{en: "Project name", he: "שם הפרויקט"}} /></label>
-      <input id="devPocProjectName" dir="auto" value={fields.name} onChange={e => set("name", e.target.value)} />
+      <Input id="devPocProjectName" dir="auto" label={<InterfaceText text={{en: "Project name", he: "שם הפרויקט"}} />}
+        value={fields.name} onChange={e => set("name", e.target.value)}
+        error={errors.name} onBlur={() => check("name")} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectDescription">
-        <InterfaceText text={{en: "Short description", he: "תיאור קצר"}} />
-        <InfoTip fieldId="devPocProjectDescription">
-          <InterfaceText text={{
-            en: "The name and description help you tell your projects apart and tell the Sefaria team what you're building. If you make the project public, they're also what visitors to Powered by Sefaria see.",
-            he: "השם והתיאור עוזרים לכם להבחין בין הפרויקטים שלכם ומספרים לצוות ספריא מה אתם בונים. אם תהפכו את הפרויקט לציבורי, זה גם מה שיראו המבקרים ב־Powered by Sefaria.",
-          }} />
-        </InfoTip>
-      </label>
-      <input
+      <Input
         id="devPocProjectDescription"
+        label={<InterfaceText text={{en: "Short description", he: "תיאור קצר"}} />}
+        labelAddon={
+          <InfoTip fieldId="devPocProjectDescription">
+            <InterfaceText text={{
+              en: "The name and description help you tell your projects apart and tell the Sefaria team what you're building. If you make the project public, they're also what visitors to Powered by Sefaria see.",
+              he: "השם והתיאור עוזרים לכם להבחין בין הפרויקטים שלכם ומספרים לצוות ספריא מה אתם בונים. אם תהפכו את הפרויקט לציבורי, זה גם מה שיראו המבקרים ב־Powered by Sefaria.",
+            }} />
+          </InfoTip>}
         dir="auto"
         maxLength={MAX_DESCRIPTION_LENGTH}
         aria-describedby={tipId("devPocProjectDescription") + " devPocProjectDescriptionCount"}
@@ -840,30 +1079,36 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
         })}
         value={fields.description}
         onChange={e => set("description", e.target.value)}
+        error={errors.description}
+        onBlur={() => check("description")}
       />
       <CharacterCount id="devPocProjectDescriptionCount" length={fields.description.length} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectOrg"><InterfaceText text={{en: "Organization", he: "ארגון"}} /> <OptionalMark /></label>
-      <input id="devPocProjectOrg" dir="auto" value={fields.organization} onChange={e => set("organization", e.target.value)} />
+      <Input id="devPocProjectOrg" dir="auto"
+        label={<InterfaceText text={{en: "Organization", he: "ארגון"}} />} labelAddon={<OptionalMark />}
+        value={fields.organization} onChange={e => set("organization", e.target.value)} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectUrl">
-        <InterfaceText text={{en: "Website", he: "אתר"}} /> <OptionalMark />
-        <InfoTip fieldId="devPocProjectUrl" wide>
-          <InterfaceText text={{
-            en: "The address people visit to use your project. We show it with your project on Powered by Sefaria, and you can use it to keep your key from working anywhere else. No website yet? You can add it later.",
-            he: "הכתובת שבה משתמשים בפרויקט שלכם. נציג אותה לצד הפרויקט ב־Powered by Sefaria, ותוכלו להשתמש בה כדי שהמפתח לא יעבוד בשום מקום אחר. עדיין אין אתר? אפשר להוסיף אותו מאוחר יותר.",
-          }} />
-        </InfoTip>
-      </label>
-      <input
+      <Input
         id="devPocProjectUrl"
+        label={<InterfaceText text={{en: "Website", he: "אתר"}} />}
+        labelAddon={<React.Fragment>
+          <OptionalMark />
+          <InfoTip fieldId="devPocProjectUrl" wide>
+            <InterfaceText text={{
+              en: "The address people visit to use your project. We show it with your project on Powered by Sefaria, and you can use it to keep your key from working anywhere else. No website yet? You can add it later.",
+              he: "הכתובת שבה משתמשים בפרויקט שלכם. נציג אותה לצד הפרויקט ב־Powered by Sefaria, ותוכלו להשתמש בה כדי שהמפתח לא יעבוד בשום מקום אחר. עדיין אין אתר? אפשר להוסיף אותו מאוחר יותר.",
+            }} />
+          </InfoTip>
+        </React.Fragment>}
         aria-describedby={tipId("devPocProjectUrl")}
-        dir="ltr"
+        inputDir="ltr"
         placeholder="https://"
         value={fields.websiteUrl}
         onChange={e => set("websiteUrl", e.target.value)}
+        error={errors.websiteUrl}
+        onBlur={() => check("websiteUrl")}
       />
     </div>
     <label className="devPocChoice">
@@ -881,7 +1126,7 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
     <fieldset className="devPocFieldset">
       <legend><InterfaceText text={{en: "Visibility", he: "נראוּת"}} /></legend>
       <label className="devPocChoice">
-        <input type="radio" id="devPocVisibilityPublic" aria-describedby={tipId("devPocVisibilityPublic")} name="devPocVisibility" value="public" checked={fields.visibility === "public"} onChange={onChoosePublic} />
+        <input type="radio" id="devPocVisibilityPublic" aria-describedby={tipId("devPocVisibilityPublic") + (errors.visibility ? " devPocVisibility-error" : "")} aria-invalid={errors.visibility ? "true" : undefined} name="devPocVisibility" value="public" checked={fields.visibility === "public"} onChange={onChoosePublic} />
         <span>
           <InterfaceText text={{en: "Public", he: "ציבורי"}} />
           <InfoTip fieldId="devPocVisibilityPublic" wide>
@@ -893,7 +1138,7 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
         </span>
       </label>
       <label className="devPocChoice">
-        <input type="radio" id="devPocVisibilityPrivate" aria-describedby={tipId("devPocVisibilityPrivate")} name="devPocVisibility" value="private" checked={fields.visibility === "private"} onChange={onChoosePrivate} />
+        <input type="radio" id="devPocVisibilityPrivate" aria-describedby={tipId("devPocVisibilityPrivate") + (errors.visibility ? " devPocVisibility-error" : "")} aria-invalid={errors.visibility ? "true" : undefined} name="devPocVisibility" value="private" checked={fields.visibility === "private"} onChange={onChoosePrivate} />
         <span>
           <InterfaceText text={{en: "Private", he: "פרטי"}} />
           <InfoTip fieldId="devPocVisibilityPrivate">
@@ -901,6 +1146,7 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
           </InfoTip>
         </span>
       </label>
+      <FieldError id="devPocVisibility-error" error={errors.visibility} />
       <button type="button" className="devPocTextButton" data-agent-action="show-public-preview" onClick={onShowPublic}>
         <InterfaceText text={{en: "Show me what will be public", he: "הראו לי מה יהיה ציבורי"}} />
       </button>
@@ -1088,9 +1334,24 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => {
 
 /* One form for creating and editing a project. A missing website asks once before saving,
    and the website field gets focus if the developer goes back to add one. */
+const PROJECT_RULES = {
+  name: {id: "devPocProjectName", validate: f => requiredFieldValidate(f.name)},
+  description: {id: "devPocProjectDescription", validate: f => requiredFieldValidate(f.description) || (
+    f.description.trim().length > MAX_DESCRIPTION_LENGTH ?
+      <InterfaceText text={{
+        en: "Keep the description to " + MAX_DESCRIPTION_LENGTH + " characters.",
+        he: "התיאור יכול להכיל עד " + MAX_DESCRIPTION_LENGTH + " תווים.",
+      }} /> : null)},
+  websiteUrl: {id: "devPocProjectUrl", validate: f => parseWebsite(f.websiteUrl).valid ? null :
+    <InterfaceText text={{en: "Enter a website address like example.com.", he: "נא להזין כתובת אתר כמו example.com."}} />},
+  visibility: {id: "devPocVisibilityPublic", validate: f => f.visibility ? null :
+    <InterfaceText text={{en: "Choose whether the project is public or private.", he: "נא לבחור אם הפרויקט ציבורי או פרטי."}} />},
+};
+
 const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, onSave, onCancel, onDelete}) => {
   const [fields, setFields] = useState(initial);
-  const [error, setError] = useState("");
+  const [banner, setBanner] = useState(null);
+  const {fieldErrors, check, clearIfValid, checkAll} = useFieldErrors(PROJECT_RULES);
   const [askWebsite, setAskWebsite] = useState(false);
   const [previewPublic, setPreviewPublic] = useState(false);
   const [askPrivate, setAskPrivate] = useState(false);
@@ -1099,7 +1360,11 @@ const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, 
   const mounted = useRef(true);
   useEffect(() => () => { mounted.current = false; }, []);
   const formRef = useRef(null);
-  const set = (key, value) => { setFields(f => ({...f, [key]: value})); setError(""); };
+  const set = (key, value) => {
+    const next = {...fields, [key]: value};
+    setFields(next);
+    clearIfValid(key, next);
+  };
 
   /* One request at a time, so a double click saves once. */
   const save = () => {
@@ -1109,7 +1374,7 @@ const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, 
     Promise.resolve(onSave({
       ...fields, name: fields.name.trim(), description: fields.description.trim(),
       organization: fields.organization.trim(), websiteUrl: parseWebsite(fields.websiteUrl).url,
-    })).catch(err => { if (mounted.current) { setError(err.message || Sefaria._v(SAVE_FAILED)); } })
+    })).catch(err => { if (mounted.current) { setBanner(saveFailure(err)); } })
       .finally(() => {
         savingRef.current = false;
         if (mounted.current) { setSaving(false); }
@@ -1119,27 +1384,8 @@ const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, 
   const submit = (e) => {
     e.preventDefault();
     if (savingRef.current) { return; }
-    if (!fields.name.trim()) { setError(Sefaria._v({en: "Enter a project name.", he: "נא להזין שם לפרויקט."})); return; }
-    if (!fields.description.trim()) { setError(Sefaria._v({en: "Enter a short description.", he: "נא להזין תיאור קצר."})); return; }
-    if (fields.description.trim().length > MAX_DESCRIPTION_LENGTH) {
-      setError(Sefaria._v({
-        en: "Keep the description to " + MAX_DESCRIPTION_LENGTH + " characters.",
-        he: "התיאור יכול להכיל עד " + MAX_DESCRIPTION_LENGTH + " תווים.",
-      }));
-      return;
-    }
-    if (!parseWebsite(fields.websiteUrl).valid) {
-      setError(Sefaria._v({
-        en: "Enter a website address like example.com, or leave it empty.",
-        he: "נא להזין כתובת אתר כמו example.com, או להשאיר את השדה ריק.",
-      }));
-      return;
-    }
-    if (!fields.visibility) {
-      setError(Sefaria._v({en: "Choose whether the project is public or private.", he: "נא לבחור אם הפרויקט ציבורי או פרטי."}));
-      return;
-    }
-    setError("");
+    setBanner(null);
+    if (!checkAll(fields)) { return; }
     if (!fields.websiteUrl.trim()) { setAskWebsite(true); return; }
     save();
   };
@@ -1157,10 +1403,13 @@ const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, 
 
   return (
     <React.Fragment>
-      <form className="devPocForm" onSubmit={submit} ref={formRef}>
+      <form className="devPocForm" onSubmit={submit} ref={formRef} noValidate>
+        <ErrorBanner error={banner} />
         <ProjectFields
           fields={fields}
           set={set}
+          errors={fieldErrors}
+          check={key => check(key, fields)}
           onChoosePublic={() => set("visibility", "public")}
           onChoosePrivate={choosePrivate}
           onShowPublic={() => setPreviewPublic(true)}
@@ -1172,7 +1421,6 @@ const ProjectForm = ({initial, savedVisibility, linkedListingName, submitLabel, 
             he: "פרויקטים נשארים בחשבון ספריא הזה ואי אפשר להעביר אותם לחשבון אחר.",
           }} />
         </p>
-        {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
         <div className="devPocActions">
           <button type="submit" className="button small blue" aria-disabled={saving} data-agent-action={onDelete ? "save-project" : "create-project"}>
             <InterfaceText text={submitLabel} />
@@ -1393,7 +1641,7 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
   const [creating, setCreating] = useState(false);   // showing the label form
   const [label, setLabel] = useState("");
   const [phase, setPhase] = useState("idle");        // idle | setting-up | error
-  const [error, setError] = useState("");
+  const [labelError, setLabelError] = useState(null);
   const [newKeyId, setNewKeyId] = useState(null);
   const mounted = useRef(true);
   const highlightTimer = useRef(null);
@@ -1404,14 +1652,15 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
   const atLimit = project.keys.length >= maxKeys;
   const keysNoteField = "devPocKeys-" + project.id;
   const firstKeyPrompt = canCreate && project.keys.length === 0 && !creating && phase === "idle";
-  const startCreating = () => { setCreating(true); setPhase("idle"); setError(""); };
+  const startCreating = () => { setCreating(true); setPhase("idle"); setLabelError(null); };
 
   /* The spinner stays up for at least KEY_SETUP_MS, about how long auth services take to
      pick up a new key. */
   const startCreate = (e) => {
     e.preventDefault();
-    if (!label.trim()) { setError(Sefaria._v({en: "Give the key a name.", he: "נא לתת למפתח שם."})); return; }
-    setError("");
+    const problem = requiredFieldValidate(label);
+    setLabelError(problem);
+    if (problem) { document.getElementById("devPocKeyLabel").focus(); return; }
     setPhase("setting-up");
     const minimum = new Promise(resolve => setTimeout(resolve, KEY_SETUP_MS));
     const created = run(createKey(project.id, label.trim()), {quiet: true});
@@ -1477,29 +1726,29 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
         </p> : null}
 
       {creating && phase === "idle" ?
-        <form className="devPocForm devPocCreateKey" onSubmit={startCreate}>
+        <form className="devPocForm devPocCreateKey" onSubmit={startCreate} noValidate>
           <div className="devPocField">
-            <label htmlFor="devPocKeyLabel">
-              <InterfaceText text={{en: "Key name", he: "שם המפתח"}} />
-              <InfoTip fieldId="devPocKeyLabel">
-                <InterfaceText text={{en: "A name just for you, so you can tell your keys apart.", he: "שם רק בשבילכם, כדי להבחין בין המפתחות."}} />
-              </InfoTip>
-            </label>
-            <input
+            <Input
               id="devPocKeyLabel"
+              label={<InterfaceText text={{en: "Key name", he: "שם המפתח"}} />}
+              labelAddon={
+                <InfoTip fieldId="devPocKeyLabel">
+                  <InterfaceText text={{en: "A name just for you, so you can tell your keys apart.", he: "שם רק בשבילכם, כדי להבחין בין המפתחות."}} />
+                </InfoTip>}
               aria-describedby={tipId("devPocKeyLabel")}
               dir="auto"
               placeholder={Sefaria._v({en: "e.g. My website", he: "למשל: האתר שלי"})}
               value={label}
-              onChange={e => setLabel(e.target.value)}
+              onChange={e => { setLabel(e.target.value); if (labelError && !requiredFieldValidate(e.target.value)) { setLabelError(null); } }}
+              error={labelError}
+              onBlur={() => setLabelError(requiredFieldValidate(label))}
             />
           </div>
-          {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
           <div className="devPocActions">
             <button type="submit" className="button small blue" data-agent-action="create-key">
               <InterfaceText text={{en: "Create key", he: "יצירת מפתח"}} />
             </button>
-            <button type="button" className="button small transparent" onClick={() => { setCreating(false); setError(""); }}>
+            <button type="button" className="button small transparent" onClick={() => { setCreating(false); setLabelError(null); }}>
               <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
             </button>
           </div>
@@ -1700,6 +1949,852 @@ const ConfirmDialog = ({confirm, onClose}) => {
 };
 
 
+/* ===========================================================================================
+   Design trial E (design/api-keys branch): one short setup flow after OpenAI's onboarding, then
+   a page of projects with their keys after the Coinbase keys page. Turn off with USE_DESIGN_E.
+   =========================================================================================== */
+const USE_DESIGN_E = true;
+const tE = (en, he) => <InterfaceText text={{en, he}} />;
+const vE = (en, he) => Sefaria._v({en, he});
+/* "Tell us about yourself": 250 characters (the server allows up to 300). */
+const E_ABOUT_MAX = 250;
+const E_SAMPLE_URL = "https://www.sefaria.org/api/v3/texts/Genesis.1.1";
+const E_ROLES = [
+  {value: "developer", en: "Very technical", he: "טכני/ת מאוד"},
+  {value: "ai", en: "Somewhat technical", he: "טכני/ת במידה מסוימת"},
+  {value: "none", en: "Not technical", he: "לא טכני/ת"},
+];
+
+/* What a builder pastes into their AI tool so it can call the API with their key. */
+const eSnippet = (key, projectName) =>
+  `I'm building ${projectName} with the Sefaria API.\nMy Sefaria API key is ${key}.\nSend it in an x-api-key header on every request to https://www.sefaria.org/api/.\nKeep the key out of public code. API docs: ${API_DOCS_URL}`;
+
+const ECopyIcon = ({size = 14}) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+
+/* Lucide icons, pasted (not yet in our icon library): pencil, plus, sparkles, globe, star, check, trash-2. */
+const eLucide = (paths, size = 14) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{paths}</svg>
+);
+const EPencilIcon = () => eLucide(<React.Fragment><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></React.Fragment>);
+const EPlusIcon = () => eLucide(<React.Fragment><path d="M5 12h14" /><path d="M12 5v14" /></React.Fragment>);
+const ESparklesIcon = () => eLucide(<React.Fragment><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /><path d="M4 17v2" /><path d="M5 18H3" /></React.Fragment>);
+const EGlobeIcon = () => eLucide(<React.Fragment><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></React.Fragment>);
+const EStarIcon = () => eLucide(<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />);
+const ECheckIcon = () => eLucide(<path d="M20 6 9 17l-5-5" />);
+const ETrashIcon = () => eLucide(<React.Fragment><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><path d="M10 11v6" /><path d="M14 11v6" /></React.Fragment>, 16);
+
+const eCopy = (text, done) => {
+  try {
+    navigator.clipboard.writeText(text).then(() => done && done(), () => {});
+  } catch (e) { /* the key stays selectable */ }
+};
+
+/* A centered step. Steps of the first setup show progress dashes; single screens opened from
+   the home show a way back instead. */
+const EStep = ({icon, iconOk, title, lead, dots, onBack, backLabel, children}) => {
+  const inFlow = !!(onBack && backLabel);
+  const titleRef = useRef(null);
+  /* A new step starts at the top of the page: the settings panel scrolls inside its own container,
+     so scroll that, then move focus to the title without letting the browser scroll it again. */
+  useEffect(() => {
+    const title = titleRef.current;
+    if (!title) { return; }
+    const scroller = title.closest(".content");
+    if (scroller) { scroller.scrollTop = 0; }
+    if (typeof window !== "undefined") { window.scrollTo(0, 0); }
+    try { title.focus({preventScroll: true}); } catch (e) { title.focus(); }
+  }, []);
+  return (
+    <div className="devE-wrap">
+      {onBack && !inFlow ?
+        /* Back to the table, named for the table's heading: the page heading above already says
+           "Developer Settings". */
+        <button type="button" className="devE-back" onClick={onBack}>
+          <img src="/static/icons/arrow-left.svg" alt="" aria-hidden="true" />{backLabel || tE("Projects and API keys", "פרויקטים ומפתחות API")}
+        </button> : null}
+      <section className="devE-card" aria-labelledby="devEStepTitle">
+        <div className="devE-head">
+          {inFlow ?
+            /* the sign-in card's back arrow (AuthCard), in the same place: top-left of the step */
+            <button type="button" className="devE-stepBack" onClick={onBack} aria-label={vE("Back", "חזרה")}>
+              <img src="/static/icons/arrow-left.svg" alt="" aria-hidden="true" />
+            </button> : null}
+          {icon && !dots ? <span className={"devE-ico" + (iconOk ? " ok" : "")} aria-hidden="true">{icon}</span> : null}
+          {/* Two or three steps is too few for a stepper: the step's number, in the same circle the
+              welcome screen's list uses, sits beside the title. */}
+          <h2 className="devE-title" id="devEStepTitle" tabIndex={-1} ref={titleRef}>
+            {dots ? <span className="devE-n devE-stepN">
+              <span aria-hidden="true">{dots.at + 1}</span>
+              <span className="sr-only"><InterfaceText text={{en: "Step " + (dots.at + 1) + " of " + dots.of + ": ", he: "שלב " + (dots.at + 1) + " מתוך " + dots.of + ": "}} /></span>
+            </span> : null}
+            {title}
+          </h2>
+          {lead}
+        </div>
+        {children}
+      </section>
+    </div>
+  );
+};
+
+/* Required fields carry no mark; optional ones say so, quietly. */
+const EOpt = <span className="devE-opt">{tE("Optional", "לא חובה")}</span>;
+
+/* A note to read before acting: Lucide info icon, quiet panel. */
+const ENote = ({children}) => (
+  <p className="devE-note">
+    <span className="devE-noteIcon" aria-hidden="true"><InfoIcon /></span>
+    <span>{children}</span>
+  </p>
+);
+
+/* The step's main button. */
+const EPrimary = ({children, type = "submit", ...rest}) => (
+  <button type={type} className="sefaria-common-button auth-primary fullwidth" {...rest}>{children}</button>
+);
+
+/* The way in: what this is for, and one button that starts the steps. */
+/* withConfirm: an email sign-in still has to confirm the address, which comes first. */
+const EEntry = ({onStart, withConfirm}) => {
+  const items = [
+    ...(withConfirm ? [tE("Confirm your email", "אשרו את כתובת הדוא״ל")] : []),
+    tE("Tell us about yourself", "ספרו לנו על עצמכם"),
+    tE("Name your project", "תנו שם לפרויקט"),
+    tE("Generate your API key", "צרו את מפתח ה־API שלכם"),
+  ];
+  return (
+  <EStep icon="</>" title={tE("Get a free API key", "קבלו מפתח API בחינם")}
+    lead={<p className="devE-lead">{tE("Use Sefaria's texts in your website, app or tool.", "השתמשו בטקסטים של ספריא באתר, באפליקציה או בכלי שלכם.")}</p>}>
+    <div className="devE-form">
+      <ol className="devE-path">
+        {items.map((item, i) => <li key={i}><span className="devE-n" aria-hidden="true">{i + 1}</span>{item}</li>)}
+      </ol>
+      <button type="button" className="sefaria-common-button auth-primary fullwidth" data-agent-action="get-started" onClick={onStart}>
+        {tE("Get started", "בואו נתחיל")}
+      </button>
+      <p className="devE-links">
+        <a href={API_DOCS_URL} target="_blank" rel="noreferrer">{tE("API documentation", "תיעוד ה־API")}<ExternalIcon /></a>
+        <span aria-hidden="true">·</span>
+        <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">{tE("Download the whole library", "הורדת הספרייה כולה")}<ExternalIcon /></a>
+      </p>
+    </div>
+  </EStep>
+  );
+};
+
+/* Step 1: the profile on one screen. The terms are accepted by continuing. */
+/* The setup's first step, and the same form again from "Edit profile" (edit: a way back, Save,
+   no terms line since they were accepted at setup). */
+const EWelcome = ({dots, onSave, initial, onCancel, edit}) => {
+  const name = accountName();
+  const email = accountEmail();
+  const [fields, setFields] = useState({...emptyProfile(), ...(initial || {}),
+    role: initial ? (initial.notADeveloper ? "ai" : "developer") : ""});
+  const [errors, setErrors] = useState({});
+  const [banner, setBanner] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const set = (key, value) => {
+    setFields(f => ({...f, [key]: value}));
+    if (errors[key]) { setErrors(e => ({...e, [key]: null})); }
+  };
+  const emailError = (v) => v.trim() && !EMAIL_PATTERN.test(v.trim()) ? "auth.invalid_email" : null;
+  const nameError = () => !name && !fields.developerName.trim() ? "auth.required_field" : null;
+  const roleError = (v = fields.role) => v ? null : "auth.required_field";
+  const submit = (e) => {
+    e.preventDefault();
+    const next = {additionalEmail: emailError(fields.additionalEmail), developerName: nameError(), role: roleError()};
+    setErrors(next);
+    if (next.developerName || next.role || next.additionalEmail) {
+      const el = document.getElementById(next.developerName ? "devEName" : next.role ? "devERole" : "devEEmail2");
+      if (el) { el.focus(); }
+      return;
+    }
+    setBanner(null);
+    setSaving(true);
+    Promise.resolve(onSave(cleanProfile({
+      ...fields,
+      termsAccepted: true,
+      notADeveloper: fields.role === "ai" || fields.role === "none",
+    }))).catch(err => { setBanner(saveFailure(err)); setSaving(false); });
+  };
+  return (
+    <EStep
+      dots={dots}
+      onBack={edit ? onCancel : null}
+      title={tE("About you", "קצת עליך")}
+      lead={<React.Fragment>
+        {email ?
+          <p className="devE-signed">
+            {tE("Signed in as", "מחובר/ת בתור")} {name ? <strong dir="auto">{name}</strong> : null} <bdi dir="ltr">({email})</bdi>
+          </p> : null}
+      </React.Fragment>}
+    >
+      <form className="devE-form" onSubmit={submit} noValidate>
+        <ErrorBanner error={banner} />
+        {name ? null :
+          <Input id="devEName" required label={tE("Name", "שם")} dir="auto" value={fields.developerName}
+            onChange={e => set("developerName", e.target.value)} error={errors.developerName}
+            onBlur={() => setErrors(x => ({...x, developerName: nameError()}))} />}
+        <Select id="devERole" value={fields.role} onChange={v => set("role", v)} error={errors.role}
+          label={tE("What best describes you?", "מה מתאר אותך הכי טוב?")}
+          placeholder={{en: "Choose one", he: "בחרו אחת"}}
+          options={E_ROLES.map(r => ({value: r.value, label: {en: r.en, he: r.he}}))} />
+        <Input id="devEAbout" multiline rows={2} dir="auto" maxLength={E_ABOUT_MAX}
+          label={tE("Tell us about yourself", "ספרו לנו על עצמכם")} labelAddon={EOpt}
+          placeholder={vE("Where you work or study, what you like to build", "איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות")}
+          aria-describedby="devEAboutCount"
+          value={fields.description} onChange={e => set("description", e.target.value)}
+          fieldAddon={<span id="devEAboutCount" dir="ltr">{fields.description.length}/{E_ABOUT_MAX}</span>} />
+        <Input id="devEEmail2" type="email" inputDir="ltr"
+          label={tE("Additional email address", "כתובת דוא״ל נוספת")}
+          labelAddon={<React.Fragment>{EOpt}<InfoTip fieldId="devEEmail2" icon="help" above>
+            {tE("Emails will be sent to your Sefaria account's email address. You can add another email here to get those emails in that inbox as well.",
+              "ההודעות יישלחו לכתובת הדוא״ל של חשבון ספריא שלך. אפשר להוסיף כאן כתובת נוספת כדי לקבל אותן גם בתיבה הזו.")}
+          </InfoTip></React.Fragment>}
+          aria-describedby={tipId("devEEmail2")}
+          placeholder="name@example.com" value={fields.additionalEmail}
+          onChange={e => set("additionalEmail", e.target.value)} error={errors.additionalEmail}
+          onBlur={() => setErrors(x => ({...x, additionalEmail: emailError(fields.additionalEmail)}))} />
+        <Checkbox id="devENews" checked={!!fields.developerNews} onChange={e => set("developerNews", e.target.checked)}
+          label={tE("I would like to receive Sefaria's developer newsletter to hear about new features, events and opportunities.",
+            "אשמח לקבל את הניוזלטר למפתחים של ספריא כדי לשמוע על תכונות חדשות, אירועים והזדמנויות.")} />
+        <div className="devE-footer">
+          {onCancel ? <button type="button" className="devE-backBtn" onClick={onCancel}>{tE("Cancel", "ביטול")}</button> : null}
+          <EPrimary data-agent-action="save-profile" disabled={saving}>{edit ? tE("Save", "שמירה") : tE("Continue", "המשך")}</EPrimary>
+        </div>
+        {edit ? null : <p className="devE-legal">
+          <InterfaceText text={{
+            en: <React.Fragment>By continuing, you accept the <TermsLink />, and agree that Sefaria may email you about your keys and projects.</React.Fragment>,
+            he: <React.Fragment>בלחיצה על המשך, את/ה מאשר/ת את <TermsLink />, ומסכים/ה שספריא תשלח לך הודעות על המפתחות והפרויקטים שלך.</React.Fragment>,
+          }} />
+        </p>}
+      </form>
+    </EStep>
+  );
+};
+
+/* Project fields shared by the setup step and the single screens. No public/private choice:
+   featuring on Powered by Sefaria is a separate, optional step. */
+const EProjectFields = ({fields, set, errors, check}) => (
+  <React.Fragment>
+    <Input id="devEProjName" required dir="auto" label={tE("Project name", "שם הפרויקט")}
+      placeholder={vE("e.g. Daf Yomi tracker", "למשל: מעקב דף יומי")}
+      value={fields.name} onChange={e => set("name", e.target.value)} error={errors.name} onBlur={() => check("name")} />
+    <Input id="devEProjDesc" required multiline rows={2} dir="auto" maxLength={MAX_DESCRIPTION_LENGTH}
+      label={tE("Short description", "תיאור קצר")}
+      placeholder={vE("e.g. A daily study tracker for my community", "למשל: כלי למעקב אחר לימוד יומי בקהילה שלי")}
+      value={fields.description} onChange={e => set("description", e.target.value)} error={errors.description}
+      onBlur={() => check("description")} aria-describedby="devEProjDescCount"
+      fieldAddon={<span id="devEProjDescCount" dir="ltr">{fields.description.length}/{MAX_DESCRIPTION_LENGTH}</span>} />
+    <Input id="devEProjSite" inputDir="ltr" label={tE("Website", "אתר")}
+      labelAddon={<React.Fragment>{EOpt}<InfoTip fieldId="devEProjSite" icon="help" above>
+        {tE("Shown if you feature the project on Powered by Sefaria. Also lets you limit a key to your site.",
+          "יוצג אם תציגו את הפרויקט ב־Powered by Sefaria. מאפשר גם להגביל מפתח לאתר שלכם.")}
+      </InfoTip></React.Fragment>}
+      aria-describedby={tipId("devEProjSite")}
+      placeholder="example.com" value={fields.websiteUrl} onChange={e => set("websiteUrl", e.target.value)}
+      error={errors.websiteUrl} onBlur={() => check("websiteUrl")} />
+  </React.Fragment>
+);
+
+const E_PROJECT_RULES = {
+  name: f => requiredFieldValidate(f.name),
+  description: f => requiredFieldValidate(f.description),
+  websiteUrl: f => parseWebsite(f.websiteUrl).valid ? null :
+    <InterfaceText text={{en: "Enter a website address like example.com.", he: "נא להזין כתובת אתר כמו example.com."}} />,
+};
+const E_FIELD_IDS = {name: "devEProjName", description: "devEProjDesc", websiteUrl: "devEProjSite", label: "devEKeyName"};
+
+const useEProjectForm = (initial, withKey, initialLabel) => {
+  const [fields, setFields] = useState({name: "", description: "", websiteUrl: "", ...initial});
+  const [label, setLabel] = useState(initialLabel || "");
+  const [errors, setErrors] = useState({});
+  const set = (key, value) => {
+    setFields(f => ({...f, [key]: value}));
+    if (errors[key] && !E_PROJECT_RULES[key]({...fields, [key]: value})) { setErrors(e => ({...e, [key]: null})); }
+  };
+  const check = (key) => setErrors(e => ({...e, [key]: E_PROJECT_RULES[key](fields)}));
+  const setKeyLabel = (value) => {
+    setLabel(value);
+    if (errors.label && value.trim()) { setErrors(e => ({...e, label: null})); }
+  };
+  const validate = (needKey) => {
+    const all = {};
+    Object.keys(E_PROJECT_RULES).forEach(k => { all[k] = E_PROJECT_RULES[k](fields); });
+    if (needKey) { all.label = requiredFieldValidate(label); }
+    setErrors(all);
+    const first = Object.keys(all).find(k => all[k]);
+    if (first) { const el = document.getElementById(E_FIELD_IDS[first]); if (el) { el.focus(); } return false; }
+    return true;
+  };
+  const projectBody = (extra) => ({
+    organization: "", aiAssisted: false, visibility: "private", ...extra,
+    name: fields.name.trim(), description: fields.description.trim(), websiteUrl: parseWebsite(fields.websiteUrl).url,
+  });
+  return {fields, set, check, errors, label, setKeyLabel, validate, projectBody};
+};
+
+const EKeyNameField = ({label, setLabel, error, hint, placeholder}) => (
+  <Input id="devEKeyName" required dir="auto" label={tE("API key name", "שם המפתח")}
+    hint={hint || null} placeholder={placeholder}
+    value={label} onChange={e => setLabel(e.target.value)} error={error} />
+);
+
+/* Step 2, and the "Get your API key" and "New project" screens: the project and its key together. */
+const EProjectKey = ({dots, mode, onBack, backLabel, onLater, onCreate, onProjectOnly}) => {
+  const form = useEProjectForm({}, true);
+  const [banner, setBanner] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const submit = (e) => {
+    e.preventDefault();
+    if (busy || !form.validate(true)) { return; }
+    setBusy(true); setBanner(null);
+    Promise.resolve(onCreate(form.projectBody(), form.label.trim()))
+      .catch(err => { setBanner(saveFailure(err)); setBusy(false); });
+  };
+  const projectOnly = () => {
+    if (busy || !form.validate(false)) { return; }
+    setBusy(true); setBanner(null);
+    Promise.resolve(onProjectOnly(form.projectBody())).catch(err => { setBanner(saveFailure(err)); setBusy(false); });
+  };
+  return (
+    <EStep dots={dots} onBack={onBack} backLabel={backLabel} icon="</>"
+      title={mode === "newproj" ? tE("New project", "פרויקט חדש") : tE("Get your API key", "קבלו מפתח API")}
+      lead={mode === "setup" ? null : <p className="devE-lead">{mode === "newproj"
+        ? tE("Each project gets its own API keys.", "לכל פרויקט מפתחות API משלו.")
+        : tE("Tell us what you're building, and we'll create your key.", "ספרו לנו מה אתם בונים, וניצור לכם מפתח.")}</p>}
+    >
+      <form className="devE-form" onSubmit={submit} noValidate>
+        <ErrorBanner error={banner} />
+        <EProjectFields fields={form.fields} set={form.set} errors={form.errors} check={form.check} />
+        <EKeyNameField label={form.label} setLabel={form.setKeyLabel} error={form.errors.label} placeholder={vE("My first key", "המפתח הראשון שלי")} />
+        <ENote>{tE("Projects created in this account can't be moved to another account.",
+          "אי אפשר להעביר פרויקטים שנוצרו בחשבון הזה לחשבון אחר.")}</ENote>
+        <EPrimary data-agent-action="create-key" disabled={busy}>
+          {mode === "newproj" ? tE("Create project and key", "יצירת פרויקט ומפתח") : tE("Create API key", "יצירת מפתח API")}
+        </EPrimary>
+        {onLater ? <button type="button" className="devE-textBtn" onClick={onLater}>{tE("I'll do this later", "אעשה את זה אחר כך")}</button> : null}
+        {onProjectOnly ? <button type="button" className="devE-textBtn" onClick={projectOnly}>{tE("Create the project without a key", "יצירת הפרויקט בלי מפתח")}</button> : null}
+      </form>
+    </EStep>
+  );
+};
+
+const ENewKey = ({project, onBack, onCreate}) => {
+  const [label, setLabel] = useState(project.keys.length ? "Key " + (project.keys.length + 1) : "My first key");
+  const [error, setError] = useState(null);
+  const [banner, setBanner] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const submit = (e) => {
+    e.preventDefault();
+    const problem = requiredFieldValidate(label);
+    setError(problem);
+    if (problem) { document.getElementById("devEKeyName").focus(); return; }
+    if (busy) { return; }
+    setBusy(true); setBanner(null);
+    Promise.resolve(onCreate(label.trim())).catch(err => { setBanner(saveFailure(err)); setBusy(false); });
+  };
+  return (
+    <EStep onBack={onBack} icon="</>" title={tE("Add a key", "הוספת מפתח")}
+      lead={<p className="devE-lead"><InterfaceText text={{
+        en: <React.Fragment>For <strong dir="auto">{project.name}</strong>. It works the moment it's created.</React.Fragment>,
+        he: <React.Fragment>עבור <strong dir="auto">{project.name}</strong>. הוא עובד מרגע שנוצר.</React.Fragment>,
+      }} /></p>}>
+      <form className="devE-form" onSubmit={submit} noValidate>
+        <ErrorBanner error={banner} />
+        <EKeyNameField label={label} setLabel={v => { setLabel(v); if (error && v.trim()) { setError(null); } }} error={error}
+          hint={tE("Just for you, so you can tell keys apart.", "רק בשבילכם, כדי להבחין בין המפתחות.")} />
+        <EPrimary data-agent-action="create-key" disabled={busy}>{tE("Create API key", "יצירת מפתח API")}</EPrimary>
+      </form>
+    </EStep>
+  );
+};
+
+/* The spinner is the sign-in flow's (LoadingSub: navy ring, 0.8s), drawn larger for a whole step. */
+const EWaiting = ({dots}) => (
+  <EStep dots={dots} title={<span role="status">{tE("Creating your key…", "יוצרים את המפתח…")}</span>}
+    lead={<React.Fragment>
+      <span className="devE-spinner" aria-hidden="true" />
+      <p className="devE-lead">{tE("This takes a few seconds.", "זה לוקח כמה שניות.")}</p>
+    </React.Fragment>} />
+);
+
+const EReveal = ({dots, apiKey, projectName, onContinue, continueLabel, onBack}) => {
+  const [copied, setCopied] = useState("");
+  const value = apiKey ? apiKey.value : "";
+  return (
+    <EStep dots={dots} icon="</>" onBack={onBack} backLabel={tE("Back", "חזרה")} title={tE("Your API key is ready", "מפתח ה־API שלך מוכן")}
+      lead={<p className="devE-lead">{tE("It works now. You can always see it again in Developer Settings.", "הוא עובד עכשיו. תמיד אפשר לראות אותו שוב בהגדרות המפתחים.")}</p>}>
+      <div className="devE-form">
+        <div className="sefaria-input">
+          <div className="sefaria-input-labelRow"><label className="sefaria-input-label" htmlFor="devEKeyOut" dir="auto">{apiKey ? apiKey.label : ""}</label></div>
+          <div className="devE-keyRow">
+            <input id="devEKeyOut" className="sefaria-input-control devE-mono" readOnly value={value} dir="ltr" onFocus={e => e.target.select()} />
+            <button type="button" className="devE-keyCopy" aria-label={vE("Copy key", "העתקת המפתח")}
+              onClick={() => eCopy(value, () => { setCopied("key"); setTimeout(() => setCopied(c => c === "key" ? "" : c), 2000); })}>
+              <ECopyIcon size={18} />
+            </button>
+            <span className="devE-keyCopied" aria-live="polite">{copied === "key" ? tE("Copied", "הועתק") : null}</span>
+          </div>
+        </div>
+        <div className="devE-try">
+          <p className="devE-hint">{tE("Paste this into ChatGPT, Claude, Cursor or whatever you build with.", "הדביקו את זה ב־ChatGPT, ‏Claude, ‏Cursor או בכל כלי שאתם בונים איתו.")}</p>
+          <pre className="devE-code" dir="ltr"><code>{eSnippet(value, projectName)}</code></pre>
+          <button type="button" className="devE-textBtn devE-start" onClick={() => eCopy(eSnippet(value, projectName), () => setCopied("code"))}>
+            {copied === "code" ? tE("Copied", "הועתק") : tE("Copy instructions", "העתקת ההוראות")}
+          </button>
+        </div>
+        <EPrimary type="button" onClick={onContinue}>{continueLabel}</EPrimary>
+      </div>
+    </EStep>
+  );
+};
+
+const EFeature = ({dots, project, onFeature, onLater, onBack}) => (
+  <EStep dots={dots} icon="</>" onBack={onBack} backLabel={tE("Back", "חזרה")}
+    title={<InterfaceText text={{en: "Want people to find " + project.name + "?", he: "רוצים שאנשים ימצאו את " + project.name + "?"}} />}
+    lead={<p className="devE-lead">{tE("Feature it on Powered by Sefaria, our gallery of projects built with Sefaria. You can do this any time from your project.",
+      "הציגו אותו ב־Powered by Sefaria, הגלריה של פרויקטים שנבנו עם ספריא. אפשר לעשות את זה בכל עת מהפרויקט.")}</p>}>
+    <div className="devE-form">
+      <EPrimary type="button" onClick={onFeature}>{tE("Feature my project", "הציגו את הפרויקט שלי")}</EPrimary>
+      <button type="button" className="devE-textBtn" onClick={onLater}>{tE("Not now", "לא עכשיו")}</button>
+    </div>
+  </EStep>
+);
+
+const EEditProject = ({project, onBack, backLabel, onSave, onDelete, dots, inSetup, focusField}) => {
+  /* Opened to add a website: the cursor starts in that field (after the step has focused its title). */
+  useEffect(() => {
+    const el = focusField && document.getElementById(focusField);
+    if (el) { el.focus({preventScroll: false}); }
+  }, []);
+  const form = useEProjectForm({name: project.name || "", description: project.description || "", websiteUrl: project.websiteUrl || ""});
+  const [banner, setBanner] = useState(null);
+  const [asking, setAsking] = useState(false);
+  const submit = (e) => {
+    e.preventDefault();
+    if (!form.validate(false)) { return; }
+    setBanner(null);
+    Promise.resolve(onSave(form.projectBody({organization: project.organization || "", aiAssisted: !!project.aiAssisted, visibility: project.visibility || "private"})))
+      .catch(err => setBanner(saveFailure(err)));
+  };
+  const keys = project.keys.length;
+  return (
+    <EStep onBack={onBack} backLabel={backLabel} dots={dots}
+      title={inSetup ? tE("Your project", "הפרויקט שלך") : <InterfaceText text={{en: "Edit " + project.name, he: "עריכת " + project.name}} />}>
+      <form className="devE-form" onSubmit={submit} noValidate>
+        <ErrorBanner error={banner} />
+        <EProjectFields fields={form.fields} set={form.set} errors={form.errors} check={form.check} />
+        <EPrimary data-agent-action="save-project">{inSetup ? tE("Save and continue", "שמירה והמשך") : tE("Save project", "שמירת הפרויקט")}</EPrimary>
+      </form>
+      {onDelete ? <div className="devE-danger">
+        {asking ?
+          <React.Fragment>
+            <p>{tE("Delete " + project.name + "? Its " + keys + " key" + (keys === 1 ? "" : "s") + " stop working right away. You can't undo this.",
+              "למחוק את " + project.name + "? " + keys + " המפתחות שלו יפסיקו לעבוד מיד. אי אפשר לבטל את הפעולה.")}</p>
+            <div className="devE-row">
+              <button type="button" className="devE-pill devE-pillDanger" onClick={() => Promise.resolve(onDelete()).catch(err => setBanner(saveFailure(err)))}>{tE("Delete project", "מחיקת הפרויקט")}</button>
+              <button type="button" className="devE-textBtn" onClick={() => setAsking(false)}>{tE("Cancel", "ביטול")}</button>
+            </div>
+          </React.Fragment> :
+          <button type="button" className="devE-textBtn devE-red" onClick={() => setAsking(true)}>{tE("Delete this project", "מחיקת הפרויקט")}</button>}
+      </div> : null}
+    </EStep>
+  );
+};
+
+/* Deleting a key: the AI chatbot's "Delete chat?" modal (LCChatbot.svelte .delete-modal),
+   brought over as is: small card, title, one line, Delete in red beside Cancel. Focus starts on
+   Cancel, the safe choice. */
+const EDeleteKeyDialog = ({apiKey, onDelete, onCancel}) => {
+  const cancelRef = useRef(null);
+  useDialogKeys(cancelRef, onCancel);
+  return (
+    <div className="devPocModalStage devE-deleteStage" role="alertdialog" aria-modal="true" aria-labelledby="devEDelTitle" aria-describedby="devEDelText"
+      onClick={e => { if (e.target === e.currentTarget) { onCancel(); } }}>
+      <section className="devE-deleteModal">
+        <h3 id="devEDelTitle" dir="auto">{tE("Delete " + apiKey.label + "?", "למחוק את " + apiKey.label + "?")}</h3>
+        <p id="devEDelText">{tE("Anything using this key stops working right away. You can't undo this action.",
+          "כל מה שמשתמש במפתח הזה יפסיק לעבוד מיד. אי אפשר לבטל את הפעולה.")}</p>
+        <div className="devE-deleteActions">
+          <button type="button" className="devE-deleteBtn devE-deleteBtnDanger" onClick={onDelete}>{tE("Delete", "מחיקה")}</button>
+          <button type="button" className="devE-deleteBtn" ref={cancelRef} onClick={onCancel}>{tE("Cancel", "ביטול")}</button>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+/* Turning on "Limit to website" before the project has one: say why, and go add it. Same small
+   card as the delete modal. */
+const ENeedSiteDialog = ({onAdd, onCancel}) => {
+  const addRef = useRef(null);
+  useDialogKeys(addRef, onCancel);
+  return (
+    <div className="devPocModalStage devE-deleteStage" role="dialog" aria-modal="true" aria-labelledby="devESiteTitle" aria-describedby="devESiteText"
+      onClick={e => { if (e.target === e.currentTarget) { onCancel(); } }}>
+      <section className="devE-deleteModal">
+        <h3 id="devESiteTitle">{tE("Add your website first", "קודם הוסיפו את האתר שלכם")}</h3>
+        <p id="devESiteText">{tE("To limit a key to your website, add the website to this project's details.",
+          "כדי להגביל מפתח לאתר שלכם, הוסיפו את האתר לפרטי הפרויקט.")}</p>
+        <div className="devE-deleteActions">
+          <button type="button" className="devE-deleteBtn devE-deleteBtnPrimary" ref={addRef} onClick={onAdd}>{tE("Add website", "הוספת אתר")}</button>
+          <button type="button" className="devE-deleteBtn" onClick={onCancel}>{tE("Cancel", "ביטול")}</button>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+/* A key's prompt for an AI coding tool, to copy. Same modal frame as the other developer
+   dialogs (devPocModalStage); Escape and Close shut it. */
+const EAiDialog = ({apiKey, projectName, onClose}) => {
+  const copyRef = useRef(null);
+  const [copied, setCopied] = useState(false);
+  useDialogKeys(copyRef, onClose);
+  const text = eSnippet(apiKey.value, projectName);
+  return (
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devEAiTitle"
+      onClick={e => { if (e.target === e.currentTarget) { onClose(); } }}>
+      <section className="devPocDialog devE-aiDialog">
+        <h2 id="devEAiTitle" dir="auto">{tE("Use " + apiKey.label + " with your AI tool", "שימוש ב־" + apiKey.label + " בכלי ה־AI שלך")}</h2>
+        <p>{tE("Paste this into ChatGPT, Claude, Cursor or whatever you build with. It includes your key, so keep it private.",
+          "הדביקו את זה ב־ChatGPT, ‏Claude, ‏Cursor או בכל כלי שאתם בונים איתו. המפתח שלך כלול, אז שמרו את זה פרטי.")}</p>
+        <pre className="devE-code" dir="ltr"><code>{text}</code></pre>
+        <div className="devE-dialogActions">
+          <button type="button" className="devE-pill devE-pillSec" onClick={onClose}>{tE("Close", "סגירה")}</button>
+          <button type="button" className="devE-pill" ref={copyRef} onClick={() => eCopy(text, () => setCopied(true))}>
+            <ECopyIcon />{copied ? tE("Copied", "הועתק") : tE("Copy prompt", "העתקת ההנחיה")}</button>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+/* The home: a page header, then each project as a section with its keys in a plain table. */
+const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast, freshKeyId, open}) => {
+  const [aiFor, setAiFor] = useState(null);   // {apiKey, project} whose AI prompt is open
+  const [needSite, setNeedSite] = useState(null);   // the project whose key someone tried to limit before it had a website
+  const [confirmDel, setConfirmDel] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
+  const profile = state.profile || {};
+  const emails = [accountEmail(), profile.additionalEmail].filter(Boolean);
+  const canCreate = accountVerified(state);
+  const feature = (project) => run(updateProject(project.id, {
+    name: project.name, description: project.description, organization: project.organization || "",
+    websiteUrl: project.websiteUrl || "", aiAssisted: !!project.aiAssisted, visibility: "public",
+  })).then(() => setToast(vE(project.name + " is submitted to Powered by Sefaria. We'll let you know if it's featured.",
+    project.name + " נשלח ל־Powered by Sefaria. נעדכן אתכם אם יוצג.")), () => {});
+  const removeKey = (apiKey) => run(deleteKey(apiKey.id)).then(() => {
+    setConfirmDel(null);
+    setToast(vE(apiKey.label + " is deleted. Anything using it stops working.", apiKey.label + " נמחק. כל מה שמשתמש בו יפסיק לעבוד."));
+  }, () => {});
+  return (
+    <div className="devE-home">
+      {connectedMessage ? <div className="devPocSuccess" role="status"><p>{connectedMessage}</p></div> : null}
+      {notice ? <div className="devE-toast devE-toastWarn" role="alert"><img className="devE-toastIcon" src="/static/icons/info-error.svg" alt="" aria-hidden="true" /><span className="devE-toastText">{notice}</span><button type="button" className="devE-textBtn" onClick={() => setNotice("")}>{tE("Dismiss", "סגירה")}</button></div> : null}
+      {toast ? <div className="devE-toast" role="status"><span className="devE-toastIcon" aria-hidden="true">✓</span><span className="devE-toastText">{toast}</span>
+        <button type="button" className="devE-textBtn devE-muted" onClick={() => setToast("")}>{tE("Dismiss", "סגירה")}</button></div> : null}
+      {confirmDel ? <EDeleteKeyDialog apiKey={confirmDel} onDelete={() => removeKey(confirmDel)} onCancel={() => setConfirmDel(null)} /> : null}
+      {needSite ? <ENeedSiteDialog onCancel={() => setNeedSite(null)}
+        onAdd={() => { const id = needSite.id; setNeedSite(null); open({screen: "editproj", projectId: id, focus: "devEProjSite"}); }} /> : null}
+      {aiFor ? <EAiDialog apiKey={aiFor.apiKey} projectName={aiFor.project.name} onClose={() => setAiFor(null)} /> : null}
+      {!canCreate ?
+        <ReconfirmEmail confirmationSent={!!state.confirmationSentAt} onSend={() => run(sendConfirmation()).catch(() => {})} /> : null}
+
+      {/* Edit profile opens the setup's About you step on its own, with the same fields. */}
+      {
+        <p className="devE-profile">
+          <span dir="auto">{accountName() || profile.developerName}</span>
+          <span className="devE-dot" aria-hidden="true">·</span>
+          {emails.map((e, i) => <React.Fragment key={e}>{i ? ", " : null}<bdi dir="ltr">{e}</bdi></React.Fragment>)}
+          <button type="button" className="devE-link" data-agent-action="edit-profile" onClick={() => open({screen: "profile"})}>{tE("Edit profile", "עריכת פרופיל")}</button>
+        </p>}
+
+      {/* The section header, then one table: column heads, and each project as a group row
+          followed by its keys. */}
+      <div className="devE-sectionHead">
+        <div>
+          <h2 className="devE-h">{tE("Projects and API keys", "פרויקטים ומפתחות API")}</h2>
+          <p className="devE-sub">
+            <InterfaceText text={{
+              en: <React.Fragment>Each project gets its own keys. Send a key in the <code>x-api-key</code> header, and keep it out of public code. Need the whole library? <a className="devE-link" href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">Download it free</a>.</React.Fragment>,
+              he: <React.Fragment>לכל פרויקט מפתחות משלו. שלחו מפתח בכותרת <code>x-api-key</code>, ואל תכללו אותו בקוד ציבורי. צריכים את כל הספרייה? <a className="devE-link" href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">הורידו אותה בחינם</a>.</React.Fragment>,
+            }} />
+          </p>
+        </div>
+        {state.projects.length ?
+          <button type="button" className="devE-pill" data-agent-action="new-project" disabled={!canCreate} onClick={() => open({screen: "newproj"})}>
+            <EPlusIcon />{tE("New project", "פרויקט חדש")}</button> : null}
+      </div>
+
+      <div className="devE-board">
+        <table className="devE-table">
+          <thead><tr>
+            <th scope="col">{tE("Name", "שם")}</th><th scope="col">{tE("Key", "מפתח")}</th><th scope="col">{tE("Created", "נוצר")}</th>
+            <th scope="col">
+              <span className="devE-thTip">{tE("Limit to website", "הגבלה לאתר")}
+                <InfoTip fieldId="devEWebsiteOnly" icon="help" above wide>
+                  {tE("When it's on, the key only works for requests from your project's website. Turn it on for a key that sits in a web page's code.",
+                    "כשהאפשרות פועלת, המפתח עובד רק לבקשות מהאתר של הפרויקט. הפעילו אותה למפתח שנמצא בקוד של דף אינטרנט.")}
+                </InfoTip></span>
+            </th><th scope="col"><span className="sr-only">{tE("Actions", "פעולות")}</span></th>
+          </tr></thead>
+          {/* No projects yet: the same table, with its body asking for the first one. */}
+          {!state.projects.length ?
+            <tbody>
+              <tr className="devE-emptyTableRow"><td colSpan={5}>
+                <div className="devE-emptyState">
+                  <h3>{tE("No projects or keys yet", "אין עדיין פרויקטים או מפתחות")}</h3>
+                  <p>{tE("Create a project and we'll give you its first API key. Your projects and keys will show up here.",
+                    "צרו פרויקט וניצור לכם את מפתח ה־API הראשון שלו. הפרויקטים והמפתחות שלכם יופיעו כאן.")}</p>
+                  <button type="button" className="devE-pill" data-agent-action="new-project" disabled={!canCreate} onClick={() => open({screen: "firstkey"})}>{tE("Create a project", "יצירת פרויקט")}</button>
+                </div>
+              </td></tr>
+            </tbody> : null}
+          {state.projects.map(project => {
+            const host = websiteHost(project.websiteUrl);
+            const atLimit = project.keys.length >= (state.maxKeysPerProject || 5);
+            return (
+              <tbody key={project.id} className="devE-group">
+                <tr className="devE-projRow">
+                  <th colSpan={5} scope="colgroup" id={"devEProj-" + project.id}>
+                    <div className="devE-projHead">
+                      <div className="devE-projInfo">
+                        <span className="devE-projName" dir="auto">{project.name}</span>
+                        {project.description ? <span className="devE-desc" dir="auto">{project.description}</span> : null}
+                        {/* The project's two optional extras, as chips: a button until done, then a quiet fact. */}
+                        <span className="devE-chips">
+                          {host ?
+                            <span className="devE-chip devE-chipDone"><EGlobeIcon /><bdi dir="ltr">{host}</bdi></span> :
+                            <button type="button" className="devE-chip" onClick={() => open({screen: "editproj", projectId: project.id, focus: "devEProjSite"})}>
+                              <EPlusIcon />{tE("Add website", "הוספת אתר")}</button>}
+                          {project.visibility === "public" ?
+                            <span className="devE-chip devE-chipDone"><ECheckIcon />{tE("Submitted to Powered by Sefaria", "נשלח ל־Powered by Sefaria")}</span> :
+                            <button type="button" className="devE-chip" onClick={() => feature(project)}>
+                              <EStarIcon />{tE("Feature on Powered by Sefaria", "הצגה ב־Powered by Sefaria")}</button>}
+                        </span>
+                      </div>
+                      <div className="devE-actions">
+                        <button type="button" className="devE-quiet" data-agent-action="edit-project" onClick={() => open({screen: "editproj", projectId: project.id})}
+                          aria-label={vE("Edit details of " + project.name, "עריכת הפרטים של " + project.name)}><EPencilIcon />{tE("Edit project details", "עריכת פרטי הפרויקט")}</button>
+                        <button type="button" className="devE-pill devE-pillSm" data-agent-action="new-key" disabled={atLimit || !canCreate}
+                          title={atLimit ? vE("5 keys is the most a project can have. Delete one you don't use to make room.", "חמישה מפתחות הם המקסימום לפרויקט. מחקו מפתח שאינו בשימוש כדי לפנות מקום.") : ""}
+                          aria-label={vE("Add a key to " + project.name, "הוספת מפתח ל־" + project.name)}
+                          onClick={() => open({screen: "newkey", projectId: project.id})}><EPlusIcon />{tE("Add key", "הוספת מפתח")}</button>
+                      </div>
+                    </div>
+                  </th>
+                </tr>
+                {project.keys.length ? project.keys.map(apiKey => (
+                  <tr key={apiKey.id} className={"devE-keyRowT" + (apiKey.id === freshKeyId ? " is-new" : "")}>
+                    <td data-l={vE("Name", "שם")} dir="auto" headers={"devEProj-" + project.id}>{apiKey.label}</td>
+                    <td data-l={vE("Key", "מפתח")}>
+                      <span className="devE-keyCell">
+                        <code className="devE-keyText" dir="ltr">{apiKey.value.slice(0, 4)}••••{apiKey.value.slice(-4)}</code>
+                        <button type="button" className="devE-ico" aria-label={vE("Copy " + apiKey.label, "העתקת " + apiKey.label)}
+                          onClick={() => eCopy(apiKey.value, () => { setCopiedId(apiKey.id); setTimeout(() => setCopiedId(null), 2000); })}>
+                          <ECopyIcon />
+                        </button>
+                        <button type="button" className="devE-ico" aria-label={vE("Prompt for your AI tool, with " + apiKey.label, "הנחיה לכלי ה־AI שלך, עם " + apiKey.label)}
+                          title={vE("Prompt for your AI tool", "הנחיה לכלי ה־AI שלך")} aria-haspopup="dialog"
+                          onClick={() => setAiFor({apiKey, project})}><ESparklesIcon /></button>
+                        <span className="devE-keyCopied" aria-live="polite">{copiedId === apiKey.id ? tE("Copied", "הועתק") : null}</span>
+                      </span>
+                    </td>
+                    <td data-l={vE("Created", "נוצר")}>{formatDate(apiKey.created)}</td>
+                    <td data-l={vE("Limit to website", "הגבלה לאתר")}>
+                      {/* Without a website the switch stays off; turning it on asks for the website first. */}
+                      <span className="devE-tog">
+                        <span className="sr-only" id={"devERes-" + apiKey.id + "-label"}>
+                          {host ? vE("Only accept requests with " + apiKey.label + " from " + host, "לקבל בקשות עם " + apiKey.label + " רק מ־" + host)
+                            : vE("Limit " + apiKey.label + " to the project's website", "הגבלת " + apiKey.label + " לאתר הפרויקט")}
+                        </span>
+                        <ToggleSwitch name={"devERes-" + apiKey.id} isChecked={!!host && !!apiKey.restrictToWebsite}
+                          onChange={e => host ? run(setKeyRestriction(apiKey.id, e.target.checked)).catch(() => {}) : setNeedSite(project)} />
+                      </span>
+                    </td>
+                    <td className="devE-end">
+                      <button type="button" className="devE-ico devE-icoDanger" aria-label={vE("Delete " + apiKey.label, "מחיקת " + apiKey.label)}
+                        aria-haspopup="dialog" onClick={() => setConfirmDel(apiKey)}><ETrashIcon /></button>
+                    </td>
+                  </tr>
+                )) :
+                  <tr className="devE-emptyRow"><td colSpan={5}>{tE("No keys yet.", "אין עדיין מפתחות.")}</td></tr>}
+              </tbody>
+            );
+          })}
+        </table>
+      </div>
+    </div>
+  );
+};
+
+/* Developer Settings, trial E: decides which step or screen shows from the server state plus
+   where this visit is in the flow. */
+/* The settings page scrolls inside its own panel, not the window. */
+const eScrollTop = () => {
+  if (typeof document === "undefined") { return; }
+  const scroller = document.querySelector(".settingsPage .content");
+  if (scroller) { scroller.scrollTop = 0; }
+  window.scrollTo(0, 0);
+};
+
+const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessage}) => {
+  const [view, setView] = useState(null);   // {screen, projectId, keyId, inSetup}
+  const [toast, setToast] = useState("");
+  const [freshKeyId, setFreshKeyId] = useState(null);
+  const [sent, setSent] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [cancelled, setCancelled] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
+  const verified = accountVerified(state);
+  const needConfirm = !developerOn && !verified;
+  const dotsOf = needConfirm || view && view.withConfirm ? 3 : 2;
+  const stepLabels = [
+    ...(dotsOf === 3 ? [{en: "Confirm email", he: "אישור דוא״ל"}] : []),
+    {en: "About you", he: "קצת עליך"},
+    {en: "Your API key", he: "מפתח ה־API"},
+  ];
+  const dots = (step) => ({at: step + (dotsOf === 3 ? 1 : 0), of: dotsOf, labels: stepLabels});
+  const open = (next) => { setToast(""); setView(next); eScrollTop(); };
+  const home = (message) => { setView(null); setToast(message || ""); eScrollTop(); };
+  const projectById = (id) => state.projects.find(p => p.id === id);
+
+  /* Create a project (when given) and a key, keep the loader up long enough, then go to the table
+     with the new key marked. */
+  const createWithKey = (projectBody, label, inSetup, existingProjectId) => {
+    const minimum = new Promise(resolve => setTimeout(resolve, KEY_SETUP_MS));
+    const projectReady = existingProjectId ? Promise.resolve(existingProjectId)
+      : run(createProject(projectBody), {quiet: true}).then(data => data.projectId);
+    return projectReady.then(projectId => {
+      setView({screen: "wait", projectId, inSetup});
+      return Promise.all([run(createKey(projectId, label), {quiet: true}), minimum]).then(([data]) => {
+        if (!mounted.current) { return; }
+        setFreshKeyId(data.keyId);
+        home();   // no message: the new key's row shows it, tinted for a moment
+      }, err => {
+        if (mounted.current) { setView({screen: "newkey", projectId}); }
+        throw err;
+      });
+    });
+  };
+
+  const header = (
+    <header className="devPocPageHeader devE-pageHeader">
+      <h1><InterfaceText text={{en: "Developer Settings", he: "הגדרות מפתחים"}} /></h1>
+      {developerOn && state.profile && !view ?
+        <a className="devE-docs" href={API_DOCS_URL} target="_blank" rel="noreferrer">{tE("API documentation", "תיעוד ה־API")}<ExternalIcon /></a> : null}
+    </header>
+  );
+  let body;
+
+  /* The welcome screen, until "Get started"; Cancel on About you comes back to it. */
+  if ((!developerOn || !state.profile) && !started && (!state.confirmationSentAt || cancelled)) {
+    body = <EEntry withConfirm={needConfirm} onStart={() => { setStarted(true); eScrollTop(); }} />;
+  } else if (needConfirm) {
+    body = (
+      <EStep dots={{at: 0, of: 3, labels: stepLabels}} icon="</>"
+        title={state.confirmationSentAt ? tE("Check your email", "בדקו את תיבת הדוא״ל") : tE("Confirm your email", "אישור כתובת הדוא״ל")}
+        lead={<p className="devE-lead">{state.confirmationSentAt
+          ? <InterfaceText text={{
+              en: <React.Fragment>We sent a link to <bdi dir="ltr"><strong>{accountEmail()}</strong></bdi>. Open it on any device to continue. It works for 3 days.</React.Fragment>,
+              he: <React.Fragment>שלחנו קישור אל <bdi dir="ltr"><strong>{accountEmail()}</strong></bdi>. פתחו אותו בכל מכשיר כדי להמשיך. הקישור בתוקף 3 ימים.</React.Fragment>,
+            }} />
+          : <InterfaceText text={{
+              en: <React.Fragment>We'll send a link to <bdi dir="ltr"><strong>{accountEmail()}</strong></bdi>. It's a one-time step, and you'll keep signing in the way you do now.</React.Fragment>,
+              he: <React.Fragment>נשלח קישור אל <bdi dir="ltr"><strong>{accountEmail()}</strong></bdi>. זה צעד חד־פעמי, ודרך ההתחברות שלך לא משתנה.</React.Fragment>,
+            }} />}</p>}>
+        <div className="devE-form">
+          {state.confirmationSentAt ?
+            <React.Fragment>
+              <button type="button" className="devE-pill devE-pillSec devE-wide" data-agent-action="resend-confirmation"
+                onClick={() => run(sendConfirmation()).then(() => setSent(true), () => {})}>{tE("Resend link", "שליחה חוזרת")}</button>
+              {sent ? <p className="devE-hint" role="status">{tE("Sent again.", "נשלח שוב.")}</p> : null}
+              <p className="devE-hint">
+                <InterfaceText text={{
+                  en: <React.Fragment>Can't find it? Check your spam folder. Wrong address? <a className="devE-inlineLink" href="/settings/account#username-change">Change it in Account Settings</a>.</React.Fragment>,
+                  he: <React.Fragment>לא מוצאים? בדקו בתיקיית הספאם. הכתובת שגויה? <a className="devE-inlineLink" href="/settings/account#username-change">שנו אותה בהגדרות החשבון</a>.</React.Fragment>,
+                }} />
+              </p>
+            </React.Fragment> :
+            <button type="button" className="sefaria-common-button auth-primary fullwidth" data-agent-action="send-confirmation"
+              onClick={() => run(sendConfirmation()).catch(() => {})}>{tE("Send confirmation link", "שליחת קישור לאישור")}</button>}
+        </div>
+      </EStep>
+    );
+  } else if (!developerOn || !state.profile) {
+    /* Cancel before any profile exists goes back to the welcome screen; nothing is saved. */
+    body = <EWelcome dots={dots(0)} onCancel={() => { setStarted(false); setCancelled(true); eScrollTop(); }} onSave={profile =>
+      (developerOn ? Promise.resolve() : run(enableDeveloper(), {quiet: true}))
+        .then(() => run(saveProfile(profile), {quiet: true}))
+        .then(() => setView({screen: "setupKey", inSetup: true, withConfirm: dotsOf === 3}))} />;
+  } else if (view && view.screen === "profile") {
+    body = <EWelcome edit initial={state.profile} onCancel={() => home()}
+      onSave={profile => run(saveProfile(profile), {quiet: true}).then(() => home(vE("Your profile is saved.", "הפרופיל שלך נשמר.")))} />;
+  } else if (view && view.screen === "setupProfile") {
+    body = <EWelcome dots={dots(0)} initial={state.profile} onSave={profile =>
+      run(saveProfile(profile), {quiet: true}).then(() => setView(view.projectId
+        /* the project and key already exist: go forward to editing them, never to creating another */
+        ? {screen: "setupProjectEdit", projectId: view.projectId, keyId: view.keyId, inSetup: true, withConfirm: view.withConfirm}
+        : {screen: "setupKey", inSetup: true, withConfirm: view.withConfirm}))} />;
+  } else if (view && view.screen === "setupProjectEdit" && projectById(view.projectId)) {
+    const project = projectById(view.projectId);
+    const back = () => setView({screen: "setupProfile", projectId: project.id, keyId: view.keyId, inSetup: true, withConfirm: view.withConfirm});
+    body = <EEditProject project={project} dots={dots(1)} inSetup onBack={back} backLabel={tE("Back", "חזרה")}
+      onSave={fields => run(updateProject(project.id, fields), {quiet: true})
+        .then(() => setView({screen: "reveal", projectId: project.id, keyId: view.keyId, inSetup: true, withConfirm: view.withConfirm}))} />;
+  } else if (view && view.screen === "setupKey") {
+    body = <EProjectKey dots={dots(1)} mode="setup"
+      onBack={() => setView({screen: "setupProfile", inSetup: true, withConfirm: view.withConfirm})} backLabel={tE("Back", "חזרה")}
+      onLater={() => home(vE("Your profile is saved. Get your API key whenever you're ready.", "הפרופיל שלך נשמר. קבלו מפתח API מתי שתרצו."))}
+      onCreate={(projectBody, label) => createWithKey(projectBody, label, true)} />;
+  } else if (view && view.screen === "firstkey" || view && view.screen === "newproj") {
+    body = <EProjectKey mode={view.screen} onBack={() => home()}
+      onCreate={(projectBody, label) => createWithKey(projectBody, label, false)}
+      onProjectOnly={view.screen === "newproj" ? (projectBody => run(createProject(projectBody), {quiet: true})
+        .then(() => home(vE(projectBody.name + " is saved. Add a key when you're ready.", projectBody.name + " נשמר. הוסיפו מפתח מתי שתרצו.")))) : null} />;
+  } else if (view && view.screen === "newkey" && projectById(view.projectId)) {
+    body = <ENewKey project={projectById(view.projectId)} onBack={() => home()}
+      onCreate={label => createWithKey(null, label, false, view.projectId)} />;
+  } else if (view && view.screen === "wait") {
+    body = <EWaiting dots={view.inSetup ? dots(2) : null} />;
+  } else if (view && view.screen === "reveal" && projectById(view.projectId)) {
+    const project = projectById(view.projectId);
+    const apiKey = project.keys.find(k => k.id === view.keyId);
+    body = <EReveal dots={view.inSetup ? dots(2) : null} apiKey={apiKey} projectName={project.name}
+      onBack={view.inSetup ? () => setView({screen: "setupProjectEdit", projectId: project.id, keyId: view.keyId, inSetup: true, withConfirm: view.withConfirm}) : null}
+      continueLabel={view.inSetup ? tE("Continue", "המשך") : tE("Back to Developer Settings", "חזרה להגדרות המפתחים")}
+      onContinue={() => view.inSetup ? setView({screen: "feature", projectId: project.id, inSetup: true, withConfirm: view.withConfirm})
+        : home(vE((apiKey ? apiKey.label : "Your key") + " works now.", (apiKey ? apiKey.label : "המפתח") + " עובד עכשיו."))} />;
+  } else if (view && view.screen === "feature" && projectById(view.projectId)) {
+    const project = projectById(view.projectId);
+    body = <EFeature dots={dots(3)} project={project}
+      onBack={() => setView({screen: "reveal", projectId: project.id, keyId: freshKeyId, inSetup: true, withConfirm: view.withConfirm})}
+      onLater={() => home(vE("You're set up. Your key for " + project.name + " works now.", "הכול מוכן. המפתח של " + project.name + " עובד עכשיו."))}
+      onFeature={() => run(updateProject(project.id, {
+        name: project.name, description: project.description, organization: project.organization || "",
+        websiteUrl: project.websiteUrl || "", aiAssisted: !!project.aiAssisted, visibility: "public",
+      })).then(() => home(vE("You're set up, and " + project.name + " is submitted to Powered by Sefaria.", "הכול מוכן, ו־" + project.name + " נשלח ל־Powered by Sefaria.")), () => {})} />;
+  } else if (view && view.screen === "editproj" && projectById(view.projectId)) {
+    const project = projectById(view.projectId);
+    body = <EEditProject project={project} onBack={() => home()} focusField={view.focus}
+      onSave={fields => run(updateProject(project.id, fields), {quiet: true}).then(() => home(vE(fields.name + " is saved.", fields.name + " נשמר.")))}
+      onDelete={() => run(deleteProject(project.id), {quiet: true}).then(() => home(vE(project.name + " and its keys are deleted.", project.name + " והמפתחות שלו נמחקו.")))} />;
+  } else {
+    body = <EHome state={state} run={run} notice={notice} setNotice={setNotice} connectedMessage={connectedMessage}
+      toast={toast} setToast={setToast} freshKeyId={freshKeyId} open={open} />;
+  }
+
+  return <div className="devPocPage devE">{header}{body}</div>;
+};
+
+
 const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, setNotice,
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
                        setShowNewProject, onCreateProject, expandedProjectId, expandProject, onStart,
@@ -1726,32 +2821,39 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
     </button>
   );
 
+  /* Until the profile is saved, the page is just the setup card. */
+  const inSetup = !developerOn || settingUp || !state.profile;
+
   const profileEmails = state.profile ?
     [accountEmail(), state.profile.additionalEmail].filter(Boolean) : [];
 
   return (
     <div className="devPocPage">
-      <header className={"devPocPageHeader" + (highlight && developerOn ? " settingsHighlight" : "")}>
-        <div>
-          <h1><InterfaceText text={{en: "Developer settings", he: "הגדרות מפתחים"}} /></h1>
-          <p>
-            <InterfaceText text={{
-              en: "Register your projects and manage their API keys.",
-              he: "רשמו את הפרויקטים שלכם ונהלו את מפתחות ה־API שלהם.",
-            }} />
-          </p>
-          <p className="devPocHelp devPocExportNote">
-            <InterfaceText text={{
-              en: <React.Fragment>Need a lot of text? The whole library is <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">free to download</a>, no API key needed.</React.Fragment>,
-              he: <React.Fragment>צריכים הרבה טקסט? את כל הספרייה אפשר <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">להוריד בחינם</a>, בלי מפתח API.</React.Fragment>,
-            }} />
-          </p>
-        </div>
-        <a className="devPocDocsLink" href={API_DOCS_URL} target="_blank" rel="noreferrer">
-          <InterfaceText text={{en: "API documentation", he: "תיעוד ה־API"}} />
-          <ExternalIcon />
-        </a>
-      </header>
+      {inSetup ?
+        <header className="devPocPageHeader devSetupPageHeader">
+          <h1><InterfaceText text={{en: "Developer Settings", he: "הגדרות מפתחים"}} /></h1>
+        </header> :
+        <header className={"devPocPageHeader" + (highlight && developerOn ? " settingsHighlight" : "")}>
+          <div>
+            <h1><InterfaceText text={{en: "Developer Settings", he: "הגדרות מפתחים"}} /></h1>
+            <p>
+              <InterfaceText text={{
+                en: "Register your projects and manage their API keys.",
+                he: "רשמו את הפרויקטים שלכם ונהלו את מפתחות ה־API שלהם.",
+              }} />
+            </p>
+            <p className="devPocHelp devPocExportNote">
+              <InterfaceText text={{
+                en: <React.Fragment>Need a lot of text? The whole library is <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">free to download</a>, no API key needed.</React.Fragment>,
+                he: <React.Fragment>צריכים הרבה טקסט? את כל הספרייה אפשר <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">להוריד בחינם</a>, בלי מפתח API.</React.Fragment>,
+              }} />
+            </p>
+          </div>
+          <a className="devPocDocsLink" href={API_DOCS_URL} target="_blank" rel="noreferrer">
+            <InterfaceText text={{en: "API documentation", he: "תיעוד ה־API"}} />
+            <ExternalIcon />
+          </a>
+        </header>}
 
       {connectedMessage ?
         <div className="devPocSuccess" role="status"><p>{connectedMessage}</p></div> : null}
@@ -2448,7 +3550,16 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
 
   const panels = {
     account: <AccountTab settings={settings} socialProviders={socialProviders} />,
-    developer: (
+    developer: USE_DESIGN_E ? (
+      <DeveloperE
+        state={developerState}
+        developerOn={developerOn}
+        run={run}
+        notice={notice}
+        setNotice={setNotice}
+        connectedMessage={connectedMessage}
+      />
+    ) : (
       <DeveloperTab
         state={developerState}
         developerOn={developerOn}
