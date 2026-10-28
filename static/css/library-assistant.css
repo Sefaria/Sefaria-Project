@@ -1,0 +1,120 @@
+@charset "UTF-8";
+/* lc-chatbot docked mode conflicts with readerApp so pointer-events are disabled for the readerApp and enabled for the main content */
+#s2.headerOnly .readerApp {
+  pointer-events: none;
+}
+
+#s2.headerOnly .readerApp > *:not(#main), #s2.headerOnly #main lc-chatbot {
+  pointer-events: auto;
+}
+
+/* The Library Assistant's floating button would sit on top of the open menu */
+.readerApp:has(.mobileNavMenu:not(.closed)) lc-chatbot {
+  visibility: hidden;
+}
+
+/* Library Assistant pill before the search box: white on the promo purple, as tall as the
+   search box; it darkens on hover instead of underlining */
+.textLink.libraryAssistantLink,
+.textLink.libraryAssistantLink:is(:hover, :focus, :active) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 250px;
+  background: var(--chatbot-purple);
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+/* As the window narrows the pill only shrinks, never grows back: the full label, then "Ask"
+   (or its Hebrew), then hidden. The widths come from the most crowded header (logged out;
+   English for the full label, Hebrew for the short one), so the pill always stays 16px from
+   "Donate" and never pushes the header's icons off screen. The pill is in $exclude-flex, so
+   the .headerInner catch-all doesn't override these. */
+.textLink.libraryAssistantLink .libraryAssistantShortLabel {
+  display: none;
+}
+
+@media (max-width: 1158px) {
+  .textLink.libraryAssistantLink .libraryAssistantLabel {
+    display: none;
+  }
+  .textLink.libraryAssistantLink .libraryAssistantShortLabel {
+    display: inline;
+  }
+}
+@media (max-width: 899px) {
+  .textLink.libraryAssistantLink,
+  .textLink.libraryAssistantLink:is(:hover, :focus, :active) {
+    display: none;
+  }
+}
+.textLink.libraryAssistantLink:is(:hover, :active) {
+  background: var(--chatbot-purple-hover);
+}
+
+.libraryAssistantLink:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+
+.libraryAssistantStarIcon {
+  flex-shrink: 0;
+}
+
+.libraryAssistantLink .libraryAssistantStarIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* The Library Assistant item is purple, with the ✦ as its icon */
+.mobileNavMenu a.libraryAssistantMenuItem {
+  color: var(--chatbot-purple);
+}
+
+.mobileNavMenu .libraryAssistantMenuStar {
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 15px;
+  vertical-align: middle;
+}
+
+/* Room for the assistant's floating Ask button (56px tall, 24px from the bottom; 16px on
+   phones) plus a 24px gap, so the text scrolls clear of it */
+.noSearchResults--withAssistant {
+  padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Until we know whether the assistant is there, show neither version of the text */
+.noSearchResults--pending .noSearchResults-body {
+  visibility: hidden;
+}
+
+/* The assistant's name stays on one line wherever the text wraps */
+.noSearchResults-assistantLink {
+  color: var(--chatbot-purple);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.noSearchResults-assistantLink:hover {
+  color: var(--chatbot-purple-hover);
+  text-decoration: underline;
+}
+
+/* Desktop, assistant off (only the browse button): tighter heading, body and button */
+@media (min-width: 541px) {
+  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-textGroup {
+    gap: 12px;
+  }
+  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-content {
+    gap: 16px;
+  }
+}
+
+/*# sourceMappingURL=library-assistant.css.map */

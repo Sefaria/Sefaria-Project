@@ -264,14 +264,6 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   height: 60px;
 }
 
-/* lc-chatbot docked mode conflicts with readerApp so pointer-events are disabled for the readerApp and enabled for the main content */
-#s2.headerOnly .readerApp {
-  pointer-events: none;
-}
-#s2.headerOnly .readerApp > *:not(#main), #s2.headerOnly #main lc-chatbot {
-  pointer-events: auto;
-}
-
 #readerAppWrap {
   display: flex;
   flex-direction: column;
@@ -565,10 +557,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu.closed {
   display: none;
 }
-/* The Library Assistant's floating button would sit on top of the open menu */
-.readerApp:has(.mobileNavMenu:not(.closed)) lc-chatbot {
-  visibility: hidden;
-}
 .mobileNavMenu .searchLine {
   padding: 15px 10px;
   border-bottom: 1px solid #EDEDEC;
@@ -607,16 +595,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 .mobileNavMenu a > img.blackIcon {
   opacity: 0.4;
-}
-/* The Library Assistant item is purple, with the ✦ as its icon */
-.mobileNavMenu a.libraryAssistantMenuItem {
-  color: var(--chatbot-purple);
-}
-.mobileNavMenu .libraryAssistantMenuStar {
-  width: 16px;
-  height: 16px;
-  margin-inline-end: 15px;
-  vertical-align: middle;
 }
 .mobileNavMenu a.blue {
   background-color: var(--sefaria-blue);
@@ -5334,17 +5312,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
-/* Room for the assistant's floating Ask button (56px tall, 24px from the bottom; 16px on
-   phones) plus a 24px gap, so the text scrolls clear of it */
-.noSearchResults--withAssistant {
-  padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
-}
-
-/* Until we know whether the assistant is there, show neither version of the text */
-.noSearchResults--pending .noSearchResults-body {
-  visibility: hidden;
-}
-
 .noSearchResults-image {
   width: 140px;
   height: 140px;
@@ -5408,28 +5375,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: var(--white);
   opacity: 0.9;
   text-decoration: none;
-}
-
-/* The assistant's name stays on one line wherever the text wraps */
-.noSearchResults-assistantLink {
-  color: var(--chatbot-purple);
-  text-decoration: underline;
-  white-space: nowrap;
-}
-
-.noSearchResults-assistantLink:hover {
-  color: var(--chatbot-purple-hover);
-  text-decoration: underline;
-}
-
-/* Desktop, assistant off (only the browse button): tighter heading, body and button */
-@media (min-width: 541px) {
-  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-textGroup {
-    gap: 12px;
-  }
-  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-content {
-    gap: 16px;
-  }
 }
 
 @media (max-width: 540px) {
