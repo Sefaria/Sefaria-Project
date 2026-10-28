@@ -28,7 +28,7 @@ export interface NullStateRecord {
   hasBrowseButton: boolean;
   /** Body text with non-breaking spaces turned into normal spaces and runs of spaces collapsed. */
   body: string;
-  /** False while the page hides the body (style="visibility: hidden"). */
+  /** False while the page hides the body (the noSearchResults--pending class). */
   bodyVisible: boolean;
 }
 

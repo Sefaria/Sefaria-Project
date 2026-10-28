@@ -5340,6 +5340,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
 }
 
+/* Until we know whether the assistant is there, show neither version of the text */
+.noSearchResults--pending .noSearchResults-body {
+  visibility: hidden;
+}
+
 .noSearchResults-image {
   width: 140px;
   height: 140px;

@@ -1,9 +1,14 @@
 /* Testing done using Jest */
-// With the assistant on, a null tab has no button of its own: its body points to the
+// With the assistant on, a no-results tab has no button of its own: its body points to the
 // Library Assistant, and the floating Ask button becomes "✦ Search with Library Assistant",
 // asking about the search. With it off, each tab shows its browse button, as before.
+const mockStrings = {
+  "header.library_assistant": "Library Assistant",
+  "search.no_results.sources.h1": "No sources found for “{query}”",
+  "search.no_results.library_assistant_question": "I searched for \"{query}\" and got no results.",
+};
 jest.mock("../sefaria/sefaria", () => ({ __esModule: true, default: {
-  _: (k) => k,
+  _: (k) => mockStrings[k] ?? k,
   interfaceLang: "english",
 } }));
 jest.mock("../Misc", () => ({ InterfaceText: ({ children }) => children }));
@@ -12,6 +17,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { act } from "react-dom/test-utils";
 import NoSearchResults from "../NoSearchResults";
+import { LibraryAssistantContext } from "../context";
 
 // The real widget defines <lc-chatbot> when its script loads (this jsdom has no customElements)
 const widgetLoaded = () => {
@@ -24,35 +30,47 @@ describe("NoSearchResults", function () {
   beforeEach(() => {
     container = document.createElement("div");
     document.body.appendChild(container);
-    document.body.appendChild(document.createElement("lc-chatbot"));
     widgetLoaded();
   });
   afterEach(() => {
     ReactDOM.unmountComponentAtNode(container);
     container.remove();
-    document.querySelector("lc-chatbot")?.remove();
   });
 
-  const render = (mode) => act(() => {
-    ReactDOM.render(<NoSearchResults mode={mode} query="minkeee" />, container);
+  // `onPage`: whether ReaderApp put the widget on the page
+  const render = (mode, { onPage = true, query = "minkeee" } = {}) => act(() => {
+    ReactDOM.render(
+      <LibraryAssistantContext.Provider value={onPage}>
+        <NoSearchResults mode={mode} query={query} />
+      </LibraryAssistantContext.Provider>,
+      container,
+    );
   });
   const ctas = () => container.querySelectorAll(".noSearchResults-cta");
-  const body = () => container.querySelector(".noSearchResults-body").textContent;
+  const bodyElement = () => container.querySelector(".noSearchResults-body");
+  const body = () => bodyElement().textContent;
+  const isPending = () => container.querySelector(".noSearchResults").classList.contains("noSearchResults--pending");
+  const lastDetail = (listener) => listener.mock.calls[listener.mock.calls.length - 1][0].detail;
+
+  it("puts the search in the heading as typed, even with $& in it", function () {
+    render("sources", { query: "a$&b" });
+    expect(container.querySelector(".noSearchResults-heading").textContent).toBe("No sources found for “a$&b”");
+  });
 
   describe("with the assistant on", () => {
     it.each(["sources", "books", "authors", "topics"])("shows no button and the assistant body on %s", function (mode) {
       render(mode);
       expect(ctas()).toHaveLength(0);
       expect(body()).toBe(`search.no_results.${mode}.body.library_assistant`);
+      expect(isPending()).toBe(false);
     });
 
-    it("turns the floating Ask button into the search action, asking about the query", function () {
+    it("turns the floating Ask button into the search action, asking about the query as typed", function () {
       const launcher = jest.fn();
       document.addEventListener("chatbot:launcher", launcher);
-      render("sources");
+      render("sources", { query: "$&" });
       document.removeEventListener("chatbot:launcher", launcher);
-      const detail = launcher.mock.calls[launcher.mock.calls.length - 1][0].detail;
-      expect(detail).toEqual({source: "search_no_results", question: "search.no_results.library_assistant_question"});
+      expect(lastDetail(launcher)).toEqual({source: "search_no_results", question: "I searched for \"$&\" and got no results."});
     });
 
     it("puts the Ask button back when the page goes away", function () {
@@ -73,21 +91,27 @@ describe("NoSearchResults", function () {
     afterEach(() => { jest.useRealTimers(); });
 
     it("shows neither version while it may still load, then the browse button", async function () {
-      render("sources");
+      render("books");
       expect(ctas()).toHaveLength(0);
-      expect(container.querySelector(".noSearchResults-body").style.visibility).toBe("hidden");
+      expect(isPending()).toBe(true);
       await act(async () => { jest.advanceTimersByTime(3000); });
       expect(ctas()).toHaveLength(1);
-      expect(body()).toBe("search.no_results.sources.body");
+      expect(isPending()).toBe(false);
+      expect(body()).toBe("search.no_results.books.body");
+    });
+
+    it("stops waiting when the page goes away", function () {
+      render("books");
+      expect(jest.getTimerCount()).toBe(1);
+      act(() => { ReactDOM.unmountComponentAtNode(container); });
+      expect(jest.getTimerCount()).toBe(0);
     });
   });
 
   describe("with the assistant off", () => {
-    beforeEach(() => { document.querySelector("lc-chatbot").remove(); });
-
     it.each([["sources", "/texts"], ["books", "/texts"], ["authors", "/people"], ["topics", "/topics"]])(
       "shows the %s browse button and the tab's own body", function (mode, href) {
-      render(mode);
+      render(mode, { onPage: false });
       expect(ctas()).toHaveLength(1);
       expect(ctas()[0].getAttribute("href")).toBe(href);
       expect(body()).toBe(`search.no_results.${mode}.body`);
@@ -96,9 +120,16 @@ describe("NoSearchResults", function () {
     it("leaves the floating button alone", function () {
       const launcher = jest.fn();
       document.addEventListener("chatbot:launcher", launcher);
-      render("sources");
+      render("sources", { onPage: false });
       document.removeEventListener("chatbot:launcher", launcher);
       expect(launcher).not.toHaveBeenCalled();
+    });
+
+    it("offers the assistant once ReaderApp puts it on the page (e.g. after logging in)", function () {
+      render("sources", { onPage: false });
+      expect(ctas()).toHaveLength(1);
+      render("sources", { onPage: true });
+      expect(ctas()).toHaveLength(0);
     });
   });
 });

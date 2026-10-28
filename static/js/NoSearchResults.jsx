@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
+import { LibraryAssistantContext } from './context';
 
 const CTA_HREFS = {
   sources: '/texts',
@@ -19,15 +20,50 @@ const fillInQuery = (text, query) => text.replace(/\{query\}/g, () => query);
 // they're the same question and only ask it once.
 const getAssistantNoResultsQuestion = (query) => fillInQuery(Sefaria._('search.no_results.library_assistant_question'), query);
 
-// true: the widget is on the page and working. false: it isn't on the page.
-// null: its element is there but its script hasn't defined it yet (still loading, or failed).
-const assistantState = () => {
-  if (!document.querySelector('lc-chatbot') || !window.customElements) { return false; }
-  return window.customElements.get('lc-chatbot') ? true : null;
-};
+// Whether the assistant can be offered on this page
+const AssistantAvailability = Object.freeze({
+  AVAILABLE: 'available',      // ReaderApp put the widget on the page and its script defined it
+  UNAVAILABLE: 'unavailable',  // no widget on the page, or its script never loaded
+  LOADING: 'loading',          // the widget is on the page but its script hasn't defined it yet
+});
 // How long to wait for a loading widget before falling back to the browse button
 const WIDGET_LOAD_TIMEOUT_MS = 3000;
-let appIsRunning = false;
+// Set once the first page has hydrated. Before that, the first render must match the server's,
+// which can't know whether the widget's script has loaded.
+let hasHydrated = false;
+
+const getAssistantAvailability = (onPage) => {
+  if (!onPage || !window.customElements) { return AssistantAvailability.UNAVAILABLE; }
+  return window.customElements.get('lc-chatbot') ? AssistantAvailability.AVAILABLE : AssistantAvailability.LOADING;
+};
+
+// `onPage` is whether ReaderApp renders the widget (LibraryAssistantContext). While its script
+// is still loading, waits for it; a script that fails to load would leave no way forward, so
+// after a short wait it gives up and the page shows the browse button instead.
+function useAssistantAvailability(onPage) {
+  const [availability, setAvailability] = useState(() => {
+    if (!onPage) { return AssistantAvailability.UNAVAILABLE; }
+    return hasHydrated ? getAssistantAvailability(onPage) : AssistantAvailability.LOADING;
+  });
+  useEffect(() => {
+    hasHydrated = true;
+    const current = getAssistantAvailability(onPage);
+    setAvailability(current);
+    if (current !== AssistantAvailability.LOADING) { return; }
+    let cancelled = false;
+    let timer;
+    const timeout = new Promise(resolve => {
+      timer = setTimeout(() => resolve(AssistantAvailability.UNAVAILABLE), WIDGET_LOAD_TIMEOUT_MS);
+    });
+    Promise.race([window.customElements.whenDefined('lc-chatbot').then(() => AssistantAvailability.AVAILABLE), timeout])
+      .then(result => { if (!cancelled) { setAvailability(result); } });
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [onPage]);
+  return availability;
+}
 
 // Keep the assistant's name on one line wherever the text wraps
 const keepNameTogether = (text) => text.replace(/Library Assistant/g, 'Library Assistant').replace(/עוזר הספרייה/g, 'עוזר הספרייה');
@@ -58,23 +94,10 @@ function linkAssistantName(text, query) {
 function NoSearchResults({ mode, query }) {
   const key = (type) => `search.no_results.${mode}.${type}`;
   const heading = fillInQuery(Sefaria._(key('h1')), query);
-  // Only offer the assistant when its widget is on the page and working (checked after mount:
-  // SSR has no document), and don't show either version until that's known, so switching tabs
-  // never flashes the browse button. Once the app is running, a new tab can check straight away;
-  // only the server-rendered first page has to wait for the first effect. A widget whose script
-  // fails to load would leave no way forward, so after a short wait the browse button shows.
-  const [hasAssistant, setHasAssistant] = useState(() => (appIsRunning ? assistantState() : null));
-  useEffect(() => {
-    appIsRunning = true;
-    const state = assistantState();
-    setHasAssistant(state);
-    if (state !== null) { return; }
-    let cancelled = false;
-    const timeout = new Promise(resolve => setTimeout(() => resolve(false), WIDGET_LOAD_TIMEOUT_MS));
-    Promise.race([window.customElements.whenDefined('lc-chatbot').then(() => true), timeout])
-      .then(defined => { if (!cancelled) { setHasAssistant(defined); } });
-    return () => { cancelled = true; };
-  }, []);
+  // Don't show either version until we know whether the assistant is there, so switching tabs
+  // never flashes the browse button
+  const availability = useAssistantAvailability(useContext(LibraryAssistantContext));
+  const hasAssistant = availability === AssistantAvailability.AVAILABLE;
 
   // Turn the Library Assistant's "Ask" button into "Search with Library Assistant", which asks
   // about this search when clicked. The widget (ai-chatbot) owns the label; null puts back "Ask".
@@ -85,8 +108,12 @@ function NoSearchResults({ mode, query }) {
     return () => document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: null}));
   }, [hasAssistant, query]);
 
+  const classes = ['noSearchResults'];
+  if (hasAssistant) { classes.push('noSearchResults--withAssistant'); }
+  if (availability === AssistantAvailability.LOADING) { classes.push('noSearchResults--pending'); }
+
   return (
-    <div className={hasAssistant ? "noSearchResults noSearchResults--withAssistant" : "noSearchResults"}>
+    <div className={classes.join(' ')}>
       <img
         src={`/static/img/no-results-search-illustrations/NoResults${
           {sources: 'Source', books: 'Books', authors: 'Authors', topics: 'Topics'}[mode]
@@ -98,14 +125,14 @@ function NoSearchResults({ mode, query }) {
       <div className="noSearchResults-content">
         <div className="noSearchResults-textGroup">
           <p className="noSearchResults-heading serif">{heading}</p>
-          <p className="noSearchResults-body" style={hasAssistant === null ? {visibility: 'hidden'} : undefined}>
+          <p className="noSearchResults-body">
             {hasAssistant
               ? linkAssistantName(keepNameTogether(Sefaria._(key('body.library_assistant'))), query)
               : <InterfaceText>{key('body')}</InterfaceText>}
           </p>
         </div>
         {/* With the assistant on, its "Search with Library Assistant" button takes this one's place */}
-        {hasAssistant === false &&
+        {availability === AssistantAvailability.UNAVAILABLE &&
           <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
             <InterfaceText>{key('button')}</InterfaceText>
           </a>
