@@ -1,5 +1,5 @@
 """
-JSON codec for domain events, because Celery arguments must be JSON.
+JSON codec for the donor events in sefaria/donors/types.py, because Celery arguments must be JSON.
 
 The same codec would be the storage format if an inbox is ever added (see dispatcher.py for
 what that is).

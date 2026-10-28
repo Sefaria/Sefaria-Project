@@ -1,5 +1,5 @@
 """
-Domain types for donor status.
+Types for recording donor status.
 
 Every type here is a frozen dataclass or an Enum, and the event types form tagged unions,
 so code branches on them with `match` and closes each branch with `assert_never`. The point
@@ -127,8 +127,8 @@ class DonorEmailAddressCouldNotBeResolved:
 
 
 # Returns the supporter's address, or why it couldn't be found. It RAISES on transient failures
-# (timeouts, 5xx), so the Celery task can retry them. The domain receives this as an argument,
-# which keeps any knowledge of Classy's HTTP API out of sefaria/donors/.
+# (timeouts, 5xx), so the Celery task can retry them. The donor recording code receives this
+# as an argument, so it never makes the HTTP call itself (see webhooks/adapters/classy_api.py).
 type LookUpClassySupporterEmailAddress = Callable[
     [int], NormalizedEmailAddress | DonorEmailAddressCouldNotBeResolved
 ]

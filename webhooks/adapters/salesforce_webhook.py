@@ -120,7 +120,7 @@ def _is_optional_int(value: object) -> bool:
 
 
 def _is_valid_optional_donation(donation: object) -> bool:
-    # Validated but not carried into the domain in this PR. A future Salesforce
+    # Validated but not carried into the donor recording code in this PR. A future Salesforce
     # DonationReceived Flow can reuse the payload shape unchanged.
     match donation:
         case None:

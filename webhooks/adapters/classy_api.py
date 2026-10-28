@@ -2,9 +2,11 @@
 The one outbound call this feature makes: Classy's supporter API, to find a donor's email
 address when the webhook payload didn't include it.
 
-It lives in webhooks/ rather than sefaria/donors/ so the domain never knows Classy has an
-HTTP API. The task passes look_up_classy_supporter_email_address into the domain as a plain
-function argument.
+It lives here rather than with the donor recording code in sefaria/donors/, so that the donor
+recording code makes no network calls. The Celery task (webhooks/tasks.py) passes
+look_up_classy_supporter_email_address to it as a plain function argument. That lets the
+donor recording tests pass a one-line fake instead of mocking HTTP requests, and keeps the
+credentials, timeouts and retry handling in this file.
 
 No token caching: donation volume is tens to hundreds a day, so one extra token request per
 event is negligible, and caching would add expiry handling for no measurable gain.

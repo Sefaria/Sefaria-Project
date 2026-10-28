@@ -115,7 +115,7 @@ class TestVerifySalesforceRequestSecret:
 class TestParseSalesforcePayload:
 
     def test_a_valid_payload_becomes_an_event(self):
-        """Every contract field lands where the domain expects it; the email is normalized."""
+        """Every contract field lands where the donor recording code expects it; the email is normalized."""
         assert parse_salesforce_payload(
             body_of(VALID_PAYLOAD), {}
         ) == UserBecameDonorAccordingToSalesforce(
