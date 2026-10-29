@@ -14,7 +14,7 @@ This document covers the supporting infrastructure files in the `sefaria/` packa
 - `SECRET_KEY`, `CHATBOT_USER_ID_SECRET` -- secrets (empty in repo, set in local_settings)
 - `SEFARIA_EXPORT_PATH` -- used by `export.py`
 - `SEARCH_INDEX_ON_SAVE` -- controls whether text saves enqueue search indexing
-- `USE_VARNISH`, `CELERY_ENABLED`, `MULTISERVER_ENABLED` -- feature flags consumed by `tracker.py`
+- `USE_VARNISH`, `CELERY_ENABLED` -- feature flags consumed by `tracker.py`
 - Bilingual i18n setup (`en`/`he`)
 - Template context processors include `sefaria.system.context_processors.global_settings`
 
@@ -104,7 +104,7 @@ This document covers the supporting infrastructure files in the `sefaria/` packa
 
 ## Relationships
 
-- `settings.py` is consumed by nearly every module. `tracker.py` reads `USE_VARNISH`, `CELERY_ENABLED`, `SEARCH_INDEX_ON_SAVE`, `MULTISERVER_ENABLED`.
+- `settings.py` is consumed by nearly every module. `tracker.py` reads `USE_VARNISH`, `CELERY_ENABLED`, `SEARCH_INDEX_ON_SAVE`.
 - `export.py` depends on `tracker.modify_bulk_text` for import operations and `settings.SEFARIA_EXPORT_PATH` for output.
 - `google_storage_manager.py` depends on `sefaria.site.site_settings.SITE_SETTINGS` for bucket names and `settings.GOOGLE_APPLICATION_CREDENTIALS_FILEPATH` for auth.
 - `image_generator.py` reads fonts from `static/fonts/`.
