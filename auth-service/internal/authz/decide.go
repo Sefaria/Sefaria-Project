@@ -172,8 +172,10 @@ func lookupSfr(l Lookup, key string) (registry.Key, bool) {
 }
 
 func decide(l Lookup, cfg Config, r Request, meter string) Decision {
+	// Envoy joins repeated x-api-key headers with a comma. Such a value is a bad key whichever element comes first.
+	joined := strings.Contains(r.APIKey, ",")
 	// A legacy key (no sfr_ prefix) is not checked here: it takes the no-key path, and Django checks it.
-	if strings.HasPrefix(r.APIKey, sfrPrefix) {
+	if joined || strings.HasPrefix(r.APIKey, sfrPrefix) {
 		k, ok := lookupSfr(l, r.APIKey)
 		if !ok || k.Revoked {
 			// Gated: 401. Ungated: anonymous, so the page still loads, and the caller is told the key was not accepted.

@@ -225,3 +225,34 @@ func TestPrefixCapsAtSfrPlus6(t *testing.T) {
 		t.Fatalf("legacy key logs a prefix: %q", got)
 	}
 }
+
+// Any comma-joined x-api-key value is a bad key, whichever element comes first (legacy or sfr_).
+func TestCommaJoinedValueIsBadKeyLegacyOrSfrFirst(t *testing.T) {
+	legacy := "0123456789abcdef0123456789abcdef"
+	for name, k := range map[string]string{"legacy first": legacy + "," + alpha, "sfr first": alpha + "," + legacy, "legacy twice": legacy + "," + legacy} {
+		t.Run(name+" gated enforce", func(t *testing.T) {
+			d := Decide(reg, enforce, Request{Method: "POST", Path: "/api/knn-search", APIKey: k})
+			if d.Allow || d.Status != 401 || d.Code != CodeKeyInvalid || d.Result != CodeKeyInvalid || !d.KeyNotAccepted {
+				t.Fatalf("got %+v", d)
+			}
+		})
+		t.Run(name+" ungated enforce", func(t *testing.T) {
+			d := Decide(reg, enforce, Request{Method: "GET", Path: "/api/texts/Genesis.1", APIKey: k})
+			if !d.Allow || d.Tier != TierAnonymous || d.Keyed || d.Result != CodeKeyInvalid || !d.KeyNotAccepted {
+				t.Fatalf("got %+v", d)
+			}
+		})
+		t.Run(name+" gated observe", func(t *testing.T) {
+			d := Decide(reg, observe, Request{Method: "POST", Path: "/api/knn-search", APIKey: k})
+			if !d.Allow || d.Status != 200 || d.Keyed || d.Result != "observed:api_key_invalid" || !d.KeyNotAccepted {
+				t.Fatalf("got %+v", d)
+			}
+		})
+		t.Run(name+" ungated observe", func(t *testing.T) {
+			d := Decide(reg, observe, Request{Method: "GET", Path: "/api/texts/Genesis.1", APIKey: k})
+			if !d.Allow || d.Keyed || d.Result != CodeKeyInvalid || !d.KeyNotAccepted {
+				t.Fatalf("got %+v", d)
+			}
+		})
+	}
+}

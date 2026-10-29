@@ -76,14 +76,16 @@ http {
   }
   add_header 'Access-Control-Allow-Origin' $cors_header always;
 
-  # keyStatus: ext_authz sends x-sefaria-key-status: not_accepted when a bad sfr_ key was answered as anonymous
-  # (ungated, or observe mode). Echo it to the caller. The listener strips client copies (clienttrafficpolicy).
+{{ if .Values.authService.enabled }}  # keyStatus: ext_authz sends x-sefaria-key-status: not_accepted when a bad key was answered as anonymous
+  # (ungated, or observe mode). Echo it to the caller; Access-Control-Expose-Headers lets browsers read it cross-origin.
+  # Rendered only when authService is enabled: only then does the listener strip client copies (clienttrafficpolicy).
   map $http_x_sefaria_key_status $key_status {
     not_accepted  not_accepted;
     default       "";
   }
   add_header x-sefaria-key-status $key_status always;
-
+  add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
+{{ end }}
   upstream varnishupstream {
     server ${VARNISH_HOST}:8040;
     keepalive 32;
@@ -169,8 +171,9 @@ http {
       rewrite ^/(?:api/search)/(.*)$ /$1 break;
       proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
       add_header 'Access-Control-Allow-Origin' '';
-      add_header x-sefaria-key-status $key_status always;
-      proxy_pass http://elasticsearch_upstream/;
+{{ if $.Values.authService.enabled }}      add_header x-sefaria-key-status $key_status always;
+      add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
+{{ end }}      proxy_pass http://elasticsearch_upstream/;
     }
 
     location /nginx-health {
@@ -260,8 +263,9 @@ http {
       rewrite ^/(?:api/search)/(.*)$ /$1 break;
       proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
       add_header 'Access-Control-Allow-Origin' '';
-      add_header x-sefaria-key-status $key_status always;
-      proxy_pass http://elasticsearch_upstream/;
+{{ if $.Values.authService.enabled }}      add_header x-sefaria-key-status $key_status always;
+      add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
+{{ end }}      proxy_pass http://elasticsearch_upstream/;
     }
 
     location /nginx-health {

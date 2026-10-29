@@ -24,6 +24,7 @@ from sefaria.model import library, Index, IndexSet, Version, VersionSet, LinkSet
     VersionStateSet, Category, UserHistory, UserHistorySet, WebPage
 from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.system.database import db
+from bson.objectid import ObjectId
 import sefaria.system.cache as scache
 import random as rand
 
@@ -1410,6 +1411,7 @@ class LegacyApiKeyNotesTest(SefariaTestCase):
         self.make_test_user()
         uid = User.objects.get(email="test@sefaria.org").id
         db.apikeys.insert_one({"key": LEGACY_API_KEY_FIXTURE, "uid": uid})
+        self.addCleanup(db.apikeys.delete_many, {"key": LEGACY_API_KEY_FIXTURE})
         response = c.post("/api/notes/", {'json': json.dumps({
             'title': 'legacy key test note',
             'text': 'private to the key owner',
@@ -1419,10 +1421,8 @@ class LegacyApiKeyNotesTest(SefariaTestCase):
         })})
         self.assertEqual(200, response.status_code)
         self.note_id = json.loads(response.content)["_id"]
+        self.addCleanup(db.notes.delete_one, {"_id": ObjectId(self.note_id)})
         c.logout()
-
-    def tearDown(self):
-        db.apikeys.delete_many({"key": LEGACY_API_KEY_FIXTURE})
 
     def _note_ids(self, **extra):
         response = c.get("/api/notes/Genesis.1.5", {"private": "1"}, **extra)
