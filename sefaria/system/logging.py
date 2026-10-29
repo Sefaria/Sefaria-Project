@@ -5,9 +5,10 @@ from structlog.processors import _figure_out_exc_info
 from structlog._frames import _format_exception
 
 # Query parameters that carry an API key: api_key or apikey, every letter and the underscore written literally (any
-# case) or percent-encoded (any hex case). Their values never reach a log line.
+# case) or percent-encoded (any hex case). A name counts only at the start of the query or right after an "&".
+# The value runs to the next "&" or the end, a "#" included (Django keeps it in get_full_path()). Values never reach a log line.
 API_KEY_QUERY_RE = re.compile(
-    r"(?i)((?:^|[?&])(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)[^&#]*"
+    r"(?i)((?:^|&)(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)[^&]*"
 )
 
 

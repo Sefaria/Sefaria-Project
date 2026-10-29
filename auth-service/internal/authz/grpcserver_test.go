@@ -2,6 +2,7 @@ package authz
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -52,7 +53,7 @@ func TestGRPCCheckAllow(t *testing.T) {
 	if got["x-sefaria-project"] != "proj_alpha" || got["x-sefaria-tier"] != "developer" || got["x-sefaria-auth-result"] != "ok" {
 		t.Fatalf("headers=%v", got)
 	}
-	if len(ok.HeadersToRemove) != 0 || !hasAllAPIKeyRemovals(ok.QueryParametersToRemove) {
+	if len(ok.HeadersToRemove) != 0 || !reflect.DeepEqual(ok.QueryParametersToRemove, []string{"api_key"}) {
 		t.Fatalf("remove=%v qp=%v", ok.HeadersToRemove, ok.QueryParametersToRemove)
 	}
 }
@@ -77,7 +78,7 @@ func TestGRPCCheckAnonymousAllowStampsEmptyProject(t *testing.T) {
 	if len(got) != 4 || got["x-sefaria-meter"] != MeterNone {
 		t.Fatalf("expected all identity headers and the meter, got=%v", got)
 	}
-	if len(ok.HeadersToRemove) != 0 || !hasAllAPIKeyRemovals(ok.QueryParametersToRemove) {
+	if len(ok.HeadersToRemove) != 0 || len(ok.QueryParametersToRemove) != 0 {
 		t.Fatalf("remove=%v qp=%v", ok.HeadersToRemove, ok.QueryParametersToRemove)
 	}
 }

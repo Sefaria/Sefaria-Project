@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"log/slog"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -129,7 +130,7 @@ func TestGRPCQueryStrip(t *testing.T) {
 	t.Run("allow strips api_key from the query", func(t *testing.T) {
 		resp, _ := checkDecision(t, enforce, "GET", "/api/texts/Genesis.1?api_key=x", nil)
 		qp := resp.GetOkResponse().GetQueryParametersToRemove()
-		if !hasAllAPIKeyRemovals(qp) {
+		if !reflect.DeepEqual(qp, []string{"api_key"}) {
 			t.Fatalf("qp=%v", qp)
 		}
 	})
