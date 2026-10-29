@@ -184,6 +184,15 @@ test.describe("verse ranges (verified on sefaria.org 2026-10-28)", () => {
     await expect(page.locator('[data-highlighted="true"]')).toHaveCount(16);
   });
 
+  // a range is kept because of where it starts, not its length (VERIFIED 2026-10-29 on sefaria.org at 1280px: /Genesis.6.9-11 and
+  // /Genesis.1.1-3 stay, highlighted; /Genesis.1.3-5 collapses to /Genesis.1.3)
+  test("a short range that starts at a portion's first verse stays, highlighted", async ({ page }) => {
+    await open(page, "/Genesis.6.9-11?lang=bi");
+    await page.waitForTimeout(1500);
+    expect(new URL(page.url()).pathname).toBe("/Genesis.6.9-11");
+    await expect(page.locator('[data-highlighted="true"]')).toHaveCount(3);
+  });
+
   test("a short range that is not a portion collapses to its first verse", async ({ page }) => {
     await open(page, "/Genesis.1.3-5?lang=bi");
     await expect.poll(() => new URL(page.url()).pathname).toBe("/Genesis.1.3");
