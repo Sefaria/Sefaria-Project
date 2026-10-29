@@ -661,5 +661,8 @@
     "search.no_results.authors.body.library_assistant": "Try a different search term, browse all Authors or {br}ask the {assistant} for help.",
     "search.no_results.topics.body.library_assistant": "Try a different search term, browse all Topics or {br}ask the {assistant} for help.",
     "search.no_results.library_assistant_question": "I searched for \"{query}\" on Sefaria and got no results. Can you help me find relevant sources, books, authors, and/or topics?",
-    "header.library_assistant_short": "Ask"
+    "header.library_assistant_short": "Ask",
+    "search.autocorrect.results_shown": "These are results for",
+    "search.autocorrect.original_term": "Search instead for",
+    "search.suggestions.prefix": "Did you mean:"
 }

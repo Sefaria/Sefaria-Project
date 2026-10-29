@@ -661,5 +661,8 @@
     "search.no_results.books.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בספרייה או {br}שאלו את {assistant}.",
     "search.no_results.authors.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל המחברים או {br}שאלו את {assistant}.",
     "search.no_results.library_assistant_question": "חיפשתי \"{query}\" בספריא ואין תוצאות. אפשר לעזור לי למצוא מקורות, ספרים, מחברים ו/או נושאים רלוונטיים?",
-    "header.library_assistant_short": "שאלו"
+    "header.library_assistant_short": "שאלו",
+    "search.autocorrect.results_shown": "מוצגות תוצאות עבור",
+    "search.autocorrect.original_term": "חיפוש של",
+    "search.suggestions.prefix": "האם התכוונת ל:"
 }
