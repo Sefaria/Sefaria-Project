@@ -47,6 +47,12 @@ from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
 from sefaria.constants.model import VOICES_MODULE, LIBRARY_ASSISTANT_SETTING_KEY
+from sefaria.donors.types import DonorStatus
+
+# Profile fields that save() writes only when it creates the document. Every other save leaves
+# them as stored, because the donor webhook can change them while a request holds an older copy
+# of the profile: writing that copy's value back, even "unknown", would undo the donation.
+DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION = ("donor_status", "became_donor_at")
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
@@ -62,6 +68,7 @@ from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_r
 from sefaria.model.blocking import BlockersSet, BlockeesSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
+from sefaria.system.cache import gen_cache
 from sefaria.utils.util import epoch_time
 from django.utils import translation
 
@@ -440,6 +447,13 @@ class UserProfile(object):
         # Fundraising
         self.is_sustainer = False
         self.experiments = False
+        # Only the donor webhook path (sefaria/donors/donor_recording.py) changes these, with one
+        # atomic update_one. save() writes them only when it creates the document (see
+        # DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION), and user input cannot set them:
+        # the profile_api POST in reader/views.py strips both. Kept as the raw stored string, because update()
+        # copies Mongo values straight into __dict__; read it through DonorStatus.from_stored_value.
+        self.donor_status = DonorStatus.UNKNOWN.value
+        self.became_donor_at = None
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
@@ -469,8 +483,8 @@ class UserProfile(object):
     def full_name(self):
         return self.first_name + " " + self.last_name
 
-    # Profile fields that public_user_data() exposes. A change to one of them is
-    # broadcast so other servers drop their cached copy; other fields are not.
+    # Profile fields that public_user_data() exposes. A change to one of them bumps the
+    # GenCache generation so other servers drop their cached copy; other fields do not.
     public_data_fields = ["first_name", "last_name", "slug", "profile_pic_url_small",
                           "position", "organization"]
 
@@ -563,7 +577,19 @@ class UserProfile(object):
 
         d = self.to_mongo_dict()
         if self._id:
-            db.profiles.replace_one({'_id': self._id}, d, upsert=True)
+            # $set of the listed fields, not replace_one of the whole document. A replace would
+            # write back every field as this object loaded it, undoing anything another writer
+            # changed in between (the donor webhook, or the spam dashboard's "reviewed" flag).
+            # $setOnInsert covers a document deleted since it was loaded: upsert recreates it,
+            # and only then are the donor fields written.
+            fields_written_on_creation_only = {
+                name: d.pop(name) for name in DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION
+            }
+            db.profiles.update_one(
+                {'_id': self._id},
+                {'$set': d, '$setOnInsert': fields_written_on_creation_only},
+                upsert=True,
+            )
         else:
             inserted = db.profiles.insert_one(d)
             self._id = inserted.inserted_id
@@ -593,21 +619,17 @@ class UserProfile(object):
 
     def _publish_public_data_invalidation(self):
         """
-        Tell the other server processes to drop this user's cached public data.
+        Tell the other server processes to drop their cached public user data.
 
         Only called when a public field changed (_public_data_updated), because
-        profile_sync_api saves profiles on every reading-history sync and the
-        multiserver channel is meant for infrequent events.
+        profile_sync_api saves profiles on every reading-history sync and every
+        invalidation makes each process refresh.
 
-        Best-effort: listeners only check for events every few requests, and
-        publish_event ignores Redis errors. PUBLIC_USER_DATA_CACHE_TTL bounds how
-        long any process can serve stale data if a message is missed.
+        Best-effort: GenCache fails open if Redis is unreachable, and other processes only
+        re-check the generation every few seconds. PUBLIC_USER_DATA_CACHE_TTL bounds how
+        long any process can serve stale data if a bump is missed.
         """
-        from sefaria.settings import MULTISERVER_ENABLED
-        from sefaria.system.multiserver.coordinator import server_coordinator
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event(
-                "user_profile", "invalidate_public_user_data_cache", [self.id])
+        gen_cache.invalidate(PUBLIC_USER_DATA_GEN_KEY)
 
     def errors(self):
         """
@@ -757,6 +779,8 @@ class UserProfile(object):
             "version_preferences_by_corpus": self.version_preferences_by_corpus,
             "attr_time_stamps":      self.attr_time_stamps,
             "is_sustainer":          self.is_sustainer,
+            "donor_status":          self.donor_status,
+            "became_donor_at":       self.became_donor_at,
             "experiments":           self.experiments,
             "tag_order":             getattr(self, "tag_order", None),
             "last_sync_web":         self.last_sync_web,
@@ -798,6 +822,7 @@ class UserProfile(object):
         other_info = {
             "pinned_sheets":         self.pinned_sheets,
             "is_sustainer":          self.is_sustainer,
+            "donor_status":          DonorStatus.from_stored_value(self.donor_status).value,
             "experiments":           self.experiments,
         }
         dictionary.update(other_info)
@@ -915,6 +940,11 @@ def email_unread_notifications(timeframe):
 PUBLIC_USER_DATA_CACHE_TTL = 10 * 60
 public_user_data_cache = {}
 
+# GenCache key bumped when any user's public data changes. The generation is shared by all
+# users, so a bump makes every process drop all of its cached public user data.
+PUBLIC_USER_DATA_GEN_KEY = "public_user_data"
+gen_cache.register(PUBLIC_USER_DATA_GEN_KEY, public_user_data_cache.clear)
+
 
 def _get_cached_public_user_data(uid):
     """Returns the cached data for `uid`, or None if it is missing or expired."""
@@ -931,6 +961,7 @@ def _get_cached_public_user_data(uid):
 def public_user_data(uid, ignore_cache=False):
     """Returns a dictionary with common public data for `uid`"""
     if not ignore_cache:
+        gen_cache.get(PUBLIC_USER_DATA_GEN_KEY)  # clears the local cache if another process bumped the generation
         cached = _get_cached_public_user_data(uid)
         if cached is not None:
             return cached
@@ -959,9 +990,8 @@ def invalidate_public_user_data_cache(uid):
     """
     Drop `uid`'s cached public data so the next read rebuilds it from the DBs.
 
-    Called by UserProfile.save(), and on other servers through the multiserver
-    coordinator's "user_profile" target (sefaria/system/multiserver/coordinator.py).
-    A uid that isn't cached is ignored.
+    Called by UserProfile.save(). Other servers drop their copies through the
+    PUBLIC_USER_DATA_GEN_KEY GenCache generation. A uid that isn't cached is ignored.
     """
     public_user_data_cache.pop(uid, None)
 
