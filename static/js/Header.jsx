@@ -407,29 +407,26 @@ Header.propTypes = {
   notificationCount: PropTypes.number,
 };
 
-const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
-  const classes = classNames({accountLinks: !mobile, anon: !mobile});
-
+// Sign up / Log in as one light row at the top of the mobile menu so logged-out users see them as soon as the menu opens
+const MobileAuthRow = ({ openURL, close }) => {
+  const openAuth = (flow) => (e) => {
+    e.preventDefault();
+    openURL(`/${flow}`, undefined, undefined, undefined, 'nav_bar');
+    close?.();
+  };
   return (
-    <div className={classes}>
-      {loginOnly && (
-        <AuthNavLink flow='login' openURL={openURL} close={close}>
-          {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
-          <InterfaceText>header.log_in</InterfaceText>
-        </AuthNavLink>)}
-      {loginOnly ? null :
-        <span>
-          <AuthNavLink flow='register' openURL={openURL} close={close}>
-            {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
-            <InterfaceText>header.sign_up</InterfaceText>
-          </AuthNavLink>
-          <AuthNavLink flow='login' openURL={openURL} close={close}>
-            <InterfaceText>header.log_in</InterfaceText>
-          </AuthNavLink>
-        </span>}
+    <div className="mobileAuthRow">
+      <img src="/static/icons/profile.svg" alt="" />
+      <a href="/register" onClick={openAuth('register')}>
+        <InterfaceText>header.sign_up</InterfaceText>
+      </a>
+      <span className="mobileAuthRowSeparator" aria-hidden="true">•</span>
+      <a href="/login" onClick={openAuth('login')}>
+        <InterfaceText>header.log_in</InterfaceText>
+      </a>
     </div>
   );
-}
+};
 
 const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications }) => {
   const classes = classNames({
@@ -449,6 +446,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           hideHebrewKeyboard={true}
         />
       </div>
+      {!Sefaria._uid && <MobileAuthRow openURL={openURL} close={close} />}
       {module === Sefaria.LIBRARY_MODULE &&
         <>
           <a href="/texts" onClick={close} className="textsPageLink">
@@ -585,15 +583,14 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <InterfaceText>header.more_from_sefaria</InterfaceText>
         </a>
 
-        <hr />
-
-        {Sefaria._uid ?
-          <a href={Sefaria.getLogoutUrl()} className="logout">
-            <img src="/static/icons/logout.svg" alt={Sefaria._("header.logout")} />
-            <InterfaceText>header.logout</InterfaceText>
-          </a>
-          :
-          <LoggedOutButtons mobile={true} loginOnly={false} openURL={openURL} close={close} />}
+        {Sefaria._uid &&
+          <>
+            <hr />
+            <a href={Sefaria.getLogoutUrl()} className="logout">
+              <img src="/static/icons/logout.svg" alt={Sefaria._("header.logout")} />
+              <InterfaceText>header.logout</InterfaceText>
+            </a>
+          </>}
 
         <hr />
       </div>

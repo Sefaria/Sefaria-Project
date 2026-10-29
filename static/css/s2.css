@@ -640,6 +640,47 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .interface-hebrew .mobileNavMenu .loginLink {
   padding-right: 0px !important;
 }
+.mobileNavMenu .mobileAuthRow {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding-inline: 15px;
+  border-bottom: 1px solid #EDEDEC;
+}
+.mobileNavMenu .mobileAuthRow > img {
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 7px;
+}
+.mobileNavMenu .mobileAuthRow a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  color: var(--theme-primary);
+  font-size: 16px;
+  font-weight: 600; /* en-system-body-strong */
+}
+.interface-hebrew .mobileNavMenu .mobileAuthRow a {
+  font-weight: 700; /* he-system-body-strong */
+}
+/* 8px between each word and the dot; the outer sides keep 8px so the 44px tap areas stay 12px apart */
+.mobileNavMenu .mobileAuthRow a:first-of-type {
+  padding-inline-end: 4px;
+}
+.mobileNavMenu .mobileAuthRow a:last-of-type {
+  padding-inline-start: 4px;
+}
+/* same dot as the English • עברית toggle; the margin keeps the two 44px tap areas apart */
+.mobileNavMenu .mobileAuthRowSeparator {
+  position: relative;
+  top: 1px; /* centering puts the • 1px above where the toggle's baseline-aligned • sits */
+  margin: 0 4px;
+  font-size: 13px;
+  color: var(--dark-grey);
+}
 .mobileNavMenu .profile-pic {
   display: inline-block;
   margin-inline-end: 11px;
