@@ -33,6 +33,10 @@ jobs:
     strategy:
       matrix:
         app: [ web, node ]
+        include:
+          # the legacy SSR server, for nodejs.mode "optin" (the node image is the new reader; both run side by side)
+          - app: nodelegacy
+            dockerfile: ./build/node/Dockerfile.legacy
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
@@ -88,7 +92,7 @@ jobs:
           push: true
           build-args: |
             TYPE=build
-          file: ./build/${{ matrix.app }}/Dockerfile
+          file: ${{ matrix.dockerfile || format('./build/{0}/Dockerfile', matrix.app) }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   build-derived:

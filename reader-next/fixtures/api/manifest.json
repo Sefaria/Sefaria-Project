@@ -1,0 +1,2751 @@
+{
+  "recordedAt": "2026-10-04T16:45:16.912Z",
+  "apiBase": "https://www.sefaria.org",
+  "entries": [
+    {
+      "slug": "_toc",
+      "ref": null,
+      "title": null,
+      "bookType": "global",
+      "why": "Full library TOC (/api/index)",
+      "files": {
+        "toc.json": {
+          "url": "https://www.sefaria.org/api/index",
+          "status": 200,
+          "bytes": 7430380
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:36.679Z"
+    },
+    {
+      "slug": "_calendars",
+      "ref": null,
+      "title": null,
+      "bookType": "global",
+      "why": "Daily learning calendars (/api/calendars)",
+      "files": {
+        "calendars.json": {
+          "url": "https://www.sefaria.org/api/calendars?diaspora=1",
+          "status": 200,
+          "bytes": 6304
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:36.679Z"
+    },
+    {
+      "slug": "genesis-1",
+      "ref": "Genesis 1",
+      "resolvedRef": "Genesis 1",
+      "sectionRef": "Genesis 1",
+      "title": "Genesis",
+      "categories": [
+        "Tanakh",
+        "Torah"
+      ],
+      "bookType": "tanakh-torah",
+      "why": "Torah chapter: Parasha alt struct with aliyot, cantillation/nikkud, many translations in many languages",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Verse"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Pasuk"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Genesis_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 71814
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Genesis_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 71814
+        },
+        "section-next.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Genesis_2?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 61100
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Genesis",
+          "status": 200,
+          "bytes": 14977
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Genesis?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 29306
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Genesis",
+          "status": 200,
+          "bytes": 684
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Genesis_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 484062,
+          "truncated": true,
+          "originalBytes": 16062225
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Genesis_1?with_text=0",
+          "status": 200,
+          "bytes": 479849,
+          "truncated": true,
+          "originalBytes": 7396083
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Genesis",
+          "status": 200,
+          "bytes": 55684
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Genesis?limit=10",
+          "status": 200,
+          "bytes": 2872
+        },
+        "v3-texts-french.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Genesis_1?version=primary&version=french",
+          "status": 200,
+          "bytes": 71252
+        },
+        "v3-texts-multilang.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Genesis_1?version=primary&version=english&version=french&version=german&version=spanish",
+          "status": 200,
+          "bytes": 83980
+        }
+      },
+      "recordedAt": "2026-10-04T16:45:05.557Z"
+    },
+    {
+      "slug": "genesis-1-1-5",
+      "ref": "Genesis 1:1-5",
+      "resolvedRef": "Genesis 1:1-5",
+      "sectionRef": "Genesis 1",
+      "title": "Genesis",
+      "categories": [
+        "Tanakh",
+        "Torah"
+      ],
+      "bookType": "tanakh-torah",
+      "why": "Segment range inside one section",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Verse"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Pasuk"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Genesis_1:1-5?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 60866
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Genesis_1:1-5?version=primary&version=translation",
+          "status": 200,
+          "bytes": 60866
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Genesis",
+          "sameAs": "genesis-1/index.json"
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Genesis?with_content_counts=1&with_related_topics=1",
+          "sameAs": "genesis-1/index-contracted.json"
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Genesis",
+          "sameAs": "genesis-1/shape.json"
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Genesis_1?with_sheet_links=1",
+          "sameAs": "genesis-1/related.json"
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Genesis_1?with_text=0",
+          "sameAs": "genesis-1/links.json"
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Genesis",
+          "sameAs": "genesis-1/versions.json"
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Genesis?limit=10",
+          "sameAs": "genesis-1/name.json"
+        }
+      },
+      "recordedAt": "2026-10-04T13:11:52.443Z"
+    },
+    {
+      "slug": "psalms-23",
+      "ref": "Psalms 23",
+      "resolvedRef": "Psalms 23",
+      "sectionRef": "Psalms 23",
+      "title": "Psalms",
+      "categories": [
+        "Tanakh",
+        "Writings"
+      ],
+      "bookType": "tanakh-poetry",
+      "why": "Poetry (Writings) - line-break / formatAsPoetry handling",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Verse"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Pasuk"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Psalms_23?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 27781
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Psalms_23?version=primary&version=translation",
+          "status": 200,
+          "bytes": 27781
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Psalms",
+          "status": 200,
+          "bytes": 19927
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Psalms?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 44392
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Psalms",
+          "status": 200,
+          "bytes": 1641
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Psalms_23?with_sheet_links=1",
+          "status": 200,
+          "bytes": 486676,
+          "truncated": true,
+          "originalBytes": 765259
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Psalms_23?with_text=0",
+          "status": 200,
+          "bytes": 347410
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Psalms",
+          "status": 200,
+          "bytes": 24011
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Psalms?limit=10",
+          "status": 200,
+          "bytes": 2624
+        }
+      },
+      "recordedAt": "2026-10-04T13:11:56.613Z"
+    },
+    {
+      "slug": "isaiah-40",
+      "ref": "Isaiah 40",
+      "resolvedRef": "Isaiah 40",
+      "sectionRef": "Isaiah 40",
+      "title": "Isaiah",
+      "categories": [
+        "Tanakh",
+        "Prophets"
+      ],
+      "bookType": "tanakh-prophets",
+      "why": "Prophets chapter (haftarah source)",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Verse"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Pasuk"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Isaiah_40?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 41551
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Isaiah_40?version=primary&version=translation",
+          "status": 200,
+          "bytes": 41361
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Isaiah",
+          "status": 200,
+          "bytes": 3203
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Isaiah?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 7013
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Isaiah",
+          "status": 200,
+          "bytes": 838
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Isaiah_40?with_sheet_links=1",
+          "status": 200,
+          "bytes": 348361,
+          "truncated": true,
+          "originalBytes": 3052408
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Isaiah_40?with_text=0",
+          "status": 200,
+          "bytes": 495633,
+          "truncated": true,
+          "originalBytes": 1948184
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Isaiah",
+          "status": 200,
+          "bytes": 19690
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Isaiah?limit=10",
+          "status": 200,
+          "bytes": 2813
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:01.785Z"
+    },
+    {
+      "slug": "song-of-songs-1",
+      "ref": "Song of Songs 1",
+      "resolvedRef": "Song of Songs 1",
+      "sectionRef": "Song of Songs 1",
+      "title": "Song of Songs",
+      "categories": [
+        "Tanakh",
+        "Writings"
+      ],
+      "bookType": "tanakh-megillah",
+      "why": "Megillah / Writings",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Verse"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Pasuk"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Song_of_Songs_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 37218
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Song_of_Songs_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 37218
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Song_of_Songs",
+          "status": 200,
+          "bytes": 4010
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Song_of_Songs?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 7548
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Song_of_Songs",
+          "status": 200,
+          "bytes": 292
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Song_of_Songs_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 395426,
+          "truncated": true,
+          "originalBytes": 2312192
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Song_of_Songs_1?with_text=0",
+          "status": 200,
+          "bytes": 415586,
+          "truncated": true,
+          "originalBytes": 1620718
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Song_of_Songs",
+          "status": 200,
+          "bytes": 25037
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Song%20of%20Songs?limit=10",
+          "status": 200,
+          "bytes": 2854
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:06.627Z"
+    },
+    {
+      "slug": "onkelos-genesis-1",
+      "ref": "Onkelos Genesis 1",
+      "resolvedRef": "Onkelos Genesis 1",
+      "sectionRef": "Onkelos Genesis 1",
+      "title": "Onkelos Genesis",
+      "categories": [
+        "Tanakh",
+        "Targum",
+        "Onkelos",
+        "Torah"
+      ],
+      "bookType": "targum",
+      "why": "Targum that the old client shows with aliyot (categories[2]=='Onkelos')",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Verse"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Pasuk"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Onkelos_Genesis_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 20700
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Onkelos_Genesis_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 20700
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Onkelos_Genesis",
+          "status": 200,
+          "bytes": 10286
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Onkelos_Genesis?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 24391
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Onkelos_Genesis",
+          "status": 200,
+          "bytes": 762
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Onkelos_Genesis_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 110330
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Onkelos_Genesis_1?with_text=0",
+          "status": 200,
+          "bytes": 80360
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Onkelos_Genesis",
+          "status": 200,
+          "bytes": 9055
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Onkelos%20Genesis?limit=10",
+          "status": 200,
+          "bytes": 3050
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:10.099Z"
+    },
+    {
+      "slug": "berakhot-2a",
+      "ref": "Berakhot 2a",
+      "resolvedRef": "Berakhot 2a",
+      "sectionRef": "Berakhot 2a",
+      "title": "Berakhot",
+      "categories": [
+        "Talmud",
+        "Bavli",
+        "Seder Zeraim"
+      ],
+      "bookType": "talmud-bavli",
+      "why": "Bavli amud: Talmud address type (daf/amud), Chapters alt struct, manuscripts",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Daf",
+        "Line"
+      ],
+      "addressTypes": [
+        "Talmud",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Berakhot_2a?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 31546
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Berakhot_2a?version=primary&version=translation",
+          "status": 200,
+          "bytes": 29995
+        },
+        "section-next.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Berakhot_2b?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 38927
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Berakhot",
+          "status": 200,
+          "bytes": 25245
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Berakhot?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 37445
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Berakhot",
+          "status": 200,
+          "bytes": 1457
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Berakhot_2a?with_sheet_links=1",
+          "status": 200,
+          "bytes": 508164,
+          "truncated": true,
+          "originalBytes": 562917
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Berakhot_2a?with_text=0",
+          "status": 200,
+          "bytes": 313521
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Berakhot",
+          "status": 200,
+          "bytes": 13610
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Berakhot?limit=10",
+          "status": 200,
+          "bytes": 2816
+        },
+        "manuscripts.json": {
+          "url": "https://www.sefaria.org/api/manuscripts/Berakhot_2a",
+          "status": 200,
+          "bytes": 3956
+        }
+      },
+      "recordedAt": "2026-10-04T16:45:10.772Z"
+    },
+    {
+      "slug": "berakhot-2a-1-5",
+      "ref": "Berakhot 2a:1-5",
+      "resolvedRef": "Berakhot 2a:1-5",
+      "sectionRef": "Berakhot 2a",
+      "title": "Berakhot",
+      "categories": [
+        "Talmud",
+        "Bavli",
+        "Seder Zeraim"
+      ],
+      "bookType": "talmud-bavli",
+      "why": "Segment range within an amud",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Daf",
+        "Line"
+      ],
+      "addressTypes": [
+        "Talmud",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Berakhot_2a:1-5?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 22366
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Berakhot_2a:1-5?version=primary&version=translation",
+          "status": 200,
+          "bytes": 21108
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Berakhot",
+          "sameAs": "berakhot-2a/index.json"
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Berakhot?with_content_counts=1&with_related_topics=1",
+          "sameAs": "berakhot-2a/index-contracted.json"
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Berakhot",
+          "sameAs": "berakhot-2a/shape.json"
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Berakhot_2a?with_sheet_links=1",
+          "sameAs": "berakhot-2a/related.json"
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Berakhot_2a?with_text=0",
+          "sameAs": "berakhot-2a/links.json"
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Berakhot",
+          "sameAs": "berakhot-2a/versions.json"
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Berakhot?limit=10",
+          "sameAs": "berakhot-2a/name.json"
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:15.803Z"
+    },
+    {
+      "slug": "berakhot-2a-3b",
+      "ref": "Berakhot 2a-3b",
+      "resolvedRef": "Berakhot 2-3",
+      "sectionRef": "Berakhot 2-3",
+      "title": "Berakhot",
+      "categories": [
+        "Talmud",
+        "Bavli",
+        "Seder Zeraim"
+      ],
+      "bookType": "talmud-bavli",
+      "why": "Spanning range across several amudim (nested arrays, isSpanning)",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Daf",
+        "Line"
+      ],
+      "addressTypes": [
+        "Talmud",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Berakhot_2a-3b?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 111755
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Berakhot_2a-3b?version=primary&version=translation",
+          "status": 200,
+          "bytes": 87414
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Berakhot",
+          "sameAs": "berakhot-2a/index.json"
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Berakhot?with_content_counts=1&with_related_topics=1",
+          "sameAs": "berakhot-2a/index-contracted.json"
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Berakhot",
+          "sameAs": "berakhot-2a/shape.json"
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Berakhot_2-3?with_sheet_links=1",
+          "status": 200,
+          "bytes": 381240,
+          "truncated": true,
+          "originalBytes": 1986743
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Berakhot_2-3?with_text=0",
+          "status": 200,
+          "bytes": 281848,
+          "truncated": true,
+          "originalBytes": 1148303
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Berakhot",
+          "sameAs": "berakhot-2a/versions.json"
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Berakhot?limit=10",
+          "sameAs": "berakhot-2a/name.json"
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:19.399Z"
+    },
+    {
+      "slug": "jt-berakhot-1-1",
+      "ref": "Jerusalem Talmud Berakhot 1:1",
+      "resolvedRef": "Jerusalem Talmud Berakhot 1:1",
+      "sectionRef": "Jerusalem Talmud Berakhot 1:1",
+      "title": "Jerusalem Talmud Berakhot",
+      "categories": [
+        "Talmud",
+        "Yerushalmi",
+        "Seder Zeraim"
+      ],
+      "bookType": "talmud-yerushalmi",
+      "why": "Yerushalmi depth 3 (Chapter/Halakhah/Segment); Venice/Vilna alt structs use the Folio address type (4-sided daf a-d)",
+      "textDepth": 3,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Halakhah",
+        "Segment"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Halakhah",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Berakhot_1:1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 212180
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Berakhot_1:1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 189400
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Jerusalem_Talmud_Berakhot",
+          "status": 200,
+          "bytes": 34300
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Jerusalem_Talmud_Berakhot?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 42862
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Jerusalem_Talmud_Berakhot",
+          "status": 200,
+          "bytes": 1081
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Jerusalem_Talmud_Berakhot_1:1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 321154,
+          "truncated": true,
+          "originalBytes": 940235
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Berakhot_1:1?with_text=0",
+          "status": 200,
+          "bytes": 398747,
+          "truncated": true,
+          "originalBytes": 783642
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Jerusalem_Talmud_Berakhot",
+          "status": 200,
+          "bytes": 6664
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Jerusalem%20Talmud%20Berakhot?limit=10",
+          "status": 200,
+          "bytes": 3699
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:23.650Z"
+    },
+    {
+      "slug": "mishnah-berakhot-1",
+      "ref": "Mishnah Berakhot 1",
+      "resolvedRef": "Mishnah Berakhot 1",
+      "sectionRef": "Mishnah Berakhot 1",
+      "title": "Mishnah Berakhot",
+      "categories": [
+        "Mishnah",
+        "Seder Zeraim"
+      ],
+      "bookType": "mishnah",
+      "why": "Mishnah chapter",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Mishnah"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Mishnah"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Mishnah_Berakhot_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 35349
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Mishnah_Berakhot_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 30241
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Mishnah_Berakhot",
+          "status": 200,
+          "bytes": 2322
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Mishnah_Berakhot?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 5684
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Mishnah_Berakhot",
+          "status": 200,
+          "bytes": 303
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Mishnah_Berakhot_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 397139,
+          "truncated": true,
+          "originalBytes": 1116383
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Mishnah_Berakhot_1?with_text=0",
+          "status": 200,
+          "bytes": 300338,
+          "truncated": true,
+          "originalBytes": 605060
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Mishnah_Berakhot",
+          "status": 200,
+          "bytes": 13777
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Mishnah%20Berakhot?limit=10",
+          "status": 200,
+          "bytes": 3588
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:27.428Z"
+    },
+    {
+      "slug": "tosefta-berakhot-1",
+      "ref": "Tosefta Berakhot 1",
+      "resolvedRef": "Tosefta Berakhot 1",
+      "sectionRef": "Tosefta Berakhot 1",
+      "title": "Tosefta Berakhot",
+      "categories": [
+        "Tosefta",
+        "Vilna Edition",
+        "Seder Zeraim"
+      ],
+      "bookType": "tosefta",
+      "why": "Tosefta (Vilna edition)",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Tosefta"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Tosefta_Berakhot_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 29560
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Tosefta_Berakhot_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 15520
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Tosefta_Berakhot",
+          "status": 200,
+          "bytes": 1903
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Tosefta_Berakhot?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 5162
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Tosefta_Berakhot",
+          "status": 200,
+          "bytes": 299
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Tosefta_Berakhot_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 192303
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Tosefta_Berakhot_1?with_text=0",
+          "status": 200,
+          "bytes": 106353
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Tosefta_Berakhot",
+          "status": 200,
+          "bytes": 3510
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Tosefta%20Berakhot?limit=10",
+          "status": 200,
+          "bytes": 3058
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:39.401Z"
+    },
+    {
+      "slug": "pirkei-avot-1",
+      "ref": "Pirkei Avot 1",
+      "resolvedRef": "Pirkei Avot 1",
+      "sectionRef": "Pirkei Avot 1",
+      "title": "Pirkei Avot",
+      "categories": [
+        "Mishnah",
+        "Seder Nezikin"
+      ],
+      "bookType": "mishnah",
+      "why": "Mishnah tractate whose title doesn't start with 'Mishnah'",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Mishnah"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Mishnah"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Pirkei_Avot_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 36069
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Pirkei_Avot_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 29762
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Pirkei_Avot",
+          "status": 200,
+          "bytes": 3440
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Pirkei_Avot?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 6916
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Pirkei_Avot",
+          "status": 200,
+          "bytes": 269
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Pirkei_Avot_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 494837,
+          "truncated": true,
+          "originalBytes": 6762205
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Pirkei_Avot_1?with_text=0",
+          "status": 200,
+          "bytes": 266687,
+          "truncated": true,
+          "originalBytes": 2179415
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Pirkei_Avot",
+          "status": 200,
+          "bytes": 17678
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Pirkei%20Avot?limit=10",
+          "status": 200,
+          "bytes": 2938
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:44.908Z"
+    },
+    {
+      "slug": "rashi-on-genesis-1",
+      "ref": "Rashi on Genesis 1",
+      "resolvedRef": "Rashi on Genesis 1",
+      "sectionRef": "Rashi on Genesis 1",
+      "title": "Rashi on Genesis",
+      "categories": [
+        "Tanakh",
+        "Rishonim on Tanakh",
+        "Rashi",
+        "Torah"
+      ],
+      "bookType": "commentary-tanakh",
+      "why": "Depth-3 commentary; section ref is a super-section (Chapter -> Verse -> Comment)",
+      "textDepth": 3,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Verse",
+        "Comment"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Pasuk",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Genesis_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 68534
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Genesis_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 61162
+        },
+        "section-first.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Genesis_1:1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 26237
+        },
+        "section-next.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Genesis_2:2?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 13780
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Rashi_on_Genesis",
+          "status": 200,
+          "bytes": 11147
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Rashi_on_Genesis?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 45090
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Rashi_on_Genesis",
+          "status": 200,
+          "bytes": 18553
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Rashi_on_Genesis_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 459028,
+          "truncated": true,
+          "originalBytes": 1955560
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Rashi_on_Genesis_1?with_text=0",
+          "status": 200,
+          "bytes": 325807,
+          "truncated": true,
+          "originalBytes": 663676
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Rashi_on_Genesis",
+          "status": 200,
+          "bytes": 13982
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Rashi%20on%20Genesis?limit=10",
+          "status": 200,
+          "bytes": 3559
+        }
+      },
+      "recordedAt": "2026-10-04T16:45:16.911Z"
+    },
+    {
+      "slug": "rashi-on-berakhot-2a",
+      "ref": "Rashi on Berakhot 2a",
+      "resolvedRef": "Rashi on Berakhot 2a",
+      "sectionRef": "Rashi on Berakhot 2a",
+      "title": "Rashi on Berakhot",
+      "categories": [
+        "Talmud",
+        "Bavli",
+        "Rishonim on Talmud",
+        "Rashi",
+        "Seder Zeraim"
+      ],
+      "bookType": "commentary-talmud",
+      "why": "Talmud commentary with Talmud address type at depth 1",
+      "textDepth": 3,
+      "isComplex": false,
+      "sectionNames": [
+        "Daf",
+        "Line",
+        "Comment"
+      ],
+      "addressTypes": [
+        "Talmud",
+        "Integer",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Berakhot_2a?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 12915
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Berakhot_2a?version=primary&version=translation",
+          "status": 200,
+          "bytes": 12357
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Rashi_on_Berakhot",
+          "status": 200,
+          "bytes": 15534
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Rashi_on_Berakhot?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 69441
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Rashi_on_Berakhot",
+          "status": 200,
+          "bytes": 32511
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Rashi_on_Berakhot_2a?with_sheet_links=1",
+          "status": 200,
+          "bytes": 72233
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Rashi_on_Berakhot_2a?with_text=0",
+          "status": 200,
+          "bytes": 26004
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Rashi_on_Berakhot",
+          "status": 200,
+          "bytes": 3415
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Rashi%20on%20Berakhot?limit=10",
+          "status": 200,
+          "bytes": 3553
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:53.316Z"
+    },
+    {
+      "slug": "tosafot-on-berakhot-2a",
+      "ref": "Tosafot on Berakhot 2a",
+      "resolvedRef": "Tosafot on Berakhot 2a",
+      "sectionRef": "Tosafot on Berakhot 2a",
+      "title": "Tosafot on Berakhot",
+      "categories": [
+        "Talmud",
+        "Bavli",
+        "Rishonim on Talmud",
+        "Tosafot",
+        "Seder Zeraim"
+      ],
+      "bookType": "commentary-talmud",
+      "why": "Talmud commentary (Tosafot)",
+      "textDepth": 3,
+      "isComplex": false,
+      "sectionNames": [
+        "Daf",
+        "Line",
+        "Comment"
+      ],
+      "addressTypes": [
+        "Talmud",
+        "Integer",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Tosafot_on_Berakhot_2a?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 33459
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Tosafot_on_Berakhot_2a?version=primary&version=translation",
+          "status": 200,
+          "bytes": 32404
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Tosafot_on_Berakhot",
+          "status": 200,
+          "bytes": 17145
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Tosafot_on_Berakhot?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 69843
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Tosafot_on_Berakhot",
+          "status": 200,
+          "bytes": 32523
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Tosafot_on_Berakhot_2a?with_sheet_links=1",
+          "status": 200,
+          "bytes": 49991
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Tosafot_on_Berakhot_2a?with_text=0",
+          "status": 200,
+          "bytes": 38427
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Tosafot_on_Berakhot",
+          "status": 200,
+          "bytes": 3471
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Tosafot%20on%20Berakhot?limit=10",
+          "status": 200,
+          "bytes": 3542
+        }
+      },
+      "recordedAt": "2026-10-04T13:12:57.161Z"
+    },
+    {
+      "slug": "ramban-on-genesis-1",
+      "ref": "Ramban on Genesis 1",
+      "resolvedRef": "Ramban on Genesis 1",
+      "sectionRef": "Ramban on Genesis 1",
+      "title": "Ramban on Genesis",
+      "categories": [
+        "Tanakh",
+        "Rishonim on Tanakh",
+        "Ramban",
+        "Torah"
+      ],
+      "bookType": "commentary-tanakh",
+      "why": "Commentary with long segments and introductions (complex schema)",
+      "textDepth": 3,
+      "isComplex": true,
+      "sectionNames": [
+        "Chapter",
+        "Verse",
+        "Comment"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Pasuk",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Ramban_on_Genesis_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 265298
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Ramban_on_Genesis_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 232530
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Ramban_on_Genesis",
+          "status": 200,
+          "bytes": 13788
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Ramban_on_Genesis?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 54707
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Ramban_on_Genesis",
+          "status": 200,
+          "bytes": 16123
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Ramban_on_Genesis_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 518639,
+          "truncated": true,
+          "originalBytes": 743504
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Ramban_on_Genesis_1?with_text=0",
+          "status": 200,
+          "bytes": 250260
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Ramban_on_Genesis",
+          "status": 200,
+          "bytes": 10156
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Ramban%20on%20Genesis?limit=10",
+          "status": 200,
+          "bytes": 3278
+        }
+      },
+      "recordedAt": "2026-10-04T13:13:01.774Z"
+    },
+    {
+      "slug": "mishneh-torah-foundations-1",
+      "ref": "Mishneh Torah, Foundations of the Torah 1",
+      "resolvedRef": "Mishneh Torah, Foundations of the Torah 1",
+      "sectionRef": "Mishneh Torah, Foundations of the Torah 1",
+      "title": "Mishneh Torah, Foundations of the Torah",
+      "categories": [
+        "Halakhah",
+        "Mishneh Torah",
+        "Sefer Madda"
+      ],
+      "bookType": "halakhah-code",
+      "why": "Mishneh Torah: each section is its own index, nested TOC categories",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Halakhah"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Halakhah"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Foundations_of_the_Torah_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 42956
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Foundations_of_the_Torah_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 38705
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Mishneh_Torah,_Foundations_of_the_Torah",
+          "status": 200,
+          "bytes": 4840
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Mishneh_Torah,_Foundations_of_the_Torah?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 9595
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Mishneh_Torah,_Foundations_of_the_Torah",
+          "status": 200,
+          "bytes": 427
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Mishneh_Torah,_Foundations_of_the_Torah_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 513589,
+          "truncated": true,
+          "originalBytes": 664235
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Mishneh_Torah,_Foundations_of_the_Torah_1?with_text=0",
+          "status": 200,
+          "bytes": 286491
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Mishneh_Torah,_Foundations_of_the_Torah",
+          "status": 200,
+          "bytes": 14367
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Mishneh%20Torah%2C%20Foundations%20of%20the%20Torah?limit=10",
+          "status": 200,
+          "bytes": 3963
+        }
+      },
+      "recordedAt": "2026-10-04T13:13:06.264Z"
+    },
+    {
+      "slug": "shulchan-arukh-oc-1",
+      "ref": "Shulchan Arukh, Orach Chayim 1",
+      "resolvedRef": "Shulchan Arukh, Orach Chayim 1",
+      "sectionRef": "Shulchan Arukh, Orach Chayim 1",
+      "title": "Shulchan Arukh, Orach Chayim",
+      "categories": [
+        "Halakhah",
+        "Shulchan Arukh"
+      ],
+      "bookType": "halakhah-code",
+      "why": "Siman/Seif address types",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Siman",
+        "Seif"
+      ],
+      "addressTypes": [
+        "Siman",
+        "Seif"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Shulchan_Arukh,_Orach_Chayim_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 23634
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Shulchan_Arukh,_Orach_Chayim_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 23491
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Shulchan_Arukh,_Orach_Chayim",
+          "status": 200,
+          "bytes": 19303
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Shulchan_Arukh,_Orach_Chayim?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 75280
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Shulchan_Arukh,_Orach_Chayim",
+          "status": 200,
+          "bytes": 6695
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Shulchan_Arukh,_Orach_Chayim_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 390146,
+          "truncated": true,
+          "originalBytes": 545747
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Shulchan_Arukh,_Orach_Chayim_1?with_text=0",
+          "status": 200,
+          "bytes": 288343
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Shulchan_Arukh,_Orach_Chayim",
+          "status": 200,
+          "bytes": 18995
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Shulchan%20Arukh%2C%20Orach%20Chayim?limit=10",
+          "status": 200,
+          "bytes": 3533
+        }
+      },
+      "recordedAt": "2026-10-04T13:13:11.427Z"
+    },
+    {
+      "slug": "mishnah-berurah-1",
+      "ref": "Mishnah Berurah 1",
+      "resolvedRef": "Mishnah Berurah 1",
+      "sectionRef": "Mishnah Berurah 1",
+      "title": "Mishnah Berurah",
+      "categories": [
+        "Halakhah",
+        "Shulchan Arukh",
+        "Commentary",
+        "Mishnah Berurah"
+      ],
+      "bookType": "commentary-halakhah",
+      "why": "Commentary on Shulchan Arukh, SeifKatan address type, complex schema",
+      "textDepth": 2,
+      "isComplex": true,
+      "sectionNames": [
+        "Siman",
+        "Seif Katan"
+      ],
+      "addressTypes": [
+        "Siman",
+        "SeifKatan"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Mishnah_Berurah_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 40332
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Mishnah_Berurah_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 38131
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Mishnah_Berurah",
+          "status": 200,
+          "bytes": 4860
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Mishnah_Berurah?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 18364
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Mishnah_Berurah",
+          "status": 200,
+          "bytes": 7006
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Mishnah_Berurah_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 108389
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Mishnah_Berurah_1?with_text=0",
+          "status": 200,
+          "bytes": 32934
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Mishnah_Berurah",
+          "status": 200,
+          "bytes": 10325
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Mishnah%20Berurah?limit=10",
+          "status": 200,
+          "bytes": 3285
+        }
+      },
+      "recordedAt": "2026-10-04T13:13:15.634Z"
+    },
+    {
+      "slug": "kitzur-shulchan-arukh-1",
+      "ref": "Kitzur Shulchan Arukh 1",
+      "resolvedRef": "Kitzur Shulchan Arukh 1",
+      "sectionRef": "Kitzur Shulchan Arukh 1",
+      "title": "Kitzur Shulchan Arukh",
+      "categories": [
+        "Halakhah"
+      ],
+      "bookType": "halakhah-code",
+      "why": "Simple Siman/Seif code",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Siman",
+        "Seif"
+      ],
+      "addressTypes": [
+        "Siman",
+        "Seif"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Kitzur_Shulchan_Arukh_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 31392
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Kitzur_Shulchan_Arukh_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 29822
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Kitzur_Shulchan_Arukh",
+          "status": 200,
+          "bytes": 121581
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Kitzur_Shulchan_Arukh?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 165050
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Kitzur_Shulchan_Arukh",
+          "status": 200,
+          "bytes": 2363
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Kitzur_Shulchan_Arukh_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 54996
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Kitzur_Shulchan_Arukh_1?with_text=0",
+          "status": 200,
+          "bytes": 16084
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Kitzur_Shulchan_Arukh",
+          "status": 200,
+          "bytes": 9946
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Kitzur%20Shulchan%20Arukh?limit=10",
+          "status": 200,
+          "bytes": 3459
+        }
+      },
+      "recordedAt": "2026-10-04T13:13:19.321Z"
+    },
+    {
+      "slug": "arukh-hashulchan-oc-1",
+      "ref": "Arukh HaShulchan, Orach Chaim 1",
+      "resolvedRef": "Arukh HaShulchan, Orach Chaim 1",
+      "sectionRef": "Arukh HaShulchan, Orach Chaim 1",
+      "title": "Arukh HaShulchan",
+      "categories": [
+        "Halakhah"
+      ],
+      "bookType": "halakhah-code",
+      "why": "Complex schema code (named parts with Siman sections)",
+      "textDepth": 2,
+      "isComplex": true,
+      "sectionNames": [
+        "Siman",
+        "Paragraph"
+      ],
+      "addressTypes": [
+        "Siman",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Arukh_HaShulchan,_Orach_Chaim_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 68851
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Arukh_HaShulchan,_Orach_Chaim_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 63638
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Arukh_HaShulchan",
+          "status": 200,
+          "bytes": 101756
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Arukh_HaShulchan?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 250637
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Arukh_HaShulchan",
+          "status": 200,
+          "bytes": 25231
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Arukh_HaShulchan,_Orach_Chaim_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 127537
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Arukh_HaShulchan,_Orach_Chaim_1?with_text=0",
+          "status": 200,
+          "bytes": 39040
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Arukh_HaShulchan",
+          "status": 200,
+          "bytes": 12295
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Arukh%20HaShulchan?limit=10",
+          "status": 200,
+          "bytes": 2866
+        }
+      },
+      "recordedAt": "2026-10-04T13:13:24.000Z"
+    },
+    {
+      "slug": "siddur-ashkenaz-modeh-ani",
+      "ref": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani",
+      "resolvedRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani",
+      "sectionRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani",
+      "title": "Siddur Ashkenaz",
+      "categories": [
+        "Liturgy",
+        "Siddur"
+      ],
+      "bookType": "liturgy",
+      "why": "Deep SchemaNode tree, depth-1 leaf; old client hides segment numbers for Liturgy",
+      "textDepth": 1,
+      "isComplex": true,
+      "sectionNames": [
+        "Paragraph"
+      ],
+      "addressTypes": [
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Siddur_Ashkenaz,_Weekday,_Shacharit,_Preparatory_Prayers,_Modeh_Ani?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 9438
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Siddur_Ashkenaz,_Weekday,_Shacharit,_Preparatory_Prayers,_Modeh_Ani?version=primary&version=translation",
+          "status": 200,
+          "bytes": 9438
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Siddur_Ashkenaz",
+          "status": 200,
+          "bytes": 398112
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Siddur_Ashkenaz?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 514706
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Siddur_Ashkenaz",
+          "status": 200,
+          "bytes": 167187
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Siddur_Ashkenaz,_Weekday,_Shacharit,_Preparatory_Prayers,_Modeh_Ani?with_sheet_links=1",
+          "status": 200,
+          "bytes": 240325
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Siddur_Ashkenaz,_Weekday,_Shacharit,_Preparatory_Prayers,_Modeh_Ani?with_text=0",
+          "status": 200,
+          "bytes": 11010
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Siddur_Ashkenaz",
+          "status": 200,
+          "bytes": 24983
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Siddur%20Ashkenaz?limit=10",
+          "status": 200,
+          "bytes": 2510
+        }
+      },
+      "recordedAt": "2026-10-04T13:13:32.861Z"
+    },
+    {
+      "slug": "pesach-haggadah-kadesh",
+      "ref": "Pesach Haggadah, Kadesh",
+      "resolvedRef": "Pesach Haggadah, Kadesh",
+      "sectionRef": "Pesach Haggadah, Kadesh",
+      "title": "Pesach Haggadah",
+      "categories": [
+        "Liturgy",
+        "Haggadah"
+      ],
+      "bookType": "liturgy",
+      "why": "Complex schema, named nodes",
+      "textDepth": 1,
+      "isComplex": true,
+      "sectionNames": [
+        "Paragraph"
+      ],
+      "addressTypes": [
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Pesach_Haggadah,_Kadesh?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 20531
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Pesach_Haggadah,_Kadesh?version=primary&version=translation",
+          "status": 200,
+          "bytes": 20531
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Pesach_Haggadah",
+          "status": 200,
+          "bytes": 31789
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Pesach_Haggadah?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 42057
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Pesach_Haggadah",
+          "status": 200,
+          "bytes": 11497
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Pesach_Haggadah,_Kadesh?with_sheet_links=1",
+          "status": 200,
+          "bytes": 256412
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Pesach_Haggadah,_Kadesh?with_text=0",
+          "status": 200,
+          "bytes": 45275
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Pesach_Haggadah",
+          "status": 200,
+          "bytes": 11879
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Pesach%20Haggadah?limit=10",
+          "status": 200,
+          "bytes": 2369
+        }
+      },
+      "recordedAt": "2026-10-04T13:13:37.194Z"
+    },
+    {
+      "slug": "zohar-bereshit-1",
+      "ref": "Zohar, Bereshit 1",
+      "resolvedRef": "Zohar, Bereshit 1",
+      "sectionRef": "Zohar, Bereshit 1",
+      "title": "Zohar",
+      "categories": [
+        "Kabbalah",
+        "Zohar"
+      ],
+      "bookType": "kabbalah-zohar",
+      "why": "Complex Zohar structure (parasha nodes) with daf-based alt structs; translation slot returns a Hebrew translation",
+      "textDepth": 2,
+      "isComplex": true,
+      "sectionNames": [
+        "Chapter",
+        "Paragraph"
+      ],
+      "addressTypes": [
+        "Integer",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Zohar,_Bereshit_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 10096
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Zohar,_Bereshit_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 10096
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Zohar",
+          "status": 200,
+          "bytes": 2781031
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Zohar?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 3069097
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Zohar",
+          "status": 200,
+          "bytes": 38443
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Zohar,_Bereshit_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 85704
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Zohar,_Bereshit_1?with_text=0",
+          "status": 200,
+          "bytes": 57832
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Zohar",
+          "status": 200,
+          "bytes": 12894
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Zohar?limit=10",
+          "status": 200,
+          "bytes": 2468
+        }
+      },
+      "recordedAt": "2026-10-04T13:15:03.979Z"
+    },
+    {
+      "slug": "sefer-yetzirah-1",
+      "ref": "Sefer Yetzirah 1",
+      "resolvedRef": "Sefer Yetzirah 1",
+      "sectionRef": "Sefer Yetzirah 1",
+      "title": "Sefer Yetzirah",
+      "categories": [
+        "Kabbalah",
+        "Sefer Yetzirah"
+      ],
+      "bookType": "kabbalah",
+      "why": "Short kabbalistic text, Perek/Mishnah address types",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Mishnah"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Mishnah"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Sefer_Yetzirah_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 35952
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Sefer_Yetzirah_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 32297
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Sefer_Yetzirah",
+          "status": 200,
+          "bytes": 3410
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Sefer_Yetzirah?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 5323
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Sefer_Yetzirah",
+          "status": 200,
+          "bytes": 272
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Sefer_Yetzirah_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 451772,
+          "truncated": true,
+          "originalBytes": 688568
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Sefer_Yetzirah_1?with_text=0",
+          "status": 200,
+          "bytes": 442270
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Sefer_Yetzirah",
+          "status": 200,
+          "bytes": 5470
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Sefer%20Yetzirah?limit=10",
+          "status": 200,
+          "bytes": 3545
+        }
+      },
+      "recordedAt": "2026-10-04T13:13:50.477Z"
+    },
+    {
+      "slug": "bereshit-rabbah-1",
+      "ref": "Bereshit Rabbah 1",
+      "resolvedRef": "Bereshit Rabbah 1",
+      "sectionRef": "Bereshit Rabbah 1",
+      "title": "Bereshit Rabbah",
+      "categories": [
+        "Midrash",
+        "Aggadah",
+        "Midrash Rabbah"
+      ],
+      "bookType": "midrash",
+      "why": "Midrash Rabbah chapter",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Paragraph"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Bereshit_Rabbah_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 111047
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Bereshit_Rabbah_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 91068
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Bereshit_Rabbah",
+          "status": 200,
+          "bytes": 5936
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Bereshit_Rabbah?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 10349
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Bereshit_Rabbah",
+          "status": 200,
+          "bytes": 1176
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Bereshit_Rabbah_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 458455,
+          "truncated": true,
+          "originalBytes": 1542992
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Bereshit_Rabbah_1?with_text=0",
+          "status": 200,
+          "bytes": 275809,
+          "truncated": true,
+          "originalBytes": 1080910
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Bereshit_Rabbah",
+          "status": 200,
+          "bytes": 19449
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Bereshit%20Rabbah?limit=10",
+          "status": 200,
+          "bytes": 3322
+        }
+      },
+      "recordedAt": "2026-10-04T13:13:55.635Z"
+    },
+    {
+      "slug": "sefer-hachinukh-1",
+      "ref": "Sefer HaChinukh 1",
+      "resolvedRef": "Sefer HaChinukh 1",
+      "sectionRef": "Sefer HaChinukh 1",
+      "title": "Sefer HaChinukh",
+      "categories": [
+        "Halakhah",
+        "Sifrei Mitzvot"
+      ],
+      "bookType": "halakhah-sifrei-mitzvot",
+      "why": "Mitzvah numbering, complex schema with default node",
+      "textDepth": 2,
+      "isComplex": true,
+      "sectionNames": [
+        "Mitzvah",
+        "Paragraph"
+      ],
+      "addressTypes": [
+        "Siman",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Sefer_HaChinukh_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 11648
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Sefer_HaChinukh_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 9602
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Sefer_HaChinukh",
+          "status": 200,
+          "bytes": 388274
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Sefer_HaChinukh?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 528043
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Sefer_HaChinukh",
+          "status": 200,
+          "bytes": 5762
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Sefer_HaChinukh_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 50515
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Sefer_HaChinukh_1?with_text=0",
+          "status": 200,
+          "bytes": 18483
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Sefer_HaChinukh",
+          "status": 200,
+          "bytes": 4509
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Sefer%20HaChinukh?limit=10",
+          "status": 200,
+          "bytes": 3488
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:00.015Z"
+    },
+    {
+      "slug": "guide-perplexed-1-1",
+      "ref": "Guide for the Perplexed, Part 1 1",
+      "resolvedRef": "Guide for the Perplexed, Part 1 1",
+      "sectionRef": "Guide for the Perplexed, Part 1 1",
+      "title": "Guide for the Perplexed",
+      "categories": [
+        "Jewish Thought",
+        "Rishonim"
+      ],
+      "bookType": "jewish-thought-complex",
+      "why": "Complex schema with Parts; old client hard-codes no segment numbers",
+      "textDepth": 2,
+      "isComplex": true,
+      "sectionNames": [
+        "Chapter",
+        "Paragraph"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Guide_for_the_Perplexed,_Part_1_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 24919
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Guide_for_the_Perplexed,_Part_1_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 21870
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Guide_for_the_Perplexed",
+          "status": 200,
+          "bytes": 9017
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Guide_for_the_Perplexed?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 17266
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Guide_for_the_Perplexed",
+          "status": 200,
+          "bytes": 5340
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Guide_for_the_Perplexed,_Part_1_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 91476
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Guide_for_the_Perplexed,_Part_1_1?with_text=0",
+          "status": 200,
+          "bytes": 52689
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Guide_for_the_Perplexed",
+          "status": 200,
+          "bytes": 10987
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Guide%20for%20the%20Perplexed?limit=10",
+          "status": 200,
+          "bytes": 3177
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:03.991Z"
+    },
+    {
+      "slug": "kuzari-1-1",
+      "ref": "Kuzari 1:1",
+      "resolvedRef": "Kuzari 1:1",
+      "sectionRef": "Kuzari 1",
+      "title": "Kuzari",
+      "categories": [
+        "Jewish Thought",
+        "Rishonim"
+      ],
+      "bookType": "jewish-thought",
+      "why": "Segment ref in a simple depth-2 text",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Essay",
+        "Statement"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Kuzari_1:1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 14156
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Kuzari_1:1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 14156
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Kuzari",
+          "status": 200,
+          "bytes": 2947
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Kuzari?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 6278
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Kuzari",
+          "status": 200,
+          "bytes": 235
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Kuzari_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 445935,
+          "truncated": true,
+          "originalBytes": 549943
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Kuzari_1?with_text=0",
+          "status": 200,
+          "bytes": 51586
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Kuzari",
+          "status": 200,
+          "bytes": 6529
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Kuzari?limit=10",
+          "status": 200,
+          "bytes": 2367
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:07.890Z"
+    },
+    {
+      "slug": "jastrow-abba-1",
+      "ref": "Jastrow, אַבָּא I 1",
+      "resolvedRef": "Jastrow, אַבָּא I 1",
+      "sectionRef": "Jastrow, אַבָּא I",
+      "title": "Jastrow",
+      "categories": [
+        "Reference",
+        "Dictionary"
+      ],
+      "bookType": "dictionary",
+      "why": "Dictionary entry (virtual lexicon node, Hebrew headword in ref, English-only)",
+      "textDepth": 1,
+      "isComplex": true,
+      "sectionNames": [
+        "Line"
+      ],
+      "addressTypes": [
+        "Integer"
+      ],
+      "warnings": [
+        {
+          "translation": {
+            "warning_code": 104,
+            "message": "We do not have a translation for Jastrow, אַבָּא I 1"
+          }
+        }
+      ],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Jastrow,_%D7%90%D6%B7%D7%91%D6%B8%D6%BC%D7%90_I_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 6375
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Jastrow,_%D7%90%D6%B7%D7%91%D6%B8%D6%BC%D7%90_I_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 6375
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Jastrow",
+          "status": 200,
+          "bytes": 4696
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Jastrow?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 7255
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Jastrow",
+          "status": 500,
+          "bytes": 2184
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Jastrow,_%D7%90%D6%B7%D7%91%D6%B8%D6%BC%D7%90_I?with_sheet_links=1",
+          "status": 200,
+          "bytes": 31920
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Jastrow,_%D7%90%D6%B7%D7%91%D6%B8%D6%BC%D7%90_I?with_text=0",
+          "status": 200,
+          "bytes": 28126
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Jastrow",
+          "status": 200,
+          "bytes": 858
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Jastrow?limit=10",
+          "status": 200,
+          "bytes": 1436
+        },
+        "words.json": {
+          "url": "https://www.sefaria.org/api/words/%D7%90%D7%91%D7%90?never_split=1",
+          "status": 200,
+          "bytes": 77342
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:16.244Z"
+    },
+    {
+      "slug": "klein-av-1",
+      "ref": "Klein Dictionary, אָב ᴵ",
+      "resolvedRef": "Klein Dictionary, אָב ᴵ",
+      "sectionRef": "Klein Dictionary, אָב ᴵ",
+      "title": "Klein Dictionary",
+      "categories": [
+        "Reference",
+        "Dictionary"
+      ],
+      "bookType": "dictionary",
+      "why": "Dictionary entry with superscript homograph marker in ref",
+      "textDepth": 1,
+      "isComplex": true,
+      "sectionNames": [
+        "Line"
+      ],
+      "addressTypes": [
+        "Integer"
+      ],
+      "warnings": [
+        {
+          "translation": {
+            "warning_code": 104,
+            "message": "We do not have a translation for Klein Dictionary, אָב ᴵ"
+          }
+        }
+      ],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Klein_Dictionary,_%D7%90%D6%B8%D7%91_%E1%B4%B5?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 4748
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Klein_Dictionary,_%D7%90%D6%B8%D7%91_%E1%B4%B5?version=primary&version=translation",
+          "status": 200,
+          "bytes": 4748
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Klein_Dictionary",
+          "status": 200,
+          "bytes": 6583
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Klein_Dictionary?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 9312
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Klein_Dictionary",
+          "status": 500,
+          "bytes": 2178
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Klein_Dictionary,_%D7%90%D6%B8%D7%91_%E1%B4%B5?with_sheet_links=1",
+          "status": 200,
+          "bytes": 11235
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Klein_Dictionary,_%D7%90%D6%B8%D7%91_%E1%B4%B5?with_text=0",
+          "status": 200,
+          "bytes": 10369
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Klein_Dictionary",
+          "status": 200,
+          "bytes": 1129
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Klein%20Dictionary?limit=10",
+          "status": 200,
+          "bytes": 2832
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:23.422Z"
+    },
+    {
+      "slug": "teshuvot-harashba-1-98",
+      "ref": "Teshuvot haRashba part I 98",
+      "resolvedRef": "Teshuvot haRashba part I 98",
+      "sectionRef": "Teshuvot haRashba part I 98",
+      "title": "Teshuvot haRashba part I",
+      "categories": [
+        "Responsa",
+        "Rishonim",
+        "Rashba"
+      ],
+      "bookType": "responsa",
+      "why": "Responsa; very sparse shape (only a handful of teshuvot have text)",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Teshuva",
+        "Paragraph"
+      ],
+      "addressTypes": [
+        "Siman",
+        "Seif"
+      ],
+      "warnings": [
+        {
+          "primary": {
+            "warning_code": 102,
+            "message": "We do not have the language you asked for Teshuvot haRashba part I 98. Available languages are ['english']"
+          }
+        }
+      ],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Teshuvot_haRashba_part_I_98?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 4326
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Teshuvot_haRashba_part_I_98?version=primary&version=translation",
+          "status": 200,
+          "bytes": 4326
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Teshuvot_haRashba_part_I",
+          "status": 200,
+          "bytes": 1335
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Teshuvot_haRashba_part_I?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 6112
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Teshuvot_haRashba_part_I",
+          "status": 200,
+          "bytes": 3975
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Teshuvot_haRashba_part_I_98?with_sheet_links=1",
+          "status": 200,
+          "bytes": 787
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Teshuvot_haRashba_part_I_98?with_text=0",
+          "status": 200,
+          "bytes": 629
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Teshuvot_haRashba_part_I",
+          "status": 200,
+          "bytes": 5250
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Teshuvot%20haRashba%20part%20I?limit=10",
+          "status": 200,
+          "bytes": 4008
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:26.629Z"
+    },
+    {
+      "slug": "ben-sira-1",
+      "ref": "Ben Sira 1",
+      "resolvedRef": "Ben Sira 1",
+      "sectionRef": "Ben Sira 1",
+      "title": "Ben Sira",
+      "categories": [
+        "Second Temple",
+        "Apocrypha"
+      ],
+      "bookType": "second-temple",
+      "why": "Second Temple / Apocrypha",
+      "textDepth": 2,
+      "isComplex": false,
+      "sectionNames": [
+        "Chapter",
+        "Verse"
+      ],
+      "addressTypes": [
+        "Perek",
+        "Pasuk"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Ben_Sira_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 12692
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Ben_Sira_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 12692
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Ben_Sira",
+          "status": 200,
+          "bytes": 2864
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Ben_Sira?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 6057
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Ben_Sira",
+          "status": 200,
+          "bytes": 692
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Ben_Sira_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 4564
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Ben_Sira_1?with_text=0",
+          "status": 200,
+          "bytes": 1358
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Ben_Sira",
+          "status": 200,
+          "bytes": 4346
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Ben%20Sira?limit=10",
+          "status": 200,
+          "bytes": 3495
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:29.554Z"
+    },
+    {
+      "slug": "philo-creation-1",
+      "ref": "On the Account of the World's Creation 1",
+      "resolvedRef": "On the Account of the World's Creation 1",
+      "sectionRef": "On the Account of the World's Creation 1",
+      "title": "On the Account of the World's Creation",
+      "categories": [
+        "Second Temple",
+        "Philo"
+      ],
+      "bookType": "translation-only",
+      "why": "English is the primary (source) language; no Hebrew at all (Philo)",
+      "textDepth": 2,
+      "isComplex": true,
+      "sectionNames": [
+        "Chapter",
+        "Paragraph"
+      ],
+      "addressTypes": [
+        "Integer",
+        "Integer"
+      ],
+      "warnings": [],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/On_the_Account_of_the_World's_Creation_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 5591
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/On_the_Account_of_the_World's_Creation_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 5591
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/On_the_Account_of_the_World's_Creation",
+          "status": 200,
+          "bytes": 1912
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/On_the_Account_of_the_World's_Creation?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 5265
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/On_the_Account_of_the_World's_Creation",
+          "status": 200,
+          "bytes": 823
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/On_the_Account_of_the_World's_Creation_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 904
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/On_the_Account_of_the_World's_Creation_1?with_text=0",
+          "status": 200,
+          "bytes": 746
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/On_the_Account_of_the_World's_Creation",
+          "status": 200,
+          "bytes": 971
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/On%20the%20Account%20of%20the%20World's%20Creation?limit=10",
+          "status": 200,
+          "bytes": 4208
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:33.185Z"
+    },
+    {
+      "slug": "peri-megadim-oc-mz-1",
+      "ref": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1",
+      "resolvedRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1",
+      "sectionRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1",
+      "title": "Peri Megadim on Orach Chayim",
+      "categories": [
+        "Halakhah",
+        "Shulchan Arukh"
+      ],
+      "bookType": "hebrew-only",
+      "why": "Hebrew-only text, no translation (warning 104)",
+      "textDepth": 3,
+      "isComplex": true,
+      "sectionNames": [
+        "Siman",
+        "Seif",
+        "Paragraph"
+      ],
+      "addressTypes": [
+        "Integer",
+        "Integer",
+        "Integer"
+      ],
+      "warnings": [
+        {
+          "translation": {
+            "warning_code": 104,
+            "message": "We do not have a translation for Peri Megadim on Orach Chayim, Mishbezot Zahav 1"
+          }
+        }
+      ],
+      "files": {
+        "v3-texts.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Peri_Megadim_on_Orach_Chayim,_Mishbezot_Zahav_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities",
+          "status": 200,
+          "bytes": 30096
+        },
+        "v3-texts-default.json": {
+          "url": "https://www.sefaria.org/api/v3/texts/Peri_Megadim_on_Orach_Chayim,_Mishbezot_Zahav_1?version=primary&version=translation",
+          "status": 200,
+          "bytes": 29084
+        },
+        "index.json": {
+          "url": "https://www.sefaria.org/api/v2/raw/index/Peri_Megadim_on_Orach_Chayim",
+          "status": 200,
+          "bytes": 7238
+        },
+        "index-contracted.json": {
+          "url": "https://www.sefaria.org/api/v2/index/Peri_Megadim_on_Orach_Chayim?with_content_counts=1&with_related_topics=1",
+          "status": 200,
+          "bytes": 186328
+        },
+        "shape.json": {
+          "url": "https://www.sefaria.org/api/shape/Peri_Megadim_on_Orach_Chayim",
+          "status": 200,
+          "bytes": 179219
+        },
+        "related.json": {
+          "url": "https://www.sefaria.org/api/related/Peri_Megadim_on_Orach_Chayim,_Mishbezot_Zahav_1?with_sheet_links=1",
+          "status": 200,
+          "bytes": 21488
+        },
+        "links.json": {
+          "url": "https://www.sefaria.org/api/links/Peri_Megadim_on_Orach_Chayim,_Mishbezot_Zahav_1?with_text=0",
+          "status": 200,
+          "bytes": 20038
+        },
+        "versions.json": {
+          "url": "https://www.sefaria.org/api/texts/versions/Peri_Megadim_on_Orach_Chayim",
+          "status": 200,
+          "bytes": 10271
+        },
+        "name.json": {
+          "url": "https://www.sefaria.org/api/name/Peri%20Megadim%20on%20Orach%20Chayim?limit=10",
+          "status": 200,
+          "bytes": 3321
+        }
+      },
+      "recordedAt": "2026-10-04T13:14:36.679Z"
+    }
+  ]
+}

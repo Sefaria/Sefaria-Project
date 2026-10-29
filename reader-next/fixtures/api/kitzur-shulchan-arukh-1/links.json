@@ -1,0 +1,653 @@
+[
+  {
+    "_id": "51d43fd6edbab443a0c137c0",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 16:8",
+    "anchorRef": "Kitzur Shulchan Arukh 1:1",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:1"
+    ],
+    "sourceRef": "Psalms 16:8",
+    "sourceHeRef": "תהילים ט״ז:ח׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 16.0008,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "51d44287edbab443a0c137ef",
+    "index_title": "Lamentations",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Lamentations 3:23",
+    "anchorRef": "Kitzur Shulchan Arukh 1:2",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:2"
+    ],
+    "sourceRef": "Lamentations 3:23",
+    "sourceHeRef": "איכה ג׳:כ״ג",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 3.0023,
+    "collectiveTitle": {
+      "en": "Lamentations",
+      "he": "איכה"
+    },
+    "heTitle": "איכה"
+  },
+  {
+    "_id": "53b8c899fbfba25e5bdd1f3d",
+    "index_title": "Tamid",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Tamid 32b",
+    "anchorRef": "Kitzur Shulchan Arukh 1:2-6",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:2",
+      "Kitzur Shulchan Arukh 1:3",
+      "Kitzur Shulchan Arukh 1:4",
+      "Kitzur Shulchan Arukh 1:5",
+      "Kitzur Shulchan Arukh 1:6"
+    ],
+    "sourceRef": "Tamid 32b",
+    "sourceHeRef": "תמיד ל״ב ב",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 64,
+    "collectiveTitle": {
+      "en": "Tamid",
+      "he": "תמיד"
+    },
+    "heTitle": "תמיד"
+  },
+  {
+    "_id": "5bf99aaac3b8da0017e8c938",
+    "index_title": "Siddur Ashkenaz",
+    "category": "Liturgy",
+    "type": "quotation",
+    "ref": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "anchorRef": "Kitzur Shulchan Arukh 1:2",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:2"
+    ],
+    "sourceRef": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1",
+    "sourceHeRef": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, מודה אני א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1055,
+      1105
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Siddur Ashkenaz",
+      "he": "סידור אשכנז"
+    },
+    "heTitle": "מודה אני"
+  },
+  {
+    "_id": "695ea60b435133f528b5bd20",
+    "index_title": "Kitzur Shulchan Arukh",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Kitzur Shulchan Arukh 29:8",
+    "anchorRef": "Kitzur Shulchan Arukh 1:3",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:3"
+    ],
+    "sourceRef": "Kitzur Shulchan Arukh 29:8",
+    "sourceHeRef": "קיצור שלחן ערוך כ״ט:ח׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      1844,
+      1864
+    ],
+    "commentaryNum": 29.0008,
+    "collectiveTitle": {
+      "en": "Kitzur Shulchan Arukh",
+      "he": "קיצור שלחן ערוך"
+    },
+    "heTitle": "קיצור שלחן ערוך"
+  },
+  {
+    "_id": "69601c9d9806cee6831da554",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Shulchan Arukh, Orach Chayim 1:1",
+    "anchorRef": "Kitzur Shulchan Arukh 1:3",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:3"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1:1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳:א׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "69601ce67429f65e73a5c2ce",
+    "index_title": "Pirkei Avot",
+    "category": "Mishnah",
+    "type": "",
+    "ref": "Pirkei Avot 5:20",
+    "anchorRef": "Kitzur Shulchan Arukh 1:3",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:3"
+    ],
+    "sourceRef": "Pirkei Avot 5:20",
+    "sourceHeRef": "משנה אבות ה׳:כ׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      190,
+      230
+    ],
+    "commentaryNum": 5.002,
+    "collectiveTitle": {
+      "en": "Pirkei Avot",
+      "he": "משנה אבות"
+    },
+    "heTitle": "משנה אבות"
+  },
+  {
+    "_id": "51d443b0edbab443a0c137f8",
+    "index_title": "Yoma",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Yoma 38b",
+    "anchorRef": "Kitzur Shulchan Arukh 1:4",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:4"
+    ],
+    "sourceRef": "Yoma 38b",
+    "sourceHeRef": "יומא ל״ח ב",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 76,
+    "collectiveTitle": {
+      "en": "Yoma",
+      "he": "יומא"
+    },
+    "heTitle": "יומא"
+  },
+  {
+    "_id": "5ceef30cf2f26200187fea1d",
+    "index_title": "Mishnah Berurah",
+    "category": "Quoting Commentary",
+    "type": "quotation",
+    "ref": "Mishnah Berurah 1:1",
+    "anchorRef": "Kitzur Shulchan Arukh 1:4",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:4"
+    ],
+    "sourceRef": "Mishnah Berurah 1:1",
+    "sourceHeRef": "משנה ברורה א׳:א׳",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      1875,
+      1905
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Mishnah Berurah",
+      "he": "משנה ברורה"
+    }
+  },
+  {
+    "_id": "51d44444edbab443a0c13805",
+    "index_title": "Tamid",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Tamid 32b",
+    "anchorRef": "Kitzur Shulchan Arukh 1:5",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:5"
+    ],
+    "sourceRef": "Tamid 32b",
+    "sourceHeRef": "תמיד ל״ב ב",
+    "anchorVerse": 5,
+    "sourceHasEn": false,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 64,
+    "collectiveTitle": {
+      "en": "Tamid",
+      "he": "תמיד"
+    },
+    "heTitle": "תמיד"
+  },
+  {
+    "_id": "53b4a0a9fbfba235cfda9309",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "quotation",
+    "ref": "Psalms 108:3",
+    "anchorRef": "Kitzur Shulchan Arukh 1:5",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:5"
+    ],
+    "sourceRef": "Psalms 108:3",
+    "sourceHeRef": "תהילים ק״ח:ג׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 108.0003,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "69601c9d68f25fd88ba8ddfb",
+    "index_title": "Kitzur Shulchan Arukh",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Kitzur Shulchan Arukh 71:1",
+    "anchorRef": "Kitzur Shulchan Arukh 1:5",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:5"
+    ],
+    "sourceRef": "Kitzur Shulchan Arukh 71:1",
+    "sourceHeRef": "קיצור שלחן ערוך ע״א:א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      1844,
+      1864
+    ],
+    "commentaryNum": 71.0001,
+    "collectiveTitle": {
+      "en": "Kitzur Shulchan Arukh",
+      "he": "קיצור שלחן ערוך"
+    },
+    "heTitle": "קיצור שלחן ערוך"
+  },
+  {
+    "_id": "69601c9e68f25fd88ba8ddfd",
+    "index_title": "Shulchan Arukh, Orach Chayim",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Shulchan Arukh, Orach Chayim 1",
+    "anchorRef": "Kitzur Shulchan Arukh 1:5",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:5"
+    ],
+    "sourceRef": "Shulchan Arukh, Orach Chayim 1",
+    "sourceHeRef": "שולחן ערוך, אורח חיים א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      1563
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Shulchan Arukh, Orach Chayim",
+      "he": "שולחן ערוך, אורח חיים"
+    },
+    "heTitle": "שולחן ערוך, אורח חיים"
+  },
+  {
+    "_id": "69601ce764ff2ce71f4630ba",
+    "index_title": "Lamentations",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Lamentations 2:19",
+    "anchorRef": "Kitzur Shulchan Arukh 1:5",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:5"
+    ],
+    "sourceRef": "Lamentations 2:19",
+    "sourceHeRef": "איכה ב׳:י״ט",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 2.0019,
+    "collectiveTitle": {
+      "en": "Lamentations",
+      "he": "איכה"
+    },
+    "heTitle": "איכה"
+  },
+  {
+    "_id": "69601ce864ff2ce71f4630be",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 57:9",
+    "anchorRef": "Kitzur Shulchan Arukh 1:5",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:5"
+    ],
+    "sourceRef": "Psalms 57:9",
+    "sourceHeRef": "תהילים נ״ז:ט׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 57.0009,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "69601ce964ff2ce71f4630c2",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 134:1",
+    "anchorRef": "Kitzur Shulchan Arukh 1:5",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:5"
+    ],
+    "sourceRef": "Psalms 134:1",
+    "sourceHeRef": "תהילים קל״ד:א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 134.0001,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "53b8c97afbfba25e5bdd1f54",
+    "index_title": "Lamentations",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Lamentations 2:19",
+    "anchorRef": "Kitzur Shulchan Arukh 1:6",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:6"
+    ],
+    "sourceRef": "Lamentations 2:19",
+    "sourceHeRef": "איכה ב׳:י״ט",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 2.0019,
+    "collectiveTitle": {
+      "en": "Lamentations",
+      "he": "איכה"
+    },
+    "heTitle": "איכה"
+  },
+  {
+    "_id": "53b8ca13fbfba25e5bdd1f56",
+    "index_title": "Psalms",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Psalms 134:1",
+    "anchorRef": "Kitzur Shulchan Arukh 1:6",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:6"
+    ],
+    "sourceRef": "Psalms 134:1",
+    "sourceHeRef": "תהילים קל״ד:א׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      0
+    ],
+    "commentaryNum": 134.0001,
+    "collectiveTitle": {
+      "en": "Psalms",
+      "he": "תהילים"
+    },
+    "heTitle": "תהילים"
+  },
+  {
+    "_id": "53b8ca2afbfba25e5bdd1f58",
+    "index_title": "Menachot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Menachot 110a",
+    "anchorRef": "Kitzur Shulchan Arukh 1:6",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:6"
+    ],
+    "sourceRef": "Menachot 110a",
+    "sourceHeRef": "מנחות ק״י א",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 219,
+    "collectiveTitle": {
+      "en": "Menachot",
+      "he": "מנחות"
+    },
+    "heTitle": "מנחות"
+  },
+  {
+    "_id": "69601c9d5315987136800cbd",
+    "index_title": "Kitzur Shulchan Arukh",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Kitzur Shulchan Arukh 49",
+    "anchorRef": "Kitzur Shulchan Arukh 1:6",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:6"
+    ],
+    "sourceRef": "Kitzur Shulchan Arukh 49",
+    "sourceHeRef": "קיצור שלחן ערוך מ״ט",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      1844,
+      1864
+    ],
+    "commentaryNum": 49,
+    "collectiveTitle": {
+      "en": "Kitzur Shulchan Arukh",
+      "he": "קיצור שלחן ערוך"
+    },
+    "heTitle": "קיצור שלחן ערוך"
+  },
+  {
+    "_id": "6a04a1b6322a5c64139b6eb5",
+    "index_title": "Seder Ma'amadot",
+    "category": "Liturgy",
+    "type": "",
+    "ref": "Seder Ma'amadot 3:40",
+    "anchorRef": "Kitzur Shulchan Arukh 1:7",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:7"
+    ],
+    "sourceRef": "Seder Ma'amadot 3:40",
+    "sourceHeRef": "סדר מעמדות ג׳:מ׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1000,
+      1060
+    ],
+    "commentaryNum": 3.004,
+    "collectiveTitle": {
+      "en": "Seder Ma'amadot",
+      "he": "סדר מעמדות"
+    },
+    "heTitle": "סדר מעמדות"
+  },
+  {
+    "_id": "51d4400dedbab443a0c137c5",
+    "index_title": "Jeremiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Jeremiah 23:24",
+    "anchorRef": "Kitzur Shulchan Arukh 1:1",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:1"
+    ],
+    "sourceRef": "Jeremiah 23:24",
+    "sourceHeRef": "ירמיהו כ״ג:כ״ד",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 23.0024,
+    "collectiveTitle": {
+      "en": "Jeremiah",
+      "he": "ירמיהו"
+    },
+    "heTitle": "ירמיהו"
+  },
+  {
+    "_id": "69601ce864ff2ce71f4630bc",
+    "index_title": "Jeremiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Jeremiah 25:30",
+    "anchorRef": "Kitzur Shulchan Arukh 1:5",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:5"
+    ],
+    "sourceRef": "Jeremiah 25:30",
+    "sourceHeRef": "ירמיהו כ״ה:ל׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 25.003,
+    "collectiveTitle": {
+      "en": "Jeremiah",
+      "he": "ירמיהו"
+    },
+    "heTitle": "ירמיהו"
+  },
+  {
+    "_id": "69601ce964ff2ce71f4630c0",
+    "index_title": "Berakhot",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Berakhot 3a",
+    "anchorRef": "Kitzur Shulchan Arukh 1:5",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:5"
+    ],
+    "sourceRef": "Berakhot 3a",
+    "sourceHeRef": "ברכות ג׳ א",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 5,
+    "collectiveTitle": {
+      "en": "Berakhot",
+      "he": "ברכות"
+    },
+    "heTitle": "ברכות"
+  },
+  {
+    "_id": "69601d492d1cfff954111b6a",
+    "index_title": "Kitzur Shulchan Arukh",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Kitzur Shulchan Arukh 1:5",
+    "anchorRef": "Kitzur Shulchan Arukh 151:7",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 151:7"
+    ],
+    "sourceRef": "Kitzur Shulchan Arukh 1:5",
+    "sourceHeRef": "קיצור שלחן ערוך א׳:ה׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1844,
+      1864
+    ],
+    "commentaryNum": 1.0005,
+    "collectiveTitle": {
+      "en": "Kitzur Shulchan Arukh",
+      "he": "קיצור שלחן ערוך"
+    },
+    "heTitle": "קיצור שלחן ערוך"
+  },
+  {
+    "_id": "53b8ca77fbfba25e5bdd1f5a",
+    "index_title": "Gittin",
+    "category": "Talmud",
+    "type": "reference",
+    "ref": "Gittin 60b",
+    "anchorRef": "Kitzur Shulchan Arukh 1:7",
+    "anchorRefExpanded": [
+      "Kitzur Shulchan Arukh 1:7"
+    ],
+    "sourceRef": "Gittin 60b",
+    "sourceHeRef": "גיטין ס׳ ב",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 120,
+    "collectiveTitle": {
+      "en": "Gittin",
+      "he": "גיטין"
+    },
+    "heTitle": "גיטין"
+  }
+]

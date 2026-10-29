@@ -1,0 +1,11 @@
+/* Measured on sefaria.org (2026-10-05, desktop and phone): grey #ededec, 60px tall, 16px #666 text, the content centred in the
+   760px reading column with 30px sides, white 6px-radius buttons (padding 5px 11px) and a 35px #bbb × at the column's end. */
+.banner { --_side: max(30px, calc((100% - 760px) / 2 + 30px)); display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; box-sizing: border-box; padding: 0 var(--_side); background: #ededec; font-family: var(--sefaria-font-ui-en); font-size: 16px; color: #666; position: relative; }
+.banner[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.message { margin: 0; }
+.message strong { color: inherit; font-weight: 700; }
+.buttons { display: flex; gap: 8px; }
+.buttons button { padding: 5px 11px; font-size: 16px; color: #666; background: #fff; border-radius: 6px; height: auto; min-height: 29px; }
+.close { position: absolute; inset-inline-end: calc(var(--_side) - 11px); inset-block-start: 50%; transform: translateY(-50%); }
+.close button { color: #bbb; }
+.close svg { width: 24px; height: 24px; }

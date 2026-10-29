@@ -1,0 +1,48 @@
+/* The old NavSidebar (static/css/s2.css .navSidebarModule and friends), VERIFIED on sefaria.org /texts at 1280px (2026-10-29):
+   modules 34px apart, 16px var(--sefaria-color-text-dark-grey) on a normal line; titles 22px/500 with a 1px var(--sefaria-color-border-strong) rule 14px under them and 20px over the content. */
+.module { margin-block-end: 34px; font-size: 16px; line-height: normal; color: var(--sefaria-color-text-dark-grey); }
+.title { margin: 0 0 20px; padding-block-end: 14px; border-block-end: 1px solid var(--sefaria-color-border-strong); font-size: 22px; font-weight: 500; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-transform: none; letter-spacing: 0; }
+/* Resources: the old h3 (.readerPanel h3), 15px uppercase without the rule */
+.upper { margin: 0; padding: 0; border: 0; font-size: 15px; font-weight: normal; text-transform: uppercase; }
+.body { margin: 0; }
+.body p { margin: 0 0 12px; }
+.inText { margin-inline-start: 5px; color: inherit; text-decoration: underline; }
+/* .button.get-start: 221 x 39, the play icon 18px and 10px from the label */
+.button { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 221px; height: 39px; margin: 22px 0 0; padding: 16px 30px; border-radius: 6px; background: var(--sefaria-color-brand, var(--sefaria-color-brand)); box-shadow: var(--sefaria-shadow-1); color: var(--sefaria-color-on-brand); font-size: 16px; line-height: 19px; text-decoration: none; white-space: nowrap; }
+.button:hover { color: var(--sefaria-color-on-brand); }
+.button img { width: 18px; height: 18px; margin-block-start: -2px; margin-inline-end: 10px; vertical-align: middle; }
+/* the old .button.small (Make a Donation): as wide as its label, 10px 14px, 12px under the text, the heart inverted */
+.button.auto { display: inline-block; width: fit-content; height: auto; margin-block-start: 12px; padding: 10px 14px; }
+.button.auto img { filter: invert(1); }
+/* .navSidebarLink with its .navSidebarIcon */
+.links { margin-block-start: 20px; }
+.link { margin-block-end: 10px; font-size: 16px; }
+.link a { color: var(--sefaria-color-text-dark-grey); text-decoration: none; }
+.link a:hover { text-decoration: underline; }
+.icon { width: 18px; height: 18px; margin-block-start: -4px; margin-inline-end: 10px; vertical-align: middle; }
+.ref { font-family: var(--sefaria-font-text-en); font-size: 18px; }
+.ref a { color: var(--sefaria-color-text-strong); }
+.ref[lang="he"], .ref :lang(he) { font-family: var(--sefaria-font-text-he); }
+/* the translations list: 18px serif, black, "•" between */
+.langs { display: flex; flex-wrap: wrap; margin-block-start: 6px; font-family: var(--sefaria-font-text-en); font-size: 18px; }
+.langs ul { display: flex; flex-wrap: wrap; margin: 16px 0 0; padding: 0; list-style: none; }
+.langs li { display: inline; }
+.langs li::after { content: "\2022"; margin: 0 5px; white-space: pre; color: var(--sefaria-color-text-dark-grey); }
+.langs li:last-child::after { content: none; }
+.langs a { color: var(--sefaria-color-text-strong); text-decoration: none; }
+.langs a:hover { text-decoration: underline; }
+.section { margin-block-end: 15px; }
+.sectionTitle { display: block; margin-block-end: 8px; }
+.all { font-size: 13px; color: var(--sefaria-color-text-muted); text-decoration: none; }
+.all:hover { text-decoration: underline; }
+/* the footer: an empty titled rule, then links 10px apart with 16px after each */
+.footer { margin-block-end: 34px; }
+.footer .title { min-height: 0; }
+.footerLinks { display: flex; flex-wrap: wrap; max-width: 100%; padding-block-start: 15px; }
+.footerLinks a { padding-block-start: 10px; padding-inline-end: 16px; color: var(--sefaria-color-text-dark-grey); text-decoration: none; }
+.footerLinks a:hover { text-decoration: underline; }
+@media (max-width: 842px) {
+  .wideOnly { display: none; }
+  /* on a phone the old titles sat 10px over their content, not 20px (measured) */
+  .title { margin-block-end: 10px; }
+}

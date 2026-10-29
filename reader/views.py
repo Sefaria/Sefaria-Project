@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 
+from django.utils.cache import patch_cache_control
 from django.utils.http import url_has_allowed_host_and_scheme
 from elasticsearch_dsl import Search
 from random import choice
@@ -24,6 +25,7 @@ from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.helper import library_assistant
+from sefaria.helper import reader_choice
 from sefaria.donors.types import DonorStatus
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY, \
@@ -2085,6 +2087,11 @@ def table_of_contents_api(request):
     include_authors = bool(int(request.GET.get("include_authors", False)))
     toc = library.get_toc_with_authors() if include_authors else library.get_toc()
     return jsonResponse(toc, callback=request.GET.get("callback", None))
+
+
+def topics_toc_api(request):
+    """The topics table of contents (the tree the topics pages and search's topic crumbs are built from)."""
+    return http.HttpResponse(library.get_topic_toc_json(), content_type="application/json; charset=utf-8")
 
 
 @catch_error_as_json
@@ -4200,6 +4207,10 @@ def profile_api(request, slug=None):
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
+        reader_choice_posted = reader_choice.SETTING_KEY in profileUpdate.get("settings", {})
+        if reader_choice_posted:
+            profileUpdate["settings"][reader_choice.SETTING_KEY] = reader_choice.normalize(profileUpdate["settings"][reader_choice.SETTING_KEY])
+
         la_key = library_assistant.SETTING_KEY
         if la_key in profileUpdate.get("settings", {}):
             # Public endpoint — coerce so a posted "false" can't read as truthy.
@@ -4218,7 +4229,11 @@ def profile_api(request, slug=None):
             # whitelist row in sync for the still-whitelisted `experiments` field.
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
-            return jsonResponse(profile.to_mongo_dict())
+            response = jsonResponse(profile.to_mongo_dict())
+            # the choice of reader takes effect through its cookie, which nginx routes page requests by
+            if reader_choice_posted and reader_choice.available():
+                reader_choice.apply_cookie(response, request, profile.settings[reader_choice.SETTING_KEY])
+            return response
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -4237,6 +4252,31 @@ def experiments_opt_in_api(request):
         return jsonResponse({"error": _("You must be logged in to join experiments.")})
     _set_user_experiments(request.user, True)
     return jsonResponse({"status": "ok"})
+
+
+def library_assistant_api(request):
+    """
+    GET /api/library-assistant: whether the signed-in reader gets the Library Assistant, and the token that names them to it.
+
+    For clients that do not render through base_props (the new reader, reader-next/src/lib/assistant/access.ts): the same rule
+    (library_assistant.is_enabled) and the same token (build_chatbot_user_token with CHATBOT_USER_ID_SECRET) as the page props.
+    The client chooses the build and API itself (?chatbot_version=, CHATBOT_API_BASE_URL). Never cached: it names the reader.
+
+    Returns {"enabled": bool, "userToken": str | None, "isModerator": bool}.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+    enabled, token = False, None
+    if request.user.is_authenticated and library_assistant.is_enabled(UserProfile(user_obj=request.user)):
+        token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+        enabled = token is not None
+    response = jsonResponse({
+        "enabled": enabled,
+        "userToken": token,
+        "isModerator": bool(request.user.is_authenticated and request.user.is_staff),
+    })
+    patch_cache_control(response, private=True, no_store=True)
+    return response
 
 
 def enable_library_assistant(request):
@@ -4607,6 +4647,9 @@ def account_settings(request):
         # The toggle must render the *effective* value: a user who is on through the
         # legacy rule has no setting key yet, and must still see "On".
         'library_assistant_enabled': library_assistant.is_enabled(profile),
+        # nodejs.mode "optin": the choice between the legacy reader and the new one
+        'reader_choice_available': reader_choice.available(),
+        'new_reader_enabled': reader_choice.chose_next(profile),
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
         'diaspora': request.diaspora,
@@ -5585,6 +5628,10 @@ def application_health_api(request):
             return False
 
     def isNodeJsReachable():
+        # Django depends on the Node server only for its own server rendering. With USE_NODE off (Helm nodejs.mode "reader")
+        # the node pods are the reader client, which sends /healthz back to Django: checking it would wait on ourselves.
+        if not USE_NODE:
+            return True
         url = NODE_HOST + "/healthz"
         try:
             statusCode = urllib.request.urlopen(url).status

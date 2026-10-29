@@ -1,0 +1,30 @@
+/* Measured on sefaria.org (2026-10-05): a 258px white card (radius 5), 12px around the language rows, 20px beside the other lines,
+   1px #ededec rules, 14px Roboto throughout. */
+.menu { display: flex; flex-direction: column; width: 258px; padding: 0; font-size: 14px; color: #000; }
+.languages { padding: 18px 12px 17px; }
+.divider { border: 0; border-top: 1px solid #ededec; margin: 0; }
+.line { display: flex; align-items: center; justify-content: space-between; min-height: 58px; padding-inline: 20px; }
+.lineLabel { font-size: 14px; }
+.fontSize { display: flex; align-items: center; justify-content: space-between; min-height: 50px; padding-inline: 13px; }
+.round { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 26px; padding: 0; border: 0; background: none; color: #666; cursor: pointer; }
+.round:disabled { opacity: 0.35; cursor: not-allowed; }
+.round:hover:not(:disabled) { color: #000; }
+.menu :global([role="switch"]) { padding-inline: 20px; min-height: 49px; }
+
+/* VERIFIED on sefaria.org (1280px, 2026-10-29), s2.css .texts-properties-menu: every line is centred in the 256px card — the language
+   rows 235px in a 140px block, Layout 216x57 (icons 16px apart), switches 216x49, font size 230x50 with the old reduce/enlarge
+   images (24px, in 36x26 white buttons); nothing changes on hover */
+.menu { width: 256px; align-items: center; }
+.menu > * { align-self: stretch; }
+.languages { display: flex; flex-direction: column; justify-content: center; height: 140px; padding: 0; box-sizing: border-box; align-items: center; align-self: center; width: 235px; }
+.line { align-self: center; box-sizing: border-box; width: 216px; min-height: 0; height: 57px; padding: 0; }
+.fontSize { align-self: center; width: 230px; min-height: 0; height: 50px; padding: 0; }
+.round { width: auto; height: auto; padding: 1px 6px; background: var(--sefaria-color-surface); }
+.round img { display: block; }
+.round:hover:not(:disabled) { color: inherit; }
+.menu :global([role="switch"]) { align-self: center; width: 216px; padding: 0; min-height: 0; height: 49px; box-sizing: border-box; }
+.menu :global([role="switch"]) { color: var(--sefaria-color-text-strong); }
+/* the old layout buttons sit in a 60px line box inside the 57px line, so their icons are 6px above its middle */
+.line [role="radiogroup"] { transform: translateY(-6px); }
+/* the old labels are centred in a 60px line box, 1px lower than in their 57/49px line */
+.line .lineLabel, .menu :global([role="switch"]) > :first-child { position: relative; top: 1px; }

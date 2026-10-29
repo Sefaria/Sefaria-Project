@@ -79,6 +79,9 @@ spec:
           - name: DD_LOGS_INJECTION
             value: "true"
           {{- end }}
+          {{- if eq .Values.nodejs.mode "reader" }}
+          {{- include "sefaria.readerEnv" (list . .Values.nodejs.containerImage.tag) | nindent 10 }}
+          {{- end }}
           {{- if .Values.mongo.enabled }}
           - name: MONGO_HOST
             value: {{ .Values.deployEnv }}-mongo
@@ -96,4 +99,19 @@ spec:
               optional: true
         ports:
         - containerPort: 3000
+        {{- if eq .Values.nodejs.mode "reader" }}
+        readinessProbe:
+          httpGet:
+            path: /healthz-reader
+            port: 3000
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz-reader
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+        {{- end }}
         resources: {{ toYaml .Values.nodejs.resources | nindent 10 }}

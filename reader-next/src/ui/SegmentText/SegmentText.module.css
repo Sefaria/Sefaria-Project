@@ -1,0 +1,42 @@
+.text { display: inline; overflow-wrap: anywhere; font-family: inherit; } /* the :lang(he) UI face in base.css must not override the side's text face */
+.text :where(*) { font-family: inherit; } /* descendants match :lang(he) too */
+.text :where(b, strong) { font-weight: 700; }
+/* Runs set in another face (Talmud's bold opening words are Heebo; footnote markers, page markers) must not
+   change the line's height — otherwise their font arriving after first paint reflows the text under the reader. */
+.text :where(b, strong, sup, :global(.page-marker)) { line-height: 1; }
+.text big, .text [style*="larger"] { font-size: 1.2em; }
+.text small { font-size: 0.8em; }
+.text sup { font-size: 0.6em; font-family: var(--sefaria-font-ui-he); }
+
+/* Citations and entities */
+.text a { color: inherit; text-decoration: none; }
+.text a:hover { text-decoration: underline; }
+.text a:global(.ref-link) { font-size: 0.8em; font-weight: 700; letter-spacing: 1px; color: var(--sefaria-color-text); }
+.text a:global(.entity-link):hover { text-decoration: underline dotted; }
+
+/* Footnote markers */
+.text sup:global(.note-marker) { color: var(--sefaria-color-link); cursor: pointer; padding-inline: 0.15em; position: relative; }
+.text sup:global(.note-marker)::before { content: ""; position: absolute; inset: -0.6em -0.4em; }
+.text sup:global(.note-marker):hover, .text sup:global(.note-marker)[aria-expanded="true"] { text-decoration: underline; }
+.text sup:global(.itag) { color: var(--sefaria-color-link); font-weight: 500; }
+
+/* Page / column overlays inside Talmud and Zohar */
+.text :global(.page-marker) { font-family: var(--sefaria-font-ui-en); font-size: 0.6em; color: var(--sefaria-color-text-muted); margin-inline: 0.3em; unicode-bidi: isolate; }
+
+/* Poetry (Psalms, Isaiah, Song of Songs): the line's indent is carried only by these markers */
+.text [data-sefaria-poetry="indent"] { display: inline-block; padding-inline-start: 1.2em; }
+.text [data-sefaria-poetry="indent-double"] { display: inline-block; padding-inline-start: 2.4em; }
+[data-layout="continuous"] .text [data-sefaria-poetry] { display: inline; padding: 0; }
+
+/* Miqra al pi ha-Masorah paragraph marks and ketiv/qere */
+.text [data-sefaria-mam="petuchah"], .text [data-sefaria-mam="setumah"] { font-size: 0.7em; color: var(--sefaria-color-text-muted); }
+.text [data-sefaria-mam="ketiv"] { color: var(--sefaria-color-text-muted); }
+.text [data-sefaria-tone="muted"] { color: var(--sefaria-color-text-muted); }
+
+/* Footnote bodies */
+.notes { display: block; margin-block: 0.4em; padding-inline-start: 0.8em; border-inline-start: 2px solid var(--sefaria-color-border); font-size: 0.7em; line-height: 1.4; color: var(--sefaria-color-text-secondary); }
+.notes p { margin: 0 0 0.3em; }
+.noteLabel { color: var(--sefaria-color-link); font-weight: 700; margin-inline-end: 0.35em; }
+
+/* Words a search matched (SRC-058): the old reader's pale blue (s2.css .segment .queryTextHighlight) */
+.text :global(.queryTextHighlight) { background-color: #d2dcff; box-shadow: 0 0 0 2px #d2dcff; } /* a shadow, not padding: removing the highlight must not re-wrap the line */

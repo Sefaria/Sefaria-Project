@@ -1,0 +1,597 @@
+{
+  "title": "Ramban on Genesis",
+  "categories": [
+    "Tanakh",
+    "Rishonim on Tanakh",
+    "Ramban",
+    "Torah"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "sharedTitle": "Introduction",
+        "key": "intro"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "lang": "en",
+            "text": "Foreword",
+            "primary": true
+          },
+          {
+            "lang": "he",
+            "text": "פתיחה לפירוש התורה",
+            "primary": true
+          }
+        ],
+        "key": "Foreword"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 3,
+        "addressTypes": [
+          "Perek",
+          "Pasuk",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Chapter",
+          "Verse",
+          "Comment"
+        ],
+        "isSegmentLevelDiburHamatchil": true,
+        "diburHamatchilRegexes": [
+          "^<b>(.+?)</b>",
+          "^(.+?)[\\-–]"
+        ],
+        "default": true,
+        "key": "default"
+      }
+    ],
+    "nodeType": "SchemaNode",
+    "match_templates": [
+      {
+        "term_slugs": [
+          "ramban",
+          "genesis"
+        ]
+      }
+    ],
+    "titles": [
+      {
+        "text": "Nachmanides on Bereshit",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Gen",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Breishit",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Ber",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Bereishit",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Ber.",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Beresheet",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Bereshith",
+        "lang": "en"
+      },
+      {
+        "text": "Nachmanides on Genesis",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Bereshit",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Gen",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Breishit",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Ber",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Bereishit",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Ber.",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Beresheet",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Bereshith",
+        "lang": "en"
+      },
+      {
+        "text": "Rabbi Moshe Ben Nachman on Genesis",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Bereshit",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Gen",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Gen.",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Breishit",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Ber",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Bereishit",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Ber.",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Beresheet",
+        "lang": "en"
+      },
+      {
+        "text": "Ramban on Bereshith",
+        "lang": "en"
+      },
+      {
+        "text": "רמב\"ן על ברא'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ן על בר'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ן על בר׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ן על ברא׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ן על בְּרֵאשִׁית",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על בראשית",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על ברא'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על ברא'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על בר'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על בר'",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על בר׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על בר׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על ברא׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על ברא׳",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ן על בְּרֵאשִׁית",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ן על בְּרֵאשִׁית",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ן על בראשית",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Ramban on Genesis",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Ramban on Genesis"
+  },
+  "alt_structs": {
+    "Parasha": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 1:1:1-6:8:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "bereshit"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "bereshit"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Bereshit"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 6:9:1-11:32:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "noach"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "noach"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Noach"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 12:1:1-17:26:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "lech-lecha"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "lech-lecha"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Lech Lecha"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 18:1:1-22:24:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayera"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayera"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayera"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 23:1:1-25:17:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "chayei-sara"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "chayei-sara"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Chayei Sara"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 25:19:1-28:5:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "toldot"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "toldot"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Toldot"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 28:12:1-32:2:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayetzei"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayetzei"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayetzei"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 32:4:1-36:43:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayishlach"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayishlach"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayishlach"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 37:1:1-40:16:2",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayeshev"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayeshev"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayeshev"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 41:1:1-44:10:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "miketz"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "miketz"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Miketz"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 44:18:1-47:19:1",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayigash"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayigash"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayigash"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Ramban on Genesis 47:28:1-49:33:3",
+          "includeSections": false,
+          "match_templates": [
+            {
+              "term_slugs": [
+                "ramban",
+                "parasha",
+                "vayechi"
+              ],
+              "scope": "alone"
+            },
+            {
+              "term_slugs": [
+                "ramban",
+                "vayechi"
+              ],
+              "scope": "alone"
+            }
+          ],
+          "sharedTitle": "Vayechi"
+        }
+      ]
+    }
+  },
+  "exclude_structs": [
+    "Parasha"
+  ],
+  "authors": [
+    "ramban"
+  ],
+  "enDesc": "Commentary by Rabbi Moses ben Nahman (1194–1270), commonly known as the Ramban. The Ramban lived in Spain until his move to Jerusalem toward the end of his life. His commentary reflects his love of Eretz Yisrael. He usually begins his comments with Rashi’s explanation and then expounds further with insights from Kabbalah and Oral Tradition. His comments include respectful criticism of Rashi, Ibn Ezra and Rambam.",
+  "heDesc": "",
+  "enShortDesc": "",
+  "heShortDesc": "",
+  "pubDate": [
+    1480
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1246,
+    1270
+  ],
+  "compPlace": "Middle-Age Spain",
+  "pubPlace": "Bologna",
+  "era": "RI",
+  "dependence": "Commentary",
+  "base_text_titles": [
+    "Genesis"
+  ],
+  "base_text_mapping": "many_to_one_default_only",
+  "collective_title": "Ramban",
+  "is_cited": true
+}

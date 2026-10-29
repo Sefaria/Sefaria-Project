@@ -1,0 +1,127 @@
+---
+area: i18n-a11y
+title: Language & accessibility
+domain: Site & accounts
+document: product
+owner: unassigned
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
+
+updated: 2026-10-19
+
+updated: 2026-10-28
+---
+# Language & accessibility — product specification
+
+> Part of the future-reader specification (`docs/reader-future/`), maintained in Slack **#reader-future** by Claude Tag with the
+> `capture-future-spec` skill. The sections above the BASELINE block belong to the channel; the block is generated from the
+> Feature Atlas and refreshed by `tools/seed.py`. Every change cites the Slack message it came from.
+
+## Summary
+
+Nothing decided. Research in the thread mapped how sefaria.org chooses the interface language (the UI, its direction and the
+site domain, sefaria.org or sefaria.org.il) and the content language (Hebrew, English or bilingual text), and how the new client
+differs; the rules are in the [architecture](architecture.md#legacy-approach-vs-new-approach). Today the new client decides each
+from one cookie, with English and bilingual as defaults. The items below are *ideas* for what the future reader should do · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+
+## Who it is for and what they need
+
+_Not discussed yet._
+
+## Target behaviour in the future reader
+
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Dark mode is a supported theme, so accessibility checks (text and control contrast, visible focus) cover dark as well as light. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · see `../text-display/product.md`
+- Readers get more control over defaults on the settings page: interface language, content language, translation language,
+  preferred version per corpus, and display settings. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)
+  - Each setting shows its current value and where it came from ("from your location", "from your browser", "this text's
+    default", "you chose"), with a way to change it or reset it to the default. — *proposed* (Claude Tag draft) · same source ·
+    see `architecture.md` → Effective preferences
+  - Signed-in readers keep their choices on every device (profile). Signed-out readers keep them in the browser (cookies), as today.
+    — *proposed* · same source
+
+## Changes from today (keep · change · drop · new)
+
+**Keep**
+
+- The header switch between English and Hebrew, sharing the `interfaceLang` and `contentLang` cookies with the old site so both
+  agree while they coexist. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · I18-007, RTE-034
+- A link can set the text language per panel (`lang`, `lang<n>`), over the reader's saved choice. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · RTE-043
+
+**Change**
+
+- A signed-in reader's interface language is saved to their profile and followed on every page and device, as on sefaria.org
+  today; the new client reads and writes only the cookie. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639) · I18-010, RTE-034
+
+**Drop**
+
+- The legacy quirks in [Legacy behaviour not to port](architecture.md#legacy-behaviour-not-to-port): browser language never
+  reached, signed-in readers never get location or cookie, the text-language choice not shared between sefaria.org and
+  sefaria.org.il. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639)
+- **Change**: a default the site guessed (location, domain) is not saved as if the reader chose it. Today a location-based domain
+  redirect, or signing up, writes the guess into the cookie or profile. — *idea* · same source · `architecture.md` Risks 1–2
+- **New**: when the preferred translation language or version is missing for a text, the reader sees which version is shown
+  instead. Today it changes silently. — *idea* · same source · `architecture.md` Risks 10
+
+## Open questions
+
+- If panels become draggable or floating ([Reader shell & panels](../reader-shell/architecture.md)), how do keyboard and screen-reader users move them? · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+
+All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+
+- Should text default to Hebrew when the interface is Hebrew, as on sefaria.org? The new client always starts bilingual
+  (SHL-007).
+- Should menus and sidebars follow the interface language rather than the text setting, as on sefaria.org (SHL-013)?
+- Should the text-language choice be saved per reader in the profile? Neither client does today.
+- With no saved choice, should the browser's language count, or only the visitor's country?
+- Which settings belong on the page at launch, and which stay automatic (Israel / diaspora calendar, translation suggestion)?
+  · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)
+
+## Decisions
+
+_None yet. Every decision is also logged in `../DECISIONS.md`._
+
+## Parked ideas
+
+_None yet._
+
+<!-- BASELINE:START (generated by docs/reader-future/tools/seed.py — do not edit by hand) -->
+
+## Baseline: what sefaria.org does today
+
+From the Feature Atlas (`reader-next/docs/features`, area `i18n-a11y`): **13 features** — core 9, standard 3, optional 1. Tiers are the audit's proposal (core: can't launch without it; standard: parity, can follow; optional: niche or rethink; retire: unused, broken or superseded).
+
+Feature groups: Interface language (5); Keyboard and focus (3); Language domains (1); Landmarks and labels (1); Accessibility (1); Site settings (1); RTL (1).
+
+### Core (9)
+
+| ID | Feature | What it does |
+|---|---|---|
+| I18-001 | Content, translation and version preferences | Reading language, translation language and per-corpus version choices are resolved from cookies, profile and country. |
+| I18-002 | Skip link and main landmark | Keyboard users can skip to main content. |
+| I18-003 | Tabbing detection and panel focus management | Focus moves sensibly into new panels, and tab users get visible focus styling. |
+| I18-007 | Site language toggle in dropdowns | Changing interface language is a server round trip, not client state. |
+| I18-008 | Interface language switcher | Users can switch the whole interface between English and Hebrew from a globe menu, and reset their preferred translation language. |
+| I18-009 | Interface string translation system | All interface strings are translated through keyed JSON files managed in Weblate, with Hebrew term fallbacks. |
+| I18-010 | Interface and content language resolution | The site picks interface and content language automatically from the user's profile, cookies, location and browser, and keeps Hebrew domains in Hebrew. |
+| I18-011 | Accessible custom dropdown and toggles | Custom select menus and segmented toggles are operable by keyboard and announced correctly to assistive tech. |
+| I18-013 | Right-to-left layout and Hebrew numerals | The interface mirrors for Hebrew, with Hebrew numerals and dates. |
+
+### Standard (3)
+
+| ID | Feature | What it does |
+|---|---|---|
+| I18-004 | Legacy toggle sets, tab view, radio, button a11y | Shared controls follow ARIA keyboard patterns. |
+| I18-005 | ARIA landmarks and headings in shell | Header, nav, search and panel title carry ARIA roles/labels. |
+| I18-006 | Interface language menu (anonymous) | Anonymous users on Torah sites can switch site language from a globe menu. |
+
+### Optional (1)
+
+| ID | Feature | What it does |
+|---|---|---|
+| I18-012 | Site settings and white-label sites | Site-level configuration controls branding and features, enabling alternative non-Torah sites. |
+
+_Generated 2026-10-14. Full behaviour for every ID: `reader-next/docs/features/FEATURES.md` and the atlas page._
+
+<!-- BASELINE:END -->

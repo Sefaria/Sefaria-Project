@@ -279,3 +279,42 @@ spec:
 {{- end }}
 {{- toYaml $map }}
 {{- end }}
+
+{{/*
+The new reader client's environment (reader-next/src/lib/config.ts), for its pods in either layout: nodejs.mode "reader" (the node
+pods are the reader) or "optin" (a separate reader rollout beside the legacy node pods). Args: (list $ctx $imageTag).
+*/}}
+{{- define "sefaria.readerEnv" -}}
+{{- $ctx := index . 0 -}}
+{{- $tag := index . 1 -}}
+# reader-next/src/lib/config.ts: the API through this release's Varnish, with the public Host Django routes by
+- name: SEFARIA_API_ORIGIN
+  value: "http://varnish-{{ $ctx.Values.deployEnv }}-{{ $ctx.Release.Revision }}:8040"
+- name: SEFARIA_API_HOST
+  value: {{ printf "www.%s" (tpl (index $ctx.Values.domains.root 0).url $ctx) | quote }}
+- name: PUBLIC_API_ORIGIN
+  value: ""
+- name: PUBLIC_SITE_ORIGIN
+  value: ""
+# this deployment's Voices (sheets made here live there)
+- name: PUBLIC_VOICES_ORIGIN
+  value: {{ printf "https://voices.%s" (tpl (index $ctx.Values.domains.root 0).url $ctx) | quote }}
+- name: SEFARIA_PASS_THROUGH
+  value: "1"
+- name: PORT
+  value: "3000"
+# analytics IDs and the sign-in providers' public keys, as Django's pages use them (each optional; reader-next/src/lib/config.ts)
+- name: APP_VERSION
+  value: {{ $tag | quote }}
+- name: SIMPLE_ANALYTICS_HOSTNAME
+  value: {{ if eq (toString $ctx.Values.localSettings.DEBUG) "true" }}"sa-dev.sefaria.org"{{ else }}"sefaria.org"{{ end }}
+{{- /* CHATBOT_API_BASE_URL: the Library Assistant's server, the value Django reads too (reader-next/src/lib/assistant/config.ts) */}}
+{{- range list "GOOGLE_TAG_MANAGER_CODE" "GOOGLE_GTAG" "CLIENT_SENTRY_DSN" "GOOGLE_SSO_CLIENT_ID" "APPLE_SSO_CLIENT_ID" "RECAPTCHA_PUBLIC_KEY" "CHATBOT_API_BASE_URL" }}
+- name: {{ . }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $ctx.Values.secrets.localSettings.ref }}
+      key: {{ . }}
+      optional: true
+{{- end }}
+{{- end -}}

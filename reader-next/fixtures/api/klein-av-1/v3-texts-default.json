@@ -1,0 +1,116 @@
+{
+  "versions": [
+    {
+      "status": "locked",
+      "priority": "",
+      "license": "CC-BY-NC",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": true,
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "כרטא תשמ״ז",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "https://storage.googleapis.com/sefaria-physical-editions/dd3b43cf67a3fb5c2e58b568c437ede5.png",
+      "purchaseInformationURL": "http://store.carta-jerusalem.com/hebrew-script/119-a-comprehensive-etymological-dictionary-of-the-hebrew-language-for-readers-of-english.html",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "versionSource": "https://www.nli.org.il/he/books/NNL01",
+      "versionTitle": "Carta Jerusalem; 1st edition, 1987",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "ltr",
+      "text": [
+        "<strong dir=\"rtl\">אָב ᴵ</strong> m.n. (pl. <a dir=\"rtl\" class=\"refLink\" href=\"/Klein Dictionary,_אָבוֹת.1\" data-ref=\"Klein Dictionary, אָבוֹת 1\">אָבוֹת</a>)   <b>1</b> father.     <b>2</b> forefather, patriarch.     <b>3</b> ancestor, progenitor.     <b>4</b> head (of a family), leader, chief.     <b>5</b> God.     <b>6</b> master, teacher.     <b>7</b> important, great.   PBH  <b>8</b> parent (male).   PBH  <b>9</b> basic factor, origin, source.   NH  <b>10</b> Father (of the Christian Church).  [cp. Aram. <a dir=\"rtl\" class=\"refLink\" href=\"/Klein Dictionary,_אַבָּא.1\" data-ref=\"Klein Dictionary, אַבָּא 1\">אַבָּא</a>, Ugar. <i>’b</i>, Akka. <i>abu</i>, Arab. <i>abu</i>.] Derivatives: <a dir=\"rtl\" class=\"refLink\" href=\"/Klein Dictionary,_אַבְהוּת.1\" data-ref=\"Klein Dictionary, אַבְהוּת 1\">אַבֽהוּת</a>, <a dir=\"rtl\" class=\"refLink\" href=\"/Klein Dictionary,_אַבְהִי.1\" data-ref=\"Klein Dictionary, אַבְהִי 1\">אַבְהִי</a>, <a dir=\"rtl\" class=\"refLink\" href=\"/Klein Dictionary,_אָבוּת.1\" data-ref=\"Klein Dictionary, אָבוּת 1\">אָבוּת</a>."
+      ]
+    }
+  ],
+  "available_versions": [
+    {
+      "status": "locked",
+      "priority": "",
+      "license": "CC-BY-NC",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": true,
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "כרטא תשמ״ז",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "https://storage.googleapis.com/sefaria-physical-editions/dd3b43cf67a3fb5c2e58b568c437ede5.png",
+      "purchaseInformationURL": "http://store.carta-jerusalem.com/hebrew-script/119-a-comprehensive-etymological-dictionary-of-the-hebrew-language-for-readers-of-english.html",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "Klein Dictionary",
+      "versionSource": "https://www.nli.org.il/he/books/NNL01",
+      "versionTitle": "Carta Jerusalem; 1st edition, 1987",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "ltr"
+    }
+  ],
+  "ref": "Klein Dictionary, אָב ᴵ",
+  "heRef": "מילון קליין, אָב ᴵ",
+  "sections": [],
+  "toSections": [],
+  "sectionRef": "Klein Dictionary, אָב ᴵ",
+  "heSectionRef": "מילון קליין, אָב ᴵ",
+  "firstAvailableSectionRef": "Klein Dictionary, אָב ᴵ",
+  "isSpanning": false,
+  "next": "Klein Dictionary, אָב ᴵᴵ",
+  "prev": "Klein Dictionary, ◌ָא ᴵᴵ",
+  "title": "Klein Dictionary, אָב ᴵ",
+  "book": "Klein Dictionary, אָב ᴵ",
+  "heTitle": "מילון קליין, אָב ᴵ",
+  "primary_category": "Reference",
+  "type": "Reference",
+  "indexTitle": "Klein Dictionary",
+  "categories": [
+    "Reference",
+    "Dictionary"
+  ],
+  "heIndexTitle": "מילון קליין",
+  "isComplex": true,
+  "isDependant": false,
+  "order": [
+    2
+  ],
+  "collectiveTitle": "",
+  "heCollectiveTitle": "",
+  "alts": [],
+  "textDepth": 1,
+  "sectionNames": [
+    "Line"
+  ],
+  "addressTypes": [
+    "Integer"
+  ],
+  "titleVariants": [
+    "אָב ᴵ"
+  ],
+  "heTitleVariants": [
+    "אָב ᴵ"
+  ],
+  "warnings": [
+    {
+      "translation": {
+        "warning_code": 104,
+        "message": "We do not have a translation for Klein Dictionary, אָב ᴵ"
+      }
+    }
+  ]
+}

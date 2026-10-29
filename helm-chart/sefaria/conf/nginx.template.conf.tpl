@@ -81,6 +81,25 @@ http {
     keepalive 32;
   }
 
+  {{- if eq .Values.nodejs.mode "reader" }}
+  # the new reader client (values: nodejs.mode reader) answers page requests first
+  upstream nodeupstream {
+    server node-{{ .Values.deployEnv }}:3000;
+    keepalive 32;
+  }
+  {{- else if eq .Values.nodejs.mode "optin" }}
+  # nodejs.mode optin: the new reader client runs beside the legacy node pods; it answers the page requests of a visitor who chose
+  # it in account settings (the reader_version=next cookie, set by Django), and Varnish/Django everyone else's
+  upstream readerupstream {
+    server reader-{{ .Values.deployEnv }}:3000;
+    keepalive 32;
+  }
+  map $cookie_reader_version $page_upstream {
+    default varnishupstream;
+    next    readerupstream;
+  }
+  {{- end }}
+
   upstream elasticsearch_upstream {
     server ${SEARCH_HOST}:9200;
     keepalive 32;
@@ -175,6 +194,65 @@ http {
       alias /app/robots.txt;
     }
 
+    {{- if or (eq $.Values.nodejs.mode "reader") (eq $.Values.nodejs.mode "optin") }}
+    # Pages go to the new reader client first (in optin mode: only for a visitor who chose it, see $page_upstream); it hands what it does not render (Django's pages, its 404s, writes) to Varnish.
+    # If the client cannot be reached (nginx's own 502/504: down, refusing, timing out), Varnish/Django answers instead. A response the
+    # client sends itself is passed on as it is (no proxy_intercept_errors): its 503 means the API behind both readers is unavailable,
+    # which Django could not help with, and a write must never be replayed.
+    location / {
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      {{- if eq $.Values.nodejs.mode "optin" }}
+      proxy_pass http://$page_upstream;
+      {{- else }}
+      proxy_pass http://nodeupstream;
+      {{- end }}
+      error_page 502 503 504 = @varnish;
+    }
+
+    # The API and Django's assets never need the client
+    location /api/ {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnishupstream;
+    }
+
+
+    location @varnish {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnishupstream;
+    }
+
+    {{- else }}
     location / {
       {{- if $.Values.instrumentation.enabled }}
       opentracing on;
@@ -190,6 +268,8 @@ http {
       proxy_set_header X-Internal-Proxy 1;
       proxy_pass http://varnishupstream;
     }
+
+    {{- end }}
 
     location /static/mobile/message-en.json {
       return 301 ${STRAPI_LOCATION}/api/mobile-message;

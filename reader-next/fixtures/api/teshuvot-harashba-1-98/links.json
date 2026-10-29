@@ -1,0 +1,23 @@
+[
+  {
+    "_id": "696217c19a852753fc610a10",
+    "index_title": "Yein HaTov",
+    "category": "Responsa",
+    "type": "",
+    "ref": "Yein HaTov, Part I, Yoreh De'ah 8:4",
+    "anchorRef": "Teshuvot haRashba part I 98:1",
+    "anchorRefExpanded": [
+      "Teshuvot haRashba part I 98:1"
+    ],
+    "sourceRef": "Yein HaTov, Part I, Yoreh De'ah 8:4",
+    "sourceHeRef": "יין הטוב, חלק א, יורה דעה ח׳:ד׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "commentaryNum": 8.0004,
+    "collectiveTitle": {
+      "en": "Yein HaTov",
+      "he": "יין הטוב"
+    },
+    "heTitle": "יורה דעה"
+  }
+]

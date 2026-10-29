@@ -1,0 +1,32 @@
+[
+  {
+    "status": "locked",
+    "priority": "",
+    "license": "Public Domain",
+    "versionNotes": "",
+    "formatAsPoetry": "",
+    "digitizedBySefaria": true,
+    "method": "",
+    "heversionSource": "",
+    "versionUrl": "",
+    "versionTitleInHebrew": "תרס״ג",
+    "versionNotesInHebrew": "",
+    "shortVersionTitle": "",
+    "shortVersionTitleInHebrew": "",
+    "extendedNotes": "",
+    "extendedNotesHebrew": "",
+    "purchaseInformationImage": "",
+    "purchaseInformationURL": "",
+    "hasManuallyWrappedRefs": "",
+    "language": "en",
+    "title": "Jastrow",
+    "versionSource": "https://www.nli.org.il/he/books/NNL01",
+    "versionTitle": "London, Luzac, 1903",
+    "actualLanguage": "en",
+    "languageFamilyName": "english",
+    "isSource": true,
+    "isPrimary": true,
+    "direction": "ltr",
+    "firstSectionRef": "Jastrow, א"
+  }
+]

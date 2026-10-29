@@ -1,0 +1,108 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Klein Dictionary",
+    "Klein Dictionary, Preface",
+    "Klein Dictionary, Introduction",
+    "Klein Dictionary, Abbreviations",
+    "Klein Dictionary, Notes on Usage",
+    "Klein Dictionary, Transliteration Rules",
+    "Klein Dictionary, Symbols used in this Dictionary",
+    "Klein Dictionary, Names of Authors, Books and Journals Frequently Referred to in this Dictionary",
+    "Dictionary",
+    "Netanel Kleinman"
+  ],
+  "completion_objects": [
+    {
+      "title": "Klein Dictionary",
+      "key": "Klein Dictionary",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Klein Dictionary, Preface",
+      "key": "Klein Dictionary, Preface",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Klein Dictionary, Introduction",
+      "key": "Klein Dictionary, Introduction",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Klein Dictionary, Abbreviations",
+      "key": "Klein Dictionary, Abbreviations",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Klein Dictionary, Notes on Usage",
+      "key": "Klein Dictionary, Notes on Usage",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Klein Dictionary, Transliteration Rules",
+      "key": "Klein Dictionary, Transliteration Rules",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Klein Dictionary, Symbols used in this Dictionary",
+      "key": "Klein Dictionary, Symbols used in this Dictionary",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Klein Dictionary, Names of Authors, Books and Journals Frequently Referred to in this Dictionary",
+      "key": "Klein Dictionary, Names of Authors, Books and Journals Frequently Referred to in this Dictionary",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Dictionary",
+      "type": "TocCategory",
+      "key": [
+        "Reference",
+        "Dictionary"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Netanel Kleinman",
+      "type": "User",
+      "key": "netanel-kleinman",
+      "pic": "",
+      "order": 6999999,
+      "is_primary": true
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Klein Dictionary",
+  "url": "Klein_Dictionary",
+  "index": "Klein Dictionary",
+  "book": "Klein Dictionary",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": []
+}

@@ -1,0 +1,78 @@
+# The new reader client (reader-next/): every change is type-checked and tested before it lands (CODE_REVIEW §3.1).
+# Unit, architecture and component (Storybook) tests, in English/LTR and Hebrew/RTL; then the end-to-end suite against the API
+# cassette (scripts/api-cassette.mjs: recorded answers from the CI cache; anything missing is recorded from the live API).
+name: reader-next client
+
+on:
+  pull_request:
+    branches: [reader-next]
+    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml"]
+  push:
+    branches: [reader-next]
+    paths: ["reader-next/**", ".github/workflows/reader-next-client.yaml"]
+
+concurrency:
+  group: reader-next-client-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: reader-next
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: reader-next/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Unit and architecture tests
+        run: npm test
+      - name: Atlas tags exist
+        run: npm run features:coverage -- --unknown
+      - name: Component tests (English, LTR)
+        run: npm run test:stories
+      - name: Component tests (Hebrew, RTL)
+        run: npm run test:stories:hebrew
+      - name: Component tests (dark theme) — report only until every colour is a token
+        run: npm run test:stories:dark
+        continue-on-error: true
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: reader-next/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Restore the API cassette
+        uses: actions/cache@v4
+        with:
+          path: reader-next/e2e/.cassette
+          key: e2e-cassette-${{ hashFiles('reader-next/e2e/**/*.ts') }}
+          restore-keys: e2e-cassette-
+      - name: End-to-end (desktop)
+        run: npx playwright test --project=desktop
+        env:
+          CI: "1"
+          E2E_API_MODE: auto
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: reader-next/test-results
+          retention-days: 7

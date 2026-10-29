@@ -1,0 +1,377 @@
+[
+  {
+    "_id": "5c47096308d98a0285f87679",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, פַּטְרוֹן 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, פַּטְרוֹן 1",
+    "sourceHeRef": "מילון קליין, פַּטְרוֹן א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "פַּטְרוֹן"
+  },
+  {
+    "_id": "5c4709da08d98a0285f8ca69",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אָבוֹת 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אָבוֹת 1",
+    "sourceHeRef": "מילון קליין, אָבוֹת א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אָבוֹת"
+  },
+  {
+    "_id": "5c4709fe08d98a0285f8e270",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, בְּנָּהוּת 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, בְּנָּהוּת 1",
+    "sourceHeRef": "מילון קליין, בְּנָּהוּת א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "בְּנָּהוּת"
+  },
+  {
+    "_id": "5c470a2d08d98a0285f8fe2e",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אָבוּת 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אָבוּת 1",
+    "sourceHeRef": "מילון קליין, אָבוּת א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אָבוּת"
+  },
+  {
+    "_id": "5c4709e008d98a0285f8ce15",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אֲבִי־הַכַּף 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אֲבִי־הַכַּף 1",
+    "sourceHeRef": "מילון קליין, אֲבִי־הַכַּף א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אֲבִי־הַכַּף"
+  },
+  {
+    "_id": "5c470a3508d98a0285f9028d",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אֲבוֹי 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אֲבוֹי 1",
+    "sourceHeRef": "מילון קליין, אֲבוֹי א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אֲבוֹי"
+  },
+  {
+    "_id": "5c4709d708d98a0285f8c821",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אֵם 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אֵם 1",
+    "sourceHeRef": "מילון קליין, אֵם א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אֵם"
+  },
+  {
+    "_id": "5c4709c308d98a0285f8b88c",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אֶלֽוֹהַּ 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אֶלֽוֹהַּ 1",
+    "sourceHeRef": "מילון קליין, אֶלֽוֹהַּ א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אֶלֽוֹהַּ"
+  },
+  {
+    "_id": "5c47097408d98a0285f883cb",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אַבְדִּינוּת 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אַבְדִּינוּת 1",
+    "sourceHeRef": "מילון קליין, אַבְדִּינוּת א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אַבְדִּינוּת"
+  },
+  {
+    "_id": "5c470a0808d98a0285f8e8af",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אַבְהִי 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אַבְהִי 1",
+    "sourceHeRef": "מילון קליין, אַבְהִי א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אַבְהִי"
+  },
+  {
+    "_id": "5c4709c808d98a0285f8bcbb",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אַבְהוּת 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אַבְהוּת 1",
+    "sourceHeRef": "מילון קליין, אַבְהוּת א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אַבְהוּת"
+  },
+  {
+    "_id": "5c47098d08d98a0285f88ffd",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אַבְטִיט 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אַבְטִיט 1",
+    "sourceHeRef": "מילון קליין, אַבְטִיט א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אַבְטִיט"
+  },
+  {
+    "_id": "5c470a3708d98a0285f903e3",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אַבְעוֹדֵק 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אַבְעוֹדֵק 1",
+    "sourceHeRef": "מילון קליין, אַבְעוֹדֵק א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אַבְעוֹדֵק"
+  },
+  {
+    "_id": "5c47096d08d98a0285f87dc8",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אַבָּא 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אַבָּא 1",
+    "sourceHeRef": "מילון קליין, אַבָּא א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אַבָּא"
+  },
+  {
+    "_id": "5c4709a808d98a0285f8a4d0",
+    "index_title": "Klein Dictionary",
+    "category": "Reference",
+    "type": "reference",
+    "ref": "Klein Dictionary, אַב◌ 1",
+    "anchorRef": "Klein Dictionary, אָב ᴵ 1",
+    "anchorRefExpanded": [
+      "Klein Dictionary, אָב ᴵ 1"
+    ],
+    "sourceRef": "Klein Dictionary, אַב◌ 1",
+    "sourceHeRef": "מילון קליין, אַב◌ א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1973,
+      1983
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Klein Dictionary",
+      "he": "מילון קליין"
+    },
+    "heTitle": "אַב◌"
+  }
+]

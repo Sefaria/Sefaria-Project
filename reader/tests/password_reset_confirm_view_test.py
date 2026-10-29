@@ -64,20 +64,71 @@ class CustomPasswordResetConfirmViewTest(TestCase):
         self.assertEqual(res.status_code, 400)
         self.assertEqual(res.json()["_auth"]["code"], "invalid_reset_link")
 
-    def test_invalid_link_resend_with_resolvable_user_sends_new_email_and_returns_200(self):
+    # Resend (reader-next CODE_REVIEW R-34): a new link only for the owner of a real link that expired, rate limited;
+    # every other request gets the same 200 and no email, so uids can't be probed or their owners emailed.
+
+    def _expired_token(self):
+        ts = default_token_generator._num_seconds(default_token_generator._now()) - 10 * 24 * 3600
+        return default_token_generator._make_token_with_timestamp(self.user, ts, default_token_generator.secret)
+
+    def test_resend_with_an_expired_real_token_sends_a_new_link(self):
         mail.outbox = []
-        res = self._post_json(self._url("bogus-token"), {"action": "resend"})
+        res = self._post_json(self._url(self._expired_token()), {"action": "resend"})
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json(), {})
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn(self.user.email, mail.outbox[0].to)
 
-    def test_invalid_link_resend_with_unresolvable_uid_returns_no_account_code(self):
+    def test_resend_with_a_forged_token_sends_nothing_and_answers_the_same(self):
+        mail.outbox = []
+        res = self._post_json(self._url("bogus-token"), {"action": "resend"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {})
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_resend_for_an_unknown_uid_answers_the_same(self):
+        mail.outbox = []
         bad_uidb64 = urlsafe_base64_encode(force_bytes(999999))
         url = reverse("password_reset_confirm", kwargs={"uidb64": bad_uidb64, "token": "bogus-token"})
         res = self._post_json(url, {"action": "resend"})
-        self.assertEqual(res.status_code, 400)
-        self.assertEqual(res.json()["_auth"]["code"], "no_account_for_link")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {})
+        self.assertEqual(len(mail.outbox), 0)
+
+    def _visit(self, url):
+        """GET the link as a reader's browser does; the page itself is rendered by the node server, so it is stubbed here."""
+        from unittest import mock
+        from django.http import HttpResponse
+        with mock.patch("sefaria.views.render_template", return_value=HttpResponse("page")):
+            return self.client.get(url)
+
+    # review F06: the new reader shows the expired-link page from the uid/set-password address (its node server redirects there), so
+    # the resend no longer carries the token. Opening the real expired link leaves proof in the session for the resend that follows.
+    def test_resend_from_the_set_password_address_after_opening_a_real_expired_link(self):
+        from django.core.cache import cache
+        cache.clear()
+        mail.outbox = []
+        self.assertEqual(self._visit(self._url(self._expired_token())).status_code, 200)
+        res = self._post_json(self._url(INTERNAL_RESET_SESSION_TOKEN), {"action": "resend"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(self.user.email, mail.outbox[0].to)
+
+    def test_opening_a_forged_link_leaves_no_proof_for_the_set_password_address(self):
+        mail.outbox = []
+        self._visit(self._url("bogus-token"))
+        res = self._post_json(self._url(INTERNAL_RESET_SESSION_TOKEN), {"action": "resend"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_resend_is_rate_limited_per_account(self):
+        from django.core.cache import cache
+        cache.clear()
+        mail.outbox = []
+        url = self._url(self._expired_token())
+        for _ in range(5):
+            self.assertEqual(self._post_json(url, {"action": "resend"}).status_code, 200)
+        self.assertEqual(len(mail.outbox), 3)
 
     # ---- valid link ---------------------------------------------------------
 

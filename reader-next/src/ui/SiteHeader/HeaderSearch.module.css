@@ -1,0 +1,22 @@
+.box { position: relative; width: 250px; }
+.box[data-mobile] { width: 100%; }
+/* as the old .searchBox (VERIFIED on sefaria.org, 1280px): 30px high, the 18px icon 7px in and 9px from the input, which runs to the end */
+.field { display: flex; align-items: center; height: 30px; background: var(--sefaria-color-border-light); border-radius: 250px; line-height: normal; }
+/* a ring for keyboard focus only, as the old body.user-is-tabbing (a click shows none) */
+.field[data-keyboard-focus] { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+/* the old .keyboardInputInitiator: 18px, 7px from the end, shown while the box has focus */
+.keyboard { margin-inline-end: 7px; }
+.keyboard img { display: block; }
+/* the old span sat at the top of the box's line, 6px down, not centred */
+.btn { display: flex; align-items: flex-start; flex: none; align-self: flex-start; height: 22px; margin: 6px 9px 0 7px; padding: 0; border: 0; background: none; cursor: pointer; line-height: normal; }
+.btn img { display: block; }
+.input { flex: 1; min-width: 0; height: 25px; margin: 0 0 1px; padding: 1px 2px; box-sizing: border-box; border: 0; background: none; font-family: var(--sefaria-font-text-en); font-size: 18px; line-height: normal; color: var(--sefaria-color-text-strong); outline: none; }
+.dropdown { position: absolute; z-index: 40; inset-inline-start: 0; top: calc(100% + 6px); width: max(100%, 320px); max-height: 70vh; overflow: auto; background: var(--sefaria-color-surface); border-radius: 8px; box-shadow: 0 4px 16px rgb(0 0 0 / 22%); padding-block: 6px; }
+.group { padding-block: 4px; }
+.groupTitle { padding: 6px 16px 2px; font-family: var(--sefaria-font-ui-en); font-size: 12px; letter-spacing: 0.05em; color: var(--sefaria-color-text-muted); text-transform: uppercase; }
+.item { display: flex; align-items: center; gap: 12px; padding: 7px 16px; color: var(--sefaria-color-text); text-decoration: none; cursor: pointer; font-family: var(--sefaria-font-text-en); font-size: 18px; }
+.item[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.item[data-active="true"], .item:hover { background: var(--sefaria-color-surface-subtle, #f0f0f0); }
+.icon { color: var(--sefaria-color-text-muted); flex: none; }
+.override { font-family: var(--sefaria-font-ui-en); font-size: 15px; color: var(--sefaria-color-text-secondary); }
+.override strong { font-weight: 500; color: var(--sefaria-color-text); }

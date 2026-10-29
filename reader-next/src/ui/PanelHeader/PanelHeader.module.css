@@ -1,0 +1,38 @@
+.header { background: var(--sefaria-color-surface-subtle); box-shadow: var(--sefaria-shadow-1); }
+.sticky { position: sticky; top: 0; z-index: var(--sefaria-z-panel-chrome); }
+.bar { display: grid; grid-template-columns: minmax(48px, 1fr) minmax(0, 3fr) minmax(48px, 1fr); align-items: center; min-height: var(--sefaria-reader-controls-height); max-width: 700px; margin-inline: auto; padding-inline: 0; gap: var(--sefaria-space-2); box-sizing: border-box; }
+.start { display: flex; justify-content: flex-start; }
+.end { display: flex; justify-content: flex-end; gap: var(--sefaria-space-1); }
+.center { text-align: center; min-width: 0; }
+.title { margin: 0; font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); font-weight: 400; line-height: var(--sefaria-leading-tight); }
+.title [lang="he"] { font-family: var(--sefaria-font-text-he); }
+.subtitle > * { display: block; }
+/* One line each, cut with an ellipsis, as sefaria.org's .readerTextTocBox / .categoryAttribution: a long version name ("H. Norman
+   Strickman and Arthur M. Silver. Menorah Pub., 1988-…") wrapped onto a second line and ran over the text below the 60px bar */
+.title, .subtitle > * { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.subtitle a { color: inherit; text-decoration: none; }
+.subtitle [lang="he"] { font-style: normal; font-family: var(--sefaria-font-text-he); }
+.subtitle { margin: 2px 0 0; font-family: var(--sefaria-font-text-en); font-size: 15px; color: #6f6f6f; font-style: italic; }
+
+/* VERIFIED on sefaria.org: the controls sit in the text's own 700px column, not at the panel's edges; 18px icons about 36px apart */
+.end > * + * { margin-inline-start: -3px; }
+.end svg { width: 18px; height: 18px; }
+
+/* Always 60px, whatever the lines under the title (a version choice must never move the text below): the title 21px, each line 17px */
+.bar { height: var(--sefaria-reader-controls-height, 60px); min-height: 0; }
+.title { line-height: 21px; }
+.subtitle { line-height: 17px; }
+
+/* VERIFIED on sefaria.org (1280px, Genesis 1, 2026-10-29): the category line lies over the bar's top 4px (s2.css .categoryColorLine is
+   absolute at the panel's top), so the bar is 60px in all; its shadow 0 1px 3px rgba(0,0,0,.2). The title box starts 12px down:
+   black 18px Cardo over a 15px grey version line, upright, 18px high (.readerControls .readerTextToc .readerTextVersion). */
+.header { position: relative; box-shadow: var(--sefaria-shadow-legacy); }
+.sticky { position: sticky; }
+.colorLine { position: absolute; inset: 0 0 auto; z-index: 1; }
+.bar { align-items: start; padding-top: 12px; }
+.title { color: var(--sefaria-color-text-strong); line-height: 21.6px; }
+.subtitle { margin: 0; font-style: normal; line-height: 18px; }
+.start, .end { margin-top: -12px; align-items: center; height: 56px; }
+.subtitle { margin-top: -1px; } /* the old version line overlaps the title's box by 1px */
+.end { gap: 0; }
+.end > * + * { margin-inline-start: 0; }

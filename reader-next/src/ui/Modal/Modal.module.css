@@ -1,0 +1,4 @@
+.dialog { border: 0; padding: 0; max-width: min(32rem, calc(100vw - 2rem)); width: 100%; border-radius: var(--sefaria-radius-lg, 10px); background: var(--sefaria-color-surface); color: var(--sefaria-color-text); box-shadow: 0 10px 40px rgb(0 0 0 / 30%); }
+.dialog::backdrop { background: rgb(0 0 0 / 55%); }
+.close { position: absolute; inset-block-start: var(--sefaria-space-3); inset-inline-end: var(--sefaria-space-3); }
+.body { padding: var(--sefaria-space-8) var(--sefaria-space-6) var(--sefaria-space-6); }
