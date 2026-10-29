@@ -126,6 +126,7 @@ Method map by UX ID:
 | LA-LOGGED-OUT-007 (Apple starts sign-up) | `stubAppleSignIn()` → `signupOption('apple')` → the same three events, method `apple`, and `assistant_click`. Skipped when the sandbox has no Apple client ID |
 | LA-LOGGED-OUT-008 (Google's button is in place) | `expectGoogleButtonOverGoogleOption()`: Google's iframe sits inside the Google circle. Its click can't be automated, so a real Google sign-up is checked by hand. Skipped when the sandbox has no Google client ID |
 | LA-LOGGED-OUT-009 (no sign-up options when logged in) | `enLAUser` → `expectNoSignupOptions()` |
+| LA-LOGGED-OUT-010 (sign-up options stay out of the page if the assistant doesn't load) | `blockAssistantScript(context)` before navigating (aborts `lc-chatbot.umd.cjs` / the local `src/main.js`) → `expectSignupOptionsRenderedButNotShown()`. Guards against the slot content showing in `#main` while `<lc-chatbot>` is undefined (the `lc-chatbot:not(:defined) > [slot]` rule in `s2.css`) |
 | LA-LOGGED-OUT-004 (logout clears the saved chat) | `seedSavedChat()` + the `lc_chatbot_clear` cookie a logout sets → reload → `savedChatKeys()` empty and cookie gone |
 
 State helpers (use these liberally at the top of a test to reach a known state):

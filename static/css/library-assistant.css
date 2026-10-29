@@ -8,6 +8,13 @@
   pointer-events: auto;
 }
 
+/* What Sefaria puts in <lc-chatbot>'s slots (the sign-up options) shows only inside the widget.
+   Until the widget's script defines the element, or if it never loads, its children would be
+   plain page content in #main. */
+lc-chatbot:not(:defined) > [slot] {
+  display: none;
+}
+
 /* The Library Assistant's floating button would sit on top of the open menu */
 .readerApp:has(.mobileNavMenu:not(.closed)) lc-chatbot {
   visibility: hidden;

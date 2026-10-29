@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { BrowserContext, expect, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t } from '../globals';
@@ -96,6 +96,14 @@ function labelsFor(language: string): LALabelSet {
   };
   labelCache.set(language, labels);
   return labels;
+}
+
+/**
+ * Make the assistant's script fail to load (from the chat server, a preview, or the local
+ * dev server), as when the chat server is down. Call before the first navigation.
+ */
+export async function blockAssistantScript(context: BrowserContext): Promise<void> {
+  await context.route(/lc-chatbot\.umd\.cjs|localhost:5173\/src\/main\.js/, (route) => route.abort());
 }
 
 export class LibraryAssistantPage extends HelperBase {
@@ -478,6 +486,12 @@ export class LibraryAssistantPage extends HelperBase {
 
   async expectNoSignupOptions(): Promise<void> {
     await expect(this.signupOptions).toHaveCount(0);
+  }
+
+  /** Sefaria rendered its options into <lc-chatbot>, but they don't show in the page. */
+  async expectSignupOptionsRenderedButNotShown(): Promise<void> {
+    await expect(this.signupOptions).toHaveCount(1);
+    await expect(this.signupOptions).toBeHidden();
   }
 
   /** Google's real (invisible) button sits inside the Google circle; the click itself can't be automated. */
