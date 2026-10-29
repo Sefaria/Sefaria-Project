@@ -81,6 +81,9 @@ No Redux. State lives in React component state, a few Contexts, and the global `
 ### 8. Async Work Goes Through Celery
 Linker disambiguation, LLM calls, search indexing, CRM syncs, and email are all Celery tasks. Never block an HTTP request on an LLM call.
 
+### 9. Mongo-backed tests use recorded fixtures
+Markers (`pytest.ini`): `needs_mongo` runs on mongomock seeded from a recorded fixture; `needs_corpus` runs the full library on a real Mongo restored from the public dump (corpus CI job); `needs_linker` runs in the linker job. Unmarked tests run on mongomock seeded with `_base.json` only. Fixtures live in `sefaria/tests/fixtures/mongo/` (`_base.json`, one overlay per `needs_mongo` test, `_manifest.json`, `_shapes.json`); never hand-edit them, and keep the total under 20 MiB. If you change a Mongo query, filter or projection, a model's `required_attrs`/`optional_attrs`/`attr_schemas`, or add, rename, re-parametrize or delete a `needs_mongo` test, run `python scripts/pytest_minimal_dataset/rerecord_fixtures.py [--only <nodeid>]` (needs docker) and commit the diff under `sefaria/tests/fixtures/mongo/`. CI (`check_fixtures.py`, `sefaria/tests/fixture_schema_test.py`, the shape guard in every `needs_mongo` test) fails with this exact command otherwise. Never set `SEFARIA_MOCK_MONGO_INCOMPLETE_OK` or `SEFARIA_FIXTURE_SHAPES=off` in CI. Runbook: Sefaria wiki `runbooks/pytest-fixture-maintenance.md`.
+
 ## External References
 - **Public API docs**: https://developers.sefaria.org/docs/welcome
 - **Codebase**: this repo. Source lives alongside the `agent_docs/` mirror — every doc cites its source file path.

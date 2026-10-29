@@ -17,7 +17,7 @@ FAKE_UID = 999999999
 
 
 class _FakeProfiles(object):
-    def replace_one(self, query, doc, upsert=False):
+    def update_one(self, query, update, upsert=False):
         pass
 
 
@@ -31,12 +31,13 @@ def profile(monkeypatch):
     """A UserProfile whose save() writes to a stub DB and skips the cascades."""
     p = UserProfile.__new__(UserProfile)   # bypass __init__, which hits both DBs
     p.id = FAKE_UID
-    p._id = "fake-mongo-id"                # truthy -> save() takes the replace_one path
+    p._id = "fake-mongo-id"                # truthy -> save() takes the update_one path
     p.bio = ""
     p._name_updated = False
     p._process_remove_history = False
     p._public_data_updated = False
-    monkeypatch.setattr(p, "to_mongo_dict", lambda: {})
+    # save() pops the donor fields out of the dict for $setOnInsert
+    monkeypatch.setattr(p, "to_mongo_dict", lambda: {name: None for name in up.DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION})
     monkeypatch.setattr(up, "db", _FakeDB())
 
     yield p

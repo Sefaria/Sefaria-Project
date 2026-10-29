@@ -70,6 +70,8 @@ node_modules
 .claude/skills/*
 !.claude/skills/sefaria-release-notes/
 !.claude/skills/sefaria-release-notes/**
+!.claude/skills/mongo-test-fixtures/
+!.claude/skills/mongo-test-fixtures/**
 CLAUDE.md
 !e2e-tests/CLAUDE.md
 
@@ -165,3 +167,6 @@ dump/*
 .env
 static_collected/*
 scripts/debug_cache/
+
+# Mongo-usage recorder artifacts (pytest/Mongo decoupling investigation)
+.artifacts/

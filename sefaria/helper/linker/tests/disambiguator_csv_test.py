@@ -13,6 +13,8 @@ from sefaria.helper.linker.disambiguator import (
     disambiguate_non_segment_ref,
 )
 
+pytestmark = pytest.mark.needs_linker
+
 CSV_PATH = Path(__file__).parent / "disambiguator_test_set.csv"
 
 
