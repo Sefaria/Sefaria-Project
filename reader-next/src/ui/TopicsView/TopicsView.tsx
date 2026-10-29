@@ -1,11 +1,13 @@
+import type { ReactNode } from "react";
 import { markdownToHtml } from "~/lib/html/markdown";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { topicSourceNote, type TopicItem } from "~/lib/connections/topics";
 import { LoadingState } from "../Feedback/Feedback";
-import { Icon } from "../Icon/Icon";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
+import { SourceNote } from "../Tooltip/SourceNote";
 import styles from "./TopicsView.module.css";
 import { SITE_ORIGIN } from "~/lib/config";
+import { LangText } from "../LangText/LangText";
 
 export interface TopicsViewProps {
   topics: readonly TopicItem[];
@@ -16,6 +18,8 @@ export interface TopicsViewProps {
   topicHref: (slug: string) => string;
   /** Language the descriptions are shown in. */
   lang: "en" | "he";
+  /** Above the list: the moderators' topic search (TopicSearch), when the reader is one. */
+  search?: ReactNode;
 }
 
 /**
@@ -24,17 +28,22 @@ export interface TopicsViewProps {
  *
  * @feature CON-046 Topics for this ref
  */
-export function TopicsView({ topics, loading, refLabel, topicHref, lang }: TopicsViewProps) {
+export function TopicsView({ topics, loading, refLabel, topicHref, lang, search }: TopicsViewProps) {
   const interfaceLang = useInterfaceLang() === "hebrew" ? "he" : "en";
   if (loading) return <LoadingState />;
   if (!topics.length) {
     return (
-      <p className={styles.empty}>
-        <InterfaceText en="No known Topics Here." he="אין קשרים ידועים." />
-      </p>
+      <>
+        {search}
+        <p className={styles.empty}>
+          <InterfaceText en="No known Topics Here." he="אין קשרים ידועים." />
+        </p>
+      </>
     );
   }
   return (
+    <>
+    {search}
     <ul className={styles.list}>
       {topics.map((t) => {
         const note = topicSourceNote(t.sources, refLabel, interfaceLang);
@@ -42,15 +51,16 @@ export function TopicsView({ topics, loading, refLabel, topicHref, lang }: Topic
         return (
           <li key={t.slug} className={styles.item}>
             <div className={styles.head}>
-              <a href={topicHref(t.slug)} target="_blank" rel="noopener noreferrer" className={styles.title} lang={lang} dir={lang === "he" ? "rtl" : "ltr"}>
+              <LangText as="a" href={topicHref(t.slug)} target="_blank" rel="noopener noreferrer" className={styles.title} lang={lang}>
                 {t.title[lang]}
-              </a>
-              {note ? <span className={styles.dots} role="img" aria-label={note} title={note}><Icon name="dots" size="1.1em" /></span> : null}
+              </LangText>
+              {note ? <SourceNote note={note} /> : null}
             </div>
-            {desc ? <div className={styles.desc} lang={lang} dangerouslySetInnerHTML={{ __html: markdownToHtml(desc, { baseUrl: SITE_ORIGIN }) }} /> : null}
+            {desc ? <LangText as="div" className={styles.desc} lang={lang} html={markdownToHtml(desc, { baseUrl: SITE_ORIGIN })} /> : null}
           </li>
         );
       })}
     </ul>
+    </>
   );
 }

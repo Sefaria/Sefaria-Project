@@ -7,9 +7,13 @@
 
 /* VERIFIED on sefaria.org (1280px): bar #ededed, 34px sides, title 16px light #666 letter-spaced 1px, then the language button (18px, 40% grey) and the circled × */
 .header { background: #ededed; padding-inline: 34px; gap: 15px; }
-.headerTitle { font-weight: 300; letter-spacing: 1px; color: #666; }
+.headerTitle { font-weight: 100; letter-spacing: 1px; color: #666; }
 .langToggle { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 32px; padding: 0; border: 0; background: none; cursor: pointer; }
 .langToggle img { opacity: 0.4; }
 .langToggle:hover img { opacity: 0.7; }
 .body { padding-inline: 49px 49px; }
 .header > button:last-child { margin-inline: -10px; } /* the 40px target, the 20px glyph where the old × sits */
+/* the back link ("‹ Resources") is the same light title (VERIFIED on sefaria.org: Roboto 16px, weight lighter, #666,
+   letter-spacing 1px; the chevron #6f6f6f, 10px before the word) */
+.back { gap: 10px; font-size: 16px; font-weight: 100; letter-spacing: 1px; color: var(--sefaria-color-text-dark-grey); }
+.back > :first-child { color: var(--sefaria-color-text-muted); }

@@ -17,7 +17,16 @@ test.describe("Topics for the selected passage (verified against sefaria.org)", 
     await expect(items.nth(0)).toContainText("The opening two chapters of the Torah describe how God created the world");
     await expect(items.nth(0).getByRole("link", { name: "Creation" })).toHaveAttribute("href", "https://www.sefaria.org/topics/creation");
     await expect(items.nth(1)).toContainText('"In the Beginning of"');
-    await expect(items.nth(0).getByRole("img")).toHaveAttribute("aria-label", /connected to "Genesis 1:1" by Curation of the Sefaria Learning Team/);
+    const dots = items.nth(0).getByRole("button", { name: /connected to "Genesis 1:1" by Curation of the Sefaria Learning Team/ });
+    const tip = items.nth(0).getByRole("tooltip");
+    await expect(tip).toBeHidden();
+    await dots.hover();
+    await expect(tip).toBeVisible();
+    // the old white card beside the dots: 13px Roboto, grey, 180px wide, to the left (toward the name)
+    const look = await tip.evaluate((el) => { const c = getComputedStyle(el); return { size: c.fontSize, color: c.color, width: c.width, bg: c.backgroundColor }; });
+    expect(look).toEqual({ size: "13px", color: "rgb(111, 111, 111)", width: "180px", bg: "rgb(255, 255, 255)" });
+    const [d, t] = [await dots.boundingBox(), await tip.boundingBox()];
+    expect(t!.x + t!.width).toBeLessThanOrEqual(d!.x);
   });
 
   test("the list follows the selected verse; back returns to Resources", async ({ page }) => {

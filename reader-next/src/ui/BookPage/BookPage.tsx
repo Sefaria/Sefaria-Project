@@ -14,6 +14,7 @@ import { NavPage } from "../NavPage/NavPage";
 import { SidebarFooter } from "../NavSidebar/NavSidebar";
 import styles from "./BookPage.module.css";
 import { SITE_ORIGIN } from "~/lib/config";
+import { dirFor } from "~/lib/i18n/direction";
 
 export type BookTab = "contents" | "versions";
 
@@ -70,7 +71,7 @@ export function BookPage({ title, category, attribution, dedication, readHref, c
   const aboutBody = (
     <>
       {meta?.authors.length || meta?.composed ? (
-              <div className={styles.meta} lang={code}>
+              <div className={styles.meta} lang={code} dir={dirFor(code)}>
                 {meta?.authors.length ? (
                   <div>
                     <span className={styles.metaLabel}><InterfaceText en={meta.authors.length === 1 ? "Author" : "Authors"} he={meta.authors.length === 1 ? "מחבר" : "מחברים"} />:</span>{" "}
@@ -118,11 +119,11 @@ function BookMain({ aboutInline, title, category, attribution, dedication, readH
   const sorted = [...(versions ?? [])].sort((a, b) => (Number(b.priority) || 0) - (Number(a.priority) || 0) || a.versionTitle.localeCompare(b.versionTitle));
   return (
     <article>
-        <h1 className={styles.title} lang={code}>{he ? title.he : title.en}</h1>
-        <Link className={styles.category} href={category.href} lang={code}>{he ? category.he : category.en}</Link>
+        <h1 className={styles.title} lang={code} dir={dirFor(code)}>{he ? title.he : title.en}</h1>
+        <Link className={styles.category} href={category.href} lang={code} dir={dirFor(code)}>{he ? category.he : category.en}</Link>
         {attribution ? (
           <div className={styles.attribution}>
-            <Link href={attribution.href} lang={code}>{he ? attribution.he : attribution.en}</Link>
+            <Link href={attribution.href} lang={code} dir={dirFor(code)}>{he ? attribution.he : attribution.en}</Link>
           </div>
         ) : null}
         {dedication && (he ? dedication.he || dedication.en : dedication.en || dedication.he) ? (

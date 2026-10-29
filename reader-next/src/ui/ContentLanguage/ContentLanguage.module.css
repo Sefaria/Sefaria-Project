@@ -1,4 +1,11 @@
 .wrap { position: relative; }
-.toggle { position: absolute; inset-block-start: 0; inset-inline-end: 0; z-index: 2; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; }
-.toggle img { opacity: 0.4; }
-.toggle:hover img { opacity: 0.7; }
+/* the old .languageToggle (VERIFIED on sefaria.org): 34px with its 1px var(--sefaria-color-border-strong) border, 6px corners, the 18px glyph */
+.toggle, .headerToggle { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; width: 34px; height: 34px; padding: 0; border: 1px solid var(--sefaria-color-border-strong); border-radius: 6px; background: var(--sefaria-color-surface); cursor: pointer; }
+.toggle { position: absolute; inset-block-start: 0; inset-inline-end: 0; z-index: 2; }
+.toggle img, .headerToggle img { opacity: 0.4; }
+.toggle:hover img, .headerToggle:hover img { opacity: 0.7; }
+.headerToggle { display: none; }
+@media (max-width: 842px) {
+  .wideOnly { display: none; }
+  .headerToggle { display: inline-flex; }
+}

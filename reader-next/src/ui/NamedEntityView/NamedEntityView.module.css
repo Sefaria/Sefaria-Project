@@ -11,4 +11,3 @@
 .desc[lang="he"] { font-family: var(--sefaria-font-text-he); }
 .desc p { margin: 0 0 var(--sefaria-space-3); }
 .desc a { color: inherit; }
-.note { display: inline-flex; color: var(--sefaria-color-text-muted); }

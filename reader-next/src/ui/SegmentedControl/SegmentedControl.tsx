@@ -10,6 +10,8 @@ export interface SegmentedOption<T extends string> {
   /** Plain-text name, required when `label` is not a string and the option is icon-only. */
   ariaLabel?: string;
   icon?: IconName;
+  /** An image drawn as a mask in the option's colour (the old layout buttons' `--url` icons), in place of `icon`. */
+  iconUrl?: string;
   disabled?: boolean;
 }
 
@@ -75,9 +77,9 @@ export function SegmentedControl<T extends string>({ value, onValueChange, optio
             onClick={() => !o.disabled && onValueChange(o.value)}
             onKeyDown={(e) => onKeyDown(e, i)}
           >
-            {o.icon ? <Icon name={o.icon} size="1.4em" /> : null}
+            {o.iconUrl ? <span className={styles.maskIcon} style={{ ["--_url" as string]: `url(${o.iconUrl})` }} aria-hidden="true" /> : o.icon ? <Icon name={o.icon} size="1.4em" /> : null}
             {iconOnly ? null : <span className={styles.text}>{o.label}</span>}
-            {appearance === "rows" ? <span className={styles.radio} aria-hidden="true">{o.value === value ? <Icon name="check" size="12px" /> : null}</span> : null}
+            {appearance === "rows" ? <span className={styles.radio} aria-hidden="true">{o.value === value ? <span className={styles.tick} /> : null}</span> : null}
           </button>
         );
       })}

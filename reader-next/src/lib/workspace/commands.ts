@@ -7,6 +7,7 @@
  * keeps the entry's own history state, never by history.replaceState behind the router's back.
  */
 import { urlToRef } from "~/lib/ref/url";
+import { isReaderPath } from "~/lib/reader/paths";
 import { stringifySearch } from "~/lib/reader/search-serializer";
 import type { ReaderSettings } from "~/lib/reader/settings";
 import { leaves } from "~/lib/layout/tree";
@@ -117,7 +118,7 @@ export function createWorkspaceCommands(router: WorkspaceRouter, getDefaults: ()
     const loc = router.state.location;
     // off the reader (the home page, a library page) there is no workspace: "/" would decode as one panel with no ref, and a late
     // update to that panel (a reading position settling after the panel closed) brought it back with default settings
-    if ((router.state.matches && !router.state.matches.some((m) => m.routeId === READER_ROUTE)) || !splatOf(loc.pathname)) return EMPTY_WORKSPACE;
+    if ((router.state.matches && !router.state.matches.some((m) => m.routeId === READER_ROUTE)) || !splatOf(loc.pathname) || !isReaderPath(loc.pathname)) return EMPTY_WORKSPACE;
     return withPanelKeys(decodeWorkspace(urlToRef(splatOf(loc.pathname)), loc.search as RawSearch), readNavState(loc.state).panelKeys);
   };
   const navigateTo = async (enc: { path: string; search: Record<string, string> }, opts: { replace?: boolean; state?: unknown }) => {
@@ -135,7 +136,8 @@ export function createWorkspaceCommands(router: WorkspaceRouter, getDefaults: ()
     async go(ws, opts = {}) {
       const enc = encodeWorkspace(ws, getDefaults());
       if (!enc) {
-        await router.navigate({ to: "/" });
+        // no panels left: the library, as the old client (it showed Browse the Library at /texts)
+        await router.navigate({ to: "/texts", search: {} });
         return;
       }
       await navigateTo(enc, { ...opts, state: { ...opts.state, panelKeys: panelKeysOf(ws) } });
@@ -144,6 +146,8 @@ export function createWorkspaceCommands(router: WorkspaceRouter, getDefaults: ()
     async canonicalize() {
       const loc = router.state.location;
       if (router.state.matches && !router.state.matches.some((m) => m.routeId === READER_ROUTE)) return false;
+      // mid-navigation the matches can still be the reader's while the address is already a library page: "/texts" is not a book
+      if (!isReaderPath(loc.pathname)) return false;
       const splat = splatOf(loc.pathname);
       if (!splat) return false;
       const enc = encodeWorkspace(decodeWorkspace(urlToRef(splat), loc.search as RawSearch), getDefaults());

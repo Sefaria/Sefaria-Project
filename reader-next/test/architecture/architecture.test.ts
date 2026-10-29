@@ -20,8 +20,8 @@ describe("architecture rules", () => {
         const added: string[] = [];
         for (const [file, v] of Object.entries(is)) {
           const before = was[file] ?? [];
-          // colours are a count per file: it may not grow
-          if (rule.id === "literal-colours") {
+          // colours and lang-without-dir are a count per file: it may not grow
+          if (rule.counted) {
             if (parseInt(v[0]!) > parseInt(before[0] ?? "0")) added.push(`${file}: ${v[0]} (baseline ${before[0] ?? "none"})`);
           } else for (const x of v) if (!before.includes(x)) added.push(`${file}: ${x}`);
         }
@@ -31,7 +31,7 @@ describe("architecture rules", () => {
         const stale: string[] = [];
         for (const [file, v] of Object.entries(was)) {
           const after = is[file] ?? [];
-          if (rule.id === "literal-colours") {
+          if (rule.counted) {
             if (parseInt(after[0] ?? "0") < parseInt(v[0]!)) stale.push(`${file}: now ${after[0] ?? "0"}`);
           } else for (const x of v) if (!after.includes(x)) stale.push(`${file}: ${x}`);
         }

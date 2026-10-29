@@ -1,0 +1,23 @@
+/* The old s2.css values: .leftButtons .readerNavMenuCloseButton, .rightButtons .saveButton, .rightButtons .readerOptions, .tooltip-toggle */
+.close, .save, .options { display: inline-flex; align-items: center; height: 56px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: var(--sefaria-color-text-dark-grey); }
+.close { justify-content: center; width: 40px; font-family: var(--sefaria-font-text-en); font-size: 44px; line-height: 56px; }
+.close span { display: block; line-height: 56px; }
+.save { justify-content: flex-end; width: 30px; }
+.save img { width: 18px; height: 18px; margin-top: 3px; }
+.options { justify-content: flex-end; width: 40px; padding-inline-end: 4px; }
+.options img { height: 16px; margin-top: 1px; }
+.options[data-he] img { height: 18px; }
+
+/* The tooltip card: white, 13px Roboto, 140px wide, under the button; fades in on hover only */
+.tooltip { position: relative; }
+.tooltip::before {
+  content: attr(data-tooltip);
+  position: absolute; top: 47px; left: -50px; z-index: 1;
+  width: 140px; padding: 10px; box-sizing: content-box;
+  background: var(--sefaria-color-surface); color: var(--sefaria-color-text-strong);
+  border-radius: 5px; box-shadow: var(--sefaria-shadow-legacy);
+  font-family: var(--sefaria-font-ui-en); font-size: 13px; line-height: normal; text-align: center; white-space: normal;
+  opacity: 0; pointer-events: none; transition: all 0.5s ease;
+}
+.tooltip:hover::before { opacity: 1; transition: all 0.75s ease; }
+:global([dir="rtl"]) .tooltip::before { left: auto; right: -50px; }

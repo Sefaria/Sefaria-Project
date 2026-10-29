@@ -3,6 +3,7 @@ import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { Button } from "../Button/Button";
 import { IconButton } from "../IconButton/IconButton";
 import styles from "./TextColumnBanner.module.css";
+import { dirFor } from "~/lib/i18n/direction";
 
 export interface BannerAction {
   label: ReactNode;
@@ -32,7 +33,7 @@ export function TextColumnBanner({ children, actions = [], onClose }: TextColumn
     onClose?.();
   };
   return (
-    <div className={styles.banner} role="region" aria-label={lang === "hebrew" ? "הצעה" : "Suggestion"} lang={lang === "hebrew" ? "he" : "en"}>
+    <div className={styles.banner} role="region" aria-label={lang === "hebrew" ? "הצעה" : "Suggestion"} lang={lang === "hebrew" ? "he" : "en"} dir={dirFor(lang === "hebrew" ? "he" : "en")}>
       <p className={styles.message}>{children}</p>
       <div className={styles.buttons}>
         {actions.map((a) => (

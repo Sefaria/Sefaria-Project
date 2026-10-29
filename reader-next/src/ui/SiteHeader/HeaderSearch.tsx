@@ -43,8 +43,23 @@ export function HeaderSearch({ getSuggestions, onSmartSubmit, onSearch, onChoose
   const [items, setItems] = useState<Suggestion[]>([]);
   const [active, setActive] = useState(-1);
   const [focused, setFocused] = useState(false);
+  // the focus ring only for keyboard focus, as the old body.user-is-tabbing: a click (or tap) into the box draws none. The last
+  // input anywhere on the page decides, so a click on the button or the keyboard launcher cannot leave a stale "pointer" behind.
+  const byKeyboard = useRef(false);
+  const [keyboardFocus, setKeyboardFocus] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const key = () => (byKeyboard.current = true);
+    const pointer = () => (byKeyboard.current = false);
+    document.addEventListener("keydown", key, true);
+    document.addEventListener("pointerdown", pointer, true);
+    return () => {
+      document.removeEventListener("keydown", key, true);
+      document.removeEventListener("pointerdown", pointer, true);
+    };
+  }, []);
 
   useEffect(() => {
     setActive(-1);
@@ -116,8 +131,8 @@ export function HeaderSearch({ getSuggestions, onSmartSubmit, onSearch, onChoose
         setFocused(false);
         searchBoxAnalytics.defocus(q);
       }}>
-      <div className={styles.field} role="search" aria-label={he ? "חיפוש באתר" : "Site search"} data-focused={focused || undefined}>
-        <button type="button" className={styles.btn} aria-label={he ? "חיפוש" : "Search"} onClick={submit}><Icon name="search" size="1.1em" /></button>
+      <div className={styles.field} role="search" aria-label={he ? "חיפוש באתר" : "Site search"} data-focused={focused || undefined} data-keyboard-focus={(focused && keyboardFocus) || undefined}>
+        <button type="button" className={styles.btn} aria-label={he ? "חיפוש" : "Search"} onClick={submit}><img src="/icons/search_mdl.svg" alt="" width={18} height={18} /></button>
         <input
           ref={input}
           className={styles.input}
@@ -136,12 +151,13 @@ export function HeaderSearch({ getSuggestions, onSmartSubmit, onSearch, onChoose
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => {
+            setKeyboardFocus(byKeyboard.current);
             if (!focused) searchBoxAnalytics.focus();
             setFocused(true);
           }}
           onKeyDown={onKeyDown}
         />
-        {!he && !mobile ? <KeyboardLauncher inputRef={input} value={q} onChange={setQ} onEnter={submit} focused={focused} /> : null}
+        {!he && !mobile ? <KeyboardLauncher inputRef={input} value={q} onChange={setQ} onEnter={submit} focused={focused} iconSrc="/icons/keyboard_mdl.svg" className={styles.keyboard} /> : null}
       </div>
       <div id={`${id}-list`} role="listbox" aria-label={he ? "הצעות" : "Suggestions"} className={styles.dropdown} hidden={!open}>
         {groups.map((g) => (

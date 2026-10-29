@@ -18,6 +18,7 @@ import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, up
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
 import { IconButton } from "~/ui/IconButton/IconButton";
+import { CloseTextButton, DisplayOptionsButton, SaveTextButton } from "~/ui/ReaderControls/ReaderControls";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { PanelHeader } from "~/ui/PanelHeader/PanelHeader";
 import { Popover } from "~/ui/Popover/Popover";
@@ -47,6 +48,7 @@ import { readerAnalytics } from "~/lib/analytics";
 import { useViewer } from "~/features/auth/viewer";
 import { legacyVersions } from "~/lib/user/history";
 import { useReaderHistory, useSaved, type PanelPlace } from "./use-reader-history";
+import { dirFor } from "~/lib/i18n/direction";
 
 export interface TextPanelProps {
   panel: TextPanelState;
@@ -524,22 +526,21 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         subtitle={
           header.attribution || header.version ? (
             <>
-              {header.attribution ? <span lang={header.lang}>{header.attribution.text}</span> : null}
+              {header.attribution ? <span lang={header.lang} dir={dirFor(header.lang)}>{header.attribution.text}</span> : null}
               {header.version ? <span>{header.version}</span> : null}
             </>
           ) : undefined
         }
         start={
           <>
-            <span className={styles.notPhone}><IconButton icon="close" label={alone ? "Back to the library" : "Close this text"} onClick={closePanel} /></span>
+            <span className={styles.notPhone}><CloseTextButton label={alone ? "Back to the library" : "Close this text"} onClick={closePanel} /></span>
             <span className={styles.onlyPhone}><IconButton icon="menu" label="Menu" onClick={() => setMobileMenuOpen(true)} /></span>
           </>
         }
         end={
           <>
-          <IconButton
-            icon="bookmark"
-            pressed={viewer ? save.isSaved : undefined}
+          <SaveTextButton
+            saved={viewer ? save.isSaved : undefined}
             label={save.isSaved ? `Remove "${place?.ref ?? section.ref}"` : `Save "${place?.ref ?? section.ref}"`}
             onClick={save.click}
           />
@@ -548,9 +549,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
             onOpenChange={setMenuOpen}
             label="Text display options"
             flush
-            trigger={(p) => <IconButton {...p} icon="font-size" label="Text display options" />}
+            panelClassName={styles.displayMenu}
+            trigger={(p) => <DisplayOptionsButton {...p} label="Text display options" />}
           >
-            <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} />
+            <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} directions={{ primary: section.primaryVersion?.direction, translation: section.translationVersion?.direction }} />
           </Popover>
           </>
         }

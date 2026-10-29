@@ -352,7 +352,7 @@ Rule: portaled layers (Popover, Menu, Dialog, Toast) are the only users of `over
 | `SkeletonCard` / `SearchLoadSkeleton` | js/SearchLoadSkeleton.jsx:3 / 20 | Search skeleton (SRC-050) | **D7** |
 | `Button` | js/common/Button.jsx:28 | `<a role=button>` when `href` is set, else `<button>`. Icon-only buttons require an aria-label (validator at :84). | Newer pages; **D4** |
 | `SmallBlueButton` | Misc.jsx:1619 | Small button | **D4** |
-| `ToolTipped` | Misc.jsx:1458 | `role=button` div with tooltip and gtag tracking | **D4/D10** |
+| `ToolTipped` | Misc.jsx:1458 | `role=button` div with tooltip and gtag tracking | **D4/D10** → `Tooltip` / `SourceNote` (built) |
 | `ToolsButton` | js/ConnectionsPanel.jsx:1095 | Icon + label + count row button; hidden when count is 0 (CON-016) | **D4** |
 | `Arrow` (ArrowButton) | Misc.jsx:1432 | Next/prev arrow, RTL-mirrored in CSS | |
 | `CloseButton` | Misc.jsx:1233 | ×, circled-X or chevron close | **D9** |
@@ -763,8 +763,9 @@ Every story renders under all four toolbar combinations through a `withSefariaPr
 - **Replaces:** `ToolTipped` Misc.jsx:1458, `title=` attributes on link dots ("N Connections Available", TextRange.jsx:604-616), `AiInfoTooltip` 1487 (becomes Popover since it has links).
 - **Props:** `content`, `side`, `delay`.
 - **A11y:** `role=tooltip` + `aria-describedby`; shows on focus; dismissible with Esc; never contains interactive content (→ Popover).
-- **Features:** AI-008, AI-017, TXD-047, SRC-007.
+- **Features:** AI-008, AI-017, TXD-047, SRC-007, CON-045, CON-046.
 - **Stories:** std.
+- **Built 2026-10-29:** `src/ui/Tooltip/Tooltip.tsx` (props `content`, `side: below|start`, `labels`; the trigger is a render prop that receives `aria-labelledby` or `aria-describedby`). Looks like the old `.tooltip-toggle::before` card: white, 13px Roboto, 10px padding, radius 5, shadow `0 1px 3px rgba(0,0,0,.2)`, fades in over .75s. It shows on hover and on keyboard focus, and Escape hides it (WCAG 1.4.13). The browser's own `title` tooltip is not used, because it looked different from the old one (grey system box). `src/ui/Tooltip/SourceNote.tsx` is the old `ToolTipped classes="saveButton tooltip-toggle three-dots-button"` with `three-dots.svg` (ConnectionsPanel.jsx TopicListItem; LexiconBox.jsx named entity). It is a 22px #ededec circle with three solid 10px dots, and a 180px #6f6f6f tooltip on the start side. Its accessible name is the note ('This topic is connected to "Genesis 1:2" by Aspaklaria.'). Used by `TopicsView` and `NamedEntityView`. Stories: `Primitives/Tooltip` (Below, SourceNote, SourceNoteHebrew). Not ported: the old `onclick_ToolTipped` gtag click event (trackG4.js gtagClick: `onclick_ToolTipped` with the CSS classes, interfaceLang and keywordTargets; ask the owner whether it is still wanted).
 
 #### `Dialog` and `Drawer`
 - **Purpose:** modal dialog; `Drawer` = bottom/side sheet variant for mobile.

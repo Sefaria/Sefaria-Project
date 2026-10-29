@@ -13,6 +13,10 @@
   --sefaria-color-text: light-dark(#121212, #ededec);
   --sefaria-color-text-secondary: light-dark(#707070, #a3a3a0);
   --sefaria-color-text-muted: light-dark(#6f6f6f, #8f8f8c);
+  /* The old sidebar's own greys (s2.css): black titles, #333 book rows, #666 (--dark-grey) counts and descriptions */
+  --sefaria-color-text-strong: light-dark(#000000, #ffffff);
+  --sefaria-color-text-list: light-dark(#333333, #d6d6d3);
+  --sefaria-color-text-dark-grey: light-dark(#666666, #a3a3a0);
   /* Secondary text on the grey panel-header band. The old #707070 on #e6e6e6 is 3.96:1; this is ≥ 4.5:1 (WCAG AA). */
   --sefaria-color-text-on-band: light-dark(#575757, #c9c9c5);
   --sefaria-color-surface: light-dark(#ffffff, #1c1c1b);
@@ -22,6 +26,8 @@
   --sefaria-color-page: light-dark(#ffffff, #121211);
   --sefaria-color-border: light-dark(#e6e6e6, #3a3a38);
   --sefaria-color-border-strong: light-dark(#cccccc, #55554f);
+  --sefaria-color-border-light: light-dark(#ededec, #333331);
+  --sefaria-color-border-mid: light-dark(#999999, #6b6b67); /* the old #999: the current edition toggle's underline */ /* the old --lighter-grey: search boxes, hairlines in menus */
   --sefaria-color-border-title: light-dark(#e6e5e6, #3f3f3d);
   --sefaria-color-skeleton: light-dark(#e6e6e6, #333331);
   --sefaria-color-skeleton-shimmer: light-dark(#efefef, #3d3d3a);
@@ -32,6 +38,10 @@
   --sefaria-color-on-brand: light-dark(#ffffff, #0f151c);
   --sefaria-color-voices: light-dark(#518159, #86bd8f);
   --sefaria-color-purple: light-dark(#7c416f, #c58bb8);
+  /* the Library Assistant promo: Design's hard-coded purple (#653259, not --sefaria-color-purple) on the old banner strip */
+  --sefaria-color-promo: light-dark(#653259, #4a2541);
+  --sefaria-color-promo-band: light-dark(#f7f7f7, #242423);
+  --sefaria-color-promo-band-border: light-dark(#d3d3d3, #3a3a38);
   --sefaria-color-link: light-dark(#4871bf, #86a9e8);
   --sefaria-color-focus: light-dark(#1976d2, #6fb1ff);
   --sefaria-color-highlight: light-dark(#ddeeff, #243649);
@@ -70,7 +80,8 @@
   /* ── Typography: families ─────────────────────────── */
   --sefaria-font-ui-en: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   --sefaria-font-ui-he: "Heebo", "Roboto", sans-serif;
-  --sefaria-font-text-en: "Cardo", "Meltho", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  /* as the old --english-serif-font-family (static/css/fonts.css): Hebrew letters inside English text are Taamey Frank */
+  --sefaria-font-text-en: "Cardo", "Meltho", "adobe-garamond-pro", "Taamey Frank", "Crimson Text", Georgia, "Times New Roman", serif;
   --sefaria-font-text-he: "Noto Color Emoji", "Taamey Frank", "Cardo", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
   --sefaria-font-secondary-en: "Miriam Libre", var(--sefaria-font-ui-en);
   --sefaria-font-secondary-he: "Miriam Libre", var(--sefaria-font-ui-he);
@@ -132,6 +143,8 @@
   --sefaria-radius-pill: 9999px;
   --sefaria-radius-round: 50%;
   --sefaria-shadow-1: 0 1px 3px rgb(0 0 0 / 0.25);
+  --sefaria-shadow-legacy: 0 1px 3px rgb(0 0 0 / 0.2); /* the old site's bar and tooltip shadow (s2.css .readerControls, .tooltip-toggle) */
+  --sefaria-shadow-menu: 0 2px 4px var(--sefaria-color-border-light); /* the old display menu card (.texts-properties-menu) */
   --sefaria-shadow-card: 0 0 10px -1px rgb(83 83 83 / 0.04);
   --sefaria-shadow-raised: 0 4px 4px 0 rgb(0 0 0 / 0.25);
   --sefaria-shadow-modal: 0 2px 10px rgb(0 0 0 / 0.1);

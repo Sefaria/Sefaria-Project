@@ -16,6 +16,8 @@ export function getRouter() {
     // "scroll to top after rendering", which otherwise fires once after hydration and yanks a deep link
     // back to the top for a frame on phones. Every other page gets normal restoration and reset.
     scrollRestoration: ({ location }) => !isReaderPath(location.pathname),
+    // on a wide screen a page scrolls inside <main> (under the fixed header), so that is what goes back to the top
+    scrollToTopSelectors: ["#main"],
     // Library data is immutable-ish and cached by the library cache; route matches need not reload.
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: RouteError,

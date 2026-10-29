@@ -45,11 +45,12 @@ export interface NameResponse {
   completion_objects?: Completion[];
 }
 
-export const nameQueryOptions = (text: string, types: readonly string[] = LIBRARY_TYPES, topicPool = "library") => {
+/** `topicPool` null leaves the pool out: every topic (the old getName's default, as the moderators' TopicSearch asks). */
+export const nameQueryOptions = (text: string, types: readonly string[] = LIBRARY_TYPES, topicPool: string | null = "library") => {
   const t = text.trim();
   const params = new URLSearchParams();
   for (const ty of types) params.append("type", ty);
-  params.append("topic_pool", topicPool);
+  if (topicPool !== null) params.append("topic_pool", topicPool);
   return queryOptions<NameResponse>({
     // memory only: every prefix typed into the search box was kept on disk for 90 days (bloat, and search history left behind on a
     // shared machine — CODE_REVIEW low list)

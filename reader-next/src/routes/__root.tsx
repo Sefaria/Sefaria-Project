@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { useEffect, useRef, type ReactNode } from "react";
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation, useMatches, useRouter } from "@tanstack/react-router";
-import type { QueryClient } from "@tanstack/react-query";
+import { useQuery, type QueryClient } from "@tanstack/react-query";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { createServerFn } from "@tanstack/react-start";
 import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";
@@ -16,6 +16,9 @@ import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-me
 import { SkipLink } from "~/ui/SkipLink/SkipLink";
 import { CookieNotice } from "~/ui/CookieNotice/CookieNotice";
 import { BannerImpressionProbe } from "~/features/shell/BannerImpressionProbe";
+import { LibraryAssistantBanner } from "~/features/shell/SiteWideBanner/SiteWideBanner";
+import { remoteConfigQueryOptions } from "~/lib/shell/remote-config";
+import type { NudgeSchedule } from "~/lib/shell/promo-backoff";
 import { useViewer, viewerQuery } from "~/features/auth/viewer";
 import { installSignupSourceCapture } from "~/features/auth/signup-source";
 import { useGoogleOneTap } from "~/features/auth/use-google-one-tap";
@@ -60,7 +63,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   // scroll-driven address updates included: CODE_REVIEW R-09)
   beforeLoad: async () => (typeof document === "undefined" ? getRequestPrefs() : prefsFromCookies(document.cookie, pageDiaspora())),
   // who is signed in, in the first paint (the query forwards the request's cookie on the server: src/features/auth/viewer.ts)
-  loader: ({ context }) => context.queryClient.ensureQueryData(viewerQuery).then((viewer) => ({ viewer })),
+  // and the remote-config switches (the promo banner is in the first paint, so it cannot push the page down later)
+  loader: async ({ context }) => {
+    const [viewer] = await Promise.all([context.queryClient.ensureQueryData(viewerQuery), context.queryClient.ensureQueryData(remoteConfigQueryOptions()).catch(() => undefined)]);
+    return { viewer };
+  },
   head: () => ({
     meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { title: "Sefaria Reader" }],
     links: [
@@ -156,13 +163,18 @@ function Shell() {
       }),
     [router],
   );
+  // the old server's show_join_chatbot_banner switch (remote config), read by the root loader; only a signed-out reader sees the
+  // banner, so a signed-in one never refetches it
+  const remoteConfig = useQuery({ ...remoteConfigQueryOptions(), enabled: !viewer }).data;
+  const showAssistantBanner = remoteConfig?.["feature.client.show_join_chatbot_banner"] === true;
   return (
     <div ref={appRef} className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined}>
       <SkipLink />
       <div className={appCss.header}>
         <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} viewer={viewer} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} />
       </div>
-      <main id="main" className={appCss.main} tabIndex={-1}>
+      {!viewer && showAssistantBanner ? <LibraryAssistantBanner path={loc.pathname + (loc.searchStr ?? "")} schedule={remoteConfig?.["feature.chatbot.promoMaybeLaterJSON"] as NudgeSchedule | undefined} sessionSeconds={remoteConfig?.["feature.chatbot.promoSessionLengthSeconds"] as number | undefined} /> : null}
+      <main id="main" className={appCss.main} tabIndex={-1} data-scroll-restoration-id="main">
         <Outlet />
       </main>
       <CookieNotice />

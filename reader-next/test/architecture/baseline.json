@@ -93,9 +93,6 @@
     "src/ui/BookPage/BookPage.module.css": [
       "4 literal colour(s)"
     ],
-    "src/ui/CategoryPage/CategoryPage.module.css": [
-      "4 literal colour(s)"
-    ],
     "src/ui/ConnectionsPanel/ConnectionsPanel.module.css": [
       "2 literal colour(s)"
     ],
@@ -104,9 +101,6 @@
     ],
     "src/ui/ConnectionsPanel/TextList.module.css": [
       "6 literal colour(s)"
-    ],
-    "src/ui/ContentLanguage/ContentLanguage.module.css": [
-      "2 literal colour(s)"
     ],
     "src/ui/CookieNotice/CookieNotice.module.css": [
       "3 literal colour(s)"
@@ -125,12 +119,6 @@
     ],
     "src/ui/Modal/Modal.module.css": [
       "2 literal colour(s)"
-    ],
-    "src/ui/NavPage/NavPage.module.css": [
-      "1 literal colour(s)"
-    ],
-    "src/ui/NavSidebar/NavSidebar.module.css": [
-      "3 literal colour(s)"
     ],
     "src/ui/NotesView/NotesView.module.css": [
       "6 literal colour(s)"
@@ -160,10 +148,10 @@
       "1 literal colour(s)"
     ],
     "src/ui/SiteHeader/HeaderSearch.module.css": [
-      "4 literal colour(s)"
+      "2 literal colour(s)"
     ],
     "src/ui/SiteHeader/SiteHeader.module.css": [
-      "10 literal colour(s)"
+      "1 literal colour(s)"
     ],
     "src/ui/Switch/Switch.module.css": [
       "1 literal colour(s)"
@@ -178,7 +166,7 @@
       "9 literal colour(s)"
     ],
     "src/ui/TopicsView/TopicsView.module.css": [
-      "7 literal colour(s)"
+      "4 literal colour(s)"
     ],
     "src/ui/TorahReadingsView/ClipPlayer.module.css": [
       "3 literal colour(s)"
@@ -220,6 +208,23 @@
     ],
     "src/lib/user/notes.ts": [
       "fetch DELETE"
+    ]
+  },
+  "lang-with-dir": {
+    "src/ui/CategoryPage/CategoryPage.tsx": [
+      "5 element(s)"
+    ],
+    "src/ui/LibraryHome/LibraryHome.tsx": [
+      "3 element(s)"
+    ],
+    "src/ui/NavSidebar/NavSidebar.tsx": [
+      "1 element(s)"
+    ],
+    "src/ui/SiteHeader/HeaderSearch.tsx": [
+      "1 element(s)"
+    ],
+    "src/ui/SiteHeader/SiteHeader.tsx": [
+      "4 element(s)"
     ]
   }
 }

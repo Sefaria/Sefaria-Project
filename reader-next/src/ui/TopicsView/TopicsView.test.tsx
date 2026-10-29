@@ -22,8 +22,9 @@ describe("TopicsView (Genesis 1:1, compared with sefaria.org)", () => {
     const creation = screen.getAllByRole("listitem")[0]!;
     expect(creation).toHaveTextContent("The opening two chapters of the Torah describe how God created the world");
     expect(within(creation).getByRole("link", { name: "chapters" })).toBeInTheDocument();
-    const note = within(creation).getByRole("img");
-    expect(note.getAttribute("aria-label")).toMatch(/^This topic is connected to "Genesis 1:1" by Curation of the Sefaria Learning Team/);
+    const note = within(creation).getByRole("button", { name: /^This topic is connected to "Genesis 1:1" by Curation of the Sefaria Learning Team/ });
+    expect(note).not.toHaveAttribute("title"); // the old white tooltip, not the browser's
+    expect(within(creation).getByRole("tooltip")).toHaveTextContent(/^This topic is connected to "Genesis 1:1"/);
   });
   it("says so when there are none, and shows a loading state", () => {
     const { rerender } = render(<TopicsView {...props} topics={[]} />);
@@ -34,6 +35,6 @@ describe("TopicsView (Genesis 1:1, compared with sefaria.org)", () => {
   it("Hebrew: Hebrew titles and descriptions, the old Hebrew strings", () => {
     render(<InterfaceLangProvider lang="hebrew"><TopicsView {...props} lang="he" refLabel="בראשית א׳:א׳" /></InterfaceLangProvider>);
     expect(screen.getByRole("link", { name: "בריאה" })).toBeInTheDocument();
-    expect(screen.getAllByRole("img")[0]!.getAttribute("aria-label")).toMatch(/^נושא הזה קשור ל-"בראשית א׳:א׳" על ידי /);
+    expect(screen.getAllByRole("button")[0]).toHaveAccessibleName(/^נושא הזה קשור ל-"בראשית א׳:א׳" על ידי /);
   });
 });

@@ -7,3 +7,5 @@
 .row[aria-checked="true"] .track { background: var(--sefaria-color-brand); }
 .row[aria-checked="true"] .thumb { inset-inline-start: 24px; }
 .row[aria-disabled="true"] .track { opacity: 0.5; }
+/* the old .toggle-switch-switch: a plain white disc, no shadow (VERIFIED on sefaria.org 2026-10-29) */
+.thumb { box-shadow: none; }

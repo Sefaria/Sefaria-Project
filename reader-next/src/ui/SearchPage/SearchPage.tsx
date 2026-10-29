@@ -13,6 +13,7 @@ import { VisuallyHidden } from "../VisuallyHidden/VisuallyHidden";
 import { categoryColor } from "../tokens/category-color";
 import styles from "./SearchPage.module.css";
 import { SITE_ORIGIN } from "~/lib/config";
+import { dirFor } from "~/lib/i18n/direction";
 
 const plain = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
 const isHebrew = (s: string) => /[֐-׿]/.test(s);
@@ -241,9 +242,9 @@ export function SearchResultCard({ hit, hrefFor, onOpen }: SearchResultCardProps
   };
   return (
     <article className={styles.card} style={{ ["--_c" as string]: categoryColor(s.categories?.[0]) }} onClick={open}>
-      <Link className={styles.title} href={hrefFor(hit)} lang={he ? "he" : "en"} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(hit); } }}>{he ? s.heRef : s.ref}</Link>
+      <Link className={styles.title} href={hrefFor(hit)} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(hit); } }}>{he ? s.heRef : s.ref}</Link>
       <div className={styles.snippet} lang={snip.lang} dir={snip.lang === "he" ? "rtl" : "ltr"} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snip.html) }} />
-      <div className={styles.version} lang={he && s.hebrew_version_title ? "he" : "en"}>{(he && s.hebrew_version_title) || s.version}</div>
+      <div className={styles.version} lang={he && s.hebrew_version_title ? "he" : "en"} dir={dirFor(he && s.hebrew_version_title ? "he" : "en")}>{(he && s.hebrew_version_title) || s.version}</div>
       {n > 0 ? (
         <>
           <button type="button" className={styles.more} data-open={shown} aria-expanded={shown} onClick={() => setShown((v) => !v)}>
@@ -254,7 +255,7 @@ export function SearchResultCard({ hit, hrefFor, onOpen }: SearchResultCardProps
             <div className={styles.nested}>
               {dups.map((d) => (
                 <div key={d._id}>
-                  <div className={styles.snippet} lang={snippetOf(d).lang} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snippetOf(d).html) }} />
+                  <div className={styles.snippet} lang={snippetOf(d).lang} dir={dirFor(snippetOf(d).lang)} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snippetOf(d).html) }} />
                   <div className={styles.version}><Link href={hrefFor(d)} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(d); } }}>{(he && d._source.hebrew_version_title) || d._source.version}</Link></div>
                 </div>
               ))}
@@ -289,7 +290,7 @@ export function SearchFilters({ tree, applied, onToggle }: SearchFiltersProps) {
           return (
             <div key={n.key}>
               <div className={styles.row}>
-                <label lang={he ? "he" : "en"} title={`(${n.count})`}>
+                <label lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} title={`(${n.count})`}>
                   <Checkbox state={state} onChange={() => onToggle(n)} label={n.title} />
                   <span>{he ? n.heTitle : n.title} <span className={styles.num}>({n.count})</span></span>
                 </label>
@@ -380,15 +381,15 @@ export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityTy
       <span className={styles.entityIcon} style={type === "book" ? { color: accent } : undefined}><Icon name={icon} size="1.4em" /></span>
       <div className={styles.entityBody}>
         {crumbs.length ? <Crumbs items={crumbs} /> : null}
-        <Link ref={titleLink} className={styles.entityTitle} href={href} lang={lang} data-result-title="">{name}</Link>
+        <Link ref={titleLink} className={styles.entityTitle} href={href} lang={lang} dir={dirFor(lang)} data-result-title="">{name}</Link>
         {date || authorName ? (
-          <div className={styles.entityMeta} lang={lang}>
+          <div className={styles.entityMeta} lang={lang} dir={dirFor(lang)}>
             {date ? (he ? date.he : date.en) : null}
             {date && authorName ? " · " : null}
             {authorName ? (hit.authors?.[0] ? <Link href={`${SITE_ORIGIN}/topics/${hit.authors[0]}?tab=author-works-on-sefaria`}>{authorName}</Link> : authorName) : null}
           </div>
         ) : null}
-        {desc ? <p className={`${styles.entityDesc} ${type === "book" ? styles.bookDesc : ""}`} lang={lang}>{desc}</p> : null}
+        {desc ? <p className={`${styles.entityDesc} ${type === "book" ? styles.bookDesc : ""}`} lang={lang} dir={dirFor(lang)}>{desc}</p> : null}
       </div>
     </li>
   );
@@ -480,7 +481,7 @@ export function NoResults({ tab, query }: { tab: SearchTab; query: string }) {
   const he = useInterfaceLang() === "hebrew";
   const n = NONE[tab];
   return (
-    <div className={styles.empty} lang={he ? "he" : "en"}>
+    <div className={styles.empty} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <img className={styles.emptyImg} src={`/img/no-results/NoResults${n.img}.svg`} alt="" aria-hidden="true" width={140} height={140} />
       <p className={styles.emptyHeading}>{he ? `${n.h[1]} ״${query}״` : `${n.h[0]} “${query}”`}</p>
       <p className={styles.emptyBody}>{he ? n.body[1] : n.body[0]}</p>

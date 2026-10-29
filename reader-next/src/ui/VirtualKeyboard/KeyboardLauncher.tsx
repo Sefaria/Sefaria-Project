@@ -12,13 +12,16 @@ export interface KeyboardLauncherProps {
   onEnter: () => void;
   /** The box has focus: the launcher shows (it stays while the keyboard is open). */
   focused: boolean;
+  /** An image in place of the icon (the header's: the old keyboard_mdl.svg). */
+  iconSrc?: string;
+  className?: string;
 }
 
 /**
  * The little keyboard icon at the end of a search box and the Hebrew keyboard it opens beneath. Keys type at the caret; the
  * box never loses focus to the keyboard. English interface only (the caller decides). SRC-017
  */
-export function KeyboardLauncher({ inputRef, value, onChange, onEnter, focused }: KeyboardLauncherProps) {
+export function KeyboardLauncher({ inputRef, value, onChange, onEnter, focused, iconSrc, className }: KeyboardLauncherProps) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
   const caret = useRef<number | null>(null);
@@ -45,9 +48,9 @@ export function KeyboardLauncher({ inputRef, value, onChange, onEnter, focused }
   };
   if (!focused && !open) return null;
   return (
-    <span ref={box} className={styles.wrap}>
+    <span ref={box} className={className ? `${styles.wrap} ${className}` : styles.wrap}>
       <button type="button" className={styles.launcher} aria-label="Hebrew keyboard" aria-expanded={open} onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen((o) => !o)}>
-        <Icon name="keyboard" size="1.2em" />
+        {iconSrc ? <img src={iconSrc} alt="" width={18} height={18} /> : <Icon name="keyboard" size="1.2em" />}
       </button>
       {open ? (
         <span className={styles.pop} onMouseDown={(e) => e.preventDefault()}>

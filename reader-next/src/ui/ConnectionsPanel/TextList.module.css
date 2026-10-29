@@ -30,3 +30,12 @@
 .open { display: inline-flex; align-items: center; gap: 6px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 22px; color: #6f6f6f; text-decoration: none; }
 .open:hover { text-decoration: underline; }
 .notice { font-family: var(--sefaria-font-ui-en); font-size: 14px; font-style: italic; color: #000; }
+
+/* VERIFIED on sefaria.org (1280px, Mishnah Peah 4:1 with Bartenura): a book's title keeps its case ("Bartenura"); only a
+   category filter is upper-case ("COMMENTARY", the old TextFilter's `book === category`). Beside its text the old sidebar
+   hides the commentary's verse numbers (s2.css `.multiPanel .textRange .numberLabel`); on a phone they show */
+.title { text-transform: none; }
+.title[data-upper] { text-transform: uppercase; }
+.number { display: none; }
+@media (max-width: 842px) { .number { display: inline-block; } }
+.ref[lang="he"] { font-family: var(--sefaria-font-text-he); }

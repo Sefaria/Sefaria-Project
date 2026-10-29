@@ -6,6 +6,7 @@ import { Icon } from "../Icon/Icon";
 import { Link } from "../Link/Link";
 import { SegmentedControl } from "../SegmentedControl/SegmentedControl";
 import styles from "./TocView.module.css";
+import { dirFor } from "~/lib/i18n/direction";
 
 export interface TocViewProps {
   structures: TocStructure[];
@@ -89,7 +90,7 @@ function SectionLink({ link, onOpenRef, code }: { link: TocLink; onOpenRef?: (re
       <Link
         className={styles.sectionLink}
         href={href(link.ref)}
-        lang={code}
+        lang={code} dir={dirFor(code)}
         aria-current={link.current ? "location" : undefined}
         data-current={link.current || undefined}
         onClick={(e) => {
@@ -123,7 +124,7 @@ function Item({ item, onOpenRef, placeKey, text, code, level }: { item: TocItem 
     case "links":
       return (
         <div>
-          {item.heading ? <Heading className={styles.heading} lang={code}>{text(item.heading)}</Heading> : null}
+          {item.heading ? <Heading className={styles.heading} lang={code} dir={dirFor(code)}>{text(item.heading)}</Heading> : null}
           <ul className={styles.grid}>
             {item.links.map((l) => (
               <SectionLink key={l.ref} link={l} onOpenRef={onOpenRef} code={code} />
@@ -134,7 +135,7 @@ function Item({ item, onOpenRef, placeKey, text, code, level }: { item: TocItem 
     case "letters":
       return (
         <div>
-          <Heading className={styles.heading} lang={code}>{text(item.heading)}</Heading>
+          <Heading className={styles.heading} lang={code} dir={dirFor(code)}>{text(item.heading)}</Heading>
           <ul className={styles.grid}>
             {item.links.map((l) => (
               <SectionLink key={l.ref} link={l} onOpenRef={onOpenRef} code={code} />
@@ -144,14 +145,14 @@ function Item({ item, onOpenRef, placeKey, text, code, level }: { item: TocItem 
       );
     case "link":
       return (
-        <Link className={styles.titleLink} href={href(item.ref)} lang={code} aria-current={item.current ? "location" : undefined} data-current={item.current || undefined} onClick={(e) => open(e, item.ref)}>
+        <Link className={styles.titleLink} href={href(item.ref)} lang={code} dir={dirFor(code)} aria-current={item.current ? "location" : undefined} data-current={item.current || undefined} onClick={(e) => open(e, item.ref)}>
           {text(item.title)}
         </Link>
       );
     case "section":
       return (
         <div>
-          {item.name.en ? <div className={styles.sectionName} lang={code}>{text(item.name)}</div> : null}
+          {item.name.en ? <div className={styles.sectionName} lang={code} dir={dirFor(code)}>{text(item.name)}</div> : null}
           <Items items={item.children} onOpenRef={onOpenRef} placeKey={placeKey} text={text} code={code} level={level} />
         </div>
       );
@@ -164,9 +165,9 @@ function Item({ item, onOpenRef, placeKey, text, code, level }: { item: TocItem 
         return (
           <div className={styles.group} data-fixed-group={item.ref ? "part" : "heading"}>
             {item.ref ? (
-              <Link className={styles.groupTitle} data-fixed href={href(item.ref)} lang={code} onClick={(e) => open(e, item.ref!)}>{title}</Link>
+              <Link className={styles.groupTitle} data-fixed href={href(item.ref)} lang={code} dir={dirFor(code)} onClick={(e) => open(e, item.ref!)}>{title}</Link>
             ) : (
-              <Heading className={styles.groupTitle} data-fixed lang={code}>{title}</Heading>
+              <Heading className={styles.groupTitle} data-fixed lang={code} dir={dirFor(code)}>{title}</Heading>
             )}
             {body}
           </div>
@@ -174,7 +175,7 @@ function Item({ item, onOpenRef, placeKey, text, code, level }: { item: TocItem 
       }
       return (
         <div className={styles.group}>
-          <button type="button" className={styles.groupTitle} lang={code} aria-expanded={!collapsed} onClick={() => setCollapsed((c) => !c)}>
+          <button type="button" className={styles.groupTitle} lang={code} dir={dirFor(code)} aria-expanded={!collapsed} onClick={() => setCollapsed((c) => !c)}>
             {title}
             <Icon name="chevron-down" className={styles.chevron} data-open={!collapsed} size="0.6em" />
           </button>

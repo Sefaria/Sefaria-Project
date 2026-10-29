@@ -8,6 +8,7 @@ import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
 import { categoryColor } from "../tokens/category-color";
 import styles from "./SidebarSearch.module.css";
+import { LangText } from "../LangText/LangText";
 
 export interface SidebarSearchProps {
   /** The query that was run (the box starts with it). */
@@ -105,6 +106,7 @@ function Result({ hit, hrefFor, onOpen, hebrew, nested }: Pick<SidebarSearchProp
         className={styles.refLink}
         href={hrefFor(hit)}
         lang={hebrew ? "he" : "en"}
+        dir={hebrew ? "rtl" : "ltr"}
         onClick={(e) => {
           if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
             e.preventDefault();
@@ -114,8 +116,8 @@ function Result({ hit, hrefFor, onOpen, hebrew, nested }: Pick<SidebarSearchProp
       >
         {hebrew ? s.heRef : s.ref}
       </Link>
-      <div className={styles.snippet} lang={snippet.lang} dir={snippet.lang === "he" ? "rtl" : "ltr"} style={{ ["--_color" as string]: categoryColor(s.categories?.[0]) }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snippet.html) }} />
-      <div className={styles.version} lang={hebrew && s.hebrew_version_title ? "he" : "en"}>{(hebrew && s.hebrew_version_title) || s.version}</div>
+      <LangText as="div" className={styles.snippet} lang={snippet.lang} style={{ ["--_color" as string]: categoryColor(s.categories?.[0]) }} html={sanitizeHtml(snippet.html)} />
+      <LangText as="div" className={styles.version} lang={hebrew && s.hebrew_version_title ? "he" : "en"}>{(hebrew && s.hebrew_version_title) || s.version}</LangText>
       {n > 0 ? (
         <>
           <button type="button" className={styles.more} data-open={shown} aria-expanded={shown} onClick={() => setShown((v) => !v)}>

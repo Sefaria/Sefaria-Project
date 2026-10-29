@@ -88,7 +88,7 @@ export function DictionarySearch({ getCompletions, onSubmit }: DictionarySearchP
           <li role="presentation" className={styles.invalid}>{he ? "קלט לא תקין. יש להקליד מילה בעברית." : "Invalid entry.  Please type a Hebrew word."}</li>
         ) : (
           items.map((c, i) => (
-            <li key={`${c[0]}-${c[1]}-${i}`} id={`${id}-${i}`} role="option" aria-selected={active === i} data-active={active === i} lang="he" onMouseDown={(e) => e.preventDefault()} onMouseEnter={() => setActive(i)} onClick={() => go(c[1])}>
+            <li key={`${c[0]}-${c[1]}-${i}`} id={`${id}-${i}`} role="option" aria-selected={active === i} data-active={active === i} lang="he" dir="rtl" onMouseDown={(e) => e.preventDefault()} onMouseEnter={() => setActive(i)} onClick={() => go(c[1])}>
               {c[1]}
             </li>
           ))

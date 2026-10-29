@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**946 features**, 3666 documented behaviors. Proposed tiers: core 321, standard 412, optional 153, retire 60.
+**948 features**, 3719 documented behaviors. Proposed tiers: core 321, standard 414, optional 153, retire 60.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 333 · partial 38 · todo 446 · replaced 18 · deferred 23 · n/a 88; 319 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 337 · partial 41 · todo 441 · replaced 18 · deferred 23 · n/a 88; 325 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -13,7 +13,7 @@ Master list of every feature in the current Sefaria web client, extracted from a
 ## Contents
 
 - **Reader**: [Reader shell & panels](#reader-shell) (75) · [Text display & reading settings](#text-display) (69) · [Text types & special cases](#text-types) (27) · [Connections & resources sidebar](#connections) (71) · [Versions & translations](#versions) (21)
-- **Library & discovery**: [Library navigation](#library-nav) (69) · [Book pages](#book-pages) (23) · [Topics](#topics) (32) · [Calendars](#calendars) (3) · [Search & autocomplete](#search) (110)
+- **Library & discovery**: [Library navigation](#library-nav) (69) · [Book pages](#book-pages) (23) · [Topics](#topics) (32) · [Calendars](#calendars) (3) · [Search & autocomplete](#search) (112)
 - **Voices (sheets & community)**: [Sheets: viewing](#sheets-view) (27) · [Sheets: editing & publishing](#sheets-editor) (29) · [Collections](#collections) (10) · [Profiles & social](#profile-social) (12) · [Saved, history & notes](#user-library) (12) · [Notifications & email](#notifications) (11)
 - **Site & accounts**: [Global UI](#global-ui) (28) · [Accounts & sign-in](#accounts) (16) · [Promotions & CMS](#promotions) (17) · [Static pages](#static-pages) (19) · [Language & accessibility](#i18n-a11y) (13) · [AI features](#ai) (20)
 - **Platform**: [URLs & routing](#routing) (64) · [SSR, SEO & platform](#platform-seo) (32) · [Public API & data exports](#api-data) (17) · [Analytics](#analytics) (17) · [Linker & embeds](#linker-embeds) (14)
@@ -2656,7 +2656,7 @@ Source: `inv_04_connections.md#24`
 ### Resources view
 
 #### CON-012 · Resources home view
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
+`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 The top-level sidebar view lists top tools, a Related Texts summary, Resources (sheets, web pages, topics, etc.) and Tools.
 
@@ -2665,6 +2665,7 @@ The top-level sidebar view lists top tools, a Related Texts summary, Resources (
 - Resources section shows if moderator or any count >0 or null.
 - Tools counts: notes = Sefaria.notesTotalCount(srefs).
 - Flash message after Add Connection save: clearLinks + reload, return to Resources, 'Success! You've created a new connection.' for 3s.
+- VERIFIED 2026-10-29 (Mishnah Peah 4:1, 1280px): first tool's text 30px under the header; tool rows ~40.5px apart; section headings ('Related Texts', 'Resources', 'Tools') #666 Roboto 14px/18px with 13px to a 1px #ccc rule, their text ~50px below the previous row's and ~52px above the next row's (margins 30/15 collapsing into the rows' 19px); category names #000, counts as CON-025; 'More' #666 with the navy dots.
 
 Code: [`static/js/ConnectionsPanel.jsx:272`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L272), [`static/js/ConnectionsPanel.jsx:217`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L217)
 
@@ -2771,25 +2772,28 @@ Code: [`static/js/sefaria/sefaria.js:1768`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#3.1`
 
 #### CON-020 · Zero-count commentators shown greyed out
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
+`standard` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
-When a narrower ref is selected, every commentator available elsewhere in the section is still listed (greyed, count 0).
+When a narrower ref is selected, every commentator available elsewhere in the section is still listed, greyed out and without a count.
 
 - When ref is narrower than its section, every Commentary book present anywhere in the section is added with count 0 (sefaria.js:1872-1888).
 - TextFilter/CategoryFilter use 'lowlight' styling when count is 0.
+- VERIFIED 2026-10-29 (Mishnah Peah 4:1 → Commentary): zero-count rows (Boaz, German Commentary, Rashash, Tosafot Rabbi Akiva Eiger) show no count at all — TextFilter's showCount is !!count — in #6f6f6f with their description in #ccc.
+- Legacy quirk, not ported: opened straight from a URL (…?with=Commentary%20ConnectionsList), the old client caches the summary (_linkSummaries) before it is rebuilt with the section's links, so the zero-count rows are missing until the summary is rebuilt; reached by clicking (segment → Commentary) they are there. The rebuild always lists them.
 
 Code: [`static/js/sefaria/sefaria.js:1872`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1872)
 
 Source: `inv_04_connections.md#3.1`
 
 #### CON-021 · Commentator ordering rules
-`standard` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
+`standard` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 Within a category, well-known commentators are pinned first, then alphabetical.
 
 - linkSummaryBookSort top lists: Tanakh: Rashi, Ibn Ezra, Ramban, Sforno. Talmud: Rashi, Rashbam, Tosafot.
 - Mishnah: Bartenura, then English Explanation of Mishnah (English sort only), Rambam, Ikar Tosafot Yom Tov, Yachin, Boaz.
 - Afterward alphabetical (by heBook in Hebrew); with Hebrew content books are re-sorted with the Hebrew comparator (ConnectionsPanel.jsx:783-785).
+- VERIFIED 2026-10-29: the Hebrew re-sort follows the sidebar's language (lang2, ConnectionsPanel contentLang), not the interface: lang2=he lists Bartenura, Rambam, Ikar Tosafot Yom Tov, Yachin, Boaz, then the Hebrew alphabet (ביאור אנגלי על המשנה…); lang2=en keeps English Explanation of Mishnah second.
 
 Code: [`static/js/sefaria/sefaria.js:1953`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L1953), [`static/js/ConnectionsPanel.jsx:783`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L783)
 
@@ -2838,7 +2842,7 @@ Source: `inv_04_connections.md#3.2`
 ### Filters
 
 #### CON-025 · Category view with per-book filters
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
+`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 Clicking a category shows its books with counts, descriptions and an 'All <Category>' row.
 
@@ -2848,18 +2852,21 @@ Clicking a category shows its books with counts, descriptions and an 'All <Categ
 - Display: --category-color from Sefaria.palette.categoryColor; label 'All Commentary'/'כל הקישורים ל…'; count in parens; 'EN' tag when English available (TORAH_SPECIFIC only); category description from getDescriptionDict.
 - Commentary and Quoting Commentary descriptions hard-coded (sefaria.js:2010-2013); Targum description from Tanakh TOC.
 - One TextFilter per book; Quoting Commentary books use suffix '|Quoting'; 'on' state when in current filter.
+- Descriptions: most commentaries' indexes have none (Bartenura on Mishnah Peah: enShortDesc ''), so linkSummary falls back to getDescriptionDict — the short description of the TOC node named after the book, found under the index's categories cut where the book's name starts (Mishnah › Rishonim on Mishnah › Bartenura → '16th-century commentary printed in most editions of the Mishnah…'; 'Ramban on Exodus' answers to 'Ramban'). When the fallback runs, both languages come from the category, even an empty Hebrew one.
+- VERIFIED 2026-10-29 display (1280px): no book icon (only the top-level rows have one); each category group is topped by a 4px rule in its colour (Commentary #4b71b7, Quoting Commentary #cb6158), 15px in from the panel's edges, and the list starts flush under the header; every row 19px above and below with a 1px #E5E5E5 rule beneath; titles 18px/21.6px serif, the 'All …' row #000 and books #333; counts Roboto 16px weight 100 #666 letter-spacing 1px; a description under every row, Roboto 14px #666, 10px below the title (16.8px lines; 21.6px on the 'All' row); the EN tag (12px/18px, #ccc border, radius 3px) at the end of the title line only, so the description takes the full width; no underline on hover.
+- VERIFIED 2026-10-29: names and descriptions follow the sidebar's language (lang2) strictly — ContentText shows only that language, with no fallback (lang2=he: Hebrew names, no English description where the Hebrew is missing) — the group is right-to-left in Hebrew (s2.css `.interface-english .readerPanel.hebrew .categoryFilterGroup`) and the EN tags are hidden.
 
 Code: [`static/js/ConnectionFilters.jsx:10`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionFilters.jsx#L10), [`static/js/ConnectionsPanel.jsx:723`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L723)
 
 Source: `inv_04_connections.md#3.3`
 
 #### CON-026 · Text (book) filter chip
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
+`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 Each book/commentator in the list is a filter that narrows connections to just that source.
 
 - Click: setFilter(name[|suffix], updateRecent); tracks 'Text Filter Click' or 'Text Filter in Recent Click' when in recent list.
-- Upper-cased when book equals category (the 'All' row); lowlight when count 0.
+- Upper-cased when book equals category — in practice the text list's title for a whole-category filter ('COMMENTARY'); a book's title keeps its case ('Bartenura', VERIFIED 2026-10-29). The category list's 'All Commentary' row is a CategoryFilter and is not upper-cased. Lowlight when count 0.
 - The active recent filter renders as non-link <div> so right-click lacks 'Open in new tab'.
 
 Code: [`static/js/ConnectionFilters.jsx:93`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionFilters.jsx#L93), [`static/js/ConnectionFilters.jsx:119`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionFilters.jsx#L119)
@@ -2940,7 +2947,7 @@ Code: [`static/js/TextList.jsx:73`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_04_connections.md#4`
 
 #### CON-032 · Connection item rendering
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
+`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 Each connection shows the linked text with highlights, a number label for commentary, and quick actions.
 
@@ -2948,6 +2955,8 @@ Each connection shows the linked text with highlights, a number label for commen
 - TextRange props: hideTitle for Commentary links unless filter is 'Commentary'; numberLabel=anchorVerse (Commentary only); textHighlights=link.highlightedWords; inlineReference=link.inline_reference (itag number label); onCitationClick; translationLanguagePreference; basetext=false.
 - filterRef scrolls [data-ref=filterRef] into view on load (TextRange.jsx:138-144).
 - Sheet link (isSheet) renders SheetListing with openInNewTab, handleSheetClick, connectedRefs; author hidden when filter equals collection title.
+- VERIFIED 2026-10-29: beside its text (multiPanel) the numberLabel is hidden by s2.css `.multiPanel .textRange .numberLabel {display:none}` (itag labels excepted); only a single-panel (phone) sidebar shows a commentary's verse numbers.
+- Rebuild 2026-10-29: each item's text block carries the text's lang and dir (Hebrew right-aligned and justified like the old `.segment.heOnly`), and the item's title is in the sidebar's language (lang2), not the interface's.
 
 Code: [`static/js/TextList.jsx:149`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextList.jsx#L149), [`static/js/TextRange.jsx:138`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L138), [`static/js/TextRange.jsx:351`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L351)
 
@@ -3149,6 +3158,8 @@ Clicking a highlighted person/place name in the text shows who or what it refers
 - VERIFIED 2026-10-05 (Berakhot 2a, English): clicking 'Rabbi Eliezer' selects the verse and the address becomes /Berakhot.2a.1?namedEntity=rabbi-eliezer-b-hyrcanus&namedEntityText=Rabbi Eliezer&with=Lexicon; the sidebar shows 'Rabbi Eliezer b. Hyrcanus' (link to /topics/<slug>, new tab) + 'Tannaim - Third Generation' + 'c.80 – c.110 CE' + the markdown description. Request: GET /api/v2/topics/<slug>?annotate_time_period=1&ref_link_type_filters=about|popular-writing-of&with_html=0&with_links=0&annotate_links=0&with_refs=0&group_related=0&with_indexes=0.
 - An ambiguous name's slug ends in '-(ambiguous)' (e.g. /topics/רג-(ambiguous)); the response then carries `possibilities` (Rabban Gamliel → three people) and the sidebar says '"Rabban Gamliel" could refer to one of the following:' / 'ייתכן ש-"…" מתייחס לאחד מהבאים:' above each. No description: "No description known for '<title>'" / "לא קיים מידע עבור '<title>'".
 - Rebuild: links in the text carry the library's absolute /topics URL (a modified click or a new tab works), a plain click opens the sidebar; choosing another verse ends the card (back to Resources). Params namedEntity, namedEntityText (+N per panel) in the workspace URL.
+- VERIFIED (code, static/js/Misc.jsx:1458 ToolTipped; s2.css .tooltip-toggle::before, .three-dots-button, .topicButton .three-dots-button.tooltip-toggle::before) and against a screenshot of sefaria.org (Genesis 1:2, 'Depths'): the three dots are a focusable role=button div (tabIndex 0) whose aria-label is the note; the img inside has the same alt. The tooltip is CSS, not the browser's title: a ::before printing attr(aria-label), a white card, 13px Roboto, #6f6f6f (--medium-grey), 10px padding, radius 5, shadow 0 1px 3px rgba(0,0,0,.2), 180px wide, top-aligned with the button and 30px from its start side (toward the name; mirrored for Hebrew content), fading in over .75s on hover. The button is a 22px #ededec circle with static/img/three-dots.svg (three solid circles) at 10px. A click sends gtag 'onclick_ToolTipped' {classes, interfaceLang, keywordTargets}.
+- Rebuilt 2026-10-29 as ui/Tooltip/SourceNote (on ui/Tooltip): before this it had a native title tooltip (a grey system box) and outline stroke dots, which did not match. It is now the white card and the solid dots. It is a real <button> named by the tooltip (aria-labelledby), it also shows on keyboard focus, and Escape hides it. Not ported: the onclick_ToolTipped gtag event (ask the owner).
 
 Code: [`static/js/TextRange.jsx:500`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L500), [`static/js/LexiconBox.jsx:30`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/LexiconBox.jsx#L30), [`static/js/ReaderApp.jsx:1071`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1071), [`static/js/ReaderApp.jsx:1089`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1089), [`static/js/ReaderPanel.jsx:231`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L231)
 
@@ -3167,16 +3178,18 @@ Lists topics related to the selected passage with a short description and why it
 - Item: link /topics/<slug> new tab, title en/he, three-dots tooltip 'This topic is connected to "<ref>" by <dataSources joined with &>', markdown description.
 - VERIFIED 2026-10-05: Genesis 1:1 → Creation, "In the Beginning of" (the quotes are part of the title), Heavens, Creation of Heavens and Earth, Parashat Bereshit, Earth, Ai — seven, matching the Resources count; Berakhot 2a:1 → Laws of the Recitation of Shema, Laws of Blessings, Shema, Prayer, Priesthood… Each item: title link (/topics/<slug>, new tab), three-dots tooltip, markdown description. Header '‹ Resources'.
 - Data is the topics array of /api/related/<section>?with_sheet_links=1 (already loaded for the Resources counts): each entry carries title, description, dataSource and order.pr; one topic has several entries (one per data source), merged and ordered by order.pr descending. No extra request.
-- Rebuild a11y: description links are underlined (axe link-in-text-block); the three dots are an icon with the note as its accessible name.
 - VERIFIED geometry of the Topics view: names 18px black serif; descriptions 13px/18px #666 with plain blue links; a 22px #ededec round button with three dots; rows ruled. Rebuilt.
 - VERIFIED geometry of the Topics view: names 18px black serif; descriptions 13px/18px #666 with plain blue links; a 22px #ededec round button with three dots; rows ruled. Rebuilt; deliberate difference: links in the descriptions keep an underline (live has colour alone, which fails WCAG 1.4.1).
+- VERIFIED (code, static/js/Misc.jsx:1458 ToolTipped; s2.css .tooltip-toggle::before, .three-dots-button, .topicButton .three-dots-button.tooltip-toggle::before) and against a screenshot of sefaria.org (Genesis 1:2, 'Depths'): the three dots are a focusable role=button div (tabIndex 0) whose aria-label is the note; the img inside has the same alt. The tooltip is CSS, not the browser's title: a ::before printing attr(aria-label), a white card, 13px Roboto, #6f6f6f (--medium-grey), 10px padding, radius 5, shadow 0 1px 3px rgba(0,0,0,.2), 180px wide, top-aligned with the button and 30px from its start side (toward the name; mirrored for Hebrew content), fading in over .75s on hover. The button is a 22px #ededec circle with static/img/three-dots.svg (three solid circles) at 10px. A click sends gtag 'onclick_ToolTipped' {classes, interfaceLang, keywordTargets}.
+- Rebuilt 2026-10-29 as ui/Tooltip/SourceNote (on ui/Tooltip): before this it had a native title tooltip (a grey system box) and outline stroke dots, which did not match. It is now the white card and the solid dots. It is a real <button> named by the tooltip (aria-labelledby), it also shows on keyboard focus, and Escape hides it. Not ported: the onclick_ToolTipped gtag event (ask the owner).
+- Rebuild a11y: description links are underlined (axe link-in-text-block); the three dots are a button named by its tooltip (the note).
 
 Code: [`static/js/ConnectionsPanel.jsx:841`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L841), [`static/js/sefaria/sefaria.js:2245`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2245)
 
 Source: `inv_04_connections.md#10`
 
 #### CON-047 · Add topic to ref (moderator)
-`optional` `live` · rebuild: **todo** `moderator`
+`optional` `live` · rebuild: **partial** — Search and add a topic: done (moderators). Creating a topic (TopicEditor) links to sefaria.org · *tested* `moderator`
 
 Moderators can tag a text reference with a topic, or create a new topic, from the sidebar.
 
@@ -3191,6 +3204,10 @@ Moderators can tag a text reference with a topic, or create a new topic, from th
 - 'Create new' opens TopicEditor with origEnTitle; onCreateSuccess posts link.
 - **BUG:** await Sefaria.getRef(...).sectionRef awaits a property of a promise, so section-ref cache key is undefined.
 - Placeholder 'Search for a Topic', button 'Add Topic'. Text mode only.
+- Shown when Sefaria.is_moderator, which is request.user.is_staff — the same check the server makes on POST. Signed out or not staff, the Topics view is unchanged (owner's screenshot of Genesis 1:11 with=Topics, 2026-10-29).
+- Placeholder: Sefaria.translation(contentLang, 'Search for a Topic') has no Hebrew entry, so the box reads 'Search for a Topic' in every language; 'Create a new topic: ' / 'יצירת נושא: ' follows the sidebar language; 'Add Topic' / 'הוספת נושא' the interface. Old getName passes no topic_pool, so every topic is searched (not only the library pool).
+- Refs: a several-verse selection posts its range (normRef(srefs), 'Genesis 1:11-13'). The POST answer is the link annotated like /api/related's topics (ref_topic_link_prep + annotate_topic_link), so it can join the list without a refetch.
+- BUILT 2026-10-29 (src/ui/TopicsView/TopicSearch, src/lib/user/topic-links.ts): for viewer.isStaff, above the Topics list (also above 'No known Topics Here.'): typing asks /api/name/<word>?type=Topic, lists four topics plus 'Create a new topic: <word>'; choosing fills the box (blue); Add Topic or Enter posts /api/ref-topic-links/<ref> {topic, interface_lang} with the CSRF token; the new link is filed into the section's resources cache under each verse it covers, so the list and the Resources count update at once. Differences: the two alert()s are spoken status lines under the box; the create row does not open the inline TopicEditor (not built) — it says so and links to the same view on sefaria.org. Not verified against a live moderator session (would write to production); covered by unit tests and the Storybook story Connections/TopicsView/Moderator.
 
 Code: [`static/js/TopicSearch.jsx:67`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicSearch.jsx#L67), [`reader/views.py:3864`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3864), [`static/js/TopicSearch.jsx:53`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicSearch.jsx#L53), [`static/js/ConnectionsPanel.jsx:850`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L850)
 
@@ -3539,7 +3556,7 @@ Source: `inv_04_connections.md#18.1`
 ### Sidebar header
 
 #### CON-070 · Sidebar header title, back and close
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
+`core` `live` · rebuild: **done** — Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language · *tested*
 
 The sidebar header shows the current section, a context-aware back link, a language toggle and a close button.
 
@@ -3550,6 +3567,7 @@ The sidebar header shows the current section, a context-aware back link, a langu
 - Mobile header: top border coloured by category in TextList; RecentFilterSet next to back link; no close button inside it.
 - Header marginRight (left for Hebrew) equal to scrollbar width to stay centred (l.30-40).
 - FOUND 2026-10-05: this entry (and CON-003) was marked done, but the sidebar header had no language toggle. VERIFIED on sefaria.org: the header is #ededed, 60px, 34px sides; title 16px weight-100 (light) #666 with 1px letter-spacing, upper-case; at the right an aleph/ayin button (18px, 40% grey; shows the language it will switch TO) and the circled × (20px). It sets `lang2` (the sidebar's own language) and never touches the text's. Rebuilt (ConnectionsPanel `lang`/`onLang`, TextPanel `onSidebarLang`).
+- VERIFIED 2026-10-29: the back link ('‹ Resources') and the static title share one style — Roboto 16px, weight lighter (100), #666, letter-spacing 1px; the chevron #6f6f6f, 10px before the word.
 
 Code: [`static/js/ConnectionsPanelHeader.jsx:30`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanelHeader.jsx#L30), [`static/js/ConnectionsPanelHeader.jsx:72`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanelHeader.jsx#L72), [`static/js/ConnectionsPanelHeader.jsx:158`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanelHeader.jsx#L158)
 
@@ -3930,6 +3948,8 @@ The texts home page shows every top-level category as a colored card with a shor
 - Same component serves /texts and /texts/<cats>: if categories.length it delegates to TextCategoryPage inside .readerNavMenu.
 - VERIFIED 2026-10-05 (/texts, English): 'Browse the Library' heading, 14 category cards in two columns (coloured top line, serif name, grey short description), sidebar 'A Living Library of Torah' (+ Learn More, Getting Started (2 min) video link), a promo (Strasbourg/Strapi, not rebuilt), Translations (15 languages → /translations/<code>), Learning Schedules, RESOURCES (upper-case) and the footer links. No API request: the catalog is in the page. Main column text and sidebar text identical to the rebuild's.
 - Layout (1280px): main column x=98…763 (665px), sidebar from x=860, 420px wide, 44px padding; same frame as book pages; category-coloured 4px line on category and book pages.
+- `/` answers 302 → /texts (any query dropped): Browse the Library is the site's home. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- Desktop geometry (1280px): the page scrolls inside .readerNavMenu .content under a fixed header (and promo banner); .contentInner is a 725px column centred beside the 420px sidebar, so the grid starts at x=97.5 with two 327.5px columns 10px apart and rows 6px apart; each .navBlock is a 4px colour line, a 24px/1.3 title (15px over, 8px under, margin-inline-end 20px) and a 14px/18px #666 description; the title row is 22px/500 #666 with 15px under it. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/TextsPage.jsx:42-67`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L42-L67), [`static/js/TextsPage.jsx:25-39`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L25-L39), [`static/js/TextsPage.jsx:53`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L53)
 
@@ -3944,6 +3964,7 @@ The home page has a 'Browse the Library' heading and a language toggle. Editors 
 - LanguageToggleButton only if interface lang != hebrew AND Sefaria._siteSettings.TORAH_SPECIFIC.
 - Class noLangToggleInHebrew always applied.
 - VERIFIED: the aleph/ayin language button also sits on /texts, category pages and book pages (not in the Hebrew interface). It turns that page's CONTENT to Hebrew — titles, ordering, numerals (ב. ב: ג.), right-to-left, tabs mirrored — without changing the site's language or the address; the second icon is the English 'A'. Rebuild: ContentLanguage (state in the page; icons from the old site).
+- The aleph/ayin toggle is the old .languageToggle: 34px, 1px #ccc border, 6px corners. On a phone (≤842px, the old singlePanel) it is hidden in the page (.navTitle .languageToggle display:none) and shown at the right of the mobile header instead, for the 'navigation' menus (home and category pages) — the old Header's hasLanguageToggle; never in the Hebrew interface. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/TextsPage.jsx:76-83`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L76-L83)
 
@@ -3969,6 +3990,7 @@ On phones the home page shows an inline About Sefaria blurb and a Recently Viewe
 - When !multiPanel and not compare: AboutSefaria (hideTitle) rendered at top of content.
 - RecentlyViewed mobile={true} rendered inline above categories when not multiPanel.
 - VERIFIED with a phone UA: the About blurb ('Sefaria is home to 3,000 years of Jewish texts … Learn More ›') sits under 'Browse the Library' on /texts. Rebuilt (AboutBlurb, shown at ≤842px). Still open: the Recently Viewed list (needs the reader's history).
+- Phone layout: page padding 15px, title 25px under the header; the About blurb (AboutSefaria hideTitle) is 16px/normal #666 with 'Learn More ›' straight after the full stop (no gap, no underline — the a.inTextLink rules only apply inside .navSidebar), 34px over the grid; the sidebar follows 50px below the grid (20px margin, 30px padding, then an empty module's 34px) with module titles 10px over their content, not 20px. The desktop-only AboutSefaria module is not in the phone sidebar (TextsPage passes it for multiPanel only). Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/TextsPage.jsx:85-86`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L85-L86), [`static/js/TextsPage.jsx:114`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L114)
 
@@ -4028,6 +4050,8 @@ Each category page lists its sub-categories and texts, with a colored top line, 
 - VERIFIED on 25 pages (/texts/Tanakh, Tanakh/Torah, Mishnah, Talmud, Tosefta, Halakhah/Mishneh Torah, Liturgy, Kabbalah, Jewish Thought, Responsa, Reference, Midrash, Chasidut, Musar, Second Temple …): text of the main column identical. Sidebar 'About <Category>' comes from the category's long description.
 - FOUND with a phone UA: category pages show the category's long description inline (and no 'About <category>' module); on a Talmud page the live text is the longer 'The Talmud (literally, “study”) is the textual record…', ours is the shorter sidebar text. Not yet rebuilt (phone only).
 - VERIFIED geometry (1280px): page title 30px/500 black upper-case; part headings ('TORAH (The Five Books of Moses)') 18px grey serif, the parenthetical in the same style; block titles 24px on a 31.2px line; descriptions 14px on an 18px line; the About text in the sidebar 16px on its natural ~19px line (was 23px). Note: the live face for these is Adobe Garamond Pro (computed font-family 'adobe-garamond-pro'), Cardo here — owner decision pending, which is also why 'TANAKH' is 138px wide against 123px on the live page. Rebuilt for sizes and weights.
+- Geometry (1280px): title row (.navTitle) 40px over the contents; the h1 is 30px/500 uppercase serif, black. Items are .navBlock: a 1px #EDEDEC top line, 24px/1.3 title (15px over, 8px under, 20px end margin), 14px/18px #666 description, 12px under; two 327.5px columns 10px apart, rows 6px apart. A grid NOT inside a section (e.g. /texts/Tanakh/Torah, the top of /texts/Kabbalah) keeps the old .gridBoxItem's 5px top/bottom padding — the zero-padding override only targeted .readerNavCategories and .category grids — so its rows are 16px apart and its first block starts 5px down; the last row's 6px margin collapses into the grid's 40px. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- Phone (singlePanel): the category's long description shows under the title (.categoryDescription.top: 14px #666, margin -26px 0 40px) and the sidebar has no About module. The description is the page category's (tocObjectByCategories(cats), so Talmud → Bavli's), rendered as plain text by ContentText text={…}: Markdown is NOT rendered there (live shows '*masekhtot*' with its asterisks on /texts/Mishnah) — a live bug, reproduced for parity. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/TextCategoryPage.jsx:59-99`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextCategoryPage.jsx#L59-L99)
 
@@ -4069,6 +4093,7 @@ Talmud and Tosefta category pages have a toggle to switch between Bavli/Yerushal
 - Span with onClick, no href (not crawlable / not openable in new tab).
 - Rebuild: the toggle is a real link per edition (/texts/Talmud/Yerushalmi); the old source used spans with onClick and no href.
 - VERIFIED About rule: /texts/Tosefta shows 'About Tosefta', /texts/Tosefta/Lieberman Edition shows 'About Lieberman Edition' (its own description), /texts/Talmud/Bavli and /Yerushalmi show 'About Talmud'. The old code derived this from the ORIGINAL path (Tosefta alone ≠ Tosefta/Vilna Edition).
+- The toggles (.navToggles) are block flow despite their flex-direction (no display:flex): 13px lighter uppercase serif, 12px apart, 16px after the title, 4px down, 30px under; the current one black with a 2px #999 underline 4px below; the rest #666. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/TextCategoryPage.jsx:307-337`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextCategoryPage.jsx#L307-L337)
 
@@ -4084,6 +4109,7 @@ Within a category page, primary sub-categories become links, other sub-categorie
 - Short description <=5 words shown inline in parentheses in the h2; >5 words shown as separate .categoryDescription.long block; chosen by content language.
 - Consecutive text/link items grouped into a ResponsiveNBox grid; nested category divs break the run.
 - **BUG:** one ResponsiveNBox call passes misspelt prop 'intialWidth' (TextCategoryPage.jsx:242).
+- Sections (.category): h2 18px uppercase serif #666, 20px over the contents, the short description inline (5px, not uppercase) or, when longer than 5 words, a 14px line under it (margin -8px 0 20px); 40px under each section (its grid's 40px folds into it). Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/TextCategoryPage.jsx:117-255`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextCategoryPage.jsx#L117-L255), [`static/js/TextCategoryPage.jsx:242`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextCategoryPage.jsx#L242)
 
@@ -4176,6 +4202,7 @@ Categories and text entries carry a consistent color derived from their category
 
 - Sefaria.palette.categoryColor / refColor / indexColor.
 - CategoryColorLine fires a header_viewed impression (sa_event + gtag) once fully visible (Misc.jsx:1633-1646).
+- The 4px category line (.categoryColorLine) is absolutely positioned at the top of .readerNavMenu, outside the scroller: on a wide screen it stays under the header while the page scrolls (and the page starts below it); on a phone it lies over the top of the page and scrolls with it. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/sefaria/sefaria.js:4078-4087`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L4078-L4087), [`static/js/Misc.jsx:1633-1646`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1633-L1646)
 
@@ -4245,6 +4272,7 @@ Navigation pages share a right-hand sidebar built from a configurable list of mo
 - NavSidebar <aside class='navSidebar' role='complementary'> renders sidebarModules in order ({type, props}; type null renders nothing), then SidebarFooter unless includeFooter=false.
 - SidebarModules dispatcher maps 40 type strings to components (AboutSefaria, Promo, Resources, ... StudyCompanion).
 - SidebarModule wrapper .navSidebarModule with optional blue and wide variants; SidebarModuleTitle renders h1 via InterfaceText (string id or en/he).
+- Sidebar geometry: 420px, #fbfbfa, modules 34px apart in block flow (a module's last margin folds into the 34px), titles 22px/500 #666 with a 1px #ccc rule 14px under and 20px over the content; 120px of grey under the footer (the old border-bottom), which sets how far the desktop page scrolls; the footer (.stickySidebarFooter) is an empty titled rule then links 16px #666 with 10px over and 16px after each. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/NavSidebar.jsx:14-84`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L14-L84)
 
@@ -4279,11 +4307,12 @@ Code: [`static/js/NavSidebar.jsx:109-169`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-026 · Sidebar module: Promotions slot
-`standard` `live` · rebuild: **todo** — CMS promo slot not built (dynamic marketing)
+`standard` `live` · rebuild: **partial** — Empty slot kept for spacing; CMS promotions not built
 
 A CMS-driven sidebar advertisement slot.
 
 - <Promotions adType='sidebar'/> (Strapi-driven).
+- The Promo module renders an empty .navSidebarModule when the CMS has nothing (always, in practice): its 34px margin folds into its neighbours' except when it comes first — the phone home page (AboutSefaria is multiPanel-only) and phone category pages without a custom module (e.g. /texts/Mishnah) — where it pushes the first title 34px down. Order: TextsPage [AboutSefaria, Promo, Translations, …]; categories [AboutTextCategory, custom (WeeklyTorahPortion | DafYomi), Promo, Visualizations, SupportSefaria]. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/NavSidebar.jsx:171-175`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L171-L175)
 
@@ -4307,6 +4336,7 @@ A short blurb about Sefaria with Learn More and a Getting Started video.
 
 - Title 'A Living Library of Torah' optional; hard-coded en/he blurb; 'Learn More ›' -> /about.
 - When title shown: 'Getting Started (2 min)' video button (EN: HELP_CENTER_URLS.GETTING_STARTED targeting Voices module; HE: youtube link).
+- 'Getting Started (2 min)' is .button.get-start: 221x39, the vector.svg play icon (not inverted) 10px from the label, margin-top 22px. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/NavSidebar.jsx:192-233`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L192-L233)
 
@@ -4329,6 +4359,7 @@ Source: `inv_05_library_topics.md#4.2`
 Quick links to apps, educator info, visualizations, Torah Tab and help.
 
 - 'Resources' h3 + icon links: Mobile Apps (/mobile), Teach with Sefaria (/educators), Visualizations (/visualizations), Torah Tab (/torah-tab), Help (help center, new tab, he/en URL).
+- Resources is an h3 (15px uppercase, no rule); its links are the old IconLink images (mobile.svg, educators.svg, visualizations.svg, torah-tab.svg, help.svg) 18px, 10px from the label, 29px apart. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/NavSidebar.jsx:275-286`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L275-L286)
 
@@ -4341,6 +4372,7 @@ A sticky footer lists About, Help, Contact, Newsletter, social, Shop, legal and 
 
 - SidebarFooter: About, Help, Contact Us (mailto:hello@sefaria.org), Newsletter (library module origin /newsletter), Blog, Instagram, Facebook, YouTube, Shop, Terms, Privacy Policy, Ways to Give, Donate (en/he donate URLs).
 - VERIFIED footer link list (13): About, Help, Contact Us (mailto), Newsletter, Blog, Instagram, Facebook, YouTube, Shop, Terms, Privacy Policy, Ways to Give, Donate (c_src=Footer; a different campaign in Hebrew).
+- The footer is .stickySidebarFooter.navSidebarModule: an empty <h1/> (its 14px padding and #ccc rule only), then .footerContainer (padding-top 15px) of 16px #666 links each with 10px over and 16px after; it follows the last module directly (sticky top 0), not pushed to the bottom. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/NavSidebar.jsx:289-322`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L289-L322)
 
@@ -4363,6 +4395,7 @@ Source: `inv_05_library_topics.md#4.2`
 A donation appeal with a Donate button.
 
 - Title + text + DonateLink button (heart icon, source 'NavSidebar-SupportSefaria'); blue variant gives white button.
+- 'Make a Donation' is .button.small: as wide as its label (176x39), padding 10px 14px, 12px under the text, the heart.png icon inverted to white, 18px, 10px from the label. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/NavSidebar.jsx:335-345`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L335-L345)
 
@@ -4385,6 +4418,7 @@ Source: `inv_05_library_topics.md#4.2`
 Shows the category's description in the sidebar.
 
 - 'About <Category>'/'אודות' + markdown enDesc/heDesc; hidden if no description in the interface language.
+- Multi-panel only (TextCategoryPage passes it when multiPanel); a phone shows the description under the page title instead. Its Markdown is rendered (reactMarkdown), unlike the phone's copy. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/NavSidebar.jsx:361-377`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L361-L377)
 
@@ -4411,6 +4445,7 @@ A list of languages linking to each translation-language page.
 
 - 'Translations' + blurb + links /translations/<code> for ISOMap entries with showTranslations (native names).
 - **BUG:** includes ro and tr whose pages 404 (see Translations page).
+- Languages are 18px serif, black, joined by '•' (li::after, margin 0 5px), 22px under the description; Hebrew names (Yiddish) render in Taamey Frank via the English serif stack (--english-serif-font-family includes 'Taamey Frank' after adobe-garamond-pro). Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/NavSidebar.jsx:433-441`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L433-L441)
 
@@ -7187,6 +7222,35 @@ Code: [`static/js/SearchPage.jsx`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_06_search.md#16`
 
 
+### Query handling
+
+#### SRC-111 · Search auto-correction and suggestions
+`standard` `live` · rebuild: **done** · *tested*
+
+A misspelt query that finds nothing anywhere is searched as corrected, with a banner to search the original instead; suggestions show as 'Did you mean'.
+
+- GET /api/search-autocorrect?q= → {corrected_query, suggested_queries} (master #3724, sc-47189).
+- A correction is applied only when the typed query finds 0 in Sources, Books, Authors and Topics; a failed count means no correction. Results and counts wait for the decision.
+- Banner in a role=status region above the tabs: 'These are results for X' / 'Search instead for Y' (Y a role=button, Enter/Space); or 'Did you mean: a, b'. Hebrew: 'מוצגות תוצאות עבור', 'חיפוש של', 'האם התכוונת ל:'.
+- 'Search instead for' writes &disable_autocorrect=1 after search_tab; a new query drops it. The search box keeps the typed text; analytics keep the typed q.
+
+Code: [`static/js/sefaria/search.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/search.js), [`static/js/SearchPage.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchPage.jsx), [`static/js/ElasticSearchQuerier.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ElasticSearchQuerier.jsx)
+
+Source: `master #3724`
+
+#### SRC-112 · Auto-switch away from an empty tab
+`standard` `live` · rebuild: **done** · *tested*
+
+When the tab on screen has no results for the query, the page moves to the first tab (Sources, Books, Authors, Topics) that has some.
+
+- Decided once per (query, correction), after every earlier tab's count is known; never once the reader clicked a tab for this query; never in a book's sidebar search.
+- The switch replaces the history entry and is not reported as a tab click.
+
+Code: `static/js/SearchPage.jsx maybeAutoSwitchFromEmptyTab`
+
+Source: `master #3724`
+
+
 ---
 
 # Voices (sheets & community)
@@ -8709,18 +8773,19 @@ Source: `inv_08b_admin_linker_apps.md#4.9 / 4.10`
 ### Header
 
 #### GUI-001 · Mobile header bar
-`standard` `live` · rebuild: **todo** `mobile only`
+`standard` `live` · rebuild: **done** — Pixel parity with a phone User-Agent (scripts/parity-page.mjs) · *tested* `mobile only`
 
 The mobile header shows hamburger, logo and a context-specific language toggle.
 
 - Hamburger, centered logo (TORAH_SPECIFIC only), language toggle (aleph/aye) only for menus navigation/saved/history/notes with non-Hebrew interface; toggles first panel between hebrew and english (Header.jsx:323-345; ReaderApp.jsx:2112-2119).
+- The old .headerInner.mobile: 15px side padding, three boxes spread across (space-between) — the Font Awesome 4 'fa-bars' glyph at 24px in #6f6f6f (20.57x17.14px, its top 4.3px into a 24px line), the 154x25 logo (centred only between the other two boxes, so x≈111 with the 34px toggle, ≈128 without), and the page's content-language toggle or an empty box. There is no interface-language control in the bar (that is in the menu). Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/Header.jsx:323`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L323), [`static/js/ReaderApp.jsx:2112`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2112)
 
 Source: `inv_02_reader_shell.md#10`
 
 #### GUI-002 · Desktop site header
-`core` `live` · rebuild: **done** — Links point to the old site's pages until built · *tested* `desktop only`
+`core` `live` · rebuild: **done** — Pixel parity at 1280px incl. focus state and drop-downs (scripts/parity-page.mjs, parity-header-states.mjs); links point to the old site's pages until built · *tested* `desktop only`
 
 The header gives access to main sections, search, donate, account and module switching.
 
@@ -8729,6 +8794,7 @@ The header gives access to main sections, search, donate, account and module swi
 - GlobalWarningMessage renders inside header.
 - VERIFIED 2026-10-05 (/texts, signed out, English): role=banner .header > .headerInner (60px, box-shadow) with nav aria-label 'Primary navigation': logo link (aria-label 'Sefaria library logo'), 'Texts' /texts, 'Topics' /topics, 'Donate' (donate.sefaria.org …?c_src=Header, new tab). Hebrew labels: מקורות, נושאים, תרומה. The desktop header shows from 900px up; at 842px and below the mobile header replaces it (the same 842px where panels go single-column).
 - Rebuild: SiteHeader (src/ui/SiteHeader). Destinations the client does not have yet are the old site's pages (src/lib/shell/links.ts). While reading on a phone the header is hidden (live: same).
+- Desktop bar: links 16px/500 #666 nudged down translateY(0.15em) (0.1em Hebrew), 30px apart, 60px after the 154x25 logo; search box 250x30, radius 250px, #ededec, the 18px search_mdl.svg 6px down/7px in and 9px from an 18px Cardo input that runs to the end; the keyboard_mdl.svg icon appears inside it on focus, 7px from the end; no focus ring after a click (only when tabbing, body.user-is-tabbing). 843–1086px: the logo becomes the 19x25 samech mark, links 24px apart and 20px after it, icons 16px apart. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/Header.jsx:236`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L236), [`static/js/Header.jsx:347`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L347)
 
@@ -8745,6 +8811,7 @@ Search box plus account/auth buttons, help, language and module switching.
 - VERIFIED 2026-10-05 geometry (1280px): header 60px, 30px sides; logo 154×25; Texts/Topics/Donate 16px/500 #666 at x=244/313/391 (60px after the logo, 30px apart, no boxes); search 250×30 (pill, 18px input) → 20px → Sign Up 74×28 (padding 6px 12px) → 20px → four 18px icons 20px apart ending at x=1250. Rebuild matched (it had 34px-tall controls and padded link boxes).
 - FOUND: the site header's menus (language, Library, account) opened UNDER the reader's sticky panel header (z-index 100 vs 20), hiding their items; the header is now z-index 110.
 - REBUILD: Sign Up goes to the client's /register?next= (in-app, data-signup-source=nav_bar).
+- Right side: search, Sign Up (74x28, 14px/14px, 1px transparent border), then 18px image icons (help_mdl, globallanguageswitcher_mdl, moduleswitcher_mdl, profile_loggedout_mdl) 20px apart, the last 30px from the edge; every gap 20px. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/Header.jsx:291`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L291)
 
@@ -8839,6 +8906,7 @@ A grid-icon menu switches between Sefaria products.
 - Items: logo -> /about; Library (blue dot, /, new tab if not current module); Voices (green dot); Developers (purple dot, developers.sefaria.org, new tab); 'More from Sefaria >' -> /products (new tab) (Header.jsx:150-202).
 - Analytics: modswitch_item_click, modswitch_open/close; passive close (Escape/outside click) fires gtag modswitch_close.
 - VERIFIED 2026-10-05: menu = logo link (/about), separator, Library (blue dot), Voices (green dot), Developers (purple dot, developers.sefaria.org), 'More from Sefaria >' (/products).
+- Drop-down (moduleDropdown): the full 'Sefaria' logo (logo.svg, 100x32) then Library / Voices / Developers with 12px dots (#18345D, #518159, #7C416F — the inline dot sits on the text baseline, not centred) and 'More from Sefaria ›' centred, every row 15px top and bottom, separators without margins. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/Header.jsx:150`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L150)
 
@@ -8856,6 +8924,7 @@ The profile icon opens account links that differ by login state and module.
 - Logged in (ProfilePic) (78-148): name bold prevent-close (links to profile in Voices); Library: Account Settings (/settings/account), Torah Tracker (/torahtracker); Voices: Profile, Saved, History, Account Settings (Library module); Site language toggle; New Additions (Library); Help; Log Out (Sefaria.getLogoutUrl()).
 - Rebuild: signed-out profile menu = Log in, Sign up, Site Language, New Additions (/updates), Help — with the library's account pages behind the links until accounts exist.
 - REBUILD (2026-10-06): signed-in menu built from Header.jsx LoggedInDropdown (Library module): profile picture (initials on #6f6f6f when there is none or a gravatar has not loaded), bold name, Account Settings, Torah Tracker, Site Language, New Additions, Help, Log Out (/logout?next=/texts). Signed in, the header drops Sign Up and the globe menu and shows Saved (/saved), as the old header does. Not checked live signed in (needs an account; e2e/auth-signed-in.spec.ts runs against a deployment).
+- All header drop-downs: 200px white card 35px under the icon's top, end-aligned to it, shadow 0 1px 3px rgba(0,0,0,.25), radius 6px; items 16px black, 15px in, first 10/5px, middle 5/5px, last 5/10px; separators 5px margins; the language block is 'Site Language' (14px/18px #6f6f6f) over 'English • עברית'. The globe's menu rules the heading off (12px padding, #ccc line) and stacks the languages 33px apart with a Font Awesome tick by the current one. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/Header.jsx:43`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L43), [`static/js/Header.jsx:78`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L78)
 
@@ -8865,7 +8934,7 @@ Source: `inv_02_reader_shell.md#16`
 ### Mobile nav
 
 #### GUI-011 · Mobile navigation menu
-`core` `live` · rebuild: **partial** — Signed-out menu; search without autocomplete · *tested* `mobile only`
+`core` `live` · rebuild: **done** — Legacy layout, pixel parity signed out · *tested* `mobile only`
 
 A slide-out menu holds search, sections, account and cross-product links on mobile.
 
@@ -8874,6 +8943,7 @@ A slide-out menu holds search, sections, account and cross-product links on mobi
 - Cross-module switcher (Voices on Sefaria <-> Library); Developers on Sefaria; More from Sefaria (/products); Logout or Sign up/Log in (in-app auth, closes menu). Slides open via 'closed' class toggle.
 - VERIFIED 2026-10-05 (390px): bar = menu button (aria-label 'Menu'), centred logo, aleph/ayin language toggle; slide-out nav (aria-label 'Mobile navigation menu') = search, Texts, Topics, Learning Schedules (/calendars), Donate (c_src=MobileNavMenu), language toggle 'English • עברית', Get Help, About Sefaria (/mobile-about-menu), Voices on Sefaria, Developers on Sefaria, More from Sefaria, Sign up, Log in.
 - REBUILD: signed in, the phone menu has Saved, History & Notes, Account Settings and Logout instead of Sign up / Log in.
+- Layout: a fixed white sheet under the header filling the screen; search line 15px/10px with a #ededec rule; full-width rows 16px #666, 15px padding, 16px icons (book, topic, calendar, heart.png inverted on the blue Donate row) 15px from the label; the account part on #fbfbfa between #ccc rules: language row (globe, 'English • עברית'), Get Help, About, Voices/Developers with 16px dots, More from Sefaria (chevron), Sign up (login.svg) / Log in, groups split by #ededec hr lines. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/Header.jsx:425`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L425)
 
@@ -8889,6 +8959,7 @@ Interface strings render in English or Hebrew by interface language with fallbac
 
 - Renders span.int-en / span.int-he; accepts text/html/markdown objects {en,he} with fallback to other language (class enInHe/heInEn), single string child translated with Sefaria._, or <EnglishText>/<HebrewText> children.
 - Markdown via ReactMarkdown with configurable disallowed elements (default p); links get rel noopener (Misc.jsx:100-167).
+- Rebuild: InterfaceText also sets `dir` (the old `.int-he { direction: rtl }`; a fallback side keeps its own direction, the old `.enInHe` isolate).
 
 Code: [`static/js/Misc.jsx:100`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L100)
 
@@ -9620,7 +9691,7 @@ Source: `inv_08_other.md#4.1`
 ### Site banners
 
 #### PRM-014 · Site-wide banner with maybe-later back-off
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — Library Assistant promo with the old back-off; generic SiteWideBanner (Strapi) not built · *tested*
 
 A generic promotional banner can be dismissed permanently or snoozed so it returns later, up to three times.
 
@@ -9629,6 +9700,7 @@ A generic promotional banner can be dismissed permanently or snoozed so it retur
 - Nudge schedule {1:{sessions:2,days:7}, 2:{sessions:4,days:21}}; max 3 maybe-later then hidden forever; migrates legacy cookie
 - SSR-safe (renders nothing until mounted); promo_viewed once per session; promo_clicked with feature_name
 - Cookie names chatbot_experiment_banner_dismissed, signup_promo_banner_dismissed
+- Geometry (1280px): a 104px #f7f7f7 strip under the header (padding 10px, 1px lightgrey rule), the #653259 card radius 10px padding 20px; ai-double-star.svg 41x43, 18px from two lines (16px 600 white; 16px at 0.85 opacity, 4px apart); buttons 38px high, 14px/18px 600: 'Log in to Try' white with a shadow, 'Maybe later' transparent; 50px before the buttons, 20px between them. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/SiteWideBanner.jsx:5`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SiteWideBanner.jsx#L5), [`static/js/SiteWideBanner.jsx:105`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SiteWideBanner.jsx#L105)
 
@@ -10119,6 +10191,7 @@ The site picks interface and content language automatically from the user's prof
 - Version preferences by corpus from profile or version_preferences_by_corpus cookie
 - Order: profile interface_language -> interfaceLang cookie -> cf-ipcountry (IL -> hebrew) -> Accept-Language (he, he-il) -> english; only english/hebrew allowed.
 - For /api/, /_api/, /linker*.js, /interface/, /accounts/, /_allauth/, AASA, /.well-known/, static: resolved from cookie/header only, no redirect, contentLang=bilingual.
+- BUILT 2026-10-29: lib/i18n/content-lang ContentLangProvider / useContentLang (the old ContentLanguageContext); the sidebar (ConnectionsPanel) provides lang2. ContentText shows the content-language side of {en, he} with its lang and dir, strict like the old ContentText (an optional `fallback` shows the other side in its own direction); with no provider it follows the interface language.
 
 Code: [`sefaria/system/middleware.py:85`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/system/middleware.py#L85), [`sefaria/system/middleware.py:209`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/system/middleware.py#L209), [`sefaria/system/middleware.py:85-127`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/system/middleware.py#L85-L127)
 
@@ -10171,6 +10244,8 @@ The interface mirrors for Hebrew, with Hebrew numerals and dates.
 - RTL-aware icons (chevrons, arrows) and reCAPTCHA scaling
 - Hebrew numerals via Sefaria.hebrew.encodeHebrewNumeral; Hebrew calendar dates via Hebcal (util.js:113-121)
 - Manifest dir rtl, lang he for Hebrew
+- Old client: direction comes from CSS classes, not attributes — `.he` / `.int-he` / `.contentText.he` / `.readerPanel .he` set `direction: rtl` (and `text-align: right` in a panel); a connected text's block (`.segment.heOnly`) is rtl + justify, so a Hebrew commentary's short last line sits at the right. VERIFIED on sefaria.org Exodus 18:1 with=Rashi lang2=he, 2026-10-29.
+- BUILT 2026-10-29: src/ui/LangText — LangText sets `lang` and `dir` together on any element (dir from the data, e.g. a version's `direction`, else lib/i18n/direction dirFor: he, arc, yi, jrb, ar, fa…); InterfaceText renders through it. The architecture rule `lang-with-dir` counts elements that set lang without dir (baseline may only shrink). Found: the sidebar's text list tagged only the inline text span, so Hebrew Rashi in an English-interface page laid out left-to-right (owner's screenshot, 2026-10-29).
 
 Code: [`static/js/ReaderApp.jsx:118`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L118), [`static/js/sefaria/util.js:113`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/util.js#L113)
 
@@ -10184,11 +10259,12 @@ Source: `inv_08_other.md#5.3`
 ### Library Assistant
 
 #### AI-001 · Chatbot experiment banner (shell mount)
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet · *tested*
 
 A site-wide banner invites eligible users to try the Library Assistant.
 
 - Shows only when module is Library, show_join_chatbot_banner set, not mobile, !Sefaria.in_chatbot_experiment (ReaderApp.jsx:2574). Behavior details: see SiteWideBanner entry.
+- Mounted only for the library module, wide screens (not mobile), when remote config feature.client.show_join_chatbot_banner is true and the reader is not already in the experiment; never on /login, /register, /password/reset/confirm. Signed out: 'Log in to Try' → /login?next=/enable-library-assistant?next=<page> (data-signup-source la_banner), cookie signup_promo_banner_dismissed. Signed in: 'Try It' posts profile settings {library_assistant: true} and reloads (cookie chatbot_experiment_banner_dismissed). Back-off schedule from feature.chatbot.promoMaybeLaterJSON, session length from feature.chatbot.promoSessionLengthSeconds. Verified on www.sefaria.org with Playwright, 2026-10-29.
 
 Code: [`static/js/ReaderApp.jsx:2574`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2574)
 

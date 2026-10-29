@@ -1,0 +1,16 @@
+/* VERIFIED on sefaria.org (s2.css .three-dots-button): a 22px #ededec circle, the black 10px three-dots.svg centred */
+.dots {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--sefaria-color-border-light);
+  color: var(--sefaria-color-text-strong);
+  cursor: pointer;
+}
+.dots:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
