@@ -40,6 +40,9 @@ export interface IndexDetails {
   compPlace?: string;
   pubPlace?: string;
   relatedTopics?: RelatedTopic[];
+  /** A dictionary's lexicon ("Jastrow Dictionary"): on the index, or on its DictionaryNode in the schema. */
+  lexiconName?: string;
+  schema?: { lexiconName?: string; nodes?: unknown[] };
 }
 
 export const indexDetailsQueryOptions = (title: string) =>

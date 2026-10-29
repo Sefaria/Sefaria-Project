@@ -6846,6 +6846,31 @@
   "src": "inv_04_connections.md#23"
  },
  {
+  "id": "CON-072",
+  "area": "connections",
+  "group": "Moderator tools",
+  "name": "Edit a dictionary entry (moderator)",
+  "summary": "On a dictionary entry, moderators get Advanced → Change Lexicon Headword and Edit Lexicon Content (#3730).",
+  "details": [
+   "Shown when Sefaria.is_moderator and the book's categories include Dictionary (ConnectionsPanel.jsx AdvancedToolsList); modes LexiconHeadwordEdit / LexiconContentEdit.",
+   "The entry is the section ref after '<index title>, ' with the index's lexiconName (LexiconEntryEditBox resolveLexiconEntryRef); otherwise 'This tool is only available while viewing a lexicon entry.'",
+   "Headword: PATCH /api/lexicon-entry/headword/<lexicon>/<headword> {new_headword}; 'Saved as \"X\".' or '(adjusted from \"Y\")' when the server disambiguated or normalized it.",
+   "Content: GET /api/lexicon-entry/<lexicon>/<headword> → the content_attr_names fields as a tree (no adding or deleting keys); each string a WYSIWYG field (bold, italic, superscript, subscript, Sefaria ref link with display text) with Cancel; Save PATCHes {content}.",
+   "Errors come back with a real status and {error}, shown as is."
+  ],
+  "audience": "moderator",
+  "platform": "all",
+  "status": "live",
+  "tier": "extended",
+  "refs": [
+   "static/js/LexiconHeadwordEditBox.jsx:7",
+   "static/js/LexiconContentEditBox.jsx:30",
+   "static/js/LexiconWysiwygValue.jsx:70",
+   "static/js/ConnectionsPanel.jsx:1092"
+  ],
+  "src": "admin inventory 2026-10-29"
+ },
+ {
   "id": "VER-001",
   "area": "versions",
   "group": "Translation preferences",

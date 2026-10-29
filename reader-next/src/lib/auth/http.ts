@@ -18,7 +18,7 @@ export interface PostResult<T = Record<string, unknown>> {
 /** An absolute URL on the page's own origin (fetch in some environments refuses a bare path). */
 export const sameOrigin = (path: string) => (typeof window !== "undefined" ? new URL(path, window.location.href).href : path);
 
-async function request(method: "POST" | "DELETE", url: string, body?: string, contentType?: string): Promise<PostResult> {
+async function request(method: "POST" | "PATCH" | "DELETE", url: string, body?: string, contentType?: string): Promise<PostResult> {
   try {
     const csrf = await ensureCsrfToken();
     const res = await fetch(sameOrigin(url), {
@@ -39,6 +39,9 @@ export const postJson = (url: string, body: unknown) => request("POST", url, JSO
 
 /** POST a form-encoded body. */
 export const postForm = (url: string, body: URLSearchParams) => request("POST", url, body.toString(), "application/x-www-form-urlencoded");
+
+/** PATCH a JSON body (moderator tools: a dictionary entry). */
+export const patchJson = (url: string, body: unknown) => request("PATCH", url, JSON.stringify(body), "application/json");
 
 /** DELETE a resource (moderator tools: a connection, a topic link). */
 export const deleteRequest = (url: string) => request("DELETE", url);
