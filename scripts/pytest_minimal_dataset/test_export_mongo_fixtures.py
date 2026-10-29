@@ -435,3 +435,12 @@ def test_output_dir_is_honoured_for_manifest(tmp_path, monkeypatch):
     assert manifest["source"]["dump_url"] == "https://example.test/dump"
     assert manifest["source"]["etag"] == "e1"
     assert list(default_dir.iterdir()) == []
+
+
+def test_stamp_help_says_replaces_not_merged(monkeypatch, capsys):
+    # write_manifest stores the stamp as the whole `source`; the help must not promise a merge
+    monkeypatch.setattr(sys, "argv", ["export_mongo_fixtures.py", "--help"])
+    with pytest.raises(SystemExit):
+        exp.main()
+    help_text = " ".join(capsys.readouterr().out.split())
+    assert "replaces the manifest's source" in help_text and "merged" not in help_text

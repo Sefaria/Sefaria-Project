@@ -63,3 +63,34 @@ def test_reader_before_sefaria_arg_order():
 def test_mock_session_has_no_real_client():
     from sefaria.system import database
     assert type(database.client).__module__.startswith("mongomock") and database.MONGO_PORT == 27099
+
+
+def test_reader_then_repo_root_args_do_not_double_register():
+    # `pytest reader/tests .` registered sefaria.conftest twice under different names (ValueError)
+    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "--collect-only", "reader/tests/static_pages_test.py", "."],
+                       cwd=ROOT, capture_output=True, text=True, env={**os.environ, **MOCK}, timeout=300)
+    assert "already registered" not in r.stdout + r.stderr, (r.stdout + r.stderr)[-800:]
+    assert r.returncode == 0, (r.stdout + r.stderr)[-800:]
+
+
+def _session_exit(**env):
+    return subprocess.run([sys.executable, "-m", "pytest", "-q", "--collect-only", "sefaria/tests/mongo_shapes_wiring_test.py"],
+                          cwd=ROOT, capture_output=True, text=True, env={**os.environ, **MOCK, **env}, timeout=300)
+
+
+def test_unknown_shapes_mode_aborts_the_session():
+    r = _session_exit(SEFARIA_FIXTURE_SHAPES="wrte")
+    assert r.returncode == 4 and "SEFARIA_FIXTURE_SHAPES" in r.stdout + r.stderr, (r.stdout + r.stderr)[-800:]
+
+
+def test_incomplete_ok_in_ci_aborts_the_session_not_a_test():
+    r = _session_exit(SEFARIA_MOCK_MONGO_INCOMPLETE_OK="1", CI="true")
+    assert r.returncode == 4 and "INCOMPLETE_OK" in r.stdout + r.stderr, (r.stdout + r.stderr)[-800:]
+
+
+def test_incomplete_ok_in_ci_aborts_when_only_the_repo_root_is_collected():
+    # `pytest .` discovers sefaria/conftest.py during collection, after pytest_sessionstart fired
+    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "--collect-only", "."], cwd=ROOT, capture_output=True,
+                       text=True, env={**os.environ, **MOCK, "SEFARIA_MOCK_MONGO_INCOMPLETE_OK": "1", "CI": "true"},
+                       timeout=300)
+    assert r.returncode == 4 and "INCOMPLETE_OK" in r.stdout + r.stderr, (r.stdout + r.stderr)[-800:]

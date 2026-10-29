@@ -19,18 +19,13 @@ def test_empty_overlay_collection_that_exists_is_noop():
 
 def test_missing_fixture_fails_with_command():
     with pytest.raises(pytest.fail.Exception) as e:
-        sc._fixture_path_or_fail("x::y", incomplete_ok=False, ci=False)
+        sc._fixture_path_or_fail("x::y", incomplete_ok=False)
     assert "rerecord_fixtures.py --only 'x::y'" in str(e.value)
 
 
 def test_incomplete_ok_skips_locally():
     with pytest.raises(pytest.skip.Exception):
-        sc._fixture_path_or_fail("x::y", incomplete_ok=True, ci=False)
-
-
-def test_incomplete_ok_refused_in_ci():
-    with pytest.raises(pytest.UsageError):
-        sc._fixture_path_or_fail("x::y", incomplete_ok=True, ci=True)
+        sc._fixture_path_or_fail("x::y", incomplete_ok=True)
 
 
 def _base_counts():

@@ -198,3 +198,23 @@ def test_main_prints_fix_lines_once_and_exits_zero_when_clean(tmp_path, capsys):
 
 def test_sanitize_matches_exporter():
     assert cf.sanitize_nodeid is exp.sanitize_nodeid
+
+
+def test_orphan_shapes_entry_is_a_finding(tmp_path):
+    ids = ["a_test.py::test_one"]
+    d = build(tmp_path, ids)
+    (d / "_shapes.json").write_text(json.dumps(
+        {"format": 1, "shapes": {ids[0]: {}, "gone_test.py::test_removed": {}}, "schema": {}}))
+    findings, _ = cf.check(ids, str(d))
+    assert kinds(findings) == ["shapes"]
+    assert "gone_test.py::test_removed" in findings[0][1] and findings[0][2].endswith("--prune")
+
+
+@pytest.mark.parametrize("victim", ["_shapes.json", "_manifest.json", "_base.json"])
+@pytest.mark.parametrize("content", ["{not json", "[1, 2]"])
+def test_corrupt_metadata_json_exits_2(tmp_path, capsys, victim, content):
+    ids = ["a_test.py::test_one"]
+    d = build(tmp_path, ids)
+    (d / victim).write_text(content)
+    assert cf.main(["--fixture-dir", str(d)], collected=set(ids)) == 2
+    assert "cannot read the fixtures" in capsys.readouterr().err

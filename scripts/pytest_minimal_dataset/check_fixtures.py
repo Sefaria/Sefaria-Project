@@ -39,8 +39,12 @@ def _sha(raw):
 
 
 def _load_json(path):
+    """A fixture metadata file as a dict. Raises ValueError when it is not valid JSON or not an object."""
     with open(path, "rb") as fh:
-        return json.loads(fh.read())
+        payload = json.loads(fh.read())
+    if not isinstance(payload, dict):
+        raise ValueError(f"{os.path.basename(path)} must hold a JSON object")
+    return payload
 
 
 def check(collected, fixture_dir, max_total=20 * MIB, max_base=17 * MIB):
@@ -52,7 +56,7 @@ def check(collected, fixture_dir, max_total=20 * MIB, max_base=17 * MIB):
         if name in wanted:
             findings.append(("collision", f"{nid} and {wanted[name]} -> {name}", None))
         wanted[name] = nid
-    # Any underscore-prefixed json (e.g. _not-mockable.json) is metadata, not a per-test fixture.
+    # Any underscore-prefixed json (_base, _manifest, _shapes) is metadata, not a per-test fixture.
     present = {n for n in os.listdir(fixture_dir) if n.endswith(".json") and not n.startswith("_")} - RESERVED
     for name, nid in sorted(wanted.items()):
         if name not in present:
@@ -100,7 +104,7 @@ def check(collected, fixture_dir, max_total=20 * MIB, max_base=17 * MIB):
     else:
         with open(base_path, "rb") as fh:
             base_raw = fh.read()
-        extras = sorted(set(json.loads(base_raw).get("collections", {})) - set(BASE_COLLECTIONS))
+        extras = sorted(set(_load_json(base_path).get("collections", {})) - set(BASE_COLLECTIONS))
         if extras:
             findings.append(("base", f"_base.json has collections outside BASE_COLLECTIONS: {', '.join(extras)}", RERECORD))
         if manifest is not None and manifest.get("base", {}).get("sha256") != _sha(base_raw):
@@ -116,6 +120,9 @@ def check(collected, fixture_dir, max_total=20 * MIB, max_base=17 * MIB):
         for name in sorted(present & set(wanted)):
             if wanted[name] not in shapes:
                 findings.append(("shapes", wanted[name], RERECORD))
+        for nid in sorted(set(shapes) - set(wanted.values())):
+            findings.append(("shapes", f"_shapes.json has an entry for {nid}, which is not a collected needs_mongo test (orphan)",
+                             f"{RERECORD} --prune"))
 
     total = sum(os.path.getsize(os.path.join(fixture_dir, n)) for n in os.listdir(fixture_dir)
                 if os.path.isfile(os.path.join(fixture_dir, n)))
@@ -138,7 +145,11 @@ def main(argv=None, collected=None):
         except ci_parity.CollectionError as exc:
             print(f"cannot collect tests: {exc}", file=sys.stderr)
             return 2
-    findings, warnings = check(collected, args.fixture_dir)
+    try:
+        findings, warnings = check(collected, args.fixture_dir)
+    except (ValueError, OSError) as exc:  # a corrupt or unreadable metadata file is an internal error, not a finding
+        print(f"cannot read the fixtures: {exc}", file=sys.stderr)
+        return 2
     for warning in warnings:
         print(f"WARNING: {warning}")
     for kind, subject, _ in findings:

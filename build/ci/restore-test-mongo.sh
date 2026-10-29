@@ -18,6 +18,13 @@ MONGO_IMAGE=${MONGO_IMAGE:-mongo:4.4}
 WORK=${WORK:-/mnt/test-mongo}
 PORT=${PORT:-27017}
 CONTAINER=${CONTAINER:-test-mongo}
+# For a small machine (a 16 GB laptop OOM-killed the default restore): MONGOD_ARGS are extra
+# mongod arguments, e.g. MONGOD_ARGS="--wiredTigerCacheSizeGB 1"; RESTORE_PARALLEL is
+# mongorestore's --numParallelCollections (default 4, use 1 to lower peak memory).
+MONGOD_ARGS=${MONGOD_ARGS:-}
+RESTORE_PARALLEL=${RESTORE_PARALLEL:-4}
+case "$RESTORE_PARALLEL" in ''|*[!0-9]*|0) echo "RESTORE_PARALLEL must be a positive integer, got '$RESTORE_PARALLEL'" >&2; exit 2;; esac
+read -ra MONGOD_EXTRA <<< "$MONGOD_ARGS"
 
 phase() { echo "::group::$1"; PHASE_START=$(date +%s); }
 done_phase() { echo "$1 took $(( $(date +%s) - PHASE_START ))s"; echo "::endgroup::"; }
@@ -29,7 +36,7 @@ if ! mkdir -p "$WORK/data" "$WORK/dump" 2>/dev/null; then
 fi
 
 phase "Start $MONGO_IMAGE"
-docker run -d --name "$CONTAINER" -p "127.0.0.1:$PORT:27017" -v "$WORK/data:/data/db" "$MONGO_IMAGE" >/dev/null
+docker run -d --name "$CONTAINER" -p "127.0.0.1:$PORT:27017" -v "$WORK/data:/data/db" "$MONGO_IMAGE" ${MONGOD_EXTRA[@]+"${MONGOD_EXTRA[@]}"} >/dev/null
 for _ in $(seq 1 60); do
   docker exec "$CONTAINER" mongo --quiet --eval 'db.runCommand({ping: 1}).ok' 2>/dev/null | grep -q 1 && break
   sleep 1
@@ -71,7 +78,7 @@ done
 
 phase "Restore into database sefaria"
 docker run --rm --network host -v "$WORK/dump:/dump" "$MONGO_IMAGE" \
-  mongorestore --host "127.0.0.1:$PORT" --drop --numParallelCollections 4 --quiet \
+  mongorestore --host "127.0.0.1:$PORT" --drop --numParallelCollections "$RESTORE_PARALLEL" --quiet \
   --nsInclude 'sefaria.*' ${NS_EXCLUDE_ARGS[@]+"${NS_EXCLUDE_ARGS[@]}"} \
   --dir /dump/dump
 done_phase "restore"

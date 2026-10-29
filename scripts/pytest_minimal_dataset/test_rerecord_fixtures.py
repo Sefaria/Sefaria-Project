@@ -102,10 +102,11 @@ def test_restore_never_with_empty_mongo_fails(tmp_path):
     assert not fake.find("export_mongo_fixtures.py")
 
 
-def test_refuses_non_loopback(tmp_path):
-    rc, fake, _ = run_main(tmp_path, ["--mongo-host", "db.example.com"])
-    assert rc != 0
-    assert fake.calls == []
+def test_mongo_host_option_is_gone(tmp_path):
+    # --mongo-host was only half wired (restore and recording ignored it); the source is always loopback
+    with pytest.raises(SystemExit) as exc:
+        run_main(tmp_path, ["--mongo-host", "db.example.com"])
+    assert exc.value.code == 2
 
 
 def test_order_of_steps(tmp_path):
@@ -229,3 +230,17 @@ def test_help_documents_flags_and_teardown(capsys):
     for flag in ("--only", "--mongo-port", "--restore", "--output-dir", "--prune"):
         assert flag in text
     assert "docker rm -f sefaria-fixtures-mongo" in text
+
+
+def test_prune_drops_orphan_shape_entries(tmp_path, committed):
+    shapes = {"format": 1, "schema": {}, "shapes": {NODEID: {}, "gone_test.py::test_old": {"c": ["f"]}}}
+    (committed / "_shapes.json").write_text(json.dumps(shapes))
+    rc, fake, out = run_main(tmp_path, ["--prune"])
+    assert list(json.loads((out / "_shapes.json").read_text())["shapes"]) == [NODEID]
+    assert "gone_test.py::test_old" in json.loads((committed / "_shapes.json").read_text())["shapes"]
+
+
+def test_no_prune_keeps_orphan_shape_entries(tmp_path, committed):
+    (committed / "_shapes.json").write_text(json.dumps({"format": 1, "schema": {}, "shapes": {"gone::t": {}}}))
+    rc, fake, out = run_main(tmp_path, [])
+    assert "gone::t" in json.loads((out / "_shapes.json").read_text())["shapes"]

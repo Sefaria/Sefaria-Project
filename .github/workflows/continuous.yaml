@@ -217,9 +217,8 @@ jobs:
   # talk to a real mongod.
   #
   # pytest-job keeps the required check name "Continuous Testing: PyTest".
-  # sefaria/tests/fixtures/mongo/_not-mockable.json is empty: tests the mock cannot
-  # represent carry needs_corpus instead, so every job's collection (and the parity
-  # check) still sees them.
+  # Tests the mock cannot represent carry needs_corpus, so every job's collection
+  # (and the parity check) still sees them.
   #
   # Tests that the mocked library genuinely cannot represent (they need the full
   # ~6,600-index corpus, real Elasticsearch, or a Mongo feature mongomock does not
@@ -277,15 +276,25 @@ jobs:
         # pytest jobs in this workflow, pytest-corpus-job included.
         # On pull_request the baseline is the base branch, not this checkout's
         # master: a test removed upstream is informational, a hidden one fails.
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           ARGS=()
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+            git fetch --no-tags --depth=1 origin "$BASE_REF"
             ARGS+=(--baseline-ref FETCH_HEAD)
           fi
           python scripts/test_impact/ci_parity.py "${ARGS[@]}"
       - name: Fixtures were not rewritten by the tests
-        run: git diff --exit-code -- sefaria/tests/fixtures/mongo
+        # git status, not git diff: a test that writes a new fixture file leaves it untracked,
+        # which git diff --exit-code does not see.
+        run: |
+          changes=$(git status --porcelain -- sefaria/tests/fixtures/mongo)
+          if [ "$changes" ]; then
+            echo "The tests changed the committed Mongo fixtures:"
+            echo "$changes"
+            exit 1
+          fi
   pytest-job:
     name: "Continuous Testing: PyTest"
     needs: [ check-python-files ]
@@ -318,7 +327,15 @@ jobs:
           -m "not deep and not failing and needs_mongo and not needs_linker and not needs_corpus"
           ./sefaria ./sso ./reader ./powered_by
       - name: Fixtures were not rewritten by the tests
-        run: git diff --exit-code -- sefaria/tests/fixtures/mongo
+        # git status, not git diff: a test that writes a new fixture file leaves it untracked,
+        # which git diff --exit-code does not see.
+        run: |
+          changes=$(git status --porcelain -- sefaria/tests/fixtures/mongo)
+          if [ "$changes" ]; then
+            echo "The tests changed the committed Mongo fixtures:"
+            echo "$changes"
+            exit 1
+          fi
   pytest-linker-job:
     name: "Continuous Testing: PyTest (linker)"
     needs: [ check-python-files ]
@@ -349,7 +366,15 @@ jobs:
           -m "not deep and not failing and needs_linker and not needs_corpus"
           ./sefaria ./sso ./reader ./powered_by
       - name: Fixtures were not rewritten by the tests
-        run: git diff --exit-code -- sefaria/tests/fixtures/mongo
+        # git status, not git diff: a test that writes a new fixture file leaves it untracked,
+        # which git diff --exit-code does not see.
+        run: |
+          changes=$(git status --porcelain -- sefaria/tests/fixtures/mongo)
+          if [ "$changes" ]; then
+            echo "The tests changed the committed Mongo fixtures:"
+            echo "$changes"
+            exit 1
+          fi
   # Tests marked needs_corpus: the mocked library cannot represent them (real
   # texts/links, the full ~6,600-index library, Mongo features mongomock lacks).
   # They run against a real MongoDB on this runner, restored from Sefaria's public
