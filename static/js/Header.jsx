@@ -407,7 +407,7 @@ Header.propTypes = {
   notificationCount: PropTypes.number,
 };
 
-// Log in / Sign up as one light row at the top of the mobile menu so logged-out users see them as soon as the menu opens
+// Sign up / Log in as one light row at the top of the mobile menu so logged-out users see them as soon as the menu opens
 const MobileAuthRow = ({ openURL, close }) => {
   const openAuth = (flow) => (e) => {
     e.preventDefault();
@@ -417,12 +417,12 @@ const MobileAuthRow = ({ openURL, close }) => {
   return (
     <div className="mobileAuthRow">
       <img src="/static/icons/profile.svg" alt="" />
-      <a href="/login" onClick={openAuth('login')}>
-        <InterfaceText>header.log_in</InterfaceText>
-      </a>
-      <span className="mobileAuthRowSeparator" aria-hidden="true">•</span>
       <a href="/register" onClick={openAuth('register')}>
         <InterfaceText text={{ 'en': 'Sign up', 'he': 'הרשמה' }} />
+      </a>
+      <span className="mobileAuthRowSeparator" aria-hidden="true">•</span>
+      <a href="/login" onClick={openAuth('login')}>
+        <InterfaceText>header.log_in</InterfaceText>
       </a>
     </div>
   );
