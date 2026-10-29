@@ -88,6 +88,16 @@ const WINDOW_FIELDS = {
   sidebarAd: ['startTime', 'endTime'],
 };
 
+// The default donor checkboxes for banners and modals (sidebar ads don't have them): both
+// unticked, which means "no donor restriction" (matchesDonorAudience in
+// static/js/sefaria/strapiSelection.js). That is also how real documents published before these
+// fields existed arrive, so every spec written before them still describes the same content.
+// A spec narrows the audience by ticking one box, e.g. { showToDonor: true }.
+//
+// The four user-kind boxes below (showToNewVisitors etc.) default to TICKED instead, because
+// that is what the recordings contain; a spec narrows those by unticking the others.
+const DONOR_AUDIENCE_UNRESTRICTED = Object.freeze({ showToDonor: false, showToNonDonor: false });
+
 /**
  * Every field the GraphQL query in static/js/context.js asks for, with a default.
  *
@@ -121,6 +131,7 @@ const FIELD_DEFAULTS = {
     showToReturningVisitors: true,
     showToSustainers: true,
     showToNonSustainers: true,
+    ...DONOR_AUDIENCE_UNRESTRICTED,
     shouldDeployOnMobile: true,
     countriesToTarget: null, // null targets everyone
     locale: null, // set per emitted row
@@ -144,6 +155,7 @@ const FIELD_DEFAULTS = {
     showToReturningVisitors: true,
     showToSustainers: true,
     showToNonSustainers: true,
+    ...DONOR_AUDIENCE_UNRESTRICTED,
     shouldDeployOnMobile: true,
     countriesToTarget: null,
     locale: null,
