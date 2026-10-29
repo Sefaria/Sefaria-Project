@@ -422,7 +422,7 @@ const MobileAuthRow = ({ openURL, close }) => {
       </a>
       <span className="mobileAuthRowSeparator" aria-hidden="true">•</span>
       <a href="/register" onClick={openAuth('register')}>
-        <InterfaceText>header.sign_up</InterfaceText>
+        <InterfaceText text={{ 'en': 'Sign up', 'he': 'הרשמה' }} />
       </a>
     </div>
   );

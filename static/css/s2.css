@@ -666,6 +666,8 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 /* same dot as the English • עברית toggle; the margin keeps the two 44px tap areas apart */
 .mobileNavMenu .mobileAuthRowSeparator {
+  position: relative;
+  top: 1px; /* centering puts the • 1px above where the toggle's baseline-aligned • sits */
   margin: 0 4px;
   font-size: 13px;
   color: var(--dark-grey);
