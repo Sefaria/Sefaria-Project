@@ -27,7 +27,7 @@ export function PanelHeader({ title, subtitle, headingLevel = 1, start, end, cat
   const Heading = `h${headingLevel}` as "h1" | "h2" | "h3";
   return (
     <header className={`${styles.header} ${sticky ? styles.sticky : ""}`}>
-      {category ? <CategoryColorLine category={category} /> : null}
+      {category ? <div className={styles.colorLine}><CategoryColorLine category={category} /></div> : null}
       <div className={styles.bar}>
         <div className={styles.start}>{start}</div>
         <div className={styles.center}>

@@ -27,7 +27,9 @@ export interface NavPageProps {
 export function NavPage({ children, sidebar, footer, colorCategory, sidebarLabel, top }: NavPageProps) {
   const he = useInterfaceLang() === "hebrew";
   return (
-    <div className={styles.page} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} style={colorCategory ? { borderBlockStart: `4px solid ${categoryColor(colorCategory)}` } : undefined}>
+    <div className={styles.page} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
+      {/* the old .categoryColorLine: over the top of the page, and it stays there while the page scrolls under it */}
+      {colorCategory ? <div className={styles.colorLine} style={{ background: categoryColor(colorCategory) }} aria-hidden="true" /> : null}
       <div className={styles.main} style={top?.main ? ({ "--_top": `${top.main}px` } as React.CSSProperties) : undefined}>{children}</div>
       <aside className={styles.side} style={top?.side ? ({ "--_top": `${top.side}px` } as React.CSSProperties) : undefined} aria-label={sidebarLabel ?? (he ? "ניווט בסרגל הצד" : "Sidebar navigation")}>
         {sidebar}

@@ -44,9 +44,38 @@ function literalColours(css: string): number {
   return n;
 }
 
+/** JSX elements (an HTML tag or the router Link) that set `lang` but not `dir`, as "tag@line". A language without its direction lays
+ *  Hebrew out left-to-right inside an English block; LangText / ContentText set both. */
+export function langWithoutDir(src: string): string[] {
+  const out: string[] = [];
+  for (const m of src.matchAll(/<([A-Za-z][\w.]*)(?=[\s/>])/g)) {
+    const name = m[1]!;
+    if (!/^[a-z]/.test(name) && name !== "Link") continue;
+    let i = m.index! + m[0].length;
+    let depth = 0;
+    let quote: string | null = null;
+    let flat = ""; // the tag's text outside {expressions}
+    for (; i < src.length; i++) {
+      const c = src[i]!;
+      if (quote) {
+        if (c === "\\") i++;
+        else if (c === quote) quote = null;
+      } else if ((c === '"' || c === "'") || (c === "`" && depth)) quote = c;
+      else if (c === "{") depth++;
+      else if (c === "}") depth--;
+      else if (c === ">" && depth === 0) break;
+      if (depth === 0 && c !== "}") flat += c;
+    }
+    if (/\slang=/.test(flat) && !/\sdir=/.test(flat)) out.push(`${name}@${src.slice(0, m.index).split("\n").length}`);
+  }
+  return out;
+}
+
 export interface Rule {
   id: string;
   why: string;
+  /** The file's violation is one count ("3 element(s)") that may only go down, not a list of stable strings. */
+  counted?: boolean;
   /** Violations in one file, as short stable strings (an import path, a count). */
   check: (file: string, src: string) => string[];
 }
@@ -69,6 +98,7 @@ export const RULES: Rule[] = [
   },
   {
     id: "literal-colours",
+    counted: true,
     why: "every colour is a token with light and dark values (TARGET_ARCHITECTURE §5 rule 5, §6.6 dark mode)",
     check: (f, src) => {
       if (!f.endsWith(".css") || /\/tokens\/tokens\.css$/.test(f)) return [];
@@ -88,6 +118,12 @@ export const RULES: Rule[] = [
       /\.tsx?$/.test(f) && !rel(f).startsWith("src/lib/auth/http.ts") && !rel(f).startsWith("src/server/")
         ? fetchCalls(src).flatMap((c) => [...c.matchAll(/method:\s*["'](POST|PUT|PATCH|DELETE)["']/g)].map((m) => `fetch ${m[1]}`))
         : [],
+  },
+  {
+    id: "lang-with-dir",
+    counted: true,
+    why: "an element that sets lang sets dir too — use LangText / ContentText (src/ui/LangText): Hebrew in an LTR block otherwise lays out left-to-right",
+    check: (f, src) => (/\.tsx$/.test(f) && /^src\/(ui|features|routes)\//.test(rel(f)) ? (langWithoutDir(src).length ? [`${langWithoutDir(src).length} element(s)`] : []) : []),
   },
 ];
 

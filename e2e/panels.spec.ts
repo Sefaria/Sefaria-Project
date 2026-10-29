@@ -152,7 +152,7 @@ test.describe("several texts side by side (old multi-panel URLs)", () => {
     await expect(panels(page)).toHaveCount(1);
     await expect(page).toHaveURL(/\/Exodus\.1\?lang=en&aliyot=0$/);
     await page.getByRole("button", { name: "Back to the library" }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/texts$/);
   });
 });
 

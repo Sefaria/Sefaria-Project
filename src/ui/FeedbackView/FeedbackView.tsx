@@ -38,7 +38,7 @@ export function FeedbackView({ onSubmit, signedIn }: FeedbackViewProps) {
 
   if (sent) {
     return (
-      <div className={styles.view} lang={he ? "he" : "en"}>
+      <div className={styles.view} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
         <p className={styles.sent} role="status"><InterfaceText en="Feedback sent!" he="משוב נשלח!" /></p>
       </div>
     );
@@ -57,7 +57,7 @@ export function FeedbackView({ onSubmit, signedIn }: FeedbackViewProps) {
     }
   };
   return (
-    <form className={styles.view} lang={he ? "he" : "en"} onSubmit={(e) => void submit(e)} noValidate>
+    <form className={styles.view} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} onSubmit={(e) => void submit(e)} noValidate>
       <p className={styles.intro}><InterfaceText en="Have some feedback? We would love to hear it." he="אנחנו מעוניינים במשוב ממך" /></p>
       {alert ? <p className={styles.alert} role="alert">{alert}</p> : null}
       <select id={ids.type} className={styles.field} aria-label={t("Select Type", "סוג משוב")} value={type} onChange={(e) => setType(e.target.value as FeedbackType | "")}>

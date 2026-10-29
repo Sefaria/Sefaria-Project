@@ -857,7 +857,8 @@
  },
  "CON-012": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language",
+  "by": "src/ui/ConnectionsPanel"
  },
  "CON-014": {
   "status": "done",
@@ -877,11 +878,13 @@
  },
  "CON-020": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language",
+  "by": "src/ui/ConnectionsPanel"
  },
  "CON-021": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language",
+  "by": "src/ui/ConnectionsPanel"
  },
  "CON-023": {
   "status": "done",
@@ -893,11 +896,13 @@
  },
  "CON-025": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language",
+  "by": "src/ui/ConnectionsPanel"
  },
  "CON-026": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language",
+  "by": "src/ui/ConnectionsPanel"
  },
  "CON-027": {
   "status": "done",
@@ -913,7 +918,8 @@
  },
  "CON-032": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language",
+  "by": "src/ui/ConnectionsPanel"
  },
  "CON-033": {
   "status": "done",
@@ -922,7 +928,8 @@
  },
  "CON-070": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Re-verified against sefaria.org 2026-10-29 (sidebar parity pass): geometry, colours, language",
+  "by": "src/ui/ConnectionsPanel"
  },
  "CON-071": {
   "status": "done",
@@ -975,7 +982,7 @@
  },
  "GUI-002": {
   "status": "done",
-  "note": "Links point to the old site's pages until built",
+  "note": "Pixel parity at 1280px incl. focus state and drop-downs (scripts/parity-page.mjs, parity-header-states.mjs); links point to the old site's pages until built",
   "by": "src/ui/SiteHeader"
  },
  "GUI-003": {
@@ -993,8 +1000,8 @@
   "by": "src/ui/SiteHeader"
  },
  "GUI-011": {
-  "status": "partial",
-  "note": "Signed-out menu; search without autocomplete",
+  "status": "done",
+  "note": "Legacy layout, pixel parity signed out",
   "by": "src/ui/SiteHeader"
  },
  "GUI-007": {
@@ -1178,8 +1185,9 @@
   "note": "Not built"
  },
  "LIB-026": {
-  "status": "todo",
-  "note": "CMS promo slot not built (dynamic marketing)"
+  "status": "partial",
+  "note": "Empty slot kept for spacing; CMS promotions not built",
+  "by": "src/ui/NavSidebar (PromoSlot)"
  },
  "SRC-039": {
   "status": "done",
@@ -1603,5 +1611,25 @@
  "CON-038": {
   "status": "done",
   "by": "src/features/reader/ConnectionsPane.tsx"
+ },
+ "CON-047": {
+  "status": "partial",
+  "note": "Search and add a topic: done (moderators). Creating a topic (TopicEditor) links to sefaria.org",
+  "by": "src/ui/TopicsView/TopicSearch.tsx"
+ },
+ "GUI-001": {
+  "status": "done",
+  "note": "Pixel parity with a phone User-Agent (scripts/parity-page.mjs)",
+  "by": "src/ui/SiteHeader"
+ },
+ "PRM-014": {
+  "status": "partial",
+  "note": "Library Assistant promo with the old back-off; generic SiteWideBanner (Strapi) not built",
+  "by": "src/features/shell/SiteWideBanner, src/lib/shell/promo-backoff.ts"
+ },
+ "AI-001": {
+  "status": "partial",
+  "note": "Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet",
+  "by": "src/features/shell/SiteWideBanner"
  }
 }

@@ -19,6 +19,8 @@ export interface PopoverProps {
   align?: "start" | "end";
   /** No padding: the content brings its own (the display menu). */
   flush?: boolean;
+  /** Replaces the panel's own look (box, position) entirely: the site header's drop-downs keep the old site's. */
+  panelClassName?: string;
   children: ReactNode;
 }
 
@@ -31,7 +33,7 @@ const FOCUSABLE = 'a[href], button:not([aria-disabled="true"]), input, select, t
  *
  * @feature SHL-017 Display options dropdown container
  */
-export function Popover({ open, onOpenChange, trigger, label, align = "end", flush, children }: PopoverProps) {
+export function Popover({ open, onOpenChange, trigger, label, align = "end", flush, panelClassName, children }: PopoverProps) {
   const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<(HTMLElement & HTMLButtonElement) | null>(null);
@@ -78,7 +80,7 @@ export function Popover({ open, onOpenChange, trigger, label, align = "end", flu
         onClick: () => onOpenChange(!open),
       })}
       {open ? (
-        <div ref={panelRef} id={id} role="dialog" aria-label={label} className={`${styles.panel} ${align === "end" ? styles.end : styles.start} ${flush ? styles.flush : ""}`}>
+        <div ref={panelRef} id={id} role="dialog" aria-label={label} className={panelClassName ?? `${styles.panel} ${align === "end" ? styles.end : styles.start} ${flush ? styles.flush : ""}`}>
           {children}
         </div>
       ) : null}

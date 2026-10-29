@@ -1,10 +1,11 @@
 import { entitiesOf, type EntityAnswer, type EntityTopic } from "~/lib/connections/entity";
 import { markdownToHtml } from "~/lib/html/markdown";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
-import { Icon } from "../Icon/Icon";
+import { SourceNote } from "../Tooltip/SourceNote";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { LoadingState } from "../Feedback/Feedback";
 import styles from "./NamedEntityView.module.css";
+import { LangText } from "../LangText/LangText";
 
 export interface NamedEntityViewProps {
   /** What the API said about the name; undefined while loading. */
@@ -49,16 +50,16 @@ function Entity({ e, he, href, sourceNote }: { e: EntityTopic; he: boolean; href
   return (
     <section className={styles.entity} aria-label={e.primaryTitle.en}>
       <div className={styles.bar}>
-        <a className={styles.title} lang={code} href={href} target="_blank" rel="noopener noreferrer">{he ? e.primaryTitle.he : e.primaryTitle.en}</a>
-        <span className={styles.note} title={sourceNote}><Icon name="dots" label={sourceNote} /></span>
+        <LangText as="a" className={styles.title} lang={code} href={href} target="_blank" rel="noopener noreferrer">{he ? e.primaryTitle.he : e.primaryTitle.en}</LangText>
+        <SourceNote note={sourceNote} />
       </div>
       {e.timePeriod ? (
-        <div className={styles.period} lang={code}>
+        <LangText as="div" className={styles.period} lang={code}>
           <span>{he ? e.timePeriod.name.he : e.timePeriod.name.en}</span>
           <span>{(he ? e.timePeriod.yearRange.he : e.timePeriod.yearRange.en).trim()}</span>
-        </div>
+        </LangText>
       ) : null}
-      <div className={styles.desc} lang={code} dangerouslySetInnerHTML={{ __html: markdownToHtml(desc) }} />
+      <LangText as="div" className={styles.desc} lang={code} html={markdownToHtml(desc)} />
     </section>
   );
 }

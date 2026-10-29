@@ -42,6 +42,9 @@ import { NamedEntityView } from "~/ui/NamedEntityView/NamedEntityView";
 import { entityQueryOptions, entitySourceNote } from "~/lib/connections/entity";
 import { localizedRef, topicsForRefs } from "~/lib/connections/topics";
 import { TopicsView } from "~/ui/TopicsView/TopicsView";
+import { TopicSearch } from "~/ui/TopicsView/TopicSearch";
+import { addLinkToResources, addRefTopicLink, CREATE_NEW_TOPIC, selectionRange, topicSuggestions } from "~/lib/user/topic-links";
+import { nameQueryOptions } from "~/lib/search/autocomplete";
 import { manuscriptsForRefs, mediaForRefs } from "~/lib/connections/media";
 import { mergePages, sitesOf, sortPages, webPagesQueryOptions } from "~/lib/connections/webpages";
 import { WebPagesView } from "~/ui/WebPagesView/WebPagesView";
@@ -152,10 +155,17 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const selected = useMemo(() => (sectionLinks ? linksForRefs(sectionLinks, selectedRefs) : []), [sectionLinks, selectedRefs]);
   const lookup = useMemo(() => makeIndexLookup(catalog, sectionLinks ?? []), [catalog, sectionLinks]);
 
+  // the sidebar's own language (`lang2`, the toggle in its header) wins; else the text's setting (never both at once, SHL-014)
+  const language = props.lang ? (props.lang === "he" ? "hebrew" : "english") : sidebarLanguage(settings.language, interfaceLang);
+  const shownLang = language === "hebrew" ? "he" : "en";
+
   const narrower = props.section ? selectedRefs.length < props.section.segments.length : true;
+  // books are ordered by the sidebar's language, not the interface's (ConnectionsSummary's contentLang sort; VERIFIED
+  // on sefaria.org: lang2=he lists Boaz right after Yachin, then the Hebrew alphabet)
+  const sidebarHebrew = language === "hebrew";
   const summary = useMemo(
-    () => linkSummary(selected, { catalog, baseCategory: props.baseCategory, sectionLinks, narrowerThanSection: narrower, hebrew }),
-    [selected, catalog, props.baseCategory, sectionLinks, narrower, hebrew],
+    () => linkSummary(selected, { catalog, baseCategory: props.baseCategory, sectionLinks, narrowerThanSection: narrower, hebrew: sidebarHebrew }),
+    [selected, catalog, props.baseCategory, sectionLinks, narrower, sidebarHebrew],
   );
 
   const link = hrefFor;
@@ -204,9 +214,6 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     };
   });
 
-  // the sidebar's own language (`lang2`, the toggle in its header) wins; else the text's setting (never both at once, SHL-014)
-  const language = props.lang ? (props.lang === "he" ? "hebrew" : "english") : sidebarLanguage(settings.language, interfaceLang);
-  const shownLang = language === "hebrew" ? "he" : "en";
   const nav = (h: string) => onNavigate(h);
 
   // Resources rows: sheets, topics, manuscripts, readings (section data), web pages (the selection), translations.
@@ -346,6 +353,18 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           refLabel={localizedRef(selectionRef, props.section, hebrew ? "he" : "en")}
           topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`}
           lang={language === "hebrew" ? "he" : "en"}
+          search={
+            // moderators only, as the old TopicList (Sefaria.is_moderator = is_staff, which the server checks too)
+            viewer?.isStaff ? (
+              <TopicSearch
+                key={selectionRef}
+                createPrefix={CREATE_NEW_TOPIC[shownLang]}
+                getSuggestions={async (word) => topicSuggestions(await qcNotes.fetchQuery(nameQueryOptions(word, ["Topic"], null)), word, CREATE_NEW_TOPIC[shownLang])}
+                onAdd={async (slug) => addLinkToResources(qcNotes, sectionRef, await addRefTopicLink(selectionRange(selectedRefs, sectionRef), slug, interfaceLang))}
+                createHref={() => `${SITE_ORIGIN}${hrefFor(view)}`}
+              />
+            ) : null
+          }
         />
       </ConnectionsPanel>
     );
@@ -638,7 +657,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const label = categoryLabel(view.category, catalog);
     return (
       <ConnectionsPanel label={view.category} back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        {linksQ.isPending ? <LoadingState /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} />}
+        {linksQ.isPending ? <LoadingState /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} current={view.category} lang={shownLang} />}
       </ConnectionsPanel>
     );
   }
@@ -658,6 +677,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     <ConnectionsPanel label={title.en} back={{ href: link(backView), label: <InterfaceText en={backLabel.en} he={backLabel.he} /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
       <TextList
         title={title}
+        categoryTitle={isCategoryFilter}
         color={categoryColor(category)}
         items={items}
         language={language}

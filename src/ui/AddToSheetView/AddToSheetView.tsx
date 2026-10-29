@@ -5,6 +5,7 @@ import { Button } from "../Button/Button";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { LoadingState } from "../Feedback/Feedback";
 import styles from "./AddToSheetView.module.css";
+import { ContentText, LangText } from "../LangText/LangText";
 
 export interface AddToSheetViewProps {
   /** The citation being added ("Genesis 1:1-3"), in both languages. */
@@ -44,7 +45,7 @@ export function AddToSheetView({ citation, citationHref, sheets, onAdd, onCreate
 
   if (added) {
     return (
-      <div className={styles.confirm} role="status" lang={he ? "he" : "en"}>
+      <LangText as="div" className={styles.confirm} role="status" lang={he ? "he" : "en"}>
         {he ? (
           <>
             <a href={citationHref}>{citation.he}</a> נוסף בהצלחה לדף המקורות <a href={sheetHref(added.id)}>{sheetTitle(added.title)}</a>.
@@ -54,7 +55,7 @@ export function AddToSheetView({ citation, citationHref, sheets, onAdd, onCreate
             <a href={citationHref}>{citation.en}</a> has been added to <a href={sheetHref(added.id)}>{sheetTitle(added.title)}</a>.
           </>
         )}
-      </div>
+      </LangText>
     );
   }
   if (!sheets) return <LoadingState />;
@@ -83,9 +84,9 @@ export function AddToSheetView({ citation, citationHref, sheets, onAdd, onCreate
   };
 
   return (
-    <div className={styles.view} lang={he ? "he" : "en"}>
+    <div className={styles.view} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <div className={styles.label}><InterfaceText en="Selected Citation" he="מקור להוספה" /></div>
-      <div className={styles.citation} role="status" aria-live="polite">{he ? citation.he : citation.en}</div>
+      <ContentText as="div" className={styles.citation} role="status" aria-live="polite" lang={he ? "hebrew" : "english"} en={citation.en} he={citation.he} />
       <label className={styles.label} htmlFor={ids.select}><InterfaceText en="Add to" he="יעד להוספה" /></label>
       <select id={ids.select} className={styles.select} value={selected ?? ""} onChange={(e) => setSelected(e.target.value === "new" ? "new" : Number(e.target.value))}>
         {sheets.map((s) => (

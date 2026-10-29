@@ -7,8 +7,9 @@
 @import "@fontsource/heebo/500.css";
 @import "@fontsource/heebo/700.css";
 @import "@fontsource/roboto/400.css";
-@import "@fontsource/roboto/400-italic.css";
+/* no Roboto italic: sefaria.org loads none, so its italics are the browser's slanted regular face (VERIFIED 2026-10-29: document.fonts) */
 @import "@fontsource/roboto/500.css";
+@import "@fontsource/roboto/600.css";
 @import "@fontsource/roboto/700.css";
 @import "@fontsource/miriam-libre/400.css";
 @import "@fontsource/miriam-libre/700.css";

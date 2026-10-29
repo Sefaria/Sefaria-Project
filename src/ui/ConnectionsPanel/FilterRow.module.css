@@ -26,3 +26,30 @@
 
 /* "English (14)": mixed case, 16px, letter-spaced, the count light (VERIFIED on sefaria.org) */
 .headingLanguage { margin: 20px 0 16px; padding-block-end: 10px; border-bottom: 1px solid var(--sefaria-color-border-strong); font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 400; letter-spacing: 1px; color: #666; }
+
+/* A category's book list (ConnectionsList; VERIFIED on sefaria.org 1280px, Mishnah Peah 4:1): no icon; 19px above and
+   below and a #E5E5E5 rule under every row; serif 18px/21.6px in #333; Roboto 14px descriptions 10px below the title;
+   the EN tag beside the title line; zero-count rows grey with the count dropped; no underline, no bold when current */
+.list { align-items: flex-start; padding-block: 19px; border-bottom: 1px solid var(--sefaria-color-border); color: var(--sefaria-color-text-list); }
+.list .label { font-size: 18px; line-height: 21.6px; }
+.list .description { padding-top: 10px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 16.8px; color: var(--sefaria-color-text-dark-grey); }
+.list .description:lang(he) { font-family: var(--sefaria-font-ui-he); }
+.list .count { font-size: 16px; font-weight: 100; letter-spacing: 1px; color: var(--sefaria-color-text-dark-grey); }
+.list .tag { margin-inline-start: 4px; padding: 0 3px; border-color: var(--sefaria-color-border-strong); border-radius: 3px; font: 400 12px/18px var(--sefaria-font-ui-en); letter-spacing: normal; color: var(--sefaria-color-text-muted); }
+.list:hover .label { text-decoration: none; }
+.list.current .label { font-weight: inherit; }
+.list.dimmed { color: var(--sefaria-color-text-muted); }
+.list.dimmed .label, .list.dimmed .count { opacity: 1; }
+.list.dimmed .description { color: var(--sefaria-color-border-strong); }
+/* the list's "All Commentary" row: black, its description on the row's own 21.6px line-height */
+.list.lead { color: var(--sefaria-color-text-strong); }
+.list.lead .description { line-height: 21.6px; }
+.titleLine { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sefaria-space-2); }
+
+/* Resources home (VERIFIED on sefaria.org 1280px, Mishnah Peah 4:1): a section heading's text sits ~50px below the row
+   above and ~52px above the next row's (old margins 30px/15px collapsing into the rows' own; ours add the rows' padding),
+   with 13px to its rule, #666 Roboto 14px/18px; category names are black and their counts the light 16px Roboto of
+   every connections count */
+.heading { margin: 20px 0 10px; padding-bottom: 13px; line-height: 18px; letter-spacing: normal; color: var(--sefaria-color-text-dark-grey); }
+.row:not([data-tool]):not(.list) { color: var(--sefaria-color-text-strong); }
+.row:not([data-tool]) .count { font-size: 16px; font-weight: 100; letter-spacing: 1px; color: var(--sefaria-color-text-dark-grey); }

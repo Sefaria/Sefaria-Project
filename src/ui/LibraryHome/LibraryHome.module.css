@@ -1,0 +1,26 @@
+/* The old TextsPage (static/css/s2.css .navTitle, .gridBox, .navBlock), VERIFIED on sefaria.org /texts at 1280px and with a phone
+   User-Agent (2026-10-29): the 22px title on a normal line, 15px over the grid; two 327.5px columns 10px apart, rows 6px apart; each
+   block a 4px category line, a 24px title on a 1.3 line (15px over, 8px under), the 14px/18px var(--sefaria-color-text-dark-grey) description, 12px under it. */
+.titleBar { display: flex; justify-content: space-between; min-height: 34px; margin-block-end: 15px; }
+/* the phone's About blurb (the old AboutSefaria with hideTitle, in a .navSidebarModule) */
+.phoneAbout { margin: 0 0 34px; font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: normal; color: var(--sefaria-color-text-dark-grey); }
+.phoneAbout[lang="he"], :lang(he) > .phoneAbout { font-family: var(--sefaria-font-ui-he); }
+/* outside .navSidebar the old a.inTextLink had no rule: no gap before it and no underline */
+.phoneAbout a { margin: 0; color: inherit; text-decoration: none; }
+.title { margin: 0; font-family: var(--sefaria-font-ui-en); font-size: 22px; font-weight: 500; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-transform: none; }
+.title[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 10px; row-gap: 6px; margin-block-end: 30px; }
+.block { padding-block-end: 12px; border-block-start: 4px solid var(--_line); }
+.blockTitle { display: flex; align-items: center; margin-inline-end: 20px; padding: 15px 0 8px; font-family: var(--sefaria-font-text-en); font-size: 24px; font-weight: 400; line-height: 1.3; color: var(--sefaria-color-text-strong); text-decoration: none; }
+.blockTitle[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.blockTitle:hover { color: var(--sefaria-color-text-dark-grey); }
+.desc { margin-inline-end: 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
+.desc[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.phoneAbout { display: none; }
+
+@media (max-width: 842px) {
+  /* the toggle is in the site header on a phone, so the title row is only as tall as the title */
+  .titleBar { min-height: 0; }
+  .grid { grid-template-columns: 1fr; }
+  .phoneAbout { display: block; }
+}

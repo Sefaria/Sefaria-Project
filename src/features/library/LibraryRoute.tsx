@@ -8,7 +8,7 @@ import { hebrewCategoryNames, tocItemsByCategories, tocObjectByCategories, withD
 import { CategoryPage } from "~/ui/CategoryPage/CategoryPage";
 import { LoadingState } from "~/ui/Feedback/Feedback";
 import { LibraryHome } from "~/ui/LibraryHome/LibraryHome";
-import { AboutSefaria, AboutTextCategory, DafYomi, LearningSchedules, Resources, SidebarFooter, SupportSefaria, Translations, Visualizations, WeeklyTorahPortion } from "~/ui/NavSidebar/NavSidebar";
+import { AboutSefaria, AboutTextCategory, DafYomi, LearningSchedules, PromoSlot, Resources, SidebarFooter, SupportSefaria, Translations, Visualizations, WeeklyTorahPortion } from "~/ui/NavSidebar/NavSidebar";
 import { useReaderSettings } from "../reader/settings-context";
 
 /**
@@ -46,7 +46,8 @@ export function LibraryRoute({ path }: { path: string[] }) {
         footer={footer}
         sidebar={
           <>
-            <AboutSefaria />
+            <AboutSefaria wideOnly />
+            <PromoSlot />
             <Translations />
             <LearningSchedules items={calendars} />
             <Resources />
@@ -66,11 +67,13 @@ export function LibraryRoute({ path }: { path: string[] }) {
       he={he}
       hebrewContent={settings.language === "hebrew"}
       footer={footer}
+      description={{ en: obj.enDesc ?? "", he: obj.heDesc ?? "" }} // the old page: tocObjectByCategories(cats), Talmud already its Bavli
       sidebar={
         <>
-          <AboutTextCategory category={about.category} heCategory={about.heCategory} enDesc={about.enDesc} heDesc={about.heDesc} />
+          <AboutTextCategory wideOnly category={about.category} heCategory={about.heCategory} enDesc={about.enDesc} heDesc={about.heDesc} />
           {key === "Tanakh" ? <WeeklyTorahPortion items={calendars} /> : null}
           {key === "Talmud|Bavli" ? <DafYomi items={calendars} /> : null}
+          <PromoSlot />
           <Visualizations categories={cats} />
           <SupportSefaria />
         </>

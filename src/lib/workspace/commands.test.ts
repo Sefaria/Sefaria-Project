@@ -75,3 +75,13 @@ describe("off the reader", () => {
     expect(createWorkspaceCommands(router, defaults).current().panels).toEqual({});
   });
 });
+
+// closing the last panel: a canonicalize that ran while the router still listed the reader route turned "/texts" into "/texts?lang=bi"
+describe("on a library address", () => {
+  it("canonicalize leaves /texts alone even while the reader route is still matched", async () => {
+    const { router, navigate } = fakeRouter("/texts", {});
+    (router.state as { matches?: { routeId: string }[] }).matches = [{ routeId: "__root__" }, { routeId: "/$" }];
+    expect(await createWorkspaceCommands(router, defaults).canonicalize()).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+});

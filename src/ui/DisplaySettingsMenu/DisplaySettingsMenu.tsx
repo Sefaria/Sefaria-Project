@@ -13,7 +13,6 @@ import {
 } from "~/lib/reader/settings";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { SegmentedControl } from "../SegmentedControl/SegmentedControl";
-import { Icon } from "../Icon/Icon";
 import { Switch } from "../Switch/Switch";
 import styles from "./DisplaySettingsMenu.module.css";
 
@@ -24,6 +23,30 @@ export interface DisplaySettingsMenuProps {
   /** Which stored layout this book uses (Tanakh and Talmud have their own). */
   layoutKey: LayoutKey;
   onChange: (patch: Partial<ReaderSettings>) => void;
+  /** Directions of the shown primary and translation texts: they choose the layout icons and options, as the old LayoutButtons. */
+  directions?: { primary?: "rtl" | "ltr"; translation?: "rtl" | "ltr" };
+}
+
+type LayoutOption = Layout | BiLayout;
+/** The old constants.js layoutOptions, by the old calculateLayoutState: one text; two texts in one direction; two that differ. */
+const LAYOUT_OPTIONS: Record<"mono" | "bi-rtl" | "bi-ltr" | "mixed", LayoutOption[]> = {
+  mono: ["continuous", "segmented"],
+  "bi-rtl": ["stacked", "heRight"],
+  "bi-ltr": ["stacked", "heLeft"],
+  mixed: ["stacked", "heLeft", "heRight"],
+};
+const LAYOUT_LABELS: Record<LayoutOption, string> = {
+  continuous: "Show Text as a Paragraph",
+  segmented: "Show Text Segmented",
+  stacked: "Show Source & Translation Stacked",
+  heLeft: "Show RTL Text Left of LTR Text",
+  heRight: "Show RTL Text Right of LTR Text",
+};
+/** The old LayoutButtons getPath: the icon shows which side goes where. */
+function layoutIcon(option: LayoutOption, state: keyof typeof LAYOUT_OPTIONS, dirs: { primary: string; translation: string }) {
+  if (state !== "mixed") return `/icons/${state}-${option}.svg`;
+  const order = option === "heLeft" ? dirs.primary + dirs.translation : dirs.translation + dirs.primary;
+  return `/icons/mixed-${option === "stacked" ? "stacked" : "beside"}-${order}.svg`;
 }
 
 const t = (en: string, he: string): ReactNode => <InterfaceText en={en} he={he} />;
@@ -36,39 +59,24 @@ const t = (en: string, he: string): ReactNode => <InterfaceText en={en} he={he} 
  * @feature SHL-017 @feature TXD-031 @feature TXD-033 @feature TXD-034 @feature TXD-036 @feature TXD-037 @feature TXD-038
  * @feature TXD-041 @feature SHL-019 @feature SHL-020
  */
-export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onChange }: DisplaySettingsMenuProps) {
+export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onChange, directions }: DisplaySettingsMenuProps) {
   const bilingual = settings.language === "bilingual";
   const layoutValue: Layout | BiLayout = bilingual ? settings.biLayout : settings[layoutKey];
 
+  const primary = directions?.primary ?? "rtl";
+  const translation = directions?.translation ?? (primary === "rtl" ? "ltr" : "rtl");
+  const state = !bilingual ? "mono" : primary !== translation ? "mixed" : primary === "rtl" ? "bi-rtl" : "bi-ltr";
   const layoutSection = a.layout ? (
     <section className={styles.line} aria-label="Layout">
       <span className={styles.lineLabel}>{t("Layout", "פריסה")}</span>
-      {bilingual ? (
-        <SegmentedControl<BiLayout>
-          iconOnly
-          appearance="tiles"
-          label="Layout"
-          value={layoutValue as BiLayout}
-          onValueChange={(biLayout) => onChange({ biLayout })}
-          options={[
-            { value: "stacked", label: "Stacked", icon: "layout-stacked" },
-            { value: "heLeft", label: "Hebrew on the left", icon: "layout-he-left" },
-            { value: "heRight", label: "Hebrew on the right", icon: "layout-he-right" },
-          ]}
-        />
-      ) : (
-        <SegmentedControl<Layout>
-          iconOnly
-          appearance="tiles"
-          label="Layout"
-          value={layoutValue as Layout}
-          onValueChange={(layout) => onChange({ [layoutKey]: layout })}
-          options={[
-            { value: "segmented", label: "Verse by verse", icon: "layout-segmented" },
-            { value: "continuous", label: "Continuous", icon: "layout-continuous" },
-          ]}
-        />
-      )}
+      <SegmentedControl<LayoutOption>
+        iconOnly
+        appearance="tiles"
+        label="text layout toggle"
+        value={layoutValue}
+        onValueChange={(v) => onChange(bilingual ? { biLayout: v as BiLayout } : { [layoutKey]: v as Layout })}
+        options={LAYOUT_OPTIONS[state].map((value) => ({ value, label: LAYOUT_LABELS[value], iconUrl: layoutIcon(value, state, { primary, translation }) }))}
+      />
     </section>
   ) : null;
 
@@ -103,11 +111,11 @@ export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onCh
           <hr className={styles.divider} />
           <section className={styles.fontSize} aria-label="Font size">
             <button type="button" className={styles.round} aria-label="Smaller text" disabled={settings.fontSize <= MIN_FONT_SIZE + 0.01} onClick={() => onChange({ fontSize: stepFontSize(settings.fontSize, "smaller") })}>
-              <Icon name="circle-minus" size="24px" />
+              <img src="/icons/reduce_font.svg" alt="" width={24} height={24} />
             </button>
             <span className={styles.lineLabel}>{t("Font Size", "גודל גופן")}</span>
             <button type="button" className={styles.round} aria-label="Larger text" disabled={settings.fontSize >= MAX_FONT_SIZE - 0.01} onClick={() => onChange({ fontSize: stepFontSize(settings.fontSize, "larger") })}>
-              <Icon name="circle-plus" size="24px" />
+              <img src="/icons/enlarge_font.svg" alt="" width={24} height={24} />
             </button>
           </section>
         </>
