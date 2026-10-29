@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 
+from django.utils.cache import patch_cache_control
 from django.utils.http import url_has_allowed_host_and_scheme
 from elasticsearch_dsl import Search
 from random import choice
@@ -4251,6 +4252,31 @@ def experiments_opt_in_api(request):
         return jsonResponse({"error": _("You must be logged in to join experiments.")})
     _set_user_experiments(request.user, True)
     return jsonResponse({"status": "ok"})
+
+
+def library_assistant_api(request):
+    """
+    GET /api/library-assistant: whether the signed-in reader gets the Library Assistant, and the token that names them to it.
+
+    For clients that do not render through base_props (the new reader, reader-next/src/lib/assistant/access.ts): the same rule
+    (library_assistant.is_enabled) and the same token (build_chatbot_user_token with CHATBOT_USER_ID_SECRET) as the page props.
+    The client chooses the build and API itself (?chatbot_version=, CHATBOT_API_BASE_URL). Never cached: it names the reader.
+
+    Returns {"enabled": bool, "userToken": str | None, "isModerator": bool}.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+    enabled, token = False, None
+    if request.user.is_authenticated and library_assistant.is_enabled(UserProfile(user_obj=request.user)):
+        token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+        enabled = token is not None
+    response = jsonResponse({
+        "enabled": enabled,
+        "userToken": token,
+        "isModerator": bool(request.user.is_authenticated and request.user.is_staff),
+    })
+    patch_cache_control(response, private=True, no_store=True)
+    return response
 
 
 def enable_library_assistant(request):

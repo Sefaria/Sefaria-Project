@@ -308,7 +308,8 @@ pods are the reader) or "optin" (a separate reader rollout beside the legacy nod
   value: {{ $tag | quote }}
 - name: SIMPLE_ANALYTICS_HOSTNAME
   value: {{ if eq (toString $ctx.Values.localSettings.DEBUG) "true" }}"sa-dev.sefaria.org"{{ else }}"sefaria.org"{{ end }}
-{{- range list "GOOGLE_TAG_MANAGER_CODE" "GOOGLE_GTAG" "CLIENT_SENTRY_DSN" "GOOGLE_SSO_CLIENT_ID" "APPLE_SSO_CLIENT_ID" "RECAPTCHA_PUBLIC_KEY" }}
+{{- /* CHATBOT_API_BASE_URL: the Library Assistant's server, the value Django reads too (reader-next/src/lib/assistant/config.ts) */}}
+{{- range list "GOOGLE_TAG_MANAGER_CODE" "GOOGLE_GTAG" "CLIENT_SENTRY_DSN" "GOOGLE_SSO_CLIENT_ID" "APPLE_SSO_CLIENT_ID" "RECAPTCHA_PUBLIC_KEY" "CHATBOT_API_BASE_URL" }}
 - name: {{ . }}
   valueFrom:
     secretKeyRef:
