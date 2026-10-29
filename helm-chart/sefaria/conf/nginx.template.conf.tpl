@@ -63,40 +63,41 @@ http {
   }
 
   # apiKeyScrub: the access log never records a key from a query string. Each pass replaces the value of one
-  # api_key, apikey or api%5Fkey parameter (any case) with [REDACTED]; the key name and every other parameter
-  # stay. The lookahead skips a value a previous pass already redacted, so three passes cover three occurrences.
+  # api_key or apikey parameter in the query part only (after the first question mark) with [REDACTED]. Every letter
+  # and the underscore of the name may be literal (any case) or percent-encoded (any hex case); the key name and every
+  # other parameter stay. The lookahead skips a value a previous pass already redacted, so three passes cover three occurrences.
   # The last map fails closed: if a raw value is still present it logs [REDACTED-URI]. requestUrl and referer use
   # the last map's output. No Helm braces and no dollar-brace names here: this file goes through Helm tpl and envsubst.
   map $request_uri $uri_scrub_1 {
-    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    "~*^(?<pre>[^?]*\?(?:.*?[?&])?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
     default $request_uri;
   }
   map $uri_scrub_1 $uri_scrub_2 {
-    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    "~*^(?<pre>[^?]*\?(?:.*?[?&])?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
     default $uri_scrub_1;
   }
   map $uri_scrub_2 $uri_scrub_3 {
-    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    "~*^(?<pre>[^?]*\?(?:.*?[?&])?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
     default $uri_scrub_2;
   }
   map $uri_scrub_3 $request_uri_scrubbed {
-    "~*[?&]api(?:_|%5f)?key=(?!\[REDACTED\](?:&|$))" "[REDACTED-URI]";
+    "~*^[^?]*\?(?:.*?[?&])?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=(?!\[REDACTED\](?:&|$))" "[REDACTED-URI]";
     default $uri_scrub_3;
   }
   map $http_referer $referer_scrub_1 {
-    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    "~*^(?<pre>[^?]*\?(?:.*?[?&])?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
     default $http_referer;
   }
   map $referer_scrub_1 $referer_scrub_2 {
-    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    "~*^(?<pre>[^?]*\?(?:.*?[?&])?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
     default $referer_scrub_1;
   }
   map $referer_scrub_2 $referer_scrub_3 {
-    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    "~*^(?<pre>[^?]*\?(?:.*?[?&])?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
     default $referer_scrub_2;
   }
   map $referer_scrub_3 $referer_scrubbed {
-    "~*[?&]api(?:_|%5f)?key=(?!\[REDACTED\](?:&|$))" "[REDACTED-REFERER]";
+    "~*^[^?]*\?(?:.*?[?&])?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=(?!\[REDACTED\](?:&|$))" "[REDACTED-REFERER]";
     default $referer_scrub_3;
   }
 

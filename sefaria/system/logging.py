@@ -4,13 +4,20 @@ import re
 from structlog.processors import _figure_out_exc_info
 from structlog._frames import _format_exception
 
-# Query parameters that carry an API key (api_key, apikey, api%5Fkey in any case). Their values never reach a log line.
-API_KEY_QUERY_RE = re.compile(r"(?i)([?&]api(?:_|%5f)?key=)[^&#]*")
+# Query parameters that carry an API key: api_key or apikey, every letter and the underscore written literally (any
+# case) or percent-encoded (any hex case). Their values never reach a log line.
+API_KEY_QUERY_RE = re.compile(
+    r"(?i)((?:^|[?&])(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)[^&#]*"
+)
 
 
 def scrub_api_key_query(url):
-    """Replaces the value of every API key query parameter in url with [REDACTED]; the rest of the URL is kept."""
-    return API_KEY_QUERY_RE.sub(r"\1[REDACTED]", url)
+    """Replaces the value of every API key query parameter in url with [REDACTED]; the rest of the URL is kept.
+    Only the query part (after the first "?") is scrubbed: an "&" in the path is not a parameter separator."""
+    head, sep, query = url.partition("?")
+    if not sep:
+        return url
+    return head + sep + API_KEY_QUERY_RE.sub(r"\1[REDACTED]", query)
 
 
 def log_exception_info(logger, method_name, event_dict):
