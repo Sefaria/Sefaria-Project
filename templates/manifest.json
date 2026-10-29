@@ -1,9 +1,10 @@
 {% load static %}
 {% load i18n %}
 {
-  "name": "{% if active_module == 'voices' %}Sefaria {% trans 'Voices' %}{% else %}Sefaria {% trans 'Library' %}{% endif %}",
-  "short_name": "{% if active_module == 'voices' %}{% trans 'Voices' %}{% else %}{% trans 'Library' %}{% endif %}",
-  "start_url": "{{ start_url }}",
+  "name": "{% if page_name %}{{ page_name|escapejs }}{% elif active_module == 'voices' %}Sefaria {% trans 'Voices' %}{% else %}Sefaria {% trans 'Library' %}{% endif %}",
+  "short_name": "{% if page_name %}{{ page_name|escapejs }}{% elif active_module == 'voices' %}{% trans 'Voices' %}{% else %}{% trans 'Library' %}{% endif %}",{% if page_id %}
+  "id": "/?app={{ page_id }}",{% endif %}
+  "start_url": "{{ start_url|escapejs }}",
   "scope": "{{ scope }}",
   "icons": [
     {

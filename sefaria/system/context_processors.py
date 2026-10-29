@@ -117,6 +117,44 @@ def large_data(request):
         'virtual_books': library.get_virtual_books()
     }
 
+A2HS_MINCHA_TITLES = (
+    "Siddur Ashkenaz, Weekday, Minchah",
+    "Siddur Sefard, Weekday Mincha",
+    "Siddur Edot HaMizrach, Weekday Mincha",
+)
+A2HS_TORAH_BOOKS = ("Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy")
+
+
+@user_only
+def add_to_home_screen(request):
+    """
+    Add-to-home-screen POC: on Weekday Mincha and this week's parashah, point the page's
+    manifest at a mini-app for that page. iOS reads the manifest as the page first loads,
+    so it has to be in the server-rendered HTML.
+    """
+    from urllib.parse import unquote, urlencode
+    path = unquote(request.path).strip("/").replace("_", " ")
+    if not path or "/" in path:
+        return {}
+    target = None
+    for title in A2HS_MINCHA_TITLES:
+        if path == title or path.startswith(title + ","):
+            target = {"start": "/" + title.replace(" ", "_"), "name": "Mincha", "id": "mincha"}
+            break
+    if target is None and path.startswith(A2HS_TORAH_BOOKS):
+        try:
+            from sefaria.model import Ref
+            from sefaria.utils.calendars import get_todays_parasha
+            parasha_ref = Ref(get_todays_parasha()["ref"])
+            if parasha_ref.contains(Ref(path)):
+                target = {"start": "/parashat-hashavua", "name": "Weekly Parashah", "id": "parashah"}
+        except Exception:
+            target = None
+    if target is None:
+        return {}
+    return {"a2hs_manifest_query": "&" + urlencode(target), "a2hs_name": target["name"]}
+
+
 @user_only
 def body_flags(request):
     return {"EMBED": "embed" in request.GET}
