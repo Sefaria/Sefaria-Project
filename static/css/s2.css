@@ -17139,7 +17139,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .readerNavMenu.settingsPage .content .contentInner {
   width: auto;
   max-width: none;
-  padding: 60px 20px 100px 100px;
+  padding: 32px 20px 100px 40px;
   margin: 0;
 }
 /* The account tab renders inside a reader panel, where static.css is not served and
@@ -17475,10 +17475,10 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
    beside the panel of the tab that is open. */
 .settingsShell {
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
+  grid-template-columns: 224px minmax(0, 1fr);   /* fits "Developer Settings" beside its icon on one line */
   gap: 40px;
   align-items: start;
-  max-width: 890px;
+  max-width: 924px;
 }
 .settingsPanels { min-width: 0; }
 .settingsPanel > .devPocPage { max-width: 660px; }
@@ -17489,28 +17489,37 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   font-size: 16px;
   text-align: start;
 }
+/* Same style as the page headings beside it. */
 .settingsNavTitle {
-  padding: 0 14px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #626971;
+  padding: 0 12px 12px;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 100%;
+  color: var(--dark-grey);
 }
+/* Icon and label rows. Design system tokens in comments. */
+.settingsNav { display: flex; flex-direction: column; gap: 4px; /* spacing-xsmall */ }
 .settingsNav a {
-  display: block;
-  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;                      /* spacing-medium */
+  padding: 12px;                  /* spacing-medium */
+  border-radius: 8px;
   font-size: 16px;
-  border-inline-start: 3px solid #dce0e4;
+  font-weight: 500;
+  line-height: 1.4;               /* en-system-body */
+  white-space: nowrap;
   text-decoration: none;
-  color: #18345d;
+  color: #121212;                 /* text-primary */
 }
-.settingsNav a:hover { background: #f4f7fa; }
+.settingsNav a:hover { background: #eeeeee; /* surface-hover */ }
+.settingsNav a:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; /* functional-focus-blue */ }
 .settingsNav a[aria-current="page"] {
-  background: #eaf0f6;
-  border-inline-start-color: #18345d;
+  background: #f2f5fa;            /* surface-selected */
+  color: #18345d;                 /* action-primary */
   font-weight: 600;
 }
+.settingsNavIcon { flex: 0 0 18px; width: 18px; height: 18px; /* icon size 18 */ }
 /* Marks what a deep link pointed at: a background that fades out once. */
 .settingsHighlight { animation: settingsHighlight 2.4s ease-out; }
 @keyframes settingsHighlight {
@@ -17525,7 +17534,18 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocPage .settingsHighlight .devPocHelp, .devPocPage .settingsHighlight .devPocMuted { color: #575d64; }
 
 .devPocPageHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s4); }
-.devPocPageHeader h1 { font-size: 26px; font-weight: 600; margin-bottom: var(--devPoc-s1); }
+/* Same heading as the Account Settings tab (#accountSettingsPage .headerWithButtons h1). */
+.devPocPage .devPocPageHeader h1 {
+  font-family: var(--english-sans-serif-font-family);
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 100%;
+  color: var(--dark-grey);
+  margin-bottom: var(--devPoc-s1);
+}
+/* The account heading starts at the same height as the menu title and the developer heading,
+   instead of centring on the taller buttons beside it. */
+.settingsPanel #accountSettingsPage .headerWithButtons { align-items: flex-start; }
 .devPocPageHeader p { color: var(--devPoc-muted); }
 .devPocPageHeader p.devPocExportNote { margin-top: var(--devPoc-s1); font-size: 14px; }
 .devPocExportNote a { color: inherit; text-decoration: underline; }
@@ -17757,17 +17777,18 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   height: 18px;
   margin: 1px 0 0;
   padding: 0;
-  border: 1px solid #8a939c;
-  border-radius: 50%;
+  border: 0;
   background: transparent;
-  color: #626971;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 700;
+  color: #575757; /* text-secondary */
   line-height: 1;
   cursor: pointer;
 }
-.devPocInfoButton:hover { border-color: var(--devPoc-blue); color: var(--devPoc-blue); }
+.devPocInfoButton svg { display: block; width: 18px; height: 18px; }
+.devPocInfoButton:hover { color: #18345d; /* action-primary */ }
+/* An info tip after an Input's label sits on the label's centre line. */
+.devPocPage .sefaria-input-labelGroup { align-items: center; }
+.devPocPage .sefaria-input-labelGroup .devPocTip { margin-inline-start: 0; }
+.devPocPage .sefaria-input-labelGroup .devPocInfoButton { margin: 0; }
 .devPocTextButton {
   border: 0;
   padding: 0;
@@ -17822,7 +17843,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocField > label { display: block; height: auto; min-height: 0; margin: 0 0 var(--devPoc-s1); font-size: 14px; font-weight: 500; line-height: 1.5; }
 .devPocLabelRow { display: flex; align-items: center; gap: 4px; margin-bottom: var(--devPoc-s1); }
 .devPocLabelRow > label { margin-bottom: 0; }
-.devPocField input, .devPocField select, .devPocField textarea {
+.devPocField input:not(.sefaria-input-control), .devPocField select, .devPocField textarea:not(.sefaria-input-control) {
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -17837,7 +17858,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   box-shadow: none;
 }
 .devPocField select { padding-inline-end: 8px; }
-.devPocField textarea { height: auto; min-height: 84px; padding: 10px 12px; line-height: 1.5; resize: vertical; }
+.devPocField textarea:not(.sefaria-input-control) { height: auto; min-height: 84px; padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .devPocField input.devPocLocked { background: #f2f3f4; color: #4a5058; cursor: default; }
 .devPocField input:disabled { background: #f2f3f4; color: #6f6f6f; }
 .devPocProfile .devPocField input, .devPocProfile .devPocField textarea, .devPocSection .devPocField input { max-width: 520px; }
@@ -17967,12 +17988,11 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 
 @media (max-width: 760px) {
   .settingsShell { display: block; max-width: none; }
-  .readerNavMenu.settingsPage .content .contentInner { padding: 40px 16px 60px; }
-  .settingsNav { display: flex; flex-wrap: wrap; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
+  .readerNavMenu.settingsPage .content .contentInner { padding: 24px 16px 60px; }
+  .settingsNav { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
   .settingsNavTitle { width: 100%; padding: 0 0 8px; }
-  .settingsNav a { border-inline-start: 0; border-bottom: 3px solid transparent; padding: 10px; }
+  .settingsNav a { gap: 8px; padding: 10px 12px; border-radius: 0; border-bottom: 3px solid transparent; }
   .settingsNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
-  .devPocPageHeader h1 { font-size: 22px; }
   .devPocPageHeader { flex-direction: column; gap: var(--devPoc-s2); }
   .devPocResult { flex-wrap: wrap; }
   .devPocProjectHeader { padding: var(--devPoc-s2); }
