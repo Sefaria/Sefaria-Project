@@ -16957,8 +16957,10 @@ span.ref-link-color-3 {color: blue}
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
 
 /* SC-30249: Allow document-level scrolling on singlePanel (mobile) so mobile
-   browsers can collapse their URL/nav bars during productive scrolling. */
-#s2:has(.readerApp.singlePanel) {
+   browsers can collapse their URL/nav bars during productive scrolling.
+   Excludes .headerOnly (pages from Django templates): their content is outside
+   #s2 and already scrolls the document, so #s2 keeps its 60px fixed header. */
+#s2:not(.headerOnly):has(.readerApp.singlePanel) {
   position: static;
   height: auto;
   min-height: 100vh;
@@ -16974,11 +16976,11 @@ span.ref-link-color-3 {color: blue}
    Use overflow-x: clip (not hidden): clip keeps overflow-y visible, whereas
    hidden would force overflow-y to auto and make #s2 a scroll container. hidden
    is the fallback for browsers without clip support (Safari < 16). */
-#s2:has(.readerApp.singlePanel) {
+#s2:not(.headerOnly):has(.readerApp.singlePanel) {
   overflow-x: hidden;
   overflow-x: clip;
 }
-#s2:has(.readerApp.singlePanel) #readerAppWrap {
+#s2:not(.headerOnly):has(.readerApp.singlePanel) #readerAppWrap {
   height: auto;
   min-height: 100vh;
 }
