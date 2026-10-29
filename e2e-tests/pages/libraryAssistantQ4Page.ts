@@ -1477,6 +1477,55 @@ export class LibraryAssistantQ4Page extends HelperBase {
     await expect.poll(() => this.isInChatView(this.thinkingMessage), { timeout: t(5000), message: 'the thinking message should be in view' }).toBe(true);
   }
 
+  /** The Stop button, in the text box's place while an answer is generating. */
+  private get stopButton(): Locator {
+    return this.dialog.getByRole('button', { name: this.a('assistant.stop.aria'), exact: true });
+  }
+
+  /**
+   * LA-QA-5: tap Stop, recording how far the chat is scrolled on every animation
+   * frame for `ms` milliseconds, starting just before Stop is pressed.
+   */
+  async stopAndWatchChatScroll(ms = 1500): Promise<Array<{ t: number; scrollTop: number; maxScroll: number }>> {
+    await expect(this.stopButton).toBeEnabled({ timeout: t(5000) });
+    await this.helpers();
+    await this.page.evaluate((o) => {
+      (window as any).__laChatSampling = (window as any).__laTest.sampleChatScroll(o);
+    }, { logName: this.chatLogName, ms });
+    await this.press(this.stopButton);
+    return this.page.evaluate(() => (window as any).__laChatSampling);
+  }
+
+  /** LA-QA-5: the notice that the answer was stopped is fully on screen in the chat. */
+  async expectStopNoticeInChatView(): Promise<void> {
+    await this.expectInChatView(this.a('assistant.stop.message'));
+  }
+
+  /** LA-QA-5: the text box holds `text` (a stopped question is put back there). */
+  async expectTextBoxHolds(text: string): Promise<void> {
+    await expect(this.textBox).toHaveValue(text, { timeout: t(5000) });
+  }
+
+  /** LA-QA-3: type `text` in the text box without sending it. */
+  async typeInTextBox(text: string): Promise<void> {
+    await this.textBox.fill(text);
+  }
+
+  /** LA-QA-3: how tall the text box is, in px. */
+  async textBoxHeight(): Promise<number> {
+    return (await this.box(this.textBox)).height;
+  }
+
+  /**
+   * LA-QA-3: how tall the chat area is, and how far down the chat's content its bottom edge
+   * reaches. The bottom edge sits just above the text box, so while `contentAtBottom`
+   * stays the same, the same message is just above the text box.
+   */
+  async chatBottomEdge(): Promise<{ contentAtBottom: number; height: number }> {
+    const s = await this.chatScroll();
+    return { contentAtBottom: s.scrollTop + s.bottom - s.top, height: s.bottom - s.top };
+  }
+
   // ---------------------------------------------------------------------------
   // Search with no results (LA-NULL-*)
   // ---------------------------------------------------------------------------

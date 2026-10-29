@@ -364,7 +364,7 @@ Also test-first, same helpers as above.
 - **"Assistant on"** is `enLAUser` / `heLAUser`; **"assistant off"** is `enUser`, which never gets the assistant.
 - **The question the button sends** is read from Sefaria's `search.no_results.library_assistant_question` key.
 - **"Library Assistant" in the text is a link** (LA-NULL-16 → 18) that sends the same question as the button; the two share one "already asked". It's part of the sentence, not a button, so LA-NULL-1's "no button on the page" check leaves it out. LA-NULL-18 also needs the widget change from Sefaria/ai-chatbot#242 (commit 0efd3cf).
-- **Logged-out stories are `test.fixme` placeholders** (the logged-out rows of LA-NULL-1 and LA-NULL-16, the logged-out part of LA-NULL-17, and LA-NULL-8 → 12): the assistant doesn't load for logged-out visitors yet, and there is no free-answer count or login prompt to drive. Each placeholder lists its steps.
+- **Logged-out stories run as a visitor nobody logged in as** (`goToPageWithLang`): the logged-out rows of LA-NULL-1 and LA-NULL-16, and LA-NULL-8 → 12, each of which runs once by the button and once by the link (LA-NULL-17, logged out). The fake chat server gives them a few free answers and counts them the way ai-chatbot's server does.
 
 ```bash
 npx playwright test --project=chrome-assistant library-assistant-null-search-desktop
@@ -378,10 +378,10 @@ Stories added after QA on phones and the header pill. Every test is tagged `@qa`
 | File | What |
 | --- | --- |
 | [library-assistant-qa-desktop.spec.ts](library-assistant-qa-desktop.spec.ts) | LA-QA-4 (header pill shortens or hides), and the desktop half of LA-QA-6 and LA-QA-7 |
-| [../mobile web/library-assistant-qa-phone.spec.ts](../mobile%20web/library-assistant-qa-phone.spec.ts) | LA-QA-2, 3, 5, 8, and the phone half of LA-QA-6 and LA-QA-7 (mobile config) |
+| [../mobile web/library-assistant-qa-phone.spec.ts](../mobile%20web/library-assistant-qa-phone.spec.ts) | LA-QA-3, 5, 8, and the phone half of LA-QA-6 and LA-QA-7 (mobile config) |
 | [../support/longConversation.ts](../support/longConversation.ts) | Builds a chat long enough to scroll, for the "where is the chat scrolled" stories |
 
-- **The keyboard stories are `test.fixme` placeholders** (LA-QA-2, LA-QA-3, LA-QA-5): a browser emulating a phone has no on-screen keyboard. LA-QA-8 runs, but its "while the keyboard closes" step is skipped (noted in the report).
+- **The keyboard stories are left to manual QA on a real phone**: a browser emulating a phone has no on-screen keyboard. That's LA-QA-2, and LA-QA-3's rows where the keyboard opens or closes; they have no tests here. LA-QA-3's "text box grows to a second line" row and LA-QA-5 (Stop glides to its notice) don't need the keyboard and run; LA-QA-5 checks "the keyboard stays closed" as "the text box isn't focused". LA-QA-8 runs, but its "while the keyboard closes" step is skipped (noted in the report).
 - **LA-QA-4's logged-out rows are placeholders**; only the signed-in row runs, as the stories say for builds without the logged-out assistant.
 - **Changed with these:** LA-ENTRY-2 now checks 1000px instead of 900px (at 900px the pill reads "✦ Ask"), LA-NOTE-3 checks the assistant opens on the start of the late answer, and LA-NULL-9's placeholder steps allow "where the visitor left it".
 

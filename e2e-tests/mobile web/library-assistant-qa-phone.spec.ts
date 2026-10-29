@@ -9,7 +9,7 @@ import { haveLongConversation, longAnswer, longAnswerStart } from '../support/lo
 
 /**
  * Library Assistant "QA changes" (LA-QA-*) on phones — the stories tagged @phone:
- * LA-QA-2, LA-QA-3, LA-QA-5, LA-QA-8, and the phone half of LA-QA-6 and LA-QA-7.
+ * LA-QA-3, LA-QA-5, LA-QA-8, and the phone half of LA-QA-6 and LA-QA-7.
  * The desktop stories live in e2e-tests/assistant/library-assistant-qa-desktop.spec.ts.
  * (There is no LA-QA-1: that change was tried and dropped.)
  *
@@ -22,10 +22,11 @@ import { haveLongConversation, longAnswer, longAnswerStart } from '../support/lo
  * iPhone 13 emulation at 393 × 852, logged in as the Library-Assistant test account,
  * fake chat server, copy read by translation key.
  *
- * LA-QA-2, LA-QA-3 and LA-QA-5 are test.fixme placeholders: they are about the
- * phone's on-screen keyboard opening and closing, and a browser emulating a phone
- * has no on-screen keyboard. They need a real phone or a keyboard simulation.
- * LA-QA-8 runs, except for its keyboard step.
+ * A browser emulating a phone has no on-screen keyboard, so the keyboard stories
+ * are left to manual QA on a real phone: LA-QA-2, and LA-QA-3's rows where the
+ * keyboard opens or closes. LA-QA-3's "text box grows to a second line" row and
+ * LA-QA-5 don't need the keyboard, and run here. LA-QA-8 runs, except for its
+ * keyboard step.
  *
  * Run: npx playwright test --config=playwright.mobileweb.config.ts library-assistant-qa-phone
  */
@@ -33,13 +34,14 @@ import { haveLongConversation, longAnswer, longAnswerStart } from '../support/lo
 const PHONE = { width: 393, height: 852 };
 const QA_PHONE_TAGS = { tag: ['@qa', '@e2e', '@phone'] };
 const QA_DESKTOP_PHONE_TAGS = { tag: ['@qa', '@e2e', '@desktop', '@phone'] };
-const NO_KEYBOARD = 'A browser emulating a phone has no on-screen keyboard; this needs a real phone or a keyboard simulation';
-/** Why the keyboard stories are placeholders (shows in the test report). */
-const NEEDS_KEYBOARD = { type: 'needs a phone keyboard', description: NO_KEYBOARD };
+/** Why LA-QA-8 skips its keyboard step (shows in the test report). */
+const NO_KEYBOARD = 'A browser emulating a phone has no on-screen keyboard; this needs a real phone';
 
 const LATE_QUESTION = 'Where does the Talmud discuss Hanukkah lights? (asked, then closed)';
 const LATE_LABEL = 'Late answer';
 const NEW_QUESTION = 'And where is the blessing over the lights discussed?';
+/** LA-QA-3: long enough to wrap to a second line in the phone's text box, not a third. */
+const TWO_LINE_QUESTION = 'And where is the blessing over the Hanukkah lights discussed in the Talmud?';
 
 test.use({ viewport: PHONE });
 
@@ -60,49 +62,61 @@ async function start(context: BrowserContext) {
 }
 
 // ---------------------------------------------------------------------------
-// The keyboard (placeholders: no on-screen keyboard in a browser)
+// LA-QA-3 / LA-QA-5: where the chat is when the text box grows, or on Stop
 // ---------------------------------------------------------------------------
 
-test.describe('Library Assistant QA — the keyboard (phone)', () => {
-  test.fixme('LA-QA-2: The keyboard opens and closes without jumping or pausing', { ...QA_PHONE_TAGS, annotation: NEEDS_KEYBOARD }, async () => {
-    // Steps on a real phone (or with a keyboard simulation):
-    //  1. Open the assistant (la.openWithAskButton()).
-    //  2. Tap the text box for the first time. The page behind doesn't scroll
-    //     (la.expectPageBehindDoesNotScroll()); the text box moves up once and stays
-    //     put while the keyboard opens, ending just above the keyboard.
-    //  3. Close the keyboard. The text box goes back to the bottom as the keyboard
-    //     slides away, with no pause.
-    //  4. Type a question and tap Send with the keyboard open: the question is sent
-    //     (mock.waitForQuestion()).
+test.describe('Library Assistant QA — keeping the chat in place (phone)', () => {
+  test('LA-QA-3: The chat keeps its place — scrolled to the middle, when the text box grows to a second line, the message just above the text box is still there', QA_PHONE_TAGS, async ({ context }) => {
+    test.setTimeout(t(90000));
+    const { mock, la } = await start(context);
+    await haveLongConversation(la, mock);
+
+    const middle = await la.scrollChatTo(0.5);
+    const { maxScroll } = await la.chatScroll();
+    expect(middle, 'the chat should be scrolled up to the middle').toBeGreaterThan(2);
+    expect(maxScroll - middle, 'the chat should be scrolled up to the middle').toBeGreaterThan(2);
+
+    const oneLine = await la.textBoxHeight();
+    const before = await la.chatBottomEdge();
+    await la.typeInTextBox(TWO_LINE_QUESTION);
+    await expect.poll(() => la.textBoxHeight(), { timeout: t(5000), message: 'the text box should grow to a second line' })
+      .toBeGreaterThan(oneLine + 5);
+    await expect.poll(async () => (await la.chatBottomEdge()).height, { timeout: t(5000), message: 'the chat area should get shorter' })
+      .toBeLessThan(before.height - 5);
+    await expect.poll(async () => Math.abs((await la.chatBottomEdge()).contentAtBottom - before.contentAtBottom), {
+      timeout: t(5000), message: 'the same message should still be just above the text box',
+    }).toBeLessThanOrEqual(2);
   });
 
-  const placeExamples = [
-    { where: 'the bottom', change: 'the keyboard opens', result: 'the last message is still just above the text box' },
-    { where: 'the middle', change: 'the keyboard opens', result: 'the message just above the text box is still there' },
-    { where: 'the middle', change: 'the text box grows to a second line', result: 'the message just above the text box is still there' },
-    { where: 'the bottom', change: 'the keyboard closes', result: 'the last message is still just above the text box' },
-  ];
+  test('LA-QA-5: Stop glides to its notice on phones', QA_PHONE_TAGS, async ({ context }) => {
+    test.setTimeout(t(90000));
+    const { mock, la } = await start(context);
+    await haveLongConversation(la, mock);
 
-  for (const { where, change, result } of placeExamples) {
-    test.fixme(`LA-QA-3: The chat keeps its place — scrolled to ${where}, when ${change}, ${result}`, { ...QA_PHONE_TAGS, annotation: NEEDS_KEYBOARD }, async () => {
-      // Steps on a real phone (or with a keyboard simulation):
-      //  1. haveLongConversation(la, mock); scroll the chat to the row's place
-      //     (la.scrollChatTo(1) for the bottom, la.scrollChatTo(0.5) for the middle).
-      //  2. Note which message is just above the text box.
-      //  3. Make the row's change happen.
-      //  4. The same message is still just above the text box.
-      // (The "text box grows to a second line" row doesn't need the keyboard itself,
-      // but on a phone the keyboard is open while typing, so it's kept with the others.)
-    });
-  }
+    // Ask, and keep the answer generating (sending scrolls the chat to the bottom first).
+    const asked = mock.questions.length;
+    mock.holdAnswers();
+    await la.askQuestion(NEW_QUESTION);
+    await mock.waitForQuestion(asked + 1);
+    await la.expectThinkingInChatView();
+    await la.expectChatAtBottom();
 
-  test.fixme('LA-QA-5: Stop glides to its notice on phones', { ...QA_PHONE_TAGS, annotation: NEEDS_KEYBOARD }, async () => {
-    // Not on Sefaria/ai-chatbot#242, which has no Stop button.
-    // Steps on a real phone (or with a keyboard simulation):
-    //  1. haveLongConversation(la, mock); mock.holdAnswers(); ask a question so an answer is generating.
-    //  2. Scroll up to the middle of the chat (la.scrollChatTo(0.5)).
-    //  3. Tap Stop. The chat scrolls smoothly (not a jump) to the bottom, with the stop notice in view.
-    //  4. The question is back in the text box, and the keyboard stays closed.
+    const middle = await la.scrollChatTo(0.5);
+    const { maxScroll } = await la.chatScroll();
+    expect(middle, 'the chat should be scrolled up to the middle').toBeGreaterThan(2);
+    expect(maxScroll - middle, 'the chat should be scrolled up to the middle').toBeGreaterThan(2);
+
+    const frames = await la.stopAndWatchChatScroll();
+    await la.expectChatAtBottom();
+    const glide = analyzeSlide(frames.map((f) => ({ t: f.t, v: f.scrollTop })));
+    expect(glide.endValue, 'the chat should scroll down').toBeGreaterThan(glide.startValue);
+    expect(glide.inBetweenFrames, 'the chat should scroll smoothly, not jump').toBeGreaterThanOrEqual(2);
+    await la.expectStopNoticeInChatView();
+
+    // The question is back in the text box. A phone's keyboard opens only for a focused
+    // text box, so "the keyboard stays closed" is "the text box isn't focused".
+    await la.expectTextBoxHolds(NEW_QUESTION);
+    await la.expectTextBoxNotFocused();
   });
 });
 

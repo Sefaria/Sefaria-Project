@@ -23,9 +23,8 @@ import { longAnswer } from '../support/longConversation';
  * (LA-NULL-13, LA-NULL-16 → LA-NULL-18). LA-NULL-18 also needs the ai-chatbot
  * widget change from Sefaria/ai-chatbot#242 (commit 0efd3cf).
  *
- * Written TEST-FIRST: parts of this feature are not built yet (for example the
- * assistant version of the empty-search text, and the assistant for logged-out
- * visitors), so some of these tests are expected to fail until it lands.
+ * Written TEST-FIRST, before the feature was built (the assistant version of the
+ * empty-search text, and the assistant for logged-out visitors).
  *
  * How they run:
  *  - Desktop config (playwright.config.ts → chrome-assistant), window 1280 × 800.
@@ -47,8 +46,8 @@ import { longAnswer } from '../support/longConversation';
  * rule that the empty-search question never uses up the last one, once per visitor.
  * The widget sends that question with context.source "search_no_results", which is
  * how the server tells it apart. Each runs again with the link in the text in place of the
- * button (LA-NULL-17, logged out). The logged-out rows of LA-NULL-1 and LA-NULL-16 are
- * still test.fixme placeholders.
+ * button (LA-NULL-17, logged out). The logged-out rows of LA-NULL-1 and LA-NULL-16 run
+ * as a logged-out visitor too.
  *
  * Run: npx playwright test --project=chrome-assistant library-assistant-null-search-desktop
  */
@@ -56,12 +55,6 @@ import { longAnswer } from '../support/longConversation';
 const DESKTOP = { width: 1280, height: 800 };
 const DESKTOP_TAGS = { tag: ['@e2e', '@desktop'] };
 const DESKTOP_PHONE_TAGS = { tag: ['@e2e', '@desktop', '@phone'] };
-/** Why the logged-out stories are placeholders (shows in the test report). */
-const NOT_BUILT = {
-  type: 'not built yet',
-  description: 'The assistant for logged-out visitors (with its free-answer count and login prompt) does not exist yet',
-};
-const LOGGED_OUT_TAGS = { ...DESKTOP_TAGS, annotation: NOT_BUILT };
 
 const QUERY = 'qqzzxxvvkk';
 const SECOND_QUERY = 'kkvvxxzzqq';
@@ -132,11 +125,13 @@ async function searchWithNoResults(search: SearchPage, query = QUERY) {
   await expect.poll(() => search.nullStateHeadingText(), { message: `empty-search box for "${query}"` }).toContain(query);
 }
 
-/** Open the empty search straight from its URL, as `profile`, on `tab`. */
-async function openEmptySearch(context: BrowserContext, profile: typeof BROWSER_SETTINGS.enUser, tab: SearchTabId) {
+/** Open the empty search straight from its URL, as `profile` (null: logged out), on `tab`. */
+async function openEmptySearch(context: BrowserContext, profile: typeof BROWSER_SETTINGS.enUser | null, tab: SearchTabId) {
   await ChatServerMock.install(context);
   await installEntitySearchMock(context, NO_ENTITY_HITS);
-  const page = await goToPageWithUser(context, librarySearchUrl(QUERY), profile);
+  const page = profile
+    ? await goToPageWithUser(context, librarySearchUrl(QUERY), profile)
+    : await goToPageWithLang(context, librarySearchUrl(QUERY), LANGUAGES.EN);
   const pm = new PageManager(page, LANGUAGES.EN);
   await hideAllModalsAndPopups(page);
   const search = pm.onSearchPage();
@@ -178,18 +173,9 @@ test.describe('Search with no results — assistant on: the page text (desktop)'
   for (const { who, tab } of assistantOnExamples) {
     const title = `LA-NULL-1: Assistant on, ${who}, ${tab} tab — no button on the page, assistant copy, "Library Assistant" on one line and a link`;
 
-    if (who === 'logged out') {
-      test.fixme(title, { ...DESKTOP_PHONE_TAGS, annotation: NOT_BUILT }, async () => {
-        // Steps once it's built:
-        //  1. goToPageWithLang(context, librarySearchUrl(QUERY), LANGUAGES.EN) — logged out.
-        //  2. selectTab(tab); waitForNullState().
-        //  3. Same four checks as the logged-in rows below.
-      });
-      continue;
-    }
-
     test(title, DESKTOP_PHONE_TAGS, async ({ context }) => {
-      const { search } = await openEmptySearch(context, BROWSER_SETTINGS.enLAUser, tab);
+      const profile = who === 'logged out' ? null : BROWSER_SETTINGS.enLAUser;
+      const { search } = await openEmptySearch(context, profile, tab);
       // A link in the sentence isn't a button, so it doesn't count here (see nullStateButtonHrefs).
       expect(await search.nullStateButtonHrefs(), 'no button on the page itself').toEqual([]);
       await expect.poll(() => search.nullStateBodyText(), { message: 'assistant version of the text' })
@@ -398,17 +384,10 @@ test.describe('Search with no results — the assistant\'s name in the text is a
   for (const { who, lang, label } of inlineLinkExamples) {
     const title = `LA-NULL-16: ${who}, ${label} — the assistant's name in the text is a purple underlined link, starting the line after the last "or" (every tab)`;
 
-    if (who === 'logged out') {
-      test.fixme(title, { ...DESKTOP_PHONE_TAGS, annotation: NOT_BUILT }, async () => {
-        // Steps once it's built:
-        //  1. goToPageWithLang(context, librarySearchUrl(QUERY), LANGUAGES.EN) — logged out.
-        //  2. For each tab: selectTab(tab); waitForNullState(); expectAssistantNameIsLink(search, LANGUAGES.EN).
-      });
-      continue;
-    }
+    const tags = who === 'logged out' ? DESKTOP_PHONE_TAGS : { tag: ['@e2e', '@desktop', '@phone', '@he'] };
 
-    test(title, { tag: ['@e2e', '@desktop', '@phone', '@he'] }, async ({ context }) => {
-      const { search } = await startWithAssistant(context, { lang });
+    test(title, tags, async ({ context }) => {
+      const { search } = who === 'logged out' ? await startLoggedOut(context, 3) : await startWithAssistant(context, { lang });
       await searchWithNoResults(search);
       for (const tab of ALL_TABS) {
         await search.selectTab(tab);

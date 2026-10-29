@@ -1,5 +1,5 @@
 import { test, expect, BrowserContext } from '@playwright/test';
-import { goToPageWithUser, hideAllModalsAndPopups, installEntitySearchMock } from '../utils';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups, installEntitySearchMock } from '../utils';
 import { BROWSER_SETTINGS, LANGUAGES } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { SearchPage, SearchTabId } from '../pages/searchPage';
@@ -13,13 +13,14 @@ import { noResultsAssistantBody, sefariaString } from '../support/assistantStrin
  * other LA-NULL story, live in e2e-tests/assistant/library-assistant-null-search-desktop.spec.ts —
  * read its header comment for how these tests are set up.
  *
- * Written TEST-FIRST, so some are expected to fail until the feature lands.
+ * Written TEST-FIRST, before the feature was built.
  *
  * How they run:
  *  - Mobile config (playwright.mobileweb.config.ts): Pixel 5 / iPhone 13
  *    emulation, with the window set to the stories' phone size, 393 × 852.
  *    The narrow window is where "Library Assistant" is most likely to wrap.
- *  - Logged in as the Library-Assistant test account (enLAUser).
+ *  - Logged in as the Library-Assistant test account (enLAUser / heLAUser), except
+ *    the "logged out" rows of LA-NULL-1 and LA-NULL-16 (goToPageWithLang).
  *  - Fake chat server (support/chatServerMock.ts) and fake Books / Authors /
  *    Topics results (utils.installEntitySearchMock), as on desktop.
  *
@@ -28,10 +29,6 @@ import { noResultsAssistantBody, sefariaString } from '../support/assistantStrin
 
 const PHONE = { width: 393, height: 852 };
 const PHONE_TAGS = { tag: ['@e2e', '@desktop', '@phone'] };
-const NOT_BUILT = {
-  type: 'not built yet',
-  description: 'The assistant for logged-out visitors (with its free-answer count and login prompt) does not exist yet',
-};
 
 const QUERY = 'qqzzxxvvkk';
 /** A search with plenty of Sources results, so the button starts out reading "✦ Ask". */
@@ -49,12 +46,17 @@ const LAST_OR: Record<string, string> = { [LANGUAGES.EN]: 'or', [LANGUAGES.HE]: 
 
 test.use({ viewport: PHONE });
 
-/** Fake servers first (they must be in place before the page loads), then log in on `url`. */
-async function start(context: BrowserContext, url: string, lang = LANGUAGES.EN) {
+/**
+ * Fake servers first (they must be in place before the page loads), then open `url`:
+ * logged in, or with `loggedOut` as a visitor nobody logged in as.
+ */
+async function start(context: BrowserContext, url: string, lang = LANGUAGES.EN, opts: { loggedOut?: boolean } = {}) {
   await ChatServerMock.install(context);
   await installEntitySearchMock(context, NO_ENTITY_HITS);
   const profile = lang === LANGUAGES.HE ? BROWSER_SETTINGS.heLAUser : BROWSER_SETTINGS.enLAUser;
-  const page = await goToPageWithUser(context, url, profile);
+  const page = opts.loggedOut
+    ? await goToPageWithLang(context, url, lang)
+    : await goToPageWithUser(context, url, profile);
   const pm = new PageManager(page, lang);
   await hideAllModalsAndPopups(page);
   return { page, la: pm.onLibraryAssistantQ4(), search: pm.onSearchPage() };
@@ -82,16 +84,8 @@ test.describe('Search with no results — assistant on: the page text (phone)', 
   for (const { who, tab } of assistantOnExamples) {
     const title = `LA-NULL-1: Assistant on, ${who}, ${tab} tab — no button on the page, assistant copy, "Library Assistant" on one line and a link (phone)`;
 
-    if (who === 'logged out') {
-      test.fixme(title, { ...PHONE_TAGS, annotation: NOT_BUILT }, async () => {
-        // Steps once it's built: goToPageWithLang(context, librarySearchUrl(QUERY), LANGUAGES.EN)
-        // (logged out), then selectTab(tab) and the same four checks as the rows below.
-      });
-      continue;
-    }
-
     test(title, PHONE_TAGS, async ({ context }) => {
-      const { search } = await start(context, librarySearchUrl(QUERY));
+      const { search } = await start(context, librarySearchUrl(QUERY), LANGUAGES.EN, { loggedOut: who === 'logged out' });
       await search.selectTab(tab);
       await search.waitForNullState();
       // A link in the sentence isn't a button, so it doesn't count here (see nullStateButtonHrefs).
@@ -114,17 +108,12 @@ test.describe('Search with no results — the assistant\'s name in the text is a
   for (const { who, lang, label } of inlineLinkExamples) {
     const title = `LA-NULL-16: ${who}, ${label} — the assistant's name in the text is a purple underlined link, starting the line after the last "or" (every tab, phone)`;
 
-    if (who === 'logged out') {
-      test.fixme(title, { ...PHONE_TAGS, annotation: NOT_BUILT }, async () => {
-        // Steps once it's built: goToPageWithLang(context, librarySearchUrl(QUERY), LANGUAGES.EN)
-        // (logged out), then for each tab: selectTab(tab); waitForNullState();
-        // expectAssistantNameIsLink(search, LANGUAGES.EN).
-      });
-      continue;
-    }
+    const loggedOut = who === 'logged out';
+    const tags = loggedOut ? PHONE_TAGS : { tag: ['@e2e', '@desktop', '@phone', '@he'] };
 
-    test(title, { tag: ['@e2e', '@desktop', '@phone', '@he'] }, async ({ context }) => {
-      const { search } = await start(context, hebrewSearchUrl(QUERY), lang);
+    test(title, tags, async ({ context }) => {
+      const url = lang === LANGUAGES.HE ? hebrewSearchUrl(QUERY) : librarySearchUrl(QUERY);
+      const { search } = await start(context, url, lang, { loggedOut });
       for (const tab of ALL_TABS) {
         await search.selectTab(tab);
         await search.waitForNullState();
