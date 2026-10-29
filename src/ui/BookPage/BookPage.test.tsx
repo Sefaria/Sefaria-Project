@@ -64,4 +64,15 @@ describe("BookPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "בראשית" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "התחלת קריאה" })).toBeInTheDocument();
   });
+
+  // @feature VER-030: the moderators' pencil opens the version editor in the block's place; none for everyone else
+  it("moderators edit a version in place", async () => {
+    const { rerender } = render(<BookPage {...base} tab="versions" versions={[version("A edition", 1)]} />);
+    expect(screen.queryByRole("button", { name: "Edit A edition" })).toBeNull();
+    rerender(<BookPage {...base} tab="versions" versions={[version("A edition", 1)]} editVersion={(v, close) => <button onClick={close}>Editing {v.versionTitle}</button>} />);
+    await userEvent.click(screen.getByRole("button", { name: "Edit A edition" }));
+    await userEvent.click(screen.getByRole("button", { name: "Editing A edition" }));
+    expect(screen.getByRole("button", { name: "Edit A edition" })).toBeInTheDocument();
+  });
 });
+

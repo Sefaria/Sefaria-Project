@@ -6,3 +6,7 @@
 .select:hover { text-decoration: underline; }
 .notes { margin-block-end: var(--sefaria-space-3); font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-sans-small); line-height: 1.5; color: var(--sefaria-color-text-secondary); }
 .notes a { color: var(--sefaria-color-text-secondary); }
+
+/* the moderators' pencil (the old .versionEditIcon.enabled) */
+.edit { margin-inline-start: 8px; padding: 0; border: 0; background: none; color: var(--sefaria-color-text-muted); vertical-align: middle; cursor: pointer; }
+.edit:hover { color: var(--sefaria-color-text); }

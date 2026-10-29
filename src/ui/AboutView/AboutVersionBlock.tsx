@@ -1,3 +1,4 @@
+import { Icon } from "../Icon/Icon";
 import type { MouseEvent } from "react";
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -19,6 +20,8 @@ export interface AboutVersionBlockProps {
   select?: { href: string; onSelect?: (e: MouseEvent) => void };
   /** Notes by interface language, relative links resolved against this origin. */
   origin?: string;
+  /** Moderators on the book page: the pencil beside the title, which opens the version editor (the old versionEditIcon). */
+  onEdit?: () => void;
 }
 
 const plain = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
@@ -29,7 +32,7 @@ const plain = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKey && !
  *
  * @feature VER-016 Version block display
  */
-export function AboutVersionBlock({ version: v, urlRef, openHref, onOpen, select, origin = SITE_ORIGIN }: AboutVersionBlockProps) {
+export function AboutVersionBlock({ version: v, urlRef, openHref, onOpen, select, origin = SITE_ORIGIN, onEdit }: AboutVersionBlockProps) {
   const hebrew = useInterfaceLang() === "hebrew";
   const title = hebrew && v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle;
   const notes = hebrew ? v.versionNotesInHebrew : v.versionNotes;
@@ -41,6 +44,11 @@ export function AboutVersionBlock({ version: v, urlRef, openHref, onOpen, select
         ) : (
           title
         )}
+        {onEdit ? (
+          <button type="button" className={styles.edit} aria-label={`Edit ${title}`} onClick={onEdit}>
+            <Icon name="pencil" size="16px" />
+          </button>
+        ) : null}
       </h3>
       {select ? (
         <Link href={select.href} className={styles.select} aria-label={`Select ${title}`} onClick={(e) => { if (select.onSelect && plain(e)) { e.preventDefault(); select.onSelect(e); } }}>

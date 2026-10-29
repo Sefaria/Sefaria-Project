@@ -77,6 +77,8 @@ const LICENSES: Record<string, string> = {
   "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/",
   "CC-BY-NC-ND": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
 };
+/** The licenses a version can carry (the keys of the old Sefaria.getLicenseMap). */
+export const LICENSE_NAMES = Object.keys(LICENSES);
 /** Old Sefaria.getLicenseMap. */
 export const licenseUrl = (license: string | undefined): string | undefined => (license ? LICENSES[license] : undefined);
 
