@@ -88,6 +88,7 @@
     "extend": "^3.0.0",
     "file-saver": "^2.0.5",
     "findandreplacedomtext": "^0.4.6",
+    "form-data": "^2.5.4",
     "humanize-duration": "^3.27.0",
     "ioredis": "^5.11.1",
     "is-hotkey": "^0.1.6",
