@@ -418,7 +418,7 @@ const MobileAuthRow = ({ openURL, close }) => {
     <div className="mobileAuthRow">
       <img src="/static/icons/profile.svg" alt="" />
       <a href="/register" onClick={openAuth('register')}>
-        <InterfaceText text={{ 'en': 'Sign up', 'he': 'הרשמה' }} />
+        <InterfaceText>header.sign_up</InterfaceText>
       </a>
       <span className="mobileAuthRowSeparator" aria-hidden="true">•</span>
       <a href="/login" onClick={openAuth('login')}>
