@@ -388,6 +388,11 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
         ("DELETE", re.compile(r"^/api/admin/ref-topic-links/?$")),
         ("GET", re.compile(r"^/api/admin/lexicon-entries/(?!headword/).+$")),
         ("PATCH", re.compile(r"^/api/admin/lexicon-entries/.+$")),
+        ("GET", re.compile(r"^/api/admin/versions/?$")),
+        ("GET", re.compile(r"^/api/admin/versions/[^/]+/(en|he)/.+$")),
+        ("PATCH", re.compile(r"^/api/admin/versions/[^/]+/(en|he)/.+$")),
+        ("GET", re.compile(r"^/api/admin/index-dependencies/.+$")),
+        ("POST", re.compile(r"^/api/admin/cache/purge/?$")),
     )
 
     def process_request(self, request):

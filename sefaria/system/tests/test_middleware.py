@@ -633,6 +633,11 @@ class TestSessionIDAuthMiddlewareAdminMCP:
         ("get", "/api/admin/lexicon-entries/Jastrow%20Dictionary/%D7%90%D7%91"),
         ("patch", "/api/admin/lexicon-entries/Jastrow%20Dictionary/%D7%90%D7%91"),
         ("patch", "/api/admin/lexicon-entries/headword/Jastrow%20Dictionary/%D7%90%D7%91"),
+        ("get", "/api/admin/versions"),
+        ("get", "/api/admin/versions/Genesis/en/The Koren Jerusalem Bible"),
+        ("patch", "/api/admin/versions/Genesis/en/The Koren Jerusalem Bible"),
+        ("get", "/api/admin/index-dependencies/Genesis"),
+        ("post", "/api/admin/cache/purge"),
     ])
     def test_mcp_token_authenticates_staff_on_admin_routes_and_skips_csrf(self, django_user_model, method, path):
         user = django_user_model.objects.create_user(username=f"mcp-staff-{method}", password="pass", is_staff=True)

@@ -228,3 +228,75 @@ class AdminLexiconHeadwordView(AdminMCPAPIView):
         # the moderators' view checks is_staff itself (StaffRequiredMixin); dispatch keeps that check
         return LexiconEntryHeadwordView.as_view()(request, lexicon=lexicon, headword=headword)
 
+
+class AdminVersionView(AdminMCPAPIView):
+    """GET a version's metadata with its `version`; PATCH {"fields", "base_version", "dry_run"} edits it (§3.7)."""
+
+    def get(self, request, title, lang, version_title):
+        from sefaria.helper import versions_admin
+        try:
+            return jsonResponse(versions_admin.get_version(title, lang, version_title))
+        except versions_admin.VersionNotFound as e:
+            return jsonResponse({"error": str(e)}, status=404)
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+    def patch(self, request, title, lang, version_title):
+        from sefaria.helper import versions_admin
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        try:
+            return jsonResponse(versions_admin.update_version(title, lang, version_title, body.get("fields") or {}, body.get("base_version"),
+                                                              request.user.id, dry_run=bool(body.get("dry_run", False))))
+        except versions_admin.VersionNotFound as e:
+            return jsonResponse({"error": str(e)}, status=404)
+        except versions_admin.VersionConflict as e:
+            return jsonResponse({"error": str(e), "current": e.current}, status=409)
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+
+class AdminVersionSearchView(AdminMCPAPIView):
+    """GET ?versionTitle&language: the books that have a version of this title."""
+
+    def get(self, request):
+        from sefaria.helper.versions_admin import find_versions
+        try:
+            return jsonResponse(find_versions(request.GET.get("versionTitle"), request.GET.get("language")))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+
+class AdminIndexDependenciesView(AdminMCPAPIView):
+    """GET what depends on a book (commentaries, versions, links) before changing it."""
+
+    def get(self, request, title):
+        from sefaria.helper.versions_admin import index_dependencies
+        if not _index_exists(title):
+            return jsonResponse({"error": f"No book titled {title}"}, status=404)
+        return jsonResponse(index_dependencies(title))
+
+
+class AdminCachePurgeView(AdminMCPAPIView):
+    """POST {"ref"}: refresh caches for a book or purge a ref from Varnish (the /admin/reset/<ref> tool)."""
+
+    def post(self, request):
+        from sefaria.helper.versions_admin import purge_cache
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        try:
+            return jsonResponse(purge_cache(body.get("ref") or ""))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+
+def _index_exists(title):
+    from sefaria.model import library
+    from sefaria.system.exceptions import BookNameError
+    try:
+        return library.get_index(title) is not None
+    except BookNameError:
+        return False
+

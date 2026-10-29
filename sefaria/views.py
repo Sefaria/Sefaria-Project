@@ -1826,28 +1826,8 @@ def version_indices_api(request):
     if request.method != "GET":
         return HttpResponseBadRequest("GET required")
 
-    version_title = request.GET.get("versionTitle")
-    if not version_title:
-        raise InputError("versionTitle is required")
-    language = request.GET.get("language")
-
-    query = {"versionTitle": version_title}
-    if language:
-        query["language"] = language
-    indices = db.texts.distinct("title", query)
-    sorted_indices = sorted(indices)
-
-    # Build metadata with categories for each index
-    # Note: library.get_index() uses an in-memory cache, so this loop is efficient
-    metadata = {}
-    for index_title in sorted_indices:
-        try:
-            index = library.get_index(index_title)
-            metadata[index_title] = {"categories": getattr(index, 'categories', [])}
-        except Exception:
-            metadata[index_title] = {"categories": []}
-
-    return jsonResponse({"indices": sorted_indices, "metadata": metadata})
+    from sefaria.helper.versions_admin import find_versions
+    return jsonResponse(find_versions(request.GET.get("versionTitle"), request.GET.get("language")))
 
 
 # Allowed fields for version bulk edit - prevents arbitrary attribute injection
@@ -2073,31 +2053,9 @@ def check_index_dependencies_api(request, title):
     if request.method != "GET":
         return jsonResponse({"error": "GET required"})
 
+    from sefaria.helper.versions_admin import index_dependencies
     try:
-        # Get dependent indices (commentaries, etc.)
-        dependent_indices = library.get_dependant_indices(title, full_records=False)
-
-        # Get version count
-        version_count = db.texts.count_documents({"title": title})
-
-        # Get link count (approximate)
-        from sefaria.model.text import prepare_index_regex_for_dependency_process    # Inline import: this specific function is not exported via sefaria.model wildcard
-        try:
-            index = library.get_index(title)
-            pattern = prepare_index_regex_for_dependency_process(index)
-            link_count = db.links.count_documents({"refs": {"$regex": pattern}})
-        except Exception as e:
-            logger.debug(f"Failed to get link count for {title}: {e}")
-            link_count = 0
-
-        return jsonResponse({
-            "title": title,
-            "dependent_indices": dependent_indices,
-            "version_count": version_count,
-            "link_count": link_count,
-            "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0
-        })
-
+        return jsonResponse(index_dependencies(title))
     except Exception as e:
         return jsonResponse({"error": str(e)})
 

@@ -277,6 +277,18 @@ history log and ref-cache refresh are reused as they are. GET adds a `version` (
 entry's `content_attr_names`. The headword PATCH `{"new_headword", "dry_run"}` renames through the same view; a dry run
 reports the headword it would resolve to.
 
+### 3.7 Versions, cache, lookups (`sefaria/helper/versions_admin.py`)
+
+- `GET|PATCH /api/admin/versions/<title>/<lang>/<versionTitle>`: the book page's version editor (VersionBlock →
+  `flag_text_api`) through the same `tracker.update_version_metadata` (history). GET answers
+  `{metadata, version, editable_fields}`; PATCH `{"fields", "base_version", "dry_run"}` takes only `EDITABLE_FIELDS`
+  plus `newVersionTitle` (a rename), with `status` `"locked"` or null, and answers `{before, after, version}`
+  (409 with the current metadata when stale).
+- `GET /api/admin/versions?versionTitle&language`: the books that have a version of that title (`/api/version-indices`).
+- `GET /api/admin/index-dependencies/<title>`: dependent books, version and link counts (`/api/check-index-dependencies`).
+- `POST /api/admin/cache/purge {"ref"}`: `/admin/reset/<ref>` without its redirect (a book: index cache, version state,
+  TOC, Varnish; a ref: Varnish).
+
 ## 4. MCP tools (AI chatbot `/mcp/admin`, implemented)
 
 The tools are schemas in the chatbot's tool layer (`server/chat/V2/agent/tool_schemas.py`, surface
@@ -294,6 +306,11 @@ The tools are schemas in the chatbot's tool layer (`server/chat/V2/agent/tool_sc
 | `get_lexicon_entry(lexicon, headword)` | `GET /api/admin/lexicon-entries/…` | `readOnlyHint` |
 | `update_lexicon_entry(lexicon, headword, content, base_version, dry_run=false)` | `PATCH /api/admin/lexicon-entries/…` | `destructiveHint: false` |
 | `rename_lexicon_headword(lexicon, headword, new_headword, dry_run=false)` | `PATCH …/headword/…` | `destructiveHint: false` |
+| `get_version_metadata(title, lang, version_title)` | `GET /api/admin/versions/…` | `readOnlyHint` |
+| `update_version_metadata(title, lang, version_title, fields, base_version, dry_run=false)` | `PATCH /api/admin/versions/…` | `destructiveHint: false` |
+| `find_versions(version_title, language?)` | `GET /api/admin/versions` | `readOnlyHint` |
+| `check_index_dependencies(title)` | `GET /api/admin/index-dependencies/…` | `readOnlyHint` |
+| `purge_cache(ref)` | `POST /api/admin/cache/purge` | `idempotentHint: true` |
 
 The tool descriptions tell Claude to:
 - **Read before writing**: call `list_topic_prompts(id=…)` and pass back its `version` as `base_version`.
@@ -343,7 +360,7 @@ The tool descriptions tell Claude to:
 2. **Staff tools on the chatbot's `/mcp/admin`**, behind Sefaria sign-in. Done.
 3. **Publish, generate, task status, tag/untag** (§3.3–3.5). Done (2026-10-29).
 4. **Later**: source-text grounding, `list_prompt_edits` (reads the audit log), rate limiting, and the other staff
-   operations in the admin inventory (version metadata, cache purge, read-only lookups). Lexicon edits: done (§3.6).
+   operations in the admin inventory. Lexicon edits (§3.6) and versions/cache/lookups (§3.7): done.
 
 ## 8. Open questions
 
