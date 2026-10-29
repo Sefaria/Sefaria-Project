@@ -52,6 +52,6 @@ func TestKnownGapNCR4dValidKeyPrefix(t *testing.T) {
 		wantShortPrefix(t, beta, loggedKeyPrefix(t, enforce, "GET", "/api/texts/Genesis.1", map[string]string{"x-api-key": beta, "origin": "https://evil.example.org"}))
 	})
 	t.Run("@known-gap N-CR4 unknown sfr_ key", func(t *testing.T) {
-		wantShortPrefix(t, unknown, loggedKeyPrefix(t, enforce, "GET", "/api/texts/Genesis.1", map[string]string{"x-api-key": unknown}))
+		wantShortPrefix(t, unknown, loggedKeyPrefix(t, enforce, "POST", "/api/knn-search", map[string]string{"x-api-key": unknown}))
 	})
 }

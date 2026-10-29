@@ -76,6 +76,14 @@ http {
   }
   add_header 'Access-Control-Allow-Origin' $cors_header always;
 
+  # keyStatus: ext_authz sends x-sefaria-key-status: not_accepted when a bad sfr_ key was answered as anonymous
+  # (ungated, or observe mode). Echo it to the caller. The listener strips client copies (clienttrafficpolicy).
+  map $http_x_sefaria_key_status $key_status {
+    not_accepted  not_accepted;
+    default       "";
+  }
+  add_header x-sefaria-key-status $key_status always;
+
   upstream varnishupstream {
     server ${VARNISH_HOST}:8040;
     keepalive 32;
@@ -161,6 +169,7 @@ http {
       rewrite ^/(?:api/search)/(.*)$ /$1 break;
       proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
       add_header 'Access-Control-Allow-Origin' '';
+      add_header x-sefaria-key-status $key_status always;
       proxy_pass http://elasticsearch_upstream/;
     }
 
@@ -251,6 +260,7 @@ http {
       rewrite ^/(?:api/search)/(.*)$ /$1 break;
       proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
       add_header 'Access-Control-Allow-Origin' '';
+      add_header x-sefaria-key-status $key_status always;
       proxy_pass http://elasticsearch_upstream/;
     }
 

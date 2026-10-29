@@ -83,6 +83,9 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 				QueryParametersToRemove: []string{"api_key"},
 			}},
 		}
+		if d.KeyNotAccepted {
+			resp.GetOkResponse().Headers = append(resp.GetOkResponse().Headers, hdr(KeyStatusHeader, KeyStatusNotAccepted))
+		}
 		if d.Keyed {
 			md, err := limitMetadata(d)
 			if err != nil {

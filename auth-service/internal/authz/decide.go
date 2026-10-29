@@ -25,7 +25,14 @@ const (
 	CodeKeyRequired      = "api_key_required"
 	CodeKeyInvalid       = "api_key_invalid"
 	CodeOriginNotAllowed = "origin_not_allowed"
+
+	// KeyStatusHeader carries KeyNotAccepted upstream; nginx echoes it to the client as x-sefaria-key-status.
+	KeyStatusHeader      = "x-sefaria-key-status"
+	KeyStatusNotAccepted = "not_accepted"
 )
+
+// sfrPrefix marks keys this service checks. A key without it is a legacy Mongo key, which Django checks.
+const sfrPrefix = "sfr_"
 
 type Lookup interface {
 	Lookup(key string) (registry.Key, bool)
@@ -49,6 +56,9 @@ type Decision struct {
 	MonthlyLimit *int64
 	Result       string
 	Message      string
+	// KeyNotAccepted is true when the request carried an sfr_ key that failed the gate (unknown, revoked or
+	// comma-joined). Survives observe mode. Surfaced to the caller as x-sefaria-key-status: not_accepted.
+	KeyNotAccepted bool
 }
 
 type Config struct {
@@ -60,6 +70,12 @@ type Config struct {
 
 func allow(project, tier, result string) Decision {
 	return Decision{Allow: true, Status: 200, Project: project, Tier: tier, Result: result}
+}
+
+// notAccepted flags a bad sfr_ key on a decision. It is set after deny, so observe mode keeps it too.
+func notAccepted(d Decision) Decision {
+	d.KeyNotAccepted = true
+	return d
 }
 
 func deny(cfg Config, status int, code, message string) Decision {
@@ -147,11 +163,24 @@ func Decide(l Lookup, cfg Config, r Request) Decision {
 	return d
 }
 
+// lookupSfr finds an sfr_ key. Envoy joins repeated x-api-key headers with a comma; such a value is never a key.
+func lookupSfr(l Lookup, key string) (registry.Key, bool) {
+	if strings.Contains(key, ",") {
+		return registry.Key{}, false
+	}
+	return l.Lookup(key)
+}
+
 func decide(l Lookup, cfg Config, r Request, meter string) Decision {
-	if r.APIKey != "" {
-		k, ok := l.Lookup(r.APIKey)
+	// A legacy key (no sfr_ prefix) is not checked here: it takes the no-key path, and Django checks it.
+	if strings.HasPrefix(r.APIKey, sfrPrefix) {
+		k, ok := lookupSfr(l, r.APIKey)
 		if !ok || k.Revoked {
-			return deny(cfg, 401, CodeKeyInvalid, "The x-api-key is not valid for this project.")
+			// Gated: 401. Ungated: anonymous, so the page still loads, and the caller is told the key was not accepted.
+			if gated(cfg, r.Path) {
+				return notAccepted(deny(cfg, 401, CodeKeyInvalid, "The x-api-key is not valid for this project."))
+			}
+			return notAccepted(allow("", TierAnonymous, CodeKeyInvalid))
 		}
 		if len(k.AllowedOrigins) > 0 && !contains(k.AllowedOrigins, r.Origin) {
 			origin := r.Origin
@@ -191,11 +220,15 @@ func (d Decision) Body(helpURL string) []byte {
 	return b
 }
 
+// Prefix is the most of a key a log line may keep: sfr_ and six characters. A legacy key logs as "".
 func Prefix(key string) string {
-	if len(key) <= 12 {
-		return key
+	if !strings.HasPrefix(key, sfrPrefix) {
+		return ""
 	}
-	return key[:12]
+	if n := len(sfrPrefix) + 6; len(key) > n {
+		return key[:n]
+	}
+	return key
 }
 
 func BearerToken(authorization string) (string, bool) {

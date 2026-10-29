@@ -109,7 +109,7 @@ func TestGRPCCheckDeny(t *testing.T) {
 
 func TestGRPCObserveMode(t *testing.T) {
 	s := NewGRPCServer(reg, Options{Cfg: observe}, NopRecorder{})
-	resp, _ := s.Check(context.Background(), checkReq("/x", map[string]string{"x-api-key": unknown}))
+	resp, _ := s.Check(context.Background(), checkReq("/api/knn-search", map[string]string{"x-api-key": unknown}))
 	if resp.Status.Code != int32(codes.OK) {
 		t.Fatalf("observe mode denied: %v", resp)
 	}
@@ -217,5 +217,34 @@ func TestAnonymousHasNoLimitMetadata(t *testing.T) {
 	resp := checkWith(t, limitReg, meteredCfg, "/api/knn-search", map[string]string{})
 	if resp.GetDynamicMetadata() != nil {
 		t.Fatalf("an anonymous request must carry no limit metadata: %v", resp.GetDynamicMetadata())
+	}
+}
+
+// The client learns its bad key was not accepted only through this header; a valid or legacy key never gets it.
+func TestGRPCKeyStatusHeader(t *testing.T) {
+	cases := []struct {
+		name    string
+		cfg     Config
+		path    string
+		headers map[string]string
+		want    string
+	}{
+		{"bad sfr_ key ungated", enforce, "/api/texts/Genesis.1", map[string]string{"x-api-key": unknown}, "not_accepted"},
+		{"comma-joined ungated", enforce, "/", map[string]string{"x-api-key": alpha + "," + unknown}, "not_accepted"},
+		{"bad sfr_ key in observe mode", observe, "/api/knn-search", map[string]string{"x-api-key": revoked}, "not_accepted"},
+		{"valid key", enforce, "/api/texts/Genesis.1", map[string]string{"x-api-key": alpha}, ""},
+		{"legacy key", enforce, "/api/texts/Genesis.1", map[string]string{"x-api-key": "0123456789abcdef0123456789abcdef"}, ""},
+		{"no key", enforce, "/api/texts/Genesis.1", nil, ""},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			resp, got := checkDecision(t, c.cfg, "GET", c.path, c.headers)
+			if resp.Status.Code != int32(codes.OK) {
+				t.Fatalf("want an allow, got %v", resp.Status)
+			}
+			if got["x-sefaria-key-status"] != c.want {
+				t.Fatalf("x-sefaria-key-status=%q want %q (headers=%v)", got["x-sefaria-key-status"], c.want, got)
+			}
+		})
 	}
 }
