@@ -32,10 +32,26 @@ export interface PublicConfig {
   googleClientId: string;
   appleClientId: string;
   recaptchaSiteKey: string;
+  /** The Library Assistant (`<lc-chatbot>`): which build to load and which server it talks to (src/lib/assistant/config.ts). */
+  assistant: AssistantEnv;
+}
+
+/** The Library Assistant's deployment settings, read from the same environment variables Django reads (sefaria/settings.py). */
+export interface AssistantEnv {
+  /** CHATBOT_API_BASE_URL (Django's default when unset). */
+  apiBaseUrl: string;
+  /** CHATBOT_VERSION: a preview build to load by default (as `?chatbot_version=` does per reader). */
+  version: string | null;
+  /** CHATBOT_USE_LOCAL_SCRIPT: the assistant's Vite dev server (http://localhost:5173), as Django's setting. */
+  useLocalScript: boolean;
+  /** `origin` attribute: "sefaria-<SENTRY_ENVIRONMENT>", as Django sends it. */
+  origin: string;
 }
 
 const DEFAULT_ORIGIN = "https://www.sefaria.org";
 const DEFAULT_VOICES = "https://voices.sefaria.org";
+/** Django's CHATBOT_API_BASE_URL default (sefaria/local_settings_example.py, the helm chart). */
+const DEFAULT_ASSISTANT_API = "https://chat-dev.sefaria.org/api";
 const isServer = typeof window === "undefined";
 const env = (k: string): string | undefined => (isServer && typeof process !== "undefined" ? process.env[k] : undefined);
 
@@ -63,6 +79,12 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
       googleClientId: env("GOOGLE_SSO_CLIENT_ID") ?? "",
       appleClientId: env("APPLE_SSO_CLIENT_ID") ?? "",
       recaptchaSiteKey: env("RECAPTCHA_PUBLIC_KEY") ?? "",
+      assistant: {
+        apiBaseUrl: env("CHATBOT_API_BASE_URL") || DEFAULT_ASSISTANT_API,
+        version: env("CHATBOT_VERSION") || null,
+        useLocalScript: /^(1|true|yes)$/i.test(env("CHATBOT_USE_LOCAL_SCRIPT") ?? ""),
+        origin: `sefaria-${env("SENTRY_ENVIRONMENT") || "local"}`,
+      },
     }
   : {
       apiOrigin: window.__SEFARIA_CONFIG__?.apiOrigin ?? DEFAULT_ORIGIN,
@@ -72,6 +94,7 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
       googleClientId: window.__SEFARIA_CONFIG__?.googleClientId ?? "",
       appleClientId: window.__SEFARIA_CONFIG__?.appleClientId ?? "",
       recaptchaSiteKey: window.__SEFARIA_CONFIG__?.recaptchaSiteKey ?? "",
+      assistant: { apiBaseUrl: DEFAULT_ASSISTANT_API, version: null, useLocalScript: false, origin: "sefaria-local", ...window.__SEFARIA_CONFIG__?.assistant },
     };
 
 /** The API origin for this side: the internal one on the server, the public one in the browser. */
