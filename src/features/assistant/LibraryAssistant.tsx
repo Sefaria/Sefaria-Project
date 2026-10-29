@@ -32,7 +32,7 @@ function useReaderVersion(searchStr: string): string | null | undefined {
     firstSearch = null;
     for (const search of searches) {
       const asked = versionFromQuery(search);
-      if (asked) document.cookie = versionCookie("set" in asked ? asked.set : null);
+      if (asked) document.cookie = versionCookie("set" in asked ? asked.set : null, window.location.protocol === "https:");
     }
     setVersion(versionFromCookie(document.cookie));
   }, [searchStr]);
