@@ -38,8 +38,10 @@ func TestDecideEnforce(t *testing.T) {
 	}{
 		{"valid key", Request{Path: "/api/texts/Genesis.1", APIKey: alpha}, true, 200, "", "proj_alpha", "developer", "ok"},
 		{"valid key, any origin when none registered", Request{Path: "/x", APIKey: alpha, Origin: "https://x.org"}, true, 200, "", "proj_alpha", "developer", "ok"},
-		{"unknown key", Request{Path: "/x", APIKey: unknown}, false, 401, "api_key_invalid", "", "", "api_key_invalid"},
-		{"revoked key", Request{Path: "/x", APIKey: revoked}, false, 401, "api_key_invalid", "", "", "api_key_invalid"},
+		{"unknown key on gated path", Request{Path: "/api/knn-search", Method: "POST", APIKey: unknown}, false, 401, "api_key_invalid", "", "", "api_key_invalid"},
+		{"revoked key on gated path", Request{Path: "/api/knn-search", Method: "POST", APIKey: revoked}, false, 401, "api_key_invalid", "", "", "api_key_invalid"},
+		{"unknown key on ungated path is anonymous", Request{Path: "/x", APIKey: unknown}, true, 200, "", "", "anonymous", "api_key_invalid"},
+		{"revoked key on ungated path is anonymous", Request{Path: "/x", APIKey: revoked}, true, 200, "", "", "anonymous", "api_key_invalid"},
 		{"registered origin ok", Request{Path: "/x", APIKey: beta, Origin: "https://beta.example.org"}, true, 200, "", "proj_beta", "partner", "ok"},
 		{"registered origin mismatch", Request{Path: "/x", APIKey: beta, Origin: "https://evil.example.org"}, false, 403, "origin_not_allowed", "", "", "origin_not_allowed"},
 		{"registered origin, call without Origin refused", Request{Path: "/x", APIKey: beta}, false, 403, "origin_not_allowed", "", "", "origin_not_allowed"},
@@ -91,7 +93,7 @@ func TestDecidePreflight(t *testing.T) {
 
 func TestDecideObserveNeverDenies(t *testing.T) {
 	for name, r := range map[string]Request{
-		"unknown": {Path: "/x", APIKey: unknown}, "revoked": {Path: "/x", APIKey: revoked},
+		"unknown": {Path: "/api/knn-search", APIKey: unknown}, "revoked": {Path: "/api/knn-search", APIKey: revoked},
 		"origin": {Path: "/x", APIKey: beta, Origin: "https://evil.example.org"}, "gated": {Path: "/api/knn-search"},
 	} {
 		d := Decide(reg, observe, r)
@@ -105,7 +107,7 @@ func TestDecideObserveNeverDenies(t *testing.T) {
 }
 
 func TestBodyShapeAndNoLeak(t *testing.T) {
-	d := Decide(reg, enforce, Request{Path: "/x", APIKey: unknown})
+	d := Decide(reg, enforce, Request{Path: "/api/knn-search", Method: "POST", APIKey: unknown})
 	var m map[string]string
 	if err := json.Unmarshal(d.Body(enforce.HelpURL), &m); err != nil {
 		t.Fatal(err)
@@ -116,7 +118,7 @@ func TestBodyShapeAndNoLeak(t *testing.T) {
 	if strings.Contains(string(d.Body(enforce.HelpURL)), unknown) {
 		t.Fatal("body leaks the key")
 	}
-	same := Decide(reg, enforce, Request{Path: "/x", APIKey: revoked})
+	same := Decide(reg, enforce, Request{Path: "/api/knn-search", Method: "POST", APIKey: revoked})
 	if string(same.Body(enforce.HelpURL)) != string(d.Body(enforce.HelpURL)) {
 		t.Fatal("unknown and revoked must produce the same body (product spec: no hint which)")
 	}
@@ -127,10 +129,10 @@ func TestBodyShapeAndNoLeak(t *testing.T) {
 }
 
 func TestPrefixAndBearer(t *testing.T) {
-	if got := Prefix(alpha); got != "sfr_alpha000" {
+	if got := Prefix(alpha); got != "sfr_alpha0" {
 		t.Fatalf("got %q", got)
 	}
-	if got := Prefix("short"); got != "short" {
+	if got := Prefix("short"); got != "" {
 		t.Fatalf("got %q", got)
 	}
 	if tok, ok := BearerToken("Bearer abc"); !ok || tok != "abc" {
@@ -150,5 +152,107 @@ func TestGatedPathEncodedAndDoubleSlash(t *testing.T) {
 	}
 	if gated(cfg, "/api/texts/Genesis.1") {
 		t.Error("ungated path reported gated")
+	}
+}
+
+// A bad sfr_ key on an ungated path is answered as anonymous, flagged so the caller learns the key was not accepted.
+func TestBadKeyUngatedIsAnonymousNotAccepted(t *testing.T) {
+	for name, k := range map[string]string{"unknown": unknown, "revoked": revoked, "comma-joined unknown": alpha + "," + unknown, "comma-joined same key": alpha + "," + alpha} {
+		for _, p := range []string{"/api/texts/Genesis.1", "/", "/static/js/app.js"} {
+			t.Run(name+" "+p, func(t *testing.T) {
+				d := Decide(reg, enforce, Request{Method: "GET", Path: p, APIKey: k})
+				if !d.Allow || d.Status != 200 || d.Tier != TierAnonymous || d.Project != "" || d.Keyed || d.Result != CodeKeyInvalid || !d.KeyNotAccepted {
+					t.Fatalf("got %+v", d)
+				}
+			})
+		}
+	}
+}
+
+// A legacy (Mongo, non-sfr_) key is not a credential at this gate: it counts as no key, so it is not flagged.
+func TestLegacyKeyGatedPathRequiresKey(t *testing.T) {
+	legacy := "0123456789abcdef0123456789abcdef"
+	d := Decide(reg, enforce, Request{Method: "POST", Path: "/api/knn-search", APIKey: legacy})
+	if d.Allow || d.Status != 401 || d.Code != CodeKeyRequired {
+		t.Fatalf("gated legacy key: got %+v", d)
+	}
+	d = Decide(reg, enforce, Request{Method: "GET", Path: "/api/texts/Genesis.1", APIKey: legacy})
+	if !d.Allow || d.Tier != TierAnonymous || d.Result != TierAnonymous || d.KeyNotAccepted || d.Keyed {
+		t.Fatalf("ungated legacy key: got %+v", d)
+	}
+}
+
+// Keys that fail the gate are 401 on a gated path, as before.
+func TestInvalidSfrKeyGatedStill401(t *testing.T) {
+	for name, k := range map[string]string{"unknown": unknown, "revoked": revoked, "comma-joined": alpha + "," + unknown} {
+		t.Run(name, func(t *testing.T) {
+			d := Decide(reg, enforce, Request{Method: "POST", Path: "/api/knn-search", APIKey: k})
+			if d.Allow || d.Status != 401 || d.Code != CodeKeyInvalid || d.Result != CodeKeyInvalid {
+				t.Fatalf("got %+v", d)
+			}
+		})
+	}
+}
+
+// Observe mode never denies, but the bad key stays visible in the result and in the not-accepted flag.
+func TestObserveModeInvalidKeyGated(t *testing.T) {
+	d := Decide(reg, observe, Request{Method: "POST", Path: "/api/knn-search", APIKey: unknown})
+	if !d.Allow || d.Status != 200 || d.Result != "observed:api_key_invalid" || !d.KeyNotAccepted {
+		t.Fatalf("got %+v", d)
+	}
+}
+
+// Envoy joins repeated headers with a comma: such a value is never a keyed allow, on any path.
+func TestCommaJoinedKeyNeverKeyed(t *testing.T) {
+	for _, v := range []string{alpha + "," + alpha, alpha + "," + unknown, alpha + ", " + alpha} {
+		for _, p := range []string{"/api/knn-search", "/api/texts/Genesis.1"} {
+			d := Decide(reg, enforce, Request{Method: "POST", Path: p, APIKey: v})
+			if d.Keyed || d.Project != "" || d.Tier == "developer" {
+				t.Fatalf("%s %q: keyed allow %+v", p, v, d)
+			}
+		}
+	}
+}
+
+func TestPrefixCapsAtSfrPlus6(t *testing.T) {
+	if got := Prefix("sfr_abcdefghij"); got != "sfr_abcdef" {
+		t.Fatalf("got %q", got)
+	}
+	if got := Prefix("sfr_abc"); got != "sfr_abc" {
+		t.Fatalf("got %q", got)
+	}
+	if got := Prefix("0123456789abcdef0123456789abcdef"); got != "" {
+		t.Fatalf("legacy key logs a prefix: %q", got)
+	}
+}
+
+// Any comma-joined x-api-key value is a bad key, whichever element comes first (legacy or sfr_).
+func TestCommaJoinedValueIsBadKeyLegacyOrSfrFirst(t *testing.T) {
+	legacy := "0123456789abcdef0123456789abcdef"
+	for name, k := range map[string]string{"legacy first": legacy + "," + alpha, "sfr first": alpha + "," + legacy, "legacy twice": legacy + "," + legacy} {
+		t.Run(name+" gated enforce", func(t *testing.T) {
+			d := Decide(reg, enforce, Request{Method: "POST", Path: "/api/knn-search", APIKey: k})
+			if d.Allow || d.Status != 401 || d.Code != CodeKeyInvalid || d.Result != CodeKeyInvalid || !d.KeyNotAccepted {
+				t.Fatalf("got %+v", d)
+			}
+		})
+		t.Run(name+" ungated enforce", func(t *testing.T) {
+			d := Decide(reg, enforce, Request{Method: "GET", Path: "/api/texts/Genesis.1", APIKey: k})
+			if !d.Allow || d.Tier != TierAnonymous || d.Keyed || d.Result != CodeKeyInvalid || !d.KeyNotAccepted {
+				t.Fatalf("got %+v", d)
+			}
+		})
+		t.Run(name+" gated observe", func(t *testing.T) {
+			d := Decide(reg, observe, Request{Method: "POST", Path: "/api/knn-search", APIKey: k})
+			if !d.Allow || d.Status != 200 || d.Keyed || d.Result != "observed:api_key_invalid" || !d.KeyNotAccepted {
+				t.Fatalf("got %+v", d)
+			}
+		})
+		t.Run(name+" ungated observe", func(t *testing.T) {
+			d := Decide(reg, observe, Request{Method: "GET", Path: "/api/texts/Genesis.1", APIKey: k})
+			if !d.Allow || d.Keyed || d.Result != CodeKeyInvalid || !d.KeyNotAccepted {
+				t.Fatalf("got %+v", d)
+			}
+		})
 	}
 }

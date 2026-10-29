@@ -24,6 +24,7 @@ from sefaria.model import library, Index, IndexSet, Version, VersionSet, LinkSet
     VersionStateSet, Category, UserHistory, UserHistorySet, WebPage
 from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.system.database import db
+from bson.objectid import ObjectId
 import sefaria.system.cache as scache
 import random as rand
 
@@ -1397,6 +1398,48 @@ class SheetPostTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
         self.assertEqual(0, db.sheets.find({"id": sheet_id}).count())
+
+
+# Test fixture only: a legacy (Mongo, non-sfr_) key, as x-api-key on a request. Not a real credential.
+LEGACY_API_KEY_FIXTURE = "0123456789abcdef0123456789abcdef"
+
+
+class LegacyApiKeyNotesTest(SefariaTestCase):
+    """A legacy key sent as x-api-key still authenticates on GET /api/notes (Django's own check; the gate passes it through)."""
+
+    def setUp(self):
+        self.make_test_user()
+        uid = User.objects.get(email="test@sefaria.org").id
+        db.apikeys.insert_one({"key": LEGACY_API_KEY_FIXTURE, "uid": uid})
+        self.addCleanup(db.apikeys.delete_many, {"key": LEGACY_API_KEY_FIXTURE})
+        response = c.post("/api/notes/", {'json': json.dumps({
+            'title': 'legacy key test note',
+            'text': 'private to the key owner',
+            'type': 'note',
+            'ref': 'Genesis 1:5',
+            'public': False,
+        })})
+        self.assertEqual(200, response.status_code)
+        self.note_id = json.loads(response.content)["_id"]
+        self.addCleanup(db.notes.delete_one, {"_id": ObjectId(self.note_id)})
+        c.logout()
+
+    def _note_ids(self, **extra):
+        response = c.get("/api/notes/Genesis.1.5", {"private": "1"}, **extra)
+        self.assertEqual(200, response.status_code)
+        return [n["_id"] for n in json.loads(response.content)]
+
+    def test_legacy_key_in_x_api_key_returns_the_owners_private_notes(self):
+        self.assertIn(self.note_id, self._note_ids(HTTP_X_API_KEY=LEGACY_API_KEY_FIXTURE))
+
+    def test_without_a_key_private_notes_are_hidden(self):
+        # Anonymous callers asking for private notes get an error dict, never the owner's notes.
+        response = c.get("/api/notes/Genesis.1.5", {"private": "1"})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIsInstance(data, dict)
+        self.assertIn("error", data)
+        self.assertNotIn(self.note_id, response.content.decode())
 
 
 class UserSyncTest(SefariaTestCase):

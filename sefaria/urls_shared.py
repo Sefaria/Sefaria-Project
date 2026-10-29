@@ -255,6 +255,7 @@ shared_patterns = [
 
     path('api/strapi/graphql-cache', sefaria_views.strapi_graphql_cache),
     path('api/strapi/cache-invalidate', sefaria_views.strapi_cache_invalidate),
+    path('api/webhooks/', include('webhooks.urls')),
 
     re_path(r'^api/stats/library-stats', sefaria_views.library_stats),
     re_path(r'^api/stats/core-link-stats', sefaria_views.core_link_stats),

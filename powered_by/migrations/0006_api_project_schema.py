@@ -21,17 +21,26 @@ TIERS = [
 ]
 
 
-def seed_tiers(apps, schema_editor):
-    alias = schema_editor.connection.alias
+def seed_api_tiers(apps, using="default"):
+    """Idempotently create the TIERS rows and their semantic meter limits.
+
+    The migration calls this with its historical models. Tests call it with the live app registry
+    (django.apps.apps) before each test, because --reuse-db keeps the test database without rerunning
+    migrations, and a TransactionTestCase flush empties these tables. Both paths share this code.
+    """
     ApiTier = apps.get_model("powered_by", "ApiTier")
     ApiTierMeterLimit = apps.get_model("powered_by", "ApiTierMeterLimit")
     for slug, name, per_minute, monthly in TIERS:
-        tier, _ = ApiTier.objects.using(alias).get_or_create(
+        tier, _ = ApiTier.objects.using(using).get_or_create(
             id=slug, defaults={"name": name, "per_minute_per_project": per_minute},
         )
-        ApiTierMeterLimit.objects.using(alias).get_or_create(
+        ApiTierMeterLimit.objects.using(using).get_or_create(
             tier=tier, meter="semantic", defaults={"monthly_per_project": monthly},
         )
+
+
+def seed_tiers(apps, schema_editor):
+    seed_api_tiers(apps, using=schema_editor.connection.alias)
 
 
 class Migration(migrations.Migration):
