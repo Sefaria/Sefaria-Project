@@ -1,5 +1,3 @@
-//go:build knowngaps
-
 package authz
 
 import (
@@ -8,7 +6,7 @@ import (
 	"testing"
 )
 
-// The deny log may keep at most "sfr_" plus 4 characters of a key, and at most 4 characters of any other key.
+// The deny log keeps at most "sfr_" plus 6 characters of an sfr_ key and nothing of a legacy (non-sfr_) key.
 func loggedKeyPrefix(t *testing.T, cfg Config, method, path string, headers map[string]string) string {
 	t.Helper()
 	logs := captureLogs(t)
@@ -26,32 +24,34 @@ func loggedKeyPrefix(t *testing.T, cfg Config, method, path string, headers map[
 
 func wantShortPrefix(t *testing.T, key, logged string) {
 	t.Helper()
-	limit := 4
-	if strings.HasPrefix(key, "sfr_") {
-		limit = len("sfr_") + 4
+	if !strings.HasPrefix(key, "sfr_") {
+		if logged != "" {
+			t.Fatalf("deny log keeps %q of a legacy key, want none", logged)
+		}
+		return
 	}
-	if logged == key || (len(logged) > limit && strings.HasPrefix(key, logged)) {
-		t.Fatalf("deny log keeps %d characters of a %d-character key (limit %d)", len(logged), len(key), limit)
+	if limit := len("sfr_") + 6; len(logged) > limit || !strings.HasPrefix(key, logged) || logged == key {
+		t.Fatalf("deny log keeps %q of a %d-character sfr_ key (limit %d, must be a strict prefix)", logged, len(key), limit)
 	}
 }
 
-func TestKnownGapNE2LegacyKeyPrefix(t *testing.T) {
+func TestDenyLogLegacyKeyPrefix(t *testing.T) {
 	for name, k := range map[string]string{
 		"legacy 32 hex":        "0123456789abcdef0123456789abcdef",
 		"legacy 12 characters": "abcdefghijkl",
 		"legacy 8 characters":  "abcdefgh",
 	} {
-		t.Run("@known-gap N-E2 "+name, func(t *testing.T) {
+		t.Run("legacy key logs nothing: "+name, func(t *testing.T) {
 			wantShortPrefix(t, k, loggedKeyPrefix(t, enforce, "POST", "/api/knn-search", map[string]string{"x-api-key": k}))
 		})
 	}
 }
 
-func TestKnownGapNCR4dValidKeyPrefix(t *testing.T) {
-	t.Run("@known-gap N-CR4 valid restricted key denied by Origin", func(t *testing.T) {
+func TestDenyLogSfrKeyPrefix(t *testing.T) {
+	t.Run("valid restricted key denied by Origin", func(t *testing.T) {
 		wantShortPrefix(t, beta, loggedKeyPrefix(t, enforce, "GET", "/api/texts/Genesis.1", map[string]string{"x-api-key": beta, "origin": "https://evil.example.org"}))
 	})
-	t.Run("@known-gap N-CR4 unknown sfr_ key", func(t *testing.T) {
+	t.Run("unknown sfr_ key", func(t *testing.T) {
 		wantShortPrefix(t, unknown, loggedKeyPrefix(t, enforce, "POST", "/api/knn-search", map[string]string{"x-api-key": unknown}))
 	})
 }

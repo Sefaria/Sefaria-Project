@@ -76,9 +76,9 @@ http {
   }
   add_header 'Access-Control-Allow-Origin' $cors_header always;
 
-{{ if .Values.authService.enabled }}  # keyStatus: ext_authz sends x-sefaria-key-status: not_accepted when a bad key was answered as anonymous
+{{ if and .Values.authService.enabled .Values.gateway.enabled }}  # keyStatus: ext_authz sends x-sefaria-key-status: not_accepted when a bad key was answered as anonymous
   # (ungated, or observe mode). Echo it to the caller; Access-Control-Expose-Headers lets browsers read it cross-origin.
-  # Rendered only when authService is enabled: only then does the listener strip client copies (clienttrafficpolicy).
+  # Rendered only when authService and the gateway are enabled: only then does the listener strip client copies (clienttrafficpolicy).
   map $http_x_sefaria_key_status $key_status {
     not_accepted  not_accepted;
     default       "";
@@ -171,7 +171,7 @@ http {
       rewrite ^/(?:api/search)/(.*)$ /$1 break;
       proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
       add_header 'Access-Control-Allow-Origin' '';
-{{ if $.Values.authService.enabled }}      add_header x-sefaria-key-status $key_status always;
+{{ if and $.Values.authService.enabled $.Values.gateway.enabled }}      add_header x-sefaria-key-status $key_status always;
       add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
 {{ end }}      proxy_pass http://elasticsearch_upstream/;
     }
@@ -263,7 +263,7 @@ http {
       rewrite ^/(?:api/search)/(.*)$ /$1 break;
       proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
       add_header 'Access-Control-Allow-Origin' '';
-{{ if $.Values.authService.enabled }}      add_header x-sefaria-key-status $key_status always;
+{{ if and $.Values.authService.enabled $.Values.gateway.enabled }}      add_header x-sefaria-key-status $key_status always;
       add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
 {{ end }}      proxy_pass http://elasticsearch_upstream/;
     }
