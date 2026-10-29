@@ -24,6 +24,7 @@ from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.helper import library_assistant
+from sefaria.helper import reader_choice
 from sefaria.donors.types import DonorStatus
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY, \
@@ -4205,6 +4206,10 @@ def profile_api(request, slug=None):
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
+        reader_choice_posted = reader_choice.SETTING_KEY in profileUpdate.get("settings", {})
+        if reader_choice_posted:
+            profileUpdate["settings"][reader_choice.SETTING_KEY] = reader_choice.normalize(profileUpdate["settings"][reader_choice.SETTING_KEY])
+
         la_key = library_assistant.SETTING_KEY
         if la_key in profileUpdate.get("settings", {}):
             # Public endpoint — coerce so a posted "false" can't read as truthy.
@@ -4223,7 +4228,11 @@ def profile_api(request, slug=None):
             # whitelist row in sync for the still-whitelisted `experiments` field.
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
-            return jsonResponse(profile.to_mongo_dict())
+            response = jsonResponse(profile.to_mongo_dict())
+            # the choice of reader takes effect through its cookie, which nginx routes page requests by
+            if reader_choice_posted and reader_choice.available():
+                reader_choice.apply_cookie(response, request, profile.settings[reader_choice.SETTING_KEY])
+            return response
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -4612,6 +4621,9 @@ def account_settings(request):
         # The toggle must render the *effective* value: a user who is on through the
         # legacy rule has no setting key yet, and must still see "On".
         'library_assistant_enabled': library_assistant.is_enabled(profile),
+        # nodejs.mode "optin": the choice between the legacy reader and the new one
+        'reader_choice_available': reader_choice.available(),
+        'new_reader_enabled': reader_choice.chose_next(profile),
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
         'diaspora': request.diaspora,

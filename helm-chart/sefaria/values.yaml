@@ -188,6 +188,9 @@ nodejs:
   #          reader and library pages, reads the API through Varnish, and hands Django's pages, our 404s and every write to Varnish.
   #          Django's own SSR is switched off (USE_NODE = False).
   #          Runbook: reader-next/docs/DEPLOYMENT.md.
+  #  optin:  both. The node pods run the legacy SSR server (this image is Dockerfile.legacy's) and a second rollout runs the new
+  #          reader (values `reader` below). A visitor who chose the new reader in account settings has the `reader_version=next`
+  #          cookie, and nginx sends their page requests to it; everyone else stays on the legacy reader (USE_NODE = True).
   mode: reader
   containerImage:
     # Full path of the image registry inclusive of the image name
@@ -212,6 +215,21 @@ nodejs:
   # Node's non-heap overhead is ~75-100MB, so keep limits.memory >= heapSize + ~200Mi or the
   # container is OOMKilled before V8 reports anything. prod/preprod override this (1250/1500Mi).
   heapSize: 300
+
+# nodejs.mode "optin" only: the new reader client's own rollout (reader-<env>), beside the legacy node pods.
+reader:
+  containerImage:
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
+    tag: latest
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "768Mi"
+      cpu: "1000m"
+  heapSize: 384
 
 varnish:
   containerImage:
