@@ -17991,7 +17991,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .readerNavMenu.settingsPage .content .contentInner { padding: 24px 16px 60px; }
   .settingsNav { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
   .settingsNavTitle { width: 100%; padding: 0 0 8px; }
-  .settingsNav a { gap: 8px; padding: 10px 12px; border-radius: 0; border-bottom: 3px solid transparent; }
+  .settingsNav a { gap: 6px; padding: 10px 8px; font-size: 15px; border-radius: 0; border-bottom: 3px solid transparent; }
   .settingsNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
   .devPocPageHeader { flex-direction: column; gap: var(--devPoc-s2); }
   .devPocResult { flex-wrap: wrap; }
@@ -18019,6 +18019,10 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
     border-width: 2px 0 0;
     border-radius: 0;
   }
+}
+/* Below this width both tabs fit on one row only without their icons. */
+@media (max-width: 359px) {
+  .settingsNavIcon { display: none; }
 }
 
 /* The mock confirmation email. The magenta banner is the POC test panel's colour so nobody
