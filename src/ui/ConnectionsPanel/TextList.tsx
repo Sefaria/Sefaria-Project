@@ -67,6 +67,7 @@ export interface TextListProps {
  * @feature CON-032 Connection item rendering
  * @feature CON-033 Open connected text in main panel
  * @feature CON-034 Add connection to sheet button
+ * @feature CON-035 Remove connection (moderator)
  */
 export function TextList({ title, categoryTitle, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen, onAddToSheet, onRemove, onDwell, onNearEnd }: TextListProps) {
   const endRef = useRef<HTMLDivElement>(null);

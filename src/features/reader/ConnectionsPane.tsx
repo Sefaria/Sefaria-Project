@@ -44,6 +44,9 @@ import { localizedRef, topicsForRefs } from "~/lib/connections/topics";
 import { TopicsView } from "~/ui/TopicsView/TopicsView";
 import { TopicSearch } from "~/ui/TopicsView/TopicSearch";
 import { addLinkToResources, addRefTopicLink, CREATE_NEW_TOPIC, selectionRange, topicSuggestions } from "~/lib/user/topic-links";
+import { createTopic, parentTopicOptions } from "~/lib/topics/topic-editor";
+import { topicTocTreeQueryOptions } from "~/lib/topics/topic-toc";
+import { TopicCreateForm } from "~/ui/TopicsView/TopicCreateForm";
 import { nameQueryOptions } from "~/lib/search/autocomplete";
 import { manuscriptsForRefs, mediaForRefs } from "~/lib/connections/media";
 import { mergePages, sitesOf, sortPages, webPagesQueryOptions } from "~/lib/connections/webpages";
@@ -51,6 +54,8 @@ import { WebPagesView } from "~/ui/WebPagesView/WebPagesView";
 import { ManuscriptsView } from "~/ui/ManuscriptsView/ManuscriptsView";
 import { TorahReadingsView } from "~/ui/TorahReadingsView/TorahReadingsView";
 import { indexDetailsQueryOptions } from "~/lib/catalog/index-details";
+import { contentDraft, lexiconEntryQueryOptions, lexiconIdentity, lexiconNameOf, renameLexiconHeadword, saveLexiconContent } from "~/lib/lexicon/admin";
+import { LexiconContentEdit, LexiconHeadwordEdit } from "~/ui/LexiconEditView/LexiconEditView";
 import { tocStructures, type TocIndexRecord } from "~/lib/toc/model";
 import { TocView } from "~/ui/TocView/TocView";
 import { mergeTextResultsVersions, searchPathQueryOptions, textSearchQueryOptions, type SearchHit } from "~/lib/search/text-search";
@@ -222,6 +227,8 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   // Resources rows: sheets, topics, manuscripts, readings (section data), web pages (the selection), translations.
   const onResources = view.view === "resources";
   const onTopics = view.view === "mode" && view.mode === "Topics";
+  // the topic editor's parent menu: only for a moderator on Topics
+  const topicTreeQ = useQuery({ ...topicTocTreeQueryOptions(), enabled: onTopics && !!viewer?.isStaff });
   const onManuscripts = view.view === "mode" && view.mode === "manuscripts";
   const onReadings = view.view === "mode" && view.mode === "Torah Readings";
   const resourcesQ = useQuery({ ...resourcesQueryOptions(sectionRef), enabled: onResources || onTopics || onManuscripts || onReadings });
@@ -274,8 +281,14 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const searchHits = useMemo(() => (searchQ.data ? mergeTextResultsVersions(searchQ.data.pages.flatMap((p) => p.hits)) : undefined), [searchQ.data]);
   const location = useLocation();
   const onNavigation = view.view === "mode" && view.mode === "Navigation";
-  const detailsQ = useQuery({ ...indexDetailsQueryOptions(indexTitle), enabled: (onAbout || onNavigation || onSidebarSearch) && !!indexTitle });
-  const lexiconName = (detailsQ.data as { lexiconName?: string } | undefined)?.lexiconName;
+  const onLexiconEdit = view.view === "mode" && (view.mode === "LexiconHeadwordEdit" || view.mode === "LexiconContentEdit");
+  const isDictionary = !!props.section?.categories.includes("Dictionary");
+  const detailsQ = useQuery({ ...indexDetailsQueryOptions(indexTitle), enabled: (onAbout || onNavigation || onSidebarSearch || (onLexiconEdit && isDictionary)) && !!indexTitle });
+  const lexiconName = lexiconNameOf(detailsQ.data);
+  // the moderators' lexicon tools (#3730): which entry this is (undefined while the index loads), and its stored content
+  const lexiconEntry = !onLexiconEdit ? null : !isDictionary ? null : detailsQ.isPending ? undefined : lexiconIdentity(props.section, lexiconName);
+  const entryQ = useQuery({ ...lexiconEntryQueryOptions(lexiconEntry ?? { lexiconName: "", headword: "" }), enabled: !!lexiconEntry && view.view === "mode" && view.mode === "LexiconContentEdit" });
+  const entryDraft = useMemo(() => (entryQ.data ? contentDraft(entryQ.data) : undefined), [entryQ.data]);
   // dictionary books: the search box looks words up instead of searching text (SRC-020)
   const dict = useDictionarySearch({ lexiconName, title: indexTitle, open: props.onGoToRef });
   const anyDict = useDictionarySearch({});
@@ -365,6 +378,20 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
                 getSuggestions={async (word) => topicSuggestions(await qcNotes.fetchQuery(nameQueryOptions(word, ["Topic"], null)), word, CREATE_NEW_TOPIC[shownLang])}
                 onAdd={async (slug) => addLinkToResources(qcNotes, sectionRef, await addRefTopicLink(selectionRange(selectedRefs, sectionRef), slug, interfaceLang))}
                 createHref={() => `${SITE_ORIGIN}${hrefFor(view)}`}
+                // the old TopicEditor inline: create the topic, then add it to the selection (onCreateSuccess → post)
+                renderCreate={(title, close) => (
+                  <TopicCreateForm
+                    initialTitle={title}
+                    parents={topicTreeQ.data ? parentTopicOptions(topicTreeQ.data) : undefined}
+                    hebrew={hebrew}
+                    onCancel={close}
+                    onCreate={async (topic) => {
+                      const slug = await createTopic(topic);
+                      addLinkToResources(qcNotes, sectionRef, await addRefTopicLink(selectionRange(selectedRefs, sectionRef), slug, interfaceLang));
+                      close();
+                    }}
+                  />
+                )}
               />
             ) : null
           }
@@ -629,7 +656,36 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           }
           onAddConnection={() => (viewer ? onNavigate(hrefFor({ view: "mode", mode: "Add Connection" })) : props.onSignUp("add-connection"))}
           onEditText={editText}
+          onLexiconHeadword={viewer?.isStaff && isDictionary ? () => onNavigate(hrefFor({ view: "mode", mode: "LexiconHeadwordEdit" })) : undefined}
+          onLexiconContent={viewer?.isStaff && isDictionary ? () => onNavigate(hrefFor({ view: "mode", mode: "LexiconContentEdit" })) : undefined}
         />
+      </ConnectionsPanel>
+    );
+  }
+
+  if (onLexiconEdit) {
+    const advanced = { href: hrefFor({ view: "mode", mode: "Advanced Tools" }), label: <InterfaceText en="Advanced" he="כלים מתקדמים" /> };
+    // a typed reference in a ref link: the name API's ref, else "Not a recognized Sefaria reference." (the old Sefaria.isRef)
+    const resolveRef = async (text: string) => {
+      const name = await qcNotes.fetchQuery(nameQueryOptions(text));
+      if (!name.is_ref || !name.ref) throw new Error("Not a recognized Sefaria reference.");
+      return { ref: name.ref, href: `/${refToUrl(name.ref)}` };
+    };
+    return (
+      <ConnectionsPanel label={view.mode} back={advanced} lang={shownLang} onLang={props.onLang} onClose={onClose}>
+        {view.mode === "LexiconHeadwordEdit" ? (
+          <LexiconHeadwordEdit
+            identity={lexiconEntry}
+            onRename={async (id, newHeadword) => (await renameLexiconHeadword(id, newHeadword)).headword}
+          />
+        ) : (
+          <LexiconContentEdit
+            identity={lexiconEntry}
+            draft={entryQ.isError ? entryQ.error.message : entryDraft}
+            resolveRef={resolveRef}
+            onSave={async (id, content) => void (await saveLexiconContent(id, content))}
+          />
+        )}
       </ConnectionsPanel>
     );
   }

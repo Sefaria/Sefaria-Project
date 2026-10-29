@@ -49,3 +49,10 @@ export const topicTocQueryOptions = () =>
     }),
     select: topicParents,
   });
+
+/** The tree itself (the topic editor's parent menu): the same query, unselected. */
+export const topicTocTreeQueryOptions = () => {
+  const { select: _select, ...rest } = topicTocQueryOptions();
+  return queryOptions<TopicTocNode[]>(rest as never);
+};
+

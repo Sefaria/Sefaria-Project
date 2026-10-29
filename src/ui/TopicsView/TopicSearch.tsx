@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type KeyboardEvent } from "react";
+import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "../Icon/Icon";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import styles from "./TopicSearch.module.css";
@@ -14,8 +14,10 @@ export interface TopicSearchProps {
   getSuggestions: (word: string) => Promise<TopicSearchSuggestion[]>;
   /** Connect the chosen topic to the passage; rejects with the server's message. */
   onAdd: (slug: string) => Promise<void>;
-  /** Where a moderator can create a topic (the old inline TopicEditor is not built here). */
+  /** Where a moderator can create a topic, when no inline editor is given. */
   createHref: (title: string) => string;
+  /** The old inline TopicEditor for "Create a new topic: <title>"; `close` returns to the search. */
+  renderCreate?: (title: string, close: () => void) => ReactNode;
   /** "Create a new topic: " in the sidebar's language. */
   createPrefix: string;
 }
@@ -28,7 +30,7 @@ export interface TopicSearchProps {
  *
  * @feature CON-047 Add topic to ref (moderator)
  */
-export function TopicSearch({ getSuggestions, onAdd, createHref, createPrefix }: TopicSearchProps) {
+export function TopicSearch({ getSuggestions, onAdd, createHref, renderCreate, createPrefix }: TopicSearchProps) {
   const [value, setValue] = useState("");
   const [suggestions, setSuggestions] = useState<TopicSearchSuggestion[] | null>(null);
   const [listOpen, setListOpen] = useState(false);
@@ -109,6 +111,17 @@ export function TopicSearch({ getSuggestions, onAdd, createHref, createPrefix }:
     }
   };
 
+  if (creating !== null && renderCreate) {
+    return (
+      <>
+        {renderCreate(creating, () => {
+          setCreating(null);
+          setValue("");
+          setSuggestions(null);
+        })}
+      </>
+    );
+  }
   if (creating !== null) {
     return (
       <div className={styles.creating} role="group" aria-label="Create a new topic">

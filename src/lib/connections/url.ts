@@ -16,7 +16,7 @@
 export const SIDEBAR_MODES = [
   "Sheets", "Notes", "Translations", "Translation Open", "Version Open", "About", "AboutSheet", "Navigation", "WebPages",
   "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin",
-  "Advanced Tools", "Share", "Feedback", "Add To Sheet", "Add Connection",
+  "Advanced Tools", "Share", "Feedback", "Add To Sheet", "Add Connection", "LexiconHeadwordEdit", "LexiconContentEdit",
 ] as const;
 export type SidebarModeName = (typeof SIDEBAR_MODES)[number];
 
