@@ -894,8 +894,8 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
         })}
         value={fields.description}
         onChange={e => set("description", e.target.value)}
+        fieldAddon={<CharacterCount id="devPocProjectDescriptionCount" length={fields.description.length} />}
       />
-      <CharacterCount id="devPocProjectDescriptionCount" length={fields.description.length} />
     </div>
     <div className="devPocField">
       <Input id="devPocProjectOrg" dir="auto"
@@ -965,9 +965,9 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
 );
 
 const CharacterCount = ({id, length}) => (
-  <p className={"devPocCount" + (length >= MAX_DESCRIPTION_LENGTH ? " devPocCountFull" : "")} id={id} dir="ltr">
+  <span className={length >= MAX_DESCRIPTION_LENGTH ? "devPocCountFull" : undefined} id={id} dir="ltr">
     {length}/{MAX_DESCRIPTION_LENGTH}
-  </p>
+  </span>
 );
 
 

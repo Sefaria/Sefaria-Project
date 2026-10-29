@@ -17928,7 +17928,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocSsoPrompt .devPocList { margin-bottom: var(--devPoc-s3); }
 .devPocInlineButton { margin-top: 0; font-size: inherit; }
 .devPocChoice a { text-decoration: underline; }
-.devPocCount { margin: 4px 0 0; font-size: 12px; color: var(--devPoc-muted); text-align: end; max-width: 520px; }
 .devPocCountFull { color: #69501e; }
 .devPocListingSummary { padding-inline-start: var(--devPoc-s2); border-inline-start: 3px solid #d4dfea; }
 .devPocListingSummary .devPocHelp { margin: 2px 0 0; }
