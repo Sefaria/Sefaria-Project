@@ -130,7 +130,7 @@ These functions build the data structures that define what the React reader disp
 
 | Function | Line | Purpose |
 |----------|------|---------|
-| `application_health_api` | ~5120 | `/healthz` -- Checks Redis, Node.js, DB, multiserver |
+| `application_health_api` | ~5120 | `/healthz` -- Checks Redis (via GenCache's client), Node.js, DB |
 | `rollout_health_api` | ~5104 | `/healthz-rollout` -- Deployment health check |
 | `background_data_api` | ~3216 | Background data loading for client |
 
