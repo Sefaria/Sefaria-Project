@@ -107,14 +107,4 @@
   text-decoration: underline;
 }
 
-/* Desktop, assistant off (only the browse button): tighter heading, body and button */
-@media (min-width: 541px) {
-  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-textGroup {
-    gap: 12px;
-  }
-  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-content {
-    gap: 16px;
-  }
-}
-
 /*# sourceMappingURL=library-assistant.css.map */

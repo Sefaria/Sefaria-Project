@@ -5447,6 +5447,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   }
 }
 
+/* Desktop, assistant off (only the browse button): tighter heading, body and button */
+@media (min-width: 541px) {
+  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-textGroup {
+    gap: 12px;
+  }
+  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-content {
+    gap: 16px;
+  }
+}
+
 .readerNavMenu .yourSheetsLink.navButton {
   width: 98%;
   margin-bottom: 20px;
