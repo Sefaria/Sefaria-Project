@@ -41,6 +41,6 @@ spec:
   # Safe because port 80 serves only a redirect whenever authService.enabled (sefaria.httpsOnly).
   headers:
     earlyRequestHeaders:
-      remove: [x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result, x-sefaria-meter]
+      remove: [x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result, x-sefaria-meter, x-sefaria-key-status]
   {{- end }}
 {{- end }}

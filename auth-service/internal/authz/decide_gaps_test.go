@@ -72,11 +72,11 @@ func TestA5cOptionsWithKey(t *testing.T) {
 			resp, _ := checkDecision(t, enforce, "OPTIONS", path, map[string]string{"x-api-key": beta, "origin": "https://evil.example.org"})
 			wantDeny(t, resp, 403, CodeOriginNotAllowed)
 		})
-		t.Run("unknown key "+path, func(t *testing.T) {
-			resp, _ := checkDecision(t, enforce, "OPTIONS", path, map[string]string{"x-api-key": unknown, "origin": "https://embed.example.org"})
-			wantDeny(t, resp, 401, CodeKeyInvalid)
-		})
 	}
+	t.Run("unknown key on gated path", func(t *testing.T) {
+		resp, _ := checkDecision(t, enforce, "OPTIONS", "/api/knn-search", map[string]string{"x-api-key": unknown, "origin": "https://embed.example.org"})
+		wantDeny(t, resp, 401, CodeKeyInvalid)
+	})
 }
 
 // Envoy joins repeated request headers with a comma before ext_authz sees them.

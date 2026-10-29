@@ -52,7 +52,7 @@ func TestGRPCCheckAllow(t *testing.T) {
 	if got["x-sefaria-project"] != "proj_alpha" || got["x-sefaria-tier"] != "developer" || got["x-sefaria-auth-result"] != "ok" {
 		t.Fatalf("headers=%v", got)
 	}
-	if len(ok.HeadersToRemove) != 0 || len(ok.QueryParametersToRemove) != 1 || ok.QueryParametersToRemove[0] != "api_key" {
+	if len(ok.HeadersToRemove) != 1 || ok.HeadersToRemove[0] != "x-sefaria-key-status" || len(ok.QueryParametersToRemove) != 1 || ok.QueryParametersToRemove[0] != "api_key" {
 		t.Fatalf("remove=%v qp=%v", ok.HeadersToRemove, ok.QueryParametersToRemove)
 	}
 }
@@ -77,7 +77,7 @@ func TestGRPCCheckAnonymousAllowStampsEmptyProject(t *testing.T) {
 	if len(got) != 4 || got["x-sefaria-meter"] != MeterNone {
 		t.Fatalf("expected all identity headers and the meter, got=%v", got)
 	}
-	if len(ok.HeadersToRemove) != 0 || len(ok.QueryParametersToRemove) != 1 || ok.QueryParametersToRemove[0] != "api_key" {
+	if len(ok.HeadersToRemove) != 1 || ok.HeadersToRemove[0] != "x-sefaria-key-status" || len(ok.QueryParametersToRemove) != 1 || ok.QueryParametersToRemove[0] != "api_key" {
 		t.Fatalf("remove=%v qp=%v", ok.HeadersToRemove, ok.QueryParametersToRemove)
 	}
 }
@@ -109,7 +109,7 @@ func TestGRPCCheckDeny(t *testing.T) {
 
 func TestGRPCObserveMode(t *testing.T) {
 	s := NewGRPCServer(reg, Options{Cfg: observe}, NopRecorder{})
-	resp, _ := s.Check(context.Background(), checkReq("/x", map[string]string{"x-api-key": unknown}))
+	resp, _ := s.Check(context.Background(), checkReq("/api/knn-search", map[string]string{"x-api-key": unknown}))
 	if resp.Status.Code != int32(codes.OK) {
 		t.Fatalf("observe mode denied: %v", resp)
 	}
@@ -217,5 +217,85 @@ func TestAnonymousHasNoLimitMetadata(t *testing.T) {
 	resp := checkWith(t, limitReg, meteredCfg, "/api/knn-search", map[string]string{})
 	if resp.GetDynamicMetadata() != nil {
 		t.Fatalf("an anonymous request must carry no limit metadata: %v", resp.GetDynamicMetadata())
+	}
+}
+
+// The client learns its bad key was not accepted only through this header; a valid or legacy key never gets it.
+func TestGRPCKeyStatusHeader(t *testing.T) {
+	cases := []struct {
+		name    string
+		cfg     Config
+		path    string
+		headers map[string]string
+		want    string
+	}{
+		{"bad sfr_ key ungated", enforce, "/api/texts/Genesis.1", map[string]string{"x-api-key": unknown}, "not_accepted"},
+		{"comma-joined ungated", enforce, "/", map[string]string{"x-api-key": alpha + "," + unknown}, "not_accepted"},
+		{"bad sfr_ key in observe mode", observe, "/api/knn-search", map[string]string{"x-api-key": revoked}, "not_accepted"},
+		{"valid key", enforce, "/api/texts/Genesis.1", map[string]string{"x-api-key": alpha}, ""},
+		{"legacy key", enforce, "/api/texts/Genesis.1", map[string]string{"x-api-key": "0123456789abcdef0123456789abcdef"}, ""},
+		{"no key", enforce, "/api/texts/Genesis.1", nil, ""},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			resp, got := checkDecision(t, c.cfg, "GET", c.path, c.headers)
+			if resp.Status.Code != int32(codes.OK) {
+				t.Fatalf("want an allow, got %v", resp.Status)
+			}
+			if got["x-sefaria-key-status"] != c.want {
+				t.Fatalf("x-sefaria-key-status=%q want %q (headers=%v)", got["x-sefaria-key-status"], c.want, got)
+			}
+		})
+	}
+}
+
+// ext_authz must not rely on the gateway to strip a forged key-status header: on every allow without the flag it
+// removes the client's copy, and with the flag it sets it (never both). x-api-key is never removed.
+func TestGRPCKeyStatusHeaderRemovedUnlessSet(t *testing.T) {
+	legacy := "0123456789abcdef0123456789abcdef"
+	cases := []struct {
+		name    string
+		method  string
+		cfg     Config
+		path    string
+		headers map[string]string
+		set     bool
+	}{
+		{"valid key", "GET", enforce, "/api/texts/Genesis.1", map[string]string{"x-api-key": alpha}, false},
+		{"no key", "GET", enforce, "/api/texts/Genesis.1", nil, false},
+		{"legacy key", "GET", enforce, "/api/texts/Genesis.1", map[string]string{"x-api-key": legacy}, false},
+		{"forged header, no key", "GET", enforce, "/api/texts/Genesis.1", map[string]string{"x-sefaria-key-status": "not_accepted"}, false},
+		{"observe mode, bad key on gated path", "GET", observe, "/api/knn-search", map[string]string{"x-api-key": legacy}, false},
+		{"preflight", "OPTIONS", enforce, "/api/knn-search", map[string]string{"origin": "https://embed.example.org"}, false},
+		{"bad sfr_ key ungated", "GET", enforce, "/api/texts/Genesis.1", map[string]string{"x-api-key": unknown}, true},
+		{"bad sfr_ key observe mode", "GET", observe, "/api/knn-search", map[string]string{"x-api-key": revoked}, true},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			s := NewGRPCServer(reg, Options{Cfg: c.cfg}, NopRecorder{})
+			resp, err := s.Check(context.Background(), checkReqMethod(c.method, c.path, c.headers))
+			if err != nil || resp.Status.Code != int32(codes.OK) {
+				t.Fatalf("want an allow, err=%v resp=%v", err, resp)
+			}
+			ok := resp.GetOkResponse()
+			removed := false
+			for _, k := range ok.HeadersToRemove {
+				if k == "x-sefaria-key-status" {
+					removed = true
+				}
+				if k == "x-api-key" {
+					t.Fatalf("x-api-key must reach the backend untouched: remove=%v", ok.HeadersToRemove)
+				}
+			}
+			set := false
+			for _, h := range ok.Headers {
+				if h.Header.Key == "x-sefaria-key-status" {
+					set = true
+				}
+			}
+			if set != c.set || removed == c.set {
+				t.Fatalf("set=%v removed=%v want set=%v (remove=%v)", set, removed, c.set, ok.HeadersToRemove)
+			}
+		})
 	}
 }
