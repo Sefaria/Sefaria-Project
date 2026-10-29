@@ -4,6 +4,7 @@
 import { experimental_createQueryPersister, type PersistedQuery } from "@tanstack/query-persist-client-core";
 import type { QueryClient } from "@tanstack/react-query";
 import { CACHE_BUSTER, POLICIES, type DataClass } from "./policies";
+import { sweepRefIndexDisk } from "./ref-index";
 import { createIdbStorage, resetIdbStore, storedDataUpdatedAt, sweepOnce, type SweepResult } from "./storage";
 
 type QueryPersister = ReturnType<typeof experimental_createQueryPersister<PersistedQuery>>;
@@ -47,7 +48,9 @@ export function maxAgeForKey(key: string): number | undefined {
  * Reads only metadata, so it is cheap; run at idle after the page settles (src/routes/__root.tsx).
  */
 export async function collectGarbage(budgetBytes?: number): Promise<SweepResult> {
-  return sweepOnce({ maxAgeFor: maxAgeForKey, budgetBytes });
+  const result = await sweepOnce({ maxAgeFor: maxAgeForKey, budgetBytes });
+  await sweepRefIndexDisk().catch(() => 0); // the ref index keeps its own stores (review F12)
+  return result;
 }
 
 /** Test helper: forget persister instances (storage contents are untouched). */

@@ -14,7 +14,7 @@
  * @feature SRC-084 FilterNode selection model
  */
 import { infiniteQueryOptions, queryOptions, type InfiniteData } from "@tanstack/react-query";
-import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
+import { POST_READ_DEADLINE_MS, SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 import { isCategory, type TocNode } from "~/lib/catalog/toc";
 import type { SearchHit } from "./text-search";
@@ -101,7 +101,7 @@ export interface SearchResponse {
 
 export async function fetchSearch(body: object, signal?: AbortSignal): Promise<SearchResponse> {
   // text/plain keeps the cross-origin request "simple" (see text-search.ts)
-  const r = await fetch(`${SEFARIA_API_ORIGIN}/api/search-wrapper/es8`, { method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify(body), signal });
+  const r = await fetch(`${SEFARIA_API_ORIGIN}/api/search-wrapper/es8`, { method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify(body), signal, deadlineMs: POST_READ_DEADLINE_MS } as RequestInit);
   const d = await apiJson<{ hits?: { total?: { value?: number; relation?: string } | number; hits?: SearchHit[] }; aggregations?: { path?: { buckets?: { key: string; doc_count: number }[] } } }>(r, "Search");
   const t = d.hits?.total;
   return {

@@ -48,6 +48,19 @@ export function withPanelKeys(ws: Workspace, keys: readonly string[] | undefined
   return { ...ws, panels };
 }
 
+/**
+ * The panels' stable keys for a history entry: the ones it records; or, for a navigation that recorded none (a plain link: a sidebar
+ * view, a citation) and kept the number of panels, the keys the panels already had. Without the carry-over every such link rebuilt a
+ * panel renumbered by an earlier close (review F07). Browser only: on the server there is no "already" to carry from.
+ */
+let carriedKeys: readonly string[] | undefined;
+export function panelKeysFor(state: unknown, panelCount: number): readonly string[] | undefined {
+  const own = readNavState(state).panelKeys;
+  if (typeof window === "undefined") return own;
+  if (own && own.length === panelCount) return (carriedKeys = own);
+  return carriedKeys && carriedKeys.length === panelCount ? carriedKeys : undefined;
+}
+
 /** The keys to record for a workspace about to be navigated to: kept for panels that had one, new for panels just opened. */
 export const panelKeysOf = (ws: Workspace): string[] => (ws.layout ? leaves(ws.layout) : []).map((id) => ws.panels[id]!.key ?? newKey());
 export const readNavState = (state: unknown): NavState => (state && typeof state === "object" ? (state as NavState) : {});
@@ -119,7 +132,8 @@ export function createWorkspaceCommands(router: WorkspaceRouter, getDefaults: ()
     // off the reader (the home page, a library page) there is no workspace: "/" would decode as one panel with no ref, and a late
     // update to that panel (a reading position settling after the panel closed) brought it back with default settings
     if ((router.state.matches && !router.state.matches.some((m) => m.routeId === READER_ROUTE)) || !splatOf(loc.pathname) || !isReaderPath(loc.pathname)) return EMPTY_WORKSPACE;
-    return withPanelKeys(decodeWorkspace(urlToRef(splatOf(loc.pathname)), loc.search as RawSearch), readNavState(loc.state).panelKeys);
+    const ws = decodeWorkspace(urlToRef(splatOf(loc.pathname)), loc.search as RawSearch);
+    return withPanelKeys(ws, panelKeysFor(loc.state, ws.layout ? leaves(ws.layout).length : 0));
   };
   const navigateTo = async (enc: { path: string; search: Record<string, string> }, opts: { replace?: boolean; state?: unknown }) => {
     await router.navigate({

@@ -69,4 +69,26 @@ describe("server-side fetch: read deadline and upstream health", () => {
     await withUpstreamHealth(fine, () => fetch("https://www.sefaria.org/api/x"));
     expect(fine.failed).toBe(false);
   });
+
+  // review F05: the search wrapper and Dicta are reads sent as POST, and the search page's loader waited on them without a deadline
+  it("a read sent as POST that says so (deadlineMs) is cut off too", async () => {
+    const { withUpstreamHealth } = await install(hanging as unknown as typeof fetch);
+    const health = { failed: false };
+    const t0 = Date.now();
+    await expect(
+      withUpstreamHealth(health, () => fetch("https://www.sefaria.org/api/search-wrapper/es8", { method: "POST", body: "{}", deadlineMs: 40 } as RequestInit)),
+    ).rejects.toBeTruthy();
+    expect(Date.now() - t0).toBeLessThan(2000);
+    expect(health.failed).toBe(true);
+  });
+
+  // review F14: the reader's loader rethrows 408/429 to be answered 503, but they did not mark the request, so they ended as a 500
+  it("a 408 or 429 from upstream marks the request like a 5xx", async () => {
+    for (const status of [408, 429]) {
+      const { withUpstreamHealth } = await install((async () => new Response("x", { status })) as typeof fetch);
+      const h = { failed: false };
+      await withUpstreamHealth(h, () => fetch("https://www.sefaria.org/api/v3/texts/Genesis%201"));
+      expect(h.failed, String(status)).toBe(true);
+    }
+  });
 });

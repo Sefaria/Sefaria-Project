@@ -146,6 +146,47 @@ test.describe("several texts side by side (old multi-panel URLs)", () => {
     expect(Math.abs((await after.evaluate((el) => el.scrollTop)) - top)).toBeLessThan(80);
   });
 
+  // as sefaria.org: a long title or version name stays on one line, cut with an ellipsis (it wrapped and ran over the text below the bar)
+  test("a long version name in a narrow panel is one line ending in an ellipsis", async ({ page }) => {
+    await open(page, "/Exodus.17?lang=en&p2=Ibn_Ezra_on_Exodus.17.6.1&lang2=en");
+    const lines = page.locator('section[data-panel-id="p2"] header').first().locator("h1, h1 + div > *");
+    await expect(lines.first()).toBeVisible();
+    for (const line of await lines.all()) {
+      const s = await line.evaluate((el) => ({ h: el.getBoundingClientRect().height, ws: getComputedStyle(el).whiteSpace, to: getComputedStyle(el).textOverflow }));
+      expect(s.ws).toBe("nowrap");
+      expect(s.to).toBe("ellipsis");
+      expect(s.h).toBeLessThan(26);
+    }
+  });
+
+  // review F02: opening and closing the sidebar rebuilt the reading column (a bare leaf vs a row put it under different elements)
+  test("opening and closing the sidebar keeps the reading column itself (same element, its sections)", async ({ page }) => {
+    await open(page, "/Genesis.1.5?lang=en");
+    const scroller = page.locator("[data-reader-scroller]").first();
+    await scroller.evaluate((el) => void ((el as unknown as { __mark: number }).__mark = 7));
+    const sections = await page.locator("[data-reader-scroller] section[data-ref]").count();
+    const box = await page.locator('[role="group"][data-ref="Genesis 1:6"]').boundingBox();
+    await page.mouse.click(box!.x + 100, box!.y + 10);
+    await expect(page.getByRole("complementary")).toBeVisible();
+    expect(await page.locator("[data-reader-scroller]").first().evaluate((el) => (el as unknown as { __mark?: number }).__mark)).toBe(7);
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(page.getByRole("complementary")).toHaveCount(0);
+    expect(await page.locator("[data-reader-scroller]").first().evaluate((el) => (el as unknown as { __mark?: number }).__mark)).toBe(7);
+    expect(await page.locator("[data-reader-scroller] section[data-ref]").count()).toBeGreaterThanOrEqual(sections);
+  });
+
+  // review F07: a change of sidebar view dropped the panels' stable keys, so a panel renumbered by an earlier close was rebuilt
+  test("after the first panel closed, changing the second's sidebar view keeps the panel (same element)", async ({ page }) => {
+    await open(page, "/Genesis.1?lang=en&p2=Exodus.1.3&lang2=en&w2=all");
+    await page.locator('section[data-panel-id="p1"]').getByRole("button", { name: "Close this text" }).click();
+    await expect(panels(page)).toHaveCount(1);
+    const scroller = page.locator('section[data-panel-id="p1"] [data-reader-scroller]');
+    await scroller.evaluate((el) => void ((el as unknown as { __mark: number }).__mark = 9));
+    await page.getByRole("complementary").getByRole("link", { name: /^Translations/ }).first().click();
+    await expect(page).toHaveURL(/with=Translations/);
+    expect(await scroller.evaluate((el) => (el as unknown as { __mark?: number }).__mark)).toBe(9);
+  });
+
   test("closing a panel keeps the others; closing the last returns to the library", async ({ page }) => {
     await open(page, "/Genesis.1?lang=en&p2=Exodus.1&lang2=en");
     await page.locator('section[data-panel-id="p1"]').getByRole("button", { name: "Close this text" }).click();

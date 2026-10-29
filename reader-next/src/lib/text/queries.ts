@@ -13,7 +13,7 @@ import { getSefariaClient, unwrap } from "~/lib/api/client";
 import { PUBLIC_CONFIG } from "~/lib/config";
 import { withPolicy } from "~/lib/cache/query-options";
 import { RefIndex } from "~/lib/cache/ref-index";
-import { parseHumanRef } from "~/lib/ref/url";
+import { parseHumanRef, isRangedRef, toHumanRef } from "~/lib/ref/url";
 import { normaliseTexts, type RawTextsResponse, type TextPassage } from "./model";
 import { planDisplay, type BookMeta, type Highlight } from "./plan";
 
@@ -106,6 +106,26 @@ export async function loadReaderPassage(
   let plan = planDisplay(ref, await refIndex.getMeta(parseHumanRef(ref).title));
   let canonicalRef = ref;
 
+  // A range in a book not met yet: learn the book's shape from the range's first point (one verse), then plan its sections, rather
+  // than download the whole range (Genesis 1:1-10:5: ten chapters) before the first-sections cap applies (review F09). Shapes the
+  // planner cannot enumerate (a commentary range across chapters) still ask the API for the range below.
+  if (plan.kind === "resolve" && isRangedRef(ref)) {
+    const asked = parseHumanRef(ref);
+    const startRef = toHumanRef({ title: asked.title, sections: asked.sections, toSections: asked.sections });
+    const start = asked.sections.length ? await qc.fetchQuery(textQueryOptions(startRef, sel)).catch(() => undefined) : undefined;
+    if (start) {
+      const meta = metaFromPassage(start);
+      await refIndex.setMeta(meta);
+      const canonical = toHumanRef({ title: parseHumanRef(start.ref).title, sections: asked.sections, toSections: asked.toSections });
+      const planned = planDisplay(canonical, meta);
+      if (planned.kind === "sections") {
+        plan = planned;
+        canonicalRef = canonical;
+        await refIndex.setAlias(requestedRef, canonical);
+      }
+    }
+  }
+
   if (plan.kind === "resolve") {
     const passage = await qc.fetchQuery(textQueryOptions(ref, sel));
     await refIndex.setMeta(metaFromPassage(passage));
@@ -148,4 +168,22 @@ export const MAX_INITIAL_SECTIONS = 4;
 /** Warm the cache for neighbouring sections so paging is instant. */
 export function prefetchNeighbours(qc: QueryClient, passage: TextPassage, sel: VersionSelection = {}): void {
   for (const r of [passage.next, passage.prev]) if (r) void qc.prefetchQuery(textQueryOptions(r, sel));
+}
+
+/**
+ * Fetch a section in the versions wanted when it arrives, not when it was asked for: while it loads the reader may change version,
+ * and the column swaps only the sections it already holds, so a late section in the old versions stayed in the old edition
+ * (review F04). `wanted()` is read again after each answer; the answer that matches what is wanted now is returned.
+ */
+export async function fetchInWantedVersions(
+  fetchIn: (sel: VersionSelection) => Promise<TextPassage>,
+  wanted: () => VersionSelection,
+): Promise<TextPassage> {
+  let asked = wanted();
+  let passage = await fetchIn(asked);
+  for (let i = 0; i < 5 && selectionKey(asked) !== selectionKey(wanted()); i++) {
+    asked = wanted();
+    passage = await fetchIn(asked);
+  }
+  return passage;
 }
