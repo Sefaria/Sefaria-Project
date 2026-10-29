@@ -1,0 +1,210 @@
+{
+ "_note": "Elasticsearch-shaped response for 'light' in Tanakh/Torah/Genesis, for tests. The English snippets for 1:3 and 1:4 are real sefaria.org search highlights (through the org's Sefaria connector); version titles are illustrative, and the 1:5 snippet carries markup on purpose (tags and an entity the sheet must not render as HTML). The envelope follows /api/search-wrapper/es8, which this environment cannot POST to.",
+ "hits": {
+  "total": {
+   "value": 57,
+   "relation": "eq"
+  },
+  "max_score": null,
+  "hits": [
+   {
+    "_index": "text",
+    "_id": "Genesis 1:3 (The Contemporary Torah, Jewish Publication Society, 2006 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "lang": "en",
+     "version": "The Contemporary Torah, Jewish Publication Society, 2006",
+     "path": "Tanakh/Torah/Genesis",
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "version_priority": 0
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God said, “Let there be <b>light</b>”; and there was <b>light</b>."
+     ]
+    }
+   },
+   {
+    "_index": "text",
+    "_id": "Genesis 1:3 (The Koren Jerusalem Bible [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "lang": "en",
+     "version": "The Koren Jerusalem Bible",
+     "path": "Tanakh/Torah/Genesis",
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "version_priority": 1
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God said, Let there be <b>light</b>: and there was <b>light</b>."
+     ]
+    }
+   },
+   {
+    "_index": "text",
+    "_id": "Genesis 1:3 (Sefaria Community Translation [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "lang": "en",
+     "version": "Sefaria Community Translation",
+     "path": "Tanakh/Torah/Genesis",
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "version_priority": 2
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God said, \"Let there be <b>light</b>,\" and there was <b>light</b>."
+     ]
+    }
+   },
+   {
+    "_index": "text",
+    "_id": "Genesis 1:3 (The Holy Scriptures: A New Translation (JPS 1917) [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "lang": "en",
+     "version": "The Holy Scriptures: A New Translation (JPS 1917)",
+     "path": "Tanakh/Torah/Genesis",
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "version_priority": 3
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God said: ‘Let there be <b>light</b>.’ And there was <b>light</b>."
+     ]
+    }
+   },
+   {
+    "_index": "text",
+    "_id": "Genesis 1:3 (Miqra according to the Masorah [he])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:3",
+     "heRef": "בראשית א׳:ג׳",
+     "lang": "he",
+     "version": "Miqra according to the Masorah",
+     "path": "Tanakh/Torah/Genesis",
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "version_priority": 0
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "ויאמר אלהים יהי <b>אור</b> ויהי <b>אור</b>"
+     ]
+    }
+   },
+   {
+    "_index": "text",
+    "_id": "Genesis 1:4 (The Contemporary Torah, Jewish Publication Society, 2006 [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "lang": "en",
+     "version": "The Contemporary Torah, Jewish Publication Society, 2006",
+     "path": "Tanakh/Torah/Genesis",
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "version_priority": 0
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "God saw that the <b>light</b> was good, and God separated the <b>light</b> from the darkness."
+     ]
+    }
+   },
+   {
+    "_index": "text",
+    "_id": "Genesis 1:4 (The Koren Jerusalem Bible [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "lang": "en",
+     "version": "The Koren Jerusalem Bible",
+     "path": "Tanakh/Torah/Genesis",
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "version_priority": 1
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God saw the <b>light</b>, that it was good: and God divided the <b>light</b> from the darkness."
+     ]
+    }
+   },
+   {
+    "_index": "text",
+    "_id": "Genesis 1:4 (Miqra according to the Masorah [he])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:4",
+     "heRef": "בראשית א׳:ד׳",
+     "lang": "he",
+     "version": "Miqra according to the Masorah",
+     "path": "Tanakh/Torah/Genesis",
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "version_priority": 0
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "וירא אלהים את ה<b>אור</b> כי טוב ויבדל אלהים בין ה<b>אור</b> ובין החשך"
+     ]
+    }
+   },
+   {
+    "_index": "text",
+    "_id": "Genesis 1:5 (The Koren Jerusalem Bible [en])",
+    "_score": null,
+    "_source": {
+     "ref": "Genesis 1:5",
+     "heRef": "בראשית א׳:ה׳",
+     "lang": "en",
+     "version": "The Koren Jerusalem Bible",
+     "path": "Tanakh/Torah/Genesis",
+     "categories": [
+      "Tanakh",
+      "Torah"
+     ],
+     "version_priority": 0
+    },
+    "highlight": {
+     "naive_lemmatizer": [
+      "And God called the <b>light</b> Day, <i>and</i> the darkness He called Night &amp; <script>x</script>"
+     ]
+    }
+   }
+  ]
+ }
+}
