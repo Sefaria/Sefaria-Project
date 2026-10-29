@@ -34,6 +34,14 @@ import { InterfaceText } from '../Misc.jsx';
  * @param trailingLink   { text, href?, onClick? } — the Figma "with link" variant (text is a keyed string ID)
  * @param revealLabel    aria-label for the show-password control (keyed string ID)
  * @param hideLabel      aria-label for the hide-password control (keyed string ID)
+ * @param labelAddon     node shown right after the label, outside the <label> (an "optional"
+ *                       marker, an info tip)
+ * @param hint           helper text under the field (keyed string ID or node), read with the field
+ * @param multiline      renders a <textarea> with the same look (pass `rows`, default 4)
+ * @param fieldAddon     node drawn inside the field's bottom-right corner (e.g. a character count)
+ *
+ * `label` may also be a pre-rendered node. A `readOnly` field gets the disabled look but stays
+ * focusable and readable. An `aria-describedby` passed in is kept alongside the error's id.
  */
 const Input = ({
   type = 'text',
@@ -51,10 +59,18 @@ const Input = ({
   trailingLink = null,
   revealLabel = 'auth.show_password',
   hideLabel = 'auth.hide_password',
+  labelAddon = null,
+  hint = null,
+  multiline = false,
+  rows = 4,
+  fieldAddon = null,
+  'aria-describedby': describedBy,
   ...rest
 }) => {
   const inputId = id || name;
   const errorId = error ? `${inputId}-error` : undefined;
+  const hintId = hint ? `${inputId}-hint` : undefined;
+  const describedByIds = [describedBy, hintId, errorId].filter(Boolean).join(' ') || undefined;
   const isPassword = type === 'password';
   const [revealed, setRevealed] = useState(false);
   const effectiveType = isPassword && revealed ? 'text' : type;
@@ -63,18 +79,27 @@ const Input = ({
     'sefaria-input',
     error ? 'sefaria-input--error' : '',
     disabled ? 'sefaria-input--disabled' : '',
+    rest.readOnly ? 'sefaria-input--readonly' : '',
   ].filter(Boolean).join(' ');
 
   const fieldClasses = [
     'sefaria-input-field',
     isPassword ? 'has-trailing-icon' : '',
+    fieldAddon ? 'has-addon' : '',
   ].filter(Boolean).join(' ');
 
   return (
     <div className={wrapperClasses}>
       {(label || trailingLink) && (
         <div className="sefaria-input-labelRow">
-          {label ? <label className="sefaria-input-label" htmlFor={inputId}><InterfaceText>{label}</InterfaceText></label> : <span />}
+          {label ? (
+            <span className="sefaria-input-labelGroup">
+              <label className="sefaria-input-label" htmlFor={inputId}>
+                {typeof label === 'string' ? <InterfaceText>{label}</InterfaceText> : label}
+              </label>
+              {labelAddon}
+            </span>
+          ) : <span />}
           {trailingLink && (
             <a
               className="sefaria-input-trailingLink"
@@ -93,6 +118,23 @@ const Input = ({
       )}
 
       <div className={fieldClasses}>
+        {multiline ? (
+          <textarea
+            id={inputId}
+            name={name}
+            rows={rows}
+            className="sefaria-input-control sefaria-input-control--multiline"
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            disabled={disabled}
+            required={required}
+            dir={inputDir}
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={describedByIds}
+            {...rest}
+          />
+        ) : (
         <input
           id={inputId}
           name={name}
@@ -106,9 +148,11 @@ const Input = ({
           dir={inputDir}
           autoComplete={autoComplete}
           aria-invalid={error ? 'true' : undefined}
-          aria-describedby={errorId}
+          aria-describedby={describedByIds}
           {...rest}
         />
+        )}
+        {fieldAddon ? <span className="sefaria-input-fieldAddon">{fieldAddon}</span> : null}
         {isPassword && !disabled && value && (
           <button
             type="button"
@@ -121,6 +165,12 @@ const Input = ({
           </button>
         )}
       </div>
+
+      {hint && (
+        <p className="sefaria-input-hint" id={hintId}>
+          {typeof hint === 'string' ? <InterfaceText>{hint}</InterfaceText> : hint}
+        </p>
+      )}
 
       {error && (
         <div className="sefaria-input-error" id={errorId} role="alert">
@@ -136,7 +186,13 @@ Input.propTypes = {
   type: PropTypes.oneOf(['text', 'email', 'password']),
   value: PropTypes.string,
   onChange: PropTypes.func,
-  label: PropTypes.string,
+  label: PropTypes.node,
+  labelAddon: PropTypes.node,
+  hint: PropTypes.node,
+  multiline: PropTypes.bool,
+  rows: PropTypes.number,
+  fieldAddon: PropTypes.node,
+  'aria-describedby': PropTypes.string,
   name: PropTypes.string,
   id: PropTypes.string,
   placeholder: PropTypes.string,
