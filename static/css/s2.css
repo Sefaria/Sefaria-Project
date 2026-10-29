@@ -644,13 +644,13 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   display: flex;
   align-items: center;
   min-height: 52px;
-  padding-inline: 16px;
+  padding-inline: 15px;
   border-bottom: 1px solid #EDEDEC;
 }
 .mobileNavMenu .mobileAuthRow > img {
-  width: 24px;
-  height: 24px;
-  margin-inline-end: 4px;
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 7px;
 }
 .mobileNavMenu .mobileAuthRow a {
   display: inline-flex;
