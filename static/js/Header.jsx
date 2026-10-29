@@ -416,7 +416,7 @@ const MobileAuthRow = ({ openURL, close }) => {
   };
   return (
     <div className="mobileAuthRow">
-      <img src="/static/icons/profile_loggedout_mdl.svg" alt="" />
+      <img src="/static/icons/profile.svg" alt="" />
       <a href="/login" onClick={openAuth('login')}>
         <InterfaceText>header.log_in</InterfaceText>
       </a>
