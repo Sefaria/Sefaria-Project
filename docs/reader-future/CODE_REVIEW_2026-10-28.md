@@ -316,7 +316,8 @@ without a size estimate.
 ## 6. Status (2026-10-29)
 
 All four batches of §5 were worked through in `sefaria-reader`, one local commit per batch, each change with a test that fails without
-it, then a code review of the batch's diff and its fixes. Not yet synced into `reader-next/` or pushed.
+it, then a code review of the batch's diff and its fixes. A fourth batch ported what master gained (merged 2026-10-29) and closed the
+remaining findings. Synced into `reader-next/`; not pushed.
 
 | Batch | Commit | Findings |
 |-------|--------|----------|
@@ -327,6 +328,7 @@ it, then a code review of the batch's diff and its fixes. Not yet synced into `r
 | 2c | `23bac7e` | R-10, R-11, R-17, R-18, R-19, R-20, R-21, R-22 |
 | 2d | `398d885` | R-12, R-25, R-26 |
 | 3 | `5e6463e` | R-15 (part), R-31, R-18 follow-up, most of the low list |
+| 4 | `868bf37` | Master port (R-37, search autocorrect and auto-switch, titles with `/` and `\`, version-title escaping); R-14, R-29, R-36 (route manifest), R-38, R-39, the rest of the low list. R-34 is a Django change on this branch (`sefaria/views.py`). |
 
 **Fixed in Batch 3**
 - R-15, in part: the toolkit's zod validators run in development and tests only, loaded lazily (production pages no longer carry them);
@@ -352,17 +354,15 @@ it, then a code review of the batch's diff and its fixes. Not yet synced into `r
 
 | ID | Sev | Area | Finding |
 |----|-----|------|---------|
-| R-37 | H | auth | master moved Google sign-in and One Tap to `/api/auth/google/callback` (returns `outcome`); the reader-next backend does not have it. Switch when master is merged into reader-next. |
-| R-38 | M | reader | Fast flinging through a long chapter jumps on a production build (the e2e smoothness test fails there, also at `384f904`, so it predates this review; dev builds pass). |
-| R-39 | M | data | A query cancelled because its last observer unmounted (a Suspense boundary hidden, a panel closed) rejects every other caller waiting on the same fetch with `CancelledError`, including a route loader, which then shows the error page. Seen with the lazy sidebar; the cause is general. Loaders should not share a fetch an observer can cancel, or should retry a `CancelledError` once. |
+| R-37 | H | auth | master moved Google sign-in and One Tap to `/api/auth/google/callback` (returns `outcome`); the reader-next backend does not have it. **Fixed** (batch 4, after merging master). |
+| R-38 | M | reader | Fast flinging through a long chapter jumps on a production build. **Not a reader bug:** the test subtracted the engine's corrections, which only development builds report, so on production it read each correction as a jump. It now checks the verse moved by the wheel step; the whole smoothness spec passes on a production build. |
+| R-39 | M | data | A query cancelled because its last observer unmounted (a Suspense boundary hidden, a panel closed) rejects every other caller waiting on the same fetch with `CancelledError`, including a route loader, which then shows the error page. Seen with the lazy sidebar; the cause is general. Loaders should not share a fetch an observer can cancel, or should retry a `CancelledError` once. **Fixed:** `fetchQuery` (and so `ensureQueryData` and every loader) fetches again once. |
 
 **Still open**
-- R-14 (catalog serialized into `/texts` and `/search`): needs the catalog-slice design (`shouldDehydrateQuery` by class, a node-side
-  catalog cache, dehydrate only the slice rendered).
-- R-36's route manifest (with it: page-kind code splitting, the lazy sidebar and book page above).
-- R-29 (last reading place in localStorage, not tied to the user) and R-34 (password-reset resend, a Django change on master).
+- Page-kind code splitting of the `$` route (book page and sidebar as their own chunks). The router must load the chunk a page
+  needs before it hydrates, and one route renders both kinds today. R-15's remaining part.
 - R-30 and R-32 debt: the baselines may only shrink; nothing was paid down yet.
 - Dark mode: 72 dark stories fail (report only) until every colour is a token.
-- Low items left: API `warnings` ignored; raw `fetch` in calendars, name, topics-toc, search and completion bypasses the error model;
-  the sidebar shows "no connections" for a moment at a chapter boundary; `persistHydrated` can write an entry twice.
-- `.github/workflows/reader-next-client.yaml` (CI for `reader-next/`) is written but not committed.
+- R-34's Django tests (`reader/tests/password_reset_confirm_view_test.py`) need MongoDB and were not run locally; the new logic was
+  checked against Django 6.0.4 directly. CI must run them.
+- Promotions from master (sidebar ads with page-type and donor targeting) wait for the promotions work in the new client.
