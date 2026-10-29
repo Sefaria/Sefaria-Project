@@ -34,8 +34,8 @@ test.describe('Library Module Sidebar Tests', () => {
   });
 
   test('MOD-S003: Library - Translations has language list', { tag: '@sanity' }, async () => {
-    // Translations is the 3rd navSidebarModule in the provided markup (0-based index 2)
-    const section = page.locator('aside.navSidebar .navSidebarModule').nth(2);
+    // Find Translations by its heading: sidebar ads can shift module positions
+    const section = page.locator('aside.navSidebar .navSidebarModule').filter({ hasText: 'Translations' }).first();
     await expect(section.getByRole('heading', { name: /Translations/i })).toBeVisible();
     // Check translation list has multiple links
     const langs = section.locator('div.navSidebarLink.language ul li a');

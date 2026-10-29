@@ -93,7 +93,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const sidebarModules = [
     multiPanel ? {type: "AboutSefaria"} : {type: null},
-    {type: "Promo"},
+    multiPanel ? {type: "GivingTuesdayAd"} : {type: null},    {type: "Promo"},
     multiPanel ? {type: "RecentlyViewed", props: {toggleSignUpModal}} : {type: null},
     {type: "Translations"},
     {type: "LearningSchedules"},

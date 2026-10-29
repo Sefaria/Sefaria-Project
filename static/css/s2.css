@@ -1529,6 +1529,34 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   margin-bottom: 34px;
   padding: 0 44px;
 }
+/* MOCKUP ONLY: GivingTuesday sidebar ad */
+.navSidebarModule.givingTuesdayAd {
+  background-color: var(--sefaria-blue);
+  padding-top: 44px;
+  padding-bottom: 44px;
+  text-align: center;
+}
+.navSidebarModule.givingTuesdayAd img {
+  display: block;
+  width: 100%;
+}
+/* matches .navSidebar .button.get-start (Getting Started), recolored to the ad's coral */
+.navSidebar .button.givingTuesdayAdButton {
+  height: 39px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30px;
+  margin: 16px 0 0 0;
+  background-color: var(--responsa-red);
+  color: #FFFFFF;
+  text-decoration: none;
+}
+.navSidebar .button.givingTuesdayAdButton:hover {
+  color: #FFFFFF;
+  text-decoration: none;
+  background-color: #B9554D;
+}
 .navSidebarModule #history .fa {
   font-size: small;
 }
