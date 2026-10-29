@@ -4,6 +4,7 @@ import {
   SimpleLinkedBlock, InterfaceText, EnglishText, HebrewText
 } from './Misc';
 import {
+  OtherCommentariesNotice,
   RecentFilterSet,
 } from './ConnectionFilters';
 import React  from 'react';
@@ -90,11 +91,26 @@ class TextList extends Component {
       this.setState({waitForText: false, textLoaded: false});
     }
   }
-  getLinksAndFilter() {
+  getOverlappingLinks() {
+    // All links in the current section that touch the selected refs, before applying `filter`.
     const refs               = this.props.srefs;
-    const filter             = this.props.filter;
     const excludedSheet      = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
     const sectionRef         = this.getSectionRef();
+
+    let sectionLinks = Sefaria.getLinksFromCache(sectionRef);
+    sectionLinks.map(link => {
+      if (!("anchorRefExpanded" in link)) { link.anchorRefExpanded = Sefaria.splitRangingRef(link.anchorRef); }
+    });
+    let overlaps = link => (!(link.anchorRefExpanded.every(aref => Sefaria.util.inArray(aref, refs) === -1)));
+    let links = sectionLinks.filter(overlaps);
+
+    if (excludedSheet) {
+      links = Sefaria._filterSheetFromLinks(links, excludedSheet);
+    }
+    return links;
+  }
+  getLinksAndFilter() {
+    const filter             = this.props.filter;
 
     const sortConnections = function(a, b) {
       // Sort according this which verse the link connects to
@@ -116,20 +132,7 @@ class TextList extends Component {
       }
     }.bind(this);
 
-    let sectionLinks = Sefaria.getLinksFromCache(sectionRef);
-    sectionLinks.map(link => {
-      if (!("anchorRefExpanded" in link)) { link.anchorRefExpanded = Sefaria.splitRangingRef(link.anchorRef); }
-    });
-    let overlaps = link => (!(link.anchorRefExpanded.every(aref => Sefaria.util.inArray(aref, refs) === -1)));
-    let links = Sefaria._filterLinks(sectionLinks, filter)
-      .filter(overlaps)
-      .sort(sortConnections);
-
-    if (excludedSheet) {
-      links = Sefaria._filterSheetFromLinks(links, excludedSheet);
-    }
-
-    return links;
+    return Sefaria._filterLinks(this.getOverlappingLinks(), filter).sort(sortConnections);
   }
 
   render() {
@@ -141,6 +144,9 @@ class TextList extends Component {
     var en = "No connections known" + (filter.length ? " for " + displayFilter.join(", ") + " here" : "") + ".";
     var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
+    const overlappingLinks   = this.state.linksLoaded ? this.getOverlappingLinks() : null;
+    const recentFilterCounts = overlappingLinks ? countLinksByFilter(overlappingLinks, this.props.recentFilters.concat(filter)) : null;
+    const otherCommentaries  = overlappingLinks ? getOtherCommentaries(overlappingLinks, this.props.recentFilters.concat(filter), this.props.contentLang === "hebrew") : null;
     var message = !this.state.linksLoaded ? (<LoadingMessage />) : (this.state.links.length === 0 ? noResultsMessage : null);
     var content = this.state.links.length === 0 ? message :
                   this.state.waitForText && !this.state.textLoaded ?
@@ -190,9 +196,17 @@ class TextList extends Component {
             asHeader={false}
             filter={this.props.filter}
             recentFilters={this.props.recentFilters}
+            counts={recentFilterCounts}
             textCategory={oref ? oref.primary_category : null}
             setFilter={this.props.setFilter}
             showAllFilters={this.showAllFilters} />
+            : null }
+          {this.state.linksLoaded && this.props.setFilter ?
+          <OtherCommentariesNotice
+            srefs={this.props.srefs}
+            commentaries={otherCommentaries}
+            setFilter={this.props.setFilter}
+            setConnectionsCategory={this.props.setConnectionsCategory} />
             : null }
           { content }
         </div>);
@@ -207,6 +221,7 @@ TextList.propTypes = {
   contentLang:             PropTypes.string,
   setFilter:               PropTypes.func,
   setConnectionsMode:      PropTypes.func,
+  setConnectionsCategory:  PropTypes.func,
   onTextClick:             PropTypes.func,
   onCitationClick:         PropTypes.func,
   onDataChange:            PropTypes.func,
@@ -217,6 +232,27 @@ TextList.propTypes = {
   checkVisibleSegments:    PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
   filterRef:             PropTypes.string
+};
+
+const countLinksByFilter = (links, filters) => {
+  // Returns a map of each filter in `filters` -> the number of `links` it matches.
+  const counts = {};
+  filters.forEach(f => { counts[f] = Sefaria._filterLinks(links, [f]).length; });
+  return counts;
+};
+
+const getOtherCommentaries = (links, excludedFilters, byHebrew) => {
+  // Returns [{book, heBook, count}] for each commentary in `links` that isn't one of `excludedFilters`.
+  const excluded = new Set(excludedFilters.map(f => f.split("|")[0]));
+  if (excluded.has("Commentary")) { return []; } // Already viewing all commentary
+  const byBook = {};
+  links.forEach(link => {
+    const book = link.category === "Commentary" && link.collectiveTitle ? link.collectiveTitle.en : null;
+    if (!book || excluded.has(book)) { return; }
+    byBook[book] = byBook[book] || {book, heBook: link.collectiveTitle.he || book, count: 0};
+    byBook[book].count++;
+  });
+  return Object.values(byBook).sort((a, b) => Sefaria.linkSummaryBookSort("Commentary", a, b, byHebrew));
 };
 
 const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
@@ -309,4 +345,4 @@ const ConnectionButtons = ({children}) =>{
 }
 
 
-export {TextList as default, ConnectionButtons, AddConnectionToSheetButton, OpenConnectionTabButton, DeleteConnectionButton};
+export {TextList as default, countLinksByFilter, getOtherCommentaries, ConnectionButtons, AddConnectionToSheetButton, OpenConnectionTabButton, DeleteConnectionButton};
