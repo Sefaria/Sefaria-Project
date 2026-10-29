@@ -614,9 +614,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   opacity: 1;
 }
 .mobileNavMenu .mobileAccountLinks {
-  background-color: white;
-  border-top: 1px solid #EDEDEC;
-  border-bottom: 1px solid #EDEDEC;
+  background-color: #FBFBFA;
+  border-top: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
 }
 .mobileNavMenu .mobileAccountLinks img {
   opacity: 1;
