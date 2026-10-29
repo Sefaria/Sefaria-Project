@@ -29,6 +29,7 @@
 .actions { margin-block-start: 10px; }
 .open { display: inline-flex; align-items: center; gap: 6px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 22px; color: #6f6f6f; text-decoration: none; }
 .open:hover { text-decoration: underline; }
+button.open { padding: 0; border: 0; background: none; cursor: pointer; }
 .notice { font-family: var(--sefaria-font-ui-en); font-size: 14px; font-style: italic; color: #000; }
 
 /* VERIFIED on sefaria.org (1280px, Mishnah Peah 4:1 with Bartenura): a book's title keeps its case ("Bartenura"); only a

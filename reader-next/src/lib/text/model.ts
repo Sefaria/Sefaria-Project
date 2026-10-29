@@ -30,6 +30,8 @@ export interface VersionMeta {
   formatAsPoetry?: boolean | string;
   digitizedBySefaria?: boolean | string;
   priority?: number | string;
+  /** "locked" when only moderators may edit the version. */
+  status?: string;
 }
 
 export type RawText = string | RawText[];

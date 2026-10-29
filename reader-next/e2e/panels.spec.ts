@@ -146,6 +146,12 @@ test.describe("several texts side by side (old multi-panel URLs)", () => {
     expect(Math.abs((await after.evaluate((el) => el.scrollTop)) - top)).toBeLessThan(80);
   });
 
+  // as sefaria.org: with the sidebar open on a verse, the header names that verse (ReaderControls shows the current ref)
+  test("the header names the selected verse while the sidebar is open", async ({ page }) => {
+    await open(page, "/Genesis.6.16?lang=en&with=all&lang2=en");
+    await expect(page.locator('section[data-panel-id="p1"] header h1').first()).toHaveText("Genesis 6:16");
+  });
+
   // as sefaria.org: a long title or version name stays on one line, cut with an ellipsis (it wrapped and ran over the text below the bar)
   test("a long version name in a narrow panel is one line ending in an ellipsis", async ({ page }) => {
     await open(page, "/Exodus.17?lang=en&p2=Ibn_Ezra_on_Exodus.17.6.1&lang2=en");

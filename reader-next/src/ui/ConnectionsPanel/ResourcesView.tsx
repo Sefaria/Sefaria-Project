@@ -35,6 +35,8 @@ export interface ResourcesViewProps {
   showCompare?: boolean;
   /** Whether a reader is signed in (the account tools report their mode only then). */
   signedIn?: boolean;
+  /** A moderator (is_staff): the Resources section and its Topics row always show, so topics can be added anywhere. */
+  moderator?: boolean;
 }
 
 interface ToolRow {
@@ -66,7 +68,7 @@ const visible = (r: ToolRow) => r.count === undefined || r.count === null || r.c
  * @feature CON-023 Top-level summary: Quoting Commentary merged, collapse to 4
  * @feature CON-024 Essay links in summary
  */
-export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false }: ResourcesViewProps) {
+export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false, moderator = false }: ResourcesViewProps) {
   const href_ = (v: ConnectionsView) => (hrefFor ? hrefFor(v) : withHref(basePath ?? "", v, search));
   const [expanded, setExpanded] = useState(false);
   const rows = expanded ? summary.categories : summary.visible;
@@ -84,7 +86,7 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
     ? [
         { key: "sheets", label: { en: "Sheets", he: "דפי מקורות" }, icon: "file", external: sheetsHref, count: counts.sheets },
         { key: "webpages", label: { en: "Web Pages", he: "דפי אינטרנט" }, icon: "globe", view: mode("WebPages"), count: counts.webpages },
-        { key: "topics", label: { en: "Topics", he: "נושאים" }, icon: "hash", view: mode("Topics"), count: counts.topics },
+        { key: "topics", label: { en: "Topics", he: "נושאים" }, icon: "hash", view: mode("Topics"), count: counts.topics, alwaysShow: moderator },
         { key: "manuscripts", label: { en: "Manuscripts", he: "כתבי יד" }, icon: "scroll", view: mode("manuscripts"), count: counts.manuscripts },
         { key: "readings", label: { en: "Torah Readings", he: "קריאה בתורה" }, icon: "audio", view: mode("Torah Readings"), count: counts.audio },
       ]
@@ -115,7 +117,7 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
       />
     ));
   // Old panel: the Resources section shows when any of its counts is non-zero or unknown.
-  const showResources = resources.some((r) => r.count === null || (r.count ?? 0) > 0);
+  const showResources = moderator || resources.some((r) => r.count === null || (r.count ?? 0) > 0);
 
   return (
     <div>

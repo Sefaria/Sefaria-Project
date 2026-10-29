@@ -80,15 +80,15 @@ export function AboutView(p: AboutViewProps) {
             <ContentText as="a" href={p.titleHref} className={styles.title} lang={p.lang === "he" ? "hebrew" : "english"} en={d.title} he={d.heTitle} />
             {p.category ? <span className={styles.category}><InterfaceText en={p.category.en} he={p.category.he} /></span> : null}
             {authors.length ? (
-              <div className={styles.authors}>
+              <LangText as="div" className={styles.authors} lang={p.lang}>
                 <span className={styles.authorLabel}>{p.lang === "he" ? "מחבר:" : "Author:"}</span>
                 {authors.map((a, i) => (
                   <span key={a.slug}>{i > 0 ? ", " : ""}<a href={p.authorHref(a.slug)}>{a[p.lang]}</a></span>
                 ))}
-              </div>
+              </LangText>
             ) : null}
             {desc ? <LangText as="div" className={styles.desc} lang={p.lang} html={markdownToHtml(desc, { baseUrl: SITE_ORIGIN })} /> : null}
-            {composed ? <div className={styles.composed}>{composed}</div> : null}
+            {composed ? <LangText as="div" className={styles.composed} lang={p.lang}>{composed}</LangText> : null}
           </>
         ) : null}
       </section>

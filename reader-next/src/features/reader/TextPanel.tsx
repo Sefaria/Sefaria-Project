@@ -1,3 +1,4 @@
+import { selectionRange } from "~/lib/user/topic-links";
 import { useQueryClient, useSuspenseQueries } from "@tanstack/react-query";
 import { useLocation, useRouter } from "@tanstack/react-router";
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -489,8 +490,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     if (current.ref) rememberPlace(current.passage.indexTitle, current.ref, viewerId);
   }, [current.ref, current.passage.indexTitle, viewerId]);
   const place: PanelPlace | null = useMemo(() => {
-    // the old getHistoryObject: the chosen verse while the sidebar is open, else the section being read
-    const chosen = view && deferredRefs.length && deferredRefs.length < sidebarSection.segments.length ? deferredRefs[0]! : null;
+    // the old getHistoryObject: the chosen verses while the sidebar is open (normRef of the selection), else the section being read
+    const chosen = view && deferredRefs.length && deferredRefs.length < sidebarSection.segments.length ? selectionRange(deferredRefs, deferredRefs[0]!) : null;
     return {
       ref: chosen ?? section.sectionRef,
       heRef: chosen ? undefined : section.heSectionRef,
@@ -508,10 +509,18 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     () => (rangeHighlight ? section.segments.filter((s) => isHighlighted(s.address, rangeHighlight, section.addressTypes)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite) : []),
     [rangeHighlight, section],
   );
+  // With the sidebar open on verses narrower than their section, the title names them ("Genesis 6:16"), as sefaria.org's header shows
+  // the panel's current ref (the selected segment); otherwise the section being read, or a kept portion's verses
+  const chosenVerses = useMemo(() => {
+    if (!view || !deferredRefs.length || deferredRefs.length >= sidebarSection.segments.length) return [];
+    const chosen = new Set(deferredRefs);
+    return sidebarSection.segments.filter((s) => chosen.has(s.ref)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite);
+  }, [view, deferredRefs, sidebarSection]);
+  const titled = chosenVerses.length ? sidebarSection : section;
   const header = headerLabels(narrowToVerses({
-    sectionRef: section.sectionRef, heSectionRef: section.heSectionRef, categories: section.categories,
-    translationVersion: section.translationVersion, primaryVersion: section.primaryVersion, language: settings.language, interfaceLang,
-  }, rangeVerses));
+    sectionRef: titled.sectionRef, heSectionRef: titled.heSectionRef, categories: titled.categories,
+    translationVersion: titled.translationVersion, primaryVersion: titled.primaryVersion, language: settings.language, interfaceLang,
+  }, chosenVerses.length ? chosenVerses : rangeVerses));
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps
 

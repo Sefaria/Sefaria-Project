@@ -48,6 +48,10 @@ export interface TextListProps {
   emptyMessage?: ReactNode;
   onRefClick?: SegmentTextProps["onRefClick"];
   onOpen?: (href: string, event: MouseEvent) => void;
+  /** Signed in: "Add to Sheet" beside Open, which adds this connected text (not the verse) to a sheet. */
+  onAddToSheet?: (item: LinkedTextItem) => void;
+  /** Moderators: "Remove" beside Open, which deletes the connection. */
+  onRemove?: (item: LinkedTextItem) => void;
   /** A connected text the reader dwelt on: shown (100px inside the list's view) for 3 s — the old ConnectionsPanel's
    *  checkVisibleSegments, which records it as secondary reading history (CON-036). Once per ref per list. */
   onDwell?: (ref: string) => void;
@@ -62,8 +66,9 @@ export interface TextListProps {
  * @feature CON-030 Connected texts list
  * @feature CON-032 Connection item rendering
  * @feature CON-033 Open connected text in main panel
+ * @feature CON-034 Add connection to sheet button
  */
-export function TextList({ title, categoryTitle, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen, onDwell, onNearEnd }: TextListProps) {
+export function TextList({ title, categoryTitle, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen, onAddToSheet, onRemove, onDwell, onNearEnd }: TextListProps) {
   const endRef = useRef<HTMLDivElement>(null);
   const nearEnd = useRef(onNearEnd);
   nearEnd.current = onNearEnd;
@@ -154,6 +159,19 @@ export function TextList({ title, categoryTitle, color, items, language, vocaliz
                   <Icon name="external-link" size="16px" />
                   <InterfaceText en="Open" he="פתח" />
                 </Link>
+                {/* as the old ConnectionButtons: Add to Sheet when signed in, Remove for moderators */}
+                {onAddToSheet ? (
+                  <button type="button" className={styles.open} onClick={() => onAddToSheet(item)}>
+                    <Icon name="circle-plus" size="16px" />
+                    <InterfaceText en="Add to Sheet" he="הוספה לדף מקורות" />
+                  </button>
+                ) : null}
+                {onRemove ? (
+                  <button type="button" className={styles.open} onClick={() => onRemove(item)}>
+                    <Icon name="circle-minus" size="16px" />
+                    <InterfaceText en="Remove" he="מחיקת קישור" />
+                  </button>
+                ) : null}
               </div>
             </li>
           );

@@ -18,13 +18,13 @@ export interface PostResult<T = Record<string, unknown>> {
 /** An absolute URL on the page's own origin (fetch in some environments refuses a bare path). */
 export const sameOrigin = (path: string) => (typeof window !== "undefined" ? new URL(path, window.location.href).href : path);
 
-async function postRequest(url: string, body: string, contentType: string): Promise<PostResult> {
+async function request(method: "POST" | "DELETE", url: string, body?: string, contentType?: string): Promise<PostResult> {
   try {
     const csrf = await ensureCsrfToken();
     const res = await fetch(sameOrigin(url), {
-      method: "POST",
+      method,
       credentials: "same-origin",
-      headers: { "Content-Type": contentType, "X-CSRFToken": csrf },
+      headers: contentType ? { "Content-Type": contentType, "X-CSRFToken": csrf } : { "X-CSRFToken": csrf },
       body,
     });
     const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
@@ -35,7 +35,10 @@ async function postRequest(url: string, body: string, contentType: string): Prom
 }
 
 /** POST a JSON body; tolerates a non-JSON answer (data is then {}). */
-export const postJson = (url: string, body: unknown) => postRequest(url, JSON.stringify(body), "application/json");
+export const postJson = (url: string, body: unknown) => request("POST", url, JSON.stringify(body), "application/json");
 
 /** POST a form-encoded body. */
-export const postForm = (url: string, body: URLSearchParams) => postRequest(url, body.toString(), "application/x-www-form-urlencoded");
+export const postForm = (url: string, body: URLSearchParams) => request("POST", url, body.toString(), "application/x-www-form-urlencoded");
+
+/** DELETE a resource (moderator tools: a connection, a topic link). */
+export const deleteRequest = (url: string) => request("DELETE", url);

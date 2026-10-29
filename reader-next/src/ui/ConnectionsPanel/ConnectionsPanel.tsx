@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { ContentLangProvider } from "~/lib/i18n/content-lang";
 import { Icon } from "../Icon/Icon";
 import { IconButton } from "../IconButton/IconButton";
@@ -10,7 +10,7 @@ export interface ConnectionsPanelProps {
   /** Heading of the current view ("Resources", or the filter name). Omit when there is a back link. */
   title?: ReactNode;
   /** Where the back link goes (usually the previous view) and what it says. */
-  back?: { href: string; label: ReactNode };
+  back?: { href: string; label: ReactNode; onClick?: (event: MouseEvent) => void };
   /** Closes the panel. */
   onClose?: () => void;
   /** Extra header actions. */
@@ -35,7 +35,7 @@ export function ConnectionsPanel({ title, back, onClose, actions, lang, onLang, 
     <aside className={styles.panel} aria-label={label}>
       <div className={styles.header}>
         {back ? (
-          <Link href={back.href} className={styles.back}>
+          <Link href={back.href} className={styles.back} onClick={back.onClick}>
             <Icon name="chevron-left" />
             <span>{back.label}</span>
           </Link>
