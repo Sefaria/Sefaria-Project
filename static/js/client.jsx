@@ -6,22 +6,12 @@ import ReactDOM from 'react-dom';
 import DjangoCSRF from './lib/django-csrf';
 const SefariaReact = require('./ReaderApp');
 import * as Sentry from "@sentry/react";
-import { createAnalytics } from '@sefaria/analytics';
+import { attachAttributeAnalytics } from './sefaria/attributeAnalytics';
 
 
-// Attribute-based GA4 tracking (data-anl-event / data-anl-* attributes). See the @sefaria/analytics README.
-// window.gtag only exists when templates/base.html loads Google's tag (GOOGLE_GTAG is set).
+// Attribute-based GA4 tracking (data-anl-event / data-anl-* attributes); see sefaria/attributeAnalytics.js.
 // This runs as soon as the bundle loads, before React hydrates, like the inline attach() it replaced in base.html.
-if (typeof window.gtag === 'function') {
-  createAnalytics({
-    // Parameter names Sefaria sends on top of the package's BASE_ALLOWED_PARAMS. Anything else is dropped.
-    extraAllowedParams: [
-      'project', 'panel_type', 'panel_number', 'item_id', 'version', 'content_lang',
-      'panel_name', 'panel_category', 'ai', 'site_lang', 'traffic_type', 'promotion_name',
-      'form_name', 'form_destination',
-    ],
-  }).attach("#s2, #staticContentWrapper", ['click', 'scrollIntoView', 'toggle', 'mouseover', 'input', 'inputStart']);
-}
+attachAttributeAnalytics();
 
 
 $(function() {

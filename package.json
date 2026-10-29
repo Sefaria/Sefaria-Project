@@ -164,6 +164,12 @@
     "testEnvironment": "jsdom",
     "testPathIgnorePatterns": [
       "<rootDir>/e2e-tests/"
+    ],
+    "transform": {
+      "^.+\\.jsx?$": "<rootDir>/static/js/jestBabelTransform.js"
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!@sefaria/analytics/)"
     ]
   },
   "babel": {
