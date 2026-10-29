@@ -2,6 +2,7 @@ import { test, expect, Page, BrowserContext } from '@playwright/test';
 import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
+import { blockAssistantScript } from '../pages/libraryAssistantPage';
 import { MODULE_URLS } from '../constants';
 
 /**
@@ -298,6 +299,17 @@ test.describe('Library Assistant — visibility boundaries', () => {
     await pm.onLibraryAssistant().waitForReady();
 
     await pm.onLibraryAssistant().expectNoSignupOptions();
+  });
+
+  // Until the assistant's script defines <lc-chatbot>, its children are plain page content.
+  // If the script never loads (the chat server is down), the sign-up options Sefaria puts
+  // in it must not show up in the page and push the reader's layout around.
+  test('LA-LOGGED-OUT-010: If the assistant doesn\'t load, its sign-up options stay out of the page', async ({ context }) => {
+    await blockAssistantScript(context);
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+
+    await pm.onLibraryAssistant().expectSignupOptionsRenderedButNotShown();
   });
 
   // Logout (from any module) sets the lc_chatbot_clear cookie; the next Library page

@@ -271,6 +271,12 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 #s2.headerOnly .readerApp > *:not(#main), #s2.headerOnly #main lc-chatbot {
   pointer-events: auto;
 }
+/* What Sefaria puts in <lc-chatbot>'s slots (the sign-up options) shows only inside the widget.
+   Until the widget's script defines the element, or if it never loads, its children would be
+   plain page content in #main. */
+lc-chatbot:not(:defined) > [slot] {
+  display: none;
+}
 
 #readerAppWrap {
   display: flex;
