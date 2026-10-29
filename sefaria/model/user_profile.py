@@ -455,6 +455,9 @@ class UserProfile(object):
         self.donor_status = DonorStatus.UNKNOWN.value
         self.became_donor_at = None
 
+        # Bookshelf POC: books the user keeps on the homepage, newest first
+        self.bookshelf = []
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         if profile: # overwrite if fake profile in db
@@ -782,6 +785,7 @@ class UserProfile(object):
             "donor_status":          self.donor_status,
             "became_donor_at":       self.became_donor_at,
             "experiments":           self.experiments,
+            "bookshelf":             self.bookshelf,
             "tag_order":             getattr(self, "tag_order", None),
             "last_sync_web":         self.last_sync_web,
             "profile_pic_url":       self.profile_pic_url,
