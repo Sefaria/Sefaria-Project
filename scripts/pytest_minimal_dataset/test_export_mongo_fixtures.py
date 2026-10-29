@@ -435,3 +435,96 @@ def test_output_dir_is_honoured_for_manifest(tmp_path, monkeypatch):
     assert manifest["source"]["dump_url"] == "https://example.test/dump"
     assert manifest["source"]["etag"] == "e1"
     assert list(default_dir.iterdir()) == []
+
+
+def _scan(collection, ids, cursor_id=7, batch=101):
+    """Records of an unfiltered find over `ids` in batches, as the recorder writes them."""
+    first, rest = ids[:batch], ids[batch:]
+    records = [{"nodeid": NODEID, "command": "find", "collection": collection, "filter": {},
+                "doc_ids": first, "n_returned": len(first), "cursor_id": cursor_id if rest else None}]
+    while rest:
+        chunk, rest = rest[:batch], rest[batch:]
+        records.append({"nodeid": NODEID, "command": "getMore", "collection": collection, "filter": None,
+                        "doc_ids": chunk, "n_returned": len(chunk), "cursor_id": cursor_id})
+    return records
+
+
+def test_library_wide_scan_is_not_copied_into_base(monkeypatch, capsys):
+    monkeypatch.setattr(exp, "SCAN_COPY_LIMIT", 5)
+    index = [{"_id": f"i{n}", "title": f"Book{n}", "categories": ["Halakhah"]} for n in range(12)]
+    client = _mock_source(index=index)
+    records = _scan("index", [d["_id"] for d in index]) + [{
+        "nodeid": NODEID, "command": "find", "collection": "index",
+        "filter": {"title": "Book3"}, "doc_ids": ["i3"], "n_returned": 1, "cursor_id": None,
+    }]
+    _, base = exp.collect_docs(client["sefaria"], records)
+    assert [d["title"] for d in base["index"]] == ["Book3"]
+    assert "not copying 12 index doc(s)" in capsys.readouterr().err
+
+
+def test_scan_batches_are_attributed_by_cursor(monkeypatch):
+    monkeypatch.setattr(exp, "SCAN_COPY_LIMIT", 5)
+    ids = [f"v{n}" for n in range(9)]
+    positions, summary = exp.library_wide_scans(_scan("vstate", ids, batch=3))
+    assert positions == {0, 1, 2} and summary == [("vstate", 9)]
+
+
+def test_small_unfiltered_read_is_still_copied(monkeypatch):
+    monkeypatch.setattr(exp, "SCAN_COPY_LIMIT", 5)
+    sites = [{"_id": f"w{n}", "domains": [f"d{n}.org"]} for n in range(3)]
+    client = _mock_source(websites=sites)
+    overlay, _ = exp.collect_docs(client["sefaria"], _scan("websites", [d["_id"] for d in sites]))
+    assert [d["_id"] for d in overlay["websites"]] == ["w0", "w1", "w2"]
+
+
+def test_get_more_of_a_filtered_read_is_still_copied(monkeypatch):
+    monkeypatch.setattr(exp, "SCAN_COPY_LIMIT", 5)
+    ids = [f"v{n}" for n in range(9)]
+    records = _scan("vstate", ids, batch=3)
+    records[0]["filter"] = {"title": "Not Replayable At The Source"}
+    positions, summary = exp.library_wide_scans(records)
+    assert positions == set() and summary == []
+
+
+def test_records_without_cursor_ids_keep_copying_get_more_batches(monkeypatch):
+    # Artifacts recorded before the recorder wrote cursor_id: a getMore cannot be tied
+    # to its find, so only the first batch counts toward the scan.
+    monkeypatch.setattr(exp, "SCAN_COPY_LIMIT", 5)
+    records = _scan("vstate", [f"v{n}" for n in range(9)], batch=3)
+    for record in records:
+        record.pop("cursor_id")
+    assert exp.library_wide_scans(records) == (set(), [])
+
+
+def test_base_over_cap_names_the_tests_that_grew_it(tmp_path, monkeypatch, capsys):
+    out = tmp_path / "fixtures"
+    out.mkdir()
+    exp.write_base_fixture(str(out), {"index": [{"_id": "a", "title": "Genesis"}]})
+    artifacts = tmp_path / "artifacts"
+    _write_artifact(artifacts, [{
+        "nodeid": NODEID, "collection": "index", "command": "find",
+        "filter": {"title": "Big"}, "n_returned": 1, "doc_ids": ["b"],
+    }])
+    client = _mock_source(index=[
+        {"_id": "a", "title": "Genesis", "categories": ["Tanakh"]},
+        {"_id": "b", "title": "Big", "categories": ["Halakhah"], "pad": "x" * 5000},
+    ])
+    monkeypatch.setattr(exp, "MAX_BASE_BYTES", 2000)
+    with pytest.raises(SystemExit):
+        _run_main(monkeypatch, [
+            "sefaria/tests/example_test.py", "--artifact-dir", str(artifacts), "--output-dir", str(out),
+        ], client)
+    assert f"base docs added by {NODEID}: index 1" in capsys.readouterr().err
+
+
+def test_oversized_overlay_warning_breaks_down_collections(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(exp, "MAX_FIXTURE_BYTES", 50)
+    docs = [{"_id": "t1", "title": "Exodus", "chapter": [], "language": "en"}]
+    assert exp.write_fixture(str(tmp_path), NODEID, {"texts": docs}, []) is None
+    assert "texts 1 docs" in capsys.readouterr().err
+
+
+def test_scan_of_collection_outside_skip_list_is_still_copied(monkeypatch):
+    monkeypatch.setattr(exp, "SCAN_COPY_LIMIT", 5)
+    ids = [f"g{n}" for n in range(9)]
+    assert exp.library_wide_scans(_scan("groups", ids, batch=3)) == (set(), [])

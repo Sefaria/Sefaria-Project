@@ -67,6 +67,9 @@ class QueryCounter(monitoring.CommandListener):
         elif cmd == 'insert':
             docs = event.command.get('documents') or []
             insert_ids = [str(d.get('_id')) for d in docs if isinstance(d, dict) and '_id' in d]
+        # A getMore names the server cursor it continues; the exporter uses it to
+        # attach each batch to the find/aggregate that opened the cursor.
+        cursor_id = event.command.get('getMore') if cmd == 'getMore' else None
         with QueryCounter._record_lock:
             if QueryCounter.current_nodeid is None:
                 return
@@ -77,6 +80,7 @@ class QueryCounter(monitoring.CommandListener):
                 'collection': collection,
                 'filter': filt,
                 'insert_ids': insert_ids,
+                'cursor_id': cursor_id,
             }
 
     def succeeded(self, event):
@@ -90,8 +94,11 @@ class QueryCounter(monitoring.CommandListener):
         cmd = pending['command']
         doc_ids = []
         n_returned = None
+        cursor_id = pending.get('cursor_id')
         if cmd in ('find', 'aggregate', 'getMore'):
             cursor = reply.get('cursor', {}) or {}
+            if cmd != 'getMore':
+                cursor_id = cursor.get('id')
             batch = cursor.get('firstBatch')
             if batch is None:
                 batch = cursor.get('nextBatch', [])
@@ -117,6 +124,7 @@ class QueryCounter(monitoring.CommandListener):
             'filter': pending.get('filter'),
             'doc_ids': doc_ids,
             'n_returned': n_returned,
+            'cursor_id': int(cursor_id) if cursor_id else None,
         }
         with QueryCounter._record_lock:
             # A command that started in an earlier phase belongs to that phase's

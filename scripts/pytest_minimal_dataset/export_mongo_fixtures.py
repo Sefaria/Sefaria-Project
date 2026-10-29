@@ -115,6 +115,24 @@ BASE_WHOLE_COLLECTIONS = ("term", "category", "topic_link_types", "topic_data_so
 # Collections whose keys _base.json is allowed to hold.
 BASE_COLLECTIONS = ("index", "category", "term", "topic_data_sources", "topic_link_types", "websites", "topics")
 
+# An unfiltered read (find/aggregate with no replayable filter, plus the getMore
+# batches of its cursor) that returned more than this many documents is a
+# library-wide scan: `library.rebuild()` reading every `index` doc, a TOC rebuild
+# reading every `vstate` doc (category.py), and the like. Its reply ids are not
+# copied. Copying them put the whole `index` collection into _base.json (~37 MB
+# against the 17 MiB cap), and the whole `vstate` collection (`content` is kept,
+# see VSTATE_RESPONSE_FIELDS) with other scanned collections into each overlay of
+# a test that rebuilds the library (~450 MB) when every needs_mongo test was
+# re-recorded against the full dump. Under the mock those reads are served by _base.json; a test that
+# asserts on a specific document still gets it from its own filtered reads.
+# Smaller unfiltered reads (whole `websites`, `groups`, ...) are still copied.
+SCAN_COPY_LIMIT = 1000
+# Only these collections are skipped when scanned: the reviewed library-bootstrap
+# scans (index maps, TOC rebuild reading vstate, topic graph). A scan of any other
+# collection is still copied, so an oversized fixture fails loudly instead of
+# silently exporting no documents.
+SCAN_SKIP_COLLECTIONS = frozenset({"index", "vstate", "topics", "topic_links"})
+
 sys.path.insert(0, SCRIPT_DIR)
 from generate_minimal_dataset import (  # noqa: E402
     extract_match_filter,
@@ -205,12 +223,50 @@ def artifact_paths(artifact_dir, test_file):
             yield path
 
 
+def library_wide_scans(records):
+    """Positions of the records that belong to an unfiltered read over SCAN_COPY_LIMIT documents.
+
+    A scan is a find/aggregate with no replayable filter plus the getMore batches
+    that continue its cursor (matched on collection and the recorder's cursor_id).
+    Returns (positions, [(collection, documents returned)]) for the scans found.
+    """
+    scans = {}
+    origin_of_cursor = {}
+    for pos, record in enumerate(records):
+        command = record.get("command")
+        key = (record.get("collection"), record.get("cursor_id"))
+        if command in ("find", "aggregate"):
+            if not normalize_filters(record):
+                scans[pos] = [pos]
+            if record.get("cursor_id"):
+                origin_of_cursor[key] = pos
+        elif command == "getMore" and record.get("cursor_id"):
+            origin = origin_of_cursor.get(key)
+            if origin in scans:
+                scans[origin].append(pos)
+    positions = set()
+    summary = []
+    for origin, members in sorted(scans.items()):
+        returned = sum(len(records[p].get("doc_ids") or []) for p in members)
+        if returned > SCAN_COPY_LIMIT and records[origin].get("collection") in SCAN_SKIP_COLLECTIONS:
+            positions.update(members)
+            summary.append((records[origin].get("collection"), returned))
+    return positions, summary
+
+
 def collect_docs(source_db, records):
     ids_to_copy = defaultdict(set)
     filters_to_replay = defaultdict(list)
     touched_titles = set()
+    scan_positions, scans = library_wide_scans(records)
+    for collection, returned in scans:
+        print(
+            f"note: {records[0].get('nodeid')}: not copying {returned} {collection} doc(s) of an unfiltered "
+            f"scan over SCAN_COPY_LIMIT ({SCAN_COPY_LIMIT}); _base.json serves library-wide reads",
+            file=sys.stderr,
+        )
 
-    for record in records:
+    for pos, record in enumerate(records):
         collection = record.get("collection")
         if not collection:
             continue
@@ -227,7 +283,7 @@ def collect_docs(source_db, records):
         # as plain strings and replaying them matches nothing. The dedupe below only
         # fetches ids the replay did not already return. Inserted documents are the
         # test's own and have nothing to copy; sampled `links` stay capped.
-        if record.get("command") != "insert" and not (
+        if record.get("command") != "insert" and pos not in scan_positions and not (
             collection == "links" and record.get("nodeid") in LINK_SAMPLE_SAFE
         ):
             ids_to_copy[collection].update(record.get("doc_ids") or [])
@@ -409,8 +465,12 @@ def write_fixture(output_dir, nodeid, collections, records=None):
         )
         return None
     if nodeid != "_base" and size > MAX_FIXTURE_BYTES:
+        parts = ", ".join(
+            f"{coll} {len(docs)} docs {len(json_util.dumps(docs).encode('utf-8'))} B"
+            for coll, docs in sorted_collections.items()
+        )
         print(
-            f"WARNING: omitting {nodeid}: generated fixture is {size} bytes (> {MAX_FIXTURE_BYTES})",
+            f"WARNING: omitting {nodeid}: generated fixture is {size} bytes (> {MAX_FIXTURE_BYTES}): {parts}",
             file=sys.stderr,
         )
         return None
@@ -563,11 +623,26 @@ def enrich_base_with_extra_titles(source_db, accumulator):
 
 
 def merge_base_docs(accumulator, collections):
+    """Merge base docs into the accumulator. Returns {collection: number of ids it did not hold yet}."""
+    added = {}
     for collection, docs in collections.items():
         if collection not in BASE_COLLECTIONS:
             continue
         for doc in docs:
-            accumulator[collection][str(doc.get("_id"))] = doc
+            key = str(doc.get("_id"))
+            if key not in accumulator[collection]:
+                added[collection] = added.get(collection, 0) + 1
+            accumulator[collection][key] = doc
+    return added
+
+
+def report_base_contributors(contributions, top=10):
+    """Name the tests that added the most new base docs, so a base over the cap points at its cause."""
+    ranked = sorted(contributions.items(), key=lambda item: (-sum(item[1].values()), item[0]))[:top]
+    for nodeid, added in ranked:
+        if added:
+            detail = ", ".join(f"{coll} {n}" for coll, n in sorted(added.items()))
+            print(f"  base docs added by {nodeid}: {detail}", file=sys.stderr)
 
 
 def load_existing_base(path):
@@ -656,6 +731,7 @@ def main():
 
     written = []
     oversized = []
+    contributions = {}
     base_acc = defaultdict(dict)
     merge_base_docs(base_acc, load_existing_base(os.path.join(args.output_dir, "_base.json")))
     report_dropped(refresh_base_from_source(source_db, base_acc))
@@ -670,7 +746,7 @@ def main():
                 continue
             nodeid = records[0]["nodeid"]
             collections, base_part = collect_docs(source_db, records)
-            merge_base_docs(base_acc, base_part)
+            contributions[nodeid] = merge_base_docs(base_acc, base_part)
             path = write_fixture(args.output_dir, nodeid, collections, records)
             if path:
                 written.append(path)
@@ -685,6 +761,7 @@ def main():
             {collection: list(docs.values()) for collection, docs in base_acc.items()},
         )
         if path is None:
+            report_base_contributors(contributions)
             raise SystemExit(f"_base.json was NOT rewritten: it would exceed MAX_BASE_BYTES ({MAX_BASE_BYTES})")
         check_total_budget(args.output_dir)
 
