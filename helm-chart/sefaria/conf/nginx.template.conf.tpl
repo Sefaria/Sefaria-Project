@@ -62,8 +62,46 @@ http {
     default true;
   }
 
+  # apiKeyScrub: the access log never records a key from a query string. Each pass replaces the value of one
+  # api_key, apikey or api%5Fkey parameter (any case) with [REDACTED]; the key name and every other parameter
+  # stay. The lookahead skips a value a previous pass already redacted, so three passes cover three occurrences.
+  # The last map fails closed: if a raw value is still present it logs [REDACTED-URI]. requestUrl and referer use
+  # the last map's output. No Helm braces and no dollar-brace names here: this file goes through Helm tpl and envsubst.
+  map $request_uri $uri_scrub_1 {
+    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    default $request_uri;
+  }
+  map $uri_scrub_1 $uri_scrub_2 {
+    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    default $uri_scrub_1;
+  }
+  map $uri_scrub_2 $uri_scrub_3 {
+    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    default $uri_scrub_2;
+  }
+  map $uri_scrub_3 $request_uri_scrubbed {
+    "~*[?&]api(?:_|%5f)?key=(?!\[REDACTED\](?:&|$))" "[REDACTED-URI]";
+    default $uri_scrub_3;
+  }
+  map $http_referer $referer_scrub_1 {
+    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    default $http_referer;
+  }
+  map $referer_scrub_1 $referer_scrub_2 {
+    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    default $referer_scrub_1;
+  }
+  map $referer_scrub_2 $referer_scrub_3 {
+    "~*^(.*?[?&]api(?:_|%5f)?key=)(?!\[REDACTED\](?:&|$))[^&]*(.*)$" "$1[REDACTED]$2";
+    default $referer_scrub_2;
+  }
+  map $referer_scrub_3 $referer_scrubbed {
+    "~*[?&]api(?:_|%5f)?key=(?!\[REDACTED\](?:&|$))" "[REDACTED-REFERER]";
+    default $referer_scrub_3;
+  }
+
   # https://nginx.org/en/docs/varindex.html
-  log_format structured escape=json '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$http_x_original_forwarded_for", "referer": "$http_referer", "latency": ${request_time}, "protocol": "$server_protocol", "forwardedHTTP": "$http_x_forwarded_proto" }, "remoteUser": "$remote_user", {{ if and .Values.authService.enabled .Values.authService.nginxLogFields }}"sefariaProject": "$http_x_sefaria_project", "sefariaTier": "$http_x_sefaria_tier", "sefariaAuthResult": "$http_x_sefaria_auth_result", {{ end }}"apiClassification": { "secFetch": "$sec_fetch", "origin": "$http_origin", "credentialTransport": "$credential_transport", "varnishCache": "$varnish_cache", "sessionCookie": $session_cookie }, "timeLocal": "$time_local" }';
+  log_format structured escape=json '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri_scrubbed", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$http_x_original_forwarded_for", "referer": "$referer_scrubbed", "latency": ${request_time}, "protocol": "$server_protocol", "forwardedHTTP": "$http_x_forwarded_proto" }, "remoteUser": "$remote_user", {{ if and .Values.authService.enabled .Values.authService.nginxLogFields }}"sefariaProject": "$http_x_sefaria_project", "sefariaTier": "$http_x_sefaria_tier", "sefariaAuthResult": "$http_x_sefaria_auth_result", {{ end }}"apiClassification": { "secFetch": "$sec_fetch", "origin": "$http_origin", "credentialTransport": "$credential_transport", "varnishCache": "$varnish_cache", "sessionCookie": $session_cookie }, "timeLocal": "$time_local" }';
   access_log /dev/stdout structured;
   client_max_body_size 32M;
 

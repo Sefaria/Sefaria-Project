@@ -129,7 +129,7 @@ func TestGRPCQueryStrip(t *testing.T) {
 	t.Run("allow strips api_key from the query", func(t *testing.T) {
 		resp, _ := checkDecision(t, enforce, "GET", "/api/texts/Genesis.1?api_key=x", nil)
 		qp := resp.GetOkResponse().GetQueryParametersToRemove()
-		if len(qp) != 1 || qp[0] != "api_key" {
+		if !hasAllAPIKeyRemovals(qp) {
 			t.Fatalf("qp=%v", qp)
 		}
 	})

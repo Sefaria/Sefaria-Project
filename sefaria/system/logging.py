@@ -1,6 +1,16 @@
 
+import re
+
 from structlog.processors import _figure_out_exc_info
 from structlog._frames import _format_exception
+
+# Query parameters that carry an API key (api_key, apikey, api%5Fkey in any case). Their values never reach a log line.
+API_KEY_QUERY_RE = re.compile(r"(?i)([?&]api(?:_|%5f)?key=)[^&#]*")
+
+
+def scrub_api_key_query(url):
+    """Replaces the value of every API key query parameter in url with [REDACTED]; the rest of the URL is kept."""
+    return API_KEY_QUERY_RE.sub(r"\1[REDACTED]", url)
 
 
 def log_exception_info(logger, method_name, event_dict):
@@ -30,11 +40,11 @@ def decompose_request_info(logger, method_name, event_dict):
         # contexts; older releases passed the full HttpRequest object.
         if hasattr(req_obj, "get_full_path"):
             event_dict["httpRequest"] = {
-                "requestUrl": req_obj.get_full_path(),
+                "requestUrl": scrub_api_key_query(req_obj.get_full_path()),
                 "requestMethod": req_obj.method,
             }
         else:
-            event_dict["httpRequest"] = {"requestUrl": str(req_obj)}
+            event_dict["httpRequest"] = {"requestUrl": scrub_api_key_query(str(req_obj))}
     return event_dict
 
 

@@ -52,7 +52,7 @@ func TestGRPCCheckAllow(t *testing.T) {
 	if got["x-sefaria-project"] != "proj_alpha" || got["x-sefaria-tier"] != "developer" || got["x-sefaria-auth-result"] != "ok" {
 		t.Fatalf("headers=%v", got)
 	}
-	if len(ok.HeadersToRemove) != 0 || len(ok.QueryParametersToRemove) != 1 || ok.QueryParametersToRemove[0] != "api_key" {
+	if len(ok.HeadersToRemove) != 0 || !hasAllAPIKeyRemovals(ok.QueryParametersToRemove) {
 		t.Fatalf("remove=%v qp=%v", ok.HeadersToRemove, ok.QueryParametersToRemove)
 	}
 }
@@ -77,7 +77,7 @@ func TestGRPCCheckAnonymousAllowStampsEmptyProject(t *testing.T) {
 	if len(got) != 4 || got["x-sefaria-meter"] != MeterNone {
 		t.Fatalf("expected all identity headers and the meter, got=%v", got)
 	}
-	if len(ok.HeadersToRemove) != 0 || len(ok.QueryParametersToRemove) != 1 || ok.QueryParametersToRemove[0] != "api_key" {
+	if len(ok.HeadersToRemove) != 0 || !hasAllAPIKeyRemovals(ok.QueryParametersToRemove) {
 		t.Fatalf("remove=%v qp=%v", ok.HeadersToRemove, ok.QueryParametersToRemove)
 	}
 }

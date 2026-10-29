@@ -58,6 +58,33 @@ func limitMetadata(d Decision) (*structpb.Struct, error) {
 	return structpb.NewStruct(fields)
 }
 
+// apiKeyQueryParams lists every spelling of the key query parameter that Envoy removes on allow: api_key, apikey and
+// api%5Fkey in every letter case (256 names). Envoy's removal is assumed to match names case-sensitively; that is not
+// verified in this repo, so each casing is listed explicitly.
+var apiKeyQueryParams = buildAPIKeyQueryParams()
+
+func buildAPIKeyQueryParams() []string {
+	var out []string
+	for _, base := range []string{"api_key", "apikey", "api%5Fkey"} {
+		var letters []int
+		for i := 0; i < len(base); i++ {
+			if c := base[i] | 0x20; c >= 'a' && c <= 'z' {
+				letters = append(letters, i)
+			}
+		}
+		for mask := 0; mask < 1<<len(letters); mask++ {
+			b := []byte(base)
+			for j, pos := range letters {
+				if mask&(1<<j) != 0 {
+					b[pos] ^= 0x20
+				}
+			}
+			out = append(out, string(b))
+		}
+	}
+	return out
+}
+
 func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*authv3.CheckResponse, error) {
 	_ = ctx
 	t0 := time.Now()
@@ -80,7 +107,7 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 					hdr("x-sefaria-auth-result", d.Result),
 					hdr("x-sefaria-meter", d.Meter),
 				},
-				QueryParametersToRemove: []string{"api_key"},
+				QueryParametersToRemove: apiKeyQueryParams,
 			}},
 		}
 		if d.Keyed {
