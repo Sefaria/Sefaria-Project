@@ -420,7 +420,7 @@ const MobileAuthRow = ({ openURL, close }) => {
       <a href="/login" onClick={openAuth('login')}>
         <InterfaceText>header.log_in</InterfaceText>
       </a>
-      <span className="mobileAuthRowDivider" aria-hidden="true"></span>
+      <span className="mobileAuthRowSeparator" aria-hidden="true">•</span>
       <a href="/register" onClick={openAuth('register')}>
         <InterfaceText>header.sign_up</InterfaceText>
       </a>

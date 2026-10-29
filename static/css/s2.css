@@ -664,10 +664,11 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: 500;
   text-decoration: none;
 }
-.mobileNavMenu .mobileAuthRowDivider {
-  width: 1px;
-  height: 20px;
-  background-color: #EDEDEC;
+/* same dot as the English • עברית toggle; the margin keeps the two 44px tap areas apart */
+.mobileNavMenu .mobileAuthRowSeparator {
+  margin: 0 4px;
+  font-size: 13px;
+  color: var(--dark-grey);
 }
 .mobileNavMenu .profile-pic {
   display: inline-block;
