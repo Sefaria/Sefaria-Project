@@ -107,8 +107,14 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   /** Apply an operation to the workspace as it is now, and go there. */
   const apply = useCallback(
-    (op: (ws: Workspace) => Workspace, opts: { replace?: boolean; state?: NavState } = {}) => nav.go(op(nav.current()), opts),
-    [nav],
+    (op: (ws: Workspace) => Workspace, opts: { replace?: boolean; state?: NavState } = {}) => {
+      const ws = nav.current();
+      // a panel acts only while it is open: an update that arrives after it closed (a reading position settling) must not reopen it
+      // or navigate elsewhere
+      if (!ws.panels[id]) return Promise.resolve();
+      return nav.go(op(ws), opts);
+    },
+    [nav, id],
   );
 
   // ── which navigation is this, for this panel? ──────────────────────────────────────────────────────

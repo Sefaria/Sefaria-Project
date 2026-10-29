@@ -269,8 +269,8 @@ test("windowing in a bilingual column with the sidebar open keeps the reader's v
     await wheel(page, 900, 2);
     await page.waitForTimeout(120);
   }
-  await page.waitForTimeout(1500);
-  expect((await sectionRefs(page)).length).toBeLessThan(16);
+  // trimmed once scrolling is idle: on a slower machine (CI) that takes longer than a fixed wait
+  await expect.poll(async () => (await sectionRefs(page)).length, { timeout: 15_000 }).toBeLessThan(16);
   const ref = await focused(page);
   const top = await segmentTop(page, ref!);
   await page.waitForTimeout(1500);

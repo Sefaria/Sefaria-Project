@@ -59,7 +59,8 @@ test.describe("phone", () => {
   test("a reader has no site header; the home page has the menu with search, sections and language", async ({ page }) => {
     await open(page, "/Genesis.1?lang=en");
     await expect(page.getByRole("banner")).toBeHidden();
-    await page.goto("/");
+    // open(), not page.goto(): a click before hydration is lost (it failed this way in CI, where the page hydrates slowly)
+    await open(page, "/");
     await page.getByRole("button", { name: "Menu" }).click();
     const menu = page.getByRole("navigation", { name: "Mobile navigation menu" });
     for (const name of ["Texts", "Topics", "Learning Schedules", "Donate", "Get Help", "About Sefaria", "Voices on Sefaria", "Developers on Sefaria"]) await expect(menu.getByRole("link", { name })).toBeVisible();
