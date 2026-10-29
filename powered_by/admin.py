@@ -11,7 +11,7 @@ class ProjectAdmin(admin.ModelAdmin):
         "is_published",
         "featured",
         "submission_source",
-        "consent_to_display",
+        "request_not_to_publish",
         "last_checked",
     )
     list_filter = (
@@ -69,7 +69,7 @@ class ProjectAdmin(admin.ModelAdmin):
                 "status",
                 "last_checked",
                 "is_buggy",
-                "consent_to_display",
+                "request_not_to_publish",
                 "is_published",
                 "featured",
                 "notes",
