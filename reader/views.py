@@ -46,6 +46,7 @@ from django import http
 from django.utils import timezone
 from django.utils.html import strip_tags
 from django.conf import settings
+from bson.errors import InvalidId
 from bson.objectid import ObjectId
 
 from remote_config.keys import CLIENT_REMOTE_CONFIG_JSON, ENABLE_WEBPAGES
@@ -2543,6 +2544,22 @@ def link_summary_api(request, ref):
     return jsonResponse(summary, callback=request.GET.get("callback", None))
 
 
+def _note_ownership_error(note_id, uid):
+    """
+    Returns a JSON error response if the note `note_id` doesn't exist or isn't owned by `uid`, else None.
+    Only a note's owner may edit or delete it.
+    """
+    try:
+        note = Note().load_by_id(note_id)
+    except InvalidId:
+        note = None
+    if note is None:
+        return jsonResponse({"error": "Note not found."}, status=404)
+    if note.owner != uid:
+        return jsonResponse({"error": "You can only edit or delete your own notes."}, status=403)
+    return None
+
+
 @catch_error_as_json
 @csrf_exempt
 def notes_api(request, note_id_or_ref):
@@ -2583,11 +2600,19 @@ def notes_api(request, note_id_or_ref):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
+            if "_id" in note:
+                error = _note_ownership_error(note["_id"], apikey["uid"])
+                if error:
+                    return error
             note["owner"] = apikey["uid"]
             response = format_object_for_client(
                 func(apikey["uid"], Note, note, method="API")
             )
         else:
+            if "_id" in note:
+                error = _note_ownership_error(note["_id"], request.user.id)
+                if error:
+                    return error
             note["owner"] = request.user.id
             @csrf_protect
             def protected_note_post(req):
@@ -2618,7 +2643,10 @@ def notes_api(request, note_id_or_ref):
 
     if request.method == "DELETE":
         if not request.user.is_authenticated:
-            return jsonResponse({"error": "You must be logged in to delete notes."})
+            return jsonResponse({"error": "You must be logged in to delete notes."}, status=401)
+        error = _note_ownership_error(note_id_or_ref, request.user.id)
+        if error:
+            return error
         return jsonResponse(
             tracker.delete(request.user.id, Note, note_id_or_ref)
         )
@@ -2761,8 +2789,9 @@ def set_lock_api(request, tref, lang, version):
     """
     API to set an edit lock on a text segment.
     """
-    user = request.user.id if request.user.is_authenticated else 0
-    set_lock(Ref(tref).normal(), lang, version.replace("_", " "), user)
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": "You must be logged in to lock texts."}, status=401)
+    set_lock(Ref(tref).normal(), lang, version.replace("_", " "), request.user.id)
     return jsonResponse({"status": "ok"})
 
 
@@ -2771,6 +2800,8 @@ def release_lock_api(request, tref, lang, version):
     """
     API to release the edit lock on a text segment.
     """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": "You must be logged in to release locks."}, status=401)
     release_lock(Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"status": "ok"})
 
@@ -2899,13 +2930,28 @@ def category_api(request, path=None):
     POST can take the argument 'reorder' on the URL and if provided, its children will be reordered.  Takes complete category as payload.  Parent of category must exist.
     """
     if request.method == "DELETE":
-        cat = Category().load({"path": path.split("/")})
-        if cat and cat.can_delete():
-            cat.delete()
-            library.rebuild(include_toc=True)
-            return jsonResponse({"status": "OK"})
-        else:
-            return jsonResponse({"error": "Category {} doesn't exist".format(path)})
+        def _internal_do_delete(request, path):
+            cat = Category().load({"path": path.split("/")}) if path else None
+            if cat and cat.can_delete():
+                cat.delete()
+                library.rebuild(include_toc=True)
+                return jsonResponse({"status": "OK"})
+            else:
+                return jsonResponse({"error": "Category {} doesn't exist".format(path)})
+
+        if request.user.is_authenticated:
+            if not request.user.is_staff:
+                return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."}, status=403)
+            return csrf_protect(_internal_do_delete)(request, path)
+        key = request.GET.get("apikey")
+        if not key:
+            return jsonResponse({"error": "You must be logged in or use an API key to add or delete categories."}, status=401)
+        apikey = db.apikeys.find_one({"key": key})
+        if not apikey:
+            return jsonResponse({"error": "Unrecognized API key."}, status=401)
+        if not User.objects.filter(id=apikey["uid"], is_staff=True).exists():
+            return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."}, status=403)
+        return _internal_do_delete(request, path)
     elif request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
