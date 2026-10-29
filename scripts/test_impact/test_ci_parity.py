@@ -498,3 +498,18 @@ def test_no_sandbox_leftovers():
     source_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ci_parity.py")
     with open(source_path, encoding="utf-8") as fh:
         assert "sandbox" not in fh.read().lower()
+
+
+def test_extract_expands_matrix_includes_into_one_job_per_shard():
+    workflow = {"jobs": {"pytest-corpus-shards": {
+        "env": {"SEFARIA_TEST_MONGO": "1"},
+        "strategy": {"matrix": {"include": [
+            {"shard": "a", "paths": "sefaria/a_test.py", "ignore": ""},
+            {"shard": "rest", "paths": "./sefaria ./sso", "ignore": "--ignore=sefaria/a_test.py"},
+        ]}},
+        "steps": [{"run": 'python -m pytest -q -m "needs_corpus" ${{ matrix.ignore }} ${{ matrix.paths }}'}],
+    }}}
+    jobs = ci_parity.extract_pytest_jobs(workflow)
+    assert set(jobs) == {"pytest-corpus-shards[a]", "pytest-corpus-shards[rest]"}
+    assert jobs["pytest-corpus-shards[a]"]["argv"] == ["-q", "-m", "needs_corpus", "sefaria/a_test.py"]
+    assert jobs["pytest-corpus-shards[rest]"]["argv"][-3:] == ["--ignore=sefaria/a_test.py", "./sefaria", "./sso"]

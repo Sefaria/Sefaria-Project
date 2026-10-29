@@ -35,6 +35,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -94,28 +95,49 @@ def _pytest_run_commands(job):
         yield step.get("env") or {}, run
 
 
+def _matrix_entries(job):
+    """The `strategy.matrix.include` entries of a job, or [] when it has none."""
+    matrix = ((job.get("strategy") or {}).get("matrix")) or {}
+    include = matrix.get("include") if isinstance(matrix, dict) else None
+    return [e for e in (include or []) if isinstance(e, dict)]
+
+
+def _expand_matrix(text, entry):
+    """Substitute `${{ matrix.key }}` with the entry's value (folded scalars keep their
+    inner whitespace, which shlex splits on)."""
+    def repl(match):
+        return " ".join(str(entry.get(match.group(1), "")).split())
+    return re.sub(r"\$\{\{\s*matrix\.([A-Za-z0-9_-]+)\s*\}\}", repl, text)
+
+
 def extract_pytest_jobs(workflow, exclude_jobs=()):
     """Parse a loaded workflow YAML dict. Returns {job_id: {"env": {...}, "argv": [...]}}
     for every job that has a `python -m pytest` step (first one wins), skipping ids in
-    `exclude_jobs`."""
+    `exclude_jobs`. A job with `strategy.matrix.include` yields one entry per include,
+    keyed `job_id[<shard>]` (the entry's `shard` or `name`, else its index), so the union
+    of its shards is what parity sees."""
     workflow_env = workflow.get("env") or {}
     jobs = {}
     for job_id, job in (workflow.get("jobs") or {}).items():
         if job_id in exclude_jobs:
             continue
         job_env = job.get("env") or {}
-        for step_env, run_text in _pytest_run_commands(job):
-            merged_env = {**workflow_env, **job_env, **step_env}
-            tokens = shlex.split(run_text)
-            # Drop everything up to and including "pytest" (handles "python -m pytest",
-            # "python3 -m pytest", leading shell noise is not expected in this workflow).
-            if "pytest" in tokens:
-                idx = tokens.index("pytest")
-                argv = tokens[idx + 1:]
-            else:
-                argv = tokens
-            jobs[job_id] = {"env": merged_env, "argv": argv}
-            break  # one pytest step per job in this workflow; first one wins
+        entries = _matrix_entries(job) or [None]
+        for idx, entry in enumerate(entries):
+            for step_env, run_text in _pytest_run_commands(job):
+                if entry is not None:
+                    run_text = _expand_matrix(run_text, entry)
+                merged_env = {**workflow_env, **job_env, **step_env}
+                tokens = shlex.split(run_text)
+                # Drop everything up to and including "pytest" (handles "python -m pytest",
+                # "python3 -m pytest", leading shell noise is not expected in this workflow).
+                if "pytest" in tokens:
+                    argv = tokens[tokens.index("pytest") + 1:]
+                else:
+                    argv = tokens
+                key = job_id if entry is None else "%s[%s]" % (job_id, entry.get("shard") or entry.get("name") or idx)
+                jobs[key] = {"env": merged_env, "argv": argv}
+                break  # one pytest step per job in this workflow; first one wins
     return jobs
 
 
