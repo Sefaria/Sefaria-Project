@@ -366,3 +366,33 @@ remaining findings. Synced into `reader-next/`; not pushed.
 - R-34's Django tests (`reader/tests/password_reset_confirm_view_test.py`) need MongoDB and were not run locally; the new logic was
   checked against Django 6.0.4 directly. CI must run them.
 - Promotions from master (sidebar ads with page-type and donor targeting) wait for the promotions work in the new client.
+
+## 7. Follow-up review (Codex, 2026-10-29, at `d6387d3ae0`)
+
+An independent review found 14 issues (F01–F14) and narrowed several §6 claims. Each was checked against the code before fixing;
+fixes are in `sefaria-reader` `57da124` and this branch (`reader-next-review-fixes`), each with a test that reproduces the defect.
+
+| ID | Verdict | Fix |
+|----|---------|-----|
+| F01 note edit moved the note | Confirmed | An edit keeps the note's `anchorRef` (`refsForSave`). |
+| F02 sidebar toggle rebuilt the column | Confirmed (e2e) | The panel frame is always a row (as the workspace, R-24). |
+| F03 windowing never trimmed behind | Confirmed (31 sections kept) | Keep the sections the address names now, not the opening ones; trims to 4. |
+| F04 late edge load in old versions | Confirmed | `fetchInWantedVersions`: fetch again in the versions wanted at arrival. |
+| F05 search POSTs had no deadline | Confirmed | Reads sent as POST pass `deadlineMs`; the server bounds them. |
+| F06 resend lost its proof via the node redirect | Confirmed (regression from R-34) | Opening a real expired link leaves one-hour proof in the session. |
+| F07 sidebar views dropped panel keys | Confirmed (e2e) | Keys carry over navigations that record none; `goSidebarView` writes them. |
+| F08 nginx did not intercept the reader's 503 | Partly: by design | The fallback is for nginx's own 502/504 (reader unreachable); a reader 503 means the API is down for both readers, and writes must not be replayed. Comment corrected. |
+| F09 cold range downloaded the whole range | Confirmed | Plan from the range's first point; the range is fetched only when the planner cannot enumerate it. |
+| F10 cross-section links showed one section | Confirmed | Such links load the range itself (`loadRefFor`). |
+| F11 Save recorded requested, not shown, versions | Confirmed | The shown versions (preferences included), as the old currVersions. |
+| F12 ref-index stores never swept | Confirmed | `sweepRefIndexDisk` with the idle sweep (expired, busted, capped). |
+| F13 CI e2e not deterministic | Confirmed | **Open — needs a decision**: commit the recordings (~11 MB) or host a versioned bundle; then CI runs `replay`. Dicta is not recorded yet. |
+| F14 408/429 ended as 500 | Confirmed | They mark the request as an upstream failure, so it ends 503. |
+
+§6 claims, narrowed accordingly: R-24 was partial until F02/F07, R-25 until F03, R-26 until F04, R-05 until F05/F09/F14, R-22 until F10;
+R-19 bounded memory but not disk until F12; R-13 has CI and recordings but not yet a deterministic gate (F13).
+
+Not code defects, recorded as the delivery gaps they are (review §3): integration events (D4), analytics stream parity, web-vitals
+(D1), vendor gating by remote config (D2), dark mode (D3), preference precedence (D5), `/interface` coexistence, Continue Reading
+across devices, add-to-sheet editor refresh, SEO metadata. The review's §5 doc items: `WORKSPACE.md` numbering and §11 here are
+corrected; the rest (area "nothing decided" wording, vendor licence) stay listed in §11.
