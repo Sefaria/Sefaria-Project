@@ -1,28 +1,35 @@
 import pytest
 from unittest.mock import Mock
-from sefaria.model.category import Category
 from sefaria.model.linker.category_resolver import CategoryMatcher
 
 
 
 pytestmark = pytest.mark.needs_linker
 
-def make_title(text, lang):
-    return {"text": text, "lang": lang}
+def make_category(path, titles):
+    """
+    CategoryMatcher indexes categories by the titles of the terms referenced from their match templates
+    (Category.get_match_templates() -> MatchTemplate.get_terms() -> Term.get_titles(lang)),
+    not by the category's own titles.
+    """
+    term = Mock()
+    term.get_titles.side_effect = lambda lang: titles if lang == "en" else []
+    match_template = Mock()
+    match_template.get_terms.return_value = [term]
+    category = Mock()
+    category.path = path
+    category.get_match_templates.return_value = [match_template]
+    return category
 
 
 @pytest.fixture
 def mock_category():
-    return Category({
-        "titles": [make_title("Title1", "en"), make_title("Title2", "en")]
-    })
+    return make_category(["Cat1"], ["Title1", "Title2"])
 
 
 @pytest.fixture
 def mock_category_2():
-    return Category({
-        "titles": [make_title("Title1", "en"), make_title("Title4", "en")]
-    })
+    return make_category(["Cat2"], ["Title1", "Title4"])
 
 
 @pytest.fixture
@@ -37,8 +44,6 @@ def category_matcher(mock_category, mock_category_2):
     return CategoryMatcher(lang="en", category_registry=[mock_category, mock_category_2])
 
 
-# reason: matched_categories order/content mismatch vs mock_category — fails identically under mongomock and real Mongo
-@pytest.mark.failing
 def test_match_single_title(category_matcher, mock_raw_ref, mock_category):
     # Test matching for a valid title in mock_raw_ref
     matched_categories = category_matcher.match(mock_raw_ref)
@@ -53,8 +58,6 @@ def test_match_no_match(category_matcher, mock_raw_ref):
     assert matched_categories == []
 
 
-# reason: matched_categories order/content mismatch vs expected set — fails identically under mongomock and real Mongo
-@pytest.mark.failing
 def test_match_multiple_titles(category_matcher, mock_raw_ref, mock_category, mock_category_2):
     # Test case where multiple categories match the same title
     mock_raw_ref.text = "Title1"
