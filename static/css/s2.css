@@ -565,6 +565,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu.closed {
   display: none;
 }
+/* The Library Assistant's floating button would sit on top of the open menu */
+.readerApp:has(.mobileNavMenu:not(.closed)) lc-chatbot {
+  visibility: hidden;
+}
 .mobileNavMenu .searchLine {
   padding: 15px 10px;
   border-bottom: 1px solid #EDEDEC;
