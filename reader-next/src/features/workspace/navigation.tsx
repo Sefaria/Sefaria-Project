@@ -11,7 +11,7 @@ import { useReaderSettings } from "../reader/settings-context";
 import type { PanelId, Workspace } from "~/lib/workspace/types";
 
 // The navigation vocabulary lives in src/lib/workspace/commands.ts (usable outside React); re-exported for the reader's features.
-export { entryKey, navFor, readNavState, urlDefaultsFor, workspaceHref, type NavKind, type NavState } from "~/lib/workspace/commands";
+export { entryKey, navFor, panelKeysOf, readNavState, urlDefaultsFor, workspaceHref, type NavKind, type NavState } from "~/lib/workspace/commands";
 
 interface WorkspaceNav {
   /** A panel offers a way to read where its reader is, so it can be saved at every history change. */

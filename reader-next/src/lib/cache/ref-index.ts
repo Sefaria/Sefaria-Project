@@ -6,7 +6,7 @@
  *
  * Memory map in front of IndexedDB. Without IndexedDB (server render) it is memory-only.
  */
-import { createStore, get, set, type UseStore } from "idb-keyval";
+import { createStore, del, entries, get, set, type UseStore } from "idb-keyval";
 import { LRUCache } from "lru-cache";
 import type { BookMeta } from "~/lib/text/plan";
 import { CACHE_BUSTER } from "./policies";
@@ -33,6 +33,34 @@ const fresh = <T>(s: Stamped<T> | T | undefined, maxAge: number, now: number): T
   if (!s || typeof s !== "object" || !("at" in s) || !("b" in s)) return undefined; // written before stamping: learn it again
   return s.b === CACHE_BUSTER && now - s.at <= maxAge ? s.v : undefined;
 };
+
+/**
+ * Clean the index's disk stores (review F12: the query cache's sweep did not cover them, so expired and busted rows, and every
+ * spelling ever resolved, stayed on disk for good): rows past their lifetime or from another cache buster go, and of the rest only the
+ * most recently learned are kept, as many as the memory index holds. Returns how many rows went. Run with the query cache's sweep.
+ */
+export async function sweepRefIndexDisk(now = Date.now()): Promise<number> {
+  if (typeof indexedDB === "undefined") return 0;
+  let removed = 0;
+  for (const [store, maxAge, max] of [
+    [createStore(`${DB}-meta`, "meta"), META_MAX_AGE, MAX_METAS],
+    [createStore(`${DB}-alias`, "alias"), ALIAS_MAX_AGE, MAX_ALIASES],
+  ] as const) {
+    const rows = await entries<string, Stamped<unknown> | unknown>(store).catch(() => [] as [string, unknown][]);
+    const kept: [string, number][] = [];
+    for (const [key, row] of rows) {
+      if (fresh(row as Stamped<unknown>, maxAge, now) === undefined) {
+        await del(key, store).catch(() => undefined);
+        removed++;
+      } else kept.push([key, (row as Stamped<unknown>).at]);
+    }
+    for (const [key] of kept.sort((a, b) => b[1] - a[1]).slice(max)) {
+      await del(key, store).catch(() => undefined);
+      removed++;
+    }
+  }
+  return removed;
+}
 
 export class RefIndex {
   private metas = new LRUCache<string, BookMeta>({ max: MAX_METAS, ttl: META_MAX_AGE });

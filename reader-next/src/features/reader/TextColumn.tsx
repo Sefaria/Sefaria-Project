@@ -12,7 +12,7 @@ import type { TextPassage } from "~/lib/text/model";
 import type { Highlight } from "~/lib/text/plan";
 import type { SavedPosition } from "~/lib/reader/position-store";
 import { segmentsInRange, selectedText } from "~/lib/reader/selection";
-import { selectionKey, textQueryOptions, type VersionSelection } from "~/lib/text/queries";
+import { fetchInWantedVersions, selectionKey, textQueryOptions, type VersionSelection } from "~/lib/text/queries";
 import { Spinner } from "~/ui/Spinner/Spinner";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { TextSection, type TextSectionProps } from "~/ui/TextSection/TextSection";
@@ -40,6 +40,11 @@ export interface TextColumnProps {
   registerPosition?: (get: () => SavedPosition | undefined) => () => void;
   /** The sections now loaded in the column (changes as the reader scrolls). */
   onSections?: (refs: string[]) => void;
+  /**
+   * The sections the address names now: windowing never drops these (the panel restarts the column when the address's sections are
+   * not in it). They follow the reader as the address does; the sections the page opened with are not kept for their own sake.
+   */
+  pinned?: readonly string[];
   /** Versions `initial` is in, when they differ from `versions` (the column then swaps to `versions`). */
   initialVersionsKey?: string;
   /** Show the moving focus highlight (the sidebar is open). */
@@ -207,7 +212,8 @@ export function TextColumn(props: TextColumnProps) {
       busy.current[direction] = true;
       setLoading((l) => ({ ...l, [direction]: true }));
       try {
-        const passage = await qc.ensureQueryData(textQueryOptions(ref, versions));
+        // in the versions wanted when it arrives (a version change meanwhile swapped only what the column held: review F04)
+        const passage = await fetchInWantedVersions((sel) => qc.ensureQueryData(textQueryOptions(ref, sel)), () => propsRef.current.versions);
         // Adding above is safe: the engine puts the reader back before the next paint.
         setSections((prev) => (prev.some((p) => p.ref === passage.ref) ? prev : direction === "up" ? [passage, ...prev] : [...prev, passage]));
       } catch {
@@ -217,7 +223,7 @@ export function TextColumn(props: TextColumnProps) {
         setLoading((l) => ({ ...l, [direction]: false }));
       }
     },
-    [qc, versions],
+    [qc],
   );
 
   const focusRef = useRef<string | undefined>(undefined);
@@ -280,10 +286,12 @@ export function TextColumn(props: TextColumnProps) {
   // Windowing (CODE_REVIEW R-25): the column used to keep every section it ever loaded, so a long reading session paid more on every
   // scroll frame (segment lookups over the whole column), held every section's links, and refetched them all on a version change.
   // After each load, sections more than WINDOW_SCREENS screens away go; scrolling back loads them again from the cache. Kept always:
-  // the section the reader is in, and the sections the page was loaded with (the panel compares its URL's sections with what the
-  // column holds; dropping those would make it restart the column). Removal above is not movement: the anchor engine keeps the
-  // reader's verse still, as it does when a section is added above.
-  const initialRefs = useMemo(() => new Set(initial.map((p) => p.ref)), [initial]);
+  // the section the reader is in, and the sections the address names now (`pinned`: the panel compares the address's sections with
+  // what the column holds, and dropping them would restart the column). Not the sections the page opened with: keeping those stopped
+  // every trim behind the reader at the first of them, so a long read kept everything (review F03). Removal above is not movement:
+  // the anchor engine keeps the reader's verse still, as it does when a section is added above.
+  const pinnedKey = (props.pinned ?? initial.map((p) => p.ref)).join("|");
+  const pinnedRefs = useMemo(() => new Set(pinnedKey.split("|")), [pinnedKey]);
   const lastScrollAt = useRef(0);
   useEffect(() => {
     const scroller = scrollerRef.current;
@@ -306,7 +314,7 @@ export function TextColumn(props: TextColumnProps) {
     const view = scroller.getBoundingClientRect();
     const reach = WINDOW_SCREENS * view.height;
     const reading = focusRef.current ? passageOf(focusRef.current)?.ref : undefined;
-    const keep = (ref: string) => ref === reading || initialRefs.has(ref);
+    const keep = (ref: string) => ref === reading || pinnedRefs.has(ref);
     const box = (ref: string) => content.querySelector(`section[data-ref="${CSS.escape(ref)}"]`)?.getBoundingClientRect();
     const drop = new Set<string>();
     for (const p of sections) {

@@ -1,4 +1,5 @@
 import hashlib
+import time
 import io
 import os
 import zipfile
@@ -169,6 +170,11 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
                 "error": "This password reset link is no longer valid.",
                 "_auth": {"code": "invalid_reset_link"},
             }, status=400)
+        # The expired-link page offers "Request New Link". The new reader shows it from the uid/set-password address (its node server
+        # redirects there), so the resend POST no longer carries the link's token. Remember, in this browser's session and for a
+        # short while, that this visitor did hold a real (expired) token for this account (review F06; R-34 needs that proof).
+        if self._expired_token_of_user():
+            self.request.session[self.RESEND_PROOF_SESSION_KEY] = {"uid": self.user.pk, "at": int(time.time())}
         return render_template(
             self.request, "base.html",
             {
@@ -181,6 +187,8 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 
     RESEND_LIMIT = 3  # per account, and per client address, per hour
     RESEND_WINDOW_SECONDS = 60 * 60
+    RESEND_PROOF_SESSION_KEY = "pw_reset_resend_proof"
+    RESEND_PROOF_MAX_AGE_SECONDS = 60 * 60
 
     def _expired_token_of_user(self):
         """Was the link's token a real reset token for this account, now only too old? (check_token without the age limit)"""
@@ -214,8 +222,17 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
                 cache.set(key, 1, self.RESEND_WINDOW_SECONDS)
         return True
 
+    def _resend_proof_in_session(self):
+        """Did this session open a real (expired) link for this account recently? (see render_to_response)"""
+        proof = self.request.session.get(self.RESEND_PROOF_SESSION_KEY) or {}
+        return (
+            self.user is not None
+            and proof.get("uid") == self.user.pk
+            and time.time() - proof.get("at", 0) <= self.RESEND_PROOF_MAX_AGE_SECONDS
+        )
+
     def _may_resend(self):
-        return self._expired_token_of_user() and self._under_resend_limit()
+        return (self._expired_token_of_user() or self._resend_proof_in_session()) and self._under_resend_limit()
 
     def post(self, request, *args, **kwargs):
         # Only reached when dispatch() already confirmed validlink=True.

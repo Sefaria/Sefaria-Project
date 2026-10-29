@@ -609,10 +609,11 @@ What someone picking this up tomorrow needs to know, checked on 2026-10-28.
 
 **Tests and CI**
 
-- No GitHub workflow runs `reader-next/` tests (`.github/workflows/*` has none). Unit (vitest), story (vitest browser) and 30 Playwright
-  specs (`e2e/`) run only locally. → A4.
-- The worktree's `reader-next/` has no `node_modules`; tests and the dev server currently run from `~/Sefaria/dev/sefaria-reader`.
-- e2e hits the live API; signed-in specs use the Sefaria-Project e2e `.env` accounts; feedback is intercepted.
+- *Updated 2026-10-29:* `.github/workflows/reader-next-client.yaml` runs type check, unit and architecture tests, the atlas check, the
+  story matrix (English, Hebrew; dark report-only) and the desktop e2e suite on every PR into `reader-next`.
+- e2e reads the API through a recording proxy (`reader-next/scripts/api-cassette.mjs`). CI runs it in `auto` mode, from recordings kept
+  in the Actions cache: not yet a deterministic gate (review F13, see CODE_REVIEW_2026-10-28.md §7). Signed-in specs use the
+  Sefaria-Project e2e `.env` accounts; feedback is intercepted.
 - `npm run features:coverage -- --unknown` checks atlas IDs in tests.
 
 **Docs that are stale**

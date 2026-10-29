@@ -15,6 +15,7 @@
  *
  * @feature SRC-082 Dicta Hebrew Tanakh search merge
  */
+import { POST_READ_DEADLINE_MS } from "~/lib/api/client";
 import { isHebrewText } from "./hebrew";
 import type { SearchHit } from "./text-search";
 
@@ -74,7 +75,7 @@ export function adaptDictaHits(hits: readonly DictaApiHit[], offset = 0): Scored
 }
 
 export async function fetchDictaSearch(body: object, signal?: AbortSignal): Promise<{ total: number; hits: DictaApiHit[] }> {
-  const r = await fetch(`${DICTA_ORIGIN}/search`, { method: "POST", headers: { "content-type": "application/json; charset=UTF-8" }, body: JSON.stringify(body), signal });
+  const r = await fetch(`${DICTA_ORIGIN}/search`, { method: "POST", headers: { "content-type": "application/json; charset=UTF-8" }, body: JSON.stringify(body), signal, deadlineMs: POST_READ_DEADLINE_MS } as RequestInit);
   if (!r.ok) throw new Error(`Dicta search: HTTP ${r.status}`);
   return (await r.json()) as { total: number; hits: DictaApiHit[] };
 }

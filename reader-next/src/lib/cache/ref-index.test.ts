@@ -41,3 +41,23 @@ describe("RefIndex lifetimes", () => {
     expect(await idx.resolveAlias("Gen. 1")).toBeUndefined();
   });
 });
+
+// review F12: the ref index's own disk stores were outside the query cache's sweep, so they only grew
+describe("sweepRefIndexDisk", () => {
+  it("removes expired and busted rows from both stores and keeps the rest", async () => {
+    const { sweepRefIndexDisk } = await import("./ref-index");
+    const { keys } = await import("idb-keyval");
+    const now = 10 * ALIAS_MAX_AGE;
+    const idx = new RefIndex(true, () => now);
+    await idx.setAlias("Gen.1.1", "Genesis 1:1");
+    await idx.setMeta({ book: "Genesis", indexTitle: "Genesis", textDepth: 2, addressTypes: ["Integer", "Integer"], sectionNames: ["Chapter", "Verse"], isComplex: false });
+    const aliasStore = createStore("sefaria-reader-refs-alias", "alias");
+    const metaStore = createStore("sefaria-reader-refs-meta", "meta");
+    await set("Old.1", { v: "Old 1", at: now - ALIAS_MAX_AGE - 1, b: "x" }, aliasStore);
+    await set("Busted.1", { v: "Busted 1", at: now, b: "another-buster" }, aliasStore);
+    await set("Exodus", { v: {}, at: now - META_MAX_AGE - 1, b: "x" }, metaStore);
+    expect(await sweepRefIndexDisk(now)).toBe(3);
+    expect(await keys(aliasStore)).toEqual(["Gen.1.1"]);
+    expect(await keys(metaStore)).toEqual(["Genesis"]);
+  });
+});
