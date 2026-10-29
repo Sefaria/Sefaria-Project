@@ -1,3 +1,4 @@
+import hashlib
 import io
 import os
 import zipfile
@@ -19,7 +20,9 @@ from django.shortcuts import render, redirect, resolve_url
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest, HttpRequest
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
-from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.http import url_has_allowed_host_and_scheme, base36_to_int
+from django.utils.crypto import constant_time_compare
+from django.core.cache import cache
 from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
@@ -43,10 +46,10 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
+from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern, gen_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sso.adapters import import_gravatar
@@ -70,7 +73,6 @@ from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_t
 from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria import tracker
-from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
@@ -150,21 +152,18 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             except (json.JSONDecodeError, ValueError):
                 data = {}
             if data.get('action') == 'resend':
-                # dispatch() already resolved self.user from the URL's uidb64
-                # before checking token validity, so the account is known
-                # even though the link itself has expired.
-                if self.user is None:
-                    return jsonResponse({
-                        "error": "We couldn't find an account for this link.",
-                        "_auth": {"code": "no_account_for_link"},
-                    }, status=400)
-                form = SefariaPasswordResetForm(data={'email': self.user.email})
-                if form.is_valid():
-                    form.save(
-                        request=self.request, domain_override=self.request.get_host(), use_https=self.request.is_secure(),
-                        email_template_name='registration/password_reset_email.txt',
-                        html_email_template_name='registration/password_reset_email.html',
-                    )
+                # A new link goes only to the owner of a real link that expired (its token checks out for this
+                # account; only its age fails), at most a few times an hour. Every other request gets the same
+                # answer, sent or not, so the endpoint can't be used to email arbitrary accounts by uid or to
+                # learn which uids exist (reader-next CODE_REVIEW R-34).
+                if self._may_resend():
+                    form = SefariaPasswordResetForm(data={'email': self.user.email})
+                    if form.is_valid():
+                        form.save(
+                            request=self.request, domain_override=self.request.get_host(), use_https=self.request.is_secure(),
+                            email_template_name='registration/password_reset_email.txt',
+                            html_email_template_name='registration/password_reset_email.html',
+                        )
                 return jsonResponse({})
             return jsonResponse({
                 "error": "This password reset link is no longer valid.",
@@ -179,6 +178,44 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             },
             {'title': _('Reset Your Password'), 'desc': _('Reset your Sefaria account password.')},
         )
+
+    RESEND_LIMIT = 3  # per account, and per client address, per hour
+    RESEND_WINDOW_SECONDS = 60 * 60
+
+    def _expired_token_of_user(self):
+        """Was the link's token a real reset token for this account, now only too old? (check_token without the age limit)"""
+        token = self.kwargs.get("token")
+        if token == self.reset_url_token:
+            token = self.request.session.get(INTERNAL_RESET_SESSION_TOKEN)
+        if not (self.user and token):
+            return False
+        try:
+            ts_b36, _ = token.split("-")
+            ts = base36_to_int(ts_b36)
+        except ValueError:
+            return False
+        generator = self.token_generator
+        return any(
+            constant_time_compare(generator._make_token_with_timestamp(self.user, ts, secret), token)
+            for secret in [generator.secret, *generator.secret_fallbacks]
+        )
+
+    def _under_resend_limit(self):
+        meta = self.request.META
+        # behind Cloudflare and nginx: the visitor's address as Cloudflare saw it (per-account is the real limit; this is best effort)
+        client = meta.get("HTTP_CF_CONNECTING_IP") or meta.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or meta.get("REMOTE_ADDR", "")
+        keys = [f"pw-reset-resend:user:{self.user.pk}", f"pw-reset-resend:ip:{client}"]
+        for key in keys:
+            cache.add(key, 0, self.RESEND_WINDOW_SECONDS)
+            try:
+                if cache.incr(key) > self.RESEND_LIMIT:
+                    return False
+            except ValueError:  # evicted between add and incr
+                cache.set(key, 1, self.RESEND_WINDOW_SECONDS)
+        return True
+
+    def _may_resend(self):
+        return self._expired_token_of_user() and self._under_resend_limit()
 
     def post(self, request, *args, **kwargs):
         # Only reached when dispatch() already confirmed validlink=True.
@@ -780,9 +817,6 @@ def collections_image_upload(request, resize_image=True):
 def reset_cache(request):
     model.library.rebuild()
 
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "rebuild")
-
     if USE_VARNISH:
         invalidate_all()
 
@@ -814,9 +848,7 @@ def rebuild_linker_resolvers(request):
 @staff_member_required
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
-    in_memory_cache.set("websites_data", website_set)
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("in_memory_cache", "set", ["websites_data", website_set])
+    gen_cache.publish("websites_data", website_set)
     return HttpResponseRedirect("/?m=Website-Data-Reset")
 
 
@@ -834,9 +866,7 @@ def reset_index_cache_for_text(request, title):
     model.library.refresh_index_record_in_cache(index)
     model.library.reset_text_titles_cache()
 
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
-    elif USE_VARNISH:
+    if USE_VARNISH:
         invalidate_title(index.title)
 
     return HttpResponseRedirect("/%s?m=Cache-Reset" % model.Ref(title).url())
@@ -893,19 +923,14 @@ def reset_counts(request, title=None):
     else:
         model.refresh_all_states()
 
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "rebuild_toc")
-
         return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
 
 @staff_member_required
 def delete_orphaned_counts(request):
     remove_old_counts()
+    # the template cache is shared by every process, so no propagation step is needed
     scache.delete_template_cache("texts_dashboard")
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("scache", "delete_template_cache", ["texts_dashboard"])
 
     return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
@@ -913,10 +938,6 @@ def delete_orphaned_counts(request):
 @staff_member_required
 def rebuild_toc(request):
     model.library.rebuild_toc()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "rebuild_toc")
-
     return HttpResponseRedirect("/?m=TOC-Rebuilt")
 
 
@@ -925,13 +946,11 @@ def rebuild_auto_completer(request):
     # Three builders, each of which wraps itself: group them so one click reports once.
     with build_pathway("rebuild_auto_completer"):
         library.build_full_auto_completer()
+        gen_cache.mark_fresh("full_auto_completer")
         library.build_lexicon_auto_completers()
+        gen_cache.mark_fresh("lexicon_auto_completer")
         library.build_cross_lexicon_auto_completer()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "build_full_auto_completer")
-        server_coordinator.publish_event("library", "build_lexicon_auto_completers")
-        server_coordinator.publish_event("library", "build_cross_lexicon_auto_completer")
+        gen_cache.mark_fresh("cross_lexicon_auto_completer")
 
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
@@ -969,10 +988,7 @@ def reset_ref(request, tref):
         vs.refresh()
         model.library.update_index_in_toc(index)
 
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
-            server_coordinator.publish_event("library", "update_index_in_toc", [oref.index.title])
-        elif USE_VARNISH:
+        if USE_VARNISH:
             invalidate_title(oref.index.title)
 
         return HttpResponseRedirect("/{}?m=Reset-Index".format(oref.url()))
@@ -1513,7 +1529,13 @@ def index_sheets_by_timestamp(request):
 
 # Change this whenever the GraphQL query/response shape changes in a way that is not backwards compatible (e.g. the Strapi v4 -> v5 flattening)
 # It's part of the cache key so queries from a newly deployed frontend cannot collide with payloads cached under the previous schema
-STRAPI_SCHEMA_VERSION = "v5"
+# v6: sidebar ads gained `pageType` (page-type targeting). The cache key now also includes a hash
+# of the query body (see strapi_graphql_cache), so even same-version clients posting different
+# query shapes — e.g. a stale browser bundle during a deploy window — can never poison the slot
+# that up-to-date clients read.
+# v7: sidebar ads' hasBlueBackground (boolean) replaced by sidebarAdBackgroundColor (hex string,
+# mirroring bannerBackgroundColor).
+STRAPI_SCHEMA_VERSION = "v7"
 
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
@@ -1574,9 +1596,18 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
                 {"error": "GraphQL query required in request body"}, status=400
             )
 
-        # Create cache key from the schema version and the specified dates. The query structure is static apart from the dates in its body. 
-        # Including the schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
-        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}"
+        # Create cache key from the schema version, the specified dates, AND a hash of the query body.
+        # The schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
+        # The query hash closes a subtler hole the version constant alone cannot: during a deploy window, a browser
+        # still running the PREVIOUS frontend bundle posts the previous (smaller) query to this same endpoint. Without
+        # the hash, its response — missing the newly added fields — would be cached under the key that freshly
+        # deployed clients read, silently stripping the new fields from every visitor for the cache TTL.
+        # Distinct query shapes therefore get distinct slots; identical clients still share one slot per date range.
+        # Full SHA-256 digest, untruncated: the key must NEVER collide (a collision silently serves one
+        # query shape's payload to a client that sent a different one — the exact poisoning this exists
+        # to prevent), and Redis key length is not a constraint worth trading that guarantee for.
+        query_hash: str = hashlib.sha256(query.encode("utf-8")).hexdigest()
+        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}_{query_hash}"
 
         # Try to get from cache first
         # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage

@@ -3,3 +3,7 @@
 .moreIcon { color: var(--sefaria-color-brand); }
 .empty { color: var(--sefaria-color-text-secondary); margin: var(--sefaria-space-4) 0; }
 .topTools { padding-block: var(--sefaria-space-2) var(--sefaria-space-3); }
+
+/* VERIFIED on sefaria.org (1280px): the first tool's text 30px under the header, the headings placed by FilterRow's .heading; "More" in #666 */
+.topTools { padding-block: 0; margin-top: -5px; }
+.more { padding-bottom: 4px; color: var(--sefaria-color-text-dark-grey); }

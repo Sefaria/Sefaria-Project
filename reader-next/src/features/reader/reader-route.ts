@@ -3,10 +3,10 @@ import { notFound, redirect } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
 import { SefariaApiError } from "~/lib/api/client";
 import { getRefIndex } from "~/lib/cache/ref-index-singleton";
-import { refToUrl, urlToRef } from "~/lib/ref/url";
+import { isSplatOf, refToUrl, urlToRef } from "~/lib/ref/url";
 import type { ReaderSearch } from "~/lib/reader/url-state";
 import { indexMetaQueryOptions } from "~/lib/text/commentary";
-import { loadReaderPassage, passageUrl, type VersionSelection } from "~/lib/text/queries";
+import { loadReaderPassage, passageUrl, selectionKey, type VersionSelection } from "~/lib/text/queries";
 import { hasVersionPrefs, resolveTranslation, toApiVersion, type VersionPrefs } from "~/lib/versions/preferences";
 import { readVersionPrefs } from "~/lib/versions/prefs-source";
 import { panelOrder, updatePanel } from "~/lib/workspace/ops";
@@ -26,6 +26,8 @@ export interface ReaderRouteData {
   preload: string[];
   /** The versions this data was loaded in (the URL can already name others while the next load runs). */
   versions: VersionSelection;
+  /** The versions the URL named when this data was loaded (before the reader's preferences filled the rest in). */
+  requested: VersionSelection;
   /** The text's corpus ("Tanakh", "Bavli"…), for the translations banner. */
   corpus?: string;
   /** The translations banner was dismissed in this session. */
@@ -43,7 +45,9 @@ async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, pr
     try {
       return await loadReaderPassage(queryClient, getRefIndex(), panel.ref, sel);
     } catch (e) {
-      if (e instanceof SefariaApiError && e.status !== undefined && e.status >= 400 && e.status < 500) throw notFound();
+      // a client error is "no such text" (404); a refusal for now (429), a timeout (408) or a server error is the API's trouble, answered
+      // 503 by the request middleware — as a 404 the page went to Django, which served the old reader for a text that exists (R-36)
+      if (e instanceof SefariaApiError && e.status !== undefined && e.status >= 400 && e.status < 500 && e.status !== 408 && e.status !== 429) throw notFound();
       throw e;
     }
   };
@@ -76,6 +80,7 @@ async function loadTextPanel(queryClient: QueryClient, panel: TextPanelState, pr
     next,
     preload: [next, prev].filter((r): r is string => !!r).map((r) => passageUrl(r, versions)),
     versions,
+    requested: panel.versions,
     corpus,
     bannerDismissed,
   };
@@ -125,9 +130,19 @@ export async function loadWorkspaceRoute(args: {
     }
   });
   const canonicalPath = refToUrl(panels[ids[0]!]!.ref);
-  const pathDiffers = canonicalPath !== args.splat.replace(/^\/+|\/+$/g, "");
+  const pathDiffers = !isSplatOf(args.splat, canonicalPath);
   if (pathDiffers || panelsDiffer) {
-    throw redirect({ to: "/$", params: { _splat: canonicalPath }, search: query as never, statusCode: 301 });
+    throw redirect({ to: `/${canonicalPath}` as never, search: query as never, statusCode: 301 });
   }
   return { workspace: ws, panels };
+}
+
+/**
+ * The versions a panel shows. While the URL still names exactly what the loader was given, the loader's resolution wins: it filled in
+ * what the URL left open from the reader's preferences (a URL naming only the source, `vhe`, keeps the saved translation:
+ * CODE_REVIEW R-07; it used to be dropped after hydration). When the URL names something newer, that is the reader's new choice.
+ */
+export function shownVersions(urlVersions: VersionSelection, data: Pick<ReaderRouteData, "versions" | "requested">): VersionSelection {
+  if (selectionKey(urlVersions) === selectionKey(data.requested)) return data.versions;
+  return urlVersions.translation || urlVersions.primary ? urlVersions : data.versions;
 }

@@ -6,7 +6,7 @@
  * @feature SRC-070 Topic result card (parent-category crumb)
  */
 import { queryOptions } from "@tanstack/react-query";
-import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
+import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 
 export interface TopicTocNode {
@@ -42,9 +42,9 @@ export const topicTocQueryOptions = () =>
       queryKey: ["catalog", "topic-toc"] as const,
       queryFn: async ({ signal }: { signal: AbortSignal }): Promise<TopicTocNode[]> => {
         const r = await fetch(`${SEFARIA_API_ORIGIN}/api/topics-toc`, { signal });
-        if (r.status === 404) return [];
-        if (!r.ok) throw new SefariaApiError(`Topic TOC: HTTP ${r.status}`, r.status);
-        return (await r.json()) as TopicTocNode[];
+        // a backend without the endpoint is an error (not retried, not kept), not an empty list kept on disk for 30 days — which hid
+        // the endpoint for a month once the backend gained it (CODE_REVIEW low list); callers read the data as optional
+        return apiJson<TopicTocNode[]>(r, `Topic TOC`);
       },
     }),
     select: topicParents,

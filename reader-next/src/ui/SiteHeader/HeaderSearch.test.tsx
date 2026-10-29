@@ -13,6 +13,17 @@ const setup = (over = {}) => {
 
 // @feature SRC-001 @feature SRC-004 @feature SRC-007 @feature SRC-009 @feature SRC-010 @feature SRC-018 @feature SRC-019 @feature SRC-110 @feature SRC-015 @feature SRC-023
 describe("HeaderSearch", () => {
+  it("draws the focus ring for keyboard focus only, even after a click on the search button", async () => {
+    const { box } = setup();
+    const field = screen.getByRole("search");
+    await userEvent.click(box);
+    expect(field).not.toHaveAttribute("data-keyboard-focus");
+    await userEvent.click(screen.getByRole("button", { name: "Search" }));
+    await userEvent.tab();
+    expect(box).toHaveFocus();
+    expect(field).toHaveAttribute("data-keyboard-focus", "true");
+  });
+
   it("nothing under three characters; then a 'Search for' row and groups", async () => {
     const { box } = setup();
     await userEvent.type(box, "ge");

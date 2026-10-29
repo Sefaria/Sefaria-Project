@@ -32,10 +32,18 @@ describe("CategoryView", () => {
     expect(screen.getByText("Rashi desc")).toBeInTheDocument();
   });
 
-  it("keeps books with no links listed, dimmed", () => {
+  it("keeps books with no links listed, dimmed and without a count (VERIFIED on sefaria.org: no \"(0)\")", () => {
     render_([commentary]);
     const sforno = screen.getByRole("link", { name: /Sforno/ });
-    expect(sforno).toHaveTextContent("(0)");
+    expect(sforno).not.toHaveTextContent("(0)");
+  });
+
+  it("shows names and descriptions in the sidebar's language only, without the EN tag in Hebrew", () => {
+    render(<CategoryView categories={[commentary]} catalog={STORY_CATALOG} basePath="/Genesis.1.1" lang="he" />);
+    expect(screen.getByRole("link", { name: /Rashi-he/ })).toHaveAttribute("dir", "rtl");
+    expect(screen.queryByText("Rashi desc")).not.toBeInTheDocument();
+    expect(screen.queryByText("EN")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link")[0]).toHaveTextContent(/^כל הקישורים ל/);
   });
 
   it("filters quoting commentary with a suffix so it does not match the commentary itself", () => {

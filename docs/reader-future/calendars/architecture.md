@@ -5,7 +5,7 @@ domain: Library & discovery
 document: architecture
 owner: unassigned
 status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+updated: 2026-10-28
 ---
 # Calendars — architecture
 
@@ -27,7 +27,10 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [Language & accessibility](../i18n-a11y/architecture.md): textual custom and Israel / diaspora are fields of the *proposed*
+  effective-preferences object · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629). Today legacy takes custom from the profile (default `sephardi`)
+  or `ashkenazi` when signed out, and diaspora from `cf-ipcountry` only (`reader/views.py:1334-1340`, `sefaria/system/middleware.py:66-83`).
+  `reader-next` always asks for diaspora and sends no custom (`reader-next/src/lib/library/calendars.ts:31`).
 
 ## Risks and open questions
 

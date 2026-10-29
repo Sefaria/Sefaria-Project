@@ -30,7 +30,7 @@ test.describe("Share and Feedback (verified against sefaria.org; feedback is int
     await side(page).getByPlaceholder("Email Address").fill("test@example.org");
     await side(page).getByRole("button", { name: "Submit" }).click();
     await expect(side(page).getByText("Feedback sent!")).toBeVisible();
-    expect(sent).toHaveLength(1);
+    await expect.poll(() => sent.length).toBe(1); // the request follows the CSRF token fetch (CODE_REVIEW R-23)
     const payload = JSON.parse(new URLSearchParams(sent[0]).get("json")!);
     expect(payload).toMatchObject({ refs: ["Genesis 1:1"], type: "bug_report", email: "test@example.org", msg: "test message", uid: null });
     expect(payload.url).toContain("/Genesis.1.1");

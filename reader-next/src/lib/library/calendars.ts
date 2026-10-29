@@ -1,5 +1,5 @@
 /**
- * Today's learning schedules (`GET /api/calendars?diaspora=1`): the weekly portion, its haftarah, Daf Yomi. Short-lived data:
+ * Today's learning schedules (`GET /api/calendars?diaspora=1|0`): the weekly portion, its haftarah, Daf Yomi. Short-lived data:
  * cached for the day's session only.
  *
  * @feature LIB-038 Sidebar module: Learning schedules
@@ -7,7 +7,7 @@
  * @feature LIB-040 Sidebar module: Daf Yomi
  */
 import { queryOptions } from "@tanstack/react-query";
-import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
+import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 
 export interface Bilingual {
@@ -23,14 +23,18 @@ export interface CalendarItem {
   order?: number;
 }
 
-export const calendarsQueryOptions = () =>
+/**
+ * `diaspora`: the old site's request.diaspora — false for readers in Israel, whose weekly portion differs in some weeks (decided by
+ * the server from the request's country: src/routes/__root.tsx). Kept in memory only (CODE_REVIEW R-21: it was kept 90 days on
+ * disk, so a reader offline or back after a week saw last week's portion first).
+ */
+export const calendarsQueryOptions = (diaspora = true) =>
   queryOptions<CalendarItem[]>({
-    ...withPolicy("reference", {
-      queryKey: ["calendars", "diaspora"] as const,
+    ...withPolicy("search", {
+      queryKey: ["calendars", diaspora ? "diaspora" : "israel"] as const,
       queryFn: async ({ signal }: { signal: AbortSignal }): Promise<CalendarItem[]> => {
-        const r = await fetch(`${SEFARIA_API_ORIGIN}/api/calendars?diaspora=1`, { signal });
-        if (!r.ok) throw new SefariaApiError(`Calendars: HTTP ${r.status}`, r.status);
-        return ((await r.json()) as { calendar_items: CalendarItem[] }).calendar_items;
+        const r = await fetch(`${SEFARIA_API_ORIGIN}/api/calendars?diaspora=${diaspora ? 1 : 0}`, { signal });
+        return (await apiJson<{ calendar_items: CalendarItem[] }>(r, `Calendars`)).calendar_items;
       },
     }),
     staleTime: 60 * 60 * 1000,

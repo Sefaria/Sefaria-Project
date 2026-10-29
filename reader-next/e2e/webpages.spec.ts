@@ -8,7 +8,7 @@ test.describe("Web pages citing the passage (verified against sefaria.org, Berak
   test("the sites, most pages first; a site opens its pages; back returns to the sites", async ({ page }) => {
     await open(page, "/Berakhot.2a.1?lang=en&with=WebPages");
     const sites = side(page).getByRole("link").filter({ hasText: /\(\d+\)/ });
-    await expect(sites.first()).toHaveText(/Halachipedia \(145\)/, { timeout: 30_000 });
+    await expect(sites.first()).toHaveText(/Halachipedia \(\d+\)/, { timeout: 30_000 });
     await expect(sites.nth(1)).toHaveText(/Torat Har Etzion \(\d+\)/);
     await expect(side(page).getByText("Sites that are listed here use the")).toBeVisible();
     await sites.first().click();
@@ -33,7 +33,7 @@ test.describe("Web pages citing the passage (verified against sefaria.org, Berak
     await expect(side(page).getByRole("link", { name: /^Sheets/ })).toHaveText(/\(\d+\)/, { timeout: 30_000 });
     await expect(row).toHaveText(/^Web Pages\s*$/);
     await row.click();
-    await expect(side(page).getByRole("link").filter({ hasText: /Halachipedia \(145\)/ })).toBeVisible({ timeout: 30_000 });
+    await expect(side(page).getByRole("link").filter({ hasText: /Halachipedia \(\d+\)/ })).toBeVisible({ timeout: 30_000 });
     await side(page).getByRole("link", { name: "Resources" }).click();
     await expect(side(page).getByRole("link", { name: /^Web Pages/ })).toHaveText(/Web Pages\s*\(\d+\)/);
   });

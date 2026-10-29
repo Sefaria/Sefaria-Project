@@ -5,6 +5,7 @@ import { visibleSides } from "~/lib/reader/labels";
 import { Icon } from "../Icon/Icon";
 import { LoadingState } from "../Feedback/Feedback";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
+import { ContentText, LangText } from "../LangText/LangText";
 import { Link } from "../Link/Link";
 import { SegmentText, type SegmentTextProps } from "../SegmentText/SegmentText";
 import styles from "./TextList.module.css";
@@ -32,6 +33,8 @@ export interface LinkedTextItem {
 export interface TextListProps {
   /** Heading: the filter ("Rashi"). */
   title: { en: string; he: string };
+  /** The list is a whole category ("Commentary"), whose title shows upper-case; a book's keeps its case. */
+  categoryTitle?: boolean;
   /** Underline colour (the category's). */
   color?: string;
   items: LinkedTextItem[];
@@ -48,6 +51,8 @@ export interface TextListProps {
   /** A connected text the reader dwelt on: shown (100px inside the list's view) for 3 s — the old ConnectionsPanel's
    *  checkVisibleSegments, which records it as secondary reading history (CON-036). Once per ref per list. */
   onDwell?: (ref: string) => void;
+  /** More items can be shown: called when the end of the list comes within a screen of view (the list grows a page at a time). */
+  onNearEnd?: () => void;
 }
 
 /**
@@ -58,7 +63,18 @@ export interface TextListProps {
  * @feature CON-032 Connection item rendering
  * @feature CON-033 Open connected text in main panel
  */
-export function TextList({ title, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen, onDwell }: TextListProps) {
+export function TextList({ title, categoryTitle, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen, onDwell, onNearEnd }: TextListProps) {
+  const endRef = useRef<HTMLDivElement>(null);
+  const nearEnd = useRef(onNearEnd);
+  nearEnd.current = onNearEnd;
+  const more = Boolean(onNearEnd);
+  useEffect(() => {
+    const end = endRef.current;
+    if (!end || !more || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && nearEnd.current?.(), { rootMargin: "0px 0px 800px 0px" });
+    io.observe(end);
+    return () => io.disconnect();
+  }, [more, items.length]);
   const listRef = useRef<HTMLUListElement>(null);
   const dwelt = useRef(new Set<string>());
   const dwellCb = useRef(onDwell);
@@ -96,7 +112,7 @@ export function TextList({ title, color, items, language, vocalization, hideItem
   }, [items]);
   return (
     <div>
-      <h3 className={styles.title} style={{ ["--_color" as string]: color }}>
+      <h3 className={styles.title} data-upper={categoryTitle || undefined} style={{ ["--_color" as string]: color }}>
         <InterfaceText en={title.en} he={title.he} />
         <span className={styles.titleBar} aria-hidden="true" />
       </h3>
@@ -112,18 +128,18 @@ export function TextList({ title, color, items, language, vocalization, hideItem
             <li key={item.id} className={styles.item} data-ref={item.sourceRef} data-lang={side?.dir === "rtl" ? "he" : "en"}>
               {hideItemTitles ? null : (
                 // a title, not a link: on sefaria.org it does nothing; "Open" opens the text (VERIFIED 2026-10-06)
-                <div className={styles.ref}>
-                  <InterfaceText en={item.sourceRef} he={item.sourceHeRef} />
-                </div>
+                // in the sidebar's language (lang2), as the old TextRange title
+                <ContentText as="div" className={styles.ref} lang={language} en={item.sourceRef} he={item.sourceHeRef} fallback />
               )}
-              <p className={styles.text}>
+              {/* the block takes the text's direction, as the old `.segment.heOnly` did: Hebrew lines start and end at the right */}
+              <LangText as="p" className={styles.text} lang={side?.lang ?? (language === "hebrew" ? "he" : "en")} dir={side?.dir}>
                 {item.number ? <span className={styles.number} aria-hidden="true">{item.number}</span> : null}
                 {side ? (
                   <SegmentText html={side.html} lang={side.lang} dir={side.dir} vocalization={vocalization} onRefClick={onRefClick} />
                 ) : item.loading ? (
                   <span aria-busy="true"><InterfaceText en="Loading…" he="טוען…" /></span>
                 ) : null}
-              </p>
+              </LangText>
               <div className={styles.actions}>
                 <Link
                   className={styles.open}
@@ -143,6 +159,7 @@ export function TextList({ title, color, items, language, vocalization, hideItem
           );
         })}
       </ul>
+      {more ? <div ref={endRef} aria-hidden="true" style={{ height: 1 }} /> : null}
     </div>
   );
 }

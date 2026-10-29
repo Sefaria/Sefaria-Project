@@ -67,3 +67,14 @@ describe("carrySearch", () => {
     expect(carrySearch({ ven: "english|The_JPS" })).toBe("&ven=english|The_JPS");
   });
 });
+
+// master #3790 (titleUrl.test.js): a version title keeps its query value intact and stays readable
+describe("version titles with query delimiters", () => {
+  it("escapes ; & # + and round-trips through a real URL", () => {
+    const t = "Version / Part\\Object;Alt|Copy&Notes#1+2, מהדורה: א";
+    const enc = encodeVtitle(t);
+    expect(enc).toBe("Version_/_Part\\Object%3BAlt|Copy%26Notes%231%2B2,_מהדורה:_א");
+    const param = new URL(`/Book?ven=family|${enc}`, "https://www.sefaria.org").searchParams.get("ven")!;
+    expect(versionParamToApi(param)).toBe(`family|${t}`);
+  });
+});

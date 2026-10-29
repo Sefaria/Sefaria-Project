@@ -4,8 +4,12 @@ title: Versions & translations
 domain: Reader
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-16
+
+updated: 2026-10-19
+
+updated: 2026-10-28
 ---
 # Versions & translations — architecture
 
@@ -15,23 +19,112 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+No target architecture yet. Research in the thread mapped version URL parameters, how each client resolves the source and
+translation, where preferences are stored, and the gaps in `reader-next`. Interface and content language are in
+[Language & accessibility](../i18n-a11y/architecture.md). Everything under not-to-port and open questions is an *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
 
 ## Legacy approach vs new approach
 
-_Not discussed yet: how `master` does it, how `reader-next` does it, and what differs (data, state, rendering, routing, caching)._
+**URL parameters.**
+- Legacy (`master` @ 121350b): `ven` / `vhe` (and `ven<n>` / `vhe<n>`) as `family|Version_Title`; the old path
+  `/<ref>/<lang>/<vtitle>` is redirected to `?v<lang>=` ([`reader/views.py:544-553`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/reader/views.py#L544-L553)). Every parameter is matched against the
+  ref's versions (title and family, then family, then title), filtered by direction (left-to-right for `ven`, right-to-left for
+  `vhe`), and the page redirects with the corrected values, removing those that match nothing ([`reader/views.py:424-499`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/reader/views.py#L424-L499)).
+- New (`reader-next` @ 837d585): same grammar plus `vside` ([`src/lib/reader/url-state.ts:5-9`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/reader/url-state.ts#L5-L9)). A value without `|` is
+  dropped ([`src/lib/reader/url-state.ts:51-54`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/reader/url-state.ts#L51-L54)), so old title-only links lose their version. No matching, no redirect; an
+  unknown value stays in the URL (RTE-028).
+
+**Resolution order.**
+- Legacy client ([`static/js/sefaria/sefaria.js:790-822`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/static/js/sefaria/sefaria.js#L790-L822)): source = the URL's version if it is a primary, else the API default.
+  Translation = the URL's version if it exists → the corpus preference (by title) → the highest-priority version in the
+  translation-language preference → the API default. Server rendering ignores preferences
+  ([`sefaria/model/text_request_adapter.py:15-34`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/sefaria/model/text_request_adapter.py#L15-L34)), so the client refetches and a different translation can flash in. For
+  later panels `override_version_with_preference` never changes anything ([`reader/views.py:1120-1131`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/reader/views.py#L1120-L1131)).
+- New `resolveTranslation` ([`src/lib/versions/preferences.ts:86-103`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/versions/preferences.ts#L86-L103)): the URL's `ven` if it exists → corpus preference →
+  translation-language preference → server default. It runs in the route loader, server rendering included, when any
+  preference exists, with a second fetch only when the choice differs ([`src/features/reader/reader-route.ts:41-67`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/reader-route.ts#L41-L67)). No flash.
+
+**Stored preferences.**
+- Legacy: `version_preferences_by_corpus` (`{corpus: {en: title}}`) and `translation_language_preference` are read from the
+  profile first, then the cookie ([`sefaria/system/middleware.py:164-165`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/sefaria/system/middleware.py#L164-L165), [`sefaria/system/middleware.py:179-182`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/sefaria/system/middleware.py#L179-L182)). Choosing a
+  translation in the main panel writes the cookie and POSTs the profile ([`static/js/VersionBlock/VersionBlock.jsx:69-75`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/static/js/VersionBlock/VersionBlock.jsx#L69-L75),
+  [`static/js/sefaria/sefaria.js:1114-1122`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/static/js/sefaria/sefaria.js#L1114-L1122)); the translation language is set by `setTranslationLanguagePreference`
+  ([`static/js/ReaderApp.jsx:2145-2158`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/static/js/ReaderApp.jsx#L2145-L2158)) and the account page.
+- New: cookies only ([`src/lib/versions/preferences.ts:31-52`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/versions/preferences.ts#L31-L52), [`src/lib/versions/prefs-source.ts:10-15`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/versions/prefs-source.ts#L10-L15)). Choosing a
+  translation writes the corpus cookie for a year ([`src/features/reader/TextPanel.tsx:413-420`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L413-L420)). The translation-language
+  cookie is read but never written. No profile read or write (VER-002 partial).
+
+**Suggestion banner.** Legacy suggests a translation language when none is set or was suggested: the first language of the
+visitor's country (`cf-ipcountry`) in the supported list (en, es, fr, de), never English
+([`sefaria/system/middleware.py:166-177`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/sefaria/system/middleware.py#L166-L177), [`sites/sefaria/site_settings.py:13`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/sites/sefaria/site_settings.py#L13)); the banner reads only the cookie
+([`static/js/TextColumnBanner.jsx:13-16`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/static/js/TextColumnBanner.jsx#L13-L16)). Not built in `reader-next` (VER-004 todo).
+
+**Gaps in `reader-next`, found on the way** (likely bugs, read from the code, not tested).
+- A URL with only `vhe`: the loader resolves a preferred translation, but the panel uses the URL's versions whenever either side
+  is set ([`src/features/reader/TextPanel.tsx:84`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L84)), so the column swaps back to the default translation.
+- An unknown explicit `ven` is never dropped: with no preferences, or none that match, the API returns the source only and no
+  translation is shown, not the default ([`src/features/reader/reader-route.ts:61-66`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/reader-route.ts#L61-L66)). The API's `warnings` are stored but not
+  read ([`src/lib/text/model.ts:74`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/text/model.ts#L74)).
+
+## Legacy behaviour not to port
+
+Each is an *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+- `override_version_with_preference` is a no-op: `versionEn` / `versionHe` are always non-empty dicts, so `not versionEn` is
+  never true ([`reader/views.py:1120-1131`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/reader/views.py#L1120-L1131)).
+- Direction-filtered correction: the client writes `ven` for any translation and `vhe` for primaries
+  ([`static/js/VersionBlock/VersionBlock.jsx:65-75`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/static/js/VersionBlock/VersionBlock.jsx#L65-L75)), but matching filters `ven` to left-to-right and `vhe` to right-to-left
+  versions ([`reader/views.py:438-463`](https://github.com/Sefaria/Sefaria-Project/blob/121350b2659ef01e08ef618cf7bbefd54f8799ed/reader/views.py#L438-L463)), so a right-to-left translation or a left-to-right source is stripped on reload.
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Version choice stays behind `src/lib/versions` and `src/lib/text` (paths under `reader-next/`): screens see `VersionMeta` and a
+  version selection, never how the backend stores editions, so editions stored apart from text (as in [Rethinking Sefaria's text data model](https://github.com/YishaiGlasner/textual-systems-notes/blob/main/papers/rethinking-sefarias-text-data-model.md)) change only those
+  modules. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792041146749969?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- Forward compatibility with that model: [Cross-cutting → Assessment: a new backend text model](../CROSS_CUTTING.md#assessment-a-new-backend-text-model).
+  Today a segment carries one primary and one translation string, and a version is chosen per side as
+  `languageFamilyName|versionTitle` (`reader-next/src/lib/text/model.ts:100-101`, `reader-next/src/lib/versions/preferences.ts:64`).
+
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Version defaults belong in the effective-preferences object: `resolvePanelVersions(prefs, text, url)` returns the source and
+  translation to request, where each came from (`url`, `profile` / `cookie` corpus preference, translation language, `text`
+  default), and a `fallback` reason when the preferred one is missing. It is the current `resolveTranslation`
+  (`reader-next/src/lib/versions/preferences.ts:86-103`) plus the source side. Stores stay `version_preferences_by_corpus`
+  (profile field and cookie) and `translation_language_preference`. — *proposed* (Claude Tag draft) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629) ·
+  inventory and gaps in [Language & accessibility → Preference defaults](../i18n-a11y/architecture.md#preference-defaults-inventory)
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [URLs & routing](../routing/architecture.md): version parameter correction (RTE-028).
+- [Accounts & sign-in](../accounts/architecture.md): profile storage of preferences.
+- [Language & accessibility](../i18n-a11y/architecture.md): the same cookie / profile split for interface and content language.
+- [Text display & reading settings](../text-display/architecture.md): the proposed settings registry (PR #3822).
+- [Language & accessibility](../i18n-a11y/architecture.md): the effective-preferences object, the stores and the sign-in merge.
+- Analytics parity ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193685517999)): `onClick_version_title`, `onClick_select_version`, Choose Version and Version Download are sent; Set Translation Language Preference and Set Version Preference are not. See [Analytics → Event inventory](../analytics/architecture.md#event-inventory).
 
 ## Risks and open questions
 
-_None yet._
+All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792386183143639).
+
+- Sync version and translation-language preferences to the profile for signed-in readers: read the profile first and POST on
+  each choice, as legacy does? Legacy reads a cookie for a signed-in reader with empty profile preferences but never saves it
+  back.
+- Unknown or title-only `ven` / `vhe` (RTE-028): redirect to corrected values as legacy does (without its direction filter), or
+  fall back in the loader and use the API's warnings?
+- Version and translation-language preferences as entries in the proposed settings registry ("Settings → display model
+  (proposal)" in Text display, PR #3822), with a per-corpus scope?
+
+Read from the code; *ideas* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629). Full list: [i18n-a11y Risks](../i18n-a11y/architecture.md#risks-and-open-questions).
+
+- `reader-next` reads version and translation-language preferences from cookies only, and writes neither to the profile
+  (`reader-next/src/lib/versions/prefs-source.ts:10-25`). No JSON GET returns a signed-in reader's `version_preferences_by_corpus`
+  (`sefaria/model/user_profile.py:768-801`).
+- Missing preferred translation or language: falling back to the API's highest-priority translation in another language is by
+  design (`sefaria/model/text_request_adapter.py:102-103`; [Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609)). Open: the reader is not told a fallback
+  happened.
+- A source-version choice is never remembered (`static/js/sefaria/sefaria.js:1115`). Texts without a corpus cannot carry any
+  preference.
+- Should a source-version preference be stored under the existing `{corpus: {he: title}}` key, which the format already allows?
 
 ## Decisions
 

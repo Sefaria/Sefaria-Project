@@ -4,7 +4,7 @@ import { server } from "../../../test/msw/server";
 import { makeQueryClient } from "~/lib/cache/query-client";
 import { resetPersisters } from "~/lib/cache/persisters";
 import { RefIndex } from "~/lib/cache/ref-index";
-import { fetchPassage, loadReaderPassage, passageUrl, prefetchNeighbours } from "./queries";
+import { fetchPassage, loadReaderPassage, MAX_INITIAL_SECTIONS, passageUrl, prefetchNeighbours, textQueryKey } from "./queries";
 
 let requests: string[] = [];
 let fullUrls: string[] = [];
@@ -99,5 +99,32 @@ describe("neighbour preload", () => {
   ])("passageUrl(%s) is byte-for-byte the URL the client requests", async (ref, sel) => {
     await fetchPassage(ref, sel).catch(() => undefined); // the fixture may not exist; only the request matters
     expect(fullUrls).toContain(passageUrl(ref, sel));
+  });
+});
+
+// CODE_REVIEW R-05: a long range used to load every one of its sections at once (Psalms 1-150 → 150 requests in one page render)
+describe("a long range loads only its first sections", () => {
+  it("Genesis 1:1-10:5 loads Genesis 1–4 up front and keeps the whole range's highlight", async () => {
+    const qc = makeQueryClient();
+    const idx = new RefIndex();
+    await loadReaderPassage(qc, idx, "Genesis 1");
+    const g1 = qc.getQueryData(textQueryKey("Genesis 1", {}))!;
+    for (let n = 2; n <= 10; n++) qc.setQueryData(textQueryKey(`Genesis ${n}`, {}), { ...g1, ref: `Genesis ${n}`, sectionRef: `Genesis ${n}` });
+    const r = await loadReaderPassage(qc, idx, "Genesis 1:1-10:5");
+    expect(r.sections).toHaveLength(MAX_INITIAL_SECTIONS);
+    expect(r.sections.map((s) => s.ref)).toEqual(["Genesis 1", "Genesis 2", "Genesis 3", "Genesis 4"]);
+    expect(r.highlight).toEqual({ from: ["1", "1"], to: ["10", "5"] });
+  });
+});
+
+// CODE_REVIEW low: a commentary range across chapters (its sections cannot be enumerated without the API) lost its highlight
+describe("a commentary range across chapters", () => {
+  it("shows the sections the API names and highlights the range", async () => {
+    const qc = makeQueryClient();
+    const idx = new RefIndex();
+    const got = await loadReaderPassage(qc, idx, "Rashi on Genesis 1:31:1-2:2:1");
+    expect(got.canonicalRef).toBe("Rashi on Genesis 1:31:1-2:2:1");
+    expect(got.sections.map((s) => s.ref)).toEqual(["Rashi on Genesis 1:31", "Rashi on Genesis 2:2"]);
+    expect(got.highlight).toEqual({ from: ["1", "31", "1"], to: ["2", "2", "1"] });
   });
 });

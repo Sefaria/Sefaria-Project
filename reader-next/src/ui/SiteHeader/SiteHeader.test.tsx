@@ -54,11 +54,18 @@ describe("SiteHeader", () => {
     await userEvent.type(box, "light{Enter}");
     expect(menu).toHaveAttribute("hidden");
   });
-  it("Hebrew interface: Hebrew labels, right-to-left, and the toggle goes to English", () => {
+  it("Hebrew interface: Hebrew labels, right-to-left, and the phone menu's language row goes to English", () => {
     render(<InterfaceLangProvider lang="hebrew"><SiteHeader next="/" search={STUB_SEARCH} /></InterfaceLangProvider>);
     expect(screen.getAllByRole("banner")[0]).toHaveAttribute("dir", "rtl");
     expect(within(screen.getByRole("navigation", { name: "ניווט ראשי" })).getByRole("link", { name: "מקורות" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Switch to English" })).toHaveAttribute("href", "/interface/english?next=%2F");
+    const mobile = document.getElementById("mobile-nav")!;
+    expect(within(mobile).getByRole("link", { name: "English", hidden: true })).toHaveAttribute("href", "/interface/english?next=%2F");
+  });
+  // @feature GUI-001 Mobile header bar
+  it("phone bar: the menu button and the logo; the right-hand slot is empty until a library page puts its toggle there", () => {
+    render(<SiteHeader next="/" search={STUB_SEARCH} />);
+    expect(screen.getByRole("button", { name: "Menu" })).toHaveAttribute("aria-controls", "mobile-nav");
+    expect(document.getElementById("header-page-action")).toBeEmptyDOMElement();
   });
   // @feature GUI-010 @feature GUI-003 @feature ANL-002
   it("signed out: Sign Up and the account menu's Log in / Sign up are this client's pages, with next and nav_bar", async () => {
@@ -82,6 +89,9 @@ describe("SiteHeader", () => {
     await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
     const menu = screen.getByRole("dialog", { name: "Account menu" });
     expect(menu).toHaveTextContent("Ada Lovelace");
+    // the name row is data-prevent-close: clicking it keeps the menu open
+    await userEvent.click(within(menu).getByText("Ada Lovelace"));
+    expect(screen.getByRole("dialog", { name: "Account menu" })).toBeInTheDocument();
     expect(within(menu).getByRole("link", { name: "Account Settings" })).toHaveAttribute("href", "https://www.sefaria.org/settings/account");
     expect(within(menu).getByRole("link", { name: "Torah Tracker" })).toBeInTheDocument();
     expect(within(menu).getByRole("link", { name: "Log Out" })).toHaveAttribute("href", "https://www.sefaria.org/logout?next=/texts");

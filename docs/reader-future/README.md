@@ -21,6 +21,9 @@ which this specification is organised by.
   - The sections at the top belong to the channel: summary, target, changes from today, open questions, decisions.
   - The **BASELINE** block at the bottom is generated from the atlas by `tools/seed.py`: what sefaria.org does today, where each
     client implements it, and the gaps. Re-running the script refreshes only that block.
+- **`TARGET_ARCHITECTURE.md`**: how every decided, proposed and future feature fits into one architecture; subsystems, per-area needs,
+  future-functionality register, work plan and the state of the work.
+- **`CODE_REVIEW_2026-10-28.md`**: adversarial review of the new client: decisions critiqued, directions, 36+ ranked findings, fix batches.
 - **`DECISIONS.md`**: every decision, dated, with its area, who decided, and a link to the Slack message.
 - **`CROSS_CUTTING.md`**: what spans many areas (design system, performance, accessibility, data layer, rollout) or does not fit one.
 - **`SETUP.md`**: how Claude Tag is set up for the channel (admin steps, channel instructions, memory, routines).

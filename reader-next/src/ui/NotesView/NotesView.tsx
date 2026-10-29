@@ -80,7 +80,7 @@ export function NotesView({ notes, onSave, onDelete, allNotesHref }: NotesViewPr
   };
 
   return (
-    <div className={styles.view} lang={he ? "he" : "en"}>
+    <div className={styles.view} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <div className={styles.addNoteBox}>
         <textarea
           ref={box}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFixture } from "../../../test/msw/fixtures";
 import { normaliseTexts, type RawTextsResponse } from "~/lib/text/model";
-import { parashahHeader, showsParashahHeaders } from "./parashah";
+import { parashahHeader, showsParashahHeaders, startsParashahOrAliyah } from "./parashah";
 
 const load = (slug: string) => normaliseTexts(readFixture<RawTextsResponse>(`${slug}/v3-texts.json`));
 
@@ -61,5 +61,24 @@ describe("commentary and other alt structures", () => {
     const p = load("berakhot-2a");
     expect(p.segments[0]!.alt?.en?.[0]).toMatch(/Chapter 1/);
     expect(parashahHeader(p, p.segments[0]!, true)).toBeNull();
+  });
+});
+
+// @feature TXT-002 @feature BOK-018
+describe("ranges that keep their highlight", () => {
+  it("a Torah portion or aliyah starts at a marked verse; a verse inside one does not", () => {
+    const p = load("genesis-1");
+    expect(startsParashahOrAliyah(p, p.segments[0])).toBe(true);
+    expect(startsParashahOrAliyah(p, p.segments[2])).toBe(false);
+    expect(startsParashahOrAliyah(p, undefined)).toBe(false);
+  });
+
+  it("Onkelos counts; Rashi, Psalms days and Talmud chapters do not", () => {
+    const o = load("onkelos-genesis-1");
+    expect(startsParashahOrAliyah(o, o.segments[0])).toBe(true);
+    for (const slug of ["rashi-on-genesis-1", "psalms-23", "berakhot-2a"]) {
+      const p = load(slug);
+      for (const s of p.segments) expect(startsParashahOrAliyah(p, s)).toBe(false);
+    }
   });
 });

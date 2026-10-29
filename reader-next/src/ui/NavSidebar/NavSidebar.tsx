@@ -3,7 +3,6 @@ import { markdownToHtml } from "~/lib/html/markdown";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { dafYomi, haftarot, parashah, type CalendarItem } from "~/lib/library/calendars";
 import { DONATE, HELP, LIBRARY } from "~/lib/shell/links";
-import { Icon, type IconName } from "../Icon/Icon";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import styles from "./NavSidebar.module.css";
 
@@ -24,9 +23,9 @@ import styles from "./NavSidebar.module.css";
  * @feature LIB-040 Sidebar module: Daf Yomi
  * @feature LIB-041 Sidebar module: Visualizations links
  */
-export function SidebarModule({ title, children, upper }: { title?: ReactNode; children: ReactNode; upper?: boolean }) {
+export function SidebarModule({ title, children, upper, wideOnly }: { title?: ReactNode; children: ReactNode; upper?: boolean; wideOnly?: boolean }) {
   return (
-    <section className={styles.module}>
+    <section className={wideOnly ? `${styles.module} ${styles.wideOnly}` : styles.module}>
       {title ? <h2 className={`${styles.title} ${upper ? styles.upper : ""}`}>{title}</h2> : null}
       {children}
     </section>
@@ -34,6 +33,17 @@ export function SidebarModule({ title, children, upper }: { title?: ReactNode; c
 }
 
 const lib = (path: string) => `${LIBRARY}${path}`;
+
+/**
+ * The old Promo module's place: a SidebarModule the CMS (Strapi) fills with a promotion, and otherwise empty. Empty, its 34px margin
+ * folds into its neighbours' — except when it comes first, as on a phone's home and most category pages, where it pushes the first
+ * title 34px down. Kept so the spacing is the old one; the promotions themselves are not built.
+ *
+ * @feature LIB-026 Sidebar module: Promotions slot
+ */
+export function PromoSlot() {
+  return <div className={styles.module} aria-hidden="true" />;
+}
 
 /** The About text and its Learn More link, without the module's title or button (the phone's home page shows it inline, LIB-004). */
 export function AboutBlurb({ className }: { className?: string }) {
@@ -48,19 +58,20 @@ export function AboutBlurb({ className }: { className?: string }) {
   );
 }
 
-export function AboutSefaria() {
+/** `wideOnly`: the home page, whose phone layout shows the blurb above the categories instead (the old TextsPage, multiPanel only). */
+export function AboutSefaria({ wideOnly }: { wideOnly?: boolean } = {}) {
   const he = useInterfaceLang() === "hebrew";
   return (
-    <SidebarModule title={<InterfaceText en="A Living Library of Torah" he="ספריה יהודית דינמית" />}>
+    <SidebarModule wideOnly={wideOnly} title={<InterfaceText en="A Living Library of Torah" he="ספריה יהודית דינמית" />}>
       <p className={styles.body}>
         <InterfaceText
           en="Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah."
           he="ספריא היא ביתם של 3,000 שנות ספרות יהודית. אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות, ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה."
-        />{" "}
+        />
         <a className={styles.inText} href={lib("/about")}><InterfaceText en="Learn More ›" he="לקריאה נוספת ›" /></a>
       </p>
       <a className={styles.button} href={he ? "https://youtu.be/rCADxtqPqnw" : "https://help.sefaria.org/hc/en-us/articles/21471911125020-Video-Guide-How-to-Get-Started-Navigating-the-Library"} target="_blank" rel="noopener noreferrer">
-        <Icon name="play" />
+        <img src="/icons/vector.svg" alt={he ? "הפעלת סרטון" : "Play video"} />
         <InterfaceText en="Getting Started (2 min)" he="הכירו את ספריא (2 דק')" />
       </a>
     </SidebarModule>
@@ -73,16 +84,26 @@ export function Translations() {
     <SidebarModule title={<InterfaceText en="Translations" he="תרגומים" />}>
       <p className={styles.body}><InterfaceText en="Access key works from the library in several languages." he="יצירות נבחרות מהספרייה בתרגומים לשפות שונות." /></p>
       <div className={styles.langs}>
-        {TRANSLATION_LANGUAGES.map(([code, name]) => <a key={code} href={lib(`/translations/${code}`)}>{name}</a>)}
+        <ul>
+          {TRANSLATION_LANGUAGES.map(([code, name]) => <li key={code}><a href={lib(`/translations/${code}`)}>{name}</a></li>)}
+        </ul>
       </div>
     </SidebarModule>
   );
 }
 
 const RefLink = ({ href, children }: { href: string; children: ReactNode }) => (
+  <div className={`${styles.link} ${styles.ref}`}>
+    <img className={styles.icon} src="/icons/book.svg" alt="" />
+    <a href={`/${href}`}>{children}</a>
+  </div>
+);
+
+/** The old IconLink: an 18px icon from the old site's set and a grey link. */
+const IconLink = ({ icon, href, children, newTab }: { icon: string; href: string; children: ReactNode; newTab?: boolean }) => (
   <div className={styles.link}>
-    <Icon name="book" />
-    <a className={styles.ref} href={`/${href}`}>{children}</a>
+    <img className={styles.icon} src={`/icons/${icon}`} alt="" />
+    <a href={href} {...(newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}>{children}</a>
   </div>
 );
 
@@ -148,11 +169,11 @@ export function DafYomi({ items }: { items: readonly CalendarItem[] | undefined 
   );
 }
 
-const ICON_LINKS: { en: string; he: string; path: string; icon: IconName; external?: string }[] = [
-  { en: "Mobile Apps", he: "יישומון לטלפון הנייד", path: "/mobile", icon: "info" },
-  { en: "Teach with Sefaria", he: "מלמדים עם ספריא", path: "/educators", icon: "school" },
-  { en: "Visualizations", he: "תרשימים גרפיים", path: "/visualizations", icon: "hash" },
-  { en: "Torah Tab", he: "תורה טאב (תוסף)", path: "/torah-tab", icon: "file-plus" },
+const ICON_LINKS: { en: string; he: string; path: string; icon: string }[] = [
+  { en: "Mobile Apps", he: "יישומון לטלפון הנייד", path: "/mobile", icon: "mobile.svg" },
+  { en: "Teach with Sefaria", he: "מלמדים עם ספריא", path: "/educators", icon: "educators.svg" },
+  { en: "Visualizations", he: "תרשימים גרפיים", path: "/visualizations", icon: "visualizations.svg" },
+  { en: "Torah Tab", he: "תורה טאב (תוסף)", path: "/torah-tab", icon: "torah-tab.svg" },
 ];
 export function Resources() {
   const lang = useInterfaceLang();
@@ -160,9 +181,9 @@ export function Resources() {
     <SidebarModule upper title={<InterfaceText en="Resources" he="משאבים" />}>
       <div className={styles.links}>
         {ICON_LINKS.map((l) => (
-          <a key={l.path} className={styles.link} href={lib(l.path)}><Icon name={l.icon} /><InterfaceText en={l.en} he={l.he} /></a>
+          <IconLink key={l.path} icon={l.icon} href={lib(l.path)}><InterfaceText en={l.en} he={l.he} /></IconLink>
         ))}
-        <a className={styles.link} href={HELP[lang]} target="_blank" rel="noopener noreferrer"><Icon name="help" /><InterfaceText en="Help" he="עזרה" /></a>
+        <IconLink icon="help.svg" href={HELP[lang]} newTab><InterfaceText en="Help" he="עזרה" /></IconLink>
       </div>
     </SidebarModule>
   );
@@ -172,7 +193,7 @@ export function SupportSefaria() {
   return (
     <SidebarModule title={<InterfaceText en="Support Sefaria" he="תמכו בספריא" />}>
       <p className={styles.body}><InterfaceText en="Sefaria is an open source, nonprofit project. Support us by making a tax-deductible donation." he="ספריא היא מאגר פתוח וחינמי. תמכו בנו בעזרת תרומה." /></p>
-      <a className={styles.button} href={`${DONATE}?c_src=NavSidebar-SupportSefaria`} target="_blank" rel="noopener noreferrer"><InterfaceText en="Make a Donation" he="לתרומה" /></a>
+      <a className={`${styles.button} ${styles.auto}`} href={`${DONATE}?c_src=NavSidebar-SupportSefaria`} target="_blank" rel="noopener noreferrer"><img src="/icons/heart.png" alt="" /><InterfaceText en="Make a Donation" he="לתרומה" /></a>
     </SidebarModule>
   );
 }
@@ -196,19 +217,20 @@ export function Visualizations({ categories }: { categories: readonly string[] }
     <SidebarModule title={<InterfaceText en="Visualizations" he="תרשימים גרפיים" />}>
       <p className={styles.body}><InterfaceText en="Explore interconnections among texts with our interactive visualizations." he="העזרו בתרשימים הגרפיים כדי לגלות קשרים מעניינים בין מקורות." /></p>
       <div className={styles.links}>
-        {links.map((v) => <a key={v.url} className={styles.link} href={lib(v.url)}><Icon name="hash" /><InterfaceText en={v.en} he={v.he} /></a>)}
+        {links.map((v) => <IconLink key={v.url} icon="visualization.svg" href={lib(v.url)}><InterfaceText en={v.en} he={v.he} /></IconLink>)}
       </div>
       <a className={styles.all} href={lib("/visualizations")}><InterfaceText en="All Visualizations ›" he="תרשימים גרפיים נוספים ›" /></a>
     </SidebarModule>
   );
 }
 
-export function AboutTextCategory({ category, heCategory, enDesc, heDesc }: { category: string; heCategory: string; enDesc?: string; heDesc?: string }) {
+/** `wideOnly`: a category page, whose phone layout shows the description under the title instead (the old aboutModule, multiPanel only). */
+export function AboutTextCategory({ category, heCategory, enDesc, heDesc, wideOnly }: { category: string; heCategory: string; enDesc?: string; heDesc?: string; wideOnly?: boolean }) {
   const he = useInterfaceLang() === "hebrew";
   const desc = he ? heDesc : enDesc;
   if (!desc) return null;
   return (
-    <SidebarModule title={<InterfaceText en={`About ${category}`} he={`אודות ${heCategory}`} />}>
+    <SidebarModule wideOnly={wideOnly} title={<InterfaceText en={`About ${category}`} he={`אודות ${heCategory}`} />}>
       <div className={styles.body} lang={he ? "he" : "en"} dangerouslySetInnerHTML={{ __html: markdownToHtml(desc) }} />
     </SidebarModule>
   );
@@ -233,10 +255,13 @@ export function SidebarFooter() {
   const lang = useInterfaceLang();
   const url = (u: string) => (u === "help" ? HELP[lang] : u === "donate" ? (lang === "hebrew" ? "https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=Footer" : `${DONATE}?c_src=Footer`) : u);
   return (
-    <nav className={styles.footer} aria-label={lang === "hebrew" ? "קישורי תחתית" : "Footer links"}>
-      {FOOTER.map((f) => (
-        <a key={f.en} href={url(f.url)}><InterfaceText en={f.en} he={f.he} /></a>
-      ))}
+    <nav className={`${styles.module} ${styles.footer}`} aria-label={lang === "hebrew" ? "קישורי תחתית" : "Footer links"}>
+      <div className={styles.title} aria-hidden="true" />
+      <div className={styles.footerLinks}>
+        {FOOTER.map((f) => (
+          <a key={f.en} href={url(f.url)}><InterfaceText en={f.en} he={f.he} /></a>
+        ))}
+      </div>
     </nav>
   );
 }

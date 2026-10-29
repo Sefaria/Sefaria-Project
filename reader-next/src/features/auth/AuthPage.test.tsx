@@ -93,6 +93,24 @@ describe("login", () => {
     expect(sent[0]).toEqual({ url: "/api/auth/login", body: JSON.stringify({ email: "a@example.org", password: "pw" }), csrf: "tok123", type: "application/json" });
   });
 
+  // CODE_REVIEW R-08: master tracks email login in the auth funnel (it used to send nothing)
+  it("funnel: login is a flow with intent login; success carries outcome existing_user_login, a failure its code", async () => {
+    answer("/api/auth/login", 401, { error: "auth.invalid_credentials" });
+    const user = setup({ initialPath: "/login", authSource: "nav_bar" });
+    await toEmail(user);
+    await user.type(screen.getByLabelText("Email Address"), "a@example.org");
+    await user.type(screen.getByLabelText("Password"), "wrong");
+    await user.click(screen.getByRole("button", { name: "Log in" }));
+    await screen.findByRole("alert");
+    expect(events[0]).toEqual(["event", "auth_flow_started", expect.objectContaining({ flow_intent: "login", source: "nav_bar" })]);
+    expect(events.find((e) => e[1] === "auth_process_ended")![2]).toMatchObject({ status: "failure", error: "invalid_credentials", outcome: null });
+    answer("/api/auth/login", 200, {});
+    await user.click(screen.getByRole("button", { name: "Log in" }));
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+    const ended = events.filter((e) => e[1] === "auth_process_ended");
+    expect(ended.at(-1)![2]).toMatchObject({ status: "success", outcome: "existing_user_login" });
+  });
+
   it("wrong credentials: the inline error, no navigation", async () => {
     answer("/api/auth/login", 401, { error: "auth.invalid_credentials" });
     const user = setup();
@@ -176,7 +194,7 @@ describe("register", () => {
       email: "new@example.org", password1: "Xk7mQ9zLp2!", first_name: "QA", last_name: "Test", "g-recaptcha-response": "", next: "/Genesis.1", noredirect: "1",
     });
     const names = events.map((e) => e[1]);
-    expect(names).toEqual(["sign_up_flow_started", "sign_up_method_chosen", "sign_up_process_started", "sign_up_process_ended"]);
+    expect(names).toEqual(["auth_flow_started", "auth_method_chosen", "auth_process_started", "auth_process_ended"]);
     expect(events[0]![2]).toMatchObject({ source: "nav_bar", project: "site_registration", transport_type: "beacon" });
     expect(events[1]![2]).toMatchObject({ method: "email" });
     expect(events[3]![2]).toMatchObject({ status: "success", error: null });
@@ -193,7 +211,7 @@ describe("register", () => {
     expect(screen.getByText("Required field")).toBeInTheDocument();
     await user.click(within(banner.closest("[role=alert]") as HTMLElement).getByRole("link", { name: "Log In" }));
     expect(onNavigate).toHaveBeenCalledWith("/login", undefined);
-    const ended = events.find((e) => e[1] === "sign_up_process_ended")![2] as { status: string; error: string };
+    const ended = events.find((e) => e[1] === "auth_process_ended")![2] as { status: string; error: string };
     expect(ended.status).toBe("failure");
     expect(ended.error).toContain("email: email_exists");
   });
@@ -220,7 +238,7 @@ describe("register", () => {
     await toForm(user);
     await user.click(screen.getByRole("button", { name: "Create Account" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Something went wrong. Try again.");
-    expect(events.find((e) => e[1] === "sign_up_process_ended")![2]).toMatchObject({ status: "failure", error: "network_error" });
+    expect(events.find((e) => e[1] === "auth_process_ended")![2]).toMatchObject({ status: "failure", error: "network_error" });
   });
 });
 

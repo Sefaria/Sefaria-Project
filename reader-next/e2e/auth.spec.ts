@@ -72,8 +72,10 @@ test.describe("flows", () => {
     await expect(page).toHaveURL(/\/login\?next=%2FGenesis\.1$/);
     await page.getByRole("banner").getByRole("link", { name: "Sign Up" }).click();
     await expect(page).toHaveURL(/\/register\?next=%2FGenesis\.1$/);
-    const started = (await gtagEvents(page)).filter((e) => e[1] === "sign_up_flow_started");
-    expect(started.map((e) => e[2].source)).toEqual(["login_crosslink", "nav_bar"]);
+    const started = (await gtagEvents(page)).filter((e) => e[1] === "auth_flow_started");
+    // master tracks login as a flow too (CODE_REVIEW R-08): every arrival starts one, with its intent
+    expect(started.map((e) => e[2].flow_intent)).toEqual(["login", "registration", "login", "registration"]);
+    expect(started.filter((e) => e[2].flow_intent === "registration").map((e) => e[2].source)).toEqual(["login_crosslink", "nav_bar"]);
   });
 
   test("log in: wrong password shows the error; right password loads next", async ({ page }) => {
@@ -166,12 +168,14 @@ test.describe("Google and Apple (SDKs stubbed)", () => {
     await recordGtag(page);
     await open(page, "/register");
     await expect(page.locator("#google-signin-button [data-provider-sdk-overlay]")).toHaveCount(1);
+    // the overlay is there before the SDK script arrives: wait for the SDK, not for our markup (raced under a full parallel run)
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __gsi?: { rendered: number } }).__gsi?.rendered ?? 0)).toBeGreaterThan(0);
     const g = await page.evaluate(() => (window as unknown as { __gsi: { initialized: Record<string, unknown>[]; lastButton: Record<string, unknown> } }).__gsi);
     expect(g.initialized[0]).toMatchObject({ client_id: "test-google-client.apps.googleusercontent.com", ux_mode: "popup", use_fedcm_for_button: true });
     expect(g.lastButton).toMatchObject({ text: "continue_with", locale: "en" });
     await page.getByRole("button", { name: "Continue with Apple" }).click();
     expect(await page.evaluate(() => (window as unknown as { __apple: { signedIn?: boolean } }).__apple.signedIn)).toBe(true);
-    const chosen = (await gtagEvents(page)).find((e) => e[1] === "sign_up_method_chosen");
+    const chosen = (await gtagEvents(page)).find((e) => e[1] === "auth_method_chosen");
     expect(chosen?.[2]).toMatchObject({ method: "apple" });
   });
 

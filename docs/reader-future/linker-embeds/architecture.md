@@ -4,8 +4,8 @@ title: Linker & embeds
 domain: Platform
 document: architecture
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-21
 ---
 # Linker & embeds — architecture
 
@@ -19,19 +19,36 @@ _Not discussed yet._
 
 ## Legacy approach vs new approach
 
-_Not discussed yet: how `master` does it, how `reader-next` does it, and what differs (data, state, rendering, routing, caching)._
+- Legacy (`master`): the linker is a script other sites load (`static/js/linker.v3/`, see the baseline below).
+- New (`reader-next`): no linker or embed code; all 14 features of this area are not started (baseline below).
+- Separate: the [Sefaria frontend toolkit](https://github.com/Sefaria/sefaria-frontend-toolkit/tree/03443b78014f9cda9a2fead89c624d0118496535)
+  (Sefaria-owned, MIT, npm `0.1.0-alpha.0`) ships five Lit custom elements in shadow DOM, a typed API client and a text
+  sanitiser, plus a self-contained browser module for pages without a build step
+  ([`docs/specs/distribution.md:39`](https://github.com/Sefaria/sefaria-frontend-toolkit/blob/03443b78014f9cda9a2fead89c624d0118496535/docs/specs/distribution.md#L39)). Host pages theme it with 18 `--sefaria-*` CSS properties
+  ([`packages/web-components/src/tokens.ts:4-53`](https://github.com/Sefaria/sefaria-frontend-toolkit/blob/03443b78014f9cda9a2fead89c624d0118496535/packages/web-components/src/tokens.ts#L4-L53)). Its own live example pages make
+  no Sefaria request until the reader acts (a click, a citation) ([`docs/specs/integrations.md:19`](https://github.com/Sefaria/sefaria-frontend-toolkit/blob/03443b78014f9cda9a2fead89c624d0118496535/docs/specs/integrations.md#L19)).
 
 ## Target architecture
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Embeds on other sites are built on the toolkit's elements, not on the reader's React components; the reader's components
+  stay React and server-rendered. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769)
+- The reader and the toolkit share one text pipeline (`text-transform`, which `reader-next` already vendors) and one token
+  vocabulary, so an embedded passage matches sefaria.org; see
+  [Cross-cutting → Design system](../CROSS_CUTTING.md#design-system-and-components). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792570626028769)
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [Cross-cutting → Design system](../CROSS_CUTTING.md#design-system-and-components): shared tokens and the vendored toolkit code.
+- [Text display](../text-display/architecture.md): the text clean-up that both the reader and embeds use.
+- [Public API](../api-data/architecture.md): embeds call the public API directly from other sites.
 
 ## Risks and open questions
 
-_None yet._
+- The toolkit is an alpha (`0.1.x`) with one maintainer; its names and APIs may change ([`README.md:9`](https://github.com/Sefaria/sefaria-frontend-toolkit/blob/03443b78014f9cda9a2fead89c624d0118496535/README.md#L9)),
+  and its documentation pages are marked as not yet reviewed by a person
+  ([`docs/use-components/use-with-a-framework.md:4`](https://github.com/Sefaria/sefaria-frontend-toolkit/blob/03443b78014f9cda9a2fead89c624d0118496535/docs/use-components/use-with-a-framework.md#L4)).
+- The toolkit does not render on the server by design ([`docs/design.md:15`](https://github.com/Sefaria/sefaria-frontend-toolkit/blob/03443b78014f9cda9a2fead89c624d0118496535/docs/design.md#L15)): embeds show nothing
+  until JavaScript runs, and search engines on the host page do not see the text.
 
 ## Decisions
 

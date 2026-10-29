@@ -8,7 +8,7 @@
  * @feature TXD-003 TextRange load, redirect and prefetch
  */
 import { queryOptions, type QueryClient } from "@tanstack/react-query";
-import { text } from "@vendor/sefaria-toolkit/client/index";
+import { text } from "@vendor/sefaria-toolkit/client/runtime";
 import { getSefariaClient, unwrap } from "~/lib/api/client";
 import { PUBLIC_CONFIG } from "~/lib/config";
 import { withPolicy } from "~/lib/cache/query-options";
@@ -112,8 +112,14 @@ export async function loadReaderPassage(
     // A super-section request comes back as its first section; a misspelt title comes back canonical.
     canonicalRef = passage.ref;
     await refIndex.setAlias(requestedRef, canonicalRef);
-    plan = planDisplay(canonicalRef, metaFromPassage(passage));
-    if (plan.kind === "resolve") {
+    const meta = metaFromPassage(passage);
+    plan = planDisplay(canonicalRef, meta);
+    const asked = parseHumanRef(canonicalRef);
+    if (plan.kind === "resolve" && asked.title === meta.book && asked.sections.length === meta.textDepth) {
+      // A segment range whose sections cannot be enumerated here (a commentary range across chapters: how many verses chapter 1 has is
+      // the API's to say): show the sections the API names, and highlight the range by address (CODE_REVIEW low: it lost its highlight)
+      plan = { kind: "sections", sectionRefs: passage.sectionRefs, highlight: { from: asked.sections, to: asked.toSections }, canonicalRef };
+    } else if (plan.kind === "resolve") {
       // A ref above section level (a book, a commentary chapter) opens at its first available section,
       // like the old server (reader/views.py first_available_section_ref). Further sections load as
       // the reader scrolls. The API's own section list is the fallback for shapes we can't enumerate.
@@ -129,10 +135,15 @@ export async function loadReaderPassage(
     }
   }
 
-  const sections = await Promise.all(plan.sectionRefs.map((r) => qc.ensureQueryData(textQueryOptions(r, sel))));
+  // A long range (Psalms 1-150, Shabbat 2a-157b: hundreds of sections) loads only its first sections; the column loads the rest as
+  // the reader scrolls, and the range's highlight is by address, so it carries on (CODE_REVIEW R-05).
+  const sections = await Promise.all(plan.sectionRefs.slice(0, MAX_INITIAL_SECTIONS).map((r) => qc.ensureQueryData(textQueryOptions(r, sel))));
   for (const s of sections) await refIndex.setMeta(metaFromPassage(s));
   return { canonicalRef, sections, highlight: plan.highlight };
 }
+
+/** The most sections a page loads up front for one panel (a range's first sections). */
+export const MAX_INITIAL_SECTIONS = 4;
 
 /** Warm the cache for neighbouring sections so paging is instant. */
 export function prefetchNeighbours(qc: QueryClient, passage: TextPassage, sel: VersionSelection = {}): void {

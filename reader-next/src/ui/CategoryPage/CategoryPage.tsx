@@ -22,6 +22,8 @@ export interface CategoryPageProps {
   hebrewContent?: boolean;
   sidebar?: ReactNode;
   footer?: ReactNode;
+  /** The category's long description: a phone shows it under the title (a wide screen has it in the sidebar's About module). */
+  description?: Bilingual;
 }
 
 const catHref = (path: readonly string[]) => `/texts/${path.map(encodeURIComponent).join("/")}`;
@@ -41,17 +43,17 @@ const pick = (b: Bilingual, he: boolean) => (he ? b.he || b.en : b.en);
  * @feature LIB-015 Short title rendering in category lists
  * @feature LIB-016 Hebrew ordering of category contents
  */
-export function CategoryPage({ cats, contents, he, hebrewContent, sidebar, footer }: CategoryPageProps) {
+export function CategoryPage({ cats, contents, he, hebrewContent, sidebar, footer, description }: CategoryPageProps) {
   return (
     <NavPage colorCategory={cats[0]} sidebar={sidebar} footer={footer}>
-      <ContentLanguage>
-        <CategoryMain cats={cats} contents={contents} he={he} hebrewContent={hebrewContent} />
+      <ContentLanguage phoneHeader>
+        <CategoryMain cats={cats} contents={contents} he={he} hebrewContent={hebrewContent} description={description} />
       </ContentLanguage>
     </NavPage>
   );
 }
 
-function CategoryMain({ cats, contents, he, hebrewContent }: Pick<CategoryPageProps, "cats" | "contents" | "he" | "hebrewContent">) {
+function CategoryMain({ cats, contents, he, hebrewContent, description }: Pick<CategoryPageProps, "cats" | "contents" | "he" | "hebrewContent" | "description">) {
   const hebrewUi = useInterfaceLang() === "hebrew";
   const category = cats.at(-1)!;
   const title = pageTitle(cats, category, he);
@@ -71,6 +73,8 @@ function CategoryMain({ cats, contents, he, hebrewContent }: Pick<CategoryPagePr
           </div>
         ) : null}
       </div>
+      {/* plain text, as the old ContentText text={…}: its Markdown is not rendered, so *word* shows its asterisks (as sefaria.org does) */}
+      {description && pick(description, hebrewUi) ? <div className={styles.topDesc} lang={lang(hebrewUi)}>{pick(description, hebrewUi)}</div> : null}
       {edition ? <div className={styles.attribution}><Link href={edition.href}><InterfaceText en={edition.en} he={edition.he} /></Link></div> : null}
       <Contents contents={contents} cats={cats} category={category} nest={category === "Commentary" ? 1 : 0} he={he} hebrewContent={!!hebrewContent || hebrewUi} hebrewUi={hebrewUi} />
     </>
@@ -86,12 +90,13 @@ function Block({ href, title, desc, line, hebrewUi }: { href: string; title: Bil
   );
 }
 
-function Contents({ contents, cats, category, nest, he, hebrewContent, hebrewUi }: { contents: readonly TocNode[]; cats: readonly string[]; category: string; nest: number; he: (c: string) => string; hebrewContent: boolean; hebrewUi: boolean }) {
+function Contents({ contents, cats, category, nest, he, hebrewContent, hebrewUi, inSection }: { contents: readonly TocNode[]; cats: readonly string[]; category: string; nest: number; he: (c: string) => string; hebrewContent: boolean; hebrewUi: boolean; inSection?: boolean }) {
   const items = hebrewContent ? hebrewContentSort(contents) : contents;
   const out: ReactNode[] = [];
   let run: ReactNode[] = [];
   const flush = () => {
-    if (run.length) out.push(<div key={`run${out.length}`} className={styles.grid}>{run}</div>);
+    // outside a section the old .gridBoxItem kept its 5px padding (the zero-padding rule was for .category's only)
+    if (run.length) out.push(<div key={`run${out.length}`} className={styles.grid} data-loose={inSection ? undefined : ""}>{run}</div>);
     run = [];
   };
   const textBlock = (b: TocBook, k: string) => {
@@ -119,7 +124,7 @@ function Contents({ contents, cats, category, nest, he, hebrewContent, hebrewUi 
               {d.inline ? <span className={styles.inlineDesc}>{d.inline}</span> : null}
             </h2>
             {d.long ? <p className={styles.longDesc}>{d.long}</p> : null}
-            <Contents contents={item.contents ?? []} cats={newCats} category={item.category} nest={nest + 1} he={he} hebrewContent={hebrewContent} hebrewUi={hebrewUi} />
+            <Contents contents={item.contents ?? []} cats={newCats} category={item.category} nest={nest + 1} he={he} hebrewContent={hebrewContent} hebrewUi={hebrewUi} inSection />
           </section>,
         );
       }

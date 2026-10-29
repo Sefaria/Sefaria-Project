@@ -89,3 +89,25 @@ export const SSO_CONFIG = {
 
 /** The inline script that hands the public config to the browser. */
 export const configScript = () => `window.__SEFARIA_CONFIG__=${JSON.stringify(PUBLIC_CONFIG).replace(/</g, "\\u003c")};`;
+
+/**
+ * Problems with the server's configuration, checked once at start (CODE_REVIEW R-35): the server must reach the API at an absolute
+ * http(s) origin — an empty SEFARIA_API_ORIGIN with a same-origin PUBLIC_API_ORIGIN ("") gave relative URLs on the server, which
+ * fail on every request. Pure, so it can be tested; src/start.ts decides what to do with the answer.
+ */
+export function serverConfigProblems(e: Record<string, string | undefined>): string[] {
+  const problems: string[] = [];
+  const absolute = (v: string) => /^https?:\/\/[^/]+/.test(v);
+  const apiForServer = e.SEFARIA_API_ORIGIN ?? e.PUBLIC_API_ORIGIN ?? DEFAULT_ORIGIN;
+  if (!absolute(apiForServer)) problems.push(`the server has no absolute API origin (SEFARIA_API_ORIGIN=${JSON.stringify(e.SEFARIA_API_ORIGIN)}, PUBLIC_API_ORIGIN=${JSON.stringify(e.PUBLIC_API_ORIGIN)})`);
+  for (const k of ["PUBLIC_API_ORIGIN", "PUBLIC_SITE_ORIGIN", "PUBLIC_VOICES_ORIGIN"] as const) {
+    const v = e[k];
+    if (v !== undefined && v !== "" && !absolute(v)) problems.push(`${k} must be "" (this site) or an absolute http(s) origin, not ${JSON.stringify(v)}`);
+  }
+  if (e.SEFARIA_API_HOST !== undefined && !e.SEFARIA_API_ORIGIN) problems.push("SEFARIA_API_HOST is set but SEFARIA_API_ORIGIN is not: the Host rewrite would never apply");
+  for (const k of ["SEFARIA_API_TIMEOUT_MS", "SEFARIA_PASS_THROUGH_TIMEOUT_MS"] as const) {
+    const v = e[k];
+    if (v !== undefined && !(Number(v) > 0)) problems.push(`${k} must be a positive number of milliseconds, not ${JSON.stringify(v)}`);
+  }
+  return problems;
+}

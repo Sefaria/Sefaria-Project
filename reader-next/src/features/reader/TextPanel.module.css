@@ -26,3 +26,7 @@
   .notPhone { display: none; }
   .onlyPhone { display: contents; }
 }
+
+/* The "Aa" menu card, as the old .texts-properties-menu (VERIFIED on sefaria.org 1280px, 2026-10-29): 256px inside a 1px #ededec
+   border, radius 5, a soft #ededec shadow below, hung from the bottom of the 56px button, flush with its end */
+.displayMenu { position: absolute; top: 100%; inset-inline-end: 0; z-index: var(--sefaria-z-overlay); width: 258px; box-sizing: border-box; background: var(--sefaria-color-surface); border: 1px solid var(--sefaria-color-border-light); border-radius: 5px; box-shadow: var(--sefaria-shadow-menu); color: var(--sefaria-color-text-strong); }

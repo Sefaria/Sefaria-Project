@@ -7,6 +7,8 @@ import { tocQueryOptions } from "~/lib/catalog/toc";
 import { categoryLabel } from "~/lib/connections/terms";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { lastPlace } from "~/lib/reader/last-place";
+import { encodeVtitle } from "~/lib/reader/url-state";
+import { useViewer } from "~/features/auth/viewer";
 import { refToUrl } from "~/lib/ref/url";
 import { tocStructures, type TocIndexRecord } from "~/lib/toc/model";
 import { bookVersionsQueryOptions } from "~/lib/versions/book-versions";
@@ -37,9 +39,10 @@ export function BookRoute({ title }: { title: string }) {
   const catalog = useQuery(tocQueryOptions()).data;
   // "Continue Reading" is known only in the browser, after mount: the server renders "Start Reading"
   const [resume, setResume] = useState<string>();
-  useEffect(() => setResume(lastPlace(title)), [title]);
+  const viewerId = useViewer()?.id ?? null;
+  useEffect(() => setResume(lastPlace(title, viewerId)), [title, viewerId]);
   const structures = useMemo(() => (details?.schema ? tocStructures({ ...(details as unknown as TocIndexRecord), title: details.title }) : []), [details]);
-  const dict = useDictionarySearch({ lexiconName: details?.lexiconName, title: details?.title, open: (ref) => void navigate({ to: "/$", params: { _splat: refToUrl(ref) } }) });
+  const dict = useDictionarySearch({ lexiconName: details?.lexiconName, title: details?.title, open: (ref) => void navigate({ to: `/${refToUrl(ref)}` as never }) });
   if (!details) return <LoadingState />;
 
   const first = details.firstSectionRef ?? details.title;
@@ -58,7 +61,7 @@ export function BookRoute({ title }: { title: string }) {
       continueReading={Boolean(resume)}
       tab={tab}
       tabHref={(t) => `${bookUrl}?tab=${t}`}
-      onTab={(t) => void navigate({ to: "/$", params: { _splat: refToUrl(details.title) }, search: { tab: t } as never, replace: true })}
+      onTab={(t) => void navigate({ to: `/${refToUrl(details.title)}` as never, search: { tab: t } as never, replace: true })}
       contents={
         <>
           {details.lexiconName ? <div style={{ marginBlockEnd: 24 }}><DictionarySearch getCompletions={dict.getCompletions} onSubmit={dict.openEntry} /></div> : null}
@@ -66,7 +69,7 @@ export function BookRoute({ title }: { title: string }) {
         </>
       }
       versions={versions}
-      versionHref={(v) => `/${refToUrl(first)}?${v.isPrimary ? "vhe" : "ven"}=${v.languageFamilyName}|${v.versionTitle.replace(/\s/g, "_")}`}
+      versionHref={(v) => `/${refToUrl(first)}?${v.isPrimary ? "vhe" : "ven"}=${v.languageFamilyName}|${encodeVtitle(v.versionTitle)}`}
       meta={aboutTextMeta(details)}
       description={{ en: details.enDesc, he: details.heDesc }}
       sidebar={

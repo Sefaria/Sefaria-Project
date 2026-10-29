@@ -5,7 +5,7 @@ domain: Site & accounts
 document: architecture
 owner: unassigned
 status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+updated: 2026-10-28
 ---
 # Accounts & sign-in — architecture
 
@@ -27,7 +27,12 @@ _Not discussed yet. Items carry a status: idea · proposed · agreed · decided.
 
 ## Dependencies on other areas
 
-_None recorded yet._
+- [Language & accessibility](../i18n-a11y/architecture.md): preferences and defaults (*proposed* effective-preferences object ·
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793194426019629)). The account settings page (ACC-003) is still Django (`/settings` is in
+  `reader-next/src/server/pass-through.ts:17-23`). It writes `settings.interface_language`, `textual_custom` and
+  `translation_language_preference` to the profile (`templates/account_settings.html:268-292`). The new client needs a way to read
+  a signed-in reader's settings and `version_preferences_by_corpus`: `GET /api/profile/<slug>` leaves them out
+  (`sefaria/model/user_profile.py:768-801`).
 
 ## Risks and open questions
 

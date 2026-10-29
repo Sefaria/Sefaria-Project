@@ -4,8 +4,12 @@ title: Text display & reading settings
 domain: Reader
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-15
+
+updated: 2026-10-18
+
+updated: 2026-10-28
 ---
 # Text display & reading settings — product specification
 
@@ -15,27 +19,75 @@ updated: 2026-10-14
 
 ## Summary
 
-_Not discussed yet._
+Discussed so far: what a click, a double-click and a selection in the text should do. Nothing is decided. Ideas: clicking a
+segment no longer opens the sidebar, which gets its own control; clicking or double-clicking a word shows a small lookup at the
+word with a call-to-action to open the sidebar; selecting text triggers nothing. The sidebar side is in
+[Connections](../connections/product.md). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+Also proposed: reading settings reach the text in one uniform way, so a new setting is one declaration; see
+[Reading settings](#reading-settings). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792321200408119)
 
 ## Who it is for and what they need
 
-_Not discussed yet._
+- Readers want a dark theme, on phones as much as on desktop; the team treats it as a high user priority, and Rachel Buckman calls it likely the most requested feature. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793190851791229?thread_ts=1793181488.777949&cid=C0C9EGTL468)
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+- Text the reader asked for is on screen fast, especially on phones; mobile sessions today end before it loads. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0B4Q00KNCA/p1791289154906489)
+- Inline commentaries shown with the text and translation inside one panel. See [Reader shell & panels](../reader-shell/product.md). — *idea* · stated by Akiva Berger, 2026-10-15 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
+- Scrolling and clicking in the text never cause a visible repaint, flicker or jump. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468) · TXD-052 · TXD-068
+- Clicking a segment does not open the sidebar; the sidebar has its own open/close control. See [Connections](../connections/product.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · CON-008
+- Clicking or double-clicking a word shows a lightweight lookup at the word (pop-up or tooltip), with a call-to-action to open
+  the full sidebar. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792111854572059?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792315304773969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468) · TXD-059
+- Selecting (highlighting) text triggers nothing; selection is for copying or keeping one's place. — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468) · TXD-057 · TXD-059
+- On phones, tap and tap-and-hold could do different things. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+
+_Items carry a status: idea · proposed · agreed · decided._
+
+- Dark mode is a supported reading theme: readers can read in dark mode, and the reader is designed and tested for it. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · TXD-039 · SHL-006
+- Dark mode covers mobile: the phone (single-panel, responsive) reader is themed as fully as desktop. — *decided* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468) · PLT-019
 
 ## Changes from today (keep · change · drop · new)
 
-_Not discussed yet._
+- **Change:** on load sefaria.org paints the top of the chapter, then jumps to the linked segment; the new reader places it
+  before first paint. — TXD-054 · TXD-068 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- **Keep:** _None recorded yet._
+- **Change:** a click on a segment stops opening the sidebar (CON-008). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Change:** a word lookup starts from a click or double-click on the word, not from a selection (TXD-059). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Drop:** dictionary lookup on text selection (TXD-057, TXD-059). — *proposed* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **New:** _None recorded yet._
+- **Change**: dark mode goes from a hidden hook to a supported feature. On sefaria.org the reader has light, sepia and dark styles but no control to choose them; only a pre-existing `color` cookie turns them on (TXD-039, SHL-006, both tiered *optional* by the audit). In the future reader it is a supported feature with a control. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949)
 
 ## Open questions
 
-_None yet._
+- Which scroll and click interactions count for the repaint target (infinite scroll, opening the sidebar, clicking a segment,
+  changing settings)? See [platform-seo](../platform-seo/product.md) for the overall targets. — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792048342291029?thread_ts=1792048275.276949&cid=C0C9EGTL468)
+- **What does selecting a word do when the sidebar is closed?** Penina Levy and Yitzhak Clark: nothing ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165490196399?thread_ts=1792091846.417749&cid=C0C9EGTL468)). Asked in
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792091846417749?thread_ts=1792091846.417749&cid=C0C9EGTL468). Today a selection does nothing while the sidebar is closed (CON-042, SHL-053); see
+  [Connections](../connections/product.md).
+- **Click or double-click** on a word to look it up? ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792092258845779?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792316219999969?thread_ts=1792091846.417749&cid=C0C9EGTL468))
+- **Phones:** which of tap and tap-and-hold does what? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792115591468479?thread_ts=1792091846.417749&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792165467488169?thread_ts=1792091846.417749&cid=C0C9EGTL468)
+- **Default and control.** Follow the device setting (`prefers-color-scheme`) by default, an explicit choice, or both (light · dark · system)? Does sepia stay as a third theme?
+- **Scope.** Only the reader panels (as on sefaria.org today), or every page (header, library, search, topics, sheets, account)?
+- **Saving the choice.** Per browser (cookie, as today) or on the user's account, so it follows them across devices and the app?
+- **Content we do not control.** Sheets with inline colours, images, manuscripts and diagrams, and embedded or linker content: shown as authored, adapted, or framed on a light surface?
+
+### Reading settings
+
+Inline commentary is the test case. The idea itself is recorded in the list above and in
+[Reader shell → Inline commentary in a panel](../reader-shell/architecture.md) (both 2026-10-15, PR #3818); how settings would
+be built is in [architecture](architecture.md#settings--display-model-proposal).
+
+- Every reading setting (source and translation, layout, alternative structures such as parashot and aliyot, and those to come)
+  changes the display in the same way, wherever it is set. — *proposed* · stated by Akiva Berger, 2026-10-18 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792321200408119) · TXD-041
+- Adding a setting is one declaration: it then appears in the display menu, the URL and saved preferences, and the text updates,
+  with no edits to each part of the reader. Turning on inline commentary puts each comment in place under its verse. — *proposed* · stated by Akiva Berger, 2026-10-18 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792321200408119) · TXD-027 · TXD-042
+- A setting that does not apply to the text being read is not offered, as aliyot appear only for the Torah today. — *proposed* · stated by Akiva Berger, 2026-10-18 · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792321200408119) · TXD-032 · TXD-041
 
 ## Decisions
 
-_None yet. Every decision is also logged in `../DECISIONS.md`._
+- 2026-10-28 — Dark mode is a supported feature of the future reader, on desktop and mobile. Akiva Berger (owner). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181488777949) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793181661157789?thread_ts=1793181488.777949&cid=C0C9EGTL468)
+
+_Every decision is also logged in `../DECISIONS.md`._
 
 ## Parked ideas
 

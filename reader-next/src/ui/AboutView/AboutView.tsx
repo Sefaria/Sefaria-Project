@@ -13,6 +13,7 @@ import { RelatedTopics } from "../RelatedTopics/RelatedTopics";
 import { AboutVersionBlock } from "./AboutVersionBlock";
 import styles from "./AboutView.module.css";
 import { SITE_ORIGIN } from "~/lib/config";
+import { ContentText, LangText } from "../LangText/LangText";
 
 export interface AboutViewProps {
   details?: IndexDetails;
@@ -76,7 +77,7 @@ export function AboutView(p: AboutViewProps) {
         {p.loading && !d ? <LoadingState /> : null}
         {d ? (
           <>
-            <a href={p.titleHref} className={styles.title} lang={p.lang} dir={p.lang === "he" ? "rtl" : "ltr"}>{p.lang === "he" ? d.heTitle : d.title}</a>
+            <ContentText as="a" href={p.titleHref} className={styles.title} lang={p.lang === "he" ? "hebrew" : "english"} en={d.title} he={d.heTitle} />
             {p.category ? <span className={styles.category}><InterfaceText en={p.category.en} he={p.category.he} /></span> : null}
             {authors.length ? (
               <div className={styles.authors}>
@@ -86,7 +87,7 @@ export function AboutView(p: AboutViewProps) {
                 ))}
               </div>
             ) : null}
-            {desc ? <div className={styles.desc} lang={p.lang} dangerouslySetInnerHTML={{ __html: markdownToHtml(desc, { baseUrl: SITE_ORIGIN }) }} /> : null}
+            {desc ? <LangText as="div" className={styles.desc} lang={p.lang} html={markdownToHtml(desc, { baseUrl: SITE_ORIGIN })} /> : null}
             {composed ? <div className={styles.composed}>{composed}</div> : null}
           </>
         ) : null}

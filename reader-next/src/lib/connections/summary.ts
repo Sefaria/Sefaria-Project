@@ -10,7 +10,8 @@
  * @feature CON-024 Essay links in summary
  * @feature CON-025 Category view with per-book filters
  */
-import type { Catalog } from "~/lib/catalog/toc";
+import { isCategory, type Catalog } from "~/lib/catalog/toc";
+import { tocItemsByCategories } from "~/lib/library/category-model";
 import { dedupeLinks, withoutEssays, type RelatedLink } from "./links";
 
 export interface BookSummary {
@@ -84,6 +85,31 @@ export interface SummaryContext {
   hebrew?: boolean;
 }
 
+/**
+ * A book's description from the TOC category it is listed under (sefaria.js `getDescriptionDict`, used by
+ * linkSummary when the index has none): "Bartenura on Mishnah Peah" sits in Mishnah › Rishonim on Mishnah ›
+ * Bartenura, and that category's short description is the one shown. The path is cut where the book's own
+ * name starts, exactly as the old code did; both languages come from the category (even an empty Hebrew one).
+ */
+export function tocDescription(catalog: Catalog, book: string, categories: readonly string[]): { en?: string; he?: string } {
+  const first = book.split(" ")[0]!;
+  const path: string[] = [];
+  for (const c of categories) {
+    if (c === book || first === c || first === c.split(" ")[0]) break;
+    path.push(c);
+  }
+  const dict = new Map<string, { en?: string; he?: string }>();
+  for (const n of tocItemsByCategories(catalog.tree, path)) {
+    const key = isCategory(n) ? n.category : n.title;
+    const d = { en: n.enShortDesc, he: n.heShortDesc };
+    dict.set(key, d);
+    if (key.includes("on")) dict.set(key.split(" on")[0]!, d); // "Ramban on Genesis" also answers to "Ramban"
+  }
+  const collective = catalog.books.get(book)?.collectiveTitle;
+  const hit = dict.get(book) ?? (collective ? dict.get(collective) : undefined) ?? dict.get(book.split(" on")[0]!);
+  return { en: hit?.en || undefined, he: hit?.he || undefined };
+}
+
 export function linkSummary(rawLinks: readonly RelatedLink[], ctx: SummaryContext): CategorySummary[] {
   const links = withoutEssays(dedupeLinks(rawLinks));
   const byCategory = new Map<string, CategorySummary & { bookMap: Map<string, BookSummary> }>();
@@ -94,6 +120,9 @@ export function linkSummary(rawLinks: readonly RelatedLink[], ctx: SummaryContex
     if (!b) {
       const full = ctx.catalog?.books.get(l.index_title);
       const bookEntry = ctx.catalog?.books.get(name);
+      const own = { en: full?.enShortDesc || full?.enDesc || bookEntry?.enShortDesc, he: full?.heShortDesc || full?.heDesc || bookEntry?.heShortDesc };
+      // most commentaries carry no description of their own; the old site then took the one on their TOC category
+      const desc = own.en || !ctx.catalog ? own : tocDescription(ctx.catalog, name, bookEntry?.categories ?? full?.categories ?? []);
       b = {
         book: name,
         heBook: bookEntry?.heTitle ?? l.collectiveTitle.he,
@@ -101,8 +130,8 @@ export function linkSummary(rawLinks: readonly RelatedLink[], ctx: SummaryContex
         count: 0,
         hasEnglish: false,
         fullTitle: l.index_title,
-        enShortDesc: full?.enShortDesc || full?.enDesc || bookEntry?.enShortDesc || undefined,
-        heShortDesc: full?.heShortDesc || full?.heDesc || bookEntry?.heShortDesc || undefined,
+        enShortDesc: desc.en || undefined,
+        heShortDesc: desc.he || undefined,
       };
       cat.bookMap.set(name, b);
     }

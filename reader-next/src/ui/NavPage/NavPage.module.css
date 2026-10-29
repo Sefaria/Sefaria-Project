@@ -1,10 +1,18 @@
 .page { display: grid; grid-template-columns: minmax(0, 1fr) 420px; min-height: 100%; font-family: var(--sefaria-font-ui-en); }
 .page[lang="he"] { font-family: var(--sefaria-font-ui-he); }
-.main { padding: var(--_top, 56px) 97px 80px 98px; max-width: 100%; box-sizing: border-box; min-width: 0; }
-.side { background: var(--sefaria-color-surface-subtle, #fbfbfa); padding: var(--_top, 56px) 44px 40px; display: flex; flex-direction: column; gap: 40px; min-width: 0; }
-.footer { margin-block-start: auto; padding-block-start: 24px; }
+/* the old .contentInner: a 725px column (30px padding each side) centred in the space beside the sidebar */
+.main { padding: var(--_top, 56px) max(30px, calc((100% - 665px) / 2)) 70px; max-width: 100%; box-sizing: border-box; min-width: 0; }
+/* block flow, as the old .navSidebar, so a module's last margin folds into its own 34px; 120px of grey under the footer (its border-bottom) */
+.side { background: var(--sefaria-color-surface-subtle); padding: var(--_top, 56px) 44px 120px; display: block; min-width: 0; }
+/* the old .stickySidebarFooter: straight after the modules, held at the top of the column once it scrolls there */
+/* wide: the line takes its own 4px above the page; a phone (the old singlePanel) lays it over the page's top (measured) */
+.colorLine { grid-column: 1 / -1; position: sticky; top: 0; z-index: 101; height: 4px; }
+.footer { position: sticky; top: 60px; } /* the old scroller's 60px top padding: that is where it stopped */
 @media (max-width: 842px) {
   .page { grid-template-columns: 1fr; }
-  .main { padding: 24px 16px 40px; }
-  .side { padding: 24px 16px 40px; }
+  /* the old .singlePanel .contentInner: 15px each side, the title 25px under the header */
+  .main { padding: 25px 15px 0; }
+  .colorLine { position: relative; top: 0; margin-block-end: -4px; }
+  /* the old .singlePanel .navSidebar: 20px under the page, 30px in (VERIFIED on sefaria.org with a phone User-Agent, 2026-10-29) */
+  .side { margin-block-start: 20px; padding: 30px 15px 0; }
 }

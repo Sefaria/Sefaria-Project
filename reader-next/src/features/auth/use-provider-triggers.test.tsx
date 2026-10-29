@@ -73,29 +73,29 @@ describe("Google button", () => {
     expect(persisted).toHaveBeenCalledWith({ flowId: "flow-1", attemptId: "attempt-1", method: "google" });
     expect(tracking.suppressFlowEndRef.current).toBe(true);
   });
-  it("a credential is posted to allauth's provider-token endpoint; success goes to next", async () => {
+  it("a credential is posted to master's Google callback as {id_token} (R-37); its outcome ends the attempt; success goes to next", async () => {
     let body: unknown;
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", async ({ request }) => {
+    server.use(http.post("*/api/auth/google/callback", async ({ request }) => {
       body = await request.json();
       expect(request.headers.get("x-csrftoken")).toBe("tok");
-      return HttpResponse.json({});
+      return HttpResponse.json({ outcome: "existing_user_login" });
     }));
     mount();
     act(() => clickListener()());
     await act(async () => initConfig().callback({ credential: "cred" }));
-    expect(body).toEqual({ provider: "google", process: "login", token: { client_id: "gid", id_token: "cred" } });
+    expect(body).toEqual({ id_token: "cred" });
     expect(tracking.chooseMethod).toHaveBeenCalledTimes(1);
-    expect(tracking.endProcess).toHaveBeenCalledWith("success", null);
+    expect(tracking.endProcess).toHaveBeenCalledWith("success", null, "existing_user_login");
     expect(navigate).toHaveBeenCalledWith("/Genesis.1");
   });
   it("a refused credential shows in the active view and ends the attempt as failure", async () => {
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", () => HttpResponse.json({ errors: [{ message: "bad token" }] }, { status: 400 })));
+    server.use(http.post("*/api/auth/google/callback", () => HttpResponse.json({ error: "auth.invalid_token" }, { status: 400 })));
     const shown = vi.fn();
     mount();
     act(() => api.setActiveErrorHandler(shown));
     await act(async () => initConfig().callback({ credential: "cred" }));
-    expect(shown).toHaveBeenCalledWith(expect.objectContaining({ message: "bad token" }));
-    expect(tracking.endProcess).toHaveBeenCalledWith("failure", "bad token");
+    expect(shown).toHaveBeenCalledWith(expect.objectContaining({ message: "auth.invalid_token" }));
+    expect(tracking.endProcess).toHaveBeenCalledWith("failure", "auth.invalid_token");
   });
 });
 
@@ -108,7 +108,7 @@ describe("popup abandonment", () => {
     expect(tracking.endProcess).toHaveBeenCalledWith("failure", "popup_closed_by_user");
   });
   it("not while our own request is in flight", () => {
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", () => new Promise(() => {})));
+    server.use(http.post("*/api/auth/google/callback", () => new Promise(() => {})));
     mount();
     act(() => clickListener()());
     act(() => void initConfig().callback({ credential: "t" }));

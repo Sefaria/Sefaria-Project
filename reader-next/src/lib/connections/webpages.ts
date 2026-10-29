@@ -7,7 +7,7 @@
  * @feature CON-053 Web page list items
  */
 import { queryOptions } from "@tanstack/react-query";
-import { related } from "@vendor/sefaria-toolkit/client/index";
+import { related } from "@vendor/sefaria-toolkit/client/runtime";
 import { getSefariaClient, unwrap } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 

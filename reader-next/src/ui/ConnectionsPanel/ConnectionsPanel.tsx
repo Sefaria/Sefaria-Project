@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ContentLangProvider } from "~/lib/i18n/content-lang";
 import { Icon } from "../Icon/Icon";
 import { IconButton } from "../IconButton/IconButton";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
@@ -51,7 +52,8 @@ export function ConnectionsPanel({ title, back, onClose, actions, lang, onLang, 
         {onClose ? <IconButton icon="circle-close" label="Close" onClick={onClose} /> : null}
       </div>
       <div className={styles.body} data-panel-body>
-        {children}
+        {/* the sidebar's content language is lang2: ContentText inside follows it, whatever the interface language */}
+        {lang ? <ContentLangProvider lang={lang === "he" ? "hebrew" : "english"}>{children}</ContentLangProvider> : children}
       </div>
     </aside>
   );

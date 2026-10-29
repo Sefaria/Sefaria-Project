@@ -19,3 +19,17 @@
 .bar { height: var(--sefaria-reader-controls-height, 60px); min-height: 0; }
 .title { line-height: 21px; }
 .subtitle { line-height: 17px; }
+
+/* VERIFIED on sefaria.org (1280px, Genesis 1, 2026-10-29): the category line lies over the bar's top 4px (s2.css .categoryColorLine is
+   absolute at the panel's top), so the bar is 60px in all; its shadow 0 1px 3px rgba(0,0,0,.2). The title box starts 12px down:
+   black 18px Cardo over a 15px grey version line, upright, 18px high (.readerControls .readerTextToc .readerTextVersion). */
+.header { position: relative; box-shadow: var(--sefaria-shadow-legacy); }
+.sticky { position: sticky; }
+.colorLine { position: absolute; inset: 0 0 auto; z-index: 1; }
+.bar { align-items: start; padding-top: 12px; }
+.title { color: var(--sefaria-color-text-strong); line-height: 21.6px; }
+.subtitle { margin: 0; font-style: normal; line-height: 18px; }
+.start, .end { margin-top: -12px; align-items: center; height: 56px; }
+.subtitle { margin-top: -1px; } /* the old version line overlaps the title's box by 1px */
+.end { gap: 0; }
+.end > * + * { margin-inline-start: 0; }

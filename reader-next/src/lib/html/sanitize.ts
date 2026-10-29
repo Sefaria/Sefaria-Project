@@ -8,7 +8,10 @@
  * iframe and the like are removed with them. Links to other sites open in a new tab, without opener access.
  */
 import { Parser } from "htmlparser2";
-import { escapeAttribute, escapeText } from "entities";
+import { escapeAttribute as escapeAttributeLoose, escapeText } from "entities";
+
+/** Attribute values with `<` and `>` escaped as well, so no later scan of the HTML can mistake one for the end of a tag (CODE_REVIEW R-02). */
+const escapeAttribute = (v: string) => escapeAttributeLoose(v).replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 const ALLOWED = new Set(["a", "abbr", "b", "blockquote", "br", "code", "div", "em", "h3", "h4", "h5", "h6", "i", "li", "ol", "p", "small", "span", "strong", "sub", "sup", "u", "ul"]);
 const VOID = new Set(["br"]);

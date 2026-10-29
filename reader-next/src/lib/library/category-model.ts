@@ -123,3 +123,35 @@ export function descriptionPlacement(short: string | undefined): { inline?: stri
   if (!short) return {};
   return short.split(" ").length > 5 ? { long: short } : { inline: `(${short})` };
 }
+
+/** The fields of a text a category page reads (title, Hebrew title, short descriptions, order, link and visibility). */
+const BOOK_FIELDS = ["title", "heTitle", "enShortDesc", "heShortDesc", "order", "base_text_order", "hidden", "isCollection", "slug"] as const;
+const slimBook = (b: TocBook): TocBook => Object.fromEntries(BOOK_FIELDS.filter((k) => k in b).map((k) => [k, b[k as keyof TocBook]])) as unknown as TocBook;
+const slimNode = (n: TocNode): TocNode => (isCategory(n) ? { ...n, contents: (n.contents ?? []).map(slimNode) } : slimBook(n));
+
+/**
+ * What a library page shows of the catalog, and no more (CODE_REVIEW R-14: the whole 3.5 MB catalog was serialised into the HTML of
+ * every /texts page): the top-level categories (the home grid); the categories along the page's path, with their long descriptions
+ * (the crumbs and the About box); and the page's own category in full, its texts trimmed to what the list shows.
+ */
+export function catalogSlice(tree: readonly TocNode[], path: readonly string[]): TocNode[] {
+  const shown = withDefaultCorpus(path);
+  const isPrefix = (key: readonly string[], p: readonly string[]) => key.length <= p.length && key.every((c, i) => c === p[i]);
+  const walk = (nodes: readonly TocNode[], prefix: readonly string[]): TocNode[] => {
+    const out: TocNode[] = [];
+    for (const n of nodes) {
+      if (!isCategory(n)) continue;
+      const key = [...prefix, n.category];
+      const onPath = isPrefix(key, shown) || isPrefix(key, path);
+      if (!onPath && prefix.length) continue; // below the top level, only the path
+      if (shown.length && key.length === shown.length && isPrefix(key, shown)) {
+        out.push(slimNode(n)); // the page's own category: all of it
+        continue;
+      }
+      const { enDesc, heDesc, contents, ...rest } = n;
+      out.push({ ...rest, ...(onPath ? { enDesc, heDesc } : {}), contents: onPath ? walk(contents ?? [], key) : [] } as TocCategory);
+    }
+    return out;
+  };
+  return walk(tree, []);
+}

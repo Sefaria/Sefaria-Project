@@ -13,6 +13,7 @@ import { VisuallyHidden } from "../VisuallyHidden/VisuallyHidden";
 import { categoryColor } from "../tokens/category-color";
 import styles from "./SearchPage.module.css";
 import { SITE_ORIGIN } from "~/lib/config";
+import { dirFor } from "~/lib/i18n/direction";
 
 const plain = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
 const isHebrew = (s: string) => /[֐-׿]/.test(s);
@@ -27,7 +28,7 @@ export function SearchBar({ query, onSubmit }: { query: string; onSubmit: (q: st
     if (t && t !== query) onSubmit(t);
   };
   return (
-    <div className={styles.bar} role="search">
+    <div className={styles.bar} role="search" data-search-page-bar="">
       <button type="button" aria-label={he ? "שליחת חיפוש" : "Submit search"} onClick={run}><Icon name="search" size="26px" /></button>
       <input value={v} maxLength={75} dir="auto" enterKeyHint="search" aria-label={he ? "חיפוש" : "Search"} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === "Enter" && run()} />
       {v ? <button type="button" aria-label={he ? "ניקוי החיפוש" : "Clear search term"} onClick={() => setV("")}><Icon name="close" size="20px" /></button> : null}
@@ -78,7 +79,7 @@ function MobileTabStrip({ tabs, active, counts, onTab, he }: { tabs: SearchTab[]
     const tab = el?.querySelector<HTMLElement>('[aria-selected="true"]');
     if (el && tab) {
       const r = tab.getBoundingClientRect(), c = el.getBoundingClientRect();
-      if (r.left < c.left || r.right > c.right) el.scrollTo({ left: el.scrollLeft + (he ? r.right - c.right : r.left - c.left) - (he ? -16 : 16), behavior: "smooth" });
+      if (r.left < c.left || r.right > c.right) el.scrollTo({ left: el.scrollLeft + (he ? r.right - c.right : r.left - c.left) - (he ? -16 : 16), behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
     }
   }, [active, he]);
   return (
@@ -173,25 +174,45 @@ export function SortMenu<V extends string = SearchSort>({ sort, onChange, disabl
   const [open, setOpen] = useState(false);
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const list = (options ?? (SORTS as unknown as SortOption<V>[]));
+  const cur = list.find((s) => s.value === sort) ?? list[0]!;
+  const close = (refocus: boolean) => {
+    setOpen(false);
+    if (refocus) button.current?.focus();
+  };
   useEffect(() => {
     if (!open) return;
     const off = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
-    const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("pointerdown", off);
-    document.addEventListener("keydown", key);
-    return () => { document.removeEventListener("pointerdown", off); document.removeEventListener("keydown", key); };
+    // the ARIA menu pattern (CODE_REVIEW R-31: it said "menu" but focus stayed on the button and the arrows did nothing):
+    // opening focuses the chosen item (or the first)
+    (menu.current?.querySelector<HTMLElement>('[aria-checked="true"]') ?? menu.current?.querySelector<HTMLElement>('[role="menuitemradio"]'))?.focus();
+    return () => document.removeEventListener("pointerdown", off);
   }, [open]);
-  const list = (options ?? (SORTS as unknown as SortOption<V>[]));
-  const cur = list.find((s) => s.value === sort) ?? list[0]!;
+  // on the wrapper, so Escape also works while focus is still on the button
+  const onMenuKeys = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!open) return;
+    const items = [...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitemradio"]') ?? [])];
+    const at = items.indexOf(document.activeElement as HTMLElement);
+    const to = (i: number) => (e.preventDefault(), items[(i + items.length) % items.length]?.focus());
+    if (e.key === "ArrowDown") to(at + 1);
+    else if (e.key === "ArrowUp") to(at - 1);
+    else if (e.key === "Home") to(0);
+    else if (e.key === "End") to(items.length - 1);
+    else if (e.key === "Escape") (e.preventDefault(), close(true));
+    else if (e.key === "Tab") close(false);
+  };
   return (
-    <div className={styles.sort} ref={ref}>
-      <button type="button" className={styles.sortBtn} aria-haspopup="menu" aria-expanded={open} aria-controls={id} aria-disabled={disabled || undefined} aria-label={he ? `מיון לפי ${cur.he}` : `Sort by ${cur.en}`} onClick={() => !disabled && setOpen((o) => !o)}>
+    <div className={styles.sort} ref={ref} onKeyDown={onMenuKeys}>
+      <button ref={button} type="button" className={styles.sortBtn} aria-haspopup="menu" aria-expanded={open} aria-controls={id} aria-disabled={disabled || undefined} aria-label={he ? `מיון לפי ${cur.he}` : `Sort by ${cur.en}`} onClick={() => !disabled && setOpen((o) => !o)}>
         <Icon name="sort-arrows" /><span>{he ? cur.he : cur.en}</span><Icon name="chevron-down" size="1em" />
       </button>
       {open ? (
-        <div id={id} className={styles.menu} role="menu">
+        <div id={id} ref={menu} className={styles.menu} role="menu">
           {list.map((s) => (
-            <button key={s.value} type="button" role="menuitemradio" aria-checked={s.value === sort} onClick={() => { setOpen(false); if (s.value !== sort) onChange(s.value); }}>
+            <button key={s.value} type="button" role="menuitemradio" tabIndex={-1} aria-checked={s.value === sort} onClick={() => { close(true); if (s.value !== sort) onChange(s.value); }}>
               <span className={styles.tick}>{s.value === sort ? <Icon name="check" size="1em" /> : null}</span>{he ? s.he : s.en}
             </button>
           ))}
@@ -221,9 +242,9 @@ export function SearchResultCard({ hit, hrefFor, onOpen }: SearchResultCardProps
   };
   return (
     <article className={styles.card} style={{ ["--_c" as string]: categoryColor(s.categories?.[0]) }} onClick={open}>
-      <Link className={styles.title} href={hrefFor(hit)} lang={he ? "he" : "en"} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(hit); } }}>{he ? s.heRef : s.ref}</Link>
+      <Link className={styles.title} href={hrefFor(hit)} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(hit); } }}>{he ? s.heRef : s.ref}</Link>
       <div className={styles.snippet} lang={snip.lang} dir={snip.lang === "he" ? "rtl" : "ltr"} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snip.html) }} />
-      <div className={styles.version} lang={he && s.hebrew_version_title ? "he" : "en"}>{(he && s.hebrew_version_title) || s.version}</div>
+      <div className={styles.version} lang={he && s.hebrew_version_title ? "he" : "en"} dir={dirFor(he && s.hebrew_version_title ? "he" : "en")}>{(he && s.hebrew_version_title) || s.version}</div>
       {n > 0 ? (
         <>
           <button type="button" className={styles.more} data-open={shown} aria-expanded={shown} onClick={() => setShown((v) => !v)}>
@@ -234,7 +255,7 @@ export function SearchResultCard({ hit, hrefFor, onOpen }: SearchResultCardProps
             <div className={styles.nested}>
               {dups.map((d) => (
                 <div key={d._id}>
-                  <div className={styles.snippet} lang={snippetOf(d).lang} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snippetOf(d).html) }} />
+                  <div className={styles.snippet} lang={snippetOf(d).lang} dir={dirFor(snippetOf(d).lang)} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snippetOf(d).html) }} />
                   <div className={styles.version}><Link href={hrefFor(d)} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(d); } }}>{(he && d._source.hebrew_version_title) || d._source.version}</Link></div>
                 </div>
               ))}
@@ -269,7 +290,7 @@ export function SearchFilters({ tree, applied, onToggle }: SearchFiltersProps) {
           return (
             <div key={n.key}>
               <div className={styles.row}>
-                <label lang={he ? "he" : "en"} title={`(${n.count})`}>
+                <label lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} title={`(${n.count})`}>
                   <Checkbox state={state} onChange={() => onToggle(n)} label={n.title} />
                   <span>{he ? n.heTitle : n.title} <span className={styles.num}>({n.count})</span></span>
                 </label>
@@ -360,15 +381,15 @@ export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityTy
       <span className={styles.entityIcon} style={type === "book" ? { color: accent } : undefined}><Icon name={icon} size="1.4em" /></span>
       <div className={styles.entityBody}>
         {crumbs.length ? <Crumbs items={crumbs} /> : null}
-        <Link ref={titleLink} className={styles.entityTitle} href={href} lang={lang} data-result-title="">{name}</Link>
+        <Link ref={titleLink} className={styles.entityTitle} href={href} lang={lang} dir={dirFor(lang)} data-result-title="">{name}</Link>
         {date || authorName ? (
-          <div className={styles.entityMeta} lang={lang}>
+          <div className={styles.entityMeta} lang={lang} dir={dirFor(lang)}>
             {date ? (he ? date.he : date.en) : null}
             {date && authorName ? " · " : null}
             {authorName ? (hit.authors?.[0] ? <Link href={`${SITE_ORIGIN}/topics/${hit.authors[0]}?tab=author-works-on-sefaria`}>{authorName}</Link> : authorName) : null}
           </div>
         ) : null}
-        {desc ? <p className={`${styles.entityDesc} ${type === "book" ? styles.bookDesc : ""}`} lang={lang}>{desc}</p> : null}
+        {desc ? <p className={`${styles.entityDesc} ${type === "book" ? styles.bookDesc : ""}`} lang={lang} dir={dirFor(lang)}>{desc}</p> : null}
       </div>
     </li>
   );
@@ -385,17 +406,82 @@ export function EntityResults({ type, hits, empty, topicParents, itemProps }: { 
 }
 
 const NONE: Record<SearchTab, { h: [string, string]; body: [string, string]; cta: [string, string]; href: string; img: string }> = {
-  sources: { h: ["No sources found for", "לא נמצאו מקורות עבור"], body: ["Try a different spelling or shorter search term, change your filter/toggle selections, or browse the library.", "נסו איות אחר או מונח חיפוש קצר יותר, תשנו את הפילטרים/טוגל, או עיינו בספרייה."], cta: ["Browse Library", "לעיון בספרייה"], href: "/texts", img: "Source" },
-  books: { h: ["No books found for", "לא נמצאו ספרים עבור"], body: ["Try a different spelling or shorter search term, or browse the library.", "נסו איות אחר, או מונח חיפוש קצר יותר, או עיינו בספרייה."], cta: ["Browse Library", "לעיון בספרייה"], href: "/texts", img: "Books" },
-  authors: { h: ["No authors found for", "לא נמצאו מחברים עבור"], body: ["Try a different spelling or shorter search term, or browse all authors.", "נסו איות אחר, או מונח חיפוש קצר יותר, או עיינו בכל המחברים."], cta: ["Browse Authors", "לעיון בכל המחברים"], href: `${SITE_ORIGIN}/people`, img: "Authors" },
-  topics: { h: ["No topics found for", "לא נמצאו נושאים עבור"], body: ["Try a different spelling or shorter search term, or browse all topics.", "נסו איות אחר, או מונח חיפוש קצר יותר, או עיינו בכל הנושאים."], cta: ["Browse Topics", "לעיון בכל הנושאים"], href: `${SITE_ORIGIN}/topics`, img: "Topics" },
+  sources: { h: ["No sources found for", "לא נמצאו מקורות עבור"], body: ["Try a different spelling or shorter search term, change your filter/toggle selections, or browse the library.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בספרייה."], cta: ["Browse Library", "לעיון בספרייה"], href: "/texts", img: "Source" },
+  books: { h: ["No books found for", "לא נמצאו ספרים עבור"], body: ["Try a different spelling or shorter search term, or browse the library.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בספרייה."], cta: ["Browse Library", "לעיון בספרייה"], href: "/texts", img: "Books" },
+  authors: { h: ["No authors found for", "לא נמצאו מחברים עבור"], body: ["Try a different spelling or shorter search term, or browse all authors.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בכל המחברים."], cta: ["Browse Authors", "לעיון בכל המחברים"], href: `${SITE_ORIGIN}/people`, img: "Authors" },
+  topics: { h: ["No topics found for", "לא נמצאו נושאים עבור"], body: ["Try a different spelling or shorter search term, or browse all topics.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בכל הנושאים."], cta: ["Browse Topics", "לעיון בכל הנושאים"], href: `${SITE_ORIGIN}/topics`, img: "Topics" },
 };
 /** Nothing found: an illustration per tab, the words, a way on, and where to report a problem (VERIFIED on sefaria.org, SRC-064). */
+const queryLang = (q: string) => (/[\u0590-\u05FF]/.test(q) ? { dir: "rtl" as const, lang: "he" } : { dir: "ltr" as const, lang: "en" });
+
+/** A query word the reader can search: a button that keeps reading as part of the sentence (master's `_AutocorrectTerm`). */
+function AutocorrectTerm({ query, onSearch }: { query: string; onSearch: (q: string) => void }) {
+  return (
+    <span
+      className={styles.autocorrectTerm}
+      {...queryLang(query)}
+      role="button"
+      tabIndex={0}
+      onClick={() => onSearch(query)}
+      onKeyDown={(e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        onSearch(query);
+        // the term goes away with the banner: keyboard focus goes to the search box rather than the page
+        document.querySelector<HTMLInputElement>("[data-search-page-bar] input")?.focus();
+      }}
+    >
+      {query}
+    </span>
+  );
+}
+
+/**
+ * Above the tabs: "These are results for X / Search instead for Y" when the query was corrected, or "Did you mean: a, b" (SRC-111).
+ * The status region is always there, even empty: a live region mounted with its content is not reliably announced.
+ */
+export function AutocorrectBanner({ corrected, original, suggested, onSearchOriginal, onSearch }: {
+  corrected: string | null;
+  original: string;
+  suggested: readonly string[] | null;
+  onSearchOriginal: () => void;
+  onSearch: (q: string) => void;
+}) {
+  return (
+    <div role="status">
+      {corrected ? (
+        <div className={styles.autocorrect}>
+          <div className={styles.autocorrectLine}>
+            <InterfaceText en="These are results for" he="מוצגות תוצאות עבור" />{" "}
+            <span className={styles.autocorrectCorrected} {...queryLang(corrected)}>{corrected}</span>
+          </div>
+          <div className={`${styles.autocorrectLine} ${styles.autocorrectSecondary}`}>
+            <InterfaceText en="Search instead for" he="חיפוש של" />{" "}
+            <AutocorrectTerm query={original} onSearch={() => onSearchOriginal()} />
+          </div>
+        </div>
+      ) : suggested?.length ? (
+        <div className={styles.autocorrect}>
+          <div className={styles.autocorrectLine}>
+            <InterfaceText en="Did you mean:" he="האם התכוונת ל:" />{" "}
+            {suggested.map((q, i) => (
+              <span key={q}>
+                {i > 0 ? ", " : null}
+                <AutocorrectTerm query={q} onSearch={onSearch} />
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function NoResults({ tab, query }: { tab: SearchTab; query: string }) {
   const he = useInterfaceLang() === "hebrew";
   const n = NONE[tab];
   return (
-    <div className={styles.empty} lang={he ? "he" : "en"}>
+    <div className={styles.empty} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <img className={styles.emptyImg} src={`/img/no-results/NoResults${n.img}.svg`} alt="" aria-hidden="true" width={140} height={140} />
       <p className={styles.emptyHeading}>{he ? `${n.h[1]} ״${query}״` : `${n.h[0]} “${query}”`}</p>
       <p className={styles.emptyBody}>{he ? n.body[1] : n.body[0]}</p>

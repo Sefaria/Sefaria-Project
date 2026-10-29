@@ -7,6 +7,7 @@ import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
 import { Modal } from "../Modal/Modal";
 import styles from "./SignUpModal.module.css";
+import { dirFor } from "~/lib/i18n/direction";
 
 export interface SignUpModalProps {
   /** Which action asked: it picks the words. Closed when undefined. */
@@ -32,8 +33,8 @@ export function SignUpModal({ kind, onClose, next, accountOrigin = "" }: SignUpM
   const q = `?next=${encodeURIComponent(next)}`;
   return (
     <Modal open={kind !== undefined} onClose={onClose} label={lang === "hebrew" ? "הרשמה לספריא" : "Sign up for Sefaria"}>
-      <div className={styles.content} lang={code}>
-        <h2 className={styles.h2} lang={code}><InterfaceText en={c.h2.en} he={c.h2.he} /></h2>
+      <div className={styles.content} lang={code} dir={dirFor(code)}>
+        <h2 className={styles.h2} lang={code} dir={dirFor(code)}><InterfaceText en={c.h2.en} he={c.h2.he} /></h2>
         {c.h3 ? <h3 className={styles.h3}><InterfaceText en={c.h3.en} he={c.h3.he} /></h3> : null}
         <ul className={styles.bullets}>
           {c.bullets.map((b) => (

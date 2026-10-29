@@ -42,6 +42,9 @@ import { NamedEntityView } from "~/ui/NamedEntityView/NamedEntityView";
 import { entityQueryOptions, entitySourceNote } from "~/lib/connections/entity";
 import { localizedRef, topicsForRefs } from "~/lib/connections/topics";
 import { TopicsView } from "~/ui/TopicsView/TopicsView";
+import { TopicSearch } from "~/ui/TopicsView/TopicSearch";
+import { addLinkToResources, addRefTopicLink, CREATE_NEW_TOPIC, selectionRange, topicSuggestions } from "~/lib/user/topic-links";
+import { nameQueryOptions } from "~/lib/search/autocomplete";
 import { manuscriptsForRefs, mediaForRefs } from "~/lib/connections/media";
 import { mergePages, sitesOf, sortPages, webPagesQueryOptions } from "~/lib/connections/webpages";
 import { WebPagesView } from "~/ui/WebPagesView/WebPagesView";
@@ -54,6 +57,8 @@ import { TocView } from "~/ui/TocView/TocView";
 import { mergeTextResultsVersions, searchPathQueryOptions, textSearchQueryOptions, type SearchHit } from "~/lib/search/text-search";
 import { versionApiToParam } from "~/lib/workspace/url";
 import { SidebarSearch } from "~/ui/SidebarSearch/SidebarSearch";
+import { AutocorrectBanner } from "~/ui/SearchPage/SearchPage";
+import { autocorrectQueryOptions, decideAutocorrect, NO_AUTOCORRECT } from "~/lib/search/autocorrect";
 import { useLocation } from "@tanstack/react-router";
 import { currVersionsOf, sendFeedback } from "~/lib/feedback/feedback";
 import { ShareView } from "~/ui/ShareView/ShareView";
@@ -150,10 +155,17 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const selected = useMemo(() => (sectionLinks ? linksForRefs(sectionLinks, selectedRefs) : []), [sectionLinks, selectedRefs]);
   const lookup = useMemo(() => makeIndexLookup(catalog, sectionLinks ?? []), [catalog, sectionLinks]);
 
+  // the sidebar's own language (`lang2`, the toggle in its header) wins; else the text's setting (never both at once, SHL-014)
+  const language = props.lang ? (props.lang === "he" ? "hebrew" : "english") : sidebarLanguage(settings.language, interfaceLang);
+  const shownLang = language === "hebrew" ? "he" : "en";
+
   const narrower = props.section ? selectedRefs.length < props.section.segments.length : true;
+  // books are ordered by the sidebar's language, not the interface's (ConnectionsSummary's contentLang sort; VERIFIED
+  // on sefaria.org: lang2=he lists Boaz right after Yachin, then the Hebrew alphabet)
+  const sidebarHebrew = language === "hebrew";
   const summary = useMemo(
-    () => linkSummary(selected, { catalog, baseCategory: props.baseCategory, sectionLinks, narrowerThanSection: narrower, hebrew }),
-    [selected, catalog, props.baseCategory, sectionLinks, narrower, hebrew],
+    () => linkSummary(selected, { catalog, baseCategory: props.baseCategory, sectionLinks, narrowerThanSection: narrower, hebrew: sidebarHebrew }),
+    [selected, catalog, props.baseCategory, sectionLinks, narrower, sidebarHebrew],
   );
 
   const link = hrefFor;
@@ -167,12 +179,23 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     return sortLinks(filtered, hebrew);
   }, [filter, selected, lookup, hebrew]);
 
-  const sectionRefsToLoad = useMemo(() => [...new Set(listLinks.map((l) => containingSectionRef(l.sourceRef)))], [listLinks]);
+  // Each link's text needs its whole section: load them a page at a time, the next page as the list nears its end (CODE_REVIEW
+  // R-22: Genesis 1:1's commentary list started 235 section requests at once, and showed nothing until the last one came back)
+  // back to the first page only when the list itself changes (another filter, verse or language) — not when a re-render merely
+  // rebuilds the same list, which would shrink it under the reader
+  const listKey = `${filter ?? ""}|${selectedRefs.join(",")}|${hebrew}`;
+  const [page, setPage] = useState({ key: listKey, shown: LINKED_TEXTS_PAGE });
+  const shown = page.key === listKey ? page.shown : LINKED_TEXTS_PAGE;
+  const showMore = () => setPage({ key: listKey, shown: shown + LINKED_TEXTS_PAGE });
+  const shownLinks = useMemo(() => listLinks.slice(0, shown), [listLinks, shown]);
+  const sectionRefsToLoad = useMemo(() => [...new Set(shownLinks.map((l) => containingSectionRef(l.sourceRef)))], [shownLinks]);
   const passages = useQueries({ queries: sectionRefsToLoad.map((r) => textQueryOptions(r, {})) });
   const passageByRef = new Map(sectionRefsToLoad.map((r, i) => [r, passages[i]?.data] as const));
-  const waiting = filter !== undefined && listLinks.length > 0 && passages.some((q) => q.isPending);
+  // the list waits for its first page only; later items show their own "Loading…"
+  const firstPage = new Set(shownLinks.slice(0, LINKED_TEXTS_PAGE).map((l) => containingSectionRef(l.sourceRef)));
+  const waiting = filter !== undefined && listLinks.length > 0 && sectionRefsToLoad.some((r, i) => firstPage.has(r) && passages[i]?.isPending);
 
-  const items: LinkedTextItem[] = listLinks.map((l) => {
+  const items: LinkedTextItem[] = shownLinks.map((l) => {
     const passage = passageByRef.get(containingSectionRef(l.sourceRef));
     const segs = passage ? segmentsInRef(passage, l.sourceRef) : [];
     const primary = passage?.primaryVersion;
@@ -183,7 +206,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
       id: l._id,
       sourceRef: l.sourceRef,
       sourceHeRef: l.sourceHeRef,
-      href: `/${l.sourceRef.replace(/ /g, "_").replace(/:/g, ".")}`,
+      href: `/${refToUrl(l.sourceRef)}`,
       primary: p && primary ? { html: p, lang: primary.actualLanguage, dir: primary.direction } : undefined,
       translation: t && translation ? { html: t, lang: translation.actualLanguage, dir: translation.direction } : undefined,
       number: l.category === "Commentary" ? String(l.anchorVerse) : undefined,
@@ -191,9 +214,6 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     };
   });
 
-  // the sidebar's own language (`lang2`, the toggle in its header) wins; else the text's setting (never both at once, SHL-014)
-  const language = props.lang ? (props.lang === "he" ? "hebrew" : "english") : sidebarLanguage(settings.language, interfaceLang);
-  const shownLang = language === "hebrew" ? "he" : "en";
   const nav = (h: string) => onNavigate(h);
 
   // Resources rows: sheets, topics, manuscripts, readings (section data), web pages (the selection), translations.
@@ -235,7 +255,19 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   // Search in this text: the book's search path first, then the query inside it, a page at a time
   const onSidebarSearch = view.view === "mode" && view.mode === "SidebarSearch";
   const searchPathQ = useQuery({ ...searchPathQueryOptions(indexTitle), enabled: onSidebarSearch && !!indexTitle });
-  const searchQ = useInfiniteQuery({ ...textSearchQueryOptions(props.searchQuery ?? "", searchPathQ.data ?? ""), enabled: onSidebarSearch && !!props.searchQuery && searchPathQ.data !== undefined });
+  // auto-correction in the book (SRC-111, master's searchInBook): decided by this book's count of the query as typed; "Search
+  // instead for" lives in the sidebar's own state, not the address
+  const sbQuery = props.searchQuery ?? "";
+  const sbReady = onSidebarSearch && !!sbQuery && searchPathQ.data !== undefined;
+  const [asTypedFor, setAsTypedFor] = useState<string | null>(null);
+  const sbAsTyped = asTypedFor === sbQuery;
+  const suggestionQ = useQuery({ ...autocorrectQueryOptions(sbQuery), enabled: sbReady && !sbAsTyped });
+  const typedSearchQ = useInfiniteQuery({ ...textSearchQueryOptions(sbQuery, searchPathQ.data ?? ""), enabled: sbReady });
+  const sbDecision = !sbReady || sbAsTyped
+    ? NO_AUTOCORRECT
+    : decideAutocorrect({ data: suggestionQ.data, error: suggestionQ.isError }, [typedSearchQ.isError ? "error" : typedSearchQ.data?.pages[0]?.total]);
+  const sbCorrected = sbDecision.pending ? null : sbDecision.corrected;
+  const searchQ = useInfiniteQuery({ ...textSearchQueryOptions(sbCorrected ?? sbQuery, searchPathQ.data ?? ""), enabled: sbReady && !sbDecision.pending });
   const searchHits = useMemo(() => (searchQ.data ? mergeTextResultsVersions(searchQ.data.pages.flatMap((p) => p.hits)) : undefined), [searchQ.data]);
   const location = useLocation();
   const onNavigation = view.view === "mode" && view.mode === "Navigation";
@@ -321,6 +353,18 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           refLabel={localizedRef(selectionRef, props.section, hebrew ? "he" : "en")}
           topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`}
           lang={language === "hebrew" ? "he" : "en"}
+          search={
+            // moderators only, as the old TopicList (Sefaria.is_moderator = is_staff, which the server checks too)
+            viewer?.isStaff ? (
+              <TopicSearch
+                key={selectionRef}
+                createPrefix={CREATE_NEW_TOPIC[shownLang]}
+                getSuggestions={async (word) => topicSuggestions(await qcNotes.fetchQuery(nameQueryOptions(word, ["Topic"], null)), word, CREATE_NEW_TOPIC[shownLang])}
+                onAdd={async (slug) => addLinkToResources(qcNotes, sectionRef, await addRefTopicLink(selectionRange(selectedRefs, sectionRef), slug, interfaceLang))}
+                createHref={() => `${SITE_ORIGIN}${hrefFor(view)}`}
+              />
+            ) : null
+          }
         />
       </ConnectionsPanel>
     );
@@ -363,7 +407,18 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           query={props.searchQuery}
           onSearch={props.onSearchQuery}
           results={searchHits}
-          loading={searchPathQ.isPending || searchQ.isPending}
+          banner={
+            sbQuery ? (
+              <AutocorrectBanner
+                corrected={sbCorrected}
+                original={sbQuery}
+                suggested={sbDecision.pending ? null : sbDecision.suggested}
+                onSearchOriginal={() => setAsTypedFor(sbQuery)}
+                onSearch={(q) => props.onSearchQuery(q)}
+              />
+            ) : undefined
+          }
+          loading={searchPathQ.isPending || sbDecision.pending || searchQ.isPending}
           loadingMore={searchQ.isFetchingNextPage}
           hasMore={searchQ.hasNextPage}
           onLoadMore={() => void searchQ.fetchNextPage()}
@@ -482,7 +537,8 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`}
           versions={aboutVersions(available, { translationTitle: props.section?.translationVersion?.versionTitle, sourceTitle: props.currentSourceTitle })}
           order={versionSectionOrder(settings.language)}
-          urlRef={refToUrl(selectionRef)}
+          // a dictionary's About names its section, not the entry chosen (master AboutBox, #3730)
+          urlRef={refToUrl(lexiconName ? sectionRef : selectionRef)}
           selectSourceHref={props.selectSourceHref}
           onSelectSource={(v) => (readerAnalytics.versionSelectClicked(versionClick(v)), props.onSelectSource(v))}
           openHref={(v) => (v.isPrimary ? props.versionOpenHref(v) : props.translationPreviewHref(v as unknown as TranslationVersion))}
@@ -601,7 +657,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     const label = categoryLabel(view.category, catalog);
     return (
       <ConnectionsPanel label={view.category} back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        {linksQ.isPending ? <LoadingState /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} />}
+        {linksQ.isPending ? <LoadingState /> : <CategoryView categories={categoryView(summary, view.category)} catalog={catalog} hrefFor={hrefFor} onNavigate={nav} current={view.category} lang={shownLang} />}
       </ConnectionsPanel>
     );
   }
@@ -621,12 +677,14 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     <ConnectionsPanel label={title.en} back={{ href: link(backView), label: <InterfaceText en={backLabel.en} he={backLabel.he} /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
       <TextList
         title={title}
+        categoryTitle={isCategoryFilter}
         color={categoryColor(category)}
         items={items}
         language={language}
         vocalization={vocalizationMode(settings.vowels)}
         hideItemTitles={hideItemTitles}
         loading={linksQ.isPending || waiting}
+        onNearEnd={shown < listLinks.length ? showMore : undefined}
         emptyMessage={<InterfaceText en={`No connections known for ${title.en} here.`} he={`אין קשרים ידועים ל${title.he}.`} />}
         onOpen={(href) => {
           const item = items.find((i) => i.href === href);
@@ -655,6 +713,9 @@ const SIGN_IN_TOOLS: Partial<Record<string, SignUpKind>> = { Notes: "notes", "Ad
  * Advanced tools Add Translation / Add Connection) show the Resources home with the sign-up modal over it — nobody is
  * signed in in this client yet — and closing the modal returns to Resources.
  */
+
+/** How many connected texts load at a time (each needs its section). */
+const LINKED_TEXTS_PAGE = 20;
 export function ConnectionsPane(props: ConnectionsPaneProps) {
   const location = useLocation();
   const [asked, setAsked] = useState<SignUpKind>();

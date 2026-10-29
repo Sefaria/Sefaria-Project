@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { open, segmentTop } from "./helpers";
+import { open, sectionRefs, segmentTop, setScrollTop } from "./helpers";
 
 const side = (page: import("@playwright/test").Page) => page.getByRole("complementary");
 
@@ -27,6 +27,20 @@ test.describe("choosing a translation from the sidebar", () => {
     await expect(page.locator("main header").first()).toContainText("The Koren Jerusalem Bible"); // the header names the version
     await expect(english.getByRole("article").first()).toContainText("Koren");
     await expect(english.getByRole("article").first()).toContainText("Currently Selected");
+  });
+
+  // CODE_REVIEW R-26: one section failing in the new version used to leave every section on the old text (no catch, all-or-nothing)
+  test("a section that cannot change version keeps its text; the others still change", async ({ page }) => {
+    await open(page, "/Genesis.1.5?lang=en&with=Translations");
+    await setScrollTop(page, "bottom");
+    await expect.poll(() => sectionRefs(page)).toContain("Genesis 2");
+    await page.route(/\/api\/v3\/texts\/Genesis%202\?.*Koren/, (route) => route.fulfill({ status: 500, body: "{}" }));
+    const english = side(page).getByRole("region", { name: "English" });
+    await expect(english).toBeVisible({ timeout: 20_000 });
+    await english.getByRole("link", { name: "Select The Koren Jerusalem Bible" }).click();
+    await expect(page.locator('[role="group"][data-ref="Genesis 1:1"]')).toContainText("IN THE BEGINNING", { timeout: 20_000 });
+    await expect(page.locator('[role="group"][data-ref="Genesis 2:1"]')).toBeAttached(); // still there, with its old text
+    await expect(page.getByText("Something went wrong")).toHaveCount(0);
   });
 
   test("choosing a translation always makes the panel bilingual, from any language (verified on sefaria.org)", async ({ page }) => {

@@ -35,6 +35,7 @@ test.describe("language fallbacks and number rules (verified against sefaria.org
 
   test("Hebrew segment numbers carry no geresh", async ({ page }) => {
     await open(page, "/Psalms.119?lang=he");
-    await expect(page.locator('[role="group"][data-ref="Psalms 119:15"]')).toContainText(/^טו\b/, { timeout: 25_000 });
+    // the number itself (a /^טו\b/ match on the verse failed in CI: \b is no boundary between Hebrew letters, so it relied on a space)
+    await expect(page.locator('[role="group"][data-ref="Psalms 119:15"] [data-number="true"]')).toHaveText("טו", { timeout: 25_000 });
   });
 });

@@ -112,7 +112,7 @@ export function ChooseView({
 // ---- Login ----------------------------------------------------------------------------------------------------------------------
 
 export function LoginView({
-  switchFlow, fields, setField, onBack, onForgotClick, next, navigate, ...wiring
+  switchFlow, fields, setField, onBack, onForgotClick, next, navigate, startProcess, endProcess, ...wiring
 }: ProviderWiring & {
   switchFlow: SwitchFlow;
   fields: AuthFields;
@@ -121,14 +121,21 @@ export function LoginView({
   onForgotClick: (e: { preventDefault: () => void }) => void;
   next: string;
   navigate: (href: string) => void;
+  startProcess: () => void;
+  endProcess: (status: string, error?: string | null, outcome?: string | null) => void;
 }) {
+  // email login is part of the auth funnel too, as on master's LoginView (CODE_REVIEW R-08)
   const onSubmit = async () => {
+    startProcess();
     const { ok, data } = await postJson("/api/auth/login", { email: fields.email, password: fields.password });
     if (ok) {
+      endProcess("success", null, "existing_user_login");
       navigate(safeNext(next));
       return;
     }
-    return { error: authError(data, "auth.invalid_credentials") };
+    const error = authError(data, "auth.invalid_credentials");
+    endProcess("failure", error.code || "invalid_credentials");
+    return { error };
   };
   return (
     <FormView size="login-email" onBack={onBack} heading={<AuthText k="header.log_in" />} sub={<LoginCrossLink switchFlow={switchFlow} />} formId="login-form" onSubmit={onSubmit} {...wiring}>
@@ -160,7 +167,7 @@ export function RegisterView({
   fields: AuthFields;
   setField: SetField;
   onBack: () => void;
-  endProcess: (status: string, error?: string | null) => void;
+  endProcess: (status: string, error?: string | null, outcome?: string | null) => void;
   next: string;
   navigate: (href: string) => void;
   recaptchaSiteKey?: string;
@@ -239,7 +246,7 @@ export function RegisterView({
       return { error: authError(null, "auth.generic_error") };
     }
     if (typeof data?.redirect === "string") {
-      endProcess("success", null);
+      endProcess("success", null, "created_new_account");
       navigate(data.redirect);
       return;
     }

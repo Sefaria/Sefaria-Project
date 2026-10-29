@@ -4,8 +4,8 @@ title: AI features
 domain: Site & accounts
 document: product
 owner: unassigned
-status: baseline  # baseline → exploring → proposed → agreed
-updated: 2026-10-14
+status: exploring  # baseline → exploring → proposed → agreed
+updated: 2026-10-28
 ---
 # AI features — product specification
 
@@ -23,7 +23,11 @@ _Not discussed yet._
 
 ## Target behaviour in the future reader
 
-_Not discussed yet. Items carry a status: idea · proposed · agreed · decided._
+_Items carry a status: idea · proposed · agreed · decided._
+
+- The Library Assistant keeps steering the reader as on sefaria.org: links, location pins and topic suggestions in its answers open in
+  the reader in the same tab (`sefaria:bootstrap-url`). — *decided* (parity) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339) · AI-011 · RTE-057 · see
+  `../routing/product.md` → Integrations
 
 ## Changes from today (keep · change · drop · new)
 
@@ -31,11 +35,14 @@ _Not discussed yet._
 
 ## Open questions
 
-_None yet._
+- **Who owns the reader–assistant contract** (`Sefaria/ai-chatbot`), and how are changes on either side coordinated and tested against
+  the new client? (Also in `../routing/product.md`.)
 
 ## Decisions
 
-_None yet. Every decision is also logged in `../DECISIONS.md`._
+- 2026-10-28 — Reader state in the new client is managed with TanStack Router; other applications must be able to update it easily, and for parity every integration event sefaria.org's reader handles keeps its effect. Akiva Berger (owner). [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1793193924097339)
+
+_Every decision is also logged in `../DECISIONS.md`._
 
 ## Parked ideas
 

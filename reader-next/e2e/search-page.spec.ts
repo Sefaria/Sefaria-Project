@@ -118,6 +118,9 @@ test.describe("phones", () => {
     await expect(page.getByRole("checkbox", { name: "Halakhah" })).toBeVisible();
     await page.getByRole("button", { name: "Close" }).click();
     await page.getByRole("tab", { name: /^Topics/ }).click();
+    // the tab change closes the panel: open it only once the change has landed, or the click can be undone by it (flaky under load)
+    await expect(page.getByRole("tab", { name: /^Topics/ })).toHaveAttribute("aria-selected", "true");
+    await expect(page).toHaveURL(/search_tab=topics/);
     await page.getByRole("button", { name: "Sort & filter results" }).click();
     await expect(page.getByRole("dialog", { name: "Sort" })).toBeVisible();
     await expect(page.getByRole("checkbox")).toHaveCount(0);
@@ -176,5 +179,36 @@ test.describe("Hebrew search merges Dicta's Tanakh (as on sefaria.org)", () => {
     await expect(page).toHaveURL(/tvar=0/);
     await page.waitForTimeout(1500);
     expect(dicta.filter((p) => p === "/search")).toEqual([]);
+  });
+});
+
+// @feature SRC-111 — master #3724: a query that finds nothing anywhere is searched as corrected
+test.describe("auto-correction", () => {
+  test.use({ viewport: { width: 1280, height: 900 } });
+  test("a misspelling with no results anywhere shows the corrected search; 'Search instead for' goes back to the typed text", async ({ page }) => {
+    await open(page, "/search?q=berakhto&tab=text&search_tab=sources&tvar=1&tsort=relevance");
+    const status = page.getByRole("status").filter({ hasText: "These are results for" });
+    await expect(status).toContainText("These are results for berakhot");
+    await expect(page.getByRole("search").last().getByRole("textbox")).toHaveValue("berakhto");
+    await expect(page.locator('ul[aria-label="Search results"] li').first()).toBeVisible();
+    await page.getByRole("button", { name: "berakhto" }).click();
+    await expect(page).toHaveURL(/search_tab=sources&disable_autocorrect=1&tvar=1/);
+    await expect(page.getByText("These are results for")).toHaveCount(0);
+    await expect(page.getByText(/No sources found for/)).toBeVisible();
+  });
+});
+
+// @feature SRC-112 — master #3724: an empty tab gives way to the first tab with results
+test.describe("auto-switch from an empty tab", () => {
+  test.use({ viewport: { width: 1280, height: 900 } });
+  test("Topics with nothing for 'rashi' moves to Sources (replacing the entry); a tab the reader picks stays", async ({ page }) => {
+    await open(page, "/search?q=rashi&tab=text&search_tab=topics&tvar=1&tsort=relevance");
+    await expect(page).toHaveURL(/search_tab=sources/);
+    const length = await page.evaluate(() => history.length);
+    await page.locator('a[href*="search_tab=topics"]').click();
+    await expect(page).toHaveURL(/search_tab=topics/);
+    await page.waitForTimeout(1500);
+    await expect(page).toHaveURL(/search_tab=topics/);
+    expect(await page.evaluate(() => history.length)).toBe(length + 1);
   });
 });

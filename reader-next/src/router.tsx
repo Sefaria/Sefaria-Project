@@ -1,6 +1,7 @@
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { makeQueryClient } from "~/lib/cache/query-client";
+import { isFullCatalogQuery } from "~/lib/library/catalog-slice";
 import { routeTree } from "./routeTree.gen";
 import { isReaderPath } from "./lib/reader/paths";
 import { parseSearch, stringifySearch } from "./lib/reader/search-serializer";
@@ -15,6 +16,8 @@ export function getRouter() {
     // "scroll to top after rendering", which otherwise fires once after hydration and yanks a deep link
     // back to the top for a frame on phones. Every other page gets normal restoration and reset.
     scrollRestoration: ({ location }) => !isReaderPath(location.pathname),
+    // on a wide screen a page scrolls inside <main> (under the fixed header), so that is what goes back to the top
+    scrollToTopSelectors: ["#main"],
     // Library data is immutable-ish and cached by the library cache; route matches need not reload.
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: RouteError,
@@ -25,7 +28,8 @@ export function getRouter() {
     pathParamsAllowedCharacters: [",", ":", "@"],
   });
   // Dehydrates server-fetched queries into the page and hydrates them on the client (no refetch).
-  setupRouterSsrQueryIntegration({ router, queryClient });
+  // ...except the whole catalog (3.5 MB, CODE_REVIEW R-14): library pages carry their slice instead; others load it on the client
+  setupRouterSsrQueryIntegration({ router, queryClient, dehydrateOptions: { shouldDehydrateQuery: (q) => !isFullCatalogQuery(q.queryKey) } });
   return router;
 }
 

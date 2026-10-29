@@ -10,10 +10,12 @@ import { topicTocQueryOptions } from "~/lib/topics/topic-toc";
 import { entitySearchInfiniteOptions, entitySearchQueryOptions, formatEntityCount, type EntityType } from "~/lib/search/entity-search";
 import { buildBookFilterTree, buildFilterTree, SOURCE_SORTS, catalogOrder, countLabel, ENTITY_SORTS, type EntitySort, parseSearchParams, searchHref, searchResultsQueryOptions, searchTreeQueryOptions, toggleFilter, type FilterNode, type SearchParams, type SearchTab } from "~/lib/search/search-page";
 import { filteredTotal, mergeHits, scoreSefariaHits } from "~/lib/search/dicta";
+import { autocorrectQueryOptions, decideAutocorrect, NO_AUTOCORRECT, type TabCount } from "~/lib/search/autocorrect";
 import { highlightsOf, mergeTextResultsVersions, type SearchHit } from "~/lib/search/text-search";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
+import { VisuallyHidden } from "~/ui/VisuallyHidden/VisuallyHidden";
 import { NavPage } from "~/ui/NavPage/NavPage";
-import { EntityResults, ExactToggle, MobileFilterButton, MobileFilterPanel, NoResults, PanelSection, SearchError, SearchSkeleton, SearchBar, SearchFilters, SearchResultCard, SearchTabs, SortMenu, SortRadios } from "~/ui/SearchPage/SearchPage";
+import { AutocorrectBanner, EntityResults, ExactToggle, MobileFilterButton, MobileFilterPanel, NoResults, PanelSection, SearchError, SearchSkeleton, SearchBar, SearchFilters, SearchResultCard, SearchTabs, SortMenu, SortRadios } from "~/ui/SearchPage/SearchPage";
 import { toRouterLocation } from "../shared/RouterLink";
 import { searchFlow, tabLabel } from "~/lib/analytics";
 import { resultClickHandlers, useSearchFlowAnalytics } from "./use-search-analytics";
@@ -42,12 +44,15 @@ const ENTITY_TABS: Partial<Record<SearchTab, EntityType>> = { books: "book", aut
  * @feature SRC-085 Text filter panel (category/book tree)
  * @feature SRC-104 GA4 search funnel events
  * @feature SRC-106 Search result click analytics
+ * @feature SRC-111 Search auto-correction and suggestions
+ * @feature SRC-112 Auto-switch away from an empty tab
  */
 export function SearchRoute() {
   const raw = useSearch({ strict: false }) as Record<string, unknown>;
   const params = useMemo(() => parseSearchParams(raw), [raw]);
   const router = useRouter();
-  const go = (next: Partial<SearchParams>) => void router.navigate(toRouterLocation(searchHref({ ...params, ...next })) as never);
+  const go = (next: Partial<SearchParams>, opts: { replace?: boolean } = {}) =>
+    void router.navigate({ ...(toRouterLocation(searchHref({ ...params, ...next })) as object), replace: opts.replace } as never);
   const hasQuery = params.q.trim() !== "";
   // The phone layout below 985px wide (the old page's own switch), found after hydration; its panel closes with a tab change
   const mobile = useMediaQuery("(max-width: 985px)");
@@ -58,16 +63,31 @@ export function SearchRoute() {
   const order = useMemo(() => (catalog ? catalogOrder(catalog.tree) : new Map<string, number>()), [catalog]);
   const names = useMemo(() => (catalog ? hebrewCategoryNames(catalog.tree) : new Map<string, string>()), [catalog]);
 
-  const sources = useInfiniteQuery({ ...searchResultsQueryOptions(params), enabled: hasQuery });
-  const treeQ = useQuery({ ...searchTreeQueryOptions(params), enabled: hasQuery });
-  const entityCounts = useQueries({ queries: (["book", "author", "topic"] as EntityType[]).map((t) => ({ ...entitySearchQueryOptions(params.q, t), enabled: hasQuery })) });
+  // ── auto-correction (SRC-111): the query as typed is counted in every tab; a confident correction is searched only when it finds
+  // nothing anywhere. Until that is decided nothing is shown (master's ElasticSearchQuerier); the search box keeps the typed text.
+  const suggestionQ = useQuery({ ...autocorrectQueryOptions(params.q), enabled: hasQuery && !params.disableAutocorrect });
+  const typedSources = useInfiniteQuery({ ...searchResultsQueryOptions(params), enabled: hasQuery });
+  const typedEntities = useQueries({ queries: (["book", "author", "topic"] as EntityType[]).map((t) => ({ ...entitySearchQueryOptions(params.q, t), enabled: hasQuery })) });
+  const typedCount = (q: { data?: { total: number }; isError: boolean }): TabCount => (q.isError ? "error" : q.data?.total);
+  const typedSourcesCount: TabCount = typedSources.isError ? "error" : typedSources.data?.pages[0] ? typedSources.data.pages[0].total + (typedSources.data.pages[0].dicta?.total ?? 0) : undefined;
+  const decision = !hasQuery || params.disableAutocorrect
+    ? NO_AUTOCORRECT
+    : decideAutocorrect({ data: suggestionQ.data, error: suggestionQ.isError }, [typedSourcesCount, ...typedEntities.map((q) => typedCount({ data: q.data, isError: q.isError }))]);
+  const decided = !decision.pending;
+  const corrected = decision.pending ? null : decision.corrected;
+  const searchedQ = corrected ?? params.q;
+  const searched = useMemo(() => ({ ...params, q: searchedQ }), [params, searchedQ]);
+
+  const sources = useInfiniteQuery({ ...searchResultsQueryOptions(searched), enabled: hasQuery && decided });
+  const treeQ = useQuery({ ...searchTreeQueryOptions(searched), enabled: hasQuery && decided });
+  const entityCounts = useQueries({ queries: (["book", "author", "topic"] as EntityType[]).map((t) => ({ ...entitySearchQueryOptions(searchedQ, t), enabled: hasQuery && decided })) });
   const entityType = ENTITY_TABS[params.tab];
   // Sorting and the Books category filter live in the page, not the address (VERIFIED on sefaria.org: the URL does not change)
   const [entitySort, setEntitySort] = useState<Record<EntityType, EntitySort>>({ book: "relevance", author: "relevance", topic: "relevance" });
   const [bookFilters, setBookFilters] = useState<string[]>([]);
-  useEffect(() => { setEntitySort({ book: "relevance", author: "relevance", topic: "relevance" }); setBookFilters([]); }, [params.q]);
+  useEffect(() => { setEntitySort({ book: "relevance", author: "relevance", topic: "relevance" }); setBookFilters([]); }, [searchedQ]);
   const topicParents = useQuery({ ...topicTocQueryOptions(), enabled: entityType === "author" || entityType === "topic" }).data;
-  const entities = useInfiniteQuery({ ...entitySearchInfiniteOptions(params.q, entityType ?? "book", entityType ? entitySort[entityType] : "relevance", entityType === "book" ? bookFilters : []), enabled: hasQuery && !!entityType });
+  const entities = useInfiniteQuery({ ...entitySearchInfiniteOptions(searchedQ, entityType ?? "book", entityType ? entitySort[entityType] : "relevance", entityType === "book" ? bookFilters : []), enabled: hasQuery && decided && !!entityType });
   const bookTree = useMemo(() => (catalog ? buildBookFilterTree(catalog.tree, entityCounts[0]?.data?.categoryCounts, bookFilters) : []), [catalog, entityCounts[0]?.data, bookFilters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const tree = useMemo(() => (treeQ.data ? buildFilterTree(treeQ.data.buckets, params.filters, order, (c) => names.get(c) ?? c) : []), [treeQ.data, params.filters, order, names]);
@@ -111,8 +131,36 @@ export function SearchRoute() {
   const onTabClick = (t: SearchTab) => {
     // reported before the tab changes: `tab` is the one being left, element_value the destination
     if (t !== params.tab) searchFlow.elementClicked({ elementType: "tab", elementValue: tabLabel(t), count: rawCount(t) });
+    pickedTabFor.current = params.q;
     go({ tab: t });
   };
+
+  // ── auto-switch (SRC-112): when the tab on screen is empty, the first tab with results, once every earlier tab's count is in;
+  // decided once per (query, correction); never once the reader chose a tab for this query. Replaces the entry; not a tab click.
+  const pickedTabFor = useRef<string | null>(null);
+  const switchedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!hasQuery || !decided) return;
+    const key = `${params.q}\u0000${searchedQ}`;
+    if (pickedTabFor.current === params.q || switchedFor.current === key) return;
+    const count = (t: SearchTab): number | undefined => (t === "sources" ? first?.total : entityCounts[["books", "authors", "topics"].indexOf(t)]?.data?.total);
+    const here = count(params.tab);
+    if (here === undefined) return;
+    if (here > 0) {
+      switchedFor.current = key;
+      return;
+    }
+    for (const t of ["sources", "books", "authors", "topics"] as const) {
+      const c = count(t);
+      if (c === undefined) return; // wait for it
+      if (c > 0) {
+        switchedFor.current = key;
+        if (t !== params.tab) go({ tab: t }, { replace: true });
+        return;
+      }
+    }
+    switchedFor.current = key; // nothing anywhere: stay
+  });
   const onSourcesSort = (sort: SearchParams["sort"]) => {
     if (sort === params.sort) return;
     searchFlow.elementClicked({ elementType: "sort", elementValue: SOURCE_SORTS.find((o) => o.value === sort)?.en ?? sort });
@@ -159,10 +207,10 @@ export function SearchRoute() {
   if (!hasQuery) body = null;
   else if (entityType) {
     const list = entities.data?.pages.flatMap((p) => p.hits);
-    body = entities.isError && !list ? <SearchError onRetry={() => void entities.refetch()} /> : !list ? <p role="status" style={{ textAlign: "center" }}><InterfaceText en="Searching..." he="מבצע חיפוש..." /></p> : <EntityResults type={entityType} hits={list} topicParents={topicParents} itemProps={(h, i) => resultClickHandlers(h.title_en || h.title_he, i + 1)} empty={<NoResults tab={params.tab} query={params.q} />} />;
+    body = entities.isError && !list ? <SearchError onRetry={() => void entities.refetch()} /> : !list ? <p role="status" style={{ textAlign: "center" }}><InterfaceText en="Searching..." he="מבצע חיפוש..." /></p> : <EntityResults type={entityType} hits={list} topicParents={topicParents} itemProps={(h, i) => resultClickHandlers(h.title_en || h.title_he, i + 1)} empty={<NoResults tab={params.tab} query={searchedQ} />} />;
   } else if (sources.isError && !hits) body = <SearchError onRetry={() => void sources.refetch()} />;
   else if (!hits) body = null; // the skeleton below stands in while the first query runs
-  else if (!hits.length) body = <NoResults tab="sources" query={params.q} />;
+  else if (!hits.length) body = <NoResults tab="sources" query={searchedQ} />;
   else
     body = (
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 20 }} aria-label="Search results">
@@ -172,18 +220,30 @@ export function SearchRoute() {
       </ul>
     );
 
-  const skeleton = hasQuery && params.tab === "sources" && !hits && !sources.isError;
+  const skeleton = hasQuery && (!decided || (params.tab === "sources" && !hits && !sources.isError));
   return (
     <NavPage
       top={{ main: 64, side: 142 }}
       sidebar={
-        mobile ? undefined
+        // the filters need the catalog's order and names, which are not in the page (R-14): they appear once it is here
+        mobile || !catalog ? undefined
         : params.tab === "sources" && hasQuery && tree.length ? <SearchFilters tree={tree} applied={params.filters} onToggle={onToggle} />
         : params.tab === "books" && hasQuery && bookTree.length ? <SearchFilters tree={bookTree} applied={bookFilters} onToggle={onToggleBook} />
         : undefined
       }
     >
-      <SearchBar query={params.q} onSubmit={(q) => go({ q, filters: [] })} />
+      {/* the page's heading, for screen readers (sefaria.org shows none; the search box says it visually) */}
+      <VisuallyHidden as="h1">{hasQuery ? <InterfaceText en={`Search results for “${params.q}”`} he={`תוצאות חיפוש עבור ”${params.q}“`} /> : <InterfaceText en="Search" he="חיפוש" />}</VisuallyHidden>
+      <SearchBar query={params.q} onSubmit={(q) => go({ q, filters: [], disableAutocorrect: false })} />
+      {hasQuery ? (
+        <AutocorrectBanner
+          corrected={corrected}
+          original={params.q}
+          suggested={decision.pending ? null : decision.suggested}
+          onSearchOriginal={() => go({ disableAutocorrect: true })}
+          onSearch={(q) => go({ q, filters: [], disableAutocorrect: false })}
+        />
+      ) : null}
       {skeleton ? <SearchSkeleton /> : hasQuery ? (
         <>
           <SearchTabs mobile={mobile} active={params.tab} counts={counts} hrefFor={(t) => searchHref({ ...params, tab: t })} onTab={onTabClick} />

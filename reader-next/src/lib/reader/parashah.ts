@@ -36,3 +36,13 @@ export function parashahHeader(p: Pick<TextPassage, "categories" | "isDependant"
   }
   return null;
 }
+
+/**
+ * Whether a segment starts a Torah portion or one of its aliyot. A range URL that starts here is a portion or an aliyah (the
+ * book TOC's links, /Parashat_X): sefaria.org keeps such a range in the URL and highlights it, where a short arbitrary range
+ * (Genesis 1:3-5) collapses to its first verse (VERIFIED 2026-10-28, scratchpad probes).
+ */
+export function startsParashahOrAliyah(p: Pick<TextPassage, "categories" | "isDependant">, segment: Pick<Segment, "alt"> | undefined): boolean {
+  if (!segment?.alt || !showsParashahHeaders(p)) return false;
+  return !!segment.alt.aliyah_en || !!segment.alt.whole;
+}

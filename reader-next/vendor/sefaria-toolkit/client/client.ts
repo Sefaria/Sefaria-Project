@@ -9,7 +9,6 @@ import {
   createSefariaResponseCache,
   type SefariaCacheOptions,
 } from "./response-cache.js";
-import { validateResponse } from "./validation.js";
 
 export type { SefariaCacheOptions } from "./response-cache.js";
 
@@ -21,6 +20,11 @@ export interface SefariaClientOptions {
   readonly fetch?: typeof fetch;
   /** Bounded per-client response caching. Enabled with defaults when omitted. */
   readonly cache?: false | SefariaCacheOptions;
+  /**
+   * SEFARIA-READER EXTENSION: validate every response against the generated contracts (default true). The validators are zod schemas
+   * (~58 KB gzip); they are loaded only when validation is on, so a client that turns it off ships none of them.
+   */
+  readonly validate?: boolean;
 }
 
 const sefariaClientBrand: unique symbol = Symbol("SefariaClient");
@@ -46,6 +50,8 @@ export interface SefariaClient {
   readonly [sefariaClientBrand]: true;
   /** Removes all responses retained by this client. */
   readonly clearCache: () => void;
+  /** SEFARIA-READER EXTENSION: whether responses are validated against the generated contracts (SefariaClientOptions.validate). */
+  readonly validate: boolean;
   /**
    * Performs a validated GET request using fields-style responses.
    *
@@ -111,13 +117,17 @@ export function createSefariaClient(
   };
 
   const client = createClient(config);
+  const validate = options.validate !== false;
   client.interceptors.response.use(
     async (response, request, requestOptions) => {
-      await validateResponse({
-        method: request.method,
-        path: requestOptions.url,
-        response,
-      });
+      if (validate) {
+        const { validateResponse } = await import("./validation.js");
+        await validateResponse({
+          method: request.method,
+          path: requestOptions.url,
+          response,
+        });
+      }
       await responseCache?.admit(response, request, requestOptions.url);
       return response;
     },
@@ -131,6 +141,7 @@ export function createSefariaClient(
   const facade: SefariaClient = {
     [sefariaClientBrand]: true,
     clearCache: () => responseCache?.clear(),
+    validate,
     get: client.get,
     post: client.post,
   };

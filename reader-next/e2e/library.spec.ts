@@ -53,3 +53,15 @@ test.describe("library home on a phone", () => {
     expect(visible).toBe(1); // the sidebar's only
   });
 });
+
+// CODE_REVIEW R-14: the whole catalog (3.5 MB) was in the HTML of every library and search page
+test("library and search pages carry their slice of the catalog, not all of it", async ({ request, page }) => {
+  for (const [path, max] of [["/texts", 300_000], ["/texts/Tanakh/Torah", 400_000], ["/search?q=light&tab=text&search_tab=sources&tvar=1&tsort=relevance", 400_000]] as const) {
+    const html = await (await request.get(path)).text();
+    expect(html.length, path).toBeLessThan(max);
+  }
+  // the search filters arrive once the catalog is on the client
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page, "/search?q=light&tab=text&search_tab=sources&tvar=1&tsort=relevance");
+  await expect(page.getByRole("checkbox", { name: "Tanakh", exact: true })).toBeVisible({ timeout: 15_000 });
+});

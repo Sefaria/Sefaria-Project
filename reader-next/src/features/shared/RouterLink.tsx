@@ -4,16 +4,15 @@ import type { LinkProps } from "~/lib/ui-link";
 
 const isExternal = (href: string) => /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(href) || href.startsWith("mailto:");
 
-/** Static app routes; every other path is a ref and goes to the reader's splat route. */
-const STATIC_ROUTES = new Set(["/", "/login", "/register"]);
-
-/** Split an internal href ("/Genesis.1.1?with=all") into what the typed router needs. */
-export function toRouterLocation(href: string): { to: string; params?: { _splat: string }; search?: Record<string, string> } {
+/**
+ * Split an internal href ("/Genesis.1.1?with=all") into what the typed router needs. The path goes as it is written, encoded: given as
+ * the `$` route's splat param it would be encoded again (`%3F` → `%253F`), and a `/` inside a title (`%2F`, #3790) would become a real
+ * slash.
+ */
+export function toRouterLocation(href: string): { to: string; search?: Record<string, string> } {
   const url = new URL(href, "http://x");
   const search = Object.fromEntries(url.searchParams.entries());
-  const hasSearch = Object.keys(search).length > 0;
-  if (STATIC_ROUTES.has(url.pathname)) return { to: url.pathname, ...(hasSearch ? { search } : {}) };
-  return { to: "/$", params: { _splat: decodeURIComponent(url.pathname.slice(1)) }, ...(hasSearch ? { search } : {}) };
+  return { to: url.pathname, ...(Object.keys(search).length > 0 ? { search } : {}) };
 }
 
 /**
@@ -30,7 +29,7 @@ export const RouterLink = forwardRef<HTMLAnchorElement, LinkProps>(function Rout
   }
   const loc = toRouterLocation(href);
   return (
-    <TanstackLink ref={ref} to={loc.to as never} params={loc.params as never} search={loc.search as never} preload="intent" {...(rest as object)}>
+    <TanstackLink ref={ref} to={loc.to as never} search={loc.search as never} preload="intent" {...(rest as object)}>
       {children}
     </TanstackLink>
   );

@@ -9,6 +9,7 @@ import type { ReaderSettings } from "~/lib/reader/settings";
 import { cleanCopy } from "~/lib/reader/copy";
 import { spreadNumbers } from "~/lib/reader/spread-numbers";
 import type { TextPassage } from "~/lib/text/model";
+import type { Highlight } from "~/lib/text/plan";
 import type { SavedPosition } from "~/lib/reader/position-store";
 import { segmentsInRange, selectedText } from "~/lib/reader/selection";
 import { selectionKey, textQueryOptions, type VersionSelection } from "~/lib/text/queries";
@@ -27,6 +28,8 @@ export interface TextColumnProps {
   target?: string;
   /** Words a search matched, highlighted in the `target` segment (SRC-058). */
   terms?: readonly string[];
+  /** A verse range the URL keeps highlighted (a Torah portion or aliyah); may span sections. */
+  highlight?: Highlight | null;
   /** A segment the reader selected (clicked): becomes the focus without scrolling. */
   selected?: string;
   /** The reader selected words in the text (mouse up with a selection inside the column). */
@@ -65,8 +68,15 @@ export interface TextColumnProps {
  * @feature TXD-055 Visible-ref tracking drives URL and header
  * @feature TXD-056 Loading placeholders and book title header
  */
+/** Sections further than this many screens from the reader are let go (R-25). */
+const WINDOW_SCREENS = 3;
+/** Never fewer than this many sections in the column. */
+const MIN_SECTIONS_KEPT = 3;
+/** Trimming waits until the column has not scrolled for this long. */
+const SCROLL_IDLE_MS = 400;
+
 export function TextColumn(props: TextColumnProps) {
-  const { initial, versions, settings, target, terms, selected, showFocus, connectionsOnScreen, linkFilter = [], onSelectSegment, onRefClick, onEntityClick } = props;
+  const { initial, versions, settings, target, terms, highlight, selected, showFocus, connectionsOnScreen, linkFilter = [], onSelectSegment, onRefClick, onEntityClick } = props;
   // A text opened in a column (the old TextColumn.componentDidMount): select_content with its book and category (ANL-009)
   useEffect(() => {
     const p = initial[0];
@@ -103,24 +113,88 @@ export function TextColumn(props: TextColumnProps) {
     const el = contentRef.current?.querySelector(`[role="group"][data-ref="${CSS.escape(segmentRef)}"]`) ?? null;
     if (el === focusedEl.current) return;
     focusedEl.current?.removeAttribute("data-focused");
+    focusedEl.current?.removeAttribute("aria-current");
     el?.setAttribute("data-focused", "true");
+    // with the sidebar open the highlighted verse is the selected one: say so to assistive technology too (R-31)
+    if (showFocusRef.current) el?.setAttribute("aria-current", "true");
     focusedEl.current = el;
-  }, []);
+    moveTabStop(el as HTMLElement | null);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // One tab stop in the column: the verse being read (R-31). DOM attributes, like the focus highlight: no re-render per verse.
+  const tabStop = useRef<HTMLElement | null>(null);
+  const moveTabStop = (el: HTMLElement | null) => {
+    if (!el || el === tabStop.current) return;
+    if (tabStop.current?.isConnected) tabStop.current.tabIndex = -1;
+    el.tabIndex = 0;
+    tabStop.current = el;
+  };
+  const showFocusRef = useRef(showFocus);
+  showFocusRef.current = showFocus;
+  // until the reading position is known the first verse is the tab stop; and when its verse leaves the page (windowing trimmed its
+  // section, a version swap re-rendered it), the verse being read takes it, so the text never loses its only tab stop
+  useEffect(() => {
+    if (tabStop.current?.isConnected) return;
+    const reading = focusedEl.current?.isConnected ? (focusedEl.current as HTMLElement) : null;
+    moveTabStop(reading ?? contentRef.current?.querySelector<HTMLElement>('[role="group"][data-selectable="true"]') ?? null);
+  }); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (showFocus) focusedEl.current?.setAttribute("aria-current", "true");
+    else focusedEl.current?.removeAttribute("aria-current");
+  }, [showFocus]);
+  // Arrow keys move between verses (the tab stop goes with them); Enter or Space chooses the verse, as before.
+  const onSegmentKeys = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    const here = (e.target as HTMLElement).closest<HTMLElement>('[role="group"][data-selectable="true"]');
+    if (!here || here !== e.target) return;
+    const all = [...(contentRef.current?.querySelectorAll<HTMLElement>('[role="group"][data-selectable="true"]') ?? [])];
+    const next = all[all.indexOf(here) + (e.key === "ArrowDown" ? 1 : -1)];
+    if (!next) return;
+    e.preventDefault();
+    moveTabStop(next);
+    next.focus();
+  };
 
   // A different translation or source: swap every loaded section in place (the reader stays on their verse —
   // the engine keeps the current segment where it is while the text reflows). VER-003
   const versionKey = selectionKey(versions);
   const shownVersions = useRef(props.initialVersionsKey ?? versionKey);
+  // Each section is swapped as soon as it arrives, merged into the column as it is NOW (a section the reader scrolled to meanwhile,
+  // loaded in the new versions already, is kept); a section that fails keeps its text and the others still change (CODE_REVIEW
+  // R-26: all-or-nothing, nothing until the farthest section came back, a failure left the old text under the new version's name,
+  // and a section appended mid-swap was dropped by a snapshot).
   useEffect(() => {
     if (versionKey === shownVersions.current) return;
     let cancelled = false;
-    void Promise.all(sectionsRef.current.map((p) => qc.ensureQueryData(textQueryOptions(p.ref, versions)))).then((next) => {
-      if (cancelled) return; // a later choice (or a remount) takes over; it will retry
-      shownVersions.current = versionKey;
-      setSections(next);
+    shownVersions.current = versionKey;
+    const failed: string[] = [];
+    // what has arrived is committed once per frame, not once per section (one reflow, one anchor correction)
+    const arrived = new Map<string, TextPassage>();
+    let frame = 0;
+    const flush = () => {
+      frame = 0;
+      if (cancelled || !arrived.size) return;
+      const batch = new Map(arrived);
+      arrived.clear();
+      setSections((cur) => cur.map((x) => batch.get(x.ref) ?? x));
+    };
+    void Promise.allSettled(
+      sectionsRef.current.map((p) =>
+        qc.ensureQueryData(textQueryOptions(p.ref, versions)).then(
+          (next) => {
+            if (cancelled) return; // a later choice (or a remount) takes over
+            arrived.set(next.ref, next);
+            frame ||= requestAnimationFrame(flush);
+          },
+          (e) => void failed.push(`${p.ref}: ${e instanceof Error ? e.message : e}`),
+        ),
+      ),
+    ).then(() => {
+      if (!cancelled && failed.length) console.warn(`[reader] these sections could not change version and keep their text: ${failed.join("; ")}`);
     });
     return () => {
       cancelled = true;
+      if (frame) cancelAnimationFrame(frame);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [versionKey]);
@@ -203,6 +277,52 @@ export function TextColumn(props: TextColumnProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections]);
 
+  // Windowing (CODE_REVIEW R-25): the column used to keep every section it ever loaded, so a long reading session paid more on every
+  // scroll frame (segment lookups over the whole column), held every section's links, and refetched them all on a version change.
+  // After each load, sections more than WINDOW_SCREENS screens away go; scrolling back loads them again from the cache. Kept always:
+  // the section the reader is in, and the sections the page was loaded with (the panel compares its URL's sections with what the
+  // column holds; dropping those would make it restart the column). Removal above is not movement: the anchor engine keeps the
+  // reader's verse still, as it does when a section is added above.
+  const initialRefs = useMemo(() => new Set(initial.map((p) => p.ref)), [initial]);
+  const lastScrollAt = useRef(0);
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const mark = () => void (lastScrollAt.current = performance.now());
+    scroller.addEventListener("scroll", mark, { passive: true });
+    return () => scroller.removeEventListener("scroll", mark);
+  }, []);
+  const [trimTick, setTrimTick] = useState(0);
+  useEffect(() => {
+    if (sections.length <= MIN_SECTIONS_KEPT) return;
+    // not while the reader is still scrolling (a fling's momentum must not meet an anchor correction): look again once it is idle
+    const idleFor = performance.now() - lastScrollAt.current;
+    if (idleFor < SCROLL_IDLE_MS) {
+      const t = setTimeout(() => setTrimTick((n) => n + 1), SCROLL_IDLE_MS - idleFor + 20);
+      return () => clearTimeout(t);
+    }
+    const scroller = scrollerRef.current, content = contentRef.current;
+    if (!scroller || !content) return;
+    const view = scroller.getBoundingClientRect();
+    const reach = WINDOW_SCREENS * view.height;
+    const reading = focusRef.current ? passageOf(focusRef.current)?.ref : undefined;
+    const keep = (ref: string) => ref === reading || initialRefs.has(ref);
+    const box = (ref: string) => content.querySelector(`section[data-ref="${CSS.escape(ref)}"]`)?.getBoundingClientRect();
+    const drop = new Set<string>();
+    for (const p of sections) {
+      const b = box(p.ref);
+      if (!b || keep(p.ref) || b.bottom > view.top - reach) break;
+      drop.add(p.ref);
+    }
+    for (const p of [...sections].reverse()) {
+      const b = box(p.ref);
+      if (!b || keep(p.ref) || b.top < view.bottom + reach) break;
+      drop.add(p.ref);
+    }
+    if (drop.size && sections.length - drop.size >= MIN_SECTIONS_KEPT) setSections((prev) => prev.filter((p) => !drop.has(p.ref)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections, trimTick]);
+
   // Sections were added: put the reader back in the same task (before any paint), then look at the edges again.
   useLayoutEffect(() => {
     engine.restore();
@@ -223,12 +343,23 @@ export function TextColumn(props: TextColumnProps) {
   const filterKey = linkFilter.join("|");
   // One string, not a spread: the number of queries grows with the sections, and React's deps must keep their length.
   const linksUpdatedKey = linkQueries.map((q) => q.dataUpdatedAt).join(",");
+  // Counted per section and kept while that section's links and the filter are unchanged: a section added (or one section's links
+  // arriving) leaves every other section's counts — and so its rendered verses — untouched (CODE_REVIEW R-12)
+  const countsCache = useRef(new Map<string, { key: string; counts: Record<string, number> }>());
   const countsBySection = useMemo(() => {
     const out = new Map<string, Record<string, number>>();
+    const next = new Map<string, { key: string; counts: Record<string, number> }>();
     sections.forEach((p, i) => {
-      const links = linkQueries[i]?.data;
-      if (links) out.set(p.ref, linkCountsBySegment(links, filterKey ? filterKey.split("|") : [], makeIndexLookup(undefined, links)));
+      const q = linkQueries[i];
+      const links = q?.data;
+      if (!links) return;
+      const key = `${q.dataUpdatedAt}|${filterKey}`;
+      const hit = countsCache.current.get(p.ref);
+      const counts = hit && hit.key === key ? hit.counts : linkCountsBySegment(links, filterKey ? filterKey.split("|") : [], makeIndexLookup(undefined, links));
+      next.set(p.ref, { key, counts });
+      out.set(p.ref, counts);
     });
+    countsCache.current = next;
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections, filterKey, linksUpdatedKey]);
@@ -251,6 +382,7 @@ export function TextColumn(props: TextColumnProps) {
       <div
         ref={contentRef}
         className={styles.content}
+        onKeyDown={onSegmentKeys}
         onCopy={(e) => {
           const t = e.target as Element | null;
           if (t?.closest("input, textarea")) return;
@@ -297,6 +429,7 @@ export function TextColumn(props: TextColumnProps) {
             settings={settings}
             scrollTargetRef={target}
             terms={terms}
+            highlight={highlight}
             linkCounts={countsBySection.get(p.ref)}
             onSelectSegment={handleSelect}
             onRefClick={onRefClick}

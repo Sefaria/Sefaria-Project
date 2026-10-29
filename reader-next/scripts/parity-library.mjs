@@ -13,7 +13,7 @@ for (const path of paths) {
   await ours.goto(`http://localhost:3100${enc}`, { waitUntil: "domcontentloaded" }); await ours.waitForSelector("main h1", { timeout: 25000 }).catch(() => {});
   await live.waitForTimeout(2000); await ours.waitForTimeout(500);
   const a = sq(await live.locator(".readerNavMenu .contentInner").innerText().catch(() => ""));
-  const o = sq(await ours.locator("main > div > div:first-child").innerText().catch(() => ""));
+  const o = sq(await ours.locator("main > div > div:nth-child(2)").innerText().catch(() => ""));
   const sa = sq((await live.locator(".navSidebar").innerText().catch(() => "")).replace(/Live Webinar[\s\S]*?Register/, ""));
   const so = sq(await ours.locator("main aside").innerText().catch(() => ""));
   const mainSame = a === o, sideSame = sa === so;

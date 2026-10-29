@@ -45,7 +45,9 @@ export function serializeOpenTag(
 ): string {
   const serializedAttributes = Object.entries(attributes)
     .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
-    .map(([attribute, value]) => ` ${attribute}="${escapeAttribute(value)}"`)
+    // `<` and `>` escaped too (SEFARIA-READER EXTENSION, CODE_REVIEW R-02): a raw `>` in a value lets anything that scans the
+    // serialized HTML for tags (search-term highlighting) end the tag early and break out of the attribute
+    .map(([attribute, value]) => ` ${attribute}="${escapeAttribute(value).replace(/</g, "&lt;").replace(/>/g, "&gt;")}"`)
     .join("");
   return `<${name}${serializedAttributes}>`;
 }

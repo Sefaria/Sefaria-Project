@@ -92,6 +92,21 @@ describe("head scripts (templates/base.html)", () => {
     expect(s[1]!.src).toBe("https://www.googletagmanager.com/gtag/js?id=G-5S6RP1RFZ2");
     expect(s[2]!.children).toContain(`gtag('config',"G-5S6RP1RFZ2",{"user_id":null,"traffic_type":null,"site_lang":"english","site_version":"v7.2.3"})`);
   });
+  // CODE_REVIEW R-01: a second execution (a re-injected script) must not load GTM again or send another config (= page view)
+  it("the GTM and gtag snippets run once per document, however often they execute", () => {
+    const w = window as unknown as Record<string, unknown> & { dataLayer?: unknown[] };
+    delete window.gtag;
+    delete w.dataLayer;
+    delete w.__sefariaGtm;
+    delete w.__sefariaGtag;
+    const inline = analyticsHeadScripts({ ...OFF, gtm: "GTM-X", gtag: "G-1" }, "english").filter((x) => x.children);
+    document.head.appendChild(document.createElement("script")); // GTM inserts itself before the page's first script
+    const before = document.querySelectorAll("script[src*='gtm.js']").length;
+    for (let n = 0; n < 3; n++) for (const x of inline) new Function(x.children!)();
+    const configs = (w.dataLayer ?? []).filter((e) => Array.from(e as ArrayLike<unknown>)[0] === "config");
+    expect(configs).toHaveLength(1);
+    expect(document.querySelectorAll("script[src*='gtm.js']").length - before).toBe(1);
+  });
   it("Simple Analytics: queue stub in the head, metadata then the script with DNT collection", () => {
     const cfg = { ...OFF, simpleAnalyticsHost: "sefaria.org" };
     expect(analyticsHeadScripts(cfg, "english")[0]!.children).toContain("window.sa_event.q");
@@ -110,5 +125,21 @@ describe("copy events (ReaderApp.handleGACopyEvents)", () => {
   it("no book: only copy_text", () => {
     copyEvents({ ...p, book: null }, { en: 2, he: 2 });
     expect(analyticsLog.map((e) => e.name)).toEqual(["copy_text"]);
+  });
+});
+
+describe("the signed-in user after load", () => {
+  it("is set on the GA4 stream with gtag('set'), never a second config (which would send a second page_view)", async () => {
+    const { PUBLIC_CONFIG } = await import("~/lib/config");
+    const { setAnalyticsUser } = await import("./session");
+    const was = PUBLIC_CONFIG.analytics.gtag;
+    (PUBLIC_CONFIG.analytics as { gtag: string | null }).gtag = "G-TEST";
+    try {
+      setAnalyticsUser({ uid: 7, email: "x@sefaria.org" }, "english");
+      expect(window.gtag).toHaveBeenCalledWith("set", expect.objectContaining({ user_id: 7, traffic_type: "sefariaemail", site_lang: "english" }));
+      expect(window.gtag).not.toHaveBeenCalledWith("config", expect.anything(), expect.anything());
+    } finally {
+      (PUBLIC_CONFIG.analytics as { gtag: string | null }).gtag = was;
+    }
   });
 });

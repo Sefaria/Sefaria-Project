@@ -35,37 +35,37 @@ afterEach(() => {
 
 describe("credential callback (the reader picked an account)", () => {
   it("fires flow_started / method_chosen / process_started before the request answers", () => {
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", () => new Promise(() => {})));
+    server.use(http.post("*/api/auth/google/callback", () => new Promise(() => {})));
     mount();
     flush();
     act(() => void credential()({ credential: "tok" }));
-    expect(a.fireFlowStarted).toHaveBeenCalledWith("id-1", "one_tap");
+    expect(a.fireFlowStarted).toHaveBeenCalledWith("id-1", "one_tap_widget", "one_tap_login");
     expect(a.fireMethodChosen).toHaveBeenCalledWith("id-1", "id-2", "google_one_tap");
     expect(a.fireProcessStarted).toHaveBeenCalledWith("id-1", "id-2");
     expect(a.fireProcessEnded).not.toHaveBeenCalled();
   });
   it("success: process and flow end as success, then the page reloads", async () => {
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", () => HttpResponse.json({})));
+    server.use(http.post("*/api/auth/google/callback", () => HttpResponse.json({})));
     mount();
     flush();
     await act(async () => credential()({ credential: "tok" }));
-    expect(a.fireProcessEnded).toHaveBeenCalledWith("id-1", "id-2", "success", null);
-    expect(a.fireFlowEnded).toHaveBeenCalledWith("id-1", "success", null);
+    expect(a.fireProcessEnded).toHaveBeenCalledWith("id-1", "id-2", "success", null, null);
+    expect(a.fireFlowEnded).toHaveBeenCalledWith("id-1", "success", null, null);
     expect(reload).toHaveBeenCalled();
   });
   it("refused: failure with the server's error", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", () => HttpResponse.json({ error: "invalid_token" }, { status: 400 })));
+    server.use(http.post("*/api/auth/google/callback", () => HttpResponse.json({ error: "invalid_token" }, { status: 400 })));
     mount();
     flush();
     await act(async () => credential()({ credential: "tok" }));
-    expect(a.fireProcessEnded).toHaveBeenCalledWith("id-1", "id-2", "failure", "invalid_token");
-    expect(a.fireFlowEnded).toHaveBeenCalledWith("id-1", "failure", "invalid_token");
+    expect(a.fireProcessEnded).toHaveBeenCalledWith("id-1", "id-2", "failure", "invalid_token", null);
+    expect(a.fireFlowEnded).toHaveBeenCalledWith("id-1", "failure", "invalid_token", null);
     expect(reload).not.toHaveBeenCalled();
   });
   it("network failure: network_error", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", () => HttpResponse.error()));
+    server.use(http.post("*/api/auth/google/callback", () => HttpResponse.error()));
     mount();
     flush();
     await act(async () => credential()({ credential: "tok" }));

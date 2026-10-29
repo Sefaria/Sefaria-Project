@@ -30,6 +30,11 @@ export interface AsideState {
 
 interface PanelBase {
   id: PanelId;
+  /**
+   * Stable identity for React (CODE_REVIEW R-24, decision D7): ids follow position, so closing panel 1 would hand its component (scroll,
+   * selection) to the panel that takes its place. The key survives every operation; it lives in history state, never in the URL.
+   */
+  key?: string;
   asides: AsideState[];
   /** How the side panels are arranged among themselves. Absent: one column, in order. */
   asideLayout?: LayoutNode<AsideId>;

@@ -5,12 +5,12 @@ import { DEFAULT_SETTINGS, displayMenuAvailability, type ReaderSettings } from "
 import { DisplaySettingsMenu } from "./DisplaySettingsMenu";
 
 const HE = "בְּרֵאשִׁ֖ית";
-function setup(over: Partial<ReaderSettings> = {}, ctx: Partial<Parameters<typeof displayMenuAvailability>[0]> = {}, layoutKey: "layoutTanakh" | "layoutTalmud" | "layoutDefault" = "layoutTanakh") {
+function setup(over: Partial<ReaderSettings> = {}, ctx: Partial<Parameters<typeof displayMenuAvailability>[0]> = {}, layoutKey: "layoutTanakh" | "layoutTalmud" | "layoutDefault" = "layoutTanakh", directions?: { primary?: "rtl" | "ltr"; translation?: "rtl" | "ltr" }) {
   const settings = { ...DEFAULT_SETTINGS, ...over };
   const onChange = vi.fn();
   const availability = displayMenuAvailability({ settings, showsSource: true, primaryCategory: "Tanakh", book: "Genesis", hebrewSample: HE, ...ctx });
-  render(<DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKey} onChange={onChange} />);
-  return { onChange };
+  const { unmount } = render(<DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKey} onChange={onChange} directions={directions} />);
+  return { onChange, unmount };
 }
 
 // @feature SHL-017 @feature TXD-041 @feature SHL-020
@@ -30,19 +30,28 @@ describe("DisplaySettingsMenu: language", () => {
 describe("DisplaySettingsMenu: layout", () => {
   it("offers stacked / side-by-side layouts when bilingual and writes biLayout", async () => {
     const { onChange } = setup({ language: "bilingual" });
-    expect(screen.getByRole("radio", { name: "Stacked" })).toBeChecked();
-    await userEvent.click(screen.getByRole("radio", { name: "Hebrew on the right" }));
+    expect(screen.getByRole("radio", { name: "Show Source & Translation Stacked" })).toBeChecked();
+    await userEvent.click(screen.getByRole("radio", { name: "Show RTL Text Right of LTR Text" }));
     expect(onChange).toHaveBeenCalledWith({ biLayout: "heRight" });
+  });
+  it("draws the old layout icons for the texts' directions, and two options when both texts read one way", () => {
+    const { unmount } = setup({ language: "bilingual" });
+    const icon = (name: string) => screen.getByRole("radio", { name }).querySelector("span")?.getAttribute("style") ?? "";
+    expect(icon("Show RTL Text Left of LTR Text")).toContain("/icons/mixed-beside-rtlltr.svg");
+    expect(icon("Show RTL Text Right of LTR Text")).toContain("/icons/mixed-beside-ltrrtl.svg");
+    unmount();
+    setup({ language: "bilingual" }, {}, "layoutTanakh", { primary: "rtl", translation: "rtl" });
+    expect(screen.getAllByRole("radio", { name: /^Show (RTL|Source)/ }).map((r) => r.getAttribute("aria-label"))).toEqual(["Show Source & Translation Stacked", "Show RTL Text Right of LTR Text"]);
   });
   it("offers segmented / continuous for a single language and writes the book's own key", async () => {
     const { onChange } = setup({ language: "hebrew" }, { primaryCategory: "Talmud", book: "Berakhot" }, "layoutTalmud");
-    expect(screen.getByRole("radio", { name: "Continuous" })).toBeChecked();
-    await userEvent.click(screen.getByRole("radio", { name: "Verse by verse" }));
+    expect(screen.getByRole("radio", { name: "Show Text as a Paragraph" })).toBeChecked();
+    await userEvent.click(screen.getByRole("radio", { name: "Show Text Segmented" }));
     expect(onChange).toHaveBeenCalledWith({ layoutTalmud: "segmented" });
   });
   it("hides layout on narrow bilingual panels", () => {
     setup({ language: "bilingual" }, { panelWidth: 500 });
-    expect(screen.queryByRole("radiogroup", { name: "Layout" })).toBeNull();
+    expect(screen.queryByRole("radiogroup", { name: "text layout toggle" })).toBeNull();
   });
 });
 
@@ -115,7 +124,7 @@ describe("DisplaySettingsMenu: side panel", () => {
   it("offers only the language control", () => {
     setup({}, { inSidebar: true });
     expect(screen.getByRole("radiogroup", { name: "Source-translation toggle" })).toBeInTheDocument();
-    expect(screen.queryByRole("radiogroup", { name: "Layout" })).toBeNull();
+    expect(screen.queryByRole("radiogroup", { name: "text layout toggle" })).toBeNull();
     expect(screen.queryByRole("region", { name: "Font size" })).toBeNull();
     expect(screen.queryByRole("switch")).toBeNull();
   });

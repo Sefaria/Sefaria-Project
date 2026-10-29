@@ -4,7 +4,7 @@ import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, use
 import { leaf, split, type LayoutNode } from "~/lib/layout/tree";
 import { formatWith, parseWith, type ConnectionsView } from "~/lib/connections/url";
 import { displayMenuAvailability, hasNikud, layoutKeyFor, type ReaderSettings } from "~/lib/reader/settings";
-import { headerLabels } from "~/lib/reader/header";
+import { headerLabels, narrowToVerses } from "~/lib/reader/header";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { applySearchToSettings, languageToParam } from "~/lib/reader/url-state";
 import type { TextPassage, VersionMeta } from "~/lib/text/model";
@@ -12,11 +12,13 @@ import { shouldActivateLookup } from "~/lib/lexicon/lookup";
 import { highlightsOf, type SearchHit } from "~/lib/search/text-search";
 import { versionKey, type TranslationVersion } from "~/lib/versions/translations";
 import { isHighlighted } from "~/lib/text/plan";
+import { startsParashahOrAliyah } from "~/lib/reader/parashah";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
 import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
 import { IconButton } from "~/ui/IconButton/IconButton";
+import { CloseTextButton, DisplayOptionsButton, SaveTextButton } from "~/ui/ReaderControls/ReaderControls";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { PanelHeader } from "~/ui/PanelHeader/PanelHeader";
 import { Popover } from "~/ui/Popover/Popover";
@@ -31,11 +33,14 @@ import { rememberTranslation } from "~/lib/versions/prefs-source";
 import { entryKey, navFor, readNavState, useWorkspaceNav, type NavState } from "../workspace/navigation";
 import { panelForRef } from "../workspace/open-ref";
 import { toRouterLocation } from "../shared/RouterLink";
+// Not a lazy chunk (tried for CODE_REVIEW R-15): a server-rendered sidebar whose chunk was still loading at hydration left a Suspense
+// boundary that React later hid, unmounting query observers mid-fetch; the cancelled fetch surfaced as a "CancelledError" page (seen
+// on /Genesis.1.3-5?with=all). Split it with the route manifest, where the router loads a page's chunks before it hydrates.
 import { ConnectionsPane } from "./ConnectionsPane";
 import styles from "./TextPanel.module.css";
 import { setMobileMenuOpen } from "../shell/mobile-menu";
 import { SignUpModal } from "~/ui/SignUpModal/SignUpModal";
-import type { ReaderRouteData } from "./reader-route";
+import { shownVersions as panelVersionsShown, type ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
 import { SETTLE_MS } from "./use-reading-scroll";
 import { TextColumn } from "./TextColumn";
@@ -43,6 +48,7 @@ import { readerAnalytics } from "~/lib/analytics";
 import { useViewer } from "~/features/auth/viewer";
 import { legacyVersions } from "~/lib/user/history";
 import { useReaderHistory, useSaved, type PanelPlace } from "./use-reader-history";
+import { dirFor } from "~/lib/i18n/direction";
 
 export interface TextPanelProps {
   panel: TextPanelState;
@@ -80,11 +86,15 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [saveAsked, setSaveAsked] = useState(false);
   const id = panel.id;
-  // The URL's versions when it names any, else what the loader resolved from the reader's preferences (VER-014).
-  const versions = panel.versions.translation || panel.versions.primary ? panel.versions : data.versions;
+  // What the loader resolved (the URL plus the reader's preferences, VER-014), unless the URL has since named other versions.
+  const versions = panelVersionsShown(panel.versions, data);
   // In the versions the loader loaded: when the URL names new ones the column swaps them in itself, so the
   // panel never suspends (no loading flash) and never loses the reader's place.
-  const initial = useSuspenseQueries({ queries: data.sectionRefs.map((r) => textQueryOptions(r, data.versions)) }).map((q) => q.data);
+  // one array per change of the data, not per render: a new array each render made every memo below recompute and
+  // useDeferredValue schedule an extra render (CODE_REVIEW R-12)
+  const initialQueries = useSuspenseQueries({ queries: data.sectionRefs.map((r) => textQueryOptions(r, data.versions)) });
+  const initialKey = initialQueries.map((q) => q.dataUpdatedAt).join(",");
+  const initial = useMemo(() => initialQueries.map((q) => q.data), [initialKey, data.sectionRefs.join("|"), selectionKey(data.versions)]); // eslint-disable-line react-hooks/exhaustive-deps
   // A text with nothing in Hebrew (an English-original work, no source version) cannot be shown "Hebrew only": the old
   // reader turns the panel bilingual (VERIFIED: Philo, Teshuvot haRashba with lang=he → lang=bi, English text, Latin numerals).
   const first = initial[0];
@@ -99,17 +109,24 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   /** Apply an operation to the workspace as it is now, and go there. */
   const apply = useCallback(
-    (op: (ws: Workspace) => Workspace, opts: { replace?: boolean; state?: NavState } = {}) => nav.go(op(nav.current()), opts),
-    [nav],
+    (op: (ws: Workspace) => Workspace, opts: { replace?: boolean; state?: NavState } = {}) => {
+      const ws = nav.current();
+      // a panel acts only while it is open: an update that arrives after it closed (a reading position settling) must not reopen it
+      // or navigate elsewhere
+      if (!ws.panels[id]) return Promise.resolve();
+      return nav.go(op(ws), opts);
+    },
+    [nav, id],
   );
 
   // ── which navigation is this, for this panel? ──────────────────────────────────────────────────────
   const navState = navFor(readNavState(location.state), id);
   const kind = navState.kind;
-  const urlSegments = useMemo(() => {
-    const p = initial[0]!;
-    return data.highlight ? p.segments.filter((s) => isHighlighted(s.address, data.highlight!, p.addressTypes)).map((s) => s.ref) : [];
-  }, [initial, data.highlight]);
+  // across every section the URL's range spans (one comment in chapter 1 and one in chapter 2 is still a range)
+  const urlSegments = useMemo(
+    () => (data.highlight ? initial.flatMap((p) => p.segments.filter((s) => isHighlighted(s.address, data.highlight!, p.addressTypes)).map((s) => s.ref)) : []),
+    [initial, data.highlight],
+  );
 
   // The column keeps its sections across navigations that don't move this panel; a real navigation to other
   // sections starts a new column, and a real navigation within them scrolls to the linked verse.
@@ -174,9 +191,14 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [apply, id],
   );
 
-  // A range URL ("Genesis 1:3-5") collapses to its first verse once the column settles, as in the old reader
-  // (verified on sefaria.org: the range is never highlighted as a whole, even with the sidebar open).
-  const isRangeArrival = (kind === undefined || kind === "go") && urlSegments.length > 1;
+  // A range URL ("Genesis 1:3-5") collapses to its first verse once the column settles, as in the old reader. A Torah
+  // portion or aliyah range (the book TOC's links, /Parashat_X) stays in the URL and highlighted, as sefaria.org keeps it.
+  const keepsRange = useMemo(() => {
+    const p = initial[0]!;
+    return startsParashahOrAliyah(p, p.segments.find((s) => s.ref === urlSegments[0]));
+  }, [initial, urlSegments]);
+  const isRangeArrival = (kind === undefined || kind === "go") && urlSegments.length > 1 && !keepsRange;
+  const rangeHighlight = keepsRange && urlSegments.length > 1 ? data.highlight : null;
   useEffect(() => {
     if (!isRangeArrival) return;
     const t = setTimeout(() => onSettled(urlSegments[0]!), SETTLE_MS);
@@ -192,14 +214,18 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     if (urlSegments.length) return urlSegments;
     return section.segments.map((s) => s.ref); // a section-level URL selects the whole section
   }, [selection, urlSegments, section]);
-  // Keep the sidebar from competing with scrolling: it catches up when the main thread is free.
-  const deferredRefs = useDeferredValue(selectedRefs);
+  // Keep the sidebar from competing with scrolling: it catches up when the main thread is free. The verses and the section they
+  // were chosen in are deferred together: deferring the verses alone looked the last chapter's verses up in the next chapter's
+  // links at a chapter boundary, and the sidebar said "no connections" for a moment (CODE_REVIEW low).
+  const sidebarInput = useMemo(() => ({ refs: selectedRefs, section }), [selectedRefs, section]);
+  const deferredInput = useDeferredValue(sidebarInput);
+  const deferredRefs = deferredInput.refs;
   const sidebarSectionRef = useMemo(() => {
     const ref = deferredRefs[0];
-    const p = ref ? [section, ...initial].find((x) => x.segments.some((s) => s.ref === ref)) : undefined;
-    return (p ?? section).ref;
-  }, [deferredRefs, section, initial]);
-  const sidebarSection = [section, ...initial].find((p) => p.ref === sidebarSectionRef) ?? section;
+    const p = ref ? [deferredInput.section, section, ...initial].find((x) => x.segments.some((s) => s.ref === ref)) : undefined;
+    return (p ?? deferredInput.section).ref;
+  }, [deferredRefs, deferredInput.section, section, initial]);
+  const sidebarSection = [deferredInput.section, section, ...initial].find((p) => p.ref === sidebarSectionRef) ?? deferredInput.section;
   const sidebarRef = deferredRefs.length === 1 ? deferredRefs[0]! : data.ref;
 
   /** The address of a sidebar view of this panel (a real link: it can be opened in a new tab). */
@@ -211,7 +237,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const goSidebarView = useCallback(
     (href: string) => {
       const loc = toRouterLocation(href);
-      void router.navigate({ to: loc.to as never, params: loc.params as never, search: loc.search as never, resetScroll: false, state: { nav: "stay", panel: id } as never });
+      void router.navigate({ to: loc.to as never, search: loc.search as never, resetScroll: false, state: { nav: "stay", panel: id } as never });
     },
     [router, id],
   );
@@ -352,11 +378,6 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [apply, id],
   );
 
-  // Continue Reading on the book page resumes from here (BOK-003)
-  useEffect(() => {
-    if (current.ref) rememberPlace(current.passage.indexTitle, current.ref);
-  }, [current.ref, current.passage.indexTitle]);
-
   // A highlighted name in the text opens the Lexicon sidebar on who or what it is (CON-045, TXD-022). The segment it stands
   // in becomes the selection; the sidebar then belongs to this panel. Plain clicks only (a modified click opens the topic
   // page, which is the link's address).
@@ -459,6 +480,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   // ── signed-in: reading history and Save (USL-010, USL-011) ──────────────────────────────────────────────
   const viewer = useViewer();
+  // Continue Reading on the book page resumes from here (BOK-003), for this reader only (R-29)
+  const viewerId = viewer?.id ?? null;
+  useEffect(() => {
+    if (current.ref) rememberPlace(current.passage.indexTitle, current.ref, viewerId);
+  }, [current.ref, current.passage.indexTitle, viewerId]);
   const place: PanelPlace | null = useMemo(() => {
     // the old getHistoryObject: the chosen verse while the sidebar is open, else the section being read
     const chosen = view && deferredRefs.length && deferredRefs.length < sidebarSection.segments.length ? deferredRefs[0]! : null;
@@ -472,10 +498,15 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   }, [view, deferredRefs, sidebarSection, section.sectionRef, section.heSectionRef, section.indexTitle, panel.versions, settings.language]);
   useReaderHistory(viewer, place, Boolean(view));
   const save = useSaved(viewer, place, () => setSaveAsked(true));
-  const header = headerLabels({
+  // a kept Torah portion / aliyah range names its verses in this section, as the old header does
+  const rangeVerses = useMemo(
+    () => (rangeHighlight ? section.segments.filter((s) => isHighlighted(s.address, rangeHighlight, section.addressTypes)).map((s) => Number(s.address[s.address.length - 1])).filter(Number.isFinite) : []),
+    [rangeHighlight, section],
+  );
+  const header = headerLabels(narrowToVerses({
     sectionRef: section.sectionRef, heSectionRef: section.heSectionRef, categories: section.categories,
     translationVersion: section.translationVersion, primaryVersion: section.primaryVersion, language: settings.language, interfaceLang,
-  });
+  }, rangeVerses));
   const shownVersions = { he: sidebarSection.primaryVersion?.versionTitle, en: sidebarSection.translationVersion?.versionTitle };
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -495,22 +526,21 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         subtitle={
           header.attribution || header.version ? (
             <>
-              {header.attribution ? <span lang={header.lang}>{header.attribution.text}</span> : null}
+              {header.attribution ? <span lang={header.lang} dir={dirFor(header.lang)}>{header.attribution.text}</span> : null}
               {header.version ? <span>{header.version}</span> : null}
             </>
           ) : undefined
         }
         start={
           <>
-            <span className={styles.notPhone}><IconButton icon="close" label={alone ? "Back to the library" : "Close this text"} onClick={closePanel} /></span>
+            <span className={styles.notPhone}><CloseTextButton label={alone ? "Back to the library" : "Close this text"} onClick={closePanel} /></span>
             <span className={styles.onlyPhone}><IconButton icon="menu" label="Menu" onClick={() => setMobileMenuOpen(true)} /></span>
           </>
         }
         end={
           <>
-          <IconButton
-            icon="bookmark"
-            pressed={viewer ? save.isSaved : undefined}
+          <SaveTextButton
+            saved={viewer ? save.isSaved : undefined}
             label={save.isSaved ? `Remove "${place?.ref ?? section.ref}"` : `Save "${place?.ref ?? section.ref}"`}
             onClick={save.click}
           />
@@ -519,9 +549,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
             onOpenChange={setMenuOpen}
             label="Text display options"
             flush
-            trigger={(p) => <IconButton {...p} icon="font-size" label="Text display options" />}
+            panelClassName={styles.displayMenu}
+            trigger={(p) => <DisplayOptionsButton {...p} label="Text display options" />}
           >
-            <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} />
+            <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} directions={{ primary: section.primaryVersion?.direction, translation: section.translationVersion?.direction }} />
           </Popover>
           </>
         }
@@ -547,6 +578,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         onSections={onSections}
         settings={settings}
         target={entry.current.target}
+        highlight={rangeHighlight}
         terms={navState.mine && navState.kind === "go" ? readNavState(location.state).terms : undefined}
         selected={selected}
         showFocus={Boolean(view)}
@@ -568,7 +600,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       className={styles.panel}
       data-panel-id={id}
       data-has-aside={view ? "true" : "false"}
-      aria-label={section.sectionRef}
+      // a name of its own: the sections inside are regions named by their refs, and two landmarks may not share a name
+      aria-label={interfaceLang === "hebrew" ? `חלון קריאה: ${section.heSectionRef}` : `Reading panel: ${section.sectionRef}`}
       // Escape inside a panel closes it (SHL-071) — unless something inside already used the key (a menu, a dialog, a box)
       onKeyDown={(e) => {
         if (e.key !== "Escape" || e.defaultPrevented || e.isPropagationStopped()) return;

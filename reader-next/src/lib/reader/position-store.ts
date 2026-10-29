@@ -45,6 +45,27 @@ export class PositionStore {
     this.entries.delete(key); // re-insert: most recently written last
     this.entries.set(key, positions);
     while (this.entries.size > this.max) this.entries.delete(this.entries.keys().next().value as string);
+    this.schedule();
+  }
+
+  // The trail is written to storage once things are quiet, and when the page goes away (CODE_REVIEW R-29: every scroll pause
+  // serialised all 80 entries, twice); reads come from memory, so a late write loses nothing.
+  private timer: ReturnType<typeof setTimeout> | undefined;
+  private listening = false;
+  private schedule(): void {
+    if (!this.storage) return;
+    if (!this.listening && typeof window !== "undefined") {
+      this.listening = true;
+      window.addEventListener("pagehide", () => this.flush());
+    }
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.flush(), 1000);
+  }
+
+  /** Write the trail to storage now. */
+  flush(): void {
+    clearTimeout(this.timer);
+    this.timer = undefined;
     try {
       this.storage?.setItem(STORAGE_KEY, JSON.stringify([...this.entries]));
     } catch {

@@ -7,8 +7,13 @@ storybook-static
 *.log
 .DS_Store
 coverage
-src/routeTree.gen.ts
 test-results
 playwright-report
 debug-storybook.log
 docs/features/build/
+
+# e2e API recordings (scripts/api-cassette.mjs): restored from the CI cache, recorded on a fresh checkout
+e2e/.cassette/
+
+# parity screenshots (scripts/parity-*.mjs): regenerate locally, never commit new ones
+docs/parity/*.png

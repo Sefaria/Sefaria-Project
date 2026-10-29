@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFixture } from "../../../test/msw/fixtures";
 import { buildCatalog, type TocNode } from "~/lib/catalog/toc";
 import { dedupeLinks, filterLinks, linkCount, linksForRefs, makeIndexLookup, sortLinks, type RelatedLink } from "./links";
-import { categoryView, essaysFor, linkSummary, sortBooks, topLevelSummary, type BookSummary } from "./summary";
+import { categoryView, essaysFor, linkSummary, sortBooks, tocDescription, topLevelSummary, type BookSummary } from "./summary";
 
 const catalog = buildCatalog(readFixture<TocNode[]>("_toc/toc.json"));
 // /api/links/<section>?with_text=0: the data the reader loads for connections (fixture is truncated by the recorder).
@@ -159,6 +159,21 @@ describe("topLevelSummary", () => {
 });
 
 // @feature CON-025
+// @feature CON-025 VERIFIED on sefaria.org (Mishnah Peah 4:1, with=Commentary ConnectionsList): every commentator has a description
+describe("tocDescription (a book's description from its TOC category)", () => {
+  const cats = (title: string) => catalog.books.get(title)?.categories ?? [];
+  it("takes a commentary's description from the category named after it (Mishnah › Rishonim on Mishnah › Bartenura)", () => {
+    expect(tocDescription(catalog, "Bartenura", cats("Bartenura on Mishnah Peah")).en).toMatch(/^16th-century commentary printed in most editions of the Mishnah/);
+  });
+  it("answers a full title by its collective name (Ramban on Exodus → the Ramban category)", () => {
+    expect(tocDescription(catalog, "Ramban on Exodus", cats("Ramban on Exodus")).en).toMatch(/^13th-century commentary/);
+  });
+  it("feeds linkSummary when the index itself has no description", () => {
+    const [c] = linkSummary([link({ index_title: "Bartenura on Mishnah Peah", collectiveTitle: { en: "Bartenura", he: "ברטנורא" } })], { catalog, baseCategory: "Mishnah" });
+    expect(c!.books[0]!.enShortDesc).toMatch(/^16th-century/);
+  });
+});
+
 describe("categoryView", () => {
   const s = [{ category: "Commentary", count: 5, hasEnglish: true, books: [] }, { category: "Quoting Commentary", count: 2, hasEnglish: false, books: [] }, { category: "Talmud", count: 3, hasEnglish: false, books: [] }];
   it("Commentary shows quoting commentary too, commentary first", () => expect(categoryView(s, "Commentary").map((c) => c.category)).toEqual(["Commentary", "Quoting Commentary"]));

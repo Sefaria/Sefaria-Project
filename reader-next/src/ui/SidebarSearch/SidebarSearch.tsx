@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent, type ReactNode } from "react";
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { MAX_QUERY_LENGTH, snippetOf, type MergedHit, type SearchHit } from "~/lib/search/text-search";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -8,6 +8,7 @@ import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
 import { categoryColor } from "../tokens/category-color";
 import styles from "./SidebarSearch.module.css";
+import { LangText } from "../LangText/LangText";
 
 export interface SidebarSearchProps {
   /** The query that was run (the box starts with it). */
@@ -24,6 +25,8 @@ export interface SidebarSearchProps {
   hrefFor: (hit: SearchHit) => string;
   onOpen: (hit: SearchHit, event: MouseEvent) => void;
   error?: boolean;
+  /** Under the box: the auto-correction or "Did you mean" banner (SRC-111). */
+  banner?: ReactNode;
 }
 
 /**
@@ -34,7 +37,7 @@ export interface SidebarSearchProps {
  * @feature SRC-094 Search in this text (sidebar)
  * @feature SRC-096 Sidebar search result display and click
  */
-export function SidebarSearch({ query = "", onSearch, results, loading, loadingMore, hasMore, onLoadMore, hrefFor, onOpen, error }: SidebarSearchProps) {
+export function SidebarSearch({ query = "", onSearch, results, loading, loadingMore, hasMore, onLoadMore, hrefFor, onOpen, error, banner }: SidebarSearchProps) {
   const hebrew = useInterfaceLang() === "hebrew";
   const id = useId();
   const [value, setValue] = useState(query);
@@ -65,6 +68,7 @@ export function SidebarSearch({ query = "", onSearch, results, loading, loadingM
         <input ref={input} id={id} type="search" value={value} maxLength={MAX_QUERY_LENGTH} onChange={(e) => setValue(e.target.value)} onFocus={() => setFocused(true)} onBlur={(e) => !e.currentTarget.form?.contains(e.relatedTarget as Node) && setFocused(false)} placeholder={label} aria-label={label} title={label} dir="auto" />
         {!hebrew ? <KeyboardLauncher inputRef={input} value={value} onChange={setValue} onEnter={() => submit()} focused={focused} /> : null}
       </form>
+      {banner}
       {query ? (
         <div aria-live="polite">
           {error ? (
@@ -102,6 +106,7 @@ function Result({ hit, hrefFor, onOpen, hebrew, nested }: Pick<SidebarSearchProp
         className={styles.refLink}
         href={hrefFor(hit)}
         lang={hebrew ? "he" : "en"}
+        dir={hebrew ? "rtl" : "ltr"}
         onClick={(e) => {
           if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
             e.preventDefault();
@@ -111,8 +116,8 @@ function Result({ hit, hrefFor, onOpen, hebrew, nested }: Pick<SidebarSearchProp
       >
         {hebrew ? s.heRef : s.ref}
       </Link>
-      <div className={styles.snippet} lang={snippet.lang} dir={snippet.lang === "he" ? "rtl" : "ltr"} style={{ ["--_color" as string]: categoryColor(s.categories?.[0]) }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snippet.html) }} />
-      <div className={styles.version} lang={hebrew && s.hebrew_version_title ? "he" : "en"}>{(hebrew && s.hebrew_version_title) || s.version}</div>
+      <LangText as="div" className={styles.snippet} lang={snippet.lang} style={{ ["--_color" as string]: categoryColor(s.categories?.[0]) }} html={sanitizeHtml(snippet.html)} />
+      <LangText as="div" className={styles.version} lang={hebrew && s.hebrew_version_title ? "he" : "en"}>{(hebrew && s.hebrew_version_title) || s.version}</LangText>
       {n > 0 ? (
         <>
           <button type="button" className={styles.more} data-open={shown} aria-expanded={shown} onClick={() => setShown((v) => !v)}>

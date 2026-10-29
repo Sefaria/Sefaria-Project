@@ -9,6 +9,10 @@
  *
  * Not ported (owner decision pending, see docs/PHASE7_PLAN.md §3): VWO (hides <body> until loaded), Hotjar, Unbounce.
  *
+ * They run once per document: they are rendered as plain <script> tags in the document shell (src/routes/__root.tsx), never through
+ * the router's head(), which re-injects its scripts on client navigation (GTM loaded again, an extra gtag 'config' = an extra page
+ * view). Each inline snippet is also guarded, so a second execution is a no-op (CODE_REVIEW R-01).
+ *
  * @feature ANL-014 Third-party analytics and testing scripts
  */
 import type { AnalyticsConfig } from "~/lib/config";
@@ -29,13 +33,13 @@ export function analyticsHeadScripts(cfg: AnalyticsConfig, siteLang: string, use
   const out: HeadScript[] = [];
   if (cfg.gtm) {
     out.push({
-      children: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer',${js(cfg.gtm)});`,
+      children: `if(!window.__sefariaGtm){window.__sefariaGtm=1;(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer',${js(cfg.gtm)});}`,
     });
   }
   if (cfg.gtag) {
     out.push({ src: `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(cfg.gtag)}`, async: true });
     out.push({
-      children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());gtag('config',${js(cfg.gtag)},${js({ user_id: user?.uid ?? null, traffic_type: user?.email?.includes("sefaria.org") ? "sefariaemail" : null, site_lang: siteLang, site_version: cfg.appVersion || null })});`,
+      children: `if(!window.__sefariaGtag){window.__sefariaGtag=1;window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments);};gtag('js',new Date());gtag('config',${js(cfg.gtag)},${js({ user_id: user?.uid ?? null, traffic_type: user?.email?.includes("sefaria.org") ? "sefariaemail" : null, site_lang: siteLang, site_version: cfg.appVersion || null })});}`,
     });
   }
   if (cfg.simpleAnalyticsHost) {
