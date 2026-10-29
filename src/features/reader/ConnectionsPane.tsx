@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { tocQueryOptions } from "~/lib/catalog/toc";
 import { filterLinks, linksForRefs, makeIndexLookup, sortLinks, withoutEssays, type RelatedLink } from "~/lib/connections/links";
 import { linksQueryOptions } from "~/lib/connections/queries";
@@ -35,7 +35,7 @@ import { deleteNote, notesQuery, refsForSave, saveNote } from "~/lib/user/notes"
 import { syncHistory } from "~/lib/user/history";
 import { NotesView } from "~/ui/NotesView/NotesView";
 import { AddToSheetView } from "~/ui/AddToSheetView/AddToSheetView";
-import { addConnection, addToSheet, createSheet, sourcesFor, userSheetsQuery, type SheetVersion } from "~/lib/user/sheets";
+import { addConnection, addToSheet, deleteConnection, createSheet, sourcesFor, userSheetsQuery, type SheetVersion } from "~/lib/user/sheets";
 import { AddConnectionView } from "~/ui/AddConnectionView/AddConnectionView";
 import { VOICES } from "~/lib/shell/links";
 import { NamedEntityView } from "~/ui/NamedEntityView/NamedEntityView";
@@ -50,7 +50,6 @@ import { mergePages, sitesOf, sortPages, webPagesQueryOptions } from "~/lib/conn
 import { WebPagesView } from "~/ui/WebPagesView/WebPagesView";
 import { ManuscriptsView } from "~/ui/ManuscriptsView/ManuscriptsView";
 import { TorahReadingsView } from "~/ui/TorahReadingsView/TorahReadingsView";
-import { useEffect, useState } from "react";
 import { indexDetailsQueryOptions } from "~/lib/catalog/index-details";
 import { tocStructures, type TocIndexRecord } from "~/lib/toc/model";
 import { TocView } from "~/ui/TocView/TocView";
@@ -151,6 +150,10 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const linksQ = useQuery(linksQueryOptions(sectionRef));
   const catalog = catalogQ.data;
   const sectionLinks = linksQ.data;
+  // a connected text's "Add to Sheet" (the old connectionRefs): the sheet picker for that text, until Back or another view
+  const [sheetItem, setSheetItem] = useState<LinkedTextItem | null>(null);
+  const viewKey = JSON.stringify(view);
+  useEffect(() => setSheetItem(null), [viewKey]);
 
   const selected = useMemo(() => (sectionLinks ? linksForRefs(sectionLinks, selectedRefs) : []), [sectionLinks, selectedRefs]);
   const lookup = useMemo(() => makeIndexLookup(catalog, sectionLinks ?? []), [catalog, sectionLinks]);
@@ -604,6 +607,17 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   }
 
   if (view.view === "mode" && view.mode === "Advanced Tools") {
+    // the old canEditText: the version in the text's one language (never bilingual), unless locked (moderators may edit those);
+    // not dictionaries. Django's /edit/<ref>/<language family>/<version title> page, coming back here
+    const shown = settings.language === "hebrew" ? props.section?.primaryVersion : settings.language === "english" ? props.section?.translationVersion : undefined;
+    const editable = viewer && shown && (shown.status !== "locked" || viewer.isStaff) && !props.section?.categories.includes("Dictionary");
+    const editText = editable
+      ? () => {
+          const path = `${encodeURIComponent(shown.languageFamilyName)}/${encodeURIComponent(shown.versionTitle)}`;
+          uaEvent("Tools", "Edit Text Click", `${notesRefs[0]}/${path}`);
+          window.location.assign(`${SITE_ORIGIN}/edit/${refToUrl(notesRefs[0]!)}/${path}?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+        }
+      : undefined;
     return (
       <ConnectionsPanel label="Advanced" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         <AdvancedToolsView
@@ -614,6 +628,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
               : props.onSignUp("add-translation")
           }
           onAddConnection={() => (viewer ? onNavigate(hrefFor({ view: "mode", mode: "Add Connection" })) : props.onSignUp("add-connection"))}
+          onEditText={editText}
         />
       </ConnectionsPanel>
     );
@@ -648,6 +663,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
             counts={counts}
             sheetsHref={sheetsHref}
             signedIn={!!viewer}
+            moderator={!!viewer?.isStaff}
             notesCount={notesQ.data?.length ?? 0}
           />
         )}
@@ -675,6 +691,21 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const title = first && !isCategoryFilter ? { en: first.collectiveTitle.en, he: first.collectiveTitle.he } : categoryLabel(name, catalog);
   const hideItemTitles = category === "Commentary" && name !== "Commentary";
 
+  if (sheetItem && viewer) {
+    return (
+      <ConnectionsPanel
+        label="Add to Sheet"
+        back={{ href: hrefFor(view), label: <InterfaceText en={title.en} he={title.he} />, onClick: (e) => (e.preventDefault(), setSheetItem(null)) }}
+        lang={shownLang}
+        onLang={props.onLang}
+        onClose={onClose}
+      >
+        {/* the connected text in its default versions, as the old AddConnectionToSheetButton (versions null) */}
+        <AddToSheetSection uid={uid} citation={{ en: sheetItem.sourceRef, he: sheetItem.sourceHeRef || sheetItem.sourceRef }} citationHref={`/${refToUrl(sheetItem.sourceRef)}`} refs={[sheetItem.sourceRef]} />
+      </ConnectionsPanel>
+    );
+  }
+
   return (
     <ConnectionsPanel label={title.en} back={{ href: link(backView), label: <InterfaceText en={backLabel.en} he={backLabel.he} /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
       <TextList
@@ -694,6 +725,22 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           if (item) onOpenText(item.sourceRef);
           else nav(href);
         }}
+        onAddToSheet={viewer ? setSheetItem : undefined}
+        // moderators only (Sefaria.is_moderator = is_staff; the server refuses anyone else)
+        onRemove={
+          viewer?.isStaff
+            ? async (item) => {
+                if (!window.confirm("Are you sure you want to delete this connection?")) return;
+                try {
+                  await deleteConnection(item.id);
+                  await qcNotes.invalidateQueries({ queryKey: ["links"] }); // the old onDataChange: Sefaria.clearLinks()
+                  window.alert("Connection deleted.");
+                } catch (e) {
+                  window.alert((e as Error).message);
+                }
+              }
+            : undefined
+        }
         // a citation inside a connected text opens it after this panel; the sidebar stays (CON-038, the old onCitationClick)
         onRefClick={(ref) => (readerAnalytics.citationClicked(ref), props.onOpenRef(ref))}
         // signed in: a connected text dwelt on is recorded as secondary history (CON-036)
@@ -756,6 +803,12 @@ function AddToSheetSection({ uid, citation, citationHref, refs, primary, transla
       onAdd={async (sheet) => {
         await addToSheet(sheet.id, sourcesFor(refs, primary, translation));
         uaEvent("Tools", "Add to Source Sheet Save", refs.join("/"));
+        // a sheet open in the editor in another tab reloads its sources (the old refresh-editor broadcast)
+        if (typeof BroadcastChannel !== "undefined") {
+          const channel = new BroadcastChannel("refresh-editor");
+          channel.postMessage("refresh");
+          channel.close();
+        }
         // the sheet just used moves to the front (updateUserSheets)
         qc.setQueryData(userSheetsQuery(uid).queryKey, (list = []) => [sheet, ...list.filter((s) => s.id !== sheet.id)]);
       }}

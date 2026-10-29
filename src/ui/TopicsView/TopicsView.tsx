@@ -50,7 +50,8 @@ export function TopicsView({ topics, loading, refLabel, topicHref, lang, search 
         const desc = t.description?.[lang] || undefined;
         return (
           <li key={t.slug} className={styles.item}>
-            <div className={styles.head}>
+            {/* the row takes the topic's direction, as the old TopicList: a Hebrew name on the right, its three dots on the left */}
+            <div className={styles.head} dir={lang === "he" ? "rtl" : "ltr"}>
               <LangText as="a" href={topicHref(t.slug)} target="_blank" rel="noopener noreferrer" className={styles.title} lang={lang}>
                 {t.title[lang]}
               </LangText>

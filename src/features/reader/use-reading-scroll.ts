@@ -124,6 +124,12 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     const s = scroller();
     return s === window ? window.scrollY : (s as HTMLElement).scrollTop;
   }, [scroller]);
+  /** The furthest the scroller can go now. */
+  const maxScrollNow = useCallback((): number => {
+    const s = scroller();
+    const el = s === window ? document.scrollingElement! : (s as HTMLElement);
+    return el.scrollHeight - el.clientHeight;
+  }, [scroller]);
 
   const rule = useCallback(() => focusRule(window.innerHeight, { mobile: scroller() === window, connectionsOnScreen: optsRef.current.connectionsOnScreen }), [scroller]);
 
@@ -162,7 +168,13 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     if (!el) return;
     // Where the anchor would be if only the reader's own scrolling had happened since we recorded it.
     // Anything beyond that is a content shift, and only that is corrected — never the reader's scroll.
-    const expected = s.anchor.offset - (scrollTopNow() - s.anchor.scrollTop);
+    // Except a clamp: content went away (sections trimmed above while little is loaded below) and the browser pulled the scroll
+    // position back to the new end. That is not the reader's scrolling; taking it for theirs left the verse that far off (a
+    // 2,000px jump in CI, where texts load slowly).
+    const st = scrollTopNow();
+    const max = maxScrollNow();
+    const clamped = st >= max - 1 && s.anchor.scrollTop > max + 1;
+    const expected = clamped ? s.anchor.offset : s.anchor.offset - (st - s.anchor.scrollTop);
     const delta = offsetOf(el) - expected;
     if (Math.abs(delta) >= 0.5) {
       scrollBy(delta);
@@ -183,7 +195,7 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
       content.style.paddingTop = pad ? `${pad}px` : "";
     }
     s.anchor = { ref: s.anchor.ref, offset: offsetOf(el), scrollTop: scrollTopNow() };
-  }, [offsetOf, scrollBy, scrollTopNow]);
+  }, [offsetOf, scrollBy, scrollTopNow, maxScrollNow]);
 
   const recordAnchor = useCallback(() => {
     const s = state.current;

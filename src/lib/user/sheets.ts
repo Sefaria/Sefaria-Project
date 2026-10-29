@@ -10,7 +10,7 @@
  * @feature CON-034 Add connection to sheet button
  */
 import { queryOptions } from "@tanstack/react-query";
-import { postForm, sameOrigin } from "~/lib/auth/http";
+import { deleteRequest, postForm, sameOrigin } from "~/lib/auth/http";
 import { POLICIES } from "~/lib/cache/policies";
 
 export interface UserSheet {
@@ -68,6 +68,13 @@ export async function createSheet(title: string): Promise<UserSheet> {
 }
 
 /** A connection between two texts (the old AddConnectionBox): `POST /api/links/` with `json` = {refs, type}. CON-065 */
+/** A moderator removes a connection (DELETE /api/links/<id>; the server allows staff only), as the old DeleteConnectionButton. */
+export async function deleteConnection(id: string): Promise<void> {
+  const res = await deleteRequest(`/api/links/${encodeURIComponent(id)}`);
+  const data = res.data as { error?: string };
+  if (!res.ok || data.error) throw new Error(data.error ?? "There was an error deleting this connection. Please reload the page or try again later.");
+}
+
 export async function addConnection(refs: [string, string], type: string): Promise<void> {
   const res = await postForm("/api/links/", new URLSearchParams({ json: JSON.stringify({ refs, type }) }));
   const data = res.data as { error?: string };

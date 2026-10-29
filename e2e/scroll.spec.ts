@@ -309,3 +309,50 @@ test("reading far forward lets the opening section go, and the column stays boun
   // and the address followed the reader
   await expect.poll(() => new URL(page.url()).pathname).not.toMatch(/^\/Genesis\.1(\.|$)/);
 });
+
+// A trim above while little is loaded below (texts arriving slowly, as in CI) made the browser pull the scroll position back to
+// the new end; the engine took that for the reader's own scrolling and left the verse 2,000+ px away. Every frame after the reader
+// stops: the verse being read stays put while sections arrive below and go above.
+test("windowing on a slow connection never moves the verse being read", async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.route("**/api/v3/texts/**", async (r) => {
+    await new Promise((x) => setTimeout(x, 800));
+    await r.continue();
+  });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page, "/Psalms.1.1?lang=bi&with=all");
+  for (let i = 0; i < 25; i++) {
+    await wheel(page, 900, 2);
+    await page.waitForTimeout(120);
+  }
+  await page.waitForTimeout(500); // the reader has stopped; from here on nothing they see may move
+  const moves = await page.evaluate(
+    () =>
+      new Promise<string[]>((resolve) => {
+        const out: string[] = [];
+        const ref = document.querySelector('[data-focused="true"]')!.getAttribute("data-ref")!;
+        const top = () => document.querySelector(`[role="group"][data-ref="${ref}"]`)?.getBoundingClientRect().top;
+        const start = top()!;
+        const sections = () => document.querySelectorAll("section[data-ref]").length;
+        let seen = sections();
+        let trims = 0;
+        // watch until a trim has happened and things have been quiet for 3 s after it (a slow machine trims later), at most 20 s
+        const began = performance.now();
+        let quietFrom = began;
+        const tick = () => {
+          const t = top();
+          const n = sections();
+          if (n < seen) trims++;
+          if (n !== seen) quietFrom = performance.now();
+          seen = n;
+          if (t === undefined || Math.abs(t - start) > 1.5) out.push(`${ref} moved ${t === undefined ? "away" : Math.round(t - start)}px`);
+          const now = performance.now();
+          const done = now - began > 20_000 || (trims > 0 && now - quietFrom > 3000);
+          if (!done && out.length < 5) requestAnimationFrame(tick);
+          else resolve(trims ? out : ["no trim happened: the test did not exercise windowing"]);
+        };
+        requestAnimationFrame(tick);
+      }),
+  );
+  expect(moves).toEqual([]);
+});

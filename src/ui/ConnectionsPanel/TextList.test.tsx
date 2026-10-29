@@ -110,4 +110,18 @@ describe("TextList dwell (the old checkVisibleSegments)", () => {
     vi.unstubAllGlobals();
     vi.useRealTimers();
   });
+
+  // @feature CON-034: the old ConnectionButtons — Add to Sheet when signed in, Remove for moderators, neither otherwise
+  it("shows Add to Sheet and Remove only when given, and hands each the item", async () => {
+    const { rerender } = render(<TextList {...props} items={[item(1)]} />);
+    expect(screen.queryByRole("button", { name: "Add to Sheet" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Remove" })).toBeNull();
+    const onAddToSheet = vi.fn();
+    const onRemove = vi.fn();
+    rerender(<TextList {...props} items={[item(1)]} onAddToSheet={onAddToSheet} onRemove={onRemove} />);
+    await userEvent.click(screen.getByRole("button", { name: "Add to Sheet" }));
+    expect(onAddToSheet).toHaveBeenCalledWith(expect.objectContaining({ id: "i1", sourceRef: "Rashi on Genesis 1:1:1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Remove" }));
+    expect(onRemove).toHaveBeenCalledWith(expect.objectContaining({ id: "i1" }));
+  });
 });

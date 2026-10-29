@@ -79,7 +79,8 @@ export function WebPagesView({ pages, sites, site, loading, error, siteHref, onS
         <ul className={styles.sites}>
           {sites.map((s) => (
             <li key={s.name}>
-              <Link href={siteHref(s.name)} className={styles.site} onClick={(e) => { if (onSite && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); onSite(s.name, e); } }}>
+              {/* dir="auto": a Hebrew site's row reads from the right (the name decides; site names carry no language) */}
+              <Link href={siteHref(s.name)} className={styles.site} dir="auto" onClick={(e) => { if (onSite && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); onSite(s.name, e); } }}>
                 <img className={styles.icon} src={s.favicon} alt="" width={16} height={16} loading="lazy" />
                 <span>{s.name} <span className={styles.count}>({s.count})</span></span>
               </Link>

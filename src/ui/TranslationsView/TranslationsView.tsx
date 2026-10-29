@@ -1,3 +1,4 @@
+import { dirFor } from "~/lib/i18n/direction";
 import type { MouseEvent } from "react";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { previewHtml, type TranslationVersion } from "~/lib/versions/translations";
@@ -80,7 +81,7 @@ export function TranslationsView({ languages, currentTitle, selectHref, onSelect
               <article key={v.versionTitle} className={styles.version} data-current={current ? "true" : undefined}>
                 {html ? (
                   <div className={styles.previewBox}>
-                    <div className={styles.preview} lang={l.code} dir={v.direction ?? "ltr"}>
+                    <div className={styles.preview} lang={l.code} dir={v.direction ?? dirFor(l.code)} data-dir-from={v.direction ? "version" : undefined}>
                       <SegmentText html={html} lang={l.code} dir={v.direction ?? "ltr"} />
                     </div>
                     {/* The whole preview opens it in the sidebar. An overlay link, not a wrapping one: the preview
