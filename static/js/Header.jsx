@@ -587,7 +587,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <>
             <hr />
             <a href={Sefaria.getLogoutUrl()} className="logout">
-              <img src="/static/icons/profile.svg" alt={Sefaria._("header.logout")} />
+              <img src="/static/icons/logout.svg" alt={Sefaria._("header.logout")} />
               <InterfaceText>header.logout</InterfaceText>
             </a>
           </>}

@@ -650,7 +650,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu .mobileAuthRow > img {
   width: 16px;
   height: 16px;
-  margin-inline-end: 7px;
+  margin-inline-end: 8px;
 }
 .mobileNavMenu .mobileAuthRow a {
   display: inline-flex;
@@ -658,16 +658,15 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   justify-content: center;
   min-width: 44px;
   min-height: 44px;
-  padding: 0 8px;
+  padding: 0 7px;
   color: var(--theme-primary);
   font-size: 16px;
   font-weight: 500;
 }
-/* same dot as the English • עברית toggle; the margin keeps the two 44px tap areas apart */
+/* same dot and 7px text-to-dot spacing as the English • עברית toggle */
 .mobileNavMenu .mobileAuthRowSeparator {
   position: relative;
   top: 1px; /* centering puts the • 1px above where the toggle's baseline-aligned • sits */
-  margin: 0 4px;
   font-size: 13px;
   color: var(--dark-grey);
 }
