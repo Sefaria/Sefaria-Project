@@ -382,7 +382,7 @@ Stories added after QA on phones and the header pill. Every test is tagged `@qa`
 | [../support/longConversation.ts](../support/longConversation.ts) | Builds a chat long enough to scroll, for the "where is the chat scrolled" stories |
 
 - **The keyboard stories are left to manual QA on a real phone**: a browser emulating a phone has no on-screen keyboard. That's LA-QA-2, and LA-QA-3's rows where the keyboard opens or closes; they have no tests here. LA-QA-3's "text box grows to a second line" row and LA-QA-5 (Stop glides to its notice) don't need the keyboard and run; LA-QA-5 checks "the keyboard stays closed" as "the text box isn't focused". LA-QA-8 runs, but its "while the keyboard closes" step is skipped (noted in the report).
-- **LA-QA-4's logged-out rows are placeholders**; only the signed-in row runs, as the stories say for builds without the logged-out assistant.
+- **LA-QA-4's logged-out rows run as a visitor nobody logged in as**, next to the signed-in row.
 - **Changed with these:** LA-ENTRY-2 now checks 1000px instead of 900px (at 900px the pill reads "✦ Ask"), LA-NOTE-3 checks the assistant opens on the start of the late answer, and LA-NULL-9's placeholder steps allow "where the visitor left it".
 
 ```bash

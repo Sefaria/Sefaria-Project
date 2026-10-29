@@ -1,5 +1,5 @@
 import { test, expect, BrowserContext } from '@playwright/test';
-import { goToPageWithUser, hideAllModalsAndPopups } from '../utils';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { BROWSER_SETTINGS, LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS } from '../constants';
@@ -15,16 +15,9 @@ import { haveLongConversation, longAnswer, longAnswerStart } from '../support/lo
  * Every test is tagged @qa, so these can run apart from the original-spec stories:
  *   npx playwright test --project=chrome-assistant --grep @qa
  *
- * Written TEST-FIRST, so some are expected to fail until the changes land
- * (for example the header pill's short label, `header.library_assistant_short`,
- * isn't in Sefaria's translation files on every branch yet).
- *
  * How they run: the same setup as library-assistant-q4-desktop.spec.ts — logged in
  * as the Library-Assistant test account, fake chat server, copy read by translation key.
- *
- * LA-QA-4's logged-out rows are test.fixme placeholders: the assistant (and so the
- * header pill) only shows to logged-out visitors on builds that have the logged-out
- * assistant (Sefaria/Sefaria-Project#3791). The signed-in row runs everywhere.
+ * LA-QA-4's logged-out rows run as a visitor nobody logged in as.
  *
  * Run: npx playwright test --project=chrome-assistant library-assistant-qa-desktop
  */
@@ -32,11 +25,6 @@ import { haveLongConversation, longAnswer, longAnswerStart } from '../support/lo
 const DESKTOP = { width: 1280, height: 800 };
 const QA_DESKTOP_TAGS = { tag: ['@qa', '@e2e', '@desktop'] };
 const QA_DESKTOP_PHONE_TAGS = { tag: ['@qa', '@e2e', '@desktop', '@phone'] };
-/** Why the logged-out rows are placeholders (shows in the test report). */
-const NOT_BUILT = {
-  type: 'not built yet',
-  description: 'The assistant for logged-out visitors (and its header pill) is not on this build',
-};
 const LATE_QUESTION = 'Where does the Talmud discuss Hanukkah lights? (asked, then closed)';
 const LATE_LABEL = 'Late answer';
 
@@ -44,17 +32,16 @@ test.use({ viewport: DESKTOP });
 
 /**
  * Standard start: fake chat server first (it must be in place before the page
- * loads), then log in, then make sure the assistant is closed so the test
- * starts from the Ask button.
+ * loads), then log in (or, with `loggedOut`, stay a visitor nobody logged in as),
+ * then make sure the assistant is closed so the test starts from the Ask button.
  */
-async function start(context: BrowserContext, lang = LANGUAGES.EN) {
+async function start(context: BrowserContext, lang = LANGUAGES.EN, opts: { loggedOut?: boolean } = {}) {
   const mock = await ChatServerMock.install(context);
   const isHebrew = lang === LANGUAGES.HE;
-  const page = await goToPageWithUser(
-    context,
-    isHebrew ? MODULE_URLS.HE.LIBRARY : MODULE_URLS.EN.LIBRARY,
-    isHebrew ? BROWSER_SETTINGS.heLAUser : BROWSER_SETTINGS.enLAUser,
-  );
+  const url = isHebrew ? MODULE_URLS.HE.LIBRARY : MODULE_URLS.EN.LIBRARY;
+  const page = opts.loggedOut
+    ? await goToPageWithLang(context, url, lang)
+    : await goToPageWithUser(context, url, isHebrew ? BROWSER_SETTINGS.heLAUser : BROWSER_SETTINGS.enLAUser);
   const pm = new PageManager(page, lang);
   await hideAllModalsAndPopups(page);
   const la = pm.onLibraryAssistantQ4();
@@ -90,19 +77,8 @@ for (const { who, lang, label, width, pill } of pillExamples) {
     test.use({ viewport: { width, height: DESKTOP.height } });
     const title = `LA-QA-4: ${who}, ${label}, ${width}px — the header pill ${PILL_WORDING[pill]}, at least 16px from "Donate", no header icon cut off`;
 
-    if (who === 'logged out') {
-      test.fixme(title, { ...QA_DESKTOP_TAGS, annotation: NOT_BUILT }, async () => {
-        // Steps once it's built:
-        //  1. goToPageWithLang(context, MODULE_URLS.<EN|HE>.LIBRARY, lang) — logged out.
-        //  2. la.expectHeaderPillShows(pill).
-        //  3. Unless the pill is hidden: la.expectHeaderPillAtLeastFromDonate(16).
-        //  4. la.expectNoHeaderIconCutOff().
-      });
-      return;
-    }
-
     test(title, QA_DESKTOP_TAGS, async ({ context }) => {
-      const { la } = await start(context, lang);
+      const { la } = await start(context, lang, { loggedOut: who === 'logged out' });
       await la.expectHeaderPillShows(pill);
       if (pill !== 'hidden') await la.expectHeaderPillAtLeastFromDonate(16);
       await la.expectNoHeaderIconCutOff();
