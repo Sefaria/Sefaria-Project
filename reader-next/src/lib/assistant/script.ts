@@ -14,6 +14,11 @@ export function loadAssistantScript(build: AssistantBuild, doc: Document = docum
   s.src = build.scriptUrl;
   if (build.scriptType) s.type = build.scriptType;
   s.async = true;
+  // a build that does not load (its server down, a bad preview number) leaves no tag behind: the next page can try again
+  s.addEventListener("error", () => {
+    console.warn(`[library-assistant] could not load ${build.scriptUrl}`);
+    s.remove();
+  });
   doc.head.appendChild(s);
   return s;
 }

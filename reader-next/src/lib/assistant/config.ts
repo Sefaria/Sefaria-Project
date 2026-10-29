@@ -37,9 +37,9 @@ export function versionFromCookie(cookieHeader: string): string | null {
   return m ? asVersion(decodeURIComponent(m[1]!)) : null;
 }
 
-/** The session cookie that remembers a version (empty value and max-age 0 to forget it). */
-export const versionCookie = (version: string | null): string =>
-  version ? `${VERSION_COOKIE}=${version}; path=/; SameSite=Lax` : `${VERSION_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+/** The session cookie that remembers a version (empty value and max-age 0 to forget it); Secure on https. */
+export const versionCookie = (version: string | null, secure = false): string =>
+  `${version ? `${VERSION_COOKIE}=${version}` : `${VERSION_COOKIE}=; max-age=0`}; path=/; SameSite=Lax${secure ? "; Secure" : ""}`;
 
 export interface AssistantBuild {
   /** The script to load. */

@@ -17,6 +17,7 @@ describe("which assistant build a page loads", () => {
     expect(versionFromCookie("a=1; chatbot_version=123; b=2")).toBe("123");
     expect(versionFromCookie("chatbot_version=x1")).toBeNull();
     expect(versionCookie(null)).toContain("max-age=0");
+    expect(versionCookie("123", true)).toBe("chatbot_version=123; path=/; SameSite=Lax; Secure");
   });
   it("a reader's version, then CHATBOT_VERSION, then CHATBOT_USE_LOCAL_SCRIPT, then CHATBOT_API_BASE_URL", () => {
     expect(assistantBuild("123", { ...env, version: "456", useLocalScript: true })).toEqual({
