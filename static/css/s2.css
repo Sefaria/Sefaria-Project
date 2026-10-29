@@ -662,7 +662,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: var(--theme-primary);
   font-size: 16px;
   font-weight: 500;
-  text-decoration: none;
 }
 /* same dot as the English • עברית toggle; the margin keeps the two 44px tap areas apart */
 .mobileNavMenu .mobileAuthRowSeparator {
