@@ -1,11 +1,28 @@
 import type { Page } from "@playwright/test";
 
-/** Navigate and wait until React has hydrated, so clicks are never swallowed by server-rendered markup. */
+const hydrationErrors = new WeakMap<Page, string[]>();
+
+/**
+ * Navigate and wait until React has hydrated, so clicks are never swallowed by server-rendered markup. A hydration mismatch (the
+ * server and the browser rendering different text: a Node-only value, an ICU difference) fails the test: React silently re-renders
+ * the client's version, so the page "works" while the server render was wrong.
+ */
 export async function open(page: Page, path: string, opts: { cookieNotice?: boolean } = {}) {
   // The cookie notice is a bar over the bottom left of the page: tests that are not about it have already accepted it
   if (!opts.cookieNotice) await page.context().addCookies([{ name: "cookiesNotificationAccepted", value: "1", domain: "localhost", path: "/" }]);
+  if (!hydrationErrors.has(page)) {
+    const seen: string[] = [];
+    hydrationErrors.set(page, seen);
+    page.on("console", (m) => {
+      if (m.type() === "error" && /hydrat/i.test(m.text())) seen.push(m.text().slice(0, 600));
+    });
+  }
   const res = await page.goto(path);
   await page.waitForSelector("html[data-hydrated='true']");
+  // React reports a recoverable hydration error after the commit: give it two frames to arrive before looking
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  const seen = hydrationErrors.get(page)!;
+  if (seen.length) throw new Error(`hydration mismatch on ${path}:\n${seen.join("\n---\n")}`);
   return res;
 }
 

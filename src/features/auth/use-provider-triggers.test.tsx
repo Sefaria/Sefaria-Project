@@ -85,7 +85,7 @@ describe("Google button", () => {
     await act(async () => initConfig().callback({ credential: "cred" }));
     expect(body).toEqual({ provider: "google", process: "login", token: { client_id: "gid", id_token: "cred" } });
     expect(tracking.chooseMethod).toHaveBeenCalledTimes(1);
-    expect(tracking.endProcess).toHaveBeenCalledWith("success", null);
+    expect(tracking.endProcess).toHaveBeenCalledWith("success", null, null);
     expect(navigate).toHaveBeenCalledWith("/Genesis.1");
   });
   it("a refused credential shows in the active view and ends the attempt as failure", async () => {

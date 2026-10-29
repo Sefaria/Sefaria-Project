@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeQueryClient } from "~/lib/cache/query-client";
-import { entriesForCategories, lexiconQueryOptions, normalizeSelection, shouldActivateLookup } from "./lookup";
+import { entriesForCategories, lexiconQueryOptions, normalizeSelection, shouldActivateLookup, normalizeEntry } from "./lookup";
 
 // @feature CON-043 @feature TXD-059 @feature CON-042
 describe("which selections are looked up (verified on sefaria.org)", () => {
@@ -40,5 +40,21 @@ describe("which entries apply to the text (verified: Genesis 1:1 shows BDB Augme
     const all = await makeQueryClient().fetchQuery(lexiconQueryOptions("בְּרֵאשִׁ֖ית", "Genesis 1:1"));
     expect(all.map((e) => e.parent_lexicon)).toEqual(["BDB Augmented Strong", "Jastrow Dictionary", "BDB Dictionary"]);
     expect(entriesForCategories(all, ["Tanakh", "Torah"])).toHaveLength(3);
+  });
+});
+
+// Ben Yehuda sends content.definition as a list of paragraphs; it crashed the dictionary sidebar (found by e2e lexicon.spec)
+describe("normalizeEntry", () => {
+  const base = { headword: "אבא", parent_lexicon: "Ben Yehuda Dictionary", parent_lexicon_details: { to_language: "he" } };
+  it("joins a list of paragraphs into one HTML string, at every level", () => {
+    const e = normalizeEntry({ ...base, content: { definition: ["<p>a</p>", "<p>b</p>"] as never, senses: [{ notes: ["x", "y"] as never, senses: [{ alternative: ["z"] as never }] }] } } as never);
+    expect(e.content.definition).toBe("<p>a</p><p>b</p>");
+    expect(e.content.senses![0]!.notes).toBe("xy");
+    expect(e.content.senses![0]!.senses![0]!.alternative).toBe("z");
+  });
+  it("leaves strings and missing fields alone", () => {
+    const e = normalizeEntry({ ...base, content: { definition: "<b>d</b>" } } as never);
+    expect(e.content.definition).toBe("<b>d</b>");
+    expect("alternative" in e.content).toBe(false);
   });
 });

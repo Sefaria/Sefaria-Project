@@ -52,6 +52,11 @@ function SegmentImpl({
   segmentRef, address, primary, translation, language, vocalization, stripPunctuation, highlighted, isScrollTarget, linkCount, itagCommentator, terms,
   onSelect, onRefClick, onEntityClick,
 }: SegmentProps) {
+  if (import.meta.env?.DEV && typeof window !== "undefined") {
+    // renders per verse, read by e2e/scroll.spec.ts: adding a section must not re-render the verses already there (CODE_REVIEW R-12)
+    const w = window as unknown as { __segmentRenders?: Record<string, number> };
+    (w.__segmentRenders ??= {})[segmentRef] = (w.__segmentRenders[segmentRef] ?? 0) + 1;
+  }
   const interfaceLang = useInterfaceLang();
   const hasP = Boolean(primary?.html.trim());
   const hasT = Boolean(translation?.html.trim());
@@ -87,7 +92,9 @@ function SegmentImpl({
       className={styles.segment}
       role="group"
       aria-label={segmentRef}
-      tabIndex={onSelect ? 0 : undefined}
+      // focusable, but not a tab stop each: the column keeps one stop (the verse being read) and moves between verses with the
+      // arrow keys (CODE_REVIEW R-31: Genesis 1 alone was 31 stops before anything after the text could be reached)
+      tabIndex={onSelect ? -1 : undefined}
       data-ref={segmentRef}
       data-highlighted={highlighted ? "true" : undefined}
       data-scroll-target={isScrollTarget ? "true" : undefined}

@@ -8,7 +8,7 @@
  * @feature LIB-001 Browse the Library category grid (this is its data)
  */
 import { queryOptions } from "@tanstack/react-query";
-import { index } from "@vendor/sefaria-toolkit/client/index";
+import { index } from "@vendor/sefaria-toolkit/client/runtime";
 import { getSefariaClient, unwrap } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 

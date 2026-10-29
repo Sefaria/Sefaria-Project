@@ -53,6 +53,12 @@ describe("BookPage", () => {
     expect(screen.getByRole("link", { name: "The William Davidson Edition" })).toHaveAttribute("href", "/wd");
     expect(screen.getByText("In memory of")).toBeInTheDocument();
   });
+  it("the dedication is sanitized like every other HTML from the API (CODE_REVIEW low: it was set raw)", () => {
+    const { container } = render(<BookPage {...base} dedication={{ en: '<img src=x onerror="alert(1)"><script>alert(2)</script>In honor of Y' }} />);
+    expect(screen.getByText("In honor of Y")).toBeInTheDocument();
+    expect(container.querySelector("script")).toBeNull();
+    expect(container.querySelector("[onerror]")).toBeNull();
+  });
   it("Hebrew interface: Hebrew title, labels and direction", () => {
     render(<InterfaceLangProvider lang="hebrew"><BookPage {...base} /></InterfaceLangProvider>);
     expect(screen.getByRole("heading", { level: 1, name: "בראשית" })).toBeInTheDocument();

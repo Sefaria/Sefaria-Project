@@ -6,7 +6,8 @@
  *
  * @feature CON-067 Feedback / report an issue
  */
-import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
+import { SefariaApiError } from "~/lib/api/client";
+import { postForm } from "~/lib/auth/http";
 
 export const FEEDBACK_TYPES = [
   { value: "content_issue", label: { en: "Report an issue with the text", he: "דיווח על בעיה בטקסט" } },
@@ -42,13 +43,14 @@ export function currVersionsOf(primary?: string, translation?: string): Feedback
   return { en: one(translation), he: one(primary) };
 }
 
+/**
+ * Through the one write helper (same origin, session cookie, `X-CSRFToken`): Django's send_feedback is CSRF-protected, so a bare
+ * fetch was refused with 403 on every submit (CODE_REVIEW R-23; the old client got the header from jQuery's ajaxSetup).
+ */
 export async function sendFeedback(payload: FeedbackPayload): Promise<void> {
-  const r = await fetch(`${SEFARIA_API_ORIGIN}/api/send_feedback`, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ json: JSON.stringify(payload) }),
-  });
+  const r = await postForm("/api/send_feedback", new URLSearchParams({ json: JSON.stringify(payload) }));
+  if (r.networkError) throw new SefariaApiError("Sending feedback: network error", 0);
   if (!r.ok) throw new SefariaApiError(`Sending feedback: HTTP ${r.status}`, r.status);
-  const body = (await r.json().catch(() => ({}))) as { error?: string };
-  if (body.error) throw new SefariaApiError(body.error, r.status, body);
+  const error = (r.data as { error?: unknown }).error;
+  if (typeof error === "string" && error) throw new SefariaApiError(error, r.status, r.data);
 }

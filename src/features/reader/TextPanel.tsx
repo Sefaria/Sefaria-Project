@@ -32,11 +32,14 @@ import { rememberTranslation } from "~/lib/versions/prefs-source";
 import { entryKey, navFor, readNavState, useWorkspaceNav, type NavState } from "../workspace/navigation";
 import { panelForRef } from "../workspace/open-ref";
 import { toRouterLocation } from "../shared/RouterLink";
+// Not a lazy chunk (tried for CODE_REVIEW R-15): a server-rendered sidebar whose chunk was still loading at hydration left a Suspense
+// boundary that React later hid, unmounting query observers mid-fetch; the cancelled fetch surfaced as a "CancelledError" page (seen
+// on /Genesis.1.3-5?with=all). Split it with the route manifest, where the router loads a page's chunks before it hydrates.
 import { ConnectionsPane } from "./ConnectionsPane";
 import styles from "./TextPanel.module.css";
 import { setMobileMenuOpen } from "../shell/mobile-menu";
 import { SignUpModal } from "~/ui/SignUpModal/SignUpModal";
-import type { ReaderRouteData } from "./reader-route";
+import { shownVersions as panelVersionsShown, type ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
 import { SETTLE_MS } from "./use-reading-scroll";
 import { TextColumn } from "./TextColumn";
@@ -81,11 +84,15 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [saveAsked, setSaveAsked] = useState(false);
   const id = panel.id;
-  // The URL's versions when it names any, else what the loader resolved from the reader's preferences (VER-014).
-  const versions = panel.versions.translation || panel.versions.primary ? panel.versions : data.versions;
+  // What the loader resolved (the URL plus the reader's preferences, VER-014), unless the URL has since named other versions.
+  const versions = panelVersionsShown(panel.versions, data);
   // In the versions the loader loaded: when the URL names new ones the column swaps them in itself, so the
   // panel never suspends (no loading flash) and never loses the reader's place.
-  const initial = useSuspenseQueries({ queries: data.sectionRefs.map((r) => textQueryOptions(r, data.versions)) }).map((q) => q.data);
+  // one array per change of the data, not per render: a new array each render made every memo below recompute and
+  // useDeferredValue schedule an extra render (CODE_REVIEW R-12)
+  const initialQueries = useSuspenseQueries({ queries: data.sectionRefs.map((r) => textQueryOptions(r, data.versions)) });
+  const initialKey = initialQueries.map((q) => q.dataUpdatedAt).join(",");
+  const initial = useMemo(() => initialQueries.map((q) => q.data), [initialKey, data.sectionRefs.join("|"), selectionKey(data.versions)]); // eslint-disable-line react-hooks/exhaustive-deps
   // A text with nothing in Hebrew (an English-original work, no source version) cannot be shown "Hebrew only": the old
   // reader turns the panel bilingual (VERIFIED: Philo, Teshuvot haRashba with lang=he → lang=bi, English text, Latin numerals).
   const first = initial[0];
@@ -107,10 +114,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // ── which navigation is this, for this panel? ──────────────────────────────────────────────────────
   const navState = navFor(readNavState(location.state), id);
   const kind = navState.kind;
-  const urlSegments = useMemo(() => {
-    const p = initial[0]!;
-    return data.highlight ? p.segments.filter((s) => isHighlighted(s.address, data.highlight!, p.addressTypes)).map((s) => s.ref) : [];
-  }, [initial, data.highlight]);
+  // across every section the URL's range spans (one comment in chapter 1 and one in chapter 2 is still a range)
+  const urlSegments = useMemo(
+    () => (data.highlight ? initial.flatMap((p) => p.segments.filter((s) => isHighlighted(s.address, data.highlight!, p.addressTypes)).map((s) => s.ref)) : []),
+    [initial, data.highlight],
+  );
 
   // The column keeps its sections across navigations that don't move this panel; a real navigation to other
   // sections starts a new column, and a real navigation within them scrolls to the linked verse.
@@ -580,7 +588,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       className={styles.panel}
       data-panel-id={id}
       data-has-aside={view ? "true" : "false"}
-      aria-label={section.sectionRef}
+      // a name of its own: the sections inside are regions named by their refs, and two landmarks may not share a name
+      aria-label={interfaceLang === "hebrew" ? `חלון קריאה: ${section.heSectionRef}` : `Reading panel: ${section.sectionRef}`}
       // Escape inside a panel closes it (SHL-071) — unless something inside already used the key (a menu, a dialog, a box)
       onKeyDown={(e) => {
         if (e.key !== "Escape" || e.defaultPrevented || e.isPropagationStopped()) return;

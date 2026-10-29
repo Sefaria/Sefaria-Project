@@ -6,7 +6,7 @@ import { tocQueryOptions } from "~/lib/catalog/toc";
 /** /texts: Browse the Library. */
 export const Route = createFileRoute("/texts/")({
   loader: async ({ context }) => {
-    await Promise.all([context.queryClient.ensureQueryData(tocQueryOptions()), context.queryClient.ensureQueryData(calendarsQueryOptions()).catch(() => undefined)]);
+    await Promise.all([context.queryClient.ensureQueryData(tocQueryOptions()), context.queryClient.ensureQueryData(calendarsQueryOptions(context.diaspora)).catch(() => undefined)]);
   },
   head: () => ({ meta: [{ title: "Browse the Library | Sefaria Reader" }] }),
   component: () => <LibraryRoute path={[]} />,

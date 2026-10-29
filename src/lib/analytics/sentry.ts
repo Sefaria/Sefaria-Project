@@ -31,11 +31,15 @@ export async function initSentry(): Promise<void> {
   const dsn = PUBLIC_CONFIG.analytics.sentryDsn;
   if (started || !dsn || typeof window === "undefined") return;
   started = true;
-  const [rates, Sentry] = await Promise.all([sentryRates(), import("@sentry/react")]);
-  Sentry.init({
+  // only what is used, so the bundler can leave session replay out of the chunk; replay is loaded only when it is sampled at all
+  // (its rates are 0 in production today: CODE_REVIEW R-15)
+  const [rates, { init, browserTracingIntegration }] = await Promise.all([sentryRates(), import("@sentry/react")]);
+  const replay = (rates.replaysSessionSampleRate || 0) > 0 || (rates.replaysOnErrorSampleRate || 0) > 0;
+  const integrations = [browserTracingIntegration(), ...(replay ? [(await import("@sentry/replay")).replayIntegration()] : [])];
+  init({
     dsn,
     release: PUBLIC_CONFIG.analytics.appVersion || undefined,
-    integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
+    integrations,
     tracesSampleRate: rates.tracesSampleRate || 0.0,
     sampleRate: rates.sampleRate || 0.0,
     replaysSessionSampleRate: rates.replaysSessionSampleRate || 0.0,

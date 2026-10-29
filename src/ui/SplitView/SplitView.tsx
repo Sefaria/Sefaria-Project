@@ -17,6 +17,8 @@ export interface SplitViewProps<Id extends string> {
   className?: string;
   /** Accessible name for the outermost group, if it is a split. */
   label?: string;
+  /** A leaf's identity for React when its id follows its position (the workspace's panels: CODE_REVIEW R-24). Default: the id. */
+  leafKey?: (id: Id) => string;
 }
 
 /**
@@ -26,11 +28,11 @@ export interface SplitViewProps<Id extends string> {
  *
  * @feature SHL-039 Panel cap and widths
  */
-export function SplitView<Id extends string>({ node, renderLeaf, minLeafSize = 0, dividers = true, className, label }: SplitViewProps<Id>) {
-  return <Node node={node} renderLeaf={renderLeaf} minLeafSize={minLeafSize} dividers={dividers} className={className} label={label} root />;
+export function SplitView<Id extends string>({ node, renderLeaf, minLeafSize = 0, dividers = true, className, label, leafKey }: SplitViewProps<Id>) {
+  return <Node node={node} renderLeaf={renderLeaf} minLeafSize={minLeafSize} dividers={dividers} className={className} label={label} leafKey={leafKey} root />;
 }
 
-function Node<Id extends string>({ node, renderLeaf, minLeafSize, dividers, className, label, root }: Required<Pick<SplitViewProps<Id>, "node" | "renderLeaf" | "minLeafSize" | "dividers">> & { className?: string; label?: string; root?: boolean }) {
+function Node<Id extends string>({ node, renderLeaf, minLeafSize, dividers, className, label, root, leafKey }: Required<Pick<SplitViewProps<Id>, "node" | "renderLeaf" | "minLeafSize" | "dividers">> & { className?: string; label?: string; root?: boolean; leafKey?: (id: Id) => string }) {
   if (node.type === "leaf") {
     return (
       <div className={[styles.leaf, root ? styles.fill : "", className].filter(Boolean).join(" ")} data-leaf={node.id}>
@@ -53,8 +55,8 @@ function Node<Id extends string>({ node, renderLeaf, minLeafSize, dividers, clas
         const min = minLeafSize * (node.direction === "row" ? leafCountAcross(child, "row") : leafCountAcross(child, "column"));
         const style = { "--share": share, "--min": `${min}px` } as CSSProperties;
         return (
-          <div key={child.type === "leaf" ? child.id : `split-${i}`} className={styles.cell} style={style}>
-            <Node node={child} renderLeaf={renderLeaf} minLeafSize={minLeafSize} dividers={dividers} />
+          <div key={child.type === "leaf" ? (leafKey?.(child.id) ?? child.id) : `split-${i}`} className={styles.cell} style={style}>
+            <Node node={child} renderLeaf={renderLeaf} minLeafSize={minLeafSize} dividers={dividers} leafKey={leafKey} />
           </div>
         );
       })}

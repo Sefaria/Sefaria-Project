@@ -12,6 +12,7 @@ import { buildBookFilterTree, buildFilterTree, SOURCE_SORTS, catalogOrder, count
 import { filteredTotal, mergeHits, scoreSefariaHits } from "~/lib/search/dicta";
 import { highlightsOf, mergeTextResultsVersions, type SearchHit } from "~/lib/search/text-search";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
+import { VisuallyHidden } from "~/ui/VisuallyHidden/VisuallyHidden";
 import { NavPage } from "~/ui/NavPage/NavPage";
 import { EntityResults, ExactToggle, MobileFilterButton, MobileFilterPanel, NoResults, PanelSection, SearchError, SearchSkeleton, SearchBar, SearchFilters, SearchResultCard, SearchTabs, SortMenu, SortRadios } from "~/ui/SearchPage/SearchPage";
 import { toRouterLocation } from "../shared/RouterLink";
@@ -183,6 +184,8 @@ export function SearchRoute() {
         : undefined
       }
     >
+      {/* the page's heading, for screen readers (sefaria.org shows none; the search box says it visually) */}
+      <VisuallyHidden as="h1">{hasQuery ? <InterfaceText en={`Search results for “${params.q}”`} he={`תוצאות חיפוש עבור ”${params.q}“`} /> : <InterfaceText en="Search" he="חיפוש" />}</VisuallyHidden>
       <SearchBar query={params.q} onSubmit={(q) => go({ q, filters: [] })} />
       {skeleton ? <SearchSkeleton /> : hasQuery ? (
         <>

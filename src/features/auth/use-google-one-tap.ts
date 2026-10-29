@@ -8,7 +8,7 @@
  * @feature ANL-013 Sign-up funnel analytics
  */
 import { useEffect } from "react";
-import { fireFlowEnded, fireFlowStarted, fireMethodChosen, fireProcessEnded, fireProcessStarted, SIGNUP_METHOD } from "~/lib/auth/analytics";
+import { fireFlowEnded, fireFlowStarted, fireMethodChosen, fireProcessEnded, fireProcessStarted, outcomeOf, AUTH_METHOD } from "~/lib/auth/analytics";
 import { ensureCsrfToken } from "~/lib/auth/csrf";
 import { sameOrigin } from "~/lib/auth/http";
 import { ALLAUTH_PROVIDER_TOKEN_URL, makeUuid } from "~/lib/auth/utils";
@@ -43,8 +43,8 @@ export function useGoogleOneTap({ googleClientId, enabled, reload = () => window
 
     // The funnel fires when the credential arrives (the reader picked an account), not when Google chooses to display the prompt.
     const handleCredential = async (response: { credential: string }, flowId: string, attemptId: string) => {
-      fireFlowStarted(flowId, "one_tap");
-      fireMethodChosen(flowId, attemptId, SIGNUP_METHOD.GOOGLE_ONE_TAP);
+      fireFlowStarted(flowId, "one_tap_widget", "one_tap_login"); // master's source and intent for One Tap
+      fireMethodChosen(flowId, attemptId, AUTH_METHOD.GOOGLE_ONE_TAP);
       fireProcessStarted(flowId, attemptId);
       try {
         const r = await fetch(sameOrigin(ALLAUTH_PROVIDER_TOKEN_URL), {
@@ -53,11 +53,13 @@ export function useGoogleOneTap({ googleClientId, enabled, reload = () => window
           headers: { "Content-Type": "application/json", "X-CSRFToken": await ensureCsrfToken() },
           body: JSON.stringify({ provider: "google", process: "login", token: { client_id: googleClientId, id_token: response.credential } }),
         });
-        const data = r.ok ? null : ((await r.json().catch(() => ({}))) as { error?: string });
+        const body = (await r.json().catch(() => ({}))) as { error?: string; outcome?: string };
+        const data = r.ok ? null : body;
         const status = data ? "failure" : "success";
         const error = data ? data.error || "unknown" : null;
-        fireProcessEnded(flowId, attemptId, status, error);
-        fireFlowEnded(flowId, status, error);
+        const outcome = data ? null : outcomeOf(body);
+        fireProcessEnded(flowId, attemptId, status, error, outcome);
+        fireFlowEnded(flowId, status, error, outcome);
         if (data) console.error("Google One Tap failed", data);
         else reload();
       } catch (err) {

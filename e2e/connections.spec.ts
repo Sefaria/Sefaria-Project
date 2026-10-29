@@ -109,7 +109,7 @@ test.describe("connections sidebar", () => {
 
 // @feature CON-013
 test("the Translations count is the translations of the selected VERSE, not of the whole section", async ({ page, request }) => {
-  const versions = (await (await request.get("https://www.sefaria.org/api/texts/versions/Berakhot.2a.1")).json()) as { isSource: boolean }[];
+  const versions = (await (await request.get(`${process.env.E2E_LIVE ? "https://www.sefaria.org" : `http://localhost:${Number(process.env.E2E_API_PORT) || 3998}`}/api/texts/versions/Berakhot.2a.1`)).json()) as { isSource: boolean }[];
   const expected = versions.filter((v) => !v.isSource).length;
   await open(page, "/Berakhot.2a.1?lang=en&with=all");
   await expect(page.getByRole("complementary").getByRole("link", { name: /^Translations/ })).toHaveText(new RegExp(`Translations\\s*\\(${expected}\\)`), { timeout: 30_000 });
@@ -242,4 +242,29 @@ test.describe("the sidebar's language button", () => {
     await side.getByRole("button", { name: "English Language Toggle Icon" }).click();
     await expect(page).toHaveURL(/lang2=en/);
   });
+});
+
+// CODE_REVIEW R-22: a long list of connected texts loaded every link's section at once (Genesis 1:1's commentary: 235 requests)
+test("a long list of connected texts loads a page at a time, and the next as the reader scrolls", async ({ page }) => {
+  const sections = new Set<string>();
+  page.on("request", (r) => {
+    const m = /\/api\/v3\/texts\/([^?]+)/.exec(r.url());
+    if (m) sections.add(decodeURIComponent(m[1]!));
+  });
+  await open(page, "/Genesis.1.1?lang=en&with=Commentary");
+  const items = page.getByRole("complementary").locator("li[data-ref]");
+  await expect(items.first()).toBeVisible({ timeout: 30_000 });
+  await page.waitForTimeout(1500);
+  const first = await items.count();
+  expect(first).toBe(20);
+  const loaded = sections.size;
+  expect(loaded).toBeLessThan(40);
+  await items.last().scrollIntoViewIfNeeded();
+  await expect.poll(() => items.count(), { timeout: 15_000 }).toBeGreaterThan(first);
+  expect(sections.size).toBeGreaterThan(loaded);
+  // a re-render of the panel (the reader moves in the text) keeps what was loaded: the list does not shrink back to one page
+  const grown = await items.count();
+  await page.locator("[data-reader-scroller]").first().evaluate((el) => (el.scrollTop += 40));
+  await page.waitForTimeout(800);
+  expect(await items.count()).toBeGreaterThanOrEqual(grown);
 });

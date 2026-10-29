@@ -19,9 +19,10 @@ import { BannerImpressionProbe } from "~/features/shell/BannerImpressionProbe";
 import { useViewer, viewerQuery } from "~/features/auth/viewer";
 import { installSignupSourceCapture } from "~/features/auth/signup-source";
 import { useGoogleOneTap } from "~/features/auth/use-google-one-tap";
-import { resumePendingSignUpAttempt } from "~/lib/auth/analytics";
+import { resumePendingAuthAttempt } from "~/lib/auth/analytics";
 import { loadGoogleIdentity } from "~/lib/auth/sdk";
 import { SSO_CONFIG } from "~/lib/config";
+import { collectGarbage, persistHydrated } from "~/lib/cache/persisters";
 import appCss from "~/features/shell/App.module.css";
 import tokens from "~/ui/tokens/tokens.css?url";
 import fonts from "~/ui/tokens/fonts.css?url";
@@ -32,24 +33,36 @@ import { GARAMOND_FILES, TYPEKIT_CSS } from "~/lib/fonts/typekit";
 import robotoLatin from "@fontsource/roboto/files/roboto-latin-400-normal.woff2?url";
 import heeboHebrewBold from "@fontsource/heebo/files/heebo-hebrew-700-normal.woff2?url";
 
-/** Reader settings and interface language, read from the request's cookies (same names as the old site). */
-const getRequestPrefs = createServerFn({ method: "GET" }).handler(async () => {
-  const cookies = parseCookieHeader(getRequestHeader("cookie") ?? "");
+/** Reader settings and interface language from a cookie string (same names as the old site); `diaspora` as decided for this visit. */
+const prefsFromCookies = (header: string, diaspora: boolean) => {
+  const cookies = parseCookieHeader(header);
   return {
     settings: parseCookieSettings(cookies),
     interfaceLang: cookies.interfaceLang === "hebrew" ? ("hebrew" as const) : ("english" as const),
+    diaspora,
   };
-});
+};
+/**
+ * The old LocationSettingsMiddleware: a reader in Israel (Cloudflare's cf-ipcountry "IL") is not in the diaspora; an unknown country
+ * ("XX" or none) is PINNED_IPCOUNTRY, else the diaspora (CODE_REVIEW R-21).
+ */
+export function diasporaFor(country: string | undefined, pinned = typeof process !== "undefined" ? process.env.PINNED_IPCOUNTRY : undefined): boolean {
+  const c = (!country || country.toUpperCase() === "XX" ? pinned || "us" : country).toLowerCase();
+  return c !== "il";
+}
+/** On the server: from the request. */
+const getRequestPrefs = createServerFn({ method: "GET" }).handler(async () => prefsFromCookies(getRequestHeader("cookie") ?? "", diasporaFor(getRequestHeader("cf-ipcountry"))));
+/** In the browser: what the server decided for this page (written into it by RootDocument). */
+const pageDiaspora = () => (window as unknown as { __SEFARIA_REQUEST__?: { diaspora?: boolean } }).__SEFARIA_REQUEST__?.diaspora ?? true;
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  beforeLoad: async () => getRequestPrefs(),
+  // Every navigation runs this: in the browser the cookies are right here (a server function was an HTTP round trip per navigation,
+  // scroll-driven address updates included: CODE_REVIEW R-09)
+  beforeLoad: async () => (typeof document === "undefined" ? getRequestPrefs() : prefsFromCookies(document.cookie, pageDiaspora())),
   // who is signed in, in the first paint (the query forwards the request's cookie on the server: src/features/auth/viewer.ts)
   loader: ({ context }) => context.queryClient.ensureQueryData(viewerQuery).then((viewer) => ({ viewer })),
-  head: ({ match, loaderData }) => ({
+  head: () => ({
     meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { title: "Sefaria Reader" }],
-    // the runtime config (API and site origins) for the browser, before any module runs: src/lib/config.ts
-    // then the analytics vendors, each only when configured (src/lib/analytics/scripts.ts)
-    scripts: [{ children: configScript() }, ...analyticsHeadScripts(PUBLIC_CONFIG.analytics, match.context.interfaceLang ?? "english", loaderData?.viewer ? { uid: loaderData.viewer.id, email: loaderData.viewer.email } : null)],
     links: [
       // The faces on screen at first paint, preloaded with the page: a face that arrives later reflows the
       // text under the reader (see TXD-054). Everything else in fonts.css loads on demand.
@@ -107,7 +120,7 @@ function Shell() {
   // sign-in plumbing of the old ReaderApp: close out an SSO redirect's funnel attempt, remember which control started a sign-up,
   // and (signed out, a Google client configured) load Google Identity Services for One Tap, as the old base.html did
   useEffect(() => {
-    resumePendingSignUpAttempt();
+    resumePendingAuthAttempt();
     installSignupSourceCapture();
   }, []);
   useEffect(() => {
@@ -119,6 +132,21 @@ function Shell() {
   // data-anl-* declarations anywhere in the page (the old attach("#s2, #staticContentWrapper", …))
   const appRef = useRef<HTMLDivElement>(null);
   useEffect(() => (appRef.current ? attachDeclarativeAnalytics(appRef.current) : undefined), []);
+  // Keep the disk cache bounded (CODE_REVIEW R-11): once per visit, well after the page has settled, when the browser is idle
+  const queryClient = useRouter().options.context.queryClient as QueryClient;
+  useEffect(() => {
+    // what the server rendered goes to disk too (R-20), once the browser is idle after hydration
+    const idle = (fn: () => void) => ("requestIdleCallback" in window ? window.requestIdleCallback(fn, { timeout: 5_000 }) : setTimeout(fn, 1_000));
+    idle(() => void persistHydrated(queryClient).catch(() => undefined));
+  }, [queryClient]);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const run = () => void collectGarbage().catch(() => undefined);
+      if ("requestIdleCallback" in window) window.requestIdleCallback(run, { timeout: 10_000 });
+      else run();
+    }, 15_000);
+    return () => clearTimeout(t);
+  }, []);
   // back / forward into the search page starts its funnel with source "back_click" (the old handlePopState)
   const router = useRouter();
   useEffect(
@@ -147,10 +175,17 @@ const simpleAnalytics = simpleAnalyticsScript(PUBLIC_CONFIG.analytics);
 
 function RootDocument({ children, lang, dir }: Readonly<{ children: ReactNode; lang: string; dir: string }>) {
   const viewer = Route.useLoaderData()?.viewer;
+  const { interfaceLang, diaspora } = Route.useRouteContext();
   const saMetadata = saMetadataScript(PUBLIC_CONFIG.analytics, { loggedIn: !!viewer, staff: !!viewer?.email?.includes("sefaria.org") });
+  // The runtime config (before any module runs: src/lib/config.ts), then the analytics vendors, each only when configured. Plain
+  // <script> tags here run once per document; the router's head() would re-inject them on every navigation (CODE_REVIEW R-01).
+  const headScripts = [{ children: configScript() }, { children: `window.__SEFARIA_REQUEST__=${JSON.stringify({ diaspora: diaspora !== false })};` }, ...analyticsHeadScripts(PUBLIC_CONFIG.analytics, interfaceLang ?? "english", viewer ? { uid: viewer.id, email: viewer.email } : null)];
   return (
-    <html lang={lang} dir={dir}>
+    // Pinned light (CODE_REVIEW R-06): with no theme the tokens follow the OS, but ~200 literal colours do not, so dark-OS readers got a
+    // half-dark page. Dark mode arrives behind its remote-config flag once every colour is a token (TARGET_ARCHITECTURE §6.6).
+    <html lang={lang} dir={dir} data-theme="light">
       <head>
+        {headScripts.map(({ children: code, ...attrs }, i) => (code ? <script key={i} {...attrs} dangerouslySetInnerHTML={{ __html: code }} /> : <script key={i} {...attrs} />))}
         <HeadContent />
       </head>
       <body>

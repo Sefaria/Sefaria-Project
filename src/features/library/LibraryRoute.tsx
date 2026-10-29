@@ -1,3 +1,4 @@
+import { useRouteContext } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { tocQueryOptions } from "~/lib/catalog/toc";
@@ -19,7 +20,8 @@ import { useReaderSettings } from "../reader/settings-context";
  */
 export function LibraryRoute({ path }: { path: string[] }) {
   const catalog = useQuery(tocQueryOptions()).data;
-  const calendars = useQuery(calendarsQueryOptions()).data;
+  const { diaspora } = useRouteContext({ from: "__root__" });
+  const calendars = useQuery(calendarsQueryOptions(diaspora)).data;
   const { settings } = useReaderSettings();
   const names = useMemo(() => (catalog ? hebrewCategoryNames(catalog.tree) : new Map<string, string>()), [catalog]);
   if (!catalog) return <LoadingState />;

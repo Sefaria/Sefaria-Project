@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { loadWorkspaceRoute } from "~/features/reader/reader-route";
 import { Workspace } from "~/features/workspace/Workspace";
+// Not lazy: a book page's dictionary box is server-rendered, and typing into it before a lazy chunk arrived was lost (found on a
+// production build). The ~47 KB of library navigation stays in the route's chunk until the route is split by page kind.
 import { BookRoute } from "~/features/book/BookRoute";
 import { loadBookRoute } from "~/features/book/book-route";
 import { validateReaderSearch, type ReaderSearch } from "~/lib/reader/url-state";

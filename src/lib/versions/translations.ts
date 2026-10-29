@@ -11,7 +11,7 @@
  * @feature VER-011 Translation details disclosure and Open Text
  */
 import { queryOptions } from "@tanstack/react-query";
-import { text } from "@vendor/sefaria-toolkit/client/index";
+import { text } from "@vendor/sefaria-toolkit/client/runtime";
 import { getSefariaClient, unwrap } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 
@@ -80,14 +80,36 @@ const LICENSES: Record<string, string> = {
 /** Old Sefaria.getLicenseMap. */
 export const licenseUrl = (license: string | undefined): string | undefined => (license ? LICENSES[license] : undefined);
 
-/** Language name for a code, in the interface language ("de" → "German" / "גרמנית"). */
+/** The old site's language names (its `languages.*` interface strings and Sefaria.ISOMap). */
+const LANGUAGE_NAMES: Record<string, { en: string; he: string }> = {
+  ar: { en: "Arabic", he: "ערבית" },
+  de: { en: "German", he: "גרמנית" },
+  en: { en: "English", he: "אנגלית" },
+  eo: { en: "Esperanto", he: "אספרנטו" },
+  es: { en: "Spanish", he: "ספרדית" },
+  fa: { en: "Persian", he: "פרסית" },
+  fi: { en: "Finnish", he: "פינית" },
+  fr: { en: "French", he: "צרפתית" },
+  he: { en: "Hebrew", he: "עברית" },
+  it: { en: "Italian", he: "איטלקית" },
+  jrb: { en: "Judeo-Arabic", he: "Judeo-Arabic" },
+  lad: { en: "Ladino", he: "לאדינו" },
+  pl: { en: "Polish", he: "פולנית" },
+  pt: { en: "Portuguese", he: "פורטוגזית" },
+  ro: { en: "Romanian", he: "רומנית" },
+  ru: { en: "Russian", he: "רוסית" },
+  tr: { en: "Turkish", he: "טורקית" },
+  yi: { en: "Yiddish", he: "יידיש" },
+};
+
+/**
+ * Language name for a code, in the interface language ("de" → "German" / "גרמנית"), from the old site's own table; an unknown code
+ * is shown as it is, as there. Not Intl.DisplayNames: its names depend on the ICU data of the runtime — Node knows "lad" (Ladino),
+ * Chromium does not — so the server and the browser rendered different text (a hydration mismatch in the translations list).
+ */
 export function languageName(code: string, interfaceLang: "english" | "hebrew"): string {
-  try {
-    const name = new Intl.DisplayNames([interfaceLang === "hebrew" ? "he" : "en"], { type: "language" }).of(code);
-    return name && name !== code ? name : code;
-  } catch {
-    return code;
-  }
+  const n = LANGUAGE_NAMES[code.toLowerCase()];
+  return n ? n[interfaceLang === "hebrew" ? "he" : "en"] : code;
 }
 
 export const allTranslationsQueryOptions = (ref: string) =>

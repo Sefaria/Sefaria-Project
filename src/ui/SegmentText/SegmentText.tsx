@@ -1,4 +1,4 @@
-import { useMemo, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import type { VocalizationMode } from "@vendor/sefaria-toolkit/text-transform/index";
 import { highlightTerms } from "~/lib/text/highlight-terms";
 import { prepareSegmentHtml, type PrepareOptions } from "~/lib/text/prepare";
@@ -82,10 +82,13 @@ export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, i
     toggle(Number(marker.dataset.note));
   };
 
-  // Keep the markers' aria-expanded in step with state (the markers live inside a string of HTML).
-  const markerRef = (el: HTMLSpanElement | null) => {
-    el?.querySelectorAll<HTMLElement>("[data-note]").forEach((m) => m.setAttribute("aria-expanded", String(open.has(Number(m.dataset.note)))));
-  };
+  // Keep the markers' aria-expanded in step with state (the markers live inside a string of HTML). An effect on what it depends on,
+  // not a new callback ref per render — that re-ran querySelectorAll on every render of every segment (CODE_REVIEW R-12).
+  const markerRef = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    markerRef.current?.querySelectorAll<HTMLElement>("[data-note]").forEach((m) => m.setAttribute("aria-expanded", String(open.has(Number(m.dataset.note)))));
+  }, [open, prepared.html]);
+
 
   const openNotes = prepared.notes.filter((n) => open.has(n.key));
   return (

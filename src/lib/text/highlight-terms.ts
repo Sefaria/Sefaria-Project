@@ -18,7 +18,8 @@ interface Unit {
 
 function units(html: string): Unit[] {
   const out: Unit[] = [];
-  const re = /<[^>]*>|&(#x?[0-9a-f]+|[a-z]+);|[\s\S]/gi;
+  // A tag is matched with its quoted attribute values, so a `>` inside a value never ends it (CODE_REVIEW R-02).
+  const re = /<(?:[^>"']|"[^"]*"|'[^']*')*>|&(#x?[0-9a-f]+|[a-z]+);|[\s\S]/gi;
   for (const m of html.matchAll(re)) {
     const raw = m[0];
     if (raw.startsWith("<") && raw.length > 1) out.push({ raw, ch: "" });

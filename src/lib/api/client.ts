@@ -5,7 +5,7 @@
  * disabled: the library cache (TanStack Query + IndexedDB, see src/lib/cache) owns all caching.
  */
 import { API_ORIGIN } from "~/lib/config";
-import { createSefariaClient, type SefariaClient } from "@vendor/sefaria-toolkit/client/index";
+import { createSefariaClient, type SefariaClient } from "@vendor/sefaria-toolkit/client/runtime";
 
 /** The API origin for this side (internal Varnish on the server in the cluster, the public one in the browser): src/lib/config.ts. */
 export const SEFARIA_API_ORIGIN: string = API_ORIGIN;
@@ -27,7 +27,10 @@ const unavailableAware: typeof fetch = async (input, init) => {
 };
 
 export function getSefariaClient(): SefariaClient {
-  client ??= createSefariaClient({ baseUrl: SEFARIA_API_ORIGIN, cache: false, fetch: unavailableAware });
+  // Responses are checked against the API's contracts in development and tests, where a drift should fail loudly; production skips
+  // the check (~58 KB gzip of zod validators off every page, and no second parse of multi-MB responses on the main thread:
+  // CODE_REVIEW R-10, R-15)
+  client ??= createSefariaClient({ baseUrl: SEFARIA_API_ORIGIN, cache: false, fetch: unavailableAware, validate: Boolean(import.meta.env?.DEV) });
   return client;
 }
 

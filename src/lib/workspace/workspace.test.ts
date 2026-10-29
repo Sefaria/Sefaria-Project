@@ -3,7 +3,7 @@ import { leaves, type LayoutNode } from "~/lib/layout/tree";
 import { openNextToWithId, close, closeAside, move, openAside, openAtEnd, openNextTo, openOnly, panelOrder, replace, updateAside, updatePanel, type NewPanel } from "./ops";
 import { legacyColumnWidths, legacyRowSizes } from "./sizing";
 import { EMPTY_WORKSPACE, type TextPanelState, type Workspace } from "./types";
-import { decodeWorkspace, encodeWorkspace, workspaceUrl } from "./url";
+import { decodeWorkspace, encodeWorkspace, MAX_PANELS, workspaceUrl } from "./url";
 
 const text = (ref: string, extra: Partial<TextPanelState> = {}): NewPanel => ({ kind: "text", ref, versions: {}, ...extra });
 const refs = (ws: Workspace) => panelOrder(ws).map((id) => (ws.panels[id] as TextPanelState).ref);
@@ -150,6 +150,54 @@ describe("URL codec (old grammar)", () => {
     expect(workspaceUrl(decodeWorkspace("Onkelos Genesis 2", { lang: "bi" }))).toBe("/Onkelos_Genesis.2?lang=bi");
     expect(workspaceUrl(decodeWorkspace("Genesis 2", { lang: "bi" }))).toBe("/Genesis.2?lang=bi&aliyot=0");
     expect(workspaceUrl(decodeWorkspace("Rashi on Genesis 2:1:1", { lang: "bi", aliyot: "1" }))).toBe("/Rashi_on_Genesis.2.1.1?lang=bi");
+  });
+
+  // CODE_REVIEW R-04: free text in the URL ("100%", "a&b", "a&p2=Exodus.1") must come back exactly and never add a panel
+  it.each(["100%", "a&b", "a&p2=Exodus.1", "%E0%A4%A", "50% & more = ?", "שלום & 100%", "a+b#c"])("sidebar values round-trip exactly: %s", (v) => {
+    for (const [first, extra] of [["Genesis 1:1", {}], ["Genesis 1", { p2: "Exodus.1.1" }]] as const) {
+      const suffix = Object.keys(extra).length ? "2" : "";
+      const search = { lang: "bi", ...extra, [suffix ? "w2" : "with"]: "SidebarSearch", [`sbsq${suffix}`]: v, [`namedEntity${suffix}`]: v, [`lookup${suffix}`]: v };
+      const ws = decodeWorkspace(first, search);
+      const enc = encodeWorkspace(ws)!;
+      const back = decodeWorkspace(first, enc.search);
+      expect(Object.keys(back.panels)).toEqual(Object.keys(ws.panels));
+      const aside = (back.panels[suffix ? "p2" : "p1"] as TextPanelState).asides[0]!;
+      expect(aside.sbsq).toBe(v);
+      expect(aside.lookup).toBe(v);
+      expect(aside.entity?.slug).toBe(v);
+      expect(enc.search[`sbsq${suffix}`]).toBe(v); // a later panel's search is written to sbsq<i>, not the old literal "sbsq{i}"
+    }
+  });
+
+  // CODE_REVIEW R-05: every panel is loaded on the server, so the URL may not open an unbounded number of them
+  it(`opens at most ${MAX_PANELS} panels, the first ones`, () => {
+    const search: Record<string, string> = { lang: "bi" };
+    for (let n = 2; n <= 500; n++) search[`p${n}`] = `Exodus.${n}`;
+    const ws = decodeWorkspace("Genesis 1", search);
+    expect(Object.keys(ws.panels)).toHaveLength(MAX_PANELS);
+    expect((ws.panels.p2 as TextPanelState).ref).toBe("Exodus 2");
+  });
+
+  // review of R-04: values the encoders already escape (";" → %3B in version titles) must keep their legacy bytes
+  it("the legacy string form escapes free text, so it parses back without extra panels", () => {
+    const ws = decodeWorkspace("Genesis 1:1", { lang: "bi", with: "SidebarSearch", sbsq: "a&p2=Exodus.1" });
+    const url = workspaceUrl(ws)!;
+    expect(url).toContain("sbsq=a%26p2%3DExodus.1".replace("%3D", "="));
+    expect(new URLSearchParams(url.split("?")[1]).get("p2")).toBeNull();
+  });
+
+  it("a version title with ; keeps the legacy %3B form", () => {
+    const ws = decodeWorkspace("Genesis 1", { lang: "bi", ven: "english|A%3BB" });
+    expect((ws.panels.p1 as TextPanelState).versions.translation).toBe("english|A;B");
+    expect(encodeWorkspace(ws)!.search.ven).toBe("english|A;B");
+    expect(workspaceUrl(ws)).toContain("ven=english|A%3BB");
+  });
+
+  it("a version title with & or % round-trips", () => {
+    const ws = decodeWorkspace("Genesis 1", { lang: "bi", ven: "english|Notes_&_100%_Commentary" });
+    const enc = encodeWorkspace(ws)!;
+    expect(enc.search.ven).toBe("english|Notes_&_100%_Commentary");
+    expect(Object.keys(decodeWorkspace("Genesis 1", enc.search).panels)).toEqual(["p1"]);
   });
 
   it("reads per-panel sidebars, versions and aliyot", () => {

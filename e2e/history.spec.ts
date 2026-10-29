@@ -47,6 +47,26 @@ test.describe("back and forward", () => {
     expect(await focused(page)).toBe(refB); // the highlight is on the verse they were reading
   });
 
+  // review of CODE_REVIEW R-16: after Back, each scroll pause replaces the entry; it must not count as arriving again (a restore
+  // at every pause would pull the reader back to where they were)
+  test("after Back, reading on is not pulled back at each pause", async ({ page }) => {
+    await open(page, "/Genesis.1.1?lang=en");
+    await page.locator('[role="group"][data-ref="Genesis 1:4"]').click();
+    await expect(page).toHaveURL(/with=all/);
+    await page.goBack();
+    await expect(page).not.toHaveURL(/with=/);
+    await page.waitForTimeout(400);
+    for (let i = 0; i < 3; i++) {
+      await wheel(page, 250, 2);
+      await page.waitForTimeout(600); // a pause: the address catches up (a replace)
+    }
+    const ref = refOfPath(page.url());
+    const top = await segmentTop(page, ref);
+    await page.waitForTimeout(800);
+    expect(Math.abs((await segmentTop(page, ref)) - top)).toBeLessThan(2); // nothing moved after the last pause
+    expect(Number(ref.split(":")[1])).toBeGreaterThan(4); // and the reader is past where they came back to
+  });
+
   // "Open" replaces the sidebar with a new panel (CON-033, VERIFIED on sefaria.org); Back puts the sidebar back
   test("Open from the sidebar adds a panel; Back restores the text with its sidebar", async ({ page }) => {
     await open(page, "/Genesis.1.1?lang=en&with=Rashi");

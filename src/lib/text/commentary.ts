@@ -12,7 +12,7 @@
  * @feature RTE-063 Commentary URL converts to base text plus filter
  */
 import { queryOptions } from "@tanstack/react-query";
-import { index } from "@vendor/sefaria-toolkit/client/index";
+import { index } from "@vendor/sefaria-toolkit/client/runtime";
 import { getSefariaClient, unwrap } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 import { parseHumanRef, toHumanRef } from "~/lib/ref/url";

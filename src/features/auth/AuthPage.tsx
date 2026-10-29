@@ -19,7 +19,7 @@ import { AuthCard, AuthLoadingLine, AuthStack } from "~/ui/AuthCard/AuthCard";
 import { AuthText } from "~/ui/AuthText/AuthText";
 import { SSO_CONFIG } from "~/lib/config";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
-import { SIGNUP_METHOD } from "~/lib/auth/analytics";
+import { AUTH_METHOD } from "~/lib/auth/analytics";
 import { postJson } from "~/lib/auth/http";
 import { loadAppleSdk, loadGoogleIdentity, loadRecaptcha } from "~/lib/auth/sdk";
 import { useSignUpTracking } from "~/lib/auth/use-sign-up-tracking";
@@ -140,7 +140,7 @@ export function AuthPage({
     onNavigate?.(flowToPath("login", next));
   };
   const onEmailClick = () => {
-    tracking.chooseMethod(SIGNUP_METHOD.EMAIL);
+    tracking.chooseMethod(AUTH_METHOD.EMAIL);
     tracking.startProcess();
     setView("email");
   };
@@ -149,7 +149,7 @@ export function AuthPage({
   if (view === "email" && flow === "register") {
     content = <RegisterView switchFlow={switchFlow} fields={fields} setField={setField} onBack={() => setView("choose")} endProcess={tracking.endProcess} next={next} navigate={navigate} recaptchaSiteKey={recaptchaSiteKey} {...wiring} />;
   } else if (view === "email") {
-    content = <LoginView switchFlow={switchFlow} fields={fields} setField={setField} onBack={() => setView("choose")} onForgotClick={onForgotClick} next={next} navigate={navigate} {...wiring} />;
+    content = <LoginView switchFlow={switchFlow} fields={fields} setField={setField} onBack={() => setView("choose")} onForgotClick={onForgotClick} next={next} navigate={navigate} startProcess={tracking.startProcess} endProcess={tracking.endProcess} {...wiring} />;
   } else if (view === "forgot") {
     content = <ForgotView emailValue={fields.email} setField={setField} onSuccess={() => setView("forgot-sent")} onBack={() => setView("email")} {...wiring} />;
   } else if (view === "forgot-sent") {

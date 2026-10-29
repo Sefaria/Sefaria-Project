@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isDjangoPath, passResetLink, resetLinkUid, setPasswordPath } from "./pass-through";
+import { isDjangoPath, passResetLink, resetLinkUid, setPasswordPath, trailingSlashRedirect } from "./pass-through";
 
 describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
   it("sends Django's own sections through", () => {
@@ -21,6 +21,11 @@ describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
 
 // @feature ACC-011 @feature ACC-007
 describe("the reset link (auth port)", () => {
+  it("this client's own server functions are never Django's, even a POST (CODE_REVIEW low)", () => {
+    expect(isDjangoPath("/_serverFn/abc123", "POST")).toBe(false);
+    expect(isDjangoPath("/_serverFn/abc123", "GET")).toBe(false);
+    expect(isDjangoPath("/_serverFnX", "POST")).toBe(true);
+  });
   it("the POSTs of the auth page still go to Django", () => {
     expect(isDjangoPath("/register", "POST")).toBe(true);
     expect(isDjangoPath("/password/reset/confirm/MTI/set-password/", "POST")).toBe(true);
@@ -42,5 +47,30 @@ describe("the reset link (auth port)", () => {
     expect(res.status).toBe(302);
     expect(res.headers.get("location")).toBe(setPasswordPath("MTI"));
     expect(res.headers.get("set-cookie")).toContain("csrftoken=t");
+  });
+});
+
+// low list (CODE_REVIEW): a Django failure on the reset link is passed on, not hidden behind a redirect to "link expired"
+describe("passResetLink when Django fails", () => {
+  it("passes a 5xx on as it is", async () => {
+    const res = await passResetLink(new Request("http://x/password/reset/confirm/MTI/tok/"), "MTI", async () => new Response("down", { status: 502 }));
+    expect(res.status).toBe(502);
+  });
+});
+
+describe("trailingSlashRedirect", () => {
+  const go = (u: string, m = "GET") => trailingSlashRedirect(new URL(u, "https://www.sefaria.org"), m);
+  it("a reader or library address loses its slash permanently, keeping the query", () => {
+    const r = go("/Genesis.1/?lang=en")!;
+    expect(r.status).toBe(308);
+    expect(r.headers.get("location")).toBe("/Genesis.1?lang=en");
+    expect(go("/texts/Tanakh/")!.headers.get("location")).toBe("/texts/Tanakh");
+  });
+  it("leaves the home page, Django's paths, the auth pages, writes and slash-less addresses alone", () => {
+    for (const u of ["/", "/admin/", "/topics/", "/login/", "/password/reset/confirm/MTI/tok/", "/Genesis.1"]) expect(go(u), u).toBeNull();
+    expect(go("/Genesis.1/", "POST")).toBeNull();
+  });
+  it("never redirects to another host (a path that starts with two slashes)", () => {
+    for (const u of ["//evil.com/", "/\\evil.com/"]) expect(trailingSlashRedirect(new URL(`https://www.sefaria.org${u}`), "GET"), u).toBeNull();
   });
 });

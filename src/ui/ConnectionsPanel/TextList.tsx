@@ -48,6 +48,8 @@ export interface TextListProps {
   /** A connected text the reader dwelt on: shown (100px inside the list's view) for 3 s — the old ConnectionsPanel's
    *  checkVisibleSegments, which records it as secondary reading history (CON-036). Once per ref per list. */
   onDwell?: (ref: string) => void;
+  /** More items can be shown: called when the end of the list comes within a screen of view (the list grows a page at a time). */
+  onNearEnd?: () => void;
 }
 
 /**
@@ -58,7 +60,18 @@ export interface TextListProps {
  * @feature CON-032 Connection item rendering
  * @feature CON-033 Open connected text in main panel
  */
-export function TextList({ title, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen, onDwell }: TextListProps) {
+export function TextList({ title, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen, onDwell, onNearEnd }: TextListProps) {
+  const endRef = useRef<HTMLDivElement>(null);
+  const nearEnd = useRef(onNearEnd);
+  nearEnd.current = onNearEnd;
+  const more = Boolean(onNearEnd);
+  useEffect(() => {
+    const end = endRef.current;
+    if (!end || !more || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && nearEnd.current?.(), { rootMargin: "0px 0px 800px 0px" });
+    io.observe(end);
+    return () => io.disconnect();
+  }, [more, items.length]);
   const listRef = useRef<HTMLUListElement>(null);
   const dwelt = useRef(new Set<string>());
   const dwellCb = useRef(onDwell);
@@ -143,6 +156,7 @@ export function TextList({ title, color, items, language, vocalization, hideItem
           );
         })}
       </ul>
+      {more ? <div ref={endRef} aria-hidden="true" style={{ height: 1 }} /> : null}
     </div>
   );
 }

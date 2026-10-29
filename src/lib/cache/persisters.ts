@@ -2,8 +2,9 @@
  * One fine-grained persister per data class, so each class keeps its own on-disk lifetime.
  */
 import { experimental_createQueryPersister, type PersistedQuery } from "@tanstack/query-persist-client-core";
+import type { QueryClient } from "@tanstack/react-query";
 import { CACHE_BUSTER, POLICIES, type DataClass } from "./policies";
-import { createIdbStorage, resetIdbStore } from "./storage";
+import { createIdbStorage, resetIdbStore, sweepOnce, type SweepResult } from "./storage";
 
 type QueryPersister = ReturnType<typeof experimental_createQueryPersister<PersistedQuery>>;
 
@@ -28,13 +29,40 @@ export function getPersister(dataClass: DataClass): QueryPersister | undefined {
   return p;
 }
 
-/** Remove expired or busted entries from disk for every class. Safe to call at idle time. */
-export async function collectGarbage(): Promise<void> {
-  await Promise.all([...persisters.values()].map((p) => p.persisterGc()));
+/** A disk key's lifetime, from its class prefix (`sr-text-…`); undefined for a key of no known class. */
+export function maxAgeForKey(key: string): number | undefined {
+  const m = /^sr-([a-z]+)-/.exec(key);
+  return m && m[1]! in POLICIES ? POLICIES[m[1] as DataClass].maxAge : undefined;
+}
+
+/**
+ * Bound the disk cache: expire by class lifetime, drop what is not tracked, evict the least recently used past the budget (storage.ts).
+ * Reads only metadata, so it is cheap; run at idle after the page settles (src/routes/__root.tsx).
+ */
+export async function collectGarbage(budgetBytes?: number): Promise<SweepResult> {
+  return sweepOnce({ maxAgeFor: maxAgeForKey, budgetBytes });
 }
 
 /** Test helper: forget persister instances (storage contents are untouched). */
 export function resetPersisters(): void {
   persisters.clear();
   resetIdbStore();
+}
+
+/**
+ * Write to disk what the server rendered (CODE_REVIEW R-20): the persister writes a query when its queryFn runs, and queries seeded
+ * by the server render never run theirs — so the very page a reader landed on was the one page not kept for next time. Run once
+ * after hydration; only classes that are persisted, only successful data.
+ */
+export async function persistHydrated(queryClient: QueryClient): Promise<number> {
+  let n = 0;
+  for (const query of queryClient.getQueryCache().getAll()) {
+    const dataClass = (query.meta as { dataClass?: DataClass } | undefined)?.dataClass;
+    if (!dataClass || query.state.status !== "success" || query.state.data === undefined) continue;
+    const persister = getPersister(dataClass);
+    if (!persister) continue;
+    await persister.persistQuery(query).catch(() => undefined);
+    n++;
+  }
+  return n;
 }
