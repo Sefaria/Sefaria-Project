@@ -169,6 +169,34 @@ spec:
       annotations: {}
     ingress:
       enabled: false
+    # API Key Program authService (Phase 1). Ships disabled: merging this must not change what this environment runs.
+    # Enabling it attaches an ext_authz SecurityPolicy to the HTTPRoute (the preprod pass: projects/api-key-program/preprod-pass).
+    authService:
+      # Flip to true only at the prod switch, after the preprod pass (observe first). Also turns on the HTTPS-only redirect and the x-sefaria-* header strip.
+      enabled: false
+      # observe: never denies; records what would be rejected in x-sefaria-auth-result. enforce only after the preprod pass.
+      mode: observe
+      replicaCount: 1
+      image:
+        # Release image, built by scripts/release-prepare.sh; deploy-static.yaml writes the tag on each release.
+        repository: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
+        tag: ""
+      extAuth:
+        # Fail open: if the auth service is down or slower than the timeout, the request goes through as the anonymous tier.
+        failOpen: true
+        timeout: 200ms
+      postgres:
+        secrets:
+          dsn:
+            # Name only. The Secret lives in infrastructure (prod-common-secrets), shared by default and preprod namespaces.
+            ref: auth-service-registry
+            key: AUTH_PG_DSN
+      rateLimit:
+        # Needs the controller rateLimit backend (infrastructure repo) first.
+        enabled: false
+      nginxLogFields: true
+      monitoring:
+        enabled: true
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
@@ -254,3 +282,5 @@ spec:
       CSRF_COOKIE_SECURE: true
       CSRF_COOKIE_HTTPONLY: false
       CSRF_COOKIE_SAMESITE: "Lax"
+      DEVELOPER_SETTINGS_ENABLED: "False"
+      DEVELOPER_SETTINGS_MOCKS: "False"
