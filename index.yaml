@@ -197,6 +197,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.2-reader-optin.1.tgz
     version: 0.92.2-reader-optin.1
   - apiVersion: v2
+    appVersion: v7.10.2
+    created: "2026-10-29T11:27:25.432318945Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: c3f07b406dd245b108f4ab96b1a91ccfbfcdf76b35db7d53b8173d40349abf2b
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.2-reader-next-target-architecture.2.tgz
+    version: 0.92.2-reader-next-target-architecture.2
+  - apiVersion: v2
     appVersion: v7.10.1
     created: "2026-10-29T07:11:36.874586269Z"
     description: Chart to deploy complete Sefaria environment
@@ -23730,4 +23745,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-10-29T11:24:49.003793683Z"
+generated: "2026-10-29T11:27:25.428519978Z"
