@@ -125,6 +125,25 @@
 		</div>
 	</div>
 
+    {% if reader_choice_available %}
+    <div id="newReaderSetting" class="section">
+		<label class="control-elem">
+            <span class="int-en">New Reader (beta)</span>
+			<span class="int-he">הקורא החדש (בטא)</span>
+        </label>
+		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-value="next" class="toggleOption {% if new_reader_enabled %} on{% endif %}" tabindex="{% if new_reader_enabled %}0{% else %}-1{% endif %}" aria-checked="{% if new_reader_enabled %}true{% else %}false{% endif %}">
+                <span class="int-en">On</span>
+                <span class="int-he">פעיל</span>
+            </div>
+            <div role="radio" data-value="classic" class="toggleOption {% if not new_reader_enabled %} on{% endif %}" tabindex="{% if not new_reader_enabled %}0{% else %}-1{% endif %}" aria-checked="{% if not new_reader_enabled %}true{% else %}false{% endif %}">
+                <span class="int-en">Off</span>
+                <span class="int-he">כבוי</span>
+            </div>
+		</div>
+	</div>
+    {% endif %}
+
 	{# TEMPORARY (goes with the experiments framework): the generic "Experiments" toggle,  #}
 	{# parked. It controls profile.experiments (whitelist-gated on experiments_available); #}
 	{# the Library Assistant toggle above writes settings.library_assistant instead.       #}
@@ -242,6 +261,7 @@
 		    const $curLang = $("#siteLanguage .toggleOption.on").attr("data-value");
 		    let $curTextualCustom = $("#textualCustom .toggleOption.on").attr("data-value");
 		    const $curLibraryAssistant = $("#libraryAssistantSetting .toggleOption.on").attr("data-value");
+		    const $curReaderVersion = $("#newReaderSetting .toggleOption.on").attr("data-value");
 			$(".toggleOption").click(function() {
 			    let $this = $(this);
 				$this.closest(".toggleSet").find(".toggleOption").removeClass("on").attr("tabIndex","-1").attr("ariaChecked","false");
@@ -268,6 +288,7 @@
             $(".saveAccountSettingsBtn").click(function(){
 			    const $newTransLangPref = $("#translationLanguagePreference .toggleOption.on").attr("data-value");
 			    const $newLibraryAssistant = $("#libraryAssistantSetting .toggleOption.on").attr("data-value");
+			    const $newReaderVersion = $("#newReaderSetting .toggleOption.on").attr("data-value");
 				let profile = {
                     settings: {
                         email_notifications: $("#emailNotifications .toggleOption.on").attr("data-value"),
@@ -285,6 +306,10 @@
 				if ($newLibraryAssistant !== $curLibraryAssistant) {
 				    profile.settings.library_assistant = $newLibraryAssistant === "true";
 				}
+				// the reader choice: the response sets (or clears) the cookie nginx routes page requests by
+				if ($newReaderVersion !== undefined && $newReaderVersion !== $curReaderVersion) {
+				    profile.settings.reader_version = $newReaderVersion;
+				}
                 $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.on").attr("data-value"), {path: "/"});  // see trans pref in cookie in case user is logged out
                 $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
                 $.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
@@ -297,8 +322,8 @@
 						if ($newLang != $curLang) {
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
 						}
-						// Interface language or Library Assistant changed → reload (interface language affects RTL/LTR and server-rendered content; the assistant needs a fresh chatbot_user_token and script tag)
-						if ($newLang != $curLang || $newLibraryAssistant !== $curLibraryAssistant) {
+						// Interface language, Library Assistant or reader changed → reload (interface language affects RTL/LTR and server-rendered content; the assistant needs a fresh chatbot_user_token and script tag)
+						if ($newLang != $curLang || $newLibraryAssistant !== $curLibraryAssistant || $newReaderVersion !== $curReaderVersion) {
 							window.location.reload();
 							return;
 						}
