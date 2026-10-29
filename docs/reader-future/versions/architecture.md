@@ -119,8 +119,9 @@ Read from the code; *ideas* · [Slack](https://sefaria.slack.com/archives/C0C9EG
 - `reader-next` reads version and translation-language preferences from cookies only, and writes neither to the profile
   (`reader-next/src/lib/versions/prefs-source.ts:10-25`). No JSON GET returns a signed-in reader's `version_preferences_by_corpus`
   (`sefaria/model/user_profile.py:768-801`).
-- Missing preferred translation or language: falls through to the API's highest-priority translation in any language, and the
-  reader is not told (`sefaria/model/text_request_adapter.py:102-103`).
+- Missing preferred translation or language: falling back to the API's highest-priority translation in another language is by
+  design (`sefaria/model/text_request_adapter.py:102-103`; [Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609)). Open: the reader is not told a fallback
+  happened.
 - A source-version choice is never remembered (`static/js/sefaria/sefaria.js:1115`). Texts without a corpus cannot carry any
   preference.
 - Should a source-version preference be stored under the existing `{corpus: {he: title}}` key, which the format already allows?

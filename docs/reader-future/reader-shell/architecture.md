@@ -39,6 +39,35 @@ Each main reader panel owns its sidebar (the connections / resources panel) as a
   behind one hook that emits `{work, ref, versions, structure?}` on settle, so a reading-position tracker is one more
   subscriber, not a fifth wiring. See [Saved, history & notes](../user-library/architecture.md). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
+**Learning workspace** (experiment on `learning-workspace-poc`, PR #3892, never merged). What it needs from the panel model:
+
+- **The layout tree is the model; the URL stays its only owner.** `reader-next` already has rows and columns with sizes
+  ([`src/lib/layout/tree.ts:11-15`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/layout/tree.ts#L11-L15)) and builds the workspace from the URL on every render
+  ([`src/features/workspace/Workspace.tsx:23-25`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/workspace/Workspace.tsx#L23-L25)); only the codec flattens to a row ([`src/lib/workspace/url.ts:76`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/workspace/url.ts#L76)). The POC adds
+  `layout=r(c(1,2)~33,3~67)` ([`src/lib/workspace/layout-param.ts:10-73`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/workspace/layout-param.ts#L10-L73)) and writes divider drags back through the router with
+  `replace` ([`src/features/workspace/Workspace.tsx:75`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/workspace/Workspace.tsx#L75)), so stacks, sizes, drag-to-dock and swap ([`src/lib/workspace/ops.ts:115-118`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/workspace/ops.ts#L115-L118))
+  fit without a second store. Adopted as D7 in `TARGET_ARCHITECTURE.md`. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **A link hub for panels.** Scrolling together and marking a clicked verse in every pane are one mechanism: each panel publishes
+  `{panel, work, ref, reason: settled | selected}` from its "now reading" signal, and every other panel in the same link group maps
+  it to its own segments through links (see [Connections](../connections/architecture.md)) and scrolls or marks. The POC wires this as
+  two module-level event buses ([`src/features/workspace/linked-verse.ts:10-31`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/workspace/linked-verse.ts#L10-L31)) with the subscribers inside `TextPanel`
+  ([`src/features/reader/TextPanel.tsx:297-356`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/reader/TextPanel.tsx#L297-L356)). Target: one hub in `features/workspace`, fed by the same signal as position
+  tracking. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920292160819?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Lock and link group are panel state.** The POC keeps each pane's lock in component state ([`src/features/reader/TextPanel.tsx:330`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/reader/TextPanel.tsx#L330)),
+  which is lost when panels renumber, because ids follow position ([`src/lib/workspace/ops.ts:32`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/workspace/ops.ts#L32)). With stable ids (D7): `link?: {group,
+  locked}` on the panel, in history state and in the layout snapshot, not in the legacy params. "Link sets" (several groups) need
+  no other change. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Arrangement direction.** The POC lays panels out left to right in both interface languages and gives each panel the interface's
+  direction inside ([`src/ui/SplitView/SplitView.tsx:25-29`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/ui/SplitView/SplitView.tsx#L25-L29)). Today the row follows `<html dir>`, so "after" is left in Hebrew.
+  This is the open "beside" question (`TARGET_ARCHITECTURE.md` §12, Q-R1). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **More columns than fit.** The workspace, not a split inside it, scrolls sideways once minimum widths exceed the window; there is
+  no panel cap (POC defaults, `reader-next/docs/experiments/learning-workspace-defaults.md`). Same rule as the old reader past
+  `panelCap`. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Focus modes are view state, not layout.** Collapsed header and full screen are a device preference and the browser's
+  fullscreen ([`src/features/shell/focus-mode.ts:7-46`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/shell/focus-mode.ts#L7-L46)); "magnify one pane" would be an ephemeral `zoomed?: PanelId` that leaves
+  the tree alone. The reading-scroll engine already keeps the verse in place when the header changes height. — *idea* ·
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+
 ## Assessment: advanced panel management
 
 Requested in the thread ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)). For each idea: what `reader-next` already has, what is missing, and how big a change it is in complexity (not time). Paths are under `reader-next/` on `reader-next`. This is an assessment, not a decision.
@@ -73,6 +102,7 @@ Requested in the thread ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/
 - Should "open next to" be a reading-order placement (after / before, as both clients do today) or a fixed visual side (always left)? The two differ in the English interface. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792058641961899)
 - Which future panel-management features must the state model support (reorder, resize, pin, stack, close all)? That decides whether the current layout tree is enough.
 - Is there a cap on open panels, and what happens past it?
+- Phones show panel 1. When a bookmark's layout puts the main text elsewhere, a phone shows a companion (POC known issue). — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - Share by URL only, or stored workspaces with an id? A URL keeps old links working but grows with every panel and cannot hold floating panels without a new parameter; a stored workspace needs a backend model and API. · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792059081018739)
 
 ## Decisions

@@ -6,6 +6,8 @@ document: architecture
 owner: unassigned
 status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-19
+
+updated: 2026-10-28
 ---
 # Saved, history & notes — architecture
 
@@ -74,6 +76,33 @@ Not for the first iteration (*idea* · [Slack](https://sefaria.slack.com/archive
 - **Privacy.** A position is reading history: it obeys "reading history off" (enforced by the server today,
   [`src/features/reader/use-reader-history.ts:29`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/use-reader-history.ts#L29)) and is cleared with it. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
+**Learning workspace: per-book bookmarks that carry the layout** (experiment on `learning-workspace-poc`, PR #3892, never merged).
+The POC keeps one record per book, `{book, ref, mode, updated, furthest?, layout?}`, in localStorage
+([`src/lib/bookmarks/model.ts:10-20`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/bookmarks/model.ts#L10-L20), [`src/lib/bookmarks/store.ts:9`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/bookmarks/store.ts#L9)). Its shape fits the position record above; its storage
+is the one thing to move.
+
+- **The bookmark is the position record, extended.** `Bookmark { work, mode: manual | auto, last: anchor, furthest?: anchor,
+  layout?: LayoutSnapshot, updatedAt }`, one per reader and work, in the one user-state store (not its own localStorage key).
+  Auto mode is the "now reading" subscriber moving `last` (the POC's `noteReading`, [`src/lib/bookmarks/model.ts:118-124`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/bookmarks/model.ts#L118-L124)); manual
+  mode ignores it. A list of places saved on purpose, if kept, stays a separate list sharing the anchor. — *idea* ·
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Furthest read needs an order from the book, not the ref string.** The POC compares section numbers parsed from the ref and gives
+  up on complex texts ([`src/lib/bookmarks/model.ts:48-60`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/bookmarks/model.ts#L48-L60)). Order anchors by their position in the book's table of contents
+  (`src/lib/toc`), later by `anchorId`. Reset sets `furthest = last`. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Layout snapshot is a value, written in the URL grammar.** The POC stores the workspace's query string minus the main text's
+  position and the moment-only keys (`lookup`, `sbsq`, `namedEntity*`, sidebars), adding `p1` when the main text is not first
+  ([`src/lib/bookmarks/layout.ts:18-66`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/bookmarks/layout.ts#L18-L66)). Keep that: one format (legacy params + `layout=`, see
+  [Reader shell](../reader-shell/architecture.md)) for URLs, bookmarks and later saved workspaces (`TARGET_ARCHITECTURE.md` R5), with a
+  `v` field so the grammar can grow. Several named layouts per book later is `layouts: {name, snapshot}[]`; genre presets are
+  snapshots keyed by category. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Companions follow the main text through links.** On entry each saved companion moves to its comment on the main text's verse,
+  else its nearest comment in the section ([`src/lib/bookmarks/layout.ts:146-171`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/bookmarks/layout.ts#L146-L171)). That mapping is the same one scrolling together
+  and two-way linking use; it belongs with the links adapter (see [Connections](../connections/architecture.md)). — *idea* ·
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Continue learning and `/bookmarks` read the store.** Both build their links with the bookmark's layout in them (POC
+  `useBookmarkHref`, [`src/features/bookmarks/my-layout.ts:50-56`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/bookmarks/my-layout.ts#L50-L56)), so no other code decides when the layout opens. — *idea* ·
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+
 ## Dependencies on other areas
 
 - [Reader shell](../reader-shell/architecture.md): the single "now reading" signal per panel.
@@ -94,10 +123,17 @@ Not for the first iteration (*idea* · [Slack](https://sefaria.slack.com/archive
   dependency. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - Writing a segment position on every settle through `/api/profile/sync`, which also feeds the history list, is chatty and would
   fill history with verses: coalesce, and keep positions out of the history list. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **A shared link must not write to the recipient's bookmark.** The POC marks "this is my layout" with `bk=1` in the URL and, while it
+  is set, saves every arrangement change to the bookmark of the main text's book ([`src/lib/bookmarks/layout.ts:121-133`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/bookmarks/layout.ts#L121-L133)). It strips
+  `bk` from share links ([`src/lib/bookmarks/layout.ts:183-186`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/bookmarks/layout.ts#L183-L186)), but a copied address bar or a link from an older share would
+  still carry it. Autosave should need proof the layout is the viewer's own (the flag in history state, or a hash of the stored
+  snapshot in the link), not the flag alone. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Decisions
 
-_None yet. Every decision is also logged in `../DECISIONS.md`._
+See the 2026-10-25 decision in [the product spec](product.md#decisions) (saved layout opens only on purposeful entry).
+
+_Every decision is also logged in `../DECISIONS.md`._
 
 <!-- BASELINE:START (generated by docs/reader-future/tools/seed.py — do not edit by hand) -->
 

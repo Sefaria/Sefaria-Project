@@ -94,6 +94,33 @@ Implications of ideas, not decisions.
 - Keep `reader-next`'s single links request per section shared by dots and sidebar, and its lack of neighbour prefetch for
   connections; stop persisting multi-MB link arrays to IndexedDB (counts can stay on disk long, link rows in memory). — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792322798155629?thread_ts=1792322132.117529&cid=C0C9EGTL468)
 
+Learning workspace (experiment on `learning-workspace-poc`, PR #3892, never merged):
+
+- **One link-mapping function, inside the adapter.** "Which segments of book B go with this segment of book A" drives scrolling
+  together, marking a verse across panes, two-way gemara ↔ commentary linking, placing a bookmark's companions and the favourites
+  menu. `reader-next` already maps segments to their links ([`src/lib/connections/links.ts:45-48`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/lib/connections/links.ts#L45-L48)); the POC adds
+  `linkedSegmentsIn` in both directions on `anchorRefExpanded` ([`src/lib/workspace/linked-verses.ts:15-23`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/workspace/linked-verses.ts#L15-L23)). Keep it in
+  `src/lib/connections`, taking and returning refs only: `anchorRefExpanded` is the field a new backend text model drops
+  (`../CROSS_CUTTING.md`). It reuses the one links request per section. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Ranked favourite commentaries.** Ranked once, by collective title ("Rashi"), not per book; "show my commentaries" falls back to
+  the next one down. The POC keeps the list in localStorage (default Rashi, Tosafot, Ramban, [`src/lib/study/favourite-commentaries.ts:5`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/study/favourite-commentaries.ts#L5)),
+  ranks and falls back in one pure function ([`src/lib/study/favourite-commentaries.ts:19-29`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/lib/study/favourite-commentaries.ts#L19-L29)), and stars from the commentary list,
+  which gets the list as props ([`src/ui/ConnectionsPanel/CategoryView.tsx:76-80`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/ui/ConnectionsPanel/CategoryView.tsx#L76-L80)). Target: a user-scoped list setting in the
+  settings registry ([Text display](../text-display/architecture.md)), saved through `savePreference` (profile when signed in,
+  local storage otherwise: a list does not belong in a cookie). D5 limits new profile keys at launch, so this is a later key. — *idea* ·
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Link hover cards.** Today a citation in the text closes what is next to its panel and opens there (F9,
+  [`src/features/reader/TextPanel.tsx:317-340`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L317-L340)), and a ref link in a comment opens beside it ([`src/features/reader/TextPanel.tsx:298-311`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L298-L311)).
+  The POC's cards listen on the panel and take plain clicks in the capture phase ([`src/features/study/RefPreview.tsx:132-148`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/study/RefPreview.tsx#L132-L148)),
+  so a plain click opens a pinned card instead. A hover preview is additive; changing what a plain click does changes the decided F9.
+  Pinned, draggable cards are a floating layer outside the layout tree, ephemeral and not in the URL (the same layer floating panels
+  need). "Open as new column" is `openNextToWithId`; "Open in new page" is a plain link. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **The language a link opens in.** `reader-next` follows sefaria.org: Open from the sidebar is bilingual when the panel is, else the
+  sidebar's language ([`src/features/reader/TextPanel.tsx:264`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/reader/TextPanel.tsx#L264)); citations and comment links set no language
+  ([`src/features/workspace/open-ref.ts:16-17`](https://github.com/Sefaria/Sefaria-Project/blob/837d5851180be4d26c08f3276752d8bdad8fa607/reader-next/src/features/workspace/open-ref.ts#L16-L17)). The POC uses the source panel's language for all of them
+  ([`src/features/reader/TextPanel.tsx:132`](https://github.com/Sefaria/Sefaria-Project/blob/df18ba24ef97a1fd161b71e654095eaea8ac1d35/reader-next/src/features/reader/TextPanel.tsx#L132)). `NewPanel.lang` already carries it; make it one policy function. Keeping parity or
+  taking the new rule is a product choice. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+
 ## Dependencies on other areas
 
 - [Reader shell & panels](../reader-shell/architecture.md): owns the sidebar and opens new panels from it.

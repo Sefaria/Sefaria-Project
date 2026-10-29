@@ -8,6 +8,8 @@ status: exploring  # baseline → exploring → proposed → agreed
 updated: 2026-10-15
 
 updated: 2026-10-19
+
+updated: 2026-10-28
 ---
 # Saved, history & notes — product specification
 
@@ -32,6 +34,16 @@ _Not discussed yet._
   first iteration. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - **Bookmarks, rebuilt.** Places a reader saves on purpose, kept apart from the automatic "where I'm up to" but pointing at the
   same kind of place (a verse in a text, in the versions read). Not in the first iteration. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **One bookmark per book, carrying position and layout** (learning-workspace experiment, PR #3892). Each book has at most one
+  bookmark: where you are in it, in a *manual* mode (right-click → "Move bookmark here") or an *automatic* one (it follows your
+  reading). It keeps a *last read* and a *furthest read* you can reset, so reviewing (chazara) doesn't lose progress. It also
+  carries your layout: which commentaries are open, how they are stacked and their sizes, mapped to the place you are at now.
+  Position and layout change separately. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Bookmarks page and Continue learning.** `/bookmarks` lists every book with its place and a Continue link; a "Continue
+  learning" shelf of the books you're in the middle of sits above Browse the Library (builds on Penina's Bookshelf POC, #3837).
+  — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- **Later:** several named layouts per book (Daf Yomi vs deep dive); suggested setups by genre that start from your favourite
+  commentaries; "catch me up" and streaks. — *idea* · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468) · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Changes from today (keep · change · drop · new)
 
@@ -46,10 +58,17 @@ _Not discussed yet._
 - Are places kept while signed out carried into the account on sign-in? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - Does turning reading history off also stop tracking where I'm up to? (Suggested: yes.) — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 - Does resuming highlight the verse, or only scroll to it? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792404977763469?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+- Is the per-book bookmark the same thing as "where I'm up to" (its automatic mode), with a separate list for places saved on
+  purpose, or does it replace both? — [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468)
 
 ## Decisions
 
-_None yet. Every decision is also logged in `../DECISIONS.md`._
+- 2026-10-25 — A bookmark's saved layout opens by itself only when the reader comes back to the book on purpose: through its
+  bookmark, the bookshelf or a search result. Any other way in (table of contents, a citation, browsing) opens the book as usual.
+  "Open my saved layout" is always one click away, in the right-click menu and the text display options. Daniel Schreiber.
+  [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468)
+
+_Every decision is also logged in `../DECISIONS.md`._
 
 ## Parked ideas
 

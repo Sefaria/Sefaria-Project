@@ -169,7 +169,9 @@ Each subsystem: what it is for, the shape, what is built, what changes, and the 
   - **Phone rule:** `layout=` stays in the URL but is ignored for display on phones (single panel + switcher).
 - **Launch behaviour (D6, F9):** segment click opens the sidebar beside its panel, as today.
 - **Future room:** floating panels; two asides stacked; saved and shared workspaces (needs a backend model and API); inline
-  commentary as a panel content type; "scroll together" for linked panes (POC `linked-verse.ts`).
+  commentary as a panel content type; a **panel link hub** (idea): each panel publishes its "now reading" / selected verse, panels
+  in the same link group map it through links (R23) and scroll or mark, with `link {group, locked}` as panel state (needs stable
+  ids); "magnify one pane" and focus modes as view state outside the tree. See `reader-shell/architecture.md`.
 
 ### 6.3 Reader settings and the display model
 
@@ -308,6 +310,12 @@ the browser). Flags use `0`/`1` like the existing `chatbot.hide`.
   back/forward and analytics; `ReadingPosition {work, ref, anchorId?, structure?, versions?, updatedAt}`; bookmarks share the anchor
   (POC bookmarks-with-layout move here, stored server-side rather than localStorage); last-write-wins sync; obeys "reading history
   off"; Continue Reading cross-device from `UserHistory.last_place`.
+- **Per-book bookmark (idea, #3892):** the position record extended to `{work, mode: manual | auto, last, furthest?, layout?, updatedAt}`;
+  `furthest` ordered by the book's TOC, not the ref string; `layout` a versioned snapshot in the URL grammar (legacy params +
+  `layout=`), the same value saved workspaces (R5) and named layouts (R27) would use. **Decided 2026-10-25 (Daniel Schreiber):** the
+  saved layout opens by itself only on purposeful entry (bookmark, bookshelf, search result); the link builders on those surfaces
+  put the layout in the URL, so the reader never guesses the entry and every other URL opens as it says (F1). Autosave into the
+  bookmark must not trust a URL flag alone (`bk=1` in the POC). See `user-library/architecture.md`, `routing/architecture.md`.
 
 ### 6.9 Notices
 
@@ -468,8 +476,8 @@ Everything said to be wanted later, in the spec, the PRs or the POC, with the ho
 | R4 | Floating panels; two asides stacked | idea · #3818; WORKSPACE.md | Layout tree leaves carry a `kind` (`docked`, later `floating`) | Floating geometry, focus management, a11y |
 | R5 | Saved and shared workspaces (study sessions) | idea · #3818 | Workspace serialises to a plain object (URL codec already does) | Backend model + API (`/api/workspaces`), share links |
 | R6 | Inline commentary inside a panel | idea · #3818 | Display model blocks with `inline` slots (§6.3) | New panel content type; overlap rules with the sidebar |
-| R7 | Scroll together (linked panes, lock toggle) | POC · #3892 | "Now reading" signal per panel (§6.8) | Sync policy between panels of different structures |
-| R8 | Bookmarks that follow your reading; bookmarks page | POC; idea · #3826; D7: into user-state store | `ReadingPosition` with anchor; one user store | Backend storage and LWW sync |
+| R7 | Scroll together (linked panes, lock per pane, link sets); click marks the verse in every pane | POC · #3892; idea · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468) | "Now reading" signal per panel (§6.8) feeding one panel link hub; `link {group, locked}` on stable panel ids (§6.2) | Sync policy between panels of different structures |
+| R8 | Per-book bookmarks: manual / auto, last + resettable furthest, `/bookmarks`, Continue-learning shelf, layout carried | POC; idea · #3826, [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468); D7: into user-state store; entry rule decided 2026-10-25 | `ReadingPosition` with anchor, extended (§6.8); one user store; layout as a snapshot value | Backend storage and LWW sync |
 | R9 | Continue Reading across devices | idea · #3826 | Same store; read `UserHistory.last_place` | Write path that respects "reading history off" |
 | R10 | Per-segment stored counts; `/api/related?include=`; leaner rows | idea · #3822 | Connections adapter hides the endpoint; UI reads counts not rows | Backend counts + purge hooks |
 | R11 | Notice manager with caps, auto-close, reader control of pop-ups | idea · #3821 (PRM-010…014) | Port cookie notice, translations strip, sign-up modal onto it first | Profile-backed dismissals; CMS descriptors |
@@ -480,9 +488,15 @@ Everything said to be wanted later, in the spec, the PRs or the POC, with the ho
 | R16 | Cross-origin integrations (`postMessage`) | D4: not at launch | Commands are serialisable and versioned | Allowlist, origin checks |
 | R17 | Panel targeting for "open ref" | D4: optional in versioned commands | `openRef {panel?}` parameter reserved | — |
 | R18 | Theme tokens shared with native apps; sepia back | D3 / A1-6 | Tokens in one source file | Export pipeline |
-| R19 | Right-click menu, focus mode, hover ref preview, favourite commentaries | experiments · #3892 | None needed beyond R2/R7 seams | Product decision per feature |
+| R19 | Right-click menu, focus mode, hover ref preview, favourite commentaries | experiments · #3892 | R22–R26 | Product decision per feature |
 | R20 | Chatbot opening a ref in a chosen panel / reading state out to the assistant | F2; D4 | `sefaria:state-changed`, `getState()` | AI team contract v2 |
 | R21 | Everything in the atlas not yet ported (topics, sheets, collections, profiles, notifications, static pages, admin) | baseline | Pass-through keeps them working; §7 lists per area what each needs | Per-area ports (§7) |
+| R22 | Segment action registry: right-click / long-press menu, header, shortcuts; "what a click does" as a chosen action | idea · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920222002419?thread_ts=1792041146.749969&cid=C0C9EGTL468), [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920292160819?thread_ts=1792041146.749969&cid=C0C9EGTL468) | Don't add more interactions as callback props on `TextPanel`; navigating actions go through the command layer (§6.12) | `defineAction` registry; move the existing handlers onto it (`text-display/architecture.md`) |
+| R23 | Two-way gemara ↔ commentary linking | idea · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468) | One ref-in, refs-out mapping in `src/lib/connections` (POC `linked-verses.ts`), shared by R7, R8 and R24 | Structures other than the default (R12) |
+| R24 | Ranked favourite commentaries with fallback | idea · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468) | User-scoped list setting in the registry (§6.3), saved through `savePreference` (§6.4) | Profile key after launch (D5) |
+| R25 | Link hover cards, pinned and draggable; open as column / new page | POC · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468) | A floating layer outside the layout tree (as R4) | Owner decision if a plain click stops following F9 |
+| R26 | A text opened from a link keeps the source panel's language | idea · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792923052109879?thread_ts=1792041146.749969&cid=C0C9EGTL468) | One policy for `NewPanel.lang` in every open path | Parity vs new rule (product) |
+| R27 | Several named layouts per book; genre presets from favourites; catch-me-up and streaks; saved words | idea · [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792921227482299?thread_ts=1792041146.749969&cid=C0C9EGTL468), [Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792920246242149?thread_ts=1792041146.749969&cid=C0C9EGTL468) | Layout snapshot is a value (§6.8); saved words a list in the user store, highlighted by a display-model decorator (§6.3) | Backend storage; review cards |
 
 ---
 
@@ -651,7 +665,7 @@ listed once so nobody re-asks them; the rest need a decision, each with a recomm
 | Q-P2 | **Adobe Garamond loading** (blocking Typekit CSS vs the LCP target) | Self-host if the Adobe licence allows web self-hosting; else load the kit async with size-matched fallbacks. Check the licence first. | text-display, platform |
 | Q-P3 | **Budget numbers for CI**: JS, CSS, hydration, TTFB | Set them at today's measured values on the Pixel 7 profile and ratchet down; fail CI on regression, not on an absolute goal. | platform |
 | Q-S1 | **Settings registry details**: scope per setting, keep legacy cookie names, ESLint vs vitest for the import ban | Keep legacy cookie names (F1 spirit); vitest architecture test (runs in the existing suite); scope per setting as listed in text-display's proposal. | text-display |
-| Q-R1 | **"Beside": reading order (today) or always left?** | Reading order, as today: right in English, left in Hebrew. | reader-shell |
+| Q-R1 | **"Beside": reading order (today) or always left?** | Reading order, as today: right in English, left in Hebrew. Note: the learning-workspace POC (#3892) tried the opposite, the same left-to-right arrangement in both languages ([Slack](https://sefaria.slack.com/archives/C0C9EGTL468/p1792936714453059?thread_ts=1792041146.749969&cid=C0C9EGTL468)); decide this before B5 builds drag and `layout=`. | reader-shell |
 
 ### 12.3 Decide before the matching Phase C work
 
@@ -697,4 +711,8 @@ listed once so nobody re-asks them; the rest need a decision, each with a recomm
 - **Backend text model:** how a URL names a non-default structure (parameter vs a title per structure).
 - **Toolkit:** is it Sefaria's embed product and the base for the next linker; who owns it; must embeds look exactly like
   sefaria.org?
+- **Learning workspace (#3892) leaving the experiment:** what a segment click does (D6 keeps the sidebar at launch); whether a plain
+  click on a citation opens a pinned card (changes F9); the language a link opens in (R26); what proves a saved layout is the
+  viewer's own before autosave writes to it (the POC's `bk=1`); whether the per-book bookmark replaces both "where I'm up to" and
+  saved places. Each is an owner call; none blocks current work.
 - **`sefaria-reader` repository:** push it, or make `reader-next/` the only source (recommendation: push it now; it is a single copy).
