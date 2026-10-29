@@ -10,7 +10,7 @@ import { urlToRef } from "~/lib/ref/url";
 import { stringifySearch } from "~/lib/reader/search-serializer";
 import type { ReaderSettings } from "~/lib/reader/settings";
 import { leaves } from "~/lib/layout/tree";
-import type { PanelId, Workspace } from "./types";
+import { EMPTY_WORKSPACE, type PanelId, type Workspace } from "./types";
 import { decodeWorkspace, encodeWorkspace, DEFAULT_URL_DEFAULTS, type RawSearch, type UrlDefaults } from "./url";
 
 /**
@@ -113,8 +113,11 @@ export function createWorkspaceCommands(router: WorkspaceRouter, getDefaults: ()
       return pathname.replace(/^\/+/, "");
     }
   };
-  const current = () => {
+  const current = (): Workspace => {
     const loc = router.state.location;
+    // off the reader (the home page, a library page) there is no workspace: "/" would decode as one panel with no ref, and a late
+    // update to that panel (a reading position settling after the panel closed) brought it back with default settings
+    if ((router.state.matches && !router.state.matches.some((m) => m.routeId === READER_ROUTE)) || !splatOf(loc.pathname)) return EMPTY_WORKSPACE;
     return withPanelKeys(decodeWorkspace(urlToRef(splatOf(loc.pathname)), loc.search as RawSearch), readNavState(loc.state).panelKeys);
   };
   const navigateTo = async (enc: { path: string; search: Record<string, string> }, opts: { replace?: boolean; state?: unknown }) => {

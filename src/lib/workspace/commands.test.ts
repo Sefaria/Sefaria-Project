@@ -66,3 +66,12 @@ describe("workspace commands (outside React: CODE_REVIEW §3.3)", () => {
     expect(withPanelKeys(ws, ["a"]).panels.p1!.key).toBe("p1"); // a key list of the wrong length is ignored
   });
 });
+
+// a reading position that settled after the panel closed (the page is now "/") reopened it with default settings
+describe("off the reader", () => {
+  it("there is no workspace: '/' is not one panel with no ref", () => {
+    const { router } = fakeRouter("/", {});
+    (router.state as { matches?: { routeId: string }[] }).matches = [{ routeId: "__root__" }, { routeId: "/" }];
+    expect(createWorkspaceCommands(router, defaults).current().panels).toEqual({});
+  });
+});
