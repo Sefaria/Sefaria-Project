@@ -76,6 +76,8 @@ import structlog
 from sefaria.system.progress_context import report_progress
 logger = structlog.get_logger(__name__)
 
+MAX_SYNC_RESPONSE_HISTORY = 1000  # max recent history items returned by a single profile sync
+
 
 class UserHistory(abst.AbstractMongoRecord):
     collection = 'user_history'
@@ -273,6 +275,31 @@ class UserHistory(abst.AbstractMongoRecord):
         if exclude_last_place:
             query["last_place"] = False
         UserHistorySet(query).delete(bulk_delete=True)
+
+    @staticmethod
+    def get_sync_items(uid, last_sync, limit=MAX_SYNC_RESPONSE_HISTORY):
+        """
+        History items to return to a syncing client: the newest `limit` items changed since `last_sync`,
+        plus every saved / unsaved / last_place item in that window, so saved and last place stay complete.
+        A full pull (last_sync == 0) would otherwise return a user's entire history.
+        """
+        changed_query = {"uid": uid, "server_time_stamp": {"$gt": last_sync}}
+        saved_filter = {"saved": True}
+        unsaved_filter = {"delete_saved": True}
+        last_place_filter = {"last_place": True}
+
+        by_time_index = "uid_1_server_time_stamp_1"
+        recent_items = UserHistorySet(changed_query, sort=[("server_time_stamp", -1)], limit=limit, hint=by_time_index)
+        if last_sync:
+            flagged_items = UserHistorySet({**changed_query,
+                                            "$or": [saved_filter, unsaved_filter, last_place_filter]},  # client has saved items, so it needs unsaved to remove them
+                                           hint=by_time_index)  # changed window is usually small. It's slow only if the user read a lot on the site between two uses of the app
+        else:  # full pull: the time index doesn't narrow anything - query separately to use the saved and last_place indexes
+            saved_items = UserHistorySet(changed_query | saved_filter, hint="uid_1_saved_1")
+            last_place_items = UserHistorySet(changed_query | last_place_filter, hint="uid_1_book_1_last_place_1")
+            flagged_items = [*saved_items, *last_place_items]
+        items_by_id = {uh._id: uh for uh in [*recent_items, *flagged_items]}
+        return sorted(items_by_id.values(), key=lambda uh: uh.server_time_stamp)
 
     @staticmethod
     def timeclause(start=None, end=None):
