@@ -666,6 +666,13 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .interface-hebrew .mobileNavMenu .mobileAuthRow a {
   font-weight: 700; /* he-system-body-strong */
 }
+/* 8px between each word and the dot; the outer sides keep 8px so the 44px tap areas stay 12px apart */
+.mobileNavMenu .mobileAuthRow a:first-of-type {
+  padding-inline-end: 4px;
+}
+.mobileNavMenu .mobileAuthRow a:last-of-type {
+  padding-inline-start: 4px;
+}
 /* same dot as the English • עברית toggle; the margin keeps the two 44px tap areas apart */
 .mobileNavMenu .mobileAuthRowSeparator {
   position: relative;
