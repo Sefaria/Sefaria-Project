@@ -643,6 +643,9 @@ const OptionalMark = () => (
   <span className="devPocMuted"><InterfaceText text={{en: "(optional)", he: "(לא חובה)"}} /></span>
 );
 
+/* Keeps an "(optional)" mark and its info tip together when a long label wraps. */
+const LabelAddon = ({children}) => <span className="devPocLabelAddon">{children}</span>;
+
 /* Name and email come from the Sefaria account and are shown locked; an account without a
    name types one here instead. */
 const AboutYouFields = ({fields, set}) => {
@@ -678,7 +681,7 @@ const AboutYouFields = ({fields, set}) => {
           type="email"
           inputDir="ltr"
           label={<InterfaceText text={{en: "Also send project and key emails to", he: "לשלוח הודעות על פרויקטים ומפתחות גם אל"}} />}
-          labelAddon={<React.Fragment>
+          labelAddon={<LabelAddon>
             <OptionalMark />
             <InfoTip fieldId="devPocEmail2">
               <InterfaceText text={{
@@ -686,7 +689,7 @@ const AboutYouFields = ({fields, set}) => {
                 he: "הוסיפו כתובת נוספת, למשל כתובת עבודה או של עמית שמטפל בפרויקט, והיא תקבל את אותן הודעות.",
               }} />
             </InfoTip>
-          </React.Fragment>}
+          </LabelAddon>}
           aria-describedby={tipId("devPocEmail2")}
           value={fields.additionalEmail}
           onChange={e => set("additionalEmail", e.target.value)}
@@ -697,12 +700,12 @@ const AboutYouFields = ({fields, set}) => {
           id="devPocDescription"
           multiline
           label={<InterfaceText text={{en: "Tell us about yourself", he: "ספרו לנו על עצמכם"}} />}
-          labelAddon={<React.Fragment>
+          labelAddon={<LabelAddon>
             <OptionalMark />
             <InfoTip fieldId="devPocDescription">
               <InterfaceText text={{en: "It helps us understand who uses the API.", he: "זה עוזר לנו להבין מי משתמש ב־API."}} />
             </InfoTip>
-          </React.Fragment>}
+          </LabelAddon>}
           aria-describedby={tipId("devPocDescription")}
           rows={3}
           dir="auto"
@@ -894,8 +897,8 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
         })}
         value={fields.description}
         onChange={e => set("description", e.target.value)}
+        fieldAddon={<CharacterCount id="devPocProjectDescriptionCount" length={fields.description.length} />}
       />
-      <CharacterCount id="devPocProjectDescriptionCount" length={fields.description.length} />
     </div>
     <div className="devPocField">
       <Input id="devPocProjectOrg" dir="auto"
@@ -906,7 +909,7 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
       <Input
         id="devPocProjectUrl"
         label={<InterfaceText text={{en: "Website", he: "אתר"}} />}
-        labelAddon={<React.Fragment>
+        labelAddon={<LabelAddon>
           <OptionalMark />
           <InfoTip fieldId="devPocProjectUrl" wide>
             <InterfaceText text={{
@@ -914,7 +917,7 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
               he: "הכתובת שבה משתמשים בפרויקט שלכם. נציג אותה לצד הפרויקט ב־Powered by Sefaria, ותוכלו להשתמש בה כדי שהמפתח לא יעבוד בשום מקום אחר. עדיין אין אתר? אפשר להוסיף אותו מאוחר יותר.",
             }} />
           </InfoTip>
-        </React.Fragment>}
+        </LabelAddon>}
         aria-describedby={tipId("devPocProjectUrl")}
         inputDir="ltr"
         placeholder="https://"
@@ -965,9 +968,9 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
 );
 
 const CharacterCount = ({id, length}) => (
-  <p className={"devPocCount" + (length >= MAX_DESCRIPTION_LENGTH ? " devPocCountFull" : "")} id={id} dir="ltr">
+  <span className={length >= MAX_DESCRIPTION_LENGTH ? "devPocCountFull" : undefined} id={id} dir="ltr">
     {length}/{MAX_DESCRIPTION_LENGTH}
-  </p>
+  </span>
 );
 
 

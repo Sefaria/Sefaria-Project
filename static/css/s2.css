@@ -17789,6 +17789,9 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocPage .sefaria-input-labelGroup { align-items: center; }
 .devPocPage .sefaria-input-labelGroup .devPocTip { margin-inline-start: 0; }
 .devPocPage .sefaria-input-labelGroup .devPocInfoButton { margin: 0; }
+.devPocLabelAddon { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+/* Same size as the label, so the two share a baseline. */
+.devPocPage .sefaria-input-labelGroup .devPocMuted { font-size: 14px; line-height: 1.3; }
 .devPocTextButton {
   border: 0;
   padding: 0;
@@ -17928,8 +17931,11 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocSsoPrompt .devPocList { margin-bottom: var(--devPoc-s3); }
 .devPocInlineButton { margin-top: 0; font-size: inherit; }
 .devPocChoice a { text-decoration: underline; }
-.devPocCount { margin: 4px 0 0; font-size: 12px; color: var(--devPoc-muted); text-align: end; max-width: 520px; }
 .devPocCountFull { color: #69501e; }
+/* A dir="auto" field can turn its inline end away from the count, so the room for the count
+   is kept on the page's end side whatever the typed text's direction. */
+.devPocPage .sefaria-input-field.has-addon input.sefaria-input-control { padding-left: 16px; padding-right: 64px; }
+.interface-hebrew .devPocPage .sefaria-input-field.has-addon input.sefaria-input-control { padding-left: 64px; padding-right: 16px; }
 .devPocListingSummary { padding-inline-start: var(--devPoc-s2); border-inline-start: 3px solid #d4dfea; }
 .devPocListingSummary .devPocHelp { margin: 2px 0 0; }
 .devPocLinked { margin: 0; }
@@ -17991,7 +17997,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .readerNavMenu.settingsPage .content .contentInner { padding: 24px 16px 60px; }
   .settingsNav { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
   .settingsNavTitle { width: 100%; padding: 0 0 8px; }
-  .settingsNav a { gap: 8px; padding: 10px 12px; border-radius: 0; border-bottom: 3px solid transparent; }
+  .settingsNav a { gap: 6px; padding: 10px 8px; font-size: 15px; border-radius: 0; border-bottom: 3px solid transparent; }
   .settingsNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
   .devPocPageHeader { flex-direction: column; gap: var(--devPoc-s2); }
   .devPocResult { flex-wrap: wrap; }
@@ -18019,6 +18025,10 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
     border-width: 2px 0 0;
     border-radius: 0;
   }
+}
+/* Below this width both tabs fit on one row only without their icons. */
+@media (max-width: 359px) {
+  .settingsNavIcon { display: none; }
 }
 
 /* The mock confirmation email. The magenta banner is the POC test panel's colour so nobody
