@@ -87,6 +87,17 @@ http {
     server node-{{ .Values.deployEnv }}:3000;
     keepalive 32;
   }
+  {{- else if eq .Values.nodejs.mode "optin" }}
+  # nodejs.mode optin: the new reader client runs beside the legacy node pods; it answers the page requests of a visitor who chose
+  # it in account settings (the reader_version=next cookie, set by Django), and Varnish/Django everyone else's
+  upstream readerupstream {
+    server reader-{{ .Values.deployEnv }}:3000;
+    keepalive 32;
+  }
+  map $cookie_reader_version $page_upstream {
+    default varnishupstream;
+    next    readerupstream;
+  }
   {{- end }}
 
   upstream elasticsearch_upstream {
@@ -183,8 +194,8 @@ http {
       alias /app/robots.txt;
     }
 
-    {{- if eq $.Values.nodejs.mode "reader" }}
-    # Pages go to the new reader client first; it hands what it does not render (Django's pages, its 404s, writes) to Varnish.
+    {{- if or (eq $.Values.nodejs.mode "reader") (eq $.Values.nodejs.mode "optin") }}
+    # Pages go to the new reader client first (in optin mode: only for a visitor who chose it, see $page_upstream); it hands what it does not render (Django's pages, its 404s, writes) to Varnish.
     # If the client is down, Varnish/Django answers instead.
     location / {
       proxy_send_timeout  300;
@@ -197,7 +208,11 @@ http {
       proxy_set_header X-Internal-Proxy 1;
       proxy_http_version 1.1;
       proxy_set_header Connection "";
+      {{- if eq $.Values.nodejs.mode "optin" }}
+      proxy_pass http://$page_upstream;
+      {{- else }}
       proxy_pass http://nodeupstream;
+      {{- end }}
       error_page 502 503 504 = @varnish;
     }
 
