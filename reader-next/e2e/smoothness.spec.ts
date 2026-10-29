@@ -3,8 +3,9 @@ import { open, segmentTop } from "./helpers";
 
 /**
  * Smoothness regressions. A reader sees a "jump" whenever a verse moves on screen by anything other than their
- * own scrolling. For each wheel step we compare the verse's movement with the reader's own scroll (the scroll
- * position change minus the engine's deliberate corrections, which the engine reports in development).
+ * own scrolling. For each wheel step we compare the verse's movement with the reader's own scroll: the scroll position change
+ * minus the engine's deliberate corrections, which the engine reports in development; on a production build (no report), the
+ * wheel step itself.
  * @feature TXD-052 @feature TXD-053 @feature TXD-055 @feature TXD-068
  */
 async function measureJumps(page: Page, verse: string, plan: [direction: 1 | -1, steps: number][], step: number, wait: number) {
@@ -16,8 +17,9 @@ async function measureJumps(page: Page, verse: string, plan: [direction: 1 | -1,
       const c = document.querySelector("[data-reader-scroller]") as HTMLElement;
       const scroller = ["auto", "scroll"].includes(getComputedStyle(c).overflowY) ? c : document.scrollingElement!;
       const rs = (window as unknown as { __readingScroll?: { corrections: number[] } }).__readingScroll;
-      const corr = rs ? rs.corrections.splice(0).reduce((a, b) => a + b, 0) : 0;
-      return { top: document.querySelector(`[role="group"][data-ref="${v}"]`)!.getBoundingClientRect().top, st: scroller.scrollTop, corr };
+      const corr = rs ? rs.corrections.splice(0).reduce((a, b) => a + b, 0) : null;
+      const clamped = scroller.scrollTop <= 0 || scroller.scrollTop >= scroller.scrollHeight - scroller.clientHeight - 1;
+      return { top: document.querySelector(`[role="group"][data-ref="${v}"]`)!.getBoundingClientRect().top, st: scroller.scrollTop, corr, clamped };
     }, verse);
   const box = await page.locator("[data-reader-scroller]").boundingBox();
   await page.mouse.move(box!.x + box!.width / 2, box!.y + 300);
@@ -29,9 +31,16 @@ async function measureJumps(page: Page, verse: string, plan: [direction: 1 | -1,
       await page.mouse.wheel(0, dir * step);
       await page.waitForTimeout(wait);
       const b = await sample();
-      const own = b.st - a.st - b.corr;
       const moved = b.top - a.top;
-      if (Math.abs(moved + own) > 1.5) jumps.push(`moved ${moved.toFixed(1)} vs own scroll ${own.toFixed(1)}`);
+      if (b.corr !== null) {
+        // development builds report the engine's deliberate corrections: the reader's own scroll is the rest
+        const own = b.st - a.st - b.corr;
+        if (Math.abs(moved + own) > 1.5) jumps.push(`moved ${moved.toFixed(1)} vs own scroll ${own.toFixed(1)}`);
+      } else if (!b.clamped && Math.abs(moved + dir * step) > 1.5) {
+        // a production build does not report them (CODE_REVIEW R-38 was this test reading their scrollTop change as a jump):
+        // the verse must move by exactly the wheel step, unless scrolling stopped at an end
+        jumps.push(`moved ${moved.toFixed(1)} for a wheel step of ${dir * step}`);
+      }
     }
   }
   return jumps;

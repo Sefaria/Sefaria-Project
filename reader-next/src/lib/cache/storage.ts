@@ -20,6 +20,8 @@ export interface DiskEntryMeta {
   size: number;
   /** Last written or read. */
   at: number;
+  /** When the stored data was fetched (its `dataUpdatedAt`): lets a writer see the disk already has it, without reading the value. */
+  updated?: number;
 }
 
 let store: UseStore | undefined;
@@ -72,7 +74,7 @@ export function createIdbStorage(): AsyncStorage<PersistedQuery> | undefined {
     setItem: async (key, value) => {
       try {
         await set(key, value, s);
-        await set(key, { size: sizeOf(value), at: Date.now() } satisfies DiskEntryMeta, m);
+        await set(key, { size: sizeOf(value), at: Date.now(), updated: value.state.dataUpdatedAt } satisfies DiskEntryMeta, m);
       } catch (e) {
         // Full: say so once, and make room for the next writes (the cache keeps working from memory meanwhile)
         if (!quotaWarned) {
@@ -144,6 +146,13 @@ export async function sweepDisk(opts: { budgetBytes?: number; now?: number; maxA
     total -= meta.size;
   }
   return { removed, keptBytes: total };
+}
+
+/** When the disk's copy of `key` was fetched (from the metadata index), or undefined when there is none. */
+export async function storedDataUpdatedAt(key: string): Promise<number | undefined> {
+  const m = getMetaStore();
+  if (!m) return undefined;
+  return (await get<DiskEntryMeta>(key, m).catch(() => undefined))?.updated;
 }
 
 let sweeping: Promise<SweepResult> | undefined;

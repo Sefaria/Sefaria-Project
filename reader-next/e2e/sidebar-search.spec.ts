@@ -47,3 +47,14 @@ test.describe("Search in this text (verified against sefaria.org)", () => {
     await expect(side(page).getByRole("searchbox")).toBeVisible({ timeout: 20_000 });
   });
 });
+
+// @feature SRC-111 — master #3724 in a book's search: decided on this book's count; "Search instead for" stays in the sidebar
+test("a misspelling with no results in the book is searched as corrected; 'Search instead for' keeps the address", async ({ page }) => {
+  await open(page, "/Genesis.1.1?lang=en&with=SidebarSearch&sbsq=berakhto");
+  const aside = page.getByRole("complementary");
+  await expect(aside.getByRole("status").filter({ hasText: "These are results for" })).toContainText("berakhot");
+  const url = page.url();
+  await aside.getByRole("button", { name: "berakhto" }).click();
+  await expect(aside.getByText("These are results for")).toHaveCount(0);
+  expect(page.url()).toBe(url);
+});

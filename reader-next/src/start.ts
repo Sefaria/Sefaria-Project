@@ -1,6 +1,7 @@
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { serverConfigProblems } from "~/lib/config";
 import { pageCacheHeaders } from "./server/cache-policy";
+import { routeOwner, warmRouteManifest } from "./server/route-manifest";
 import { installInternalApiFetch, withUpstreamHealth } from "./server/internal-fetch";
 import { isDjangoPath, passResetLink, passThrough, passThroughEnabled, resetLinkUid, trailingSlashRedirect, upstreamUnavailable } from "./server/pass-through";
 
@@ -15,6 +16,8 @@ if (typeof window === "undefined" && typeof process !== "undefined") {
 }
 
 installInternalApiFetch();
+// the route manifest's catalog, loaded at start rather than by the first requests (they do not wait for it meanwhile)
+if (typeof window === "undefined" && passThroughEnabled()) void warmRouteManifest();
 
 /** `/healthz` for the cluster's probes, and the hand-over to Django of every page this client does not render. */
 const siteRouting = createMiddleware({ type: "request" }).server(async ({ request, pathname, next }) => {
@@ -25,6 +28,9 @@ const siteRouting = createMiddleware({ type: "request" }).server(async ({ reques
   if (isDjangoPath(pathname, request.method)) return passThrough(request);
   const resetUid = request.method === "GET" ? resetLinkUid(pathname) : null;
   if (resetUid) return passResetLink(request, resetUid);
+  // not a page of this client nor a text: Django's, without rendering it first (R-36)
+  // (the path as sent, still encoded: a title's escaped "/" must not split it)
+  if ((request.method === "GET" || request.method === "HEAD") && (await routeOwner(new URL(request.url).pathname)) === "django") return passThrough(request);
   const result = await next();
   return result.response.status === 404 ? passThrough(request) : result;
 });

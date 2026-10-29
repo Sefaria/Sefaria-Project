@@ -206,14 +206,18 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     if (urlSegments.length) return urlSegments;
     return section.segments.map((s) => s.ref); // a section-level URL selects the whole section
   }, [selection, urlSegments, section]);
-  // Keep the sidebar from competing with scrolling: it catches up when the main thread is free.
-  const deferredRefs = useDeferredValue(selectedRefs);
+  // Keep the sidebar from competing with scrolling: it catches up when the main thread is free. The verses and the section they
+  // were chosen in are deferred together: deferring the verses alone looked the last chapter's verses up in the next chapter's
+  // links at a chapter boundary, and the sidebar said "no connections" for a moment (CODE_REVIEW low).
+  const sidebarInput = useMemo(() => ({ refs: selectedRefs, section }), [selectedRefs, section]);
+  const deferredInput = useDeferredValue(sidebarInput);
+  const deferredRefs = deferredInput.refs;
   const sidebarSectionRef = useMemo(() => {
     const ref = deferredRefs[0];
-    const p = ref ? [section, ...initial].find((x) => x.segments.some((s) => s.ref === ref)) : undefined;
-    return (p ?? section).ref;
-  }, [deferredRefs, section, initial]);
-  const sidebarSection = [section, ...initial].find((p) => p.ref === sidebarSectionRef) ?? section;
+    const p = ref ? [deferredInput.section, section, ...initial].find((x) => x.segments.some((s) => s.ref === ref)) : undefined;
+    return (p ?? deferredInput.section).ref;
+  }, [deferredRefs, deferredInput.section, section, initial]);
+  const sidebarSection = [deferredInput.section, section, ...initial].find((p) => p.ref === sidebarSectionRef) ?? deferredInput.section;
   const sidebarRef = deferredRefs.length === 1 ? deferredRefs[0]! : data.ref;
 
   /** The address of a sidebar view of this panel (a real link: it can be opened in a new tab). */
@@ -225,7 +229,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const goSidebarView = useCallback(
     (href: string) => {
       const loc = toRouterLocation(href);
-      void router.navigate({ to: loc.to as never, params: loc.params as never, search: loc.search as never, resetScroll: false, state: { nav: "stay", panel: id } as never });
+      void router.navigate({ to: loc.to as never, search: loc.search as never, resetScroll: false, state: { nav: "stay", panel: id } as never });
     },
     [router, id],
   );
@@ -366,11 +370,6 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [apply, id],
   );
 
-  // Continue Reading on the book page resumes from here (BOK-003)
-  useEffect(() => {
-    if (current.ref) rememberPlace(current.passage.indexTitle, current.ref);
-  }, [current.ref, current.passage.indexTitle]);
-
   // A highlighted name in the text opens the Lexicon sidebar on who or what it is (CON-045, TXD-022). The segment it stands
   // in becomes the selection; the sidebar then belongs to this panel. Plain clicks only (a modified click opens the topic
   // page, which is the link's address).
@@ -473,6 +472,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   // ── signed-in: reading history and Save (USL-010, USL-011) ──────────────────────────────────────────────
   const viewer = useViewer();
+  // Continue Reading on the book page resumes from here (BOK-003), for this reader only (R-29)
+  const viewerId = viewer?.id ?? null;
+  useEffect(() => {
+    if (current.ref) rememberPlace(current.passage.indexTitle, current.ref, viewerId);
+  }, [current.ref, current.passage.indexTitle, viewerId]);
   const place: PanelPlace | null = useMemo(() => {
     // the old getHistoryObject: the chosen verse while the sidebar is open, else the section being read
     const chosen = view && deferredRefs.length && deferredRefs.length < sidebarSection.segments.length ? deferredRefs[0]! : null;

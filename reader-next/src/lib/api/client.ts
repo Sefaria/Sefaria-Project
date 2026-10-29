@@ -46,6 +46,25 @@ export class SefariaApiError extends Error {
   }
 }
 
+/**
+ * Read a direct `fetch` of the Sefaria API through the same error model as the toolkit client ({@link unwrap}): a non-2xx answer, a
+ * body that is not JSON (a proxy's HTML error page) and a 200 `{"error": "..."}` all throw {@link SefariaApiError}, so retry and
+ * 404 decisions see them the same way (CODE_REVIEW low: these calls bypassed it).
+ */
+export async function apiJson<T>(r: Response, what: string): Promise<T> {
+  if (!r.ok) throw new SefariaApiError(`${what}: HTTP ${r.status}`, r.status);
+  let data: unknown;
+  try {
+    data = await r.json();
+  } catch {
+    throw new SefariaApiError(`${what}: not JSON`, r.status);
+  }
+  if (data && typeof data === "object" && !Array.isArray(data) && typeof (data as { error?: unknown }).error === "string") {
+    throw new SefariaApiError(`${what}: ${(data as { error: string }).error}`, r.status, data);
+  }
+  return data as T;
+}
+
 /** Unwrap a fields-style toolkit result or throw a {@link SefariaApiError}. */
 export function unwrap<T>(result: { data?: T; error?: unknown; response?: Response }, what: string): T {
   if (result.data === undefined) {

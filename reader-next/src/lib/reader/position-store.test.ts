@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { PositionStore } from "./position-store";
 
 const fakeStorage = () => {
@@ -32,8 +32,27 @@ describe("PositionStore", () => {
 
   it("survives a reload through storage", () => {
     const storage = fakeStorage();
-    new PositionStore(storage).set("a", { p1: { ref: "Genesis 1:8", offset: 140 } });
+    const first = new PositionStore(storage);
+    first.set("a", { p1: { ref: "Genesis 1:8", offset: 140 } });
+    first.flush(); // what the page does when it goes away (pagehide), or after a quiet second
     expect(new PositionStore(storage).get("a")?.p1).toEqual({ ref: "Genesis 1:8", offset: 140 });
+  });
+
+  // CODE_REVIEW R-29: every scroll pause serialised the whole trail to storage (twice)
+  it("writes to storage once things are quiet, not on every save", () => {
+    vi.useFakeTimers();
+    try {
+      const storage = fakeStorage();
+      const spy = vi.spyOn(storage, "setItem");
+      const store = new PositionStore(storage);
+      for (let i = 0; i < 10; i++) store.set(`k${i}`, { p1: { ref: `Genesis 1:${i + 1}`, offset: 0 } });
+      expect(spy).not.toHaveBeenCalled();
+      expect(store.get("k9")?.p1?.ref).toBe("Genesis 1:10"); // memory answers at once
+      vi.advanceTimersByTime(1000);
+      expect(spy).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("tolerates corrupt storage and a storage that throws", () => {

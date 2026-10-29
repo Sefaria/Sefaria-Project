@@ -16,7 +16,7 @@
  * @feature SRC-031 Name completion API
  */
 import { queryOptions } from "@tanstack/react-query";
-import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
+import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 import { refToUrl } from "~/lib/ref/url";
 import { SITE_ORIGIN } from "~/lib/config";
@@ -57,8 +57,7 @@ export const nameQueryOptions = (text: string, types: readonly string[] = LIBRAR
       queryKey: ["name", t, [...types], topicPool] as const,
       queryFn: async ({ signal }: { signal: AbortSignal }): Promise<NameResponse> => {
         const r = await fetch(`${SEFARIA_API_ORIGIN}/api/name/${encodeURIComponent(t)}?${params}`, { signal });
-        if (!r.ok) throw new SefariaApiError(`Name ${t}: HTTP ${r.status}`, r.status);
-        return (await r.json()) as NameResponse;
+        return apiJson<NameResponse>(r, `Name ${t}`);
       },
     }),
     staleTime: 10 * 60 * 1000,

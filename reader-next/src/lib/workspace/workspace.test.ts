@@ -275,3 +275,14 @@ describe("URL codec (old grammar)", () => {
     expect(leaves(decodeWorkspace("Genesis 1", { p2: "", foo: "bar" }).layout)).toEqual(["p1"]);
   });
 });
+
+// master #3790: version titles keep `; & # +` and `%` through the address
+describe("version titles with query delimiters (master's encodeVtitle)", () => {
+  it("the router gets the title; the written form escapes ; & # +", () => {
+    const ws = decodeWorkspace("Genesis 1", { lang: "bi", ven: "english|A;B_&_C#1+2_100%" });
+    const enc = encodeWorkspace(ws)!;
+    expect(enc.search.ven).toBe("english|A;B_&_C#1+2_100%");
+    expect(workspaceUrl(ws)).toContain("ven=english|A%3BB_%26_C%231%2B2_100%&"); // as master: % is not escaped
+    expect((decodeWorkspace("Genesis 1", enc.search).panels.p1 as TextPanelState).versions.translation).toBe("english|A;B & C#1+2 100%");
+  });
+});

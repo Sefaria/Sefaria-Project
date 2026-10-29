@@ -81,12 +81,30 @@ export async function fetchCatalog(signal?: AbortSignal): Promise<Catalog> {
   return buildCatalog(unwrap(result, "Table of contents") as unknown as TocNode[]);
 }
 
+/**
+ * On the server one catalog serves every request for a while (R-14): each request has its own query client, so without this every
+ * library page fetched and parsed 3.5 MB. Shared, so no request's abort signal cuts it short; a failure is not kept.
+ */
+const SERVER_CATALOG_TTL_MS = 10 * 60_000;
+let serverCatalog: { at: number; tree: Promise<TocNode[]> } | undefined;
+export function serverCatalogTree(now = Date.now()): Promise<TocNode[]> {
+  if (!serverCatalog || now - serverCatalog.at > SERVER_CATALOG_TTL_MS) {
+    const tree = fetchCatalog().then((c) => c.tree);
+    serverCatalog = { at: now, tree };
+    tree.catch(() => {
+      if (serverCatalog?.tree === tree) serverCatalog = undefined;
+    });
+  }
+  return serverCatalog.tree;
+}
+
 // The catalog is large and rarely changes. Store the raw tree (cheap to structured-clone) and rebuild the lookup maps on read.
 export const tocQueryOptions = () =>
   queryOptions<TocNode[], Error, Catalog>({
     ...withPolicy("catalog", {
       queryKey: ["catalog", "toc"] as const,
-      queryFn: async ({ signal }: { signal: AbortSignal }): Promise<TocNode[]> => (await fetchCatalog(signal)).tree,
+      queryFn: async ({ signal }: { signal: AbortSignal }): Promise<TocNode[]> =>
+        typeof window === "undefined" ? serverCatalogTree() : (await fetchCatalog(signal)).tree,
     }),
     select: buildCatalog,
   });

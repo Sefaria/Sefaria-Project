@@ -1,7 +1,8 @@
 import { useRouteContext } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
 import { tocQueryOptions } from "~/lib/catalog/toc";
+import { catalogSliceQueryOptions } from "~/lib/library/catalog-slice";
 import { calendarsQueryOptions } from "~/lib/library/calendars";
 import { hebrewCategoryNames, tocItemsByCategories, tocObjectByCategories, withDefaultCorpus } from "~/lib/library/category-model";
 import { CategoryPage } from "~/ui/CategoryPage/CategoryPage";
@@ -19,7 +20,15 @@ import { useReaderSettings } from "../reader/settings-context";
  * @feature LIB-069 Library category URL handling (server)
  */
 export function LibraryRoute({ path }: { path: string[] }) {
-  const catalog = useQuery(tocQueryOptions()).data;
+  // the page's slice of the catalog, not all of it (R-14): what the server put in the page, or what the loader derived here
+  const queryClient = useQueryClient();
+  const tree = useQuery(catalogSliceQueryOptions(queryClient, path)).data;
+  const catalog = useMemo(() => (tree ? { tree } : undefined), [tree]);
+  // the whole catalog, once the page is idle: the next library page then needs no 3.5 MB download (and it is kept on disk)
+  useEffect(() => {
+    const idle = "requestIdleCallback" in window ? window.requestIdleCallback : (f: () => void) => setTimeout(f, 2000);
+    idle(() => void queryClient.prefetchQuery(tocQueryOptions()));
+  }, [queryClient]);
   const { diaspora } = useRouteContext({ from: "__root__" });
   const calendars = useQuery(calendarsQueryOptions(diaspora)).data;
   const { settings } = useReaderSettings();

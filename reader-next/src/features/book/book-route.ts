@@ -2,7 +2,7 @@ import { redirect } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
 import { bookTitleOf, sameTitle } from "~/lib/book/book-page";
 import { indexDetailsQueryOptions } from "~/lib/catalog/index-details";
-import { refToUrl, urlToRef } from "~/lib/ref/url";
+import { isSplatOf, refToUrl, urlToRef } from "~/lib/ref/url";
 import { bookVersionsQueryOptions } from "~/lib/versions/book-versions";
 
 export interface BookRouteData {
@@ -30,8 +30,8 @@ export async function loadBookRoute(queryClient: QueryClient, splat: string, sea
   if (!details?.title) return null;
   // "Pesach Haggadah, Kadesh" is a node of a book, which the index lookup resolves to the book: that is a text, not the page
   if (!sameTitle(details.title, title) && title.toLowerCase().startsWith(`${details.title.toLowerCase()},`)) return null;
-  if (!sameTitle(details.title, title) || splat.replace(/^\/+|\/+$/g, "") !== refToUrl(details.title)) {
-    throw redirect({ to: "/$", params: { _splat: refToUrl(details.title) }, search: Object.fromEntries(new URLSearchParams(search)) as never, statusCode: 301 });
+  if (!sameTitle(details.title, title) || !isSplatOf(splat, refToUrl(details.title))) {
+    throw redirect({ to: `/${refToUrl(details.title)}` as never, search: Object.fromEntries(new URLSearchParams(search)) as never, statusCode: 301 });
   }
   await queryClient.prefetchQuery(bookVersionsQueryOptions(details.title));
   return { title: details.title };

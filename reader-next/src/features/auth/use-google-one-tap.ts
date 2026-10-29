@@ -11,7 +11,7 @@ import { useEffect } from "react";
 import { fireFlowEnded, fireFlowStarted, fireMethodChosen, fireProcessEnded, fireProcessStarted, outcomeOf, AUTH_METHOD } from "~/lib/auth/analytics";
 import { ensureCsrfToken } from "~/lib/auth/csrf";
 import { sameOrigin } from "~/lib/auth/http";
-import { ALLAUTH_PROVIDER_TOKEN_URL, makeUuid } from "~/lib/auth/utils";
+import { GOOGLE_CALLBACK_URL, makeUuid } from "~/lib/auth/utils";
 
 const AUTH_PATHS = new Set(["/login", "/register"]);
 const SESSION_KEY = "sefaria_interruptive_ui_shown";
@@ -47,11 +47,11 @@ export function useGoogleOneTap({ googleClientId, enabled, reload = () => window
       fireMethodChosen(flowId, attemptId, AUTH_METHOD.GOOGLE_ONE_TAP);
       fireProcessStarted(flowId, attemptId);
       try {
-        const r = await fetch(sameOrigin(ALLAUTH_PROVIDER_TOKEN_URL), {
+        const r = await fetch(sameOrigin(GOOGLE_CALLBACK_URL), {
           method: "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json", "X-CSRFToken": await ensureCsrfToken() },
-          body: JSON.stringify({ provider: "google", process: "login", token: { client_id: googleClientId, id_token: response.credential } }),
+          body: JSON.stringify({ id_token: response.credential }),
         });
         const body = (await r.json().catch(() => ({}))) as { error?: string; outcome?: string };
         const data = r.ok ? null : body;

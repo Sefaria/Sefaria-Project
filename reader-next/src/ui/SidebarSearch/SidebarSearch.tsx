@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent, type ReactNode } from "react";
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { MAX_QUERY_LENGTH, snippetOf, type MergedHit, type SearchHit } from "~/lib/search/text-search";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -24,6 +24,8 @@ export interface SidebarSearchProps {
   hrefFor: (hit: SearchHit) => string;
   onOpen: (hit: SearchHit, event: MouseEvent) => void;
   error?: boolean;
+  /** Under the box: the auto-correction or "Did you mean" banner (SRC-111). */
+  banner?: ReactNode;
 }
 
 /**
@@ -34,7 +36,7 @@ export interface SidebarSearchProps {
  * @feature SRC-094 Search in this text (sidebar)
  * @feature SRC-096 Sidebar search result display and click
  */
-export function SidebarSearch({ query = "", onSearch, results, loading, loadingMore, hasMore, onLoadMore, hrefFor, onOpen, error }: SidebarSearchProps) {
+export function SidebarSearch({ query = "", onSearch, results, loading, loadingMore, hasMore, onLoadMore, hrefFor, onOpen, error, banner }: SidebarSearchProps) {
   const hebrew = useInterfaceLang() === "hebrew";
   const id = useId();
   const [value, setValue] = useState(query);
@@ -65,6 +67,7 @@ export function SidebarSearch({ query = "", onSearch, results, loading, loadingM
         <input ref={input} id={id} type="search" value={value} maxLength={MAX_QUERY_LENGTH} onChange={(e) => setValue(e.target.value)} onFocus={() => setFocused(true)} onBlur={(e) => !e.currentTarget.form?.contains(e.relatedTarget as Node) && setFocused(false)} placeholder={label} aria-label={label} title={label} dir="auto" />
         {!hebrew ? <KeyboardLauncher inputRef={input} value={value} onChange={setValue} onEnter={() => submit()} focused={focused} /> : null}
       </form>
+      {banner}
       {query ? (
         <div aria-live="polite">
           {error ? (

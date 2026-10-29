@@ -22,7 +22,7 @@ import { ensureCsrfToken } from "~/lib/auth/csrf";
 import { sameOrigin } from "~/lib/auth/http";
 import { ssoUseRedirect } from "~/lib/auth/sdk";
 import type { SignUpTracking } from "~/lib/auth/use-sign-up-tracking";
-import { ALLAUTH_PROVIDER_TOKEN_URL, authError, makeUuid, safeNext, whenReady, type AuthError } from "~/lib/auth/utils";
+import { GOOGLE_CALLBACK_URL, authError, makeUuid, safeNext, whenReady, type AuthError } from "~/lib/auth/utils";
 
 export type ErrorHandler = ((e: AuthError | null) => void) | null;
 
@@ -94,11 +94,11 @@ export function useProviderTriggers({
       googlePopupStateRef.current = "processing";
       setSsoLoading(true);
       try {
-        const res = await fetch(sameOrigin(ALLAUTH_PROVIDER_TOKEN_URL), {
+        const res = await fetch(sameOrigin(GOOGLE_CALLBACK_URL), {
           method: "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json", "X-CSRFToken": await ensureCsrfToken() },
-          body: JSON.stringify({ provider: "google", process: "login", token: { client_id: googleClientId, id_token: resp.credential } }),
+          body: JSON.stringify({ id_token: resp.credential }),
         });
         const data = await res.json().catch(() => ({}));
         googlePopupStateRef.current = "done";

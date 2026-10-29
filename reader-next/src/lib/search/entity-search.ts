@@ -7,9 +7,10 @@
  * @feature SRC-073 Entity search API
  */
 import { infiniteQueryOptions, queryOptions, type InfiniteData } from "@tanstack/react-query";
-import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
+import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 import { SITE_ORIGIN } from "~/lib/config";
+import { encodeTitle } from "~/lib/ref/url";
 
 export type EntityType = "book" | "author" | "topic";
 export interface EntityHit {
@@ -47,8 +48,7 @@ export const entitySearchQueryOptions = (q: string, type: EntityType, start = 0,
       queryKey: ["entity-search", q, type, start, sort] as const,
       queryFn: async ({ signal }: { signal: AbortSignal }): Promise<EntityResponse> => {
         const r = await fetch(`${SEFARIA_API_ORIGIN}/api/entity-search?${new URLSearchParams({ q, type, start: String(start), sort })}`, { signal });
-        if (!r.ok) throw new SefariaApiError(`Entity search: HTTP ${r.status}`, r.status);
-        return (await r.json()) as EntityResponse;
+        return apiJson<EntityResponse>(r, `Entity search`);
       },
     }),
   });
@@ -58,7 +58,8 @@ export const formatEntityCount = (n: number): string => (n >= 10000 ? "10,000+" 
 
 /** The link of an entity: a book to its page, an author or topic to the library's topic page. */
 export function entityHref(type: EntityType, hit: EntityHit): string {
-  if (type === "book") return `/${(hit.path ?? hit.title_en).split("/").pop()!.replace(/ /g, "_")}`;
+  // the book's own title (master, #3790): a title may hold "/", so the last segment of its category path is not the title
+  if (type === "book") return `/${encodeTitle(hit.title_en)}`;
   return `${SITE_ORIGIN}/topics/${hit.slug}`;
 }
 
@@ -71,8 +72,7 @@ export const entitySearchInfiniteOptions = (q: string, type: EntityType, sort = 
       const params = new URLSearchParams({ q, type, start: String(pageParam), sort });
       for (const f of filters) params.append("filter", f);
       const r = await fetch(`${SEFARIA_API_ORIGIN}/api/entity-search?${params}`, { signal });
-      if (!r.ok) throw new SefariaApiError(`Entity search: HTTP ${r.status}`, r.status);
-      return (await r.json()) as EntityResponse;
+      return apiJson<EntityResponse>(r, `Entity search`);
     },
     initialPageParam: 0,
     getNextPageParam: (last, all) => {

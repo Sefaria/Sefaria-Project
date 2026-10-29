@@ -105,3 +105,23 @@
 .row input[type="checkbox"]:checked::after { content: ""; width: 4px; height: 8px; border: solid #888; border-width: 0 1.5px 1.5px 0; transform: translateY(-1px) rotate(45deg); }
 .row input[type="checkbox"]:indeterminate::after { content: ""; width: 8px; height: 0; border-top: 1.5px solid #888; transform: none; border-width: 1.5px 0 0 0; }
 .row { padding-block: 5px; }
+
+/* Auto-correction and suggestions above the tabs (SRC-111; master s2.css .searchAutocorrectBanner) */
+.autocorrect {
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  margin-block: 12px;
+  padding: 12px 16px;
+  background: var(--sefaria-color-highlight-soft);
+  border-radius: 12px;
+  color: var(--sefaria-color-text);
+  overflow-wrap: break-word;
+}
+.autocorrectLine { font-family: var(--sefaria-font-ui-en); font-size: 18px; line-height: 1.4; }
+.autocorrectLine:lang(he), :lang(he) .autocorrectLine { font-family: var(--sefaria-font-ui-he); }
+.autocorrectSecondary { font-size: 14px; }
+.autocorrectCorrected { font-weight: 600; }
+.autocorrectCorrected:lang(he) { font-weight: 700; }
+.autocorrectTerm { cursor: pointer; color: var(--sefaria-color-brand); text-decoration: underline; }
+.autocorrectTerm:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
