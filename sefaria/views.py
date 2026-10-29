@@ -2179,6 +2179,7 @@ def links_upload_api(request):
     except Exception as e:
         return HttpResponseBadRequest(e)
 
+@staff_member_required
 def get_csv_links_by_refs_api(request, tref1, tref2, by_segment=False):
     try:
         file = get_csv_links_by_refs([tref1, tref2], by_segment=by_segment, **{k: v for k, v in request.GET.items()})
