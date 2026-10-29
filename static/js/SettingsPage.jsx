@@ -27,6 +27,7 @@ import {
   websiteHost,
   websiteOrigin,
 } from './developerSettingsApi';
+import Input from './common/Input.jsx';
 
 /* Account and developer settings, one page with a tab per settings section. The developer tab
    reads and writes the account's projects and API keys through developerSettingsApi.js. */
@@ -120,7 +121,17 @@ const keyboardFocused = (node) => {
   try { return node.matches(":focus-visible"); } catch (e) { return true; }
 };
 
-/* An "i" for pointer users: it opens on hover and toggles on tap, and inside a <label> a tap
+/* Lucide "info", inline so it takes the button's colour. */
+const InfoIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 16v-4" />
+    <path d="M12 8h.01" />
+  </svg>
+);
+
+/* An info icon for pointer users: it opens on hover and toggles on tap, and inside a <label> a tap
    doesn't tick the label's checkbox. It is not a tab stop. Its text is the field's
    description (aria-describedby={tipId(fieldId)}) for assistive tech, kept hidden so it
    stays out of the label, and it opens while the field has keyboard focus. */
@@ -150,7 +161,7 @@ const InfoTip = ({fieldId, wide, children}) => {
         tabIndex={-1}
         aria-hidden="true"
         onClick={(e) => { e.preventDefault(); setOpen(o => !o); }}
-      >i</button>
+      ><InfoIcon /></button>
       {open ?
         <span className={"devPocPopover" + (wide ? " devPocPopoverWide" : "")} aria-hidden="true">{children}</span> : null}
       <span id={tipId(fieldId)} hidden>{children}</span>
@@ -349,9 +360,22 @@ const TestPanel = ({state, mock, onOpenMockEmail}) => {
 /* One entry per settings section. A new section is an entry here, a panel in
    SettingsPage, and a URL in urls_library.py and ReaderApp's history. */
 const SETTINGS_TABS = [
-  {tab: "account", url: "/settings/account", label: {en: "Account settings", he: "הגדרות חשבון"}},
-  {tab: "developer", url: "/settings/developer", label: {en: "Developer settings", he: "הגדרות מפתחים"}},
+  {tab: "account", url: "/settings/account", label: {en: "Account Settings", he: "הגדרות חשבון"}},
+  {tab: "developer", url: "/settings/developer", label: {en: "Developer Settings", he: "הגדרות מפתחים"}},
 ];
+
+/* Lucide circle-user-round and code-xml. */
+const SETTINGS_TAB_ICONS = {
+  account: [<circle key="a" cx="12" cy="12" r="10" />, <circle key="b" cx="12" cy="10" r="4" />,
+    <path key="c" d="M18 20a6 6 0 0 0-12 0" />],
+  developer: [<path key="a" d="m18 16 4-4-4-4" />, <path key="b" d="m6 8-4 4 4 4" />, <path key="c" d="m14.5 4-5 16" />],
+};
+const SettingsTabIcon = ({tab}) => SETTINGS_TAB_ICONS[tab] ? (
+  <svg className="settingsNavIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    {SETTINGS_TAB_ICONS[tab]}
+  </svg>
+) : null;
 
 /* Tabs, not links: clicking switches the mounted tab and pushes the matching URL. The
    anchors keep the addresses linkable, so opening one in a new tab still works. */
@@ -370,7 +394,7 @@ const SettingsNav = ({tabs, tab, highlightTab, onSelect}) => (
           e.preventDefault();
           onSelect(t.tab);
         }}
-      ><InterfaceText text={t.label} /></a>
+      ><SettingsTabIcon tab={t.tab} /><InterfaceText text={t.label} /></a>
     ))}
   </nav>
 );
@@ -627,51 +651,58 @@ const AboutYouFields = ({fields, set}) => {
   return (
     <React.Fragment>
       <div className="devPocField">
-        <label htmlFor="devPocName">
-          <InterfaceText text={{en: "Name", he: "שם"}} />
-        </label>
         {name ?
           <FieldNote fieldId="devPocName">
             <InterfaceText text={{en: "From your Sefaria account.", he: "מתוך חשבון ספריא שלך."}} />
           </FieldNote> : null}
         {name ?
-          <input id="devPocName" value={name} readOnly aria-readonly="true" aria-describedby={tipId("devPocName")} className="devPocLocked" dir="auto" /> :
-          <input id="devPocName" value={fields.developerName} onChange={e => set("developerName", e.target.value)} dir="auto" />}
+          <Input id="devPocName" label={<InterfaceText text={{en: "Name", he: "שם"}} />}
+            value={name} readOnly aria-readonly="true" aria-describedby={tipId("devPocName")} dir="auto" /> :
+          <Input id="devPocName" label={<InterfaceText text={{en: "Name", he: "שם"}} />}
+            value={fields.developerName} onChange={e => set("developerName", e.target.value)} dir="auto" />}
       </div>
       {email ?
         <div className="devPocField">
-          <label htmlFor="devPocEmail">
-            <InterfaceText text={{en: "Email", he: "דוא״ל"}} />
-          </label>
           <FieldNote fieldId="devPocEmail">
             <InterfaceText text={{
               en: "From your Sefaria account. We send project and key emails here.",
               he: "מתוך חשבון ספריא שלך. לכתובת הזו נשלח הודעות על פרויקטים ומפתחות.",
             }} />
           </FieldNote>
-          <input id="devPocEmail" type="email" value={email} readOnly aria-readonly="true" aria-describedby={tipId("devPocEmail")} className="devPocLocked" dir="ltr" />
+          <Input id="devPocEmail" type="email" inputDir="ltr" label={<InterfaceText text={{en: "Email", he: "דוא״ל"}} />}
+            value={email} readOnly aria-readonly="true" aria-describedby={tipId("devPocEmail")} />
         </div> : null}
       <div className="devPocField">
-        <label htmlFor="devPocEmail2">
-          <InterfaceText text={{en: "Also send project and key emails to", he: "לשלוח הודעות על פרויקטים ומפתחות גם אל"}} /> <OptionalMark />
-          <InfoTip fieldId="devPocEmail2">
-            <InterfaceText text={{
-              en: "Add another address, like a work address or a colleague who looks after the project, and it gets the same emails.",
-              he: "הוסיפו כתובת נוספת, למשל כתובת עבודה או של עמית שמטפל בפרויקט, והיא תקבל את אותן הודעות.",
-            }} />
-          </InfoTip>
-        </label>
-        <input id="devPocEmail2" type="email" dir="ltr" aria-describedby={tipId("devPocEmail2")} value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
+        <Input
+          id="devPocEmail2"
+          type="email"
+          inputDir="ltr"
+          label={<InterfaceText text={{en: "Also send project and key emails to", he: "לשלוח הודעות על פרויקטים ומפתחות גם אל"}} />}
+          labelAddon={<React.Fragment>
+            <OptionalMark />
+            <InfoTip fieldId="devPocEmail2">
+              <InterfaceText text={{
+                en: "Add another address, like a work address or a colleague who looks after the project, and it gets the same emails.",
+                he: "הוסיפו כתובת נוספת, למשל כתובת עבודה או של עמית שמטפל בפרויקט, והיא תקבל את אותן הודעות.",
+              }} />
+            </InfoTip>
+          </React.Fragment>}
+          aria-describedby={tipId("devPocEmail2")}
+          value={fields.additionalEmail}
+          onChange={e => set("additionalEmail", e.target.value)}
+        />
       </div>
       <div className="devPocField">
-        <label htmlFor="devPocDescription">
-          <InterfaceText text={{en: "Tell us about yourself", he: "ספרו לנו על עצמכם"}} /> <OptionalMark />
-          <InfoTip fieldId="devPocDescription">
-            <InterfaceText text={{en: "It helps us understand who uses the API.", he: "זה עוזר לנו להבין מי משתמש ב־API."}} />
-          </InfoTip>
-        </label>
-        <textarea
+        <Input
           id="devPocDescription"
+          multiline
+          label={<InterfaceText text={{en: "Tell us about yourself", he: "ספרו לנו על עצמכם"}} />}
+          labelAddon={<React.Fragment>
+            <OptionalMark />
+            <InfoTip fieldId="devPocDescription">
+              <InterfaceText text={{en: "It helps us understand who uses the API.", he: "זה עוזר לנו להבין מי משתמש ב־API."}} />
+            </InfoTip>
+          </React.Fragment>}
           aria-describedby={tipId("devPocDescription")}
           rows={3}
           dir="auto"
@@ -840,21 +871,20 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
   <React.Fragment>
     {linkedNote}
     <div className="devPocField">
-      <label htmlFor="devPocProjectName"><InterfaceText text={{en: "Project name", he: "שם הפרויקט"}} /></label>
-      <input id="devPocProjectName" dir="auto" value={fields.name} onChange={e => set("name", e.target.value)} />
+      <Input id="devPocProjectName" dir="auto" label={<InterfaceText text={{en: "Project name", he: "שם הפרויקט"}} />}
+        value={fields.name} onChange={e => set("name", e.target.value)} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectDescription">
-        <InterfaceText text={{en: "Short description", he: "תיאור קצר"}} />
-        <InfoTip fieldId="devPocProjectDescription">
-          <InterfaceText text={{
-            en: "The name and description help you tell your projects apart and tell the Sefaria team what you're building. If you make the project public, they're also what visitors to Powered by Sefaria see.",
-            he: "השם והתיאור עוזרים לכם להבחין בין הפרויקטים שלכם ומספרים לצוות ספריא מה אתם בונים. אם תהפכו את הפרויקט לציבורי, זה גם מה שיראו המבקרים ב־Powered by Sefaria.",
-          }} />
-        </InfoTip>
-      </label>
-      <input
+      <Input
         id="devPocProjectDescription"
+        label={<InterfaceText text={{en: "Short description", he: "תיאור קצר"}} />}
+        labelAddon={
+          <InfoTip fieldId="devPocProjectDescription">
+            <InterfaceText text={{
+              en: "The name and description help you tell your projects apart and tell the Sefaria team what you're building. If you make the project public, they're also what visitors to Powered by Sefaria see.",
+              he: "השם והתיאור עוזרים לכם להבחין בין הפרויקטים שלכם ומספרים לצוות ספריא מה אתם בונים. אם תהפכו את הפרויקט לציבורי, זה גם מה שיראו המבקרים ב־Powered by Sefaria.",
+            }} />
+          </InfoTip>}
         dir="auto"
         maxLength={MAX_DESCRIPTION_LENGTH}
         aria-describedby={tipId("devPocProjectDescription") + " devPocProjectDescriptionCount"}
@@ -868,23 +898,25 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
       <CharacterCount id="devPocProjectDescriptionCount" length={fields.description.length} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectOrg"><InterfaceText text={{en: "Organization", he: "ארגון"}} /> <OptionalMark /></label>
-      <input id="devPocProjectOrg" dir="auto" value={fields.organization} onChange={e => set("organization", e.target.value)} />
+      <Input id="devPocProjectOrg" dir="auto"
+        label={<InterfaceText text={{en: "Organization", he: "ארגון"}} />} labelAddon={<OptionalMark />}
+        value={fields.organization} onChange={e => set("organization", e.target.value)} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectUrl">
-        <InterfaceText text={{en: "Website", he: "אתר"}} /> <OptionalMark />
-        <InfoTip fieldId="devPocProjectUrl" wide>
-          <InterfaceText text={{
-            en: "The address people visit to use your project. We show it with your project on Powered by Sefaria, and you can use it to keep your key from working anywhere else. No website yet? You can add it later.",
-            he: "הכתובת שבה משתמשים בפרויקט שלכם. נציג אותה לצד הפרויקט ב־Powered by Sefaria, ותוכלו להשתמש בה כדי שהמפתח לא יעבוד בשום מקום אחר. עדיין אין אתר? אפשר להוסיף אותו מאוחר יותר.",
-          }} />
-        </InfoTip>
-      </label>
-      <input
+      <Input
         id="devPocProjectUrl"
+        label={<InterfaceText text={{en: "Website", he: "אתר"}} />}
+        labelAddon={<React.Fragment>
+          <OptionalMark />
+          <InfoTip fieldId="devPocProjectUrl" wide>
+            <InterfaceText text={{
+              en: "The address people visit to use your project. We show it with your project on Powered by Sefaria, and you can use it to keep your key from working anywhere else. No website yet? You can add it later.",
+              he: "הכתובת שבה משתמשים בפרויקט שלכם. נציג אותה לצד הפרויקט ב־Powered by Sefaria, ותוכלו להשתמש בה כדי שהמפתח לא יעבוד בשום מקום אחר. עדיין אין אתר? אפשר להוסיף אותו מאוחר יותר.",
+            }} />
+          </InfoTip>
+        </React.Fragment>}
         aria-describedby={tipId("devPocProjectUrl")}
-        dir="ltr"
+        inputDir="ltr"
         placeholder="https://"
         value={fields.websiteUrl}
         onChange={e => set("websiteUrl", e.target.value)}
@@ -1525,14 +1557,13 @@ const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite
       {creating && phase === "idle" ?
         <form className="devPocForm devPocCreateKey" onSubmit={startCreate}>
           <div className="devPocField">
-            <label htmlFor="devPocKeyLabel">
-              <InterfaceText text={{en: "Key name", he: "שם המפתח"}} />
-              <InfoTip fieldId="devPocKeyLabel">
-                <InterfaceText text={{en: "A name just for you, so you can tell your keys apart.", he: "שם רק בשבילכם, כדי להבחין בין המפתחות."}} />
-              </InfoTip>
-            </label>
-            <input
+            <Input
               id="devPocKeyLabel"
+              label={<InterfaceText text={{en: "Key name", he: "שם המפתח"}} />}
+              labelAddon={
+                <InfoTip fieldId="devPocKeyLabel">
+                  <InterfaceText text={{en: "A name just for you, so you can tell your keys apart.", he: "שם רק בשבילכם, כדי להבחין בין המפתחות."}} />
+                </InfoTip>}
               aria-describedby={tipId("devPocKeyLabel")}
               dir="auto"
               placeholder={Sefaria._v({en: "e.g. My website", he: "למשל: האתר שלי"})}
@@ -1788,7 +1819,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
     <div className="devPocPage" ref={tabRef}>
       <header className={"devPocPageHeader" + (highlight && developerOn ? " settingsHighlight" : "")}>
         <div>
-          <h1><InterfaceText text={{en: "Developer settings", he: "הגדרות מפתחים"}} /></h1>
+          <h1><InterfaceText text={{en: "Developer Settings", he: "הגדרות מפתחים"}} /></h1>
           <p>
             <InterfaceText text={{
               en: "Register your projects and manage their API keys.",
