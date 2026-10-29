@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { markdownToHtml } from "~/lib/html/markdown";
+import { sanitizeHtml } from "~/lib/html/sanitize";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import type { AboutTextMeta } from "~/lib/book/about-text";
 import type { VersionMeta } from "~/lib/text/model";
@@ -125,7 +126,7 @@ function BookMain({ aboutInline, title, category, attribution, dedication, readH
           </div>
         ) : null}
         {dedication && (he ? dedication.he || dedication.en : dedication.en || dedication.he) ? (
-          <div className={styles.dedication} dangerouslySetInnerHTML={{ __html: (he ? dedication.he || dedication.en : dedication.en || dedication.he)! }} />
+          <div className={styles.dedication} dangerouslySetInnerHTML={{ __html: sanitizeHtml((he ? dedication.he || dedication.en : dedication.en || dedication.he)!) }} />
         ) : null}
         <div>
           <Button href={readHref} variant="primary" className={styles.read}>

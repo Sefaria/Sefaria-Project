@@ -14,8 +14,11 @@ const roundTrip = (url: string) => {
 
 describe("legacy multi-panel URLs are read and written back exactly (owner decision 2026-10-06)", () => {
   for (const c of LEGACY_URLS) {
-    (c.todo ? it.fails : it)(`${c.layout} — ${c.how}${c.todo ? ` (todo — ${c.todo})` : ""}`, () => {
-      expect(roundTrip(c.url)).toBe(c.url);
-    });
+    // a case still to build is a todo (listed, not run): `it.fails` also "passed" when the code merely crashed (CODE_REVIEW R-33)
+    if (c.todo) it.todo(`${c.layout} — ${c.how} (todo — ${c.todo})`);
+    else
+      it(`${c.layout} — ${c.how}`, () => {
+        expect(roundTrip(c.url)).toBe(c.url);
+      });
   }
 });

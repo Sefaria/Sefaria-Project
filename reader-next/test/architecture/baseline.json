@@ -1,0 +1,225 @@
+{
+  "ui-boundary": {
+    "src/ui/AboutView/AboutVersionBlock.tsx": [
+      "~/lib/config"
+    ],
+    "src/ui/AboutView/AboutView.tsx": [
+      "~/lib/config"
+    ],
+    "src/ui/BookPage/BookPage.tsx": [
+      "~/lib/config"
+    ],
+    "src/ui/CategoryColorLine/CategoryColorLine.tsx": [
+      "~/lib/analytics"
+    ],
+    "src/ui/ConnectionsPanel/CategoryView.tsx": [
+      "~/lib/analytics/reader"
+    ],
+    "src/ui/ConnectionsPanel/ResourcesView.tsx": [
+      "~/lib/analytics/reader"
+    ],
+    "src/ui/ContentLanguage/ContentLanguage.tsx": [
+      "~/lib/analytics/reader"
+    ],
+    "src/ui/CookieNotice/CookieNotice.tsx": [
+      "~/lib/config"
+    ],
+    "src/ui/DisplaySettingsMenu/DisplaySettingsMenu.tsx": [
+      "~/lib/reader/settings"
+    ],
+    "src/ui/DownloadVersions/DownloadVersions.tsx": [
+      "~/lib/analytics/reader",
+      "~/lib/config"
+    ],
+    "src/ui/LegalText/LegalText.tsx": [
+      "~/lib/config"
+    ],
+    "src/ui/ReaderSurface/ReaderSurface.tsx": [
+      "~/lib/reader/settings"
+    ],
+    "src/ui/SearchPage/SearchPage.tsx": [
+      "~/lib/config"
+    ],
+    "src/ui/SectionTitle/SectionTitle.tsx": [
+      "~/lib/reader/settings"
+    ],
+    "src/ui/Segment/Segment.tsx": [
+      "~/lib/reader/settings"
+    ],
+    "src/ui/SiteHeader/HeaderSearch.tsx": [
+      "~/lib/analytics/search-box",
+      "~/lib/config"
+    ],
+    "src/ui/SiteHeader/SiteHeader.tsx": [
+      "~/lib/analytics"
+    ],
+    "src/ui/TextSection/TextSection.tsx": [
+      "~/lib/reader/settings"
+    ],
+    "src/ui/TopicsView/TopicsView.tsx": [
+      "~/lib/config"
+    ],
+    "src/ui/VersionInfo/VersionInfo.tsx": [
+      "~/lib/config"
+    ],
+    "src/ui/WebPagesView/WebPagesView.tsx": [
+      "~/lib/config"
+    ]
+  },
+  "adapter-boundary": {
+    "src/features/reader/reader-route.ts": [
+      "~/lib/api/client"
+    ]
+  },
+  "literal-colours": {
+    "src/features/auth/AuthPage.module.css": [
+      "2 literal colour(s)"
+    ],
+    "src/features/reader/TextPanel.module.css": [
+      "3 literal colour(s)"
+    ],
+    "src/ui/AboutView/AboutVersionBlock.module.css": [
+      "1 literal colour(s)"
+    ],
+    "src/ui/AddConnectionView/AddConnectionView.module.css": [
+      "3 literal colour(s)"
+    ],
+    "src/ui/AddToSheetView/AddToSheetView.module.css": [
+      "4 literal colour(s)"
+    ],
+    "src/ui/AuthCard/AuthCard.module.css": [
+      "8 literal colour(s)"
+    ],
+    "src/ui/BookPage/BookPage.module.css": [
+      "4 literal colour(s)"
+    ],
+    "src/ui/CategoryPage/CategoryPage.module.css": [
+      "4 literal colour(s)"
+    ],
+    "src/ui/ConnectionsPanel/ConnectionsPanel.module.css": [
+      "2 literal colour(s)"
+    ],
+    "src/ui/ConnectionsPanel/FilterRow.module.css": [
+      "3 literal colour(s)"
+    ],
+    "src/ui/ConnectionsPanel/TextList.module.css": [
+      "6 literal colour(s)"
+    ],
+    "src/ui/ContentLanguage/ContentLanguage.module.css": [
+      "2 literal colour(s)"
+    ],
+    "src/ui/CookieNotice/CookieNotice.module.css": [
+      "3 literal colour(s)"
+    ],
+    "src/ui/DictionarySearch/DictionarySearch.module.css": [
+      "4 literal colour(s)"
+    ],
+    "src/ui/DisplaySettingsMenu/DisplaySettingsMenu.module.css": [
+      "4 literal colour(s)"
+    ],
+    "src/ui/DownloadVersions/DownloadVersions.module.css": [
+      "3 literal colour(s)"
+    ],
+    "src/ui/FeedbackView/FeedbackView.module.css": [
+      "1 literal colour(s)"
+    ],
+    "src/ui/Modal/Modal.module.css": [
+      "2 literal colour(s)"
+    ],
+    "src/ui/NavPage/NavPage.module.css": [
+      "1 literal colour(s)"
+    ],
+    "src/ui/NavSidebar/NavSidebar.module.css": [
+      "3 literal colour(s)"
+    ],
+    "src/ui/NotesView/NotesView.module.css": [
+      "6 literal colour(s)"
+    ],
+    "src/ui/PanelHeader/PanelHeader.module.css": [
+      "1 literal colour(s)"
+    ],
+    "src/ui/ProfilePic/ProfilePic.module.css": [
+      "2 literal colour(s)"
+    ],
+    "src/ui/ProviderButton/ProviderButton.module.css": [
+      "8 literal colour(s)"
+    ],
+    "src/ui/SearchPage/SearchPage.module.css": [
+      "35 literal colour(s)"
+    ],
+    "src/ui/Segment/Segment.module.css": [
+      "2 literal colour(s)"
+    ],
+    "src/ui/SegmentText/SegmentText.module.css": [
+      "2 literal colour(s)"
+    ],
+    "src/ui/SegmentedControl/SegmentedControl.module.css": [
+      "13 literal colour(s)"
+    ],
+    "src/ui/SidebarSearch/SidebarSearch.module.css": [
+      "1 literal colour(s)"
+    ],
+    "src/ui/SiteHeader/HeaderSearch.module.css": [
+      "4 literal colour(s)"
+    ],
+    "src/ui/SiteHeader/SiteHeader.module.css": [
+      "10 literal colour(s)"
+    ],
+    "src/ui/Switch/Switch.module.css": [
+      "1 literal colour(s)"
+    ],
+    "src/ui/TextColumnBanner/TextColumnBanner.module.css": [
+      "5 literal colour(s)"
+    ],
+    "src/ui/TextField/TextField.module.css": [
+      "5 literal colour(s)"
+    ],
+    "src/ui/TocView/TocView.module.css": [
+      "9 literal colour(s)"
+    ],
+    "src/ui/TopicsView/TopicsView.module.css": [
+      "7 literal colour(s)"
+    ],
+    "src/ui/TorahReadingsView/ClipPlayer.module.css": [
+      "3 literal colour(s)"
+    ],
+    "src/ui/TranslationsView/TranslationOpenView.module.css": [
+      "1 literal colour(s)"
+    ],
+    "src/ui/TranslationsView/TranslationsView.module.css": [
+      "9 literal colour(s)"
+    ],
+    "src/ui/VersionInfo/VersionInfo.module.css": [
+      "1 literal colour(s)"
+    ],
+    "src/ui/VirtualKeyboard/KeyboardLauncher.module.css": [
+      "1 literal colour(s)"
+    ],
+    "src/ui/VirtualKeyboard/VirtualKeyboard.module.css": [
+      "6 literal colour(s)"
+    ]
+  },
+  "url-through-router": {},
+  "writes-through-helper": {
+    "src/features/auth/use-google-one-tap.ts": [
+      "fetch POST"
+    ],
+    "src/features/auth/use-provider-triggers.tsx": [
+      "fetch POST",
+      "fetch POST"
+    ],
+    "src/lib/search/dicta.ts": [
+      "fetch POST",
+      "fetch POST"
+    ],
+    "src/lib/search/search-page.ts": [
+      "fetch POST"
+    ],
+    "src/lib/search/text-search.ts": [
+      "fetch POST"
+    ],
+    "src/lib/user/notes.ts": [
+      "fetch DELETE"
+    ]
+  }
+}

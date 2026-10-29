@@ -6,10 +6,8 @@
  * @feature RTE-034 Language switch URL (/interface)
  * @feature I18-007 Site language toggle in dropdowns
  */
-export function safeNext(next: string | null | undefined): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\") || /[\r\n]/.test(next)) return "/";
-  return next;
-}
+export { safeNext } from "~/lib/auth/utils";
+import { safeNext } from "~/lib/auth/utils";
 
 export const isInterfaceLang = (x: string): x is "english" | "hebrew" => x === "english" || x === "hebrew";
 

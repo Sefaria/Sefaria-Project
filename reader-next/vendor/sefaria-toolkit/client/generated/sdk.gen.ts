@@ -134,67 +134,8 @@ import type {
   PostSearchWrapperData,
   PostSearchWrapperResponses,
 } from "./types.gen.js";
-import {
-  zGetAliyotByParashaResponse,
-  zGetAllSheetsResponse,
-  zGetAllTopicsResponse,
-  zGetAsyncTaskStatusResponse,
-  zGetAuthorIndexesResponse,
-  zGetBulktextResponse,
-  zGetCalendarHolidayTopicResponse,
-  zGetCalendarParashaTopicResponse,
-  zGetCalendarsResponse,
-  zGetCategoryResponse,
-  zGetCollectionResponse,
-  zGetCollectionsResponse,
-  zGetCountsLinksResponse,
-  zGetCountsResponse,
-  zGetCountsWordsResponse,
-  zGetIndexByTitleResponse,
-  zGetIndexResponse,
-  zGetIndexTitlesResponse,
-  zGetIndexV2Response,
-  zGetLinksResponse,
-  zGetLinkSummaryResponse,
-  zGetManuscriptsResponse,
-  zGetNameResponse,
-  zGetNextReadResponse,
-  zGetPassagesResponse,
-  zGetProfileResponse,
-  zGetRandomByTopicResponse,
-  zGetRecommendTopicsResponse,
-  zGetRefResponse,
-  zGetRefTopicLinksResponse,
-  zGetRelatedResponse,
-  zGetRelatedWebsitesResponse,
-  zGetShapeResponse,
-  zGetSheetModifiedResponse,
-  zGetSheetResponse,
-  zGetSheetsBulkResponse,
-  zGetSheetsByRefResponse,
-  zGetSheetsTagListResponse,
-  zGetSheetsTagListSortedResponse,
-  zGetSheetsTrendingTagsResponse,
-  zGetTermsResponse,
-  zGetTextsRandomResponse,
-  zGetTopicsGraphResponse,
-  zGetTopicSlugResponse,
-  zGetTranslationsLangResponse,
-  zGetTranslationsResponse,
-  zGetUserCollectionsResponse,
-  zGetUserSheetsPaginatedResponse,
-  zGetUserSheetsResponse,
-  zGetUserSheetTagsResponse,
-  zGetV1TextsResponse,
-  zGetV2IndexResponse,
-  zGetV2TopicsResponse,
-  zGetV3TextsResponse,
-  zGetVersionsResponse,
-  zGetWordsCompletionResponse,
-  zGetWordsResponse,
-  zPostFindRefsResponse,
-  zPostSearchWrapperResponse,
-} from "./zod.gen.js";
+// SEFARIA-READER EXTENSION: the zod validators load lazily, only when the client validates (see client.ts `validate`)
+const zodSchemas = () => import("./zod.gen.js");
 
 import { requireSefariaClient, type SefariaClient } from "../client.js";
 
@@ -235,8 +176,7 @@ export const getV3Texts = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetV3TextsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetV3TextsResponse.parseAsync(data) } : {}),
     url: "/api/v3/texts/{tref}",
   });
 
@@ -259,8 +199,7 @@ export const getV1Texts = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetV1TextsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetV1TextsResponse.parseAsync(data) } : {}),
     url: "/api/texts/{tref}",
   });
 
@@ -281,8 +220,7 @@ export const getTranslations = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetTranslationsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetTranslationsResponse.parseAsync(data) } : {}),
     url: "/api/texts/translations",
   });
 
@@ -303,8 +241,7 @@ export const getTranslationsLang = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetTranslationsLangResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetTranslationsLangResponse.parseAsync(data) } : {}),
     url: "/api/texts/translations/{lang}",
   });
 
@@ -325,8 +262,7 @@ export const getManuscripts = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetManuscriptsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetManuscriptsResponse.parseAsync(data) } : {}),
     url: "/api/manuscripts/{tref}",
   });
 
@@ -347,8 +283,7 @@ export const getTextsRandom = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetTextsRandomResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetTextsRandomResponse.parseAsync(data) } : {}),
     url: "/api/texts/random",
   });
 
@@ -369,8 +304,7 @@ export const getBulktext = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetBulktextResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetBulktextResponse.parseAsync(data) } : {}),
     url: "/api/bulktext/{refs}",
   });
 
@@ -391,8 +325,7 @@ export const getPassages = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetPassagesResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetPassagesResponse.parseAsync(data) } : {}),
     url: "/api/passages/{refs}",
   });
 
@@ -413,8 +346,7 @@ export const getV2Index = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetV2IndexResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetV2IndexResponse.parseAsync(data) } : {}),
     url: "/api/v2/raw/index/{index_title}",
   });
 
@@ -435,7 +367,7 @@ export const getIndex = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) => await zGetIndexResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetIndexResponse.parseAsync(data) } : {}),
     url: "/api/index",
   });
 
@@ -456,7 +388,7 @@ export const getShape = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) => await zGetShapeResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetShapeResponse.parseAsync(data) } : {}),
     url: "/api/shape/{title}",
   });
 
@@ -477,8 +409,7 @@ export const getAuthorIndexes = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetAuthorIndexesResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetAuthorIndexesResponse.parseAsync(data) } : {}),
     url: "/api/authors/{author_slug}/indexes",
   });
 
@@ -499,8 +430,7 @@ export const getIndexTitles = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetIndexTitlesResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetIndexTitlesResponse.parseAsync(data) } : {}),
     url: "/api/index/titles",
   });
 
@@ -521,8 +451,7 @@ export const getIndexByTitle = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetIndexByTitleResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetIndexByTitleResponse.parseAsync(data) } : {}),
     url: "/api/index/{title}",
   });
 
@@ -543,8 +472,7 @@ export const getIndexV2 = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetIndexV2Response.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetIndexV2Response.parseAsync(data) } : {}),
     url: "/api/v2/index/{title}",
   });
 
@@ -565,8 +493,7 @@ export const getCounts = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetCountsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetCountsResponse.parseAsync(data) } : {}),
     url: "/api/counts/{title}",
   });
 
@@ -587,8 +514,7 @@ export const getCountsLinks = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetCountsLinksResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetCountsLinksResponse.parseAsync(data) } : {}),
     url: "/api/counts/links/{cat1}/{cat2}",
   });
 
@@ -609,8 +535,7 @@ export const getCountsWords = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetCountsWordsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetCountsWordsResponse.parseAsync(data) } : {}),
     url: "/api/counts/words/{title}/{version}/{language}",
   });
 
@@ -631,8 +556,7 @@ export const getRelated = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetRelatedResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetRelatedResponse.parseAsync(data) } : {}),
     url: "/api/related/{tref}",
   });
 
@@ -653,8 +577,7 @@ export const getRelatedWebsites = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetRelatedWebsitesResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetRelatedWebsitesResponse.parseAsync(data) } : {}),
     url: "/api/related/{tref}/websites",
   });
 
@@ -675,7 +598,7 @@ export const getLinks = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) => await zGetLinksResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetLinksResponse.parseAsync(data) } : {}),
     url: "/api/links/{tref}",
   });
 
@@ -696,8 +619,7 @@ export const getRefTopicLinks = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetRefTopicLinksResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetRefTopicLinksResponse.parseAsync(data) } : {}),
     url: "/api/ref-topic-links/{tref}",
   });
 
@@ -718,8 +640,7 @@ export const getLinkSummary = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetLinkSummaryResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetLinkSummaryResponse.parseAsync(data) } : {}),
     url: "/api/link-summary/{ref}",
   });
 
@@ -740,8 +661,7 @@ export const getCalendars = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetCalendarsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetCalendarsResponse.parseAsync(data) } : {}),
     url: "/api/calendars",
   });
 
@@ -762,8 +682,7 @@ export const getNextRead = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetNextReadResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetNextReadResponse.parseAsync(data) } : {}),
     url: "/api/calendars/next-read/{parasha}",
   });
 
@@ -784,8 +703,7 @@ export const getAliyotByParasha = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetAliyotByParashaResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetAliyotByParashaResponse.parseAsync(data) } : {}),
     url: "/api/sheets/{parasha}/get_aliyot",
   });
 
@@ -806,8 +724,7 @@ export const getCalendarParashaTopic = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetCalendarParashaTopicResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetCalendarParashaTopicResponse.parseAsync(data) } : {}),
     url: "/api/calendars/topics/parasha",
   });
 
@@ -828,8 +745,7 @@ export const getCalendarHolidayTopic = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetCalendarHolidayTopicResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetCalendarHolidayTopicResponse.parseAsync(data) } : {}),
     url: "/api/calendars/topics/holiday",
   });
 
@@ -850,7 +766,7 @@ export const getWords = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) => await zGetWordsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetWordsResponse.parseAsync(data) } : {}),
     url: "/api/words/{word}",
   });
 
@@ -873,8 +789,7 @@ export const getWordsCompletion = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetWordsCompletionResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetWordsCompletionResponse.parseAsync(data) } : {}),
     url: "/api/words/completion/{word}/{lexicon}",
   });
 
@@ -895,8 +810,7 @@ export const getV2Topics = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetV2TopicsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetV2TopicsResponse.parseAsync(data) } : {}),
     url: "/api/v2/topics/{topic_slug}",
   });
 
@@ -920,8 +834,7 @@ export const getTopicSlug = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetTopicSlugResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetTopicSlugResponse.parseAsync(data) } : {}),
     url: "/api/topics/{topic_slug}",
   });
 
@@ -942,8 +855,7 @@ export const getAllTopics = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetAllTopicsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetAllTopicsResponse.parseAsync(data) } : {}),
     url: "/api/topics",
   });
 
@@ -964,8 +876,7 @@ export const getTopicsGraph = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetTopicsGraphResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetTopicsGraphResponse.parseAsync(data) } : {}),
     url: "/api/topics-graph/{topic_slug}",
   });
 
@@ -986,8 +897,7 @@ export const getRecommendTopics = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetRecommendTopicsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetRecommendTopicsResponse.parseAsync(data) } : {}),
     url: "/api/recommend/topics/{ref_list}",
   });
 
@@ -1008,8 +918,7 @@ export const getRandomByTopic = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetRandomByTopicResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetRandomByTopicResponse.parseAsync(data) } : {}),
     url: "/api/texts/random-by-topic",
   });
 
@@ -1033,7 +942,7 @@ export const getTerms = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) => await zGetTermsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetTermsResponse.parseAsync(data) } : {}),
     url: "/api/terms/{name}",
   });
 
@@ -1054,7 +963,7 @@ export const getName = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) => await zGetNameResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetNameResponse.parseAsync(data) } : {}),
     url: "/api/name/{name}",
   });
 
@@ -1075,7 +984,7 @@ export const getSheet = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) => await zGetSheetResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetSheetResponse.parseAsync(data) } : {}),
     url: "/api/sheets/{sheet_id}",
   });
 
@@ -1096,8 +1005,7 @@ export const getSheetsTrendingTags = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetSheetsTrendingTagsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetSheetsTrendingTagsResponse.parseAsync(data) } : {}),
     url: "/api/sheets/trending-tags",
   });
 
@@ -1118,8 +1026,7 @@ export const getSheetModified = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetSheetModifiedResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetSheetModifiedResponse.parseAsync(data) } : {}),
     url: "/api/sheets/modified/{sheet_id}/{timestamp}",
   });
 
@@ -1140,8 +1047,7 @@ export const getUserSheets = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetUserSheetsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetUserSheetsResponse.parseAsync(data) } : {}),
     url: "/api/sheets/user/{user_id}",
   });
 
@@ -1162,8 +1068,7 @@ export const getUserSheetsPaginated = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetUserSheetsPaginatedResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetUserSheetsPaginatedResponse.parseAsync(data) } : {}),
     url: "/api/sheets/user/{user_id}/{sort_by}/{limiter}/{offset}",
   });
 
@@ -1184,8 +1089,7 @@ export const getSheetsBulk = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetSheetsBulkResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetSheetsBulkResponse.parseAsync(data) } : {}),
     url: "/api/v2/sheets/bulk/{sheet_id_list}",
   });
 
@@ -1206,8 +1110,7 @@ export const getSheetsTagList = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetSheetsTagListResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetSheetsTagListResponse.parseAsync(data) } : {}),
     url: "/api/sheets/tag-list",
   });
 
@@ -1228,8 +1131,7 @@ export const getSheetsTagListSorted = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetSheetsTagListSortedResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetSheetsTagListSortedResponse.parseAsync(data) } : {}),
     url: "/api/sheets/tag-list/{sort_by}",
   });
 
@@ -1250,8 +1152,7 @@ export const getUserSheetTags = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetUserSheetTagsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetUserSheetTagsResponse.parseAsync(data) } : {}),
     url: "/api/sheets/tag-list/user/{user_id}",
   });
 
@@ -1272,8 +1173,7 @@ export const getSheetsByRef = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetSheetsByRefResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetSheetsByRefResponse.parseAsync(data) } : {}),
     url: "/api/sheets/ref/{ref}",
   });
 
@@ -1294,8 +1194,7 @@ export const getAllSheets = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetAllSheetsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetAllSheetsResponse.parseAsync(data) } : {}),
     url: "/api/sheets/all-sheets/{limiter}/{offset}",
   });
 
@@ -1316,8 +1215,7 @@ export const getCollections = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetCollectionsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetCollectionsResponse.parseAsync(data) } : {}),
     url: "/api/collections",
   });
 
@@ -1338,8 +1236,7 @@ export const getCollection = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetCollectionResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetCollectionResponse.parseAsync(data) } : {}),
     url: "/api/collections/{slug}",
   });
 
@@ -1360,8 +1257,7 @@ export const getUserCollections = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetUserCollectionsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetUserCollectionsResponse.parseAsync(data) } : {}),
     url: "/api/collections/user-collections/{user_id}",
   });
 
@@ -1384,8 +1280,7 @@ export const postFindRefs = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zPostFindRefsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zPostFindRefsResponse.parseAsync(data) } : {}),
     url: "/api/find-refs",
     headers: {
       "Content-Type": "application/json",
@@ -1410,8 +1305,7 @@ export const postSearchWrapper = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zPostSearchWrapperResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zPostSearchWrapperResponse.parseAsync(data) } : {}),
     url: "/api/search-wrapper",
     headers: {
       "Content-Type": "application/json",
@@ -1458,8 +1352,7 @@ export const getCategory = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetCategoryResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetCategoryResponse.parseAsync(data) } : {}),
     url: "/api/category/{category_path}",
   });
 
@@ -1492,7 +1385,7 @@ export const getRef = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) => await zGetRefResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetRefResponse.parseAsync(data) } : {}),
     url: "/api/ref/{tref}",
   });
 
@@ -1513,8 +1406,7 @@ export const getProfile = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetProfileResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetProfileResponse.parseAsync(data) } : {}),
     url: "/api/profile/{slug}",
   });
 
@@ -1551,8 +1443,7 @@ export const getAsyncTaskStatus = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetAsyncTaskStatusResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetAsyncTaskStatusResponse.parseAsync(data) } : {}),
     url: "/api/async/{task_id}",
   });
 
@@ -1575,7 +1466,6 @@ export const getTextVersions = <ThrowOnError extends boolean = false>(
     parseAs: "json",
     responseStyle: "fields",
     responseTransformer: async (data) => data,
-    responseValidator: async (data) =>
-      await zGetVersionsResponse.parseAsync(data),
+    ...(requireSefariaClient(options.client).validate ? { responseValidator: async (data: unknown) => (await zodSchemas()).zGetVersionsResponse.parseAsync(data) } : {}),
     url: "/api/texts/versions/{tref}",
   });

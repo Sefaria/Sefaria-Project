@@ -8,6 +8,7 @@
  * Off unless SEFARIA_PASS_THROUGH=1 (local development shows this client's own 404).
  */
 import { API_ORIGIN } from "~/lib/config";
+import type { DeadlineInit } from "./internal-fetch";
 
 /*
  * Not here (rendered by this client since the auth port): "login", "register" and "password" (the reset link). Every POST to them —
@@ -25,8 +26,21 @@ const PREFIX_RE = new RegExp(`^/(?:${DJANGO_PREFIXES.map((p) => p.replace(/[.*+?
 
 export const passThroughEnabled = () => typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH === "1";
 
-/** Always Django's, whatever this client could render. */
-export const isDjangoPath = (pathname: string, method: string) => (method !== "GET" && method !== "HEAD") || PREFIX_RE.test(pathname);
+/** This client's own server functions (TanStack Start's default base): never Django's, whatever the method. */
+const SERVER_FN_RE = /^\/_serverFn\//;
+
+/** Always Django's, whatever this client could render (every write, except to this client's own server functions). */
+export const isDjangoPath = (pathname: string, method: string) =>
+  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || PREFIX_RE.test(pathname));
+
+const PASS_THROUGH_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH_TIMEOUT_MS) || 30000);
+
+/** What a page answers when what it needs upstream is down or too slow: 503 (try again), never a 500 (a bug) or a hang. */
+export const upstreamUnavailable = () =>
+  new Response("The library is not answering right now. Please try again in a moment.", {
+    status: 503,
+    headers: { "content-type": "text/plain; charset=utf-8", "retry-after": "5", "cache-control": "no-store" },
+  });
 
 const HOP_BY_HOP = ["connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade"];
 
@@ -41,7 +55,14 @@ export async function passThrough(request: Request): Promise<Response> {
     init.body = request.body;
     init.duplex = "half";
   }
-  const res = await fetch(`${API_ORIGIN}${url.pathname}${url.search}`, init);
+  // a read gets a deadline (Django pages can be slow, so longer than the API's); a write is never cut short (CODE_REVIEW R-05)
+  if (request.method === "GET" || request.method === "HEAD") (init as DeadlineInit).deadlineMs = PASS_THROUGH_TIMEOUT_MS;
+  let res: Response;
+  try {
+    res = await fetch(`${API_ORIGIN}${url.pathname}${url.search}`, init);
+  } catch {
+    return upstreamUnavailable();
+  }
   const out = new Headers(res.headers);
   // fetch has already decoded the body: the length and encoding no longer describe it
   out.delete("content-encoding");
@@ -72,9 +93,24 @@ export const setPasswordPath = (uid: string) => `/password/reset/confirm/${uid}/
 /** Hand the token link to Django; keep its redirect, or turn its "invalid link" page into a redirect to the set-password address. */
 export async function passResetLink(request: Request, uid: string, pass: (r: Request) => Promise<Response> = passThrough): Promise<Response> {
   const res = await pass(request);
-  if (res.status >= 300 && res.status < 400) return res;
+  // a redirect is Django's answer as it is; a failure (5xx, our 503) is passed on, not turned into "the link expired"
+  if ((res.status >= 300 && res.status < 400) || res.status >= 500) return res;
   const headers = new Headers({ location: setPasswordPath(uid), "x-served-by": "django" });
   for (const c of res.headers.getSetCookie?.() ?? []) headers.append("set-cookie", c);
   await res.body?.cancel().catch(() => undefined);
   return new Response(null, { status: 302, headers });
+}
+
+/**
+ * A reader or library address with a trailing slash (`/Genesis.1/`): the canonical address without it, as a permanent redirect
+ * (308 keeps the method; the router's own normalisation answered 307, a temporary one crawlers do not consolidate). Django's paths
+ * and the auth pages keep their slashes. Null when nothing is to be done.
+ */
+export function trailingSlashRedirect(url: URL, method: string): Response | null {
+  const { pathname } = url;
+  if ((method !== "GET" && method !== "HEAD") || pathname === "/" || !pathname.endsWith("/")) return null;
+  // a path starting with two slashes would make the Location protocol-relative (//evil.com: an open redirect); never redirect one
+  if (/^\/[\/\\]/.test(pathname)) return null;
+  if (isDjangoPath(pathname, method) || resetLinkUid(pathname) || /^\/(login|register|password)\//.test(pathname)) return null;
+  return new Response(null, { status: 308, headers: { location: `${pathname.replace(/\/+$/, "")}${url.search}`, "cache-control": "public, max-age=86400" } });
 }

@@ -337,6 +337,8 @@
   "/api/v3/texts/Rashi_on_Berakhot_2a?version=primary&version=translation": "rashi-on-berakhot-2a/v3-texts-default.json",
   "/api/v3/texts/Rashi_on_Berakhot_2a?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities": "rashi-on-berakhot-2a/v3-texts.json",
   "/api/v3/texts/Rashi_on_Genesis_1:1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities": "rashi-on-genesis-1/section-first.json",
+  "/api/v3/texts/Rashi_on_Genesis_1:31:1-2:2:1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities": "rashi-on-genesis-1-31-2-2/v3-texts.json",
+  "/api/v3/texts/Rashi_on_Genesis_1:31?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities": "rashi-on-genesis-1-31-2-2/section-1-31.json",
   "/api/v3/texts/Rashi_on_Genesis_1?version=primary&version=translation": "rashi-on-genesis-1/v3-texts-default.json",
   "/api/v3/texts/Rashi_on_Genesis_1?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities": "rashi-on-genesis-1/v3-texts.json",
   "/api/v3/texts/Rashi_on_Genesis_2:2?version=primary&version=translation&fill_in_missing_segments=1&return_format=wrap_all_entities": "rashi-on-genesis-1/section-next.json",

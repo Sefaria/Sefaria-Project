@@ -107,9 +107,16 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
     setOwnOpen(n);
     onMenuOpenChange?.(n);
   };
+  const menuButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!mobileOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMobileOpen(false);
+    // Escape closes the menu; focus that was inside it goes back to the button (CODE_REVIEW R-31: it was lost to <body>)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const inside = document.getElementById("mobile-nav")?.contains(document.activeElement);
+      setMobileOpen(false);
+      if (inside) menuButton.current?.focus();
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [mobileOpen]);
@@ -191,7 +198,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
       </div>
 
       <div className={styles.mobileBar}>
-        <IconButton icon="menu" label={t("Menu", "תפריט")} aria-expanded={mobileOpen} aria-controls="mobile-nav" onClick={() => setMobileOpen((o) => !o)} />
+        <IconButton ref={menuButton} icon="menu" label={t("Menu", "תפריט")} aria-expanded={mobileOpen} aria-controls="mobile-nav" onClick={() => setMobileOpen((o) => !o)} />
         <A href={LIBRARY + "/"} className={styles.logo}><img src={logo} alt={logoLabel} /></A>
         <a className={styles.iconLink} href={interfaceHref(other, next)} aria-label={he ? "Switch to English" : "עברית"} title={he ? "English" : "עברית"}><Icon name="translate" size="1.3em" /></a>
       </div>

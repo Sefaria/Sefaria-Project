@@ -198,3 +198,87 @@ test.describe("verse ranges (verified on sefaria.org 2026-10-28)", () => {
     await expect(page.getByRole("heading", { name: "Bereshit: Second" })).toBeVisible();
   });
 });
+
+// CODE_REVIEW R-09: every navigation (and each scroll pause is one: the address catches up) ran a server function to read the
+// cookies — an HTTP round trip per pause. The browser reads its cookies itself.
+test("reading on makes no round trips to the server for preferences", async ({ page }) => {
+  await open(page, "/Genesis.1.1?lang=en");
+  const calls: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("/_serverFn/")) calls.push(r.url());
+  });
+  for (let i = 0; i < 3; i++) {
+    await wheel(page, 300, 2);
+    await page.waitForTimeout(500);
+  }
+  await expect.poll(() => new URL(page.url()).pathname).not.toBe("/Genesis.1.1");
+  expect(calls).toEqual([]);
+});
+
+// CODE_REVIEW R-12: adding a section (and its links arriving) re-rendered every verse already in the column
+test("a section added while reading leaves the verses already there alone (no re-render)", async ({ page }) => {
+  await open(page, "/Genesis.10?lang=bi");
+  await page.waitForTimeout(2500); // links and neighbours settle
+  const renders = () => page.evaluate(() => ({ ...(window as unknown as { __segmentRenders: Record<string, number> }).__segmentRenders }));
+  const before = await renders();
+  const existing = Object.keys(before).filter((r) => /^Genesis 10:/.test(r));
+  expect(existing.length).toBeGreaterThan(20);
+  await setScrollTop(page, "bottom");
+  await expect.poll(() => sectionRefs(page)).toContain("Genesis 11");
+  await page.waitForTimeout(2500); // Genesis 11's links arrive too
+  const after = await renders();
+  const rerendered = existing.filter((r) => after[r] !== before[r]);
+  expect(rerendered).toEqual([]);
+});
+
+// CODE_REVIEW R-25: the column kept every section it ever loaded; far ones now go, without moving the text the reader is on
+test("a long read keeps the column bounded, the reader's verse still, and scrolling back reloads what went", async ({ page }) => {
+  await open(page, "/Psalms.1?lang=en");
+  for (let i = 0; i < 30; i++) {
+    await wheel(page, 900, 2);
+    await page.waitForTimeout(120);
+  }
+  await page.waitForTimeout(1500);
+  const held = await sectionRefs(page);
+  expect(held.length).toBeLessThan(16); // ~20+ psalms were passed
+  expect(held).not.toContain("Psalms 3");
+  const ref = await focused(page);
+  const top = await segmentTop(page, ref!);
+  await page.waitForTimeout(1500); // any trim after the last load has happened by now
+  expect(Math.abs((await segmentTop(page, ref!)) - top)).toBeLessThan(2);
+  const firstHeld = held[0]!;
+  for (let i = 0; i < 6; i++) {
+    await wheel(page, -900, 2);
+    await page.waitForTimeout(150);
+  }
+  await expect.poll(async () => (await sectionRefs(page))[0]).not.toBe(firstHeld); // an earlier psalm came back
+});
+
+test("windowing in a bilingual column with the sidebar open keeps the reader's verse still", async ({ page }) => {
+  await open(page, "/Psalms.1.1?lang=bi&with=all");
+  for (let i = 0; i < 25; i++) {
+    await wheel(page, 900, 2);
+    await page.waitForTimeout(120);
+  }
+  await page.waitForTimeout(1500);
+  expect((await sectionRefs(page)).length).toBeLessThan(16);
+  const ref = await focused(page);
+  const top = await segmentTop(page, ref!);
+  await page.waitForTimeout(1500);
+  expect(Math.abs((await segmentTop(page, ref!)) - top)).toBeLessThan(2);
+  // the text keeps exactly one tab stop, on the verse being read, after sections were trimmed (R-31)
+  await expect(page.locator('[role="group"][data-selectable="true"][tabindex="0"]')).toHaveCount(1);
+  await expect(page.locator('[role="group"][data-selectable="true"][tabindex="0"]')).toHaveAttribute("data-ref", ref!);
+});
+
+// CODE_REVIEW low: a commentary range across chapters showed refs like "Rashi on Genesis 1:31:1:1" and lost its range (so the reader
+// arrived nowhere in particular); like any range that is not a portion, it arrives at its first comment and the address collapses to it
+test("a commentary range across chapters shows both chapters' comments and arrives at its first", async ({ page }) => {
+  await open(page, "/Rashi_on_Genesis.1.31.1-2.2.1?lang=bi");
+  const first = page.locator('[role="group"][data-ref="Rashi on Genesis 1:31:1"]');
+  await expect(first).toHaveAttribute("data-scroll-target", "true");
+  await expect(first).toBeInViewport();
+  await expect(page.locator('[role="group"][data-ref="Rashi on Genesis 2:2:1"]')).toHaveCount(1);
+  await expect(page.locator('[data-ref="Rashi on Genesis 1:31:1:1"]')).toHaveCount(0);
+  await expect.poll(() => new URL(page.url()).pathname).toBe("/Rashi_on_Genesis.1.31.1");
+});

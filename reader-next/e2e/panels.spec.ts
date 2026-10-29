@@ -127,6 +127,25 @@ test.describe("several texts side by side (old multi-panel URLs)", () => {
     await expect(page.locator('section[data-panel-id="p2"] [role="group"][data-ref="Rashi on Genesis 1:1:1"]')).toBeInViewport();
   });
 
+  // CODE_REVIEW R-24: panels are keyed by a stable identity, not their position: closing the first must not hand its component
+  // (scroll, selection) to the second, which keeps its own — no remount, no jump to its top
+  test("closing the first panel leaves the second exactly as it was (same element, same place)", async ({ page }) => {
+    await open(page, "/Genesis.1?lang=en&p2=Exodus.1&lang2=en");
+    const second = page.locator('section[data-panel-id="p2"] [data-reader-scroller]');
+    await second.evaluate((el) => {
+      el.scrollTop = 1200;
+      (el as unknown as { __mark: number }).__mark = 42; // survives only if this very element is kept
+    });
+    await page.waitForTimeout(300);
+    const top = await second.evaluate((el) => el.scrollTop);
+    await page.locator('section[data-panel-id="p1"]').getByRole("button", { name: "Close this text" }).click();
+    await expect(panels(page)).toHaveCount(1);
+    await expect(page).toHaveURL(/\/Exodus\.1(\.\d+)?\?lang=en&aliyot=0$/);
+    const after = page.locator('section[data-panel-id="p1"] [data-reader-scroller]');
+    expect(await after.evaluate((el) => (el as unknown as { __mark?: number }).__mark)).toBe(42);
+    expect(Math.abs((await after.evaluate((el) => el.scrollTop)) - top)).toBeLessThan(80);
+  });
+
   test("closing a panel keeps the others; closing the last returns to the library", async ({ page }) => {
     await open(page, "/Genesis.1?lang=en&p2=Exodus.1&lang2=en");
     await page.locator('section[data-panel-id="p1"]').getByRole("button", { name: "Close this text" }).click();

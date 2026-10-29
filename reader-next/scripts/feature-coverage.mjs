@@ -21,20 +21,34 @@ const files = [];
 files.push(...(function () { try { return readdirSync(join(root, "e2e")).filter((n) => /\.spec\.ts$/.test(n)).map((n) => join(root, "e2e", n)); } catch { return []; } })());
 files.push(...(function () { try { return readdirSync(join(root, "test")).filter((n) => /\.test\./.test(n)).map((n) => join(root, "test", n)); } catch { return []; } })());
 
+// A tag counts only for a test that actually runs (CODE_REVIEW R-33). A tag belongs to the next test/describe declared after it
+// (a file-level tag, before any declaration, to the whole file); it does not count when that declaration is skipped, a todo or an
+// expected failure, nor anywhere in a file that skips itself at run time (e.g. without credentials: `test.skip(!process.env…)`).
+const DECL = /^\s*(?:it|test|describe)((?:\.(?:describe|each|only|skip|todo|fails|fixme|concurrent|serial|parallel)\b)+[^(]*)?\s*\(/;
+const NOT_RUN = /\.(?:skip|todo|fails|fixme)\b/;
 const tagged = new Map(); // id -> Set(files)
+const notRun = new Map(); // id -> Set(files): tagged only on tests that never run
 for (const f of files) {
   const src = readFileSync(f, "utf8");
-  for (const m of src.matchAll(/@feature\s+([A-Z]{2,4}-\d{3})/g)) {
-    if (!tagged.has(m[1])) tagged.set(m[1], new Set());
-    tagged.get(m[1]).add(f.replace(root, ""));
-  }
+  const lines = src.split("\n");
+  const selfSkipping = lines.some((l) => /^\s*test\.skip\(\s*!/.test(l) || /^test\.skip\(/.test(l));
+  lines.forEach((line, i) => {
+    for (const m of line.matchAll(/@feature\s+([A-Z]{2,4}-\d{3})/g)) {
+      const next = lines.slice(i).find((l) => DECL.test(l));
+      const runs = !selfSkipping && !(next && NOT_RUN.test(next.match(DECL)?.[1] ?? ""));
+      const into = runs ? tagged : notRun;
+      if (!into.has(m[1])) into.set(m[1], new Set());
+      into.get(m[1]).add(f.replace(root, ""));
+    }
+  });
 }
+for (const id of tagged.keys()) notRun.delete(id);
 
 const args = process.argv.slice(2);
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
 const area = opt("--area"), tier = opt("--tier");
 
-const unknown = [...tagged.keys()].filter((id) => !byId.has(id));
+const unknown = [...new Set([...tagged.keys(), ...notRun.keys()])].filter((id) => !byId.has(id));
 const scope = atlas.filter((f) => (!area || f.area === area) && (!tier || f.tier === tier) && f.status !== "unused");
 const covered = scope.filter((f) => tagged.has(f.id));
 
@@ -44,6 +58,7 @@ if (args.includes("--json")) {
 }
 console.log(`Atlas features in scope: ${scope.length}   covered by a tagged test/story: ${covered.length} (${Math.round((100 * covered.length) / scope.length)}%)`);
 if (unknown.length) console.log(`\nUNKNOWN TAGS (not in the atlas; fix the tag):\n  ${unknown.join(", ")}`);
+if (notRun.size) console.log(`\nTAGGED ONLY ON TESTS THAT DO NOT RUN (skipped, todo, expected-fail or self-skipping; not counted):\n  ${[...notRun.keys()].sort().join(", ")}`);
 if (args.includes("--unknown")) process.exit(unknown.length ? 1 : 0);
 
 // Rebuild status: rebuild-status.json decides; otherwise a tagged test means done; otherwise todo (n/a for retired/unused).

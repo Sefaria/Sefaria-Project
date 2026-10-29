@@ -40,3 +40,13 @@ describe("translations sidebar data (old TranslationsBox rules, verified on sefa
     expect(buckets.de).toHaveLength(3);
   });
 });
+
+// Same names on the server and in the browser (Intl.DisplayNames differs by ICU build: a hydration mismatch for Ladino)
+describe("languageName", () => {
+  it("names a language from the old site's table, in the interface language", () => {
+    expect(languageName("lad", "english")).toBe("Ladino");
+    expect(languageName("lad", "hebrew")).toBe("לאדינו");
+    expect(languageName("DE", "english")).toBe("German");
+  });
+  it("an unknown code is shown as it is", () => expect(languageName("xx", "english")).toBe("xx"));
+});

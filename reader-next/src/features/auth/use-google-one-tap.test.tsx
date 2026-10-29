@@ -39,7 +39,7 @@ describe("credential callback (the reader picked an account)", () => {
     mount();
     flush();
     act(() => void credential()({ credential: "tok" }));
-    expect(a.fireFlowStarted).toHaveBeenCalledWith("id-1", "one_tap");
+    expect(a.fireFlowStarted).toHaveBeenCalledWith("id-1", "one_tap_widget", "one_tap_login");
     expect(a.fireMethodChosen).toHaveBeenCalledWith("id-1", "id-2", "google_one_tap");
     expect(a.fireProcessStarted).toHaveBeenCalledWith("id-1", "id-2");
     expect(a.fireProcessEnded).not.toHaveBeenCalled();
@@ -49,8 +49,8 @@ describe("credential callback (the reader picked an account)", () => {
     mount();
     flush();
     await act(async () => credential()({ credential: "tok" }));
-    expect(a.fireProcessEnded).toHaveBeenCalledWith("id-1", "id-2", "success", null);
-    expect(a.fireFlowEnded).toHaveBeenCalledWith("id-1", "success", null);
+    expect(a.fireProcessEnded).toHaveBeenCalledWith("id-1", "id-2", "success", null, null);
+    expect(a.fireFlowEnded).toHaveBeenCalledWith("id-1", "success", null, null);
     expect(reload).toHaveBeenCalled();
   });
   it("refused: failure with the server's error", async () => {
@@ -59,8 +59,8 @@ describe("credential callback (the reader picked an account)", () => {
     mount();
     flush();
     await act(async () => credential()({ credential: "tok" }));
-    expect(a.fireProcessEnded).toHaveBeenCalledWith("id-1", "id-2", "failure", "invalid_token");
-    expect(a.fireFlowEnded).toHaveBeenCalledWith("id-1", "failure", "invalid_token");
+    expect(a.fireProcessEnded).toHaveBeenCalledWith("id-1", "id-2", "failure", "invalid_token", null);
+    expect(a.fireFlowEnded).toHaveBeenCalledWith("id-1", "failure", "invalid_token", null);
     expect(reload).not.toHaveBeenCalled();
   });
   it("network failure: network_error", async () => {

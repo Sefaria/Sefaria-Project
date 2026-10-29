@@ -16,12 +16,15 @@ export interface AnalyticsUser {
 
 const isStaff = (email?: string | null) => !!email && email.includes("sefaria.org");
 
-/** The signed-in user's id and staff flag, as base.html's gtag config sets them from DJANGO_VARS.props._uid / _email. */
+/**
+ * The signed-in user's id and staff flag after the page loaded (base.html sets them in its one gtag config from DJANGO_VARS.props._uid /
+ * _email; the head script here does the same from the server's view of the user). `set`, never a second `config`: another config
+ * would send a second page_view and split the GA4 stream (CODE_REVIEW low).
+ */
 export function setAnalyticsUser(user: AnalyticsUser, siteLang: string): void {
   if (typeof window === "undefined") return;
-  const id = PUBLIC_CONFIG.analytics.gtag;
-  if (id && window.gtag) {
-    window.gtag("config", id, {
+  if (PUBLIC_CONFIG.analytics.gtag && window.gtag) {
+    window.gtag("set", {
       user_id: user.uid ?? null,
       traffic_type: isStaff(user.email) ? "sefariaemail" : null,
       site_lang: siteLang,

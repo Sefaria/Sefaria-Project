@@ -78,7 +78,7 @@ function MobileTabStrip({ tabs, active, counts, onTab, he }: { tabs: SearchTab[]
     const tab = el?.querySelector<HTMLElement>('[aria-selected="true"]');
     if (el && tab) {
       const r = tab.getBoundingClientRect(), c = el.getBoundingClientRect();
-      if (r.left < c.left || r.right > c.right) el.scrollTo({ left: el.scrollLeft + (he ? r.right - c.right : r.left - c.left) - (he ? -16 : 16), behavior: "smooth" });
+      if (r.left < c.left || r.right > c.right) el.scrollTo({ left: el.scrollLeft + (he ? r.right - c.right : r.left - c.left) - (he ? -16 : 16), behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
     }
   }, [active, he]);
   return (
@@ -173,25 +173,45 @@ export function SortMenu<V extends string = SearchSort>({ sort, onChange, disabl
   const [open, setOpen] = useState(false);
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const list = (options ?? (SORTS as unknown as SortOption<V>[]));
+  const cur = list.find((s) => s.value === sort) ?? list[0]!;
+  const close = (refocus: boolean) => {
+    setOpen(false);
+    if (refocus) button.current?.focus();
+  };
   useEffect(() => {
     if (!open) return;
     const off = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
-    const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("pointerdown", off);
-    document.addEventListener("keydown", key);
-    return () => { document.removeEventListener("pointerdown", off); document.removeEventListener("keydown", key); };
+    // the ARIA menu pattern (CODE_REVIEW R-31: it said "menu" but focus stayed on the button and the arrows did nothing):
+    // opening focuses the chosen item (or the first)
+    (menu.current?.querySelector<HTMLElement>('[aria-checked="true"]') ?? menu.current?.querySelector<HTMLElement>('[role="menuitemradio"]'))?.focus();
+    return () => document.removeEventListener("pointerdown", off);
   }, [open]);
-  const list = (options ?? (SORTS as unknown as SortOption<V>[]));
-  const cur = list.find((s) => s.value === sort) ?? list[0]!;
+  // on the wrapper, so Escape also works while focus is still on the button
+  const onMenuKeys = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!open) return;
+    const items = [...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitemradio"]') ?? [])];
+    const at = items.indexOf(document.activeElement as HTMLElement);
+    const to = (i: number) => (e.preventDefault(), items[(i + items.length) % items.length]?.focus());
+    if (e.key === "ArrowDown") to(at + 1);
+    else if (e.key === "ArrowUp") to(at - 1);
+    else if (e.key === "Home") to(0);
+    else if (e.key === "End") to(items.length - 1);
+    else if (e.key === "Escape") (e.preventDefault(), close(true));
+    else if (e.key === "Tab") close(false);
+  };
   return (
-    <div className={styles.sort} ref={ref}>
-      <button type="button" className={styles.sortBtn} aria-haspopup="menu" aria-expanded={open} aria-controls={id} aria-disabled={disabled || undefined} aria-label={he ? `מיון לפי ${cur.he}` : `Sort by ${cur.en}`} onClick={() => !disabled && setOpen((o) => !o)}>
+    <div className={styles.sort} ref={ref} onKeyDown={onMenuKeys}>
+      <button ref={button} type="button" className={styles.sortBtn} aria-haspopup="menu" aria-expanded={open} aria-controls={id} aria-disabled={disabled || undefined} aria-label={he ? `מיון לפי ${cur.he}` : `Sort by ${cur.en}`} onClick={() => !disabled && setOpen((o) => !o)}>
         <Icon name="sort-arrows" /><span>{he ? cur.he : cur.en}</span><Icon name="chevron-down" size="1em" />
       </button>
       {open ? (
-        <div id={id} className={styles.menu} role="menu">
+        <div id={id} ref={menu} className={styles.menu} role="menu">
           {list.map((s) => (
-            <button key={s.value} type="button" role="menuitemradio" aria-checked={s.value === sort} onClick={() => { setOpen(false); if (s.value !== sort) onChange(s.value); }}>
+            <button key={s.value} type="button" role="menuitemradio" tabIndex={-1} aria-checked={s.value === sort} onClick={() => { close(true); if (s.value !== sort) onChange(s.value); }}>
               <span className={styles.tick}>{s.value === sort ? <Icon name="check" size="1em" /> : null}</span>{he ? s.he : s.en}
             </button>
           ))}

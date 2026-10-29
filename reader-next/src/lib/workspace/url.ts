@@ -9,7 +9,8 @@
  * written into the panel it belongs to (`with` / `w<k>`), and its language is `lang<k+1>`. So `[A+sidebar, B]` is
  * `?…&with=all&lang2=en&p3=B&lang3=bi`, and `[A, B+sidebar]` is `?…&p2=B&lang2=bi&w2=all&lang3=en`. encodeWorkspace is a port of
  * ReaderApp.makeHistoryState's URL assembly (ReaderApp.jsx:785-889), quirks included (panel 1's `aliyot` is dropped while its
- * sidebar is open; a later panel's sidebar search is written to the literal key `sbsq{i}`). Every URL recorded from the live site
+ * sidebar is open). One quirk is deliberately NOT kept: the old client writes a later panel's sidebar search to the literal key
+ * `sbsq{i}` (a missing `$`), which nothing reads back; here the URL is the state, so it is written as `sbsq<i>`. Every URL recorded from the live site
  * round-trips byte for byte (legacy-urls.test.ts).
  *
  * @feature SHL-066 Panel state to URL serialization
@@ -57,13 +58,20 @@ function panelFrom(id: PanelId, ref: string, s: RawSearch, suffix: string, aside
   };
 }
 
+/**
+ * The most panels a URL opens. Each panel is loaded on the server, so an address with p2…p500 would turn one request into hundreds
+ * of API calls (CODE_REVIEW R-05); sefaria.org's layout shows far fewer side by side. Panels past the cap are dropped.
+ */
+export const MAX_PANELS = 6;
+
 /** Read a workspace from the path's ref (already in human form, e.g. "Genesis 1:3") and the query. */
 export function decodeWorkspace(firstRef: string, search: RawSearch): Workspace {
   const extra = Object.keys(search)
     .map((k) => /^p(\d+)$/.exec(k))
     .filter((m): m is RegExpExecArray => !!m && Number(m[1]) >= 2 && !!str(search[m[0]]))
     .map((m) => Number(m[1]))
-    .sort((a, b) => a - b);
+    .sort((a, b) => a - b)
+    .slice(0, MAX_PANELS - 1);
   // A panel's sidebar language is lang<k+1> when no panel is numbered k+1 (the sidebar took that slot)
   const sideLang = (k: number) => (extra.includes(k + 1) ? undefined : asSideLang(search[`lang${k + 1}`]));
   const panels: TextPanelState[] = [panelFrom("p1", firstRef, search, "", sideLang(1))];
@@ -120,43 +128,102 @@ function histories(ws: Workspace, d: UrlDefaults): Hist[] {
 }
 
 /**
- * The address for a workspace: the old makeHistoryState's URL, byte for byte (see the header). `defaults` are the reader's
- * settings for what a panel has not set itself.
+ * One query parameter, built once (CODE_REVIEW §3.3): `value` is what the router receives; `wire` is how the old client wrote it into
+ * the address (some values percent-encoded, some raw), used only to assemble the byte-exact legacy string. The router's query is
+ * built from values directly, never by re-parsing a string — so no value ("100%", "a&p2=Exodus.1") can break or inject anything.
  */
-export function workspaceUrl(ws: Workspace, defaults: UrlDefaults = DEFAULT_URL_DEFAULTS): string | null {
-  const h = histories(ws, defaults);
+interface Param {
+  key: string;
+  value: string;
+  wire: string;
+}
+const safeDecode = (s: string) => {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+};
+/** A value the old client wrote as it is. */
+const raw = (key: string, value: string | number): Param => ({ key, value: String(value), wire: String(value) });
+/** A value whose written form is already encoded (refs, version titles): the router gets it decoded, as before. */
+const encoded = (key: string, wire: string): Param => ({ key, value: safeDecode(wire), wire });
+/**
+ * Free text the old client wrote as it is (a sidebar search, a view name): written with `%` and `&` escaped, so the legacy string
+ * workspaceUrl returns can be parsed back safely; values with neither (every URL sefaria.org writes in practice) keep their bytes.
+ */
+const text = (key: string, value: string): Param => ({ key, value, wire: value.replace(/%/g, "%25").replace(/&/g, "%26") });
+/** Free text the old client percent-encoded (lookup words, entity names). */
+const component = (key: string, value: string): Param => ({ key, value, wire: encodeURIComponent(value) });
+
+/**
+ * The workspace's address as a path and an ordered parameter list: the old makeHistoryState's URL assembly (see the header).
+ * `defaults` are the reader's settings for what a panel has not set itself.
+ */
+function workspaceParams(ws: Workspace, d: UrlDefaults): { path: string; params: Param[] } | null {
+  const h = histories(ws, d);
   if (!h.length) return null;
-  const vparams = (pairs: [string, string][], i: number) => pairs.map(([l, v]) => `&v${l}${i > 1 ? i : ""}=${v}`).join("");
+  const vparams = (pairs: [string, string][], i: number) => pairs.map(([l, v]) => encoded(`v${l}${i > 1 ? i : ""}`, v));
   const first = h[0] as Extract<Hist, { mode: "Text" }>;
-  let url = `/${first.url}${vparams(first.versions, 0)}&lang=${first.lang}${"aliyot" in first ? `&aliyot=${first.aliyot}` : ""}`;
+  let path = first.url;
+  let params: Param[] = [...vparams(first.versions, 0), raw("lang", first.lang), ...("aliyot" in first ? [raw("aliyot", first.aliyot!)] : [])];
   for (let i = 1; i < h.length; i++) {
     const cur = h[i]!, prev = h[i - 1]!;
     if (cur.mode === "Connections" && prev.mode === "Text") {
-      const tail = `${cur.vside ? `&vside${i === 1 ? "" : i}=${encodeVtitle(cur.vside)}` : ""}`;
+      const tail = cur.vside ? [encoded(`vside${i === 1 ? "" : i}`, encodeVtitle(cur.vside))] : [];
       if (i === 1) {
         // the short form for text + sidebar: the URL is the sidebar's ref; panel 1's aliyot is not carried (old quirk)
-        url = `/${cur.url}${vparams(prev.versions, 0)}&lang=${prev.lang}${tail}${cur.lookup ? `&lookup=${encodeURIComponent(cur.lookup)}` : ""}${cur.entity ? `&namedEntity=${cur.entity.slug}` : ""}${cur.sbsq ? `&sbsq=${cur.sbsq}` : ""}${cur.entity ? `&namedEntityText=${encodeURIComponent(cur.entity.text)}` : ""}&with=${cur.sources}`;
+        path = cur.url;
+        params = [
+          ...vparams(prev.versions, 0),
+          raw("lang", prev.lang),
+          ...tail,
+          ...(cur.lookup ? [component("lookup", cur.lookup)] : []),
+          ...(cur.entity ? [text("namedEntity", cur.entity.slug)] : []),
+          ...(cur.sbsq ? [text("sbsq", cur.sbsq)] : []),
+          ...(cur.entity ? [component("namedEntityText", cur.entity.text)] : []),
+          text("with", cur.sources),
+        ];
       } else {
-        url = url.replace(new RegExp(`&p${i}=.*`), "");
-        url += `&p${i}=${cur.url}${vparams(prev.versions, i)}&lang${i}=${prev.lang}${"aliyot" in prev ? `&aliyot${i}=${prev.aliyot}` : ""}${tail}${cur.lookup ? `&lookup${i}=${encodeURIComponent(cur.lookup)}` : ""}${cur.sbsq ? `&sbsq{i}=${cur.sbsq}` : ""}${cur.entity ? `&namedEntity${i}=${cur.entity.slug}&namedEntityText${i}=${encodeURIComponent(cur.entity.text)}` : ""}&w${i}=${cur.sources}`;
+        // the old client rewrote this panel's entry from its p<i> onward, now with its sidebar
+        const at = params.findIndex((x) => x.key === `p${i}`);
+        if (at >= 0) params = params.slice(0, at);
+        params.push(
+          encoded(`p${i}`, cur.url),
+          ...vparams(prev.versions, i),
+          raw(`lang${i}`, prev.lang),
+          ...("aliyot" in prev ? [raw(`aliyot${i}`, prev.aliyot!)] : []),
+          ...tail,
+          ...(cur.lookup ? [component(`lookup${i}`, cur.lookup)] : []),
+          ...(cur.sbsq ? [text(`sbsq${i}`, cur.sbsq)] : []),
+          ...(cur.entity ? [text(`namedEntity${i}`, cur.entity.slug), component(`namedEntityText${i}`, cur.entity.text)] : []),
+          text(`w${i}`, cur.sources),
+        );
       }
     } else {
-      url += `&p${i + 1}=${cur.url}${cur.mode === "Text" ? vparams(cur.versions, i + 1) : ""}`;
+      params.push(encoded(`p${i + 1}`, cur.url), ...(cur.mode === "Text" ? vparams(cur.versions, i + 1) : []));
     }
-    url += `&lang${i + 1}=${cur.lang}${"aliyot" in cur ? `&aliyot${i + 1}=${cur.aliyot}` : ""}`;
+    params.push(raw(`lang${i + 1}`, cur.lang), ...("aliyot" in cur ? [raw(`aliyot${i + 1}`, cur.aliyot!)] : []));
   }
-  return url.replace(/\?/g, "%3F").replace("&", "?");
+  return { path, params };
+}
+
+/**
+ * The address for a workspace as sefaria.org writes it, byte for byte (see the header): for the legacy-URL tests and diagnostics.
+ * The app navigates with encodeWorkspace.
+ */
+export function workspaceUrl(ws: Workspace, defaults: UrlDefaults = DEFAULT_URL_DEFAULTS): string | null {
+  const w = workspaceParams(ws, defaults);
+  if (!w) return null;
+  const esc = (s: string) => s.replace(/\?/g, "%3F");
+  return `/${esc(w.path)}?${w.params.map((p) => `${p.key}=${esc(p.wire)}`).join("&")}`;
 }
 
 /** The URL for a workspace as a path and an (ordered) query, for the router. */
 export function encodeWorkspace(ws: Workspace, defaults: UrlDefaults = DEFAULT_URL_DEFAULTS): { path: string; search: Record<string, string> } | null {
-  const url = workspaceUrl(ws, defaults);
-  if (!url) return null;
-  const q = url.indexOf("?");
+  const w = workspaceParams(ws, defaults);
+  if (!w) return null;
   const search: Record<string, string> = {};
-  for (const pair of url.slice(q + 1).split("&")) {
-    const j = pair.indexOf("=");
-    search[pair.slice(0, j)] = decodeURIComponent(pair.slice(j + 1).replace(/%3F/g, "?"));
-  }
-  return { path: url.slice(0, q), search };
+  for (const p of w.params) search[p.key] = p.value;
+  return { path: `/${w.path.replace(/\?/g, "%3F")}`, search };
 }

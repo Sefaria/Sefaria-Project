@@ -15,11 +15,15 @@ const preview: Preview = {
       toolbar: { title: "Theme", icon: "circlehollow", items: [{ value: "light", title: "Light" }, { value: "dark", title: "Dark" }, { value: "sepia", title: "Sepia" }], dynamicTitle: true },
     },
   },
-  initialGlobals: { interfaceLang: "english", theme: "light" },
+  // The story tests run as a matrix (CODE_REVIEW §3.8): `npm run test:stories` (English, light), `test:stories:hebrew` (Hebrew, RTL)
+  // and `test:stories:dark` (dark theme; not yet a gate until every colour is a token). A story can pin its own globals.
+  initialGlobals: { interfaceLang: import.meta.env.VITE_SB_LANG ?? "english", theme: import.meta.env.VITE_SB_THEME ?? "light" },
   decorators: [
     (Story, ctx) => {
       const lang = (ctx.globals.interfaceLang ?? "english") as InterfaceLang;
       document.documentElement.dataset.theme = ctx.globals.theme ?? "light";
+      document.documentElement.lang = lang === "hebrew" ? "he" : "en";
+      document.documentElement.dir = lang === "hebrew" ? "rtl" : "ltr";
       return (
         <InterfaceLangProvider lang={lang}>
           <Story />

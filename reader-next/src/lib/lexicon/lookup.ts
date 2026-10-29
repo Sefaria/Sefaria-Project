@@ -14,7 +14,7 @@
  * @feature TXD-059 Select words to look up in lexicon
  */
 import { queryOptions } from "@tanstack/react-query";
-import { lexicon } from "@vendor/sefaria-toolkit/client/index";
+import { lexicon } from "@vendor/sefaria-toolkit/client/runtime";
 import { getSefariaClient, unwrap } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 
@@ -94,11 +94,37 @@ export function entriesForCategories(entries: readonly LexiconEntryData[], categ
   });
 }
 
+const HTML_FIELDS = ["definition", "alternative", "notes", "derivatives", "headword_suffix"] as const;
+
+/** One HTML string from what a dictionary sends: some (Ben Yehuda) send a field as a list of paragraphs. */
+function htmlText(v: unknown): string | undefined {
+  if (v === undefined || v === null) return undefined;
+  if (Array.isArray(v)) return v.filter((x): x is string => typeof x === "string").join("");
+  return typeof v === "string" ? v : String(v);
+}
+
+function normalizeSense<T extends Record<string, unknown>>(s: T): T {
+  const out: Record<string, unknown> = { ...s };
+  for (const k of HTML_FIELDS) if (k in out) out[k] = htmlText(out[k]);
+  if (Array.isArray(out.senses)) out.senses = (out.senses as Record<string, unknown>[]).map(normalizeSense);
+  return out as T;
+}
+
+/**
+ * The adapter's one job for definitions: every HTML field is a string, whatever the dictionary sent. Ben Yehuda's
+ * `content.definition` is an array of paragraphs; handed to the sanitizer as is, it took the whole dictionary sidebar down.
+ */
+export function normalizeEntry(e: LexiconEntryData): LexiconEntryData {
+  const top = normalizeSense(e as unknown as Record<string, unknown>) as unknown as LexiconEntryData;
+  return { ...top, content: normalizeSense((e.content ?? {}) as Record<string, unknown>) as LexiconEntryData["content"] };
+}
+
 export const lexiconQueryOptions = (words: string, ref?: string) => {
   const w = words.normalize("NFC");
   return queryOptions<LexiconEntryData[]>({
     ...withPolicy("reference", {
-      queryKey: ["lexicon", w, ref ?? ""] as const,
+      // "v2": entries cached before normalizeEntry may hold array definitions; they are left behind, not read
+      queryKey: ["lexicon", "v2", w, ref ?? ""] as const,
       queryFn: async ({ signal }: { signal: AbortSignal }): Promise<LexiconEntryData[]> => {
         const r = await lexicon.getWords({
           client: getSefariaClient(),
@@ -106,7 +132,7 @@ export const lexiconQueryOptions = (words: string, ref?: string) => {
           query: { always_consonants: "1", never_split: "1", ...(ref ? { lookup_ref: ref } : {}) },
           signal,
         });
-        return unwrap(r, `Definitions of ${w}`) as unknown as LexiconEntryData[];
+        return (unwrap(r, `Definitions of ${w}`) as unknown as LexiconEntryData[]).map(normalizeEntry);
       },
     }),
   });

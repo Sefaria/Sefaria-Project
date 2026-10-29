@@ -1,6 +1,6 @@
 // @feature SHL-035
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { index } from "@vendor/sefaria-toolkit/client/index";
+import { index } from "@vendor/sefaria-toolkit/client/runtime";
 import { getSefariaClient, SefariaApiError } from "./client";
 
 afterEach(() => vi.unstubAllGlobals());

@@ -18,5 +18,6 @@
 | `text-transform/normalize.ts` | Keep `span.poetry.indentAll` / `indentAllDouble` as `data-sefaria-poetry="indent|indent-double"`; keep `span.mediumGrey` as `data-sefaria-tone="muted"` | Upstream unwraps these spans, flattening every poetic line in Psalms, Isaiah, Song of Songs |
 
 | `client/generated/zod.gen.ts` (`zWebPagesJson`) | `authors`, `articleSource`, `description` accept `null`; `authors` may be an array of strings; `articleSource` may be an object | The live `/api/related/<ref>/websites` sends `authors: null, articleSource: null`, which upstream's contract rejected, so every web-pages response failed validation |
+| `text-transform/html.ts` (`serializeOpenTag`) | Attribute values also escape `<` and `>` | Security (CODE_REVIEW R-02): a raw `>` from API text let search-term highlighting break out of an attribute (stored XSS). Worth upstreaming |
 
 Keep modifications small and marked so upstream fixes can still be merged.

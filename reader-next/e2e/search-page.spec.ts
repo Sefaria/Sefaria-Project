@@ -118,6 +118,9 @@ test.describe("phones", () => {
     await expect(page.getByRole("checkbox", { name: "Halakhah" })).toBeVisible();
     await page.getByRole("button", { name: "Close" }).click();
     await page.getByRole("tab", { name: /^Topics/ }).click();
+    // the tab change closes the panel: open it only once the change has landed, or the click can be undone by it (flaky under load)
+    await expect(page.getByRole("tab", { name: /^Topics/ })).toHaveAttribute("aria-selected", "true");
+    await expect(page).toHaveURL(/search_tab=topics/);
     await page.getByRole("button", { name: "Sort & filter results" }).click();
     await expect(page.getByRole("dialog", { name: "Sort" })).toBeVisible();
     await expect(page.getByRole("checkbox")).toHaveCount(0);

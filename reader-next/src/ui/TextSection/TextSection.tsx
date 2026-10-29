@@ -11,7 +11,7 @@ import { isHighlighted, type Highlight } from "~/lib/text/plan";
 import type { Segment as SegmentModel, TextPassage } from "~/lib/text/model";
 import { parseHumanRef } from "~/lib/ref/url";
 import { ReaderSurface } from "../ReaderSurface/ReaderSurface";
-import { Segment, type SegmentProps } from "../Segment/Segment";
+import { Segment, type SegmentProps, type SegmentSide } from "../Segment/Segment";
 import { ParashahHeader, SectionTitle } from "../SectionTitle/SectionTitle";
 
 export interface TextSectionProps {
@@ -63,6 +63,18 @@ function TextSectionImpl({
 
   const primaryMeta = passage.primaryVersion;
   const translationMeta = passage.translationVersion;
+  // Each segment's sides, built once per passage: inline objects were new on every render and defeated Segment's memo, so a new
+  // section (or a links update) re-rendered every verse already on screen (CODE_REVIEW R-12)
+  const sides = useMemo(() => {
+    const m = new Map<string, { primary?: SegmentSide; translation?: SegmentSide }>();
+    for (const seg of passage.segments) {
+      m.set(seg.ref, {
+        primary: seg.primary !== undefined && primaryMeta ? { html: seg.primary, lang: primaryMeta.actualLanguage, dir: primaryMeta.direction } : undefined,
+        translation: seg.translation !== undefined && translationMeta ? { html: seg.translation, lang: translationMeta.actualLanguage, dir: translationMeta.direction } : undefined,
+      });
+    }
+    return m;
+  }, [passage, primaryMeta, translationMeta]);
 
   return (
     <ReaderSurface language={settings.language} layout={layout} biLayout={biLayout} fontSize={settings.fontSize}>
@@ -88,8 +100,8 @@ function TextSectionImpl({
                   <Segment
                     segmentRef={seg.ref}
                     address={numbered ? seg.address.at(-1) : undefined}
-                    primary={seg.primary !== undefined && primaryMeta ? { html: seg.primary, lang: primaryMeta.actualLanguage, dir: primaryMeta.direction } : undefined}
-                    translation={seg.translation !== undefined && translationMeta ? { html: seg.translation, lang: translationMeta.actualLanguage, dir: translationMeta.direction } : undefined}
+                    primary={sides.get(seg.ref)?.primary}
+                    translation={sides.get(seg.ref)?.translation}
                     language={settings.language}
                     vocalization={vocalization}
                     stripPunctuation={stripPunctuation}

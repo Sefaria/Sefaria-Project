@@ -60,11 +60,18 @@ export function pickFirstError(data: unknown): string | null {
 
 const SAFE_NEXT_BASE = "http://sefaria-safenext.invalid"; // fake base, never sent anywhere — just lets URL parsing compare origins
 
-/** `next` if it stays on this site, else "/". Rejects absolute URLs, `//host`, and what browsers normalise into `//host`. */
+/**
+ * `next` if it stays on this site, else "/". Rejects absolute URLs, `//host`, and what browsers normalise into `//host` (tabs and
+ * newlines are dropped by URL parsing: "/\t/evil.com" is https://evil.com/). Returns the parsed path, so no control character ever
+ * reaches a Location header or a navigation. The one implementation for every `next` (CODE_REVIEW R-03).
+ */
 export function safeNext(next: unknown): string {
   if (!next || typeof next !== "string") return "/";
   try {
-    return new URL(next, SAFE_NEXT_BASE).origin === SAFE_NEXT_BASE ? next : "/";
+    const u = new URL(next, SAFE_NEXT_BASE);
+    if (u.origin !== SAFE_NEXT_BASE) return "/";
+    // an absolute path comes back as parsed; a bare relative one ("sheets/123", as the old client allowed) minus control characters
+    return next.startsWith("/") ? `${u.pathname}${u.search}${u.hash}` : next.replace(/[\u0000-\u001f\u007f]/g, "");
   } catch {
     return "/";
   }

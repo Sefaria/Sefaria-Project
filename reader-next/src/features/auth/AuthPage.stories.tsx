@@ -46,6 +46,7 @@ export const Phone: Story = { args: { initialPath: "/login", googleClientId: "g"
 
 export const WrongPassword: Story = {
   args: { initialPath: "/login", initialView: "email" },
+  globals: { interfaceLang: "english" }, // the play function finds controls by their English labels
   beforeEach: stubFetch({ "/api/auth/login": [401, { error: "auth.invalid_credentials" }] }),
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
@@ -58,6 +59,7 @@ export const WrongPassword: Story = {
 
 export const GoogleOnlyAccount: Story = {
   args: { initialPath: "/login", initialView: "email" },
+  globals: { interfaceLang: "english" }, // the play function finds controls by their English labels
   beforeEach: stubFetch({ "/api/auth/login": [401, { error: "auth.generic_error", _auth: { code: "sso_only_account", providers: ["google"] } }] }),
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
@@ -68,6 +70,7 @@ export const GoogleOnlyAccount: Story = {
 
 export const SignUpErrors: Story = {
   args: { initialPath: "/register", initialView: "email" },
+  globals: { interfaceLang: "english" }, // the play function finds controls by their English labels
   beforeEach: stubFetch({ "/register": [200, { email: "email_exists", password1: "This password is too short. It must contain at least 8 characters.", first_name: "required" }] }),
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);

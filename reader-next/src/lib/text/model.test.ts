@@ -38,6 +38,20 @@ describe("normaliseTexts across book types", () => {
     expect(p.segments[0]!.ref).toBe("Berakhot 2a:1");
   });
 
+  // CODE_REVIEW R-18: a segment range across chapters gave refs like "Genesis 1:30-31:1"
+  it("a segment range across chapters: each part starts at its own verse", () => {
+    const p = load("genesis-1-30-2-3");
+    expect(p.isSpanning).toBe(true);
+    expect(p.segments.map((s) => s.ref)).toEqual(["Genesis 1:30", "Genesis 1:31", "Genesis 2:1", "Genesis 2:2", "Genesis 2:3"]);
+    expect(p.sectionRefs).toEqual(["Genesis 1", "Genesis 2"]);
+  });
+
+  it("a commentary range across chapters: chapter → verse → comment, an empty verse skipped", () => {
+    const p = load("rashi-on-genesis-1-31-2-2");
+    expect(p.segments.map((s) => s.ref)).toEqual(["Rashi on Genesis 1:31:1", "Rashi on Genesis 2:2:1"]);
+    expect(p.sectionRefs).toEqual(["Rashi on Genesis 1:31", "Rashi on Genesis 2:2"]);
+  });
+
   it("Yerushalmi halakhah: three-level addresses", () => {
     const p = load("jt-berakhot-1-1");
     expect(p.segments[0]!.ref).toBe("Jerusalem Talmud Berakhot 1:1:1");

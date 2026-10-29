@@ -167,12 +167,23 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     return sortLinks(filtered, hebrew);
   }, [filter, selected, lookup, hebrew]);
 
-  const sectionRefsToLoad = useMemo(() => [...new Set(listLinks.map((l) => containingSectionRef(l.sourceRef)))], [listLinks]);
+  // Each link's text needs its whole section: load them a page at a time, the next page as the list nears its end (CODE_REVIEW
+  // R-22: Genesis 1:1's commentary list started 235 section requests at once, and showed nothing until the last one came back)
+  // back to the first page only when the list itself changes (another filter, verse or language) — not when a re-render merely
+  // rebuilds the same list, which would shrink it under the reader
+  const listKey = `${filter ?? ""}|${selectedRefs.join(",")}|${hebrew}`;
+  const [page, setPage] = useState({ key: listKey, shown: LINKED_TEXTS_PAGE });
+  const shown = page.key === listKey ? page.shown : LINKED_TEXTS_PAGE;
+  const showMore = () => setPage({ key: listKey, shown: shown + LINKED_TEXTS_PAGE });
+  const shownLinks = useMemo(() => listLinks.slice(0, shown), [listLinks, shown]);
+  const sectionRefsToLoad = useMemo(() => [...new Set(shownLinks.map((l) => containingSectionRef(l.sourceRef)))], [shownLinks]);
   const passages = useQueries({ queries: sectionRefsToLoad.map((r) => textQueryOptions(r, {})) });
   const passageByRef = new Map(sectionRefsToLoad.map((r, i) => [r, passages[i]?.data] as const));
-  const waiting = filter !== undefined && listLinks.length > 0 && passages.some((q) => q.isPending);
+  // the list waits for its first page only; later items show their own "Loading…"
+  const firstPage = new Set(shownLinks.slice(0, LINKED_TEXTS_PAGE).map((l) => containingSectionRef(l.sourceRef)));
+  const waiting = filter !== undefined && listLinks.length > 0 && sectionRefsToLoad.some((r, i) => firstPage.has(r) && passages[i]?.isPending);
 
-  const items: LinkedTextItem[] = listLinks.map((l) => {
+  const items: LinkedTextItem[] = shownLinks.map((l) => {
     const passage = passageByRef.get(containingSectionRef(l.sourceRef));
     const segs = passage ? segmentsInRef(passage, l.sourceRef) : [];
     const primary = passage?.primaryVersion;
@@ -183,7 +194,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
       id: l._id,
       sourceRef: l.sourceRef,
       sourceHeRef: l.sourceHeRef,
-      href: `/${l.sourceRef.replace(/ /g, "_").replace(/:/g, ".")}`,
+      href: `/${refToUrl(l.sourceRef)}`,
       primary: p && primary ? { html: p, lang: primary.actualLanguage, dir: primary.direction } : undefined,
       translation: t && translation ? { html: t, lang: translation.actualLanguage, dir: translation.direction } : undefined,
       number: l.category === "Commentary" ? String(l.anchorVerse) : undefined,
@@ -627,6 +638,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
         vocalization={vocalizationMode(settings.vowels)}
         hideItemTitles={hideItemTitles}
         loading={linksQ.isPending || waiting}
+        onNearEnd={shown < listLinks.length ? showMore : undefined}
         emptyMessage={<InterfaceText en={`No connections known for ${title.en} here.`} he={`אין קשרים ידועים ל${title.he}.`} />}
         onOpen={(href) => {
           const item = items.find((i) => i.href === href);
@@ -655,6 +667,9 @@ const SIGN_IN_TOOLS: Partial<Record<string, SignUpKind>> = { Notes: "notes", "Ad
  * Advanced tools Add Translation / Add Connection) show the Resources home with the sign-up modal over it — nobody is
  * signed in in this client yet — and closing the modal returns to Resources.
  */
+
+/** How many connected texts load at a time (each needs its section). */
+const LINKED_TEXTS_PAGE = 20;
 export function ConnectionsPane(props: ConnectionsPaneProps) {
   const location = useLocation();
   const [asked, setAsked] = useState<SignUpKind>();

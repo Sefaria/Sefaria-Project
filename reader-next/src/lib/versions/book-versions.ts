@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { text } from "@vendor/sefaria-toolkit/client/index";
+import { text } from "@vendor/sefaria-toolkit/client/runtime";
 import { getSefariaClient, unwrap } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 import type { VersionMeta } from "~/lib/text/model";

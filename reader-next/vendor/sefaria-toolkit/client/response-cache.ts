@@ -1,6 +1,5 @@
 import { LRUCache } from "lru-cache";
 
-import { getResponseContract } from "./validation.js";
 
 /** Default time that an admitted response remains reusable. */
 export const DEFAULT_SEFARIA_CACHE_TTL_MS = 5 * 60 * 1_000;
@@ -247,6 +246,8 @@ export function createSefariaResponseCache(
       if (body.byteLength > maxSize) {
         return;
       }
+      // SEFARIA-READER EXTENSION: loaded here, not at the top, so a client that never caches never loads the zod contracts
+      const { getResponseContract } = await import("./validation.js");
       const contract = getResponseContract({
         method: request.method,
         path: operationPath,

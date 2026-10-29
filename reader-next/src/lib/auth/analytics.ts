@@ -1,7 +1,9 @@
 /**
- * Sign-up funnel analytics (sign_up_flow_started / sign_up_method_chosen / sign_up_process_started / sign_up_process_ended /
- * sign_up_flow_ended), fired for every sign-up method (email, Google, Apple, Google One Tap). Ported from
- * static/js/auth/signupAnalytics.js: same event names, same parameters, same sessionStorage keys.
+ * Auth funnel analytics (auth_flow_started / auth_method_chosen / auth_process_started / auth_process_ended / auth_flow_ended), for
+ * login and registration alike, every method (email, Google, Apple, Google One Tap). Ported from master's
+ * static/js/auth/authAnalytics.js: same event names, same parameters (flow_intent, outcome), same sessionStorage keys and the
+ * sefaria_sso_outcome cookie. (It replaced the sign_up_* funnel of signupAnalytics.js, which this client first ported:
+ * CODE_REVIEW R-08 — parity follows master.)
  *
  * Everything goes through `trackAuthEvent`, which hands the event to the shared analytics module (src/lib/analytics: gtag, and the
  * in-memory log tests read).
@@ -19,16 +21,16 @@ export function trackAuthEvent(name: string, params: AuthEventParams): void {
   gtagEvent(name, params as AnalyticsParams);
 }
 
-export const SIGNUP_EVENT = {
-  FLOW_STARTED: "sign_up_flow_started",
-  METHOD_CHOSEN: "sign_up_method_chosen",
-  PROCESS_STARTED: "sign_up_process_started",
-  PROCESS_ENDED: "sign_up_process_ended",
-  FLOW_ENDED: "sign_up_flow_ended",
+export const AUTH_EVENT = {
+  FLOW_STARTED: "auth_flow_started",
+  METHOD_CHOSEN: "auth_method_chosen",
+  PROCESS_STARTED: "auth_process_started",
+  PROCESS_ENDED: "auth_process_ended",
+  FLOW_ENDED: "auth_flow_ended",
 } as const;
 
-export const SIGNUP_METHOD = { EMAIL: "email", GOOGLE: "google", APPLE: "apple", GOOGLE_ONE_TAP: "google_one_tap" } as const;
-export type SignupMethod = (typeof SIGNUP_METHOD)[keyof typeof SIGNUP_METHOD];
+export const AUTH_METHOD = { EMAIL: "email", GOOGLE: "google", APPLE: "apple", GOOGLE_ONE_TAP: "google_one_tap" } as const;
+export type AuthMethod = (typeof AUTH_METHOD)[keyof typeof AUTH_METHOD];
 
 export const SSO_REFERRER_ORIGIN = { GOOGLE: "https://accounts.google.com", APPLE: "https://appleid.apple.com" } as const;
 
@@ -41,24 +43,33 @@ function sendEvent(name: string, params: AuthEventParams) {
   });
 }
 
-export const fireFlowStarted = (flowId: string | null, source: string | null | undefined) =>
-  sendEvent(SIGNUP_EVENT.FLOW_STARTED, { flow_id: flowId, source });
+/** Which way in the flow started: the register page, the login page, or Google One Tap (master's values). */
+export type FlowIntent = "registration" | "login" | "one_tap_login";
+
+/** The sign-in answer's `outcome` ("created_new_account", "existing_user_login"…), when it has one (master's SSO callbacks do). */
+export function outcomeOf(data: unknown): string | null {
+  const o = (data as { outcome?: unknown } | null)?.outcome;
+  return typeof o === "string" && o ? o : null;
+}
+
+export const fireFlowStarted = (flowId: string | null, source: string | null | undefined, flowIntent: FlowIntent) =>
+  sendEvent(AUTH_EVENT.FLOW_STARTED, { flow_id: flowId, source, flow_intent: flowIntent });
 export const fireMethodChosen = (flowId: string | null, attemptId: string, method: string) =>
-  sendEvent(SIGNUP_EVENT.METHOD_CHOSEN, { flow_id: flowId, attempt_id: attemptId, method });
+  sendEvent(AUTH_EVENT.METHOD_CHOSEN, { flow_id: flowId, attempt_id: attemptId, method });
 export const fireProcessStarted = (flowId: string | null, attemptId: string) =>
-  sendEvent(SIGNUP_EVENT.PROCESS_STARTED, { flow_id: flowId, attempt_id: attemptId });
-export const fireProcessEnded = (flowId: string | null, attemptId: string, status: string, error: string | null = null) =>
-  sendEvent(SIGNUP_EVENT.PROCESS_ENDED, { flow_id: flowId, attempt_id: attemptId, status, error });
-export const fireFlowEnded = (flowId: string | null, status: string, error: string | null = null) =>
-  sendEvent(SIGNUP_EVENT.FLOW_ENDED, { flow_id: flowId, status, error });
+  sendEvent(AUTH_EVENT.PROCESS_STARTED, { flow_id: flowId, attempt_id: attemptId });
+export const fireProcessEnded = (flowId: string | null, attemptId: string, status: string, error: string | null = null, outcome: string | null = null) =>
+  sendEvent(AUTH_EVENT.PROCESS_ENDED, { flow_id: flowId, attempt_id: attemptId, status, error, outcome });
+export const fireFlowEnded = (flowId: string | null, status: string, error: string | null = null, outcome: string | null = null) =>
+  sendEvent(AUTH_EVENT.FLOW_ENDED, { flow_id: flowId, status, error, outcome });
 
 // ---- SSO redirect persistence ----------------------------------------------------------------------------------------------
 // Google/Apple sign-in on phones is a full-page redirect to the provider, so an attempt in flight survives in sessionStorage and is
 // closed out on the next page load. Only success comes back to a page that runs our code (failures land on allauth's own pages),
-// so reaching resumePendingSignUpAttempt with a marker means success; document.referrer is checked anyway.
+// so reaching resumePendingAuthAttempt with a marker means success; document.referrer is checked anyway.
 const PENDING_MAX_AGE_MS = 10 * 60 * 1000;
 const PENDING_ATTEMPT_KEY = "sefaria_pending_sso_attempt";
-const ACTIVE_FLOW_KEY = "sefaria_active_signup_flow";
+const ACTIVE_FLOW_KEY = "sefaria_active_auth_flow";
 
 interface PendingAttempt {
   flowId: string;
@@ -123,8 +134,25 @@ function readActiveFlow(): { flowId: string; ts: number } | null {
   }
 }
 
+/**
+ * Set by Django (sso.adapters, cleared by ClearSsoNextCookieMiddleware) when a redirect-mode SSO flow concludes: the only way to learn
+ * "new account or existing" for a flow that left the page. Read once and cleared at once, so it never leaks into a later flow.
+ */
+const OUTCOME_COOKIE = "sefaria_sso_outcome";
+
+function readAndClearOutcomeCookie(): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${OUTCOME_COOKIE}=([^;]*)`));
+  if (!match) return null;
+  document.cookie = `${OUTCOME_COOKIE}=; path=/; max-age=0; SameSite=None; Secure`;
+  try {
+    return decodeURIComponent(match[1]!) || null;
+  } catch {
+    return null;
+  }
+}
+
 /** Called once per full page load (the old ReaderApp did it on mount), whatever the page. */
-export function resumePendingSignUpAttempt() {
+export function resumePendingAuthAttempt() {
   const pendingAttempt = readPendingAttempt();
   if (pendingAttempt) {
     clearPendingAttempt();
@@ -132,8 +160,9 @@ export function resumePendingSignUpAttempt() {
     const fromProvider = document.referrer.startsWith(SSO_REFERRER_ORIGIN.APPLE) || document.referrer.startsWith(SSO_REFERRER_ORIGIN.GOOGLE);
     const status = fromProvider ? "success" : "failure";
     const error = fromProvider ? null : "unexpected_return_without_provider_referrer";
-    fireProcessEnded(pendingAttempt.flowId, pendingAttempt.attemptId, status, error);
-    fireFlowEnded(pendingAttempt.flowId, status, error);
+    const outcome = fromProvider ? readAndClearOutcomeCookie() : null;
+    fireProcessEnded(pendingAttempt.flowId, pendingAttempt.attemptId, status, error, outcome);
+    fireFlowEnded(pendingAttempt.flowId, status, error, outcome);
     return;
   }
   // No Apple marker: nothing happened, or it was Google (which never writes one). The active-flow marker ties a Google return to a flow.
@@ -142,8 +171,9 @@ export function resumePendingSignUpAttempt() {
   if (!document.referrer.startsWith(SSO_REFERRER_ORIGIN.GOOGLE)) return; // not (yet) a Google return; left for its own max-age
   clearActiveFlow();
   const attemptId = makeUuid();
-  fireMethodChosen(activeFlow.flowId, attemptId, SIGNUP_METHOD.GOOGLE);
+  const outcome = readAndClearOutcomeCookie();
+  fireMethodChosen(activeFlow.flowId, attemptId, AUTH_METHOD.GOOGLE);
   fireProcessStarted(activeFlow.flowId, attemptId);
-  fireProcessEnded(activeFlow.flowId, attemptId, "success", null);
-  fireFlowEnded(activeFlow.flowId, "success", null);
+  fireProcessEnded(activeFlow.flowId, attemptId, "success", null, outcome);
+  fireFlowEnded(activeFlow.flowId, "success", null, outcome);
 }

@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ProviderSdkOverlay } from "~/ui/ProviderButton/ProviderButton";
-import { persistPendingAttempt, SIGNUP_METHOD } from "~/lib/auth/analytics";
+import { outcomeOf, persistPendingAttempt, AUTH_METHOD } from "~/lib/auth/analytics";
 import { ensureCsrfToken } from "~/lib/auth/csrf";
 import { sameOrigin } from "~/lib/auth/http";
 import { ssoUseRedirect } from "~/lib/auth/sdk";
@@ -103,7 +103,7 @@ export function useProviderTriggers({
         const data = await res.json().catch(() => ({}));
         googlePopupStateRef.current = "done";
         if (res.ok) {
-          trackingRef.current.endProcess("success", null);
+          trackingRef.current.endProcess("success", null, outcomeOf(data));
           navigateRef.current(safeNext(nextRef.current));
         } else {
           setSsoLoading(false);
@@ -122,11 +122,11 @@ export function useProviderTriggers({
   );
 
   const onGoogleButtonClicked = useCallback(() => {
-    const attemptId = trackingRef.current.chooseMethod(SIGNUP_METHOD.GOOGLE);
+    const attemptId = trackingRef.current.chooseMethod(AUTH_METHOD.GOOGLE);
     trackingRef.current.startProcess();
     if (ssoUseRedirect()) {
       trackingRef.current.suppressFlowEndRef.current = true;
-      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: SIGNUP_METHOD.GOOGLE });
+      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: AUTH_METHOD.GOOGLE });
       return;
     }
     // GIS gives no cancel callback: focus coming back to this window means the popup is gone (closed or completed)
@@ -212,7 +212,7 @@ export function useProviderTriggers({
           body: JSON.stringify({ id_token: a.id_token, first_name: n.firstName || "", last_name: n.lastName || "", email: u.email || "" }),
         });
         if (res.ok) {
-          trackingRef.current.endProcess("success", null);
+          trackingRef.current.endProcess("success", null, outcomeOf(await res.json().catch(() => ({}))));
           navigateRef.current(safeNext(nextRef.current));
         } else {
           setSsoLoading(false);
@@ -259,11 +259,11 @@ export function useProviderTriggers({
 
   const triggerApple = useCallback(() => {
     if (!appleReady) return;
-    const attemptId = trackingRef.current.chooseMethod(SIGNUP_METHOD.APPLE);
+    const attemptId = trackingRef.current.chooseMethod(AUTH_METHOD.APPLE);
     trackingRef.current.startProcess();
     if (ssoUseRedirect()) {
       trackingRef.current.suppressFlowEndRef.current = true;
-      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: SIGNUP_METHOD.APPLE });
+      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: AUTH_METHOD.APPLE });
       navigateRef.current(`/accounts/apple/login/?next=${encodeURIComponent(safeNext(nextRef.current))}`);
       return;
     }

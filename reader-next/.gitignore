@@ -12,3 +12,6 @@ test-results
 playwright-report
 debug-storybook.log
 docs/features/build/
+
+# e2e API recordings (scripts/api-cassette.mjs): restored from the CI cache, recorded on a fresh checkout
+e2e/.cassette/
