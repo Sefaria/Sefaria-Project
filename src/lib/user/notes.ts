@@ -45,6 +45,14 @@ export const notesQuery = (uid: number | null, refs: readonly string[]) =>
   });
 
 /** Add a note on these verses, or (with `id`) change one. Resolves to the saved note; throws with the server's message. */
+/**
+ * The verses a save puts a note on: a new note goes on the selected verses; an edited note stays on its own (its `anchorRef`), whatever
+ * is selected now. Saved refs become the note's place (Django's notes_api), so an edit sent with the current selection moved the note
+ * (review F01). Null for an edited note whose place is unknown: it must not be saved anywhere.
+ */
+export const refsForSave = (note: Pick<Note, "anchorRef"> | undefined, selected: readonly string[]): readonly string[] | null =>
+  note ? (note.anchorRef ? [note.anchorRef] : null) : selected;
+
 export async function saveNote(text: string, refs: readonly string[], id?: string): Promise<Note> {
   const note = { text, refs: [...refs], type: "note", public: false, ...(id ? { _id: id } : {}) };
   const res = await postForm("/api/notes/", new URLSearchParams({ json: JSON.stringify(note) }));

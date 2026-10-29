@@ -291,3 +291,21 @@ test("a commentary range across chapters shows both chapters' comments and arriv
   await expect(page.locator('[data-ref="Rashi on Genesis 1:31:1:1"]')).toHaveCount(0);
   await expect.poll(() => new URL(page.url()).pathname).toBe("/Rashi_on_Genesis.1.31.1");
 });
+
+// review F03: the sections the page opened with were always kept, and the trim behind the reader stopped at the first of them, so a
+// long read forward kept every section it had loaded
+test("reading far forward lets the opening section go, and the column stays bounded", async ({ page }) => {
+  await open(page, "/Genesis.1?lang=en");
+  for (let i = 0; i < 40; i++) {
+    await wheel(page, 1200, 2);
+    await page.waitForTimeout(100);
+  }
+  await expect.poll(async () => (await sectionRefs(page)).includes("Genesis 1"), { timeout: 20_000 }).toBe(false);
+  const held = await sectionRefs(page);
+  expect(held.length).toBeLessThan(12);
+  // what is left is contiguous: each section's neighbour is the next one
+  const nums = held.map((r) => Number(r!.split(" ")[1]));
+  expect(nums).toEqual(nums.map((_, i) => nums[0]! + i));
+  // and the address followed the reader
+  await expect.poll(() => new URL(page.url()).pathname).not.toMatch(/^\/Genesis\.1(\.|$)/);
+});

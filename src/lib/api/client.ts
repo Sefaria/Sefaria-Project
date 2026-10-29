@@ -47,6 +47,12 @@ export class SefariaApiError extends Error {
 }
 
 /**
+ * A read sent as POST (search) passes this as `deadlineMs` so the server bounds it like a GET (src/server/internal-fetch.ts; the browser
+ * ignores the key). The same budget as GET reads.
+ */
+export const POST_READ_DEADLINE_MS = Number((typeof process !== "undefined" && process.env?.SEFARIA_API_TIMEOUT_MS) || 8000);
+
+/**
  * Read a direct `fetch` of the Sefaria API through the same error model as the toolkit client ({@link unwrap}): a non-2xx answer, a
  * body that is not JSON (a proxy's HTML error page) and a 200 `{"error": "..."}` all throw {@link SefariaApiError}, so retry and
  * 404 decisions see them the same way (CODE_REVIEW low: these calls bypassed it).

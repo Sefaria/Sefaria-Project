@@ -11,7 +11,9 @@ import type { AsyncLocalStorage } from "node:async_hooks";
 
 /**
  * Every server-side read has a deadline (CODE_REVIEW R-05): a hung API used to hold the page render open until nginx gave up (300 s).
- * GET/HEAD get SEFARIA_API_TIMEOUT_MS (default 8 s), combined with any signal of their own; writes are never cut short.
+ * GET/HEAD get SEFARIA_API_TIMEOUT_MS (default 8 s), combined with any signal of their own. A read sent as POST (the search wrapper,
+ * Dicta) says so with `deadlineMs` and gets one too (review F05: the search page's loader waited on them unbounded). Writes are never
+ * cut short.
  */
 export const API_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_API_TIMEOUT_MS) || 8000);
 
@@ -36,7 +38,10 @@ const markFailed = () => {
   if (s) s.failed = true;
 };
 
-/** A caller that needs a different read deadline (the pass-through to Django's pages) says so; fetch ignores the extra key. */
+/**
+ * A caller that needs a different read deadline (the pass-through to Django's pages), or a read sent as POST, says so; fetch ignores
+ * the extra key (in the browser too).
+ */
 export type DeadlineInit = RequestInit & { deadlineMs?: number };
 
 export function installInternalApiFetch() {
@@ -48,7 +53,7 @@ export function installInternalApiFetch() {
   const original = globalThis.fetch;
   globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
-    if (method === "GET" || method === "HEAD") {
+    if (method === "GET" || method === "HEAD" || (init as DeadlineInit | undefined)?.deadlineMs !== undefined) {
       // the deadline always applies, also when the caller passes its own signal (the query client always does: a signal that only
       // fires on cancellation never fires for a hung upstream, which is how a render hung for 60 s+ even with a deadline in place)
       const own = init?.signal ?? (input instanceof Request ? input.signal : undefined);
@@ -57,7 +62,9 @@ export function installInternalApiFetch() {
     }
     try {
       const res = await route(input, init);
-      if (res.status >= 500) markFailed();
+      // the API's trouble, not the request's: a server error, a timeout (408) or a refusal for now (429). The reader's loader rethrows
+      // 408/429 for exactly this, and without the mark they ended as a 500 instead of the 503 they are (review F14)
+      if (res.status >= 500 || res.status === 408 || res.status === 429) markFailed();
       return res;
     } catch (e) {
       markFailed();

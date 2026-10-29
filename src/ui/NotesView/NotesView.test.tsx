@@ -41,7 +41,7 @@ describe("NotesView (AddNoteBox + MyNotes)", () => {
     await userEvent.clear(box);
     await userEvent.type(box, "Changed");
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
-    expect(p.onSave).toHaveBeenCalledWith("Changed", "n1");
+    expect(p.onSave).toHaveBeenCalledWith("Changed", expect.objectContaining({ _id: "n1" }));
     await userEvent.click(screen.getByRole("button", { name: "Edit Note" }));
     vi.spyOn(window, "confirm").mockReturnValueOnce(true);
     await userEvent.click(screen.getByRole("button", { name: "Delete Note" }));

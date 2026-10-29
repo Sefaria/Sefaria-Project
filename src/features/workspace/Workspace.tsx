@@ -5,7 +5,7 @@ import { urlToRef } from "~/lib/ref/url";
 import { legacyRowSizes, MIN_PANEL_WIDTH } from "~/lib/workspace/sizing";
 import type { PanelId, PanelState } from "~/lib/workspace/types";
 import { decodeWorkspace, type RawSearch } from "~/lib/workspace/url";
-import { readNavState, withPanelKeys } from "~/lib/workspace/commands";
+import { panelKeysFor, readNavState, withPanelKeys } from "~/lib/workspace/commands";
 import { selectionKey } from "~/lib/text/queries";
 import { LoadingState } from "~/ui/Feedback/Feedback";
 import { SplitView } from "~/ui/SplitView/SplitView";
@@ -22,12 +22,12 @@ import { WorkspaceNavProvider } from "./navigation";
  */
 export function Workspace({ data }: { data: WorkspaceRouteData }) {
   const location = useLocation();
-  const panelKeys = readNavState(location.state).panelKeys;
-  const keysId = panelKeys?.join("|");
-  const ws = useMemo(
-    () => withPanelKeys(decodeWorkspace(urlToRef(decodeURIComponent(location.pathname.replace(/^\/+/, ""))), location.search as RawSearch), panelKeys),
-    [location.pathname, location.search, keysId], // eslint-disable-line react-hooks/exhaustive-deps -- the keys' content, not the state object
-  );
+  const ownKeys = readNavState(location.state).panelKeys?.join("|");
+  const ws = useMemo(() => {
+    const decoded = decodeWorkspace(urlToRef(decodeURIComponent(location.pathname.replace(/^\/+/, ""))), location.search as RawSearch);
+    // the entry's keys, or the panels' own when a plain link recorded none (commands.panelKeysFor)
+    return withPanelKeys(decoded, panelKeysFor(location.state, decoded.layout ? leaves(decoded.layout).length : 0));
+  }, [location.pathname, location.search, ownKeys]); // eslint-disable-line react-hooks/exhaustive-deps -- the keys' content, not the state object
   const order = leaves(ws.layout);
   const panels = order.map((id) => ws.panels[id]!);
   const sizes = legacyRowSizes(panels);

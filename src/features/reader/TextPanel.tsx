@@ -30,7 +30,7 @@ import { rememberPlace } from "~/lib/reader/last-place";
 import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
 import { rememberTranslation } from "~/lib/versions/prefs-source";
-import { entryKey, navFor, readNavState, useWorkspaceNav, type NavState } from "../workspace/navigation";
+import { entryKey, navFor, panelKeysOf, readNavState, useWorkspaceNav, type NavState } from "../workspace/navigation";
 import { panelForRef } from "../workspace/open-ref";
 import { toRouterLocation } from "../shared/RouterLink";
 // Not a lazy chunk (tried for CODE_REVIEW R-15): a server-rendered sidebar whose chunk was still loading at hydration left a Suspense
@@ -237,9 +237,12 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const goSidebarView = useCallback(
     (href: string) => {
       const loc = toRouterLocation(href);
-      void router.navigate({ to: loc.to as never, search: loc.search as never, resetScroll: false, state: { nav: "stay", panel: id } as never });
+      // the panels keep their stable keys (as every workspace command writes them): without them a panel renumbered by an earlier
+      // close was rebuilt by a mere change of sidebar view (review F07)
+      const state: NavState = { nav: "stay", panel: id, panelKeys: panelKeysOf(nav.current()) };
+      void router.navigate({ to: loc.to as never, search: loc.search as never, resetScroll: false, state: state as never });
     },
-    [router, id],
+    [router, id, nav],
   );
   const closeSidebar = useCallback(() => {
     const ref = current.ref ?? data.ref;
@@ -491,11 +494,13 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     return {
       ref: chosen ?? section.sectionRef,
       heRef: chosen ? undefined : section.heSectionRef,
-      versions: legacyVersions(panel.versions),
+      // the versions shown (the address's, completed by the reader's preferences as the loader resolved them), as the old reader's
+      // currVersions carried its preferences: a preferred translation not named in the address was saved as none (review F11)
+      versions: legacyVersions(versions),
       book: section.indexTitle,
       language: settings.language,
     };
-  }, [view, deferredRefs, sidebarSection, section.sectionRef, section.heSectionRef, section.indexTitle, panel.versions, settings.language]);
+  }, [view, deferredRefs, sidebarSection, section.sectionRef, section.heSectionRef, section.indexTitle, versions, settings.language]);
   useReaderHistory(viewer, place, Boolean(view));
   const save = useSaved(viewer, place, () => setSaveAsked(true));
   // a kept Torah portion / aliyah range names its verses in this section, as the old header does
@@ -511,8 +516,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const linkFilter = useMemo(() => (view?.view === "texts" && !view.filter.endsWith("|Essay") ? [view.filter] : []), [view?.view, view?.view === "texts" ? view.filter : ""]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Main view and side panels, arranged by the panel's own layout (default: side panels in a column).
+  // Without a sidebar the frame is still a row (of one): a bare leaf there and a row once the sidebar opens put the reading column
+  // under different elements, and React rebuilt it — loaded sections, scroll engine, footnotes and selection — on every open and
+  // close (review F02; the workspace keeps its row of panels the same way, R-24). Not split(): it normalises a row of one to a leaf.
   const frame: LayoutNode<typeof MAIN | AsideId> = useMemo(() => {
-    if (!panel.asides.length) return leaf(MAIN);
+    if (!panel.asides.length) return { type: "split", direction: "row", children: [leaf(MAIN)], sizes: [1] } as LayoutNode<typeof MAIN | AsideId>;
     const asides = panel.asideLayout ?? split("column", panel.asides.map((a) => leaf(a.id)));
     return split("row", [leaf(MAIN), asides], innerSizes && innerSizes.length === 2 ? innerSizes : [0.68, 0.32]);
   }, [panel.asides, panel.asideLayout, innerSizes]);
@@ -570,6 +578,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       </div>
       <TextColumn
         key={entry.current.key}
+        pinned={data.sectionRefs}
         initial={initial}
         versions={versions}
         initialVersionsKey={selectionKey(data.versions)}

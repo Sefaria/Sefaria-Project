@@ -12,7 +12,7 @@ import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import type { ReaderSettings } from "~/lib/reader/settings";
 import { vocalizationMode } from "~/lib/reader/settings";
 import type { Segment, TextPassage } from "~/lib/text/model";
-import { segmentsInRef, containingSectionRef } from "~/lib/text/segments-in-ref";
+import { segmentsInRef, loadRefFor } from "~/lib/text/segments-in-ref";
 import { textQueryOptions } from "~/lib/text/queries";
 import { CategoryView } from "~/ui/ConnectionsPanel/CategoryView";
 import { ConnectionsPanel, ResourcesTitle } from "~/ui/ConnectionsPanel/ConnectionsPanel";
@@ -31,7 +31,7 @@ import { DictionarySearch } from "~/ui/DictionarySearch/DictionarySearch";
 import { LexiconView } from "~/ui/LexiconView/LexiconView";
 import { readerAnalytics, uaEvent } from "~/lib/analytics";
 import { useViewer } from "~/features/auth/viewer";
-import { deleteNote, notesQuery, saveNote } from "~/lib/user/notes";
+import { deleteNote, notesQuery, refsForSave, saveNote } from "~/lib/user/notes";
 import { syncHistory } from "~/lib/user/history";
 import { NotesView } from "~/ui/NotesView/NotesView";
 import { AddToSheetView } from "~/ui/AddToSheetView/AddToSheetView";
@@ -188,15 +188,15 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const shown = page.key === listKey ? page.shown : LINKED_TEXTS_PAGE;
   const showMore = () => setPage({ key: listKey, shown: shown + LINKED_TEXTS_PAGE });
   const shownLinks = useMemo(() => listLinks.slice(0, shown), [listLinks, shown]);
-  const sectionRefsToLoad = useMemo(() => [...new Set(shownLinks.map((l) => containingSectionRef(l.sourceRef)))], [shownLinks]);
+  const sectionRefsToLoad = useMemo(() => [...new Set(shownLinks.map((l) => loadRefFor(l.sourceRef)))], [shownLinks]);
   const passages = useQueries({ queries: sectionRefsToLoad.map((r) => textQueryOptions(r, {})) });
   const passageByRef = new Map(sectionRefsToLoad.map((r, i) => [r, passages[i]?.data] as const));
   // the list waits for its first page only; later items show their own "Loading…"
-  const firstPage = new Set(shownLinks.slice(0, LINKED_TEXTS_PAGE).map((l) => containingSectionRef(l.sourceRef)));
+  const firstPage = new Set(shownLinks.slice(0, LINKED_TEXTS_PAGE).map((l) => loadRefFor(l.sourceRef)));
   const waiting = filter !== undefined && listLinks.length > 0 && sectionRefsToLoad.some((r, i) => firstPage.has(r) && passages[i]?.isPending);
 
   const items: LinkedTextItem[] = shownLinks.map((l) => {
-    const passage = passageByRef.get(containingSectionRef(l.sourceRef));
+    const passage = passageByRef.get(loadRefFor(l.sourceRef));
     const segs = passage ? segmentsInRef(passage, l.sourceRef) : [];
     const primary = passage?.primaryVersion;
     const translation = passage?.translationVersion;
@@ -446,9 +446,11 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
         <NotesView
           notes={notesQ.data}
           allNotesHref={`${SITE_ORIGIN}/texts/notes`}
-          onSave={async (text, id) => {
-            await saveNote(text, notesRefs, id);
-            uaEvent("Tools", "Note Save Private", notesRefs.join("/"));
+          onSave={async (text, note) => {
+            const refs = refsForSave(note, notesRefs); // an edit stays on its own verses, whatever is selected now
+            if (!refs) throw new Error("This note cannot be edited here: its place is unknown.");
+            await saveNote(text, refs, note?._id);
+            uaEvent("Tools", "Note Save Private", refs.join("/"));
             await refresh();
           }}
           onDelete={async (id) => {

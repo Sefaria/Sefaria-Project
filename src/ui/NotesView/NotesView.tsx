@@ -10,8 +10,8 @@ import styles from "./NotesView.module.css";
 export interface NotesViewProps {
   /** The reader's notes on the selected verses (undefined while loading). */
   notes: Note[] | undefined;
-  /** Add a note (no id) or change one. Rejecting keeps the text and shows the error. */
-  onSave: (text: string, id?: string) => Promise<void>;
+  /** Add a note (no `note`) or change `note`, which stays where it is. Rejecting keeps the text and shows the error. */
+  onSave: (text: string, note?: Note) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   /** "Go to My Notes" (the old /texts/notes page). */
   allNotesHref: string;
@@ -58,7 +58,7 @@ export function NotesView({ notes, onSave, onDelete, allNotesHref }: NotesViewPr
     setBusy(true);
     setError(null);
     try {
-      await onSave(text, editing?._id);
+      await onSave(text, editing ?? undefined);
       reset();
     } catch (e) {
       setError(e instanceof Error ? e.message : t("Unfortunately, there was an error saving this note.", "לצערנו ארעה שגיאה בשמירת ההערה."));

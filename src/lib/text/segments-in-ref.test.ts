@@ -35,3 +35,24 @@ describe("segmentsInRef", () => {
     expect(segmentsInRef(rashi, "Rashi on Genesis")).toHaveLength(rashi.segments.length);
   });
 });
+
+// review F10: a link to a range across chapters fetched only its first chapter, so the rest of its text never showed
+describe("loadRefFor", () => {
+  it("a link inside one section loads that section (shared by every link on the verse)", async () => {
+    const { loadRefFor } = await import("./segments-in-ref");
+    expect(loadRefFor("Rashi on Genesis 1:1:2")).toBe("Rashi on Genesis 1:1");
+    expect(loadRefFor("Genesis 1:3-5")).toBe("Genesis 1");
+    expect(loadRefFor("Genesis 1")).toBe("Genesis 1");
+  });
+  it("a range across sections loads the range itself", async () => {
+    const { loadRefFor } = await import("./segments-in-ref");
+    expect(loadRefFor("Genesis 1:31-2:3")).toBe("Genesis 1:31-2:3");
+  });
+  it("the range's passage gives every segment it covers, in both sections", async () => {
+    const { segmentsInRef } = await import("./segments-in-ref");
+    const { readFixture } = await import("../../../test/msw/fixtures");
+    const { normaliseTexts } = await import("./model");
+    const p = normaliseTexts(readFixture("genesis-1-30-2-3/v3-texts.json"));
+    expect(segmentsInRef(p, "Genesis 1:31-2:2").map((s) => s.ref)).toEqual(["Genesis 1:31", "Genesis 2:1", "Genesis 2:2"]);
+  });
+});

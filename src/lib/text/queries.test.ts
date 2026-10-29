@@ -128,3 +128,45 @@ describe("a commentary range across chapters", () => {
     expect(got.highlight).toEqual({ from: ["1", "31", "1"], to: ["2", "2", "1"] });
   });
 });
+
+// review F04: a section that arrived after a version change was added in the old versions, and stayed in them
+describe("fetchInWantedVersions", () => {
+  it("fetches again in the versions wanted now when they changed while the section loaded", async () => {
+    const { fetchInWantedVersions } = await import("./queries");
+    let wanted = { translation: "english|OLD" };
+    const asked: string[] = [];
+    const passage = await fetchInWantedVersions(
+      async (sel) => {
+        asked.push(sel.translation!);
+        if (sel.translation === "english|OLD") wanted = { translation: "english|NEW" }; // the reader changes version meanwhile
+        return { ref: "Genesis 2", translationVersion: { versionTitle: sel.translation } } as never;
+      },
+      () => wanted,
+    );
+    expect(asked).toEqual(["english|OLD", "english|NEW"]);
+    expect((passage as unknown as { translationVersion: { versionTitle: string } }).translationVersion.versionTitle).toBe("english|NEW");
+  });
+  it("one fetch when nothing changed", async () => {
+    const { fetchInWantedVersions } = await import("./queries");
+    let n = 0;
+    await fetchInWantedVersions(async () => (n++, { ref: "Genesis 2" } as never), () => ({ translation: "english|A" }));
+    expect(n).toBe(1);
+  });
+});
+
+// review F09: a range in a book not met yet downloaded the whole range before the first-sections cap applied
+describe("a cold long range", () => {
+  it("learns the book from the range's first point and asks for no more than its first sections", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { readFixture } = await import("../../../test/msw/fixtures");
+    const genesis1 = readFixture<Record<string, unknown>>("genesis-1/v3-texts.json");
+    server.use(http.get("*/api/v3/texts/Genesis%201%3A1", () => HttpResponse.json(genesis1)));
+    const qc = makeQueryClient();
+    const g1 = (await import("./model")).normaliseTexts(genesis1 as never);
+    for (let n = 3; n <= 10; n++) qc.setQueryData(textQueryKey(`Genesis ${n}`, {}), { ...g1, ref: `Genesis ${n}`, sectionRef: `Genesis ${n}` });
+    const r = await loadReaderPassage(qc, new RefIndex(), "Genesis 1:1-10:5");
+    expect(r.sections.map((s) => s.ref)).toEqual(["Genesis 1", "Genesis 2", "Genesis 3", "Genesis 4"]);
+    expect(r.highlight).toEqual({ from: ["1", "1"], to: ["10", "5"] });
+    expect(requests.some((p) => p.includes("1:1-10:5"))).toBe(false);
+  });
+});
