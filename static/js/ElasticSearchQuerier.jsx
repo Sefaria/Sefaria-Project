@@ -122,24 +122,39 @@ class ElasticSearchQuerier extends Component {
       // is keyed by the text actually searched, so apply an already-made decision first.
       Object.assign(this.state, this._autocorrectStateFor(props, this.state));
       const args = this._getQueryArgs(props);
+      let hits = [];
+      let totals = new SearchTotal();
+      let totalsFor = null;
+      let pagesLoaded = 0;
       let cachedQuery = Sefaria.search.getCachedQuery(args);
       while (cachedQuery) {
           // Load all pages of results that are available in cache, so if page X was
           // previously loaded it will be returned.
           //console.log("Loaded cached query for")
           //console.log(args);
-          this.state.hits = this.state.hits.concat(cachedQuery.hits.hits);
-          this.state.totals = cachedQuery.hits.total;
+          hits = hits.concat(cachedQuery.hits.hits);
+          totals = cachedQuery.hits.total;
           // Only final once the correction is known.
-          if (this.state.autocorrectResolved) { this.state.totalsFor = args.query; }
-          this.state.pagesLoaded += 1;
-          args.start = this.state.pagesLoaded * this.querySize[this.props.searchState.type];
+          if (this.state.autocorrectResolved) { totalsFor = args.query; }
+          pagesLoaded += 1;
+          args.start = pagesLoaded * this.querySize[this.props.searchState.type];
           if (this.props.searchState.type === "text") {
             // Since texts only have one filter type, aggregations are only requested once on first page
             args.aggregationsToUpdate = [];
           }
           cachedQuery = Sefaria.search.getCachedQuery(args);
       }
+
+      Object.assign(this.state, {
+        // With nothing cached, the query componentDidMount is about to start counts as running
+        // already. Otherwise the first render reads the empty starting totals as "0 results" and
+        // flashes NoSearchResults (which also relabels the Library Assistant's Ask button).
+        isQueryRunning: !!props.query && pagesLoaded === 0,
+        totals,
+        totalsFor,
+        pagesLoaded,
+        hits,
+      });
     }
     componentDidMount() {
         // Search analytics (sc-46034) cover the main search page only -- not
@@ -241,7 +256,10 @@ class ElasticSearchQuerier extends Component {
             this.setState(this._rerunState(newProps, this.state.localDisableAutocorrect),
                           () => this._executeAllQueries(newProps));
         } else if (this._shouldUpdateQuery(this.props, newProps, this.props.searchState.type)) {
-            this.setState(this._clearedHitsState(), () => {
+            // isQueryRunning: the query starts in the setState callback below; until then the
+            // cleared hits must not read as a finished search (see the constructor).
+            // _executeQuery starts nothing without a query.
+            this.setState({...this._clearedHitsState(), isQueryRunning: !!newProps.query}, () => {
                 this._executeQuery(newProps);
             })
         }
@@ -402,7 +420,6 @@ class ElasticSearchQuerier extends Component {
       const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[this.props.searchState.type];
 
       args.success = data => {
-              this.updateRunningQuery(null);
               // Report the "sources" API as returned. Duplicate reports (the
               // sources query re-runs when filters/sort change) are ignored
               // inside SearchAnalytics -- only the first response per search_id
@@ -414,17 +431,23 @@ class ElasticSearchQuerier extends Component {
               }
               if (this.state.pagesLoaded === 0) { // Skip if pages have already been loaded from cache, but let aggregation processing below occur
                 const currTotal = data.hits.total;
+                // Results and "no longer running" in one update: as two, the render in between
+                // would show the previous totals as this query's (e.g. a flash of NoSearchResults).
                 let state = {
                   hits: data.hits.hits,
                   totals: currTotal,
                   totalsFor: args.query,
                   pagesLoaded: 1,
                   moreToLoad: currTotal.getValue() > this.querySize[this.props.searchState.type],
+                  runningQueries: null,
+                  isQueryRunning: false
                 };
                 this.setState(state);
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
                 Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${this.props.searchState.type}`, query_label, data.hits.total.getValue());
+              } else {
+                this.updateRunningQuery(null);
               }
 
               if (data.aggregations) {

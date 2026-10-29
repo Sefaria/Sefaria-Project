@@ -24,6 +24,10 @@ AdContext.displayName = "AdContext";
 const StrapiDataContext = React.createContext({});
 StrapiDataContext.displayName = "StrapiDataContext";
 
+// Whether ReaderApp puts the Library Assistant's widget (<lc-chatbot>) on the page
+const LibraryAssistantContext = React.createContext(false);
+LibraryAssistantContext.displayName = "LibraryAssistantContext";
+
 // Each content type's fields, queried per locale (below) instead of a single default-locale query with a `localizations` child - 
 // that older shape could only ever discover documents that have an English version, since a Strapi collection query with no `locale` argument returns only the default locale. 
 // `documentId` is stable across every locale of a document (Strapi v5), so it's the join key used to recombine the per-locale rows after the fetch.
@@ -321,4 +325,4 @@ function StrapiDataProvider({ children }) {
   );
 }
 
-export { ReaderPanelContext, AdContext, StrapiDataProvider, StrapiDataContext };
+export { ReaderPanelContext, AdContext, StrapiDataProvider, StrapiDataContext, LibraryAssistantContext };

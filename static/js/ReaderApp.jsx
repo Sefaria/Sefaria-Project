@@ -10,7 +10,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
 import SearchAnalytics from './sefaria/searchAnalytics';
-import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
+import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext, LibraryAssistantContext} from './context';
 import { classifyPanels } from './sefaria/pageTypes';
 import {
   ContestLandingPage,
@@ -2609,6 +2609,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       // InterruptingMessage modals and Banners will always render if available but stay hidden initially
       <StrapiDataProvider>
         <AdContext.Provider value={this.getUserContext()}>
+          <LibraryAssistantContext.Provider value={!!displayChatbot}>
           <div id="readerAppWrap">
             <Button href="#main" className="skip-link">{Sefaria._("reader_app.skip_to_main_content")}</Button>
             <InterruptingMessage />
@@ -2664,6 +2665,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             </div>
             <BannerImpressionProbe />
           </div>
+          </LibraryAssistantContext.Provider>
         </AdContext.Provider>
       </StrapiDataProvider>
     );

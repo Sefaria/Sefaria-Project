@@ -121,62 +121,6 @@ $interfaces: english hebrew;
   color: var(--dark-grey);
 }
 
-/* Library Assistant pill before the search box: white on the promo purple, as tall as the
-   search box; it darkens on hover instead of underlining */
-.textLink.libraryAssistantLink,
-.textLink.libraryAssistantLink:is(:hover, :focus, :active) {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 14px;
-  border-radius: 250px;
-  background: var(--chatbot-purple);
-  color: var(--white);
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
-  text-decoration: none;
-}
-
-/* Where the full label crowds the header (within 16px of "Donate", or icons pushed off
-   screen), the pill says "Ask"; where even that crowds, it's hidden. Same widths for every
-   header, set by the most crowded (logged out; English for the label, Hebrew for "Ask").
-   The pill is in $exclude-flex, so the .headerInner catch-all doesn't override these. */
-.textLink.libraryAssistantLink .libraryAssistantShortLabel {
-  display: none;
-}
-@media (min-width: 900px) and (max-width: 960px), (min-width: 1087px) and (max-width: 1159px) {
-  .textLink.libraryAssistantLink .libraryAssistantLabel {
-    display: none;
-  }
-  .textLink.libraryAssistantLink .libraryAssistantShortLabel {
-    display: inline;
-  }
-}
-@media (max-width: 899px) {
-  // Same selectors as the pill's base rule, so its :hover/:focus/:active variant can't win
-  .textLink.libraryAssistantLink,
-  .textLink.libraryAssistantLink:is(:hover, :focus, :active) {
-    display: none;
-  }
-}
-
-.textLink.libraryAssistantLink:is(:hover, :active) {
-  background: #653259; /* purple-800 */
-}
-.libraryAssistantLink:focus-visible {
-  outline: 2px solid var(--focus-blue);
-  outline-offset: 2px;
-}
-.libraryAssistantStarIcon {
-  flex-shrink: 0;
-}
-.libraryAssistantLink .libraryAssistantStarIcon {
-  width: 16px;
-  height: 16px;
-}
-
 .headerLinksSection {
 	justify-content: flex-end;
     gap: 20px;
