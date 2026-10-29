@@ -225,11 +225,12 @@ All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGT
 
 1. **Every profile has an interface language.** The default `"english"` (`sefaria/model/user_profile.py:408`) means the profile
    always wins for a signed-in reader (`sefaria/system/middleware.py:125-126`). A reader who never chose cannot be told apart from
-   one who chose English, so cookie, location and browser are never used for them.
+   one who chose English, so cookie, location and browser are never used for them. *[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be fixed.*
 2. **Guesses are saved as if the reader chose them.** A location-based domain redirect sets `interfaceLang` and, when signed in,
    the profile (`sefaria/system/middleware.py:229-234`). Registration copies the request's language, which may come from location,
    into the profile (`sefaria/views.py:210-211`). Neither store keeps where a value came from, so `source` is `profile` /
    `cookie` for existing data. The only "was it chosen" flag today is `translation_language_preference_suggested`.
+   *[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be fixed.*
 3. **Browser language is ignored behind Cloudflare.** `cf-ipcountry` is always present, so any country but `IL` gives English
    before Accept-Language is read (`sefaria/system/middleware.py:93-96`).
 4. **Domain vs choice.** The language picks the domain, not the reverse. An explicit English choice opened on sefaria.org.il
@@ -246,17 +247,18 @@ All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGT
    `/interface` is answered by the new client, not Django (`interface` is not in `src/server/pass-through.ts:17-23`, RTE-034).
 7. **Sign-in does not merge.** Registration copies only the interface language. Translation language, corpus versions and
    display cookies are not saved to the new profile. At read time the profile replaces the whole cookie object instead of
-   merging per corpus (`sefaria/system/middleware.py:166`, `:183`).
+   merging per corpus (`sefaria/system/middleware.py:166`, `:183`). *[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be addressed.*
 8. **Cookie and profile disagree silently.** Legacy picks the profile. The new client picks the cookie. The same signed-in reader
    can see different languages on Django pages and on new-client pages.
 9. **Host-only cookies split the site.** Only `interfaceLang` is set on the parent domain. Content language, display, translation
    language and corpus cookies are host-only (`static/js/ReaderPanel.jsx:543-547`, `static/js/sefaria/VersionPreferences.js:28`,
    `static/js/ReaderApp.jsx:2159-2160`; new `settings-context.tsx:16`, `prefs-source.ts:24`). So a choice made on
    www.sefaria.org does not carry to voices.sefaria.org (sheets) or to sefaria.org.il. Legacy cookies have no `expires` and last
-   only for the browser session. The new client's last a year.
-10. **Translation language with no translation in that language.** The client falls through to the API's `translation`: the
-    highest-priority non-source version in any language (`sefaria/model/text_request_adapter.py:102-103`). The reader is not
-    told. The same happens when a corpus preference names a version this text lacks.
+   only for the browser session. The new client's last a year. *[Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609): should be addressed.*
+10. **Translation language with no translation in that language.** Falling back to the API's `translation`, the
+    highest-priority non-source version in another language, is by design (`sefaria/model/text_request_adapter.py:102-103`;
+    [Noah Santacruz, 10-29](https://sefaria.slack.com/archives/C0C9EGTL468/p1793268174925609)). Open point only: the reader is not told a fallback happened, which matters once a settings page shows an
+    explicit translation-language choice. The same holds when a corpus preference names a version this text lacks.
 11. **No stored source-version preference.** Choosing a Hebrew or source version is dropped (`static/js/sefaria/sefaria.js:1115`;
     the new client remembers translations only). Preferences are per corpus, so a text without a corpus can never get one.
 12. **Content language is never stored for signed-in readers**, and `reader-next` does not follow a Hebrew interface: Hebrew
@@ -274,11 +276,13 @@ All *ideas*, not decisions · [Slack](https://sefaria.slack.com/archives/C0C9EGT
 **Open questions.**
 
 - Keep legacy precedence for launch, or fix 1–4 with it (Accept-Language before country; a stored-but-unchosen interface
-  language treated as no choice)?
+  language treated as no choice)? Noah Santacruz (10-29) says 1 and 2 should be fixed.
 - Should the missing stores (content language, display, source version, Israel / diaspora) get profile keys under the existing
   `settings` dict? That is a data change, not a new architecture.
 - Sync and merge: on sign-in, write the cookie values into empty profile fields? Which side wins when they disagree?
 - Share preference cookies across `.sefaria.org` (as `interfaceLang` is), or keep them per host?
+- Should the reader see a notice when the translation falls back to another language, or to another version than the corpus
+  preference (gap 10)?
 
 ## Decisions
 
