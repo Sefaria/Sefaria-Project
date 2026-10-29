@@ -150,7 +150,7 @@ Both token types travel in the `X-Session-ID` header and are checked by `Session
 |---|---|---|
 | Payload | `{id, user_id, expiration}` | the same, plus `aud: "mcp"` |
 | Secret | `CHATBOT_USER_ID_SECRET` | `MCP_TOKEN_SECRET`, shared with the AI chatbot (unset = feature off) |
-| Accepted on | every path **except** `/api/admin/*` | `MCP_ROUTES` (the sheet API), and `MCP_ADMIN_ROUTES` (`GET /api/admin/topic-prompts`, `PATCH /api/admin/topic-prompts/<id>`) for `is_staff` users only |
+| Accepted on | every path **except** `/api/admin/*` | `MCP_ROUTES` (the sheet API), and `MCP_ADMIN_ROUTES` (every route in §3) for `is_staff` users only |
 | CSRF | enforced | skipped; a browser never sends this header on its own |
 | Lifetime | 72h | 5 minutes, minted per tool call by the chatbot for the signed-in user |
 
@@ -246,6 +246,49 @@ sanitize step, the preview text and `version` are identical to what a real save 
 
 ---
 
+### 3.3 `POST /api/admin/topic-prompts/publish` — publish or unpublish
+
+Body `{"items": [{"id", "base_version"}], "lang": "en", "published": true, "dry_run": false}`, at most 50 items.
+The topic page's **Publish** button, per description and atomic (`set_published`): publishing skips a description whose
+`review_state` is `"not reviewed"`, as `getLinksToPublish` does. Each item answers `published`, `unpublished`,
+`unchanged`, `not_reviewed`, `conflict` (with the current version) or `not_found`; one failure doesn't stop the rest.
+Audited with `action: "publish" | "unpublish"`.
+
+### 3.4 `POST /api/admin/topic-prompts/generate` and `GET /api/admin/tasks/<id>`
+
+Body `{"topic", "lang", "ids"?}`. The topic page's **Generate** button (`getLinksToGenerate`): queues the Celery chain
+`generate_and_save_topic_prompts` for sources that have an `ai_context` and no prompt (at most 50), and answers
+`{"task_ids", "queued", "skipped": [{"id", "reason"}]}` with HTTP 202. Output is saved unpublished and "not reviewed".
+`GET /api/admin/tasks/<id>` reports `{state, ready, successful?, error?}` (the staff view of `/api/async/<id>`).
+
+### 3.5 `POST|DELETE /api/admin/ref-topic-links` — tag or untag a passage
+
+`sefaria/helper/topic_links_admin.py`. POST `{"ref", "topic", "lang", "dry_run"}` is the reader's moderator Topics tool
+(`edit_topic_source` with `creating_new_link=True`, as TopicSearch posts) but **only creates**: a passage already
+tagged in that language answers `already_tagged` and is never re-saved, because re-"creating" resets `curatedPrimacy`
+(finding 4). DELETE `?ref&topic&lang&dry_run` is `delete_ref_topic_link`, refused when the description has a title or
+prompt (curated prompts are removed on the topic page). Answers `tagged | already_tagged | untagged | link_deleted | not_tagged`.
+
+### 3.6 `GET|PATCH /api/admin/lexicon-entries/<lexicon>/<headword>`, `PATCH …/headword/<lexicon>/<headword>`
+
+Dictionary entries, wrapping the moderators' lexicon editor (#3730, `api/lexicon_admin_views.py`) so its validation,
+history log and ref-cache refresh are reused as they are. GET adds a `version` (hash of the entry). PATCH
+`{"content", "base_version", "dry_run"}` needs that version (409 with the current entry when stale) and only the
+entry's `content_attr_names`. The headword PATCH `{"new_headword", "dry_run"}` renames through the same view; a dry run
+reports the headword it would resolve to.
+
+### 3.7 Versions, cache, lookups (`sefaria/helper/versions_admin.py`)
+
+- `GET|PATCH /api/admin/versions/<title>/<lang>/<versionTitle>`: the book page's version editor (VersionBlock →
+  `flag_text_api`) through the same `tracker.update_version_metadata` (history). GET answers
+  `{metadata, version, editable_fields}`; PATCH `{"fields", "base_version", "dry_run"}` takes only `EDITABLE_FIELDS`
+  plus `newVersionTitle` (a rename), with `status` `"locked"` or null, and answers `{before, after, version}`
+  (409 with the current metadata when stale).
+- `GET /api/admin/versions?versionTitle&language`: the books that have a version of that title (`/api/version-indices`).
+- `GET /api/admin/index-dependencies/<title>`: dependent books, version and link counts (`/api/check-index-dependencies`).
+- `POST /api/admin/cache/purge {"ref"}`: `/admin/reset/<ref>` without its redirect (a book: index cache, version state,
+  TOC, Varnish; a ref: Varnish).
+
 ## 4. MCP tools (AI chatbot `/mcp/admin`, implemented)
 
 The tools are schemas in the chatbot's tool layer (`server/chat/V2/agent/tool_schemas.py`, surface
@@ -255,6 +298,19 @@ The tools are schemas in the chatbot's tool layer (`server/chat/V2/agent/tool_sc
 |---|---|---|
 | `list_topic_prompts(topic?, lang="en", review_state?, published?, ai_generated?, ref?, query?, id?, limit=25, cursor?)` | `GET /api/admin/topic-prompts` | `readOnlyHint` |
 | `update_topic_prompt(id, lang, base_version, title?, prompt?, ai_context?, review_state?, dry_run=false)` | `PATCH …/<id>` | `destructiveHint: false`, `idempotentHint: true` |
+| `publish_topic_prompts(items, lang="en", published=true, dry_run=false)` | `POST …/publish` | `destructiveHint: false` |
+| `generate_topic_prompts(topic, lang="en", ids?)` | `POST …/generate` | `idempotentHint: false` |
+| `get_admin_task(task_id)` | `GET /api/admin/tasks/<id>` | `readOnlyHint` |
+| `tag_ref_with_topic(ref, topic, lang="en", dry_run=false)` | `POST /api/admin/ref-topic-links` | `idempotentHint: true` |
+| `untag_ref_from_topic(ref, topic, lang="en", dry_run=false)` | `DELETE /api/admin/ref-topic-links` | `destructiveHint: true` |
+| `get_lexicon_entry(lexicon, headword)` | `GET /api/admin/lexicon-entries/…` | `readOnlyHint` |
+| `update_lexicon_entry(lexicon, headword, content, base_version, dry_run=false)` | `PATCH /api/admin/lexicon-entries/…` | `destructiveHint: false` |
+| `rename_lexicon_headword(lexicon, headword, new_headword, dry_run=false)` | `PATCH …/headword/…` | `destructiveHint: false` |
+| `get_version_metadata(title, lang, version_title)` | `GET /api/admin/versions/…` | `readOnlyHint` |
+| `update_version_metadata(title, lang, version_title, fields, base_version, dry_run=false)` | `PATCH /api/admin/versions/…` | `destructiveHint: false` |
+| `find_versions(version_title, language?)` | `GET /api/admin/versions` | `readOnlyHint` |
+| `check_index_dependencies(title)` | `GET /api/admin/index-dependencies/…` | `readOnlyHint` |
+| `purge_cache(ref)` | `POST /api/admin/cache/purge` | `idempotentHint: true` |
 
 The tool descriptions tell Claude to:
 - **Read before writing**: call `list_topic_prompts(id=…)` and pass back its `version` as `base_version`.
@@ -277,7 +333,7 @@ The tool descriptions tell Claude to:
 - [x] Each staff member signs in as themselves; every edit is attributed in the audit log.
 - [x] Sefaria only ever sees 5-minute, per-call `mcp` tokens, in a header, never in a query string.
 - [x] The `mcp-login` handoff token names its sign-in flow, so a captured one cannot complete another.
-- [x] No create or delete, no ref or order changes, no publish.
+- [x] No ref or order changes. Publishing needs a reviewed description; tagging only creates; untagging refuses curated prompts.
 - [x] Atomic optimistic concurrency, scoped to the edited language.
 - [x] Content never changes without an audit record.
 - [x] Bleach sanitization and length limits on the server. Dry runs are sanitized identically.
@@ -302,9 +358,9 @@ The tool descriptions tell Claude to:
 
 1. **Django endpoints + helper + audit** (this repo). Done.
 2. **Staff tools on the chatbot's `/mcp/admin`**, behind Sefaria sign-in. Done.
-3. **Later**: `publish_topic_prompts(ids)` (wraps the bulk path, with an explicit confirmation),
-   `generate_topic_prompts(topic, refs)` plus the needs-generation filter, source-text grounding,
-   `list_prompt_edits` (reads the audit log), and PATCH rate limiting.
+3. **Publish, generate, task status, tag/untag** (§3.3–3.5). Done (2026-10-29).
+4. **Later**: source-text grounding, `list_prompt_edits` (reads the audit log), rate limiting, and the other staff
+   operations in the admin inventory. Lexicon edits (§3.6) and versions/cache/lookups (§3.7): done.
 
 ## 8. Open questions
 
