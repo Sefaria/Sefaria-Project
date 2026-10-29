@@ -1433,7 +1433,13 @@ class LegacyApiKeyNotesTest(SefariaTestCase):
         self.assertIn(self.note_id, self._note_ids(HTTP_X_API_KEY=LEGACY_API_KEY_FIXTURE))
 
     def test_without_a_key_private_notes_are_hidden(self):
-        self.assertNotIn(self.note_id, self._note_ids())
+        # Anonymous callers asking for private notes get an error dict, never the owner's notes.
+        response = c.get("/api/notes/Genesis.1.5", {"private": "1"})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIsInstance(data, dict)
+        self.assertIn("error", data)
+        self.assertNotIn(self.note_id, response.content.decode())
 
 
 class UserSyncTest(SefariaTestCase):
