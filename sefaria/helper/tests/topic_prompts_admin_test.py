@@ -347,3 +347,143 @@ class TestAdminMCPEndpoints:
         user = django_user_model.objects.create_user(username="mcp-nonstaff-endpoint", password="pass")
         response = self._client().get("/api/admin/topic-prompts", HTTP_X_SESSION_ID=self._token(user))
         assert response.status_code == 401
+
+
+def _version_of(link_id, lang="en"):
+    return tpa.list_prompts(lang=lang, link_id=str(link_id))["results"][0]["version"]
+
+
+class TestPublish:
+
+    def test_publishes_reviewed_prompts_only_and_audits(self, ai_link, human_link):
+        # the AI prompt is "not reviewed": the topic page's Publish skips it, and so do we
+        result = tpa.set_published([{"id": str(ai_link._id), "base_version": _version_of(ai_link._id)}], "en", True, uid=7)
+        assert result["results"][0]["status"] == "not_reviewed"
+
+        tpa.update_prompt(str(ai_link._id), "en", {"review_state": "reviewed", "prompt": "Checked"}, _version_of(ai_link._id), uid=7)
+        result = tpa.set_published([{"id": str(ai_link._id), "base_version": _version_of(ai_link._id)}], "en", True, uid=7, via="mcp")
+        assert result["results"][0]["status"] == "published"
+        assert db.topic_links.find_one({"_id": ai_link._id})["descriptions"]["en"]["published"] is True
+        audit = db[tpa.AUDIT_COLLECTION].find_one({"link_id": ai_link._id, "action": "publish"})
+        assert audit["status"] == "applied" and audit["via"] == "mcp"
+
+        # a description with no published flag counts as published (the frontend's rule)
+        assert tpa.set_published([{"id": str(human_link._id), "base_version": _version_of(human_link._id)}], "en", True, uid=7)["results"][0]["status"] == "unchanged"
+
+    def test_unpublish_and_stale_version_of(self, human_link):
+        stale = _version_of(human_link._id)
+        res = tpa.set_published([{"id": str(human_link._id), "base_version": stale}], "en", False, uid=7)
+        assert res["results"][0]["status"] == "unpublished"
+        assert db.topic_links.find_one({"_id": human_link._id})["descriptions"]["en"]["published"] is False
+        res = tpa.set_published([{"id": str(human_link._id), "base_version": stale}], "en", True, uid=7)
+        assert res["results"][0]["status"] == "conflict"
+
+    def test_dry_run_and_bad_input(self, human_link):
+        res = tpa.set_published([{"id": str(human_link._id), "base_version": _version_of(human_link._id)}], "en", False, uid=7, dry_run=True)
+        assert res["dry_run"] and res["results"][0]["status"] == "unpublished"
+        assert db.topic_links.find_one({"_id": human_link._id})["descriptions"]["en"].get("published") is not False
+        with pytest.raises(InputError):
+            tpa.set_published([], "en", True, uid=7)
+        with pytest.raises(InputError):
+            tpa.set_published([{"id": str(human_link._id)}], "en", True, uid=7)
+        assert tpa.set_published([{"id": str(ObjectId()), "base_version": "x"}], "en", True, uid=7)["results"][0]["status"] == "not_found"
+
+
+class TestGenerate:
+
+    def test_queues_sources_with_context_and_no_prompt(self, prompt_topic, ai_link, human_link):
+        db.topic_links.update_one({"_id": human_link._id}, {"$set": {"descriptions.en.prompt": "", "descriptions.en.ai_context": "why"}})
+        with patch("sefaria.helper.llm.tasks.topic_prompts.generate_and_save_topic_prompts") as gen:
+            gen.return_value.id = "task-1"
+            result = tpa.generate_prompts(prompt_topic.slug, [], "en")
+        assert result["task_ids"] == ["task-1"]
+        assert [q["id"] for q in result["queued"]] == [str(human_link._id)]
+        assert {s["id"]: s["reason"] for s in result["skipped"]} == {str(ai_link._id): "already has a prompt"}
+        lang, topic, orefs, hints = gen.call_args.args
+        assert lang == "en" and topic.slug == prompt_topic.slug and [o.normal() for o in orefs] == ["Exodus 20:8"] and hints == ["why"]
+
+    def test_nothing_eligible_queues_nothing(self, prompt_topic, ai_link):
+        with patch("sefaria.helper.llm.tasks.topic_prompts.generate_and_save_topic_prompts") as gen:
+            result = tpa.generate_prompts(prompt_topic.slug, [str(ai_link._id)], "en")
+        gen.assert_not_called()
+        assert result["task_ids"] == []
+        with pytest.raises(InputError):
+            tpa.generate_prompts("no-such-topic-xyz", [], "en")
+
+
+class TestTagRef:
+
+    def test_tag_then_already_tagged_then_untag(self, prompt_topic):
+        from sefaria.helper import topic_links_admin as tla
+        try:
+            assert tla.tag_ref("Genesis 3:1", prompt_topic.slug, "en", dry_run=True)["status"] == "tagged"
+            assert db.topic_links.find_one({"toTopic": prompt_topic.slug, "ref": "Genesis 3:1"}) is None
+
+            tagged = tla.tag_ref("genesis 3:1", prompt_topic.slug, "en")
+            assert tagged["status"] == "tagged" and tagged["link"]["ref"] == "Genesis 3:1" and tagged["link"]["id"]
+            primacy = db.topic_links.find_one({"toTopic": prompt_topic.slug, "ref": "Genesis 3:1"})["order"]["curatedPrimacy"]
+            # tagging again never re-saves (which would move the source to the top of the topic page)
+            assert tla.tag_ref("Genesis 3:1", prompt_topic.slug, "en")["status"] == "already_tagged"
+            assert db.topic_links.find_one({"toTopic": prompt_topic.slug, "ref": "Genesis 3:1"})["order"]["curatedPrimacy"] == primacy
+
+            assert tla.untag_ref("Genesis 3:1", prompt_topic.slug, "en", dry_run=True)["status"] == "link_deleted"
+            assert tla.untag_ref("Genesis 3:1", prompt_topic.slug, "en")["status"] == "link_deleted"
+            assert db.topic_links.find_one({"toTopic": prompt_topic.slug, "ref": "Genesis 3:1"}) is None
+            assert tla.untag_ref("Genesis 3:1", prompt_topic.slug, "en")["status"] == "not_tagged"
+        finally:
+            db.topic_links.delete_many({"toTopic": prompt_topic.slug, "ref": "Genesis 3:1"})
+
+    def test_untag_refuses_a_curated_prompt_and_bad_input(self, prompt_topic, human_link):
+        from sefaria.helper import topic_links_admin as tla
+        # a source that already has a description counts as tagged, even without order.availableLangs
+        assert tla.tag_ref("Exodus 20:8", prompt_topic.slug, "en")["status"] == "already_tagged"
+        with pytest.raises(InputError, match="curated title or prompt"):
+            tla.untag_ref("Exodus 20:8", prompt_topic.slug, "en")
+        with pytest.raises(InputError):
+            tla.tag_ref("Not A Book 1:1", prompt_topic.slug, "en")
+        with pytest.raises(InputError):
+            tla.tag_ref("Genesis 1:1", "no-such-topic-xyz", "en")
+
+
+class TestNewAdminEndpoints:
+
+    @pytest.fixture(autouse=True)
+    def _settings(self, settings):
+        settings.MCP_TOKEN_SECRET = MCP_SECRET
+        settings.DOMAIN_MODULES = TEST_DOMAIN_MODULES
+        settings.ALLOWED_HOSTS = [HOST]
+
+    def _headers(self, user):
+        return {"HTTP_X_SESSION_ID": build_chatbot_user_token(user.id, MCP_SECRET, ttl_hours=5 / 60, aud=MCP_TOKEN_AUDIENCE)}
+
+    def test_publish_tag_and_task_status_by_token(self, django_user_model, prompt_topic, human_link):
+        staff = django_user_model.objects.create_user(username="mcp-staff-new-endpoints", password="pass", is_staff=True)
+        client = Client(enforce_csrf_checks=True, HTTP_HOST=HOST)
+        h = self._headers(staff)
+        r = client.post("/api/admin/topic-prompts/publish", json.dumps({"items": [{"id": str(human_link._id), "base_version": _version_of(human_link._id)}], "published": False}),
+                        content_type="application/json", **h)
+        assert r.status_code == 200, r.content
+        assert r.json()["results"][0]["status"] == "unpublished"
+        assert db[tpa.AUDIT_COLLECTION].find_one({"link_id": human_link._id, "action": "unpublish"})["via"] == MCP_TOKEN_AUDIENCE
+        try:
+            r = client.post("/api/admin/ref-topic-links", json.dumps({"ref": "Genesis 4:1", "topic": prompt_topic.slug}), content_type="application/json", **h)
+            assert r.status_code == 200 and r.json()["status"] == "tagged", r.content
+            r = client.delete(f"/api/admin/ref-topic-links?ref=Genesis%204:1&topic={prompt_topic.slug}", **h)
+            assert r.status_code == 200 and r.json()["status"] == "link_deleted", r.content
+        finally:
+            db.topic_links.delete_many({"toTopic": prompt_topic.slug, "ref": "Genesis 4:1"})
+        r = client.post("/api/admin/ref-topic-links", json.dumps({"ref": "Nonsense 1:1", "topic": prompt_topic.slug}), content_type="application/json", **h)
+        assert r.status_code == 400 and "Invalid ref" in r.json()["error"]
+        with patch("celery.result.AsyncResult") as ar:
+            ar.return_value.state, ar.return_value.ready.return_value = "PENDING", False
+            r = client.get("/api/admin/tasks/abc", **h)
+        assert r.status_code == 200 and r.json() == {"task_id": "abc", "state": "PENDING", "ready": False}
+
+    def test_non_staff_token_and_session(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-nonstaff-new-endpoints", password="pass")
+        client = Client(enforce_csrf_checks=True, HTTP_HOST=HOST)
+        # a non-staff token authenticates no one here, so the POST falls to CSRF (403) before the view's 401
+        assert client.post("/api/admin/ref-topic-links", "{}", content_type="application/json", **self._headers(user)).status_code in (401, 403)
+        assert client.get("/api/admin/tasks/abc", **self._headers(user)).status_code == 401
+        client.force_login(user)
+        assert client.post("/api/admin/topic-prompts/generate", "{}", content_type="application/json").status_code == 403

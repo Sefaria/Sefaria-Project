@@ -8,13 +8,18 @@ staff member who signed in through /api/mcp/authorize (see SessionIDAuthMiddlewa
 from django.views import View
 
 from sefaria.client.util import jsonResponse
-from sefaria.helper import topic_prompts_admin
+from sefaria.helper import topic_links_admin, topic_prompts_admin
 from sefaria.system.exceptions import InputError
 from .views import _load_json_body
 
 
 def _base_url(request):
     return request.build_absolute_uri("/").rstrip("/")
+
+
+def _via(request):
+    """How the editor authenticated, for audit records: "mcp" (a token from the admin MCP) or "session"."""
+    return getattr(request, "auth_via", None) or "session"
 
 
 class AdminMCPAPIView(View):
@@ -67,7 +72,7 @@ class TopicPromptView(AdminMCPAPIView):
                 request.user.id,
                 dry_run=bool(body.get("dry_run", False)),
                 base_url=_base_url(request),
-                via=getattr(request, "auth_via", None) or "session",
+                via=_via(request),
             ))
         except topic_prompts_admin.TopicPromptNotFound as e:
             return jsonResponse({"error": str(e)}, status=404)
@@ -75,3 +80,70 @@ class TopicPromptView(AdminMCPAPIView):
             return jsonResponse({"error": str(e), "current": e.current}, status=409)
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
+
+
+class TopicPromptsPublishView(AdminMCPAPIView):
+    """POST {"items": [{"id", "base_version"}], "lang", "published": true|false, "dry_run"}."""
+
+    def post(self, request):
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        try:
+            return jsonResponse(topic_prompts_admin.set_published(
+                body.get("items"), body.get("lang", "en"), body.get("published", True), request.user.id,
+                dry_run=bool(body.get("dry_run", False)), base_url=_base_url(request), via=_via(request),
+            ))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+
+class TopicPromptsGenerateView(AdminMCPAPIView):
+    """POST {"topic", "lang", "ids"?}: queue AI prompts for sources with ai_context and no prompt."""
+
+    def post(self, request):
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        try:
+            return jsonResponse(topic_prompts_admin.generate_prompts(body.get("topic"), body.get("ids") or [], body.get("lang", "en")), status=202)
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+
+class AdminTaskView(AdminMCPAPIView):
+    """GET a background task's state (the staff-only view of /api/async/<id>)."""
+
+    def get(self, request, task_id):
+        from celery.result import AsyncResult
+        result = AsyncResult(task_id)
+        payload = {"task_id": task_id, "state": result.state, "ready": result.ready()}
+        if result.ready():
+            payload["successful"] = result.successful()
+            if not result.successful():
+                payload["error"] = str(result.result)
+        return jsonResponse(payload)
+
+
+class RefTopicLinksView(AdminMCPAPIView):
+    """POST {"ref", "topic", "lang", "dry_run"} tags a passage; DELETE with the same query parameters untags it."""
+
+    def post(self, request):
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        try:
+            return jsonResponse(topic_links_admin.tag_ref(body.get("ref") or "", body.get("topic") or "", body.get("lang", "en"), dry_run=bool(body.get("dry_run", False))))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+    def delete(self, request):
+        params = request.GET
+        try:
+            return jsonResponse(topic_links_admin.untag_ref(params.get("ref") or "", params.get("topic") or "", params.get("lang", "en"),
+                                                            dry_run=params.get("dry_run") in ("1", "true")))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+
+

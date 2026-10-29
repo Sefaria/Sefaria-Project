@@ -302,3 +302,116 @@ def _best_effort(func, *args, **kwargs):
     except Exception:
         logger.exception("topic_prompts_admin.best_effort_failed", func=getattr(func, "__name__", str(func)))
         return False
+
+
+MAX_BATCH = 50
+
+
+def set_published(items, lang, published, uid, dry_run=False, base_url="", via="session"):
+    """
+    Publishes (or unpublishes) descriptions, as the topic page's "Publish" button does through
+    /api/ref-topic-links/bulk, but per description and atomically.
+    `items` is a list of {"id", "base_version"} read with list_prompts.
+
+    Publishing follows the topic page's rule (getLinksToPublish): only a description whose
+    review_state is not "not reviewed". Unpublishing has no such rule; it hides the description from
+    readers again (moderators still see it).
+
+    Returns {"results": [{"id", "status", "result"?}], "dry_run": bool}. A status is one of
+    "published", "unpublished", "unchanged", "not_reviewed", "conflict" or "not_found"; an item
+    that fails does not stop the others.
+    """
+    _validate_lang(lang)
+    published = _bool_param(published, "published")
+    if published is None:
+        raise InputError("published must be true or false")
+    if not isinstance(items, list) or not items:
+        raise InputError("items must be a non-empty list of {id, base_version}")
+    if len(items) > MAX_BATCH:
+        raise InputError(f"At most {MAX_BATCH} items at a time")
+
+    results = []
+    for item in items:
+        link_id = item.get("id") if isinstance(item, dict) else None
+        base_version = item.get("base_version") if isinstance(item, dict) else None
+        if not link_id or not base_version:
+            raise InputError("Each item needs an id and the base_version you read")
+        results.append(_set_one_published(link_id, base_version, lang, published, uid, dry_run, base_url, via))
+    return {"results": results, "dry_run": dry_run}
+
+
+def _set_one_published(link_id, base_version, lang, published, uid, dry_run, base_url, via):
+    oid = _parse_object_id(link_id)
+    link = RefTopicLink().load({"_id": oid})
+    if link is None or lang not in getattr(link, "descriptions", {}):
+        return {"id": link_id, "status": "not_found"}
+    topic_titles = _get_topic_titles([link.toTopic])
+    before = serialize_prompt(link, lang, topic_titles, base_url)
+    if before["version"] != base_version:
+        return {"id": link_id, "status": "conflict", "result": before}
+    if before["published"] == published:
+        return {"id": link_id, "status": "unchanged", "result": before}
+    if published and before["review_state"] == "not reviewed":
+        return {"id": link_id, "status": "not_reviewed", "result": before}
+
+    original = copy.deepcopy(link.descriptions[lang])
+    new_description = {**original, "published": published}
+    after = serialize_prompt(link, lang, topic_titles, base_url, descriptions={lang: new_description})
+    status = "published" if published else "unpublished"
+    if dry_run:
+        return {"id": link_id, "status": status, "result": after}
+
+    audit_id = db[AUDIT_COLLECTION].insert_one({
+        "link_id": oid, "topic": link.toTopic, "ref": link.ref, "lang": lang, "uid": uid, "via": via,
+        "action": "publish" if published else "unpublish", "status": "pending",
+        "before": {"published": before["published"], "version": before["version"]},
+        "after": {"published": published, "version": after["version"]},
+        "date": datetime.datetime.utcnow(),
+    }).inserted_id
+    result = db[RefTopicLink.collection].update_one(
+        {"_id": oid, "class": "refTopic", f"descriptions.{lang}": original},
+        {"$set": {f"descriptions.{lang}.published": published}},
+    )
+    if result.matched_count == 0:
+        _best_effort(lambda: db[AUDIT_COLLECTION].update_one({"_id": audit_id}, {"$set": {"status": "conflict"}}))
+        current = _current_or_none(oid, lang, topic_titles, base_url)
+        return {"id": link_id, "status": "conflict" if current else "not_found", **({"result": current} if current else {})}
+    _best_effort(lambda: db[AUDIT_COLLECTION].update_one({"_id": audit_id}, {"$set": {"status": "applied"}}))
+    link.descriptions[lang] = new_description
+    _best_effort(notify, link, "save", orig_vals={}, is_new=False)
+    return {"id": link_id, "status": status, "result": after}
+
+
+def generate_prompts(topic_slug, link_ids, lang):
+    """
+    Queues AI generation for sources of a topic that have an editor's context ("ai_context") and no
+    prompt yet, as the topic page's "Generate" button does (getLinksToGenerate →
+    /api/topics/generate-prompts). The output is saved unpublished and "not reviewed".
+    `link_ids` narrows the batch; omitted, every eligible source of the topic in `lang` is queued.
+    Returns {"task_ids": [...], "queued": [{"id", "ref"}], "skipped": [{"id", "reason"}]}.
+    """
+    from sefaria.model import Topic
+    from sefaria.helper.llm.tasks.topic_prompts import generate_and_save_topic_prompts
+
+    _validate_lang(lang)
+    topic = Topic.init(topic_slug)
+    if topic is None:
+        raise InputError(f"No topic {topic_slug}")
+    query = {"toTopic": topic_slug, f"descriptions.{lang}": {"$exists": True}}
+    if link_ids:
+        if len(link_ids) > MAX_BATCH:
+            raise InputError(f"At most {MAX_BATCH} sources at a time")
+        query["_id"] = {"$in": [_parse_object_id(i) for i in link_ids]}
+    queued, skipped, orefs, hints = [], [], [], []
+    for link in RefTopicLinkSet(query, sort=[("_id", 1)], limit=MAX_BATCH):
+        description = link.descriptions.get(lang, {})
+        if description.get("prompt"):
+            skipped.append({"id": str(link._id), "reason": "already has a prompt"})
+        elif not description.get("ai_context"):
+            skipped.append({"id": str(link._id), "reason": "no ai_context: add one with update_topic_prompt first"})
+        else:
+            orefs.append(Ref(link.ref))
+            hints.append(description["ai_context"])
+            queued.append({"id": str(link._id), "ref": link.ref})
+    task_ids = [generate_and_save_topic_prompts(lang, topic, orefs, hints).id] if orefs else []
+    return {"task_ids": task_ids, "queued": queued, "skipped": skipped}

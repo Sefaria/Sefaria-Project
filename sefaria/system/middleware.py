@@ -382,6 +382,10 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
     MCP_ADMIN_ROUTES = (
         ("GET", re.compile(r"^/api/admin/topic-prompts/?$")),
         ("PATCH", re.compile(r"^/api/admin/topic-prompts/[^/]+/?$")),
+        ("POST", re.compile(r"^/api/admin/topic-prompts/(publish|generate)/?$")),
+        ("GET", re.compile(r"^/api/admin/tasks/[^/]+/?$")),
+        ("POST", re.compile(r"^/api/admin/ref-topic-links/?$")),
+        ("DELETE", re.compile(r"^/api/admin/ref-topic-links/?$")),
     )
 
     def process_request(self, request):

@@ -625,6 +625,11 @@ class TestSessionIDAuthMiddlewareAdminMCP:
     @pytest.mark.parametrize(("method", "path"), [
         ("get", "/api/admin/topic-prompts"),
         ("patch", "/api/admin/topic-prompts/64f0a1b2c3d4e5f601234567"),
+        ("post", "/api/admin/topic-prompts/publish"),
+        ("post", "/api/admin/topic-prompts/generate"),
+        ("get", "/api/admin/tasks/0b6a1c9e-7f1e-4c39-9d8f-6e2b1a0c9d11"),
+        ("post", "/api/admin/ref-topic-links"),
+        ("delete", "/api/admin/ref-topic-links"),
     ])
     def test_mcp_token_authenticates_staff_on_admin_routes_and_skips_csrf(self, django_user_model, method, path):
         user = django_user_model.objects.create_user(username=f"mcp-staff-{method}", password="pass", is_staff=True)
@@ -644,6 +649,8 @@ class TestSessionIDAuthMiddlewareAdminMCP:
     @pytest.mark.parametrize(("method", "path"), [
         ("post", "/api/admin/topic-prompts"),
         ("get", "/api/admin/other"),
+        ("get", "/api/admin/ref-topic-links"),
+        ("delete", "/api/admin/topic-prompts/64f0a1b2c3d4e5f601234567"),
         ("post", "/api/ref-topic-links/Genesis_1.1"),
     ])
     def test_mcp_token_rejected_off_admin_routes(self, django_user_model, method, path):
