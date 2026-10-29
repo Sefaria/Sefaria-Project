@@ -17,10 +17,12 @@ import {
   CategoryHeader
 } from './Misc';
 import {ContentText} from "./ContentText";
+import {TocLanguageFilter, useTocLanguageFilter} from "./TocLanguageFilter";
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
   toggleLanguage, openTextTOC, multiPanel, initialWidth, compare, toggleSignUpModal}) => {
+  const langFilter = useTocLanguageFilter();
   // List of Texts in a Category
   if (categories.length) {
     return (
@@ -43,8 +45,10 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     const style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
     const openCat = e => {e.preventDefault(); setCategories([cat.category])};
 
+    const filteredOut = !langFilter.categoryMatches([cat.category]);
+
     return (
-      <div className="navBlock withColorLine" style={style}>
+      <div className={classNames({navBlock: 1, withColorLine: 1, tocLangFilterNoMatch: filteredOut})} style={style}>
         <a 
           href={`/texts/${cat.category}`} 
           className="navBlockTitle" 
@@ -78,8 +82,11 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
         <CategoryHeader type="cats" toggleButtonIDs={["subcategory", "reorder"]}>
             <h1><InterfaceText>texts_page.browse_the_library</InterfaceText></h1>
         </CategoryHeader>
-      { Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-      <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+      <div className="navTitleControls">
+        <TocLanguageFilter />
+        { Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
+        <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+      </div>
     </div>
 
   const about = compare || multiPanel ? null :
