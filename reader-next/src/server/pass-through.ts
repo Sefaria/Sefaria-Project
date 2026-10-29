@@ -9,20 +9,9 @@
  */
 import { API_ORIGIN } from "~/lib/config";
 import type { DeadlineInit } from "./internal-fetch";
+import { isDjangoPage } from "~/lib/routing/django-paths";
 
-/*
- * Not here (rendered by this client since the auth port): "login", "register" and "password" (the reset link). Every POST to them —
- * the /register JSON sign-up, the reset link's JSON set-password/resend — still goes to Django by the "every write" rule below.
- */
-/** First path segments that are always Django's (sefaria/urls*.py, plus the pages the old site serves under them). */
-export const DJANGO_PREFIXES = [
-  "api", "_api", "static", "admin", "logout", "account", "accounts", "_allauth", "gauth", "unlink-gauth", "sso",
-  "topics", "sheets", "sheets-with-ref", "collections", "groups", "profile", "people", "person", "settings", "calendars", "notifications", "saved",
-  "history", "my", "community", "activity", "dashboard", "explore", "garden", "vgarden", "visualize", "translations", "translate", "contributors",
-  "download", "data", "linker", "linker-editor", "modtools", "random", "parashat-hashavua", "todays-daf-yomi", "torahtracker", "compare", "edit",
-  "add", "new-home", "getstarted", "healthz", "healthz-rollout", "health-check", "sefaria.js", "search-autocomplete-redirecter", "embed", "edit_text",
-];
-const PREFIX_RE = new RegExp(`^/(?:${DJANGO_PREFIXES.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?:[/.]|$)`);
+export { DJANGO_PREFIXES } from "~/lib/routing/django-paths";
 
 export const passThroughEnabled = () => typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH === "1";
 
@@ -31,7 +20,7 @@ const SERVER_FN_RE = /^\/_serverFn\//;
 
 /** Always Django's, whatever this client could render (every write, except to this client's own server functions). */
 export const isDjangoPath = (pathname: string, method: string) =>
-  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || PREFIX_RE.test(pathname));
+  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || isDjangoPage(pathname));
 
 const PASS_THROUGH_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH_TIMEOUT_MS) || 30000);
 

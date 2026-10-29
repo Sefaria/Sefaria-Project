@@ -17,6 +17,8 @@ import { SkipLink } from "~/ui/SkipLink/SkipLink";
 import { CookieNotice } from "~/ui/CookieNotice/CookieNotice";
 import { BannerImpressionProbe } from "~/features/shell/BannerImpressionProbe";
 import { LibraryAssistantBanner } from "~/features/shell/SiteWideBanner/SiteWideBanner";
+import { LibraryAssistant } from "~/features/assistant/LibraryAssistant";
+import { installLegacyEvents } from "~/lib/integration/legacy-events";
 import { remoteConfigQueryOptions } from "~/lib/shell/remote-config";
 import type { NudgeSchedule } from "~/lib/shell/promo-backoff";
 import { useViewer, viewerQuery } from "~/features/auth/viewer";
@@ -163,6 +165,17 @@ function Shell() {
       }),
     [router],
   );
+  // what other apps on the page ask of the reader — the Library Assistant's links above all (src/lib/integration, §6.12): a page of
+  // this client is a navigation in the app, a page Django serves is loaded in full
+  useEffect(
+    () =>
+      installLegacyEvents(document, {
+        navigate: (to, { replace }) => void router.navigate({ href: `${to.pathname}${to.search}${to.hash}`, replace }),
+        load: (href, { replace }) => (replace ? window.location.replace(href) : window.location.assign(href)),
+        refreshReader: () => void queryClient.invalidateQueries({ queryKey: ["user"] }),
+      }),
+    [router, queryClient],
+  );
   // the old server's show_join_chatbot_banner switch (remote config), read by the root loader; only a signed-out reader sees the
   // banner, so a signed-in one never refetches it
   const remoteConfig = useQuery({ ...remoteConfigQueryOptions(), enabled: !viewer }).data;
@@ -177,6 +190,7 @@ function Shell() {
       <main id="main" className={appCss.main} tabIndex={-1} data-scroll-restoration-id="main">
         <Outlet />
       </main>
+      <LibraryAssistant search={loc.searchStr ?? ""} />
       <CookieNotice />
       <BannerImpressionProbe />
     </div>
