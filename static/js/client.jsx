@@ -6,6 +6,12 @@ import ReactDOM from 'react-dom';
 import DjangoCSRF from './lib/django-csrf';
 const SefariaReact = require('./ReaderApp');
 import * as Sentry from "@sentry/react";
+import { attachAttributeAnalytics } from './sefaria/attributeAnalytics';
+
+
+// Attribute-based GA4 tracking (data-anl-event / data-anl-* attributes); see sefaria/attributeAnalytics.js.
+// This runs as soon as the bundle loads, before React hydrates, like the inline attach() it replaced in base.html.
+attachAttributeAnalytics();
 
 
 $(function() {
