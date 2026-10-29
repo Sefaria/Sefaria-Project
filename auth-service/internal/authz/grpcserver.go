@@ -85,6 +85,9 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 		}
 		if d.KeyNotAccepted {
 			resp.GetOkResponse().Headers = append(resp.GetOkResponse().Headers, hdr(KeyStatusHeader, KeyStatusNotAccepted))
+		} else {
+			// Drop any client-supplied copy so a forged value is never echoed back, without relying on the gateway to strip it.
+			resp.GetOkResponse().HeadersToRemove = append(resp.GetOkResponse().HeadersToRemove, KeyStatusHeader)
 		}
 		if d.Keyed {
 			md, err := limitMetadata(d)
