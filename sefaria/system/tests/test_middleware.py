@@ -4,12 +4,14 @@ Tests for SessionCookieDomainMiddleware.
 Tests that session and CSRF cookie domains are dynamically set based on
 an approved list derived from DOMAIN_MODULES.
 """
+import pytest
 from unittest.mock import patch
 from django.contrib.auth.models import AnonymousUser
+from django.conf import settings
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse, HttpResponseRedirect
 from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware, LocationSettingsMiddleware, WebSessionRedirectMiddleware
-from sefaria.utils.chatbot import build_chatbot_user_token
+from sefaria.utils.chatbot import build_chatbot_user_token, MCP_LOGIN_TOKEN_AUDIENCE, MCP_TOKEN_AUDIENCE
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
 # ============================================================================
@@ -601,6 +603,153 @@ class TestSessionIDAuthMiddleware:
         assert not request.user.is_authenticated
 
 
+class TestSessionIDAuthMiddlewareAdminMCP:
+    chatbot_secret = "test-chatbot-secret"
+    mcp_secret = "test-user-mcp-secret"
+    admin_path = "/api/admin/topic-prompts"
+
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = SessionIDAuthMiddleware(get_response=lambda r: HttpResponse())
+
+    def _run(self, token, path, method="get"):
+        request = getattr(self.factory, method)(path, HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+        with override_settings(CHATBOT_USER_ID_SECRET=self.chatbot_secret, MCP_TOKEN_SECRET=self.mcp_secret):
+            self.middleware.process_request(request)
+        return request
+
+    def _mcp_token(self, user):
+        return build_chatbot_user_token(user.id, self.mcp_secret, ttl_hours=5 / 60, aud=MCP_TOKEN_AUDIENCE)
+
+    @pytest.mark.parametrize(("method", "path"), [
+        ("get", "/api/admin/topic-prompts"),
+        ("patch", "/api/admin/topic-prompts/64f0a1b2c3d4e5f601234567"),
+    ])
+    def test_mcp_token_authenticates_staff_on_admin_routes_and_skips_csrf(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(username=f"mcp-staff-{method}", password="pass", is_staff=True)
+        request = self._run(self._mcp_token(user), path, method)
+
+        assert request.user.id == user.id
+        assert request.auth_via == MCP_TOKEN_AUDIENCE
+        assert request._dont_enforce_csrf_checks is True
+
+    def test_mcp_token_rejected_for_non_staff_on_admin_routes(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-nonstaff-admin", password="pass")
+        request = self._run(self._mcp_token(user), self.admin_path)
+
+        assert not request.user.is_authenticated
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+    @pytest.mark.parametrize(("method", "path"), [
+        ("post", "/api/admin/topic-prompts"),
+        ("get", "/api/admin/other"),
+        ("post", "/api/ref-topic-links/Genesis_1.1"),
+    ])
+    def test_mcp_token_rejected_off_admin_routes(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(username=f"mcp-staff-off-{method}-{abs(hash(path))}", password="pass", is_staff=True)
+        request = self._run(self._mcp_token(user), path, method)
+
+        assert not request.user.is_authenticated
+
+    def test_chatbot_token_rejected_on_admin_path(self, django_user_model):
+        user = django_user_model.objects.create_user(username="chatbot-on-admin", password="pass", is_staff=True)
+        token = build_chatbot_user_token(user.id, self.chatbot_secret)
+        request = self._run(token, self.admin_path)
+
+        assert not request.user.is_authenticated
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+    def test_chatbot_token_on_regular_path_still_enforces_csrf(self, django_user_model):
+        user = django_user_model.objects.create_user(username="chatbot-regular", password="pass")
+        token = build_chatbot_user_token(user.id, self.chatbot_secret)
+        request = self._run(token, "/api/profile")
+
+        assert request.user.id == user.id
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+
+class TestSessionIDAuthMiddlewareUserMCP:
+    chatbot_secret = "test-chatbot-secret"
+    mcp_secret = "test-user-mcp-secret"
+
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = SessionIDAuthMiddleware(get_response=lambda r: HttpResponse())
+
+    def _run(self, token, path, method="get", mcp_secret="default"):
+        request = getattr(self.factory, method)(path, HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+        secret = self.mcp_secret if mcp_secret == "default" else mcp_secret
+        with override_settings(CHATBOT_USER_ID_SECRET=self.chatbot_secret, MCP_TOKEN_SECRET=secret):
+            self.middleware.process_request(request)
+        return request
+
+    def _mcp_token(self, user, secret=None, aud=MCP_TOKEN_AUDIENCE, ttl_hours=5 / 60):
+        return build_chatbot_user_token(user.id, secret or self.mcp_secret, ttl_hours=ttl_hours, aud=aud)
+
+    @pytest.mark.parametrize(("method", "path"), [
+        ("get", "/api/sheets/user/{uid}/date/0/0"),
+        ("get", "/api/sheets/user/{uid}"),
+        ("get", "/api/sheets/715437"),
+        ("post", "/api/sheets/"),
+        ("post", "/api/sheets"),
+    ])
+    def test_mcp_token_authenticates_on_sheet_routes_and_skips_csrf(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(username=f"mcp-{method}-{abs(hash(path))}", password="pass")
+        request = self._run(self._mcp_token(user), path.format(uid=user.id), method)
+
+        assert request.user.id == user.id
+        assert request.auth_via == MCP_TOKEN_AUDIENCE
+        assert request._dont_enforce_csrf_checks is True
+
+    @pytest.mark.parametrize(("method", "path"), [
+        ("post", "/api/sheets/715437/delete"),
+        ("post", "/api/sheets/715437/add"),
+        ("get", "/api/profile"),
+        ("post", "/api/sheets/715437"),
+        ("delete", "/api/admin/topic-prompts/64f0a1b2c3d4e5f601234567"),
+    ])
+    def test_mcp_token_rejected_elsewhere(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(username=f"mcp-off-{method}-{abs(hash(path))}", password="pass", is_staff=True)
+        request = self._run(self._mcp_token(user), path, method)
+
+        assert not request.user.is_authenticated
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+    def test_login_token_is_not_an_api_credential(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-login-as-api", password="pass")
+        request = self._run(self._mcp_token(user, aud=MCP_LOGIN_TOKEN_AUDIENCE), "/api/sheets/715437")
+
+        assert not request.user.is_authenticated
+
+    def test_mcp_audience_with_chatbot_secret_rejected(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-wrong-secret", password="pass")
+        request = self._run(self._mcp_token(user, secret=self.chatbot_secret), "/api/sheets/715437")
+
+        assert not request.user.is_authenticated
+
+    def test_expired_mcp_token_rejected(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-expired", password="pass")
+        request = self._run(self._mcp_token(user, ttl_hours=-1), "/api/sheets/715437")
+
+        assert not request.user.is_authenticated
+
+    def test_mcp_token_ignored_when_secret_unset(self, django_user_model):
+        user = django_user_model.objects.create_user(username="mcp-disabled", password="pass")
+        request = self._run(self._mcp_token(user), "/api/sheets/715437", mcp_secret=None)
+
+        assert not request.user.is_authenticated
+
+    def test_chatbot_token_still_works_on_sheet_routes_with_csrf(self, django_user_model):
+        user = django_user_model.objects.create_user(username="chatbot-on-sheets", password="pass")
+        token = build_chatbot_user_token(user.id, self.chatbot_secret)
+        request = self._run(token, "/api/sheets/", "post")
+
+        assert request.user.id == user.id
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+
 # ============================================================================
 # CSRF TRUSTED ORIGINS TESTS
 # ============================================================================
@@ -817,6 +966,16 @@ class TestWebSessionRedirectMiddleware:
         result = self._middleware().process_response(request, HttpResponseRedirect('/'))
 
         assert 'no_applink=1' in result['Location']
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_admin_redirect_with_sefaria_referer_is_not_marked(self):
+        # Redirects to an already AASA-excluded path (the admin save redirect) need no no_applink.
+        admin = settings.ADMIN_PATH.strip('/')
+        request = RequestFactory().post(
+            f'/{admin}/project/1/change/', HTTP_REFERER=f'https://www.sefaria.org/{admin}/project/1/change/')
+        result = self._middleware().process_response(request, HttpResponseRedirect(f'/{admin}/project/?e=1'))
+
+        assert 'no_applink' not in result['Location']
 
     def test_non_redirect_response_is_untouched(self):
         request = RequestFactory().get('/accounts/google/login/callback/')

@@ -11,6 +11,7 @@ import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
 import SearchAnalytics from './sefaria/searchAnalytics';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
+import { classifyPanels } from './sefaria/pageTypes';
 import {
   ContestLandingPage,
   PBSC2020LandingPage,
@@ -25,6 +26,7 @@ import {
   ProductsPage,
   SheetsLandingPage,
   NewsletterPage,
+  MobileAppPage,
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -63,6 +65,7 @@ class ReaderApp extends Component {
         mode:                    "Menu",
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
+        searchDisableAutocorrect:     props.initialSearchDisableAutocorrect,
         tab:                     props.initialSearchTab,
         topicSort:               props.initialTopicSort,
         searchState: new SearchState({
@@ -177,6 +180,8 @@ class ReaderApp extends Component {
       translationsSlug:        state.translationsSlug        || null,
       collectionData:          state.collectionData          || null,
       searchQuery:             state.searchQuery             || null,
+      // Set by "Search instead for <query>": search the query exactly as typed.
+      searchDisableAutocorrect:     state.searchDisableAutocorrect     || false,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
       compare:                 state.compare                 || false,
@@ -451,6 +456,7 @@ class ReaderApp extends Component {
           (JSON.stringify(next.connectionData) !== JSON.stringify(prev.connectionData)) ||
           (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
+          (!!prev.searchDisableAutocorrect !== !!next.searchDisableAutocorrect) ||
           (prev.tab !== next.tab) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
@@ -538,13 +544,13 @@ class ReaderApp extends Component {
           case "book toc":
             var bookTitle = state.bookRef;
             hist.title = Sefaria.getPageTitle(bookTitle);
-            hist.url = bookTitle.replace(/ /g, "_");
+            hist.url = Sefaria.util.encodeTitleForUrl(bookTitle);
             hist.mode = "book toc";
             break;
           case "extended notes":
             var bookTitle = state.mode==="Connections" ?Sefaria.parseRef(state.currentlyVisibleRef).index : state.bookRef;
             hist.currVersions = state.currVersions;
-            hist.url = `${bookTitle}&notes${i>1 ? i : ''}=1`.replace(/ /g, "_");
+            hist.url = `${Sefaria.util.encodeTitleForUrl(bookTitle)}&notes${i>1 ? i : ''}=1`;
             hist.mode = "extended notes";
             break;
           case "search":
@@ -555,7 +561,8 @@ class ReaderApp extends Component {
             // `tab` is taken on search URLs (it means the text/sheet search type),
             // so the active results tab (sources/books/authors/topics) is `search_tab`.
             const searchTab = state.tab ? `&search_tab=${encodeURIComponent(state.tab)}` : "";
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` + searchTab +
+            const disableAutocorrect = state.searchDisableAutocorrect ? "&disable_autocorrect=1" : "";
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` + searchTab + disableAutocorrect +
               state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
             hist.mode  = "search";
             break;
@@ -1473,6 +1480,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const state = this.state.panels[n];
     const updates = {
       searchQuery: query,
+      searchDisableAutocorrect: false,
       searchState: state.searchState.update({ filtersValid: false }),
     };
     this.setPanelState(n, updates);
@@ -2373,7 +2381,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
-      keywordTargets: refs ? deDupedTriggers : []
+      keywordTargets: refs ? deDupedTriggers : [],
+      // The KINDS of page open across all panels (a union, like keywordTargets above), for
+      // sidebar ads that target a page type rather than a keyword. A topic panel showing a
+      // specific topic classifies to nothing here — whether it's an author page needs fetched
+      // topic data, so TopicPage supplies the answer via Promotions' pageTypeOverride prop.
+      pageTypes: classifyPanels(this.state.panels)
     };
     return context
   }
@@ -2641,6 +2654,7 @@ ReaderApp.propTypes = {
   initialCollectionData:       PropTypes.object,
   initialQuery:                PropTypes.string,
   initialSearchTab:            PropTypes.string,
+  initialSearchDisableAutocorrect:  PropTypes.bool,
   initialSearchFilters:        PropTypes.array,
   initialSearchField:          PropTypes.string,
   initialSearchSortType:       PropTypes.string,
@@ -2698,5 +2712,6 @@ export {
   ProductsPage,
   SheetsLandingPage,
   NewsletterPage,
+  MobileAppPage,
   UpdatesPanel
 };

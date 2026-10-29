@@ -2720,16 +2720,18 @@ a.cardTitle:hover {
   font-weight: 500;
   height: auto;
 }
-.sidebarPromo.blue {
+/* The "colored treatment" for ads whose Strapi sidebarAdBackgroundColor is a DARK color (the
+   background itself arrives as an inline style; whitish colors deliberately skip this class and
+   keep the default styling — see SidebarAd in Promotions.jsx). */
+.sidebarPromo.colored {
   padding-top: 33px;
   padding-bottom: 33px;
-  background-color: var(--sefaria-blue);
   color: #FFF;
 }
-.sidebarPromo.blue h3 {
+.sidebarPromo.colored h3 {
   color: #fff
 }
-.sidebarPromo.blue a.button {
+.sidebarPromo.colored a.button {
   padding: 10px 14px;
   width: fit-content;
   text-align: center;
@@ -2746,13 +2748,22 @@ a.cardTitle:hover {
   margin-top: -2px;
 }
 
-.sidebarPromo.blue a.button img {
+/* Images an editor writes in an ad body's markdown: their own line, centered, never wider than
+   the sidebar. Scoped to the body paragraph so the button icon (a.button img above) keeps its
+   inline layout. */
+.sidebarPromo p img {
+  display: block;
+  margin: 10px auto;
+  max-width: 100%;
+}
+
+.sidebarPromo.colored a.button img {
   filter: invert(0);
 }
 .sidebarPromo a {
   margin-inline-start: 0px;
 }
-.sidebarPromo.blue.button a:hover {
+.sidebarPromo.colored a.button:hover {
   color: var(--sefaria-blue);
 }
 .sidebarPromo img {
@@ -4009,6 +4020,52 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 24px;
   height: 24px;
   cursor: pointer;
+}
+/* Search-query auto-correction banner. Long queries and suggestions wrap like normal text:
+   no indent, no truncation, links break across lines; a single over-long word breaks too. */
+.searchAutocorrectBanner {
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  background-color: var(--highlight-blue-light); /* #F0F7FF, Figma: functional-highlight-blue-light */
+  border-radius: 12px;
+  color: var(--near-black);
+  overflow-wrap: break-word;
+}
+.searchAutocorrectBanner-line {
+  font-size: 18px;
+  line-height: 1.4;
+  /* override the font variable, not font-family, which the universal * rule in fonts.css sets on every element */
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.searchAutocorrectBanner-secondary {
+  font-size: var(--sans-serif-small-font-size);
+}
+.searchAutocorrectBanner-line :is(.int-en, .int-he) {
+  color: var(--near-black);
+}
+/* the query words can be in either script, so Roboto for Latin with Heebo covering Hebrew glyphs */
+.searchAutocorrectBanner-corrected,
+.searchAutocorrectBanner-original {
+  --english-font: "Roboto", "Heebo", sans-serif;
+}
+/* strong weight follows the term's own language: 600 for English, 700 for Hebrew */
+.searchAutocorrectBanner-corrected {
+  font-weight: 600;
+  color: var(--near-black);
+  text-decoration: none;
+}
+.searchAutocorrectBanner-corrected:lang(he) {
+  font-weight: 700;
+}
+.searchAutocorrectBanner-original {
+  cursor: pointer;
+  color: var(--sefaria-blue); /* #18345D, Figma: text-link */
+  text-decoration: underline;
 }
 .searchContent .tab-view .tab-list .tab .searchTabCount {
   display: inline-block;
