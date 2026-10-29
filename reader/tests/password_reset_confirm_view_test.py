@@ -95,6 +95,32 @@ class CustomPasswordResetConfirmViewTest(TestCase):
         self.assertEqual(res.json(), {})
         self.assertEqual(len(mail.outbox), 0)
 
+    def _visit(self, url):
+        """GET the link as a reader's browser does; the page itself is rendered by the node server, so it is stubbed here."""
+        from unittest import mock
+        from django.http import HttpResponse
+        with mock.patch("sefaria.views.render_template", return_value=HttpResponse("page")):
+            return self.client.get(url)
+
+    # review F06: the new reader shows the expired-link page from the uid/set-password address (its node server redirects there), so
+    # the resend no longer carries the token. Opening the real expired link leaves proof in the session for the resend that follows.
+    def test_resend_from_the_set_password_address_after_opening_a_real_expired_link(self):
+        from django.core.cache import cache
+        cache.clear()
+        mail.outbox = []
+        self.assertEqual(self._visit(self._url(self._expired_token())).status_code, 200)
+        res = self._post_json(self._url(INTERNAL_RESET_SESSION_TOKEN), {"action": "resend"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(self.user.email, mail.outbox[0].to)
+
+    def test_opening_a_forged_link_leaves_no_proof_for_the_set_password_address(self):
+        mail.outbox = []
+        self._visit(self._url("bogus-token"))
+        res = self._post_json(self._url(INTERNAL_RESET_SESSION_TOKEN), {"action": "resend"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_resend_is_rate_limited_per_account(self):
         from django.core.cache import cache
         cache.clear()

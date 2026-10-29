@@ -196,7 +196,9 @@ http {
 
     {{- if or (eq $.Values.nodejs.mode "reader") (eq $.Values.nodejs.mode "optin") }}
     # Pages go to the new reader client first (in optin mode: only for a visitor who chose it, see $page_upstream); it hands what it does not render (Django's pages, its 404s, writes) to Varnish.
-    # If the client is down, Varnish/Django answers instead.
+    # If the client cannot be reached (nginx's own 502/504: down, refusing, timing out), Varnish/Django answers instead. A response the
+    # client sends itself is passed on as it is (no proxy_intercept_errors): its 503 means the API behind both readers is unavailable,
+    # which Django could not help with, and a write must never be replayed.
     location / {
       proxy_send_timeout  300;
       proxy_read_timeout  300;
