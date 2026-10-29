@@ -550,7 +550,9 @@ class ReaderApp extends Component {
           case "extended notes":
             var bookTitle = state.mode==="Connections" ?Sefaria.parseRef(state.currentlyVisibleRef).index : state.bookRef;
             hist.currVersions = state.currVersions;
-            hist.url = `${Sefaria.util.encodeTitleForUrl(bookTitle)}&notes${i>1 ? i : ''}=1`;
+            // The panel-number suffix is added by the merge loop below, which rewrites every `=`
+            // for the panel's position, so this literal stays unsuffixed.
+            hist.url = `${Sefaria.util.encodeTitleForUrl(bookTitle)}&notes=1`;
             hist.mode = "extended notes";
             break;
           case "search":
@@ -821,7 +823,7 @@ class ReaderApp extends Component {
             hist.url += "&lang=" + histories[0].lang;
           }
           if("aliyot" in histories[0]) {
-              url += "&aliyot=" + histories[0].aliyot;
+              hist.url += "&aliyot=" + histories[0].aliyot;
           }
           if(connectionsHistory.versionFilter) {
             hist.url += "&vside=" + Sefaria.util.encodeVtitle(connectionsHistory.versionFilter);
@@ -862,7 +864,7 @@ class ReaderApp extends Component {
             hist.url += `&lookup${i}=${encodeURIComponent(histories[i].selectedWords)}`;
           }
           if (histories[i].sidebarSearchQuery) {
-            hist.url += `&sbsq{i}=${histories[i].sidebarSearchQuery}`;
+            hist.url += `&sbsq${i}=${encodeURIComponent(histories[i].sidebarSearchQuery)}`;
           }
           if (histories[i].selectedNamedEntity) {
             hist.url += `&namedEntity${i}=${histories[i].selectedNamedEntity}`;
