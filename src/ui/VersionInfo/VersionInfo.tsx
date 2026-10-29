@@ -2,6 +2,7 @@ import { licenseUrl } from "~/lib/versions/translations";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import styles from "./VersionInfo.module.css";
 import { SITE_ORIGIN } from "~/lib/config";
+import { encodeTitle } from "~/lib/ref/url";
 
 export interface VersionInfoData {
   versionTitle: string;
@@ -65,7 +66,7 @@ export function VersionInfo({ version: v, urlRef, showImage }: VersionInfoProps)
           ) : null}
         </dl>
         <p className={styles.links}>
-          <a href={`${SITE_ORIGIN}/activity/${urlRef}/${v.language}/${v.versionTitle.replace(/\s/g, "_")}`} target="_blank" rel="noopener noreferrer">
+          <a href={`${SITE_ORIGIN}/activity/${urlRef}/${v.language}/${encodeTitle(v.versionTitle)}`} target="_blank" rel="noopener noreferrer">
             <InterfaceText en="Revision History" he="היסטורית עריכה" />
           </a>
           {v.purchaseInformationURL ? (

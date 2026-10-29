@@ -1,6 +1,7 @@
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { makeQueryClient } from "~/lib/cache/query-client";
+import { isFullCatalogQuery } from "~/lib/library/catalog-slice";
 import { routeTree } from "./routeTree.gen";
 import { isReaderPath } from "./lib/reader/paths";
 import { parseSearch, stringifySearch } from "./lib/reader/search-serializer";
@@ -25,7 +26,8 @@ export function getRouter() {
     pathParamsAllowedCharacters: [",", ":", "@"],
   });
   // Dehydrates server-fetched queries into the page and hydrates them on the client (no refetch).
-  setupRouterSsrQueryIntegration({ router, queryClient });
+  // ...except the whole catalog (3.5 MB, CODE_REVIEW R-14): library pages carry their slice instead; others load it on the client
+  setupRouterSsrQueryIntegration({ router, queryClient, dehydrateOptions: { shouldDehydrateQuery: (q) => !isFullCatalogQuery(q.queryKey) } });
   return router;
 }
 

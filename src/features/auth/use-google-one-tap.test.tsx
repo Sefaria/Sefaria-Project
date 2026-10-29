@@ -35,7 +35,7 @@ afterEach(() => {
 
 describe("credential callback (the reader picked an account)", () => {
   it("fires flow_started / method_chosen / process_started before the request answers", () => {
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", () => new Promise(() => {})));
+    server.use(http.post("*/api/auth/google/callback", () => new Promise(() => {})));
     mount();
     flush();
     act(() => void credential()({ credential: "tok" }));
@@ -45,7 +45,7 @@ describe("credential callback (the reader picked an account)", () => {
     expect(a.fireProcessEnded).not.toHaveBeenCalled();
   });
   it("success: process and flow end as success, then the page reloads", async () => {
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", () => HttpResponse.json({})));
+    server.use(http.post("*/api/auth/google/callback", () => HttpResponse.json({})));
     mount();
     flush();
     await act(async () => credential()({ credential: "tok" }));
@@ -55,7 +55,7 @@ describe("credential callback (the reader picked an account)", () => {
   });
   it("refused: failure with the server's error", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", () => HttpResponse.json({ error: "invalid_token" }, { status: 400 })));
+    server.use(http.post("*/api/auth/google/callback", () => HttpResponse.json({ error: "invalid_token" }, { status: 400 })));
     mount();
     flush();
     await act(async () => credential()({ credential: "tok" }));
@@ -65,7 +65,7 @@ describe("credential callback (the reader picked an account)", () => {
   });
   it("network failure: network_error", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
-    server.use(http.post("*/_allauth/browser/v1/auth/provider/token", () => HttpResponse.error()));
+    server.use(http.post("*/api/auth/google/callback", () => HttpResponse.error()));
     mount();
     flush();
     await act(async () => credential()({ credential: "tok" }));

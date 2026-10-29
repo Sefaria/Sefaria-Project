@@ -12367,6 +12367,48 @@
   "src": "inv_06_search.md#16"
  },
  {
+  "id": "SRC-111",
+  "area": "search",
+  "group": "Query handling",
+  "name": "Search auto-correction and suggestions",
+  "summary": "A misspelt query that finds nothing anywhere is searched as corrected, with a banner to search the original instead; suggestions show as 'Did you mean'.",
+  "details": [
+   "GET /api/search-autocorrect?q= → {corrected_query, suggested_queries} (master #3724, sc-47189).",
+   "A correction is applied only when the typed query finds 0 in Sources, Books, Authors and Topics; a failed count means no correction. Results and counts wait for the decision.",
+   "Banner in a role=status region above the tabs: 'These are results for X' / 'Search instead for Y' (Y a role=button, Enter/Space); or 'Did you mean: a, b'. Hebrew: 'מוצגות תוצאות עבור', 'חיפוש של', 'האם התכוונת ל:'.",
+   "'Search instead for' writes &disable_autocorrect=1 after search_tab; a new query drops it. The search box keeps the typed text; analytics keep the typed q."
+  ],
+  "audience": "all",
+  "platform": "all",
+  "status": "live",
+  "tier": "standard",
+  "refs": [
+   "static/js/sefaria/search.js",
+   "static/js/SearchPage.jsx",
+   "static/js/ElasticSearchQuerier.jsx"
+  ],
+  "src": "master #3724"
+ },
+ {
+  "id": "SRC-112",
+  "area": "search",
+  "group": "Query handling",
+  "name": "Auto-switch away from an empty tab",
+  "summary": "When the tab on screen has no results for the query, the page moves to the first tab (Sources, Books, Authors, Topics) that has some.",
+  "details": [
+   "Decided once per (query, correction), after every earlier tab's count is known; never once the reader clicked a tab for this query; never in a book's sidebar search.",
+   "The switch replaces the history entry and is not reported as a tab click."
+  ],
+  "audience": "all",
+  "platform": "all",
+  "status": "live",
+  "tier": "standard",
+  "refs": [
+   "static/js/SearchPage.jsx maybeAutoSwitchFromEmptyTab"
+  ],
+  "src": "master #3724"
+ },
+ {
   "id": "SHV-001",
   "area": "sheets-view",
   "group": "Entry points",

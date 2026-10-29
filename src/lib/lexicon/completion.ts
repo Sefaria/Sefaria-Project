@@ -8,7 +8,7 @@
  * @feature SRC-022 Dictionary headword search box
  */
 import { queryOptions } from "@tanstack/react-query";
-import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
+import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 
 export type Completion = readonly [headword: string, form: string];
@@ -19,8 +19,7 @@ export const containsEnglish = (s: string) => /[A-Za-z]/.test(s);
 export async function fetchLexiconCompletion(term: string, lexicon?: string, signal?: AbortSignal): Promise<Completion[]> {
   const path = `/api/words/completion/${encodeURIComponent(term.normalize("NFC"))}${lexicon ? `/${encodeURIComponent(lexicon)}` : ""}`;
   const r = await fetch(`${SEFARIA_API_ORIGIN}${path}`, { signal });
-  if (!r.ok) throw new SefariaApiError(`Completion: HTTP ${r.status}`, r.status);
-  const d = (await r.json()) as unknown;
+  const d = await apiJson<unknown>(r, "Completion");
   return Array.isArray(d) ? (d as Completion[]) : [];
 }
 

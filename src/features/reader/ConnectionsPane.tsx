@@ -54,6 +54,8 @@ import { TocView } from "~/ui/TocView/TocView";
 import { mergeTextResultsVersions, searchPathQueryOptions, textSearchQueryOptions, type SearchHit } from "~/lib/search/text-search";
 import { versionApiToParam } from "~/lib/workspace/url";
 import { SidebarSearch } from "~/ui/SidebarSearch/SidebarSearch";
+import { AutocorrectBanner } from "~/ui/SearchPage/SearchPage";
+import { autocorrectQueryOptions, decideAutocorrect, NO_AUTOCORRECT } from "~/lib/search/autocorrect";
 import { useLocation } from "@tanstack/react-router";
 import { currVersionsOf, sendFeedback } from "~/lib/feedback/feedback";
 import { ShareView } from "~/ui/ShareView/ShareView";
@@ -246,7 +248,19 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   // Search in this text: the book's search path first, then the query inside it, a page at a time
   const onSidebarSearch = view.view === "mode" && view.mode === "SidebarSearch";
   const searchPathQ = useQuery({ ...searchPathQueryOptions(indexTitle), enabled: onSidebarSearch && !!indexTitle });
-  const searchQ = useInfiniteQuery({ ...textSearchQueryOptions(props.searchQuery ?? "", searchPathQ.data ?? ""), enabled: onSidebarSearch && !!props.searchQuery && searchPathQ.data !== undefined });
+  // auto-correction in the book (SRC-111, master's searchInBook): decided by this book's count of the query as typed; "Search
+  // instead for" lives in the sidebar's own state, not the address
+  const sbQuery = props.searchQuery ?? "";
+  const sbReady = onSidebarSearch && !!sbQuery && searchPathQ.data !== undefined;
+  const [asTypedFor, setAsTypedFor] = useState<string | null>(null);
+  const sbAsTyped = asTypedFor === sbQuery;
+  const suggestionQ = useQuery({ ...autocorrectQueryOptions(sbQuery), enabled: sbReady && !sbAsTyped });
+  const typedSearchQ = useInfiniteQuery({ ...textSearchQueryOptions(sbQuery, searchPathQ.data ?? ""), enabled: sbReady });
+  const sbDecision = !sbReady || sbAsTyped
+    ? NO_AUTOCORRECT
+    : decideAutocorrect({ data: suggestionQ.data, error: suggestionQ.isError }, [typedSearchQ.isError ? "error" : typedSearchQ.data?.pages[0]?.total]);
+  const sbCorrected = sbDecision.pending ? null : sbDecision.corrected;
+  const searchQ = useInfiniteQuery({ ...textSearchQueryOptions(sbCorrected ?? sbQuery, searchPathQ.data ?? ""), enabled: sbReady && !sbDecision.pending });
   const searchHits = useMemo(() => (searchQ.data ? mergeTextResultsVersions(searchQ.data.pages.flatMap((p) => p.hits)) : undefined), [searchQ.data]);
   const location = useLocation();
   const onNavigation = view.view === "mode" && view.mode === "Navigation";
@@ -374,7 +388,18 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           query={props.searchQuery}
           onSearch={props.onSearchQuery}
           results={searchHits}
-          loading={searchPathQ.isPending || searchQ.isPending}
+          banner={
+            sbQuery ? (
+              <AutocorrectBanner
+                corrected={sbCorrected}
+                original={sbQuery}
+                suggested={sbDecision.pending ? null : sbDecision.suggested}
+                onSearchOriginal={() => setAsTypedFor(sbQuery)}
+                onSearch={(q) => props.onSearchQuery(q)}
+              />
+            ) : undefined
+          }
+          loading={searchPathQ.isPending || sbDecision.pending || searchQ.isPending}
           loadingMore={searchQ.isFetchingNextPage}
           hasMore={searchQ.hasNextPage}
           onLoadMore={() => void searchQ.fetchNextPage()}
@@ -493,7 +518,8 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           topicHref={(slug) => `${SITE_ORIGIN}/topics/${slug}`}
           versions={aboutVersions(available, { translationTitle: props.section?.translationVersion?.versionTitle, sourceTitle: props.currentSourceTitle })}
           order={versionSectionOrder(settings.language)}
-          urlRef={refToUrl(selectionRef)}
+          // a dictionary's About names its section, not the entry chosen (master AboutBox, #3730)
+          urlRef={refToUrl(lexiconName ? sectionRef : selectionRef)}
           selectSourceHref={props.selectSourceHref}
           onSelectSource={(v) => (readerAnalytics.versionSelectClicked(versionClick(v)), props.onSelectSource(v))}
           openHref={(v) => (v.isPrimary ? props.versionOpenHref(v) : props.translationPreviewHref(v as unknown as TranslationVersion))}

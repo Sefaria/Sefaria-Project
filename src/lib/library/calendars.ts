@@ -7,7 +7,7 @@
  * @feature LIB-040 Sidebar module: Daf Yomi
  */
 import { queryOptions } from "@tanstack/react-query";
-import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
+import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 
 export interface Bilingual {
@@ -34,8 +34,7 @@ export const calendarsQueryOptions = (diaspora = true) =>
       queryKey: ["calendars", diaspora ? "diaspora" : "israel"] as const,
       queryFn: async ({ signal }: { signal: AbortSignal }): Promise<CalendarItem[]> => {
         const r = await fetch(`${SEFARIA_API_ORIGIN}/api/calendars?diaspora=${diaspora ? 1 : 0}`, { signal });
-        if (!r.ok) throw new SefariaApiError(`Calendars: HTTP ${r.status}`, r.status);
-        return ((await r.json()) as { calendar_items: CalendarItem[] }).calendar_items;
+        return (await apiJson<{ calendar_items: CalendarItem[] }>(r, `Calendars`)).calendar_items;
       },
     }),
     staleTime: 60 * 60 * 1000,

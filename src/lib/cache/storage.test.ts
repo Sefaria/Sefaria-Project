@@ -74,4 +74,17 @@ describe("persistHydrated", () => {
     expect(stored).toHaveLength(1);
     expect(String(stored[0])).toMatch(/^sr-text-/);
   });
+  it("does not write again what the disk already has (fetched here, or restored from disk)", async () => {
+    const { QueryClient } = await import("@tanstack/react-query");
+    const { persistHydrated, resetPersisters } = await import("./persisters");
+    resetPersisters();
+    await sweepDisk();
+    const qc = new QueryClient();
+    qc.getQueryCache().build(qc, { queryKey: ["text", "Genesis 2"], meta: { dataClass: "text" } }).setData({ ok: 2 });
+    expect(await persistHydrated(qc)).toBe(1);
+    await new Promise((r) => setTimeout(r, 50)); // the persister's write lands a moment later
+    expect(await persistHydrated(qc)).toBe(0); // the idle pass again: nothing new
+    qc.getQueryCache().find({ queryKey: ["text", "Genesis 2"] })!.setData({ ok: 3 }, { updatedAt: Date.now() + 1000, manual: true });
+    expect(await persistHydrated(qc)).toBe(1); // newer data is written
+  });
 });

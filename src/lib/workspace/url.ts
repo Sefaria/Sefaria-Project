@@ -146,8 +146,13 @@ const safeDecode = (s: string) => {
 };
 /** A value the old client wrote as it is. */
 const raw = (key: string, value: string | number): Param => ({ key, value: String(value), wire: String(value) });
-/** A value whose written form is already encoded (refs, version titles): the router gets it decoded, as before. */
+/** A value whose written form is already encoded (refs): the router gets it decoded, as before. */
 const encoded = (key: string, wire: string): Param => ({ key, value: safeDecode(wire), wire });
+/**
+ * A version (`family|Title_With_Underscores`, its `; & # +` escaped in the written form, master's encodeVtitle): the router gets the
+ * title itself. Decoding the whole written form instead failed on a title holding a `%` and left its escapes in the value.
+ */
+const version = (key: string, wire: string): Param => ({ key, value: wire.replace(/%3B|%26|%23|%2B/gi, (c) => ({ "%3B": ";", "%26": "&", "%23": "#", "%2B": "+" })[c.toUpperCase()]!), wire });
 /**
  * Free text the old client wrote as it is (a sidebar search, a view name): written with `%` and `&` escaped, so the legacy string
  * workspaceUrl returns can be parsed back safely; values with neither (every URL sefaria.org writes in practice) keep their bytes.
@@ -163,14 +168,14 @@ const component = (key: string, value: string): Param => ({ key, value, wire: en
 function workspaceParams(ws: Workspace, d: UrlDefaults): { path: string; params: Param[] } | null {
   const h = histories(ws, d);
   if (!h.length) return null;
-  const vparams = (pairs: [string, string][], i: number) => pairs.map(([l, v]) => encoded(`v${l}${i > 1 ? i : ""}`, v));
+  const vparams = (pairs: [string, string][], i: number) => pairs.map(([l, v]) => version(`v${l}${i > 1 ? i : ""}`, v));
   const first = h[0] as Extract<Hist, { mode: "Text" }>;
   let path = first.url;
   let params: Param[] = [...vparams(first.versions, 0), raw("lang", first.lang), ...("aliyot" in first ? [raw("aliyot", first.aliyot!)] : [])];
   for (let i = 1; i < h.length; i++) {
     const cur = h[i]!, prev = h[i - 1]!;
     if (cur.mode === "Connections" && prev.mode === "Text") {
-      const tail = cur.vside ? [encoded(`vside${i === 1 ? "" : i}`, encodeVtitle(cur.vside))] : [];
+      const tail = cur.vside ? [version(`vside${i === 1 ? "" : i}`, encodeVtitle(cur.vside))] : [];
       if (i === 1) {
         // the short form for text + sidebar: the URL is the sidebar's ref; panel 1's aliyot is not carried (old quirk)
         path = cur.url;

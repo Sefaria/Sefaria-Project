@@ -14,7 +14,7 @@
  * @feature SRC-084 FilterNode selection model
  */
 import { infiniteQueryOptions, queryOptions, type InfiniteData } from "@tanstack/react-query";
-import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
+import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 import { isCategory, type TocNode } from "~/lib/catalog/toc";
 import type { SearchHit } from "./text-search";
@@ -32,6 +32,8 @@ export interface SearchParams {
   exact: boolean;
   /** Applied path filters: category paths ("Tanakh") and book paths ("Tanakh/Torah/Genesis"). */
   filters: string[];
+  /** "Search instead for" the query as typed: no auto-correction (`disable_autocorrect=1`, SRC-111). */
+  disableAutocorrect?: boolean;
 }
 
 const TABS: readonly SearchTab[] = ["sources", "books", "authors", "topics"];
@@ -41,7 +43,14 @@ export function parseSearchParams(raw: Record<string, unknown>): SearchParams {
   const s = (k: string) => (typeof raw[k] === "string" ? (raw[k] as string) : undefined);
   const tab = TABS.includes(s("search_tab") as SearchTab) ? (s("search_tab") as SearchTab) : "sources";
   const filters = (s("tpathFilters") ?? "").split("|").filter(Boolean);
-  return { q: s("q") ?? "", tab, sort: s("tsort") === "chronological" ? "chronological" : "relevance", exact: s("tvar") === "0", filters };
+  return {
+    q: s("q") ?? "",
+    tab,
+    sort: s("tsort") === "chronological" ? "chronological" : "relevance",
+    exact: s("tvar") === "0",
+    filters,
+    ...(s("disable_autocorrect") === "1" ? { disableAutocorrect: true } : {}),
+  };
 }
 
 /** Params → the old site's query string (all of tab, search_tab, tvar and tsort are written, filters only when applied). */
@@ -50,6 +59,8 @@ export function searchParamsToQuery(p: SearchParams): Record<string, string> {
     q: p.q,
     tab: "text",
     search_tab: p.tab,
+    // master's position: right after search_tab (ReaderApp.jsx)
+    ...(p.disableAutocorrect ? { disable_autocorrect: "1" } : {}),
     tvar: p.exact ? "0" : "1",
     tsort: p.sort,
     ...(p.filters.length ? { tpathFilters: p.filters.join("|") } : {}),
@@ -91,8 +102,7 @@ export interface SearchResponse {
 export async function fetchSearch(body: object, signal?: AbortSignal): Promise<SearchResponse> {
   // text/plain keeps the cross-origin request "simple" (see text-search.ts)
   const r = await fetch(`${SEFARIA_API_ORIGIN}/api/search-wrapper/es8`, { method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify(body), signal });
-  if (!r.ok) throw new SefariaApiError(`Search: HTTP ${r.status}`, r.status);
-  const d = (await r.json()) as { hits?: { total?: { value?: number; relation?: string } | number; hits?: SearchHit[] }; aggregations?: { path?: { buckets?: { key: string; doc_count: number }[] } } };
+  const d = await apiJson<{ hits?: { total?: { value?: number; relation?: string } | number; hits?: SearchHit[] }; aggregations?: { path?: { buckets?: { key: string; doc_count: number }[] } } }>(r, "Search");
   const t = d.hits?.total;
   return {
     total: typeof t === "number" ? t : (t?.value ?? 0),

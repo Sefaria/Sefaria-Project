@@ -3,7 +3,7 @@ import { notFound, redirect } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
 import { SefariaApiError } from "~/lib/api/client";
 import { getRefIndex } from "~/lib/cache/ref-index-singleton";
-import { refToUrl, urlToRef } from "~/lib/ref/url";
+import { isSplatOf, refToUrl, urlToRef } from "~/lib/ref/url";
 import type { ReaderSearch } from "~/lib/reader/url-state";
 import { indexMetaQueryOptions } from "~/lib/text/commentary";
 import { loadReaderPassage, passageUrl, selectionKey, type VersionSelection } from "~/lib/text/queries";
@@ -130,9 +130,9 @@ export async function loadWorkspaceRoute(args: {
     }
   });
   const canonicalPath = refToUrl(panels[ids[0]!]!.ref);
-  const pathDiffers = canonicalPath !== args.splat.replace(/^\/+|\/+$/g, "");
+  const pathDiffers = !isSplatOf(args.splat, canonicalPath);
   if (pathDiffers || panelsDiffer) {
-    throw redirect({ to: "/$", params: { _splat: canonicalPath }, search: query as never, statusCode: 301 });
+    throw redirect({ to: `/${canonicalPath}` as never, search: query as never, statusCode: 301 });
   }
   return { workspace: ws, panels };
 }

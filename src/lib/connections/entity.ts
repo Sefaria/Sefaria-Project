@@ -7,7 +7,7 @@
  * @feature TXD-022 Inline named-entity (topic) links in text
  */
 import { queryOptions } from "@tanstack/react-query";
-import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
+import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 
 export interface Bilingual {
@@ -32,8 +32,7 @@ export const entityQueryOptions = (slug: string) =>
       queryFn: async ({ signal }: { signal: AbortSignal }): Promise<EntityAnswer> => {
         const q = "annotate_time_period=1&with_html=0&with_links=0&annotate_links=0&with_refs=0&group_related=0&with_indexes=0";
         const r = await fetch(`${SEFARIA_API_ORIGIN}/api/v2/topics/${encodeURIComponent(slug)}?${q}`, { signal });
-        if (!r.ok) throw new SefariaApiError(`Topic ${slug}: HTTP ${r.status}`, r.status);
-        return (await r.json()) as EntityAnswer;
+        return apiJson<EntityAnswer>(r, `Topic ${slug}`);
       },
     }),
   });

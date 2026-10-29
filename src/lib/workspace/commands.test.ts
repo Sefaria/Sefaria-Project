@@ -23,7 +23,7 @@ describe("workspace commands (outside React: CODE_REVIEW §3.3)", () => {
     const ws = decodeWorkspace("Genesis 1:1", { lang: "bi", with: "SidebarSearch", sbsq: "100% & p2=x" });
     await createWorkspaceCommands(router, defaults).go(ws, { state: { nav: "stay" } });
     const opts = navigate.mock.calls[0]![0] as { search: Record<string, string>; state: unknown; to: string };
-    expect(opts.to).toBe("/$");
+    expect(opts.to).toBe("/Genesis.1.1"); // the path as written (a splat param would be encoded again)
     expect(opts.search.sbsq).toBe("100% & p2=x");
     expect(opts.search.p2).toBeUndefined();
     expect(opts.state).toMatchObject({ nav: "stay", panelKeys: [expect.stringMatching(/^k/)] }); // a panel with no key yet gets a fresh one

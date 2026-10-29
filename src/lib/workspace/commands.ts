@@ -119,8 +119,8 @@ export function createWorkspaceCommands(router: WorkspaceRouter, getDefaults: ()
   };
   const navigateTo = async (enc: { path: string; search: Record<string, string> }, opts: { replace?: boolean; state?: unknown }) => {
     await router.navigate({
-      to: READER_ROUTE,
-      params: { _splat: enc.path.slice(1) },
+      // the path as written (see RouterLink.toRouterLocation: a splat param would be encoded twice)
+      to: enc.path,
       search: enc.search,
       replace: opts.replace,
       resetScroll: false,

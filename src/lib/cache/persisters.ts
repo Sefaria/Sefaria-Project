@@ -4,7 +4,7 @@
 import { experimental_createQueryPersister, type PersistedQuery } from "@tanstack/query-persist-client-core";
 import type { QueryClient } from "@tanstack/react-query";
 import { CACHE_BUSTER, POLICIES, type DataClass } from "./policies";
-import { createIdbStorage, resetIdbStore, sweepOnce, type SweepResult } from "./storage";
+import { createIdbStorage, resetIdbStore, storedDataUpdatedAt, sweepOnce, type SweepResult } from "./storage";
 
 type QueryPersister = ReturnType<typeof experimental_createQueryPersister<PersistedQuery>>;
 
@@ -17,7 +17,8 @@ export function getPersister(dataClass: DataClass): QueryPersister | undefined {
     const storage = createIdbStorage();
     if (!storage) return undefined;
     p = experimental_createQueryPersister<PersistedQuery>({
-      storage,
+      // an answer with API warnings is never written to disk (see withPolicy)
+      storage: { ...storage, setItem: (key, value) => (hasApiWarnings(value.state.data) ? storage.removeItem(key) : storage.setItem(key, value)) },
       buster: CACHE_BUSTER,
       maxAge: POLICIES[dataClass].maxAge,
       prefix: `sr-${dataClass}`,
@@ -28,6 +29,12 @@ export function getPersister(dataClass: DataClass): QueryPersister | undefined {
   }
   return p;
 }
+
+/** True for an API answer that carries `warnings` (the v3 texts API: a requested version it does not have, …). */
+export const hasApiWarnings = (data: unknown): boolean => {
+  const w = (data as { warnings?: unknown } | null | undefined)?.warnings;
+  return Array.isArray(w) && w.length > 0;
+};
 
 /** A disk key's lifetime, from its class prefix (`sr-text-…`); undefined for a key of no known class. */
 export function maxAgeForKey(key: string): number | undefined {
@@ -61,6 +68,9 @@ export async function persistHydrated(queryClient: QueryClient): Promise<number>
     if (!dataClass || query.state.status !== "success" || query.state.data === undefined) continue;
     const persister = getPersister(dataClass);
     if (!persister) continue;
+    // already on disk, as new (fetched on this page and written then, or restored from disk): no second write (CODE_REVIEW low)
+    const onDisk = await storedDataUpdatedAt(`sr-${dataClass}-${query.queryHash}`);
+    if (onDisk !== undefined && onDisk >= query.state.dataUpdatedAt) continue;
     await persister.persistQuery(query).catch(() => undefined);
     n++;
   }

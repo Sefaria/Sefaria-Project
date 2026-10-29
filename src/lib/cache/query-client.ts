@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { isCancelledError, QueryClient } from "@tanstack/react-query";
 import { SefariaApiError } from "~/lib/api/client";
 
 /**
@@ -29,6 +29,18 @@ export function makeQueryClient(): QueryClient {
       },
     },
   });
+  // A fetch is cancelled when its last observer unmounts (a hidden Suspense boundary, a closed panel) and it read its AbortSignal; every
+  // other caller awaiting the same fetch then rejects with CancelledError, a route loader included, which showed the error page
+  // (CODE_REVIEW R-39). Nothing here cancels a query on purpose, so a caller whose fetch was cancelled under it simply asks again, once.
+  const fetchQuery = client.fetchQuery.bind(client);
+  client.fetchQuery = (async (options: Parameters<typeof fetchQuery>[0]) => {
+    try {
+      return await fetchQuery(options);
+    } catch (e) {
+      if (!isCancelledError(e)) throw e;
+      return fetchQuery(options);
+    }
+  }) as typeof fetchQuery;
   if (typeof window === "undefined") {
     const defaults = client.defaultQueryOptions.bind(client);
     client.defaultQueryOptions = ((options: Parameters<typeof defaults>[0]) => ({ ...defaults(options), gcTime: Infinity })) as typeof defaults;

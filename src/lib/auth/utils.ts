@@ -6,7 +6,11 @@
  * @feature RTE-052 Other page params (login/next …)
  */
 
-export const ALLAUTH_PROVIDER_TOKEN_URL = "/_allauth/browser/v1/auth/provider/token";
+/**
+ * Google sign-in (the button's popup and One Tap) posts `{id_token}` here (master's sso/urls.py `google_web`, in place of allauth's stock
+ * provider-token endpoint, which had no `outcome` for the auth funnel): 200 `{outcome}`, 400 `{error}` (CODE_REVIEW R-37).
+ */
+export const GOOGLE_CALLBACK_URL = "/api/auth/google/callback";
 
 export type AuthFlow = "login" | "register" | "reset";
 

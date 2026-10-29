@@ -85,8 +85,12 @@ export function urlToRef(urlRef: string): string {
   return toHumanRef(parseUrlRef(urlRef));
 }
 
-function encodeTitle(title: string): string {
-  return title.replace(/ /g, "_").replace(/\?/g, "%3F").replace(/#/g, "%23").replace(/%(?![0-9A-F]{2})/gi, "%25");
+/**
+ * A title as one path segment (master's Util.encodeTitleForUrl, #3790: titles may hold `/` and `\`): spaces become `_`; `%`, `?`, `/`
+ * and `\` are escaped (and `#`, which would end the path). Titles are raw text, so `%` is always escaped.
+ */
+export function encodeTitle(title: string): string {
+  return title.replace(/ /g, "_").replace(/[%?/\\#]/g, (c) => ({ "%": "%25", "?": "%3F", "/": "%2F", "\\": "%5C", "#": "%23" })[c]!);
 }
 
 /** "Genesis 1:1" → "Genesis.1.1"; "Pesach Haggadah, Kadesh" → "Pesach_Haggadah,_Kadesh". */
@@ -94,6 +98,14 @@ export function refToUrl(ref: string): string {
   const p = parseHumanRef(ref);
   const title = encodeTitle(p.title);
   return p.sections.length ? `${title}.${formatSections(p.sections, p.toSections, ".")}` : title;
+}
+
+/**
+ * Is the router's splat (which it hands over decoded: "Book/Part\\Object.1", "What?.1") this URL ref ("Book%2FPart%5CObject.1")? A
+ * comparison of the two raw strings never matched a title holding `?`, `/`, `\\` or `%`, and redirected to itself (#3790).
+ */
+export function isSplatOf(splat: string, urlRef: string): boolean {
+  return splat.replace(/^\/+|\/+$/g, "") === decode(urlRef);
 }
 
 /** True when the ref addresses a range of more than one segment/section. */

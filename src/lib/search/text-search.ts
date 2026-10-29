@@ -12,7 +12,7 @@
  * @feature SRC-097 Search path filter API
  */
 import { infiniteQueryOptions, queryOptions, type InfiniteData } from "@tanstack/react-query";
-import { SEFARIA_API_ORIGIN, SefariaApiError } from "~/lib/api/client";
+import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
 
 export const SEARCH_PAGE_SIZE = 100;
@@ -70,8 +70,7 @@ export const searchPathQueryOptions = (title: string) =>
       queryKey: ["search", "path-filter", title] as const,
       queryFn: async ({ signal }: { signal: AbortSignal }): Promise<string> => {
         const r = await fetch(`${SEFARIA_API_ORIGIN}/api/search-path-filter/${encodeURIComponent(title)}`, { signal });
-        if (!r.ok) throw new SefariaApiError(`Search path of ${title}: HTTP ${r.status}`, r.status);
-        return (await r.json()) as string;
+        return apiJson<string>(r, `Search path of ${title}`);
       },
     }),
   });
@@ -84,8 +83,7 @@ export async function fetchTextSearchPage(query: string, path: string, start: nu
     body: JSON.stringify(textQueryBody(query, path, start)),
     signal,
   });
-  if (!r.ok) throw new SefariaApiError(`Search for "${query}": HTTP ${r.status}`, r.status);
-  const d = (await r.json()) as { hits?: { total?: { value?: number } | number; hits?: SearchHit[] } };
+  const d = await apiJson<{ hits?: { total?: { value?: number } | number; hits?: SearchHit[] } }>(r, `Search for "${query}"`);
   const total = typeof d.hits?.total === "number" ? d.hits.total : (d.hits?.total?.value ?? 0);
   return { total, hits: d.hits?.hits ?? [] };
 }

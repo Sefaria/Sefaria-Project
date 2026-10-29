@@ -27,7 +27,7 @@ export function SearchBar({ query, onSubmit }: { query: string; onSubmit: (q: st
     if (t && t !== query) onSubmit(t);
   };
   return (
-    <div className={styles.bar} role="search">
+    <div className={styles.bar} role="search" data-search-page-bar="">
       <button type="button" aria-label={he ? "שליחת חיפוש" : "Submit search"} onClick={run}><Icon name="search" size="26px" /></button>
       <input value={v} maxLength={75} dir="auto" enterKeyHint="search" aria-label={he ? "חיפוש" : "Search"} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === "Enter" && run()} />
       {v ? <button type="button" aria-label={he ? "ניקוי החיפוש" : "Clear search term"} onClick={() => setV("")}><Icon name="close" size="20px" /></button> : null}
@@ -405,12 +405,77 @@ export function EntityResults({ type, hits, empty, topicParents, itemProps }: { 
 }
 
 const NONE: Record<SearchTab, { h: [string, string]; body: [string, string]; cta: [string, string]; href: string; img: string }> = {
-  sources: { h: ["No sources found for", "לא נמצאו מקורות עבור"], body: ["Try a different spelling or shorter search term, change your filter/toggle selections, or browse the library.", "נסו איות אחר או מונח חיפוש קצר יותר, תשנו את הפילטרים/טוגל, או עיינו בספרייה."], cta: ["Browse Library", "לעיון בספרייה"], href: "/texts", img: "Source" },
-  books: { h: ["No books found for", "לא נמצאו ספרים עבור"], body: ["Try a different spelling or shorter search term, or browse the library.", "נסו איות אחר, או מונח חיפוש קצר יותר, או עיינו בספרייה."], cta: ["Browse Library", "לעיון בספרייה"], href: "/texts", img: "Books" },
-  authors: { h: ["No authors found for", "לא נמצאו מחברים עבור"], body: ["Try a different spelling or shorter search term, or browse all authors.", "נסו איות אחר, או מונח חיפוש קצר יותר, או עיינו בכל המחברים."], cta: ["Browse Authors", "לעיון בכל המחברים"], href: `${SITE_ORIGIN}/people`, img: "Authors" },
-  topics: { h: ["No topics found for", "לא נמצאו נושאים עבור"], body: ["Try a different spelling or shorter search term, or browse all topics.", "נסו איות אחר, או מונח חיפוש קצר יותר, או עיינו בכל הנושאים."], cta: ["Browse Topics", "לעיון בכל הנושאים"], href: `${SITE_ORIGIN}/topics`, img: "Topics" },
+  sources: { h: ["No sources found for", "לא נמצאו מקורות עבור"], body: ["Try a different spelling or shorter search term, change your filter/toggle selections, or browse the library.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בספרייה."], cta: ["Browse Library", "לעיון בספרייה"], href: "/texts", img: "Source" },
+  books: { h: ["No books found for", "לא נמצאו ספרים עבור"], body: ["Try a different spelling or shorter search term, or browse the library.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בספרייה."], cta: ["Browse Library", "לעיון בספרייה"], href: "/texts", img: "Books" },
+  authors: { h: ["No authors found for", "לא נמצאו מחברים עבור"], body: ["Try a different spelling or shorter search term, or browse all authors.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בכל המחברים."], cta: ["Browse Authors", "לעיון בכל המחברים"], href: `${SITE_ORIGIN}/people`, img: "Authors" },
+  topics: { h: ["No topics found for", "לא נמצאו נושאים עבור"], body: ["Try a different spelling or shorter search term, or browse all topics.", "נסו איות אחר או מונח חיפוש קצר יותר, או עיינו בכל הנושאים."], cta: ["Browse Topics", "לעיון בכל הנושאים"], href: `${SITE_ORIGIN}/topics`, img: "Topics" },
 };
 /** Nothing found: an illustration per tab, the words, a way on, and where to report a problem (VERIFIED on sefaria.org, SRC-064). */
+const queryLang = (q: string) => (/[\u0590-\u05FF]/.test(q) ? { dir: "rtl" as const, lang: "he" } : { dir: "ltr" as const, lang: "en" });
+
+/** A query word the reader can search: a button that keeps reading as part of the sentence (master's `_AutocorrectTerm`). */
+function AutocorrectTerm({ query, onSearch }: { query: string; onSearch: (q: string) => void }) {
+  return (
+    <span
+      className={styles.autocorrectTerm}
+      {...queryLang(query)}
+      role="button"
+      tabIndex={0}
+      onClick={() => onSearch(query)}
+      onKeyDown={(e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        onSearch(query);
+        // the term goes away with the banner: keyboard focus goes to the search box rather than the page
+        document.querySelector<HTMLInputElement>("[data-search-page-bar] input")?.focus();
+      }}
+    >
+      {query}
+    </span>
+  );
+}
+
+/**
+ * Above the tabs: "These are results for X / Search instead for Y" when the query was corrected, or "Did you mean: a, b" (SRC-111).
+ * The status region is always there, even empty: a live region mounted with its content is not reliably announced.
+ */
+export function AutocorrectBanner({ corrected, original, suggested, onSearchOriginal, onSearch }: {
+  corrected: string | null;
+  original: string;
+  suggested: readonly string[] | null;
+  onSearchOriginal: () => void;
+  onSearch: (q: string) => void;
+}) {
+  return (
+    <div role="status">
+      {corrected ? (
+        <div className={styles.autocorrect}>
+          <div className={styles.autocorrectLine}>
+            <InterfaceText en="These are results for" he="מוצגות תוצאות עבור" />{" "}
+            <span className={styles.autocorrectCorrected} {...queryLang(corrected)}>{corrected}</span>
+          </div>
+          <div className={`${styles.autocorrectLine} ${styles.autocorrectSecondary}`}>
+            <InterfaceText en="Search instead for" he="חיפוש של" />{" "}
+            <AutocorrectTerm query={original} onSearch={() => onSearchOriginal()} />
+          </div>
+        </div>
+      ) : suggested?.length ? (
+        <div className={styles.autocorrect}>
+          <div className={styles.autocorrectLine}>
+            <InterfaceText en="Did you mean:" he="האם התכוונת ל:" />{" "}
+            {suggested.map((q, i) => (
+              <span key={q}>
+                {i > 0 ? ", " : null}
+                <AutocorrectTerm query={q} onSearch={onSearch} />
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function NoResults({ tab, query }: { tab: SearchTab; query: string }) {
   const he = useInterfaceLang() === "hebrew";
   const n = NONE[tab];

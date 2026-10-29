@@ -58,8 +58,14 @@ export function validateReaderSearch(raw: Record<string, unknown>): ReaderSearch
   return out;
 }
 
-export const decodeVtitle = (t: string): string => t.replace(/_/g, " ").replace(/%3B/gi, ";");
-export const encodeVtitle = (t: string): string => t.replace(/\s/g, "_").replace(/;/g, "%3B");
+/**
+ * A version title in a query value (master's Util.encodeVtitle, #3790): spaces become `_`; `;`, `&`, `#` and `+` are escaped (each would
+ * end or change the value: `+` reads back as a space); Hebrew, `,`, `:`, `/` and `|` stay readable.
+ */
+export const encodeVtitle = (t: string): string =>
+  t.replace(/\s/g, "_").replace(/[;&#+]/g, (c) => ({ ";": "%3B", "&": "%26", "#": "%23", "+": "%2B" })[c]!);
+export const decodeVtitle = (t: string): string =>
+  t.replace(/_/g, " ").replace(/%3B|%26|%23|%2B/gi, (c) => ({ "%3B": ";", "%26": "&", "%23": "#", "%2B": "+" })[c.toUpperCase()]!);
 
 /** "english|Title_With_Underscores" → v3 API `version` value "english|Title With Underscores". */
 export function versionParamToApi(param: string | undefined): string | undefined {
