@@ -17932,6 +17932,10 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocInlineButton { margin-top: 0; font-size: inherit; }
 .devPocChoice a { text-decoration: underline; }
 .devPocCountFull { color: #69501e; }
+/* A dir="auto" field can turn its inline end away from the count, so the room for the count
+   is kept on the page's end side whatever the typed text's direction. */
+.devPocPage .sefaria-input-field.has-addon input.sefaria-input-control { padding-left: 16px; padding-right: 64px; }
+.interface-hebrew .devPocPage .sefaria-input-field.has-addon input.sefaria-input-control { padding-left: 64px; padding-right: 16px; }
 .devPocListingSummary { padding-inline-start: var(--devPoc-s2); border-inline-start: 3px solid #d4dfea; }
 .devPocListingSummary .devPocHelp { margin: 2px 0 0; }
 .devPocLinked { margin: 0; }
