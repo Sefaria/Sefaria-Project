@@ -26,6 +26,9 @@ data:
 
     loglevel = "warning"
     preload_app = True
+
+    # Redacts api_key query parameters from the access log (request line, query string, referer)
+    logger_class = "sefaria.system.gunicorn_logger.ScrubbingLogger"
     
     # Gunicorn worker restart policy (infreq restarts, protect from leaks)
     if os.getenv("MAX_REQUESTS") and os.getenv("MAX_REQUESTS_JITTER"):

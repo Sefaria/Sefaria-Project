@@ -3,6 +3,7 @@ package authz
 import (
 	"context"
 	"log/slog"
+	"net/url"
 	"strings"
 	"time"
 
@@ -58,12 +59,41 @@ func limitMetadata(d Decision) (*structpb.Struct, error) {
 	return structpb.NewStruct(fields)
 }
 
+// apiKeyQueryNames returns the exact raw name of every query parameter in path whose percent-decoded name is api_key or
+// apikey in any letter case, once per distinct spelling. Envoy removes a parameter by the name as written, so the
+// names come from the request itself: %61pi_key, api_%6bey, API%5FKEY and repeated parameters are all covered, and a
+// parameter such as apikeys, my_api_key or next never is. Only the query part (after the first question mark) counts.
+func apiKeyQueryNames(path string) []string {
+	_, query, ok := strings.Cut(path, "?")
+	if !ok {
+		return nil
+	}
+	var out []string
+	seen := map[string]bool{}
+	for _, param := range strings.Split(query, "&") {
+		raw, _, _ := strings.Cut(param, "=")
+		if seen[raw] {
+			continue
+		}
+		name, err := url.PathUnescape(raw)
+		if err != nil {
+			continue
+		}
+		if strings.EqualFold(name, "api_key") || strings.EqualFold(name, "apikey") {
+			seen[raw] = true
+			out = append(out, raw)
+		}
+	}
+	return out
+}
+
 func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*authv3.CheckResponse, error) {
 	_ = ctx
 	t0 := time.Now()
 	httpReq := req.GetAttributes().GetRequest().GetHttp()
 	h := httpReq.GetHeaders()
 	path := httpReq.GetPath()
+	keyParams := apiKeyQueryNames(path)
 	if i := strings.IndexByte(path, '?'); i >= 0 {
 		path = path[:i]
 	}
@@ -80,7 +110,7 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 					hdr("x-sefaria-auth-result", d.Result),
 					hdr("x-sefaria-meter", d.Meter),
 				},
-				QueryParametersToRemove: []string{"api_key"},
+				QueryParametersToRemove: keyParams,
 			}},
 		}
 		if d.KeyNotAccepted {
