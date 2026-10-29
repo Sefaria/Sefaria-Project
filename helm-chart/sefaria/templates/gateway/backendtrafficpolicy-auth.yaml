@@ -1,0 +1,84 @@
+{{- if and .Values.authService.enabled .Values.gateway.enabled .Values.authService.rateLimit.enabled }}
+{{- $rl := .Values.authService.rateLimit }}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: {{ .Values.deployEnv }}-auth-ratelimit
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ .Values.deployEnv }}
+  rateLimit:
+    type: Global                                   # counters in the controller's Redis, shared by all Envoy replicas
+    global:
+      # Rules are appended in a fixed order: append only. Reordering or inserting changes which counter a request
+      # lands in. The limit of rules 1-2 is read per request from the ext_authz dynamic metadata, which the auth
+      # service fills from the project's tier tables; `requests` is the static fallback when the auth service is down
+      # (fail-open) or sends no metadata, so nothing is ever unlimited.
+      rules:
+        - clientSelectors:                         # 1. per minute, per project (keyed requests only)
+            - headers:
+                - { name: x-sefaria-tier, type: RegularExpression, value: "^(anonymous|embed)$", invert: true }
+                - { name: x-sefaria-project, type: Distinct }
+          shared: true                             # one counter per project across hosts and route matches
+          limit:
+            requests: {{ $rl.defaults.perMinutePerProject }}
+            unit: Minute
+            fromMetadata: { namespace: envoy.filters.http.ext_authz, key: limit_minute }{{ if $rl.headers }}
+          xRateLimitHeaders: DraftVersion03{{ end }}
+        {{- range $meter, $_ := .Values.authService.meters }}
+        - clientSelectors:                         # 2. per month, per project, one rule per meter (keyed requests only)
+            - headers:
+                - { name: x-sefaria-tier, type: RegularExpression, value: "^(anonymous|embed)$", invert: true }
+                - { name: x-sefaria-meter, type: Exact, value: {{ $meter }} }
+                - { name: x-sefaria-project, type: Distinct }
+          shared: true
+          limit:
+            requests: {{ int64 $rl.defaults.monthlyPerProject }}
+            unit: Month
+            fromMetadata: { namespace: envoy.filters.http.ext_authz, key: limit_month_{{ $meter }} }
+        {{- end }}
+        - clientSelectors:                         # 3. unkeyed (anonymous and embed): best-effort per client IP, API requests only
+            - headers:
+                - { name: x-sefaria-tier, type: RegularExpression, value: "^(anonymous|embed)$" }
+              path: { type: PathPrefix, value: {{ $rl.apiPathPrefix | quote }} }   # API requests only: pages and static files are not counted
+              sourceCIDR: { type: Distinct, value: 0.0.0.0/0 }
+          limit: { requests: {{ $rl.anonymousPerIP }}, unit: Minute }{{ if $rl.headers }}
+          xRateLimitHeaders: DraftVersion03{{ end }}
+        - clientSelectors:                         # 4. a missing or malformed tier (not a tier slug), API requests only, per client IP at the shared anonymous limit
+            - headers:
+                - { name: x-sefaria-tier, type: RegularExpression, value: "^[a-z][a-z0-9_-]*$", invert: true }
+              path: { type: PathPrefix, value: {{ $rl.apiPathPrefix | quote }} }   # API requests only, so an auth outage does not count pages and assets
+              sourceCIDR: { type: Distinct, value: 0.0.0.0/0 }   # per client IP: during an auth outage nobody shares one bucket
+          limit: { requests: {{ $rl.anonymousShared }}, unit: Minute }{{ if $rl.headers }}
+          xRateLimitHeaders: DraftVersion03{{ end }}
+  responseOverride:                                # agent-readable 429 (product spec)
+    {{- if and .Values.keda.enabled .Values.keda.splash.enabled }}
+    # The KEDA splash override rides here: two BackendTrafficPolicies on one HTTPRoute do not merge.
+    - match:
+        statusCodes:
+          {{- toYaml .Values.keda.splash.statusCodes | nindent 10 }}
+      response:
+        contentType: text/html
+        body:
+          type: Inline
+          inline: |
+{{ .Values.keda.splash.body | nindent 12 }}
+    {{- end }}
+    - match:
+        statusCodes:
+          - { type: Value, value: 429 }
+      response:
+        contentType: application/json
+        statusCode: 429
+        header:
+          set:
+            - { name: Retry-After, value: {{ $rl.retryAfterSeconds | quote }} }
+        body:
+          type: Inline
+          inline: '{"error":"Too many requests for this project in the current window, or its monthly quota for this product is used up.","code":"rate_limited","help":"{{ .Values.authService.helpURL }}rate_limited","project":"%REQ(x-sefaria-project)%","tier":"%REQ(x-sefaria-tier)%","meter":"%REQ(x-sefaria-meter)%"}'
+{{- end }}

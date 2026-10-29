@@ -180,6 +180,74 @@ nameService:
         memory: "4Gi"
         cpu: "1000m"
 
+authService:
+  # Envoy ext_authz server for the API Key Program (Phase 1). Classifies every request on the environment's
+  # HTTPRoute (anonymous / embed / developer key) from an in-memory key map loaded from the cluster key registry,
+  # and stamps x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result. Enabling this attaches a SecurityPolicy
+  # to the HTTPRoute: every request goes through the auth service (failOpen: true, so an outage degrades to the
+  # anonymous tier). No JWT verification; rate limits are configured under rateLimit. Off by default everywhere.
+  enabled: false
+  # enforce: unknown/revoked keys get the product-spec 401/403. observe: never denies; records what
+  # would have been rejected in x-sefaria-auth-result (dark launch).
+  mode: enforce
+  # Comma-separated path prefixes that require a key (401 api_key_required without one).
+  gatedPaths: "/api/knn-search"
+  helpURL: https://developers.sefaria.org/#
+  # One is enough for a cauldron (failOpen covers the restart gap); production sets more. A PDB is
+  # rendered only when this is > 1.
+  replicaCount: 1
+  # Continuous CI pushes us-east1-docker.pkg.dev/<dev project>/containers/sefaria-auth-service-<branch> with tags
+  # sha-<short sha>-<date>, sha-<full sha> and latest. Pin an immutable sha tag: a plain Deployment never rolls on
+  # a re-pushed tag. The tag has no default and must be set when the service is enabled.
+  image:
+    repository: us-east1-docker.pkg.dev/development-205018/containers/sefaria-auth-service-master
+    tag: ""
+  resources:
+    requests: {cpu: 100m, memory: 64Mi}
+    limits: {cpu: "1", memory: 256Mi}
+  extAuth:
+    failOpen: true
+    timeout: 200ms  # Envoy Gateway's default is 10s
+  reloadInterval: 60s       # full reload from Postgres; also the revocation SLA when LISTEN/NOTIFY is down
+  push:
+    # Key changes reach every auth service in the cluster through Postgres LISTEN/NOTIFY on the key registry:
+    # triggers from the Django powered_by migrations NOTIFY on this channel whatever the writer. The name is fixed there.
+    pgChannel: sefaria_apikeys
+  postgres:
+    # The key registry: Django's powered_by tables in sefaria_auth on the cluster's shared Postgres, read by
+    # every auth service in the cluster through a read-only role (provisioning runbook: wiki page projects/api-key-program/tooling).
+    # The chart never runs a Postgres of its own. The Secret is a cluster-level object from the infrastructure
+    # repo, not per release.
+    secrets:
+      dsn:
+        ref: auth-service-registry
+        key: AUTH_PG_DSN
+  # Metered products: meter name -> path prefixes. The auth service stamps x-sefaria-meter with the meter of the
+  # request path (none elsewhere), and the monthly limit of a project for that meter comes from the api_tier_meter_limit
+  # table, not from here. The meter name is the same slug as api_tier_meter_limit.meter and limit_month_<meter>.
+  meters:
+    semantic: ["/api/knn-search"]
+  rateLimit:
+    enabled: false          # needs the controller's rateLimit.backend (infrastructure repo) and Envoy Gateway >= 1.9
+    retryAfterSeconds: 60
+    # Per-rule x-ratelimit-* response headers (DraftVersion03). Needs Envoy Gateway >= 1.9.
+    headers: false
+    # The limit of a keyed request comes from its project's tier (api_tier, api_tier_meter_limit) through ext_authz
+    # dynamic metadata, so a tier limit changes without a deploy. The numbers below are the static fallbacks Envoy
+    # uses when the auth service is down (fail-open) or sends no metadata. Test-sized placeholders; production
+    # numbers come from the tier tables.
+    defaults:
+      perMinutePerProject: 60
+      monthlyPerProject: 100000
+    # Rules 3 and 4 (per client IP) count only requests under this path prefix: pages, /static/ and other assets are not
+    # rate limited. Rules 1 and 2 count keyed requests wherever they go.
+    apiPathPrefix: /api/
+    anonymousPerIP: 20       # anonymous: best-effort per client IP
+    anonymousShared: 40      # anything with a missing or unknown tier, at the anonymous limits
+  # Adds sefariaProject, sefariaTier and sefariaAuthResult to the nginx access log, next to the caller-classification fields.
+  nginxLogFields: true
+  monitoring:
+    enabled: true
 
 nodejs:
   containerImage:
@@ -341,6 +409,11 @@ ingress:
 gateway:
   enabled: true
   className: envoy
+  # Serve the app on HTTPS listeners only and answer port 80 with a 301 to HTTPS. Needed for the x-sefaria-* header
+  # strip to cover every request (templates/gateway/clienttrafficpolicy.yaml), so it is applied automatically when
+  # authService.enabled regardless of this value. Off by default otherwise: it changes what a plain HTTP request to the
+  # origin gets.
+  redirectHttpToHttps: false
   alpnProtocols:
     - http/1.1
   annotations:
@@ -583,6 +656,12 @@ localSettings:
   SERVER_EMAIL: "dev@sefaria.org"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
+  # Developer settings test controls; for branch cauldrons only.
+  DEVELOPER_SETTINGS_MOCKS: "False"
+  # The developer tab in settings and its routes; off means they return 404.
+  DEVELOPER_SETTINGS_ENABLED: "False"
+  # With DEVELOPER_SETTINGS_ENABLED on, limits the developer tab and its routes to staff.
+  DEVELOPER_SETTINGS_STAFF_ONLY: "False"
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"

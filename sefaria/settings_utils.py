@@ -1,3 +1,5 @@
+import re
+
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.http import Http404
 import sentry_sdk
@@ -13,6 +15,21 @@ IGNORED_EXCEPTIONS = (
     PermissionDenied,
     SuspiciousOperation,
 )
+
+API_KEY_RE = re.compile(r"sfr_[A-Za-z0-9]+")
+API_KEY_REPLACEMENT = "sfr_[Filtered]"
+
+
+def scrub_api_keys(value):
+    """Replaces Sefaria API key values (sfr_...) in every string of a Sentry event."""
+    if isinstance(value, str):
+        return API_KEY_RE.sub(API_KEY_REPLACEMENT, value)
+    if isinstance(value, dict):
+        return {scrub_api_keys(k): scrub_api_keys(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return type(value)(scrub_api_keys(v) for v in value)
+    return value
+
 
 # Custom secret-bearing headers that send_default_pii=False does not strip: the Salesforce
 # webhook's shared secret and the Svix signature. Stored lowercase; compared against name.lower().
@@ -75,6 +92,10 @@ def init_sentry(sentry_dsn, sentry_code_version, sentry_environment):
     """
 
     def before_send(event, hint):
+        event = filter_event(event, hint)
+        return scrub_api_keys(event) if event is not None else None
+
+    def filter_event(event, hint):
         if "exception" not in event:
             # Drop non-exception events (messages/log records).
             return None

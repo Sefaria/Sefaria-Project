@@ -6,10 +6,26 @@ metadata:
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
+  {{- if include "sefaria.httpsOnly" . }}
+  # HTTPS listeners only. Gateways are merged into one Envoy, so every environment's port-80 listeners share one Envoy
+  # listener, and Envoy Gateway rejects a ClientTrafficPolicy that targets them ("applied to multiple http (non https)
+  # listeners ... on the same port"); a Gateway-wide targetRef is rejected whole, and then neither the header strip nor
+  # the client IP detection below is applied. HTTPS listeners are split by SNI, so a policy per listener is accepted.
+  # Port 80 gets no policy, which is safe only because it serves nothing but the redirect (sefaria.httpsOnly).
+  targetRefs:
+    {{- range splitList "," (include "sefaria.gatewayListenerNames" (dict "root" $ "proto" "https")) }}
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $.Values.deployEnv }}
+      sectionName: {{ . }}
+    {{- end }}
+  {{- else }}
+  # Port 80 still serves the site here, so it keeps the client IP detection and escaped-slash handling below.
   targetRef:
     group: gateway.networking.k8s.io
     kind: Gateway
     name: {{ .Values.deployEnv }}
+  {{- end }}
   tls:
     alpnProtocols: {{ .Values.gateway.alpnProtocols | toJson | nindent 6 }}
   clientIPDetection:
@@ -19,4 +35,12 @@ spec:
     # Text node titles can contain %2F or %5C. Keep their escaped form until the
     # application has resolved the ref, instead of redirecting to a different path.
     escapedSlashesAction: KeepUnchanged
+  {{- if .Values.authService.enabled }}
+  # The auth service's identity headers come only from ext_authz. Strip client-sent copies at the listener, before
+  # any filter, so a fail-open pass (auth service down or slow) cannot carry a spoofed tier, project or meter upstream.
+  # Safe because port 80 serves only a redirect whenever authService.enabled (sefaria.httpsOnly).
+  headers:
+    earlyRequestHeaders:
+      remove: [x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result, x-sefaria-meter, x-sefaria-key-status]
+  {{- end }}
 {{- end }}
