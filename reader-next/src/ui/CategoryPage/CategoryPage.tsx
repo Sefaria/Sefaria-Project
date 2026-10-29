@@ -10,6 +10,7 @@ import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
 import { NavPage } from "../NavPage/NavPage";
 import { categoryColor } from "../tokens/category-color";
+import { AdminButtons, type PageAdmin } from "../AdminButtons/AdminButtons";
 import styles from "./CategoryPage.module.css";
 
 export interface CategoryPageProps {
@@ -24,6 +25,8 @@ export interface CategoryPageProps {
   footer?: ReactNode;
   /** The category's long description: a phone shows it under the title (a wide screen has it in the sidebar's About module). */
   description?: Bilingual;
+  /** Moderators: "Add sub-category" and "Edit" beside the title, and the Category Editor in the page's place while open. */
+  admin?: PageAdmin;
 }
 
 const catHref = (path: readonly string[]) => `/texts/${path.map(encodeURIComponent).join("/")}`;
@@ -43,17 +46,19 @@ const pick = (b: Bilingual, he: boolean) => (he ? b.he || b.en : b.en);
  * @feature LIB-015 Short title rendering in category lists
  * @feature LIB-016 Hebrew ordering of category contents
  */
-export function CategoryPage({ cats, contents, he, hebrewContent, sidebar, footer, description }: CategoryPageProps) {
+export function CategoryPage({ cats, contents, he, hebrewContent, sidebar, footer, description, admin }: CategoryPageProps) {
   return (
     <NavPage colorCategory={cats[0]} sidebar={sidebar} footer={footer}>
-      <ContentLanguage phoneHeader>
-        <CategoryMain cats={cats} contents={contents} he={he} hebrewContent={hebrewContent} description={description} />
-      </ContentLanguage>
+      {admin?.editor ?? (
+        <ContentLanguage phoneHeader>
+          <CategoryMain cats={cats} contents={contents} he={he} hebrewContent={hebrewContent} description={description} admin={admin} />
+        </ContentLanguage>
+      )}
     </NavPage>
   );
 }
 
-function CategoryMain({ cats, contents, he, hebrewContent, description }: Pick<CategoryPageProps, "cats" | "contents" | "he" | "hebrewContent" | "description">) {
+function CategoryMain({ cats, contents, he, hebrewContent, description, admin }: Pick<CategoryPageProps, "cats" | "contents" | "he" | "hebrewContent" | "description" | "admin">) {
   const hebrewUi = useInterfaceLang() === "hebrew";
   const category = cats.at(-1)!;
   const title = pageTitle(cats, category, he);
@@ -73,6 +78,7 @@ function CategoryMain({ cats, contents, he, hebrewContent, description }: Pick<C
           </div>
         ) : null}
       </div>
+      {admin ? <AdminButtons buttons={admin.buttons} /> : null}
       {/* plain text, as the old ContentText text={…}: its Markdown is not rendered, so *word* shows its asterisks (as sefaria.org does) */}
       {description && pick(description, hebrewUi) ? <div className={styles.topDesc} lang={lang(hebrewUi)}>{pick(description, hebrewUi)}</div> : null}
       {edition ? <div className={styles.attribution}><Link href={edition.href}><InterfaceText en={edition.en} he={edition.he} /></Link></div> : null}

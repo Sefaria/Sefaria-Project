@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { markdownToHtml } from "~/lib/html/markdown";
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -47,6 +47,13 @@ export interface BookPageProps {
   sidebar?: ReactNode;
   /** The book's top category, for the colour line under the header. */
   colorCategory?: string;
+  /** Moderators: the version editor for a version, shown in its block's place (`close` puts the block back). */
+  editVersion?: (v: VersionMeta, close: () => void) => ReactNode;
+  /**
+   * Moderators: the book's admin buttons beside the title (the old CategoryHeader type="books": "Add Section" opens Django's
+   * text adder, "Edit" the Index Editor), and the editor itself, shown in place of the page while open.
+   */
+  admin?: { addSectionHref: string; onEdit: () => void; editor?: ReactNode };
 }
 
 const plain = (e: React.MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
@@ -62,7 +69,7 @@ const plain = (e: React.MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKe
  * @feature BOK-006 Book page sidebar
  * @feature BOK-007 Versions list tab
  */
-export function BookPage({ title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, meta, description, sidebar, colorCategory }: BookPageProps) {
+export function BookPage({ title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, meta, description, sidebar, colorCategory, editVersion, admin }: BookPageProps) {
   const lang = useInterfaceLang();
   const he = lang === "hebrew";
   const code = he ? "he" : "en";
@@ -98,17 +105,20 @@ export function BookPage({ title, category, attribution, dedication, readHref, c
         ) : null}
         {sidebar}
       </>}>
-      <ContentLanguage>
-        <BookMain aboutInline={hasAbout ? <div className={styles.phoneOnly}>{aboutBody}</div> : undefined} {...{ title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref }} />
-      </ContentLanguage>
+      {admin?.editor ?? (
+        <ContentLanguage>
+          <BookMain aboutInline={hasAbout ? <div className={styles.phoneOnly}>{aboutBody}</div> : undefined} {...{ title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, editVersion, admin }} />
+        </ContentLanguage>
+      )}
     </NavPage>
   );
 }
 
-type BookMainProps = { aboutInline?: ReactNode } & Pick<BookPageProps, "title" | "category" | "attribution" | "dedication" | "readHref" | "continueReading" | "tab" | "tabHref" | "onTab" | "contents" | "versions" | "versionHref">;
+type BookMainProps = { aboutInline?: ReactNode } & Pick<BookPageProps, "title" | "category" | "attribution" | "dedication" | "readHref" | "continueReading" | "tab" | "tabHref" | "onTab" | "contents" | "versions" | "versionHref" | "editVersion" | "admin">;
 
 /** The header, Start Reading and the tabs: the part of the page the language button turns to Hebrew. */
-function BookMain({ aboutInline, title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref }: BookMainProps) {
+function BookMain({ aboutInline, title, category, attribution, dedication, readHref, continueReading, tab, tabHref, onTab, contents, versions, versionHref, editVersion, admin }: BookMainProps) {
+  const [editing, setEditing] = useState<string | null>(null);
   const lang = useInterfaceLang();
   const he = lang === "hebrew";
   const code = he ? "he" : "en";
@@ -120,6 +130,12 @@ function BookMain({ aboutInline, title, category, attribution, dedication, readH
   return (
     <article>
         <h1 className={styles.title} lang={code} dir={dirFor(code)}>{he ? title.he : title.en}</h1>
+        {admin ? (
+          <div className={styles.adminButtons} role="group" aria-label="Admin">
+            <a className={styles.adminButton} href={admin.addSectionHref}><InterfaceText en="Add Section" he="הוספת קטע" /></a>
+            <button type="button" className={styles.adminButton} onClick={admin.onEdit}><InterfaceText en="Edit" he="עריכה" /></button>
+          </div>
+        ) : null}
         <Link className={styles.category} href={category.href} lang={code} dir={dirFor(code)}>{he ? category.he : category.en}</Link>
         {attribution ? (
           <div className={styles.attribution}>
@@ -161,9 +177,14 @@ function BookMain({ aboutInline, title, category, attribution, dedication, readH
             {versions === undefined ? (
               <InterfaceText en="Loading..." he="טוען..." />
             ) : (
-              sorted.map((v) => (
-                <AboutVersionBlock key={`${v.languageFamilyName}|${v.versionTitle}`} version={v} urlRef={readHref.replace(/^\//, "")} select={{ href: versionHref(v) }} />
-              ))
+              sorted.map((v) => {
+                const key = `${v.languageFamilyName}|${v.versionTitle}`;
+                return editVersion && editing === key ? (
+                  <div key={key}>{editVersion(v, () => setEditing(null))}</div>
+                ) : (
+                  <AboutVersionBlock key={key} version={v} urlRef={readHref.replace(/^\//, "")} select={{ href: versionHref(v) }} onEdit={editVersion ? () => setEditing(key) : undefined} />
+                );
+              })
             )}
           </div>
         )}

@@ -32,6 +32,8 @@ export interface VersionMeta {
   priority?: number | string;
   /** "locked" when only moderators may edit the version. */
   status?: string;
+  purchaseInformationURL?: string;
+  purchaseInformationImage?: string;
 }
 
 export type RawText = string | RawText[];

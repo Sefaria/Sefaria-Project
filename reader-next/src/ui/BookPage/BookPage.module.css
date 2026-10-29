@@ -23,3 +23,7 @@ a.read { display: inline-flex; margin-block-end: 32px; padding: 10px 14px; heigh
 /* On a phone the About text is part of the page (no sidebar module): metadata and description under Start Reading (VERIFIED, phone User-Agent) */
 .phoneOnly { display: none; margin-block-end: 32px; }
 @media (max-width: 842px) { .phoneOnly { display: block; } .desktopOnly { display: none; } }
+
+/* the moderators' admin buttons under the title (the old CategoryHeader's adminButtons) */
+.adminButtons { display: flex; gap: var(--sefaria-space-2); margin-block: var(--sefaria-space-2); }
+.adminButton { height: 28px; padding: 0 var(--sefaria-space-3); border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); background: var(--sefaria-color-surface); color: var(--sefaria-color-text); font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 26px; text-decoration: none; cursor: pointer; }

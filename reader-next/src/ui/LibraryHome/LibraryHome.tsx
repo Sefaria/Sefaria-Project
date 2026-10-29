@@ -7,6 +7,7 @@ import { Link } from "../Link/Link";
 import { NavPage } from "../NavPage/NavPage";
 import { AboutBlurb } from "../NavSidebar/NavSidebar";
 import { categoryColor } from "../tokens/category-color";
+import { AdminButtons, type PageAdmin } from "../AdminButtons/AdminButtons";
 import styles from "./LibraryHome.module.css";
 
 /**
@@ -15,17 +16,19 @@ import styles from "./LibraryHome.module.css";
  * @feature LIB-001 Browse the Library category grid
  * @feature LIB-002 Library home header and edit buttons
  */
-export function LibraryHome({ tree, sidebar, footer }: { tree: readonly TocNode[]; sidebar?: ReactNode; footer?: ReactNode }) {
+export function LibraryHome({ tree, sidebar, footer, admin }: { tree: readonly TocNode[]; sidebar?: ReactNode; footer?: ReactNode; admin?: PageAdmin }) {
   return (
     <NavPage sidebar={sidebar} footer={footer} top={{ main: 60, side: 60 }}>
-      <ContentLanguage phoneHeader>
-        <HomeMain tree={tree} />
-      </ContentLanguage>
+      {admin?.editor ?? (
+        <ContentLanguage phoneHeader>
+          <HomeMain tree={tree} admin={admin} />
+        </ContentLanguage>
+      )}
     </NavPage>
   );
 }
 
-function HomeMain({ tree }: { tree: readonly TocNode[] }) {
+function HomeMain({ tree, admin }: { tree: readonly TocNode[]; admin?: PageAdmin }) {
   const he = useInterfaceLang() === "hebrew";
   return (
     <>
@@ -34,6 +37,7 @@ function HomeMain({ tree }: { tree: readonly TocNode[] }) {
           <InterfaceText en="Browse the Library" he="עיון בספריה" />
         </h1>
       </div>
+      {admin ? <AdminButtons buttons={admin.buttons} /> : null}
       <AboutBlurb className={styles.phoneAbout} />
       <div className={styles.grid}>
         {tree.filter(isCategory).map((c) => (

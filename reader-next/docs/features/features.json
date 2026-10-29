@@ -7345,6 +7345,29 @@
   "src": "inv_04_connections.md#8.6"
  },
  {
+  "id": "VER-030",
+  "area": "versions",
+  "group": "Moderator tools",
+  "name": "Moderator edits or deletes a version",
+  "summary": "On the book page's Versions tab, moderators get a pencil on each version that opens the version editor (VersionBlock).",
+  "details": [
+   "Pencil enabled when Sefaria.is_moderator && rendermode == 'book-page' (VersionBlock.jsx:308).",
+   "Fields in order: Version Title, Hebrew Version Title, Short Version Title, Short Hebrew Version Title, Version Source, License (Sefaria.getLicenseMap keys + '(None Listed)'), Direction, isSource, isPrimary, Digitized by Sefaria, Priority, Locked (status 'locked' / null), VersionNotes, Hebrew VersionNotes, Purchase Information (Buy URL, Buy Image).",
+   "SAVE: POST /api/version/flags/<title>/<lang>/<versionTitle> json= every field with a value or changed; a changed title goes as newVersionTitle; the page reloads on {status: ok}.",
+   "Delete Version: confirm 'Are you sure you want to delete this text version?', DELETE the version (texts_api ?ven=|vhe=), alert 'Text Version Deleted.'."
+  ],
+  "audience": "moderator",
+  "platform": "all",
+  "status": "live",
+  "tier": "extended",
+  "refs": [
+   "static/js/VersionBlock/VersionBlock.jsx:115",
+   "static/js/VersionBlock/VersionBlock.jsx:152",
+   "static/js/VersionBlock/VersionBlock.jsx:218"
+  ],
+  "src": "admin inventory 2026-10-29"
+ },
+ {
   "id": "LIB-001",
   "area": "library-nav",
   "group": "Library home",
@@ -9212,6 +9235,30 @@
    "reader/views.py:2102-2175"
   ],
   "src": "inv_05_library_topics.md#18"
+ },
+ {
+  "id": "BOK-030",
+  "area": "book",
+  "group": "Moderator tools",
+  "name": "Moderator edits a book's text information",
+  "summary": "On a book page, moderators get Add Section (Django's /add/<title>) and Edit, which opens the Index Editor (EditTextInfo).",
+  "details": [
+   "Buttons from CategoryHeader type='books' toggleButtonIDs ['section','edit'], shown only for Sefaria.is_moderator (Misc.jsx:1024).",
+   "Fields: Text Title, Hebrew Title, English/Hebrew Description and Short Descriptions, Category (CategoryChooser menus), Authors (must be an AuthorTopic, exact title), Alternate English/Hebrew Titles, Completion Year and Place (en/he), Publication Year and Place (en/he), Dependence (Commentary/Targum/Midrash/Guides) with Base Text Titles (must be books) and the Collective Title (existing Term, or create one with both titles), Text Structure.",
+   "Checks: English title required, no periods/hyphens/slashes/digits/Hebrew; Hebrew title required; a category; categories without periods/hyphens/slashes; years an integer or range; description links unknown to the name API need confirming.",
+   "Save: POST /api/v2/raw/index/<title> json=; a title change answers 202 + task_id, polled until done; then /admin/reset/<title>. Delete: DELETE /api/v2/index/<title>, then /texts."
+  ],
+  "audience": "moderator",
+  "platform": "all",
+  "status": "live",
+  "tier": "extended",
+  "refs": [
+   "static/js/BookPage.jsx:1073",
+   "static/js/BookPage.jsx:1217",
+   "static/js/Misc.jsx:1024",
+   "static/js/Misc.jsx:2952"
+  ],
+  "src": "admin inventory 2026-10-29"
  },
  {
   "id": "TOP-001",
