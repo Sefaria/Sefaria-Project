@@ -269,6 +269,14 @@ tagged in that language answers `already_tagged` and is never re-saved, because 
 (finding 4). DELETE `?ref&topic&lang&dry_run` is `delete_ref_topic_link`, refused when the description has a title or
 prompt (curated prompts are removed on the topic page). Answers `tagged | already_tagged | untagged | link_deleted | not_tagged`.
 
+### 3.6 `GET|PATCH /api/admin/lexicon-entries/<lexicon>/<headword>`, `PATCH …/headword/<lexicon>/<headword>`
+
+Dictionary entries, wrapping the moderators' lexicon editor (#3730, `api/lexicon_admin_views.py`) so its validation,
+history log and ref-cache refresh are reused as they are. GET adds a `version` (hash of the entry). PATCH
+`{"content", "base_version", "dry_run"}` needs that version (409 with the current entry when stale) and only the
+entry's `content_attr_names`. The headword PATCH `{"new_headword", "dry_run"}` renames through the same view; a dry run
+reports the headword it would resolve to.
+
 ## 4. MCP tools (AI chatbot `/mcp/admin`, implemented)
 
 The tools are schemas in the chatbot's tool layer (`server/chat/V2/agent/tool_schemas.py`, surface
@@ -283,6 +291,9 @@ The tools are schemas in the chatbot's tool layer (`server/chat/V2/agent/tool_sc
 | `get_admin_task(task_id)` | `GET /api/admin/tasks/<id>` | `readOnlyHint` |
 | `tag_ref_with_topic(ref, topic, lang="en", dry_run=false)` | `POST /api/admin/ref-topic-links` | `idempotentHint: true` |
 | `untag_ref_from_topic(ref, topic, lang="en", dry_run=false)` | `DELETE /api/admin/ref-topic-links` | `destructiveHint: true` |
+| `get_lexicon_entry(lexicon, headword)` | `GET /api/admin/lexicon-entries/…` | `readOnlyHint` |
+| `update_lexicon_entry(lexicon, headword, content, base_version, dry_run=false)` | `PATCH /api/admin/lexicon-entries/…` | `destructiveHint: false` |
+| `rename_lexicon_headword(lexicon, headword, new_headword, dry_run=false)` | `PATCH …/headword/…` | `destructiveHint: false` |
 
 The tool descriptions tell Claude to:
 - **Read before writing**: call `list_topic_prompts(id=…)` and pass back its `version` as `base_version`.
@@ -332,7 +343,7 @@ The tool descriptions tell Claude to:
 2. **Staff tools on the chatbot's `/mcp/admin`**, behind Sefaria sign-in. Done.
 3. **Publish, generate, task status, tag/untag** (§3.3–3.5). Done (2026-10-29).
 4. **Later**: source-text grounding, `list_prompt_edits` (reads the audit log), rate limiting, and the other staff
-   operations in the admin inventory (lexicon edits, version metadata, cache purge, read-only lookups).
+   operations in the admin inventory (version metadata, cache purge, read-only lookups). Lexicon edits: done (§3.6).
 
 ## 8. Open questions
 

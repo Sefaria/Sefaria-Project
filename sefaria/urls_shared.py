@@ -218,6 +218,8 @@ shared_patterns = [
     path('api/admin/topic-prompts/generate', admin_mcp_views.TopicPromptsGenerateView.as_view()),
     path('api/admin/tasks/<str:task_id>', admin_mcp_views.AdminTaskView.as_view()),
     path('api/admin/ref-topic-links', admin_mcp_views.RefTopicLinksView.as_view()),
+    path('api/admin/lexicon-entries/headword/<path:lexicon>/<path:headword>', admin_mcp_views.AdminLexiconHeadwordView.as_view()),
+    path('api/admin/lexicon-entries/<path:lexicon>/<path:headword>', admin_mcp_views.AdminLexiconEntryView.as_view()),
     path('api/admin/topic-prompts/<str:link_id>', admin_mcp_views.TopicPromptView.as_view()),
     # Sign-in handoff for the AI chatbot's MCP server (chat.sefaria.org/mcp/user and /mcp/admin).
     path('api/mcp/authorize', mcp_auth_views.mcp_authorize),
