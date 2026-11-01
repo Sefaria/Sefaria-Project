@@ -284,6 +284,7 @@ const Header = (props) => {
         <InterfaceText>{linkIds[link] || link}</InterfaceText>
       </a>
     ))}
+    <a href="/open-shelf" className="textLink"><InterfaceText text={{en: "Open Shelf", he: "המדף הפתוח"}} /></a>
     <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>
   </div>
 
@@ -477,6 +478,10 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           </a>
         </>
       }
+      <a href="/open-shelf" onClick={close}>
+        <img src="/static/icons/book.svg" alt="" />
+        <InterfaceText text={{en: "Open Shelf", he: "המדף הפתוח"}} />
+      </a>
       <DonateLink classes={"blue"} source="MobileNavMenu">
         <img src="/static/img/heart.png" alt={Sefaria._("common.donation_icon")} />
         <InterfaceText>header.donate</InterfaceText>
