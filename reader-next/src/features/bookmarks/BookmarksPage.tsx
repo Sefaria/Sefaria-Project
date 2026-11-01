@@ -98,7 +98,7 @@ export function BookmarksPage() {
             </dl>
             {viewer ? (
               <a href={`${LIBRARY}/history`} className={styles.history}>
-                <Icon name="clock" size="1em" /> <InterfaceText en="Reading history" he="היסטוריית קריאה" />
+                <Icon name="clock" size="16px" /> <InterfaceText en="Reading history" he="היסטוריית קריאה" />
               </a>
             ) : null}
           </footer>
@@ -115,7 +115,7 @@ export function BookmarksPage() {
           {he ? (
             <>בזמן הקריאה, לחצו על <Icon name="bookmark" size="1em" /> בכותרת הטקסט כדי לסמן את הספר. לכל ספר סימנייה אחת.</>
           ) : (
-            <>While reading, tap <Icon name="bookmark" size="1em" /> in the text's header to bookmark that book. You get one bookmark per book.</>
+            <>While reading, select <Icon name="bookmark" size="1em" /> in the text's header to bookmark that book. You get one bookmark per book.</>
           )}
         </EmptyState>
       )}
