@@ -16,7 +16,8 @@
 .icon { flex: none; width: 18px; height: 18px; color: var(--sefaria-color-text-secondary); }
 /* One line, cut with an ellipsis: a Hebrew label never breaks word by word in a narrow menu. */
 .label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.item:hover, .item:focus-visible { background: var(--sefaria-color-hover); outline: none; }
+.item:hover, .item:focus-visible { background: var(--sefaria-color-hover); }
+.item:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: -2px; }
 .item:hover .icon, .item:focus-visible .icon { color: var(--sefaria-color-text); }
 .item[aria-disabled="true"] { color: var(--sefaria-color-text-muted); cursor: default; background: none; }
 .item[aria-disabled="true"] .icon { color: var(--sefaria-color-text-muted); }
