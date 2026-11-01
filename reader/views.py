@@ -4456,9 +4456,9 @@ def profile_sync_api(request):
             else:
                 last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
 
-            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
+            uhs = UserHistory.get_sync_items(request.user.id, last_sync)
             ret["last_sync"] = now
-            ret["user_history"] = [uh.contents(for_api=True, annotate=False) for uh in uhs.array()]
+            ret["user_history"] = [uh.contents(for_api=True, annotate=False) for uh in uhs]
             ret["settings"] = profile.settings
             ret["settings"]["time_stamp"] = profile.attr_time_stamps["settings"]
             if post.get("client", "") == "web":
