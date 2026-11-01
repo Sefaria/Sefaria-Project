@@ -42,6 +42,9 @@
   --sefaria-color-hover: light-dark(#f0f0ef, #2f2f2d);
   --sefaria-color-pressed: light-dark(#e7edf5, #24324a);
   --sefaria-color-pressed-hover: light-dark(#dce5f0, #2b3b57);
+  /* Workspace marks that are not focus: a linked verse, a panel drop target, a resize handle. */
+  --sefaria-color-accent: light-dark(#18345d, #8fb4e3);
+  --sefaria-color-linked: light-dark(#eff1f5, #232a35);
   /* A favourite (starred commentator). */
   --sefaria-color-star: light-dark(#c99a2e, #e2b75a);
 

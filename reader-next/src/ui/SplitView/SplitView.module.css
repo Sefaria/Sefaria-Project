@@ -15,4 +15,5 @@
 .handle { position: absolute; z-index: calc(var(--sefaria-z-panel-chrome, 100) + 1); touch-action: none; }
 .split[data-direction="row"] > .cell > .handle { inset-block: 0; inset-inline-start: -4px; width: 8px; cursor: col-resize; }
 .split[data-direction="column"] > .cell > .handle { inset-inline: 0; inset-block-start: -4px; height: 8px; cursor: row-resize; }
-.handle:hover, .handle:focus-visible, .handle[data-dragging="true"] { background: var(--sefaria-color-focus); opacity: 0.5; outline: none; }
+.handle:hover, .handle[data-dragging="true"] { background: var(--sefaria-color-accent); opacity: 0.5; }
+.handle:focus-visible { background: var(--sefaria-color-focus); opacity: 0.5; outline: none; }
