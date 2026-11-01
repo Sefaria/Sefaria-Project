@@ -933,6 +933,16 @@ def test_preflight_ignores_unassigned_and_nodeless_rows():
     assert problems == []
 
 
+@pytest.mark.parametrize("rows", [None, [], [{"node": "UNASSIGNED", "shards": "3"}], [{"node": None}]])
+def test_preflight_fails_closed_when_no_data_node_is_reported(rows):
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"}, rows, min_free_bytes=20 * _GIB, max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "no data nodes" in problems[0]
+
+
 def test_preflight_accepts_string_numbers_and_reports_null_disk_values():
     """ES _cat returns strings with bytes=b. A data node whose disk numbers are null cannot
     prove headroom, so it is a problem rather than a silent pass."""

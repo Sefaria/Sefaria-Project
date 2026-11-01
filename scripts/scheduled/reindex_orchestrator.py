@@ -354,10 +354,12 @@ def check_reindex_preflight(health, allocation_rows, min_free_bytes, max_disk_pe
     status = (health or {}).get("status")
     if status != "green":
         problems.append(f"cluster status is {status!r}, must be 'green'")
+    checked_nodes = 0
     for row in allocation_rows or []:
         node = row.get("node")
         if not node or node == "UNASSIGNED":
             continue
+        checked_nodes += 1
         avail = _as_number(row.get("disk.avail"))
         percent = _as_number(row.get("disk.percent"))
         if avail is None or percent is None:
@@ -375,6 +377,9 @@ def check_reindex_preflight(health, allocation_rows, min_free_bytes, max_disk_pe
             problems.append(
                 f"node {node} disk is {percent:.0f}% full, above the {max_disk_percent}% maximum"
             )
+    if checked_nodes == 0:
+        # An empty or node-less _cat/allocation proves nothing about disk headroom.
+        problems.append("_cat/allocation returned no data nodes, so disk headroom cannot be verified")
     return problems
 
 
