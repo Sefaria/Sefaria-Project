@@ -21,8 +21,13 @@ class ApiKeyInline(admin.TabularInline):
     form = ApiKeyForm
     extra = 0
     can_delete = False
-    fields = ("label", "key", "allowed_origins", "created_at", "revoked_at", "last_used_at")
-    readonly_fields = ("key", "created_at", "last_used_at")
+    fields = ("label", "masked_key", "allowed_origins", "created_at", "revoked_at", "last_used_at")
+    readonly_fields = ("masked_key", "created_at", "last_used_at")
+
+    @admin.display(description="Key")
+    def masked_key(self, obj):
+        # The prefix and 6 characters, enough to tell keys apart in a log or a support request, never the secret.
+        return obj.key[:10] + "\u2026"
 
     def has_delete_permission(self, request, obj=None):
         return False

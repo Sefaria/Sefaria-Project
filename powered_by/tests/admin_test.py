@@ -156,6 +156,16 @@ class ProjectAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(ApiKey.objects.get(pk=self.key.pk).allowed_origins, ["https://tehillimcircle.org"])
 
+    def test_admin_project_page_masks_keys(self):
+        ApiKey.objects.create(project=self.api_project, label="Masked", key="sfr_abcdef1234567890")
+        change = self.client.get(self.api_change_url()).content.decode()
+        delete = self.client.get(admin_url("delete", self.api_project.pk, model="apiproject")).content.decode()
+
+        self.assertIn("sfr_abcdef\u2026", change)
+        self.assertNotIn("sfr_abcdef1234567890", change)
+        # Keys are on_delete=PROTECT, so this page lists the keys by label and never shows a key value.
+        self.assertNotIn("sfr_abcdef1234567890", delete)
+
     def test_N_M11_deleting_a_project_with_keys_is_refused_with_a_page(self):
         url = admin_url("delete", self.listing.pk)
 
