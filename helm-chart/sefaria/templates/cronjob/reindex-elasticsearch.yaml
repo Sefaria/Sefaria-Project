@@ -11,14 +11,17 @@ spec:
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
-      backoffLimit: 1  # one retry: an orchestrator crash mid-run gets a second attempt; init is idempotent
+      # No automatic retry: a failed run is investigated and re-run by hand. A retry reuses
+      # the partial index the failed run left behind, and that is how the Sep 2026 incidents
+      # filled the data-node disks.
+      backoffLimit: 0
       template:
         metadata:
           annotations:
             # The orchestrator runs for hours and holds no checkpoint, so a voluntary
             # eviction restarts the whole link walk from zero. Observed 2026-08-31 on the
             # dev cluster: "ScaleDown / deleting pod for node scale down" killed a run 30
-            # minutes in and consumed one of only two attempts (backoffLimit: 1). Cauldrons
+            # minutes in and consumed the run's only attempt (backoffLimit: 0). Cauldrons
             # run on the `preemptable` node pool, where the autoscaler consolidates nodes
             # routinely.
             #
@@ -52,6 +55,12 @@ spec:
               value: "{{ .Values.cronJobs.reindexElasticSearch.shardCount }}"
             - name: SHARD_ACTIVE_DEADLINE_SECONDS
               value: "{{ .Values.cronJobs.reindexElasticSearch.shardActiveDeadlineSeconds }}"
+            - name: REINDEX_BARRIER_TIMEOUT_SECONDS
+              value: "{{ .Values.cronJobs.reindexElasticSearch.barrierTimeoutSeconds }}"
+            - name: REINDEX_PREFLIGHT_MIN_FREE_GB
+              value: "{{ .Values.cronJobs.reindexElasticSearch.preflightMinFreeGb }}"
+            - name: REINDEX_PREFLIGHT_MAX_DISK_PERCENT
+              value: "{{ .Values.cronJobs.reindexElasticSearch.preflightMaxDiskPercent }}"
             - name: SHARD_JOB_IMAGE
               value: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             - name: SHARD_JOB_NAME

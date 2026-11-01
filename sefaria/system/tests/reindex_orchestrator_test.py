@@ -482,10 +482,25 @@ class _FakeIndexClient:
         return (index, name) in self.live_alias_pairs
 
 
+_GIB = 1024 ** 3
+
+
+class _FakeEsClient:
+    """Stands in for search.es_client: canned _cluster/health and _cat/allocation responses."""
+    def __init__(self, health, allocation):
+        self.cluster = types.SimpleNamespace(health=lambda: health)
+        self.cat = types.SimpleNamespace(allocation=lambda **kwargs: allocation)
+
+
 class _FakeSearchModule:
-    def __init__(self, names_by_type, live_alias_pairs=()):
+    def __init__(self, names_by_type, live_alias_pairs=(), health=None, allocation=None):
         self.names_by_type = names_by_type
         self.index_client = _FakeIndexClient(live_alias_pairs)
+        healthy_allocation = [{"node": "es-data-0", "disk.avail": str(100 * _GIB), "disk.percent": "30"}]
+        self.es_client = _FakeEsClient(
+            health if health is not None else {"status": "green"},
+            allocation if allocation is not None else healthy_allocation,
+        )
         self.deleted = []
 
     def get_new_and_current_index_names(self, type, debug=False):
@@ -831,3 +846,172 @@ def test_orchestrator_only_reads_jobs_through_granted_rbac_verbs():
     assert not _re.search(r"\.read_namespaced_job\(", code)
     rbac = pathlib.Path("helm-chart/sefaria/templates/rbac/reindex-orchestrator-rbac.yaml").read_text()
     assert '"jobs/status"' in rbac
+
+
+def _data_node_row(node="es-data-0", avail=50 * _GIB, percent=40):
+    return {"node": node, "shards": "10", "disk.avail": str(avail), "disk.percent": str(percent)}
+
+
+def test_preflight_passes_when_green_and_every_data_node_has_headroom():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"},
+        [_data_node_row("es-0"), _data_node_row("es-1")],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert problems == []
+
+
+def test_preflight_flags_non_green_cluster_status():
+    spec.loader.exec_module(orch)
+    for status in ("yellow", "red"):
+        problems = orch.check_reindex_preflight(
+            {"status": status}, [_data_node_row()], min_free_bytes=20 * _GIB, max_disk_percent=75,
+        )
+        assert len(problems) == 1
+        assert status in problems[0]
+
+
+def test_preflight_flags_missing_cluster_status():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {}, [_data_node_row()], min_free_bytes=20 * _GIB, max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "status" in problems[0]
+
+
+def test_preflight_flags_node_below_minimum_free_bytes():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"},
+        [_data_node_row("es-0", avail=5 * _GIB), _data_node_row("es-1")],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "es-0" in problems[0]
+    assert "free" in problems[0]
+
+
+def test_preflight_flags_node_above_maximum_disk_percent():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"},
+        [_data_node_row("es-1", percent=91)],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "es-1" in problems[0]
+    assert "91" in problems[0]
+
+
+def test_preflight_threshold_boundaries_pass():
+    """Exactly min free bytes and exactly max percent are still acceptable."""
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"},
+        [_data_node_row(avail=20 * _GIB, percent=75)],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert problems == []
+
+
+def test_preflight_ignores_unassigned_and_nodeless_rows():
+    spec.loader.exec_module(orch)
+    rows = [
+        {"node": "UNASSIGNED", "shards": "3", "disk.avail": None, "disk.percent": None},
+        {"node": None, "shards": "0", "disk.avail": None, "disk.percent": None},
+        _data_node_row(),
+    ]
+    problems = orch.check_reindex_preflight(
+        {"status": "green"}, rows, min_free_bytes=20 * _GIB, max_disk_percent=75,
+    )
+    assert problems == []
+
+
+def test_preflight_accepts_string_numbers_and_reports_null_disk_values():
+    """ES _cat returns strings with bytes=b. A data node whose disk numbers are null cannot
+    prove headroom, so it is a problem rather than a silent pass."""
+    spec.loader.exec_module(orch)
+    ok = orch.check_reindex_preflight(
+        {"status": "green"},
+        [{"node": "es-0", "disk.avail": "21474836480", "disk.percent": "74"}],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert ok == []
+
+    unknown = orch.check_reindex_preflight(
+        {"status": "green"},
+        [{"node": "es-1", "disk.avail": None, "disk.percent": None}],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(unknown) == 1
+    assert "es-1" in unknown[0]
+
+
+def test_main_preflight_failure_raises_before_any_job_or_index_change(monkeypatch):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            events.append("delete_job")
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append("create_job")
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        },
+        health={"status": "red"},
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    pipeline = sys.modules["scripts.scheduled.reindex_pipeline"]
+    monkeypatch.setattr(pipeline, "run_reindex_init_all", lambda debug=False: events.append("init"))
+    monkeypatch.setenv("REINDEX_PREFLIGHT_SKIP", "")
+
+    with pytest.raises(RuntimeError, match="pre-flight"):
+        orch.main()
+
+    assert events == []
+    assert search.deleted == []
+
+
+def test_main_preflight_skip_env_lets_reindex_proceed(monkeypatch):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append("create_job")
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        },
+        health={"status": "red"},
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    pipeline = sys.modules["scripts.scheduled.reindex_pipeline"]
+    monkeypatch.setattr(pipeline, "run_reindex_init_all", lambda debug=False: events.append("init"))
+    monkeypatch.setattr(orch, "run_barrier_loop", lambda **kwargs: ("complete", []))
+    monkeypatch.setenv("REINDEX_PREFLIGHT_SKIP", "true")
+
+    orch.main()
+
+    assert events == ["init", "create_job"]
