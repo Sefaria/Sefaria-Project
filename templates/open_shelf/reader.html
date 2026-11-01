@@ -30,7 +30,7 @@
     {% endif %}
 
     <div class="os-text" dir="{{ book.dir|default:'ltr' }}">
-      {% if ctx and not blocks.0.h %}<div class="ctx">{{ ctx|join:" › " }}</div>{% endif %}
+      {% if ctx and p > 1 %}<div class="ctx">{{ ctx|join:" › " }}</div>{% endif %}
       {% for blk in blocks %}
         {% if blk.h %}<div class="hd hd{{ blk.d }}">{{ blk.h }}</div>{% else %}<p>{{ blk.s|safe }}</p>{% endif %}
       {% endfor %}

@@ -52,12 +52,17 @@ def _cached(key, ttl, fn):
     return val
 
 
-ALLOWED_TAGS = re.compile(r"&lt;(/?)(b|i|em|strong|sup|sub|small|br|u)\s*/?&gt;", re.I)
+ALLOWED_TAGS = re.compile(r'&lt;(/?)(b|i|em|strong|sup|sub|small|br|u)(\s+class="footnote")?\s*/?&gt;', re.I)
+
+
+def _tag(m):
+    cls = ' class="os-fn"' if m.group(3) and not m.group(1) else ""
+    return "<%s%s%s>" % (m.group(1), m.group(2).lower(), cls)
 
 
 def safe_html(s):
     escaped = html.escape(s or "", quote=False)
-    return ALLOWED_TAGS.sub(lambda m: "<%s%s>" % (m.group(1), m.group(2).lower()), escaped)
+    return ALLOWED_TAGS.sub(_tag, escaped)
 
 
 def book_url(book):
