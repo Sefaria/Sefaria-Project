@@ -5,6 +5,7 @@ import { panelOrder } from "~/lib/workspace/ops";
 import type { PanelId, Workspace } from "~/lib/workspace/types";
 import { Icon, type IconName } from "~/ui/Icon/Icon";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
+import { MenuRow } from "~/ui/MenuRow/MenuRow";
 import styles from "./MovePanelMenu.module.css";
 
 /** Left and right are physical: the arrangement runs left to right in every interface language. */
@@ -37,10 +38,10 @@ export function MovePanelMenu({ self, workspace, onDrop }: { self: PanelId; work
   );
   return (
     <div className={styles.section}>
-      <button type="button" className={styles.toggle} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <MenuRow className={styles.toggle} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         <InterfaceText en="Move this column" he="הזזת הטור" />
         <Icon name="chevron-down" size="16px" className={styles.chevron} />
-      </button>
+      </MenuRow>
       {open ? (
         <div className={styles.menu} dir="ltr">
           <div className={styles.row}>

@@ -1,8 +1,6 @@
-/* Laid out like the display menu's other lines: 20px in from the edge, a rule above. */
+/* Laid out like the display menu's other lines, with a rule above. */
 .section { border-block-start: 1px solid var(--sefaria-color-border); }
-.toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--sefaria-space-2); width: 100%; min-height: 48px; padding: 0 var(--sefaria-space-5); border: 0; background: none; color: var(--sefaria-color-text); font: inherit; font-size: var(--sefaria-text-sans-small); text-align: start; white-space: nowrap; cursor: pointer; }
-.toggle:hover, .toggle:focus-visible { background: var(--sefaria-color-hover); }
-.toggle:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: -2px; }
+.toggle { justify-content: space-between; }
 .chevron { flex: none; color: var(--sefaria-color-text-secondary); transition: transform 0.15s; }
 .toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
 .menu { display: grid; gap: var(--sefaria-space-2); padding: 0 var(--sefaria-space-3) var(--sefaria-space-3); }

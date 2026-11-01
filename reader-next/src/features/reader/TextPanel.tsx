@@ -21,6 +21,7 @@ import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMen
 import { Icon } from "~/ui/Icon/Icon";
 import { IconButton } from "~/ui/IconButton/IconButton";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
+import { MenuRow } from "~/ui/MenuRow/MenuRow";
 import { PanelHeader } from "~/ui/PanelHeader/PanelHeader";
 import { Popover } from "~/ui/Popover/Popover";
 import { SplitView } from "~/ui/SplitView/SplitView";
@@ -740,10 +741,12 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           >
             <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} />
             {myLayoutHere ? (
-              <button type="button" className={styles.menuAction} onClick={() => (setMenuOpen(false), void myLayoutHere())}>
-                <Icon name="saved-layout" size="18px" className={styles.menuActionIcon} />
-                <InterfaceText en="Open my saved layout" he="פתיחת הפריסה השמורה" />
-              </button>
+              <div className={styles.menuSection}>
+                <MenuRow onClick={() => (setMenuOpen(false), void myLayoutHere())}>
+                  <Icon name="saved-layout" size="18px" className={styles.menuActionIcon} />
+                  <InterfaceText en="Open my saved layout" he="פתיחת הפריסה השמורה" />
+                </MenuRow>
+              </div>
             ) : null}
             {alone ? null : <MovePanelMenu self={id} workspace={nav.current()} onDrop={(d) => (setMenuOpen(false), apply((ws) => drop(ws, id, d), { state: { nav: "stay" } }))} />}
           </Popover>

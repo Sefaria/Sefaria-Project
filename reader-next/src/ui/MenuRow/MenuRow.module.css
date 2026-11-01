@@ -1,0 +1,8 @@
+/* A full-width row in a popover menu, lined up with the display menu's own rows. */
+.row {
+  display: flex; align-items: center; gap: var(--sefaria-space-2); width: 100%; min-height: 48px; padding: 0 var(--sefaria-space-5);
+  border: 0; background: none; color: var(--sefaria-color-text); font: inherit; font-size: var(--sefaria-text-sans-small);
+  text-align: start; white-space: nowrap; cursor: pointer;
+}
+.row:hover, .row:focus-visible { background: var(--sefaria-color-hover); }
+.row:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: -2px; }
