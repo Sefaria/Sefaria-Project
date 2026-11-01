@@ -73,7 +73,6 @@ def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
     monkeypatch.setattr(le, "get_node_by_editor_path", lambda index_arg, key_path: (node, None))
     monkeypatch.setattr(le.nut_index, "remove_template_usage", lambda *args, **kwargs: calls.append(("remove", args[2].serialize())))
     monkeypatch.setattr(le.nut_index, "add_template_usage", lambda *args, **kwargs: calls.append(("add", args[2].serialize())))
-    monkeypatch.setattr(le, "MULTISERVER_ENABLED", False)
     monkeypatch.setattr(le, "USE_VARNISH", False)
     monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: calls.append(("log", uid, action, params, kwargs)))
 
@@ -120,7 +119,6 @@ def test_replace_match_template_does_not_update_usage_when_save_fails(monkeypatc
     monkeypatch.setattr(le, "get_node_by_editor_path", lambda index_arg, key_path: (FakeNode(), None))
     monkeypatch.setattr(le.nut_index, "remove_template_usage", lambda *args, **kwargs: calls.append("remove"))
     monkeypatch.setattr(le.nut_index, "add_template_usage", lambda *args, **kwargs: calls.append("add"))
-    monkeypatch.setattr(le, "MULTISERVER_ENABLED", False)
     monkeypatch.setattr(le, "USE_VARNISH", False)
 
     with pytest.raises(RuntimeError):
@@ -135,7 +133,7 @@ def test_replace_match_template_does_not_update_usage_when_save_fails(monkeypatc
     assert calls == []
 
 
-def test_save_linker_metadata_publishes_cache_refresh_in_multiserver(monkeypatch):
+def test_save_linker_metadata_invalidates_varnish_directly(monkeypatch):
     class FakeIndex:
         title = "Fake"
         save_calls = []
@@ -143,26 +141,19 @@ def test_save_linker_metadata_publishes_cache_refresh_in_multiserver(monkeypatch
         def save(self, override_dependencies=False):
             self.save_calls.append(override_dependencies)
 
-    class FakeCoordinator:
-        events = []
-
-        def publish_event(self, *args):
-            self.events.append(args)
-
     index = FakeIndex()
-    coordinator = FakeCoordinator()
     refreshes = []
+    invalidated = []
 
     monkeypatch.setattr(le.library, "refresh_index_record_in_cache", lambda saved_index: refreshes.append(saved_index.title))
-    monkeypatch.setattr(le, "MULTISERVER_ENABLED", True)
-    monkeypatch.setattr(le, "USE_VARNISH", False)
-    monkeypatch.setattr("sefaria.system.multiserver.coordinator.server_coordinator", coordinator)
+    monkeypatch.setattr(le, "USE_VARNISH", True)
+    monkeypatch.setattr("sefaria.system.varnish.wrapper.invalidate_title", lambda title: invalidated.append(title))
 
     le._save_linker_metadata(index)
 
     assert index.save_calls == [True]
     assert refreshes == ["Fake"]
-    assert coordinator.events == [("library", "refresh_index_record_in_cache", ["Fake"])]
+    assert invalidated == ["Fake"]
 
 
 def test_alt_struct_editor_path():

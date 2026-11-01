@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.91.0-prod.1"
+      version: "0.92.1-prod.1"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
@@ -45,19 +45,19 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v7.6.0-prod.1"
+        tag: "v7.9.2-prod.1"
       replicaCount: 7
       resources:
         web:
-          gunicornWorkerCount: 5
-          gunicornThreadCount: 5
+          gunicornWorkerCount: 3
+          gunicornThreadCount: 8
           resources:
             requests:
               memory: "14Gi"
               cpu: "1500m"
             limits:
               memory: "18Gi"
-              cpu: "2"
+              cpu: "3"
       secrets:
         googleClient:
           ref: google-client-secret-production
@@ -76,23 +76,11 @@ spec:
           limits:
             memory: "4Gi"
             cpu: "1000m"
-    redis:
-      containerImage:
-        imageRegistry: redis
-        tag: latest
-      pdb: true
-      resources:
-        requests:
-          memory: "500Mi"
-          cpu: "100m"
-        limits:
-          memory: "1500Mi"
-          cpu: "200m"
     gpuServer: "gpu-server.gpu-server.svc.cluster.local"
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v7.6.0-prod.1"
+        tag: "v7.9.2-prod.1"
       replicaCount: 4
       resources:
         requests:
@@ -184,7 +172,7 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v7.6.0-prod.1"
+        tag: "v7.9.2-prod.1"
       SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
       SEARCH_PORT: "9200"
       SEARCH_PATH: ""
@@ -198,18 +186,6 @@ spec:
         limits:
           memory: "300Mi"
           cpu: "150m"
-    monitor:
-      containerImage:
-        imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v7.6.0-prod.1"
-      replicaCount: 1
-      resources:
-        requests:
-          memory: "300Mi"
-          cpu: "50m"
-        limits:
-          memory: "400Mi"
-          cpu: "100m"
     export:
       enabled: true
     cronJobs:
@@ -235,6 +211,8 @@ spec:
       trends:
         enabled: true
       weeklyEmailNotifications:
+        enabled: true
+      buildTopNGramsForSearchAutocorrect:
         enabled: true
     secrets:
       localSettings:
@@ -267,7 +245,6 @@ spec:
       SITE_PACKAGE: "sites.sefaria"
       DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
       SERVER_EMAIL: "dev@sefaria.org"
-      MULTISERVER_ENABLED: "True"
       CRM_TYPE: "SALESFORCE"
       FAIL_GRACEFULLY: "True"
       SESSION_COOKIE_DOMAIN: ".sefaria.org"

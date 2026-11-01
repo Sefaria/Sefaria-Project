@@ -52,7 +52,20 @@ data:
             set req.backend_hint = name_service;
             return (pass);
         }
+        # Same backend, but cacheable (see below).
+        if (req.url ~ "^/api/search-autocorrect") {
+            set req.backend_hint = name_service;
+        }
         {{- end }}
+
+        # Every search calls this first, and the answer depends only on `q` and the table,
+        # which changes only when the name service restarts.  The 1d TTL bounds staleness
+        # after a restart picks up a newer table.  Must precede the staging pass.
+        if (req.url ~ "^/api/search-autocorrect" && req.method == "GET" && req.http.Host !~ "^staging") {
+            unset req.http.Cookie;
+            unset req.http.Accept-Language;
+            return (hash);
+        }
 
         if (req.http.Host ~ "^staging") {
             return (pass);
