@@ -142,7 +142,7 @@ export function PanelDrag({ scroller, layout, panels }: { scroller: React.RefObj
       if ((e.target as Element).closest("button, input, select, textarea, [role=dialog], [role=separator]")) return;
       const found = handleOf(e.target);
       if (!found) return;
-      press = { id: found.panel.dataset.leaf as PanelId, panel: found.panel, title: found.handle.querySelector("h1, h2, h3")?.textContent?.trim() || "Panel", x: e.clientX, y: e.clientY, pointer: e.pointerId };
+      press = { id: found.panel.dataset.leaf as PanelId, panel: found.panel, title: found.handle.querySelector("h1, h2, h3")?.textContent?.trim() || "Column", x: e.clientX, y: e.clientY, pointer: e.pointerId };
       window.addEventListener("pointermove", onMove);
       window.addEventListener("pointerup", onUp);
       window.addEventListener("pointercancel", cancel);

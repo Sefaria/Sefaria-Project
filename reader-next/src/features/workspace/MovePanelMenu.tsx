@@ -38,7 +38,7 @@ export function MovePanelMenu({ self, workspace, onDrop }: { self: PanelId; work
   return (
     <div className={styles.section}>
       <button type="button" className={styles.toggle} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <InterfaceText en="Move this panel" he="הזזת החלונית" />
+        <InterfaceText en="Move this column" he="הזזת הטור" />
         <Icon name="chevron-down" size="16px" className={styles.chevron} />
       </button>
       {open ? (
