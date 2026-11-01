@@ -11,9 +11,10 @@ spec:
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
-      # No automatic retry: a failed run is investigated and re-run by hand. A retry reuses
-      # the partial index the failed run left behind, and that is how the Sep 2026 incidents
-      # filled the data-node disks.
+      # No automatic retry: a failed run is investigated and re-run by hand. In Sep 2026 an
+      # unattended retry rebuilt on top of a failed run and filled the data-node disks. Init
+      # now recreates the target index, but a retry still starts another multi-hour write
+      # into a cluster whose disk state nobody has looked at.
       backoffLimit: 0
       template:
         metadata:
