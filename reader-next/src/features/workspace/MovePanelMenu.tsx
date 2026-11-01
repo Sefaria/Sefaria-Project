@@ -30,9 +30,9 @@ export function MovePanelMenu({ self, workspace, onDrop }: { self: PanelId; work
   const others = order.filter((id) => id !== self);
   const button = (d: Drop<PanelId>, icon: IconName, label: string, text?: ReactNode) => (
     <button key={label} type="button" className={text ? styles.far : styles.place} aria-label={label} title={label} disabled={!changes(layout, self, d)} onClick={() => onDrop(d)}>
-      {text && icon === "to-end" ? <span>{text}</span> : null}
+      {text && icon === "to-end" ? <span dir="auto">{text}</span> : null}
       <Icon name={icon} size="16px" />
-      {text && icon !== "to-end" ? <span>{text}</span> : null}
+      {text && icon !== "to-end" ? <span dir="auto">{text}</span> : null}
     </button>
   );
   return (
@@ -52,7 +52,7 @@ export function MovePanelMenu({ self, workspace, onDrop }: { self: PanelId; work
             const name = `${order.indexOf(id) + 1}. ${p && "ref" in p ? p.ref : id}`;
             return (
               <div key={id} className={styles.row}>
-                <span className={styles.name} title={name}>{name}</span>
+                <span className={styles.name} dir="auto" title={name}>{name}</span>
                 <span className={styles.places}>{ZONES.map((z) => button(dropFor(id, z.zone), z.icon, he ? `${z.he}${z.he.endsWith("־") ? "" : " "}${name}` : `${z.en} ${name}`))}</span>
               </div>
             );
