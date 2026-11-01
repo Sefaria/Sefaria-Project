@@ -153,9 +153,9 @@ def _entry_version(contents):
 class AdminLexiconEntryView(AdminMCPAPIView):
     """
     A dictionary entry for staff tools: GET reads it with a `version`; PATCH {"content", "base_version", "dry_run"}
-    edits its content through the moderators' lexicon editor (api/lexicon_admin_views.LexiconEntryView, #3730),
-    which validates, saves, logs history and refreshes the cached ref. The version check makes the edit
-    read-before-write: an entry changed since it was read answers 409 with the current entry.
+    changes only the fields given and keeps the rest (lexicon_admin_views.merge_entry_content: one code path for the
+    preview and the save, a write filtered on the entry as read, history and the cached ref as in the moderators'
+    editor, #3730). An entry changed since it was read answers 409 with the current entry.
     """
 
     def get(self, request, lexicon, headword):
@@ -170,7 +170,7 @@ class AdminLexiconEntryView(AdminMCPAPIView):
         return jsonResponse({"entry": contents, "content_attr_names": sorted(entry.content_attr_names()), "version": _entry_version(contents)})
 
     def patch(self, request, lexicon, headword):
-        from .lexicon_admin_views import AmbiguousLexiconEntry, LexiconEntryView, _load_lexicon_entry
+        from .lexicon_admin_views import AmbiguousLexiconEntry, LexiconEntryConflict, _load_lexicon_entry, merge_entry_content
         body, err = _load_json_body(request)
         if err:
             return err
@@ -184,21 +184,17 @@ class AdminLexiconEntryView(AdminMCPAPIView):
             return jsonResponse({"error": "More than one entry currently matches this headword."}, status=409)
         if not entry:
             return jsonResponse({"error": "Entry not found."}, status=404)
-        current = entry.contents()
-        if _entry_version(current) != body["base_version"]:
-            return jsonResponse({"error": "This entry was changed since you read it.", "current": {"entry": current, "version": _entry_version(current)}}, status=409)
-        unknown = set(body["content"]) - set(entry.content_attr_names())
-        if unknown:
-            return jsonResponse({"error": f"Unknown content fields: {sorted(unknown)}. Editable: {sorted(entry.content_attr_names())}"}, status=400)
-        if body.get("dry_run"):
-            preview = {**current, **body["content"]}
-            return jsonResponse({"dry_run": True, "before": current, "after": preview})
-        response = LexiconEntryView().patch(request, lexicon, headword)
-        if response.status_code == 200:
-            saved = _load_lexicon_entry(lexicon, headword)
-            if saved:
-                return jsonResponse({"status": "ok", "entry": saved.contents(), "version": _entry_version(saved.contents()), "via": _via(request)})
-        return response
+        dry_run = bool(body.get("dry_run"))
+        try:
+            result = merge_entry_content(request.user.id, lexicon, entry, body["content"], body["base_version"], _entry_version, dry_run=dry_run)
+        except LexiconEntryConflict as e:
+            current = {"entry": e.current, "version": _entry_version(e.current)} if e.current else None
+            return jsonResponse({"error": str(e), "current": current}, status=409)
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        if dry_run:
+            return jsonResponse({"dry_run": True, **result})
+        return jsonResponse({"status": "ok", "entry": result["after"], "version": _entry_version(result["after"]), "via": _via(request)})
 
 
 class AdminLexiconHeadwordView(AdminMCPAPIView):

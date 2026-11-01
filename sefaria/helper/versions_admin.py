@@ -2,9 +2,12 @@
 Version metadata, cache purges and read-only safety lookups for admin tools such as the AI chatbot's admin MCP endpoint.
 See docs/arch_docs/topic_prompts_admin_mcp.md §3.7.
 
-- Version metadata edits are the book page's version editor (VersionBlock → POST /api/version/flags, flag_text_api)
-  through the same `tracker.update_version_metadata` (history log), limited to an allowlist, with read-before-write
-  (a version hash of the metadata) and a dry run.
+- Version metadata edits are the book page's version editor (VersionBlock → POST /api/version/flags, flag_text_api),
+  limited to an allowlist, with read-before-write (a hash of the metadata) and a dry run. Unlike
+  `tracker.update_version_metadata`, which saves the whole loaded document (its `chapter` too), the write $sets and $unsets
+  only the changed fields, filtered on the metadata as it was read: the check is atomic with the write, and a text
+  correction saved meanwhile is kept. History (`log_version_metadata`) and the versionTitle-change callbacks run as
+  `save()` would run them.
 - A purge is /admin/reset/<ref> (reset_ref) without its redirect: a book refreshes its index caches, version state and
   TOC entry; any ref is purged from Varnish.
 - Lookups are the moderator tools' /api/version-indices and /api/check-index-dependencies.
@@ -13,8 +16,8 @@ import copy
 import hashlib
 import json
 
-from sefaria import tracker
-from sefaria.model import Ref, Version, VersionState, library
+from sefaria.model import Ref, Version, VersionState, library, log_version_metadata
+from sefaria.model.abstract import notify
 from sefaria.settings import USE_VARNISH
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
@@ -108,17 +111,61 @@ def update_version(title, lang, version_title, fields, base_version, uid, dry_ru
     updates = _updates(fields)
     if "versionTitle" in updates and Version().load({"title": title, "language": lang, "versionTitle": updates["versionTitle"]}):
         raise InputError(f"{title} already has a {lang} version titled '{updates['versionTitle']}'")
+    new_values = _validated(vobj, updates)
     after = copy.deepcopy(before)
-    for key, value in updates.items():
+    for key, value in new_values.items():
         if value is None:
             after.pop(key, None)
         else:
             after[key] = value
     if dry_run:
         return {"before": before, "after": after, "version": metadata_version(after), "dry_run": True}
-    tracker.update_version_metadata(uid, vobj, updates, method="API")
-    saved = _metadata(_load(title, lang, updates.get("versionTitle", version_title)))
-    return {"before": before, "after": saved, "version": metadata_version(saved), "dry_run": False}
+
+    # only the changed fields, and only if the metadata is still what was read
+    guard = {"_id": vobj._id}
+    for key in GUARDED_FIELDS:
+        guard[key] = before[key] if key in before else {"$exists": False}
+    ops = {}
+    sets = {k: v for k, v in new_values.items() if v is not None}
+    unsets = {k: "" for k, v in new_values.items() if v is None}
+    if sets:
+        ops["$set"] = sets
+    if unsets:
+        ops["$unset"] = unsets
+    result = db.texts.update_one(guard, ops)
+    if result.matched_count == 0:
+        current = Version().load({"_id": vobj._id})
+        if current is None:
+            raise VersionNotFound(f"No {lang} version '{version_title}' of {title}")
+        metadata = _metadata(current)
+        raise VersionConflict("This version's metadata was changed while saving.", {"metadata": metadata, "version": metadata_version(metadata)})
+
+    saved = Version().load({"_id": vobj._id})
+    after = _metadata(saved)
+    log_version_metadata(uid, before, after, method="API")
+    if after.get("versionTitle") != before.get("versionTitle"):
+        notify(saved, "attributeChange", attr="versionTitle", old=before.get("versionTitle"), new=after.get("versionTitle"))
+    notify(saved, "save", orig_vals={"title": title, "versionTitle": before.get("versionTitle")}, is_new=False)
+    return {"before": before, "after": after, "version": metadata_version(after), "dry_run": False}
+
+
+# every field an edit may touch, plus versionTitle: the write is filtered on all of them
+GUARDED_FIELDS = EDITABLE_FIELDS + ("versionTitle",)
+
+
+def _validated(vobj, updates):
+    """The updates as save() would store them: applied to a copy that goes through _normalize/_validate (priority becomes a
+    number, …). Only the updated fields are taken back; the copy is never written."""
+    probe = copy.deepcopy(vobj)
+    for key, value in updates.items():
+        if value is None:
+            if hasattr(probe, key):
+                delattr(probe, key)
+        else:
+            setattr(probe, key, value)
+    probe._normalize()
+    probe._validate()
+    return {key: (getattr(probe, key, None) if value is not None else None) for key, value in updates.items()}
 
 
 def purge_cache(tref):

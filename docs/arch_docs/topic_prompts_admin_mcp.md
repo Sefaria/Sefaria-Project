@@ -251,14 +251,18 @@ sanitize step, the preview text and `version` are identical to what a real save 
 Body `{"items": [{"id", "base_version"}], "lang": "en", "published": true, "dry_run": false}`, at most 50 items.
 The topic page's **Publish** button, per description and atomic (`set_published`): publishing skips a description whose
 `review_state` is `"not reviewed"`, as `getLinksToPublish` does. Each item answers `published`, `unpublished`,
-`unchanged`, `not_reviewed`, `conflict` (with the current version) or `not_found`; one failure doesn't stop the rest.
+`unchanged`, `not_reviewed`, `conflict` (with the current version) or `not_found`; one failure doesn't stop the rest. A
+malformed item (no id, a bad id, no base_version) fails the whole call before anything is written.
 Audited with `action: "publish" | "unpublish"`.
 
 ### 3.4 `POST /api/admin/topic-prompts/generate` and `GET /api/admin/tasks/<id>`
 
 Body `{"topic", "lang", "ids"?}`. The topic page's **Generate** button (`getLinksToGenerate`): queues the Celery chain
 `generate_and_save_topic_prompts` for sources that have an `ai_context` and no prompt (at most 50), and answers
-`{"task_ids", "queued", "skipped": [{"id", "reason"}]}` with HTTP 202. Output is saved unpublished and "not reviewed".
+`{"task_ids", "queued", "skipped": [{"id", "reason"}], "remaining"}` with HTTP 202. Output is saved unpublished and
+"not reviewed". Without `ids`, eligibility is part of the query and the limit applies after it (sources that already have
+prompts can't fill the batch); `remaining` counts the eligible ones left. Only `about` links: the output saver
+(`save_topic_prompt_output`) writes to the ref's `about` link, so an author's `popular-writing-of` source is skipped.
 `GET /api/admin/tasks/<id>` reports `{state, ready, successful?, error?}` (the staff view of `/api/async/<id>`).
 
 ### 3.5 `POST|DELETE /api/admin/ref-topic-links` — tag or untag a passage
@@ -268,13 +272,19 @@ Body `{"topic", "lang", "ids"?}`. The topic page's **Generate** button (`getLink
 tagged in that language answers `already_tagged` and is never re-saved, because re-"creating" resets `curatedPrimacy`
 (finding 4). DELETE `?ref&topic&lang&dry_run` is `delete_ref_topic_link`, refused when the description has a title or
 prompt (curated prompts are removed on the topic page). Answers `tagged | already_tagged | untagged | link_deleted | not_tagged`.
+A link's languages are its descriptions and curated positions (`_langs`), not `order.availableLangs` (which
+`delete_ref_topic_link` leaves behind) or curatedPrimacy alone (author links have none). Untagging removes only that
+language's description, position and `availableLangs` entry, and deletes the link only when no language is left; the
+topic page's `delete_ref_topic_link` is not used, because it decides that from curatedPrimacy.
 
 ### 3.6 `GET|PATCH /api/admin/lexicon-entries/<lexicon>/<headword>`, `PATCH …/headword/<lexicon>/<headword>`
 
 Dictionary entries, wrapping the moderators' lexicon editor (#3730, `api/lexicon_admin_views.py`) so its validation,
 history log and ref-cache refresh are reused as they are. GET adds a `version` (hash of the entry). PATCH
 `{"content", "base_version", "dry_run"}` needs that version (409 with the current entry when stale) and only the
-entry's `content_attr_names`. The headword PATCH `{"new_headword", "dry_run"}` renames through the same view; a dry run
+entry's `content_attr_names`. Fields not given are kept (the moderators' editor replaces the whole content, since it
+sends the whole draft): `merge_entry_content` validates the merged content on a copy, so the preview is the save, then
+writes only content fields with a filter on the entry as read (atomic with the check). The headword PATCH `{"new_headword", "dry_run"}` renames through the same view; a dry run
 reports the headword it would resolve to.
 
 ### 3.7 Versions, cache, lookups (`sefaria/helper/versions_admin.py`)
@@ -283,7 +293,10 @@ reports the headword it would resolve to.
   `flag_text_api`) through the same `tracker.update_version_metadata` (history). GET answers
   `{metadata, version, editable_fields}`; PATCH `{"fields", "base_version", "dry_run"}` takes only `EDITABLE_FIELDS`
   plus `newVersionTitle` (a rename), with `status` `"locked"` or null, and answers `{before, after, version}`
-  (409 with the current metadata when stale).
+  (409 with the current metadata when stale). The write does not go through `tracker.update_version_metadata`, which
+  saves the whole loaded document: it $sets/$unsets only the changed fields, filtered on every editable field as read,
+  so the version check is atomic with the write and a text correction saved meanwhile (`chapter`) is kept. The values
+  are normalized/validated on a copy first; history and the versionTitle-change callbacks then run as `save()` runs them.
 - `GET /api/admin/versions?versionTitle&language`: the books that have a version of that title (`/api/version-indices`).
 - `GET /api/admin/index-dependencies/<title>`: dependent books, version and link counts (`/api/check-index-dependencies`).
 - `POST /api/admin/cache/purge {"ref"}`: `/admin/reset/<ref>` without its redirect (a book: index cache, version state,

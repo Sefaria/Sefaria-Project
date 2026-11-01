@@ -99,3 +99,39 @@ def test_non_staff_is_refused(django_user_model):
     assert client.get(_url("lexmcptest-c"), **_headers(user)).status_code == 401
     client.force_login(user)
     assert client.get(_url("lexmcptest-c")).status_code == 403
+
+
+def test_a_partial_edit_keeps_other_fields_and_the_preview_is_the_save(staff):
+    LexiconEntry({"headword": "lexmcptest-keep", "parent_lexicon": LEXICON, "notes": "keep me", "alt_headwords": ["lexmcptest-alt"], "content": "old"}).save()
+    client, h = Client(enforce_csrf_checks=True, HTTP_HOST=HOST), _headers(staff)
+    version = client.get(_url("lexmcptest-keep"), **h).json()["version"]
+    body = {"content": {"content": "new"}, "base_version": version}
+    preview = client.patch(_url("lexmcptest-keep"), json.dumps({**body, "dry_run": True}), content_type="application/json", **h).json()["after"]
+    saved = client.patch(_url("lexmcptest-keep"), json.dumps(body), content_type="application/json", **h)
+    assert saved.status_code == 200, saved.content
+    stored = LexiconEntry().load({"parent_lexicon": LEXICON, "headword": "lexmcptest-keep"})
+    assert stored.notes == "keep me" and stored.alt_headwords == ["lexmcptest-alt"] and stored.content == "new"
+    for key in ("notes", "alt_headwords", "content", "headword"):
+        assert preview[key] == saved.json()["entry"][key]
+
+
+def test_an_edit_made_meanwhile_is_a_conflict(staff):
+    from sefaria.system.database import db
+    LexiconEntry({"headword": "lexmcptest-race", "parent_lexicon": LEXICON, "notes": "a"}).save()
+    client, h = Client(enforce_csrf_checks=True, HTTP_HOST=HOST), _headers(staff)
+    version = client.get(_url("lexmcptest-race"), **h).json()["version"]
+    import api.lexicon_admin_views as lav
+    real = lav._load_lexicon_entry
+    calls = {"n": 0}
+
+    def load_then_change(lexicon, headword):
+        entry = real(lexicon, headword)
+        calls["n"] += 1
+        if calls["n"] == 1:  # someone saves right after this request read the entry
+            db.lexicon_entry.update_one({"parent_lexicon": LEXICON, "headword": "lexmcptest-race"}, {"$set": {"notes": "theirs"}})
+        return entry
+    with patch.object(lav, "_load_lexicon_entry", load_then_change):
+        r = client.patch(_url("lexmcptest-race"), json.dumps({"content": {"notes": "mine"}, "base_version": version}), content_type="application/json", **h)
+    assert r.status_code == 409 and r.json()["current"]["entry"]["notes"] == "theirs"
+    assert LexiconEntry().load({"parent_lexicon": LEXICON, "headword": "lexmcptest-race"}).notes == "theirs"
+

@@ -398,7 +398,11 @@ class TestGenerate:
             result = tpa.generate_prompts(prompt_topic.slug, [], "en")
         assert result["task_ids"] == ["task-1"]
         assert [q["id"] for q in result["queued"]] == [str(human_link._id)]
-        assert {s["id"]: s["reason"] for s in result["skipped"]} == {str(ai_link._id): "already has a prompt"}
+        # the default selects only eligible sources (in the query); naming a source reports why it was skipped
+        assert result["skipped"] == [] and result["remaining"] == 0
+        with patch("sefaria.helper.llm.tasks.topic_prompts.generate_and_save_topic_prompts"):
+            named = tpa.generate_prompts(prompt_topic.slug, [str(ai_link._id)], "en")
+        assert {s["id"]: s["reason"] for s in named["skipped"]} == {str(ai_link._id): "already has a prompt"}
         lang, topic, orefs, hints = gen.call_args.args
         assert lang == "en" and topic.slug == prompt_topic.slug and [o.normal() for o in orefs] == ["Exodus 20:8"] and hints == ["why"]
 
@@ -487,3 +491,71 @@ class TestNewAdminEndpoints:
         assert client.get("/api/admin/tasks/abc", **self._headers(user)).status_code == 401
         client.force_login(user)
         assert client.post("/api/admin/topic-prompts/generate", "{}", content_type="application/json").status_code == 403
+
+
+class TestReviewFixes:
+
+    def test_untag_keeps_the_other_languages_curated_description(self, prompt_topic):
+        """A link with no curatedPrimacy (as an author's has none): untagging English must not delete the Hebrew description."""
+        from sefaria.helper import topic_links_admin as tla
+        link = RefTopicLink({"toTopic": prompt_topic.slug, "ref": "Genesis 5:1", "linkType": "about", "dataSource": "learning-team",
+                             "order": {"availableLangs": ["en", "he"]},
+                             "descriptions": {"en": {}, "he": {"title": "כותרת", "prompt": "הנחיה"}}})
+        link.save()
+        try:
+            assert tla.untag_ref("Genesis 5:1", prompt_topic.slug, "en", dry_run=True)["status"] == "untagged"
+            assert tla.untag_ref("Genesis 5:1", prompt_topic.slug, "en")["status"] == "untagged"
+            stored = db.topic_links.find_one({"_id": link._id})
+            assert stored["descriptions"] == {"he": {"title": "כותרת", "prompt": "הנחיה"}}
+            assert stored["order"]["availableLangs"] == ["he"]
+        finally:
+            db.topic_links.delete_one({"_id": link._id})
+
+    def test_untag_then_tag_again_restores_the_language(self, prompt_topic):
+        from sefaria.helper import topic_links_admin as tla
+        try:
+            tla.tag_ref("Genesis 5:2", prompt_topic.slug, "en")
+            tla.tag_ref("Genesis 5:2", prompt_topic.slug, "he")
+            assert tla.untag_ref("Genesis 5:2", prompt_topic.slug, "he")["status"] == "untagged"
+            stored = db.topic_links.find_one({"toTopic": prompt_topic.slug, "ref": "Genesis 5:2"})
+            assert "he" not in stored["order"]["availableLangs"] and "he" not in stored["order"].get("curatedPrimacy", {})
+            assert tla.tag_ref("Genesis 5:2", prompt_topic.slug, "he")["status"] == "tagged"
+            stored = db.topic_links.find_one({"toTopic": prompt_topic.slug, "ref": "Genesis 5:2"})
+            assert "he" in stored["order"]["availableLangs"] and "he" in stored["order"]["curatedPrimacy"]
+        finally:
+            db.topic_links.delete_many({"toTopic": prompt_topic.slug, "ref": "Genesis 5:2"})
+
+    def test_generation_finds_eligible_sources_past_the_first_batch(self, prompt_topic):
+        ids = []
+        try:
+            for i in range(tpa.MAX_BATCH + 2):  # sources that already have prompts come first
+                ids.append(db.topic_links.insert_one({"class": "refTopic", "toTopic": prompt_topic.slug, "ref": f"Genesis 10:{i + 1}", "expandedRefs": [f"Genesis 10:{i + 1}"],
+                    "linkType": "about", "dataSource": "learning-team", "descriptions": {"en": {"prompt": "done", "ai_context": "c"}}}).inserted_id)
+            eligible = db.topic_links.insert_one({"class": "refTopic", "toTopic": prompt_topic.slug, "ref": "Genesis 11:1", "expandedRefs": ["Genesis 11:1"],
+                "linkType": "about", "dataSource": "learning-team", "descriptions": {"en": {"ai_context": "why"}}}).inserted_id
+            ids.append(eligible)
+            with patch("sefaria.helper.llm.tasks.topic_prompts.generate_and_save_topic_prompts") as gen:
+                gen.return_value.id = "t"
+                result = tpa.generate_prompts(prompt_topic.slug, [], "en")
+            assert [q["id"] for q in result["queued"]] == [str(eligible)] and result["remaining"] == 0
+        finally:
+            db.topic_links.delete_many({"_id": {"$in": ids}})
+
+    def test_generation_skips_author_sources(self, prompt_topic):
+        author = db.topic_links.insert_one({"class": "refTopic", "toTopic": prompt_topic.slug, "ref": "Genesis 12:1", "expandedRefs": ["Genesis 12:1"],
+            "linkType": "popular-writing-of", "dataSource": "learning-team", "descriptions": {"en": {"ai_context": "why"}}}).inserted_id
+        try:
+            with patch("sefaria.helper.llm.tasks.topic_prompts.generate_and_save_topic_prompts") as gen:
+                by_id = tpa.generate_prompts(prompt_topic.slug, [str(author)], "en")
+                default = tpa.generate_prompts(prompt_topic.slug, [], "en")
+            gen.assert_not_called()
+            assert "popular-writing-of" in by_id["skipped"][0]["reason"] and not default["queued"]
+        finally:
+            db.topic_links.delete_one({"_id": author})
+
+    def test_a_bad_item_stops_the_batch_before_anything_is_published(self, human_link):
+        version = _version_of(human_link._id)
+        with pytest.raises(InputError, match="Nothing was changed"):
+            tpa.set_published([{"id": str(human_link._id), "base_version": version}, {"id": "not-an-id", "base_version": "x"}], "en", False, uid=7)
+        assert db.topic_links.find_one({"_id": human_link._id})["descriptions"]["en"].get("published") is not False
+

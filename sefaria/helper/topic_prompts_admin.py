@@ -330,13 +330,19 @@ def set_published(items, lang, published, uid, dry_run=False, base_url="", via="
     if len(items) > MAX_BATCH:
         raise InputError(f"At most {MAX_BATCH} items at a time")
 
-    results = []
-    for item in items:
+    # the whole batch is checked before anything is written: a bad item never leaves earlier ones changed and unreported
+    checked = []
+    for i, item in enumerate(items):
         link_id = item.get("id") if isinstance(item, dict) else None
         base_version = item.get("base_version") if isinstance(item, dict) else None
-        if not link_id or not base_version:
-            raise InputError("Each item needs an id and the base_version you read")
-        results.append(_set_one_published(link_id, base_version, lang, published, uid, dry_run, base_url, via))
+        if not isinstance(link_id, str) or not isinstance(base_version, str) or not base_version:
+            raise InputError(f"Item {i}: each item needs an id and the base_version you read. Nothing was changed.")
+        try:
+            _parse_object_id(link_id)
+        except InputError:
+            raise InputError(f"Item {i}: invalid id {link_id}. Nothing was changed.")
+        checked.append((link_id, base_version))
+    results = [_set_one_published(link_id, base_version, lang, published, uid, dry_run, base_url, via) for link_id, base_version in checked]
     return {"results": results, "dry_run": dry_run}
 
 
@@ -382,13 +388,32 @@ def _set_one_published(link_id, base_version, lang, published, uid, dry_run, bas
     return {"id": link_id, "status": status, "result": after}
 
 
+GENERATABLE_LINK_TYPE = "about"
+
+
+def _eligibility_query(lang):
+    """Sources the Generate button would queue: an editor's ai_context and no prompt yet, on an "about" link."""
+    prefix = f"descriptions.{lang}"
+    return {
+        "linkType": GENERATABLE_LINK_TYPE,
+        f"{prefix}.ai_context": {"$exists": True, "$nin": ["", None]},
+        f"{prefix}.prompt": {"$in": ["", None]},  # also matches a missing prompt
+    }
+
+
 def generate_prompts(topic_slug, link_ids, lang):
     """
-    Queues AI generation for sources of a topic that have an editor's context ("ai_context") and no
-    prompt yet, as the topic page's "Generate" button does (getLinksToGenerate →
-    /api/topics/generate-prompts). The output is saved unpublished and "not reviewed".
-    `link_ids` narrows the batch; omitted, every eligible source of the topic in `lang` is queued.
-    Returns {"task_ids": [...], "queued": [{"id", "ref"}], "skipped": [{"id", "reason"}]}.
+    Queues AI generation for sources of a topic that have an editor's context ("ai_context") and no prompt yet, as the
+    topic page's "Generate" button does (getLinksToGenerate → /api/topics/generate-prompts). The output is saved
+    unpublished and "not reviewed".
+
+    Only "about" links: the output saver (save_topic_prompt_output) writes to an "about" link for the ref, so an author's
+    source ("popular-writing-of") would get its prompt on a different link. Those are reported as skipped.
+
+    `link_ids` names the sources (each one queued or skipped with a reason). Omitted, the eligible sources are selected
+    in the query itself, then limited, so sources that already have prompts can't fill the batch; `remaining` says how
+    many more are eligible (call again once these are generated).
+    Returns {"task_ids", "queued": [{"id", "ref"}], "skipped": [{"id", "reason"}], "remaining"}.
     """
     from sefaria.model import Topic
     from sefaria.helper.llm.tasks.topic_prompts import generate_and_save_topic_prompts
@@ -397,21 +422,35 @@ def generate_prompts(topic_slug, link_ids, lang):
     topic = Topic.init(topic_slug)
     if topic is None:
         raise InputError(f"No topic {topic_slug}")
-    query = {"toTopic": topic_slug, f"descriptions.{lang}": {"$exists": True}}
+    eligible = {"toTopic": topic_slug, **_eligibility_query(lang)}
+    queued, skipped, orefs, hints = [], [], [], []
+    remaining = 0
     if link_ids:
         if len(link_ids) > MAX_BATCH:
             raise InputError(f"At most {MAX_BATCH} sources at a time")
-        query["_id"] = {"$in": [_parse_object_id(i) for i in link_ids]}
-    queued, skipped, orefs, hints = [], [], [], []
-    for link in RefTopicLinkSet(query, sort=[("_id", 1)], limit=MAX_BATCH):
-        description = link.descriptions.get(lang, {})
-        if description.get("prompt"):
-            skipped.append({"id": str(link._id), "reason": "already has a prompt"})
-        elif not description.get("ai_context"):
-            skipped.append({"id": str(link._id), "reason": "no ai_context: add one with update_topic_prompt first"})
-        else:
+        oids = [_parse_object_id(i) for i in link_ids]
+        found = {link._id: link for link in RefTopicLinkSet({"_id": {"$in": oids}})}
+        for oid in oids:
+            link = found.get(oid)
+            description = getattr(link, "descriptions", {}).get(lang, {}) if link else {}
+            if link is None or link.toTopic != topic_slug or lang not in getattr(link, "descriptions", {}):
+                skipped.append({"id": str(oid), "reason": f"not a source of {topic_slug} in {lang}"})
+            elif link.linkType != GENERATABLE_LINK_TYPE:
+                skipped.append({"id": str(oid), "reason": f"a '{link.linkType}' source (an author's): generated prompts are saved to an 'about' link, so it isn't supported"})
+            elif description.get("prompt"):
+                skipped.append({"id": str(oid), "reason": "already has a prompt"})
+            elif not description.get("ai_context"):
+                skipped.append({"id": str(oid), "reason": "no ai_context: add one with update_topic_prompt first"})
+            else:
+                orefs.append(Ref(link.ref))
+                hints.append(description["ai_context"])
+                queued.append({"id": str(oid), "ref": link.ref})
+    else:
+        links = list(RefTopicLinkSet(eligible, sort=[("_id", 1)], limit=MAX_BATCH))
+        for link in links:
             orefs.append(Ref(link.ref))
-            hints.append(description["ai_context"])
+            hints.append(link.descriptions[lang]["ai_context"])
             queued.append({"id": str(link._id), "ref": link.ref})
+        remaining = max(0, db[RefTopicLink.collection].count_documents({"class": "refTopic", **eligible}) - len(links))
     task_ids = [generate_and_save_topic_prompts(lang, topic, orefs, hints).id] if orefs else []
-    return {"task_ids": task_ids, "queued": queued, "skipped": skipped}
+    return {"task_ids": task_ids, "queued": queued, "skipped": skipped, "remaining": remaining}

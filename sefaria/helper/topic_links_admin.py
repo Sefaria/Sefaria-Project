@@ -8,9 +8,13 @@ same URL), with the guards an automated caller needs:
   call can't move an existing source to the top of the topic page (edit_topic_source resets
   curatedPrimacy when asked to "create" a link that exists);
 - untagging refuses a link whose description has a title or prompt, so curated prompts are not lost
-  by accident; those are removed on the topic page.
+  by accident; those are removed on the topic page;
+- a link's languages are read from its descriptions and curated positions (see _langs). Untagging one
+  language removes only that language's data, including its `availableLangs` entry; the link is deleted only
+  when none is left. (delete_ref_topic_link decides that from curatedPrimacy, which author links don't
+  have, and leaves availableLangs behind.)
 """
-from sefaria.helper.topic import edit_topic_source, delete_ref_topic_link
+from sefaria.helper.topic import edit_topic_source
 from sefaria.model import Ref, RefTopicLink
 from sefaria.model.topic import AuthorTopic, Topic
 from sefaria.system.exceptions import InputError
@@ -43,8 +47,14 @@ def _existing(slug, tref):
     return RefTopicLink().load({"toTopic": slug, "linkType": _link_type(slug), "ref": tref, "dataSource": "learning-team"})
 
 
-def _has_lang(link, lang):
-    return lang in getattr(link, "order", {}).get("availableLangs", []) or lang in getattr(link, "descriptions", {})
+def _langs(link):
+    """
+    The languages a learning-team link is really present in: those with a description or a curated position. Not
+    `order.availableLangs`, which the topic page's delete (delete_ref_topic_link) leaves behind; and not curatedPrimacy
+    alone, which author links ("popular-writing-of") never get.
+    """
+    order = getattr(link, "order", {}) or {}
+    return set(getattr(link, "descriptions", {}) or {}) | set(order.get("curatedPrimacy", {}) or {})
 
 
 def tag_ref(tref, slug, lang="en", dry_run=False):
@@ -53,7 +63,7 @@ def tag_ref(tref, slug, lang="en", dry_run=False):
     tref = _normal_ref(tref)
     link = _existing(slug, tref)
     summary = {"ref": tref, "topic": slug, "topic_title": {"en": topic.get_primary_title("en"), "he": topic.get_primary_title("he")}, "lang": lang}
-    if link is not None and _has_lang(link, lang):
+    if link is not None and lang in _langs(link):
         return {"status": "already_tagged", "link": {**summary, "id": str(link._id)}}
     if dry_run:
         return {"status": "tagged", "dry_run": True, "link": summary}
@@ -66,20 +76,35 @@ def tag_ref(tref, slug, lang="en", dry_run=False):
 
 
 def untag_ref(tref, slug, lang="en", dry_run=False):
-    """Removes `lang` from a learning-team tag (the link goes when no language is left)."""
+    """
+    Removes `lang` from a learning-team tag: its description, curated position and `availableLangs` entry. The link itself
+    is deleted only when no language is left, so another language's description (curated or not) is never removed.
+    Refused when this language's description has a curated title or prompt.
+    """
     _check(slug, lang)
     tref = _normal_ref(tref)
     link = _existing(slug, tref)
-    if link is None or not _has_lang(link, lang):
+    langs = _langs(link) if link is not None else set()
+    if lang not in langs:
         return {"status": "not_tagged", "ref": tref, "topic": slug, "lang": lang}
-    description = getattr(link, "descriptions", {}).get(lang, {})
+    description = (getattr(link, "descriptions", {}) or {}).get(lang, {})
     if description.get("title") or description.get("prompt"):
         raise InputError("This source has a curated title or prompt in this language. Remove it on the topic page instead.")
-    other_langs = [l for l in getattr(link, "order", {}).get("curatedPrimacy", {}) if l != lang]
-    outcome = "untagged" if other_langs else "link_deleted"
+    remaining = langs - {lang}
+    outcome = "untagged" if remaining else "link_deleted"
+    result = {"status": outcome, "ref": tref, "topic": slug, "lang": lang, "id": str(link._id), "remaining_langs": sorted(remaining)}
     if dry_run:
-        return {"status": outcome, "dry_run": True, "ref": tref, "topic": slug, "lang": lang, "id": str(link._id)}
-    result = delete_ref_topic_link(tref, slug, _link_type(slug), lang)
-    if "error" in result:
-        raise InputError(result["error"])
-    return {"status": outcome, "ref": tref, "topic": slug, "lang": lang, "id": str(link._id)}
+        return {**result, "dry_run": True}
+    if remaining:
+        order = getattr(link, "order", {}) or {}
+        (getattr(link, "descriptions", {}) or {}).pop(lang, None)
+        (order.get("curatedPrimacy", {}) or {}).pop(lang, None)
+        if lang in order.get("availableLangs", []):
+            order["availableLangs"] = [l for l in order["availableLangs"] if l != lang]
+        link.order = order
+        link.save()
+    elif link.can_delete():
+        link.delete()
+    else:
+        raise InputError(f"Cannot delete link between {tref} and {slug}.")
+    return result

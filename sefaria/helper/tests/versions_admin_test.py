@@ -36,9 +36,9 @@ def test_read_then_edit_with_dry_run_and_conflict(version):
     dry = va.update_version(TITLE, "en", VT, {"versionNotes": "Checked", "status": "locked"}, read["version"], uid=1, dry_run=True)
     assert dry["after"]["status"] == "locked"
     assert not hasattr(Version().load({"title": TITLE, "versionTitle": VT}), "status")
-    with patch.object(va.tracker, "update_version_metadata", wraps=va.tracker.update_version_metadata) as tracked:
+    with patch.object(va, "log_version_metadata") as logged:
         done = va.update_version(TITLE, "en", VT, {"versionNotes": "Checked", "status": "locked", "license": ""}, read["version"], uid=1)
-    tracked.assert_called_once()
+    logged.assert_called_once()
     assert done["after"]["status"] == "locked" and done["after"]["versionNotes"] == "Checked" and "license" not in done["after"]
     with pytest.raises(va.VersionConflict):
         va.update_version(TITLE, "en", VT, {"versionNotes": "Again"}, read["version"], uid=1)
@@ -98,3 +98,41 @@ class TestEndpoints:
         with patch("sefaria.helper.versions_admin.USE_VARNISH", False):
             purge = client.post("/api/admin/cache/purge", json.dumps({"ref": "Genesis 1"}), content_type="application/json", **h)
         assert purge.status_code == 200 and purge.json()["ref"] == "Genesis 1"
+
+
+def _concurrently(change):
+    """Runs `change` between update_version's read and its write (it validates on a copy in between)."""
+    real = va._validated
+
+    def validated(vobj, updates):
+        change()
+        return real(vobj, updates)
+    return patch.object(va, "_validated", validated)
+
+
+def test_a_text_correction_made_meanwhile_is_kept(version):
+    from sefaria.system.database import db
+    v = va.get_version(TITLE, "en", VT)["version"]
+    with _concurrently(lambda: db.texts.update_one({"title": TITLE, "versionTitle": VT}, {"$set": {"chapter": [["In the beginning (corrected)"]]}})):
+        va.update_version(TITLE, "en", VT, {"versionNotes": "Checked"}, v, uid=1)
+    stored = db.texts.find_one({"title": TITLE, "versionTitle": VT})
+    assert stored["chapter"] == [["In the beginning (corrected)"]] and stored["versionNotes"] == "Checked"
+
+
+def test_a_metadata_edit_made_meanwhile_is_a_conflict(version):
+    from sefaria.system.database import db
+    v = va.get_version(TITLE, "en", VT)["version"]
+    with _concurrently(lambda: db.texts.update_one({"title": TITLE, "versionTitle": VT}, {"$set": {"versionNotes": "Someone else"}})):
+        with pytest.raises(va.VersionConflict) as e:
+            va.update_version(TITLE, "en", VT, {"versionNotes": "Mine"}, v, uid=1)
+    assert e.value.current["metadata"]["versionNotes"] == "Someone else"
+    assert db.texts.find_one({"title": TITLE, "versionTitle": VT})["versionNotes"] == "Someone else"
+
+
+def test_preview_equals_saved_result(version):
+    v = va.get_version(TITLE, "en", VT)["version"]
+    fields = {"priority": "2.5", "versionNotes": "Note", "license": ""}
+    preview = va.update_version(TITLE, "en", VT, fields, v, uid=1, dry_run=True)
+    saved = va.update_version(TITLE, "en", VT, fields, v, uid=1)
+    assert preview["after"] == saved["after"] and saved["after"]["priority"] == 2.5
+
