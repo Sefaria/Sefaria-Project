@@ -109,7 +109,6 @@ def profile_api(request):
 def confirmation_api(request):
     """
     POST emails the account a link that confirms its address; DELETE stops waiting for it.
-    With mocks on, nothing is sent: the state carries the link for the mock email instead.
     """
     if request.method == "DELETE":
         developer.mark_confirmation_sent(request.user, False)
@@ -138,11 +137,10 @@ def new_link_api(request):
 def send_confirmation(request, user):
     """
     Reserves the send (check + record, atomically) before sending, so a failed send still
-    throttles. With mocks on, nothing is sent.
+    throttles.
     """
     developer.reserve_confirmation_send(user)
-    if not developer.mocks_enabled():
-        send_confirmation_email(request, user)
+    send_confirmation_email(request, user)
 
 
 def confirmation_url(request, key):

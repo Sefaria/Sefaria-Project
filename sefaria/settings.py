@@ -357,12 +357,8 @@ CACHES = {
 }
 
 
-# Developer settings test controls (SSO and email mocks, mock Powered by listings). local_settings
-# turns them on where Google refuses the origin and no email is sent, such as branch cauldrons.
-DEVELOPER_SETTINGS_MOCKS = False
-
-# The developer tab in settings and its routes (/api/developer/*, the email confirmation link,
-# /powered-by/form). Off: the tab is absent and the routes return 404.
+# The developer tab in settings and its routes (/api/developer/*, the email confirmation link).
+# Off: the tab is absent and the routes return 404.
 DEVELOPER_SETTINGS_ENABLED = False
 
 # With DEVELOPER_SETTINGS_ENABLED on, limits developer settings to staff (is_staff); everyone else
