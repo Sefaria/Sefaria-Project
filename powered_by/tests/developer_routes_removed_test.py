@@ -3,6 +3,7 @@ The developer test controls and the Powered by proof-of-concept form have no rou
 site's catch-all pattern still matches any path, so the check is that no path resolves to a view
 in the powered_by package.
 """
+import pytest
 from django.urls import Resolver404, resolve
 
 
@@ -27,3 +28,11 @@ def test_powered_by_form_path_is_not_the_poc_form():
     for path in ("/powered-by/form", "/powered-by/form/"):
         module = resolved_module(path)
         assert module is None or not module.startswith("powered_by"), (path, module)
+
+
+@pytest.mark.django_db
+def test_powered_by_still_redirects_to_the_developer_portal(client):
+    # Site behaviour in sites/sefaria/urls.py, unrelated to the removed form.
+    response = client.get("/powered-by")
+    assert response.status_code == 301
+    assert response["Location"] == "https://developers.sefaria.org/docs/powered-by-sefaria"

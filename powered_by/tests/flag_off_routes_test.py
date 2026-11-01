@@ -1,7 +1,7 @@
 """
 C9: with DEVELOPER_SETTINGS_ENABLED off, every developer settings route in urls_library is a 404,
-logged in or not and for any method. Every method and
-login state is checked by calling the resolved view; each route also gets one full request.
+logged in or not and for any method. Every method and login state is checked by calling the
+resolved view; each route also gets one full request.
 """
 import re
 
