@@ -9,6 +9,7 @@ import { parseCookieHeader, parseCookieSettings, type ReaderSettings } from "~/l
 import { LinkProvider } from "~/ui/Link/Link";
 import { RouterLink } from "~/features/shared/RouterLink";
 import { ReaderSettingsProvider } from "~/features/reader/settings-context";
+import { ReaderStateProvider } from "~/features/reader-state/ReaderStateProvider";
 import { isReaderPath } from "~/lib/reader/paths";
 import { useHeaderSearch } from "~/features/shell/useHeaderSearch";
 import { SiteHeader } from "~/ui/SiteHeader/SiteHeader";
@@ -102,9 +103,11 @@ function RootComponent() {
     <RootDocument lang={interfaceLang === "hebrew" ? "he" : "en"} dir={interfaceLang === "hebrew" ? "rtl" : "ltr"}>
       <InterfaceLangProvider lang={interfaceLang}>
         <LinkProvider value={RouterLink}>
-          <ReaderSettingsProvider initial={settings}>
-            <Shell />
-          </ReaderSettingsProvider>
+          <ReaderStateProvider>
+            <ReaderSettingsProvider initial={settings}>
+              <Shell />
+            </ReaderSettingsProvider>
+          </ReaderStateProvider>
         </LinkProvider>
       </InterfaceLangProvider>
     </RootDocument>

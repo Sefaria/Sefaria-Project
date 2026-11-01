@@ -129,3 +129,21 @@ describe("DisplaySettingsMenu: side panel", () => {
     expect(screen.queryByRole("switch")).toBeNull();
   });
 });
+
+describe("DisplaySettingsMenu: session recording", () => {
+  const settings = DEFAULT_SETTINGS;
+  const availability = displayMenuAvailability({ settings, showsSource: true, primaryCategory: "Tanakh", book: "Genesis", hebrewSample: HE });
+  it("has no recording entry unless asked for", () => {
+    render(<DisplaySettingsMenu settings={settings} availability={availability} layoutKey="layoutTanakh" onChange={() => {}} />);
+    expect(screen.queryByRole("button", { name: "Record session" })).toBeNull();
+  });
+  it("offers Record session and Load recording…", async () => {
+    const onRecordSession = vi.fn();
+    const onLoadRecording = vi.fn();
+    render(<DisplaySettingsMenu settings={settings} availability={availability} layoutKey="layoutTanakh" onChange={() => {}} onRecordSession={onRecordSession} onLoadRecording={onLoadRecording} />);
+    await userEvent.click(screen.getByRole("button", { name: "Record session" }));
+    await userEvent.click(screen.getByRole("button", { name: "Load recording…" }));
+    expect(onRecordSession).toHaveBeenCalledTimes(1);
+    expect(onLoadRecording).toHaveBeenCalledTimes(1);
+  });
+});

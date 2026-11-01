@@ -22,7 +22,8 @@
     "fixtures:record": "node scripts/record-fixtures.mjs",
     "features:coverage": "node scripts/feature-coverage.mjs",
     "test:e2e": "playwright test --project=desktop",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "room:dev": "node scripts/dev-room-server.mjs"
   },
   "dependencies": {
     "@fontsource/crimson-text": "^5.3.0",
@@ -73,6 +74,7 @@
     "storybook": "^10.6.1",
     "typescript": "^5.9.3",
     "vite": "^8.3.2",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "ws": "^8.22.0"
   }
 }

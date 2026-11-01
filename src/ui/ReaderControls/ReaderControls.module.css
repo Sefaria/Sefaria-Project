@@ -17,7 +17,14 @@
   background: var(--sefaria-color-surface); color: var(--sefaria-color-text-strong);
   border-radius: 5px; box-shadow: var(--sefaria-shadow-legacy);
   font-family: var(--sefaria-font-ui-en); font-size: 13px; line-height: normal; text-align: center; white-space: normal;
-  opacity: 0; pointer-events: none; transition: all 0.5s ease;
+  opacity: 0; pointer-events: none;
+  /* Hidden, it is also scaled to nothing once it has faded (transform waits for the fade): a card that is only transparent is still laid
+     out, and the display options button's card reached 70px past a narrow window's edge — 445px of page on a 375px phone, so the text
+     could be dragged sideways and every fixed bar sized in % sat off the right edge. */
+  transform: scale(0);
+  transition: opacity 0.5s ease, transform 0s linear 0.5s;
 }
-.tooltip:hover::before { opacity: 1; transition: all 0.75s ease; }
+.tooltip:hover::before { opacity: 1; transform: none; transition: opacity 0.75s ease, transform 0s; }
 :global([dir="rtl"]) .tooltip::before { left: auto; right: -50px; }
+/* No tooltip where nothing hovers (phones): a tap would leave it showing over the opened menu. */
+@media (hover: none) { .tooltip::before { display: none; } }

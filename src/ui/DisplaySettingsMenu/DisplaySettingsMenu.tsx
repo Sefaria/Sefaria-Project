@@ -25,6 +25,10 @@ export interface DisplaySettingsMenuProps {
   onChange: (patch: Partial<ReaderSettings>) => void;
   /** Directions of the shown primary and translation texts: they choose the layout icons and options, as the old LayoutButtons. */
   directions?: { primary?: "rtl" | "ltr"; translation?: "rtl" | "ltr" };
+  /** "Record session": start recording the reading session (features/reader-state/recording). Omitted, the entry is not shown. */
+  onRecordSession?: () => void;
+  /** "Load recording…", shown beside it: open a recording file to replay. */
+  onLoadRecording?: () => void;
 }
 
 type LayoutOption = Layout | BiLayout;
@@ -59,7 +63,7 @@ const t = (en: string, he: string): ReactNode => <InterfaceText en={en} he={he} 
  * @feature SHL-017 @feature TXD-031 @feature TXD-033 @feature TXD-034 @feature TXD-036 @feature TXD-037 @feature TXD-038
  * @feature TXD-041 @feature SHL-019 @feature SHL-020
  */
-export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onChange, directions }: DisplaySettingsMenuProps) {
+export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onChange, directions, onRecordSession, onLoadRecording }: DisplaySettingsMenuProps) {
   const bilingual = settings.language === "bilingual";
   const layoutValue: Layout | BiLayout = bilingual ? settings.biLayout : settings[layoutKey];
 
@@ -138,6 +142,24 @@ export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onCh
           disabledReason={t("Turn on vowels first", "יש להפעיל ניקוד תחילה")}
           onCheckedChange={(on) => onChange({ vowels: (on ? "all" : "partial") as Vowels })}
         />
+      ) : null}
+
+      {/* Not on sefaria.org: the reader state API's recording (docs/READER_STATE_API.md), last so the old menu above stays as measured */}
+      {onRecordSession ? (
+        <>
+          <hr className={styles.divider} />
+          <section className={styles.session} aria-label="Session recording">
+            <button type="button" className={styles.sessionButton} onClick={onRecordSession}>
+              <span className={styles.recordDot} aria-hidden="true" />
+              {t("Record session", "הקלטת מפגש")}
+            </button>
+            {onLoadRecording ? (
+              <button type="button" className={styles.sessionLink} onClick={onLoadRecording}>
+                {t("Load recording…", "טעינת הקלטה…")}
+              </button>
+            ) : null}
+          </section>
+        </>
       ) : null}
     </div>
   );

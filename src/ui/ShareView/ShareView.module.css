@@ -3,3 +3,8 @@
 .box input { flex: 1; min-width: 0; border: 0; background: none; font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); color: var(--sefaria-color-text); }
 .copy { display: inline-flex; padding: 0; border: 0; background: none; cursor: pointer; color: var(--sefaria-color-text-muted); }
 .copied { font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-caption); color: var(--sefaria-color-text-muted); }
+.explain { margin: 0 0 var(--sefaria-space-2); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); color: var(--sefaria-color-text-muted); }
+.followRow { display: flex; align-items: center; justify-content: space-between; gap: var(--sefaria-space-2); margin-block-start: var(--sefaria-space-1); }
+.follow { display: inline-flex; align-items: center; gap: var(--sefaria-space-2); padding: var(--sefaria-space-1) var(--sefaria-space-3); border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-pill); background: var(--sefaria-color-surface); color: var(--sefaria-color-text-secondary); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); cursor: pointer; }
+.follow:hover { color: var(--sefaria-color-text); border-color: var(--sefaria-color-border-strong); }
+.follow:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }

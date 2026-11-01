@@ -12,7 +12,11 @@ const AUTH_PORT = Number(process.env.E2E_AUTH_PORT) || 3112;
 const AUTH_BASE_URL = `http://localhost:${AUTH_PORT}`;
 const API_PORT = Number(process.env.E2E_API_PORT) || 3998;
 /** Where the app under test reaches the API (server and browser alike). */
-const API_ENV: Record<string, string> = process.env.E2E_LIVE ? {} : { PUBLIC_API_ORIGIN: `http://localhost:${API_PORT}` };
+const API_ENV: Record<string, string> = {
+  ...(process.env.E2E_LIVE ? {} : { PUBLIC_API_ORIGIN: `http://localhost:${API_PORT}` }),
+  // the labs the e2e specs cover (src/lib/labs.ts), on by default here; remote config could still turn them off
+  PUBLIC_LABS: "follow_me,recording",
+};
 export default defineConfig({
   testDir: "e2e",
   timeout: 45_000,

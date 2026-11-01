@@ -1,5 +1,7 @@
 import { useLocation } from "@tanstack/react-router";
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
+import { useRegisterSlice } from "~/features/reader-state/context";
+import { createFocusSlice, type FocusValue } from "~/lib/reader-state/sefaria/slices/focus";
 import { leaves, withSizes, type LayoutNode } from "~/lib/layout/tree";
 import { urlToRef } from "~/lib/ref/url";
 import { legacyRowSizes, MIN_PANEL_WIDTH } from "~/lib/workspace/sizing";
@@ -41,10 +43,19 @@ export function Workspace({ data }: { data: WorkspaceRouteData }) {
     return isRow ? withSizes(ws.layout, () => sizes.panels) : withSizes(ws.layout, (s) => s.children.map(() => 1));
   }, [ws.layout, sizes.panels]);
 
+  const focus = usePanelFocus(ws.panels);
+  // A phone shows one panel, the first — unless a replay or a followed leader put the focus on another (sefaria.focus): then that one.
+  const phonePanel = focus.applied ? order.find((pid) => (ws.panels[pid]?.key ?? pid) === focus.applied) : undefined;
+  const phoneShows = phonePanel && phonePanel !== order[0] && /^[\w-]+$/.test(phonePanel) ? phonePanel : undefined;
+
   if (!layout) return null;
   return (
     <WorkspaceNavProvider>
-      <div className={styles.workspace}>
+      {phoneShows && (
+        // same breakpoint as Workspace.module.css's phone rules; only rendered after an apply, so never part of the server render
+        <style>{`@media (max-width: 842px){[data-phone-panel="${phoneShows}"]>[data-direction]>div:first-child{display:none}[data-phone-panel="${phoneShows}"]>[data-direction]>div:has([data-leaf="${phoneShows}"]){display:block}}`}</style>
+      )}
+      <div className={styles.workspace} data-phone-panel={phoneShows} onPointerDownCapture={focus.onInteract} onFocusCapture={focus.onInteract}>
         <SplitView<PanelId>
           node={layout as LayoutNode<PanelId>}
           minLeafSize={MIN_PANEL_WIDTH}
@@ -55,6 +66,46 @@ export function Workspace({ data }: { data: WorkspaceRouteData }) {
       </div>
     </WorkspaceNavProvider>
   );
+}
+
+/**
+ * `sefaria.focus`: the panel last interacted with (pointer down or keyboard focus inside it), by its stable key. `applied` is the key a
+ * replay or a followed leader set, until the person interacts with another panel themself.
+ */
+function usePanelFocus(panels: Record<PanelId, PanelState>) {
+  const [focus, setFocus] = useState<{ key: string | null; applied: string | null }>({ key: null, applied: null });
+  const panelsRef = useRef(panels);
+  panelsRef.current = panels;
+  const focusRef = useRef(focus);
+  focusRef.current = focus;
+  const listeners = useRef(new Set<() => void>());
+  const lastKey = useRef(focus.key);
+  useEffect(() => {
+    if (lastKey.current === focus.key) return;
+    lastKey.current = focus.key;
+    for (const cb of [...listeners.current]) cb();
+  }, [focus.key]);
+  const slice = useMemo(
+    () =>
+      createFocusSlice({
+        get: (): FocusValue => (focusRef.current.key ? { panelKey: focusRef.current.key } : null),
+        apply: (value) => setFocus({ key: value?.panelKey ?? null, applied: value?.panelKey ?? null }),
+        subscribe: (cb) => {
+          listeners.current.add(cb);
+          return () => void listeners.current.delete(cb);
+        },
+      }),
+    [],
+  );
+  useRegisterSlice(slice);
+  const onInteract = (e: SyntheticEvent) => {
+    const id = (e.target as Element | null)?.closest?.("[data-panel-id]")?.getAttribute("data-panel-id") as PanelId | null | undefined;
+    const panel = id ? panelsRef.current[id] : undefined;
+    if (!panel) return;
+    const key = panel.key ?? panel.id;
+    setFocus((f) => (f.key === key ? f : { key, applied: f.applied === key ? f.applied : null }));
+  };
+  return { applied: focus.applied, onInteract };
 }
 
 /** One panel: picks the component for its kind (more kinds — sheets, menus, search — plug in here). */
