@@ -43,7 +43,7 @@ import { longAnswer } from '../support/longConversation';
  * Logged-out stories LA-NULL-8 → LA-NULL-12 run as a visitor nobody logged in as
  * (goToPageWithLang). The fake chat server gives them a few free answers and counts
  * them the way ai-chatbot's server does (server/chat/anon_access.py), including the
- * rule that the empty-search question never uses up the last one, once per visitor.
+ * rule that the empty-search question never uses up the last one, however often it is asked.
  * The widget sends that question with context.source "search_no_results", which is
  * how the server tells it apart. Each runs again with the link in the text in place of the
  * button (LA-NULL-17, logged out). The logged-out rows of LA-NULL-1 and LA-NULL-16 run
@@ -600,7 +600,7 @@ test.describe('Search with no results — logged out', () => {
       await la.expectLoginPrompt();
     });
 
-    test(title('LA-NULL-11: That exception happens once per visitor'), DESKTOP_TAGS, async ({ context }) => {
+    test(title('LA-NULL-11: The search question is free every time at the last free answer'), DESKTOP_TAGS, async ({ context }) => {
       const { mock, la, search } = await startLoggedOut(context, 2);
       await askFromAskButton(la, mock, EARLIER_QUESTION, EARLIER_ANSWER);
       // The first search question at the last free answer didn't count…
@@ -608,10 +608,10 @@ test.describe('Search with no results — logged out', () => {
       await la.expectNoLoginPrompt();
       await la.closeWithMinimize('search');
 
-      // …so a second one, with that same one free answer left, does.
+      // …and neither does a second one, so the last free answer is still there.
       await askAboutSearch(la, mock, search, via, SECOND_QUERY);
-      await la.expectLoginPrompt();
-      expect(await la.freeAnswersLeftInWidget()).toBe(0);
+      await la.expectNoLoginPrompt();
+      expect(await la.freeAnswersLeftInWidget()).toBe(1);
     });
 
     test(title('LA-NULL-12: A search question counts like any other when it isn\'t the last'), DESKTOP_TAGS, async ({ context }) => {

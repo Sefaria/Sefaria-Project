@@ -27,7 +27,7 @@ import { t } from '../globals';
  * a free-answer limit (`freeAnswers`), counted the way ai-chatbot's
  * server/chat/anon_access.py counts it: each answer reports `anonResponsesRemaining`,
  * a question at the limit gets 403 `login_required`, and the empty-search question
- * (context.source "search_no_results") never uses up the last free answer, once per visitor.
+ * (context.source "search_no_results") never uses up the last free answer, however often it is asked.
  *
  * Install it on the BrowserContext BEFORE the first navigation
  * (i.e. before goToPageWithUser), because the widget asks for history as soon
@@ -104,8 +104,8 @@ export class ChatServerMock {
   private counter = 0;
   /** Logged-out visitors' free-answer limit; null for no limit. */
   private readonly freeAnswers: number | null;
-  /** Per logged-out visitor (anonId): answers that counted, and whether the free one was used. */
-  private readonly anonUse = new Map<string, { counted: number; usedFree: boolean }>();
+  /** Per logged-out visitor (anonId): answers that counted. */
+  private readonly anonUse = new Map<string, { counted: number }>();
 
   private constructor(savedChats: SavedChat[], listAskedChats: boolean, freeAnswers: number | null) {
     this.savedChats = [...savedChats];
@@ -264,14 +264,13 @@ export class ChatServerMock {
     const anonId: string | undefined = this.freeAnswers === null ? undefined : body.anonId;
     let free = false;
     if (anonId) {
-      const use = this.anonUse.get(anonId) ?? { counted: 0, usedFree: false };
-      this.anonUse.set(anonId, use);
+      if (!this.anonUse.has(anonId)) this.anonUse.set(anonId, { counted: 0 });
       const left = this.freeAnswersLeft(anonId);
       if (left === 0) {
         await this.json(route, { error: 'login_required' }, 403);
         return;
       }
-      free = FREE_ANSWER_SOURCES.has(source) && left === 1 && !use.usedFree;
+      free = FREE_ANSWER_SOURCES.has(source) && left === 1;
     }
     if (this.listAskedChats && !this.savedChats.some((chat) => chat.sessionId === sessionId)) {
       this.savedChats.unshift({ sessionId, title: question, question, answerMarkdown: '' });
@@ -283,9 +282,7 @@ export class ChatServerMock {
     }
 
     if (anonId) {
-      const use = this.anonUse.get(anonId)!;
-      if (free) use.usedFree = true;
-      else use.counted += 1;
+      if (!free) this.anonUse.get(anonId)!.counted += 1;
     }
 
     const turn = this.buildTurn(sessionId, body.userId ?? '', question, answer, body.context?.pageUrl ?? '');
