@@ -2,16 +2,19 @@
   position: relative;
   margin-block-end: var(--sefaria-segment-gap);
   --_offset: 48px;
+  /* A marked segment's tint reaches past the text by --_mark on each side, so the text stays put and clears the bar. */
+  padding-inline: var(--_mark, 0px);
+  margin-inline: calc(-1 * var(--_mark, 0px));
   /* Linked verses scroll to just below the sticky header with some air above. */
   scroll-margin-top: calc(var(--sefaria-reader-controls-height) + var(--sefaria-space-12));
 }
 @container reader (max-width: 560px) { .segment { --_offset: 30px; } }
 
-.segment[data-highlighted="true"] { background: var(--sefaria-color-highlight-soft); }
+.segment[data-highlighted="true"] { background: var(--sefaria-color-highlight-soft); --_mark: var(--sefaria-space-3); }
 /* The reading focus: set by the column as the reader scrolls; visible only while the sidebar is open. */
-:global([data-show-focus="true"]) .segment[data-focused="true"] { background: var(--sefaria-color-highlight-soft); }
+:global([data-show-focus="true"]) .segment[data-focused="true"] { background: var(--sefaria-color-highlight-soft); --_mark: var(--sefaria-space-3); }
 /* Corresponds to the verse the reader picked, in this panel or another. */
-.segment[data-linked="true"] { background: var(--sefaria-color-linked); box-shadow: inset 3px 0 0 var(--sefaria-color-accent); }
+.segment[data-linked="true"] { background: var(--sefaria-color-linked); --_mark: var(--sefaria-space-3); box-shadow: inset 3px 0 0 var(--sefaria-color-accent); }
 /* The bar sits where a right-to-left text starts. */
 .segment[data-linked="true"][data-sides="primary"]:has([data-side="primary"][dir="rtl"]) { box-shadow: inset -3px 0 0 var(--sefaria-color-accent); }
 .segment[data-selectable="true"] { cursor: pointer; }
@@ -45,7 +48,7 @@
 .segment[data-sides="primary"] .primary[dir="rtl"], .segment[data-sides="translation"] .translation[dir="rtl"] { text-align: justify; }
 
 /* Continuous flow (single language only): segments run together as a paragraph */
-[data-layout="continuous"] .segment { display: inline; margin: 0; padding-block: 0.1em; }
+[data-layout="continuous"] .segment { display: inline; margin: 0; padding-block: 0.1em; padding-inline: 0; }
 [data-layout="continuous"] .body, [data-layout="continuous"] .side { display: inline; }
 [data-layout="continuous"] .body :global(br) { display: none; }
 /* In running text a segment is not a box: its number and dot are placed against the surface's edges, at the line where the
@@ -57,8 +60,8 @@
 
 /* Gutter: number on the reading-start side, link dot on the other */
 .number, .dot { position: absolute; top: 0; width: 30px; text-align: center; line-height: 1.9; user-select: none; }
-.number { inset-inline-start: calc(-1 * var(--_offset)); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-micro); color: var(--sefaria-color-text); }
-.dot { inset-inline-end: calc(-1 * var(--_offset) + 2px); }
+.number { inset-inline-start: calc(var(--_mark, 0px) - var(--_offset)); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-micro); color: var(--sefaria-color-text); }
+.dot { inset-inline-end: calc(var(--_mark, 0px) - var(--_offset) + 2px); }
 [data-bilayout="heLeft"] .number, [data-bilayout="heRight"] .number { inset-inline-start: auto; left: calc(50% - 15px); }
 [data-bilayout="heLeft"] .dot, [data-bilayout="heRight"] .dot { visibility: hidden; }
 .dotInner { display: inline-block; width: var(--sefaria-link-dot-size); height: var(--sefaria-link-dot-size); border-radius: var(--sefaria-radius-round); background: var(--sefaria-color-text-muted); vertical-align: middle; }
