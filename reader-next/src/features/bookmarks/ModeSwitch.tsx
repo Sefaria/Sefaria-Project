@@ -14,6 +14,5 @@ export function ModeSwitch({ value, onChange, label, block }: { value: BookmarkM
   return <SegmentedControl value={value} onValueChange={onChange} options={OPTIONS} label={label ?? (he ? "מצב הסימנייה" : "Bookmark mode")} block={block} />;
 }
 
-export const modeHint = (mode: BookmarkMode) => (mode === "auto" ? "Follows you as you read." : "Stays put until you move it.");
 export const ModeHint = ({ mode }: { mode: BookmarkMode }) =>
   mode === "auto" ? <InterfaceText en="Follows you as you read." he="הסימנייה מתקדמת איתך בקריאה." /> : <InterfaceText en="Stays put until you move it." he="הסימנייה נשארת במקומה עד שתזיזו אותה." />;
