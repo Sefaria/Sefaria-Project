@@ -52,6 +52,7 @@ relay/
 
 ```toml
 name = "sefaria-room-relay"
+account_id = "b006a0acd05a164603538fdb99335318"   # the account that holds the sefaria.org zone; deploys fail rather than land elsewhere
 main = "worker.ts"
 compatibility_date = "2026-10-01"
 
@@ -73,7 +74,8 @@ routes = [{ pattern = "rooms.sefaria.org", custom_domain = true }]
 name = "sefaria-room-relay-staging"
 routes = [{ pattern = "rooms-staging.sefaria.org", custom_domain = true }]
 [env.staging.vars]
-ALLOWED_ORIGINS = "https://www.staging.sefaria.org,https://*.cauldron.sefaria.org,http://localhost:3100"
+# "*." rules match any subdomain (www included) but not the bare domain
+ALLOWED_ORIGINS = "https://*.sefariastaging.org,https://*.sefariastaging-il.org,https://*.cauldron.sefaria.org,http://localhost:3100"
 [[env.staging.durable_objects.bindings]]
 name = "ROOMS"
 class_name = "Room"
