@@ -23,6 +23,12 @@ import { t } from '../globals';
  *   GET  {api}/history/conversations/<sessionId>    → one saved chat
  *   {api}/v2/chat/{recover,cancel,client-event,feedback}, {api}/v2/prompts/defaults
  *
+ * Logged-out visitors (the widget sends an `anonId` instead of a `userId`) can be given
+ * a free-answer limit (`freeAnswers`), counted the way ai-chatbot's
+ * server/chat/anon_access.py counts it: each answer reports `anonResponsesRemaining`,
+ * a question at the limit gets 403 `login_required`, and the empty-search question
+ * (context.source "search_no_results") never uses up the last free answer, once per visitor.
+ *
  * Install it on the BrowserContext BEFORE the first navigation
  * (i.e. before goToPageWithUser), because the widget asks for history as soon
  * as it opens.
@@ -71,26 +77,57 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 };
 
+export interface AskedQuestion {
+  text: string;
+  /** Which chat the widget sent it in. A different sessionId means a new chat. */
+  sessionId: string;
+  /** Where on the page it was asked from (the request's context.source), e.g. "search_no_results". */
+  source: string;
+}
+
+/** The questions whose answer can be free (ai-chatbot server/chat/anon_access.py FREE_ANSWER_SOURCES). */
+const FREE_ANSWER_SOURCES = new Set(['search_no_results']);
+
 export class ChatServerMock {
   /** The text of every question the widget has sent, in order. */
   readonly questions: string[] = [];
 
+  /** Every question the widget has sent, in order, with the chat it was sent in. */
+  readonly asked: AskedQuestion[] = [];
+
   private readonly sessions = new Map<string, HistoryMessage[]>();
   private readonly savedChats: SavedChat[];
+  private readonly listAskedChats: boolean;
   private readonly queuedAnswers: string[] = [];
   private holding = false;
   private heldAnswers: Array<() => void> = [];
   private counter = 0;
+  /** Logged-out visitors' free-answer limit; null for no limit. */
+  private readonly freeAnswers: number | null;
+  /** Per logged-out visitor (anonId): answers that counted, and whether the free one was used. */
+  private readonly anonUse = new Map<string, { counted: number; usedFree: boolean }>();
 
-  private constructor(savedChats: SavedChat[]) {
-    this.savedChats = savedChats;
+  private constructor(savedChats: SavedChat[], listAskedChats: boolean, freeAnswers: number | null) {
+    this.savedChats = [...savedChats];
+    this.listAskedChats = listAskedChats;
+    this.freeAnswers = freeAnswers;
     for (const chat of savedChats) {
       this.sessions.set(chat.sessionId, this.buildTurn(chat.sessionId, '', chat.question, chat.answerMarkdown, ''));
     }
   }
 
-  static async install(context: BrowserContext, options: { savedChats?: SavedChat[] } = {}): Promise<ChatServerMock> {
-    const mock = new ChatServerMock(options.savedChats ?? []);
+  /**
+   * `listAskedChats: true` makes every chat the widget starts during the test show up
+   * in chat history too (titled with its first question), the way the real server lists
+   * them. Off by default so the history list holds exactly the `savedChats`.
+   *
+   * `freeAnswers` gives logged-out visitors that many free answers (no limit by default).
+   */
+  static async install(
+    context: BrowserContext,
+    options: { savedChats?: SavedChat[]; listAskedChats?: boolean; freeAnswers?: number } = {},
+  ): Promise<ChatServerMock> {
+    const mock = new ChatServerMock(options.savedChats ?? [], options.listAskedChats ?? false, options.freeAnswers ?? null);
     await context.route((url) => mock.isChatServerUrl(url), (route) => mock.handle(route));
     return mock;
   }
@@ -113,9 +150,33 @@ export class ChatServerMock {
     release.forEach((send) => send());
   }
 
+  /**
+   * Free answers the logged-out visitor `anonId` has left, or null with no limit.
+   * Leave out `anonId` when the test has only one visitor.
+   */
+  freeAnswersLeft(anonId?: string): number | null {
+    if (this.freeAnswers === null) return null;
+    const id = anonId ?? [...this.anonUse.keys()][0];
+    return Math.max(this.freeAnswers - (this.anonUse.get(id)?.counted ?? 0), 0);
+  }
+
   /** Wait until the widget has sent at least `count` questions. */
   async waitForQuestion(count = 1): Promise<void> {
     await expect.poll(() => this.questions.length, { timeout: t(15000) }).toBeGreaterThanOrEqual(count);
+  }
+
+  /**
+   * Check that the number of questions sent stays at `count` for a while — for
+   * "nothing new is sent" steps. A question goes out a moment after a click, so
+   * checking just once, right after the click, could miss it.
+   */
+  async expectQuestionCountStays(count: number, ms = 1500): Promise<void> {
+    const end = Date.now() + t(ms);
+    while (Date.now() < end) {
+      expect(this.questions, `no new question should be sent (expected ${count})`).toHaveLength(count);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    expect(this.questions, `no new question should be sent (expected ${count})`).toHaveLength(count);
   }
 
   // ---------------------------------------------------------------------------
@@ -194,11 +255,37 @@ export class ChatServerMock {
     const body = route.request().postDataJSON() ?? {};
     const question: string = body.text ?? '';
     const sessionId: string = body.sessionId ?? 'sess_mock';
+    const source: string = body.context?.source ?? '';
+    // Every question the widget sends is recorded, even one refused at the limit.
     this.questions.push(question);
+    this.asked.push({ text: question, sessionId, source });
+
+    // Logged-out visitors under a limit, as in ai-chatbot's anon_access.py
+    const anonId: string | undefined = this.freeAnswers === null ? undefined : body.anonId;
+    let free = false;
+    if (anonId) {
+      const use = this.anonUse.get(anonId) ?? { counted: 0, usedFree: false };
+      this.anonUse.set(anonId, use);
+      const left = this.freeAnswersLeft(anonId);
+      if (left === 0) {
+        await this.json(route, { error: 'login_required' }, 403);
+        return;
+      }
+      free = FREE_ANSWER_SOURCES.has(source) && left === 1 && !use.usedFree;
+    }
+    if (this.listAskedChats && !this.savedChats.some((chat) => chat.sessionId === sessionId)) {
+      this.savedChats.unshift({ sessionId, title: question, question, answerMarkdown: '' });
+    }
     const answer = this.queuedAnswers.shift() ?? DEFAULT_ANSWER;
 
     if (this.holding) {
       await new Promise<void>((resolve) => this.heldAnswers.push(resolve));
+    }
+
+    if (anonId) {
+      const use = this.anonUse.get(anonId)!;
+      if (free) use.usedFree = true;
+      else use.counted += 1;
     }
 
     const turn = this.buildTurn(sessionId, body.userId ?? '', question, answer, body.context?.pageUrl ?? '');
@@ -215,6 +302,7 @@ export class ChatServerMock {
       stats: {},
       recovered: false,
       status: 'success',
+      ...(anonId ? { anonResponsesRemaining: this.freeAnswersLeft(anonId) } : {}),
     };
     // Server-sent events: an `event:` line, a single-line `data:` JSON line, then a blank line.
     const sse =

@@ -81,6 +81,16 @@ export function sefariaString(key: string, language: string): string {
   return lookup(path.join(dir, 'en.json'), path.join(dir, 'he.json'), key, language, '');
 }
 
+/**
+ * The empty-search body that points to the assistant, as it reads on screen: its translation
+ * marks the line break with {br} and puts the assistant's name in with {assistant}.
+ */
+export function noResultsAssistantBody(tab: string, language: string): string {
+  return sefariaString(`search.no_results.${tab}.body.library_assistant`, language)
+    .replace(/\{br\}/g, '')
+    .replace(/\{assistant\}/g, sefariaString('header.library_assistant', language));
+}
+
 /** Escape a string so it can be dropped into a RegExp literally. */
 export function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

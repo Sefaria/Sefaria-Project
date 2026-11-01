@@ -3,12 +3,12 @@ import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t } from '../globals';
 import { MOBILE_HAMBURGER } from '../constants';
-import { assistantString, sefariaString, escapeRegExp } from '../support/assistantStrings';
+import { assistantString, assistantKeys, sefariaString, escapeRegExp } from '../support/assistantStrings';
 import { analyzeBounces, analyzeSlide, BounceReport, RectSample, SlideReport } from '../support/motionAnalysis';
-
 /**
  * Page object for the Library Assistant "Q4 package" behavior stories
- * (LA-BTN-*, LA-ENTRY-*, LA-PHONE-*, LA-COOKIE-*, LA-NOTE-*, LA-RTL-*).
+ * (LA-BTN-*, LA-ENTRY-*, LA-PHONE-*, LA-COOKIE-*, LA-NOTE-*, LA-RTL-*), the
+ * "Search with no results" stories (LA-NULL-*) and the QA changes (LA-QA-*).
  *
  * Written test-first: much of what it looks for (the "✦ Ask" button, the
  * full-screen phone sheet, the header pill, the answer-ready dot) does not
@@ -37,6 +37,14 @@ const COLORS = {
 
 /** Allowed difference, in px, when comparing measured positions/sizes. */
 const PX = 1;
+
+/**
+ * How far below the top of the chat area an answer's first line may sit and still count as
+ * "the chat shows the start of the answer". The widget leaves 80px above an answer on purpose
+ * (RESPONSE_PACKAGE_TOP_OFFSET in ai-chatbot's LCChatbot.svelte), so the end of the question
+ * shows; the rest is room for the answer's own padding (today the line lands ~95px down).
+ */
+const ANSWER_START_MAX_OFFSET = 120;
 
 /** Pause for a set time inside a touch gesture. Not wrapped in t(): the
  *  gesture's speed is part of what is being tested (a slow drag vs a quick
@@ -226,7 +234,78 @@ function installPageHelpers(): void {
     return false;
   };
 
-  w.__laTest = { deepAll, isShown, findAskButton, findDialog, boxesWithBackground, findDot, sample, pageScrollPositions, assistantIsOnTopAt };
+  /**
+   * Record the closed launcher's label and width every animation frame. Stops after `ms`,
+   * or — with `settleAfterChangeMs` — once the label has changed and then stayed the same
+   * for that long, so a test can wait through something slow (a search) and still stop
+   * soon after the label settles.
+   */
+  const sampleLauncher = (opts: { labels: string[]; ms: number; settleAfterChangeMs?: number }) =>
+    new Promise((resolve) => {
+      const samples: any[] = [];
+      const t0 = performance.now();
+      let prevLabel: string | null | undefined;
+      let lastChangeAt: number | null = null;
+      const frame = () => {
+        const now = performance.now() - t0;
+        const el = findAskButton(opts.labels);
+        const r = el ? el.getBoundingClientRect() : null;
+        const label = el ? labelText(el) : null;
+        samples.push({ t: now, label, width: r ? r.width : null });
+        if (prevLabel !== undefined && label !== prevLabel) lastChangeAt = now;
+        prevLabel = label;
+        const settled = opts.settleAfterChangeMs !== undefined && lastChangeAt !== null && now - lastChangeAt >= opts.settleAfterChangeMs;
+        if (now < opts.ms && !settled) requestAnimationFrame(frame);
+        else resolve(samples);
+      };
+      requestAnimationFrame(frame);
+    });
+
+  /**
+   * The box that scrolls the conversation: the nearest one, going outward from the chat
+   * log, that is overflowing; failing that, one set up to scroll; failing that, the log.
+   */
+  const findChatScroller = (logName: string): HTMLElement | null => {
+    const log = deepAll('[role="log"]').find((el) => isShown(el) && el.getAttribute('aria-label') === logName) as HTMLElement | undefined;
+    if (!log) return null;
+    const outward: HTMLElement[] = [];
+    for (let node: any = log; node && node !== document.documentElement; node = node.parentNode instanceof ShadowRoot ? node.parentNode.host : node.parentNode) {
+      if (node instanceof HTMLElement) outward.push(node);
+    }
+    const canScroll = (el: HTMLElement) => /(auto|scroll)/.test(getComputedStyle(el).overflowY);
+    return outward.find((el) => canScroll(el) && el.scrollHeight > el.clientHeight + 1) || outward.find(canScroll) || log;
+  };
+  const chatScrollState = (logName: string) => {
+    const el = findChatScroller(logName);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { scrollTop: el.scrollTop, maxScroll: el.scrollHeight - el.clientHeight, top: r.top, bottom: r.bottom };
+  };
+  // Jump instantly: the chat has `scroll-behavior: smooth`, so setting scrollTop would glide for
+  // ~0.6s and callers would read a position partway there
+  const scrollChatTo = (logName: string, fraction: number) => {
+    const el = findChatScroller(logName);
+    if (el) el.scrollTo({ top: fraction * (el.scrollHeight - el.clientHeight), behavior: 'instant' });
+  };
+  /** Record how far the conversation is scrolled on every animation frame for `ms` milliseconds. */
+  const sampleChatScroll = (opts: { logName: string; ms: number }) =>
+    new Promise((resolve) => {
+      const samples: any[] = [];
+      const t0 = performance.now();
+      const frame = () => {
+        const now = performance.now() - t0;
+        const state = chatScrollState(opts.logName);
+        if (state) samples.push({ t: now, scrollTop: state.scrollTop, maxScroll: state.maxScroll });
+        if (now < opts.ms) requestAnimationFrame(frame);
+        else resolve(samples);
+      };
+      requestAnimationFrame(frame);
+    });
+
+  w.__laTest = {
+    deepAll, isShown, findAskButton, findDialog, boxesWithBackground, findDot, sample, sampleLauncher, pageScrollPositions, assistantIsOnTopAt,
+    chatScrollState, scrollChatTo, sampleChatScroll,
+  };
 }
 
 export class LibraryAssistantQ4Page extends HelperBase {
@@ -253,9 +332,34 @@ export class LibraryAssistantQ4Page extends HelperBase {
     return this.a('assistant.floating_button.label');
   }
 
+  /** "Search with Library Assistant" — the floating button's label on an empty search (LA-NULL-*). */
+  get searchLabel(): string {
+    return this.a('assistant.floating_button.search_label');
+  }
+
+  private launcherLabel(which: 'ask' | 'search'): string {
+    return which === 'ask' ? this.askLabel : this.searchLabel;
+  }
+
   /** "Library Assistant" — the header pill / hamburger menu item. */
   private get libraryAssistantLabel(): RegExp {
     return new RegExp(`^\\s*✦?\\s*${escapeRegExp(this.s('header.library_assistant'))}\\s*$`);
+  }
+
+  /** "Ask" — the header pill's short label where the header is crowded (LA-QA-4). */
+  private get shortPillLabel(): string {
+    return this.s('header.library_assistant_short');
+  }
+
+  /** The conversation's accessible name, used to find it from inside the page. */
+  private get chatLogName(): string {
+    return this.a('assistant.messages.aria');
+  }
+
+  /** The header pill's label: "Library Assistant", or "Ask" where the header is crowded. */
+  private get headerPillLabel(): RegExp {
+    const labels = ['header.library_assistant', 'header.library_assistant_short'].map((key) => escapeRegExp(this.s(key)));
+    return new RegExp(`^\\s*✦?\\s*(${labels.join('|')})\\s*$`);
   }
 
   // ---------------------------------------------------------------------------
@@ -271,6 +375,14 @@ export class LibraryAssistantQ4Page extends HelperBase {
     return this.page
       .getByRole('button')
       .filter({ hasText: new RegExp(`^\\s*✦?\\s*${escapeRegExp(this.askLabel)}\\s*$`) });
+  }
+
+  /** The closed launcher when it reads "✦ Ask" or "✦ Search with Library Assistant". */
+  private launcher(which: 'ask' | 'search'): Locator {
+    if (which === 'ask') return this.askButton;
+    return this.page
+      .getByRole('button')
+      .filter({ hasText: new RegExp(`^\\s*✦?\\s*${escapeRegExp(this.searchLabel)}\\s*$`) });
   }
 
   /** The open assistant: a floating panel on wide screens, a full-screen sheet on phones. */
@@ -325,8 +437,29 @@ export class LibraryAssistantQ4Page extends HelperBase {
   }
 
   private get headerPill(): Locator {
-    const name = this.libraryAssistantLabel;
+    const name = this.headerPillLabel;
     return this.sefariaHeader.getByRole('button', { name }).or(this.sefariaHeader.getByRole('link', { name }));
+  }
+
+  /** The header pill, whichever of its two labels it shows (LA-QA-4). */
+  private get headerPillAnyLabel(): Locator {
+    const labels = [this.s('header.library_assistant'), this.shortPillLabel].map(escapeRegExp).join('|');
+    const name = new RegExp(`^\\s*✦?\\s*(${labels})\\s*$`);
+    return this.sefariaHeader.getByRole('button', { name }).or(this.sefariaHeader.getByRole('link', { name }));
+  }
+
+  private get donateLink(): Locator {
+    return this.sefariaHeader.getByRole('link', { name: this.s('header.donate') });
+  }
+
+  /** Any of the assistant's "thinking" messages. */
+  private get thinkingMessage(): Locator {
+    const messages = [
+      this.a('assistant.loading.initial'),
+      ...assistantKeys(/^assistant\.thinking\.array\.\d+$/).map((key) => this.a(key)),
+      this.a('assistant.thinking.final'),
+    ];
+    return this.dialog.getByText(new RegExp(`^\\s*(${messages.map(escapeRegExp).join('|')})\\s*$`)).first();
   }
 
   private get headerSearchBox(): Locator {
@@ -503,19 +636,20 @@ export class LibraryAssistantQ4Page extends HelperBase {
     await this.expectAssistantOpen();
   }
 
-  async closeWithMinimize(): Promise<void> {
+  /** `launcher` is the label the button should come back with ("search" on an empty search page). */
+  async closeWithMinimize(launcher: 'ask' | 'search' = 'ask'): Promise<void> {
     await this.press(this.minimizeButton);
-    await this.expectAssistantClosed();
+    await this.expectAssistantClosed(launcher);
   }
 
   async expectAssistantOpen(): Promise<void> {
     await expect(this.dialog).toBeVisible({ timeout: t(5000) });
   }
 
-  /** Closed means: no panel/sheet, and the Ask button is back. */
-  async expectAssistantClosed(): Promise<void> {
+  /** Closed means: no panel/sheet, and the Ask button (or, on an empty search, its search version) is back. */
+  async expectAssistantClosed(launcher: 'ask' | 'search' = 'ask'): Promise<void> {
     await expect(this.dialog).toBeHidden({ timeout: t(5000) });
-    await expect(this.askButton).toBeVisible({ timeout: t(5000) });
+    await expect(this.launcher(launcher)).toBeVisible({ timeout: t(5000) });
   }
 
   async expectAskButtonVisible(): Promise<void> {
@@ -648,6 +782,69 @@ export class LibraryAssistantQ4Page extends HelperBase {
   async expectNoHeaderPill(): Promise<void> {
     await expect(this.sefariaHeaderBar).toBeVisible({ timeout: t(15000) });
     await expect(this.headerPill).toHaveCount(0);
+  }
+
+  /**
+   * LA-QA-4: the header pill reads "✦ Library Assistant" (`full`), reads "✦ Ask" (`short`),
+   * or isn't shown at all (`hidden`).
+   */
+  async expectHeaderPillShows(label: 'full' | 'short' | 'hidden'): Promise<void> {
+    await expect(this.sefariaHeaderBar).toBeVisible({ timeout: t(15000) });
+    if (label === 'hidden') {
+      // getByRole skips anything hidden, so a hidden pill is found zero times.
+      await expect(this.headerPillAnyLabel).toHaveCount(0, { timeout: t(5000) });
+      return;
+    }
+    const wanted = (label === 'full' ? this.s('header.library_assistant') : this.shortPillLabel).replace(/✦/g, '').trim();
+    const pill = this.headerPillAnyLabel.first();
+    await expect(pill).toBeVisible({ timeout: t(10000) });
+    // innerText leaves out text hidden with CSS, so this is the label a visitor actually sees.
+    await expect.poll(
+      () => pill.evaluate((el) => (el as HTMLElement).innerText.replace(/✦/g, '').replace(/\s+/g, ' ').trim()),
+      { timeout: t(5000), message: `the header pill should read "${wanted}"` },
+    ).toBe(wanted);
+  }
+
+  /** LA-QA-4: the space between the header pill and "Donate" is at least `gap` px. */
+  async expectHeaderPillAtLeastFromDonate(gap: number): Promise<void> {
+    const pill = await this.box(this.headerPillAnyLabel.first());
+    await expect(this.donateLink.first()).toBeVisible({ timeout: t(5000) });
+    const donate = await this.box(this.donateLink.first());
+    // Works whichever side "Donate" is on (it flips in Hebrew).
+    const between = Math.max(donate.x - (pill.x + pill.width), pill.x - (donate.x + donate.width));
+    expect(between, `space between the pill and "Donate" is ${between}px`).toBeGreaterThanOrEqual(gap - PX);
+  }
+
+  /**
+   * LA-QA-4: every icon in Sefaria's header is fully drawn: it doesn't run off the
+   * window, and no box around it that hides its overflow cuts part of it off.
+   */
+  async expectNoHeaderIconCutOff(): Promise<void> {
+    await expect(this.sefariaHeaderBar).toBeVisible({ timeout: t(15000) });
+    const cutOff = await this.sefariaHeaderBar.evaluate((bar) => {
+      const out: string[] = [];
+      for (const icon of Array.from(bar.querySelectorAll('img, svg'))) {
+        const r = icon.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0 || getComputedStyle(icon).visibility === 'hidden') continue;
+        const name = icon.getAttribute('alt') || icon.getAttribute('aria-label')
+          || icon.closest('a, button')?.textContent?.trim() || icon.outerHTML.slice(0, 80);
+        if (r.left < -1 || r.right > window.innerWidth + 1) {
+          out.push(`"${name}" runs off the window`);
+          continue;
+        }
+        for (let box = icon.parentElement; box && box !== bar.parentElement; box = box.parentElement) {
+          const cs = getComputedStyle(box);
+          if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
+          const b = box.getBoundingClientRect();
+          if (r.left < b.left - 1 || r.right > b.right + 1 || r.top < b.top - 1 || r.bottom > b.bottom + 1) {
+            out.push(`"${name}" is cut off by the box around it`);
+            break;
+          }
+        }
+      }
+      return out;
+    });
+    expect(cutOff, 'header icons that are cut off').toEqual([]);
   }
 
   /** LA-ENTRY-5: 30px tall, fully rounded, purple, white 14px text, 16px star; hover/press darken it. */
@@ -971,6 +1168,34 @@ export class LibraryAssistantQ4Page extends HelperBase {
     await expect(this.conversation).toContainText(text, { timeout: t(15000) });
   }
 
+  /** The login prompt a logged-out visitor sees in place of the text box once their free answers are used up. */
+  private get loginPrompt(): Locator {
+    return this.dialog.getByText(this.a('assistant.anon.limit_reached'), { exact: true });
+  }
+
+  async expectLoginPrompt(): Promise<void> {
+    await expect(this.loginPrompt).toBeVisible({ timeout: t(10000) });
+    await expect(this.textBox).toBeHidden();
+  }
+
+  /** The conversation's text, top to bottom — for "this message is under that one". */
+  async conversationText(): Promise<string> {
+    return (await this.conversation.innerText()).replace(/\s+/g, ' ');
+  }
+
+  /** Free answers left, as the widget last heard from the chat server (it keeps the count in localStorage). */
+  async freeAnswersLeftInWidget(): Promise<number | null> {
+    return this.page.evaluate(() => {
+      const value = localStorage.getItem('lc_chatbot:anon_responses_remaining');
+      return value === null ? null : JSON.parse(value);
+    });
+  }
+
+  async expectNoLoginPrompt(): Promise<void> {
+    await expect(this.textBox).toBeVisible({ timeout: t(10000) });
+    await expect(this.loginPrompt).toBeHidden();
+  }
+
   /** LA-PHONE-3: tap a link in an answer; the same tab goes to the linked page. */
   async followAnswerLink(linkText: string, expectedUrl: RegExp): Promise<void> {
     const link = this.conversation.getByRole('link', { name: linkText }).last();
@@ -1130,8 +1355,9 @@ export class LibraryAssistantQ4Page extends HelperBase {
     expect(inLiveRegion, 'the announcement should be inside a live region so screen readers read it').toBe(true);
   }
 
+  /** "Ask Library Assistant: your answer is ready" — starts with the words the button shows. */
   async expectAskButtonNamedAnswerReady(): Promise<void> {
-    await expect(this.askButton).toHaveAccessibleName(this.a('assistant.header.open_ready_response'), { timeout: t(10000) });
+    await expect(this.askButton).toHaveAccessibleName(this.a('assistant.floating_button.aria_ready'), { timeout: t(10000) });
   }
 
   /**
@@ -1143,5 +1369,254 @@ export class LibraryAssistantQ4Page extends HelperBase {
     await this.askQuestion(question);
     await waitForQuestion();
     await this.closeWithMinimize();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Where the chat is scrolled (LA-NOTE-3, LA-QA-*)
+  // ---------------------------------------------------------------------------
+
+  /** How far the conversation is scrolled, how far it could go, and where its box is on screen. */
+  async chatScroll(): Promise<{ scrollTop: number; maxScroll: number; top: number; bottom: number }> {
+    await expect(this.conversation).toBeVisible({ timeout: t(5000) });
+    await this.helpers();
+    const state = await this.page.evaluate((name) => (window as any).__laTest.chatScrollState(name), this.chatLogName);
+    if (!state) throw new Error('Could not find the conversation on screen');
+    return state;
+  }
+
+  /**
+   * Scroll the conversation `fraction` of the way down (0 = top, 1 = bottom) and return
+   * where it ended up. Setting the scroll position fires the same scroll event a finger
+   * or mouse wheel does, so the widget sees it as the visitor scrolling.
+   */
+  async scrollChatTo(fraction: number): Promise<number> {
+    await expect(this.conversation).toBeVisible({ timeout: t(5000) });
+    await this.helpers();
+    await this.page.evaluate(([name, f]) => (window as any).__laTest.scrollChatTo(name, f), [this.chatLogName, fraction] as const);
+    // Two animation frames, so the widget has handled the scroll before anything else happens.
+    await this.page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    return (await this.chatScroll()).scrollTop;
+  }
+
+  /** LA-QA-7: the conversation is scrolled to `scrollTop` (give or take 2px). */
+  async expectChatScrolledTo(scrollTop: number): Promise<void> {
+    await expect.poll(async () => Math.abs((await this.chatScroll()).scrollTop - scrollTop), {
+      timeout: t(5000),
+      message: `the chat should be scrolled to ${scrollTop}px, where the visitor left it`,
+    }).toBeLessThanOrEqual(2);
+  }
+
+  /** The conversation is scrolled all the way down, showing the latest message. */
+  async expectChatAtBottom(): Promise<void> {
+    await expect.poll(async () => {
+      const s = await this.chatScroll();
+      return s.maxScroll - s.scrollTop;
+    }, { timeout: t(5000), message: 'the chat should be scrolled to the bottom' }).toBeLessThanOrEqual(2);
+  }
+
+  /**
+   * LA-NOTE-3 / LA-QA-6: the open chat shows the start of an answer. `startText` is
+   * text from the answer's first line. The first line is at the top of the chat area
+   * (within ANSWER_START_MAX_OFFSET px of it), or, when the chat can't
+   * scroll any further down, it's on screen.
+   * `notTopOrEnd` also checks the chat is scrolled to neither its top nor its end.
+   */
+  async expectChatShowsStartOf(startText: string, opts: { notTopOrEnd?: boolean } = {}): Promise<void> {
+    const start = this.conversation.getByText(startText).first();
+    await expect(start).toBeVisible({ timeout: t(10000) });
+    let seen = '';
+    await expect.poll(async () => {
+      const s = await this.chatScroll();
+      const b = await this.box(start);
+      seen = `answer starts ${Math.round(b.y - s.top)}px below the top of the chat area; ` +
+        `scrolled ${Math.round(s.scrollTop)}px of ${Math.round(s.maxScroll)}px`;
+      const atTop = b.y >= s.top - PX && b.y - s.top <= ANSWER_START_MAX_OFFSET;
+      const cannotGoFurther = s.maxScroll - s.scrollTop <= 2 && b.y >= s.top - PX && b.y < s.bottom;
+      return atTop || cannotGoFurther;
+    }, { timeout: t(5000), message: 'the chat should open on the start of the answer' })
+      .toBe(true)
+      .catch((e) => { throw new Error(`${seen}\n${e.message}`); });
+    if (opts.notTopOrEnd) {
+      const s = await this.chatScroll();
+      expect(s.scrollTop, 'the chat should not be at its top').toBeGreaterThan(2);
+      expect(s.maxScroll - s.scrollTop, 'the chat should not be at its end').toBeGreaterThan(2);
+    }
+  }
+
+  /**
+   * LA-QA-8: type `question`, then record how far the chat is scrolled on every
+   * animation frame for `ms` milliseconds, starting just before Send is pressed.
+   */
+  async sendAndWatchChatScroll(question: string, ms = 1500): Promise<Array<{ t: number; scrollTop: number; maxScroll: number }>> {
+    await this.textBox.fill(question);
+    await this.helpers();
+    await this.page.evaluate((o) => {
+      (window as any).__laChatSampling = (window as any).__laTest.sampleChatScroll(o);
+    }, { logName: this.chatLogName, ms });
+    await this.press(this.sendButton);
+    return this.page.evaluate(() => (window as any).__laChatSampling);
+  }
+
+  /** True when `locator` is fully inside the visible part of the chat. */
+  private async isInChatView(locator: Locator): Promise<boolean> {
+    const s = await this.chatScroll();
+    const b = await this.box(locator);
+    return b.y >= s.top - PX && b.y + b.height <= s.bottom + PX;
+  }
+
+  /** LA-QA-8: a message with this text is fully on screen in the chat. */
+  async expectInChatView(text: string): Promise<void> {
+    const message = this.conversation.getByText(text).last();
+    await expect(message).toBeVisible({ timeout: t(10000) });
+    await expect.poll(() => this.isInChatView(message), { timeout: t(5000), message: `"${text}" should be in view` }).toBe(true);
+  }
+
+  /** LA-QA-8: a "thinking" message is fully on screen in the chat. */
+  async expectThinkingInChatView(): Promise<void> {
+    await expect(this.thinkingMessage).toBeVisible({ timeout: t(5000) });
+    await expect.poll(() => this.isInChatView(this.thinkingMessage), { timeout: t(5000), message: 'the thinking message should be in view' }).toBe(true);
+  }
+
+  /** The Stop button, in the text box's place while an answer is generating. */
+  private get stopButton(): Locator {
+    return this.dialog.getByRole('button', { name: this.a('assistant.stop.aria'), exact: true });
+  }
+
+  /**
+   * LA-QA-5: tap Stop, recording how far the chat is scrolled on every animation
+   * frame for `ms` milliseconds, starting just before Stop is pressed.
+   */
+  async stopAndWatchChatScroll(ms = 1500): Promise<Array<{ t: number; scrollTop: number; maxScroll: number }>> {
+    await expect(this.stopButton).toBeEnabled({ timeout: t(5000) });
+    await this.helpers();
+    await this.page.evaluate((o) => {
+      (window as any).__laChatSampling = (window as any).__laTest.sampleChatScroll(o);
+    }, { logName: this.chatLogName, ms });
+    await this.press(this.stopButton);
+    return this.page.evaluate(() => (window as any).__laChatSampling);
+  }
+
+  /** LA-QA-5: the notice that the answer was stopped is fully on screen in the chat. */
+  async expectStopNoticeInChatView(): Promise<void> {
+    await this.expectInChatView(this.a('assistant.stop.message'));
+  }
+
+  /** LA-QA-5: the text box holds `text` (a stopped question is put back there). */
+  async expectTextBoxHolds(text: string): Promise<void> {
+    await expect(this.textBox).toHaveValue(text, { timeout: t(5000) });
+  }
+
+  /** LA-QA-3: type `text` in the text box without sending it. */
+  async typeInTextBox(text: string): Promise<void> {
+    await this.textBox.fill(text);
+  }
+
+  /** LA-QA-3: how tall the text box is, in px. */
+  async textBoxHeight(): Promise<number> {
+    return (await this.box(this.textBox)).height;
+  }
+
+  /**
+   * LA-QA-3: how tall the chat area is, and how far down the chat's content its bottom edge
+   * reaches. The bottom edge sits just above the text box, so while `contentAtBottom`
+   * stays the same, the same message is just above the text box.
+   */
+  async chatBottomEdge(): Promise<{ contentAtBottom: number; height: number }> {
+    const s = await this.chatScroll();
+    return { contentAtBottom: s.scrollTop + s.bottom - s.top, height: s.bottom - s.top };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Search with no results (LA-NULL-*)
+  // ---------------------------------------------------------------------------
+
+  /** The closed button reads "✦ Ask" or "✦ Search with Library Assistant". */
+  async expectLauncherReads(which: 'ask' | 'search', timeout = 10000): Promise<void> {
+    await expect(this.launcher(which)).toBeVisible({ timeout: t(timeout) });
+  }
+
+  /** LA-NULL-5: the relabelled button still has its four-point star. */
+  async expectSearchLauncherHasStar(): Promise<void> {
+    await expect(this.launcher('search')).toBeVisible({ timeout: t(5000) });
+    expect(await this.starSize(this.launcher('search')), 'the star should still be on the button').not.toBeNull();
+  }
+
+  /** Click "✦ Search with Library Assistant" and wait for the assistant to open. */
+  async clickSearchLauncher(): Promise<void> {
+    await expect(this.launcher('search')).toBeVisible({ timeout: t(10000) });
+    await this.press(this.launcher('search'));
+    await this.expectAssistantOpen();
+  }
+
+  /**
+   * Record the closed button's label and width on every animation frame while
+   * `action` runs. Recording starts in the page first, then `action` runs.
+   * With `settleAfterChangeMs`, recording stops that long after the label first
+   * changes (or after `ms` at the latest).
+   */
+  async watchLauncherWhile(
+    action: () => Promise<void>,
+    opts: { ms: number; settleAfterChangeMs?: number },
+  ): Promise<Array<{ t: number; label: string | null; width: number | null }>> {
+    await this.helpers();
+    await this.page.evaluate((o) => {
+      (window as any).__laLauncherSampling = (window as any).__laTest.sampleLauncher(o);
+    }, { labels: [this.askLabel, this.searchLabel], ms: t(opts.ms), settleAfterChangeMs: opts.settleAfterChangeMs });
+    await action();
+    return this.page.evaluate(() => (window as any).__laLauncherSampling);
+  }
+
+  /**
+   * LA-NULL-5: from frames recorded by watchLauncherWhile, check that the button changed
+   * to "Search with Library Assistant" once — never flipping back to "Ask" on the way —
+   * and that its width grew smoothly over ~200ms (or in one step with reduced motion).
+   */
+  expectGrewIntoSearchLabel(
+    samples: Array<{ t: number; label: string | null; width: number | null }>,
+    opts: { reducedMotion: boolean },
+  ): void {
+    const firstSearch = samples.findIndex((s) => s.label === this.searchLabel);
+    expect(firstSearch, `the button should change to "${this.searchLabel}"`).toBeGreaterThanOrEqual(0);
+    const flips = samples.slice(firstSearch).filter((s) => s.label !== this.searchLabel);
+    expect(
+      flips.length,
+      `once it reads "${this.searchLabel}" it should stay that way, but at ${Math.round(flips[0]?.t ?? 0)}ms ` +
+      `it read "${flips[0]?.label}" (${flips.length} frames)`,
+    ).toBe(0);
+
+    const growth = analyzeSlide(samples.filter((s) => s.width !== null).map((s) => ({ t: s.t, v: s.width as number })));
+    expect(growth.endValue, `the button should get wider (${growth.startValue}px → ${growth.endValue}px)`).toBeGreaterThan(growth.startValue);
+    if (opts.reducedMotion) {
+      expect(growth.inBetweenFrames, 'with reduced motion the width should change in one step').toBe(0);
+    } else {
+      expect(growth.inBetweenFrames, 'the width should grow smoothly, never jump').toBeGreaterThanOrEqual(2);
+      // 200ms, with room for animation-frame timing (~16ms per frame) and slow test machines.
+      // (The widget's ease-out curve gets within half a pixel of the end at ~170ms.)
+      expect(growth.durationMs, 'how long the width took to grow').toBeGreaterThanOrEqual(120);
+      expect(growth.durationMs, 'how long the width took to grow').toBeLessThanOrEqual(400);
+    }
+  }
+
+  /** LA-NULL-6: soon after the click, the open assistant shows one of its "thinking" messages. */
+  async expectThinkingWithin(ms: number): Promise<void> {
+    await expect(this.thinkingMessage).toBeVisible({ timeout: t(ms) });
+  }
+
+  /** LA-NULL-19: where the closed launcher ("✦ Ask" or "✦ Search with Library Assistant") is on screen. */
+  async launcherBox(which: 'ask' | 'search') {
+    await expect(this.launcher(which)).toBeVisible({ timeout: t(10000) });
+    return this.box(this.launcher(which));
+  }
+
+  async expectConversationLacks(text: string): Promise<void> {
+    await expect(this.conversation).toBeVisible({ timeout: t(5000) });
+    await expect(this.conversation).not.toContainText(text, { timeout: t(5000) });
+  }
+
+  /** LA-NULL-7: chat history lists a chat with this title. */
+  async expectChatInHistory(title: string): Promise<void> {
+    await this.openChatHistory();
+    await expect(this.historyPanel.getByRole('button', { name: new RegExp(escapeRegExp(title)) }).first())
+      .toBeVisible({ timeout: t(10000) });
   }
 }

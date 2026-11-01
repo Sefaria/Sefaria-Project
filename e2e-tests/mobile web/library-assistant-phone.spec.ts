@@ -379,11 +379,12 @@ test.describe('Library Assistant phone — answer-ready notification', () => {
     await la.expectAskButtonNamedAnswerReady();
   });
 
-  test('LA-NOTE-3: Opening clears the dot', { tag: ['@e2e', '@desktop', '@phone'] }, async () => {
+  test('LA-NOTE-3: Opening clears the dot, and the assistant opens on the start of that answer', { tag: ['@e2e', '@desktop', '@phone'] }, async () => {
     mock.releaseAnswers();
     await la.expectAnswerReadyDot();
     await la.openWithAskButton();
     await la.expectConversationContains(LATE_ANSWER);
+    await la.expectChatShowsStartOf(LATE_ANSWER);
     await la.expectNoAnswerReadyDot();
     await la.closeWithMinimize();
     await la.expectNoAnswerReadyDot();
