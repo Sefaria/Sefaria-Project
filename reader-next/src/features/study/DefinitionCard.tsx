@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { entriesForCategories, lexiconQueryOptions, type EntrySense } from "~/lib/lexicon/lookup";
 import { Icon } from "~/ui/Icon/Icon";
 import { IconButton } from "~/ui/IconButton/IconButton";
@@ -44,6 +45,7 @@ export interface DefinitionCardProps extends DefinitionRequest {
  */
 export function DefinitionCard({ words, segmentRef, anchor, explicit, categories, onClose, onOpenDictionary }: DefinitionCardProps) {
   const q = useQuery(lexiconQueryOptions(words, segmentRef));
+  const he = useInterfaceLang() === "hebrew";
   const ref = useRef<HTMLDivElement>(null);
   const entries = q.data
     ? entriesForCategories(q.data, categories)
@@ -86,10 +88,10 @@ export function DefinitionCard({ words, segmentRef, anchor, explicit, categories
   const position = below ? { left, top: anchor.bottom + GAP } : { left, bottom: window.innerHeight - anchor.top + GAP };
 
   return createPortal(
-    <div ref={ref} className={styles.card} role="dialog" aria-label={`Definition of ${words}`} style={position} data-definition-card>
+    <div ref={ref} className={styles.card} role="dialog" aria-label={he ? `הגדרה: ${words}` : `Definition of ${words}`} style={position} data-definition-card>
       <header className={styles.header}>
         <span className={styles.words} lang="he" dir="rtl">{words}</span>
-        <IconButton icon="close" size="sm" label="Close" onClick={onClose} />
+        <IconButton icon="close" size="sm" label={he ? "סגירה" : "Close"} onClick={onClose} />
       </header>
       {found ? (
         <ul className={styles.entries}>
@@ -102,7 +104,7 @@ export function DefinitionCard({ words, segmentRef, anchor, explicit, categories
           ))}
         </ul>
       ) : (
-        <p className={styles.empty}>{q.isPending ? "Looking up…" : q.isError ? "The dictionary could not be reached." : "No definition found."}</p>
+        <p className={styles.empty}>{q.isPending ? <InterfaceText en="Looking up…" he="מחפש…" /> : q.isError ? <InterfaceText en="The dictionary could not be reached." he="לא ניתן להתחבר למילון." /> : <InterfaceText en="No definition found." he="לא נמצאה הגדרה." />}</p>
       )}
       <footer className={styles.footer}>
         <button type="button" className={styles.action} onClick={() => (onClose(), onOpenDictionary())}>

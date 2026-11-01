@@ -1,4 +1,5 @@
 import { readerAnalytics } from "~/lib/analytics/reader";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import type { MouseEvent } from "react";
 import type { Catalog } from "~/lib/catalog/toc";
 import { categoryDescription, categoryLabel } from "~/lib/connections/terms";
@@ -35,6 +36,7 @@ export interface CategoryViewProps {
  * @feature CON-026 Text (book) filter chip
  */
 export function CategoryView({ hrefFor, categories, catalog, basePath, search = "", current, onNavigate, favourites, onToggleFavourite }: CategoryViewProps) {
+  const he = useInterfaceLang() === "hebrew";
   const href_ = (v: ConnectionsView) => (hrefFor ? hrefFor(v) : withHref(basePath ?? "", v, search));
   return (
     <div>
@@ -77,7 +79,7 @@ export function CategoryView({ hrefFor, categories, catalog, basePath, search = 
               return (
                 <div key={b.book} className={styles.starRow}>
                   {row}
-                  <button type="button" className={styles.star} aria-pressed={starred} aria-label={starred ? `Remove ${b.book} from favourites` : `Add ${b.book} to favourites`} title={starred ? "Remove from favourites" : "Add to favourites (shown in the right-click menu)"} onClick={() => onToggleFavourite(b.book)}>
+                  <button type="button" className={styles.star} aria-pressed={starred} aria-label={he ? (starred ? `הסרת ${b.heBook || b.book} מהמועדפים` : `הוספת ${b.heBook || b.book} למועדפים`) : starred ? `Remove ${b.book} from favourites` : `Add ${b.book} to favourites`} title={he ? (starred ? "הסרה מהמועדפים" : "הוספה למועדפים (מופיעים בתפריט הלחיצה הימנית)") : starred ? "Remove from favourites" : "Add to favourites (shown in the right-click menu)"} onClick={() => onToggleFavourite(b.book)}>
                     <Icon name="star" size="16px" filled={starred} />
                   </button>
                 </div>

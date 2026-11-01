@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from "react";
 import { childMinimums, dragDivider, minExtent, overflows, toShares, trackLength, type MinOf } from "~/lib/layout/extent";
 import type { Direction, LayoutNode } from "~/lib/layout/tree";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import styles from "./SplitView.module.css";
 
 export interface SplitViewProps<Id extends string> {
@@ -85,6 +86,7 @@ const KEY_STEP: Record<string, { dir: Direction; sign: number }> = {
 function Node<Id extends string>({ node, path, shared, className, label, dir: fixedDir, root }: { node: LayoutNode<Id>; path: number[]; shared: Shared<Id>; className?: string; label?: string; dir?: "ltr" | "rtl"; root?: boolean }) {
   const { renderLeaf, minOf, dividers, onResize, live, leafDir } = shared;
   const splitEl = useRef<HTMLDivElement>(null);
+  const resizeLabel = useInterfaceLang() === "hebrew" ? "שינוי גודל" : "Resize";
   // With `parentScrolls`, the outermost row has to fit its parent rather than itself.
   const parentScrolls = Boolean(root && shared.parentScrolls);
   const available = useInnerLength(splitEl, node.type === "split" ? node.direction : undefined, parentScrolls && node.type === "split" && node.direction === "row");
@@ -175,7 +177,7 @@ function Node<Id extends string>({ node, path, shared, className, label, dir: fi
                 className={styles.handle}
                 role="separator"
                 aria-orientation={dir === "row" ? "vertical" : "horizontal"}
-                aria-label="Resize"
+                aria-label={resizeLabel}
                 aria-valuenow={Math.round(sizes[i - 1]! * 100)}
                 aria-valuemin={0}
                 aria-valuemax={100}

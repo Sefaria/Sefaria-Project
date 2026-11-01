@@ -7,6 +7,7 @@ import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { Link } from "~/ui/Link/Link";
 import { Popover } from "~/ui/Popover/Popover";
 import { bookOf, layoutHasCompanions, layoutSearchOf, standardWorkspace } from "~/lib/bookmarks/layout";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { panelOrder } from "~/lib/workspace/ops";
 import type { PanelId } from "~/lib/workspace/types";
 import { useReaderSettings } from "../reader/settings-context";
@@ -32,6 +33,7 @@ export function BookmarkToggle({ book, at, panel }: { book: string; at: string; 
   useLayoutAutosave(book, main);
   const openMine = useOpenMyLayout(book);
   const labelsOf = useBookmarkLabels();
+  const he = useInterfaceLang() === "hebrew";
   const labels = bookmark ? labelsOf(bookmark) : undefined;
   const ws = nav.current();
   const mine = main && showsBook && Boolean(ws.bk);
@@ -56,13 +58,15 @@ export function BookmarkToggle({ book, at, panel }: { book: string; at: string; 
     <Popover
       open={open}
       onOpenChange={change}
-      label={`Bookmark for ${book}`}
+      label={he ? `סימנייה: ${labels?.title ?? book}` : `Bookmark for ${book}`}
       trigger={(p) => (
         <IconButton
           {...p}
           icon="bookmark"
           pressed={Boolean(bookmark)}
-          label={bookmark ? (mine ? `${book} is bookmarked, in your layout` : `${book} is bookmarked`) : `Bookmark ${book}`}
+          label={he
+            ? bookmark ? (mine ? "יש סימנייה לספר, בפריסה שלך" : "יש סימנייה לספר") : "הוספת סימנייה לספר"
+            : bookmark ? (mine ? `${book} is bookmarked, in your layout` : `${book} is bookmarked`) : `Bookmark ${book}`}
         />
       )}
     >

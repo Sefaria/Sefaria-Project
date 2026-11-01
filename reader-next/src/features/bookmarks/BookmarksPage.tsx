@@ -17,6 +17,7 @@ function Row({ bookmark: b }: { bookmark: Bookmark }) {
   const ahead = b.mode === "auto" && b.furthest && b.furthest !== b.ref ? b.furthest : undefined;
   const hrefOf = useBookmarkHref();
   const l = useBookmarkLabels()(b);
+  const he = useInterfaceLang() === "hebrew";
   const aheadPlace = ahead ? placeOf({ book: b.book, ref: ahead }) : undefined;
   return (
     <li className={styles.row} style={{ ["--_line" as string]: l.color }}>
@@ -27,8 +28,8 @@ function Row({ bookmark: b }: { bookmark: Bookmark }) {
           <span className={styles.dot} aria-hidden="true">·</span>
           <span>{l.lastRead}</span>
           {b.layout ? (
-            <span className={styles.layout} title="Opens with your layout">
-              <Icon name="saved-layout" size="16px" label="with your layout" />
+            <span className={styles.layout} title={he ? "נפתח בפריסה שלך" : "Opens with your layout"}>
+              <Icon name="saved-layout" size="16px" label={he ? "בפריסה שלך" : "with your layout"} />
             </span>
           ) : null}
         </p>
@@ -44,13 +45,13 @@ function Row({ bookmark: b }: { bookmark: Bookmark }) {
       </div>
       <div className={styles.controls}>
         <span className={styles.mode}>
-          <ModeSwitch value={b.mode} onChange={(m) => setBookmarkMode(b.book, m)} label={`Bookmark mode for ${b.book}`} />
+          <ModeSwitch value={b.mode} onChange={(m) => setBookmarkMode(b.book, m)} label={he ? `מצב הסימנייה: ${l.title}` : `Bookmark mode for ${b.book}`} />
         </span>
         <span className={styles.actions}>
           <Button href={hrefOf(b)} size="sm" variant="secondary">
             <InterfaceText en="Continue" he="המשך" />
           </Button>
-          <IconButton icon="close" size="sm" label={`Remove bookmark for ${b.book}`} onClick={() => removeBookmark(b.book)} />
+          <IconButton icon="close" size="sm" label={he ? `הסרת הסימנייה: ${l.title}` : `Remove bookmark for ${b.book}`} onClick={() => removeBookmark(b.book)} />
         </span>
       </div>
     </li>
@@ -83,7 +84,7 @@ export function BookmarksPage() {
           <footer className={styles.settings}>
             <div className={styles.default}>
               <span><InterfaceText en="New bookmarks" he="סימניות חדשות" /></span>
-              <ModeSwitch value={state.defaultMode} onChange={setDefaultBookmarkMode} label="Mode for new bookmarks" />
+              <ModeSwitch value={state.defaultMode} onChange={setDefaultBookmarkMode} label={he ? "מצב לסימניות חדשות" : "Mode for new bookmarks"} />
             </div>
             <dl className={styles.legend}>
               <div>

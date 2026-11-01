@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { changes, dropFor, type Drop, type Zone } from "~/lib/layout/drop";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { panelOrder } from "~/lib/workspace/ops";
 import type { PanelId, Workspace } from "~/lib/workspace/types";
 import { Icon, type IconName } from "~/ui/Icon/Icon";
@@ -7,12 +8,12 @@ import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import styles from "./MovePanelMenu.module.css";
 
 /** Left and right are physical: the arrangement runs left to right in every interface language. */
-const ZONES: { zone: Zone; icon: IconName; label: string }[] = [
-  { zone: "before", icon: "arrow-left", label: "Left of" },
-  { zone: "above", icon: "arrow-up", label: "Above" },
-  { zone: "below", icon: "arrow-down", label: "Below" },
-  { zone: "after", icon: "arrow-right", label: "Right of" },
-  { zone: "centre", icon: "swap", label: "Swap with" },
+const ZONES: { zone: Zone; icon: IconName; en: string; he: string }[] = [
+  { zone: "before", icon: "arrow-left", en: "Left of", he: "משמאל ל־" },
+  { zone: "above", icon: "arrow-up", en: "Above", he: "מעל" },
+  { zone: "below", icon: "arrow-down", en: "Below", he: "מתחת ל־" },
+  { zone: "after", icon: "arrow-right", en: "Right of", he: "מימין ל־" },
+  { zone: "centre", icon: "swap", en: "Swap with", he: "החלפה עם" },
 ];
 
 /**
@@ -22,6 +23,7 @@ const ZONES: { zone: Zone; icon: IconName; label: string }[] = [
  */
 export function MovePanelMenu({ self, workspace, onDrop }: { self: PanelId; workspace: Workspace; onDrop: (d: Drop<PanelId>) => void }) {
   const [open, setOpen] = useState(false);
+  const he = useInterfaceLang() === "hebrew";
   const layout = workspace.layout;
   if (!layout) return null;
   const order = panelOrder(workspace);
@@ -42,8 +44,8 @@ export function MovePanelMenu({ self, workspace, onDrop }: { self: PanelId; work
       {open ? (
         <div className={styles.menu} dir="ltr">
           <div className={styles.row}>
-            {button({ kind: "dock", placement: "before" }, "to-start", "To the far left", <InterfaceText en="Far left" he="לקצה השמאלי" />)}
-            {button({ kind: "dock", placement: "after" }, "to-end", "To the far right", <InterfaceText en="Far right" he="לקצה הימני" />)}
+            {button({ kind: "dock", placement: "before" }, "to-start", he ? "לקצה השמאלי" : "To the far left", <InterfaceText en="Far left" he="לקצה השמאלי" />)}
+            {button({ kind: "dock", placement: "after" }, "to-end", he ? "לקצה הימני" : "To the far right", <InterfaceText en="Far right" he="לקצה הימני" />)}
           </div>
           {others.map((id) => {
             const p = workspace.panels[id];
@@ -51,7 +53,7 @@ export function MovePanelMenu({ self, workspace, onDrop }: { self: PanelId; work
             return (
               <div key={id} className={styles.row}>
                 <span className={styles.name} title={name}>{name}</span>
-                <span className={styles.places}>{ZONES.map(({ zone, icon, label }) => button(dropFor(id, zone), icon, `${label} ${name}`))}</span>
+                <span className={styles.places}>{ZONES.map((z) => button(dropFor(id, z.zone), z.icon, he ? `${z.he}${z.he.endsWith("־") ? "" : " "}${name}` : `${z.en} ${name}`))}</span>
               </div>
             );
           })}

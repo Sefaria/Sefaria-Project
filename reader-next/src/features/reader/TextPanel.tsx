@@ -34,6 +34,7 @@ import { commentariesOn, favouriteCommentaries, type CommentaryOnVerse } from "~
 import { DefinitionCard, type DefinitionRequest } from "../study/DefinitionCard";
 import { BookmarkToggle } from "../bookmarks/BookmarkToggle";
 import { useIsMainPanel, useOpenMyLayout } from "../bookmarks/my-layout";
+import { hebrewPlace } from "../bookmarks/labels";
 import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
 import { rememberTranslation } from "~/lib/versions/prefs-source";
@@ -575,6 +576,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const sample = section.segments.find((s) => s.primary && hasNikud(s.primary))?.primary ?? section.segments[0]?.primary ?? "";
   const availability = displayMenuAvailability({ settings, book: section.book, primaryCategory: section.primaryCategory, hebrewSample: sample, showsSource });
   const interfaceLang = useInterfaceLang();
+  const tr = (en: string, he: string) => (interfaceLang === "hebrew" ? he : en);
 
   // ── signed-in: reading history and Save (USL-010, USL-011) ──────────────────────────────────────────────
   const viewer = useViewer();
@@ -632,6 +634,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     void navigator.clipboard?.writeText(`${text}\n— ${ref} (${window.location.origin}/${refToUrl(ref)})`);
   }, []);
 
+  const menuLabel = menu && interfaceLang === "hebrew" && section.heSectionRef && menu.ref.startsWith(`${section.sectionRef}:`)
+    ? `${section.heSectionRef}:${hebrewPlace(menu.ref.slice(section.sectionRef.length + 1))}`
+    : menu?.ref ?? "";
   const menuWord = menu?.word && HEBREW_LETTER.test(menu.word) ? menu.word : undefined;
   const menuGroups: ContextMenuGroup[] = menu
     ? [
@@ -665,7 +670,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
               icon: "book" as const,
               onSelect: () => openCommentary(c, menu.ref),
               trailing: (
-                <button type="button" className={styles.favourite} aria-pressed="true" aria-label={`Remove ${c.name} from favourites`} title="Remove from favourites" onClick={() => favouriteCommentaries.remove(c.name)}>
+                <button type="button" className={styles.favourite} aria-pressed="true" aria-label={tr(`Remove ${c.name} from favourites`, `הסרת ${c.name} מהמועדפים`)} title={tr("Remove from favourites", "הסרה מהמועדפים")} onClick={() => favouriteCommentaries.remove(c.name)}>
                   <Icon name="star" size="16px" filled />
                 </button>
               ),
@@ -723,8 +728,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
         end={
           <>
-          {alone || isMainPanel ? null : <IconButton icon={together ? "link" : "link-off"} label={together ? "Scrolls with the other texts (click to lock)" : "Locked in place (click to scroll together)"} pressed={together} onClick={() => setTogether((t) => !t)} />}
-          <IconButton icon="layers" label="Resources" pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
+          {alone || isMainPanel ? null : <IconButton icon={together ? "link" : "link-off"} label={together ? tr("Scrolls with the other texts. Lock in place", "נגלל יחד עם שאר הטקסטים. נעילה במקום") : tr("Locked in place. Scroll with the other texts", "נעול במקום. גלילה יחד עם שאר הטקסטים")} pressed={together} onClick={() => setTogether((t) => !t)} />}
+          <IconButton icon="layers" label={tr("Resources", "קישורים וכלים")} pressed={Boolean(view)} onClick={() => (view ? closeSidebar() : openResources(current.ref ?? data.ref))} />
           <BookmarkToggle book={current.passage.indexTitle} at={current.ref ?? section.sectionRef} panel={id} />
           <Popover
             open={menuOpen}
@@ -746,7 +751,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
       />
       </div>
-      {menu ? <ContextMenu x={menu.x} y={menu.y} label={menu.ref} groups={menuGroups} onClose={closeMenu} /> : null}
+      {menu ? <ContextMenu x={menu.x} y={menu.y} label={menuLabel} groups={menuGroups} onClose={closeMenu} /> : null}
       {definition ? (
         <DefinitionCard
           key={`${definition.words}|${definition.segmentRef}|${definition.anchor.left}|${definition.anchor.top}`}
