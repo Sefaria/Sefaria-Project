@@ -18,7 +18,6 @@ export const emptyState = () => ({
   projects: [],
   yourListing: null,
   maxKeysPerProject: 5,
-  mock: null,
 });
 
 /* Hebrew for the errors powered_by/developer.py and developer_views.py send, which are English. */
@@ -117,13 +116,10 @@ export const setKeyRestriction = (keyId, restrictToWebsite) => call("POST", "key
 export const deleteKey = (keyId) => call("DELETE", "keys/" + keyId);
 export const claimListing = (listingId) => call("POST", "listings/" + listingId + "/claim");
 export const dismissListing = (listingId) => call("POST", "listings/" + listingId + "/dismiss");
-export const mockAction = (action, fields) => call("POST", "mock", {action, ...fields});
 
 /* Developer settings need a verified email: Google or Apple sign-in verifies it, and so does
    the emailed confirmation link. */
 export const accountVerified = (state) => !!state.ssoConnected || !!state.emailVerified;
-
-export const confirmationLink = (key) => "/settings/developer/confirm-email/" + key;
 
 /* The confirmation page sets this, so a settings tab in the same browser checks at once
    rather than at its next poll. */
