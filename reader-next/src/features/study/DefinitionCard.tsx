@@ -3,8 +3,7 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { entriesForCategories, lexiconQueryOptions, type EntrySense } from "~/lib/lexicon/lookup";
-import { Icon } from "~/ui/Icon/Icon";
-import { IconButton } from "~/ui/IconButton/IconButton";
+import { FloatingCard, FloatingCardAction, FloatingCardFooter, FloatingCardHeader } from "~/ui/FloatingCard/FloatingCard";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import styles from "./DefinitionCard.module.css";
 
@@ -88,11 +87,10 @@ export function DefinitionCard({ words, segmentRef, anchor, explicit, categories
   const position = below ? { left, top: anchor.bottom + GAP } : { left, bottom: window.innerHeight - anchor.top + GAP };
 
   return createPortal(
-    <div ref={ref} className={styles.card} role="dialog" aria-label={he ? `הגדרה: ${words}` : `Definition of ${words}`} style={position} data-definition-card>
-      <header className={styles.header}>
+    <FloatingCard ref={ref} className={styles.card} aria-label={he ? `הגדרה: ${words}` : `Definition of ${words}`} style={position} data-definition-card>
+      <FloatingCardHeader onClose={onClose}>
         <span className={styles.words} lang="he" dir="rtl">{words}</span>
-        <IconButton icon="close" size="sm" label={he ? "סגירה" : "Close"} onClick={onClose} />
-      </header>
+      </FloatingCardHeader>
       {found ? (
         <ul className={styles.entries}>
           {entries!.map((e) => (
@@ -106,13 +104,12 @@ export function DefinitionCard({ words, segmentRef, anchor, explicit, categories
       ) : (
         <p className={styles.empty}>{q.isPending ? <InterfaceText en="Looking up…" he="מחפש…" /> : q.isError ? <InterfaceText en="The dictionary could not be reached." he="לא ניתן להתחבר למילון." /> : <InterfaceText en="No definition found." he="לא נמצאה הגדרה." />}</p>
       )}
-      <footer className={styles.footer}>
-        <button type="button" className={styles.action} onClick={() => (onClose(), onOpenDictionary())}>
-          <Icon name="book" size="16px" />
+      <FloatingCardFooter>
+        <FloatingCardAction icon="book" onClick={() => (onClose(), onOpenDictionary())}>
           <InterfaceText en="Open in dictionary" he="פתיחה במילון" />
-        </button>
-      </footer>
-    </div>,
+        </FloatingCardAction>
+      </FloatingCardFooter>
+    </FloatingCard>,
     document.body,
   );
 }

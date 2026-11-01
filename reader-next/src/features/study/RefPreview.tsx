@@ -1,11 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type RefObject } from "react";
 import { createPortal } from "react-dom";
-import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import type { ContentLanguage } from "~/lib/reader/settings";
 import { textQueryOptions } from "~/lib/text/queries";
-import { Icon } from "~/ui/Icon/Icon";
-import { IconButton } from "~/ui/IconButton/IconButton";
+import { FloatingCard, FloatingCardAction, FloatingCardFooter, FloatingCardHeader } from "~/ui/FloatingCard/FloatingCard";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { ReaderSurface } from "~/ui/ReaderSurface/ReaderSurface";
 import { Segment } from "~/ui/Segment/Segment";
@@ -231,7 +229,6 @@ export interface RefPreviewCardProps {
 
 /** One preview: its title, the cited text in the panel's language, and the ways to open it. */
 export function RefPreviewCard({ previewRef, language, pinned, position, z = 0, autoFocus, onPin, onClose, onOpenColumn, pageHref, onMove, onPointerEnter, onPointerLeave, onRefClick }: RefPreviewCardProps) {
-  const he = useInterfaceLang() === "hebrew";
   const { data: passage, isError } = useQuery(textQueryOptions(previewRef));
   const cardEl = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
@@ -267,10 +264,9 @@ export function RefPreviewCard({ previewRef, language, pinned, position, z = 0, 
   const primaryMeta = passage?.primaryVersion;
   const translationMeta = passage?.translationVersion;
   return (
-    <div
+    <FloatingCard
       ref={cardEl}
       className={styles.card}
-      role="dialog"
       aria-label={title}
       tabIndex={-1}
       data-pinned={pinned ? "true" : "false"}
@@ -282,12 +278,11 @@ export function RefPreviewCard({ previewRef, language, pinned, position, z = 0, 
       onPointerLeave={onPointerLeave}
       onKeyDown={onKeyDown}
     >
-      <header className={styles.header} onPointerDown={pinned ? onHeaderDown : undefined} onPointerMove={onHeaderMove} onPointerUp={onHeaderUp} onPointerCancel={onHeaderUp}>
+      <FloatingCardHeader className={styles.header} onClose={() => onClose(true)} onPointerDown={pinned ? onHeaderDown : undefined} onPointerMove={onHeaderMove} onPointerUp={onHeaderUp} onPointerCancel={onHeaderUp}>
         <span className={styles.title} lang={titleLang} dir={titleLang === "he" ? "rtl" : "ltr"} title={title}>
           {title}
         </span>
-        <IconButton icon="close" size="sm" label={he ? "סגירה" : "Close"} onClick={() => onClose(true)} />
-      </header>
+      </FloatingCardHeader>
       <div className={styles.body}>
         {passage ? (
           <ReaderSurface language={language} layout="segmented" biLayout="stacked" fontSize={PREVIEW_FONT_SIZE}>
@@ -310,16 +305,14 @@ export function RefPreviewCard({ previewRef, language, pinned, position, z = 0, 
           <SkeletonText lines={3} />
         )}
       </div>
-      <footer className={styles.actions}>
-        <button type="button" className={styles.action} onClick={onOpenColumn}>
-          <Icon name="columns" size="16px" />
+      <FloatingCardFooter>
+        <FloatingCardAction icon="columns" onClick={onOpenColumn}>
           <InterfaceText en="Open as new column" he="פתיחה בטור חדש" />
-        </button>
-        <a className={styles.action} href={pageHref} target="_blank" rel="noopener" onClick={() => onClose(false)}>
-          <Icon name="external-link" size="16px" />
+        </FloatingCardAction>
+        <FloatingCardAction icon="external-link" href={pageHref} target="_blank" rel="noopener" onClick={() => onClose(false)}>
           <InterfaceText en="Open in new page" he="פתיחה בדף חדש" />
-        </a>
-      </footer>
-    </div>
+        </FloatingCardAction>
+      </FloatingCardFooter>
+    </FloatingCard>
   );
 }
