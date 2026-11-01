@@ -18,6 +18,7 @@ TIERS = [
     ("developer", "Developer", 600, 100000),
     ("partner", "Partner", 6000, 1000000),
     ("internal", "Internal", 60000, 100000000),
+    ("mcp", "MCP server", 6000, 1000000),
 ]
 
 
