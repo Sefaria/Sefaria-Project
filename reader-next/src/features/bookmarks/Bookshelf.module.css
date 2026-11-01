@@ -11,7 +11,7 @@
 .item { min-width: 0; }
 
 .card {
-  display: flex; flex-direction: column; height: 100%; min-height: 128px; padding: 18px var(--sefaria-space-4) var(--sefaria-space-3);
+  display: flex; flex-direction: column; height: 100%; min-height: 128px; padding: var(--sefaria-space-5) var(--sefaria-space-4) var(--sefaria-space-3);
   border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-md);
   box-shadow: inset 0 3px 0 var(--_line, var(--sefaria-color-border));
   background: var(--sefaria-color-surface); color: var(--sefaria-color-text); text-decoration: none;
@@ -29,9 +29,9 @@
 .place:lang(he) { font-family: var(--sefaria-font-text-he); }
 
 .meta { display: flex; align-items: center; justify-content: space-between; gap: var(--sefaria-space-2); margin-block-start: auto; padding-block-start: var(--sefaria-space-3); font-size: var(--sefaria-text-caption); white-space: nowrap; }
-.when { display: inline-flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--sefaria-color-text-muted); }
+.when { display: inline-flex; align-items: center; gap: var(--sefaria-space-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--sefaria-color-text-muted); }
 .layout { display: inline-flex; color: var(--sefaria-color-text-secondary); }
-.go { display: inline-flex; align-items: center; gap: var(--sefaria-space-1); color: var(--sefaria-color-brand); font-weight: 500; }
+.go { display: inline-flex; align-items: center; gap: var(--sefaria-space-2); color: var(--sefaria-color-brand); font-weight: 500; }
 /* With a pointer, the word shows on the card under it and the arrow alone marks the rest; on touch it always shows. */
 @media (hover: hover) {
   .goText { opacity: 0; transition: opacity 0.15s; }

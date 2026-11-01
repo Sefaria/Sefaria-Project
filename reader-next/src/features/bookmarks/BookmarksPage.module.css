@@ -10,7 +10,7 @@
   position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sefaria-space-3) var(--sefaria-space-6);
   padding-block: var(--sefaria-space-5); padding-inline-start: var(--sefaria-space-4); border-block-end: 1px solid var(--sefaria-color-border);
 }
-.row::before { content: ""; position: absolute; inset-inline-start: 0; inset-block: var(--sefaria-space-5); width: 3px; border-radius: 2px; background: var(--_line); }
+.row::before { content: ""; position: absolute; inset-inline-start: 0; inset-block: var(--sefaria-space-5); width: 3px; border-radius: var(--sefaria-radius-xs); background: var(--_line); }
 .main { flex: 1 1 260px; min-width: 0; }
 .book { margin: 0; font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-h3); font-weight: 400; line-height: 1.25; }
 .book:lang(he) { font-family: var(--sefaria-font-text-he); }
@@ -28,7 +28,7 @@
 .controls { display: flex; align-items: center; gap: var(--sefaria-space-4); }
 .actions { display: flex; align-items: center; gap: var(--sefaria-space-1); }
 /* The per-book mode switch, a size down from the page-level one. */
-.mode [role="radio"] { min-height: 28px; padding-inline: 10px; font-size: var(--sefaria-text-caption); }
+.mode [role="radio"] { min-height: 28px; padding-inline: var(--sefaria-space-3); font-size: var(--sefaria-text-caption); }
 .mode [role="radio"][aria-checked="true"] { background: var(--sefaria-color-pressed); color: var(--sefaria-color-brand); font-weight: 500; }
 
 .settings { display: grid; gap: var(--sefaria-space-3); margin-block-start: var(--sefaria-space-8); color: var(--sefaria-color-text-secondary); font-size: var(--sefaria-text-sans-small); }
@@ -38,7 +38,7 @@
 .legend dt { font-weight: 500; }
 .legend dt::after { content: ":"; }
 .legend dd { margin: 0; }
-.history { display: inline-flex; align-items: center; gap: var(--sefaria-space-1); color: var(--sefaria-color-text-muted); font-size: var(--sefaria-text-caption); text-decoration: none; }
+.history { display: inline-flex; align-items: center; gap: var(--sefaria-space-2); color: var(--sefaria-color-text-muted); font-size: var(--sefaria-text-caption); text-decoration: none; }
 .history:hover { color: var(--sefaria-color-text); text-decoration: underline; }
 
 /* Phone: the controls go on their own line under the book, mode at the start and Continue at the end. */

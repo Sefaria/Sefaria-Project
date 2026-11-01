@@ -1,7 +1,7 @@
 /* A small pill in the bottom corner, clear of the headers and the cookie notice; quiet until the pointer or focus reaches it. */
 .controls {
   position: fixed; inset-block-end: var(--sefaria-space-4); inset-inline-end: var(--sefaria-space-4); z-index: var(--sefaria-z-panel-chrome);
-  display: flex; align-items: center; gap: 3px; padding: 3px; border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-pill);
+  display: flex; align-items: center; gap: var(--sefaria-space-1); padding: var(--sefaria-space-1); border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-pill);
   background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-menu);
   opacity: 0.85; transition: opacity 0.15s;
 }
