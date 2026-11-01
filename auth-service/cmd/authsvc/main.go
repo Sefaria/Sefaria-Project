@@ -116,7 +116,7 @@ func main() {
 		}
 		gauges()
 		reloads.WithLabelValues("ok").Inc()
-		ready.Store(true)
+		ready.Store(reg.Settled())
 		return nil
 	}
 	reloadLoad := func(ctx context.Context) ([]registry.Key, error) {
@@ -132,11 +132,10 @@ func main() {
 	if keys, err := load(ctx); err != nil {
 		slog.Error("initial load failed; serving empty set until a reload succeeds", "err", err)
 		reloads.WithLabelValues("error").Inc()
-	} else {
-		reg.Replace(keys)
-		gauges()
-		reloads.WithLabelValues("ok").Inc()
-		ready.Store(true)
+	} else if err := replace(keys); err != nil {
+		// A first load with zero keys is only an observation: the pod stays not ready (Envoy fails open) until a
+		// non-empty load or a confirming empty load, so an empty table never makes it deny every valid key.
+		slog.Warn("initial load returned no keys; not ready until a non-empty load or a confirming empty reload", "err", err)
 	}
 	startup.Set(time.Since(t0).Seconds())
 	slog.Info("registry loaded", "keys", reg.Len(), "took", time.Since(t0), "mode", cfg.Mode)

@@ -32,6 +32,9 @@ type Registry struct {
 	snap         atomic.Pointer[snapshot]
 	writeMu      sync.Mutex
 	pendingEmpty bool
+	// settled is true once a non-empty load, or an empty load confirmed by a second empty load, was accepted.
+	// Until then an empty load is only an observation: it is not applied and the registry is not Settled.
+	settled      bool
 	firstEmptyAt time.Time
 	minGap       time.Duration
 	now          func() time.Time
@@ -66,6 +69,7 @@ func (r *Registry) Replace(keys []Key) {
 	r.writeMu.Lock()
 	defer r.writeMu.Unlock()
 	r.pendingEmpty = false
+	r.settled = true
 	r.replaceLocked(keys)
 }
 
@@ -78,7 +82,7 @@ func (r *Registry) replaceLocked(keys []Key) {
 func (r *Registry) ReplaceGuarded(keys []Key) error {
 	r.writeMu.Lock()
 	defer r.writeMu.Unlock()
-	if len(keys) > 0 || r.Len() == 0 {
+	if len(keys) > 0 || (r.Len() == 0 && r.settled) {
 		r.pendingEmpty = false
 	} else if !r.pendingEmpty {
 		r.pendingEmpty = true
@@ -89,8 +93,18 @@ func (r *Registry) ReplaceGuarded(keys []Key) error {
 	} else {
 		r.pendingEmpty = false
 	}
+	r.settled = true
 	r.replaceLocked(keys)
 	return nil
+}
+
+// Settled reports whether the registry holds a trustworthy view of the key table: a non-empty load was accepted,
+// or an empty load was confirmed by a second empty load at least the empty-reload gap later. A registry that has
+// only ever seen one empty load (or none) is not settled, so a pod must not report ready on it.
+func (r *Registry) Settled() bool {
+	r.writeMu.Lock()
+	defer r.writeMu.Unlock()
+	return r.settled
 }
 
 // ResetEmptyReloadGuard clears a pending first empty result after a failed load.
