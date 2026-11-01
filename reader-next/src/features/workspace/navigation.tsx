@@ -8,14 +8,33 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, typ
 import { PositionStore, type EntryPositions, type SavedPosition } from "~/lib/reader/position-store";
 import { createWorkspaceCommands, entryKey, readNavState, urlDefaultsFor, type NavState, type WorkspaceRouter } from "~/lib/workspace/commands";
 import { useReaderSettings } from "../reader/settings-context";
+import { useRegisterSlice } from "~/features/reader-state/context";
+import { createScrollSlice, type ScrollPanel } from "~/lib/reader-state/sefaria/slices/scroll";
 import type { PanelId, Workspace } from "~/lib/workspace/types";
 
 // The navigation vocabulary lives in src/lib/workspace/commands.ts (usable outside React); re-exported for the reader's features.
 export { entryKey, navFor, panelKeysOf, readNavState, urlDefaultsFor, workspaceHref, type NavKind, type NavState } from "~/lib/workspace/commands";
 
+/**
+ * What a panel offers beyond reading its place, for the reader state API's `sefaria.scroll` slice: its stable key (PanelState.key, not
+ * the position id), a way to put its reader at a position, and a way to hear that it moved.
+ */
+export interface PanelPlacement {
+  key: string;
+  /** Put the reader at the position; false when that segment is not loaded (yet). */
+  restorePosition: (pos: SavedPosition) => boolean;
+  /** Bring a segment to the reading line; false when it is not loaded. */
+  scrollToSegment: (ref: string) => boolean;
+}
+
 interface WorkspaceNav {
-  /** A panel offers a way to read where its reader is, so it can be saved at every history change. */
-  registerPanel: (id: PanelId, getPosition: () => SavedPosition | undefined) => () => void;
+  /**
+   * A panel offers a way to read where its reader is, so it can be saved at every history change — and, optionally, a way to put
+   * its reader somewhere (the scroll slice).
+   */
+  registerPanel: (id: PanelId, getPosition: () => SavedPosition | undefined, placement?: PanelPlacement) => () => void;
+  /** A panel's reader moved (scrolling): the scroll slice tells its subscribers, at most once per frame. */
+  panelMoved: () => void;
   /** Where to put a panel's reader if the current entry was reached by back/forward (else undefined). */
   restoreFor: (key: string | undefined, id: PanelId) => SavedPosition | undefined;
   /** The workspace as of now (read from the router at call time, never stale). */
@@ -37,6 +56,9 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   const store = useRef<PositionStore | null>(null);
   store.current ??= new PositionStore(safeSessionStorage());
   const readers = useRef(new Map<PanelId, () => SavedPosition | undefined>());
+  const placements = useRef(new Map<PanelId, { read: () => SavedPosition | undefined; placement: PanelPlacement }>());
+  const moveListeners = useRef(new Set<() => void>());
+  const moveFrame = useRef(0);
   const poppedKey = useRef<string | undefined>(undefined);
 
   // Save every panel's place at each history change — while the page still shows what is being left — and
@@ -65,12 +87,52 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
     });
   }, [router]);
 
-  const registerPanel = useCallback<WorkspaceNav["registerPanel"]>((id, read) => {
+  const registerPanel = useCallback<WorkspaceNav["registerPanel"]>((id, read, placement) => {
     readers.current.set(id, read);
+    const entry = placement ? { read, placement } : undefined;
+    if (entry) placements.current.set(id, entry);
     return () => {
       if (readers.current.get(id) === read) readers.current.delete(id);
+      if (entry && placements.current.get(id) === entry) placements.current.delete(id);
     };
   }, []);
+
+  // The `sefaria.scroll` slice: every panel's anchor by its stable key. Movement is told at most once per frame.
+  const panelMoved = useCallback(() => {
+    if (moveFrame.current || !moveListeners.current.size) return;
+    const fire = () => {
+      moveFrame.current = 0;
+      for (const cb of [...moveListeners.current]) cb();
+    };
+    moveFrame.current = typeof requestAnimationFrame === "function" ? requestAnimationFrame(fire) : (setTimeout(fire, 16) as unknown as number);
+  }, []);
+  useEffect(
+    () => () => {
+      if (moveFrame.current && typeof cancelAnimationFrame === "function") cancelAnimationFrame(moveFrame.current);
+      moveFrame.current = 0;
+    },
+    [],
+  );
+  const scrollSlice = useMemo(
+    () =>
+      createScrollSlice({
+        list: () =>
+          [...placements.current.values()].map(
+            ({ read, placement }): ScrollPanel => ({
+              key: placement.key,
+              getPosition: read,
+              restorePosition: placement.restorePosition,
+              scrollToSegment: placement.scrollToSegment,
+            }),
+          ),
+        onMove: (cb) => {
+          moveListeners.current.add(cb);
+          return () => void moveListeners.current.delete(cb);
+        },
+      }),
+    [],
+  );
+  useRegisterSlice(scrollSlice);
   const restoreFor = useCallback<WorkspaceNav["restoreFor"]>((key, id) => (key && poppedKey.current === key ? store.current!.get(key)?.[id] : undefined), []);
   const go = useCallback<WorkspaceNav["go"]>((ws, opts) => void commands.go(ws, opts), [commands]);
   const href = useCallback((ws: Workspace) => commands.href(ws), [commands, defaults]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -81,7 +143,7 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
     void commands.canonicalize();
   }, [commands, location.href, defaults]);
 
-  const value = useMemo(() => ({ current: commands.current, href, go, registerPanel, restoreFor }), [commands, href, go, registerPanel, restoreFor]);
+  const value = useMemo(() => ({ current: commands.current, href, go, registerPanel, panelMoved, restoreFor }), [commands, href, go, registerPanel, panelMoved, restoreFor]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

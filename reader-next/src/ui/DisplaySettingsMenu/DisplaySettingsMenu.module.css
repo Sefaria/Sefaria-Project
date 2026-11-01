@@ -28,3 +28,12 @@
 .line [role="radiogroup"] { transform: translateY(-6px); }
 /* the old labels are centred in a 60px line box, 1px lower than in their 57/49px line */
 .line .lineLabel, .menu :global([role="switch"]) > :first-child { position: relative; top: 1px; }
+
+/* Session recording (not on sefaria.org): a line in the same 216px column as the switches above */
+.session { align-self: center; box-sizing: border-box; width: 216px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding-block: 10px; }
+.sessionButton, .sessionLink { display: inline-flex; align-items: center; gap: 8px; padding: 4px 0; white-space: nowrap; border: 0; background: none; font: inherit; cursor: pointer; }
+.sessionButton { color: var(--sefaria-color-text-strong); }
+.sessionLink { color: var(--sefaria-color-text-secondary); font-size: 13px; padding-inline-start: 18px; }
+.sessionButton:hover, .sessionLink:hover { text-decoration: underline; }
+.sessionButton:focus-visible, .sessionLink:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+.recordDot { width: 10px; height: 10px; border-radius: 50%; background: var(--sefaria-color-danger); }

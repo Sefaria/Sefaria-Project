@@ -37,7 +37,7 @@ export interface TextColumnProps {
   /** Put the reader back at a saved place when `token` changes (back/forward). */
   restore?: { token: string; position: SavedPosition };
   /** Lets the owner read the reader's place on demand (to save it in history). Returns an unregister function. */
-  registerPosition?: (get: () => SavedPosition | undefined) => () => void;
+  registerPosition?: (get: () => SavedPosition | undefined, engine?: { restorePosition: (pos: SavedPosition) => boolean; scrollToSegment: (ref: string) => void }) => () => void;
   /** The sections now loaded in the column (changes as the reader scrolls). */
   onSections?: (refs: string[]) => void;
   /**
@@ -274,7 +274,8 @@ export function TextColumn(props: TextColumnProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restoreToken]);
 
-  useEffect(() => props.registerPosition?.(engine.getPosition), [props.registerPosition, engine.getPosition]); // eslint-disable-line react-hooks/exhaustive-deps
+  // the engine's own placing, so a position put from outside (the reader state API) also becomes the engine's focus and anchor
+  useEffect(() => props.registerPosition?.(engine.getPosition, { restorePosition: engine.restorePosition, scrollToSegment: engine.scrollToSegment }), [props.registerPosition, engine.getPosition, engine.restorePosition, engine.scrollToSegment]); // eslint-disable-line react-hooks/exhaustive-deps
   // In a layout effect, before the one below that looks at the edges and may move the URL: the panel must know which
   // sections the column holds before the URL it is about to write comes back (reaching the top of a tractate on a fast
   // scroll used to restart the column at its first page).

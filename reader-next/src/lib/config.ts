@@ -8,6 +8,10 @@
  *  - SEFARIA_API_HOST     the Host header those internal requests carry (Django routes by host: "www.<env>.cauldron.sefaria.org").
  *  - PUBLIC_API_ORIGIN    the API as the BROWSER reaches it; "" means the page's own origin (nginx sends /api/* to Varnish).
  *  - PUBLIC_SITE_ORIGIN   where links to the pages this client does not render (topics, sheets, login…) go; "" = same origin.
+ *  - PUBLIC_ROOM_URL      the follow-me room server as the browser reaches it ("ws://<lan-ip>:3199" for scripts/dev-room-server.mjs);
+ *                         unset = follow runs in an in-browser room shared over BroadcastChannel (tabs of one browser only).
+ *  - PUBLIC_LABS          the labs on by default in this deployment, comma-separated ("follow_me,recording"); remote config
+ *                         `feature.reader.labs.<name>` overrides it either way (src/lib/labs.ts). Unset = every lab off.
  *  - Analytics (src/lib/analytics), the same settings Django's templates/base.html reads; each is off when unset, so development and
  *    tests send nothing: GOOGLE_TAG_MANAGER_CODE, GOOGLE_GTAG, CLIENT_SENTRY_DSN, SIMPLE_ANALYTICS_HOSTNAME ("sefaria.org" in
  *    production), APP_VERSION (gtag's site_version, Sentry's release).
@@ -16,6 +20,8 @@
  *                         button is not shown / no captcha, as on the old site.
  * Browser: the server writes the PUBLIC_ values, the analytics settings and the three sign-in keys into the page (window.__SEFARIA_CONFIG__) before any module runs.
  */
+import { parseLabs, type LabName } from "~/lib/labs";
+
 export interface AnalyticsConfig {
   gtm: string | null;
   gtag: string | null;
@@ -32,6 +38,10 @@ export interface PublicConfig {
   googleClientId: string;
   appleClientId: string;
   recaptchaSiteKey: string;
+  /** Follow me's room server (PUBLIC_ROOM_URL, ws: or wss:); absent or "" = the in-browser room (src/features/reader-state/follow). */
+  roomUrl?: string;
+  /** The labs this deployment turns on by default (PUBLIC_LABS); remote config can override each (src/lib/labs.ts). */
+  labs?: LabName[];
   /** The Library Assistant (`<lc-chatbot>`): which build to load and which server it talks to (src/lib/assistant/config.ts). */
   assistant: AssistantEnv;
 }
@@ -79,6 +89,8 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
       googleClientId: env("GOOGLE_SSO_CLIENT_ID") ?? "",
       appleClientId: env("APPLE_SSO_CLIENT_ID") ?? "",
       recaptchaSiteKey: env("RECAPTCHA_PUBLIC_KEY") ?? "",
+      roomUrl: env("PUBLIC_ROOM_URL") || "",
+      labs: parseLabs(env("PUBLIC_LABS")),
       assistant: {
         apiBaseUrl: env("CHATBOT_API_BASE_URL") || DEFAULT_ASSISTANT_API,
         version: env("CHATBOT_VERSION") || null,
@@ -94,6 +106,8 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
       googleClientId: window.__SEFARIA_CONFIG__?.googleClientId ?? "",
       appleClientId: window.__SEFARIA_CONFIG__?.appleClientId ?? "",
       recaptchaSiteKey: window.__SEFARIA_CONFIG__?.recaptchaSiteKey ?? "",
+      roomUrl: window.__SEFARIA_CONFIG__?.roomUrl || "",
+      labs: window.__SEFARIA_CONFIG__?.labs ?? [],
       assistant: { apiBaseUrl: DEFAULT_ASSISTANT_API, version: null, useLocalScript: false, origin: "sefaria-local", ...window.__SEFARIA_CONFIG__?.assistant },
     };
 

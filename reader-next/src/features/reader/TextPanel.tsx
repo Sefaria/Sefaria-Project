@@ -44,12 +44,14 @@ import { SignUpModal } from "~/ui/SignUpModal/SignUpModal";
 import { shownVersions as panelVersionsShown, type ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
 import { SETTLE_MS } from "./use-reading-scroll";
+import { placeSegment, scrollSegmentToLine } from "~/lib/reader-state/sefaria/slices/dom-position";
 import { TextColumn } from "./TextColumn";
 import { readerAnalytics } from "~/lib/analytics";
 import { useViewer } from "~/features/auth/viewer";
 import { legacyVersions } from "~/lib/user/history";
 import { useReaderHistory, useSaved, type PanelPlace } from "./use-reader-history";
 import { dirFor } from "~/lib/i18n/direction";
+import { useRecordSessionEntry } from "~/features/reader-state/recording/entry";
 
 export interface TextPanelProps {
   panel: TextPanelState;
@@ -85,6 +87,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const location = useLocation();
   const qc = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
+  // "Record session" in the display menu (docs/READER_STATE_API.md, "Recording and replay"); closes the menu so the dock is in view
+  const sessionEntry = useRecordSessionEntry();
   const [saveAsked, setSaveAsked] = useState(false);
   const id = panel.id;
   // What the loader resolved (the URL plus the reader's preferences, VER-014), unless the URL has since named other versions.
@@ -161,7 +165,25 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const saved = nav.restoreFor(entryKey(location.state), id);
   const key = entryKey(location.state);
   const restore = useMemo(() => (saved && key ? { token: key, position: saved } : undefined), [key, saved?.ref, saved?.offset]); // eslint-disable-line react-hooks/exhaustive-deps
-  const registerPosition = useCallback((get: () => SavedPosition | undefined) => nav.registerPanel(id, get), [nav, id]);
+  // Also how the reader state API's scroll slice puts this panel's reader somewhere (a replay, a followed leader), by the panel's
+  // stable key. Through the column's scroll engine when it offers it (so the placed segment becomes the engine's focus and anchor, and
+  // anchor keeping holds it through reflows); else measured on the panel's own DOM (lib/reader-state/sefaria/slices/dom-position.ts).
+  const panelKey = panel.key ?? id;
+  const connectionsOnScreenRef = useRef(false);
+  const registerPosition = useCallback(
+    (get: () => SavedPosition | undefined, engine?: { restorePosition: (pos: SavedPosition) => boolean; scrollToSegment: (ref: string) => void }) =>
+      nav.registerPanel(id, get, {
+        key: panelKey,
+        restorePosition: (pos) => (engine ? engine.restorePosition(pos) : !!rootEl.current && placeSegment(rootEl.current, pos)),
+        scrollToSegment: (ref) => {
+          if (!engine) return !!rootEl.current && scrollSegmentToLine(rootEl.current, ref, { connectionsOnScreen: connectionsOnScreenRef.current });
+          if (!rootEl.current?.querySelector(`[role="group"][data-ref="${CSS.escape(ref)}"]`)) return false;
+          engine.scrollToSegment(ref);
+          return true;
+        },
+      }),
+    [nav, id, panelKey],
+  );
   const onSections = useCallback((refs: string[]) => void (columnSections.current = refs), []);
 
   // ── the reader's current place ─────────────────────────────────────────────────────────────────────
@@ -177,19 +199,34 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     prefetchNeighbours(qc, current.passage, versions);
   }, [qc, current.passage, versions]);
 
-  const onFocus = useCallback((ref: string, passage: TextPassage) => {
-    setCurrent((c) => (c.ref === ref && c.passage === passage ? c : { ref, passage }));
-  }, []);
+  const onFocus = useCallback(
+    (ref: string, passage: TextPassage) => {
+      setCurrent((c) => (c.ref === ref && c.passage === passage ? c : { ref, passage }));
+      nav.panelMoved();
+    },
+    [nav],
+  );
+  // The scroll slice also hears scrolling inside one long segment (no focus change); panelMoved throttles to a frame.
+  useEffect(() => {
+    const onScroll = (e: Event) => {
+      const t = e.target;
+      // the page scrolls on a phone (any panel's listener may tell it: one notice per frame either way); on desktop, this column
+      if (t === document || (t instanceof Element && t.matches("[data-reader-scroller]") && !!rootEl.current?.contains(t))) nav.panelMoved();
+    };
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => document.removeEventListener("scroll", onScroll, { capture: true });
+  }, [nav]);
 
   const asideRef = useRef(panel.asides);
   asideRef.current = panel.asides;
   const onSettled = useCallback(
     (ref: string) => {
       if (asideRef.current.length) setSelection([ref]);
+      nav.panelMoved();
       // The address bar always names the verse being read (like the old reader), without moving anything.
       apply((ws) => updatePanel(ws, id, { ref }), { replace: true, state: { nav: "scroll", panel: id } });
     },
-    [apply, id],
+    [apply, id, nav],
   );
 
   // A range URL ("Genesis 1:3-5") collapses to its first verse once the column settles, as in the old reader. A Torah
@@ -209,6 +246,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // ── side panels ────────────────────────────────────────────────────────────────────────────────────
   const aside = panel.asides.find((a) => a.kind === "connections");
   const view: ConnectionsView | undefined = parseWith(aside?.view);
+  connectionsOnScreenRef.current = Boolean(view);
   const section = current.passage;
   const selectedRefs = useMemo(() => {
     if (selection) return selection;
@@ -569,7 +607,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
             panelClassName={styles.displayMenu}
             trigger={(p) => <DisplayOptionsButton {...p} label="Text display options" />}
           >
-            <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} directions={{ primary: section.primaryVersion?.direction, translation: section.translationVersion?.direction }} />
+            <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} directions={{ primary: section.primaryVersion?.direction, translation: section.translationVersion?.direction }}
+              onRecordSession={sessionEntry ? () => (setMenuOpen(false), sessionEntry.onRecordSession()) : undefined}
+              onLoadRecording={sessionEntry ? () => (setMenuOpen(false), sessionEntry.onLoadRecording()) : undefined} />
           </Popover>
           </>
         }
