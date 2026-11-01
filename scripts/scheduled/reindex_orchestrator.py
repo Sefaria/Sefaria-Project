@@ -328,6 +328,64 @@ def parse_shard_resources():
     return parsed
 
 
+def _as_number(value):
+    """ES _cat values arrive as strings with bytes=b (and percentages may carry a '%').
+    Returns a float, or None when the value is missing or not numeric."""
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    try:
+        return float(str(value).strip().rstrip("%"))
+    except ValueError:
+        return None
+
+
+def check_reindex_preflight(health, allocation_rows, min_free_bytes, max_disk_percent):
+    """Return human-readable reasons the cluster must not be reindexed right now; [] means OK.
+    Pure function - no I/O, no imports beyond builtins.
+
+    `health` is the parsed GET _cluster/health body; `allocation_rows` is the parsed
+    GET _cat/allocation?format=json&bytes=b body. It refuses on what it cannot verify: a
+    status other than green, or a data node whose disk numbers are missing. The UNASSIGNED
+    row and any row without a node are not data nodes and are skipped.
+    """
+    problems = []
+    status = (health or {}).get("status")
+    if status != "green":
+        problems.append(f"cluster status is {status!r}, must be 'green'")
+    for row in allocation_rows or []:
+        node = row.get("node")
+        if not node or node == "UNASSIGNED":
+            continue
+        avail = _as_number(row.get("disk.avail"))
+        percent = _as_number(row.get("disk.percent"))
+        if avail is None or percent is None:
+            problems.append(
+                f"node {node} disk usage is unknown (disk.avail={row.get('disk.avail')!r}, "
+                f"disk.percent={row.get('disk.percent')!r})"
+            )
+            continue
+        if avail < min_free_bytes:
+            problems.append(
+                f"node {node} has {avail / 1024 ** 3:.1f} GiB free, below the "
+                f"{min_free_bytes / 1024 ** 3:.1f} GiB minimum"
+            )
+        if percent > max_disk_percent:
+            problems.append(
+                f"node {node} disk is {percent:.0f}% full, above the {max_disk_percent}% maximum"
+            )
+    return problems
+
+
+def read_reindex_preflight_inputs(es_client):
+    """Fetch the two inputs check_reindex_preflight needs. Read-only."""
+    health = es_client.cluster.health()
+    allocation_rows = es_client.cat.allocation(format="json", bytes="b")
+    # elasticsearch-py 8 wraps responses in ObjectApiResponse; unwrap to the plain body.
+    return getattr(health, "body", health), getattr(allocation_rows, "body", allocation_rows)
+
+
 def cleanup_failed_reindex_targets(index_types=("text", "sheet"), debug=False, search_module=None, log_fn=None):
     """Drop target indices created by init when the orchestrator will not finalize.
 
@@ -372,6 +430,7 @@ def main():
     from datetime import datetime
     from kubernetes import client, config
     from sefaria.pagesheetrank import update_pagesheetrank
+    import sefaria.search as search_module
     from scripts.scheduled.reindex_pipeline import (
         REINDEX_TYPES,
         run_reindex_entities,
@@ -456,6 +515,30 @@ def main():
         raise RuntimeError(
             "SHARD_RESOURCES env var is not set; cannot launch shard jobs (set via Helm shardResources)"
         )
+
+    # Pre-flight runs before anything is created or deleted: a full data-node disk or a
+    # non-green cluster is what took the prod cluster down in Sep 2026. Refusing here costs
+    # one failed CronJob run; not refusing can fill the disks.
+    if os.environ.get("REINDEX_PREFLIGHT_SKIP", "").lower() in ("1", "true", "yes"):
+        logger.warning(
+            "REINDEX_PREFLIGHT_SKIP is set: skipping the disk/health pre-flight; a full disk "
+            "or a non-green cluster will NOT be caught before the reindex starts"
+        )
+    else:
+        min_free_gb = float(os.environ.get("REINDEX_PREFLIGHT_MIN_FREE_GB", "20"))
+        max_disk_percent = float(os.environ.get("REINDEX_PREFLIGHT_MAX_DISK_PERCENT", "75"))
+        health, allocation_rows = read_reindex_preflight_inputs(search_module.es_client)
+        problems = check_reindex_preflight(
+            health, allocation_rows, int(min_free_gb * 1024 ** 3), max_disk_percent,
+        )
+        if problems:
+            for problem in problems:
+                logger.error(f"Reindex pre-flight: {problem}")
+            raise RuntimeError(
+                f"Reindex pre-flight failed with {len(problems)} problem(s); "
+                "nothing was created or deleted"
+            )
+        logger.info("Reindex pre-flight passed: cluster green, every data node within limits")
 
     manifest = build_shard_job_manifest(
         job_name, namespace, image, shard_count, command,

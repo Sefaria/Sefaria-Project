@@ -513,6 +513,8 @@ cronJobs:
     ttlSecondsAfterFinished: 432000
   indexFromQueue:
     enabled: false
+    # Runs every 7 min with concurrencyPolicy: Forbid, so a hung run would block every later run.
+    activeDeadlineSeconds: 1800
   metrics:
     enabled: false
   nationBuilderSync:
@@ -530,8 +532,16 @@ cronJobs:
     # Bounds a single shard's runtime. A wedged shard has been observed spinning at ~500m CPU
     # with zero bulk writes and zero log output for hours with no crash - without a deadline
     # it runs forever, and (with concurrencyPolicy: Forbid) blocks every future scheduled
-    # reindex too. Shards that completed took ~2-3h, so 6h is generous but bounded.
-    shardActiveDeadlineSeconds: 21600
+    # reindex too. Shards that completed took ~2-3h; pd-standard 40Gi disks take 6-9h to
+    # write, so this is 11h: long enough for a slow disk, still bounded.
+    shardActiveDeadlineSeconds: 39600
+    # Orchestrator backstop behind the shard deadline. Must stay longer than
+    # shardActiveDeadlineSeconds so the shard Job's own deadline fires first.
+    barrierTimeoutSeconds: 43200
+    # Pre-flight before any index is created: refuse to reindex unless the cluster is green
+    # and every data node has at least this much free disk and at most this percent used.
+    preflightMinFreeGb: 20
+    preflightMaxDiskPercent: 75
     orchestratorResources:
       requests:
         memory: "4Gi"
