@@ -1,0 +1,37 @@
+{{- /* Alerts on a pod whose registry has not accepted a load for 10 reload intervals. The threshold is derived from
+       authService.reloadInterval (the same value deployment.yaml passes as RELOAD_INTERVAL). A pod that never loaded
+       reports 0, so it fires too. */}}
+{{- if and .Values.authService.enabled .Values.authService.monitoring.alerts.enabled }}
+{{- $interval := toString .Values.authService.reloadInterval }}
+{{- /* Parse a Go duration (time.ParseDuration, which main.go uses): one or more <number><unit> segments, unit h, m, s or ms, number may be fractional, e.g. 60s, 1m30s, 1.5m, 500ms. */}}
+{{- $segments := regexFindAll "[0-9]*\\.?[0-9]+(ms|s|m|h)" $interval -1 }}
+{{- if or (eq (len $segments) 0) (ne (join "" $segments) $interval) }}{{ fail (printf "authService.reloadInterval must be a Go duration made of h, m, s or ms segments (60s, 1m30s, 1.5m, 500ms), got %q" $interval) }}{{ end }}
+{{- $seconds := 0.0 }}
+{{- range $segments }}
+{{- $unit := regexFind "(ms|s|m|h)$" . }}
+{{- $num := float64 (trimSuffix $unit .) }}
+{{- if eq $unit "ms" }}{{ $seconds = addf $seconds (divf $num 1000.0) }}{{ else if eq $unit "s" }}{{ $seconds = addf $seconds $num }}{{ else if eq $unit "m" }}{{ $seconds = addf $seconds (mulf $num 60.0) }}{{ else }}{{ $seconds = addf $seconds (mulf $num 3600.0) }}{{ end }}
+{{- end }}
+{{- if le $seconds 0.0 }}{{ fail (printf "authService.reloadInterval must be positive, got %q" $interval) }}{{ end }}
+{{- $threshold := int (ceil (round (mulf 10.0 $seconds) 3)) }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "{{ .Values.deployEnv }}-auth-service-alerts"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    release: prometheus
+spec:
+  groups:
+    - name: auth-service-registry
+      rules:
+        - alert: AuthServiceRegistryStale
+          expr: 'max by (namespace, pod) (time() - authsvc_registry_last_reload_success_timestamp_seconds{namespace="{{ .Release.Namespace }}", job="auth-service-{{ .Values.deployEnv }}"}) > {{ $threshold }}'
+          for: 5m
+          labels:
+            severity: warning
+            deployEnv: "{{ .Values.deployEnv }}"
+          annotations:
+            summary: "Auth service pod {{ "{{" }} $labels.pod {{ "}}" }} has not reloaded its key registry"
+            description: "No accepted key registry load for over {{ $threshold }}s (10 x reloadInterval {{ $interval }}). Revoked API keys may still be accepted on this pod."
+{{- end }}
