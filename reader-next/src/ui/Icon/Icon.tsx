@@ -40,13 +40,13 @@ const PATHS = {
   "file-plus": "M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10.5A.5.5 0 0 1 6.5 20V4a.5.5 0 0 1 .5-.5zM14 3.5v4h4M12 11v6M9 14h6",
   columns: "M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM12 4v16",
   "saved-layout": "M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM10 4v16M14 4v5.5l1.75-1.25 1.75 1.25V4",
-  note: "M5 4h14v11l-5 5H5zM14 20v-5h5M8 9h8M8 12h5",
+  note: "M5 5.5A1.5 1.5 0 0 1 6.5 4h11A1.5 1.5 0 0 1 19 5.5V15l-5 5H6.5A1.5 1.5 0 0 1 5 18.5zM14 20v-3.5a1.5 1.5 0 0 1 1.5-1.5H19M8 9h8M8 12h5",
   share: "M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM21 6a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM21 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM7.7 10.9l8.6-3.8M7.7 13.1l8.6 3.8",
-  message: "M4 5h16v11H9l-5 4z",
+  message: "M4 6.5A1.5 1.5 0 0 1 5.5 5h13A1.5 1.5 0 0 1 20 6.5v8a1.5 1.5 0 0 1-1.5 1.5H9l-5 4z",
   sliders: "M4 7h10M18 7h2M4 17h4M12 17h8M14 5v4M8 15v4",
   play: "M8 5l11 7-11 7z",
   pause: "M9 5v14M15 5v14",
-  mail: "M4 6h16v12H4zM4 7l8 6 8-6",
+  mail: "M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5zM4.5 7.5l7.5 5.5 7.5-5.5",
   copy: "M9 9.5A1.5 1.5 0 0 1 10.5 8h8A1.5 1.5 0 0 1 20 9.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 9 18.5zM5.5 16A1.5 1.5 0 0 1 4 14.5v-9A1.5 1.5 0 0 1 5.5 4h8A1.5 1.5 0 0 1 15 5.5",
   facebook: "M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z",
   "x-social": "M5 4l14 16M19 4L5 20",
@@ -59,11 +59,11 @@ const PATHS = {
   "sort-arrows": "M7 4v16M7 4L4 7.5M7 4l3 3.5M17 20V4M17 20l-3-3.5M17 20l3-3.5",
   "circle-minus": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12h8",
   "circle-plus": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12h8M12 8v8",
-  keyboard: "M3 6h18v12H3zM6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M7 14h10",
+  keyboard: "M3 7.5A1.5 1.5 0 0 1 4.5 6h15A1.5 1.5 0 0 1 21 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 16.5zM6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M7 14h10",
   "link-off": "M11 6.5l1.25-1.25a4 4 0 0 1 5.66 5.66L16.66 12.16M13 17.5l-1.25 1.25a4 4 0 0 1-5.66-5.66L7.34 11.84M8.5 3.5v2M3.5 8.5h2M15.5 20.5v-2M20.5 15.5h-2",
   "header-hide": "M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM4 8.5h16M9 15.5l3-3 3 3",
   "header-show": "M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM4 8.5h16M9 12.5l3 3 3-3",
-  "arrow-left":"M19 12H5M11 6l-6 6 6 6",
+  "arrow-left": "M19 12H5M11 6l-6 6 6 6",
   "arrow-right": "M5 12h14M13 6l6 6-6 6",
   "arrow-up": "M12 19V5M6 11l6-6 6 6",
   "arrow-down": "M12 5v14M6 13l6 6 6-6",
@@ -80,9 +80,6 @@ const PATHS = {
 export type IconName = keyof typeof PATHS;
 export const ICON_NAMES = Object.keys(PATHS) as IconName[];
 
-/** Filled variants (the path is filled instead of stroked). */
-const FILLED: ReadonlySet<IconName> = new Set<IconName>([]);
-
 /** Closed shapes that read well filled, for an "on" state (a saved bookmark, a favourite). Open shapes show "on" another way. */
 const FILLABLE: ReadonlySet<IconName> = new Set<IconName>(["bookmark", "star"]);
 export const canFill = (name: IconName) => FILLABLE.has(name);
@@ -98,7 +95,7 @@ export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, "name"> {
 }
 
 export function Icon({ name, size = "1.25em", label, filled, ...rest }: IconProps) {
-  const fill = (filled && FILLABLE.has(name)) || FILLED.has(name);
+  const fill = filled && FILLABLE.has(name);
   return (
     <svg
       viewBox="0 0 24 24"
