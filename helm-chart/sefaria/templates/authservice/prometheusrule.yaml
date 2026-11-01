@@ -3,12 +3,17 @@
        reports 0, so it fires too. */}}
 {{- if and .Values.authService.enabled .Values.authService.monitoring.alerts.enabled }}
 {{- $interval := toString .Values.authService.reloadInterval }}
-{{- $n := regexFind "^[0-9]+" $interval }}
-{{- $unit := trimPrefix $n $interval }}
-{{- if eq $n "" }}{{ fail (printf "authService.reloadInterval must be a Go duration such as 60s, got %q" $interval) }}{{ end }}
-{{- $seconds := 0 }}
-{{- if eq $unit "s" }}{{ $seconds = atoi $n }}{{ else if eq $unit "m" }}{{ $seconds = mul 60 (atoi $n) }}{{ else if eq $unit "h" }}{{ $seconds = mul 3600 (atoi $n) }}{{ else }}{{ fail (printf "authService.reloadInterval must be whole seconds, minutes or hours, got %q" $interval) }}{{ end }}
-{{- $threshold := mul 10 $seconds }}
+{{- /* Parse a Go duration (time.ParseDuration, which main.go uses): one or more <number><unit> segments, unit h, m, s or ms, number may be fractional, e.g. 60s, 1m30s, 1.5m, 500ms. */}}
+{{- $segments := regexFindAll "[0-9]*\\.?[0-9]+(ms|s|m|h)" $interval -1 }}
+{{- if or (eq (len $segments) 0) (ne (join "" $segments) $interval) }}{{ fail (printf "authService.reloadInterval must be a Go duration made of h, m, s or ms segments (60s, 1m30s, 1.5m, 500ms), got %q" $interval) }}{{ end }}
+{{- $seconds := 0.0 }}
+{{- range $segments }}
+{{- $unit := regexFind "(ms|s|m|h)$" . }}
+{{- $num := float64 (trimSuffix $unit .) }}
+{{- if eq $unit "ms" }}{{ $seconds = addf $seconds (divf $num 1000.0) }}{{ else if eq $unit "s" }}{{ $seconds = addf $seconds $num }}{{ else if eq $unit "m" }}{{ $seconds = addf $seconds (mulf $num 60.0) }}{{ else }}{{ $seconds = addf $seconds (mulf $num 3600.0) }}{{ end }}
+{{- end }}
+{{- if le $seconds 0.0 }}{{ fail (printf "authService.reloadInterval must be positive, got %q" $interval) }}{{ end }}
+{{- $threshold := int (ceil (round (mulf 10.0 $seconds) 3)) }}
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -21,7 +26,7 @@ spec:
     - name: auth-service-registry
       rules:
         - alert: AuthServiceRegistryStale
-          expr: 'max by (pod) (time() - authsvc_registry_last_reload_success_timestamp_seconds) > {{ $threshold }}'
+          expr: 'max by (namespace, pod) (time() - authsvc_registry_last_reload_success_timestamp_seconds{namespace="{{ .Release.Namespace }}", job="auth-service-{{ .Values.deployEnv }}"}) > {{ $threshold }}'
           for: 5m
           labels:
             severity: warning

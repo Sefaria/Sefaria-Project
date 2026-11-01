@@ -250,6 +250,8 @@ authService:
     enabled: true
     # PrometheusRule AuthServiceRegistryStale: fires when a pod has not accepted a registry load for over 10 reload
     # intervals, so revoked keys cannot keep working unnoticed. Off by default until the alert is wired to a receiver.
+    # The threshold is computed from authService.reloadInterval, which may be any Go duration (60s, 1m30s, 1.5m, 500ms).
+    # The rule only selects this release's series: its namespace and job="auth-service-<deployEnv>" (the Service name).
     alerts:
       enabled: false
 

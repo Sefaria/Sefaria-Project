@@ -207,6 +207,12 @@ func schemaDB(t *testing.T, dsn string) *sql.DB {
 // metric returns one /metrics series (name plus labels) as a number, or 0 when the series is not exposed.
 func (s *service) metric(t *testing.T, series string) float64 {
 	t.Helper()
+	return s.metrics(t, series)[0]
+}
+
+// metrics reads several series from one /metrics scrape, so the values form a single snapshot.
+func (s *service) metrics(t *testing.T, series ...string) []float64 {
+	t.Helper()
 	resp, err := http.Get(s.httpURL + "/metrics")
 	if err != nil {
 		t.Fatal(err)
@@ -216,16 +222,19 @@ func (s *service) metric(t *testing.T, series string) float64 {
 	if err != nil {
 		t.Fatal(err)
 	}
+	out := make([]float64, len(series))
 	for _, line := range strings.Split(string(body), "\n") {
-		if rest, ok := strings.CutPrefix(line, series+" "); ok {
-			v, err := strconv.ParseFloat(strings.TrimSpace(rest), 64)
-			if err != nil {
-				t.Fatalf("%s: %v", line, err)
+		for i, name := range series {
+			if rest, ok := strings.CutPrefix(line, name+" "); ok {
+				v, err := strconv.ParseFloat(strings.TrimSpace(rest), 64)
+				if err != nil {
+					t.Fatalf("%s: %v", line, err)
+				}
+				out[i] = v
 			}
-			return v
 		}
 	}
-	return 0
+	return out
 }
 
 func (s *service) waitMetricAtLeast(t *testing.T, series string, min float64, d time.Duration) {
@@ -264,11 +273,16 @@ func TestReloadTimestampUnchangedOnError(t *testing.T) {
 	}
 	exec("ALTER TABLE powered_by_apikey RENAME TO powered_by_apikey_off")
 	t.Cleanup(func() { _, _ = db.Exec("ALTER TABLE powered_by_apikey_off RENAME TO powered_by_apikey") })
-	before := s.metric(t, reloadTSSeries)
+	// The first failed reload may race with a successful one already in flight, so take the baseline only after
+	// a failure has been observed; every later load fails too.
+	const errSeries = `authsvc_reload_total{result="error"}`
+	s.waitMetricAtLeast(t, errSeries, 1, 5*time.Second)
+	snap := s.metrics(t, errSeries, reloadTSSeries)
+	before := snap[1]
 	if before == 0 {
 		t.Fatal("reload timestamp is absent or 0 after a successful initial load")
 	}
-	s.waitMetricAtLeast(t, `authsvc_reload_total{result="error"}`, 1, 5*time.Second)
+	s.waitMetricAtLeast(t, errSeries, snap[0]+1, 5*time.Second)
 	if after := s.metric(t, reloadTSSeries); after != before {
 		t.Fatalf("reload timestamp moved on a failed reload: %v -> %v", before, after)
 	}
@@ -287,8 +301,21 @@ func TestReloadTimestampUnchangedOnRejectedEmpty(t *testing.T) {
 	if before == 0 {
 		t.Fatal("reload timestamp is absent or 0 after a successful initial load")
 	}
-	s.waitMetricAtLeast(t, `authsvc_reload_total{result="rejected_empty"}`, 1, 10*time.Second)
-	if after := s.metric(t, reloadTSSeries); after != before {
-		t.Fatalf("reload timestamp moved on a rejected empty reload: %v -> %v", before, after)
+	// Read the counter and the timestamp from one scrape each poll, so the assertion is on a single snapshot
+	// taken within ~25ms of the first rejection, far from the confirming empty load one interval later.
+	const rejSeries = `authsvc_reload_total{result="rejected_empty"}`
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		snap := s.metrics(t, rejSeries, reloadTSSeries)
+		if snap[0] >= 1 {
+			if snap[1] != before {
+				t.Fatalf("reload timestamp moved on a rejected empty reload: %v -> %v", before, snap[1])
+			}
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("%s did not reach 1 within 10s", rejSeries)
+		}
+		time.Sleep(25 * time.Millisecond)
 	}
 }
