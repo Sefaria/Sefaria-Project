@@ -11,4 +11,4 @@
 .link { margin-inline-start: calc(-1 * var(--sefaria-space-2)); padding: var(--sefaria-space-1) var(--sefaria-space-2); border-radius: var(--sefaria-radius-md); color: var(--sefaria-color-text-secondary); font-size: var(--sefaria-text-caption); font-weight: 500; text-decoration: none; }
 .link:hover { background: var(--sefaria-color-hover); color: var(--sefaria-color-text); }
 .footer button { margin-inline-end: calc(-1 * var(--sefaria-space-2)); color: var(--sefaria-color-danger); }
-.where strong:lang(he) { font-family: var(--sefaria-font-text-he); font-size: 20px; }
+.where strong:lang(he) { font-family: var(--sefaria-font-text-he); font-size: var(--sefaria-text-serif-title); }

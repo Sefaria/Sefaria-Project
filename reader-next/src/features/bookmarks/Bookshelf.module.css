@@ -2,7 +2,7 @@
    the library's language (serif book name, the category colour as a line along the top). */
 .shelf { margin-block: var(--sefaria-space-2) var(--sefaria-space-10); }
 .head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sefaria-space-3); margin-block-end: var(--sefaria-space-4); }
-.title { margin: 0; font-size: 22px; font-weight: 500; line-height: 1.3; color: var(--sefaria-color-text-secondary); }
+.title { margin: 0; font-size: var(--sefaria-text-sans-h3); font-weight: 500; line-height: var(--sefaria-leading-tight); color: var(--sefaria-color-text-secondary); }
 .all { color: var(--sefaria-color-text-secondary); font-size: var(--sefaria-text-sans-small); text-decoration: none; }
 .all:hover { color: var(--sefaria-color-text); text-decoration: underline; }
 
@@ -22,9 +22,9 @@
 
 .book {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
-  font-family: var(--sefaria-font-text-en); font-size: 20px; line-height: 1.25;
+  font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-title); line-height: var(--sefaria-leading-tight);
 }
-.book:lang(he) { font-family: var(--sefaria-font-text-he); font-size: 22px; }
+.book:lang(he) { font-family: var(--sefaria-font-text-he); font-size: calc(var(--sefaria-text-serif-title) * 1.1); }
 .place { margin-block-start: var(--sefaria-space-1); color: var(--sefaria-color-text-secondary); font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); }
 .place:lang(he) { font-family: var(--sefaria-font-text-he); }
 

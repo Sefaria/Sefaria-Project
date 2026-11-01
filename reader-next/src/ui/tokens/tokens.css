@@ -88,6 +88,8 @@
   --sefaria-text-serif-h1: 48px;
   --sefaria-text-serif-h2: 30px;
   --sefaria-text-serif-h3: 24px;
+  /* A book or passage name on a card. */
+  --sefaria-text-serif-title: 20px;
   --sefaria-text-serif-body: 18px;
   --sefaria-text-serif-small: 14px;
   --sefaria-text-sans-h1: 40px;
