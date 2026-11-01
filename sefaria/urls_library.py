@@ -8,6 +8,7 @@ import sefaria.views as sefaria_views
 from sefaria.urls_shared import shared_patterns, maintenance_patterns
 from sefaria.settings import DOWN_FOR_MAINTENANCE
 import remote_config.views as remote_config_views
+import open_shelf.views as open_shelf_views
 from sefaria.heapdump import heapdump_view
 
 admin.autodiscover()
@@ -16,6 +17,10 @@ handler404 = 'reader.views.custom_page_not_found'
 
 urlpatterns = [
     path('', reader_views.home, name="home"),
+    re_path(r'^open-shelf/?$', open_shelf_views.landing),
+    re_path(r'^open-shelf/api/upload/?$', open_shelf_views.upload_api),
+    re_path(r'^open-shelf/shelf/(?P<key>[a-z-]+)/?$', open_shelf_views.shelf),
+    re_path(r'^open-shelf/(?P<source>[^/]+)/(?P<slug>.+)$', open_shelf_views.reader),
     re_path(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
     re_path(r'^texts/notes/?$', reader_views.notes),
     re_path(r'^texts/recent/?$', reader_views.old_recent_redirect),

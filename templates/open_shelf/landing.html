@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block meta_title %}Open Shelf | Sefaria{% endblock %}
+{% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block content %}
+{% include "open_shelf/_style.html" %}
+<div class="os">
+  <span class="os-tag">Sefaria Open Shelf</span>
+  <div class="os-hero">
+    {% if hero.growth_pct %}
+    <div class="big">+{{ hero.growth_pct }}%</div>
+    <div class="line">more Jewish source text than Sefaria's library holds today: about <b>{{ hero.counted_tokens_label }}</b> tokens of free texts that are not yet in Sefaria, on top of the ~{{ hero.baseline_tokens_label }} tokens in the library.</div>
+    <div class="sub">
+      <div><b>{{ hero.displayed_books|intcomma }}</b>books on the shelf</div>
+      <div><b>{{ hero.displayed_words_label }}</b>words</div>
+      <div><b>{{ hero.new_languages_count }}</b>source languages new to the library: {{ hero.new_languages_line }}</div>
+    </div>
+    <details><summary>How we counted</summary><p>{{ hero.method }}</p></details>
+    {% else %}
+    <div class="line">The open shelf is loading.</div>
+    {% endif %}
+  </div>
+
+  <h2>Shelves</h2>
+  <div class="os-shelves">
+    {% for s in shelves %}
+    <a class="os-shelf" href="/open-shelf/shelf/{{ s.key }}">
+      <div class="t">{{ s.en }}</div>
+      <div class="h">{{ s.he }}</div>
+      <div class="n">{{ s.books|intcomma }} book{{ s.books|pluralize }}</div>
+      <div class="b">{{ s.blurb }}</div>
+    </a>
+    {% empty %}
+    <p>No books loaded yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
