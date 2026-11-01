@@ -17,7 +17,7 @@ from reader.conftest import create_test_user, purge_test_profiles
 
 
 STATE_KEYS = {"developerEnabled", "ssoConnected", "emailVerified", "confirmationSentAt", "profile", "projects",
-              "yourListing", "maxKeysPerProject", "mock"}
+              "yourListing", "maxKeysPerProject"}
 PROJECT_KEYS = {"id", "name", "description", "organization", "websiteUrl", "visibility", "aiAssisted",
                 "linkedListing", "consentWithdrawnAt", "keys", "contactEmail"}
 KEY_KEYS = {"id", "label", "value", "created", "restrictToWebsite"}

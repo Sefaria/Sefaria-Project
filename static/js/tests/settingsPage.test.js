@@ -874,45 +874,6 @@ describe('the confirmation link', () => {
   });
 });
 
-describe('test controls', () => {
-  const MOCK = { ssoOverride: null, realSsoProviders: [], confirmationKey: null };
-
-  it('are hidden unless the server has them on', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE });
-    expect(container.querySelector('.devPocPanel')).toBeNull();
-  });
-
-  it('start over through the mock API', async () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, mock: MOCK });
-    respondWith({ developerEnabled: false, ssoConnected: false, emailVerified: false, mock: { ...MOCK, ssoOverride: false } });
-    await clickAndSettle(container.querySelector('[data-scenario="email"]'));
-    expect(lastRequest()).toMatchObject({
-      url: '/api/developer/mock', body: { action: 'start-over', ssoOverride: false, emailVerified: false },
-    });
-    expect(container.querySelector('.devPocPanelStatus').textContent).toContain('Email account · email not confirmed');
-  });
-
-  it('add a listing submitted with the account email, which is then offered', async () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], mock: MOCK });
-    respondWith({ ...DEVELOPER_ON, profile: PROFILE, projects: [], yourListing: LISTING, mock: MOCK });
-    await clickAndSettle(container.querySelector('[data-poc-control="create-listing"]'));
-    expect(lastRequest().body).toEqual({ action: 'create-listing' });
-    expect(yourListingDialog().textContent).toContain('Mishnah Yomit Tracker');
-  });
-
-  it('open the mock email, whose button is the real confirmation link', () => {
-    mount('developer', {
-      developerEnabled: false, ssoConnected: false, emailVerified: false, confirmationSentAt: new Date().toISOString(),
-      mock: { ...MOCK, confirmationKey: 'abc:123' },
-    });
-    act(() => { container.querySelector('[data-agent-action="mock-open-email"]').click(); });
-    const link = container.querySelector('[data-agent-action="mock-confirm-email"]');
-    expect(link.getAttribute('href')).toBe('/settings/developer/confirm-email/abc:123');
-    expect(link.getAttribute('target')).toBe('_blank');
-  });
-});
-
-
 describe('a confirmation link that cannot confirm', () => {
   const renderLink = (status) => {
     container = document.createElement('div');
