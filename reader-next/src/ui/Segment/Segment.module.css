@@ -11,7 +11,9 @@
 /* The reading focus: set by the column as the reader scrolls; visible only while the sidebar is open. */
 :global([data-show-focus="true"]) .segment[data-focused="true"] { background: var(--sefaria-color-highlight-soft); }
 /* Corresponds to the verse the reader picked, in this panel or another. */
-.segment[data-linked="true"] { background: var(--sefaria-color-highlight-soft); box-shadow: inset 3px 0 0 var(--sefaria-color-focus); }
+.segment[data-linked="true"] { background: var(--sefaria-color-linked); box-shadow: inset 3px 0 0 var(--sefaria-color-accent); }
+/* The bar sits where a right-to-left text starts. */
+.segment[data-linked="true"][data-sides="primary"]:has([data-side="primary"][dir="rtl"]) { box-shadow: inset -3px 0 0 var(--sefaria-color-accent); }
 .segment[data-selectable="true"] { cursor: pointer; }
 .segment:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 4px; }
 
