@@ -248,6 +248,10 @@ authService:
   nginxLogFields: true
   monitoring:
     enabled: true
+    # PrometheusRule AuthServiceRegistryStale: fires when a pod has not accepted a registry load for over 10 reload
+    # intervals, so revoked keys cannot keep working unnoticed. Off by default until the alert is wired to a receiver.
+    alerts:
+      enabled: false
 
 nodejs:
   containerImage:

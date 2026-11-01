@@ -1,0 +1,32 @@
+{{- /* Alerts on a pod whose registry has not accepted a load for 10 reload intervals. The threshold is derived from
+       authService.reloadInterval (the same value deployment.yaml passes as RELOAD_INTERVAL). A pod that never loaded
+       reports 0, so it fires too. */}}
+{{- if and .Values.authService.enabled .Values.authService.monitoring.alerts.enabled }}
+{{- $interval := toString .Values.authService.reloadInterval }}
+{{- $n := regexFind "^[0-9]+" $interval }}
+{{- $unit := trimPrefix $n $interval }}
+{{- if eq $n "" }}{{ fail (printf "authService.reloadInterval must be a Go duration such as 60s, got %q" $interval) }}{{ end }}
+{{- $seconds := 0 }}
+{{- if eq $unit "s" }}{{ $seconds = atoi $n }}{{ else if eq $unit "m" }}{{ $seconds = mul 60 (atoi $n) }}{{ else if eq $unit "h" }}{{ $seconds = mul 3600 (atoi $n) }}{{ else }}{{ fail (printf "authService.reloadInterval must be whole seconds, minutes or hours, got %q" $interval) }}{{ end }}
+{{- $threshold := mul 10 $seconds }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "{{ .Values.deployEnv }}-auth-service-alerts"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    release: prometheus
+spec:
+  groups:
+    - name: auth-service-registry
+      rules:
+        - alert: AuthServiceRegistryStale
+          expr: 'max by (pod) (time() - authsvc_registry_last_reload_success_timestamp_seconds) > {{ $threshold }}'
+          for: 5m
+          labels:
+            severity: warning
+            deployEnv: "{{ .Values.deployEnv }}"
+          annotations:
+            summary: "Auth service pod {{ "{{" }} $labels.pod {{ "}}" }} has not reloaded its key registry"
+            description: "No accepted key registry load for over {{ $threshold }}s (10 x reloadInterval {{ $interval }}). Revoked API keys may still be accepted on this pod."
+{{- end }}
