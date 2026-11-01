@@ -454,10 +454,10 @@ def main():
     # Shards that completed took ~2-3h; 6h is generous but bounded, so a wedged shard
     # (observed spinning with zero progress and zero logs for hours) is force-terminated
     # instead of running forever.
-    shard_active_deadline_seconds = int(os.environ.get("SHARD_ACTIVE_DEADLINE_SECONDS", "21600"))
+    shard_active_deadline_seconds = int(os.environ.get("SHARD_ACTIVE_DEADLINE_SECONDS", "39600"))
     # Comfortably longer than shard_active_deadline_seconds so the shard Job's own deadline
     # fires first; this is only a backstop in case that somehow doesn't happen.
-    barrier_timeout_seconds = int(os.environ.get("REINDEX_BARRIER_TIMEOUT_SECONDS", "25200"))
+    barrier_timeout_seconds = int(os.environ.get("REINDEX_BARRIER_TIMEOUT_SECONDS", "43200"))
     command = [
         "bash", "-c",
         "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && "
