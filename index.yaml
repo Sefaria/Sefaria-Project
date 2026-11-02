@@ -423,6 +423,21 @@ entries:
     version: 0.92.2-fixcauldron-default-redis-sentinel.1
   - apiVersion: v2
     appVersion: v7.10.3
+    created: "2026-11-02T09:04:08.927820416Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: a4d14c339cfd99abc55492ef1b3129a6eb465a3b6f221bbf9805d56277b70b6b
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.2-claudeaasa-no-applink-pattern.1.tgz
+    version: 0.92.2-claudeaasa-no-applink-pattern.1
+  - apiVersion: v2
+    appVersion: v7.10.3
     created: "2026-11-01T10:03:13.596153998Z"
     description: Chart to deploy complete Sefaria environment
     digest: 54ffed5ea6f993325eee3189acf51c062dfd3a114b31ef55223fb60df3c0de19
@@ -23925,4 +23940,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-01T15:03:32.674067259Z"
+generated: "2026-11-02T09:04:08.924737239Z"
