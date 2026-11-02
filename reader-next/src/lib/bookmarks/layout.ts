@@ -37,10 +37,15 @@ export function panelShowing(ws: Workspace, book: string): TextPanelState | unde
   return textPanels(ws).find((p) => bookOf(p.ref) === book);
 }
 
-/** The main text: the first panel in reading order whose book has a bookmark, else panel 1. */
+/**
+ * The main text: the first panel in reading order whose book has a bookmark; else the first that isn't a commentary on
+ * another book on screen ("Rashi on Genesis" beside Genesis), wherever it sits; else panel 1.
+ */
 export function mainPanelOf(ws: Workspace, isBookmarked: IsBookmarked = isBookmarkedBook): TextPanelState | undefined {
   const texts = textPanels(ws);
-  return texts.find((p) => isBookmarked(bookOf(p.ref))) ?? texts[0];
+  const books = new Set(texts.map((p) => bookOf(p.ref)));
+  const commentsOnScreen = (book: string) => [...books].some((b) => b !== book && book.endsWith(` on ${b}`));
+  return texts.find((p) => isBookmarked(bookOf(p.ref))) ?? texts.find((p) => !commentsOnScreen(bookOf(p.ref))) ?? texts[0];
 }
 
 const mainBookOf = (ws: Workspace): string | undefined => {

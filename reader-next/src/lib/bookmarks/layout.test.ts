@@ -5,6 +5,7 @@ import { closeAside, close, drop, openAside, openAtEnd, panelOrder, updatePanel 
 import { decodeWorkspace, workspaceUrl } from "~/lib/workspace/url";
 import {
   bookmarkEntry,
+  bookOf,
   companionRefAt,
   keepsBookmarkFlag,
   layoutAutosave,
@@ -164,10 +165,17 @@ describe("the main text anywhere in the arrangement", () => {
   const moved = () => drop(mainLeft(), "p1", { kind: "swap", target: "p2" });
   const mainRight = () => ({ ...moved(), bk: true as const });
 
-  it("is the first bookmarked panel in reading order, else panel 1", () => {
+  it("is the first bookmarked panel in reading order, else the text a commentary on screen comments on", () => {
     expect(mainPanelOf(mainRight(), isBookmarked)?.id).toBe("p2");
-    expect(mainPanelOf(mainRight(), () => false)?.id).toBe("p1");
+    expect(mainPanelOf(mainRight(), () => false)?.id).toBe("p2");
     expect(mainPanelOf(mainRight(), () => true)?.id).toBe("p1");
+    const twoTexts = decodeWorkspace("Genesis 1:1", parseSearch("p2=Exodus.1.1"));
+    expect(mainPanelOf(twoTexts, () => false)?.id).toBe("p1");
+  });
+
+  it("finds the main text when a link puts it to the right of its commentaries", () => {
+    const ws = decodeWorkspace("Berakhot 2a:6", parseSearch("p2=Steinsaltz_on_Berakhot.2a.6&p3=Rashi_on_Berakhot.2a.6&layout=r(c(2~55,3~45)~42,1~58)"));
+    expect(bookOf(mainPanelOf(ws, () => false)!.ref)).toBe("Berakhot");
   });
 
   it("reopens with Berakhot still right of Steinsaltz, at the same widths", () => {
