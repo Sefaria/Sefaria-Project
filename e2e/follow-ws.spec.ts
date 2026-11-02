@@ -11,6 +11,8 @@ import { devices, expect, test, type Browser, type BrowserContext, type Page } f
  *   npm run room:dev
  *   PUBLIC_LABS=follow_me,recording PUBLIC_ROOM_URL=ws://<lan-ip>:3199 npm run dev -- --host
  *   FOLLOW_WS_BASE=http://<lan-ip>:3100 npx playwright test e2e/follow-ws.spec.ts --project=desktop
+ * Against the Cloudflare relay run locally instead: `npm run relay:dev` (with relay/.dev.vars allowing the reader's origin) in place of
+ * `npm run room:dev`, and ROOM_SERVER=relay on the test.
  * Using the LAN address (not localhost) also checks what a real second device needs: the reader reachable on the network and the room
  * server accepting that origin.
  */
@@ -49,14 +51,18 @@ const portOpen = () => new Promise<boolean>((resolve) => {
 /**
  * Kill the room server and start a new one: a real outage (open sockets close, the room's memory is gone), unlike the browser's offline
  * emulation, which leaves an open WebSocket alone. The new server is left running for the next run, as the old one was.
+ * ROOM_SERVER=relay: the room is the Cloudflare relay under `npm run relay:dev` (wrangler restarts its workerd, so stop wrangler itself).
  */
+const RELAY = process.env.ROOM_SERVER === "relay";
 async function stopRoomServer() {
-  execSync(`lsof -ti tcp:${ROOM_PORT} -sTCP:LISTEN | xargs kill`, { stdio: "ignore" });
+  const kill = RELAY ? `pkill -f "wrangler.* dev --config relay/wrangler.toml"; pkill -f "workerd serve.*:${ROOM_PORT}"; true` : `lsof -ti tcp:${ROOM_PORT} -sTCP:LISTEN | xargs kill`;
+  execSync(kill, { stdio: "ignore", shell: "/bin/sh" });
   await expect.poll(portOpen, { message: "the room server stopped" }).toBe(false);
 }
 async function startRoomServer() {
-  spawn(process.execPath, ["scripts/dev-room-server.mjs"], { detached: true, stdio: "ignore", env: process.env }).unref();
-  await expect.poll(portOpen, { message: "the room server is back", timeout: 20_000 }).toBe(true);
+  const [cmd, args] = RELAY ? ["npm", ["run", "relay:dev"]] : [process.execPath, ["scripts/dev-room-server.mjs"]];
+  spawn(cmd, args, { detached: true, stdio: "ignore", env: process.env }).unref();
+  await expect.poll(portOpen, { message: "the room server is back", timeout: 60_000 }).toBe(true);
 }
 
 async function goTo(page: Page, ref: string, expected: RegExp) {
