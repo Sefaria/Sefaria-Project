@@ -352,6 +352,12 @@ class CollectionSet(abst.AbstractMongoSet):
         self.__init__(query, sort=[("lastModified", -1)])
         return self
 
+    def sheet_ids(self):
+        """
+        Returns the set of sheet ids in any of the collections in this set.
+        """
+        return {sheet_id for collection in self for sheet_id in collection.sheets}
+
     @classmethod
     def get_collection_listing(cls, userid):
         return {
