@@ -23,7 +23,10 @@
     "features:coverage": "node scripts/feature-coverage.mjs",
     "test:e2e": "playwright test --project=desktop",
     "test:e2e:ui": "playwright test --ui",
-    "room:dev": "node scripts/dev-room-server.mjs"
+    "room:dev": "node scripts/dev-room-server.mjs",
+    "relay:dev": "wrangler dev --config relay/wrangler.toml --env staging --ip 0.0.0.0 --port 3199",
+    "relay:deploy": "wrangler deploy --config relay/wrangler.toml",
+    "relay:typecheck": "tsc -p relay/tsconfig.json"
   },
   "dependencies": {
     "@fontsource/crimson-text": "^5.3.0",
@@ -52,6 +55,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261102.1",
     "@playwright/test": "^1.63.0",
     "@storybook/addon-a11y": "^10.6.1",
     "@storybook/addon-docs": "^10.6.1",
@@ -75,6 +79,7 @@
     "typescript": "^5.9.3",
     "vite": "^8.3.2",
     "vitest": "^5.0.3",
+    "wrangler": "^4.156.1",
     "ws": "^8.22.0"
   }
 }
