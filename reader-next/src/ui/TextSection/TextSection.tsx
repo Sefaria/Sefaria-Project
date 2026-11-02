@@ -71,7 +71,7 @@ function TextSectionImpl({
         const title = sectionTitle({
           primaryCategory: passage.primaryCategory,
           address: parsed.sections.length ? parsed.sections.join(":") : undefined,
-          addressType: passage.addressTypes[parsed.sections.length - 1],
+          addressTypes: passage.addressTypes,
           sectionRef,
           heSectionRef: idx === 0 ? passage.heSectionRef : sectionRef,
         });

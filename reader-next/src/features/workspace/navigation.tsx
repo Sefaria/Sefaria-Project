@@ -9,6 +9,7 @@ import { PositionStore, type EntryPositions, type SavedPosition } from "~/lib/re
 import { urlToRef } from "~/lib/ref/url";
 import { parseSearch, stringifySearch } from "~/lib/reader/search-serializer";
 import { decodeWorkspace, encodeWorkspace, DEFAULT_URL_DEFAULTS, type RawSearch, type UrlDefaults } from "~/lib/workspace/url";
+import { keepsBookmarkFlag } from "~/lib/bookmarks/layout";
 import { useReaderSettings } from "../reader/settings-context";
 import type { ReaderSettings } from "~/lib/reader/settings";
 import type { PanelId, Workspace } from "~/lib/workspace/types";
@@ -62,7 +63,7 @@ interface WorkspaceNav {
   /** The workspace as of now (read from the router at call time, never stale). */
   current: () => Workspace;
   href: (ws: Workspace) => string;
-  go: (ws: Workspace, opts?: { replace?: boolean; state?: NavState }) => void;
+  go: (ws: Workspace, opts?: { replace?: boolean; state?: NavState; bk?: boolean }) => void;
 }
 
 const Ctx = createContext<WorkspaceNav | null>(null);
@@ -109,8 +110,9 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   }, [router]);
   const go = useCallback<WorkspaceNav["go"]>(
     (ws, opts = {}) => {
-      const enc = encodeWorkspace(ws, defaults);
-      if (!enc) {
+      // `bk` (the viewer's saved layout) lasts while panel 1 shows the same book, unless the caller says otherwise
+      const bk = opts.bk ?? keepsBookmarkFlag(current(), ws);
+      const enc = encodeWorkspace({ ...ws, bk: bk ? true : undefined }, defaults);      if (!enc) {
         void router.navigate({ to: "/" });
         return;
       }
@@ -123,7 +125,7 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
         state: opts.state as never,
       });
     },
-    [router, defaults],
+    [router, defaults, current],
   );
   const href = useCallback((ws: Workspace) => workspaceHref(ws, defaults), [defaults]);
   // The address bar shows the full form sefaria.org writes (its defaults filled in). Like the old client (replaceState in

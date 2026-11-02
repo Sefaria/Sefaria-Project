@@ -1,0 +1,12 @@
+/* A narrow upright strip at the screen edge, inside the reading column's side gutter (at least 30px), so it never sits over words. */
+.controls {
+  position: fixed; inset-block-end: var(--sefaria-space-4); inset-inline-end: var(--sefaria-space-1); z-index: var(--sefaria-z-panel-chrome);
+  display: flex; flex-direction: column; align-items: center; gap: var(--sefaria-space-1); padding: 0;
+  border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-pill);
+  background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-menu);
+  opacity: 0.85; transition: opacity 0.15s;
+}
+.controls:hover, .controls:focus-within { opacity: 1; }
+.controls button { width: 24px; height: 24px; }
+.controls svg { width: 16px; height: 16px; }
+@media (max-width: 842px) { .controls { display: none; } }

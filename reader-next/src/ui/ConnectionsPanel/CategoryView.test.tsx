@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import type { CategorySummary } from "~/lib/connections/summary";
 import { CategoryView } from "./CategoryView";
 import { STORY_CATALOG } from "./story-data";
@@ -52,5 +52,14 @@ describe("CategoryView", () => {
   it("shows a zero placeholder for an empty category", () => {
     render_([{ category: "Midrash", count: 0, hasEnglish: false, books: [] }]);
     expect(screen.getByRole("link", { name: /All Midrash/ })).toHaveTextContent("(0)");
+  });
+
+  it("stars commentary books when given favourites, and not quoting commentary", () => {
+    const toggle = vi.fn();
+    render(<CategoryView categories={[commentary, quoting]} catalog={STORY_CATALOG} basePath="/Genesis.1.1" favourites={["Rashi"]} onToggleFavourite={toggle} />);
+    expect(screen.getByRole("button", { name: "Remove Rashi from favourites" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Add Ramban to favourites" }));
+    expect(toggle).toHaveBeenCalledWith("Ramban");
+    expect(screen.queryByRole("button", { name: /Sforno on Genesis/ })).toBeNull();
   });
 });

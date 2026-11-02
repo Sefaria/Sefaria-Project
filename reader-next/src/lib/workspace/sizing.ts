@@ -12,6 +12,11 @@
 import type { PanelState } from "./types";
 
 export const MIN_PANEL_WIDTH = 360;
+/** A stacked panel's smallest height: its 60px header and a few lines of text. */
+export const MIN_PANEL_HEIGHT = 240;
+
+/** A panel's smallest width: its text column, plus as much again while its sidebar is open (the old reader gave the sidebar a column of its own). */
+export const panelMinWidth = (p: Pick<PanelState, "asides"> | undefined): number => MIN_PANEL_WIDTH * (p?.asides.length ? 2 : 1);
 
 type Column = "main" | "aside";
 

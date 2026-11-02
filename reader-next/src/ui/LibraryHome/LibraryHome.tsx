@@ -15,9 +15,10 @@ import styles from "../CategoryPage/CategoryPage.module.css";
  * @feature LIB-001 Browse the Library category grid
  * @feature LIB-002 Library home header and edit buttons
  */
-export function LibraryHome({ tree, sidebar, footer }: { tree: readonly TocNode[]; sidebar?: ReactNode; footer?: ReactNode }) {
+export function LibraryHome({ tree, sidebar, footer, top }: { tree: readonly TocNode[]; sidebar?: ReactNode; footer?: ReactNode; top?: ReactNode }) {
   return (
     <NavPage sidebar={sidebar} footer={footer}>
+      {top}
       <ContentLanguage>
         <HomeMain tree={tree} />
       </ContentLanguage>

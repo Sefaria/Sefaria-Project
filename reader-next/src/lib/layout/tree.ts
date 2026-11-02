@@ -93,25 +93,67 @@ export function insert<Id extends string>(tree: LayoutNode<Id>, target: Id, node
       return { type: "split", direction: dir, children: after ? [n, node] : [node, n] };
     }
     const idx = n.children.findIndex((c) => c.type === "leaf" && c.id === target);
-    if (idx >= 0 && n.direction === dir) {
-      const children = [...n.children];
-      children.splice(after ? idx + 1 : idx, 0, node);
-      let sizes: number[] | undefined;
-      if (n.sizes) {
-        const share = 1 / children.length;
-        const scaled = n.sizes.map((s) => s * (1 - share));
-        scaled.splice(after ? idx + 1 : idx, 0, share);
-        sizes = scaled;
-      }
-      return { ...n, children, ...(sizes ? { sizes } : {}) };
-    }
+    if (idx >= 0 && n.direction === dir) return spliceChild(n, after ? idx + 1 : idx, node);
     return { ...n, children: n.children.map(visit) };
   }
   if (!contains(tree, target)) throw new Error(`insert: no leaf ${target}`);
   return normalize(visit(tree));
 }
 
-/** Move an existing leaf next to another (future drag and drop). Moving a leaf onto itself is a no-op. */
+/** A split with `node` added at `at`, taking an equal share; the others' shares are scaled to fit. */
+function spliceChild<Id extends string>(n: Extract<LayoutNode<Id>, { type: "split" }>, at: number, node: LayoutNode<Id>): LayoutNode<Id> {
+  const children = [...n.children];
+  children.splice(at, 0, node);
+  if (!n.sizes) return { ...n, children };
+  const share = 1 / children.length;
+  const sizes = n.sizes.map((s) => s * (1 - share));
+  sizes.splice(at, 0, share);
+  return { ...n, children, sizes };
+}
+
+/**
+ * Put `node` beside the whole block holding `target` in the outermost split of the placement's direction, rather than right
+ * next to the leaf: a panel opened from a stacked panel goes beside the stack at full height instead of splitting the stack's
+ * cell into a row. A target that is a direct child of that split behaves exactly as {@link insert}.
+ */
+export function insertBeside<Id extends string>(tree: LayoutNode<Id>, target: Id, node: LayoutNode<Id>, placement: Placement): LayoutNode<Id> {
+  if (!contains(tree, target)) throw new Error(`insertBeside: no leaf ${target}`);
+  const dir = directionOf(placement);
+  const after = isAfter(placement);
+  if (tree.type === "leaf") return insert(tree, target, node, placement);
+  if (tree.direction !== dir) return normalize({ type: "split", direction: dir, children: after ? [tree, node] : [node, tree] });
+  const idx = tree.children.findIndex((c) => contains(c, target));
+  if (tree.children[idx]!.type === "leaf") return insert(tree, target, node, placement);
+  return normalize(spliceChild(tree, after ? idx + 1 : idx, node));
+}
+
+/** Whether two trees arrange the same leaves the same way (sizes aside). */
+export function sameShape<Id extends string>(a: LayoutNode<Id>, b: LayoutNode<Id>): boolean {
+  if (a.type === "leaf" || b.type === "leaf") return a.type === b.type && (a as { id: Id }).id === (b as { id: Id }).id;
+  return a.direction === b.direction && a.children.length === b.children.length && a.children.every((c, i) => sameShape(c, b.children[i]!));
+}
+
+/** Exchange the places of two leaves, sizes and all. */
+export function swap<Id extends string>(tree: LayoutNode<Id>, a: Id, b: Id): LayoutNode<Id> {
+  if (a === b) return tree;
+  if (!contains(tree, a) || !contains(tree, b)) throw new Error(`swap: no leaf ${contains(tree, a) ? b : a}`);
+  const visit = (n: LayoutNode<Id>): LayoutNode<Id> =>
+    n.type === "leaf" ? (n.id === a ? leaf(b) : n.id === b ? leaf(a) : n) : { ...n, children: n.children.map(visit) };
+  return visit(tree);
+}
+
+/** Move a leaf to one end of the whole arrangement, spanning its full height (`before`/`after`) or width (`above`/`below`). */
+export function dock<Id extends string>(tree: LayoutNode<Id>, id: Id, placement: Placement): LayoutNode<Id> {
+  if (!contains(tree, id)) throw new Error(`dock: no leaf ${id}`);
+  const without = remove(tree, id);
+  if (!without) return tree;
+  const dir = directionOf(placement);
+  const after = isAfter(placement);
+  if (without.type === "split" && without.direction === dir) return normalize(spliceChild(without, after ? without.children.length : 0, leaf(id)));
+  return normalize({ type: "split", direction: dir, children: after ? [without, leaf(id)] : [leaf(id), without] });
+}
+
+/** Move an existing leaf next to another (drag and drop). Moving a leaf onto itself is a no-op. */
 export function move<Id extends string>(tree: LayoutNode<Id>, id: Id, target: Id, placement: Placement): LayoutNode<Id> {
   if (id === target) return tree;
   if (!contains(tree, id)) throw new Error(`move: no leaf ${id}`);
@@ -134,4 +176,12 @@ export function withSizes<Id extends string>(tree: LayoutNode<Id>, policy: (spli
   const self = { ...tree, children };
   const sizes = tree.sizes ?? rescale(policy(self));
   return sizes ? { ...self, sizes } : self;
+}
+
+/** Set the sizes of the split reached by `path` (child indexes from the root). */
+export function setSizesAt<Id extends string>(tree: LayoutNode<Id>, path: readonly number[], sizes: number[]): LayoutNode<Id> {
+  if (tree.type === "leaf") return tree;
+  if (!path.length) return sizes.length === tree.children.length ? { ...tree, sizes: rescale(sizes) } : tree;
+  const [head, ...rest] = path;
+  return { ...tree, children: tree.children.map((c, i) => (i === head ? setSizesAt(c, rest, sizes) : c)) };
 }

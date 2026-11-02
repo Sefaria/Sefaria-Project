@@ -34,11 +34,16 @@ describe("sectionTitle", () => {
     expect(sectionTitle({ primaryCategory: "Tanakh", address: "4", sectionRef: "Genesis 4", heSectionRef: "בראשית ד׳" })).toEqual({ en: "4", he: "ד׳", short: true });
   });
   it("uses daf notation for Talmud", () => {
-    expect(sectionTitle({ primaryCategory: "Talmud", address: "2a", addressType: "Talmud", sectionRef: "Berakhot 2a", heSectionRef: "ברכות ב׳ א" })).toEqual({ en: "2a", he: "ב.", short: true });
-    expect(sectionTitle({ primaryCategory: "Talmud", address: "2b", addressType: "Talmud", sectionRef: "x", heSectionRef: "y" }).he).toBe("ב:");
+    expect(sectionTitle({ primaryCategory: "Talmud", address: "2a", addressTypes: ["Talmud"], sectionRef: "Berakhot 2a", heSectionRef: "ברכות ב׳ א" })).toEqual({ en: "2a", he: "ב.", short: true });
+    expect(sectionTitle({ primaryCategory: "Talmud", address: "2b", addressTypes: ["Talmud"], sectionRef: "x", heSectionRef: "y" }).he).toBe("ב:");
   });
   it("converts each part of a multi-part address (commentary on a verse)", () => {
     expect(sectionTitle({ primaryCategory: "Commentary", address: "1:1", sectionRef: "Rashi on Genesis 1:1", heSectionRef: "x" })).toEqual({ en: "1:1", he: "א׳:א׳", short: true });
+  });
+  it("writes a commentary on Talmud fully in one language", () => {
+    const t = sectionTitle({ primaryCategory: "Commentary", address: "2a:1", addressTypes: ["Talmud", "Integer"], sectionRef: "Rashi on Berakhot 2a:1", heSectionRef: "x" });
+    expect(t).toEqual({ en: "2a:1", he: "ב. א׳", short: true });
+    expect(sectionTitle({ primaryCategory: "Commentary", address: "2b:3", addressTypes: ["Talmud", "Integer"], sectionRef: "x", heSectionRef: "y" }).he).toBe("ב: ג׳");
   });
   it("prints the full section ref for other categories", () => {
     expect(sectionTitle({ primaryCategory: "Halakhah", address: "1", sectionRef: "Mishneh Torah, Foundations of the Torah 1", heSectionRef: "משנה תורה, יסודי התורה א׳" })).toEqual({

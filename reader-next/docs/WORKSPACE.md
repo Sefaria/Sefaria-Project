@@ -50,8 +50,11 @@ type LayoutNode<Id> =
 
 `sizes` are fractions. When absent, a **sizing policy** fills them; `legacySizes` reproduces the old rules
 (68/32 for text + sidebar, 37/26/37 and 37/37/26 for three, even split otherwise; SHL-039). Each panel has a
-minimum width (360px, the old `MIN_PANEL_WIDTH`). Past that the row scrolls sideways, as the old `panelCap`
-overflow did — handled entirely in CSS, so it also works in the server-rendered page.
+minimum width (360px, the old `MIN_PANEL_WIDTH`; 720px with its sidebar open) and a stacked panel a minimum height
+(240px). Past that the row scrolls sideways, as the old `panelCap` overflow did: the server render and first paint use
+CSS minimums alone, and once the split has measured itself the shares become pixel widths (`src/lib/layout/extent.ts`).
+The defaults for overflow, resizing, stacks and the `layout` parameter are listed in
+`docs/experiments/learning-workspace-defaults.md`.
 
 ## Pure operations
 
