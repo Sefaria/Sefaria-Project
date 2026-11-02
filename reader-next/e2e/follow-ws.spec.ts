@@ -27,7 +27,8 @@ const verse = (page: Page, ref: string) => page.locator(`[role="group"][data-ref
 
 async function device(browser: Browser, kind: "laptop" | "phone"): Promise<BrowserContext> {
   const ctx = await browser.newContext(kind === "phone" ? { ...devices["Pixel 7"], baseURL: BASE } : { viewport: { width: 1280, height: 900 }, baseURL: BASE });
-  await ctx.addCookies([{ name: "cookiesNotificationAccepted", value: "1", url: BASE! }]);
+  // reader_version=next: on a cauldron in nodejs.mode optin, nginx sends page requests to the new reader only with this cookie
+  await ctx.addCookies(["cookiesNotificationAccepted=1", "reader_version=next"].map((c) => ({ name: c.split("=")[0]!, value: c.split("=")[1]!, url: BASE! })));
   return ctx;
 }
 
