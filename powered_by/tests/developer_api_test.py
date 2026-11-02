@@ -8,6 +8,7 @@ import time
 from datetime import timedelta
 from unittest.mock import patch
 
+import pytest
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from django.core import mail
@@ -502,7 +503,7 @@ class KeyTest(DeveloperApiTestCase):
         status, state = self.call("post", "keys/" + key_id, {"restrictToWebsite": True})
 
         self.assertEqual(status, 200)
-        self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, ["https://dafportal.org"])
+        self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, ["dafportal.org"])
         self.assertTrue(state["projects"][0]["keys"][0]["restrictToWebsite"])
 
     def test_a_new_website_moves_restricted_keys(self):
@@ -512,8 +513,47 @@ class KeyTest(DeveloperApiTestCase):
 
         self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": "https://new.example.org"}})
 
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://new.example.org"])
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["new.example.org"])
         self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
+
+    def test_a_restricted_key_saves_the_domain_without_www(self):
+        self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": "https://www.Example.org/app"}})
+        key_id = self.create_key(self.project["id"])["keyId"]
+
+        status, _ = self.call("post", "keys/" + key_id, {"restrictToWebsite": True})
+
+        self.assertEqual(status, 200)
+        self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, ["example.org"])
+
+    def test_a_key_cannot_be_restricted_to_a_shared_hosting_domain(self):
+        self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": "https://vercel.app"}})
+        key_id = self.create_key(self.project["id"])["keyId"]
+
+        status, state = self.call("post", "keys/" + key_id, {"restrictToWebsite": True})
+
+        self.assertEqual(status, 400)
+        self.assertEqual(state["error"], developer.SHARED_DOMAIN_ERROR.format(domain="vercel.app"))
+        self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, [])
+
+    def test_a_key_can_be_restricted_to_a_site_on_a_shared_host(self):
+        self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": "https://myapp.vercel.app"}})
+        key_id = self.create_key(self.project["id"])["keyId"]
+
+        status, _ = self.call("post", "keys/" + key_id, {"restrictToWebsite": True})
+
+        self.assertEqual(status, 200)
+        self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, ["myapp.vercel.app"])
+
+    def test_the_website_cannot_move_to_a_shared_hosting_domain_while_a_key_is_restricted(self):
+        restricted = self.create_key(self.project["id"], "Production")["keyId"]
+        self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
+
+        status, state = self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "websiteUrl": "https://github.io"}})
+
+        self.assertEqual(status, 400)
+        self.assertEqual(state["error"], developer.SHARED_DOMAIN_ERROR.format(domain="github.io"))
+        self.assertEqual(ApiProject.objects.get(id=int(self.project["id"])).profile.project_link, PROJECT["websiteUrl"])
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["dafportal.org"])
 
     def test_the_website_cannot_be_removed_while_a_key_is_restricted_to_it(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
@@ -526,7 +566,7 @@ class KeyTest(DeveloperApiTestCase):
         self.assertEqual(state["error"], developer.WEBSITE_IN_USE_ERROR)
         project = ApiProject.objects.get(id=int(self.project["id"])).profile
         self.assertEqual((project.project_name, project.project_link), (PROJECT["name"], PROJECT["websiteUrl"]))
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://dafportal.org"])
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["dafportal.org"])
 
     def test_the_website_can_be_removed_once_no_live_key_is_restricted(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
@@ -769,17 +809,30 @@ class MockTest(DeveloperApiTestCase):
         self.assertFalse(Project.objects.get(id=int(listing_id)).consent_to_display)
 
 
-def test_origin_of_is_the_browser_origin():
-    from powered_by.developer import origin_of
+def test_domain_of_is_the_host_without_www_scheme_or_port():
+    from powered_by.developer import domain_of
 
-    assert origin_of("https://Example.org/app?x=1") == "https://example.org"
-    assert origin_of("https://example.org:443/") == "https://example.org"
-    assert origin_of("http://localhost:3000/") == "http://localhost:3000"
-    assert origin_of("https://bücher.example/app") == "https://xn--bcher-kva.example"
-    assert origin_of("https://BÜCHER.example") == "https://xn--bcher-kva.example"
-    assert origin_of("http://[::1]:8080/") == "http://[::1]:8080"
-    assert origin_of("http://[0:0::1]:80/") == "http://[::1]"
-    assert origin_of("http://127.0.0.1:8000/") == "http://127.0.0.1:8000"
+    assert domain_of("https://Example.org/app?x=1") == "example.org"
+    assert domain_of("https://www.example.org/") == "example.org"
+    assert domain_of("http://example.org:8443/") == "example.org"
+    assert domain_of("https://app.example.org") == "app.example.org"
+    assert domain_of("https://wwwexample.org") == "wwwexample.org"
+    assert domain_of("http://localhost:3000/") == "localhost"
+    assert domain_of("https://bücher.example/app") == "xn--bcher-kva.example"
+    assert domain_of("https://www.BÜCHER.example") == "xn--bcher-kva.example"
+    assert domain_of("http://[::1]:8080/") == "[::1]"
+    assert domain_of("http://[0:0::1]:80/") == "[::1]"
+    assert domain_of("http://127.0.0.1:8000/") == "127.0.0.1"
+
+
+def test_check_restrictable_refuses_shared_hosts_and_single_labels():
+    from powered_by.developer import InputError, check_restrictable
+
+    for domain in ("vercel.app", "github.io", "co.uk", "co.il", "localhost"):
+        with pytest.raises(InputError):
+            check_restrictable(domain)
+    for domain in ("myapp.vercel.app", "example.co.uk", "example.org", "127.0.0.1", "[::1]"):
+        check_restrictable(domain)
 
 
 class ProjectLockTest(DeveloperApiTestCase):
@@ -1047,4 +1100,4 @@ class KeyRestrictionRaceTest(TransactionTestCase):
 
         self.assertIsNone(error)
         self.assertEqual(ApiProject.objects.get(id=self.project.id).profile.project_link, PROJECT["websiteUrl"])
-        self.assertEqual(ApiKey.objects.get(id=self.key.id).allowed_origins, ["https://dafportal.org"])
+        self.assertEqual(ApiKey.objects.get(id=self.key.id).allowed_origins, ["dafportal.org"])

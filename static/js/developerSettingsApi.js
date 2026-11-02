@@ -72,6 +72,10 @@ const SERVER_ERROR_PATTERNS_HE = [
   [/^(.+) can be at most (\d+) characters\.$/,
     (field, max) => IN_FIELD_HE[field] && IN_FIELD_HE[field] + " אפשר להזין עד " + max + " תווים."],
   [/^(.+) must be text\.$/, (field) => IN_FIELD_HE[field] && "יש להזין טקסט " + IN_FIELD_HE[field] + "."],
+  [/^A key can't be restricted to (\S+), because other people's sites share it\./,
+    (domain) => "אי אפשר להגביל מפתח ל־" + domain + ", כי גם אתרים של אחרים משתמשים בו. השתמשו בכתובת של האתר שלכם, כמו yourapp." + domain + ", או השאירו את המפתח ללא הגבלה."],
+  [/^A key can't be restricted to (\S+), because it isn't a public domain\./,
+    (domain) => "אי אפשר להגביל מפתח ל־" + domain + ", כי זה לא דומיין ציבורי. מפתחות לפיתוח מקומי השאירו ללא הגבלה."],
 ];
 
 /* A server error in the interface language. One without a translation stays in English. */
@@ -138,15 +142,9 @@ export const websiteHost = (url) => {
   }
 };
 
-/* The Origin header a browser sends from the website, which a restricted key must match. */
-export const websiteOrigin = (url) => {
-  if (!url) { return ""; }
-  try {
-    return new URL(/^https?:\/\//.test(url) ? url : "https://" + url).origin;
-  } catch (e) {
-    return "https://" + websiteHost(url);
-  }
-};
+/* The domain a restricted key works on: the website's host without www. or a port. Sefaria
+   accepts requests whose Origin is on this domain or any subdomain of it. */
+export const websiteDomain = (url) => websiteHost(url).toLowerCase().replace(/:\d+$/, "").replace(/^www\./, "");
 
 const WEBSITE_HOST = /^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{2,59})$/i;
 

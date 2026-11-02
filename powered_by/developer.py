@@ -92,9 +92,6 @@ def iso(dt):
     return dt.isoformat() if dt else None
 
 
-DEFAULT_PORTS = {"http": 80, "https": 443}
-
-
 def _origin_host(hostname):
     """A host as browsers write it in the Origin header: punycode for a non-Latin name, IPv6 in brackets."""
     try:
@@ -107,17 +104,53 @@ def _origin_host(hostname):
         return hostname.lower()
 
 
-def origin_of(url):
+def domain_of(url):
     """
-    The browser Origin of a URL: scheme://host[:port], lowercase, without a default port. The
-    auth service compares it to the Origin header as an exact string.
+    The domain a restricted key works on: the website's host, lowercase, in ASCII (punycode)
+    form, without a leading www., scheme or port. The auth service accepts an Origin whose host
+    is this domain or a subdomain of it; an IP address only matches itself.
     """
-    parts = urlsplit(url)
-    scheme = parts.scheme.lower()
-    origin = "{}://{}".format(scheme, _origin_host(parts.hostname or ""))
-    if parts.port and parts.port != DEFAULT_PORTS.get(scheme):
-        origin += ":{}".format(parts.port)
-    return origin
+    host = _origin_host(urlsplit(url).hostname or "")
+    return host[len("www."):] if host.startswith("www.") else host
+
+
+# Suffixes under which unrelated people's sites live. "Any subdomain" of one would let every site
+# on that host use the key, so a key can't be restricted to one; a subdomain of one is fine.
+SHARED_HOSTING_SUFFIXES = frozenset({
+    "vercel.app", "netlify.app", "github.io", "gitlab.io", "pages.dev", "workers.dev", "herokuapp.com",
+    "onrender.com", "fly.dev", "web.app", "firebaseapp.com", "appspot.com", "glitch.me", "replit.app",
+    "repl.co", "replit.dev", "lovable.app", "netlify.com", "surge.sh", "azurewebsites.net",
+    "azurestaticapps.net", "cloudfront.net", "amplifyapp.com", "blogspot.com", "wordpress.com",
+    "wixsite.com", "squarespace.com", "webflow.io", "framer.website", "framer.app", "streamlit.app",
+    "hf.space", "ngrok-free.app", "ngrok.app", "trycloudflare.com", "deno.dev", "railway.app",
+    "up.railway.app", "vercel.dev", "codesandbox.io", "csb.app", "stackblitz.io", "bolt.host",
+    "sites.google.com", "googleusercontent.com",
+    "co.uk", "org.uk", "ac.uk", "co.il", "org.il", "ac.il", "gov.il", "com.au", "net.au", "org.au",
+    "co.nz", "co.za", "com.br", "co.jp", "co.in",
+})
+
+SHARED_DOMAIN_ERROR = ("A key can't be restricted to {domain}, because other people's sites share it. Use your "
+                       "site's own address, such as yourapp.{domain}, or leave the key unrestricted.")
+NOT_A_DOMAIN_ERROR = ("A key can't be restricted to {domain}, because it isn't a public domain. Leave keys "
+                      "you use for local development unrestricted.")
+
+
+def _is_ip(host):
+    try:
+        ipaddress.ip_address(host.strip("[]"))
+        return True
+    except ValueError:
+        return False
+
+
+def check_restrictable(domain):
+    """Raises InputError when a key restricted to the domain would work for sites that aren't the owner's."""
+    if _is_ip(domain):
+        return
+    if "." not in domain:
+        raise InputError(NOT_A_DOMAIN_ERROR.format(domain=domain))
+    if domain in SHARED_HOSTING_SUFFIXES:
+        raise InputError(SHARED_DOMAIN_ERROR.format(domain=domain))
 
 
 def session_login(request):
@@ -639,6 +672,8 @@ def update_project(user, project_id, data):
     restricted_keys = api_project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[])
     if old_link and not fields["websiteUrl"] and restricted_keys.exists():
         raise InputError(WEBSITE_IN_USE_ERROR)
+    if fields["websiteUrl"] != old_link and fields["websiteUrl"] and restricted_keys.exists():
+        check_restrictable(domain_of(fields["websiteUrl"]))
     _apply_fields(profile, fields)
     _set_visibility(profile, fields["visibility"])
     profile.save()
@@ -647,7 +682,7 @@ def update_project(user, project_id, data):
     api_project.save()
     if profile.project_link != old_link:
         for api_key in restricted_keys:
-            api_key.allowed_origins = [origin_of(profile.project_link)]
+            api_key.allowed_origins = [domain_of(profile.project_link)]
             api_key.save(update_fields=["allowed_origins"])
     return get_owned_project(user, project_id)
 
@@ -754,7 +789,9 @@ def set_key_restriction(user, key_id, restrict):
     website = _lock_owned_project(user, api_key.project_id).profile.project_link
     if restrict and not website:
         raise InputError("Add the project's website before restricting a key to it.")
-    api_key.allowed_origins = [origin_of(website)] if restrict else []
+    if restrict:
+        check_restrictable(domain_of(website))
+    api_key.allowed_origins = [domain_of(website)] if restrict else []
     api_key.save(update_fields=["allowed_origins"])
     return api_key
 
