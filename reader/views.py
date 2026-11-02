@@ -5490,7 +5490,11 @@ def apple_app_site_association(request):
                     "paths": AASA_PATHS,
                     "components": (
                         [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
-                        + [{"/": "*", "?": {NO_APPLINK_PARAM: "*"}, "exclude": True}]
+                        # Must be "?*" (one or more characters), not "*": iOS treats an
+                        # absent query item as the empty string, and "*" matches the
+                        # empty string, so "*" would exclude every URL (sc-47695).
+                        # mark_no_applink always sets a non-empty value.
+                        + [{"/": "*", "?": {NO_APPLINK_PARAM: "?*"}, "exclude": True}]
                         + [{"/": "*"}]
                     ),
                 }
