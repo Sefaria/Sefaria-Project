@@ -25,7 +25,7 @@ function write(node: LayoutNode<PanelId>): string {
 /** A share as a percentage to one decimal place, never 0 (a 0 would make the whole split's shares unreadable). */
 const percent = (share: number) => String(Math.max(0.1, Math.round(share * 1000) / 10));
 
-/** Read the parameter for a workspace of `count` panels. Anything malformed, or naming other panels, is ignored. */
+/** Read the parameter for a workspace of `count` panels. Anything malformed, or naming a panel twice, is ignored. */
 export function decodeLayout(param: string | undefined, count: number): LayoutNode<PanelId> | undefined {
   if (!param) return undefined;
   let i = 0;
@@ -63,9 +63,12 @@ export function decodeLayout(param: string | undefined, count: number): LayoutNo
     for (const id of leaves(tree)) if (Number(id.slice(1)) > count && tree) tree = remove(tree, id);
     if (!tree) return undefined;
     const ids = leaves(tree);
-    // Panels are numbered in reading order, so the leaves must read 1, 2, 3…
-    if (!ids.every((id, k) => id === `p${k + 1}`)) return undefined;
-    for (let k = ids.length + 1; k <= count; k++) tree = insertBeside(tree, `p${k - 1}` as PanelId, leaf(`p${k}` as PanelId), "after");
+    if (new Set(ids).size !== ids.length) return undefined;
+    // Leaves may name panels out of reading order (the reader renumbers the panels to match).
+    for (let k = 1; k <= count; k++) {
+      const id = `p${k}` as PanelId;
+      if (!ids.includes(id)) tree = insertBeside(tree, leaves(tree).at(-1)!, leaf(id), "after");
+    }
     return tree;
   } catch {
     return undefined;

@@ -26,10 +26,23 @@ describe("layout parameter", () => {
     expect(encodeLayout(split("row", [l(1), l(2)], [0.0001, 1]))).toBe("r(1~0.1,2~100)");
   });
 
-  it("ignores malformed values and ones that number panels out of reading order", () => {
+  it("ignores malformed values and ones that name a panel twice", () => {
     expect(decodeLayout("r(1,", 2)).toBeUndefined();
-    expect(decodeLayout("r(2,1)", 2)).toBeUndefined();
     expect(decodeLayout("r(1,1)", 2)).toBeUndefined();
+  });
+
+  it("reads panels out of reading order, appending unnamed ones at the end", () => {
+    expect(decodeLayout("r(2,1)", 2)).toEqual(row(l(2), l(1)));
+    expect(decodeLayout("r(3,1)", 3)).toEqual(row(l(3), l(1), l(2)));
+  });
+
+  it("renumbers the panels to the layout's order when a URL reorders them", () => {
+    const ws = decodeWorkspace("Genesis 1", { lang: "he", p2: "Steinsaltz_on_Genesis.1", lang2: "he", layout: "r(2~45,1~55)" });
+    expect(ws.panels.p1).toMatchObject({ ref: "Steinsaltz on Genesis 1", lang: "he" });
+    expect(ws.panels.p2).toMatchObject({ ref: "Genesis 1", lang: "he" });
+    const out = encodeWorkspace(ws)!;
+    expect(out.path).toBe("/Steinsaltz_on_Genesis.1");
+    expect(out.search).toMatchObject({ p2: "Genesis.1", layout: "r(1~45,2~55)" });
   });
 
   it("fits a parameter written for a different number of panels: drops panels that are gone, appends new ones to the row", () => {

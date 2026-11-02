@@ -20,7 +20,7 @@ import { leaf, row } from "~/lib/layout/tree";
 import { refToUrl, urlToRef } from "~/lib/ref/url";
 import { decodeVtitle, encodeVtitle, versionParamToApi } from "~/lib/reader/url-state";
 import type { AsideState, PanelId, TextPanelState, Workspace } from "./types";
-import { panelOrder } from "./ops";
+import { panelOrder, renumber } from "./ops";
 import { decodeLayout, encodeLayout } from "./layout-param";
 
 export type RawSearch = Record<string, string | number | undefined>;
@@ -72,11 +72,11 @@ export function decodeWorkspace(firstRef: string, search: RawSearch): Workspace 
     const id = `p${i + 2}` as PanelId;
     panels.push(panelFrom(id, urlToRef(String(search[`p${n}`])), search, String(n), sideLang(n)));
   });
-  return {
+  const ws = renumber({
     panels: Object.fromEntries(panels.map((p) => [p.id, p])),
     layout: panels.length === 1 ? leaf(panels[0]!.id) : (decodeLayout(str(search.layout), panels.length) ?? row(...panels.map((p) => leaf(p.id)))),
-    ...(str(search.bk) === "1" ? { bk: true as const } : {}),
-  };
+  });
+  return { ...ws, ...(str(search.bk) === "1" ? { bk: true as const } : {}) };
 }
 
 /** What the URL says when a panel has not set its own: the reader's stored settings (the old panel settings). */
