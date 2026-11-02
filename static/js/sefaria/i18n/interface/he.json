@@ -669,5 +669,8 @@
     "search.null.topics.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל הנושאים או שאלו את עוזר הספרייה.",
     "search.null.books.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בספרייה או שאלו את עוזר הספרייה.",
     "search.null.authors.body.library_assistant": "נסו מונח חיפוש אחר, עיינו בכל המחברים או שאלו את עוזר הספרייה.",
-    "header.library_assistant_short": "שאלו"
+    "header.library_assistant_short": "שאלו",
+    "search.autocorrect.results_shown": "מוצגות תוצאות עבור",
+    "search.autocorrect.original_term": "חיפוש של",
+    "search.suggestions.prefix": "האם התכוונת ל:"
 }

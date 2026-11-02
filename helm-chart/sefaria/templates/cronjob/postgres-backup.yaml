@@ -40,6 +40,7 @@ spec:
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
+            {{- include "sefaria.secrets.redisSentinel" . | nindent 12 }}
             - configMapRef:
                 name: local-settings-{{ .Values.deployEnv }}
             - secretRef:

@@ -8,8 +8,6 @@ from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet, Lexicon, Dictio
 from sefaria.model.text import Ref
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
 from sefaria.system.exceptions import InputError
-from sefaria.system.multiserver.coordinator import server_coordinator
-from sefaria.settings import MULTISERVER_ENABLED
 from .views import _load_json_body, StaffRequiredMixin
 
 
@@ -93,14 +91,11 @@ class LexiconEntryView(View):
         lex, tref = _load_entry_ref(lexicon, entry.headword)
         _log_entry_change(request.user.id, lex, tref, old_dict, entry.contents(), old_body, new_body)
         # DictionaryEntryNode embeds the loaded entry inside itself, so a cached Ref for it
-        # would otherwise keep serving pre-edit content until the process restarts. This
-        # process's own cache is cleared directly; other pods behind the same deployment
-        # each carry their own copy of the same cache and only hear about the edit via
-        # the multiserver event.
+        # would otherwise keep serving pre-edit content until the process restarts.
+        # TODO: this clears only this process's Ref cache; other pods keep serving the stale
+        # entry until restart now that the multiserver event is gone (needs a GenCache key).
         if tref:
             Ref.remove_ref_from_cache(lex.index_title, tref)
-            if MULTISERVER_ENABLED:
-                server_coordinator.publish_event("Ref", "remove_ref_from_cache", [lex.index_title, tref])
         return jsonResponse({"status": "ok", "entry": entry.contents()})
 
 

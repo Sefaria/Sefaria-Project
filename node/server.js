@@ -6,8 +6,6 @@ require('source-map-support').install();
 require('css-modules-require-hook')({  // so that node can handle require statements for css files
    generateScopedName: '[name]',
 });
-const redis         = require('redis');
-const { promisify } = require("util");
 const http          = require('http'),
     express         = require('express'),
     bodyParser      = require('body-parser'),
@@ -20,6 +18,7 @@ const http          = require('http'),
     ReaderApp       = React.createFactory(SefariaReact.ReaderApp);
 
 const {logger, expressLogger, errorLogger} = require('./sefaria-logging');
+const createSharedCacheClient = require('./shared-cache-client');
 
 const server = express();
 
@@ -41,8 +40,8 @@ let sharedCacheData = {
   "virtualBooks": null,
 };
 
-const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDIS_PORT}`, {prefix: ':1:'});
-const getAsync = promisify(cache.get).bind(cache);
+const cache = createSharedCacheClient(settings);
+const getAsync = key => cache.get(key);
 
 
 const loadSharedData = async function({ last_cached_to_compare = null, startup = false } = {}){
@@ -161,8 +160,6 @@ const main = async function(){
     logger.info("Redis data not ready yet");
   }
   server.listen(settings.NODEJS_PORT, function() {
-    logger.info('Redis Host: ' + settings.REDIS_HOST);
-    logger.info('Redis Port: ' + settings.REDIS_PORT);
     logger.info('Debug: ' + settings.DEBUG);
     logger.info('Listening on ' + settings.NODEJS_PORT);
   });
@@ -171,10 +168,7 @@ const main = async function(){
 cache.on('error', function (err) {
   logger.error('Redis Connection Error ' + err);
 });
-cache.on('connect', function() {
-  logger.info('Connected to Redis');
-  cache.select(1, function (){
-    logger.info("REDIS DB: " + cache.selected_db);
-    main();
-  })
+cache.once('ready', function() {
+  logger.info('Connected to Redis, DB ' + settings.SHARED_CACHE_DB_NUM);
+  main();
 });

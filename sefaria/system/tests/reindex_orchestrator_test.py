@@ -558,6 +558,17 @@ def test_cleanup_failed_reindex_targets_never_deletes_shared_text_or_sheet_alias
     assert search.deleted == []
 
 
+def _fake_sefaria_search(monkeypatch, search):
+    """
+    Replace sefaria.search for orch.main(). The orchestrator does `import sefaria.search as ...`, which
+    reads the `search` attribute of the already-imported `sefaria` package before sys.modules, so
+    once any earlier test has imported the real module, patching sys.modules alone isn't enough.
+    """
+    import sefaria
+    monkeypatch.setitem(sys.modules, "sefaria.search", search)
+    monkeypatch.setattr(sefaria, "search", search, raising=False)
+
+
 def test_main_cleans_partial_init_failure_without_deleting_current(monkeypatch):
     spec.loader.exec_module(orch)
 
@@ -619,7 +630,7 @@ def test_main_cleans_partial_init_failure_without_deleting_current(monkeypatch):
         types.SimpleNamespace(update_pagesheetrank=lambda: None),
     )
     monkeypatch.setitem(sys.modules, "scripts.scheduled.reindex_pipeline", pipeline)
-    monkeypatch.setitem(sys.modules, "sefaria.search", search)
+    _fake_sefaria_search(monkeypatch, search)
     monkeypatch.setenv("K8S_NAMESPACE", "default")
     monkeypatch.setenv("SHARD_JOB_IMAGE", "sefaria:test")
     monkeypatch.setenv("SHARD_RESOURCES", '{"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}')
@@ -664,7 +675,7 @@ def _mock_main_services(monkeypatch, search, batch, finalize):
     )
     monkeypatch.setitem(sys.modules, "sefaria.pagesheetrank", types.SimpleNamespace(update_pagesheetrank=lambda: None))
     monkeypatch.setitem(sys.modules, "scripts.scheduled.reindex_pipeline", pipeline)
-    monkeypatch.setitem(sys.modules, "sefaria.search", search)
+    _fake_sefaria_search(monkeypatch, search)
     monkeypatch.setenv("K8S_NAMESPACE", "default")
     monkeypatch.setenv("SHARD_JOB_IMAGE", "sefaria:test")
     monkeypatch.setenv("SHARD_RESOURCES", '{"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}')

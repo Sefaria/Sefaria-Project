@@ -45,6 +45,8 @@ const bannerFields = `
             showToNonSustainers
             showToReturningVisitors
             showToSustainers
+            showToDonor
+            showToNonDonor
             showTo
             countriesToTarget {
               countryMode
@@ -74,6 +76,8 @@ const modalFields = `
             showToNonSustainers
             showToReturningVisitors
             showToSustainers
+            showToDonor
+            showToNonDonor
             showTo
             countriesToTarget {
               countryMode

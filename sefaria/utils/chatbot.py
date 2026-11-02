@@ -11,6 +11,13 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 DEFAULT_TTL_HOURS = 72
+# MCP sign-in (api/mcp_auth_views.py). Both audiences use MCP_TOKEN_SECRET, shared with the
+# AI chatbot. Sefaria mints mcp-login tokens to prove who signed in; the chatbot's MCP server mints
+# short-lived mcp tokens per tool call, which Sefaria accepts only on the API routes its tools use
+# (see SessionIDAuthMiddleware).
+MCP_LOGIN_TOKEN_AUDIENCE = "mcp-login"
+MCP_LOGIN_TOKEN_TTL_MINUTES = 5
+MCP_TOKEN_AUDIENCE = "mcp"
 NONCE_SIZE_BYTES = 12
 
 
@@ -45,7 +52,12 @@ def _decrypt_chatbot_user_token(token, secret):
     return payload
 
 
-def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS):
+def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HOURS, aud=None, state=None):
+    """
+    Build an encrypted user token. `aud` scopes the token to a consumer other than the chatbot
+    (e.g. MCP_TOKEN_AUDIENCE); chatbot tokens carry no audience. `state` ties an mcp-login token to
+    the one sign-in flow it was issued for, so it cannot complete another.
+    """
     if not user_id or not secret:
         return None
 
@@ -55,6 +67,10 @@ def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HO
         "user_id": int(user_id),
         "expiration": expires_at.replace(microsecond=0).isoformat(),
     }
+    if aud:
+        payload["aud"] = aud
+    if state:
+        payload["state"] = state
     payload_bytes = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
     key = _derive_key(secret)
     aesgcm = AESGCM(key)
@@ -64,13 +80,19 @@ def build_chatbot_user_token(user_id, secret, now=None, ttl_hours=DEFAULT_TTL_HO
     return base64.urlsafe_b64encode(token_bytes).decode("ascii")
 
 
-def get_user_id_from_chatbot_user_token(token, secret):
+def get_user_id_from_chatbot_user_token(token, secret, aud=None):
+    """
+    Returns the user id in `token`, or None if the token is invalid, expired, or was issued for a
+    different audience than `aud` (None means the chatbot, whose tokens carry no audience).
+    """
     if not token or not secret:
         return None
 
     try:
         payload = _decrypt_chatbot_user_token(token, secret)
         if payload is None:
+            return None
+        if payload.get("aud") != aud:
             return None
         user_id = int(payload["user_id"])
         return user_id if user_id > 0 else None
