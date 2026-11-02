@@ -48,6 +48,15 @@ spec:
           - name: DEBUG
             value: {{ .Values.localSettings.DEBUG | quote }}
           {{- include "sefaria.readerEnv" (list . .Values.reader.containerImage.tag) | nindent 10 }}
+        # the node pods' own settings (nodejs.localsettings, the cauldron's local-settings-node secret), as the reader reads them in
+        # mode "reader" too: e.g. PUBLIC_ROOM_URL and PUBLIC_LABS (reader-next/src/lib/config.ts). The env above wins on a clash.
+        envFrom:
+          - configMapRef:
+              name: local-settings-node-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-node-secrets-{{ .Values.deployEnv }}
+              optional: true
         ports:
         - containerPort: 3000
         readinessProbe:

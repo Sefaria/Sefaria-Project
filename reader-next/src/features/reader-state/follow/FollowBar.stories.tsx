@@ -23,13 +23,17 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** The interface language a story runs in (the Hebrew CI run sets it globally), so play functions find the labels it shows. */
+const inHebrew = (globals: Record<string, unknown>) => globals.interfaceLang === "hebrew";
+
 export const Connecting: Story = { args: { client: createFakeSessionClient(fakeSessionState({ status: "connecting", participants: [] })) } };
 export const Live: Story = {
   args: { client: createFakeSessionClient() },
-  play: async ({ canvasElement, args }) => {
+  play: async ({ canvasElement, args, globals }) => {
     const c = within(canvasElement);
-    await expect(c.getByText("Following Akiva Berger")).toBeInTheDocument();
-    await userEvent.click(c.getByRole("button", { name: "Stop following" }));
+    const he = inHebrew(globals);
+    await expect(c.getByText(he ? "עוקבים אחרי Akiva Berger" : "Following Akiva Berger")).toBeInTheDocument();
+    await userEvent.click(c.getByRole("button", { name: he ? "הפסקת המעקב" : "Stop following" }));
     await expect(args.onLeave).toHaveBeenCalled();
   },
 };
@@ -43,10 +47,11 @@ export const Ended: Story = { args: { client: createFakeSessionClient(fakeSessio
 export const Leading: Story = { args: { client: createFakeSessionClient(fakeLeaderState()) } };
 export const HostFaceMenu: Story = {
   args: { client: createFakeSessionClient(fakeLeaderState()) },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, globals }) => {
     const c = within(canvasElement);
-    await userEvent.click(c.getByRole("button", { name: "Sarah Cohen · following Akiva Berger" }));
-    await expect(c.getByRole("menuitem", { name: "Make leader" })).toBeInTheDocument();
+    const he = inHebrew(globals);
+    await userEvent.click(c.getByRole("button", { name: he ? "Sarah Cohen · עוקב/ת אחרי Akiva Berger" : "Sarah Cohen · following Akiva Berger" }));
+    await expect(c.getByRole("menuitem", { name: he ? "הפיכה למוביל/ה" : "Make leader" })).toBeInTheDocument();
   },
 };
 export const Lost: Story = { args: { client: null, lost: true } };
