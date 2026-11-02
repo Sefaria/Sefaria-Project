@@ -50,9 +50,10 @@ const SHORT_TITLE_CATEGORIES = new Set(["Tanakh", "Mishnah", "Talmud", "Tanaitic
 
 export interface SectionTitleInput {
   primaryCategory: string;
-  /** Last address of the section (e.g. "4", "2a"). */
+  /** Address of the section (e.g. "4", "2a", "2a:1"). */
   address: string | undefined;
-  addressType?: string;
+  /** Address type of each part of `address`, in order. */
+  addressTypes?: string[];
   sectionRef: string;
   heSectionRef: string;
 }
@@ -62,10 +63,14 @@ export function sectionTitle(i: SectionTitleInput): { en: string; he: string; sh
   const short = SHORT_TITLE_CATEGORIES.has(i.primaryCategory) && i.address !== undefined;
   if (!short) return { en: i.sectionRef, he: i.heSectionRef, short: false };
   const addr = i.address!;
-  if (i.addressType === "Talmud") return { en: addr, he: encodeHebrewDaf(addr), short };
-  // Multi-part addresses (commentary on a verse: "1:1") convert each part.
-  const he = addr.split(":").map((part) => (/^\d+$/.test(part) && Number(part) > 0 ? encodeHebrewNumeral(Number(part)) : part)).join(":");
-  return { en: addr, he, short };
+  const parts = addr.split(":");
+  const isDaf = parts.map((part, k) => i.addressTypes?.[k] === "Talmud" || /^\d+[ab]$/.test(part));
+  const he = parts.map((part, k) => {
+    if (isDaf[k]) return encodeHebrewDaf(part);
+    return /^\d+$/.test(part) && Number(part) > 0 ? encodeHebrewNumeral(Number(part)) : part;
+  });
+  // A Hebrew daf already ends in "." or ":", so the parts after it are separated by a space.
+  return { en: addr, he: he.join(isDaf.some(Boolean) ? " " : ":"), short };
 }
 
 /** Segments are numbered unless the book is a dictionary, liturgy, or the Guide for the Perplexed. */
