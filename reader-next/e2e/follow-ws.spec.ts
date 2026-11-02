@@ -12,7 +12,8 @@ import { devices, expect, test, type Browser, type BrowserContext, type Page } f
  *   PUBLIC_LABS=follow_me,recording PUBLIC_ROOM_URL=ws://<lan-ip>:3199 npm run dev -- --host
  *   FOLLOW_WS_BASE=http://<lan-ip>:3100 npx playwright test e2e/follow-ws.spec.ts --project=desktop
  * Against the Cloudflare relay run locally instead: `npm run relay:dev` (with relay/.dev.vars allowing the reader's origin) in place of
- * `npm run room:dev`, and ROOM_SERVER=relay on the test.
+ * `npm run room:dev`, and ROOM_SERVER=relay on the test. Against a deployed relay (PUBLIC_ROOM_URL=wss://rooms-staging.sefaria.org,
+ * FOLLOW_WS_BASE=http://localhost:3100, an origin the staging relay allows): ROOM_SERVER=remote, which skips the outage step.
  * Using the LAN address (not localhost) also checks what a real second device needs: the reader reachable on the network and the room
  * server accepting that origin.
  */
@@ -54,6 +55,7 @@ const portOpen = () => new Promise<boolean>((resolve) => {
  * ROOM_SERVER=relay: the room is the Cloudflare relay under `npm run relay:dev` (wrangler restarts its workerd, so stop wrangler itself).
  */
 const RELAY = process.env.ROOM_SERVER === "relay";
+const REMOTE = process.env.ROOM_SERVER === "remote";
 async function stopRoomServer() {
   const kill = RELAY ? `pkill -f "wrangler.* dev --config relay/wrangler.toml"; pkill -f "workerd serve.*:${ROOM_PORT}"; true` : `lsof -ti tcp:${ROOM_PORT} -sTCP:LISTEN | xargs kill`;
   execSync(kill, { stdio: "ignore", shell: "/bin/sh" });
@@ -134,14 +136,19 @@ test("a phone follows a laptop through the WebSocket room server, survives a dro
   }
 
   // ── The room server goes down; the laptop moves on meanwhile; the server comes back empty, both devices reconnect, the laptop
-  //    takes the spotlight again, and the phone catches up ────────────────────────────────────────────────────────────
-  await stopRoomServer();
-  await expect(bar(phone)).toHaveAttribute("data-status", /reconnecting|connecting/, { timeout: 20_000 });
-  await goTo(laptop, "Exodus 4", /\/Exodus\.4\b/);
-  await phone.waitForTimeout(1_000);
-  expect(path(phone), "while the room is down, the phone stays where it was").toMatch(/^\/Exodus\.2/);
-  await startRoomServer();
-  await expect(bar(phone)).toHaveAttribute("data-status", "live", { timeout: 30_000 });
+  //    takes the spotlight again, and the phone catches up. ROOM_SERVER=remote (a deployed relay, which the test cannot stop): the
+  //    laptop just moves on and the phone follows ─────────────────────────────────────────────────────────────────────
+  if (REMOTE) {
+    await goTo(laptop, "Exodus 4", /\/Exodus\.4\b/);
+  } else {
+    await stopRoomServer();
+    await expect(bar(phone)).toHaveAttribute("data-status", /reconnecting|connecting/, { timeout: 20_000 });
+    await goTo(laptop, "Exodus 4", /\/Exodus\.4\b/);
+    await phone.waitForTimeout(1_000);
+    expect(path(phone), "while the room is down, the phone stays where it was").toMatch(/^\/Exodus\.2/);
+    await startRoomServer();
+    await expect(bar(phone)).toHaveAttribute("data-status", "live", { timeout: 30_000 });
+  }
   await expect(verse(phone, "Exodus 4:1")).toBeVisible({ timeout: 20_000 });
   await expect.poll(() => path(phone)).toMatch(/^\/Exodus\.4/);
 

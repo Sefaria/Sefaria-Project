@@ -48,7 +48,7 @@ relay/
 
 It sits next to the reader so it bundles the same `src/lib/session/room.ts` the reader and the e2e tests use (wrangler bundles with
 esbuild; `room.ts` imports only relative paths). In Sefaria-Project it is under `reader-next/relay/`: run every command below from
-`reader-next/` (or from the sefaria-reader repo), not from the Sefaria-Project root.
+`reader-next/`, not from the Sefaria-Project root.
 
 - `account_id` pins the account that holds the `sefaria.org` zone (`b006a0acd05a164603538fdb99335318`), so a deploy fails rather
   than lands in another account.
@@ -78,7 +78,7 @@ sharing stops.
 ## 3. Deploy
 
 ```bash
-cd reader-next   # in Sefaria-Project; or the sefaria-reader repo root
+cd reader-next   # in Sefaria-Project, on the reader-next branch
 npm run relay:deploy -- --env staging   # rooms-staging.sefaria.org
 npm run relay:deploy                    # rooms.sefaria.org
 ```

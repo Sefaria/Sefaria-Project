@@ -1,7 +1,8 @@
 # Deployment: the reader client in the cluster
 
 Written 2026-10-06. The client replaces the legacy Node SSR server (`node/server.js`) in the `node` pods. Everything below lives on
-the Sefaria-Project branch `reader-next`, where this repository is the folder `reader-next/` (a squashed git subtree).
+the Sefaria-Project branch `reader-next`, in the folder `reader-next/`. This is the reader's only home: work on the `reader-next` branch directly. (Until 2026-11-02 it was
+developed in a separate local repo and squash-synced here with `git subtree`; that repo is retired.)
 
 ## Request flow
 
@@ -74,7 +75,7 @@ publish a prerelease chart for that branch (channel = the branch name, e.g. `0.9
 4. Open `https://www.reader-next.cauldron.sefaria.org/Genesis.1` (this client) and `/topics` (Django through the client). Response
    header `x-served-by: django` marks a passed-through page.
 
-Updating: `git subtree pull --prefix=reader-next ../sefaria-reader main --squash` in Sefaria-Project, then push; the image policy
+Updating: commit to the `reader-next` branch and push; the image policy
 picks up the new node image. Chart changes need a new prerelease (another `helm:` commit) and `-c` / `repoint-cauldron.sh`.
 
 ## Verified locally (2026-10-06)
