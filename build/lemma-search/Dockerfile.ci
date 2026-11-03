@@ -1,0 +1,8 @@
+# The separately published, digest-pinned bundle contains the frozen research
+# runtime, Linux dependencies, corpus and model weights. Only application code
+# changes here; ordinary PR builds never download or regenerate corpus artifacts.
+ARG BUNDLE_IMAGE
+FROM ${BUNDLE_IMAGE}
+COPY --chown=10001:10001 scripts/lemma_search_worker.py scripts/lemma_search_transport.py scripts/lemma_search_celery.py scripts/import_lemma_search_index.py /opt/lemma/scripts/
+COPY --chown=10001:10001 sefaria/celery_setup/generate_config.py /opt/lemma/sefaria/celery_setup/generate_config.py
+RUN python -m compileall -q /opt/lemma/scripts /opt/lemma/sefaria/celery_setup

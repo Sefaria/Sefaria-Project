@@ -1,0 +1,28 @@
+# Merge into the reviewed Cauldron HelmRelease spec.values, not a complete release.
+# First publish and pin a chart containing lemmaSearch support.
+# Replace image and verify ES service/auth live; these are not verified endpoints.
+tasks:
+  enabled: true
+  replicaCount: 1  # ordinary site tasks retain their own worker
+  redis:
+    url: ""
+    port: 26379
+    brokerDBNumber: 2
+    resultBackendDBNumber: 3
+    sentinelURL: redis-headless.redis.svc.cluster.local
+    transportOptions:
+      master_name: mymaster
+    redisPassword:
+      ref: redis-password
+    sentinelPassword:
+      ref: sentinel-password
+keda:
+  tasks:
+    enabled: false
+lemmaSearch:
+  enabled: true
+  image: REPLACE_WITH_FIRST_SUCCESSFUL_WORKER_IMAGE # {"$imagepolicy": "default:codexlemma-search-experiment-lemma-search"}
+  index: lemma-poc-lemma-search-tanakh-rashi-mishnah-v1
+  esURL: http://elasticsearch-es-default.elasticsearch:9200
+  allowedHosts: elasticsearch-es-default.elasticsearch
+# Ordinary search settings and aliases remain unchanged.

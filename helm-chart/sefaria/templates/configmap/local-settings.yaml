@@ -85,6 +85,12 @@ data:
   CELERY_REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.tasks.redis.resultBackendDBNumber | quote }}
   CELERY_QUEUES: {{ fromYaml (include "sefaria.tasks.queues" .) | toJson | quote }}
   {{- end }}
+  {{- if .Values.lemmaSearch.enabled }}
+  LEMMA_SEARCH_EXPERIMENT: "true"
+  LEMMA_SEARCH_BACKEND: "celery"
+  LEMMA_SEARCH_INDEX: {{ required "lemmaSearch.index is required" .Values.lemmaSearch.index | quote }}
+  LEMMA_SEARCH_QUEUE: {{ printf "%s-lemma-search" .Values.deployEnv | quote }}
+  {{- end }}
   CELERY_ENABLED: "{{ .Values.tasks.enabled }}"
   PGVECTOR_HOST: {{ .Values.localSettings.PGVECTOR_HOST | quote }}
   PGVECTOR_DB_PORT: {{ .Values.localSettings.PGVECTOR_DB_PORT | quote }}

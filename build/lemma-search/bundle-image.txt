@@ -1,0 +1,1 @@
+us-east1-docker.pkg.dev/development-205018/containers/sefaria-lemma-search-bundle@sha256:16cd53b1d0b254953e9c5615c3ab060b072486515448b4923060e0d15fe829de
