@@ -36,6 +36,8 @@ from sefaria.model.collection import Collection, CollectionSet, process_sheet_de
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.system.cache import django_cache
 from sefaria.utils.util import strip_tags, get_redirect_to_help_center
+from sefaria.utils.chatbot import MCP_TOKEN_AUDIENCE
+from sefaria.constants.model import get_direction_from_legacy_lang
 from sefaria.site.site_settings import SITE_SETTINGS
 
 from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes, menu_page
@@ -560,6 +562,37 @@ def sheet_stats(request):
     pass
 
 
+def _media_urls(sheet):
+    return {source["media"] for source in sheet.get("sources", []) if isinstance(source, dict) and "media" in source}
+
+
+def _limit_mcp_sheet_save(sheet, user_id):
+    """
+    Narrows what a save through an MCP token (the AI chatbot's MCP tools) may do, in place.
+    Returns an error response to send instead, or None.
+
+    New sheets are always unlisted. Updates are allowed only to sheets the user owns, never change
+    the sheet's publishing status, and never remove a media source: save_sheet deletes the uploaded
+    file of a media source that an update drops.
+    """
+    sheet.pop("displayedCollection", None)
+    if "id" not in sheet:
+        sheet["status"] = "unlisted"
+        return None
+
+    existing = get_sheet(sheet["id"])
+    if "error" in existing:
+        return jsonResponse({"error": existing["error"]}, status=404)
+    if existing.get("owner") != user_id:
+        return jsonResponse({"error": "MCP clients can only update sheets you own."}, status=403)
+    if "lastModified" not in sheet:
+        return jsonResponse({"error": "lastModified is required to update a sheet."}, status=400)
+    if "sources" in sheet and not _media_urls(existing) <= _media_urls(sheet):
+        return jsonResponse({"error": "MCP clients can't remove image or media sources."}, status=403)
+    sheet["status"] = existing["status"]
+    return None
+
+
 @csrf_exempt
 def save_sheet_api(request):
     """
@@ -587,6 +620,13 @@ def save_sheet_api(request):
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
         sheet = json.loads(j)
+        if not isinstance(sheet, dict):
+            return jsonResponse({"error": "Sheet JSON must be an object."}, status=400)
+
+        if getattr(request, "auth_via", None) == MCP_TOKEN_AUDIENCE:
+            refusal = _limit_mcp_sheet_save(sheet, request.user.id)
+            if refusal:
+                return refusal
 
         if apikey:
             if "id" in sheet:
@@ -734,10 +774,11 @@ def add_source_to_sheet_api(request, sheet_id):
             del source_obj[lang]
             return lang_tc
         else:  # otherwise get the text chunk for the prvided ref, either with a version (if provided) or the default.
-            lang_tc = TextChunk(ref_obj, lang, source["version-"+lang]) if source.get("version-"+lang, None) else TextChunk(ref_obj, lang)
-            lang_tc = lang_tc.ja().flatten_to_string()
-            if "version-"+lang in source_obj:
-                del source_obj["version-"+lang]
+            # Keyed by direction, not real language -- sheets still carry the old en/he-as-ltr/rtl dichotomy.
+            direction = get_direction_from_legacy_lang(lang)
+            lang_tc = ref_obj.text(direction=direction, vtitle=source.get(f"version-{lang}", None)).ja().flatten_to_string()
+            if f"version-{lang}" in source_obj:
+                del source_obj[f"version-{lang}"]
             return lang_tc if lang_tc != "" else "..."
 
     sheet = db.sheets.find_one({"id": int(sheet_id)})

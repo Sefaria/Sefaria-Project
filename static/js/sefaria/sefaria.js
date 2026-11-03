@@ -144,7 +144,7 @@ Sefaria = extend(Sefaria, {
       const norm = Sefaria.makeRef(Sefaria.parseRef(ref));
       if (typeof norm === "object" && "error" in norm) {
           // If the ref doesn't parse, just replace spaces with undescores.
-          return typeof ref === "string" ? ref.replace(/ /g, "_") : ref;
+          return typeof ref === "string" ? Sefaria.util.encodeTitleForUrl(ref) : ref;
       }
       return norm;
   },
@@ -887,24 +887,26 @@ Sefaria = extend(Sefaria, {
     return null;
   },
   ISOMap: {
-    "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 1, "title": "نصوص يهودية بالعربية"},
-    "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1, "title": "Jüdische Texte in Deutscher Sprache"},
-    "en": {"name": "English", "nativeName": "English", "showTranslations": 1, "title": "Jewish Texts in English"},
-    "eo": {"name": "Esperanto", "nativeName": "Esperanto", "showTranslations": 1, "title": "Judaj Tekstoj en Esperanto"},
-    "es": {"name": "Spanish", "nativeName": "Español", "showTranslations": 1, "title": "Textos Judíos en Español"},
-    "fa": {"name": "Persian", "nativeName": "فارسی", "showTranslations": 1, "title": "متون یهودی به زبان فارسی"},
-    "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi"},
-    "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes juifs en français"},
-    "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
-    "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
-    "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
-    "ro": {"name": "Romanian", "nativeName": "română", "title": "Texte evreiești în limba română", "showTranslations": 1},
-    "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
-    "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
-    "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
-    "tr": {"name": "Turkish", "nativeName": "Türkçe", "showTranslations": 1, "title": "Türkçe Yahudi Metinleri"},
-    "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
-    "jrb": {"name": "Judeo-Arabic", "nativeName": "Arabia Yehudia", "showTranslations": 0},  // nativeName in English because hard to determine correct native name
+    // "defaultDirection" is this language's default writing direction for a *new* version --
+    // it's never used to override an already-saved version's direction.
+    "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 1, "title": "نصوص يهودية بالعربية", "defaultDirection": "rtl"},
+    "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1, "title": "Jüdische Texte in Deutscher Sprache", "defaultDirection": "ltr"},
+    "en": {"name": "English", "nativeName": "English", "showTranslations": 1, "title": "Jewish Texts in English", "defaultDirection": "ltr"},
+    "eo": {"name": "Esperanto", "nativeName": "Esperanto", "showTranslations": 1, "title": "Judaj Tekstoj en Esperanto", "defaultDirection": "ltr"},
+    "es": {"name": "Spanish", "nativeName": "Español", "showTranslations": 1, "title": "Textos Judíos en Español", "defaultDirection": "ltr"},
+    "fa": {"name": "Persian", "nativeName": "فارسی", "showTranslations": 1, "title": "متون یهودی به زبان فارسی", "defaultDirection": "rtl"},
+    "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi", "defaultDirection": "ltr"},
+    "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes juifs en français", "defaultDirection": "ltr"},
+    "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית", "defaultDirection": "rtl"},
+    "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano", "defaultDirection": "ltr"},
+    "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0, "defaultDirection": "ltr"},
+    "ro": {"name": "Romanian", "nativeName": "română", "title": "Texte evreiești în limba română", "showTranslations": 1, "defaultDirection": "ltr"},
+    "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim", "defaultDirection": "ltr"},
+    "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues", "defaultDirection": "ltr"},
+    "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке", "defaultDirection": "ltr"},
+    "tr": {"name": "Turkish", "nativeName": "Türkçe", "showTranslations": 1, "title": "Türkçe Yahudi Metinleri", "defaultDirection": "ltr"},
+    "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש", "defaultDirection": "rtl"},
+    "jrb": {"name": "Judeo-Arabic", "nativeName": "Arabia Yehudia", "showTranslations": 0, "defaultDirection": "rtl"},  // nativeName in English because hard to determine correct native name
   },
   translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
@@ -1124,6 +1126,7 @@ Sefaria = extend(Sefaria, {
     "CC-BY": "licenses.cc_by",
     "CC-BY-SA": "licenses.cc_by_sa",
     "CC-BY-NC": "licenses.cc_by_nc",
+    "CC-BY-NC-ND": "licenses.cc_by_nc_nd",
     "Copyright: JPS, 1985": "licenses.copyright_jps_1985",
   },
   translateLicense: function(license) {
@@ -1139,6 +1142,7 @@ Sefaria = extend(Sefaria, {
       "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
       "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
       "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/",
+      "CC-BY-NC-ND": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
       "unknown": "#"
     }
     return licenseMap;
@@ -1442,6 +1446,19 @@ Sefaria = extend(Sefaria, {
         key:   title,
         store: this._indexDetails
     });
+  },
+  getRawIndex: async function(title) {
+    // Returns the Index record exactly as stored, bypassing all client-side caches, or null
+    // if it can't be loaded. Use this (not getIndexDetails) when the record will be posted
+    // back to /api/v2/raw/index. index_api is wrapped by catch_error_as_json, so a server-side
+    // failure comes back as HTTP 200 with an {error: ...} body.
+    const response = await fetch(`${Sefaria.apiHost}/api/v2/raw/index/${encodeURIComponent(title.replace(/ /g, "_"))}`, {
+      credentials: 'same-origin',
+      cache: 'no-store'
+    });
+    if (!response.ok) { return null; }
+    const data = await response.json();
+    return data && !data.error ? data : null;
   },
   titleIsTorah: function(title){
       let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
@@ -2874,6 +2891,27 @@ _media: {},
               callback();
           });
   },
+  // Max encoded length of the `user_history` cookie value, for logged out users.
+  // The cookie shares two budgets it does not control: the browser's ~4kB
+  // per-cookie limit, and the ~8kB request-header buffer that nginx allows for
+  // every cookie on the domain combined (sessionid, csrftoken, _ga,
+  // version_preferences_by_corpus, ...). Overrunning the latter is a 400 from the
+  // edge before Django is reached, so leave most of it to the other cookies.
+  MAX_ANON_HISTORY_BYTES: 3000,
+  _trimUserHistoryForCookie: function(items) {
+    // `items` is newest first; keep the longest leading run that fits the budget.
+    // Measured URL-encoded, since that is how the value is written to the cookie
+    // and a Hebrew `he_ref` costs six characters per letter once encoded.
+    const trimmed = [];
+    for (const item of items) {
+      trimmed.push(item);
+      if (encodeURIComponent(JSON.stringify(trimmed)).length > Sefaria.MAX_ANON_HISTORY_BYTES) {
+        trimmed.pop();
+        break;
+      }
+    }
+    return trimmed;
+  },
   saveUserHistory: function(history_item) {
     // history_item contains:
     // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner``
@@ -2903,20 +2941,9 @@ _media: {},
         const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
         const user_history_cookie = cookie("user_history");
         const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
-        cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
-        Sefaria.userHistory.items = new_hist_array.concat(user_history);
-
-        if (Sefaria._inBrowser) {
-          // check if we've reached the cookie size limit
-          const cookie_hist = JSON.parse(cookie("user_history"));
-          if (cookie_hist.length < (user_history.length + new_hist_array.length)) {
-            // save failed silently. resave by popping old history
-            if (new_hist_array.length < user_history.length) {
-              new_hist_array = new_hist_array.concat(user_history.slice(0, -new_hist_array.length));
-            }
-            cookie("user_history", JSON.stringify(new_hist_array), {path: "/"});
-          }
-        }
+        const trimmed = Sefaria._trimUserHistoryForCookie(new_hist_array.concat(user_history));
+        cookie("user_history", JSON.stringify(trimmed), {path: "/"});
+        Sefaria.userHistory.items = trimmed;
       });
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
@@ -3022,7 +3049,6 @@ _media: {},
   },
   _tableOfContentsDedications: {},
     _strapiContent: null,
-  _inAppAds: null,
   _upcomingDay: {},  // for example, possible keys are 'parasha' and 'holiday'
   getUpcomingDay: function(day) {
       // currently `day` can be 'holiday' or 'parasha'
@@ -4002,6 +4028,7 @@ Sefaria.unpackBaseProps = function(props){
       "is_moderator",
       "is_editor",
       "is_sustainer",
+      "donor_status",
       "experiments",
       "full_name",
       "profile_pic_url",
@@ -4147,7 +4174,6 @@ Sefaria.resetCache = function() {
     this.sheets._userSheetsByRef = {};
 
     // These change slowly, but they do change
-    this._inAppAds = {};
     this._upcomingDay = {};
     this._parashaNextRead = {};
     this._featuredTopic = {};

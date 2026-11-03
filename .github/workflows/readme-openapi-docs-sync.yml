@@ -5,7 +5,7 @@ name: Publish API Docs
 on:
   push:
     branches:
-      # This workflow will run every time you push code to the following branch: `master`
+      # This workflow will run every time you push code to the following branch: `prod`
       # Check out GitHub's docs for more info on configuring this:
       # https://docs.github.com/actions/using-workflows/events-that-trigger-workflows
       - prod

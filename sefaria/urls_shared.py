@@ -7,6 +7,9 @@ import sourcesheets.views as sheets_views
 import remote_config.views as remote_config_views
 import api.views as api_views
 import api.linker_admin_views as linker_api_views
+import api.admin_mcp_views as admin_mcp_views
+import api.mcp_auth_views as mcp_auth_views
+import api.lexicon_admin_views as lexicon_api_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
@@ -14,7 +17,8 @@ import powered_by.views as powered_by_views
 from sefaria.heapdump import heapdump_view
 from sefaria.site.urls import site_urlpatterns
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
+from sso.views import MobileTokenObtainPairView
 
 shared_patterns = [
     path('_allauth/', include('allauth.headless.urls')),
@@ -25,14 +29,10 @@ shared_patterns = [
     re_path(fr'^register/?$', sefaria_views.register, name='register'),
     re_path(fr'^enable-library-assistant/?$', reader_views.enable_library_assistant, name='enable_library_assistant'),
     re_path(fr'logout/?$', sefaria_views.CustomLogoutView.as_view(), name='logout'),
-    re_path(fr'password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='password_reset'),
     path('password/reset/confirm/<uidb64>/<token>/',
         sefaria_views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    re_path(fr'password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(),
-        name='password_reset_complete'),
-    re_path(fr'password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
 
-    re_path(fr'api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    re_path(fr'api/login/$', MobileTokenObtainPairView.as_view(), name='token_obtain_pair'),
     re_path(fr'api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
 
     re_path(r'^saved/?$', reader_views.saved_content),
@@ -73,14 +73,14 @@ shared_patterns = [
     path('api/texts/versions/<path:tref>', reader_views.versions_api),
     re_path(r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', reader_views.version_status_tree_api),
     re_path(r'^api/texts/version-status/?$', reader_views.version_status_api),
-    path('api/texts/parashat_hashavua', reader_views.parashat_hashavua_api),
+    path('api/texts/parashat_hashavua', reader_views.parashat_hashavua_api),  # legacy, documented as broken (504s) -- see docs/decisions/documented_endpoints.md
     re_path(r'^api/texts/translations/?$', reader_views.translations_api),
     re_path(r'^api/texts/translations/(?P<lang>.+)', reader_views.translations_api),
     re_path(r'^api/texts/random?$', reader_views.random_text_api),
     re_path(r'^api/texts/random-by-topic/?$', reader_views.random_by_topic_api),
     path('api/texts/modify-bulk/<path:title>', reader_views.modify_bulk_text_api),
     re_path(r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.old_text_versions_api_redirect),
-    path('api/texts/<path:tref>', reader_views.texts_api),
+    path('api/texts/<path:tref>', reader_views.texts_api),  # legacy v1 API, kept for external consumers; superseded internally by api/v3/texts
     re_path(r'^api/versions/?$', reader_views.complete_version_api),
     path('api/v3/texts/<path:tref>', api_views.Text.as_view()),
     path('api/knn-search', api_views.KnnSearch.as_view()),
@@ -108,6 +108,7 @@ shared_patterns = [
     re_path(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
     re_path(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     path('api/name/<path:name>', reader_views.name_api),
+    re_path(r'^api/search-autocorrect/?$', reader_views.search_autocorrect_api),
 
     # Linker editor (staff-only): edit index linker metadata (match templates, address types,
     # node properties, NonUniqueTerms). Node key paths are dot-separated keys, e.g. "Berakhot.Intro".
@@ -131,12 +132,14 @@ shared_patterns = [
     path('_api/linker-admin/dataset/ref', linker_api_views.LinkerAdminAddRefDatasetView.as_view()),
     path('_api/linker-admin/dataset/ref-part', linker_api_views.LinkerAdminAddRefPartDatasetView.as_view()),
 
-    path('api/ref/<str:tref>', api_views.RefView.as_view()),
+    path('api/ref/<path:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     re_path(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
     path('api/words/completion/<path:word>/<path:lexicon>', reader_views.dictionary_completion_api),
     path('api/words/completion/<path:word>', reader_views.dictionary_completion_api),  # Search all dicts
     path('api/words/<path:word>', reader_views.dictionary_api),
+    path('api/lexicon-entry/headword/<path:lexicon>/<path:headword>', lexicon_api_views.LexiconEntryHeadwordView.as_view()),
+    path('api/lexicon-entry/<path:lexicon>/<path:headword>', lexicon_api_views.LexiconEntryView.as_view()),
     re_path(r'^api/notifications/?$', reader_views.notifications_api),
     re_path(r'^api/notifications/read', reader_views.notifications_read_api),
     re_path(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
@@ -210,6 +213,10 @@ shared_patterns = [
     path('api/topics/pools/<path:pool_name>', reader_views.topic_pool_api),
     re_path(r'^_api/topics/featured-topic/?$', reader_views.featured_topic_api),
     re_path(r'^api/topics/trending/?$', reader_views.trending_topics_api),
+    path('api/admin/topic-prompts', admin_mcp_views.TopicPromptsView.as_view()),
+    path('api/admin/topic-prompts/<str:link_id>', admin_mcp_views.TopicPromptView.as_view()),
+    # Sign-in handoff for the AI chatbot's MCP server (chat.sefaria.org/mcp/user and /mcp/admin).
+    path('api/mcp/authorize', mcp_auth_views.mcp_authorize),
     path('api/ref-topic-links/bulk', reader_views.topic_ref_bulk_api),
     path('api/ref-topic-links/<path:tref>', reader_views.topic_ref_api),
     path('api/v2/topics/<path:topic>', reader_views.topics_api, {'v2': True}),
@@ -248,6 +255,7 @@ shared_patterns = [
 
     path('api/strapi/graphql-cache', sefaria_views.strapi_graphql_cache),
     path('api/strapi/cache-invalidate', sefaria_views.strapi_cache_invalidate),
+    path('api/webhooks/', include('webhooks.urls')),
 
     re_path(r'^api/stats/library-stats', sefaria_views.library_stats),
     re_path(r'^api/stats/core-link-stats', sefaria_views.core_link_stats),
@@ -320,7 +328,9 @@ shared_patterns = [
 shared_patterns += site_urlpatterns
 shared_patterns += staticfiles_urlpatterns()
 shared_patterns += [
-    re_path(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
+    # WSGI decodes %2F in text node titles before URL resolution. The catchall
+    # must pass the resulting slash to Ref, which validates the full title.
+    re_path(r'^(?P<tref>.+?)/?$', reader_views.catchall)
 ]
 
 # Keep admin accessible

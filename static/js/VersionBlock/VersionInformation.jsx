@@ -36,7 +36,7 @@ function VersionInformation({currentRef, version}) {
           </a>
         </div>
         <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionHistoryLink": 1, "versionDetailsElement": 1}, null))}>
-           <a className="versionDetailsLink" href={`/activity/${Sefaria.normRef(currentRef)}/${version.language}/${version.versionTitle && version.versionTitle.replace(/\s/g,"_")}`} target="_blank">
+           <a className="versionDetailsLink" href={`/activity/${Sefaria.normRef(currentRef)}/${version.language}/${version.versionTitle && Sefaria.util.encodeTitleForUrl(version.versionTitle)}`} target="_blank">
              {Sefaria._("version_information.revision_history")}
            </a>
         </div>

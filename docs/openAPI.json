@@ -12937,6 +12937,19 @@
           "Calendars"
         ],
         "description": "Returns topic metadata for the current week's parasha — title, ref, category ordering, and bilingual display values.",
+        "parameters": [
+          {
+            "name": "diaspora",
+            "description": "Whether to return the diaspora parasha reading (`1`) or the Israel reading (`0`). Defaults to `1` (diaspora). In weeks where Israel and the diaspora read different portions, passing `0` returns the Israel reading.",
+            "schema": {
+              "type": "string",
+              "enum": ["0", "1"],
+              "default": "1"
+            },
+            "in": "query",
+            "required": false
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -13306,6 +13319,92 @@
           "schema": {
             "type": "string",
             "default": "תורה"
+          },
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/lexicon-entry/{lexicon}/{headword}": {
+      "get": {
+        "operationId": "get-lexicon-entry",
+        "tags": [
+          "Lexicon"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "entry": {
+                      "type": "object",
+                      "description": "The full, raw lexicon entry document (shape varies by lexicon/dictionary subclass)."
+                    },
+                    "content_attr_names": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Names of the attrs this entry's dictionary subclass can have as editable content, as opposed to identity/navigation fields (headword, parent_lexicon, prev_hw, next_hw, rid, quotes). Lists every content attr the subclass supports, not just the ones this particular entry actually has set -- most entries only populate a handful of these."
+                    }
+                  }
+                }
+              }
+            },
+            "description": "The matching lexicon entry."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "description": "No entry found for this (lexicon, headword) pair."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "description": "More than one entry currently matches this headword (a pre-existing data duplicate) -- resolve the duplicate before continuing."
+          }
+        },
+        "summary": "Get a lexicon entry",
+        "description": "Looks up a single lexicon entry by its exact parent lexicon and headword (NFC-normalized before matching). Unlike `/api/words/{word}`, this does not do fuzzy/inflected-form lookup -- it's meant for addressing one specific entry directly."
+      },
+      "parameters": [
+        {
+          "name": "lexicon",
+          "description": "The parent lexicon's name (e.g. \"Klein Dictionary\"), matching LexiconEntry.parent_lexicon.",
+          "schema": {
+            "type": "string",
+            "default": "Klein Dictionary"
+          },
+          "in": "path",
+          "required": true
+        },
+        {
+          "name": "headword",
+          "description": "The entry's exact headword.",
+          "schema": {
+            "type": "string"
           },
           "in": "path",
           "required": true
@@ -27844,14 +27943,11 @@
             "default": 10
           },
           "sort_fields": {
-            "description": "List of fields to sort on. If `sort_method = 'score'` this list should have exactly one item. Common fields to sort on are `comp_date` (which list results from titles published chronologically), `order` (which list results based on Sefaria's table of contents structure), `pagesheetrank` (most relevant results based on the Sheet Rank algorithm), `dateCreated` (for sheet results returned chronologically), `views` (for sheet results based on popularity).",
+            "description": "List of fields to sort on. **Required when `sort_method = 'score'`** — omitting it causes the server to skip pagesheetrank weighting and return raw BM25 scores instead. When `sort_method = 'score'` this list must have exactly one item. Common fields to sort on are `comp_date` (which list results from titles published chronologically), `order` (which list results based on Sefaria's table of contents structure), `pagesheetrank` (most relevant results based on the pagerank algorithm), `dateCreated` (for sheet results returned chronologically), `views` (for sheet results based on popularity).",
             "type": "array",
             "items": {
               "type": "string"
-            },
-            "default": [
-              "pagesheetrank"
-            ]
+            }
           },
           "sort_method": {
             "description": "How to sort results. If sort, the values are sorted according to `sort_fields`. If `score`, the value in `sort_fields` is multiplied with the default ElasticSearch score.",

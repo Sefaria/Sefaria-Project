@@ -207,7 +207,7 @@ class AboutBox extends Component {
           sidebarDisplay = {true}
           version={sourceVersion}
           currObjectVersions={this.props.currObjectVersions}
-          currentRef={this.props.srefs[0]}
+          currentRef={isDictionary ? this.props.sectionRef : this.props.srefs[0]}
           firstSectionRef={"firstSectionRef" in sourceVersion ? sourceVersion.firstSectionRef : null}
           />
       </div>
@@ -224,7 +224,7 @@ class AboutBox extends Component {
               sidebarDisplay = {true}
               version={translationVersion}
               currObjectVersions={this.props.currObjectVersions}
-              currentRef={this.props.srefs[0]}
+              currentRef={isDictionary ? this.props.sectionRef : this.props.srefs[0]}
               firstSectionRef={"firstSectionRef" in translationVersion ? translationVersion.firstSectionRef : null}
               viewExtendedNotes={this.props.viewExtendedNotes}
            />
@@ -239,7 +239,7 @@ class AboutBox extends Component {
               versionsByLanguages={this.state.versionLangMap}
               currObjectVersions={this.props.currObjectVersions}
               showLanguageHeaders={false}
-              currentRef={this.props.srefs[0]}
+              currentRef={isDictionary ? this.props.sectionRef : this.props.srefs[0]}
               openVersionInReader={this.props.openVersionInReader}
               openVersionInSidebar={this.openVersionInSidebar}
               viewExtendedNotes={this.props.viewExtendedNotes}

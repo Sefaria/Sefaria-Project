@@ -251,22 +251,47 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
     link['shouldDisplay'] = topic.should_display()
     link['pools'] = topic.get_pools()
     link['order'] = link.get('order', None) or {}
-    link['order']['numSources'] = getattr(topic, 'numSources', 0)
+    link['order']['numSources'] = topic.total_sources  # total of text and sheet sources, as before the split into numSources/numSourceSheets
     return link
 
 
 @django_cache(timeout=24 * 60 * 60)
-def get_all_topics(limit=1000, displayableOnly=True, active_module=LIBRARY_MODULE, min_sources=None):
-    query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
-    topic_list = TopicSet(query, limit=limit, sort=[('numSources', -1)])
+def get_all_topics(limit=1000, displayableOnly=True, active_module=LIBRARY_MODULE, min_sources=None, textual_only=False):
+    """
+    :param limit: max number of topics to return, applied after all filtering. `0` means no limit.
+    """
+    query = {"shouldDisplay": {"$ne": False}, "$or": [{"numSources": {"$gt": 0}}, {"numSourceSheets": {"$gt": 0}}]} if displayableOnly else {}
 
     # Get the actual pool name that should be used for this active_module
     expected_pool_name = get_topic_pool_name_for_module(active_module)
 
-    topics = [t for t in topic_list if expected_pool_name in t.get_pools()]
-    if min_sources is not None:
-        topics = [t for t in topics if t.should_display(min_sources=min_sources)]
+    topics = []
+    for t in _iter_topics_by_total_sources(query):
+        if expected_pool_name not in t.get_pools():
+            continue
+        if min_sources is not None and not t.should_display(min_sources=min_sources, textual_only=textual_only):
+            continue
+        topics.append(t)
+        if limit and len(topics) >= limit:
+            break
     return topics
+
+
+def _iter_topics_by_total_sources(query, batch_size=1000):
+    """
+    Yields topics matching `query`, sorted by total sources (text + sheet) descending.
+    Only ids are sorted in mongo; full topics are loaded in batches so callers that stop early don't load every topic.
+    """
+    pipeline = [
+        {"$match": query},
+        {"$project": {"totalSources": Topic.TOTAL_SOURCES_EXPR}},
+        {"$sort": {"totalSources": -1, "_id": 1}},
+    ]
+    ids = [doc["_id"] for doc in db.topics.aggregate(pipeline)]
+    for i in range(0, len(ids), batch_size):
+        batch_ids = ids[i:i + batch_size]
+        topics_by_id = {t._id: t for t in TopicSet({"_id": {"$in": batch_ids}})}
+        yield from (topics_by_id[_id] for _id in batch_ids if _id in topics_by_id)
 
 @django_cache(timeout=24 * 60 * 60)
 def get_num_library_topics():
@@ -1036,10 +1061,11 @@ def get_top_topic(sheet):
 
 
 def add_num_sources_to_topics():
-    updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug, "linkType": {"$ne": "mention"}}).count(), "_id": t._id} for t in TopicSet()]
-    db.topics.bulk_write([
-        UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
-    ])
+    updates = []
+    for t in TopicSet():
+        t.recount_sources()
+        updates.append(UpdateOne({"_id": t._id}, {"$set": {"numSources": t.numSources, "numSourceSheets": t.numSourceSheets}}))
+    db.topics.bulk_write(updates)
 
 
 def make_titles_unique():
@@ -1178,7 +1204,7 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         topic_obj.isTopLevelDisplay = True
         topic_obj.save()
 
-        if getattr(topic_obj, "numSources", 0) > 0 and not had_children_before_changing_category and not link_to_itself:
+        if topic_obj.total_sources > 0 and not had_children_before_changing_category and not link_to_itself:
             # if topic has sources and we dont create an IntraTopicLink to itself, the sources wont be accessible
             # from the topic TOC
             IntraTopicLink({"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug,
@@ -1349,10 +1375,6 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     if not creating_new_link and link is None:
         return {"error": f"Can't edit link because link does not currently exist."}
     elif creating_new_link:
-        if not link_already_existed:
-            num_sources = getattr(topic_obj, "numSources", 0)
-            topic_obj.numSources = num_sources + 1
-            topic_obj.save()
         if interface_lang not in link.order.get('curatedPrimacy', {}) and linkType == 'about':
             # this will evaluate to false when (1) creating a new link though the link already exists and has a curated primacy
             # or (2) topic is an author (which means linkType is not 'about') as curated primacy is irrelevant to authors
@@ -1373,7 +1395,8 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
                 link.order['curatedPrimacy'] = {}
             link.order['curatedPrimacy'][interface_lang] = new_primacy
 
-    link.save()
+    link.save()  # recounts and saves the topic's sources
+    topic_obj.recount_sources()  # refresh the in-memory copy so annotate_topic_link sees the new counts
     # process link for client-side, especially relevant in TopicSearch.jsx
     ref_topic_dict = ref_topic_link_prep(link.contents())
     return annotate_topic_link(ref_topic_dict, {slug: topic_obj})

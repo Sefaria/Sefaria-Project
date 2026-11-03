@@ -6,7 +6,6 @@ from sefaria.model.linker.linker import LinkedDoc
 from sefaria.model.linker.linker_entity_recognizer import LinkerEntityRecognizer
 from .linker_test_utils import *
 from sefaria.model import schema
-from sefaria.model.text import TextChunk
 from sefaria.settings import ENABLE_LINKER
 from sefaria.model.marked_up_text_chunk import LinkerOutput, MarkedUpTextChunk, MUTCSpanType
 from sefaria.model.link import Link
@@ -428,6 +427,7 @@ def test_multiple_ambiguities():
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
     [crrd(['<לקמן', '#משנה א'], "Mishnah Berakhot 1", prev_trefs=['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
+    [crrd(["<להלן", "@מנחות", "#ג", "#ב"], "Steinsaltz on Menachot 2b:5"), ("Menachot 3b",)],  # sc-46799: relative refs stay in the current book/base-text context, so Mishnah Menachot is pruned
     
     # Section name matching instead of address type
     [crrd(["@Teshuvot", "@HaRosh", "#Klal 1"], lang='en'), ("Teshuvot HaRosh 1",)],
@@ -647,6 +647,22 @@ def test_full_pipeline_ref_resolver(monkeypatch, context_tref, input_str, lang, 
         assert match.pretty_text == expected_pretty_text
         for part, expected_part_str in zip(match.raw_entity.raw_ref_parts, expected_part_strs):
             assert part.text == expected_part_str
+
+
+@pytest.mark.parametrize(('doc_text', 'span_text', 'expected_pretty_text'), [
+    ['אסקה רב אשי בגמרא (לקמן ברכות יח, א) דמוטל עליו לקוברו', 'בגמרא (לקמן ברכות יח, א', 'בגמרא (לקמן ברכות יח, א)'],
+    # Same shape, with a trailing ":)" instead of just ")"
+    ['גמ\' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:) עוד', 'ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע', 'ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)'],
+    # No delimiter nearby -> span is left untouched
+    ['זה טקסט רגיל בלי סוגריים בסוף', 'טקסט רגיל', 'טקסט רגיל'],
+])
+def test_pretty_text_end_paren(doc_text, span_text, expected_pretty_text):
+    doc = NEDoc(doc_text)
+    start = doc_text.index(span_text)
+    end = start + len(span_text)
+    raw_ref = RawRef(doc.subspan(slice(start, end)), 'he', [])
+    resolved_ref = ResolvedRef(raw_ref, [], None)
+    assert resolved_ref.pretty_text == expected_pretty_text
 
 
 @pytest.fixture
@@ -926,7 +942,7 @@ def test_linker_output_validate(resolver_data, is_ambiguous):
     spans = _extract_debug_spans(doc)
     for span in spans:
         assert span['ambiguous'] == is_ambiguous
-    validation_text = TextChunk(Ref("Genesis 1:1"), lang="en", vtitle="Tanakh: The Holy Scriptures, published by JPS").text
+    validation_text = Ref("Genesis 1:1").text(direction="ltr", vtitle="Tanakh: The Holy Scriptures, published by JPS").text
     validation_spans = [span | {"charRange": [0, len(validation_text)], "text": validation_text} for span in spans]
     pkey_data = {
         "ref": "Genesis 1:1",

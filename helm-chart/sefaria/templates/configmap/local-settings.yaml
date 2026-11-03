@@ -27,7 +27,6 @@ data:
   SITE_PACKAGE: {{ .Values.localSettings.SITE_PACKAGE | quote }}
   DEFAULT_FROM_EMAIL: "{{ .Values.localSettings.DEFAULT_FROM_EMAIL }}"
   SERVER_EMAIL: "{{ .Values.localSettings.SERVER_EMAIL }}"
-  MULTISERVER_ENABLED: "{{ .Values.localSettings.MULTISERVER_ENABLED }}"
   CRM_TYPE: "{{ .Values.localSettings.CRM_TYPE }}"
   SENTRY_ENVIRONMENT: {{ .Values.deployEnv | quote }}
   SENTRY_CODE_VERSION: {{ .Values.web.containerImage.tag }}
@@ -36,19 +35,55 @@ data:
   SEARCH_PORT: {{ .Values.nginx.SEARCH_PORT | quote }}
   SEARCH_PATH: {{ .Values.nginx.SEARCH_PATH | quote }}
   SEARCH_SSL_ENABLE: {{ .Values.nginx.SEARCH_SSL_ENABLE | quote }}
-  SEARCH_INDEX_NAME_TEXT: {{ .Values.localSettings.SEARCH_INDEX_NAME_TEXT | quote }}
-  SEARCH_INDEX_NAME_SHEET: {{ .Values.localSettings.SEARCH_INDEX_NAME_SHEET | quote }}
-  SEARCH_INDEX_NAME_TOPIC: {{ .Values.localSettings.SEARCH_INDEX_NAME_TOPIC | quote }}
-  SEARCH_INDEX_NAME_BOOK: {{ .Values.localSettings.SEARCH_INDEX_NAME_BOOK | quote }}
-  SEARCH_INDEX_NAME_CATEGORY: {{ .Values.localSettings.SEARCH_INDEX_NAME_CATEGORY | quote }}
-  {{- if .Values.tasks.enabled }}
+  {{- $searchIndexNameText := tpl .Values.localSettings.SEARCH_INDEX_NAME_TEXT . }}
+  {{- $searchIndexNameSheet := tpl .Values.localSettings.SEARCH_INDEX_NAME_SHEET . }}
+  {{- /* Only derive a name when this environment is still on the shared default. An environment
+         that already supplies its own index name (cauldrons get one at deploy time) is left
+         alone, so this stays idempotent and never suffixes an already-isolated name. */}}
+  {{- $searchIndexNameTopic := tpl .Values.localSettings.SEARCH_INDEX_NAME_TOPIC . }}
+  {{- $searchIndexNameBook := tpl .Values.localSettings.SEARCH_INDEX_NAME_BOOK . }}
+  {{- $searchIndexNameCategory := tpl .Values.localSettings.SEARCH_INDEX_NAME_CATEGORY . }}
+  {{- if .Values.localSettings.ISOLATE_SEARCH_INDEXES }}
+  {{- if eq $searchIndexNameText "text" }}
+  {{- $searchIndexNameText = printf "text-%s" .Values.deployEnv }}
+  {{- end }}
+  {{- if eq $searchIndexNameSheet "sheet" }}
+  {{- $searchIndexNameSheet = printf "sheet-%s" .Values.deployEnv }}
+  {{- end }}
+  {{- /* Entity indexes need isolating for the same reason text/sheet do: the orchestrator
+         rebuilds them, and reindex_finalize's alias swap does a wildcard `remove`. Without
+         this a cauldron with its own text/sheet names would still swap the SHARED topic/
+         book/category aliases out from under every other cauldron. */}}
+  {{- if eq $searchIndexNameTopic "topic" }}
+  {{- $searchIndexNameTopic = printf "topic-%s" .Values.deployEnv }}
+  {{- end }}
+  {{- if eq $searchIndexNameBook "book" }}
+  {{- $searchIndexNameBook = printf "book-%s" .Values.deployEnv }}
+  {{- end }}
+  {{- if eq $searchIndexNameCategory "category" }}
+  {{- $searchIndexNameCategory = printf "category-%s" .Values.deployEnv }}
+  {{- end }}
+  {{- end }}
+  SEARCH_INDEX_NAME_TEXT: {{ $searchIndexNameText | quote }}
+  SEARCH_INDEX_NAME_SHEET: {{ $searchIndexNameSheet | quote }}
+  SEARCH_INDEX_NAME_TOPIC: {{ $searchIndexNameTopic | quote }}
+  SEARCH_INDEX_NAME_BOOK: {{ $searchIndexNameBook | quote }}
+  SEARCH_INDEX_NAME_CATEGORY: {{ $searchIndexNameCategory | quote }}
+  # Redis/Sentinel: used by CACHES and GenCache in every pod, not only by Celery.
   REDIS_URL: {{ .Values.tasks.redis.url }}
   REDIS_PORT: {{ .Values.tasks.redis.port | quote }}
+  SENTINEL_HEADLESS_URL: {{ .Values.tasks.redis.sentinelURL }}
+  SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.redis.transportOptions | toJson | quote }}
+  SENTINEL_MASTER_SET: {{ .Values.tasks.redis.masterSet | quote }}
+  DEFAULT_CACHE_DB_NUM: {{ .Values.tasks.redis.defaultCacheDbNumber | quote }}
+  SHARED_CACHE_DB_NUM: {{ .Values.tasks.redis.sharedCacheDbNumber | quote }}
+  GENCACHE_REDIS_DB_NUM: {{ .Values.tasks.redis.gencacheDbNumber | quote }}
+  # Prefixes CACHES/GenCache keys, so deployments sharing one Redis (e.g. cauldrons) don't collide.
+  DEPLOY_ENV: {{ .Values.deployEnv | quote }}
+  {{- if .Values.tasks.enabled }}
   CELERY_REDIS_BROKER_DB_NUM: {{ .Values.tasks.redis.brokerDBNumber | quote }}
   CELERY_REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.tasks.redis.resultBackendDBNumber | quote }}
   CELERY_QUEUES: {{ fromYaml (include "sefaria.tasks.queues" .) | toJson | quote }}
-  SENTINEL_HEADLESS_URL: {{ .Values.tasks.redis.sentinelURL }}
-  SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.redis.transportOptions | toJson | quote }}
   {{- end }}
   CELERY_ENABLED: "{{ .Values.tasks.enabled }}"
   PGVECTOR_HOST: {{ .Values.localSettings.PGVECTOR_HOST | quote }}

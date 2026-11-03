@@ -4,6 +4,7 @@ import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import { useIncrementalLoad } from './Hooks';
 import { Promotions } from './Promotions';
+import { PAGE_TYPE, topicPageTypeOf } from './sefaria/pageTypes';
 import { NavSidebar } from './NavSidebar';
 import {TopicEditor} from './TopicEditor';
 import {AdminEditorButton, useEditToggle} from './AdminEditor';
@@ -523,6 +524,11 @@ const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
             props: portal[key],
         });
     }
+    // Sidebar-ad slot, AFTER the portal's own modules so sponsor content keeps top billing
+    // (decision 2026-09-01). The override is needed because classifyPanel can't see portal-ness
+    // from panel state; hardcoding portal_page here is safe — this component only ever renders
+    // for a portal topic, and classification is exclusive: portal_page and nothing else.
+    sidebarModules.push({ type: "Promo", props: { pageTypeOverride: PAGE_TYPE.PORTAL_PAGE } });
     return(
         <NavSidebar sidebarModules={sidebarModules} />
     )
@@ -595,7 +601,13 @@ const TopicPage = ({
                         multiPanel={multiPanel}
                         topicImage={topicImage}
                     />}
-                    {!topicData.isLoading && <Promotions/>}
+                    {/* pageTypeOverride resolves author_page vs topic_page from the fetched topic
+                        data — panel state alone can't know (classifyPanel returns null for this
+                        panel on purpose). The !isLoading mount gate doubles as the no-flash
+                        guarantee: Promotions only ever exists here with the question already
+                        answered, so a page-type-targeted ad can't render and then vanish when
+                        the data arrives. */}
+                    {!topicData.isLoading && <Promotions pageTypeOverride={topicPageTypeOf(topicData)}/>}
                 </div>
             );
         }

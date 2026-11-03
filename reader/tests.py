@@ -11,6 +11,7 @@ sys._called_from_test = True
 from copy import deepcopy
 from pprint import pprint
 import json
+import re
 
 from django.test import TestCase
 from django.test.client import Client
@@ -19,8 +20,9 @@ from django.contrib.auth.models import User
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, \
-    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet, WebPage
+from sefaria.model import library, Index, IndexSet, Version, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, \
+    VersionStateSet, Category, UserHistory, UserHistorySet, WebPage
+from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 import random as rand
@@ -265,6 +267,91 @@ class ApiTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data) > 20)
+
+
+class EditTextViewTest(SefariaTestCase):
+    """
+    Regression coverage for edit_text()'s response shape -- the isPrimary/isEdited version
+    flags and position-metadata overrides that editor.js depends on. Uses a throwaway
+    synthetic index so real books' existing versions can't interfere.
+    """
+
+    TITLE = "EditView Test Book"
+    EN_VTITLE = "EditView English Test"
+    HE_VTITLE = "EditView Hebrew Test"
+
+    def setUp(self):
+        try:
+            Index().load({"title": self.TITLE}).delete()
+        except Exception:
+            pass
+
+        self.idx = Index({
+            "title": self.TITLE,
+            "categories": ["Liturgy"],
+            "schema": {
+                "titles": [
+                    {"lang": "en", "text": self.TITLE, "primary": True},
+                    {"lang": "he", "text": "ספר בדיקה לעריכה", "primary": True},
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 2,
+                "sectionNames": ["Chapter", "Verse"],
+                "addressTypes": ["Integer", "Integer"],
+                "key": self.TITLE,
+            },
+        })
+        self.idx.save()
+
+        # Created first -- becomes primary automatically (no isPrimary given, and it's the
+        # first version for this title).
+        chunk = Ref(f"{self.TITLE} 1:1").text(direction="rtl", lang="he", vtitle=self.HE_VTITLE)
+        chunk.text = "Primary content"
+        chunk.save()
+
+        chunk = Ref(f"{self.TITLE} 1:1").text(direction="ltr", lang="en", vtitle=self.EN_VTITLE)
+        chunk.text = "Specific version content"
+        chunk.save()
+
+    def tearDown(self):
+        Version().load({"title": self.TITLE, "versionTitle": self.HE_VTITLE}).delete()
+        Version().load({"title": self.TITLE, "versionTitle": self.EN_VTITLE}).delete()
+        self.idx.delete()
+
+    def _get_init_json(self, url):
+        response = c.get(url)
+        self.assertEqual(200, response.status_code)
+        html = response.content.decode()
+        idx = html.index("current: ") + len("current: ")
+        data, _ = json.JSONDecoder().raw_decode(html, idx)
+        return data
+
+    def test_edit_text_flags_specific_version_and_primary(self):
+        ref_part = f"{self.TITLE} 1:1".replace(" ", "_")
+        url = f"/edit/{ref_part}/english/{self.EN_VTITLE.replace(' ', '_')}"
+        data = self._get_init_json(url)
+
+        self.assertEqual(data["edit_version"], self.EN_VTITLE)
+        edited = next(v for v in data["versions"] if v.get("isEdited"))
+        self.assertEqual(edited["versionTitle"], self.EN_VTITLE)
+        self.assertEqual(edited["languageFamilyName"], "english")
+
+        primary = next(v for v in data["versions"] if v.get("isPrimary"))
+        self.assertEqual(primary["versionTitle"], self.HE_VTITLE)
+        self.assertNotEqual(primary["versionTitle"], edited["versionTitle"])
+
+        # position metadata must come from the originally-requested ref, not the
+        # zoomed-out-for-content ref the adapter actually fetched
+        self.assertEqual(data["sections"], [1, 1])
+        self.assertEqual(data["toSections"], [1, 1])
+
+    def test_edit_text_with_no_specific_version_has_only_primary(self):
+        ref_part = f"{self.TITLE} 1:1".replace(" ", "_")
+        data = self._get_init_json(f"/edit/{ref_part}")
+
+        self.assertIsNone(data.get("edit_version"))
+        self.assertFalse(any(v.get("isEdited") for v in data["versions"]))
+        self.assertTrue(any(v.get("isPrimary") for v in data["versions"]))
 
 
 class LoginTest(SefariaTestCase):
@@ -918,7 +1005,133 @@ class PostTextTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
         subref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1.2.3")
-        assert TextChunk(subref, "en", "test_default_node").text == "Ber Flam"
+        assert LegacyTextChunk(subref, "en", "test_default_node").text == "Ber Flam"
+
+
+class PostTextExistingVersionDirectionTest(SefariaTestCase):
+    """
+    Regression coverage for the legacy texts_api POST's direction fallback. It only derives a
+    direction from `language` via the legacy en/he mapping when `language` really is that binary
+    bucket -- a caller (e.g. the editor, when editing an existing version) sending a real ISO
+    code like "yi" with no `direction` must not have one silently guessed (get_direction_from_
+    legacy_lang only special-cases "he", so "yi" would wrongly resolve to "ltr" and never match
+    the real rtl version, creating a duplicate instead of updating it).
+    """
+
+    TITLE = "Post Text Direction Test Book"
+
+    def setUp(self):
+        self.make_test_user()
+        try:
+            Index().load({"title": self.TITLE}).delete()
+        except Exception:
+            pass
+        index = {
+            "title": self.TITLE,
+            "titleVariants": [self.TITLE],
+            "heTitle": "ספר בדיקת כיוון",
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/" + self.TITLE.replace(" ", "_"), {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code, response.content)
+
+    def tearDown(self):
+        VersionSet({"title": self.TITLE}).delete()
+        IndexSet({"title": self.TITLE}).delete()
+
+    def test_editing_existing_rtl_non_hebrew_version_does_not_duplicate(self):
+        vtitle = "Direction Fallback Test Version"
+        book_url = self.TITLE.replace(" ", "_")
+
+        # Create a new Yiddish (rtl) version -- direction is required to create a new version.
+        response = c.post("/api/texts/" + book_url + ".1.1", {'json': json.dumps({
+            "text": "First segment",
+            "versionTitle": vtitle,
+            "versionSource": "http://foobar.com",
+            "language": "yi",
+            "direction": "rtl",
+        })})
+        self.assertEqual(200, response.status_code, response.content)
+        # versionTitle may have been auto-suffixed (e.g. "... [yi]") by Version._normalize() --
+        # a well-behaved caller reads it back from the response rather than assuming the
+        # literal string it sent.
+        real_vtitle = json.loads(response.content)["versionTitle"]
+
+        versions = VersionSet({"title": self.TITLE, "versionTitle": real_vtitle})
+        self.assertEqual(1, len(versions))
+        self.assertEqual("rtl", versions[0].direction)
+
+        # Edit a different segment of the same version, omitting `direction` entirely.
+        response = c.post("/api/texts/" + book_url + ".1.2", {'json': json.dumps({
+            "text": "Second segment",
+            "versionTitle": real_vtitle,
+            "versionSource": "http://foobar.com",
+            "language": "yi",
+        })})
+        self.assertEqual(200, response.status_code, response.content)
+
+        # Must still be exactly one version, still rtl -- not a second, wrongly-ltr duplicate.
+        versions = VersionSet({"title": self.TITLE, "versionTitle": real_vtitle})
+        self.assertEqual(1, len(versions))
+        self.assertEqual("rtl", versions[0].direction)
+
+
+class EditTextSectionsPaddingTest(SefariaTestCase):
+    """
+    Regression coverage for edit_text's `text['sections']`/`text['toSections']`. These need to be
+    at least section-level long (sectionNames length - 1) for editor.js's postUrl-building loop --
+    only possible to fall short at depth >= 3, when the ref reaching this view specifies fewer
+    than that many levels (e.g. only the top level of a three-level book). Using the raw,
+    unpadded ref for these left them one element too short in that case; oref.padded_ref()
+    (without the further context_ref() zoom used for the actual content fetch) pads up to the
+    required length while still leaving an already-deeper ref's full precision untouched.
+    """
+
+    TITLE = "Edit Text Sections Padding Test Book"
+
+    def setUp(self):
+        self.make_test_user()
+        try:
+            Index().load({"title": self.TITLE}).delete()
+        except Exception:
+            pass
+        index = {
+            "title": self.TITLE,
+            "titleVariants": [self.TITLE],
+            "heTitle": "ספר בדיקת עריכה",
+            "sectionNames": ["Part", "Chapter", "Line"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/" + self.TITLE.replace(" ", "_"), {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code, response.content)
+        chunk = Ref(f"{self.TITLE} 1:1:1").text(direction="ltr", lang="en", vtitle="Sections Padding Test Version")
+        chunk.text = "hello"
+        chunk.save()
+
+    def tearDown(self):
+        VersionSet({"title": self.TITLE}).delete()
+        IndexSet({"title": self.TITLE}).delete()
+
+    def _get_sections_and_to_sections(self, ref):
+        response = c.get("/edit/" + ref.replace(" ", "_"))
+        self.assertEqual(200, response.status_code, response.content)
+        html = response.content.decode("utf-8")
+        sections = json.loads(re.search(r'"sections":\s*(\[[^\]]*\])', html).group(1))
+        to_sections = json.loads(re.search(r'"toSections":\s*(\[[^\]]*\])', html).group(1))
+        return sections, to_sections
+
+    def test_ref_coarser_than_section_level_gets_padded(self):
+        # Only "Part" specified -- coarser than section-level (Part+Chapter) for this depth-3 book.
+        sections, to_sections = self._get_sections_and_to_sections(f"{self.TITLE} 1")
+        self.assertEqual([1, 1], sections)
+        self.assertEqual([1, 1], to_sections)
+
+    def test_segment_level_ref_keeps_full_precision(self):
+        # Already at segment level -- must stay exactly as given, not get zoomed/truncated.
+        sections, to_sections = self._get_sections_and_to_sections(f"{self.TITLE} 1:1:1")
+        self.assertEqual([1, 1, 1], sections)
+        self.assertEqual([1, 1, 1], to_sections)
 
 
 class PostCategory(SefariaTestCase):

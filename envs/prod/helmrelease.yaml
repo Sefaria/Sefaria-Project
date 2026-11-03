@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.87.3-prod.1"
+      version: "0.92.1-prod.1"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
@@ -45,19 +45,19 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.110.10-prod.2"
+        tag: "v7.9.2-prod.1"
       replicaCount: 7
       resources:
         web:
-          gunicornWorkerCount: 5
-          gunicornThreadCount: 5
+          gunicornWorkerCount: 3
+          gunicornThreadCount: 8
           resources:
             requests:
               memory: "14Gi"
               cpu: "1500m"
             limits:
               memory: "18Gi"
-              cpu: "2"
+              cpu: "3"
       secrets:
         googleClient:
           ref: google-client-secret-production
@@ -65,23 +65,22 @@ spec:
           ref: logging-secret-production
         schoolLookup:
           ref: school-lookup-data-production
-    redis:
-      containerImage:
-        imageRegistry: redis
-        tag: latest
-      pdb: true
+    nameService:
+      enabled: true
+      replicaCount: 2
       resources:
-        requests:
-          memory: "500Mi"
-          cpu: "100m"
-        limits:
-          memory: "1500Mi"
-          cpu: "200m"
+        resources:
+          requests:
+            memory: "3.4Gi"
+            cpu: "200m"
+          limits:
+            memory: "4Gi"
+            cpu: "1000m"
     gpuServer: "gpu-server.gpu-server.svc.cluster.local"
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v6.110.10-prod.2"
+        tag: "v7.9.2-prod.1"
       replicaCount: 4
       resources:
         requests:
@@ -118,12 +117,12 @@ spec:
       enabled: true
       resources:
         requests:
-          memory: "3Gi"
-          cpu: "500m"
-        limits:
           memory: "6Gi"
+          cpu: "200m"
+        limits:
+          memory: "8Gi"
           cpu: "1000m"
-      replicaCount: 12
+      replicaCount: 7
       redis:
         url: ""
         port: "26379"
@@ -138,6 +137,9 @@ spec:
           ref: sentinel-password
       queues:
         llm: llm-llm
+      findRefs:
+        enabled: true
+        replicaCount: 2
     domains:
       root:
         - url: "sefaria.org"
@@ -170,7 +172,7 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v6.110.10-prod.2"
+        tag: "v7.9.2-prod.1"
       SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
       SEARCH_PORT: "9200"
       SEARCH_PATH: ""
@@ -184,18 +186,6 @@ spec:
         limits:
           memory: "300Mi"
           cpu: "150m"
-    monitor:
-      containerImage:
-        imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.110.10-prod.2"
-      replicaCount: 1
-      resources:
-        requests:
-          memory: "300Mi"
-          cpu: "50m"
-        limits:
-          memory: "400Mi"
-          cpu: "100m"
     export:
       enabled: true
     cronJobs:
@@ -213,6 +203,7 @@ spec:
         enabled: true
       reindexElasticSearch:
         enabled: true
+        allowSharedIndex: true
       topicsIndexing:
         enabled: true
       trello:
@@ -221,11 +212,19 @@ spec:
         enabled: true
       weeklyEmailNotifications:
         enabled: true
+      buildTopNGramsForSearchAutocorrect:
+        enabled: true
     secrets:
       localSettings:
         ref: local-settings-secrets-production
       backupManager:
         ref: backup-manager-secret-production
+      # Must exist (SOPS-encrypted) for the prod-release-notes pipeline to
+      # actually fire -- with optional: true on the secretKeyRef, a missing
+      # Secret here is a SILENT no-op, not an error. See
+      # build/ci/README-prod-release-notes.md.
+      ghDispatch:
+        ref: gh-dispatch-token-production
     instrumentation:
       enabled: false
       otelEndpoint: "http://otel-collector-collector.monitoring:4317"
@@ -246,7 +245,6 @@ spec:
       SITE_PACKAGE: "sites.sefaria"
       DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
       SERVER_EMAIL: "dev@sefaria.org"
-      MULTISERVER_ENABLED: "True"
       CRM_TYPE: "SALESFORCE"
       FAIL_GRACEFULLY: "True"
       SESSION_COOKIE_DOMAIN: ".sefaria.org"

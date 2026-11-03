@@ -7,7 +7,7 @@ import numpy
 import random
 import json
 import time
-from pymongo.errors import AutoReconnect
+from pymongo.errors import AutoReconnect, OperationFailure
 from collections import defaultdict, OrderedDict
 from sefaria.model import *
 from sefaria.system.exceptions import InputError, NoVersionFoundError
@@ -96,21 +96,112 @@ def step(w, p, s=0.85):
     return v / numpy.sum(v)
 
 
+def _build_pagerank_arrays(g):
+    """Flatten the graph into numpy arrays for a vectorized power iteration.
+
+    `g` is a sequence of (ref1, {ref2: weight, ref3: weight}) pairs, e.g.
+
+        [("Genesis 1:1", {"Rashi on Genesis 1:1": 2.0,
+                          "Ramban on Genesis 1:1": 1.0}),
+         ("Exodus 2:3",  {"Rashi on Exodus 2:3": 1.0})]
+
+    Edges are directional and the direction is INBOUND: the inner refs link
+    *into* the outer ref. Above, Rashi on Genesis 1:1 cites Genesis 1:1 with
+    weight 2.0 and so confers rank on it -- not the other way round. That is
+    how init_pagerank_graph() builds the graph (`graph[older_ref][newer_ref]`,
+    the later commentary voting for the earlier text it quotes) and what the
+    legacy web object called the same structure: `in_links`. Consequences:
+    out-degree accrues on the INNER ref, and an outer ref whose dict is empty
+    has no outgoing edges and is dangling.
+
+    Reproduces create_web()'s semantics exactly, including two quirks that are
+    load-bearing for search ranking and must NOT be "fixed" here:
+
+      * an edge is counted int(round(weight)) times, so weight 0.4 disappears
+        and 0.6 counts once -- edges rounding to 0 are simply not stored;
+      * number_out_links accumulates the RAW float weight, so the transition
+        matrix is round(w(ref2->ref1)) / out_total(ref2): rounded numerator
+        over an unrounded denominator.
+
+    Returns (n, rows, cols, rounded_weights, out, dangling, keys) where
+    rows/cols/rounded_weights are parallel COO arrays for the sparse matrix
+    and dangling is a bool mask.
+    """
+    keys = [x[0] for x in g]
+    n = len(keys)
+    node2index = {ref: i for i, ref in enumerate(keys)}
+
+    out = numpy.zeros(n, dtype=numpy.float64)
+    dangling = numpy.ones(n, dtype=bool)
+    rows, cols, rounded_weights = [], [], []
+
+    for ref1, links in g:
+        ref1_index = node2index[ref1]
+        for ref2, weight in links.items():
+            ref2_index = node2index[ref2]
+            # ref2 now has an outgoing edge, so it is no longer dangling. That
+            # holds even when the weight rounds to 0 and no edge is stored
+            # below, so this must stay OUTSIDE the guard -- moving it in changes
+            # the ranks (see test_dangling_detection_matches_legacy).
+            dangling[ref2_index] = False
+            out[ref2_index] += weight
+            rounded_weight = int(round(weight))
+            if rounded_weight > 0:
+                rows.append(ref1_index)
+                cols.append(ref2_index)
+                rounded_weights.append(rounded_weight)
+
+    return (
+        n,
+        numpy.asarray(rows, dtype=numpy.int64),
+        numpy.asarray(cols, dtype=numpy.int64),
+        numpy.asarray(rounded_weights, dtype=numpy.float64),
+        out,
+        dangling,
+        keys,
+    )
+
+
+def _pagerank_step(n, rows, cols, rounded_weights, out, dangling_idx, p, s):
+    """One power-iteration step, equivalent to step() but vectorized.
+
+    Each stored edge runs ref2 -> ref1 (see _build_pagerank_arrays), so rank
+    flows from cols to rows:
+
+    v[ref1] = s * sum_ref2 round(w(ref2->ref1)) * p[ref2]/out[ref2]
+              + s*dangling_mass/n + (1-s)/n
+    """
+    inner_product = float(p[dangling_idx].sum()) if dangling_idx.size else 0.0
+    if rounded_weights.size:
+        contrib = rounded_weights * (p[cols] / out[cols])
+        v = numpy.bincount(rows, weights=contrib, minlength=n)
+    else:
+        v = numpy.zeros(n, dtype=numpy.float64)
+    v = s * v + s * inner_product / n + (1 - s) / n
+    total = v.sum()
+    return v / total if total else v
+
+
 def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False, normalize=False):
-    w = create_web(g)
-    n = w.size
-    p = numpy.matrix(numpy.ones((n, 1))) / n
+    g = list(g)
+    n, rows, cols, rounded_weights, out, dangling, keys = _build_pagerank_arrays(g)
+    if n == 0:
+        return {}
+    dangling_idx = numpy.flatnonzero(dangling)
+
+    p = numpy.ones(n, dtype=numpy.float64) / n
     iteration = 1
     change = 2
     while change > tolerance and iteration < maxiter:
         if verbose:
             print("Iteration: %s" % iteration)
-        new_p = step(w, p, s)
+        new_p = _pagerank_step(n, rows, cols, rounded_weights, out, dangling_idx, p, s)
         change = numpy.sum(numpy.abs(p - new_p))
         if verbose:
             print("Change in l1 norm: %s" % change)
         p = new_p
         iteration += 1
+    p = numpy.asmatrix(p).T
     if normalize:
         # This is interesting and nerdy, but min seems to do the exact same thing
         # dangling_pr_sum = sum(p[j] for j in w.dangling_pages.keys())
@@ -120,8 +211,32 @@ def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False, normalize
             p /= p.min()
         except ValueError:
             pass  # empty list can't calculate min
-    pr_list = list(numpy.squeeze(numpy.asarray(p)))
+    # reshape(-1), not squeeze(): squeeze on a 1x1 matrix yields a 0-d array,
+    # which list() cannot iterate. Identical for every n >= 2.
+    pr_list = list(numpy.asarray(p).reshape(-1))
     return {k: v for k, v in zip([x[0] for x in g], pr_list)}
+
+
+def _start_year(index, cache):
+    """Estimated composition year for an index, memoized by title.
+
+    best_time_period() is a property of the book, not the link, but the graph
+    build called it twice per link -- 10,090,470 calls yielding only 6,601
+    distinct answers (~1,529x redundant), and it falls through to
+    author_objects() (a database read) whenever a book has no compDate. The
+    cache is passed in rather than module-global so it lives and dies with one
+    graph build.
+    """
+    title = getattr(index, "title", None)
+    if title is not None and title in cache:
+        return cache[title]
+
+    tp = index.best_time_period()
+    start = int(tp.determine_year_estimate()) if tp else 3000
+
+    if title is not None:
+        cache[title] = start
+    return start
 
 
 def has_intersection(a, b):
@@ -197,6 +312,8 @@ def init_pagerank_graph(ref_list=None):
         all_links = LinkSet()
         all_links.records = link_list
     all_ref_cat_counts = {}
+    # memoizes best_time_period() per index title for this graph build only
+    era_cache = {}
     current_link, page, link_limit = 0, 0, 100000
     if ref_list is None:
         all_links = LinkSet(limit=link_limit, page=page)
@@ -210,10 +327,8 @@ def init_pagerank_graph(ref_list=None):
                 # TODO pagerank segments except Talmud. Talmud is pageranked by section
                 # TODO if you see a section link, add pagerank to all of its segments
                 refs = [Ref(r) for r in link.refs]
-                tp1 = refs[0].index.best_time_period()
-                tp2 = refs[1].index.best_time_period()
-                start1 = int(tp1.determine_year_estimate()) if tp1 else 3000
-                start2 = int(tp2.determine_year_estimate()) if tp2 else 3000
+                start1 = _start_year(refs[0].index, era_cache)
+                start2 = _start_year(refs[1].index, era_cache)
 
                 older_ref, newer_ref = (refs[0], refs[1]) if start1 < start2 else (refs[1], refs[0])
 
@@ -301,7 +416,43 @@ def calculate_pagerank():
     return pagerank_dict
 
 
+def _ensure_ref_data_index():
+    """Guarantee the ref_data.ref index exists before doing any expensive work.
+
+    The final bulk upsert matches on {"ref": tref} ~1.27M times. Unindexed,
+    each match is a COLLSCAN of the whole collection (measured: 1,273,527 docs
+    examined, 434ms for a single lookup), so the run dies on NetworkTimeout
+    after ~12h having thrown away everything it computed.
+
+    Registering ref_data in sefaria.system.database.ensure_indices() documents
+    the requirement but does NOT satisfy it: ensure_indices()'s only caller is
+    a one-off migration script, so nothing in app startup, the Helm chart, or
+    any cron ever runs it. (`manage.py migrate` on the web pod is Django and
+    Postgres; it does not touch Mongo indexes.) Rather than depend on someone
+    having run a manual command in every environment, the job creates the index
+    itself. create_index is idempotent and costs nothing once it exists.
+
+    Deliberately called before the graph walk, not next to the write: failing
+    here costs seconds, failing at the write costs the whole run.
+
+    The index must stay non-unique -- ref_data currently holds ~1,385
+    duplicated refs, so a unique index could not build.
+    """
+    try:
+        db.ref_data.create_index("ref")
+    except OperationFailure:
+        # a restricted database user may be unable to create indexes; that is
+        # only survivable if the index is already there
+        have_ref_index = any(
+            spec.get("key") and spec["key"][0][0] == "ref"
+            for spec in db.ref_data.index_information().values()
+        )
+        if not have_ref_index:
+            raise
+
+
 def update_pagesheetrank():
+    _ensure_ref_data_index()
     pagerank = calculate_pagerank()
     sheetrank = calculate_sheetrank()
     pagesheetrank = {}
@@ -311,10 +462,46 @@ def update_pagesheetrank():
         temp_sheetrank_scaled = (1.0 + sheetrank[tref] / 5) ** 2 if tref in sheetrank else RefData.DEFAULT_SHEETRANK
         pagesheetrank[tref] = temp_pagerank_scaled * temp_sheetrank_scaled
     from pymongo import UpdateOne
-    result = db.ref_data.bulk_write([
-        UpdateOne({"ref": tref}, {"$set": {"pagesheetrank": psr}}, upsert=True) for tref, psr in
-        list(pagesheetrank.items())
-    ])
+    _bulk_write_pagesheetranks(pagesheetrank)
+
+
+# Chunk size for the ref_data upserts. One bulk_write of every tref (~1.27M ops)
+# is a single logical operation whose socket reads blow past socketTimeoutMS
+# (300s) and die with NetworkTimeout, losing the whole run's work. Batching
+# bounds each round trip, emits progress, and makes a partial run resumable.
+PAGESHEETRANK_WRITE_BATCH_SIZE = 10000
+
+
+def _bulk_write_pagesheetranks(pagesheetrank, batch_size=None):
+    """Upsert pagesheetrank values into ref_data in bounded batches.
+
+    Requires the ref_data.ref index (registered in sefaria.system.database
+    .ensure_indices) — without it each upsert is a full collection scan and no
+    batch size is small enough to finish.
+    """
+    from pymongo import UpdateOne
+
+    batch_size = batch_size or PAGESHEETRANK_WRITE_BATCH_SIZE
+    items = list(pagesheetrank.items())
+    total = len(items)
+    modified = upserted = 0
+
+    for start in range(0, total, batch_size):
+        chunk = items[start:start + batch_size]
+        result = db.ref_data.bulk_write(
+            [
+                UpdateOne({"ref": tref}, {"$set": {"pagesheetrank": psr}}, upsert=True)
+                for tref, psr in chunk
+            ],
+            # order does not matter here; unordered lets the server parallelize
+            # and keeps one bad document from aborting the rest of the batch
+            ordered=False,
+        )
+        modified += result.modified_count
+        upserted += len(result.upserted_ids or {})
+        print("ref_data upsert {}/{}".format(min(start + batch_size, total), total))
+
+    return {"modified": modified, "upserted": upserted, "total": total}
 
 
 def cat_bonus(num_cats):

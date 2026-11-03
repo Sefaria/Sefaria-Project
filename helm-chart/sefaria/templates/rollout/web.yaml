@@ -62,7 +62,7 @@ spec:
         {{- end }}
       {{- if .Values.datadog.enabled }}
       annotations:
-        ad.datadoghq.com/web.logs: '[{"source":"python","service":"{{ .Values.deployEnv }}-web"}]'
+        ad.datadoghq.com/web.logs_exclude: "true"
         admission.datadoghq.com/python-lib.version: "v4.7.1"
       {{- end }}
     spec:
@@ -104,6 +104,12 @@ spec:
             value: web
           - name: APP_VERSION
             value: "{{ .Values.web.containerImage.tag }}"
+          {{- if .Values.nameService.enabled }}
+          # completion endpoints are routed to the name service; web pods skip
+          # autocompleter builds and stop gating readiness on them
+          - name: DISABLE_AUTOCOMPLETER
+            value: "true"
+          {{- end }}
           {{- if .Values.datadog.enabled }}
           - name: DD_LOGS_INJECTION
             value: "true"
@@ -118,8 +124,6 @@ spec:
               fieldRef:
                 fieldPath: metadata.uid
           {{- end }}
-          - name: REDIS_HOST
-            value: "redis-{{ .Values.deployEnv }}"
           - name: NODEJS_HOST
             value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: VARNISH_HOST
@@ -151,12 +155,7 @@ spec:
             value: {{ .Values.deployEnv }}-mongo
           {{- end }}
         envFrom:
-          {{- if .Values.tasks.enabled }}
-          - secretRef:
-              name: {{ .Values.tasks.redis.sentinelPassword.ref }}
-          - secretRef:
-              name: {{ .Values.tasks.redis.redisPassword.ref }}
-          {{- end }}
+          {{- include "sefaria.secrets.redisSentinel" . | nindent 10 }}
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}
           - secretRef:

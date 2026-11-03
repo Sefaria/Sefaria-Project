@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from django.urls import re_path
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.views.generic.base import RedirectView
 import reader.views as reader_views
 import dedications.views as dedications_views
 from sefaria.settings import STATIC_URL
@@ -24,7 +25,6 @@ static_pages = [
     "linker",
     "ios",
     "mobile",
-    "app",
     "sefaria-edition",
     "sefaria-community-translation",
     "contributed-to-sefaria",
@@ -42,7 +42,6 @@ static_pages = [
     "ramban-sponsorships",
     "contest",
     "design-system",
-    "powered-by",
     "word-by-word",
     "cloudflare_site_is_down_en",
     "cloudflare_site_is_down_he",
@@ -65,6 +64,8 @@ static_pages_by_lang = [
 
 # Static and Semi Static Content
 site_urlpatterns = [
+    # Unlike a plain HttpResponsePermanentRedirect, query_string=True preserves UTM campaign parameters.
+    re_path(r'^app/?$', RedirectView.as_view(url='/mobile', permanent=True, query_string=True)),
     re_path(r'^metrics/?$', reader_views.metrics),
     re_path(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     re_path(r'^(favicon\.ico|apple-touch-icon\.png|favicon\.svg)/?$', reader_views.module_favicon),
@@ -86,6 +87,7 @@ site_urlpatterns = [
 site_urlpatterns += [
     re_path(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/english?c_src=App' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he?c_src=App')),
     re_path(r'^donate/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/english' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he')),
+    re_path(r'^powered-by/?$', lambda x: HttpResponsePermanentRedirect('https://developers.sefaria.org/docs/powered-by-sefaria')),
     re_path(r'^wiki/?$', lambda x: HttpResponseRedirect('https://developers.sefaria.org/docs/welcome')),
     re_path(r'^developers/?$', lambda x: HttpResponseRedirect('https://developers.sefaria.org')),
     re_path(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
@@ -113,4 +115,5 @@ site_urlpatterns +=[
     re_path(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
     re_path(r'^annualreport2021?$', lambda x: HttpResponseRedirect('/annualreport/2021')), # Added for backwards compatability for old links that might still point to this
     re_path(r'^annualreport(/(?P<report_year>\d+)/?|/?)$', reader_views.annual_report),
+    re_path(r'^current-990-form/?$', reader_views.current_990_form),
 ]

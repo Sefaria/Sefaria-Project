@@ -15,10 +15,10 @@ from . import abstract
 from . import history, schema, text, link, note, layer, notification, queue, lock, following, blocking, user_profile, \
     version_state, lexicon, place, timeperiod, garden, collection, topic, manuscript, guide
 
-from .history import History, HistorySet, log_add, log_delete, log_update, log_text, log_version_metadata
+from .history import History, HistorySet, log_add, log_delete, log_update, log_text, log_version_metadata, diff_strings
 from .schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, \
     ArrayMapNode, JaggedArrayNode, NumberedTitledTreeNode, NonUniqueTerm, NonUniqueTermSet
-from .text import library, Index, IndexSet, Version, VersionSet, TextChunk, TextRange, TextFamily, Ref, merge_texts
+from .text import library, Index, IndexSet, Version, VersionSet, TextChunk, Ref, merge_texts
 from .link import Link, LinkSet, get_link_counts, get_book_link_collection, get_book_category_linkset
 from .note import Note, NoteSet
 from .layer import Layer, LayerSet

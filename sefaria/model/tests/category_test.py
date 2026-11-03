@@ -258,3 +258,131 @@ class Test_OO_Toc(object):
         # that the round-trip didn't change anything by reference that would poison the deep test
         new_json = json.dumps(rt_toc, sort_keys=True)
         assert len(base_json) == len(new_json)
+
+
+class Test_Toc_Node_Id(object):
+    """`record=` on the TocTree.serialize guard feeds the signature breaker's dedup key, so it
+    has to distinguish nodes. It previously read `getattr(n, "title", None)`, which is always
+    absent — TocNode.__init__ deletes the title attribute after deserialization, and
+    TocCategory names it "category" in the first place — so every node collapsed to its class
+    name and the breaker could see at most 3 distinct records against a threshold of 10."""
+
+    def test_ids_are_distinct_across_the_real_toc(self):
+        from sefaria.helper.skip_tracking import SIGNATURE_BREAKER_THRESHOLD
+
+        nodes = []
+        def walk(n):
+            for child in getattr(n, "children", []) or []:
+                nodes.append(child)
+                walk(child)
+        walk(library.get_toc_tree().get_root())
+
+        assert len(nodes) > SIGNATURE_BREAKER_THRESHOLD, "TOC too small to test the threshold"
+        ids = [c.toc_node_id(n) for n in nodes]
+        assert None not in ids, "every real ToC node should have a resolvable path"
+        # The point of the fix: enough distinct ids for the breaker to be reachable at all.
+        assert len(set(ids)) > SIGNATURE_BREAKER_THRESHOLD
+
+    def test_id_is_a_readable_path(self):
+        node = library.get_toc_tree().lookup(["Tanakh", "Torah", "Genesis"])
+        assert c.toc_node_id(node) == "Tanakh/Torah/Genesis"
+
+    def test_returns_none_rather_than_raising(self):
+        """`record=` is evaluated OUTSIDE the guard, so a node whose title_group is broken
+        must not take down the build the guard is protecting. None is deliberate: it earns a
+        unique placeholder in skip_tracking rather than collapsing into a shared bucket."""
+        class Broken(object):
+            @property
+            def full_path(self):
+                raise AttributeError("'Broken' object has no attribute 'title_group'")
+        assert c.toc_node_id(Broken()) is None
+
+
+class Test_Toc_Add_Category_Guards(object):
+    """The two malformed-category conditions TocTree._add_category checks for explicitly.
+
+    A dropped parent must not cascade into a signature-breaker trip: categories build
+    parents-first, so when one parent is skipped every direct child fails the parent lookup.
+    Left to raise KeyError inside skip_bad_record, all those children share one error message
+    (the parent's path), and ten of them trip the signature breaker -- aborting the build for
+    what is one bad record, not broken code.
+
+    An empty `path` is the opposite failure: it raises nothing at all, so without a check it
+    ships as a blank top-level entry in the ToC with nothing recorded anywhere.
+    """
+
+    def _bare_toc_tree(self):
+        tree = c.TocTree.__new__(c.TocTree)         # skip __init__: it reads the whole DB
+        tree._root = c.TocCategory()
+        tree._path_hash = {}
+        return tree
+
+    def test_many_siblings_under_a_missing_parent_do_not_trip_the_breaker(self):
+        from sefaria.helper import skip_tracking
+        from sefaria.system.exceptions import BuildDegradationError
+
+        class _Cat(object):
+            def __init__(self, path):
+                self.path = path
+
+        tree = self._bare_toc_tree()
+        n = skip_tracking.SIGNATURE_BREAKER_THRESHOLD + 2
+        skip_tracking.reset_skip_counts()
+        try:
+            for i in range(n):
+                tree._add_category(_Cat(["ZZMissingParent", "ZZChild{}".format(i)]))
+            records = skip_tracking.get_skip_records()
+        except BuildDegradationError:
+            pytest.fail("a cascade from one missing parent tripped the signature breaker")
+        finally:
+            skip_tracking.reset_skip_counts()
+
+        ours = [r for r in records if r.operation == "TocTree._add_category"]
+        assert len(ours) == min(n, skip_tracking.MAX_STORED_PER_GROUP)
+        assert all(r.error_type is None for r in ours), "should be soft skips, not caught KeyErrors"
+        assert tree._path_hash == {}
+        assert tree._root.children == []
+
+    def test_a_category_with_an_empty_path_is_dropped_and_recorded(self):
+        from sefaria.helper import skip_tracking
+
+        class _Cat(object):
+            path = []
+            _id = "zz-empty-path"
+
+        tree = self._bare_toc_tree()
+        skip_tracking.reset_skip_counts()
+        try:
+            tree._add_category(_Cat())
+            records = skip_tracking.get_skip_records()
+        finally:
+            skip_tracking.reset_skip_counts()
+
+        ours = [r for r in records if r.operation == "TocTree._add_category"]
+        assert len(ours) == 1, "an empty path must not pass silently"
+        assert ours[0].error_type is None, "should be a soft skip, not a caught exception"
+        assert "zz-empty-path" in ours[0].record, "the log must name the record by _id"
+        # The blank entry this check exists to prevent: nothing attached to the root, and
+        # nothing keyed under the empty tuple.
+        assert tree._root.children == []
+        assert () not in tree._path_hash
+
+    def test_a_child_with_a_present_parent_still_attaches(self):
+        from sefaria.helper import skip_tracking
+        tree = self._bare_toc_tree()
+        parent = c.TocCategory()
+        parent.add_primary_titles("ZZParent", "ZZParent")
+        tree._path_hash[("ZZParent",)] = parent
+        cat = Category()
+        cat.path = ["ZZParent", "ZZChild"]
+        cat.lastPath = "ZZChild"
+        cat.add_title("ZZChild", "en", primary=True)
+        cat.add_title("ZZChild-he", "he", primary=True)
+        skip_tracking.reset_skip_counts()
+        try:
+            tree._add_category(cat)
+            assert skip_tracking.get_skip_records() == []
+        finally:
+            skip_tracking.reset_skip_counts()
+        assert ("ZZParent", "ZZChild") in tree._path_hash
+        assert [ch.get_primary_title() for ch in parent.children] == ["ZZChild"]

@@ -132,6 +132,35 @@ CACHES = {
 }
 """
 
+"""THIS CACHE DEFINITION POINTS AT REDIS SENTINEL. Only useful if SENTINEL_HEADLESS_URL below is set;
+local dev has no Sentinel, so most developers want the example above."""
+"""
+from sefaria.system.redis_sentinel import RedisConfig, SentinelConfig, get_django_redis_cache_options
+
+_redis_config = RedisConfig(REDIS_URL, REDIS_PASSWORD, REDIS_PORT)
+_sentinel_config = SentinelConfig(SENTINEL_HEADLESS_URL, SENTINEL_PASSWORD, REDIS_PORT, SENTINEL_TRANSPORT_OPTS, SENTINEL_MASTER_SET)
+_shared_location, _shared_options = get_django_redis_cache_options(_redis_config, _sentinel_config, SHARED_CACHE_DB_NUM, read_from_replicas=False)
+_shared_options["SERIALIZER"] = "sefaria.system.serializers.JSONSerializer"
+_default_location, _default_options = get_django_redis_cache_options(_redis_config, _sentinel_config, DEFAULT_CACHE_DB_NUM)
+
+CACHES = {
+    "shared": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": _shared_location,
+        "OPTIONS": _shared_options,
+        "TIMEOUT": None,
+        "KEY_PREFIX": DEPLOY_ENV,
+    },
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": _default_location,
+        "OPTIONS": _default_options,
+        "TIMEOUT": 60 * 60 * 24 * 30,
+        "KEY_PREFIX": DEPLOY_ENV,
+    },
+}
+"""
+
 SITE_PACKAGE = "sites.sefaria"
 
 
@@ -156,6 +185,10 @@ MANAGERS = ADMINS
 
 SECRET_KEY = 'insert your long random secret key here !'
 CHATBOT_USER_ID_SECRET = 'insert your chatbot user id secret here'
+# Secret shared with the AI chatbot for MCP sign-in, and the chatbot callback URLs it may
+# redirect to (e.g. ["http://localhost:8001/oauth/sefaria/callback"]). None disables MCP sign-in.
+MCP_TOKEN_SECRET = None
+MCP_AUTH_CALLBACK_URLS = []
 
 
 EMAIL_HOST = 'localhost'
@@ -225,9 +258,15 @@ USE_VARNISH_ESI = False
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 
-# Turns off search autocomplete suggestions, which are reinitialized on every server reload
-# which can be annoying for local development.
+# When True this process neither builds nor serves autocompleters: startup skips the
+# expensive build (which otherwise reruns on every server reload) and the completion
+# endpoints fail fast.  Completion traffic belongs to the name service when deployed.
 DISABLE_AUTOCOMPLETER = False
+
+# When True this process is a standalone name (autocomplete) service: every host serves
+# only the completion endpoints in sefaria/urls_name.py.  Deployed alongside web servers
+# that run with DISABLE_AUTOCOMPLETER = True.
+NAME_SERVICE = False
 
 # Turns on loading of machine learning models to run linker
 ENABLE_LINKER = False
@@ -236,14 +275,6 @@ ENABLE_LINKER = False
 CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
 CLOUDFLARE_TOKEN = ""
-
-# Multiserver
-MULTISERVER_ENABLED = False
-MULTISERVER_REDIS_SERVER = "127.0.0.1"
-MULTISERVER_REDIS_PORT = 6379
-MULTISERVER_REDIS_DB = 0
-MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
-MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
 
 # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
 GOOGLE_OAUTH2_CLIENT_ID = ""
@@ -289,12 +320,42 @@ CELERY_QUEUES = {}
 CELERY_ENABLED = False
 # END Celery
 
+# CACHES and GenCache share Celery's Redis; keep these DB numbers distinct from CELERY_REDIS_*_DB_NUM.
+SENTINEL_MASTER_SET = "mymaster"  # the Bitnami redis chart's default sentinel.masterSet
+DEFAULT_CACHE_DB_NUM = 4
+SHARED_CACHE_DB_NUM = 5
+GENCACHE_REDIS_DB_NUM = 6
+# How often each process re-checks a GenCache counter, i.e. how stale a peer's copy can get,
+# and the most a process waits before rebuilding after Redis loses its keyspace.
+GENCACHE_CHECK_INTERVAL_SECONDS = 2
+GENCACHE_JITTER_MAX_SECONDS = 3
+
+# Prefixes CACHES and GenCache keys, so deployments sharing one Redis (e.g. cauldrons) don't
+# collide. Empty means no prefix.
+DEPLOY_ENV = ""
+
 #Slack
 SLACK_URL = ''
 
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
+
+# Donor-status webhooks (webhooks/). Each is None by default, which turns that part off
+# without breaking anything: the endpoint answers 503 "<source>_webhook_not_configured" (so
+# the sender keeps retrying until it is set) and the warning log names the missing setting.
+#
+# The `whsec_...` signing secret GoFundMe Pro generates for our endpoint (Webhooks → Endpoints).
+CLASSY_WEBHOOK_SECRET = None
+# A shared secret WE choose (at least 32 random bytes, e.g.
+# `python -c "import secrets; print(secrets.token_urlsafe(32))"`), stored in the Salesforce
+# Named Credential and sent in the X-Sefaria-Webhook-Secret header.
+SALESFORCE_WEBHOOK_SECRET = None
+# OAuth client credentials from GoFundMe Pro's developer settings, used to look up a donor's
+# email address when the webhook payload lacks it. None → those donors are logged as
+# unresolved ("classy_api_not_configured") and skipped.
+CLASSY_API_CLIENT_ID = None
+CLASSY_API_CLIENT_SECRET = None
 
 LOGGING = {
     'version': 1,
@@ -358,6 +419,8 @@ if "pytest" in sys.modules:
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
 
+POWERED_BY_FORMSTACK_HMAC_SECRET = os.getenv("POWERED_BY_FORMSTACK_HMAC_SECRET")
+
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
 
@@ -379,3 +442,4 @@ CHATBOT_USE_LOCAL_SCRIPT = True
 
 GEMINI_API_KEY = ""  # API key for Gemini embedding model (used by semantic search)
 SEMANTIC_SEARCH_API_TOKEN = ""  # Bearer token for the /api/knn-search endpoint
+SEMANTIC_SEARCH_TABLE_VERSION = os.getenv("SEMANTIC_SEARCH_TABLE_VERSION", "new")  # "legacy" uses library_chunks; "new" uses chunk_metadata + vectors

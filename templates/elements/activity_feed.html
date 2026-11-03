@@ -140,6 +140,25 @@
             </div>
 
 
+	    {% elif "lexicon_entry" in event.rev_type %}
+            <span class="topline">{{ event.user|user_link }}
+            {% if event.rev_type == "add lexicon_entry" %}
+                {% trans "added a lexicon entry" %}
+            {% elif event.rev_type == "edit lexicon_entry" %}
+                {% trans "edited the lexicon entry" %}
+            {% elif event.rev_type == "delete lexicon_entry" %}
+                {% trans "deleted the lexicon entry" %}
+            {% endif %}
+            {% if event.ref %}{% if he %}{{ event.ref|he_ref_link }}{% else %}{{ event.ref|ref_link }}{% endif %}{% else %}{% firstof event.new.headword event.old.headword %}{% endif %}
+            {% if event.method == "API" %} (via API) {% endif %}
+            </span>
+            {% if event.diff_html %}
+            <div class="text ver-{{ event.language }}">
+                {% autoescape off %}{{ event.diff_html }}{% endautoescape %}
+            </div>
+            {% endif %}
+
+
 	    {% elif "review" in event.rev_type %}
             <span class="topline">{{ event.user|user_link }} {% trans "reviewed" %} {% if he %}{{ event.ref|he_ref_link }}{% else %}{{ event.ref|ref_link }}{% endif %} .</span>
             {% if not single %}

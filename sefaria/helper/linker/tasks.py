@@ -6,10 +6,11 @@ from sefaria.model.linker.named_entity_resolver import ResolvedNamedEntity
 from sefaria.settings import CELERY_QUEUES
 from celery import signature
 from celery.signals import worker_init
-from sefaria.settings import USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import USE_VARNISH
 from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version, TermSet
 from sefaria.celery_setup.app import app
+from sefaria.system.cache import gen_cache
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType, LinkerOutput, MarkedUpTextChunkSet
 from sefaria.model import Ref
 from sefaria.model.linker.ref_resolver import ResolutionThoroughness, ResolvedRef, AmbiguousResolvedRef
@@ -79,7 +80,8 @@ def on_worker_init(**kwargs):
     init_library_cache()
 
 
-@app.task(name="linker.find_refs_api")
+# The client stops polling after ~60s, so don't let a huge page tie up a worker longer than that.
+@app.task(name="linker.find_refs_api", soft_time_limit=60)
 def find_refs_api_task(raw_find_refs_input: dict) -> dict:
     """
     Celery task for the find-refs API endpoint.
@@ -695,10 +697,10 @@ def _extract_resolved_spans(resolved_refs):
     for resolved_ref in resolved_refs:
         if resolved_ref.is_ambiguous or resolved_ref.resolution_failed:
             continue
-        entity = resolved_ref.raw_entity
+        pretty_span = resolved_ref.pretty_span
         spans.append({
-            "charRange": entity.char_indices,
-            "text": entity.text,
+            "charRange": pretty_span.range,
+            "text": pretty_span.text,
             "type": MUTCSpanType.CITATION.value,
             "ref": resolved_ref.ref.normal(),
         })
@@ -1053,14 +1055,12 @@ def rebuild_linker_resolvers_task(self, langs: List[str]) -> dict:
     Rebuild only RefResolver and CategoryResolver for the given linker languages, after
     linker-editor metadata edits (match_templates / addressTypes / NonUniqueTerms). Runs
     off the request path since rebuilding a resolver walks the whole library and can take
-    several seconds. Publishes to other web servers the same way the old inline endpoint
-    did, so every process picks up the rebuilt resolver.
+    several seconds. Bumps GenCache's per-language counter so other processes rebuild theirs.
     """
     logger.info("rebuild_linker_resolvers:start", langs=langs, task_id=self.request.id)
     library.rebuild_linker_resolvers(langs)
-    if MULTISERVER_ENABLED:
-        from sefaria.system.multiserver.coordinator import server_coordinator
-        server_coordinator.publish_event("library", "rebuild_linker_resolvers", [langs])
+    for lang in langs:
+        gen_cache.mark_fresh(f"linker_resolver:{lang}")
     logger.info("rebuild_linker_resolvers:complete", langs=langs, task_id=self.request.id)
     return {"langs": langs}
 

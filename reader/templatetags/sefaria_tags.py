@@ -27,7 +27,7 @@ from django.utils.functional import SimpleLazyObject
 from sefaria.sheets import get_sheet
 from django.urls import reverse, NoReverseMatch
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
-from sefaria.model.text import Version
+from sefaria.model.text import Ref, Version
 from sefaria.model.collection import Collection
 from sefaria.utils.util import strip_tags as strip_tags_func
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, hebrew_parasha_name
@@ -223,16 +223,20 @@ def version_link(v):
 	"""
 	Return an <a> tag linking to the first available text of a particular version.
 	"""
+	# Use the query form rather than the legacy /<ref>/<lang>/<version> path: once
+	# an escaped slash in the ref is decoded, that path can no longer be split.
+	version_param = urllib.parse.quote(v.versionTitle.replace(" ", "_"), safe="_")
 	try:
 		section_ref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
 	except IndexError:
 		try:
 			section_ref = v.get_index().nodes.first_leaf().first_section_ref()
 		except:  # Better if we knew how this may fail...
-			return mark_safe('<a href="/{}.1/{}/{}">{}</a>'.format(v.title, v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle))
+			ref_url = Ref(v.title).url()
+			return mark_safe(f'<a href="/{ref_url}.1?v{v.language}={version_param}">{v.versionTitle}</a>')
 
-	link = '<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle)
-	return mark_safe(link)
+	ref_url = section_ref.url()
+	return mark_safe(f'<a href="/{ref_url}?v{v.language}={version_param}">{v.versionTitle}</a>')
 
 
 @register.filter(is_safe=True)
@@ -624,4 +628,3 @@ def date_string_to_date(dateString):
 def sheet_via_absolute_link(sheet_id):
     return mark_safe(absolute_link(
 		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))
-

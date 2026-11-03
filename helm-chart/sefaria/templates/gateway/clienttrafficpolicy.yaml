@@ -15,4 +15,8 @@ spec:
   clientIPDetection:
     xForwardedFor:
       numTrustedHops: 1
+  path:
+    # Text node titles can contain %2F or %5C. Keep their escaped form until the
+    # application has resolved the ref, instead of redirecting to a different path.
+    escapedSlashesAction: KeepUnchanged
 {{- end }}

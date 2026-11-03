@@ -19,10 +19,6 @@ web:
       ref: logging-secret
     schoolLookup:
       ref: school-lookup-data
-redis:
-  containerImage:
-    imageRegistry: redis
-    tag: latest
 nodejs:
   containerImage: 
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-node-${BRANCH}
@@ -44,10 +40,6 @@ nginx:
   containerImage: 
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-asset-${BRANCH}
     tag: 
-monitor:
-  containerImage: 
-    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-${BRANCH}
-    tag: 
 secrets:
   localSettings: 
     ref: local-settings-secrets
@@ -58,6 +50,9 @@ localSettings:
   DOMAIN_LANGUAGE: {}
   DOMAIN_MODULES: '{"library": "https://${NAME}.cauldron.sefaria.org", "sheets": "https://sheets.${NAME}.cauldron.sefaria.org"}'
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
+  # Cauldrons share a dev Elasticsearch cluster; isolate this cauldron's indexes so a reindex
+  # never writes to (or wildcard-strips the alias from) the shared dev "text"/"sheet" indexes.
+  ISOLATE_SEARCH_INDEXES: true
   USE_CLOUDFLARE: false
   FRONT_END_URL:  "http://${NAME}.cauldron.sefaria.org" 
   OFFLINE: false

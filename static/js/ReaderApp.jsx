@@ -9,7 +9,9 @@ import {CONNECTION_MODE_STRING_IDS} from './constants';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
+import SearchAnalytics from './sefaria/searchAnalytics';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
+import { classifyPanels } from './sefaria/pageTypes';
 import {
   ContestLandingPage,
   PBSC2020LandingPage,
@@ -24,6 +26,7 @@ import {
   ProductsPage,
   SheetsLandingPage,
   NewsletterPage,
+  MobileAppPage,
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -43,7 +46,7 @@ import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
-import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
+import { resumePendingAuthAttempt } from './auth/authAnalytics.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -62,6 +65,7 @@ class ReaderApp extends Component {
         mode:                    "Menu",
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
+        searchDisableAutocorrect:     props.initialSearchDisableAutocorrect,
         tab:                     props.initialSearchTab,
         topicSort:               props.initialTopicSort,
         searchState: new SearchState({
@@ -141,7 +145,8 @@ class ReaderApp extends Component {
     this.setState({ editorSaveState: nextState });
     };
   handleAuthNavigate = (path, source = null) => {
-    this.setState({ showAuth: true, authPath: path, authSource: source });
+    // Hide the sign up modal and show the auth page, with the given path and source.
+    this.setState({ showAuth: true, authPath: path, authSource: source, showSignUpModal: false });
   }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
@@ -175,6 +180,8 @@ class ReaderApp extends Component {
       translationsSlug:        state.translationsSlug        || null,
       collectionData:          state.collectionData          || null,
       searchQuery:             state.searchQuery             || null,
+      // Set by "Search instead for <query>": search the query exactly as typed.
+      searchDisableAutocorrect:     state.searchDisableAutocorrect     || false,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
       compare:                 state.compare                 || false,
@@ -240,7 +247,7 @@ class ReaderApp extends Component {
       Sefaria.markUserAsNewVisitor();
     }
 
-    resumePendingSignUpAttempt();
+    resumePendingAuthAttempt();
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
@@ -325,6 +332,14 @@ class ReaderApp extends Component {
         }
       } else {
         state.panels = [];
+      }
+
+      // Going back INTO the search page (currently elsewhere, restored state is
+      // search) will remount it and start a new analytics flow -- label its
+      // source. Popping within the search page itself doesn't remount, so it
+      // must not set the hint (it would mislabel some later flow).
+      if (state.panels[0]?.menuOpen === "search" && this.state.panels[0]?.menuOpen !== "search") {
+        SearchAnalytics.setNextFlowSource('back_click');
       }
 
       // need to clone state and panels; if we don't clone them, when we run setState, it will make it so that
@@ -441,6 +456,7 @@ class ReaderApp extends Component {
           (JSON.stringify(next.connectionData) !== JSON.stringify(prev.connectionData)) ||
           (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
+          (!!prev.searchDisableAutocorrect !== !!next.searchDisableAutocorrect) ||
           (prev.tab !== next.tab) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
@@ -528,13 +544,13 @@ class ReaderApp extends Component {
           case "book toc":
             var bookTitle = state.bookRef;
             hist.title = Sefaria.getPageTitle(bookTitle);
-            hist.url = bookTitle.replace(/ /g, "_");
+            hist.url = Sefaria.util.encodeTitleForUrl(bookTitle);
             hist.mode = "book toc";
             break;
           case "extended notes":
             var bookTitle = state.mode==="Connections" ?Sefaria.parseRef(state.currentlyVisibleRef).index : state.bookRef;
             hist.currVersions = state.currVersions;
-            hist.url = `${bookTitle}&notes${i>1 ? i : ''}=1`.replace(/ /g, "_");
+            hist.url = `${Sefaria.util.encodeTitleForUrl(bookTitle)}&notes${i>1 ? i : ''}=1`;
             hist.mode = "extended notes";
             break;
           case "search":
@@ -545,7 +561,8 @@ class ReaderApp extends Component {
             // `tab` is taken on search URLs (it means the text/sheet search type),
             // so the active results tab (sources/books/authors/topics) is `search_tab`.
             const searchTab = state.tab ? `&search_tab=${encodeURIComponent(state.tab)}` : "";
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` + searchTab +
+            const disableAutocorrect = state.searchDisableAutocorrect ? "&disable_autocorrect=1" : "";
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` + searchTab + disableAutocorrect +
               state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
             hist.mode  = "search";
             break;
@@ -984,9 +1001,13 @@ class ReaderApp extends Component {
   }
   setContainerMode() {
     // Applies CSS classes to the React container and body so that the App can function as a
-    // header only on top of a static page.
+    // header only on top of a static page. Full-viewport mode is needed whenever a ReaderPanel
+    // is open, OR a non-panel full-app view is active (e.g. auth) — extend hasNonPanelView
+    // for future views of that kind rather than open-coding more state checks below.
     if (this.props.headerMode) {
-      if (this.state.panels && this.state.panels.length) {
+      const hasPanels = this.state.panels?.length;
+      const hasNonPanelView = this.state.showAuth;
+      if (hasPanels || hasNonPanelView) {
         $("#s2").removeClass("headerOnly");
         $("body").css({overflow: "hidden"})
           .addClass("inApp")
@@ -1141,6 +1162,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
       // Dont trigger if user is attempting to open a link with a modifier key (new tab, new window)
       if (e.metaKey || e.shiftKey || e.ctrlKey || e.altKey) { //the ctrl/cmd, shift and alt/options keys in Windows and MacOS
+        // Report a search-result click before the event is killed below. This listener is on
+        // `document` in the CAPTURE phase, so the stopImmediatePropagation() a few lines down
+        // stops the event before it ever reaches the link — and before React's delegated
+        // bubble-phase listener, where every onClick in the app runs. Nothing after this point
+        // gets a chance to report, so the search result card cannot do it itself. No-ops
+        // unless a search flow is active and the link carries the card's analytics attributes.
+        SearchAnalytics.reportModifiedResultLinkClick(linkTarget);
         // Update href for links with data-target-module to ensure correct subdomain
         this.updateModuleLinkHref(linkTarget);
         // in this case we want to stop other handlers from running and just go to target href
@@ -1150,6 +1178,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   handleAppClick(event) {
+    const linkTarget = this.getHTMLLinkParentOfEventTarget(event);
     if (linkTarget) {
       this.handleInAppLinkClick(event);
     }
@@ -1193,6 +1222,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (!this.props.multiPanel) {
       const handled = this.openURL(href, true, false, moduleTarget, signupSource);
       if (handled) {
+        // Any in-app navigation away from the search page ends its analytics
+        // flow. Result clicks don't reach here (SearchResultCard handles them
+        // and ends the flow itself), so this exit is an abandonment. No-ops
+        // when no search flow is active. Guarded on lastOpenURLNavigatedInApp
+        // so links openURL merely opened in a new tab -- and cancelled
+        // unsaved-changes prompts -- leave the flow running: the search page
+        // is still on screen and the user can keep searching.
+        if (this.lastOpenURLNavigatedInApp()) {
+          SearchAnalytics.endFlow('abandoned');
+        }
         e.preventDefault();
       }
       return
@@ -1203,6 +1242,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
     const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget, signupSource);
     if (handled) {
+      // See the mobile branch above -- ends any active search analytics flow,
+      // but only when this page actually navigated somewhere.
+      if (this.lastOpenURLNavigatedInApp()) {
+        SearchAnalytics.endFlow('abandoned');
+      }
       e.preventDefault();
     }
   }
@@ -1291,9 +1335,15 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
 
   openURL(href, replace=true, overrideContentLang=false, moduleTarget=null, signupSource=null) {
+    // Records whether this call actually navigated the current page somewhere else in the
+    // app, as opposed to being "handled" by opening a new tab or by the user cancelling.
+    // Callers that need to know (see handleInAppLinkClick) read it via
+    // lastOpenURLNavigatedInApp(); openURL's own return value stays a plain "handled?".
+    this._lastOpenURLNavigatedInApp = false;
+
     if (this.shouldAlertBeforeCloseEditor()) {
       if (!this.alertUnsavedChangesConfirmed()) {
-        return true;
+        return true;   // user cancelled -- current page is unchanged
       }
     }
 
@@ -1310,15 +1360,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // TODO generalize to any domain of current deploy.
     if (!Sefaria.isSefariaURL(url) || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
       window.open(url, '_blank')
-      return true;
+      return true;   // new tab -- current page is unchanged
     }
     const path = decodeURI(url.pathname);
     if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
       if (this._aboutSidebarPaths.has(path)) {
         window.open(Sefaria.util.fullURL(path, Sefaria.LIBRARY_MODULE), '_blank', 'noopener,noreferrer');
-        return true;
+        return true;   // new tab -- current page is unchanged
       }
     }
+    // Everything below either navigates this page within the app or returns false.
+    this._lastOpenURLNavigatedInApp = true;
     const params = url.searchParams;
     if(overrideContentLang && params.get('lang')) {
       let lang = params.get("lang")
@@ -1404,9 +1456,19 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       const options = {showHighlight: ref.indexOf("-") !== -1};   // showHighlight when ref is ranged
       openPanel(Sefaria.humanRef(ref), currVersions, options);
     } else {
+      this._lastOpenURLNavigatedInApp = false;
       return false
     }
     return true;
+  }
+  /**
+   * True if the most recent openURL() call navigated this page somewhere else in the app.
+   * False when openURL returned true only because it opened a new tab (external link,
+   * cross-module link) or because the user cancelled out of an unsaved-changes prompt --
+   * in those cases the current page is still on screen.
+   */
+  lastOpenURLNavigatedInApp() {
+    return !!this._lastOpenURLNavigatedInApp;
   }
   unsetTextHighlight(n) {
     this.setPanelState(n, { textHighlights: null });
@@ -1418,6 +1480,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const state = this.state.panels[n];
     const updates = {
       searchQuery: query,
+      searchDisableAutocorrect: false,
       searchState: state.searchState.update({ filtersValid: false }),
     };
     this.setPanelState(n, updates);
@@ -1970,6 +2033,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   showSearch(searchQuery) {
+    // Label the flow the search page is about to start: this path is only reached from the
+    // header search bar (desktop + mobile nav menu). Only when a flow is actually about to
+    // start, though — searching from the nav bar while the search page is already open keeps
+    // the same panel (setSinglePanelState below leaves the panel key unchanged), so the page
+    // is re-rendered with new props rather than remounted and no new flow begins: the visit
+    // continues under the same flow_id with a new search_id. Setting the hint anyway would
+    // leave it uncollected and mislabel the *next* flow, which could be an unrelated deep link.
+    if (this.state.panels?.[0]?.menuOpen !== "search") {
+      SearchAnalytics.setNextFlowSource('nav_bar');
+    }
     const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState;
     const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
         : new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)});
@@ -2308,7 +2381,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
-      keywordTargets: refs ? deDupedTriggers : []
+      keywordTargets: refs ? deDupedTriggers : [],
+      // The KINDS of page open across all panels (a union, like keywordTargets above), for
+      // sidebar ads that target a page type rather than a keyword. A topic panel showing a
+      // specific topic classifies to nothing here — whether it's an author page needs fetched
+      // topic data, so TopicPage supplies the answer via Promotions' pageTypeOverride prop.
+      pageTypes: classifyPanels(this.state.panels)
     };
     return context
   }
@@ -2576,6 +2654,7 @@ ReaderApp.propTypes = {
   initialCollectionData:       PropTypes.object,
   initialQuery:                PropTypes.string,
   initialSearchTab:            PropTypes.string,
+  initialSearchDisableAutocorrect:  PropTypes.bool,
   initialSearchFilters:        PropTypes.array,
   initialSearchField:          PropTypes.string,
   initialSearchSortType:       PropTypes.string,
@@ -2633,5 +2712,6 @@ export {
   ProductsPage,
   SheetsLandingPage,
   NewsletterPage,
+  MobileAppPage,
   UpdatesPanel
 };

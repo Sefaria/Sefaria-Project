@@ -10,12 +10,16 @@ from allauth.socialaccount.providers.google.views import (
     login_by_token as google_login_by_token,
 )
 from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST
+from rest_framework import exceptions
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-from emailusernames.utils import user_exists, get_user
+from emailusernames.utils import get_user
 from sefaria.forms import SefariaPasswordResetForm
 
 logger = structlog.get_logger(__name__)
@@ -26,6 +30,73 @@ def _jwt_for_user(user):
     return {"access": str(refresh.access_token), "refresh": str(refresh)}
 
 
+def sso_only_account_info(email):
+    """
+    Return the list of SSO provider ids linked to `email`'s account if that
+    account is SSO-only (no usable password), or None if the account can
+    (also) sign in with a password, or doesn't exist.
+
+    Shared by email_login (web, session-based) and MobileTokenObtainPairView
+    (mobile, JWT-based) so both surface the same 'this account only has
+    Google/Apple sign-in' signal on a failed credential check.
+
+    One user lookup plus one social-account fetch: has_usable_password()
+    reads a field already on the fetched user, so it needs no query of
+    its own.
+
+    That password check is defence-in-depth rather than a live branch: an
+    account with both a usable password and a linked provider is not
+    reachable today, since linking wipes the password (adapters.py's
+    "SSO always wins on an email collision"). It is kept because it is
+    free and because that is a product decision, not an invariant -- if it
+    is ever revisited, this check is what stops a mistyped password being
+    reported as "your account is Google-only".
+    """
+    try:
+        user = get_user(email)
+    except User.DoesNotExist:
+        return None
+    if user.has_usable_password():
+        return None
+    providers = list(user.socialaccount_set.values_list("provider", flat=True))
+    return providers or None
+
+
+class SSOAwareTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    SimpleJWT's TokenObtainPairSerializer with SSO-only-account detection
+    layered onto the failure path. On success, behaves identically to the
+    stock serializer (returns {access, refresh}). On failure, if the account
+    turns out to be SSO-only, raises AuthenticationFailed with a structured
+    detail mirroring email_login's JSON shape instead of SimpleJWT's generic
+    'no active account' message. Any other failure is re-raised unchanged.
+    """
+
+    def validate(self, attrs):
+        try:
+            return super().validate(attrs)
+        except exceptions.AuthenticationFailed:
+            providers = sso_only_account_info(attrs.get(self.username_field, ""))
+            if providers:
+                raise exceptions.AuthenticationFailed(
+                    {
+                        "error": "auth.generic_error",
+                        "_auth": {"code": "sso_only_account", "providers": providers},
+                    }
+                )
+            raise
+
+
+class MobileTokenObtainPairView(TokenObtainPairView):
+    """
+    api/login/ -- the JWT login endpoint used by the mobile app. Identical to
+    SimpleJWT's stock TokenObtainPairView except for SSO-only-account
+    detection on the failure path; see SSOAwareTokenObtainPairSerializer.
+    """
+
+    serializer_class = SSOAwareTokenObtainPairSerializer
+
+
 def _clean_name(value):
     if not value:
         return ""
@@ -33,22 +104,14 @@ def _clean_name(value):
     return cleaned[:150]
 
 
-def _sso_only_account_error(email):
-    """If `email` belongs to an existing user who can only sign in via SSO
-    (no usable password, has a linked social account), return the shared
-    'sso_only_account' JsonResponse. Otherwise return None."""
-    if not user_exists(email):
-        return None
-    u = get_user(email)
-    if u.has_usable_password() or not u.socialaccount_set.exists():
-        return None
-    providers = list(u.socialaccount_set.values_list("provider", flat=True))
+def _sso_only_account_response(providers, status=401):
+    """Build the shared 'sso_only_account' JsonResponse from a provider list."""
     return JsonResponse(
         {
             "error": "auth.generic_error",
             "_auth": {"code": "sso_only_account", "providers": providers},
         },
-        status=401,
+        status=status,
     )
 
 
@@ -56,7 +119,9 @@ def _social_login_or_error(
     request, provider_id, id_token, first_name=None, last_name=None
 ):
     """Verify a provider ID token and complete the social login.
-    Returns (user, None) on success, or (None, JsonResponse(error)) on failure.
+    Returns (user, outcome, None) on success, or (None, None, JsonResponse(error)) on
+    failure. `outcome` is 'created_new_account' or 'existing_user_login', per
+    sso.adapters.SefariaSocialAccountAdapter.save_user's new-users-only guarantee.
     Shared by the web (session) and mobile (JWT) auth views."""
     adapter = get_social_adapter(request)
     try:
@@ -67,7 +132,7 @@ def _social_login_or_error(
             logger.error(f"{provider_id} JWKS fetch failed", error=str(e))
         else:
             logger.warning(f"{provider_id} token verification failed", error=str(e))
-        return None, JsonResponse({"error": "auth.social_signin_failed"}, status=400)
+        return None, None, JsonResponse({"error": "auth.social_signin_failed"}, status=400)
 
     # Inject name from provider SDK response (absent from the ID token, e.g. Apple)
     if first_name and not sociallogin.user.first_name:
@@ -78,8 +143,9 @@ def _social_login_or_error(
     complete_social_login(request, sociallogin)
 
     if not request.user.is_authenticated:
-        return None, JsonResponse({"error": "auth.social_signin_failed"}, status=400)
-    return request.user, None
+        return None, None, JsonResponse({"error": "auth.social_signin_failed"}, status=400)
+    outcome = "created_new_account" if getattr(request, "_sefaria_new_social_user", False) else "existing_user_login"
+    return request.user, outcome, None
 
 
 # Google One Tap redirect mode (ux_mode: 'redirect') POSTs a signed credential +
@@ -115,12 +181,43 @@ def google_mobile(request):
     if not id_token:
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
-    user, err = _social_login_or_error(request, "google", id_token)
+    user, _outcome, err = _social_login_or_error(request, "google", id_token)
     if err:
         return err
     tokens = _jwt_for_user(user)
     request.session.flush()  # JWT-only client: don't persist a Django session cookie
     return JsonResponse(tokens)
+
+
+@require_POST
+@ensure_csrf_cookie
+def google_web(request):
+    """
+    Google Sign In — popup button and One Tap, web. Called from useSsoSignIn.jsx's
+    onGoogleResult and GoogleOneTap.jsx's handleCredential, in place of a direct POST
+    to allauth's stock headless ProviderTokenView, which has no hook for surfacing
+    `outcome` for the auth-analytics events. Mirrors apple_callback.
+
+    Body (JSON): { id_token }
+
+    Returns:
+      200 { outcome }  — 'created_new_account' | 'existing_user_login'
+      400 { error }    — missing/invalid token or auth failure
+    """
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
+
+    id_token = data.get("id_token", "")
+
+    if not id_token:
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
+
+    user, outcome, err = _social_login_or_error(request, "google", id_token)
+    if err:
+        return err
+    return JsonResponse({"outcome": outcome})
 
 
 @require_POST
@@ -135,6 +232,10 @@ def apple_callback(request):
     Apple only includes name in the SDK response on the very first sign-in; it
     is never in the ID token. We inject first_name/last_name directly onto the
     sociallogin.user object after token verification so save_user() picks them up.
+
+    Returns:
+      200 { outcome }  — 'created_new_account' | 'existing_user_login'
+      400 { error }    — missing/invalid token or auth failure
     """
     try:
         data = json.loads(request.body)
@@ -148,12 +249,12 @@ def apple_callback(request):
     if not id_token:
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
-    user, err = _social_login_or_error(
+    user, outcome, err = _social_login_or_error(
         request, "apple", id_token, first_name, last_name
     )
     if err:
         return err
-    return JsonResponse({})
+    return JsonResponse({"outcome": outcome})
 
 
 @csrf_exempt
@@ -184,7 +285,7 @@ def apple_mobile(request):
     if not id_token:
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
-    user, err = _social_login_or_error(
+    user, _outcome, err = _social_login_or_error(
         request, "apple", id_token, first_name, last_name
     )
     if err:
@@ -194,8 +295,11 @@ def apple_mobile(request):
     return JsonResponse(tokens)
 
 
+@csrf_exempt
 @require_POST
 def password_reset_api(request):
+    # Target email comes from the body, not the session, so CSRF adds no
+    # protection here; the mobile client carries no cookie/Referer to supply it.
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
@@ -207,9 +311,9 @@ def password_reset_api(request):
     if not form.is_valid():
         return JsonResponse({"error": "auth.invalid_email"}, status=400)
 
-    err = _sso_only_account_error(email)
-    if err:
-        return err
+    providers = sso_only_account_info(email)
+    if providers:
+        return _sso_only_account_response(providers)
 
     form.save(
         request=request,
@@ -225,7 +329,9 @@ def password_reset_api(request):
 def email_login(request):
     """
     JSON email/password login for the SSO auth page. Session-based (not JWT).
-    The existing /login form view and /api/login JWT endpoint are unchanged.
+    The existing /login form view is unchanged; /api/login (mobile, JWT) uses
+    the same SSO-only-account detection via sso_only_account_info -- see
+    MobileTokenObtainPairView.
 
     Body (JSON): { email, password }
 
@@ -244,12 +350,10 @@ def email_login(request):
 
     user = authenticate(request, username=email, password=password)
     if user is None:
-        err = _sso_only_account_error(email)
-        if err:
-            return err
-        return JsonResponse(
-            {"error": "auth.invalid_credentials"}, status=401
-        )
+        providers = sso_only_account_info(email)
+        if providers:
+            return _sso_only_account_response(providers)
+        return JsonResponse({"error": "auth.invalid_credentials"}, status=401)
 
     auth_login(request, user)
     return JsonResponse({})
