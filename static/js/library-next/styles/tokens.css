@@ -1,0 +1,122 @@
+/*
+ * Library Next design tokens. Builds on static/css/color-palette.css (brand and category colors)
+ * and adds the `--ln-*` system every component uses. Nothing here is a classic-site class.
+ *
+ * Direction: the page is white paper, the only vivid color is the text category (an inline-start
+ * rule), the interactive accent is Sefaria blue. UI type is Roboto/Heebo; text is Crimson Text
+ * (English) and Taamey Frank (Hebrew). Logical properties throughout, so RTL is free.
+ */
+
+@font-face {
+  font-family: "Taamey Frank";
+  font-weight: 400;
+  font-display: swap;
+  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Taamey Frank";
+  font-weight: 700;
+  font-display: swap;
+  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Taamey Frank";
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf") format("truetype");
+}
+
+:root {
+  /* type families */
+  --ln-font-ui: "Roboto", "Heebo", system-ui, -apple-system, sans-serif;
+  --ln-font-ui-he: "Heebo", "Roboto", system-ui, -apple-system, sans-serif;
+  --ln-font-text-en: "Crimson Text", "adobe-garamond-pro", Georgia, "Times New Roman", serif;
+  --ln-font-text-he: "Taamey Frank", "Frank Ruehl", "Times New Roman", serif;
+
+  /* type scale (The Elements of Typographic Style: a quiet ~1.25 progression) */
+  --ln-text-xs: 0.8125rem;   /* 13 */
+  --ln-text-s: 0.9375rem;    /* 15 — UI default */
+  --ln-text-m: 1.0625rem;    /* 17 */
+  --ln-text-l: 1.3125rem;    /* 21 */
+  --ln-text-xl: 1.75rem;     /* 28 */
+  --ln-text-2xl: 2.25rem;    /* 36 */
+  --ln-text-read: 1.25rem;   /* 20 — body text in the reader (Hebrew scales ×1.15 in base.css) */
+  --ln-leading-ui: 1.45;
+  --ln-leading-text: 1.65;
+  --ln-leading-tight: 1.2;
+
+  /* color: surfaces and ink come from the shared palette */
+  --ln-color-page: var(--white, #ffffff);
+  --ln-color-surface: var(--lightest-grey, #fbfbfa);
+  --ln-color-surface-2: var(--lighter-grey, #ededec);
+  --ln-color-surface-hover: var(--lighter-grey-hover, #dfdfdf);
+  --ln-color-ink: var(--near-black, #121212);
+  --ln-color-ink-2: var(--darker-grey, #575757);
+  --ln-color-muted: var(--secondary-text-grey, #707070);
+  --ln-color-rule: var(--lighter-grey, #ededec);
+  --ln-color-rule-strong: var(--light-grey, #cccccc);
+  --ln-color-accent: var(--sefaria-blue, #18345d);
+  --ln-color-accent-hover: #122848;
+  --ln-color-on-accent: #ffffff;
+  --ln-color-link: var(--inline-link-blue, #4871bf);
+  --ln-color-focus: var(--focus-blue, #1976d2);
+  --ln-color-highlight: var(--highlight-blue-light, #f0f7ff);
+  --ln-color-highlight-strong: var(--highlight-blue, #ddeeff);
+  --ln-color-danger: var(--halakhah-red, #802f3e);
+  --ln-color-skeleton: var(--skeleton-grey, #e6e6e6);
+  --ln-color-skeleton-shimmer: var(--skeleton-grey-shimmer, #efefef);
+  --ln-color-backdrop: rgba(18, 18, 18, 0.45);
+  /* the category color a component sits under; set `--cat` on the element (palette.categoryColor) */
+  --cat: var(--light-grey, #cccccc);
+
+  /* space (4px grid) */
+  --ln-space-1: 0.25rem;
+  --ln-space-2: 0.5rem;
+  --ln-space-3: 0.75rem;
+  --ln-space-4: 1rem;
+  --ln-space-5: 1.5rem;
+  --ln-space-6: 2rem;
+  --ln-space-7: 3rem;
+  --ln-space-8: 4rem;
+
+  /* shape */
+  --ln-radius-s: 4px;
+  --ln-radius-m: 8px;
+  --ln-radius-pill: 999px;
+  --ln-shadow-panel: 0 12px 40px rgba(18, 52, 93, 0.14), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --ln-shadow-menu: 0 6px 24px rgba(0, 0, 0, 0.12);
+
+  /* layout */
+  --ln-header-height: 56px;
+  --ln-content-max: 1200px;
+  --ln-read-max: 42rem;
+  --ln-gutter: var(--ln-space-4);
+  --ln-dock-width: min(420px, 100vw);
+
+  /* layers */
+  --ln-z-header: 20;
+  --ln-z-menu: 25;
+  --ln-z-dock: 30;
+  --ln-z-modal: 40;
+  --ln-z-toast: 50;
+
+  /* motion: one duration, answers to the user only */
+  --ln-ease: 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+[dir="rtl"] {
+  --ln-font-ui: var(--ln-font-ui-he);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --ln-gutter: var(--ln-space-5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ln-ease: 0ms linear;
+  }
+}
