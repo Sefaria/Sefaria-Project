@@ -75,17 +75,12 @@ export class AccountSettingsPage extends HelperBase {
   }
 
   async saveSettings() {
-    // Click the last save button (there are multiple)
+    const dialogPromise = this.page.waitForEvent('dialog', { timeout: t(15000) });
     await this.saveButtons.last().click();
-
-    // Wait for alert dialog to appear and handle it
-    this.page.once('dialog', async dialog => {
-      expect(dialog.message()).toMatch(/Settings Saved|הגדרות נשמרו/i);
-      await dialog.accept();
-    });
-
-    // Wait a bit for the save operation to complete
-    await this.page.waitForTimeout(t(1000));
+    const dialog = await dialogPromise;
+    const message = dialog.message();
+    await dialog.accept();
+    expect(message).toMatch(/Settings Saved|הגדרות נשמרו/i);
   }
 
   async verifyPageLoaded() {

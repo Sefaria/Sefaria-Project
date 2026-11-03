@@ -143,6 +143,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     const pm1 = new PageManager(libraryTab1, LANGUAGES.EN);
     await pm1.onLoginPage().loginAs(testUser);
     await libraryTab1.waitForLoadState('domcontentloaded');
+    await libraryTab1.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: t(15000) });
     await hideAllModalsAndPopups(libraryTab1);
 
     // Verify first tab is logged in
@@ -179,6 +180,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     const pm2 = new PageManager(voicesTab1, LANGUAGES.EN);
     await pm2.onLoginPage().loginAs(testUser);
     await voicesTab1.waitForLoadState('domcontentloaded');
+    await voicesTab1.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: t(15000) });
     await hideAllModalsAndPopups(voicesTab1);
 
     // Verify first tab is logged in

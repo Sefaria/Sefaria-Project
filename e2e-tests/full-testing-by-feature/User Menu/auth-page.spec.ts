@@ -74,6 +74,7 @@ test.describe('Auth Page', () => {
     await selectDropdownOption(page, 'Log in');
     await pm.onLoginPage().loginAs(testUser);
 
+    await page.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: t(15000) });
     await hideAllModalsAndPopups(page);
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
   });
@@ -85,7 +86,7 @@ test.describe('Auth Page', () => {
 
     const emailField = page.getByLabel('Email Address');
     await emailField.click();
-    await page.keyboard.press('Tab'); // blur without typing anything
+    await emailField.blur(); // blur the email field itself; Tab would focus password and mark it required too
     await expect(page.getByText('Required field')).toBeVisible({ timeout: t(5000) });
 
     await emailField.fill('a@test.com');
@@ -93,10 +94,8 @@ test.describe('Auth Page', () => {
   });
 
   test('UMN-A06: Registering with an already-used email shows the "already exists" error', async () => {
-    // Django's form.is_valid() also fails the (unsolved) captcha field here, but
-    // RegisterView.jsx explicitly ignores a `captcha` key in the error response
-    // (ErrorBanner only reflects the email-exists error) — see EMAIL_EXISTS_ERRORS
-    // handling in RegisterView.jsx. So this is reachable without solving reCAPTCHA.
+    // An unsolved reCAPTCHA also raises its own alert (`auth.verify_not_robot`).
+    // The email-exists message is a separate alert; assert that one.
     await openHeaderDropdown(page, 'user');
     await selectDropdownOption(page, 'Sign up');
     await pm.onSignUpPage().clickContinueWithEmail();
@@ -104,7 +103,7 @@ test.describe('Auth Page', () => {
     await pm.onSignUpPage().fillNewUser(testUser.email, 'Xk7mQ9zLp2!', 'QA', 'Automation');
     await page.getByRole('button', { name: /^Create Account$/i }).click();
 
-    await expect(page.getByRole('alert')).toContainText(/already exists/i, { timeout: t(15000) });
+    await expect(page.getByRole('alert').filter({ hasText: /already exists/i })).toBeVisible({ timeout: t(15000) });
     await expect(page).toHaveURL(/\/register/);
   });
 

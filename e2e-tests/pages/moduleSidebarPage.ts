@@ -227,7 +227,7 @@ export class ModuleSidebarPage extends HelperBase {
    */
   async verifyStandardFooterLinks() {
     const specs: FooterLinkSpec[] = [
-      { name: 'About', href: /\w*\.org/, opensNewTab: false },
+      { name: 'About', href: /\/about$/, opensNewTab: false },
       { name: 'Help', href: /help\.\w*\.org/, opensNewTab: true },
       { name: 'Contact Us', href: /^mailto:/, isMailto: true, opensNewTab: true },
       { name: 'Newsletter', href: /newsletter/, opensNewTab: false },

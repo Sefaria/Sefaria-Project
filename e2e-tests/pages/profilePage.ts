@@ -45,7 +45,7 @@ export class ProfilePage extends HelperBase {
   }
 
   get editProfileButton() {
-    return this.page.locator('.profile-actions');
+    return this.page.getByRole('link', { name: 'Edit Profile' });
   }
 
   get bio() {

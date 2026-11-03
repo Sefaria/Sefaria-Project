@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
-import { hideAllModalsAndPopups } from '../utils';
+import { hideAllModalsAndPopups, dismissLibraryAssistant } from '../utils';
 import { t } from '../globals';
 
 /**
@@ -1173,6 +1173,7 @@ export class ResourcePanelPage extends HelperBase {
   // ============================================================
 
   async openNotes(): Promise<void> {
+    await dismissLibraryAssistant(this.page);
     await this.toolsButton('Notes').click();
     await this.expectMode('Notes');
   }
@@ -1185,14 +1186,16 @@ export class ResourcePanelPage extends HelperBase {
 
   /** Type and save a new note. */
   async addNote(text: string): Promise<void> {
+    await dismissLibraryAssistant(this.page);
     const textarea = this.panel.locator('.addNoteBox .noteText').first();
     await expect(textarea).toBeVisible({ timeout: t(10000) });
     await textarea.fill(text);
-    // The save button's aria-label is the most stable anchor — "Add Note"
-    // when creating, "Save" when editing (ConnectionsPanel.jsx:1309).
-    const saveBtn = this.panel.locator('.addNoteBox [role="button"][aria-label="Add Note"]').first();
+    // Creating a note is labeled "Add Note"; editing an existing one is "Save".
+    const saveBtn = this.panel.locator(
+      '.addNoteBox [role="button"][aria-label="Add Note"], .addNoteBox [role="button"][aria-label="Save"]'
+    ).first();
     await expect(saveBtn).toBeVisible({ timeout: t(5000) });
-    await saveBtn.click();
+    await saveBtn.click({ force: true });
   }
 
   /** After save, MyNotes renders the new note inside `.myNoteList`. */
@@ -1258,6 +1261,7 @@ export class ResourcePanelPage extends HelperBase {
   // ============================================================
 
   async openAddToSheet(): Promise<void> {
+    await dismissLibraryAssistant(this.page);
     await this.toolsButton('Add to Sheet').click();
     // The Add To Sheet mode anchor is `.addToSourceSheetBox`.
     await this.expectMode('Add To Sheet');
@@ -1280,6 +1284,7 @@ export class ResourcePanelPage extends HelperBase {
 
   /** Open the sheet-picker dropdown. */
   async openSheetPickerDropdown(): Promise<void> {
+    await dismissLibraryAssistant(this.page);
     const trigger = this.panel.locator('.addToSourceSheetBox .dropdownMain').first();
     await expect(trigger).toBeVisible({ timeout: t(10000) });
     await trigger.click();
@@ -1471,6 +1476,7 @@ export class ResourcePanelPage extends HelperBase {
     });
 
     const box = this.panel.locator('.feedbackBox');
+    await dismissLibraryAssistant(this.page);
     // The Dropdown component (Misc.jsx) renders:
     //   <div class="dropdown sans-serif">
     //     <div class="dropdownMain" role="button" aria-haspopup="listbox" aria-controls="feedbackType-listbox">

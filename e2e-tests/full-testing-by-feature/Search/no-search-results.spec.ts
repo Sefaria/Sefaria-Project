@@ -105,8 +105,8 @@ test.describe('Search — NoSearchResults null state — entity tabs', () => {
   });
 
   // =================================================================
-  // TEST SRCH-064: Caption has exactly two mailto: links (report bug, contact us)
-  // NoSearchResults.jsx:33 — renderCaption splits on [report_bug] / [contact_us]
+  // TEST SRCH-064: Caption has a bug-report link and a contact-us mailto
+  // NoSearchResults.jsx renderCaption: bug.link is the Formstack form, contact is mailto
   // =================================================================
   test('SRCH-064: Null state caption has report-bug and contact-us links', async () => {
     await pm.onSearchPage().selectTab('books');
@@ -114,7 +114,7 @@ test.describe('Search — NoSearchResults null state — entity tabs', () => {
 
     const hrefs = await pm.onSearchPage().nullStateCaptionLinkHrefs();
     expect(hrefs).toHaveLength(2);
-    expect(hrefs[0]).toMatch(/^mailto:/);
+    expect(hrefs[0]).toMatch(/formstack\.com\/forms\/bug_report/);
     expect(hrefs[1]).toMatch(/^mailto:/);
   });
 });
