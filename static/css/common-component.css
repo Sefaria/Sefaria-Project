@@ -121,9 +121,22 @@
 .sefaria-input-field.has-addon .sefaria-input-control {
   padding-inline-end: 64px;
 }
+.sefaria-input-field.has-addon:has(textarea) {
+  flex-direction: column;
+  align-items: stretch;
+}
 .sefaria-input-field.has-addon .sefaria-input-control--multiline {
   padding-inline-end: 16px;
-  padding-bottom: 28px;
+}
+.sefaria-input-field.has-addon:has(textarea) .sefaria-input-fieldAddon {
+  position: static;
+  align-self: flex-end;
+  margin-top: 4px;
+}
+.sefaria-input:has(.has-addon textarea) .sefaria-input-error {
+  margin-top: -28px;
+  min-height: 20px;
+  padding-inline-end: 64px;
 }
 .sefaria-input-fieldAddon {
   position: absolute;

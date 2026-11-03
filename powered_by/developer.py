@@ -26,6 +26,10 @@ from .models import ApiKey, Project, SubmissionSource
 
 
 MAX_KEYS_PER_PROJECT = 5
+MAX_PROJECTS_PER_ACCOUNT = 10
+# Staff raise an account's project limit in admin by adding it to this group.
+RAISED_PROJECT_LIMIT_GROUP = "Developer project limit raised"
+RAISED_MAX_PROJECTS_PER_ACCOUNT = 100
 MAX_DESCRIPTION_LENGTH = 150
 MAX_PROFILE_DESCRIPTION_LENGTH = 300
 
@@ -90,6 +94,24 @@ def origin_of(url):
     if parts.port and parts.port != DEFAULT_PORTS.get(scheme):
         origin += ":{}".format(parts.port)
     return origin
+
+
+def origins_of(url):
+    """
+    The origins a website limit accepts: the website's own origin plus its www / no-www twin, so a key limited to
+    example.org also works on www.example.org and the other way round. Not for an IP address, localhost or a
+    subdomain other than www.
+    """
+    origin = origin_of(url)
+    parts = urlsplit(url)
+    host = (parts.hostname or "").lower()
+    if host.startswith("www."):
+        twin = host[4:]
+    elif host.count(".") == 1 and not host.replace(".", "").isdigit():
+        twin = "www." + host
+    else:
+        return [origin]
+    return [origin, origin.replace("://" + host, "://" + twin, 1)]
 
 
 # --- Verification ------------------------------------------------------------
@@ -269,6 +291,7 @@ def developer_state(request):
         "projects": [serialize_project(p) for p in owned_projects(user)],
         "yourListing": public_listing(listing) if listing else None,
         "maxKeysPerProject": MAX_KEYS_PER_PROJECT,
+        "maxProjects": max_projects(user),
         "mock": None,
     }
     if mocks_enabled():
@@ -497,8 +520,24 @@ def _lock_owned_project(user, project_id):
         raise LookupError("No such project.")
 
 
+def max_projects(user):
+    if user.groups.filter(name=RAISED_PROJECT_LIMIT_GROUP).exists():
+        return RAISED_MAX_PROJECTS_PER_ACCOUNT
+    return MAX_PROJECTS_PER_ACCOUNT
+
+
+def _check_project_limit(user):
+    """Call inside transaction.atomic(): holds the account's row lock so concurrent creates count each other."""
+    _lock_account(user)
+    limit = max_projects(user)
+    if owned_projects(user).count() >= limit:
+        raise InputError("An account can have at most {} projects. To add more, contact hello@sefaria.org.".format(limit))
+
+
+@transaction.atomic
 def create_project(user, data):
     fields = clean_project_fields(data)
+    _check_project_limit(user)
     project = Project(
         submission_source=SubmissionSource.DEVELOPER_SETTINGS,
         submission_date=timezone.now(),
@@ -522,7 +561,7 @@ def update_project(user, project_id, data):
     _set_visibility(project, fields["visibility"])
     project.save()
     if project.project_link != old_link:
-        new_origins = [origin_of(project.project_link)] if project.project_link else []
+        new_origins = origins_of(project.project_link) if project.project_link else []
         for api_key in project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[]):
             api_key.allowed_origins = new_origins
             api_key.save(update_fields=["allowed_origins"])
@@ -540,10 +579,12 @@ def delete_project(user, project_id):
     project.save()
 
 
+@transaction.atomic
 def claim_listing(user, listing_id):
     """
     Makes an unclaimed Powered by listing submitted with this account's email one of its projects.
     """
+    _check_project_limit(user)
     try:
         project = unclaimed_listings(user, UserProfile(id=user.id)).get(id=int(listing_id))
     except (Project.DoesNotExist, ValueError):
@@ -613,7 +654,7 @@ def set_key_restriction(user, key_id, restrict):
     api_key = get_owned_key(user, key_id)
     if restrict and not api_key.project.project_link:
         raise InputError("Add the project's website before restricting a key to it.")
-    api_key.allowed_origins = [origin_of(api_key.project.project_link)] if restrict else []
+    api_key.allowed_origins = origins_of(api_key.project.project_link) if restrict else []
     api_key.save(update_fields=["allowed_origins"])
     return api_key
 

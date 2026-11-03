@@ -9,7 +9,8 @@ import ResetView from './ResetView.jsx';
 import ResetExpiredView from './ResetExpiredView.jsx';
 import MessageView from './MessageView.jsx';
 import Button from '../common/Button.jsx';
-import { pathToFlow, flowToPath, nextFromPath } from './utils.js';
+import { pathToFlow, flowToPath, nextFromPath, authNoticeFor } from './utils.js';
+import { AuthNoticeContext } from './AuthCard.jsx';
 import { useProviderTriggers } from './useSsoSignIn.jsx';
 import { useAuthTracking } from './useAuthTracking.js';
 import { AUTH_METHOD } from './authAnalytics.js';
@@ -147,9 +148,12 @@ const AuthPage = ({
     );
   }
 
+  // Only the log-in and sign-up steps carry the developer banner, not reset or confirmation messages.
+  const notice = (view === 'choose' || view === 'email') ? authNoticeFor(next) : null;
+
   return (
     <div className="sefaria-auth-page">
-      {content}
+      <AuthNoticeContext.Provider value={notice}>{content}</AuthNoticeContext.Provider>
       {overlayNode}
     </div>
   );

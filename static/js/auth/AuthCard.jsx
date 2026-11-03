@@ -1,6 +1,31 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from '../sefaria/sefaria';
+import { InterfaceText } from '../Misc.jsx';
+
+// Set by AuthPage when the visitor came from developer settings or the Powered by form ('developer' | 'share').
+export const AuthNoticeContext = React.createContext(null);
+
+const AUTH_NOTICES = {
+  developer: {
+    title: { en: 'Looking for Developer settings?', he: 'מחפשים את הגדרות המפתחים?' },
+    body: { en: 'Log in or create a free Sefaria account first.', he: 'קודם צריך להתחבר או ליצור חשבון ספריא בחינם.' },
+  },
+  share: {
+    title: { en: 'Interested in sharing your project with Sefaria?', he: 'רוצים לשתף את הפרויקט שלכם עם ספריא?' },
+    body: { en: 'Log in or create a free Sefaria account first.', he: 'קודם צריך להתחבר או ליצור חשבון ספריא בחינם.' },
+  },
+};
+
+const AuthNotice = ({ kind }) => (
+  <p className="sefaria-auth-notice">
+    <img src="/static/icons/info.svg" alt="" aria-hidden="true" />
+    <span>
+      <strong><InterfaceText text={AUTH_NOTICES[kind].title} /></strong>{' '}
+      <InterfaceText text={AUTH_NOTICES[kind].body} />
+    </span>
+  </p>
+);
 
 /**
  * AuthCard — the white auth panel (Figma `Form Card`) that floats on the navy
@@ -25,6 +50,7 @@ import Sefaria from '../sefaria/sefaria';
  */
 const AuthCard = ({ heading, sub, onBack, backLabel = 'auth.back', className = '', children }) => {
   const headingRef = useRef(null);
+  const notice = useContext(AuthNoticeContext);
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -43,6 +69,7 @@ const AuthCard = ({ heading, sub, onBack, backLabel = 'auth.back', className = '
           {sub && <div className="sefaria-auth-card-sub">{sub}</div>}
         </div>
       )}
+      {notice && AUTH_NOTICES[notice] && <AuthNotice kind={notice} />}
       {children}
     </div>
   );

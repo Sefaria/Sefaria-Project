@@ -17928,7 +17928,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPreviewRow dt { color: var(--devPoc-muted); }
 .devPocPreviewRow dd { margin: 0; overflow-wrap: anywhere; }
 
-@media (max-width: 760px) {
+@media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .settingsShell { display: block; max-width: none; }
   .readerNavMenu.settingsPage .content .contentInner { padding: 24px 16px 60px; }
   .settingsNav { display: flex; flex-wrap: wrap; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
@@ -18178,7 +18178,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   border-top: 1px solid #ededec; /* border-default */
 }
 
-@media (max-width: 760px) {
+@media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devSetup { padding: 40px 20px 24px; gap: 24px; border-radius: 12px; }
   .devPocPage .devSetupTitle { font-size: 24px; /* en-content-h3 */ }
   .devPocPage .devSetupSteps { padding: 16px; }
@@ -18303,7 +18303,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-ico { display: inline-grid; place-items: center; width: 24px; height: 24px; border: 0; background: none; color: #575757; border-radius: 4px; cursor: pointer; }
 .devPocPage .devE-ico:hover { background: #eeeeee; color: #121212; /* surface-hover */ }
 .devPocPage .devE-tog { display: inline-flex; align-items: center; vertical-align: middle; }
-@media (max-width: 760px) {
+@media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devE-title { font-size: 22px; }
   .devPocPage .devE-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .devPocPage .devE-table .devE-keyRowT { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 12px 16px; border-top: 1px solid #ededec; }
@@ -18384,7 +18384,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-emptyState { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .devPocPage .devE-emptyState h3 { margin: 0; font: 600 16px/1.4 var(--english-sans-serif-font-family); color: #121212; }
 .devPocPage .devE-emptyState p { margin: 0 0 8px; max-width: 44ch; font-size: 14px; line-height: 21px; color: #575757; /* en-system-small-comfortable, text-secondary */ }
-@media (max-width: 760px) {
+@media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devE-table .devE-emptyTableRow, .devPocPage .devE-table .devE-emptyTableRow td { display: block; }
 }
 /* trial E: a link inside running text is underlined, so it doesn't rely on colour alone */
@@ -18429,7 +18429,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-ico { color: #6f6f6f; width: 32px; height: 32px; }
 .devPocPage .devE-icoDanger:hover { color: #c03522; background: #f9ebe9; /* feedback-error-text, feedback-error-background */ }
 .devPocPage .devE-table .devE-emptyRow td { padding: 12px 16px 16px; border-top: 0; font-size: 14px; color: #707070; }
-@media (max-width: 760px) {
+@media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devE-table .devE-keyRowT { border-top: 1px solid #eeeeee; /* border-subtle */ }
   .devPocPage .devE-table .devE-projRow + .devE-keyRowT { border-top: 0; }
 }
@@ -18438,6 +18438,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* trial E: the sign-in flow's spinner (auth.css .sefaria-auth-loading-spinner), at step size */
 .devPocPage .devE-spinner { display: block; order: -1; width: 32px; height: 32px; border: 3px solid rgba(24, 52, 93, 0.25); border-top-color: #18345d; border-radius: 50%; animation: sefaria-auth-spin 0.8s linear infinite; /* action-primary */ }
 @media (prefers-reduced-motion: reduce) { .devPocPage .devE-spinner { animation-duration: 2.4s; } }
+.devPocPage .devE-projName .devE-org { font-weight: 400; color: #575757; /* text-secondary */ }
 /* trial E: the delete-key modal, as the AI chatbot's "Delete chat?" modal (LCChatbot.svelte .delete-modal) */
 .devE-deleteStage { background: rgba(0, 0, 0, 0.4); animation: devEFadeIn .15s ease; }
 .devE-deleteModal { width: 300px; max-width: calc(100% - 32px); padding: 16px; border-radius: 8px; background: #ffffff; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); text-align: center; font-family: var(--english-sans-serif-font-family); animation: devESlideUp .2s ease; }
@@ -18481,3 +18482,198 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-quiet { border: 1px solid #cccccc; /* gray-300, as the AI chatbot's Cancel */ }
 .devE-deleteBtnPrimary { border: 0; background: #18345d; color: #ffffff; /* action-primary */ }
 .devE-deleteBtnPrimary:hover { background: #132b4c; /* action-primary-hover */ }
+
+/* Trial E: monthly usage bar on each project row (D56). Green → yellow (70%) → red (90%).
+   The DS has no warning color: the yellow fill is the codebase's --talmud-gold, the yellow text is .devPocWarning's. */
+.devPocPage .devE-projSide { display: flex; flex-direction: column; align-items: stretch; gap: 12px; min-width: 0; }
+.devPocPage .devE-usage { display: flex; flex-direction: column; gap: 4px; font-weight: 400; }
+.devPocPage .devE-usageTop { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; line-height: 16px; color: #707070; /* text-muted */ }
+.devPocPage .devE-usagePct { font-size: 14px; font-weight: 600; color: #121212; font-variant-numeric: tabular-nums; }
+.devPocPage .devE-usageBar { display: block; height: 6px; border-radius: 3px; background: #eeeeee; /* surface-hover */ overflow: hidden; }
+.devPocPage .devE-usageBar > span { display: block; height: 100%; border-radius: 3px; background: #518159; /* feedback-success */ }
+.devPocPage .devE-usage.is-mid .devE-usageBar > span { background: var(--talmud-gold, #CCB479); }
+.devPocPage .devE-usage.is-high .devE-usageBar > span { background: #c03522; /* feedback-error */ }
+.devPocPage .devE-usageSub { font-size: 12px; line-height: 16px; color: #707070; /* text-muted */ font-variant-numeric: tabular-nums; }
+.devPocPage .devE-usage.is-high .devE-usageStatus { color: #c03522; font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) { .devPocPage .devE-usageBar > span { transition: width .4s ease; } }
+
+/* Trial E header links (D57): API docs first, the library download beside it in a quieter color. */
+.devPocPage .devE-headLinks { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; }
+.devPocPage .devE-docsMinor { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #575757; /* text-secondary */ }
+.devPocPage .devE-docsMinor:hover { color: #18345d; }
+
+/* 2026-11-01 review fixes */
+.devPocPage .devE-head { gap: 12px; /* spacing-medium: more room between a step's title and its lead */ }
+.devPocPage .devE-spinnerBelow { order: 0; margin-top: 12px; }
+/* In-flow back: only the arrow changes color on hover; no filled hover area. The arrow is the same SVG, drawn as a
+   mask so it can take a color. */
+.devPocPage .devE-stepBack, .devPocPage .devE-stepBack:hover { background: none; }
+.devPocPage .devE-stepBack .devE-arrow { display: block; width: 24px; height: 24px; background-color: #575757; /* text-secondary */
+  -webkit-mask: url(/static/icons/arrow-left.svg) center / 24px no-repeat; mask: url(/static/icons/arrow-left.svg) center / 24px no-repeat; }
+.devPocPage .devE-stepBack:hover .devE-arrow { background-color: #18345d; /* action-primary */ }
+.interface-hebrew .devPocPage .devE-stepBack .devE-arrow { transform: scaleX(-1); }
+
+/* Trial E home, 2026-11-01: one block per project. Its details and actions sit above a table of only its keys,
+   so the column heads describe what's under them. Fixed column widths line the columns up across projects. */
+.devPocPage .devE-projects { display: flex; flex-direction: column; gap: 32px; }
+.devPocPage .devE-project { display: flex; flex-direction: column; gap: 12px; }
+.devPocPage .devE-project > .devE-projHead { padding: 0; }
+.devPocPage h3.devE-projName { margin: 0; font-size: 18px; line-height: 1.3; font-weight: 600; color: #121212; }
+.devPocPage .devE-table { table-layout: fixed; }
+.devPocPage .devE-table .devE-cName { width: 22%; }
+.devPocPage .devE-table .devE-cKey { width: 34%; }
+.devPocPage .devE-table .devE-cDate { width: 16%; }
+.devPocPage .devE-table .devE-cLimit { width: 18%; }
+.devPocPage .devE-table .devE-cEnd { width: 10%; }
+.devPocPage .devE-table td:first-child { overflow-wrap: anywhere; }
+.devPocPage .devE-table tbody tr:first-child td { border-top: 0; }
+.devPocPage .devE-table tbody tr:last-child td:first-child { border-end-start-radius: 8px; }
+.devPocPage .devE-table tbody tr:last-child td:last-child { border-end-end-radius: 8px; }
+.devPocPage .devE-table .devE-emptyRow td { padding: 12px 16px; }
+.devPocPage .devE-projects { margin-top: 16px; }
+
+/* Website's "Recommended" (D54), as a badge so it reads as advice, not as a quiet "Optional". Navy on surface-highlighted.
+   The DS has no badge component; shape follows .devPocBadge (pill, 12px). */
+.devPocPage .devE-recBadge { display: inline-flex; align-items: center; margin-inline-start: 6px; padding: 1px 8px; border-radius: 20px;
+  background: #e4eaf3; color: #18345d; font: 500 12px/18px var(--english-sans-serif-font-family); /* surface-highlighted, action-primary */ }
+
+/* Mobile, at the header's breakpoint ($bp-mobile-max, 842px in breakpoints.scss): a step's buttons stack full width,
+   the primary on top and Cancel or Skip for now under it. */
+@media (max-width: 842px) {
+  .devPocPage .devE-footer { flex-direction: column-reverse; align-items: stretch; }
+  .devPocPage .devE-footer .devE-backBtn, .devPocPage .devE-footer .sefaria-common-button.fullwidth { width: 100%; flex: 0 0 auto; }
+}
+/* Mobile: the empty state spans the whole table, not the first fixed-width column. */
+@media (max-width: 842px) {
+  .devPocPage .devE-table:has(.devE-emptyTableRow) { table-layout: auto; }
+  .devPocPage .devE-table:has(.devE-emptyTableRow) colgroup { display: none; }
+}
+
+/* Trial E: "Limit this key to your website" in the key forms (2026-11-01). */
+.devPocPage .devE-restrict { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid #ededec; border-radius: 8px; background: #fafafa; /* border-default, surface-subtle */ }
+.devPocPage .devE-restrictRow { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.devPocPage .devE-restrictLabel { font-size: 14px; font-weight: 500; color: #121212; }
+.devPocPage .devE-restrict .devE-hint { margin: 0; font-size: 14px; line-height: 1.5; color: #575757; }
+.devPocPage .devE-restrict .sefaria-input { margin-top: 8px; }
+
+/* Each project and its keys share one card (2026-11-01): the details on top, the key table below a divider, so the
+   table reads as belonging to that project. */
+.devPocPage .devE-project { gap: 0; border: 1px solid #ededec; border-radius: 8px; background: #ffffff; /* border-default, surface-page */ }
+.devPocPage .devE-project > .devE-projHead { padding: 20px 16px 16px; }
+.devPocPage .devE-project > .devE-board { border: 0; border-top: 1px solid #ededec; border-radius: 0 0 8px 8px; }
+.devPocPage .devE-project .devE-table thead th:first-child, .devPocPage .devE-project .devE-table thead th:last-child { border-radius: 0; }
+.devPocPage .devE-projects { gap: 24px; }
+/* The project's details sit on a tinted band (surface-selected); its key table below is plain white with a white
+   header row, so the card reads as two layers: the project, then its keys. */
+.devPocPage .devE-project > .devE-projHead { background: #f2f5fa; border-radius: 8px 8px 0 0; /* surface-selected */ }
+.devPocPage .devE-project .devE-table thead th { background: #ffffff; }
+/* Revised (2026-11-01): one tinted card per project, with the project's details on the tint and the key table inset
+   in it as its own white, bordered panel. */
+.devPocPage .devE-project { gap: 16px; padding: 20px; background: #f2f5fa; border: 1px solid #e4eaf3; border-radius: 12px; /* surface-selected, surface-highlighted */ }
+.devPocPage .devE-project > .devE-projHead { padding: 0; background: none; border-radius: 0; }
+.devPocPage .devE-project > .devE-board { background: #ffffff; border: 1px solid #ededec; border-radius: 8px; /* surface-page, border-default */ }
+.devPocPage .devE-project .devE-table thead th:first-child { border-start-start-radius: 8px; }
+.devPocPage .devE-project .devE-table thead th:last-child { border-start-end-radius: 8px; }
+@media (max-width: 842px) { .devPocPage .devE-project { padding: 16px; } }
+/* The remove-website dialog's list of affected keys */
+.devE-dialogList { margin: -8px 0 16px; padding-inline-start: 18px; font-size: 12px; line-height: 18px; color: #121212; }
+
+/* Confirmation windows scaled to the page (2026-11-01): the AI chatbot's sizes (300px, 12-14px text, 34px buttons)
+   looked tiny beside developer settings. Text now matches the page (title like a section heading, body 16px), and
+   buttons match the page's 40px .devE-pill. */
+.devE-deleteModal { width: 440px; padding: 28px 24px 24px; border-radius: 12px; }
+.devE-deleteModal h3 { margin: 0 0 8px; font-size: 20px; line-height: 28px; font-weight: 600; }
+.devE-deleteModal p { margin: 0 0 24px; font-size: 16px; line-height: 24px; }
+.devE-dialogList { margin: -16px 0 24px; font-size: 16px; line-height: 24px; text-align: start; display: inline-block; }
+.devE-deleteActions { gap: 12px; }
+.devE-deleteBtn { min-width: 96px; height: 40px; padding: 0 20px; font-size: 14px; }
+@media (max-width: 842px) {
+  .devE-deleteActions { flex-direction: column; }
+  .devE-deleteBtn { width: 100%; }
+}
+.devE-deleteModal { box-sizing: border-box; text-align: start; }
+.devE-deleteActions { justify-content: flex-start; /* with row-reverse: the buttons sit at the end edge, primary last */ }
+.devE-dialogList { display: block; }
+
+/* Mobile key rows (2026-11-01). Below the header's breakpoint the fixed-width table can't fit, so each key becomes
+   a small block: name and delete on top, the key and its copy/AI buttons under it, then Created and the
+   "Limit to website" switch on one line. */
+@media (max-width: 842px) {
+  .devPocPage .devE-table, .devPocPage .devE-table tbody { display: block; width: 100%; table-layout: auto; }
+  .devPocPage .devE-table colgroup { display: none; }
+  .devPocPage .devE-table .devE-keyRowT { display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "name end" "key key" "date limit"; align-items: center; gap: 8px 12px; padding: 12px 16px; }
+  .devPocPage .devE-table tbody tr:first-child { border-top: 0; }
+  .devPocPage .devE-table .devE-keyRowT td { display: block; width: auto; padding: 0; border: 0; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(1) { grid-area: name; font-weight: 600; font-size: 16px; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(2) { grid-area: key; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(3) { grid-area: date; font-size: 14px; color: #575757; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(4) { grid-area: limit; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(5) { grid-area: end; }
+  .devPocPage .devE-table .devE-keyRowT td[data-l]::before { display: none; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(3)::before { content: attr(data-l) " "; display: inline; color: #707070; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(4) { display: flex; align-items: center; gap: 8px; justify-self: end; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(4)::before { content: attr(data-l); display: inline; font-size: 14px; color: #575757; }
+  .devPocPage .devE-table .devE-keyCell { flex-wrap: nowrap; }
+  .devPocPage .devE-table .devE-emptyRow { display: block; }
+  .devPocPage .devE-table .devE-emptyRow td { display: block; }
+}
+@media (max-width: 842px) { .devPocPage .devE-projSide { flex: 1 1 100%; width: 100%; } }
+
+/* Show/hide a key (2026-11-01): the sign-in password field's eye and eye-off icons, drawn as masks so they take the
+   key-row icon color. A shown key wraps inside its cell instead of widening the column. */
+.devPocPage .devE-eye { display: block; width: 16px; height: 16px; background-color: currentColor;
+  -webkit-mask: url(/static/icons/eye.svg) center / 16px no-repeat; mask: url(/static/icons/eye.svg) center / 16px no-repeat; }
+.devPocPage .devE-eye.is-off { -webkit-mask-image: url(/static/icons/eye-off.svg); mask-image: url(/static/icons/eye-off.svg); }
+.devPocPage .devE-table .devE-keyText { overflow-wrap: anywhere; min-width: 0; }
+.devPocPage .devE-table .devE-keyCell { min-width: 0; }
+
+/* Key cell, 2026-11-01: the eye and copy buttons sit tight together; a shown key wraps inside the Key column instead
+   of running into the next one; the Key column starts closer to Name, so a shown key has room. */
+.devPocPage .devE-table .devE-keyCell { display: flex; align-items: center; gap: 0; max-width: 100%; }
+.devPocPage .devE-table .devE-keyCell .devE-ico { flex: none; width: 28px; height: 28px; }
+.devPocPage .devE-table .devE-keyText { flex: 0 1 auto; margin-inline-end: 4px; white-space: normal; overflow-wrap: anywhere; word-break: break-all; }
+.devPocPage .devE-table .devE-cName { width: 15%; }
+.devPocPage .devE-table .devE-cKey { width: 47%; }
+.devPocPage .devE-table .devE-cDate { width: 13%; }
+.devPocPage .devE-table .devE-cLimit { width: 17%; }
+.devPocPage .devE-table .devE-cEnd { width: 8%; }
+/* "Copied" floats just above the copy button, so it never covers the next column or shifts anything. */
+.devPocPage .devE-table .devE-keyCell .devE-keyCopied { inset-inline-start: auto; inset-inline-end: 0; top: auto; bottom: calc(100% + 2px); transform: none; margin: 0; }
+.devPocPage .devE-table .devE-keyCell { display: inline-flex; }
+
+/* Project limit (2026-11-01): "New project" disabled at the limit, with the reason in a tooltip shown on hover or
+   keyboard focus. Same popover look as the "?" tips. */
+.devPocPage .devE-tipWrap { position: relative; display: inline-flex; }
+.devPocPage .devE-tipWrap .devE-tip { display: none; top: calc(100% + 8px); inset-inline-start: auto; inset-inline-end: 0; width: max-content; max-width: min(280px, calc(100vw - 32px)); }
+.devPocPage .devE-tipWrap:hover .devE-tip, .devPocPage .devE-tipWrap:focus-within .devE-tip { display: block; }
+.devPocPage .devE-pill[aria-disabled="true"] { background: #ededec; border-color: #ededec; color: #999999; cursor: not-allowed; /* same as .devE-pill:disabled */ }
+@media (max-width: 842px) { .devPocPage .devE-tipWrap .devE-tip { inset-inline-end: auto; inset-inline-start: 0; } }
+
+/* 2026-11-01: 12px (on the 4px scale) between "Edit project details" and "Add key". */
+.devPocPage .devE-project .devE-actions { gap: 12px; }
+.devE-deleteModal #devEDelProjText p { margin-bottom: 16px; }
+.devE-deleteModal #devEDelProjText .devE-dialogList { margin: -8px 0 16px; }
+.devE-deleteModal #devEDelProjText p:last-child { margin-bottom: 24px; }
+/* Very narrow screens: Created and "Limit to website" get a line each, so they can't collide. */
+@media (max-width: 480px) {
+  .devPocPage .devE-table .devE-keyRowT { grid-template-areas: "name end" "key key" "date date" "limit limit"; }
+  .devPocPage .devE-table .devE-keyRowT td:nth-child(4) { justify-self: start; }
+}
+/* "Copied" back to the right of the copy button, vertically centred, still out of the flow so nothing shifts. */
+.devPocPage .devE-table .devE-keyCell .devE-keyCopied { inset-inline-start: 100%; inset-inline-end: auto; top: 50%; bottom: auto; transform: translateY(-50%); margin-inline-start: 4px; }
+
+/* Share your project with Sefaria (Powered by page), 2026-11-01 */
+.devPocPage .devE-shareForm { gap: 32px; }
+.devPocPage .devE-shareSection { display: flex; flex-direction: column; gap: 20px; }
+.devPocPage .devE-shareSection + .devE-shareSection { padding-top: 32px; border-top: 1px solid #ededec; /* border-default */ }
+.devPocPage .devE-shareSection h3 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; color: #121212; }
+.devPocPage .devE-shareNote { margin: -12px 0 0; font-size: 14px; line-height: 1.5; color: #575757; }
+.devPocPage .devE-choices { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.devPocPage .devE-choices legend { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #121212; }
+.devPocPage .devE-hintInline { margin-inline-start: 4px; font-weight: 400; font-size: 12px; color: #707070; }
+.devPocPage .devE-radio { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #121212; cursor: pointer; }
+.devPocPage .devE-radio input { width: 16px; height: 16px; margin: 0; accent-color: #18345d; }
+.devPocPage .devE-shareLead { display: flex; flex-direction: column; gap: 12px; }
+.devPocPage .devE-shareNoteTight { margin: 4px 0 0; }
+.devPocPage .devE-galleryLink { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; }

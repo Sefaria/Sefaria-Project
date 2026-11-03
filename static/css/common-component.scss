@@ -163,7 +163,13 @@ $stroke-strong:   1.5px;
 
   // A small addon inside the field's bottom-right corner (a character count)
   &-field.has-addon .sefaria-input-control { padding-inline-end: 64px; }
-  &-field.has-addon .sefaria-input-control--multiline { padding-inline-end: $sp-4; padding-bottom: 28px; }
+  // On a textarea the count sits under the box, end-aligned, so it never covers the text or the scrollbar.
+  &-field.has-addon:has(textarea) { flex-direction: column; align-items: stretch; }
+  &-field.has-addon .sefaria-input-control--multiline { padding-inline-end: $sp-4; }
+  &-field.has-addon:has(textarea) .sefaria-input-fieldAddon { position: static; align-self: flex-end; margin-top: $sp-1; }
+  // An error on that textarea shares the count's line (error at the start, count at the end), right under the box,
+  // instead of sitting below the count. -28px = the count's 20px line + the wrapper's 8px gap.
+  &:has(.has-addon textarea) .sefaria-input-error { margin-top: -28px; min-height: 20px; padding-inline-end: 64px; }
   &-fieldAddon {
     position: absolute;
     inset-inline-end: $sp-3;

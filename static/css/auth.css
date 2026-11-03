@@ -310,4 +310,30 @@
   color: var(--sefaria-blue);
 }
 
+.sefaria-auth-notice {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 400px;
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #f0f7ff;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #121212;
+  text-align: start;
+}
+.sefaria-auth-notice img {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.sefaria-auth-notice strong {
+  font-weight: 500;
+}
+
 /*# sourceMappingURL=auth.css.map */

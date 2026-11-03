@@ -357,3 +357,24 @@ $stroke-strong:   1.5px;
 
   a { color: var(--sefaria-blue); }
 }
+
+// Developer banner: why a developer-settings or Powered by link asked them to log in (2026-11-03).
+.sefaria-auth-notice {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 400px;
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: $sp-2;
+  padding: 12px $sp-4;
+  border-radius: 8px;
+  background: #f0f7ff; // same tint as the search autocorrect banner
+  font-size: $font-size-label;
+  line-height: 1.5;
+  color: $sef-text-primary;
+  text-align: start;
+
+  img { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 1px; }
+  strong { font-weight: 500; }
+}
