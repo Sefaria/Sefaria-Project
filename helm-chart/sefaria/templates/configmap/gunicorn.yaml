@@ -14,7 +14,6 @@ data:
 
     import os
     import structlog
-    import re
 
     {{- if .Values.instrumentation.enabled }}
     from opentelemetry import trace
@@ -44,52 +43,6 @@ data:
         from reader.startup import init_library_cache
         init_library_cache()
 
-    def combined_logformat(logger, name, event_dict):
-        if event_dict.get('logger') == "gunicorn.access":
-            message = event_dict['event']
-
-            parts = [
-                r'(?P<host>\S+)',  # host %h
-                r'\S+',  # indent %l (unused)
-                r'(?P<user>\S+)',  # user %u
-                r'\[(?P<time>.+)\]',  # time %t
-                r'"(?P<method>\S+)\s+(?P<path>\S+)\s+(?P<protocol>\S+)"',  # request "%r"
-                r'(?P<status>[0-9]+)',  # status %>s
-                r'(?P<size>\S+)',  # size %b (careful, can be '-')
-                r'"(?P<referer>.*)"',  # referer "%{Referer}i"
-                r'"(?P<agent>.*)"',  # user agent "%{User-agent}i"
-            ]
-            pattern = re.compile(r'\s+'.join(parts) + r'\s*\Z')
-            m = pattern.match(message)
-            res = m.groupdict()
-
-            res["httpRequest"] = {
-                "requestUrl": res["path"],
-                "requestMethod": res["method"]
-            }
-
-            del res["path"]
-            del res["method"]
-            del res["protocol"]
-
-            if res["user"] == "-":
-                res["user"] = None
-
-            res["status"] = int(res["status"])
-
-            if res["size"] == "-":
-                res["size"] = 0
-            else:
-                res["size"] = int(res["size"])
-
-            if res["referer"] == "-":
-                res["referer"] = None
-
-            event_dict.update(res)
-
-        return event_dict
-
-
     # this is duplicated from sefaria.system.logging
     def add_severity(logger, method_name, event_dict):
         """
@@ -113,7 +66,6 @@ data:
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.stdlib.add_logger_name,
         add_severity,
-        combined_logformat
     ]
 
 
@@ -131,11 +83,21 @@ data:
             "error_console": {
                 "class": "logging.StreamHandler",
                 "formatter": "json_formatter",
+                "stream": "ext://sys.stderr",
             },
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": "json_formatter",
+                "stream": "ext://sys.stdout",
             },
+        },
+        # Override gunicorn's CONFIG_DEFAULTS loggers, which set propagate=True. With
+        # propagation on, every record also reached Django's root handler, so each
+        # access line was emitted twice (sc-46457). Access logs are dropped entirely:
+        # nginx, django-structlog's request_finished and APM already cover each request.
+        "loggers": {
+            "gunicorn.access": {"level": "WARNING", "handlers": [], "propagate": False},
+            "gunicorn.error": {"level": "INFO", "handlers": ["error_console"], "propagate": False},
         },
     }
 
