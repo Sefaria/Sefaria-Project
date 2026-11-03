@@ -1176,6 +1176,69 @@ def test_reindex_finalize_does_not_call_delete_alias(monkeypatch):
     search.reindex_finalize("text", min_doc_ratio=0.9)
 
 
+def test_reindex_finalize_retains_previous_index_when_opted_in(monkeypatch):
+    """With REINDEX_RETAIN_PREVIOUS_INDEX enabled, finalize swaps the alias but keeps the previous index for one cycle."""
+    from sefaria import search
+
+    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
+    monkeypatch.setenv("REINDEX_RETAIN_PREVIOUS_INDEX", "true")
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 1000)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: False)
+    monkeypatch.setattr(search.index_client, "update_aliases", lambda body: None)
+
+    cleared = []
+    monkeypatch.setattr(search, "clear_index", lambda name: cleared.append(name))
+
+    search.reindex_finalize("text", min_doc_ratio=0.9)
+
+    assert "text-current" not in cleared, "previous index must be retained for one cycle"
+
+
+def test_reindex_finalize_clears_previous_index_by_default(monkeypatch):
+    """Without the retain flag, finalize keeps the original behaviour and clears the previous index."""
+    from sefaria import search
+
+    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
+    monkeypatch.delenv("REINDEX_RETAIN_PREVIOUS_INDEX", raising=False)
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 1000)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: False)
+    monkeypatch.setattr(search.index_client, "update_aliases", lambda body: None)
+
+    cleared = []
+    monkeypatch.setattr(search, "clear_index", lambda name: cleared.append(name))
+
+    search.reindex_finalize("text", min_doc_ratio=0.9)
+
+    assert cleared == ["text-current"]
+
+
+def test_reindex_init_recreates_retained_slot_on_next_cycle(monkeypatch):
+    """The retained index sits in the slot the next reindex_init targets; init must recreate it (force=True),
+    which is what removes the older index at the start of the following cycle."""
+    from sefaria import search
+
+    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
+    names = {"new": "text-retained", "current": "text-new", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: True)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 1000)
+
+    create_calls = []
+    monkeypatch.setattr(search, "create_index",
+                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
+    monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda *a, **k: None)
+
+    search.reindex_init("text")
+
+    assert create_calls == [("text-retained", True)]
+
+
 def test_reindex_finalize_empty_first_run_raises_value_error(monkeypatch):
     """When both new and current doc counts are 0 (first run with empty new index), refuse alias swap."""
     from sefaria import search
