@@ -23,8 +23,8 @@ const ResetExpiredView = ({ csrf, onResendSuccess, onRequestNewLink }) => {
     setError(null);
     setResending(true);
     const { ok, data } = await postJson(window.location.pathname, { action: 'resend' }, csrf);
-    if (ok) { onResendSuccess(); }
-    else if (data?._auth?.code === 'no_account_for_link') { setNoAccountForLink(true); }
+    if (ok) { onResendSuccess(); return; } // unmounts this view, so there is no state left to reset
+    if (data?._auth?.code === 'no_account_for_link') { setNoAccountForLink(true); }
     else { setError(authError(data, 'auth.generic_error')); }
     setResending(false);
   };
