@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
+import classNames from "classnames";
 
-const Modal = ({ children, close }) => {
+const Modal = ({ children, close, className }) => {
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ const Modal = ({ children, close }) => {
   return (
     <dialog
       ref={dialogRef}
-      className="dialogModal"
+      className={classNames("dialogModal", className)}
       onClick={handleClickOutside}
       onKeyDown={handleKeyDown}
     >
