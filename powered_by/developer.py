@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from urllib.parse import urlsplit
 
 import idna
+from publicsuffixlist import PublicSuffixList
 from allauth.account import app_settings as account_settings
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
@@ -110,23 +111,17 @@ def domain_of(url):
     form, without a leading www., scheme or port. The auth service accepts an Origin whose host
     is this domain or a subdomain of it; an IP address only matches itself.
     """
-    host = _origin_host(urlsplit(url).hostname or "")
+    host = _origin_host(urlsplit(url).hostname or "").rstrip(".")
     return host[len("www."):] if host.startswith("www.") else host
 
 
-# Suffixes under which unrelated people's sites live. "Any subdomain" of one would let every site
-# on that host use the key, so a key can't be restricted to one; a subdomain of one is fine.
-SHARED_HOSTING_SUFFIXES = frozenset({
-    "vercel.app", "netlify.app", "github.io", "gitlab.io", "pages.dev", "workers.dev", "herokuapp.com",
-    "onrender.com", "fly.dev", "web.app", "firebaseapp.com", "appspot.com", "glitch.me", "replit.app",
-    "repl.co", "replit.dev", "lovable.app", "netlify.com", "surge.sh", "azurewebsites.net",
-    "azurestaticapps.net", "cloudfront.net", "amplifyapp.com", "blogspot.com", "wordpress.com",
-    "wixsite.com", "squarespace.com", "webflow.io", "framer.website", "framer.app", "streamlit.app",
-    "hf.space", "ngrok-free.app", "ngrok.app", "trycloudflare.com", "deno.dev", "railway.app",
-    "up.railway.app", "vercel.dev", "codesandbox.io", "csb.app", "stackblitz.io", "bolt.host",
-    "sites.google.com", "googleusercontent.com",
-    "co.uk", "org.uk", "ac.uk", "co.il", "org.il", "ac.il", "gov.il", "com.au", "net.au", "org.au",
-    "co.nz", "co.za", "com.br", "co.jp", "co.in",
+# A key restricted to a public suffix (co.uk, vercel.app, github.io, ...) would work for every site under it, so
+# that is refused; a site of one's own under it (myapp.vercel.app) is fine. The Public Suffix List's private
+# section covers most shared hosts; these are shared hosts it doesn't list.
+PUBLIC_SUFFIXES = PublicSuffixList()
+EXTRA_SHARED_HOSTS = frozenset({
+    "sites.google.com", "googleusercontent.com", "wordpress.com", "squarespace.com", "netlify.com",
+    "glitch.me", "railway.app", "codesandbox.io", "stackblitz.io",
 })
 
 SHARED_DOMAIN_ERROR = ("A key can't be restricted to {domain}, because other people's sites share it. Use your "
@@ -149,7 +144,7 @@ def check_restrictable(domain):
         return
     if "." not in domain:
         raise InputError(NOT_A_DOMAIN_ERROR.format(domain=domain))
-    if domain in SHARED_HOSTING_SUFFIXES:
+    if domain in EXTRA_SHARED_HOSTS or PUBLIC_SUFFIXES.is_public(domain):
         raise InputError(SHARED_DOMAIN_ERROR.format(domain=domain))
 
 

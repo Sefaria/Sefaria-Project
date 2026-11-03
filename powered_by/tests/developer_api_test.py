@@ -823,12 +823,13 @@ def test_domain_of_is_the_host_without_www_scheme_or_port():
     assert domain_of("http://[::1]:8080/") == "[::1]"
     assert domain_of("http://[0:0::1]:80/") == "[::1]"
     assert domain_of("http://127.0.0.1:8000/") == "127.0.0.1"
+    assert domain_of("https://www.example.org./") == "example.org"
 
 
 def test_check_restrictable_refuses_shared_hosts_and_single_labels():
     from powered_by.developer import InputError, check_restrictable
 
-    for domain in ("vercel.app", "github.io", "co.uk", "co.il", "localhost"):
+    for domain in ("vercel.app", "github.io", "co.uk", "co.il", "com.mx", "co.kr", "sites.google.com", "localhost"):
         with pytest.raises(InputError):
             check_restrictable(domain)
     for domain in ("myapp.vercel.app", "example.co.uk", "example.org", "127.0.0.1", "[::1]"):
