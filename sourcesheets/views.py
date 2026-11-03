@@ -41,7 +41,7 @@ from sefaria.constants.model import get_direction_from_legacy_lang
 from sefaria.site.site_settings import SITE_SETTINGS
 
 from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes, menu_page
-from sefaria.sheets import clean_source, bleach_text
+from sefaria.sheets import clean_sources, bleach_text
 from bs4 import BeautifulSoup
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
@@ -645,10 +645,7 @@ def save_sheet_api(request):
         else:
             existing = None
 
-        cleaned_sources = []
-        for source in sheet["sources"]:
-            cleaned_sources.append(clean_source(source))
-        sheet["sources"] = cleaned_sources
+        sheet["sources"] = clean_sources(sheet["sources"])
 
         sheet["title"] = bleach_text(sheet["title"])
 
