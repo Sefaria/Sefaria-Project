@@ -16,3 +16,5 @@ CHATBOT_PROMO_LEARN_MORE_URLS = "feature.chatbot.promoLearnMoreUrls"
 SHOW_JOIN_CHATBOT_BANNER = "feature.client.show_join_chatbot_banner"
 CHATBOT_PROMO_MAYBE_LATER_JSON = "feature.chatbot.promoMaybeLaterJSON"
 CHATBOT_PROMO_SESSION_LENGTH_SECONDS = "feature.chatbot.promoSessionLengthSeconds"
+# Logged-out visitors get the assistant (the chatbot service caps their free responses)
+CHATBOT_ANONYMOUS_ENABLED = "feature.chatbot.anonymous_enabled"

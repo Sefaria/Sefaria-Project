@@ -119,7 +119,8 @@ Method map by UX ID:
 | UX-059 (Escape closes menu) — **`test.fixme`**: component does not yet handle Escape | `openHeaderMenu()`, `closeMenuWithEscape()`, `expectMenuHidden()` |
 | UX-060 (Restart conversation clears messages) | `typeMessage()`, `sendViaEnter()`, `waitForResponse()`, `openHeaderMenu()`, `clickRestartConversation()`, `expectEmptyState()`, `expectNoUserMessages()` |
 | UX-085 (LA hidden at 375px mobile viewport) | `waitForReady()`, then `page.setViewportSize({ width: 375, height: 667 })` + assert `lc-chatbot` hidden |
-| LA-NEG-001 → 004 (LA absent off its intended surface) | `expectNotPresent()` — on `voices.*` home, a voices sheet, and logged-out Library/reader pages |
+| LA-NEG-001, 002 (LA absent off its intended surface) | `expectNotPresent()` — on `voices.*` home and a voices sheet |
+| LA-ANON-001, 002 (logged-out visitors get LA) | `waitForReady()` — on logged-out Library home and reader pages |
 
 State helpers (use these liberally at the top of a test to reach a known state):
 
@@ -236,8 +237,8 @@ If the host is missing entirely: the user isn't whitelisted for LA, or storage s
 
 | File | Purpose |
 | --- | --- |
-| [library-assistant.spec.ts](library-assistant.spec.ts) | **English** spec: 16 behavioral tests (UX-001, 003, 004, 013, 014, 022, 023, 024, 026, 027, 036, 057, 058, 059 *(fixme)*, 060, 085) + 4 visibility-boundary tests (LA-NEG-001 → 004) |
-| [library-assistant-hebrew.spec.ts](library-assistant-hebrew.spec.ts) | **Hebrew** spec mirroring the English one (UX-… `(HE)` + LA-NEG-HE-001/003/004). Runs in parallel; see §12 |
+| [library-assistant.spec.ts](library-assistant.spec.ts) | **English** spec: 16 behavioral tests (UX-001, 003, 004, 013, 014, 022, 023, 024, 026, 027, 036, 057, 058, 059 *(fixme)*, 060, 085) + 4 visibility-boundary tests (LA-NEG-001, 002, LA-ANON-001, 002) |
+| [library-assistant-hebrew.spec.ts](library-assistant-hebrew.spec.ts) | **Hebrew** spec mirroring the English one (UX-… `(HE)` + LA-NEG-HE-001, LA-ANON-HE-001/002). Runs in parallel; see §12 |
 | [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) | Page object — all LA interactions; language-parameterized via `LA_LABELS[this.language]` (§11) |
 | [../pages/pageManager.ts](../pages/pageManager.ts) | Registers `pm.onLibraryAssistant()` |
 | [../globals.ts](../globals.ts) | `testLAUser` / `testHeLAUser`, `AUTH_PATHS.enLAUserFile` / `heLAUserFile`, `BROWSER_SETTINGS.enLAUser` / `heLAUser` |
