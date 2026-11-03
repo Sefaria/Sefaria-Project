@@ -1,0 +1,18 @@
+# Which tests actually EXECUTE linker code. Static imports cannot answer this:
+# sefaria/model/__init__.py imports the linker eagerly, so every test touching
+# sefaria.model "reaches" it and the import graph separates nothing.
+[run]
+source =
+    sefaria/model/linker
+    sefaria/helper/linker
+include =
+    */sefaria/model/linker/*
+    */sefaria/helper/linker/*
+    */sefaria/model/linker_dataset_example.py
+    */sefaria/model/linker_editor_history.py
+    */sefaria/helper/linker_editor.py
+    */sefaria/helper/linker_index_converter.py
+    */sefaria/helper/linker_resource_panel_admin.py
+dynamic_context = test_function
+branch = False
+data_file = .artifacts/linker-coverage/.coverage

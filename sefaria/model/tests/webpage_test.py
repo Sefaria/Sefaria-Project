@@ -3,9 +3,16 @@ from sefaria.model import *
 from sefaria.model.webpage import WebPage, WebSite, get_webpages_for_ref
 from sefaria.helper.webpages import normalize_url
 from sefaria.system.cache import gen_cache
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 title_good_url = "Dvar Torah"
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _webpages_index():
+    """get_webpages_for_ref hints expandedRefs_1; a restored corpus without webpages has no such index."""
+    db.webpages.create_index([("expandedRefs", 1)])
 
 
 @pytest.fixture(scope='module')
@@ -170,6 +177,7 @@ def test_page_wout_description(create_web_page_wout_desc):
 	assert WebPage().add_or_update_from_linker(data)[0] == "excluded"
 
 
+@pytest.mark.needs_corpus
 def test_get_webpages_for_ref_filters_whitelisted(whitelisted_webpage, non_whitelisted_webpage):
 	results = get_webpages_for_ref("Genesis 1:1")
 	normalized_whitelisted_url = normalize_url(whitelisted_webpage["url"])

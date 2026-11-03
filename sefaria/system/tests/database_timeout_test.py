@@ -15,6 +15,7 @@ def test_timeout_kwargs_are_finite_and_sane():
     assert kw["connectTimeoutMS"] == 20_000
 
 
+@pytest.mark.needs_corpus
 def test_live_client_has_timeouts_applied():
     # pymongo exposes resolved options on the client
     opts = database.client.options

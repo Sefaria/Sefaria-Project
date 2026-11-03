@@ -31,6 +31,7 @@ class Test_Toc(object):
             model.IndexSet({"title": title}).delete()
             model.VersionSet({"title": title}).delete()
 
+    @pytest.mark.needs_corpus
     def test_toc_integrity(self):
         self.recur_toc_integrity(model.library.get_toc())
 
@@ -163,6 +164,7 @@ class Test_Toc(object):
         indx2.save()
         verify_existence_across_tocs(indx2.title, expected_toc_location=indx2.categories)
 
+    @pytest.mark.needs_corpus
     def test_text_change(self):
         pass
 

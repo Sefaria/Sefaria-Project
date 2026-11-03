@@ -166,6 +166,7 @@ def test_ancestors():
     assert root.last_leaf().ancestors() == [root, root.last_child()]
 
 
+@pytest.mark.needs_corpus
 def test_text_index_map():
     def tokenizer(s):
         s = re.sub(r'<.+?>','',s).strip()

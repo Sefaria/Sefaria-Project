@@ -99,27 +99,32 @@ class TestPageRefs:
                 mp.add_ref(r)
                 mp.save()
 
+    @pytest.mark.needs_corpus
     def test_new_ref_overlap(self):
         mp = ManuscriptPage().load({'expanded_refs': 'Job 3:1'})
         assert mp is not None
         with pytest.raises(ManuscriptError):
             mp.add_ref('Job 3-4')
 
+    @pytest.mark.needs_corpus
     def test_load_by_segment(self):
         mps = ManuscriptPageSet.load_by_ref(Ref('Job 3:1'))
         test_specific = [m for m in mps if m.manuscript_slug == Manuscript.normalize_slug('Delete Me')]
         assert len(test_specific) == 1
 
+    @pytest.mark.needs_corpus
     def test_load_by_section(self):
         mps = ManuscriptPageSet.load_by_ref(Ref('Job 3'))
         test_specific = [m for m in mps if m.manuscript_slug == Manuscript.normalize_slug('Delete Me')]
         assert len(test_specific) == 1
 
+    @pytest.mark.needs_corpus
     def test_load_range(self):
         mps = ManuscriptPageSet.load_by_ref(Ref("Job 4:2-6:3"))
         test_specific = [m for m in mps if m.manuscript_slug == Manuscript.normalize_slug('Delete Me')]
         assert len(test_specific) == 2
 
+    @pytest.mark.needs_corpus
     def test_load_for_client(self):
         slug = Manuscript.normalize_slug('Delete Me')
         data = ManuscriptPageSet.load_set_for_client("Job 4")

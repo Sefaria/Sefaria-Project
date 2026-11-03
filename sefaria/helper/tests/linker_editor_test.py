@@ -48,6 +48,7 @@ def test_normalize_scope():
         le._normalize_scope("bogus")
 
 
+@pytest.mark.needs_linker
 def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
     class FakeNode:
         match_templates = [
@@ -103,6 +104,7 @@ def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
     ]
 
 
+@pytest.mark.needs_linker
 def test_replace_match_template_does_not_update_usage_when_save_fails(monkeypatch):
     class FakeNode:
         match_templates = [{"term_slugs": ["old"], "scope": "combined"}]
@@ -156,6 +158,7 @@ def test_save_linker_metadata_invalidates_varnish_directly(monkeypatch):
     assert invalidated == ["Fake"]
 
 
+@pytest.mark.needs_linker
 def test_alt_struct_editor_path():
     class FakeNode:
         def __init__(self, children=None):
@@ -172,6 +175,7 @@ def test_alt_struct_editor_path():
     assert ni._alt_struct_editor_path(root, "Parasha") == ["__alt__", "Parasha", "0"]
 
 
+@pytest.mark.needs_linker
 def test_add_non_unique_term_titles(monkeypatch):
     class FakeTerm:
         slug = "__le_test_term__"
@@ -215,6 +219,7 @@ def test_add_non_unique_term_titles(monkeypatch):
         {"slug": term.slug})]
 
 
+@pytest.mark.needs_linker
 def test_add_non_unique_term_titles_normalizes_with_linker_normalizer(monkeypatch):
     """Titles are stored normalized the same way the linker normalizes input text."""
     class FakeTerm:
@@ -256,6 +261,7 @@ def test_add_non_unique_term_titles_normalizes_with_linker_normalizer(monkeypatc
     assert "בראשית" in stored
 
 
+@pytest.mark.needs_linker
 def test_add_non_unique_term_titles_validation(monkeypatch):
     class FakeNonUniqueTerm:
         @staticmethod
@@ -542,7 +548,15 @@ def test_serialize_node_properties():
 # Redis usage index — surgical add/remove (cache only)
 # ---------------------------------------------------------------------------
 
-def test_usage_index_surgical_add_remove():
+@pytest.mark.needs_linker
+def test_usage_index_surgical_add_remove(monkeypatch):
+    # CI uses DummyCache and has no Redis. Drive the surgical add/remove against
+    # a dict so this tests entry identity, not the shared-cache backend.
+    store = {}
+    monkeypatch.setattr(ni, "get_shared_cache_elem", store.get)
+    monkeypatch.setattr(ni, "set_shared_cache_elem", lambda k, v: store.__setitem__(k, v))
+    monkeypatch.setattr(ni, "delete_shared_cache_elem", lambda k: store.pop(k, None))
+
     entry = {
         "index_title": "__LE_TEST__",
         "node_key_path": ["__LE_TEST__"],
@@ -612,7 +626,54 @@ def test_get_node_by_editor_path_alt_struct():
     assert struct_name == "Parasha"
 
 
+@pytest.mark.needs_linker
 def test_search_and_detail_non_unique_terms():
+    from sefaria.model.schema import NonUniqueTerm
+    created = None
+    try:
+        created = le.create_non_unique_term([
+            {"lang": "en", "text": "Bavli Editor Search Term"},
+            {"lang": "he", "text": "בבלי מונח בדיקה"},
+        ], 1)
+        slug = created["slug"]
+        results = le.search_non_unique_terms("Bavli Editor Search Term", 5)
+        assert slug in [t["slug"] for t in results]
+
+        detail = le.get_non_unique_term_detail(slug)
+        assert detail["slug"] == slug
+        assert len(detail["titles"]) > 0
+        assert "usages" in detail
+
+        with pytest.raises(InputError):
+            le.get_non_unique_term_detail("__no_such_slug__")
+    finally:
+        if created:
+            NonUniqueTerm.init(created["slug"]).delete()
+
+
+@pytest.mark.needs_linker
+def test_search_non_unique_terms_by_slug():
+    # The hyphenated slug does not appear in the term's titles (which use spaces),
+    # so a hit here can only come from matching the slug itself.
+    from sefaria.model.schema import NonUniqueTerm
+    created = None
+    try:
+        created = le.create_non_unique_term([
+            {"lang": "en", "text": "A Collection On Prophets"},
+            {"lang": "he", "text": "אוסף על נביאים"},
+        ], 1)
+        slug = created["slug"]
+        assert "-" in slug
+        assert slug not in {t["text"] for t in created["titles"]}
+        results = le.search_non_unique_terms(slug, 5)
+        assert slug in [t["slug"] for t in results]
+    finally:
+        if created:
+            NonUniqueTerm.init(created["slug"]).delete()
+
+
+@pytest.mark.needs_corpus
+def test_search_and_detail_non_unique_terms_real_library():
     results = le.search_non_unique_terms("bavli", 5)
     slugs = [t["slug"] for t in results]
     assert "bavli" in slugs
@@ -626,13 +687,15 @@ def test_search_and_detail_non_unique_terms():
         le.get_non_unique_term_detail("__no_such_slug__")
 
 
-def test_search_non_unique_terms_by_slug():
+@pytest.mark.needs_corpus
+def test_search_non_unique_terms_by_slug_real_library():
     # The hyphenated slug does not appear in the term's titles (which use spaces),
     # so a hit here can only come from matching the slug itself.
     results = le.search_non_unique_terms("a-collection-on-prophets", 5)
     assert "a-collection-on-prophets" in [t["slug"] for t in results]
 
 
+@pytest.mark.needs_linker
 def test_search_non_unique_terms_normalizes_query(monkeypatch):
     captured = []
 
@@ -673,6 +736,7 @@ def test_search_non_unique_terms_normalizes_query(monkeypatch):
     )
 
 
+@pytest.mark.needs_linker
 def test_search_non_unique_terms_ranks_exact_and_prefix_matches_first(monkeypatch):
     # Substring hit buried in an unrelated title, plus a slug that's an exact match
     # and a title that's a prefix match — Mongo's natural order returns them in the
@@ -702,6 +766,7 @@ def test_search_non_unique_terms_ranks_exact_and_prefix_matches_first(monkeypatc
     assert [r["slug"] for r in results] == ["bavli", "bavli-extra", "unrelated-slug"]
 
 
+@pytest.mark.needs_linker
 def test_search_non_unique_terms_ranks_primary_title_over_unrelated_alt_title_match(monkeypatch):
     # Regression for a real-world case: searching "פסח" put "קרבן פסח" (Korban Pesach)
     # above the "פסח" (Pesach) term itself, because Korban Pesach also carries an
@@ -742,6 +807,7 @@ def test_search_non_unique_terms_ranks_primary_title_over_unrelated_alt_title_ma
     assert [r["slug"] for r in results] == ["pesach", "paschal-offering"]
 
 
+@pytest.mark.needs_linker
 def test_create_non_unique_term():
     from sefaria.model.schema import NonUniqueTerm
     detail = None
@@ -759,6 +825,7 @@ def test_create_non_unique_term():
             NonUniqueTerm.init(detail["slug"]).delete()
 
 
+@pytest.mark.needs_linker
 def test_create_non_unique_term_normalizes_titles_with_linker_normalizer():
     from sefaria.model.schema import NonUniqueTerm
     detail = None
@@ -775,6 +842,7 @@ def test_create_non_unique_term_normalizes_titles_with_linker_normalizer():
             NonUniqueTerm.init(detail["slug"]).delete()
 
 
+@pytest.mark.needs_linker
 def test_create_non_unique_term_requires_a_title():
     with pytest.raises(InputError):
         le.create_non_unique_term([], 1)
@@ -782,11 +850,13 @@ def test_create_non_unique_term_requires_a_title():
         le.create_non_unique_term([{"lang": "en", "text": "   "}], 1)
 
 
+@pytest.mark.needs_linker
 def test_search_empty_query_returns_empty():
     assert le.search_non_unique_terms("", 5) == []
     assert le.search_non_unique_terms("   ", 5) == []
 
 
+@pytest.mark.needs_corpus
 def test_get_non_unique_term_titles():
     titles = le.get_non_unique_term_titles(["bavli"])
     assert "bavli" in titles

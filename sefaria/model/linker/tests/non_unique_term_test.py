@@ -3,6 +3,9 @@ from sefaria.model.schema import NonUniqueTerm
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 
 
+
+pytestmark = pytest.mark.needs_linker
+
 @pytest.fixture(scope='module')
 def duplicate_terms():
     initial_slug = "rashiBLAHBLAH"

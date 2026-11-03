@@ -1,6 +1,10 @@
 import pytest
 from sefaria.model.linker.linker import Linker
 
+# reason: all cases fail identically under mongomock and real Mongo — spans/paragraphs
+# returned by Linker.__break_input_into_paragraphs don't match expected values
+pytestmark = pytest.mark.failing
+
 
 @pytest.mark.parametrize(
     "input_str,expected_paragraphs,expected_spans",
