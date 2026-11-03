@@ -1145,3 +1145,42 @@ def test_run_barrier_loop_aborts_when_disk_checks_keep_failing_past_the_grace_pe
     assert state == "aborted"
     assert incomplete == list(range(8))
     assert any("no successful disk check" in line for line in logs)
+
+
+# --- per-node freshness (DiskGuard) -------------------------------------------------------
+
+def test_disk_abort_reasons_treats_nan_and_out_of_range_as_missing():
+    spec.loader.exec_module(orch)
+    rows = [{"node": "es-0", "disk.percent": "NaN"}, {"node": "es-1", "disk.percent": "150"}]
+    with pytest.raises(ValueError):
+        orch.disk_abort_reasons(rows, 85)
+
+
+def test_disk_guard_aborts_when_one_node_stays_unobserved_past_grace():
+    # Two healthy nodes must not hide a third that stopped reporting.
+    spec.loader.exec_module(orch)
+    clock = iter([0.0, 300.0, 601.0])
+    guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=clock.__next__,
+                           expected_nodes=["es-0", "es-1", "es-2"])
+    partial = [_alloc("es-0", 40), _alloc("es-1", 41), {"node": "es-2", "disk.percent": None}]
+    assert guard.check(partial) == []
+    reasons = guard.check(partial)
+    assert len(reasons) == 1 and "es-2" in reasons[0]
+
+
+def test_disk_guard_tolerates_a_short_gap_and_watches_nodes_that_vanish():
+    spec.loader.exec_module(orch)
+    clock = iter([0.0, 100.0, 200.0, 900.0])
+    guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=clock.__next__)
+    full = [_alloc("es-0", 40), _alloc("es-1", 41)]
+    assert guard.check(full) == []                      # learns es-0, es-1 at t=100
+    assert guard.check([_alloc("es-0", 42)]) == []      # es-1 missing for 100 s: fine
+    reasons = guard.check([_alloc("es-0", 43)])         # es-1 missing since t=100: 800 s
+    assert len(reasons) == 1 and "es-1" in reasons[0]
+
+
+def test_disk_guard_reports_threshold_breaches():
+    spec.loader.exec_module(orch)
+    guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=itertools.count().__next__)
+    reasons = guard.check([_alloc("es-0", 40), _alloc("es-1", 90)])
+    assert len(reasons) == 1 and "es-1" in reasons[0] and "90%" in reasons[0]

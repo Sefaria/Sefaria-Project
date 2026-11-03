@@ -233,6 +233,21 @@ def parse_abort_disk_percent(raw):
     return value
 
 
+def _disk_percent(row):
+    """A node's disk.percent if it is a real reading (finite, 0-100), else None."""
+    percent = _as_number(row.get("disk.percent"))
+    if percent is None or not math.isfinite(percent) or not 0 <= percent <= 100:
+        return None
+    return percent
+
+
+def _data_node_rows(allocation_rows):
+    for row in allocation_rows or []:
+        node = row.get("node")
+        if node and node != "UNASSIGNED":
+            yield node, row
+
+
 def disk_abort_reasons(allocation_rows, max_disk_percent):
     """Reasons to abort a running build: data nodes at or over `max_disk_percent` disk used.
 
@@ -244,11 +259,8 @@ def disk_abort_reasons(allocation_rows, max_disk_percent):
     """
     reasons = []
     observed = 0
-    for row in allocation_rows or []:
-        node = row.get("node")
-        if not node or node == "UNASSIGNED":
-            continue
-        percent = _as_number(row.get("disk.percent"))
+    for node, row in _data_node_rows(allocation_rows):
+        percent = _disk_percent(row)
         if percent is not None:
             observed += 1
         if percent is not None and percent >= max_disk_percent:
@@ -258,6 +270,40 @@ def disk_abort_reasons(allocation_rows, max_disk_percent):
     if observed == 0:
         raise ValueError("_cat/allocation reported no data node disk usage")
     return reasons
+
+
+class DiskGuard:
+    """Per-node disk watch for the barrier loop.
+
+    Every data node it has ever seen (or was given in `expected_nodes`, e.g. from the
+    pre-flight) must report a real reading at least once per `grace_seconds`; a node that
+    goes quiet, or drops out of _cat/allocation, is reported once its gap passes the grace.
+    Healthy nodes cannot hide a silent one. Raises ValueError (via disk_abort_reasons) when
+    no node reports at all, so the barrier's own no-observation grace applies.
+    """
+
+    def __init__(self, max_disk_percent, grace_seconds, now_fn=time.monotonic, expected_nodes=()):
+        self.max_disk_percent = max_disk_percent
+        self.grace_seconds = grace_seconds
+        self.now_fn = now_fn
+        start = now_fn()
+        self.last_seen = {node: start for node in expected_nodes}
+
+    def check(self, allocation_rows):
+        now = self.now_fn()
+        reasons = disk_abort_reasons(allocation_rows, self.max_disk_percent)
+        for node, row in _data_node_rows(allocation_rows):
+            if _disk_percent(row) is not None:
+                self.last_seen[node] = now
+            else:
+                self.last_seen.setdefault(node, now)
+        for node, seen in sorted(self.last_seen.items()):
+            gap = now - seen
+            if gap >= self.grace_seconds:
+                reasons.append(
+                    f"node {node} has reported no disk usage for {gap:.0f}s (limit {self.grace_seconds}s)"
+                )
+        return reasons
 
 
 def run_barrier_loop(
@@ -587,6 +633,7 @@ def main():
     # Pre-flight runs before anything is created or deleted: a full data-node disk or a
     # non-green cluster is what took the prod cluster down in Sep 2026. Refusing here costs
     # one failed CronJob run; not refusing can fill the disks.
+    preflight_nodes = []
     if os.environ.get("REINDEX_PREFLIGHT_SKIP", "").lower() in ("1", "true", "yes"):
         logger.warning(
             "REINDEX_PREFLIGHT_SKIP is set: skipping the disk/health pre-flight; a full disk "
@@ -607,6 +654,7 @@ def main():
                 "nothing was created or deleted"
             )
         logger.info("Reindex pre-flight passed: cluster green, every data node within limits")
+        preflight_nodes = [node for node, _ in _data_node_rows(allocation_rows)]
 
     # In-flight guard: ES's flood stage (95%) makes indices read-only and a disk-full write
     # can leave a node unrecoverable (dev 2026-10-17). Stop the build well before that.
@@ -615,9 +663,11 @@ def main():
     # retries could stall a check for minutes while writers keep filling the disk.
     monitor_client = search_module.es_client.options(request_timeout=10, max_retries=0)
 
+    disk_guard = None  # built when the shards start, so the init phase does not count as a gap
+
     def check_disk_abort():
         rows = monitor_client.cat.allocation(format="json", bytes="b")
-        return disk_abort_reasons(getattr(rows, "body", rows), abort_disk_percent)
+        return disk_guard.check(getattr(rows, "body", rows))
 
     manifest = build_shard_job_manifest(
         job_name, namespace, image, shard_count, command,
@@ -690,6 +740,8 @@ def main():
             f"barrier_timeout={barrier_timeout_seconds}s"
         )
 
+        # The guard's per-node grace matches the barrier's no-observation grace (600 s).
+        disk_guard = DiskGuard(abort_disk_percent, grace_seconds=600, expected_nodes=preflight_nodes)
         barrier_state, incomplete = run_barrier_loop(
             read_job_status=lambda: batch.read_namespaced_job_status(job_name, namespace).status,
             shard_count=shard_count,
