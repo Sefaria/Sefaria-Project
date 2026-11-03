@@ -76,7 +76,7 @@
     <script src="{{ chatbot_script_url }}"{% if chatbot_script_type %} type="{{ chatbot_script_type }}"{% endif %}></script>
     {% endif %}
 
-    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" integrity="sha384-pvXSwSU09c+q9mPyY++ygUHWIYRoaxgnJ/JC5wcOzMb/NVVu+IDniiB9qWp3ZNWM" crossorigin="anonymous"></script>
     <script>
         WebFont.load({
           google: {
@@ -248,10 +248,10 @@
 
     <div id="overlay"></div>
 
-    <script src="https://unpkg.com/react@16/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
-    <script src="https://unpkg.com/react-dom@16/umd/react-dom.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+    <script src="https://unpkg.com/react@16.14.0/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js" integrity="{% if DEBUG %}sha384-ZHBAhj6mPF2wke1Ie6UN+ozxCHBXIuRrcszqkblgAqCrZtYGI3zZYn4SsU+ozss4{% else %}sha384-N7y5SSAooNlIfb9H750GR82ufkn1JXJFaCjg8pmt+OZuKcZoTvTGfog4d4taG/cF{% endif %}" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/react-dom@16.14.0/umd/react-dom.{% if DEBUG %}development{% else %}production.min{% endif %}.js" integrity="{% if DEBUG %}sha384-UF3Y7EPKNtk5UdDfdOsYkTveq+O88MpRjzgK/+0lX4OwcOigCaCVGBJJJ86i/6dc{% else %}sha384-j7WmMv3OO6n8pZRATOsaMVEdZcHpoaTBIika/l92YM2AkEex72QunlTQlgmu+pI8{% endif %}" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha384-rY/jv8mMhqDabXSo+UCggqKtdmBfd3qC2/KvyTDNQ6PcUJXaxK1tMepoQda4g5vB" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js" integrity="sha384-JPbtLYL10d/Z1crlc6GGGGM3PavCzzoUJ1UxH0bXHOfguWHQ6XAWrIzW+MBGGXe5" crossorigin="anonymous"></script>
 
     <script src="{% static 'js/lib/keyboard.js' %}"></script>
     <script src="{% static 'js/analyticsEventTracker.js' %}"></script>
