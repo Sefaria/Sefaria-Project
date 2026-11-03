@@ -28,6 +28,7 @@ import { VoicesBookmarksPage } from "./voicesBookmarksPage"
 import { InterfaceStringsPage } from "./interfaceStringsPage"
 import { UserHistoryCookiePage } from "./userHistoryCookiePage"
 import { LinkExplorerPage } from "./linkExplorerPage"
+import { CopyToolPage } from "./copyToolPage"
 
 
 export class PageManager {
@@ -59,6 +60,7 @@ export class PageManager {
     private readonly interfaceStringsPage: InterfaceStringsPage
     private readonly userHistoryCookiePage: UserHistoryCookiePage
     private readonly linkExplorerPage: LinkExplorerPage
+    private readonly copyToolPage: CopyToolPage
 
 
 
@@ -91,6 +93,7 @@ export class PageManager {
         this.interfaceStringsPage = new InterfaceStringsPage(page, language)
         this.userHistoryCookiePage = new UserHistoryCookiePage(page, language)
         this.linkExplorerPage = new LinkExplorerPage(page, language)
+        this.copyToolPage = new CopyToolPage(page, language)
 
     }
 
@@ -202,5 +205,8 @@ export class PageManager {
         return this.linkExplorerPage
     }
 
+    onCopyTool() {
+        return this.copyToolPage
+    }
 
 }

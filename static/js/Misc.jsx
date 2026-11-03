@@ -1993,6 +1993,7 @@ const MODAL_KIND_TRACKING_NAME = {
   [SignUpModalKind.Follow]: 'follow',
   [SignUpModalKind.Notes]: 'notes',
   [SignUpModalKind.Save]: 'save',
+  [SignUpModalKind.CopyTool]: 'copy_tool',
   [SignUpModalKind.Default]: 'default',
 };
 
