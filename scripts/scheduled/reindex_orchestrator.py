@@ -659,8 +659,8 @@ def main():
     # In-flight guard: ES's flood stage (95%) makes indices read-only and a disk-full write
     # can leave a node unrecoverable (dev 2026-10-17). Stop the build well before that.
     abort_disk_percent = parse_abort_disk_percent(os.environ.get("REINDEX_ABORT_DISK_PERCENT", "85"))
-    # One short, allocation-only request per poll: the shared client's 90 s timeout with
-    # retries could stall a check for minutes while writers keep filling the disk.
+    # One allocation-only request per poll with an explicit 10 s timeout and no retries, so a
+    # slow ES fails the check (and the barrier's grace applies) instead of stalling it.
     monitor_client = search_module.es_client.options(request_timeout=10, max_retries=0)
 
     disk_guard = None  # built when the shards start, so the init phase does not count as a gap
