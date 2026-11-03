@@ -11,10 +11,13 @@ sys._called_from_test = True
 from copy import deepcopy
 from pprint import pprint
 import json
+import urllib.parse
 import re
 
 from django.test import TestCase
 from django.test.client import Client
+from django.test import RequestFactory
+from django.middleware.csrf import get_token
 from django.contrib.auth.models import User
 # import selenium
 
@@ -1518,3 +1521,88 @@ class VersionAttrsPostTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
 '''
+
+
+class CompleteVersionApiCsrfTest(SefariaTestCase):
+    """
+    /api/versions accepts session-authenticated writes only with a valid CSRF token, checks it
+    before writing, and is limited to staff users on the session path.
+    """
+
+    TITLE = "Complete Version Csrf Test Book"
+
+    def setUp(self):
+        self.make_test_user()
+        try:
+            Index().load({"title": self.TITLE}).delete()
+        except Exception:
+            pass
+        index = {
+            "title": self.TITLE,
+            "titleVariants": [self.TITLE],
+            "heTitle": "ספר בדיקת csrf",
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/" + self.TITLE.replace(" ", "_"), {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code, response.content)
+        self.version_title = "Complete Version Csrf Test Version"
+        self.payload = {
+            "title": self.TITLE,
+            "versionTitle": self.version_title,
+            "versionSource": "http://example.com/csrf-test",
+            "language": "en",
+            "direction": "ltr",
+            "text": [["First segment"]],
+        }
+        self.plain_user = User.objects.create_user(username="plain@sefaria.org", email="plain@sefaria.org", password="!!!")
+
+    def tearDown(self):
+        VersionSet({"title": self.TITLE}).delete()
+        IndexSet({"title": self.TITLE}).delete()
+
+    def _csrf_client(self, user):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(user)
+        return client
+
+    def _version_count(self):
+        return VersionSet({"title": self.TITLE, "versionTitle": self.version_title}).count()
+
+    def _post_version(self, client, **extra):
+        # the view parses request.body as a urlencoded form, so the body must be urlencoded
+        body = urllib.parse.urlencode({'json': json.dumps(self.payload)})
+        return client.post("/api/versions", body, content_type="application/x-www-form-urlencoded", **extra)
+
+    def _csrf_token_for(self, client):
+        request = RequestFactory().get("/")
+        token = get_token(request)
+        client.cookies["csrftoken"] = request.META["CSRF_COOKIE"]
+        return token
+
+    def test_session_post_without_csrf_token_is_rejected_before_write(self):
+        staff_client = self._csrf_client(User.objects.get(username="test@sefaria.org"))
+        self.assertEqual(0, self._version_count())
+
+        response = self._post_version(staff_client)
+
+        self.assertEqual(403, response.status_code)
+        self.assertEqual(0, self._version_count())
+
+    def test_session_post_with_csrf_token_writes_version(self):
+        staff_client = self._csrf_client(User.objects.get(username="test@sefaria.org"))
+        token = self._csrf_token_for(staff_client)
+
+        response = self._post_version(staff_client, HTTP_X_CSRFTOKEN=token)
+
+        self.assertEqual(200, response.status_code, response.content)
+        self.assertEqual(1, self._version_count())
+
+    def test_session_post_by_non_staff_user_is_rejected_before_write(self):
+        plain_client = self._csrf_client(self.plain_user)
+        token = self._csrf_token_for(plain_client)
+
+        response = self._post_version(plain_client, HTTP_X_CSRFTOKEN=token)
+
+        self.assertEqual(302, response.status_code)
+        self.assertEqual(0, self._version_count())
