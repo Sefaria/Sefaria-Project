@@ -195,6 +195,8 @@ data:
     MCP_TOKEN_SECRET = os.getenv("MCP_TOKEN_SECRET")
     MCP_AUTH_CALLBACK_URLS = [url.strip() for url in os.getenv("MCP_AUTH_CALLBACK_URLS", "").split(",") if url.strip()]
     CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
+    # Where the ai-chatbot repo is checked out. Not read by Django; used by the Playwright e2e tests.
+    AI_CHATBOT_REPO_PATH = os.getenv("AI_CHATBOT_REPO_PATH", "../ai-chatbot")
 
     EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
     DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
