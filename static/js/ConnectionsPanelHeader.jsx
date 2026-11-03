@@ -39,6 +39,57 @@ class ConnectionsPanelHeader extends Component {
     }
   }
 
+  // Mobile sheet: dragging the header resizes the panel to any height; dragging or flicking it to the bottom closes it.
+  onPointerDown(e) {
+    if (e.button !== 0) { return; }
+    const panel = e.currentTarget.closest(".textList");
+    this.drag = {panel, x: e.clientX, y: e.clientY, h: panel.offsetHeight, height: panel.style.height, t: e.timeStamp, v: 0, active: false};
+  }
+  onPointerMove(e) {
+    const d = this.drag;
+    if (!d) { return; }
+    const dy = e.clientY - d.y;
+    if (!d.active) {
+      if (Math.abs(dy) < 8 || Math.abs(dy) < Math.abs(e.clientX - d.x)) { return; }
+      d.active = true;
+      d.panel.style.transition = "none";
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
+    const h = Math.max(0, Math.min(window.innerHeight, d.h - dy));
+    if (e.timeStamp > d.t) { d.v = (h - d.panel.offsetHeight) / (e.timeStamp - d.t); }
+    d.t = e.timeStamp;
+    d.panel.style.height = `${h}px`;
+  }
+  onPointerUp(e) {
+    const d = this.drag;
+    this.drag = null;
+    if (!d?.active) { return; }
+    this.dragEndedAt = e.timeStamp;
+    const h = d.panel.offsetHeight;
+    d.panel.style.transition = "";
+    if (h + d.v * 150 < 120) {  // a flick carries 150ms further
+      d.panel.style.height = "0px";
+      setTimeout(this.props.closePanel, 200);
+    } else {
+      const height = `${100 * h / window.innerHeight}%`;  // a share of the screen, so it survives rotation
+      d.panel.style.height = height;
+      this.props.setHeight(height);
+    }
+  }
+  onPointerCancel() {
+    if (this.drag?.active) {
+      this.drag.panel.style.transition = "";
+      this.drag.panel.style.height = this.drag.height;
+    }
+    this.drag = null;
+  }
+  onClickCapture(e) {
+    // A drag that ends over a link must not also follow it.
+    if (e.timeStamp - this.dragEndedAt < 400) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
   getLanguageSwitcher() {
     if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
       // Language toggling only applies when both languages should be visible.
@@ -92,8 +143,8 @@ class ConnectionsPanelHeader extends Component {
       </InterfaceText>
     </a>;
     } else if (this.props.connectionsMode === "Resources") {
-      // Top Level Menu
-      title = <div className="connectionsHeaderTitle sans-serif">
+      // Top Level Menu (on mobile the drag handle stands in for the title)
+      title = !this.props.multiPanel ? null : <div className="connectionsHeaderTitle sans-serif">
                     <InterfaceText text={{en: "Resources" , he:"קישורים וכלים" }} />
                   </div>;
 
@@ -157,13 +208,18 @@ class ConnectionsPanelHeader extends Component {
               </div>);
     } else {
       const style = !this.props.multiPanel && this.props.connectionsMode === "TextList" ? {"borderTopColor": Sefaria.palette.categoryColor(this.props.previousCategory)} : {}
-      const cStyle = !this.props.multiPanel && this.props.connectionsMode === "Resources" ? {"justifyContent": "center"} : style;
       // Modeling the class structure when ConnectionsPanelHeader is created inside ReaderControls in the multiPanel case
       let classes = classNames({readerControls: 1, connectionsHeader: 1, fullPanel: this.props.multiPanel});
-      return (<div className={classes} style={style}>
+      return (<div className={classes} style={style}
+                onPointerDown={this.onPointerDown}
+                onPointerMove={this.onPointerMove}
+                onPointerUp={this.onPointerUp}
+                onPointerCancel={this.onPointerCancel}
+                onClickCapture={this.onClickCapture}>
+                <div className="connectionsDragHandle" aria-hidden="true" />
                 <div className="readerControlsInner">
                   <div className="readerTextToc">
-                    <div className="connectionsPanelHeader" style={cStyle}>
+                    <div className="connectionsPanelHeader" style={style}>
                       {title}
                       {!this.props.multiPanel && this.props.previousCategory && this.props.connectionsMode === "TextList" ?
                       <RecentFilterSet
@@ -174,6 +230,7 @@ class ConnectionsPanelHeader extends Component {
                         textCategory={this.props.previousCategory}
                         setFilter={this.props.setFilter} />
                         : null }
+                      <CloseButton icon="circledXSolid" onClick={this.props.closePanel} url={Sefaria.util.removeUrlParam("with")} />
                     </div>
                   </div>
                 </div>
@@ -192,6 +249,7 @@ ConnectionsPanelHeader.propTypes = {
     setConnectionsMode:     PropTypes.func.isRequired,
     setConnectionsCategory: PropTypes.func.isRequired,
     closePanel:             PropTypes.func.isRequired,
+    setHeight:              PropTypes.func,
     toggleLanguage:         PropTypes.func,
     interfaceLang:          PropTypes.string.isRequired,
     backButtonSettings:     PropTypes.object,
