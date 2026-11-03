@@ -106,7 +106,7 @@ class ConnectionsPanel extends Component {
       }
 
       else if (this.props.scrollPosition && this.isScrollMonitored()) {
-        $(".content").scrollTop(this.props.scrollPosition)
+        $(ReactDOM.findDOMNode(this)).find(".content").scrollTop(this.props.scrollPosition)
             .trigger("scroll");
       }
 
@@ -120,7 +120,7 @@ class ConnectionsPanel extends Component {
     return ["Resources"].includes(this.props.mode);
   }
   addScrollListener() {
-    this.$scrollView = $(".connectionsPanel .texts");
+    this.$scrollView = $(ReactDOM.findDOMNode(this)).find(".texts");
     if (this.$scrollView[0]) {
       this.$scrollView[0].addEventListener("scroll", this.handleScroll);
     }
