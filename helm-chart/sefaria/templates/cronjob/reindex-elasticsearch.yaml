@@ -62,6 +62,8 @@ spec:
               value: "{{ .Values.cronJobs.reindexElasticSearch.preflightMinFreeGb }}"
             - name: REINDEX_PREFLIGHT_MAX_DISK_PERCENT
               value: "{{ .Values.cronJobs.reindexElasticSearch.preflightMaxDiskPercent }}"
+            - name: REINDEX_ABORT_DISK_PERCENT
+              value: "{{ .Values.cronJobs.reindexElasticSearch.abortDiskPercent }}"
             - name: SHARD_JOB_IMAGE
               value: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             - name: SHARD_JOB_NAME

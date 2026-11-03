@@ -222,16 +222,40 @@ def incomplete_shard_indexes(completed_indexes_str, shard_count):
     return sorted(set(range(shard_count)) - completed)
 
 
+def disk_abort_reasons(allocation_rows, max_disk_percent):
+    """Reasons to abort a running build: data nodes at or over `max_disk_percent` disk used.
+
+    `allocation_rows` is the parsed GET _cat/allocation?format=json body. Unlike the
+    pre-flight, a node with missing numbers is skipped, not reported: a gap in one poll is
+    not worth throwing away hours of indexing. Pure function.
+    """
+    reasons = []
+    for row in allocation_rows or []:
+        node = row.get("node")
+        if not node or node == "UNASSIGNED":
+            continue
+        percent = _as_number(row.get("disk.percent"))
+        if percent is not None and percent >= max_disk_percent:
+            reasons.append(
+                f"node {node} disk is {percent:.0f}% full, at or above the {max_disk_percent}% abort limit"
+            )
+    return reasons
+
+
 def run_barrier_loop(
     read_job_status, shard_count, timeout_seconds,
     poll_interval_seconds=60, sleep_fn=time.sleep, now_fn=time.monotonic, log_fn=None,
+    check_abort=None,
 ):
     """Poll the shard Job until it reaches a terminal state or the barrier timeout elapses.
 
     `read_job_status` is a zero-arg callable returning the Job's `.status` object (as
     returned by `BatchV1Api.read_namespaced_job_status(...).status`).
 
-    Returns (state, incomplete_indexes) where state is one of 'complete', 'failed', 'timeout'.
+    Returns (state, incomplete_indexes) where state is one of 'complete', 'failed', 'timeout',
+    'aborted'. `check_abort`, if given, is a zero-arg callable run on every poll that returns a
+    list of reasons to stop now (e.g. a data node's disk nearing flood stage); a non-empty list
+    returns 'aborted'. If it raises, the error is logged and the loop keeps waiting.
     This loop used to be an unbounded `while True`, which meant a wedged shard (no crash, no
     log output, doc count frozen) held the barrier - and therefore the CronJob's
     concurrencyPolicy: Forbid slot - forever. The timeout here is a backstop behind the shard
@@ -261,6 +285,16 @@ def run_barrier_loop(
             return "complete", []
         if state == "failed":
             return "failed", incomplete
+        if check_abort is not None:
+            try:
+                reasons = check_abort()
+            except Exception as exc:
+                log(f"abort check could not run, continuing: {exc}")
+                reasons = []
+            if reasons:
+                for reason in reasons:
+                    log(f"abort: {reason}")
+                return "aborted", incomplete
         if now_fn() >= deadline:
             return "timeout", incomplete
         sleep_fn(poll_interval_seconds)
@@ -530,7 +564,7 @@ def main():
             "or a non-green cluster will NOT be caught before the reindex starts"
         )
     else:
-        min_free_gb = float(os.environ.get("REINDEX_PREFLIGHT_MIN_FREE_GB", "20"))
+        min_free_gb = float(os.environ.get("REINDEX_PREFLIGHT_MIN_FREE_GB", "12"))
         max_disk_percent = float(os.environ.get("REINDEX_PREFLIGHT_MAX_DISK_PERCENT", "75"))
         health, allocation_rows = read_reindex_preflight_inputs(search_module.es_client)
         problems = check_reindex_preflight(
@@ -544,6 +578,14 @@ def main():
                 "nothing was created or deleted"
             )
         logger.info("Reindex pre-flight passed: cluster green, every data node within limits")
+
+    # In-flight guard: ES's flood stage (95%) makes indices read-only and a disk-full write
+    # can leave a node unrecoverable (dev 2026-10-17). Stop the build well before that.
+    abort_disk_percent = float(os.environ.get("REINDEX_ABORT_DISK_PERCENT", "85"))
+
+    def check_disk_abort():
+        _, rows = read_reindex_preflight_inputs(search_module.es_client)
+        return disk_abort_reasons(rows, abort_disk_percent)
 
     manifest = build_shard_job_manifest(
         job_name, namespace, image, shard_count, command,
@@ -621,7 +663,16 @@ def main():
             shard_count=shard_count,
             timeout_seconds=barrier_timeout_seconds,
             log_fn=lambda msg: logger.info(f"Orchestrator: {msg}"),
+            check_abort=check_disk_abort,
         )
+        if barrier_state == "aborted":
+            logger.error(
+                f"Orchestrator: aborted at {abort_disk_percent:.0f}% disk; incomplete shard "
+                f"indexes: {incomplete}; NOT finalizing (alias unchanged); stopping shards and "
+                "cleaning up failed reindex targets"
+            )
+            cleanup_after_init_failure()
+            sys.exit(1)
         if barrier_state == "failed":
             logger.error(
                 f"Orchestrator: shard job failed; incomplete shard indexes: {incomplete}; "

@@ -1025,3 +1025,68 @@ def test_main_preflight_skip_env_lets_reindex_proceed(monkeypatch):
     orch.main()
 
     assert events == ["init", "create_job"]
+
+
+# --- in-flight disk abort ---------------------------------------------------------------
+
+def _alloc(node, percent):
+    return {"node": node, "disk.percent": str(percent), "disk.avail": "1000"}
+
+
+def test_disk_abort_reasons_names_nodes_at_or_over_the_limit():
+    spec.loader.exec_module(orch)
+    rows = [_alloc("es-0", 40), _alloc("es-1", 85), _alloc("es-2", 91), {"node": "UNASSIGNED"}]
+    reasons = orch.disk_abort_reasons(rows, max_disk_percent=85)
+    assert len(reasons) == 2
+    assert "es-1" in reasons[0] and "es-2" in reasons[1]
+
+
+def test_disk_abort_reasons_ignores_unknown_numbers():
+    # A missing number must not abort a multi-hour build; the pre-flight already refuses unknowns.
+    spec.loader.exec_module(orch)
+    assert orch.disk_abort_reasons([{"node": "es-0", "disk.percent": None}], max_disk_percent=85) == []
+
+
+def test_run_barrier_loop_aborts_when_disk_check_reports_a_problem():
+    spec.loader.exec_module(orch)
+    statuses = iter([
+        _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+        _FakeJobStatus(succeeded=2, failed=0, completed_indexes="0-1"),
+    ])
+    checks = iter([[], ["node es-2 disk is 88% full"]])
+    logs = []
+    state, incomplete = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=iter([0.0, 1.0, 2.0, 3.0]).__next__,
+        log_fn=logs.append,
+        check_abort=lambda: next(checks),
+    )
+    assert state == "aborted"
+    assert incomplete == [2, 3, 4, 5, 6, 7]
+    assert any("es-2" in line for line in logs)
+
+
+def test_run_barrier_loop_keeps_waiting_when_disk_check_errors():
+    # ES briefly unreachable is not a reason to throw away the build; the shard deadline still bounds it.
+    spec.loader.exec_module(orch)
+    statuses = iter([
+        _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+        _FakeJobStatus(succeeded=8, failed=0, completed_indexes="0-7"),
+    ])
+
+    def flaky():
+        raise ConnectionError("refused")
+
+    state, _ = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=iter([0.0, 1.0, 2.0, 3.0]).__next__,
+        log_fn=lambda msg: None,
+        check_abort=flaky,
+    )
+    assert state == "complete"

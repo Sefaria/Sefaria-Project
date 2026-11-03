@@ -543,8 +543,13 @@ cronJobs:
     barrierTimeoutSeconds: 43200
     # Pre-flight before any index is created: refuse to reindex unless the cluster is green
     # and every data node has at least this much free disk and at most this percent used.
-    preflightMinFreeGb: 20
+    # The text build is spread over 3 primaries (about 7 GB per node at peak), so 12 GB is
+    # enough; 20 GB would refuse every run on dev's 30Gi nodes once a live index exists.
+    preflightMinFreeGb: 12
     preflightMaxDiskPercent: 75
+    # While shards run: stop the build and delete the half-built index if any data node
+    # reaches this percent. Below ES's 90% high and 95% flood stage watermarks.
+    abortDiskPercent: 85
     orchestratorResources:
       requests:
         memory: "4Gi"
