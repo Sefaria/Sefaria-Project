@@ -254,8 +254,8 @@ class SheetMedia extends Component {
     if (caption && (caption.en || caption.he) ) {
       var cls = caption.en && caption.he ? "" : caption.en ? "enOnly" : "heOnly";
       mediaCaption = "<div class='mediaCaption " + cls + "'><div class='mediaCaptionInner'>" +
-                "<div class='en'>" + (caption.en || "") + "</div>" +
-                "<div class='he'>" + (caption.he || "") + "</div>" +
+                "<div class='en'>" + Sefaria.util.cleanHTML(caption.en || "") + "</div>" +
+                "<div class='he'>" + Sefaria.util.cleanHTML(caption.he || "") + "</div>" +
                  "</div></div>";
     }
     return "<div class='" + mediaClass + "'>" + mediaLink + mediaCaption + "</div>";
