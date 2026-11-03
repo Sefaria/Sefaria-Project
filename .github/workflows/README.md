@@ -28,3 +28,6 @@ When github detected a release verson tag is applied to the repository, it will 
 
 | Note: the github based deployment is still in testing and deploys a second 'test' prod-like instance.
 
+## Pull request is opened or updated (non-draft), or commit is pushed to master
+
+The `Linting` pipeline (`linting.yaml`) runs four independent jobs: Ruff (Python lint + format check), ESLint (JS/JSX), Stylelint (SCSS) and Prettier (formatting check for JS/JSX, SCSS and Markdown). Warnings fail the build. It can also be triggered manually. See `docs/linting.md` for how to run the same checks locally.

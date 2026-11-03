@@ -1,0 +1,7 @@
+# Bulk linting cleanup — add the SHA of the mass auto-fix commit here after it lands.
+# This prevents git blame from attributing every line to that commit.
+# Usage: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# Or set globally: git config --global blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Example (replace with the real SHA after the cleanup PR merges):
+# abc1234def5678901234567890123456789012345678
