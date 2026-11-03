@@ -826,6 +826,19 @@ def test_domain_of_is_the_host_without_www_scheme_or_port():
     assert domain_of("https://www.example.org./") == "example.org"
 
 
+def test_the_website_must_be_on_a_public_host_name():
+    from powered_by.developer import InputError, clean_project_fields
+
+    base = {"name": "Daf Portal", "visibility": "private"}
+    for bad in ("http://localhost:3000", "https://127.0.0.1", "http://[::1]:8080/", "https://intranet",
+                "https://example.org.", "https://exa_mple.org", "https://example.123", "ftp://example.org"):
+        with pytest.raises(InputError):
+            clean_project_fields({**base, "websiteUrl": bad})
+    for good in ("https://example.org", "http://www.example.org:8080/app?x=1", "https://bücher.example.de",
+                 "https://myapp.vercel.app", "https://example.xn--p1ai"):
+        assert clean_project_fields({**base, "websiteUrl": good})["websiteUrl"] == good
+
+
 def test_check_restrictable_refuses_shared_hosts_and_single_labels():
     from powered_by.developer import InputError, check_restrictable
 

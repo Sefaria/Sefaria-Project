@@ -8,6 +8,7 @@ EmailAddress). Changing the account email therefore ends verification until the 
 confirmed; existing keys keep working, but no new project or key can be created.
 """
 import ipaddress
+import re
 from datetime import datetime, timedelta
 from urllib.parse import urlsplit
 
@@ -57,6 +58,10 @@ DEVELOPER_PROFILE_SETTINGS = (ENABLED_SETTING, PROFILE_SETTING, CONFIRMATION_SEN
 MOCK_SSO_SESSION_KEY = "developer_mock_sso"
 
 _url_validator = URLValidator(schemes=["http", "https"])
+# A public host name, as the settings page checks it: dotted labels and a top-level domain of letters or
+# punycode. No IP addresses, localhost, single labels or trailing dot.
+WEBSITE_HOST_RE = re.compile(
+    r"^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{2,59})$")
 
 WEBSITE_IN_USE_ERROR = ("A key is restricted to this website. Turn off the restriction on every key "
                         "before removing the website.")
@@ -563,6 +568,8 @@ def clean_project_fields(data):
     if fields["websiteUrl"]:
         try:
             _url_validator(fields["websiteUrl"])
+            if not WEBSITE_HOST_RE.match(_origin_host(urlsplit(fields["websiteUrl"]).hostname or "")):
+                raise ValidationError("not a public host name")
         except ValidationError:
             raise InputError("The website is not a valid web address.")
     if fields["contactEmail"]:
