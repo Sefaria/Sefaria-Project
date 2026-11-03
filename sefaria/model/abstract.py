@@ -100,11 +100,14 @@ class AbstractMongoRecord(object):
         self.load_from_dict(attrs)
         return self.save()
 
-    def save(self, override_dependencies=False):
+    def save(self, override_dependencies=False, insert_id=None):
         """
         Save the object to the Mongo data store.
         On completion, will emit a 'save' notification.  If a tracked attribute has changed, will emit an 'attributeChange' notification.
         if override_dependencies is set to True, no notifications will be emitted.
+        insert_id: only used when the object is new -- the _id to insert it with, instead of letting Mongo assign one.
+        For copying a record from another environment so both copies keep the same _id. (Setting _id on a new
+        object before save() doesn't work: save() then treats it as an update of a record that doesn't exist.)
         :return: the object
         """
         is_new_obj = self.is_new()
@@ -121,6 +124,8 @@ class AbstractMongoRecord(object):
                 raise Exception("Aborted unsafe {} save. {} not fully tracked.".format(type(self).__name__, self.pkeys))
 
         if is_new_obj:
+            if insert_id is not None:
+                props[self.id_field] = insert_id
             result = getattr(db, self.collection).insert_one(props)
             self._id = result.inserted_id
         else:
