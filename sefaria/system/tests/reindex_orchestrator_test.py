@@ -2,6 +2,7 @@
 Uses importlib to exec_module so heavy imports (kubernetes, django) are never triggered
 — they live inside main() only."""
 import importlib.util
+import itertools
 import pathlib
 import sys
 import types
@@ -490,6 +491,13 @@ class _FakeEsClient:
     def __init__(self, health, allocation):
         self.cluster = types.SimpleNamespace(health=lambda: health)
         self.cat = types.SimpleNamespace(allocation=lambda **kwargs: allocation)
+        self.options_calls = []
+
+    def options(self, **kwargs):
+        # elasticsearch-py 8 returns a client copy with per-request options; the disk guard
+        # uses it for a short timeout and no retries.
+        self.options_calls.append(kwargs)
+        return self
 
 
 class _FakeSearchModule:
@@ -1044,7 +1052,8 @@ def test_disk_abort_reasons_names_nodes_at_or_over_the_limit():
 def test_disk_abort_reasons_ignores_unknown_numbers():
     # A missing number must not abort a multi-hour build; the pre-flight already refuses unknowns.
     spec.loader.exec_module(orch)
-    assert orch.disk_abort_reasons([{"node": "es-0", "disk.percent": None}], max_disk_percent=85) == []
+    rows = [{"node": "es-0", "disk.percent": None}, _alloc("es-1", 40)]
+    assert orch.disk_abort_reasons(rows, max_disk_percent=85) == []
 
 
 def test_run_barrier_loop_aborts_when_disk_check_reports_a_problem():
@@ -1060,7 +1069,7 @@ def test_run_barrier_loop_aborts_when_disk_check_reports_a_problem():
         shard_count=8,
         timeout_seconds=99999,
         sleep_fn=lambda s: None,
-        now_fn=iter([0.0, 1.0, 2.0, 3.0]).__next__,
+        now_fn=itertools.count().__next__,
         log_fn=logs.append,
         check_abort=lambda: next(checks),
     )
@@ -1085,8 +1094,54 @@ def test_run_barrier_loop_keeps_waiting_when_disk_check_errors():
         shard_count=8,
         timeout_seconds=99999,
         sleep_fn=lambda s: None,
-        now_fn=iter([0.0, 1.0, 2.0, 3.0]).__next__,
+        now_fn=itertools.count().__next__,
         log_fn=lambda msg: None,
         check_abort=flaky,
     )
     assert state == "complete"
+
+
+@pytest.mark.parametrize("raw", ["nan", "inf", "-inf", "101", "0", "-5", "abc", ""])
+def test_parse_abort_disk_percent_rejects_values_that_disable_the_guard(raw):
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError):
+        orch.parse_abort_disk_percent(raw)
+
+
+def test_parse_abort_disk_percent_accepts_a_real_percentage():
+    spec.loader.exec_module(orch)
+    assert orch.parse_abort_disk_percent("85") == 85.0
+    assert orch.parse_abort_disk_percent(" 92.5 ") == 92.5
+
+
+def test_disk_abort_reasons_raises_when_no_node_reports_numbers():
+    # No usable number on any node is a failed observation, not an all-clear.
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError):
+        orch.disk_abort_reasons([{"node": "es-0", "disk.percent": None}, {"node": "UNASSIGNED"}], 85)
+    with pytest.raises(ValueError):
+        orch.disk_abort_reasons([], 85)
+
+
+def test_run_barrier_loop_aborts_when_disk_checks_keep_failing_past_the_grace_period():
+    spec.loader.exec_module(orch)
+    statuses = iter([_FakeJobStatus(succeeded=0, failed=0, completed_indexes=None)] * 5)
+    clock = iter([0.0, 0.0, 100.0, 100.0, 400.0, 400.0, 700.0, 700.0, 701.0])
+
+    def always_fails():
+        raise ConnectionError("refused")
+
+    logs = []
+    state, incomplete = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=clock.__next__,
+        log_fn=logs.append,
+        check_abort=always_fails,
+        abort_check_grace_seconds=600,
+    )
+    assert state == "aborted"
+    assert incomplete == list(range(8))
+    assert any("no successful disk check" in line for line in logs)

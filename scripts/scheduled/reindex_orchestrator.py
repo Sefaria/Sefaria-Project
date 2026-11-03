@@ -2,6 +2,7 @@
 """Reindex orchestrator: init -> Indexed Job (N shards) -> finalize.
 Runs as the weekly CronJob. Holds no ES/Mongo connection during the shard phase."""
 import json
+import math
 import os
 import sys
 import time
@@ -222,30 +223,47 @@ def incomplete_shard_indexes(completed_indexes_str, shard_count):
     return sorted(set(range(shard_count)) - completed)
 
 
+def parse_abort_disk_percent(raw):
+    """Parse REINDEX_ABORT_DISK_PERCENT. Anything that is not a finite number in (0, 100]
+    raises ValueError: float() accepts 'nan', 'inf' and '101', and each would silently turn
+    the disk guard off."""
+    value = float(str(raw).strip())
+    if not math.isfinite(value) or not 0 < value <= 100:
+        raise ValueError(f"REINDEX_ABORT_DISK_PERCENT must be a number in (0, 100], got {raw!r}")
+    return value
+
+
 def disk_abort_reasons(allocation_rows, max_disk_percent):
     """Reasons to abort a running build: data nodes at or over `max_disk_percent` disk used.
 
     `allocation_rows` is the parsed GET _cat/allocation?format=json body. Unlike the
     pre-flight, a node with missing numbers is skipped, not reported: a gap in one poll is
-    not worth throwing away hours of indexing. Pure function.
+    not worth throwing away hours of indexing. If no data node reports a usable number the
+    observation proves nothing, so it raises ValueError and the caller counts a failed check.
+    Pure function.
     """
     reasons = []
+    observed = 0
     for row in allocation_rows or []:
         node = row.get("node")
         if not node or node == "UNASSIGNED":
             continue
         percent = _as_number(row.get("disk.percent"))
+        if percent is not None:
+            observed += 1
         if percent is not None and percent >= max_disk_percent:
             reasons.append(
                 f"node {node} disk is {percent:.0f}% full, at or above the {max_disk_percent}% abort limit"
             )
+    if observed == 0:
+        raise ValueError("_cat/allocation reported no data node disk usage")
     return reasons
 
 
 def run_barrier_loop(
     read_job_status, shard_count, timeout_seconds,
     poll_interval_seconds=60, sleep_fn=time.sleep, now_fn=time.monotonic, log_fn=None,
-    check_abort=None,
+    check_abort=None, abort_check_grace_seconds=600,
 ):
     """Poll the shard Job until it reaches a terminal state or the barrier timeout elapses.
 
@@ -255,7 +273,9 @@ def run_barrier_loop(
     Returns (state, incomplete_indexes) where state is one of 'complete', 'failed', 'timeout',
     'aborted'. `check_abort`, if given, is a zero-arg callable run on every poll that returns a
     list of reasons to stop now (e.g. a data node's disk nearing flood stage); a non-empty list
-    returns 'aborted'. If it raises, the error is logged and the loop keeps waiting.
+    returns 'aborted'. If it raises, the error is logged and the loop keeps waiting, but only
+    for `abort_check_grace_seconds` without a successful check: after that it returns
+    'aborted', because writers must not run unwatched until the shard deadline.
     This loop used to be an unbounded `while True`, which meant a wedged shard (no crash, no
     log output, doc count frozen) held the barrier - and therefore the CronJob's
     concurrencyPolicy: Forbid slot - forever. The timeout here is a backstop behind the shard
@@ -265,6 +285,7 @@ def run_barrier_loop(
     log = log_fn or (lambda msg: logger.info(msg))
     start = now_fn()
     deadline = start + timeout_seconds
+    last_good_check = start
     while True:
         st = read_job_status()
         status = {"succeeded": st.succeeded or 0, "failed": st.failed or 0}
@@ -288,8 +309,16 @@ def run_barrier_loop(
         if check_abort is not None:
             try:
                 reasons = check_abort()
+                last_good_check = now_fn()
             except Exception as exc:
-                log(f"abort check could not run, continuing: {exc}")
+                unwatched = now_fn() - last_good_check
+                if unwatched >= abort_check_grace_seconds:
+                    log(
+                        f"abort: no successful disk check for {unwatched:.0f}s "
+                        f"(limit {abort_check_grace_seconds}s); last error: {exc}"
+                    )
+                    return "aborted", incomplete
+                log(f"abort check could not run, continuing ({unwatched:.0f}s unwatched): {exc}")
                 reasons = []
             if reasons:
                 for reason in reasons:
@@ -581,11 +610,14 @@ def main():
 
     # In-flight guard: ES's flood stage (95%) makes indices read-only and a disk-full write
     # can leave a node unrecoverable (dev 2026-10-17). Stop the build well before that.
-    abort_disk_percent = float(os.environ.get("REINDEX_ABORT_DISK_PERCENT", "85"))
+    abort_disk_percent = parse_abort_disk_percent(os.environ.get("REINDEX_ABORT_DISK_PERCENT", "85"))
+    # One short, allocation-only request per poll: the shared client's 90 s timeout with
+    # retries could stall a check for minutes while writers keep filling the disk.
+    monitor_client = search_module.es_client.options(request_timeout=10, max_retries=0)
 
     def check_disk_abort():
-        _, rows = read_reindex_preflight_inputs(search_module.es_client)
-        return disk_abort_reasons(rows, abort_disk_percent)
+        rows = monitor_client.cat.allocation(format="json", bytes="b")
+        return disk_abort_reasons(getattr(rows, "body", rows), abort_disk_percent)
 
     manifest = build_shard_job_manifest(
         job_name, namespace, image, shard_count, command,
