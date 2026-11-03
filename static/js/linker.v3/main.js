@@ -1,21 +1,14 @@
 import { Readability } from '@mozilla/readability';
-import DOMPurify from 'dompurify';
 import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
+import {sanitizeElem} from "./sanitize";
 import pRetry, {AbortError} from 'p-retry';
 
 
 (function(ns) {
     function escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
-    }
-
-    function sanitizeElem(elem) {
-        const cleaned = DOMPurify.sanitize(elem, { USE_PROFILES: { html: true } });
-        const cleanedElem = document.createElement("div");
-        cleanedElem.innerHTML = cleaned;
-        return cleanedElem.textContent;
     }
 
     function getWhitelistText(currText) {
