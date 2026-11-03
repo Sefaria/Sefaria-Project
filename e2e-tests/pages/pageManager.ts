@@ -28,6 +28,7 @@ import { VoicesBookmarksPage } from "./voicesBookmarksPage"
 import { InterfaceStringsPage } from "./interfaceStringsPage"
 import { UserHistoryCookiePage } from "./userHistoryCookiePage"
 import { LinkExplorerPage } from "./linkExplorerPage"
+import { NgReaderPage } from "./ngReaderPage"
 
 
 export class PageManager {
@@ -59,6 +60,7 @@ export class PageManager {
     private readonly interfaceStringsPage: InterfaceStringsPage
     private readonly userHistoryCookiePage: UserHistoryCookiePage
     private readonly linkExplorerPage: LinkExplorerPage
+    private readonly ngReaderPage: NgReaderPage
 
 
 
@@ -91,6 +93,7 @@ export class PageManager {
         this.interfaceStringsPage = new InterfaceStringsPage(page, language)
         this.userHistoryCookiePage = new UserHistoryCookiePage(page, language)
         this.linkExplorerPage = new LinkExplorerPage(page, language)
+        this.ngReaderPage = new NgReaderPage(page, language)
 
     }
 
@@ -200,6 +203,10 @@ export class PageManager {
     }
     onLinkExplorer() {
         return this.linkExplorerPage
+    }
+
+    onNgReader() {
+        return this.ngReaderPage
     }
 
 

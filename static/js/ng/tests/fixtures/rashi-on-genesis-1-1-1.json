@@ -1,0 +1,323 @@
+{
+ "_uid": null,
+ "_email": "",
+ "activeModule": "library",
+ "last_cached": 1790380826.3324425,
+ "initialPath": "/Rashi_on_Genesis.1.1.1",
+ "interfaceLang": "english",
+ "initialSettings": {
+  "language": "bilingual",
+  "layoutDefault": "segmented",
+  "layoutTalmud": "continuous",
+  "layoutTanakh": "segmented",
+  "aliyotTorah": "aliyotOff",
+  "vowels": "all",
+  "punctuationTalmud": "punctuationOn",
+  "biLayout": "stacked",
+  "color": "light",
+  "fontSize": 62.5
+ },
+ "translationLanguagePreference": null,
+ "versionPrefsByCorpus": {},
+ "domainModules": {
+  "en": {
+   "library": "https://www.sefaria.org",
+   "voices": "https://voices.sefaria.org"
+  },
+  "he": {
+   "library": "https://www.sefaria.org.il",
+   "voices": "https://chiburim.sefaria.org.il"
+  }
+ },
+ "_siteSettings": {
+  "TORAH_SPECIFIC": true,
+  "SITE_NAME": {
+   "en": "Sefaria",
+   "he": "ספריא"
+  },
+  "LIBRARY_NAME": {
+   "en": "The Sefaria Library",
+   "he": "האוסף של ספריא"
+  },
+  "SUPPORTED_TRANSLATION_LANGUAGES": [
+   "en",
+   "es",
+   "fr",
+   "de"
+  ],
+  "COLLECTIONS_BUCKET": "sefaria-collection-images",
+  "PROFILES_BUCKET": "sefaria-profile-pictures",
+  "UGC_BUCKET": "sheet-user-uploaded-media",
+  "TOPICS_BUCKET": "img.sefaria.org",
+  "HELP_CENTER_URLS": {
+   "EN_US": "https://help.sefaria.org/hc/en-us",
+   "HE": "https://help.sefaria.org/hc/he",
+   "GETTING_STARTED": "https://help.sefaria.org/hc/en-us/articles/21471911125020-Video-Guide-How-to-Get-Started-Navigating-the-Library",
+   "TRANSLATION_PREFERENCE_EN": "https://help.sefaria.org/hc/en-us/articles/18613593620636-How-to-Choose-a-Preferred-Translation",
+   "TRANSLATION_PREFERENCE_HE": "https://help.sefaria.org/hc/he/articles/18613593620636-%D7%91%D7%97%D7%99%D7%A8%D7%AA-%D7%AA%D7%A8%D7%92%D7%95%D7%9D-%D7%9E%D7%95%D7%A2%D7%93%D7%A3"
+  },
+  "ABOUT_SIDEBAR_PAGES": [
+   {
+    "path": "about",
+    "en": "What is Sefaria?",
+    "he": "מהי ספריא"
+   },
+   {
+    "path": "team",
+    "en": "Team",
+    "he": "צוות ספריא"
+   },
+   {
+    "path": "jobs",
+    "en": "Jobs at Sefaria",
+    "he": "משרות פנויות בספריא"
+   },
+   {
+    "path": "products",
+    "en": "Sefaria's Products",
+    "he": "המוצרים של ספריא"
+   },
+   {
+    "path": "ai",
+    "en": "AI on Sefaria",
+    "he": "השימוש ב-AI בספריא"
+   },
+   {
+    "path": "supporters",
+    "en": "Our Supporters",
+    "he": "התומכים שלנו"
+   },
+   {
+    "path": "testimonials",
+    "en": "Testimonials",
+    "he": "המלצות על ספריא"
+   },
+   {
+    "path": "metrics",
+    "en": "Metrics",
+    "he": "מדדים"
+   },
+   {
+    "path": "updates",
+    "en": "New Additions",
+    "he": "עדכונים"
+   },
+   {
+    "path": "link-to-annual-report",
+    "en": "Annual Report",
+    "he": "דו\"ח שנתי"
+   },
+   {
+    "path": "terms",
+    "en": "Terms of Use",
+    "he": "תנאי שימוש"
+   },
+   {
+    "path": "privacy-policy",
+    "en": "Privacy Policy",
+    "he": "מדיניות פרטיות"
+   }
+  ],
+  "WHAT_ARE_VOICES_PATHS": {
+   "en": "/sheets/674324",
+   "he": "/sheets/674327"
+  },
+  "MODULE_SWITCHER_LEARN_MORE_PATH": {
+   "en": "/sheets/689609",
+   "he": "/sheets/689610"
+  },
+  "HELP_CENTER_REDIRECTS": {
+   "en": {
+    "215584": "https://help.sefaria.org/hc/en-us/sections/12756520483868-Text-Formatting-Accessibility",
+    "218610": "https://help.sefaria.org/hc/en-us/sections/18613320256156-Translations",
+    "231440": "https://help.sefaria.org/hc/en-us/categories/12756350371100-Donations",
+    "210670": "https://help.sefaria.org/hc/en-us/categories/13368526623132-Getting-Started",
+    "213949": "https://help.sefaria.org/hc/en-us/articles/21806344785308-How-to-Contact-Sefaria",
+    "218612": "https://help.sefaria.org/hc/en-us/sections/12756518640668-How-to-Reuse-Download-and-Otherwise-Reproduce-Texts",
+    "225828": "https://help.sefaria.org/hc/en-us/sections/20094783356956-The-Sheet-Editor",
+    "218668": "https://help.sefaria.org/hc/en-us/articles/18613227644316-How-to-Find-Interconnected-Texts",
+    "219447": "https://help.sefaria.org/hc/en-us/articles/18472472138652-Quick-Guide-Meet-the-Resource-Panel",
+    "228381": "https://help.sefaria.org/hc/en-us/sections/12756518640668-How-to-Reuse-Download-and-Otherwise-Reproduce-Texts",
+    "220945": "https://help.sefaria.org/hc/en-us/categories/19814642862876-Sefaria-s-Mobile-Apps",
+    "233647": "https://help.sefaria.org/hc/en-us/sections/12756555356956-Study-and-Reference-Tools",
+    "233017": "https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Source-Sheet-Collections",
+    "211565": "https://help.sefaria.org/hc/en-us/sections/12721846793116-How-to-Find-Texts",
+    "393695": "https://help.sefaria.org/hc/en-us/sections/20094783356956-The-Sheet-Editor",
+    "429277": "https://help.sefaria.org/hc/en-us/articles/18472614956956-Quick-Guide-Meet-the-A-%D7%90-menu",
+    "231377": "https://help.sefaria.org/hc/en-us/sections/20094169893276-All-About-Topics-Pages",
+    "519205": "https://help.sefaria.org/hc/en-us/articles/18472576952988-Quick-Guide-Meet-the-Table-of-Contents",
+    "289837": "https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Source-Sheet-Collections",
+    "274871": "https://help.sefaria.org/hc/en-us/sections/12756555356956-Study-and-Reference-Tools",
+    "303276": "https://help.sefaria.org/hc/en-us/categories/12756351595932-Your-Account",
+    "379494": "https://help.sefaria.org/hc/en-us/sections/12756538060956-Text-Specific-Special-Features",
+    "303288": "https://help.sefaria.org/hc/en-us/categories/12756351595932-Your-Account",
+    "359083": "https://help.sefaria.org/hc/en-us/sections/17430252462236-Managing-Your-Donation",
+    "330784": "https://help.sefaria.org/hc/en-us/articles/18472380899484-Quick-Guide-Meet-the-Homepage",
+    "483970": "https://help.sefaria.org/hc/en-us/sections/18613320256156-Translations-and-Language-Preferences",
+    "511573": "https://help.sefaria.org/hc/en-us/sections/18613320256156-Translations-and-Language-Preferences",
+    "497893": "https://help.sefaria.org/hc/en-us/sections/12756555356956-Study-and-Reference-Tools",
+    "477118": "https://help.sefaria.org/hc/en-us/sections/18472260943900-Sefaria-101-Quick-Guides-and-Sefaria-Basics",
+    "218839": "https://help.sefaria.org/hc/en-us/sections/20094783356956-The-Sheet-Editor",
+    "212911": "https://help.sefaria.org/hc/en-us/sections/20094783356956-All-About-Source-Sheets",
+    "529099": "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs",
+    "584561": "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs"
+   },
+   "he": {
+    "328503": "https://help.sefaria.org/hc/he/articles/20234245638428-%D7%9B%D7%99%D7%A6%D7%93-%D7%9C%D7%9E%D7%A6%D7%95%D7%90-%D7%9E%D7%99%D7%93%D7%A2-%D7%91%D7%99%D7%95%D7%92%D7%A8%D7%A4%D7%99-%D7%90%D7%95%D7%93%D7%95%D7%AA-%D7%93%D7%9E%D7%95%D7%99%D7%95%D7%AA-%D7%9E%D7%94%D7%AA%D7%9C%D7%9E%D7%95%D7%93",
+    "243658": "https://help.sefaria.org/hc/he/categories/19814642862876-%D7%94%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%99%D7%99%D7%A9%D7%95%D7%9E%D7%95%D7%9F-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "241176": "https://help.sefaria.org/hc/he/sections/12756518640668-%D7%A9%D7%97%D7%96%D7%95%D7%A8-%D7%94%D7%93%D7%A4%D7%A1%D7%94-%D7%95%D7%94%D7%A4%D7%A6%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA",
+    "288330": "https://help.sefaria.org/hc/he/sections/12756518640668-%D7%A9%D7%97%D7%96%D7%95%D7%A8-%D7%94%D7%93%D7%A4%D7%A1%D7%94-%D7%95%D7%94%D7%A4%D7%A6%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA",
+    "399333": "https://help.sefaria.org/hc/he/sections/20094783356956-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "242573": "https://help.sefaria.org/hc/he/articles/18490652948508-%D7%9B%D7%99%D7%A6%D7%93-%D7%9C%D7%94%D7%93%D7%A4%D7%99%D7%A1-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%94%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%94",
+    "244351": "https://help.sefaria.org/hc/he/sections/12721846793116-%D7%92%D7%99%D7%A9%D7%94-%D7%9C%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA",
+    "615752": "https://help.sefaria.org/hc/he/sections/12756520483868-%D7%90%D7%A4%D7%A9%D7%A8%D7%95%D7%99%D7%95%D7%AA-%D7%A4%D7%95%D7%A8%D7%9E%D7%98-%D7%98%D7%A7%D7%A1%D7%98-%D7%95%D7%A0%D7%92%D7%99%D7%A9%D7%95%D7%AA",
+    "239441": "https://help.sefaria.org/hc/he/sections/12756520483868-%D7%90%D7%A4%D7%A9%D7%A8%D7%95%D7%99%D7%95%D7%AA-%D7%A4%D7%95%D7%A8%D7%9E%D7%98-%D7%98%D7%A7%D7%A1%D7%98-%D7%95%D7%A0%D7%92%D7%99%D7%A9%D7%95%D7%AA",
+    "288327": "https://help.sefaria.org/hc/he/articles/18472472138652-%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9E%D7%94%D7%99%D7%A8-%D7%94%D7%9B%D7%99%D7%A8%D7%95-%D7%90%D7%AA-%D7%A1%D7%A8%D7%92%D7%9C-%D7%94%D7%A7%D7%99%D7%A9%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%94%D7%9B%D7%9C%D7%99%D7%9D",
+    "569973": "https://help.sefaria.org/hc/he/categories/20332917021212-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%95%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%AA%D7%95%D7%A1%D7%A4%D7%99%D7%9D-%D7%9C%D7%93%D7%A4%D7%93%D7%A4%D7%9F",
+    "382833": "https://help.sefaria.org/hc/he/sections/12756538060956-%D7%A4%D7%99%D7%A6-%D7%A8%D7%99%D7%9D-%D7%9C%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%A2%D7%9D-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%A1%D7%95%D7%99%D7%9E%D7%99%D7%9D",
+    "332893": "https://help.sefaria.org/hc/he/articles/18472380899484-%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9E%D7%94%D7%99%D7%A8-%D7%94%D7%9B%D7%99%D7%A8%D7%95-%D7%90%D7%AA-%D7%A2%D7%9E%D7%95%D7%93-%D7%94%D7%91%D7%99%D7%AA",
+    "242826": "https://help.sefaria.org/hc/he/articles/18613227644316-%D7%9B%D7%99%D7%A6%D7%93-%D7%9C%D7%90%D7%AA%D7%A8-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%A7%D7%95%D7%A9%D7%A8%D7%99%D7%9D",
+    "239814": "https://help.sefaria.org/hc/he/categories/12721826687772-%D7%94%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "293375": "https://help.sefaria.org/hc/he/categories/20332917021212-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%95%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%AA%D7%95%D7%A1%D7%A4%D7%99%D7%9D-%D7%9C%D7%93%D7%A4%D7%93%D7%A4%D7%9F",
+    "288326": "https://help.sefaria.org/hc/he/sections/12756555356956-%D7%9B%D7%9C%D7%99%D7%9D-%D7%9C%D7%9C%D7%99%D7%9E%D7%95%D7%93-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "242831": "https://help.sefaria.org/hc/he/sections/17430252462236-%D7%A0%D7%99%D7%94%D7%95%D7%9C-%D7%AA%D7%A8%D7%95%D7%9E%D7%95%D7%AA-%D7%A9%D7%A0%D7%99%D7%AA%D7%A0%D7%95-%D7%9C%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "541372": "https://help.sefaria.org/hc/he/categories/13368526623132-%D7%9E%D7%99%D7%93%D7%A2-%D7%91%D7%A1%D7%99%D7%A1%D7%99-%D7%A2%D7%9C-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "542809": "https://help.sefaria.org/hc/he/articles/21806344785308-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%A7%D7%A9%D7%A8-%D7%A2%D7%9D-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "540832": "https://help.sefaria.org/hc/he/sections/20094783356956-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"
+   }
+  }
+ },
+ "_debug": false,
+ "appVersion": "v7.2.3-prod.2",
+ "multiPanel": false,
+ "initialPanel": {
+  "ref": "Rashi on Genesis 1:1:1",
+  "refs": [
+   "Rashi on Genesis 1:1:1"
+  ],
+  "currVersions": {
+   "en": {
+    "languageFamilyName": "",
+    "versionTitle": ""
+   },
+   "he": {
+    "languageFamilyName": "",
+    "versionTitle": ""
+   }
+  },
+  "highlightedRefs": [
+   "Rashi on Genesis 1:1:1"
+  ],
+  "filter": null,
+  "text": {
+   "ref": "Rashi on Genesis 1:1",
+   "heRef": "רש\"י על בראשית א׳:א׳",
+   "sectionRef": "Rashi on Genesis 1:1",
+   "heSectionRef": "רש\"י על בראשית א׳:א׳",
+   "firstAvailableSectionRef": "Rashi on Genesis 1:1",
+   "sections": [
+    "1",
+    "1"
+   ],
+   "toSections": [
+    "1",
+    "1"
+   ],
+   "isSpanning": false,
+   "next": "Rashi on Genesis 1:2",
+   "prev": null,
+   "book": "Rashi on Genesis",
+   "title": "Rashi on Genesis 1:1",
+   "heTitle": "רש\"י על בראשית",
+   "indexTitle": "Rashi on Genesis",
+   "heIndexTitle": "רש\"י על בראשית",
+   "primary_category": "Commentary",
+   "type": "Commentary",
+   "categories": [
+    "Tanakh",
+    "Rishonim on Tanakh",
+    "Rashi",
+    "Torah"
+   ],
+   "collectiveTitle": "Rashi",
+   "heCollectiveTitle": "רש\"י",
+   "textDepth": 3,
+   "sectionNames": [
+    "Chapter",
+    "Verse",
+    "Comment"
+   ],
+   "addressTypes": [
+    "Perek",
+    "Pasuk",
+    "Integer"
+   ],
+   "index_offsets_by_depth": {},
+   "he": [
+    "<b>בראשית.</b> אָמַר רַבִּי יִצְחָק לֹֹֹֹֹא הָיָה צָרִיךְ לְהַתְחִיל אֶת הַתּוֹרָה אֶלָּא מֵהַחֹדֶשׁ הַזֶּה לָכֶם, שֶׁהִיא מִצְוָה רִאשׁוֹנָה שֶׁנִּצְטַוּוּ בָּהּ יִשׂרָאֵל, וּמַה טַּעַם פָּתַח בִּבְרֵאשִׁית? מִשׁוּם כֹּחַ מַעֲשָׂיו הִגִּיד לְעַמּוֹ לָתֵת לָהֶם נַחֲלַת גּוֹיִם (<a class=\"refLink \" href=\"Psalms.111.6\" data-ref=\"Psalms 111:6\" data-range=279-290>תהילים קי\"א</a>), שֶׁאִם יֹאמְרוּ אֻמּוֹת הָעוֹלָם לְיִשְׁרָאֵל לִסְטִים אַתֶּם, שֶׁכְּבַשְׁתֶּם אַרְצוֹת שִׁבְעָה גוֹיִם, הֵם אוֹמְרִים לָהֶם כָּל הָאָרֶץ שֶׁל הַקָּבָּ\"ה הִיא, הוּא בְרָאָהּ וּנְתָנָהּ לַאֲשֶׁר יָשַׁר בְּעֵינָיו, בִּרְצוֹנוֹ נְתָנָהּ לָהֶם, וּבִרְצוֹנוֹ נְטָלָהּ מֵהֶם וּנְתָנָהּ לָנוּ:",
+    "<b>בראשית ברא</b> אֵין הַמִּקְרָא הַזֶּה אוֹמֵר אֶלָּא דָּרְשֵׁנִי, כְּמוֹ שֶׁדְּרָשׁוּהוּ רַבּוֹתֵינוּ בִּשְׁבִיל הַתּוֹרָה שֶׁנִקְרֵאת רֵאשִׁית דַּרְכּוֹ (<a class=\"refLink \" href=\"Proverbs.8.22\" data-ref=\"Proverbs 8:22\" data-range=157-164>משלי ח'</a>), וּבִשְׁבִיל יִשְׂרָאֵל שֶׁנִקְרְאוּ רֵאשִׁית תְּבוּאָתוֹ (<a class=\"refLink \" href=\"Jeremiah.2.3\" data-ref=\"Jeremiah 2:3\" data-range=225-233>ירמיה ב'</a>); וְאִם בָּאתָ לְפָרְשׁוֹ כִּפְשׁוּטוֹ, כָּךְ פָּרְשֵׁהוּ בְּרֵאשִׁית בְּרִיאַת שָׁמַיִם וָאָרֶץ, וְהָאָרֶץ הָיְתָה תֹהוּ וָבֹהוּ וְחֹשֶׁךְ וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וְלֹא בָא הַמִּקְרָא לְהוֹרוֹת סֵדֶר הַבְּרִיאָה לוֹמַר שֶׁאֵלּוּ קָדְמוּ, שֶׁאִם בָּא לְהוֹרוֹת כָּךְ, הָיָה לוֹ לִכְתֹּב בָּרִאשׁוֹנָה בָּרָא אֶת הַשָּׁמַיִם וְגוֹ' שֶׁאֵין לְךָ רֵאשִׁית בַּמִּקְרָא שֶׁאֵינוֹ דָבוּק לַתֵּבָה שֶׁלְּאַחֲרָיו, כְּמוֹ בְּרֵאשִׁית מַמְלֶכֶת יְהוֹיָקִים (שׁם כ\"ז), רֵאשִׁית מַמְלַכְתּוֹ (<a class=\"refLink \" href=\"Genesis.10.10\" data-ref=\"Genesis 10:10\" data-range=722-731>בראשית י'</a>), רֵאשִׁית דְּגָנְךָ (<a class=\"refLink \" href=\"Deuteronomy.18.4\" data-ref=\"Deuteronomy 18:4\" data-range=754-767>דברים י\"ח, ד'</a>), – אַף כָּאן אַתָּה אוֹמֵר בְּרֵאשִׁית בָּרָא אֱלֹהִים וְגוֹ', כְּמוֹ בְּרֵאשִׁית בְּרֹא; וְדוֹמֶה לוֹ תְּחִלַּת דִּבֶּר ה' בְּהוֹשֵׁעַ (<a class=\"refLink \" href=\"Hosea.1.2\" data-ref=\"Hosea 1:2\" data-range=906-913>הושע א'</a>), כְּלוֹמַר תְּחִלַת דִּבּוּרוֹ שֶׁל הַקָּבָּ\"ה בְּהוֹשֵׁעַ, וַיֹּאמֶר ה' אֶל הוֹשֵׁעַ וְגוֹ'. וְאִ\"תֹּ לְהוֹרוֹת בָּא שֶׁאֵלּוּ תְּחִלָּה נִבְרְאוּ, וּפֵרוּשׁוֹ בְּרֵאשִׁית הַכֹּל בָּרָא אֵלוּ – וְֵישׁ לְךָ מִקְרָאוֹת שֶׁמְּקַצְּרִים לְשׁוֹנָם וּמְמַעֲטִים תֵּבָה אַחַת, כְּמוֹ כִּי לֹא סָגַר דַּלְתֵי בִטְנִי (<a class=\"refLink \" href=\"Job.3.10\" data-ref=\"Job 3:10\" data-range=1226-1233>איוב ג'</a>), וְלֹא פֵּרֵשׁ מִי הַסּוֹגֵר וּכְמוֹ יִשָּׂא אֶת חֵיל דַּמֶּשֶׂק (<a class=\"refLink \" href=\"Isaiah.8.4\" data-ref=\"Isaiah 8:4\" data-range=1301-1310>ישעיהו ח'</a>), וְלֹא פֵּרֵשׁ מִי יִשָּׂאֶנּוּ; וּכְמוֹ אִם יַחֲרוֹשׁ בַּבְּקָרִים (<a class=\"refLink \" href=\"Amos.6.12\" data-ref=\"Amos 6:12\" data-range=1381-1388>עמוס ו'</a>), וְלֹא פֵּרֵשׁ אִם יַחֲרוֹשׁ אָדָם בַּבְּקָרִים, וּכְמוֹ מַגִּיד מֵרֵאשִׁית אַחֲרִית (<a class=\"refLink \" href=\"Isaiah.46.10\" data-ref=\"Isaiah 46:10\" data-range=1476-1486>ישעיהו מ\"ו</a>), וְלֹא פֵּרֵשׁ מַגִּיד מֵרֵאשִׁית דָּבָר אַחֲרִית דָּבָר – אִ\"כֵּ, תְּמַהּ עַל עַצְמְךָ, שֶׁהֲרֵי הַמַּיִם קָדְמוּ, שֶׁהֲרֵי כְתִיב וְרוּחַ אֱלֹהִים מְרַחֶפֶת עַל פְּנֵי הַמָּיִם, וְעַדַיִין לֹא גִלָּה הַמִּקְרָא, בְּרִיאַת הַמַּיִם מָתַי הָיְתָה, הָא לָמַדְתָּ, שֶׁקָּדְמוּ הַמַּיִם לָאָרֶץ, וְעוֹד, שֶׁהַשָּׁמַיִם מֵאֵשׁ וּמַיִם נִבְרְאוּ, עַל כָּרְחֲךָ לֹא לִמֵּד הַמִּקְרָא סֵדֶר הַמֻּקְדָמִים וְהַמְאֻחָרִים כְּלוּם:",
+    "<b>ברא אלהים</b> וְלֹא נֶאֱמַר בָּרָא ה', שֶׁבַּתְּחִלָּה עָלָה בְמַחֲשָׁבָה לִבְרֹאתוֹ בְּמִדַּת הַדִּין, רָאָה שֶׁאֵין הָעוֹלָם מִתְקַיֵּם, הִקְדִּים מִדַּת רַחֲמִים וְשִׁתְּפָהּ לְמִהַ\"דִּ, וְהַיְינוּ דִּכְתִיב בְּיוֹם עֲשׂוֹת ה' אֱלֹהִים אֶרֶץ וְשָׁמָיִם:"
+   ],
+   "text": [
+    "בראשית IN THE BEGINNING — Rabbi Isaac said: The Torah <i>which is the Law book of Israel</i> should have commenced with the verse (<a class=\"refLink \" href=\"Exodus.12.2\" data-ref=\"Exodus 12:2\" data-range=131-142>Exodus 12:2</a>) “This month shall be unto you the first of the months” which is the first commandment given to Israel. What is the reason, then, that it commences with the account of the Creation? Because of the thought expressed in the text (<a class=\"refLink \" href=\"Psalms.111.6\" data-ref=\"Psalms 111:6\" data-range=371-383>Psalms 111:6</a>) “He declared to His people the strength of His works (i.e. He gave an account of the work of Creation), in order that He might give them the heritage of the nations.” For should the peoples of the world say to Israel, “You are robbers, because you took by force the lands of the seven nations of Canaan”, Israel may reply to them, “All the earth belongs to the Holy One, blessed be He; He created it and gave it to whom He pleased. When He willed He gave it to them, and when He willed He took it from them and gave it to us” (<a class=\"refLink \" href=\"Yalkut_Shimoni_on_Torah.187\" data-ref=\"Yalkut Shimoni on Torah 187\" data-range=912-939>Yalkut Shimoni on Torah 187</a>).",
+    "בראשית ברא IN THE BEGINNING GOD CREATED — This verse calls aloud for explanation in the manner that our Rabbis explained it: God created the world for the sake of the Torah which is called (<a class=\"refLink \" href=\"Proverbs.8.22\" data-ref=\"Proverbs 8:22\" data-range=190-203>Proverbs 8:22</a>) “The beginning (ראשית) of His (God’s) way”, and for the sake of Israel who are called (<a class=\"refLink \" href=\"Jeremiah.2.3\" data-ref=\"Jeremiah 2:3\" data-range=292-304>Jeremiah 2:3</a>) “The beginning (ראשית) of His (God’s) increase’’. If, however, you wish to explain it in its plain sense, explain it thus: At the beginning of the Creation of heaven and earth when the earth was without form and void and there was darkness, God said, “Let there be light”.  The text does not intend to point out the order of the acts of Creation — to state that these (heaven and earth) were created first; for if it intended to point this out, it should have written 'בראשונה ברא את השמים וגו “At first God created etc.” And for this reason: Because, wherever the word ראשית occurs in Scripture, it is in the construct state. E. g., (<a class=\"refLink \" href=\"Jeremiah.26.1\" data-ref=\"Jeremiah 26:1\" data-range=941-954>Jeremiah 26:1</a>) “In the beginning of (בראשית) the reign of Jehoiakim”; (<a class=\"refLink \" href=\"Genesis.10.10\" data-ref=\"Genesis 10:10\" data-range=1012-1025>Genesis 10:10</a>) “The beginning of (ראשית) his kingdom”; (<a class=\"refLink \" href=\"Deuteronomy.18.4\" data-ref=\"Deuteronomy 18:4\" data-range=1068-1084>Deuteronomy 18:4</a>) “The first fruit of (ראשית) thy corn.” Similarly here you must translate בראשית ברא אלהים as though it read בראשית ברוא, at the beginning of God’s creating. A similar grammatical construction (of a noun in construct followed by a verb) is: (<a class=\"refLink \" href=\"Hosea.1.2\" data-ref=\"Hosea 1:2\" data-range=1327-1336>Hosea 1:2</a>) תחלת דבר ה' בהושע, which is as much as to say, “At the beginning of God’s speaking through Hosea, the Lord said to Hosea.” Should you, however, insist that it does actually intend to point out that these (heaven and earth) were created first, and that the meaning is, “At the beginning of everything He created these, admitting therefore that the word בראשית is in the construct state and explaining the omission of a word signifying “everything” by saying that you have texts which are elliptical, omitting a word, as for example (<a class=\"refLink \" href=\"Job.3.10\" data-ref=\"Job 3:10\" data-range=1870-1878>Job 3:10</a>) “Because it shut not up the doors of my mother’s womb” where it does not explicitly explain who it was that closed the womb; and (<a class=\"refLink \" href=\"Isaiah.8.4\" data-ref=\"Isaiah 8:4\" data-range=2010-2020>Isaiah 8:4</a>) “He shall take away the spoil of Samaria” without explaining who shall take it away; and (<a class=\"refLink \" href=\"Amos.6.12\" data-ref=\"Amos 6:12\" data-range=2112-2121>Amos 6:12</a>) “Doth he plough with oxen,\" and it does not explicitly state, “Doth a man plough with oxen”; (<a class=\"refLink \" href=\"Isaiah.46.10\" data-ref=\"Isaiah 46:10\" data-range=2217-2229>Isaiah 46:10</a>) “Declaring from the beginning the end,” and it does not explicitly state, “Declaring from the beginning of a thing the end of a thing’ — if it is so (that you assert that this verse intends to point out that heaven and earth were created first), you should be astonished at yourself, because as a matter of fact the waters were created before heaven and earth, for, lo, it is written, (v. 2) “The Spirit of God was hovering on the face of the waters,” and Scripture had not yet disclosed when the creation of the waters took place — consequently you must learn from this that the creation of the waters preceded that of the earth. And a further proof that the heavens and earth were not the first thing created is that the heavens were created from fire (אש) and water (מים), from which it follows that fire and water were in existence before the heavens. Therefore you must admit that the text teaches nothing about the earlier or later sequence of the acts of Creation.",
+    "ברא אלהים GOD [AS JUDGE] CREATED — It does not state 'ברא ה “The Lord (the Merciful One) created, because at first God intended to create it (the world) to be placed under the attribute (rule) of strict justice, but He realised that the world could not thus endure and therefore gave precedence to Divine Mercy allying it with Divine Justice. It is to this that what is written in (<a class=\"refLink \" href=\"Genesis.2.4\" data-ref=\"Genesis 2:4\" data-range=382-393>Genesis 2:4</a>) alludes — “In the day that the Lord God made earth and heaven”."
+   ],
+   "versions": [
+    {
+     "text": [
+      "<b>בראשית.</b> אָמַר רַבִּי יִצְחָק לֹֹֹֹֹא הָיָה צָרִיךְ לְהַתְחִיל אֶת הַתּוֹרָה אֶלָּא מֵהַחֹדֶשׁ הַזֶּה לָכֶם, שֶׁהִיא מִצְוָה רִאשׁוֹנָה שֶׁנִּצְטַוּוּ בָּהּ יִשׂרָאֵל, וּמַה טַּעַם פָּתַח בִּבְרֵאשִׁית? מִשׁוּם כֹּחַ מַעֲשָׂיו הִגִּיד לְעַמּוֹ לָתֵת לָהֶם נַחֲלַת גּוֹיִם (<a class=\"refLink \" href=\"Psalms.111.6\" data-ref=\"Psalms 111:6\" data-range=279-290>תהילים קי\"א</a>), שֶׁאִם יֹאמְרוּ אֻמּוֹת הָעוֹלָם לְיִשְׁרָאֵל לִסְטִים אַתֶּם, שֶׁכְּבַשְׁתֶּם אַרְצוֹת שִׁבְעָה גוֹיִם, הֵם אוֹמְרִים לָהֶם כָּל הָאָרֶץ שֶׁל הַקָּבָּ\"ה הִיא, הוּא בְרָאָהּ וּנְתָנָהּ לַאֲשֶׁר יָשַׁר בְּעֵינָיו, בִּרְצוֹנוֹ נְתָנָהּ לָהֶם, וּבִרְצוֹנוֹ נְטָלָהּ מֵהֶם וּנְתָנָהּ לָנוּ:",
+      "<b>בראשית ברא</b> אֵין הַמִּקְרָא הַזֶּה אוֹמֵר אֶלָּא דָּרְשֵׁנִי, כְּמוֹ שֶׁדְּרָשׁוּהוּ רַבּוֹתֵינוּ בִּשְׁבִיל הַתּוֹרָה שֶׁנִקְרֵאת רֵאשִׁית דַּרְכּוֹ (<a class=\"refLink \" href=\"Proverbs.8.22\" data-ref=\"Proverbs 8:22\" data-range=157-164>משלי ח'</a>), וּבִשְׁבִיל יִשְׂרָאֵל שֶׁנִקְרְאוּ רֵאשִׁית תְּבוּאָתוֹ (<a class=\"refLink \" href=\"Jeremiah.2.3\" data-ref=\"Jeremiah 2:3\" data-range=225-233>ירמיה ב'</a>); וְאִם בָּאתָ לְפָרְשׁוֹ כִּפְשׁוּטוֹ, כָּךְ פָּרְשֵׁהוּ בְּרֵאשִׁית בְּרִיאַת שָׁמַיִם וָאָרֶץ, וְהָאָרֶץ הָיְתָה תֹהוּ וָבֹהוּ וְחֹשֶׁךְ וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וְלֹא בָא הַמִּקְרָא לְהוֹרוֹת סֵדֶר הַבְּרִיאָה לוֹמַר שֶׁאֵלּוּ קָדְמוּ, שֶׁאִם בָּא לְהוֹרוֹת כָּךְ, הָיָה לוֹ לִכְתֹּב בָּרִאשׁוֹנָה בָּרָא אֶת הַשָּׁמַיִם וְגוֹ' שֶׁאֵין לְךָ רֵאשִׁית בַּמִּקְרָא שֶׁאֵינוֹ דָבוּק לַתֵּבָה שֶׁלְּאַחֲרָיו, כְּמוֹ בְּרֵאשִׁית מַמְלֶכֶת יְהוֹיָקִים (שׁם כ\"ז), רֵאשִׁית מַמְלַכְתּוֹ (<a class=\"refLink \" href=\"Genesis.10.10\" data-ref=\"Genesis 10:10\" data-range=722-731>בראשית י'</a>), רֵאשִׁית דְּגָנְךָ (<a class=\"refLink \" href=\"Deuteronomy.18.4\" data-ref=\"Deuteronomy 18:4\" data-range=754-767>דברים י\"ח, ד'</a>), – אַף כָּאן אַתָּה אוֹמֵר בְּרֵאשִׁית בָּרָא אֱלֹהִים וְגוֹ', כְּמוֹ בְּרֵאשִׁית בְּרֹא; וְדוֹמֶה לוֹ תְּחִלַּת דִּבֶּר ה' בְּהוֹשֵׁעַ (<a class=\"refLink \" href=\"Hosea.1.2\" data-ref=\"Hosea 1:2\" data-range=906-913>הושע א'</a>), כְּלוֹמַר תְּחִלַת דִּבּוּרוֹ שֶׁל הַקָּבָּ\"ה בְּהוֹשֵׁעַ, וַיֹּאמֶר ה' אֶל הוֹשֵׁעַ וְגוֹ'. וְאִ\"תֹּ לְהוֹרוֹת בָּא שֶׁאֵלּוּ תְּחִלָּה נִבְרְאוּ, וּפֵרוּשׁוֹ בְּרֵאשִׁית הַכֹּל בָּרָא אֵלוּ – וְֵישׁ לְךָ מִקְרָאוֹת שֶׁמְּקַצְּרִים לְשׁוֹנָם וּמְמַעֲטִים תֵּבָה אַחַת, כְּמוֹ כִּי לֹא סָגַר דַּלְתֵי בִטְנִי (<a class=\"refLink \" href=\"Job.3.10\" data-ref=\"Job 3:10\" data-range=1226-1233>איוב ג'</a>), וְלֹא פֵּרֵשׁ מִי הַסּוֹגֵר וּכְמוֹ יִשָּׂא אֶת חֵיל דַּמֶּשֶׂק (<a class=\"refLink \" href=\"Isaiah.8.4\" data-ref=\"Isaiah 8:4\" data-range=1301-1310>ישעיהו ח'</a>), וְלֹא פֵּרֵשׁ מִי יִשָּׂאֶנּוּ; וּכְמוֹ אִם יַחֲרוֹשׁ בַּבְּקָרִים (<a class=\"refLink \" href=\"Amos.6.12\" data-ref=\"Amos 6:12\" data-range=1381-1388>עמוס ו'</a>), וְלֹא פֵּרֵשׁ אִם יַחֲרוֹשׁ אָדָם בַּבְּקָרִים, וּכְמוֹ מַגִּיד מֵרֵאשִׁית אַחֲרִית (<a class=\"refLink \" href=\"Isaiah.46.10\" data-ref=\"Isaiah 46:10\" data-range=1476-1486>ישעיהו מ\"ו</a>), וְלֹא פֵּרֵשׁ מַגִּיד מֵרֵאשִׁית דָּבָר אַחֲרִית דָּבָר – אִ\"כֵּ, תְּמַהּ עַל עַצְמְךָ, שֶׁהֲרֵי הַמַּיִם קָדְמוּ, שֶׁהֲרֵי כְתִיב וְרוּחַ אֱלֹהִים מְרַחֶפֶת עַל פְּנֵי הַמָּיִם, וְעַדַיִין לֹא גִלָּה הַמִּקְרָא, בְּרִיאַת הַמַּיִם מָתַי הָיְתָה, הָא לָמַדְתָּ, שֶׁקָּדְמוּ הַמַּיִם לָאָרֶץ, וְעוֹד, שֶׁהַשָּׁמַיִם מֵאֵשׁ וּמַיִם נִבְרְאוּ, עַל כָּרְחֲךָ לֹא לִמֵּד הַמִּקְרָא סֵדֶר הַמֻּקְדָמִים וְהַמְאֻחָרִים כְּלוּם:",
+      "<b>ברא אלהים</b> וְלֹא נֶאֱמַר בָּרָא ה', שֶׁבַּתְּחִלָּה עָלָה בְמַחֲשָׁבָה לִבְרֹאתוֹ בְּמִדַּת הַדִּין, רָאָה שֶׁאֵין הָעוֹלָם מִתְקַיֵּם, הִקְדִּים מִדַּת רַחֲמִים וְשִׁתְּפָהּ לְמִהַ\"דִּ, וְהַיְינוּ דִּכְתִיב בְּיוֹם עֲשׂוֹת ה' אֱלֹהִים אֶרֶץ וְשָׁמָיִם:"
+     ],
+     "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+     "versionTitleInHebrew": "",
+     "shortVersionTitle": "M. Rosenbaum and A.M. Silbermann, London, 1929-1934",
+     "shortVersionTitleInHebrew": "",
+     "languageFamilyName": "hebrew",
+     "actualLanguage": "he",
+     "language": "he",
+     "direction": "rtl",
+     "isPrimary": true,
+     "isSource": true,
+     "priority": 4.0,
+     "formatAsPoetry": "",
+     "license": "Public Domain",
+     "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH001969084"
+    },
+    {
+     "text": [
+      "בראשית IN THE BEGINNING — Rabbi Isaac said: The Torah <i>which is the Law book of Israel</i> should have commenced with the verse (<a class=\"refLink \" href=\"Exodus.12.2\" data-ref=\"Exodus 12:2\" data-range=131-142>Exodus 12:2</a>) “This month shall be unto you the first of the months” which is the first commandment given to Israel. What is the reason, then, that it commences with the account of the Creation? Because of the thought expressed in the text (<a class=\"refLink \" href=\"Psalms.111.6\" data-ref=\"Psalms 111:6\" data-range=371-383>Psalms 111:6</a>) “He declared to His people the strength of His works (i.e. He gave an account of the work of Creation), in order that He might give them the heritage of the nations.” For should the peoples of the world say to Israel, “You are robbers, because you took by force the lands of the seven nations of Canaan”, Israel may reply to them, “All the earth belongs to the Holy One, blessed be He; He created it and gave it to whom He pleased. When He willed He gave it to them, and when He willed He took it from them and gave it to us” (<a class=\"refLink \" href=\"Yalkut_Shimoni_on_Torah.187\" data-ref=\"Yalkut Shimoni on Torah 187\" data-range=912-939>Yalkut Shimoni on Torah 187</a>).",
+      "בראשית ברא IN THE BEGINNING GOD CREATED — This verse calls aloud for explanation in the manner that our Rabbis explained it: God created the world for the sake of the Torah which is called (<a class=\"refLink \" href=\"Proverbs.8.22\" data-ref=\"Proverbs 8:22\" data-range=190-203>Proverbs 8:22</a>) “The beginning (ראשית) of His (God’s) way”, and for the sake of Israel who are called (<a class=\"refLink \" href=\"Jeremiah.2.3\" data-ref=\"Jeremiah 2:3\" data-range=292-304>Jeremiah 2:3</a>) “The beginning (ראשית) of His (God’s) increase’’. If, however, you wish to explain it in its plain sense, explain it thus: At the beginning of the Creation of heaven and earth when the earth was without form and void and there was darkness, God said, “Let there be light”.  The text does not intend to point out the order of the acts of Creation — to state that these (heaven and earth) were created first; for if it intended to point this out, it should have written 'בראשונה ברא את השמים וגו “At first God created etc.” And for this reason: Because, wherever the word ראשית occurs in Scripture, it is in the construct state. E. g., (<a class=\"refLink \" href=\"Jeremiah.26.1\" data-ref=\"Jeremiah 26:1\" data-range=941-954>Jeremiah 26:1</a>) “In the beginning of (בראשית) the reign of Jehoiakim”; (<a class=\"refLink \" href=\"Genesis.10.10\" data-ref=\"Genesis 10:10\" data-range=1012-1025>Genesis 10:10</a>) “The beginning of (ראשית) his kingdom”; (<a class=\"refLink \" href=\"Deuteronomy.18.4\" data-ref=\"Deuteronomy 18:4\" data-range=1068-1084>Deuteronomy 18:4</a>) “The first fruit of (ראשית) thy corn.” Similarly here you must translate בראשית ברא אלהים as though it read בראשית ברוא, at the beginning of God’s creating. A similar grammatical construction (of a noun in construct followed by a verb) is: (<a class=\"refLink \" href=\"Hosea.1.2\" data-ref=\"Hosea 1:2\" data-range=1327-1336>Hosea 1:2</a>) תחלת דבר ה' בהושע, which is as much as to say, “At the beginning of God’s speaking through Hosea, the Lord said to Hosea.” Should you, however, insist that it does actually intend to point out that these (heaven and earth) were created first, and that the meaning is, “At the beginning of everything He created these, admitting therefore that the word בראשית is in the construct state and explaining the omission of a word signifying “everything” by saying that you have texts which are elliptical, omitting a word, as for example (<a class=\"refLink \" href=\"Job.3.10\" data-ref=\"Job 3:10\" data-range=1870-1878>Job 3:10</a>) “Because it shut not up the doors of my mother’s womb” where it does not explicitly explain who it was that closed the womb; and (<a class=\"refLink \" href=\"Isaiah.8.4\" data-ref=\"Isaiah 8:4\" data-range=2010-2020>Isaiah 8:4</a>) “He shall take away the spoil of Samaria” without explaining who shall take it away; and (<a class=\"refLink \" href=\"Amos.6.12\" data-ref=\"Amos 6:12\" data-range=2112-2121>Amos 6:12</a>) “Doth he plough with oxen,\" and it does not explicitly state, “Doth a man plough with oxen”; (<a class=\"refLink \" href=\"Isaiah.46.10\" data-ref=\"Isaiah 46:10\" data-range=2217-2229>Isaiah 46:10</a>) “Declaring from the beginning the end,” and it does not explicitly state, “Declaring from the beginning of a thing the end of a thing’ — if it is so (that you assert that this verse intends to point out that heaven and earth were created first), you should be astonished at yourself, because as a matter of fact the waters were created before heaven and earth, for, lo, it is written, (v. 2) “The Spirit of God was hovering on the face of the waters,” and Scripture had not yet disclosed when the creation of the waters took place — consequently you must learn from this that the creation of the waters preceded that of the earth. And a further proof that the heavens and earth were not the first thing created is that the heavens were created from fire (אש) and water (מים), from which it follows that fire and water were in existence before the heavens. Therefore you must admit that the text teaches nothing about the earlier or later sequence of the acts of Creation.",
+      "ברא אלהים GOD [AS JUDGE] CREATED — It does not state 'ברא ה “The Lord (the Merciful One) created, because at first God intended to create it (the world) to be placed under the attribute (rule) of strict justice, but He realised that the world could not thus endure and therefore gave precedence to Divine Mercy allying it with Divine Justice. It is to this that what is written in (<a class=\"refLink \" href=\"Genesis.2.4\" data-ref=\"Genesis 2:4\" data-range=382-393>Genesis 2:4</a>) alludes — “In the day that the Lord God made earth and heaven”."
+     ],
+     "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+     "versionTitleInHebrew": "חמישה חומשי תורה עם פירוש רש״י, מ. רוזנבאום וא.מ. סילברמן",
+     "shortVersionTitle": "M. Rosenbaum and A.M. Silbermann, London, 1929-1934",
+     "shortVersionTitleInHebrew": "",
+     "languageFamilyName": "english",
+     "actualLanguage": "en",
+     "language": "en",
+     "direction": "ltr",
+     "isPrimary": false,
+     "isSource": false,
+     "priority": 5.0,
+     "formatAsPoetry": "",
+     "license": "Public Domain",
+     "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH001969084"
+    }
+   ]
+  }
+ },
+ "remoteConfig": {
+  "sentry": {
+   "tracesSampleRate": 0.0,
+   "sampleRate": 1.0,
+   "replaysSessionSampleRate": 0.0,
+   "replaysOnErrorSampleRate": 0.0
+  },
+  "chatbot": {
+   "hide": 0
+  }
+ }
+}

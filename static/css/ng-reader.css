@@ -1,0 +1,2145 @@
+/*
+ * NG mobile reader (static/js/ng/, templates/ng/reader.html).
+ * Everything is scoped under .ng-reader except the page-level rules at the top, which apply
+ * only to the NG document (body.ng-body). Colors come from color-palette.css. Layout uses
+ * logical properties, so a Hebrew interface (dir="rtl") mirrors without extra rules.
+ */
+
+/* Taamey Frank, self-hosted (same files and ranges as fonts.css, which NG does not load). */
+@font-face {
+  font-family: "Taamey Frank";
+  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F;
+}
+@font-face {
+  font-family: "Taamey Frank";
+  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf");
+  font-style: normal;
+  font-weight: bold;
+  font-display: swap;
+  unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F;
+}
+@font-face {
+  font-family: "Cardo";
+  src: url("/static/fonts/Cardo-Regular.ttf");
+  font-display: swap;
+  unicode-range: U+0300-036F, U+0370-03FF, U+1D00-1D7F, U+1DBF, U+1F00-1FFF, U+2126, U+AB65, U+10140-1018F, U+101A0, U+1D200-1D24F;
+}
+
+body.ng-body {
+  margin: 0;
+  background: var(--white);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.ng-reader {
+  /* palette */
+  --ng-surface: var(--white);
+  --ng-ink: var(--near-black);
+  --ng-ink-translation: #2b2b2b;
+  --ng-ink-soft: var(--darker-grey);
+  --ng-muted: var(--secondary-text-grey);
+  --ng-faint: var(--medium-grey-legacy);
+  --ng-rule: var(--lighter-grey);
+  --ng-accent: var(--sefaria-blue);
+  --ng-link: var(--inline-link-blue);
+  --ng-highlight: var(--highlight-blue-light);
+  --ng-highlight-edge: var(--highlight-blue);
+  --ng-category: var(--sefaria-blue);
+
+  /* type */
+  --ng-he-serif: "Cardo", "Taamey Frank", "Times New Roman", serif;
+  --ng-en-serif: "Cardo", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --ng-en-sans: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ng-he-sans: "Heebo", "Roboto", Arial, sans-serif;
+  --ng-ui: var(--ng-en-sans);
+
+  --ng-font-scale: 1;
+  --ng-header-height: 60px;
+  --ng-gutter: 1.9rem;
+  --ng-page-inline: max(18px, env(safe-area-inset-left), env(safe-area-inset-right));
+
+  color: var(--ng-ink);
+  background: var(--ng-surface);
+  font-family: var(--ng-ui);
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader[data-interface="hebrew"] {
+  --ng-ui: var(--ng-he-sans);
+}
+.ng-reader *,
+.ng-reader *::before,
+.ng-reader *::after {
+  box-sizing: border-box;
+}
+.ng-reader ::selection {
+  background: var(--highlight-blue);
+}
+
+/* ---------------------------------------------------------------- header */
+
+.ng-reader .ng-header {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 10;
+  padding-block-start: env(safe-area-inset-top);
+  background: rgba(255, 255, 255, 0.94);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  backdrop-filter: saturate(1.4) blur(14px);
+  border-block-end: 1px solid var(--ng-rule);
+  transform: translate3d(0, 0, 0);
+  transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 240ms ease;
+  will-change: transform;
+}
+.ng-reader .ng-header[data-visible="false"] {
+  transform: translate3d(0, calc(-100% - 2px), 0);
+  transition-duration: 200ms;
+}
+.ng-reader .ng-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--ng-header-height);
+  max-width: 44rem;
+  margin-inline: auto;
+  padding-inline: calc(var(--ng-page-inline) - 2px) 6px;
+}
+.ng-reader .ng-header-ref {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--ng-en-serif);
+  font-size: 21px;
+  font-weight: normal;
+  line-height: 1.2;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ng-ink);
+}
+.ng-reader[data-interface="hebrew"] .ng-header-ref {
+  font-family: var(--ng-he-serif);
+  font-size: 22px;
+}
+.ng-reader .ng-header-address {
+  margin-inline-start: 0.28em;
+  color: var(--ng-accent);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.ng-reader .ng-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+.ng-reader .ng-header-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--darkest-grey);
+  text-decoration: none;
+  cursor: pointer;
+}
+.ng-reader .ng-header-button:active {
+  background: var(--lighter-grey);
+}
+.ng-reader .ng-header-button:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: -2px;
+}
+.ng-reader .ng-icon {
+  width: 23px;
+  height: 23px;
+}
+
+/* ---------------------------------------------------------------- stream */
+
+.ng-reader .ng-stream {
+  display: block;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-block: calc(var(--ng-header-height) + env(safe-area-inset-top) + 8px) 34vh;
+  padding-inline: var(--ng-page-inline);
+  overflow-anchor: none;           /* TextStream anchors prepended sections itself */
+  /* Horizontal drags are reserved for the panels. The browser reads touch-action once, at
+     touchstart: pan-y keeps native vertical scrolling and stops horizontal panning and history
+     swipes here. The vertical part of a diagonal drag is held by gestures.js, which
+     preventDefault()s the touchmoves of a gesture it has locked horizontal. */
+  touch-action: pan-y pinch-zoom;
+  font-size: calc(19px * var(--ng-font-scale));
+}
+
+.ng-reader .ng-section {
+  padding-block-end: 0.5em;
+}
+.ng-reader .ng-section[data-category="Tanakh"] { --ng-category: var(--tanakh-teal); }
+.ng-reader .ng-section[data-category="Talmud"] { --ng-category: var(--talmud-gold); }
+.ng-reader .ng-section[data-category="Mishnah"] { --ng-category: var(--mishnah-blue); }
+.ng-reader .ng-section[data-category="Midrash"] { --ng-category: var(--midrash-green); }
+.ng-reader .ng-section[data-category="Halakhah"] { --ng-category: var(--halakhah-red); }
+
+.ng-reader .ng-book-title {
+  padding-block: 1.6rem 0.2rem;
+  text-align: center;
+}
+.ng-reader .ng-book-title::before {
+  content: "";
+  display: block;
+  width: 2.25rem;
+  height: 3px;
+  margin: 0 auto 1.15rem;
+  border-radius: 2px;
+  background: var(--ng-category);
+}
+.ng-reader .ng-book-title-en {
+  font-family: var(--ng-en-serif);
+  font-size: 34px;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+.ng-reader .ng-book-title-he {
+  margin-block-start: 0.2rem;
+  font-family: var(--ng-he-serif);
+  font-size: 30px;
+  line-height: 1.3;
+  color: var(--ng-ink-soft);
+}
+
+.ng-reader .ng-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 2.6rem 0 1.5rem;
+  font-family: var(--ng-ui);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-section-label {
+  flex: 0 0 auto;
+}
+.ng-reader .ng-section-name {
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ng-reader .ng-section-address {
+  letter-spacing: 0.06em;
+  font-variant-numeric: lining-nums;
+}
+.ng-reader .ng-book-title + .ng-section-title {
+  margin-block-start: 1.6rem;
+}
+.ng-reader .ng-section-title::before,
+.ng-reader .ng-section-title::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--ng-rule);
+}
+.ng-reader[data-interface="hebrew"] .ng-section-title {
+  font-size: 15px;
+}
+.ng-reader[data-interface="hebrew"] .ng-section-name,
+.ng-reader[data-interface="hebrew"] .ng-section-address {
+  letter-spacing: 0.02em;
+}
+
+/* ---------------------------------------------------------------- segments */
+
+.ng-reader .ng-he {
+  font-family: var(--ng-he-serif);
+  font-size: 1.3em;           /* 24.7px at the default size */
+  line-height: 1.5;           /* room for nikud and te'amim without loosening the verse */
+  text-align: start;
+  font-feature-settings: "kern", "mark", "mkmk";
+}
+.ng-reader .ng-en {
+  font-family: var(--ng-en-serif);
+  font-size: 1em;             /* 19px */
+  line-height: 1.52;
+  text-align: start;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  hyphenate-limit-chars: 7 3 3;
+  font-variant-numeric: oldstyle-nums;
+}
+
+.ng-reader .ng-seg {
+  position: relative;
+  border-radius: 6px;
+}
+.ng-reader .ng-segments > .ng-seg {
+  padding-inline-start: var(--ng-gutter);
+  margin-block-end: 1.05em;
+}
+.ng-reader .ng-stream[data-language="english"] .ng-segments > .ng-seg {
+  margin-block-end: 0.9em;
+}
+/*
+ * The number sits in the inline-start gutter. Its box takes the font size and line height of
+ * the segment's leading text, so the smaller numeral inside lands on that text's first baseline.
+ */
+.ng-reader .ng-segnum {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0;
+  width: calc(var(--ng-gutter) - 0.5rem);
+  font-family: var(--ng-ui);
+  font-size: 1.3em;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--ng-faint);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ng-reader .ng-segnum > span {
+  font-size: 0.5em;
+  font-variant-numeric: tabular-nums;
+}
+.ng-reader .ng-stream[data-language="english"] .ng-segnum { font-size: 1em; line-height: 1.52; }
+.ng-reader .ng-stream[data-language="english"] .ng-segnum > span { font-size: 0.64em; }
+.ng-reader .ng-stream[data-language="bilingual"] .ng-segnum { font-size: 1.24em; line-height: 1.5; }
+.ng-reader .ng-section[dir="rtl"] .ng-segnum,
+.ng-reader[data-interface="hebrew"] .ng-stream[data-language="bilingual"] .ng-segnum { font-family: var(--ng-he-sans); }
+
+.ng-reader .ng-seg p { margin: 0; }
+.ng-reader .ng-seg-body > * { margin: 0; }
+
+/* bilingual, stacked */
+.ng-reader .ng-stream[data-language="bilingual"] .ng-segments > .ng-seg {
+  margin-block-end: 1.25em;
+}
+.ng-reader .ng-stream[data-language="bilingual"] .ng-he {
+  font-size: 1.24em;
+  line-height: 1.5;
+}
+.ng-reader .ng-stream[data-language="bilingual"] .ng-en {
+  margin-block-start: 0.3em;
+  font-size: 0.95em;
+  line-height: 1.5;
+  color: var(--ng-ink-translation);
+}
+
+/* bilingual, side by side */
+.ng-reader .ng-seg-body[data-sbs] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 0.9rem;
+  align-items: start;
+}
+.ng-reader .ng-section[data-bilayout="heRight"] .ng-seg-body[data-sbs] > .ng-he { order: 2; }
+.ng-reader .ng-section[data-bilayout="heRight"] .ng-seg-body[data-sbs] > .ng-en { order: 1; }
+.ng-reader .ng-stream[data-language="bilingual"] .ng-seg-body[data-sbs] > .ng-en {
+  margin-block-start: 0;
+  font-size: 0.84em;
+}
+.ng-reader .ng-stream[data-language="bilingual"] .ng-seg-body[data-sbs] > .ng-he {
+  font-size: 1.1em;
+}
+
+/* continuous prose (Talmud by default; any single-language text by choice) */
+/* Start-aligned: on a phone's measure, justified Hebrew opens rivers between words. */
+.ng-reader .ng-prose.ng-he {
+  font-size: 1.24em;
+  line-height: 1.72;
+  text-align: start;
+  text-wrap: pretty;
+}
+.ng-reader .ng-prose.ng-en {
+  line-height: 1.56;
+  text-wrap: pretty;
+}
+.ng-reader .ng-prose br { display: none; }
+.ng-reader .ng-prose .poetry {
+  display: inline;
+  padding: 0;
+  text-indent: 0;
+  margin-inline-end: 0.4em;
+}
+.ng-reader .ng-seg-inline {
+  border-radius: 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.ng-reader .ng-inline-num {
+  margin-inline: 0.1em 0.18em;
+  font-family: var(--ng-ui);
+  font-size: 0.5em;
+  font-weight: 500;
+  vertical-align: 0.8em;
+  line-height: 0;
+  color: var(--ng-faint);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* highlighted segment (a segment or range URL) */
+.ng-reader .ng-seg[data-highlighted="true"] {
+  background: var(--ng-highlight);
+  box-shadow: 0 0 0 6px var(--ng-highlight);
+}
+.ng-reader .ng-segments > .ng-seg[data-highlighted="true"]::before {
+  content: "";
+  position: absolute;
+  inset-block: -4px;
+  inset-inline-start: -10px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--ng-accent);
+}
+
+/* ---------------------------------------------------------------- inline markup in texts */
+
+.ng-reader .ng-he big,
+.ng-reader .ng-en big {
+  font-size: 1.2em;
+  line-height: 1;
+}
+.ng-reader .ng-he small { font-size: 0.8em; }
+.ng-reader .mam-spi-pe,
+.ng-reader .mam-spi-samekh {
+  font-family: var(--ng-he-sans);
+  font-size: 0.55em;
+  vertical-align: 0.15em;
+  color: var(--ng-faint);
+}
+.ng-reader .ng-seg .poetry.indentWhenWrap {
+  display: inline-block;
+  padding-inline-start: 1.6em;
+  text-indent: -1.6em;
+}
+.ng-reader .ng-seg .poetry.indentAll {
+  display: inline-block;
+  padding-inline-start: 1.25em;
+}
+.ng-reader .ng-seg .poetry.indentAllDouble {
+  display: inline-block;
+  padding-inline-start: 2.5em;
+}
+.ng-reader a.namedEntityLink {
+  color: inherit;
+  text-decoration: none;
+}
+.ng-reader a.refLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--light-grey);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+.ng-reader .ng-en b,
+.ng-reader .ng-en strong {
+  font-weight: 600;
+}
+
+/* footnotes: <sup class="footnote-marker">a</sup><i class="footnote">…</i>, tap to open */
+.ng-reader sup.footnote-marker {
+  position: relative;
+  padding-inline: 0.12em;
+  font-family: var(--ng-ui);
+  font-size: 0.58em;
+  font-weight: 500;
+  line-height: 0;
+  color: var(--ng-link);
+  cursor: pointer;
+}
+.ng-reader sup.footnote-marker::before {
+  content: "";
+  position: absolute;
+  inset: -14px -10px;          /* a thumb-sized target */
+}
+.ng-reader i.footnote {
+  display: none;
+}
+.ng-reader i.footnote.ng-footnote-open {
+  display: block;
+  margin-block: 0.45em 0.6em;
+  padding: 0.55em 0.8em 0.6em;
+  border-inline-start: 2px solid var(--ng-highlight-edge);
+  border-radius: 2px 6px 6px 2px;
+  background: var(--lightest-grey);
+  font-size: 0.84em;
+  font-style: normal;
+  line-height: 1.45;
+  color: var(--ng-ink-soft);
+  text-indent: 0;
+}
+.ng-reader i.footnote.ng-footnote-open b { color: var(--ng-ink); }
+
+/* ---------------------------------------------------------------- stream edges */
+
+.ng-reader .ng-edge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4.5rem;
+  font-family: var(--ng-ui);
+  font-size: 14px;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-edge-button {
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--light-grey);
+  border-radius: 999px;
+  background: var(--ng-surface);
+  font: inherit;
+  color: var(--darkest-grey);
+  cursor: pointer;
+}
+.ng-reader .ng-end {
+  flex-direction: column;
+  gap: 0.8rem;
+  padding-block: 2rem;
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ng-reader .ng-end::before {
+  content: "";
+  width: 2.25rem;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--light-grey);
+}
+.ng-reader .ng-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--lighter-grey);
+  border-block-start-color: var(--ng-accent);
+  border-radius: 50%;
+  animation: ng-spin 0.8s linear infinite;
+}
+@keyframes ng-spin { to { transform: rotate(360deg); } }
+
+/* ---------------------------------------------------------------- overlay slot */
+
+/*
+ * Both panels are drawers: associated texts on the interface's trailing side, config on its
+ * leading side (OverlaySlot sets data-side from the interface direction). OverlaySlot moves them
+ * with inline transform/opacity while a finger drags or a settle animates; CSS only gives the
+ * resting positions, and the off-screen start of a panel that is entering or being pulled in.
+ */
+.ng-reader .ng-overlay[hidden] { display: none; }
+.ng-reader .ng-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(24, 22, 20, 0.3);
+  touch-action: none;           /* the sliver of text doesn't scroll; a drag here closes the panel */
+}
+.ng-reader .ng-sheet {
+  position: fixed;
+  inset-block: 0;
+  z-index: 21;
+  width: min(calc(100% - 44px), 38rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y pinch-zoom;
+  background: var(--ng-surface);
+  outline: none;
+  will-change: transform;
+  /* Past fully open the panel stretches with resistance (gestures.js rubberBand, at most 72px);
+     this solid shadow fills the gap it would otherwise open at the screen edge. */
+  --ng-sheet-stretch-right: 96px 0 0 0 var(--ng-surface);
+  --ng-sheet-stretch-left: -96px 0 0 0 var(--ng-surface);
+}
+.ng-reader .ng-sheet[data-side="right"] {
+  right: 0;
+  left: auto;
+  border-radius: 18px 0 0 18px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), -10px 0 38px rgba(0, 0, 0, 0.16), var(--ng-sheet-stretch-right);
+}
+.ng-reader .ng-sheet[data-side="left"] {
+  left: 0;
+  right: auto;
+  border-radius: 0 18px 18px 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 10px 0 38px rgba(0, 0, 0, 0.16), var(--ng-sheet-stretch-left);
+}
+/* Motion comes from OverlaySlot's inline styles, never from keyframes (they would fight the finger). */
+.ng-reader .ng-overlay[data-overlay] .ng-sheet[data-side],
+.ng-reader .ng-overlay[data-overlay] .ng-overlay-backdrop { animation: none; }
+.ng-reader .ng-overlay[data-phase="entering"] .ng-sheet[data-side="right"],
+.ng-reader .ng-overlay[data-phase="pulling"] .ng-sheet[data-side="right"] { transform: translate3d(calc(100% + 48px), 0, 0); }
+.ng-reader .ng-overlay[data-phase="entering"] .ng-sheet[data-side="left"],
+.ng-reader .ng-overlay[data-phase="pulling"] .ng-sheet[data-side="left"] { transform: translate3d(calc(-100% - 48px), 0, 0); }
+.ng-reader .ng-overlay[data-phase="entering"] .ng-overlay-backdrop,
+.ng-reader .ng-overlay[data-phase="pulling"] .ng-overlay-backdrop { opacity: 0; }
+/* The stub config panel's padding (the real panel brings its own layout). */
+.ng-reader .ng-sheet > [data-ng="panel-config"] { padding: 22px var(--ng-page-inline) calc(22px + env(safe-area-inset-bottom)); }
+.ng-reader .ng-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 1rem;
+}
+.ng-reader .ng-panel-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+}
+.ng-reader .ng-panel-close {
+  min-height: 40px;
+  padding: 0 0.8rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--lighter-grey);
+  font: inherit;
+  font-size: 14px;
+  color: var(--darkest-grey);
+}
+.ng-reader .ng-panel-note { margin: 0; color: var(--ng-muted); line-height: 1.5; }
+.ng-reader .ng-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-end: 14px;
+}
+.ng-reader .ng-choice {
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--light-grey);
+  border-radius: 10px;
+  background: var(--ng-surface);
+  font: inherit;
+  font-size: 15px;
+  color: var(--darkest-grey);
+}
+.ng-reader .ng-choice[aria-pressed="true"] {
+  border-color: var(--ng-accent);
+  background: var(--highlight-blue-light);
+  color: var(--ng-accent);
+  font-weight: 500;
+}
+.ng-reader .ng-panel-link {
+  display: inline-block;
+  margin-block-start: 6px;
+  font-size: 14px;
+  color: var(--ng-link);
+}
+
+/* ---------------------------------------------------------------- utilities, SSR fallback */
+
+.ng-reader .ng-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+body.ng-body #appLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-family: "Roboto", "Heebo", sans-serif;
+  color: var(--medium-grey);
+}
+body.ng-body #appLoading .int-he { display: none; }
+body.interface-hebrew.ng-body #appLoading .int-he { display: inline; }
+body.interface-hebrew.ng-body #appLoading .int-en { display: none; }
+
+/* ================================================================ config panel
+ * static/js/ng/panels/ConfigPanel.jsx. A sheet from the reader's leading edge (left in an
+ * English interface, right in Hebrew) that leaves a sliver of the text visible on the trailing
+ * side; the text behind it updates live. Everything below is scoped to the config overlay.
+ */
+
+.ng-reader .ng-overlay[data-overlay="config"] .ng-overlay-backdrop {
+  background: rgba(18, 18, 18, 0.08);
+}
+.ng-reader .ng-overlay[data-overlay="config"] .ng-sheet {
+  inset-block: 0;
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  width: min(calc(100% - 64px), 420px);
+  max-height: none;
+  padding: 0;
+  border-radius: 0;
+  border-start-end-radius: 20px;
+  border-end-end-radius: 20px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 8px 0 32px rgba(0, 0, 0, 0.14), var(--ng-sheet-stretch-left);
+  animation: ng-config-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ng-reader[dir="rtl"] .ng-overlay[data-overlay="config"] .ng-sheet {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), -8px 0 32px rgba(0, 0, 0, 0.14), var(--ng-sheet-stretch-right);
+  animation-name: ng-config-in-rtl;
+}
+@keyframes ng-config-in { from { transform: translateX(-100%); } }
+@keyframes ng-config-in-rtl { from { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .ng-reader .ng-overlay[data-overlay="config"] .ng-sheet { animation: none; }
+}
+
+.ng-reader .ng-config {
+  --ng-config-pad: 20px;
+  --ng-config-track: #f2f2ef;
+  --ng-config-radius: 14px;
+  min-height: 100%;
+  padding-block-end: calc(28px + env(safe-area-inset-bottom));
+  font-size: 15px;
+  color: var(--ng-ink);
+}
+.ng-reader .ng-config .ng-icon-flip { transform: none; }
+.ng-reader[dir="rtl"] .ng-config .ng-icon-flip { transform: scaleX(-1); }
+
+/* head */
+.ng-reader .ng-config-head {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: calc(64px + env(safe-area-inset-top));
+  padding-block-start: env(safe-area-inset-top);
+  padding-inline: calc(var(--ng-config-pad) - 4px) 10px;
+  background: rgba(255, 255, 255, 0.96);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.ng-reader .ng-config[data-view="main"] .ng-config-head { padding-inline-start: var(--ng-config-pad); }
+.ng-reader .ng-config-title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  outline: none;
+}
+.ng-reader .ng-config-icon-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ng-ink-soft);
+  cursor: pointer;
+}
+.ng-reader .ng-config-icon-button:active { background: var(--ng-config-track); }
+.ng-reader .ng-config-close { background: var(--ng-config-track); width: 40px; height: 40px; }
+
+.ng-reader .ng-config-body { padding-inline: var(--ng-config-pad); }
+
+/* groups */
+.ng-reader .ng-config-group { padding-block: 10px 18px; }
+.ng-reader .ng-config-group + .ng-config-group { border-block-start: 1px solid var(--ng-rule); padding-block-start: 18px; }
+.ng-reader .ng-config-group-title {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ng-muted);
+}
+.ng-reader[data-interface="hebrew"] .ng-config-group-title { letter-spacing: 0; text-transform: none; font-size: 13px; }
+.ng-reader .ng-config-field + .ng-config-field { margin-block-start: 16px; }
+.ng-reader .ng-config-label {
+  margin-block-end: 8px;
+  font-size: 14px;
+  color: var(--ng-ink-soft);
+}
+
+/* segmented control */
+.ng-reader .ng-segmented {
+  display: grid;
+  grid-template-columns: repeat(var(--ng-segments, 3), minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--ng-config-radius);
+  background: var(--ng-config-track);
+}
+.ng-reader .ng-segment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: calc(var(--ng-config-radius) - 3px);
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.2;
+  color: var(--ng-ink-soft);
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+.ng-reader .ng-segment-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 28px;
+  font-family: var(--ng-en-serif);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-segment-glyph [lang="he"] { font-family: var(--ng-he-serif); font-size: 24px; }
+.ng-reader .ng-segment-glyph .ng-icon { display: block; }
+.ng-reader [data-ng="field-vowels"] .ng-segment-glyph { font-family: var(--ng-he-serif); font-size: 22px; direction: rtl; }
+.ng-reader .ng-segment[aria-pressed="true"] {
+  background: var(--ng-surface);
+  color: var(--ng-accent);
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.ng-reader .ng-segment[aria-pressed="true"] .ng-segment-glyph { color: var(--ng-accent); }
+.ng-reader .ng-segment:focus-visible,
+.ng-reader .ng-config-row:focus-visible,
+.ng-reader .ng-version-choose:focus-visible,
+.ng-reader .ng-version-info:focus-visible,
+.ng-reader .ng-stepper-button:focus-visible,
+.ng-reader .ng-config-icon-button:focus-visible {
+  outline: 2px solid var(--ng-accent);
+  outline-offset: 1px;
+}
+
+/* font size stepper */
+.ng-reader .ng-stepper {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--ng-config-radius);
+  background: var(--ng-config-track);
+}
+.ng-reader .ng-stepper-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border: 0;
+  border-radius: calc(var(--ng-config-radius) - 3px);
+  background: var(--ng-surface);
+  color: var(--ng-ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+}
+.ng-reader .ng-stepper-button:disabled { background: transparent; box-shadow: none; color: var(--ng-faint); cursor: default; }
+.ng-reader .ng-stepper-a { font-family: var(--ng-en-serif); line-height: 1; }
+.ng-reader .ng-stepper-a-small { font-size: 16px; }
+.ng-reader .ng-stepper-a-large { font-size: 26px; }
+.ng-reader .ng-stepper-value {
+  min-width: 4.5em;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--ng-ink-soft);
+}
+
+/* version rows (main view) */
+.ng-reader .ng-config-rows { display: grid; gap: 8px; }
+.ng-reader .ng-config-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 64px;
+  padding-block: 10px;
+  padding-inline: 14px 10px;
+  border: 1px solid var(--ng-rule);
+  border-radius: var(--ng-config-radius);
+  background: var(--ng-surface);
+  font: inherit;
+  text-align: start;
+  color: var(--ng-ink);
+  cursor: pointer;
+}
+.ng-reader .ng-config-row:active { background: var(--ng-config-track); }
+.ng-reader .ng-config-row > .ng-icon { flex: none; color: var(--ng-faint); }
+.ng-reader .ng-config-row-text { display: flex; flex: 1 1 auto; flex-direction: column; gap: 2px; min-width: 0; }
+.ng-reader .ng-config-row-label { font-size: 12.5px; color: var(--ng-muted); }
+.ng-reader .ng-config-row-value {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 15.5px;
+  line-height: 1.3;
+  text-align: start;
+}
+
+/* classic view */
+.ng-reader .ng-config-classic {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-block-start: 6px;
+  padding-block: 16px 4px;
+  border-block-start: 1px solid var(--ng-rule);
+  font-size: 15px;
+  color: var(--ng-link);
+  text-decoration: none;
+}
+.ng-reader .ng-config-classic-note { font-size: 13px; color: var(--ng-muted); }
+
+/* version picker */
+.ng-reader .ng-config-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-block: 18px;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-config-retry,
+.ng-reader .ng-config-error {
+  margin: 0 0 8px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #fbf1ef;
+  font: inherit;
+  font-size: 14px;
+  text-align: start;
+  color: #8a2b1f;
+}
+.ng-reader .ng-version-group + .ng-version-group { margin-block-start: 18px; }
+.ng-reader .ng-version-group-title {
+  position: sticky;
+  inset-block-start: calc(64px + env(safe-area-inset-top));
+  z-index: 0;
+  margin: 0;
+  padding-block: 8px 6px;
+  background: var(--ng-surface);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ng-muted);
+}
+.ng-reader[data-interface="hebrew"] .ng-version-group-title { letter-spacing: 0; text-transform: none; font-size: 13px; }
+.ng-reader .ng-version-list { margin: 0; padding: 0; list-style: none; }
+.ng-reader .ng-version { border-block-end: 1px solid var(--ng-rule); }
+.ng-reader .ng-version-main { display: flex; align-items: center; gap: 2px; }
+.ng-reader .ng-version-choose {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  min-height: 60px;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  color: var(--ng-ink);
+  cursor: pointer;
+}
+.ng-reader .ng-version-title { font-size: 15.5px; line-height: 1.3; text-align: start; }
+.ng-reader .ng-version-meta { font-size: 12.5px; color: var(--ng-muted); }
+.ng-reader .ng-version[data-selected="true"] .ng-version-title { color: var(--ng-accent); font-weight: 500; }
+.ng-reader .ng-version-state {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  color: var(--ng-accent);
+}
+.ng-reader .ng-spinner.ng-spinner-small { width: 16px; height: 16px; }
+.ng-reader .ng-version-info {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ng-faint);
+  cursor: pointer;
+}
+.ng-reader .ng-version-info[aria-expanded="true"] { color: var(--ng-accent); background: var(--highlight-blue-light); }
+.ng-reader .ng-version-about {
+  padding: 0 0 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ng-ink-soft);
+}
+.ng-reader .ng-version-about p { margin: 0 0 6px; }
+.ng-reader .ng-version-source { margin-block-start: 8px; }
+/* Titles may be in either script (dir="auto"); align them with the interface, not their own direction. */
+.ng-reader .ng-config-row-value,
+.ng-reader .ng-version-title,
+.ng-reader .ng-version-full { text-align: left; }
+.ng-reader[dir="rtl"] .ng-config-row-value,
+.ng-reader[dir="rtl"] .ng-version-title,
+.ng-reader[dir="rtl"] .ng-version-full { text-align: right; }
+.ng-reader .ng-version-notes { overflow-wrap: anywhere; }
+.ng-reader .ng-version-notes a,
+.ng-reader .ng-version-source a { color: var(--ng-link); }
+.ng-reader .ng-version-notes img { max-width: 100%; height: auto; }
+
+/* ================================================================ associated texts in the stream
+ * Count badges (a tap opens the associated panel on that segment), the anchored segment while
+ * the panel is open, and pinned commentators under every segment.
+ */
+
+.ng-reader .ng-seg-badge {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 2.1em;     /* the line under the segment number (the number's box is one line of text) */
+  display: flex;
+  justify-content: center;
+  width: calc(var(--ng-gutter) - 0.5rem);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  line-height: 1;
+  color: var(--ng-faint);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader .ng-stream[data-language="english"] .ng-seg-badge { inset-block-start: 1.72em; }
+.ng-reader .ng-stream[data-language="bilingual"] .ng-seg-badge { inset-block-start: 2.02em; }
+.ng-reader .ng-seg-badge > span {
+  display: inline-block;
+  min-width: 1.9em;
+  padding: 0.26em 0.34em 0.24em;
+  border: 1px solid var(--ng-rule);
+  border-radius: 999px;
+  font-family: var(--ng-en-sans);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: center;
+  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+.ng-reader .ng-seg-badge::before {
+  content: "";
+  position: absolute;
+  inset: -10px -4px;             /* a thumb-sized target around the small pill */
+}
+.ng-reader .ng-seg-badge:active > span,
+.ng-reader .ng-seg[data-anchor="true"] .ng-seg-badge > span {
+  border-color: var(--highlight-blue);
+  background: var(--highlight-blue-light);
+  color: var(--ng-accent);
+}
+.ng-reader .ng-seg-badge:focus-visible { outline: none; }
+.ng-reader .ng-seg-badge:focus-visible > span { outline: 2px solid var(--focus-blue); outline-offset: 1px; }
+.ng-reader .ng-seg-badge-inline {
+  position: relative;
+  inset: auto;
+  display: inline;
+  width: auto;
+  margin-inline: 0.12em 0.08em;
+  vertical-align: 0.18em;
+}
+.ng-reader .ng-seg-badge-inline > span {
+  min-width: 0;
+  padding: 0.18em 0.42em 0.16em;
+  font-size: 9px;
+}
+
+/* the segment the associated panel is showing (visible in the sliver beside the panel) */
+.ng-reader .ng-seg[data-anchor="true"] {
+  background: var(--ng-highlight);
+  box-shadow: 0 0 0 6px var(--ng-highlight);
+  transition: background-color 200ms ease, box-shadow 200ms ease;
+}
+
+/* pinned commentators (I1): under each segment, quieter than the text they serve */
+.ng-reader .ng-pinned {
+  display: block;
+  margin-block-start: 0.6em;
+  text-align: start;
+}
+.ng-reader .ng-pin {
+  display: block;
+  padding-block: 0.1em;
+  padding-inline-start: 0.9em;
+  border-inline-start: 2px solid #e6e1d6;
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader .ng-pin + .ng-pin { margin-block-start: 0.7em; }
+.ng-reader .ng-pin[data-expanded="true"] { border-inline-start-color: var(--light-grey); }
+/* the head: the work's name (opens it in the panel), then expand and Open, quiet icons */
+.ng-reader .ng-pin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 24px;
+  margin-block-end: 0.2em;
+}
+.ng-reader .ng-pin-name {
+  display: block;
+  margin-block: -8px;
+  margin-inline: -6px;
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font-family: var(--ng-en-sans);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.13em;
+  text-align: start;
+  text-transform: uppercase;
+  color: var(--ng-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader .ng-pin-name:active { background: var(--lighter-grey); }
+.ng-reader[data-interface="hebrew"] .ng-pin-name {
+  font-family: var(--ng-he-sans);
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
+.ng-reader .ng-pin-actions {
+  display: inline-flex;
+  flex: none;
+  margin-block: -8px;
+  margin-inline-end: -8px;
+}
+.ng-reader .ng-pin-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ng-faint);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader .ng-pin-action:active { background: var(--lighter-grey); color: var(--ng-accent); }
+.ng-reader .ng-pin-action .ng-icon { width: 16px; height: 16px; }
+.ng-reader .ng-pin-expand .ng-icon { transition: transform 180ms ease; }
+.ng-reader .ng-pin[data-expanded="true"] .ng-pin-expand .ng-icon { transform: rotate(180deg); }
+/* the text: at most three lines per language, with an ellipsis, until a tap expands it */
+.ng-reader .ng-pin-body { display: block; }
+.ng-reader .ng-pin[data-clipped="true"] .ng-pin-body,
+.ng-reader .ng-pin[data-expanded="true"] .ng-pin-body { cursor: pointer; }
+.ng-reader .ng-pin-run { display: block; overflow-wrap: break-word; }
+.ng-reader .ng-pin[data-expanded="false"] .ng-pin-run {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+.ng-reader .ng-pin[data-expanded="false"] .ng-pin-run br { display: none; }
+.ng-reader .ng-pin[data-expanded="true"] .ng-pin-part { display: block; }
+.ng-reader .ng-pin[data-expanded="true"] .ng-pin-part + .ng-pin-part { margin-block-start: 0.45em; }
+/* bilingual side by side: the pinned work's two languages side by side too, in the text's order */
+.ng-reader .ng-pin-body[data-sbs] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 0.9rem;
+  align-items: start;
+}
+.ng-reader .ng-section[data-bilayout="heRight"] .ng-pin-body[data-sbs] > .ng-pin-he { order: 2; }
+.ng-reader .ng-section[data-bilayout="heRight"] .ng-pin-body[data-sbs] > .ng-pin-en { order: 1; }
+.ng-reader .ng-pin-body[data-sbs] > .ng-pin-run.ng-pin-en { margin-block-start: 0; font-size: calc(14px * var(--ng-font-scale)); }
+.ng-reader .ng-pin-body[data-sbs] > .ng-pin-he { font-size: calc(16.5px * var(--ng-font-scale)); }
+.ng-reader .ng-pin-he,
+.ng-reader .ng-pin-en {
+  display: block;
+  color: var(--ng-ink-soft);
+  font-weight: normal;
+  text-indent: 0;
+}
+.ng-reader .ng-pin-he {
+  font-family: var(--ng-he-serif);
+  font-size: calc(17.5px * var(--ng-font-scale));
+  line-height: 1.6;
+}
+.ng-reader .ng-pin-en {
+  font-family: var(--ng-en-serif);
+  font-size: calc(15.5px * var(--ng-font-scale));
+  line-height: 1.5;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+.ng-reader .ng-pin-he + .ng-pin-en { margin-block-start: 0.25em; }
+.ng-reader .ng-pin-body b,
+.ng-reader .ng-pin-body strong { font-weight: 600; color: var(--ng-ink); }
+.ng-reader .ng-pin i.footnote,
+.ng-reader .ng-pin sup.footnote-marker { display: none; }
+.ng-reader .ng-pin a { color: inherit; text-decoration: none; }
+.ng-reader .ng-pin a.refLink { border-block-end: 1px solid var(--lighter-grey); }
+.ng-reader .ng-pin .ng-hebrew-only { margin-block-start: 0.3em; }
+
+/* ================================================================ associated texts panel
+ * static/js/ng/panels/AssociatedPanel.jsx, in the trailing drawer.
+ */
+
+.ng-reader .ng-assoc {
+  --ng-assoc-pad: 20px;
+  --ng-assoc-warm: #f7f5f0;
+  min-height: 100%;
+  padding-block-end: calc(40px + env(safe-area-inset-bottom));
+  color: var(--ng-ink);
+}
+.ng-reader[dir="rtl"] .ng-assoc .ng-icon-flip { transform: scaleX(-1); }
+
+.ng-reader .ng-assoc-head {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  padding-block-start: env(safe-area-inset-top);
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  backdrop-filter: saturate(1.4) blur(14px);
+  box-shadow: 0 1px 0 var(--ng-rule);
+}
+.ng-reader .ng-assoc-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 64px;
+  padding-inline: var(--ng-assoc-pad) 8px;
+}
+.ng-reader .ng-assoc[data-depth]:not([data-depth="1"]) .ng-assoc-bar { padding-inline-start: 6px; }
+.ng-reader .ng-assoc-titles {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ng-reader .ng-assoc-title {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--ng-en-serif);
+  font-size: 21px;
+  font-weight: normal;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ng-reader[data-interface="hebrew"] .ng-assoc-title {
+  font-family: var(--ng-he-serif);
+  font-size: 22px;
+}
+.ng-reader .ng-assoc-subtitle {
+  margin-block-start: 2px;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-assoc-icon-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--darkest-grey);
+  cursor: pointer;
+}
+.ng-reader .ng-assoc-icon-button:active { background: var(--lighter-grey); }
+.ng-reader .ng-assoc-icon-button:focus-visible { outline: 2px solid var(--focus-blue); outline-offset: -2px; }
+
+.ng-reader .ng-assoc-lang {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border-radius: 999px;
+  background: #f1f0ec;
+}
+.ng-reader .ng-assoc-lang-option {
+  min-width: 30px;
+  height: 28px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-family: var(--ng-he-serif);
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ng-muted);
+  cursor: pointer;
+}
+.ng-reader .ng-assoc-lang-option [lang="en"] { font-family: var(--ng-en-serif); font-size: 15px; }
+.ng-reader .ng-assoc-lang-option[aria-pressed="true"] {
+  background: var(--ng-surface);
+  color: var(--ng-ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+}
+
+.ng-reader .ng-crumbs {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  padding: 0 var(--ng-assoc-pad) 11px;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-crumbs > * + *::before {
+  content: "›";
+  display: inline-block;
+  margin-inline: 0.45em;
+  color: var(--ng-faint);
+}
+.ng-reader[dir="rtl"] .ng-crumbs > * + *::before { content: "‹"; }
+.ng-reader .ng-crumb {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 42%;
+  padding: 2px 0;
+  overflow: hidden;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-overflow: ellipsis;
+  color: var(--ng-link);
+  cursor: pointer;
+}
+.ng-reader .ng-crumb-current { color: var(--ng-ink-soft); max-width: 60%; }
+.ng-reader .ng-crumb-gap { flex: none; }
+
+.ng-reader .ng-assoc-body {
+  padding: 6px var(--ng-assoc-pad) 0;
+}
+
+.ng-reader .ng-assoc-anchor {
+  margin-block: 10px 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--ng-assoc-warm);
+}
+.ng-reader .ng-assoc-anchor-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--ng-ink-soft);
+}
+.ng-reader .ng-assoc-anchor .ng-assoc-en { font-size: 15.5px; line-height: 1.5; }
+.ng-reader .ng-assoc-anchor .ng-assoc-he { font-size: 18px; line-height: 1.55; }
+.ng-reader .ng-assoc-anchor i.footnote,
+.ng-reader .ng-assoc-anchor sup.footnote-marker { display: none; }
+.ng-reader .ng-assoc-anchor br { display: none; }
+
+.ng-reader .ng-assoc-group { margin-block-start: 22px; }
+.ng-reader .ng-assoc-label {
+  margin: 0 0 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ng-muted);
+}
+.ng-reader[data-interface="hebrew"] .ng-assoc-label { font-size: 13px; letter-spacing: 0.02em; }
+
+.ng-reader .ng-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ng-reader .ng-rows > li + li { border-block-start: 1px solid var(--ng-rule); }
+.ng-reader .ng-rows-rest {
+  margin-block-start: 8px;
+  border-block-start: 1px solid var(--light-grey);
+}
+.ng-reader .ng-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% + 20px);
+  min-height: 54px;
+  margin-inline: -10px;
+  padding: 11px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  text-align: start;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader .ng-row:active { background: var(--ng-assoc-warm); }
+.ng-reader .ng-row:focus-visible { outline: 2px solid var(--focus-blue); outline-offset: -2px; }
+.ng-reader .ng-row-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.ng-reader .ng-row-title {
+  font-family: var(--ng-en-serif);
+  font-size: 18px;
+  line-height: 1.25;
+  color: var(--ng-ink);
+}
+.ng-reader .ng-row-title[lang="he"],
+.ng-reader[data-interface="hebrew"] .ng-row-title {
+  font-family: var(--ng-he-serif);
+  font-size: 19.5px;
+}
+.ng-reader .ng-row-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--ng-en-serif);
+  font-size: 14.5px;
+  line-height: 1.42;
+  color: var(--ng-ink-soft);
+}
+.ng-reader .ng-row-preview[lang="he"] { font-family: var(--ng-he-serif); font-size: 16px; line-height: 1.45; }
+.ng-reader .ng-row-preview b { font-weight: 600; color: var(--ng-ink); }
+.ng-reader .ng-row-preview i.footnote,
+.ng-reader .ng-row-preview sup { display: none; }
+.ng-reader .ng-row-preview a { color: inherit; text-decoration: none; pointer-events: none; }
+.ng-reader .ng-row-preview br { display: none; }
+.ng-reader .ng-row-note {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-row-meta {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+.ng-reader .ng-row-count {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-row-pinned { display: inline-flex; color: var(--ng-accent); }
+/* the first list (no heading): pins first, each with its own unpin button */
+.ng-reader .ng-assoc-top { margin-block-start: 12px; }
+.ng-reader .ng-row-wrap {
+  display: flex;
+  align-items: center;
+}
+.ng-reader .ng-row-wrap > .ng-row {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  margin-inline-end: 0;
+}
+.ng-reader .ng-row-absent { cursor: default; }
+.ng-reader .ng-row-absent:active { background: none; }
+.ng-reader .ng-row-absent .ng-row-title { color: var(--ng-muted); }
+.ng-reader .ng-row-unpin {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 44px;
+  margin-inline-end: -10px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ng-accent);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader .ng-row-unpin:active { background: var(--ng-assoc-warm); }
+.ng-reader .ng-row-unpin .ng-icon { width: 18px; height: 18px; }
+.ng-reader .ng-row-pinned .ng-icon { width: 16px; height: 16px; }
+.ng-reader .ng-row-chevron {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-inline-start: -4px;
+  color: var(--ng-faint);
+}
+
+.ng-reader .ng-cat-mark {
+  flex: none;
+  align-self: stretch;
+  width: 3px;
+  min-height: 30px;
+  border-radius: 2px;
+  background: var(--ng-assoc-mark, var(--light-grey));
+}
+.ng-reader .ng-cat-mark[data-category="Commentary"] { --ng-assoc-mark: var(--commentary-blue); }
+.ng-reader .ng-cat-mark[data-category="Targum"] { --ng-assoc-mark: var(--tanakh-teal); }
+.ng-reader .ng-cat-mark[data-category="Tanakh"] { --ng-assoc-mark: var(--tanakh-teal); }
+.ng-reader .ng-cat-mark[data-category="Mishnah"] { --ng-assoc-mark: var(--mishnah-blue); }
+.ng-reader .ng-cat-mark[data-category="Talmud"] { --ng-assoc-mark: var(--talmud-gold); }
+.ng-reader .ng-cat-mark[data-category="Midrash"] { --ng-assoc-mark: var(--midrash-green); }
+.ng-reader .ng-cat-mark[data-category="Halakhah"] { --ng-assoc-mark: var(--halakhah-red); }
+.ng-reader .ng-cat-mark[data-category="Responsa"] { --ng-assoc-mark: var(--responsa-red); }
+.ng-reader .ng-cat-mark[data-category="Kabbalah"] { --ng-assoc-mark: var(--kabbalah-purple); }
+.ng-reader .ng-cat-mark[data-category="Liturgy"] { --ng-assoc-mark: var(--liturgy-rose); }
+.ng-reader .ng-cat-mark[data-category="Jewish Thought"] { --ng-assoc-mark: var(--philosophy-purple); }
+.ng-reader .ng-cat-mark[data-category="Tosefta"] { --ng-assoc-mark: var(--taanitic-green); }
+.ng-reader .ng-cat-mark[data-category="Chasidut"] { --ng-assoc-mark: var(--chasidut-green); }
+.ng-reader .ng-cat-mark[data-category="Musar"] { --ng-assoc-mark: var(--mussar-purple); }
+.ng-reader .ng-cat-mark[data-category="Second Temple"] { --ng-assoc-mark: var(--apocrypha-pink); }
+.ng-reader .ng-cat-mark[data-category="Reference"] { --ng-assoc-mark: var(--reference-orange); }
+.ng-reader .ng-cat-mark[data-category="Quoting Commentary"] { --ng-assoc-mark: var(--light-grey); }
+
+.ng-reader .ng-hebrew-only {
+  display: inline-block;
+  padding: 2px 7px 3px;
+  border-radius: 999px;
+  background: #f3efe5;
+  font-family: var(--ng-ui);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: #6f624a;
+}
+
+.ng-reader .ng-citedby {
+  margin-block-start: 26px;
+  border-block-start: 1px solid var(--ng-rule);
+  padding-block-start: 4px;
+}
+.ng-reader .ng-disclosure-chevron {
+  transition: transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ng-reader .ng-disclosure[aria-expanded="true"] .ng-disclosure-chevron { transform: rotate(180deg); }
+.ng-reader .ng-rows-nested {
+  margin-inline-start: 15px;
+  animation: ng-assoc-reveal 220ms ease-out;
+}
+@keyframes ng-assoc-reveal { from { opacity: 0; transform: translateY(-4px); } }
+
+.ng-reader .ng-assoc-empty {
+  margin: 26px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-assoc-loading { padding-block: 16px; }
+.ng-reader .ng-skeleton {
+  display: block;
+  height: 11px;
+  margin-block: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0efeb 0%, #f7f6f3 50%, #f0efeb 100%);
+  background-size: 200% 100%;
+  animation: ng-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes ng-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.ng-reader .ng-assoc-retry,
+.ng-reader .ng-assoc-open {
+  min-height: 44px;
+  margin-block: 18px;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--light-grey);
+  border-radius: 999px;
+  background: var(--ng-surface);
+  font: inherit;
+  font-size: 14.5px;
+  color: var(--darkest-grey);
+  cursor: pointer;
+}
+
+/* a work's comments, and cited texts */
+.ng-reader .ng-pin-control { margin-block: 10px 6px; }
+.ng-reader .ng-book-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ng-reader .ng-open-button .ng-icon { width: 16px; height: 16px; }
+.ng-reader .ng-open-tangent { margin-block: 18px; }
+.ng-reader .ng-comment-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 36px;
+  margin-block: 6px -8px;
+  margin-inline: -8px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-family: var(--ng-en-sans);
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--ng-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader[data-interface="hebrew"] .ng-comment-open { font-family: var(--ng-he-sans); font-size: 13.5px; }
+.ng-reader .ng-comment-open:active { background: var(--ng-assoc-warm); color: var(--ng-accent); }
+.ng-reader .ng-comment-open .ng-icon { flex: none; width: 15px; height: 15px; }
+.ng-reader .ng-comment-ref { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ng-reader .ng-pin-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding-inline: 10px 14px;
+  border: 1px solid var(--light-grey);
+  border-radius: 999px;
+  background: var(--ng-surface);
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--darkest-grey);
+  cursor: pointer;
+}
+.ng-reader .ng-pin-button .ng-icon { width: 18px; height: 18px; }
+.ng-reader .ng-pin-button[aria-pressed="true"] {
+  border-color: var(--highlight-blue);
+  background: var(--highlight-blue-light);
+  color: var(--ng-accent);
+}
+.ng-reader .ng-pin-button:disabled { opacity: 0.45; cursor: default; }
+.ng-reader .ng-pin-hint {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-comment {
+  padding-block: 16px 18px;
+}
+.ng-reader .ng-comment + .ng-comment { border-block-start: 1px solid var(--ng-rule); }
+.ng-reader .ng-assoc-he {
+  font-family: var(--ng-he-serif);
+  font-size: 19.5px;
+  line-height: 1.62;
+  text-align: start;
+}
+.ng-reader .ng-assoc-en {
+  font-family: var(--ng-en-serif);
+  font-size: 17px;
+  line-height: 1.55;
+  text-align: start;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+.ng-reader .ng-comment .ng-assoc-he + .ng-assoc-he,
+.ng-reader .ng-comment .ng-assoc-en + .ng-assoc-en { margin-block-start: 0.6em; }
+.ng-reader .ng-assoc[data-language="bilingual"] .ng-comment .ng-assoc-he + .ng-assoc-en {
+  margin-block-start: 0.55em;
+  font-size: 16.5px;
+  color: var(--ng-ink-translation);
+}
+.ng-reader .ng-comment b,
+.ng-reader .ng-comment strong { font-weight: 600; }
+.ng-reader .ng-comment i.footnote,
+.ng-reader .ng-comment sup.footnote-marker { display: none; }
+.ng-reader .ng-comment a { color: inherit; text-decoration: none; }
+.ng-reader .ng-comment a.refLink {
+  color: var(--ng-link);
+  border-block-end: 1px solid rgba(72, 113, 191, 0.28);
+  cursor: pointer;
+}
+.ng-reader .ng-comment .ng-hebrew-only { margin-block-start: 10px; }
+.ng-reader .ng-tangent { padding-block-start: 10px; }
+
+.ng-reader .ng-note {
+  margin-block: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fbf8ee;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.ng-reader .ng-note-title { margin: 0 0 4px; font-size: 15px; font-weight: 500; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ng-reader .ng-skeleton,
+  .ng-reader .ng-rows-nested { animation: none; }
+  .ng-reader .ng-disclosure-chevron { transition: none; }
+}
+
+/* ================================================================ sheets: table of contents, search
+ * static/js/ng/sheets/. The header's book-and-position control opens the table of contents,
+ * its search button opens search in the book; both are bottom sheets that rise to near full
+ * height over the text. BottomSheet moves them with inline transform/opacity; CSS gives the
+ * resting positions. Everything here is scoped to .ng-reader and uses logical properties, so
+ * a Hebrew interface mirrors without extra rules (except the icons that point somewhere).
+ */
+
+/* header: [contents icon] Genesis 1:5, one tap target */
+.ng-reader .ng-header-ref {
+  display: flex;
+  align-items: center;
+  overflow: visible;
+}
+.ng-reader .ng-header-toc {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  margin-inline-start: -8px;
+  padding-inline: 8px 10px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.ng-reader .ng-header-toc:active { background: var(--lighter-grey); }
+.ng-reader .ng-header-toc:focus-visible { outline: 2px solid var(--focus-blue); outline-offset: -2px; }
+.ng-reader .ng-header-toc-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--darkest-grey);
+}
+.ng-reader .ng-header-toc-icon .ng-icon { width: 22px; height: 22px; }
+.ng-reader[dir="rtl"] .ng-header-toc-icon .ng-icon { transform: scaleX(-1); }
+.ng-reader .ng-header-ref-text {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+/* a long title ("Shulchan Arukh, Orach Chayim") gives way before the position does */
+.ng-reader .ng-header-book {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ng-reader .ng-header-ref-text .ng-header-address { flex: none; }
+
+/* the sheet */
+.ng-reader .ng-sheets[hidden] { display: none; }
+.ng-reader .ng-bsheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(24, 22, 20, 0.32);
+  touch-action: none;
+}
+.ng-reader .ng-bsheet {
+  --ng-sheet-pad: 20px;
+  --ng-sheet-track: #f2f2ef;
+  position: fixed;
+  inset-inline: 0;
+  inset-block: calc(env(safe-area-inset-top) + var(--ng-header-height) - 10px) 0;  /* the header's ref stays in sight, dimmed */
+  z-index: 31;
+  display: flex;
+  flex-direction: column;
+  max-width: 44rem;
+  margin-inline: auto;
+  border-start-start-radius: 20px;
+  border-start-end-radius: 20px;
+  background: var(--ng-surface);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 -10px 40px rgba(0, 0, 0, 0.16);
+  outline: none;
+  will-change: transform;
+}
+/* Before BottomSheet's first frame places it, the sheet waits below the screen. */
+.ng-reader .ng-bsheet-layer[data-phase="entering"] .ng-bsheet { transform: translate3d(0, calc(100% + 24px), 0); }
+.ng-reader .ng-bsheet-layer[data-phase="entering"] .ng-bsheet-backdrop { opacity: 0; }
+.ng-reader .ng-bsheet-top {
+  flex: none;
+  touch-action: none;           /* a drag here moves the sheet */
+}
+.ng-reader .ng-bsheet-grip {
+  display: flex;
+  justify-content: center;
+  padding-block: 8px 6px;
+}
+.ng-reader .ng-bsheet-grip > span {
+  width: 38px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--light-grey);
+}
+.ng-reader .ng-bsheet-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-inline: var(--ng-sheet-pad) 14px;
+  padding-block-end: 12px;
+}
+.ng-reader .ng-bsheet-head-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ng-reader .ng-bsheet-close {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ng-sheet-track);
+  color: var(--ng-ink-soft);
+  cursor: pointer;
+}
+.ng-reader .ng-bsheet-close:active { background: var(--lighter-grey); }
+.ng-reader .ng-bsheet-close .ng-icon { width: 20px; height: 20px; }
+.ng-reader .ng-bsheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-inline: var(--ng-sheet-pad);
+  padding-block-end: calc(28px + env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--ng-rule);
+}
+.ng-reader .ng-bsheet :focus-visible { outline: 2px solid var(--focus-blue); outline-offset: 2px; }
+.ng-reader .ng-sheet-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding-block: 48px;
+  font-size: 15px;
+  color: var(--ng-muted);
+  text-align: center;
+}
+.ng-reader .ng-sheet-pill {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--light-grey);
+  border-radius: 999px;
+  background: var(--ng-surface);
+  font: inherit;
+  font-size: 14.5px;
+  color: var(--darkest-grey);
+  cursor: pointer;
+}
+
+/* table of contents: head */
+.ng-reader .ng-toc-head { padding-block-start: 2px; }
+.ng-reader .ng-toc-kicker {
+  margin-block-end: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ng-muted);
+}
+.ng-reader[data-interface="hebrew"] .ng-toc-kicker { font-size: 13px; letter-spacing: 0; text-transform: none; }
+.ng-reader .ng-toc-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15em 0.55em;
+  margin: 0;
+  font-weight: normal;
+  line-height: 1.15;
+}
+.ng-reader .ng-toc-title-main { font-family: var(--ng-en-serif); font-size: 29px; color: var(--ng-ink); }
+.ng-reader .ng-toc-title-other { font-family: var(--ng-he-serif); font-size: 24px; color: var(--ng-muted); }
+.ng-reader[data-interface="hebrew"] .ng-toc-title-main { font-family: var(--ng-he-serif); font-size: 30px; }
+.ng-reader[data-interface="hebrew"] .ng-toc-title-other { font-family: var(--ng-en-serif); font-size: 21px; }
+
+/* table of contents: tabs (sections | parashot) */
+.ng-reader .ng-toc-tabs {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 4px;
+  margin-block: 16px 16px;
+  padding: 4px;
+  border-radius: 13px;
+  background: var(--ng-sheet-track);
+}
+.ng-reader .ng-toc-tab {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 14.5px;
+  color: var(--ng-ink-soft);
+  cursor: pointer;
+}
+.ng-reader .ng-toc-tab[aria-selected="true"] {
+  background: var(--ng-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  color: var(--ng-ink);
+  font-weight: 500;
+}
+.ng-reader .ng-toc-section-label {
+  margin: 18px 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ng-muted);
+}
+.ng-reader[data-interface="hebrew"] .ng-toc-section-label { font-size: 13.5px; letter-spacing: 0; text-transform: none; }
+
+/* table of contents: the grid of chapters / dapim */
+.ng-reader .ng-toc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+  padding-block: 2px 8px;
+}
+.ng-reader .ng-toc-grid[data-talmud] { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
+.ng-reader .ng-toc-cell {
+  width: 100%;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 12px;
+  background: var(--ng-surface);
+  font: inherit;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ng-ink-soft);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.ng-reader[data-interface="hebrew"] .ng-toc-cell { font-size: 17px; }
+.ng-reader .ng-toc-cell:active { background: var(--lightest-grey); }
+.ng-reader .ng-toc-cell[aria-current="location"] {
+  border-color: var(--ng-accent);
+  background: var(--ng-accent);
+  color: var(--white);
+  font-weight: 600;
+}
+.ng-reader .ng-toc-cell:disabled { border-style: dashed; color: var(--ng-faint); cursor: default; }
+
+/* table of contents: a schema as a collapsible tree */
+.ng-reader .ng-toc-tree { padding-block-start: 4px; }
+.ng-reader .ng-toc-branch { border-block-end: 1px solid var(--ng-rule); }
+.ng-reader .ng-toc-branch .ng-toc-branch { border-block-end: 0; }
+.ng-reader .ng-toc-branch-head,
+.ng-reader .ng-toc-leaf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 16.5px;
+  line-height: 1.3;
+  color: var(--ng-ink);
+  text-align: start;
+  cursor: pointer;
+}
+.ng-reader .ng-toc-leaf { padding-inline-start: 28px; border-block-end: 1px solid var(--ng-rule); }
+.ng-reader .ng-toc-branch-body .ng-toc-leaf { min-height: 44px; border-block-end: 0; font-size: 15.5px; color: var(--ng-ink-soft); }
+.ng-reader .ng-toc-branch-body {
+  padding-inline-start: 28px;
+  padding-block-end: 8px;
+}
+.ng-reader .ng-toc-branch-body > .ng-toc-branch > .ng-toc-branch-head { font-size: 15.5px; }
+.ng-reader .ng-toc-chevron { flex: none; color: var(--ng-muted); transition: transform 160ms ease; }
+.ng-reader[dir="rtl"] .ng-toc-chevron { transform: scaleX(-1); }
+.ng-reader .ng-toc-branch[data-open="true"] > .ng-toc-branch-head .ng-toc-chevron { transform: rotate(90deg); }
+.ng-reader .ng-toc-branch[data-current="true"] > .ng-toc-branch-head { font-weight: 500; }
+.ng-reader .ng-toc-leaf[aria-current="location"] { position: relative; color: var(--ng-accent); font-weight: 500; }
+.ng-reader .ng-toc-leaf[aria-current="location"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 10px;
+  inset-block: 14px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--ng-accent);
+}
+.ng-reader .ng-toc-branch-body .ng-toc-leaf[aria-current="location"]::before { inset-inline-start: 0; }
+.ng-reader .ng-toc-branch-body .ng-toc-leaf { padding-inline-start: 14px; }
+
+/* table of contents: alternate structures (parashot, perakim) */
+.ng-reader .ng-toc-alts {
+  margin: 0 -12px;
+  padding: 0;
+  list-style: none;
+}
+.ng-reader .ng-toc-alt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "kicker range" "title range";
+  align-items: center;
+  column-gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  text-align: start;
+  color: var(--ng-ink);
+  cursor: pointer;
+}
+.ng-reader .ng-toc-alts > li + li { border-block-start: 1px solid var(--ng-rule); }
+.ng-reader .ng-toc-alt-kicker { grid-area: kicker; font-size: 12px; color: var(--ng-muted); }
+.ng-reader .ng-toc-alt-title { grid-area: title; font-size: 17px; }
+.ng-reader .ng-toc-alt-range {
+  grid-area: range;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-toc-alt:active { background: var(--lightest-grey); }
+.ng-reader .ng-toc-alt[aria-current="location"] { background: var(--ng-highlight); }
+.ng-reader .ng-toc-alt[aria-current="location"] .ng-toc-alt-title { color: var(--ng-accent); font-weight: 500; }
+.ng-reader .ng-toc-alts > li:has(> .ng-toc-alt[aria-current="location"]) + li { border-block-start-color: transparent; }
+
+/* search in the book */
+.ng-reader .ng-search-form { margin: 0; }
+.ng-reader .ng-search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding-inline: 12px 8px;
+  border-radius: 13px;
+  background: var(--ng-sheet-track);
+  color: var(--ng-muted);
+}
+.ng-reader .ng-search-field:focus-within { box-shadow: 0 0 0 2px var(--highlight-blue); }
+.ng-reader .ng-search-field .ng-icon { flex: none; width: 20px; height: 20px; }
+.ng-reader .ng-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 17px;            /* 16px or more: iOS doesn't zoom into the field */
+  color: var(--ng-ink);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.ng-reader .ng-search-input::placeholder { color: var(--ng-muted); }
+.ng-reader .ng-search-input:focus-visible { outline: none; }  /* the field shows focus (:focus-within) */
+.ng-reader .ng-search-input::-webkit-search-cancel-button { display: none; }
+.ng-reader .ng-search-clear {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--light-grey);
+  color: var(--white);
+  cursor: pointer;
+}
+.ng-reader .ng-search-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 4px;
+  font-size: 13.5px;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-search-status .ng-spinner { width: 16px; height: 16px; }
+.ng-reader .ng-search[data-status="error"] .ng-search-status,
+.ng-reader .ng-search[data-status="idle"] .ng-search-status { flex-direction: column; justify-content: center; padding-block: 36px; font-size: 15px; text-align: center; }
+.ng-reader .ng-search-results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ng-reader .ng-search-results > li + li { border-block-start: 1px solid var(--ng-rule); }
+.ng-reader .ng-search-result {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  padding: 14px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+  color: var(--ng-ink);
+  cursor: pointer;
+}
+.ng-reader .ng-search-result:active { background: var(--lightest-grey); }
+.ng-reader .ng-search-ref {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ng-accent);
+}
+.ng-reader[data-interface="hebrew"] .ng-search-ref { font-size: 14px; letter-spacing: 0; }
+.ng-reader .ng-search-snippet {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  text-align: start;
+}
+.ng-reader .ng-search-snippet-he {
+  font-family: var(--ng-he-serif);
+  font-size: 19px;
+  line-height: 1.5;
+}
+.ng-reader .ng-search-snippet-en {
+  font-family: var(--ng-en-serif);
+  font-size: 16.5px;
+  line-height: 1.45;
+  color: var(--ng-ink-translation);
+}
+.ng-reader .ng-search-snippet mark {
+  background: none;
+  color: var(--ng-ink);
+  font-weight: 600;
+  box-shadow: inset 0 -0.4em 0 var(--highlight-blue);
+}
+.ng-reader .ng-search-more {
+  display: flex;
+  justify-content: center;
+  padding-block: 18px 8px;
+}
+
+/* a segment the reader jumped to (search, a parasha) is marked for a moment */
+.ng-reader .ng-seg[data-flash="true"] { animation: ng-flash 2.2s ease-out; }
+@keyframes ng-flash {
+  0%, 40% { background: var(--ng-highlight); box-shadow: 0 0 0 6px var(--ng-highlight); }
+  100% { background: transparent; box-shadow: 0 0 0 6px transparent; }
+}
