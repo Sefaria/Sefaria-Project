@@ -40,13 +40,13 @@ class SheetStats(object):
 		proj = {"sources.ref": 1, "tags": 1, "options": 1, "status": 1, "id": 1}
 		if query:
 			sheets            = db.sheets.find(query, proj)
-			self.total = sheets.count()
-			print("%d matching query" % sheets.count())
+			self.total = db.sheets.count_documents(query)
+			print("%d matching query" % self.total)
 		else:
 			sheets            = db.sheets.find()
-			self.total        = sheets.count()
+			self.total        = db.sheets.count_documents({})
 			print("%d Total" % self.total)
-			self.public_total = db.sheets.find({"status": "public"}, proj).count()
+			self.public_total = db.sheets.count_documents({"status": "public"})
 			print("%d Public" % self.public_total)
 		
 		print("Processing tags...")
