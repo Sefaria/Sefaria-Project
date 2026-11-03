@@ -356,6 +356,8 @@ def create_index(index_name, type, force=False):
     :param force: If False (default), will not recreate an index with documents (safety check)
     """
     logger.debug(f"Creating new Elasticsearch index - index_name: {index_name}, type: {type}, force: {force}")
+    # Validate config before anything is deleted: a bad value must not leave the cluster without this index.
+    number_of_shards = primary_shard_count(type, os.environ)
     
     # Check if index already exists and has documents
     exists_before = index_client.exists(index=index_name)
@@ -380,7 +382,7 @@ def create_index(index_name, type, force=False):
 
     settings = {
         "index": {
-            "number_of_shards": primary_shard_count(type, os.environ),
+            "number_of_shards": number_of_shards,
             "blocks": {
                 "read_only_allow_delete": False
             },
