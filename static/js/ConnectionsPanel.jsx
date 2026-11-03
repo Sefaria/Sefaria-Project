@@ -242,6 +242,7 @@ class ConnectionsPanel extends Component {
       this.setState({
         currObjectVersions: { en: null, he: null },
       });
+      return;
     }
     const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(data.versions);
     this.setState({
