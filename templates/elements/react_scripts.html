@@ -1,0 +1,9 @@
+{# The CDN tags and the local fallback must load the same React build, so both switch on REACT_DEV_MODE. #}
+<script src="https://unpkg.com/react@16/umd/react.{% if REACT_DEV_MODE %}development{% else %}production.min{% endif %}.js"></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.{% if REACT_DEV_MODE %}development{% else %}production.min{% endif %}.js"></script>
+<script>
+  if (!window.React) {
+    console.log('loading react locally');
+    document.write('<script src="/static/js/lib/react.{% if REACT_DEV_MODE %}development{% else %}production.min{% endif %}.js"><\/script><script src="/static/js/lib/react-dom.{% if REACT_DEV_MODE %}development{% else %}production.min{% endif %}.js"><\/script>');
+  }
+</script>

@@ -75,6 +75,7 @@ def global_settings(request):
         "GOOGLE_GTAG":            GOOGLE_GTAG,
         "HOTJAR_ID":              HOTJAR_ID,
         "DEBUG":                  DEBUG,
+        "REACT_DEV_MODE":         getattr(settings, "REACT_DEV_MODE", settings.DEBUG),
         "OFFLINE":                OFFLINE,
         "SITE_SETTINGS":          SITE_SETTINGS,
         "CLIENT_SENTRY_DSN":      CLIENT_SENTRY_DSN,

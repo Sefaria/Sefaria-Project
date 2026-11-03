@@ -248,8 +248,7 @@
 
     <div id="overlay"></div>
 
-    <script src="https://unpkg.com/react@16/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
-    <script src="https://unpkg.com/react-dom@16/umd/react-dom.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    {% include "elements/react_scripts.html" %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
@@ -262,10 +261,6 @@
       if (!window.jQuery) {
         console.log('loading jquery locally');
         document.write('<script src="/static/js/lib/jquery.js"><\/script><script src="/static/js/lib/jquery-ui.js"><\/script>');
-      }
-      if (!window.React) {
-          console.log('loading react locally');
-          document.write('<script src="/static/js/lib/react.development.js"><\/script><script src="/static/js/lib/react-dom.development.js"><\/script>');
       }
 
       var DJANGO_VARS = {

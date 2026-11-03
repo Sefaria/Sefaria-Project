@@ -124,6 +124,7 @@ spec:
         ref: backup-manager
     localSettings:
       DEBUG: true
+      REACT_DEV_MODE: false
       DOMAIN_LANGUAGE:
         "https://sefariastaging.org": "english"
         "https://voices.sefariastaging.org": "english"
