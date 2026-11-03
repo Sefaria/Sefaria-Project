@@ -543,6 +543,20 @@ def get_topics_for_book(title: str, annotate=False, n=18) -> list:
     SECONDARY TOPIC DATA GENERATION
 """
 
+def _sheet_topics_with_slugs(sheet):
+    """
+    Returns the sheet's topics that have a slug. A topic saved without one is skipped and logged,
+    so a single malformed sheet can't stop the weekly topic recalculation.
+    """
+    topics = []
+    for topic_dict in sheet.get("topics") or []:
+        if topic_dict.get("slug"):
+            topics.append(topic_dict)
+        else:
+            logger.warning("Skipping sheet topic without a slug", sheet_id=sheet.get("id"), topic=topic_dict)
+    return topics
+
+
 def generate_all_topic_links_from_sheets(topic=None):
     """
     Processes all public source sheets to create topic links.
@@ -562,10 +576,10 @@ def generate_all_topic_links_from_sheets(topic=None):
     query = {"status": "public", "viaOwner": {"$exists": 0}, "assignment_id": {"$exists": 0}}
     if topic:
         query['topics.slug'] = topic
-    projection = {"topics": 1, "expandedRefs": 1, "owner": 1}
+    projection = {"topics": 1, "expandedRefs": 1, "owner": 1, "id": 1}
     sheet_list = db.sheets.find(query, projection)
     for sheet in tqdm(sheet_list, desc="aggregating sheet topics"):
-        sheet_topics = sheet.get("topics", [])
+        sheet_topics = _sheet_topics_with_slugs(sheet)
         for topic_dict in sheet_topics:
             slug = topic_dict['slug']
             for tref in sheet.get("expandedRefs", []):
@@ -677,8 +691,7 @@ def generate_sheet_topic_links():
     for sheet in tqdm(sheet_list, desc="getting sheet topic links"):
         if sheet.get('id', None) is None:
             continue
-        sheet_topics = sheet.get("topics", [])
-        for topic_dict in sheet_topics:
+        for topic_dict in _sheet_topics_with_slugs(sheet):
             slug = topic_dict['slug']
             sheet_links += [{
                 "class": "refTopic",
@@ -922,7 +935,8 @@ def update_ref_topic_link_orders(source_links, sheet_topic_links):
         avg_pr = 0 if len(sheet['includedRefs']) == 0 else total_pr / len(sheet['includedRefs'])
 
         # relevance based on other topics on this sheet
-        other_topic_slug_set = {t['slug'] for t in sheet.get('topics', []) if t['slug'] != topic_slug}
+        # slugless topics are already logged by generate_sheet_topic_links; skip them quietly here
+        other_topic_slug_set = {t['slug'] for t in sheet.get('topics') or [] if t.get('slug') and t['slug'] != topic_slug}
         total_tfidf = 0
         for other_topic_slug in other_topic_slug_set:
             intra_topic_link = IntraTopicLink().load({'$or': [
@@ -1033,7 +1047,7 @@ def get_top_topic(sheet):
     :return: Topic() obj
     """
     # get all topics on the sheet (learn the candidates)
-    topics = sheet.get("topics", [])  # mongo query on sheet
+    topics = [t for t in sheet.get("topics") or [] if t.get("slug")]  # mongo query on sheet
 
     def topic_score(t):
         rtl = RefTopicLink().load({"toTopic": t["slug"], "ref": "Sheet {}".format(sheet.get("id"))})
