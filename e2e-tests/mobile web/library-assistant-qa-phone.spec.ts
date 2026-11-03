@@ -1,5 +1,5 @@
 import { test, expect, BrowserContext } from '@playwright/test';
-import { goToPageWithUser, hideAllModalsAndPopups } from '../utils';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { BROWSER_SETTINGS, LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS } from '../constants';
@@ -201,5 +201,37 @@ test.describe('Library Assistant QA — reopening (phone)', () => {
     await la.openWithAskButton();
     await la.expectInChatView(latestMessage);
     await la.expectChatAtBottom();
+  });
+});
+
+test.describe('Library Assistant QA — signing up from the sheet (phone)', () => {
+  // On phones the open sheet has its own history entry, so Back closes it. Email in the login
+  // prompt opens Sefaria's sign-up form from inside the sheet; one Back must return to the
+  // page as it was, with the sheet open, and the next Back closes the sheet as usual.
+  test('LA-QA-9: One Back from the sign-up form opened with Email in the sheet returns to the page with the sheet open', QA_PHONE_TAGS, async ({ context }) => {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    const la = pm.onLibraryAssistant();
+    const sheet = pm.onLibraryAssistantQ4();
+    await la.waitForReady();
+    await la.seedFreeAnswersUsedUp();
+    await page.reload();
+    await hideAllModalsAndPopups(page);
+    await la.waitForReady();
+    await sheet.openWithAskButton();
+    const pageUrl = page.url();
+
+    await la.signupOption('email').click();
+    await pm.onLoginPage().expectEmailSignupFormShown();
+    await page.goBack();
+
+    await pm.onLoginPage().expectEmailSignupFormGone();
+    await expect(page).toHaveURL(pageUrl);
+    await sheet.expectAssistantOpen();
+
+    await page.goBack();
+
+    await sheet.expectAssistantClosed();
+    await expect(page).toHaveURL(pageUrl);
   });
 });

@@ -46,4 +46,10 @@ export class LoginPage extends HelperBase{
         await expect(this.page.getByPlaceholder(label)).toBeVisible({ timeout: t(15000) });
     }
 
+    /** The email sign-up form is gone (e.g. after Back). */
+    async expectEmailSignupFormGone(): Promise<void> {
+        const label = AUTH_LABELS.FIRST_NAME[this.language === LANGUAGES.HE ? LANGUAGES.HE : LANGUAGES.EN];
+        await expect(this.page.getByPlaceholder(label)).toBeHidden({ timeout: t(15000) });
+    }
+
 }
