@@ -3,6 +3,7 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
 from .category import Category
+from django.db import DatabaseError, transaction
 from django_topics.models import Topic as DjangoTopic
 from django_topics.models import TopicPool, PoolType
 from sefaria.system.exceptions import InputError, DuplicateRecordError, SluggedMongoRecordMissingError
@@ -276,10 +277,22 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def _pre_save(self):
         super()._pre_save()
-        django_topic, created = DjangoTopic.objects.get_or_create(slug=self.slug)
-        django_topic.en_title = self.get_primary_title('en')
-        django_topic.he_title = self.get_primary_title('he')
-        django_topic.save()
+        self._mirror_to_django()
+
+    def _mirror_to_django(self):
+        """
+        Best-effort copy of the topic's titles to the Django mirror table.
+        A failure is logged and does not fail the Mongo save. Drift is reported by that log line only; nothing re-runs the mirror yet.
+        A savepoint keeps a failed mirror write from aborting an enclosing Django transaction.
+        """
+        try:
+            with transaction.atomic():
+                django_topic, created = DjangoTopic.objects.get_or_create(slug=self.slug)
+                django_topic.en_title = self.get_primary_title('en')
+                django_topic.he_title = self.get_primary_title('he')
+                django_topic.save()
+        except DatabaseError as e:
+            logger.warning("Django topic mirror write failed; Mongo save continues", slug=self.slug, error=str(e))
 
     def _validate(self):
         super(Topic, self)._validate()
