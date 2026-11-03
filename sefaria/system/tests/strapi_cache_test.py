@@ -480,3 +480,100 @@ def test_strapi_non_200_response(client):
         assert response.status_code == 500
         data = json.loads(response.content)
         assert data["error"] == "Strapi request failed with status 500"
+
+
+def _post_graphql_cache(client, query):
+    return client.post(
+        "/api/strapi/graphql-cache?start_date=2023-01-01&end_date=2023-01-31",
+        data=query,
+        content_type="text/plain",
+    )
+
+
+def _mock_strapi_ok():
+    mock_response = Mock()
+    mock_response.status_code = 200
+    response_body = {"data": {"banners": [], "modals": []}}
+    mock_response.text = json.dumps(response_body)
+    mock_response.json.return_value = response_body
+    return mock_response
+
+
+@pytest.mark.parametrize("query", [
+    'mutation { deleteBanner(id: "1") { documentId } }',
+    'subscription { banners { documentId } }',
+    'query { __schema { types { name } } }',
+    'query { __type(name: "Banner") { name } }',
+    'query { users { documentId } }',
+    'query { banners { documentId } users { documentId } }',
+    'query { banners { documentId } } query { modals { documentId } }',
+    'fragment F on Query { banners { documentId } } query { ...F }',
+    'query { banners @include(if: true) { documentId } }',
+    'query ($x: String) { banners { documentId } }',
+    'query { banners { documentId } ',
+])
+def test_strapi_graphql_cache_rejects_disallowed_query(client, query):
+    # The endpoint is unauthenticated, so the body must be validated before anything is sent to Strapi
+    with patch("requests.post") as mock_post, patch(
+        "django.conf.settings.STRAPI_LOCATION", "http://localhost"
+    ), patch("django.conf.settings.STRAPI_PORT", "1337"):
+        response = _post_graphql_cache(client, query)
+        assert response.status_code == 400
+        assert "error" in json.loads(response.content)
+        mock_post.assert_not_called()
+
+
+def test_strapi_graphql_cache_rejects_oversized_body(client):
+    query = get_sample_graphql_query("2023-01-01T00:00:00Z", "2023-01-31T23:59:59Z")
+    query += "#" + "x" * (64 * 1024)
+    with patch("requests.post") as mock_post, patch(
+        "django.conf.settings.STRAPI_LOCATION", "http://localhost"
+    ), patch("django.conf.settings.STRAPI_PORT", "1337"):
+        response = _post_graphql_cache(client, query)
+        assert response.status_code == 413
+        mock_post.assert_not_called()
+
+
+def test_strapi_graphql_cache_accepts_frontend_shaped_query(client):
+    # Mirrors static/js/context.js: anonymous query, per-locale aliases over the three promotion root fields,
+    # string arguments whose contents must not confuse validation
+    query = """
+    query {
+      en_banners: banners(locale: "en", filters: { bannerStartDate: { gte: "2023-01-01" } }, pagination: { limit: -1 }) {
+        documentId
+        bannerText
+      }
+      he_banners: banners(locale: "he", filters: { bannerStartDate: { gte: "2023-01-01" } }, pagination: { limit: -1 }) {
+        documentId
+      }
+      en_modals: modals(locale: "en", filters: { modalStartDate: { gte: "2023-01-01" } }) {
+        documentId
+      }
+      en_sidebarAds: sidebarAds(locale: "en", filters: { startTime: { gte: "2023-01-01" } }) {
+        documentId
+        buttonIcon { url }
+      }
+    }
+    """
+    with patch("requests.post", return_value=_mock_strapi_ok()) as mock_post, patch(
+        "django.conf.settings.STRAPI_LOCATION", "http://localhost"
+    ), patch("django.conf.settings.STRAPI_PORT", "1337"):
+        response = _post_graphql_cache(client, query)
+        assert response.status_code == 200
+        mock_post.assert_called_once()
+
+
+@pytest.mark.parametrize("query", [
+    # Query syntax inside string arguments is data, not structure, so these must not be rejected
+    'query { banners(locale: "mutation { x }") { documentId } }',
+    'query { banners(locale: "a \\" __schema") { documentId } }',
+    'query { banners(locale: """mutation { x }""") { documentId } }',
+    'query { banners(locale: "en") { documentId } } # mutation { x }',
+])
+def test_strapi_graphql_cache_allows_syntax_inside_strings_and_comments(client, query):
+    with patch("requests.post", return_value=_mock_strapi_ok()) as mock_post, patch(
+        "django.conf.settings.STRAPI_LOCATION", "http://localhost"
+    ), patch("django.conf.settings.STRAPI_PORT", "1337"):
+        response = _post_graphql_cache(client, query)
+        assert response.status_code == 200
+        mock_post.assert_called_once()
