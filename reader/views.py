@@ -4002,6 +4002,7 @@ def portals_api(request, slug):
     return jsonResponse(portal.contents(), callback=request.GET.get("callback", None))
 
 
+@login_required
 @ensure_csrf_cookie
 @sanitize_get_params
 def global_activity(request, page=1):
@@ -4039,6 +4040,7 @@ def global_activity(request, page=1):
     })
 
 
+@login_required
 @ensure_csrf_cookie
 @sanitize_get_params
 def user_activity(request, slug, page=1):
@@ -4080,6 +4082,7 @@ def user_activity(request, slug, page=1):
     })
 
 
+@login_required
 @ensure_csrf_cookie
 @sanitize_get_params
 def segment_history(request, tref, lang, version, page=1):
@@ -4142,6 +4145,7 @@ def revert_api(request, tref, lang, version, revision):
     return jsonResponse({"status": "ok"})
 
 
+@login_required
 def leaderboard(request):
     return render_template(request,'leaderboard.html', None, {
         'leaders': top_contributors(),

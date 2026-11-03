@@ -31,7 +31,6 @@ class SefariaSiteMapGenerator(object):
         "/explore",
         "/texts",
         "/visualizations",
-        "/activity",
         "/educators",
         "/donate",
         "/supporters",
