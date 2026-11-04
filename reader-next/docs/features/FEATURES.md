@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**951 features**, 3732 documented behaviors. Proposed tiers: core 321, standard 413, optional 153, retire 61.
+**961 features**, 3913 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 343 · partial 41 · todo 438 · replaced 19 · deferred 23 · n/a 87; 332 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 389 · partial 52 · todo 392 · replaced 19 · deferred 22 · n/a 87; 383 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -13,11 +13,11 @@ Master list of every feature in the current Sefaria web client, extracted from a
 ## Contents
 
 - **Reader**: [Reader shell & panels](#reader-shell) (75) · [Text display & reading settings](#text-display) (69) · [Text types & special cases](#text-types) (27) · [Connections & resources sidebar](#connections) (72) · [Versions & translations](#versions) (22)
-- **Library & discovery**: [Library navigation](#library-nav) (69) · [Book pages](#book-pages) (23) · [Topics](#topics) (32) · [Calendars](#calendars) (3) · [Search & autocomplete](#search) (112)
+- **Library & discovery**: [Library navigation](#library-nav) (70) · [Book pages](#book-pages) (23) · [Topics](#topics) (36) · [Calendars](#calendars) (5) · [Search & autocomplete](#search) (112)
 - **Voices (sheets & community)**: [Sheets: viewing](#sheets-view) (27) · [Sheets: editing & publishing](#sheets-editor) (29) · [Collections](#collections) (10) · [Profiles & social](#profile-social) (12) · [Saved, history & notes](#user-library) (12) · [Notifications & email](#notifications) (11)
 - **Site & accounts**: [Global UI](#global-ui) (28) · [Accounts & sign-in](#accounts) (16) · [Promotions & CMS](#promotions) (17) · [Static pages](#static-pages) (19) · [Language & accessibility](#i18n-a11y) (13) · [AI features](#ai) (20)
-- **Platform**: [URLs & routing](#routing) (64) · [SSR, SEO & platform](#platform-seo) (32) · [Public API & data exports](#api-data) (17) · [Analytics](#analytics) (17) · [Linker & embeds](#linker-embeds) (14)
-- **Internal & legacy**: [Admin & moderator tools](#admin-tools) (58) · [Legacy pages](#legacy-pages) (30)
+- **Platform**: [URLs & routing](#routing) (65) · [SSR, SEO & platform](#platform-seo) (32) · [Public API & data exports](#api-data) (17) · [Analytics](#analytics) (17) · [Linker & embeds](#linker-embeds) (14)
+- **Internal & legacy**: [Admin & moderator tools](#admin-tools) (58) · [Legacy pages](#legacy-pages) (32)
 
 ---
 
@@ -519,6 +519,7 @@ Each panel is an accessible region carrying classes that drive its look.
 
 - div.readerPanel role=region id=panel-{n} onKeyDown=handleKeyPress, data-anl-batch analytics JSON (1180-1181).
 - Classes: serif, narrowColumn (width<730), content language (hebrew/english/bilingual), current layout (segmented/continuous/stacked/heLeft/heRight), colour, rtl/ltr text-direction class when panel is monolingual or has no text (1156-1166).
+- 2026-11-04 (translations port): the library's menu pages (/texts, its categories) still lack the old readerPanel's data-anl-batch; /translations/<lang> has it (NavPage anlBatch).
 
 Code: [`static/js/ReaderPanel.jsx:1156`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L1156), [`static/js/ReaderPanel.jsx:1180`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L1180)
 
@@ -534,6 +535,7 @@ Panels used to pick a second text have their own header with search and settings
 
 - Search mode: back chevron (MenuButton compare), search input opening search on Enter or button, display settings dropdown NOT shown for Hebrew interface (ComparePanelHeader.jsx:19-43).
 - Category mode: colour line, back, category title (ContentText), display settings (hidden placeholder in Hebrew interface) (44-57).
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/ComparePanelHeader.jsx:19`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ComparePanelHeader.jsx#L19)
 
@@ -548,6 +550,7 @@ Readers can open a second text beside the first by picking it through a library 
 - Triggered from setConnectionsMode('Add Connection') when only one text open (ReaderPanel.jsx:554-557) and ConnectionsPanel 'Other Text' control.
 - In compare panel: TextsPage back -> closePanel; selecting a book -> openCompareTextTOC (book toc w/ compare, remembering categories) (444-453,891-892); compare book TOC back returns to navigation with previous categories (919-924).
 - Compare close button runs convertToTextList: closes compare panel and reopens connections list for base highlight; for Sheet bases uses highlighted node's source ref (2469,1990-2006).
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/ReaderApp.jsx:1830`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1830), [`static/js/ReaderApp.jsx:1990`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1990), [`static/js/ReaderPanel.jsx:444`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L444)
 
@@ -3490,6 +3493,7 @@ The Compare Text tool replaces the sidebar with a text chooser to open a second 
 - ReaderApp.openComparePanel(n, connectAfter) replaces the connections panel with a navigation-menu panel (compare:true, openSidebarAsConnect); tracks 'Other Text Click'.
 - If openSidebarAsConnect, its sidebar opens in 'Add Connection' mode (ReaderApp.jsx:1865); compare panel has its own header (ComparePanelHeader.jsx) and book TOC (openCompareTextTOC).
 - Desktop only (no Compare button on mobile).
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/ReaderApp.jsx:1830`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1830)
 
@@ -4012,6 +4016,7 @@ When the library is opened as a second 'compare' panel it shows a compact header
 
 - compare mode: ComparePanelHeader search=true, onBack, openSearch replaces title.
 - In compare mode: no NavSidebar, no dedication, no library message, no About block.
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/TextsPage.jsx:69-74`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L69-L74)
 
@@ -4225,6 +4230,7 @@ In a compare panel a category page shows a compact header with back navigation u
 
 - ComparePanelHeader with category; onBack -> setCategories(aboutCats.slice(0,-1)); catTitle/heCatTitle.
 - Title area replaced by just the subcategory toggle.
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/TextCategoryPage.jsx:58`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextCategoryPage.jsx#L58), [`static/js/TextCategoryPage.jsx:70-76`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextCategoryPage.jsx#L70-L76)
 
@@ -4247,7 +4253,7 @@ Source: `inv_05_library_topics.md#17`
 ### Translations
 
 #### LIB-020 · Translations by language page
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A page per language lists all texts available in that language's translation, grouped by corpus and category with links straight to the translation.
 
@@ -4258,13 +4264,22 @@ A page per language lists all texts available in that language's translation, gr
 - Links are full reader URLs with translation version; .translationsPage class makes ReaderApp open them with that version (ReaderApp.jsx:1235-1236).
 - **BUG:** getTranslation called on every render; tab renderer references undefined showFilterHeader (dead filter code) (TranslationsPage.jsx:13,49).
 - Sidebar: AboutTranslatedText with slug.
+- VERIFIED 2026-11-04 (/translations/de, en, ar, yi, he; 1280px, phone User-Agent, Hebrew interface): no list in the server's HTML — it is fetched after load (/api/texts/translations/<lang>); corpora in Sefaria.toc order (de: Tanakh, Mishnah, Talmud, Midrash, Halakhah, Jewish Thought), sub-categories in the catalog's order of the corpus's contents (an API category the catalog does not have is dropped, as is a corpus the catalog does not have).
+- Prioritized: the corpus's 'Uncategorized' texts that the catalog lists directly under the corpus (Halakhah: Kitzur Shulchan Arukh), as a bare <ul> before the <details>; when the corpus has an 'Uncategorized' key but none qualifies, an empty <ul> still renders. The rest go into a last 'Uncategorized' / 'לא מסווג' block whose titles are NOT translated (plain {y.title}).
+- Sorting: sortFx compares order[0] only when both texts have order, else 0 (a stable sort keeps the API's order, which is index.order then version priority).
+- Hebrew interface: names go through Sefaria._ → hebrewTerm, so the terms dictionary (Sefaria.terms from /data.js) wins over the index title: Exodus 'ספר שמות', Leviticus 'ספר ויקרא', Deuteronomy 'ספר דברים', Jonah 'יונה הנביא' (not the catalog's heTitle). The h1 keeps the page language's title (a German title in the Hebrew interface, in Heebo 30px); the tab reads 'מקורות'.
+- Layout (1280): .content padding-top 60 (not the library home's 56); h1 = a 22px/500 grey Roboto line holding a 30px black adobe-garamond-pro span (Heebo in the Hebrew interface), 30px under it; tab list 1px #ccc rule, 18px under; the tab 22px Roboto, 10px padding, 4px #ccc underline, 30px inline-end margin; h2 24px black serif, margin-top 40 (collapses with the tab list's 18); summary 18px uppercase #666 serif, 30px over; <ul> flex-wrap, 20px over and under; li 18px serif, '•' with 0 5px margins. No category colour line. Phone (singlePanel): h1 10px over the tabs, tab 16px with 18px bottom padding, sidebar under the list.
+- BUILT 2026-11-04 (src/routes/translations.$slug.tsx, src/features/library/TranslationsRoute.tsx, src/ui/TranslationsPage, src/lib/translations): the model is built on the server (createServerFn) from the shared catalog, the API answer and the terms dictionary (server copy of /data.js's terms) and put in the server's page; the browser never downloads the catalog or terms for it. Links keep the API's href byte for byte (ven=german%7CDie+f%C3%BCnf…) and open the reader in the app (VerbatimRouterLink). Pixel diff vs www.sefaria.org: see CHANGELOG 2026-11-04 — translations.
+- Fixed on the way (not reproduced): getTranslation called on every render; the dead filter code referencing showFilterHeader.
+- Analytics, VERIFIED 2026-11-04: the old page's panel (div.readerPanel) carries data-anl-batch {"panel_number":1,"content_lang":"english"} (content_lang 'hebrew' in the Hebrew interface; a reader whose content language is Hebrew-only gets 'hebrew' too). The page's own elements have no data-anl-event; the events around it are the shell's (header, module switcher). BUILT: the same data-anl-batch on the page's frame (NavPage anlBatch) — panel 1, content_lang 'hebrew' in the Hebrew interface else 'english' (the Hebrew-only content-language case is not carried: the page sits outside the reader's settings). The module switcher's items (modswitch_item_click, data-anl-text) are rendered only once it opens — shell debt shared with /texts (SHL-036).
+- Parity 2026-11-04, Hebrew interface: phone 0.01–0.05% (the header's icon); desktop 4.7–7.1% from the shell — the site-wide Library Assistant banner is 9px taller on our side, the header labels ('מקורות' vs 'טקסטים') and the search box differ; shifted 9px the main column is 0.000%.
 
 Code: [`static/js/TranslationsPage.jsx:13`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TranslationsPage.jsx#L13), [`static/js/TranslationsPage.jsx:49`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TranslationsPage.jsx#L49), [`static/js/sefaria/sefaria.js:3539-3543`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3539-L3543)
 
 Source: `inv_05_library_topics.md#6`
 
 #### LIB-021 · Translations page backend and SEO
-`standard` `broken` · rebuild: **todo**
+`standard` `broken` · rebuild: **partial** — Pages, 404s, title and description per language done; og:url, hreflang alternates and og:image are the site-wide head (platform-seo) · *tested*
 
 The server supplies translation lists and per-language page titles; some linked languages return not found.
 
@@ -4272,6 +4287,9 @@ The server supplies translation lists and per-language page titles; some linked 
 - For en/he, commentaries bundled by collective title linking to /texts/<...collective>; otherwise link to first section with ?ven=<family>|<vtitle>&lang=bi; includes order, versionTitle.
 - translations_page has hard-coded title/desc for ar,de,en,eo,es,fa,fi,fr,he,it,pl,pt,ru,yi; 404 for others.
 - **BUG:** ISOMap lists ro and tr with showTranslations=1 so the sidebar links to them, but translations_page 404s (reader/views.py:1262-1286 vs sefaria.js:903,907).
+- VERIFIED 2026-11-04: /api/texts/translations/he answers HTTP 500 after ~16 s on www.sefaria.org, so /translations/he shows only its title ('ספריה בעברית'), the Texts tab and the About module; the live page answers at once (TTFB 0.5–1.1 s) because it fetches the list in the browser. BUILT: the same page; the server's page waits for the list at most 1.5 s (LIST_WAIT_MS, prefetchTranslationsPage) and otherwise ships without it, and the server keeps a page's model 10 min and a failure 60 s, shared by concurrent requests (sharedTranslationsModel) — so the browser's ask after load joins or fails fast. Ours /translations/he TTFB 0.3 s once the failure is known, ≤1.7 s while the failing call is under way (it was 7.2 s).
+- VERIFIED 2026-11-04: loaded from the server, an unknown slug (/translations/ro, /tr, /xx, /DE — the lookup is case-sensitive) is Django's 404 'Page Not Found | Sefaria' (in-app navigation is different: LIB-037). A trailing slash is a 404 too (/translations/de/, /translations/: Django's ^translations/(?P<slug>[^.]+)$ reads the slug 'de/'). Head: <title> and og:title / twitter:title = the language's title; description / og:description / twitter:description = its description; og:url, hreflang alternates and the img-gen og:image are the site-wide head (not per page in the new reader yet).
+- BUILT 2026-11-04: src/lib/translations/translations-page.ts holds the 14 languages (title, description, direction); loaded from the server the route answers 404 for any other slug (passed to Django in the cluster), and a Library-only path with a trailing slash is Django's (django-paths isDjangoPage) rather than the 308 the reader's trailing-slash rule gives its own pages — so /translations/de/ is Django's 404, as on sefaria.org. The page's title, description, og:title/description and twitter:title/description are written per language.
 
 Code: [`reader/views.py:1257-1294`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1257-L1294), [`reader/views.py:4752-4841`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4752-L4841)
 
@@ -4348,6 +4366,7 @@ A CMS-driven sidebar advertisement slot.
 
 - <Promotions adType='sidebar'/> (Strapi-driven).
 - The Promo module renders an empty .navSidebarModule when the CMS has nothing (always, in practice): its 34px margin folds into its neighbours' except when it comes first — the phone home page (AboutSefaria is multiPanel-only) and phone category pages without a custom module (e.g. /texts/Mishnah) — where it pushes the first title 34px down. Order: TextsPage [AboutSefaria, Promo, Translations, …]; categories [AboutTextCategory, custom (WeeklyTorahPortion | DafYomi), Promo, Visualizations, SupportSefaria]. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- /calendars: the Promo module is the sidebar's last module (after Support Sefaria) on both layouts. VERIFIED 2026-11-04.
 
 Code: [`static/js/NavSidebar.jsx:171-175`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L171-L175)
 
@@ -4378,11 +4397,14 @@ Code: [`static/js/NavSidebar.jsx:192-233`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-029 · Sidebar module: About translated text
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 Translation-language pages show a localized blurb about the library in that language.
 
 - Per-language title/body lookup for ar, de, eo, es, fa, fi, fr, it, pl, pt, ru, yi; fallback default 'living library' blurb.
+- VERIFIED 2026-11-04: the title is an InterfaceText (Roboto 22px/500 in English, Heebo in the Hebrew interface) whatever its language; the body is a bare text node directly in the module (Roboto 16px #666, no <p>, no Learn More, no video button). English and Hebrew pages have no entry and show 'A Living Library of Torah' with the library's blurb in the interface language. Sidebar order: this module, the empty Promo slot, then the footer.
+- BUILT 2026-11-04 (src/ui/NavSidebar/AboutTranslatedText.tsx). Deliberate difference: in the Hebrew interface the old bare German text inherited rtl and its final period showed at the line's start ('.der Entwicklung…'); the new module keeps the text's own lang/dir, so the period stays at the end.
+- Parity 2026-11-04: the deliberate lang/dir on the right-to-left About bodies (ar, fa, yi) is the remaining pixel difference on those pages — 0.09–0.10% at 1280 and 0.12–0.19% on a phone (the final period at the sentence's end, and Chromium's fallback face for Arabic script); every other language 0.00–0.01%.
 
 Code: [`static/js/NavSidebar.jsx:236-272`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L236-L272)
 
@@ -4425,12 +4447,13 @@ Code: [`static/js/NavSidebar.jsx:326-332`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-033 · Sidebar module: Support Sefaria
-`standard` `live` · rebuild: **done**
+`standard` `live` · rebuild: **done** · *tested*
 
 A donation appeal with a Donate button.
 
 - Title + text + DonateLink button (heart icon, source 'NavSidebar-SupportSefaria'); blue variant gives white button.
 - 'Make a Donation' is .button.small: as wide as its label (176x39), padding 10px 14px, 12px under the text, the heart.png icon inverted to white, 18px, 10px from the label. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- The heart's alt is 'donation icon' / 'סמל תרומה' (common.donation_icon). BUILT 2026-11-04.
 
 Code: [`static/js/NavSidebar.jsx:335-345`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L335-L345)
 
@@ -4474,13 +4497,14 @@ Code: [`static/js/NavSidebar.jsx:380-430`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-037 · Sidebar module: Translations languages list
-`standard` `live` · rebuild: **done**
+`standard` `live` · rebuild: **done** · *tested*
 
 A list of languages linking to each translation-language page.
 
 - 'Translations' + blurb + links /translations/<code> for ISOMap entries with showTranslations (native names).
 - **BUG:** includes ro and tr whose pages 404 (see Translations page).
 - Languages are 18px serif, black, joined by '•' (li::after, margin 0 5px), 22px under the description; Hebrew names (Yiddish) render in Taamey Frank via the English serif stack (--english-serif-font-family includes 'Taamey Frank' after adobe-garamond-pro). Verified on www.sefaria.org with Playwright, 2026-10-29.
+- VERIFIED 2026-11-04: from /texts a click on Türkçe or Română opens a translations page inside the app on sefaria.org — ReaderApp.openURL sends any /translations/.+ to openTranslationsPage, titled by Sefaria.getHebrewTitle from ISOMap ('Türkçe Yahudi Metinleri', 'Texte evreiești în limba română'), the list from /api/texts/translations/tr|ro (tr: Kabbalah, Jewish Thought, Musar), the library's 'A Living Library of Torah' About module; back/forward work. Only a direct load or reload of /translations/tr|ro is Django's 404. BUILT 2026-11-04: the language links are this client's own pages (relative /translations/<code>, in-app navigation); ro, tr (and ISOMap's lad, jrb) open in the app only (IN_APP_TRANSLATION_LANGUAGES: the route's loader accepts them when it runs in the browser), and loaded from the server they are 404s passed to Django, as on sefaria.org. Not reproduced: an in-app link to a slug ISOMap does not know ('Jewish texts in xx' on live) is a 404 here — nothing links to one.
 
 Code: [`static/js/NavSidebar.jsx:433-441`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L433-L441)
 
@@ -4492,6 +4516,7 @@ Source: `inv_05_library_topics.md#4.2`
 Shows this week's Torah portion, haftarah and Daf Yomi with a link to all schedules.
 
 - Weekly Torah Portion: <parasha displayValue> + link to parasha ref; Haftarah links (all calendars starting 'Haftarah'); Daf Yomi link; 'All Learning Schedules ›' -> /calendars.
+- 2026-11-04: 'All Learning Schedules ›' writes '/calendars' (relative, as sefaria.org) and opens the new reader's page (CAL-001).
 
 Code: [`static/js/NavSidebar.jsx:444-533`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L444-L533)
 
@@ -4542,13 +4567,14 @@ Code: [`static/js/NavSidebar.jsx:630-643`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-043 · Sidebar module: Trending topics
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done**
 
 Lists the currently trending topics (or trending sheet tags in Voices).
 
 - Sefaria.getTrendingTopics(): library /api/topics/trending?n=10&pool=general_<lang>; voices /api/sheets/trending-tags?n=10; cached per day.
 - Links /topics/<slug>; analytics attrs.
 - Backend trending_topics_api uses GA4 pageviews of /topics/* over last 28 days, filtered by pool (helper/topic.py:470-498).
+- Module: 'Trending Topics' title, then 10 serif 18px links on a 20px line 10px apart, each data-anl-event navto_topic:click with link_type topic and its English title; wrapper feature_name 'Trending'. Rendered nothing until the list arrived. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 
 Code: [`static/js/NavSidebar.jsx:645-672`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L645-L672)
 
@@ -4621,11 +4647,13 @@ Code: [`static/js/NavSidebar.jsx:771-787`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-050 · Sidebar module: Stay Connected
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A newsletter sign-up and social links block.
 
 - Text + NewsletterSignUpForm context='sidebar' + Facebook (he: sefaria.org.il page)/Instagram/YouTube icon buttons.
+- Geometry (VERIFIED 2026-11-04 on /calendars): the text, then the sign-up box 20px under it (a 40px field the module's width, no border, 0 1px 3px shadow, 6px corners, 15px #333 text, padding 10px 32px 12px 16px; Hebrew 8px 16px 11px 32px and 41px tall), the 18px arrow at 20% opacity 10px from the top and 12px from the end (mirrored in Hebrew); the three 40px white buttons (1px #ccc border, 6px corners, 18px icons) 12px apart, 22px under the box.
+- BUILT 2026-11-04 (src/ui/NavSidebar StayConnected + src/ui/NewsletterSignUp): used on /calendars. Tests: e2e/calendars.spec.ts.
 
 Code: [`static/js/NavSidebar.jsx:790-824`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L790-L824)
 
@@ -4665,11 +4693,13 @@ Code: [`static/js/NavSidebar.jsx:868-874`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-054 · Sidebar module: About learning schedules
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A static explanation of learning schedules.
 
 - Static en/he text. Inline on mobile CalendarsPage.
+- Title 'Learning Schedules' / 'לוח לימוד יומי'. On the phone page it sits at the top of the page column with no rule under its title, 10px over its text, 34px over 'Weekly Torah Portion'. VERIFIED 2026-11-04.
+- BUILT 2026-11-04 (src/ui/NavSidebar AboutLearningSchedules, wideOnly / phoneOnly). Tests: e2e/calendars.spec.ts.
 
 Code: [`static/js/NavSidebar.jsx:875-889`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L875-L889)
 
@@ -4855,6 +4885,23 @@ Code: [`reader/views.py:977-1010`](https://github.com/Sefaria/Sefaria-Project/bl
 Source: `inv_05_library_topics.md#19`
 
 
+### Translations
+
+#### LIB-070 · Translations page link targets open the reader in that version
+`standard` `live` · rebuild: **done** · *tested*
+
+Each text on a translations page opens the reader at its first section in that language's translation, side by side with the Hebrew.
+
+- Old ReaderApp.openURL: a click inside .translationsPage opens the ref with ven from the link and takes the content language from its ?lang (bi). English/Hebrew commentaries bundled by collective title link to their category page /texts/<cats>/<collective> (spaces unescaped).
+- VERIFIED 2026-11-04: /Genesis.1?ven=german%7CDie+f%C3%BCnf+B%C3%BCcher+Moses…&lang=bi opens Genesis 1 with the Wohlgemuth German translation beside the Hebrew.
+- BUILT 2026-11-04: VerbatimRouterLink keeps the API's href byte for byte and navigates through the router on a plain click (modified clicks are the browser's).
+- VERIFIED 2026-11-04: after the click sefaria.org writes the reader's own address, /Exodus.1?ven=german|Die_Heilige_Schrift,_trans._Dr._Simon_Bernfeld,_Berlin,_1902_-_German_[de]&lang=bi&aliyot=0 (spaces as _, '[de]' readable). BUILT: the same, byte for byte — lib/reader/search-serializer keeps '[' and ']' readable (it wrote %5Bde%5D on every reader address before).
+
+Code: [`static/js/ReaderApp.jsx:1242`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1242), [`reader/views.py:4907-4910`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4907-L4910)
+
+Source: `lane translations 2026-11-04`
+
+
 <a id="book-pages"></a>
 ## Book pages
 
@@ -4919,6 +4966,7 @@ Opening a book in a compare panel shows a compact reader-style control bar with 
 - readerControls bar: left MenuButton (compare back), center title, right display-settings dropdown (DisplaySettingsButton + ReaderDisplayOptionsMenu in DropdownMenu).
 - Display-settings dropdown only for non-Hebrew interface; Hebrew shows a placeholder.
 - Opened via openCompareTextTOC; back returns to navigation with previousCategories; category prop = Sefaria.index(bookRef).primary_category (ReaderPanel.jsx:917-943).
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/BookPage.jsx:220-239`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/BookPage.jsx#L220-L239), [`static/js/ReaderPanel.jsx:917-943`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L917-L943)
 
@@ -5196,7 +5244,7 @@ Source: `inv_05_library_topics.md#18`
 ### Topics routing
 
 #### TOP-001 · Topic URLs and legacy redirects
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 Topics have landing, category, A-Z and individual topic URLs, and old sheet-tag URLs redirect to topics.
 
@@ -5204,18 +5252,24 @@ Topics have landing, category, A-Z and individual topic URLs, and old sheet-tag 
 - Legacy: /sheets/tags -> /topics, /sheets/tags/<tag> -> /topics/<tag> (301) (urls_shared.py:60-61; reader/views.py:1151-1173).
 - Client (ReaderApp.jsx:1421-1431, 2059-2104): /topics -> menuOpen 'topics'; category -> navigationTopicCategory + title via Sefaria.topicTocCategoryTitle; all -> menuOpen 'allTopics' + navigationTopicLetter; topic -> fetches Sefaria.getTopic first then sets navigationTopic, topicTitle, topicTestVersion.
 - History URL (ReaderApp.jsx:561-582): topics/<slug> (or topics/<testVersion>/<slug>) + &sort=<topicSort> + &tab=<tab>; category topics/category/<slug>; all topics/all/<letter> titled 'Explore Jewish Texts by Topic - <letter>'.
+- Page titles (get_page_title + the client's document.title): /topics 'Topics | The Sefaria Library' (he 'נושאים | האוסף של ספריא'); a category '<title> | Texts from the Sefaria Library' (he '<title> | מקורות מתוך ספריית ספריא'); A–Z 'Explore Jewish Texts by Topic - <letter> | The Sefaria Library' (he 'עיון בארון הספרים היהודי לפי נושא - <letter> | האוסף של ספריא'). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- /topics/category/<unknown> and /topics/category (no slug) are Django 404 pages ('Page Not Found | Sefaria'); /people → 301 /topics/category/authors; /people/Talmud → /topics/category/talmudic-figures; /person/Rashi → /topics/rashi (the topic page then adds ?sort=Relevance&tab=author-works-on-sefaria). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER (2026-11-04): /topics, /topics/category/<slug> and /topics/all/<letter> are rendered by reader-next on the Library host (src/routes/topics.*); /topics/<slug>, /topics/b/<slug>, /people, /people/Talmud, /person/<name>, /sheets/tags[/<tag>] stay Django's (src/lib/routing/django-paths.ts DJANGO_TOPIC_PAGE and DJANGO_PREFIXES), so the legacy redirects still land on the new pages. An unknown category or a two-character letter is a 404, which the server hands to Django (its own 404 page).
+- Topic page address: the old ReaderApp writes topics/<slug> (topics/b/<slug> for the test version) then &sort=<topicSort> (always: reader/views.py passes GET sort or 'Relevance') then &tab=<tab> once TabView mounts (replacing the entry): /topics/moses → /topics/moses?sort=Relevance&tab=notable-sources; an author → ?sort=Relevance&tab=author-works-on-sefaria. A ?tab= in the address on load is IGNORED (the topic page's props carry no tab; TabView falls back to the first tab and writes it), ?sort= is honoured; the order of the parameters is rewritten. A tab click pushes a history entry, a sort click too. /topics/b/<slug> renders the same page. An unknown slug is Django's 404 ('Page Not Found | Sefaria'). Page title '<title> | Texts from the Sefaria Library' (he '<title> | מקורות מתוך ספריית ספריא'); description 'Jewish texts about <title in the interface language> from Torah, Talmud and other sources in Sefaria's library. <description>' — in English in the Hebrew interface too (the Hebrew msgstr is obsolete, #~ in locale/he). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER (2026-11-04): every Library /topics path is rendered by reader-next ('topics' has no Django rule left in src/lib/routing/django-paths.ts; route-manifest treats /topics/ as the client's): src/routes/topics.$.tsx and topics.b.$.tsx. The slug is normalised as normalize_slug. The address is written byte for byte as above, except that a ?tab= naming one of the page's tabs is honoured on load (a shared link to Sources opens Sources; an unknown tab still becomes the first). The Voices host keeps every /topics page on Django (Q-E1).
 
 Code: [`sefaria/urls_shared.py:53-61`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_shared.py#L53-L61), [`static/js/ReaderApp.jsx:561-582`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L561-L582), [`static/js/ReaderApp.jsx:2059-2104`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2059-L2104)
 
 Source: `inv_05_library_topics.md#7`
 
 #### TOP-002 · Module-specific topics home
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — Library landing page built; the Voices host's /topics stays Django's (Q-E1) · *tested*
 
 The library shows the new topics landing page, while the Voices site shows the older grid of topic categories.
 
 - ReaderPanel (983-1048) menuOpen 'topics': navigationTopicCategory -> TopicCategory; navigationTopic -> TopicPage (tab, setTab, onSetTopicSort, topicSort, translationLanguagePreference, topicTestVersion, toggleSignUpModal, multiPanel); else library -> TopicsLandingPage, voices -> TopicsPage.
 - menuOpen 'allTopics' -> TopicPageAll.
+- NEW READER: the Library host's /topics is the landing page (reader-next); on the Voices host (voices.* / chiburim.* or PUBLIC_VOICES_ORIGIN's host, X-Forwarded-Host honoured) every /topics page passes through to Django (isDjangoPageForHost; the host model is undecided, Q-E1), so TopicsPage (TOP-011) is unchanged there.
 
 Code: [`static/js/ReaderPanel.jsx:983-1048`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L983-L1048)
 
@@ -5225,20 +5279,24 @@ Source: `inv_05_library_topics.md#7`
 ### Topics landing page
 
 #### TOP-003 · Topics landing page layout
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 The library's topics home presents search, a word cloud of topics, a featured topic, a newsletter, sample topics and this week's seasonal content.
 
 - h1 'Explore by Topic'; sections in order: TopicLandingSearch (numOfTopics = Sefaria.numLibraryTopics), TopicSalad, FeaturedTopic, TopicLandingNewsletter, RandomTopicCardWithDescriptionRow, then TopicLandingParasha + TopicLandingSeasonal.
 - Sidebar: TopicLandingTopicCatList, TrendingTopics, AZTopicsLink.
 - Analytics attrs: data-anl-project='topics', panel_name, panel_type='Topic Landing', feature names per section.
+- Geometry (1280px): the column is 843px (.contentInner.topic-landing-page-content: 783px of content at x=39), the page's content starts 60px under the banner; the h1 is 32px/500 #666 centred; each section 60px under the one before (on a phone 18px for the search and 36px for the cloud, the h1 30px/600 with 10px under it). The sidebar is the library's (#FBFBFA, 420px); below 920px the old sidebar dropped under the column (sidebarLayout column), the new reader at 842px with the other library pages. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- Sidebar order: TopicLandingTopicCatList (Browse Topics: the 15 top-level TOC categories, unfiltered by module, 18px serif links on a 20px line), TrendingTopics, AZTopicsLink (a module whose h1 is the 'All Topics A-Z ›' link), Promo (empty unless the CMS fills it). Analytics: data-anl-project='topics', panel_name='Explore by Topic', panel_type='Topic Landing' on the whole panel (sidebar included); feature_name per section: Search, Topic Salad, Featured Topic, Multi-Cards, Parashah, Calendar; the newsletter's in its data-anl-batch. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- The old page fetched everything after mount (blank sections first); the new reader server-renders the search's count, Browse Topics, Trending, the featured topic and both calendar cards, and fetches only the random samples (cloud, cards) in the browser.
+- Hebrew interface faces (sefaria.org.il): the page title 30px/600 Heebo on a phone (the new reader now loads Heebo 600; it drew the 700 face, 4px wider); 'Explore all Topics ›' (לדפדוף בכל הנושאים) is a 14px span in the HEBREW SERIF (it inherits the column's serif, only English is set to sans) on an 18px line, 21px tall; the portion's 'Browse All Torah Portions' and the calendar's 'Explore the Jewish Calendar' links keep the English serif line (Cardo stack, 16px → 21px tall), the reading link the 18px serif line (23px) — the new reader had Heebo there (the global :lang(he) rule) and each row grew 2–3px. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicLandingPage/TopicsLandingPage.jsx:14-57`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicsLandingPage.jsx#L14-L57)
 
 Source: `inv_05_library_topics.md#8`
 
 #### TOP-004 · Topic search with autocomplete
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A search box on the topics landing page suggests topics as you type, showing each topic's category path.
 
@@ -5247,13 +5305,16 @@ A search box on the topics landing page suggests topics as you type, showing eac
 - Item: hashtag icon + title + gray path; click/Enter opens topic via openTopic(slug); Enter with no highlight opens first suggestion.
 - Placeholder 'Search <N> Topics A-Z' (en, N localized) / 'חיפוש לפי נושא' (he); maxLength 75; SearchButton icon.
 - 'Explore all topics' prompt smooth-scrolls .content to #browseTopics offset by header height + 16px.
+- Search box: a 634x60 #EDEDEC pill (phone 344x47), the 18px magnifier 16px in, the input 24px/500 serif (phone 14px Roboto); suggestions in a 606px white drop-down 47px down, each 18px EB Garamond title + #333 '(Cat > Sub)' path, highlighted row #EDEDEC. The count is Sefaria.numLibraryTopics (5,768 today: the library pool's slugs, not the A–Z list's 4,402), grouped with ',' (toLocaleString). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: the count comes from GET /api/topics/library-count (added on this branch) or, where that is missing, from the number the old /topics page writes into its props; the category paths from the server's topics TOC index (one server-function call, cached as catalog data). The topic page itself is still Django's, so choosing a suggestion is a full navigation to /topics/<slug>.
+- The search box's face in the Hebrew interface: Heebo 24px/500 on a wide screen, the English sans (Roboto) 14px/500 on a phone — not the serif of the English page (the new reader had the Hebrew serif). The magnifier is /static/icons/search_mdl.svg at every size (the old SearchButton), not the iconmonstr magnifier. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicLandingPage/TopicLandingSearch.jsx:126-159`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingSearch.jsx#L126-L159)
 
 Source: `inv_05_library_topics.md#8.1`
 
 #### TOP-005 · Topic word cloud (salad)
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A colorful cloud of randomly chosen topic names links straight into topics.
 
@@ -5261,62 +5322,73 @@ A colorful cloud of randomly chosen topic names links straight into topics.
 - Animated RainbowLine while loading (upper), static lower rainbow after.
 - MultiPanel: WordSalad numLines=5, bullets between items on same line (computed via offsetTop), CSS clamp --num-lines. Mobile: RowedWordSalad single horizontally scrollable row.
 - Items link /topics/<slug>.
+- The cloud: .salad-container is a -webkit-box clamped to 5 lines in the font 'hide-ellipsis-char-font' (a zero-size face for U+2026 only), so the clamp's '…' is invisible; each item is a Roboto 22px link (40px line, 11px side margins) inside a nowrap span whose serif font sets the space and the '•' after it (margin-inline-start 0.2em). Bullets: an item gets one when the next item has the same offsetTop. Phone: RowedWordSalad, one horizontally scrolling row of #18345D pills (6px radius, 7px apart, white text). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: the bullets are placed until the lines stop moving (a bullet can push the next item to the next line, which the old single pass left as a trailing bullet), again when the fonts arrive and on resize.
+- Bullets as sefaria.org actually shows them: WordSalad places them ONCE, in a useEffect when the random sample arrives, often before the web fonts are in; when the fonts land the lines re-wrap and nothing re-places them. Over four loads (2026-11-04) 1–2 of ~40 bullets ended a line ('Shavuot •') — a single pass on the final, bullet-less lines would differ in 6–20 places, the same-line rule on the final lines in 1–2. The new reader keeps the same-line rule on the final lines (reproducible; the closest to what live shows); a trailing bullet on live is timing, not a rule. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicLandingPage/TopicSalad.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicSalad.jsx)
 
 Source: `inv_05_library_topics.md#8.2`
 
 #### TOP-006 · Featured topic of the day
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 The landing page highlights a featured topic with image, description and a link.
 
 - Sefaria.getFeaturedTopic() -> /_api/topics/featured-topic?lang=<en|he> (cached per day; Django TopicOfTheDay).
 - Shows header 'Featured Topic', topic.secondary_image_uri (4:3 crop; alt = image caption), title, markdown description, 'Go to Topic ›'. Hidden if no topic.
+- Featured Topic: h2 15px uppercase serif #666 with 30px over it; the picture (secondary_image_uri) 239px + a 1px #EDEDEC frame sitting on a serif text line (the block is 187px tall for a 181px picture); title h3 24px serif #666, 15px over the description (16px Roboto #666, links #4B71B7); a <br> then 'Go to Topic ›'. Phone: the header 22px, the picture full width with 10px under it. The answer is /_api/topics/featured-topic?lang=<en|he> (a different topic per interface language). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- Hebrew interface: the description is the HEBREW SERIF (the old .reactMarkdown div inside the Heebo span: "Noto Color Emoji", "EnglishInHebrew Serif Font", Cardo, "Taamey Frank"…), 16px — Heebo made a description one line longer on a phone (4 lines instead of 3) and the page 43px taller; the title span is a flex box, so the title row is Taamey Frank's own 32px line, not the h3's 34px serif strut. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicLandingPage/FeaturedTopic.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/FeaturedTopic.jsx), [`reader/views.py:3780-3789`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3780-L3789)
 
 Source: `inv_05_library_topics.md#8.3`
 
 #### TOP-007 · Topics newsletter sign-up
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 Visitors can subscribe to the weekly topics newsletter from the landing page.
 
 - Heading 'Stay curious: get the timeless topics newsletter'; inputs first name, last name, email; Enter submits; validation (names required, valid email).
 - Sefaria.subscribeSefariaNewsletter(first,last,email,educator=false,lists) -> POST /api/subscribe/<email> with lists ['Weekly Topics Newsletter'] for English interface only; Hebrew = [].
 - States: 'Subscribing...', 'Subscribed! Welcome to our list.', error (role=alert). Analytics form_start, form_submit.
+- Form: a #18345D band (36px 65px; Hebrew 36px 46px), the teaser h3 22px Roboto white, 256px wide (Hebrew 300px); inputs 13.33px (browser default) Roboto, 5px 12px, radius 6, the first of each row 16px before the next (so the email row's button sits 16px after it), rows 20px apart; Sign Up in blue on white. Phone: everything stacked, inputs and button 18px with 20px under each. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- Messages: names missing → 'Please enter a valid first and last name.'; bad email → 'Please enter a valid email address.'; then 'Subscribing...' (no Hebrew string), 'Subscribed! Welcome to our list.' / 'הרשמה בוצעה בהצלחה!' in white under the inputs; a failure shows under the band in italic #802F3E, right-aligned: the server's {error} message, 'Error posting to API' for a failed status, else 'Sorry, there was an error.'. The Hebrew interface subscribes to no list (lists left out of the payload).
+- NEW READER: POST /api/subscribe/<email> through src/lib/auth/http (CSRF); the e2e test answers the POST itself (never production).
+- The Sign Up button keeps the English sans (Roboto stack) in the Hebrew interface — the Hebrew glyphs fall back to the system's — while the inputs are Heebo. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicLandingPage/TopicLandingNewsletter.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingNewsletter.jsx), [`static/js/sefaria/sefaria.js:956-968`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L956-L968)
 
 Source: `inv_05_library_topics.md#8.4`
 
 #### TOP-008 · Random topic cards with descriptions
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A row of randomly picked topics, each with a short description and an Explore link.
 
 - multiPanel -> 3 cards, mobile -> 10. Fetches numTopics^3 topics from pool general_<lang>; keeps those with description in interface lang.
 - Card with title, markdown description, bottom link 'Explore <title> ›' (relative hrefs topics/<slug>).
+- Cards: 248x361 on a wide screen (flex 1, 20px apart, content-box 345px + 12px + the 4px #18345D top), #FBFBFA, shadow 0 4px 4px rgba(0,0,0,.25); title 24px/1.1 Roboto clamped to 2 lines, 23px down and 30px in; description absolutely at 95px, 188px wide, ≤10 lines (8 in Hebrew); 'Explore <title> ›' (he 'למדו עוד על <title> ›') at 298px. The hrefs are relative ('topics/<slug>'). Phone: ten 268px cards in a scrolling row from a 1000-topic sample. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 
 Code: [`static/js/TopicLandingPage/RandomTopicCardWithDescriptionRow.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/RandomTopicCardWithDescriptionRow.jsx)
 
 Source: `inv_05_library_topics.md#8.5`
 
 #### TOP-009 · This week's Torah portion card
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 The landing page features this week's Torah portion with a topic link and a Read the Portion button.
 
 - Sefaria.getUpcomingDay('parasha') -> /api/calendars/topics/parasha?lang=xx (parasha_data_api) cached per date.
 - TopicLandingCalendar card: header 'This week's Torah portion', title parasha displayValue, description, link topics/<parasha topic>; 'Learn More about <Parasha> ›', ParashahLink (current ref from Sefaria.calendars), 'Read the Portion' /<parasha.url>, 'Browse All Torah Portions' -> /topics/category/torah-portions.
+- Layout: two columns 67px from a 1px #CCC divider (phone: stacked with the divider between); header 16px/500 Roboto #666; the card's title 24px Roboto; 'Learn More about …' 14px/18px #666; the reading (book icon + 18px link, its text in Roboto) 47px under; Read the Portion (.button.small blue, 147x39) 30px under; 'Browse All Torah Portions' 14px Roboto #4B71B7 on a 16px serif line, 14px under. The reading is Sefaria.calendars' Parashat Hashavua (the visitor's diaspora setting), the card from /api/calendars/topics/parasha?lang=<lang> (diaspora default). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 
 Code: [`static/js/TopicLandingPage/TopicLandingParasha.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingParasha.jsx)
 
 Source: `inv_05_library_topics.md#8.6`
 
 #### TOP-010 · Seasonal Jewish calendar topic card
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 The landing page features a topic tied to the current time of the Jewish year with dates and a link to the Jewish calendar topics.
 
@@ -5324,6 +5396,7 @@ The landing page features a topic tied to the current time of the Jewish year wi
 - Card header 'On the Jewish Calendar', topic title/description/link; 'Learn more about <title> ›'.
 - Date message '<prefix> <secondary topic link> <suffix>' and Intl formatRange date range (en/he month-day) only when secondary topic exists; 'Explore the Jewish Calendar' -> /topics/category/jewish-calendar2.
 - Dates created timezone-agnostically (Util.createTimeZoneAgnosticDate).
+- The date message is 14px/600 #333 on a serif line, the secondary topic's link inheriting its colour; the date 14px Roboto black, 19px under it; 'Explore the Jewish Calendar' like Browse All Torah Portions. When /api/calendars/topics/holiday fails or has no topic, the old card stays empty (rendered nothing). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 
 Code: [`static/js/TopicLandingPage/TopicLandingSeasonal.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingSeasonal.jsx), [`reader/views.py:3841-3861`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3841-L3861)
 
@@ -5341,13 +5414,14 @@ The Voices site's topics home is a grid of topic category cards plus an All Topi
 - Title 'Explore by Topic' in CategoryHeader type='topics' toggleButtonIDs ['subcategory','reorder'] (admin).
 - Mobile: inline AboutTopics. Sidebar: TrendingTopics, JoinTheConversation.
 - Voices module: only Sheets topic pool, markdown links stripped in cards, trending = trending sheet tags.
+- NEW READER: not ported — the Voices host's /topics is passed to Django (TOP-002).
 
 Code: [`static/js/TopicsPage.jsx:17-27`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicsPage.jsx#L17-L27)
 
 Source: `inv_05_library_topics.md#9`
 
 #### TOP-012 · Topic card
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A card represents a topic or category with title, description and link.
 
@@ -5355,13 +5429,15 @@ A card represents a topic or category with title, description and link.
 - Strips leading 'Parashat ' / 'פרשת ' from titles; hidden if missing en or he title.
 - Click: categories setNavTopic(slug,{en,he}); leaves setTopic(...).
 - Card (common/Card.jsx): analytics title link; markdown disallowed elements ['p'] plus 'a' in Voices (links stored with library domain; sefaria.js:3946-3950); optional bottom link.
+- Card (TOC grid): title 24px/1.3 Roboto black (15px over, 8px under), description 14px/18px #666 clamped to 3 lines with 20px end margin, links #4B71B7 unstyled; in the Hebrew interface both take Heebo at 122% and the description a 24px line — whatever the text's language (an English-only description in the Hebrew interface is Heebo, left-to-right, left-aligned: .int-he.enInHe in a -webkit-box). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- Analytics quirk: TopicTOCCard passes analyticsEventName 'navto_topic:click' and Card appends ':click', so the attribute is data-anl-event='navto_topic:click:click' (the tracker reads it as navto_topic on click); analyticsLinkType is passed but never rendered. Kept byte for byte.
 
 Code: [`static/js/common/TopicTOCCard.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/common/TopicTOCCard.jsx), [`static/js/common/Card.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/common/Card.jsx), [`static/js/sefaria/sefaria.js:3946-3950`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3946-L3950)
 
 Source: `inv_05_library_topics.md#9.1`
 
 #### TOP-013 · Topic category page
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **partial** — Page, cards, sidebar built; moderators' category buttons (add/edit/reorder) not built · *tested*
 
 A topic category page lists its subtopics as cards, sorted and filtered for the current site.
 
@@ -5370,13 +5446,15 @@ A topic category page lists its subtopics as cards, sorted and filtered for the 
 - h1 in CategoryHeader type='topics' data=topicData (admin: add subcategory / edit).
 - Sidebar: AboutTopics, Promo, TrendingTopics, SponsorADay; for torah-portions in English inserts StudyCompanion after AboutTopics.
 - Analytics data-anl-panel_category; server topics_category_page 404s unknown slug and sets SEO title/desc (reader/views.py:1013-1037).
+- Geometry: the title row (CategoryHeader) keeps 15px under it and the h1 none, so the cards start 40px under the title's top; two columns 323px wide 20px apart at ≥900px and 600–700px, one column at 700–900px and below 600px (.contentInner .table); a 1px #EDEDEC line over the first row. Sidebar: AboutTopics, (StudyCompanion — torah-portions, English interface only), Promo, TrendingTopics, SponsorADay; data-anl-panel_category is the parents' slugs joined by '|' or 'Topic Landing' for a top-level category. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: the subtopics come from the server's topics TOC (GET /api/topics-toc on this branch's Django; on sefaria.org that 404s and the server reads the same tree out of /data.js), handed to the page as its slice through a server function — the browser never downloads the tree. Not ported: the moderators' CategoryHeader buttons (add sub-category, edit, reorder) on topic categories.
 
 Code: [`static/js/TopicPage.jsx:225-273`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L225-L273), [`static/js/sefaria/sefaria.js:3002-3036`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3002-L3036), [`reader/views.py:1013-1037`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1013-L1037)
 
 Source: `inv_05_library_topics.md#10`
 
 #### TOP-014 · All Topics A-Z index
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 An alphabetical index of every topic with letter navigation and a filter box.
 
@@ -5386,6 +5464,9 @@ An alphabetical index of every topic with letter navigation and a filter box.
 - AlphabeticalTopicsNav: A-Z or Hebrew א-ת (final letters excluded) links /topics/all/<letter>.
 - Excludes topics not displayable in active module; TopicTOCCard grid; 'There are no topics here.' when empty.
 - Sidebar: Promo, TrendingTopics, GetTheApp, SupportSefaria.
+- Details found: the URL's letter is used as written, so /topics/all/A matches nothing ('There are no topics here.'); the Hebrew bar excludes only ך ן ף ץ, so final mem ם shows (23 letters); in the Hebrew interface the empty list reads 'טוען מידע...' (LoadingMessage's default Hebrew: heMessage='' is falsy). Filter box 285px + 10px padding each side (content-box), #EDEDEC pill, 18px serif input; letters 16px Roboto #666, 10px apart. Sidebar: Promo, TrendingTopics, GetTheApp, SupportSefaria. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: the letter's list is filtered and sorted on the server (the 2.9 MB /api/topics?limit=0 kept there for an hour) and server-rendered; the browser downloads the whole list only once a filter of two characters is typed.
+- Hebrew interface: the filter box's input is Heebo (the new reader had the Hebrew serif). VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicPageAll.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPageAll.jsx), [`reader/views.py:3594-3609`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3594-L3609)
 
@@ -5395,7 +5476,7 @@ Source: `inv_05_library_topics.md#12`
 ### Topic page
 
 #### TOP-015 · Topic page data loading
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 A topic page fetches the topic's details, sources, sheets and related links, sorted into tabs.
 
@@ -5407,13 +5488,15 @@ A topic page fetches the topic's details, sources, sheets and related links, sor
 - Server topic_page (reader/views.py:3542-3591): normalizes slug; 404 if missing or not in active module pool; initialTab default 'notable-sources'; initialTopicSort 'Relevance'; noindex if fails should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY); SEO desc includes topic description.
 - **BUG:** _topic_page_data lacks a return, so the topicData prop is always None; server computes and discards; client always fetches (reader/views.py:3905-3906).
 - API (helper/topic.py:40-101): omits orphaned ref links; strips unpublished description; groups links by type; refs sorted by relevance with similar/overlapping refs merged (except learning-team sources); 'indexes' for AuthorTopic; 'possibilities' for ambiguous topics (not rendered by client).
+- Requests seen on sefaria.org: GET /api/v2/topics/<slug>?annotate_time_period=1&ref_link_type_filters=about|popular-writing-of&with_html=1&with_links=1&annotate_links=1&with_refs=1&group_related=1&with_indexes=1 (an author directly under Authors: ref_link_type_filters=popular-writing-of — Rashi, Jonathan Sacks); a parasha adds /api/calendars/next-read/<parasha>; a portal topic /api/portals/<portal_slug>; then /api/bulktext/<refs>?asSizedString=true&minChar=500&maxChar=600 for every 70 refs of every source tab, one after another (Moses: 17 requests). The topic answer is 683 KB for Moses (9 s uncached). get_topic sorts the sources by the request's interface language (sort_and_group_similar_refs). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER (src/lib/topics/topic-page-source.ts): the server reads the topic (with the reader's interfaceLang cookie, a 30 s deadline) and trims it to what the page uses (sheets dropped — the Library never lists them), adds the category above the topic, its parents' slugs and its category's subtopics from the server's topics TOC, and each source's book, categories and primary category from the server's catalogue (the old client had both in data.js / the 3.5 MB index); the page gets one server-function answer (memory only, 5 minutes). The first 70 texts of the tab shown, the next reading and a portal are fetched in the loader, so the server's HTML has the page; the rest in the browser.
 
 Code: [`static/js/TopicPage.jsx:543-624`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L543-L624), [`static/js/sefaria/sefaria.js:3068-3089`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3068-L3089), [`reader/views.py:3542-3591`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3542-L3591)
 
 Source: `inv_05_library_topics.md#11.1`
 
 #### TOP-016 · Topic source tab bucketing
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done**
 
 Sources linked to a topic are sorted into Notable Sources, Sources, Top Citations and Sheets tabs depending on site and annotation.
 
@@ -5421,13 +5504,15 @@ Sources linked to a topic are sorted into Notable Sources, Sources, Top Citation
 - Library non-sheet links: popular-writing-of -> 'Top Citations'; about -> 'Notable Sources' if link has published description (title or prompt) in interface lang, else 'Sources'; 'Sources' becomes superset notable+plain (titled 'All Sources' if created only from notable).
 - Moderator: 'Admin' tab = copy of Sources.
 - Order normalized: availableLangs, numDatasource, tfidf, pr, curatedPrimacy{he,en}.
+- Notable = an 'about' link whose description in the interface language has a title or a prompt and is not published:false; so the Hebrew interface's Notable Sources are the Hebrew-curated ones. Sources = notable + the rest, titled 'All Sources' when only notable ones exist. Top Citations = popular-writing-of. Admin (moderators) = a copy of Sources. Library: links with is_sheet never make a tab. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: bucketTabs / visibleTabs in src/lib/topics/topic-page.ts (unit-tested).
 
 Code: [`static/js/sefaria/sefaria.js:3093-3185`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3093-L3185)
 
 Source: `inv_05_library_topics.md#11.1`
 
 #### TOP-017 · Topic page header
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 The topic header shows the title, category link, description, image on mobile and sponsorship dedication, with an AI disclosure marker when relevant.
 
@@ -5436,36 +5521,42 @@ The topic header shows the title, category link, description, image on mobile an
 - AiInfoTooltip (outline 24) when any about-link has published ai_title in current lang, library only: hover popup + Learn More (/ai) + Feedback (formstack).
 - Description markdown (with HTML, disallowed elements per module); topic image under description on mobile (non-multiPanel) via TopicImage (ImageWithCaption).
 - Loading placeholder 'Loading...'.
+- Geometry (1280): .content padding-top 60 under the banner; the column .storyFeedInner 760px centred beside the 420px side column (50px margins, 40px padding: text from x=90, 680 wide); h1 30px/500 with the English title 40px serif (Hebrew 36px), 5px under; the category 16px Roboto #666 uppercase 0.1em, 15px under; the description 16px Roboto black (links #4B71B7 to https://www.sefaria.org/topics/…), 15px under; Hebrew description's markdown block in the Hebrew serif face. Phone: 25px under the header, 25px side padding, h1 without margin, the picture centred under the description (≤66.67vw, caption 12px centred 80vw, 30px under). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- AiInfoTooltip (outline 24px) beside the title when an about-link has a published ai_title in the interface language: hover box with 'Some of the text on this page has been AI generated.' + Learn More (/ai) and Feedback (formstack). NEW READER: ui/TopicPage TopicHeader + AiNotice.
+- Hebrew interface on a phone: Hebrew text in the page inherits the serif where the old page set no face; the new reader's global `:lang(he) { Heebo }` had turned unstyled rows (citations, links inside serif blocks) into Heebo lines 2–3px taller. Fixed per element (citation row, landing links), not globally. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicPage.jsx:389-446`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L389-L446)
 
 Source: `inv_05_library_topics.md#11.2`
 
 #### TOP-018 · Parasha topic sponsorship text
-`optional` `live` · rebuild: **todo**
+`optional` `live` · rebuild: **done** · *tested*
 
 Certain Torah portion topic pages show a hard-coded sponsorship dedication.
 
 - TopicSponsorship hard-coded text for parasha topics: bereshit, lech-lecha, toldot, vayigash, achrei-mot, vaetchanan, vzot-haberachah; only for topics with ref; markdown.
+- The dedication (#FBFBFA, 26px 19px, 18px #666 italic garamond; Hebrew in the Hebrew serif face with a #4B71B7 link), 27px under; shown only when the topic has a ref. NEW READER: TOPIC_SPONSORSHIPS in src/lib/topics/topic-page.ts. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- Hebrew interface: the dedication's markdown is a BLOCK in the Hebrew serif (the old .reactMarkdown div), its link too (Taamey Frank, 22px tall); the new reader had an inline span with a Heebo link, 8px taller. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicPage.jsx:275-316`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L275-L316)
 
 Source: `inv_05_library_topics.md#11.2`
 
 #### TOP-019 · Read the portion and Study Companion buttons
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 Topics with a text reference (portions, holidays) show a button to read it, and English portion pages offer the free Study Companion.
 
 - Blue button to the ref in library module: 'Read the Portion' if parasha else the ref (he ref with geresh/gershayim stripped).
 - English-only 'Get the Free Study Companion' button (learn.sefaria.org/weekly-parashah, promotion analytics).
+- Buttons: #18345D, 20px garamond (Hebrew Taamey Frank on a 19px line), 8px 16px, radius 7, the 20px inverted book icon; 5px over, 40px under; the Study Companion 10px after (0 under 900px), English interface only, data-anl-promotion_name 'Parashah Email Signup - Parashah Page'. Read the Portion links /<ref.url> (Genesis.1.1-6.8); a holiday shows its ref (Hebrew without geresh/gershayim). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 
 Code: [`static/js/TopicPage.jsx:389-446`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L389-L446)
 
 Source: `inv_05_library_topics.md#11.2`
 
 #### TOP-020 · Topic page tabs
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 Topic pages have tabs for notable sources, all sources, top citations, sheets and (for authors) Works on Sefaria, plus filter and language controls.
 
@@ -5475,25 +5566,30 @@ Topic pages have tabs for notable sources, all sources, top citations, sheets an
 - Language toggle 'A' pseudo-tab (library, not works tab) opens LangSelectInterface popover Source / Translation / Source with Translation -> local langPref hebrew/english/bilingual.
 - Tab URL-driven (tab prop / setTab); pseudo-tabs via onClickArray.
 - Empty -> null; loading -> LoadingMessage.
+- Tabs: 22px Roboto (phone 16px, the active one 18px padding-bottom), 10px padding, 30px apart, the active one black with a 4px #CCC underline, the others #666; a 1px #CCC rule under the row, 18px under it. Pseudo-tabs at the far end: the funnel (18px filter.svg, data-anl-event filter:click, data-anl-text=<sort>) on every tab but Notable Sources and Works; the 'A' (Hebrew 'א', scaled 1.3) on every tab but Works, opening a 266px popover Source / Translation / Source with Translation (default: the interface language — English: Translation). Works on Sefaria: titles 24px serif on a 1.3 line (15px over, 8px under), descriptions 14px/18px #666 (Hebrew interface: Heebo 122% on a 24px line, the English fallback too), two to a row, one on a phone. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: TopicTabs (role=tablist holds only the tabs; the funnel and the A are buttons beside them), AuthorWorks, arrow keys move between tabs. The content language choice is the page's own state (not in the URL), as before.
+- Hebrew interface: Works on Sefaria titles are 122% (29.28px, s2.css .navBlockTitle .int-he) in the Hebrew serif; on a phone the work keeps its 20px at the left (.interface-hebrew .authorIndex outranks the 450px reset). The new reader had 24px titles and no padding, so Rashi's list was 117px shorter. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
+- Hebrew interface on a phone (.interface-hebrew .singlePanel .tab.filter): the funnel and the 'א' sit 3px lower (margin-top 3px); the 1.3× scaled 'א' is 8.7px under the tab row's top on both sites after the port. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicPage.jsx:464-509`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L464-L509), [`static/js/TopicPage.jsx:638-830`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L638-L830), [`sefaria/model/topic.py:794-880`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/topic.py#L794-L880)
 
 Source: `inv_05_library_topics.md#11.3`
 
 #### TOP-021 · Topic source incremental loading
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 Topic source lists load in batches as the reader scrolls and remember how far they were scrolled on return.
 
 - useIncrementalLoad per tab fetches chunks of Sefaria._topicPageSize=70 refs via Sefaria.getBulkText(refs, asSizedString=true, 500, 600, translationLanguagePreference) (text trimmed to 500-600 chars) or getBulkSheets(ids).
 - Results cached into topicData.tabs[key].loadedData; _refsDisplayedByTab remembers how many displayed (restore on back).
+- NEW READER: SourceTab in src/features/topics/TopicPageRoute.tsx — chunks of 70 (URLs split under 3,800 characters as partitionArrayForURL) fetched one after another, 20 shown and 20 more when a sentinel nears the viewport; the count shown per topic and tab is kept for the session (back to the page, the list is as long).
 
 Code: [`static/js/TopicPage.jsx:638-830`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L638-L830), [`static/js/sefaria/sefaria.js:596`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L596)
 
 Source: `inv_05_library_topics.md#11.3`
 
 #### TOP-022 · Topic source filter and sort
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 Readers can filter a topic's sources by text and sort by relevance, date or views.
 
@@ -5503,13 +5599,15 @@ Readers can filter a topic's sources by text and sort by relevance, date or view
 - sheetSort (:135-159): prefer sheets whose title/content language matches interface; Views -> views desc; Newest -> dateCreated desc; Relevance -> log(views)*relevance.
 - Sort lifted to ReaderPanel (onSetTopicSort/topicSort) and persisted in URL &sort=.
 - First details element (first curated source) forced open on data load (:836-841).
+- Filter bar: a 250px #EDEDEC box (5px radius, the magnifier) with placeholder 'Search' (data-anl-event search:input), 'Sort by' + the options as 7px #EDEDEC pills, the chosen one black (data-anl-event sort_by:click with {text, from, to}). The sort applies to every source tab, Notable Sources included (?sort=Chronological on load). The filter resets when the tab changes; the bar's open state does not. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: refSort / refMatches (unit-tested); a sort click writes ?sort= (a new history entry).
 
 Code: [`static/js/TopicPage.jsx:81-159`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L81-L159), [`static/js/TopicPage.jsx:832-867`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L832-L867)
 
 Source: `inv_05_library_topics.md#11.4`
 
 #### TOP-023 · Topic source cards
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 Each source on a topic page shows the text excerpt with its citation, and curated sources show a title and learning prompt.
 
@@ -5518,25 +5616,30 @@ Each source on a topic page shows the text excerpt with its citation, and curate
 - Curated + displayDescription -> SummarizedStoryFrame <details>: summary shows curated title + primary category (uppercase); inside, learning prompt then source. Guard for deleted indexes (sc-38063).
 - Analytics batch per item: position, ai/human, item_id (ref), content_id (index title), content_type (categories).
 - **DEAD:** dataSources tooltip text computed but afterSave element never rendered (TopicPage.jsx:186-194).
+- Card: box-shadow 0 1px 3px rgba(0,0,0,.25), 20px apart; summary #FBFBFA 20px padding, the 14px arrow, title 16px/600 Roboto (Hebrew 18px Heebo), the book's primary category upper-cased at the end (16px serif); prompt #F0F7FF 20px padding under a 1px #CCC rule; text 18px serif on a 1.6 line (Hebrew 22px), justified, 20px from the top and the end; citation 18px garamond #666 (Hebrew Taamey Frank) with 20px under; a 4px category-colour bar at the start of each block. Only the first curated source is open. A source missing the chosen language is not shown on Notable Sources and Sources (its analytics wrapper stays, empty); on Top Citations it shows in the language it has. Body and citation link to /<normRef> (legacy encodes the book: /Zohar%2C_Shemot.51.376). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: ui/TopicPage/SourceCard; per-source data-anl-batch {position, ai, item_id, content_id, content_type} as before.
+- Hebrew interface: the source body keeps s2.css's HACK `.interface-hebrew .storyBody { direction: ltr; margin: 0 -17px 10px 26px }` — the body stays left-to-right with its 20px padding on the RIGHT, so Hebrew text wraps in a 287px column 51px from the left on a phone (the new reader mirrored it to 296px from x=45 and wrapped differently). Small print inside a text is the browser's `smaller` of the text's own size (15px in English, 18.33px in a 22px Hebrew text) and the text's own face (the new reader had 15px Heebo). The citation row is a serif line (44px with the 18px Taamey Frank citation), not Heebo's 46px. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
+- Known difference: sefaria.org never loads Taamey Frank Bold on the topic page (document.fonts reports it 'unloaded' after load), so <b> in a Hebrew source is the browser's synthetic bold of the Medium face, ~4px narrower per word than the real Bold the new reader loads (it preloads it for the reader's Talmud). Now and then a line wraps one word differently.
 
 Code: [`static/js/Story.jsx:167-212`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Story.jsx#L167-L212), [`static/js/TopicPage.jsx:180-213`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L180-L213)
 
 Source: `inv_05_library_topics.md#11.5`
 
 #### TOP-024 · Topic sheet cards
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — No Sheets tab on the Library (as before); the Voices host's topic pages stay Django's
 
 Sheets tagged with a topic appear as cards with title, summary, author and save/follow actions.
 
 - SheetBlock: title link /sheets/<id>, Save button (history object 'Sheet <id>'), summary, ProfileListing (author image/name/position/org with follow button).
 - Sheets tab is the only tab in Voices module.
+- On the Library host there is no Sheets tab (only the Voices host buckets is_sheet links). NEW READER: not built — the Voices host's topic pages stay Django's.
 
 Code: [`static/js/Story.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Story.jsx)
 
 Source: `inv_05_library_topics.md#11.5`
 
 #### TOP-025 · Topic side column: metadata and links
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 The side column shows the topic image, lifespan, external reference links and related-topic groups.
 
@@ -5545,61 +5648,73 @@ The side column shows the topic image, lifespan, external reference links and re
 - If no groups -> fallback group of category siblings (first 20 from topic TOC; title = category name or 'Explore Topics'/'נושאים כלליים'); groups sorted 'Related' first then alphabetical.
 - TopicSideSection shows first 10 with More/Less; TopicLink -> /topics/<slug> or /topics/category/<slug>, SPA click, analytics related_click.
 - Promotions (sidebar ads) under side column.
+- Side column: 420px #FBFBFA (80px of grey above its top); sections 44px in; h2 15px uppercase #666 with its 22px Roboto title, 30px over (0 for the first), 10px padding and a 1px #CCC rule; lists 18px garamond on 26px lines; ten links then More / Less (16px Roboto #666). The picture: 332px + border, the 12px caption 6px under it (an inline image). 'Lived' shows the time period's name and year range ('1040 – 1105 CE'). Group order: 'Related' first, then alphabetical by the SINGULAR title (Parent before Parent-in-Law although 'Parents' is shown). With no displayable group the old fallback maps the category's first 20 subtopics to objects without shouldDisplay, which its own filter then drops: a titled, empty section (kept). Phone: under the page, the old 420px + 25px padding cut at the screen's edge. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- Found: in the Hebrew interface the Learn More links read 'undefined' on sefaria.org (Sefaria._ returns nothing for topic_page.wikipedia etc. there). NEW READER shows the Hebrew names (ויקיפדיה, האנציקלופדיה היהודית, הספרייה הלאומית) — a deliberate difference.
+- NEW READER: ui/TopicPage/TopicSide TopicSideColumn, sideSections / learnMoreLinks in src/lib/topics/topic-page.ts; related topics are routed links (they open in the app).
+- Hebrew interface: the side picture sits on a serif text line (its descent under the image), as in English — on a Heebo line it was 1px deeper and moved the column down. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicPage.jsx:975-1009`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L975-L1009), [`static/js/TopicPage.jsx:1114-1172`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L1114-L1172), [`static/js/TopicPage.jsx:894-973`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L894-L973)
 
 Source: `inv_05_library_topics.md#11.6`
 
 #### TOP-026 · Parasha readings panel
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A Torah portion topic shows the next reading date, aliyot, and haftarah links.
 
 - ReadingsComponent (:1058-1105) for parasha topics with next-read data: 'Readings' header, next read date (Gregorian locale + Hebrew calendar string), Torah ref link, aliyot links 1-7 and 'M' (maftir; Hebrew numerals, 'מ'), Haftarah link(s), all targeted at library module.
+- Readings: 'October 30, 2027' • '29th of Tishrei, 5788' (14px italic Roboto #6F6F6F; hebcal's render / renderGematriya 'כ״ט תִשְׁרֵי תשפ״ח'), Torah / Haftarah labels 16px #666 0.1em, the 18px book icon and 18px garamond links, the aliyot 1–7 and M as 14px #6F6F6F links on a 30px line 25px in. NEW READER: the Hebrew date from the platform's Hebrew calendar (ICU) with hebcal's month names, no hebcal dependency. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- Hebrew interface: the readings' blocks and links keep the English serif lines (date row 21px, ref row 26px); Heebo made each row 1–2px taller. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicPage.jsx:1058-1105`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L1058-L1105)
 
 Source: `inv_05_library_topics.md#11.6`
 
 #### TOP-027 · Portal topic pages
-`optional` `live` · rebuild: **todo**
+`optional` `live` · rebuild: **partial** — Modules built; the newsletter module uses the topics form, not the old NewsletterSignUpForm layout · *tested*
 
 Some topics are partner portals whose side column shows partner about, app, organization and newsletter modules instead of the usual links.
 
 - Topic with portal_slug: PortalNavSideBar modules in order about, mobile, organization, newsletter, each only if present in portal object.
 - Portal model (sefaria/model/portal.py): about{title,title_url,image_uri,image_caption,description}, mobile{title,description,android_link,ios_link}, organization{title,description}, newsletter{title,description,api_schema?}.
 - /api/portals/<slug> portals_api (reader/views.py:3953-3959).
+- A portal topic (Jonathan Sacks → portal 'sacks') replaces the side column with the NavSidebar: About (title, picture with 'Credit: …' caption, markdown), Mobile, Organization, Newsletter, an empty Promo slot, the sidebar footer (sticky). Inside .topicPanel the modules' h1 take the topic page's h1 rules: a 40px serif title in a 22px/500 line with a 1px #CCC rule. Phone: 30px of grey over it; the picture centred two thirds wide. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: PortalModules + SidebarFooter; the newsletter module uses the topics landing form and posts to /api/subscribe/<email> and /api/subscribe/steinsaltz/<email> (the old NewsletterSignUpForm's layout is not reproduced).
 
 Code: [`static/js/TopicPage.jsx:576-580`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L576-L580), [`sefaria/model/portal.py`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/portal.py), [`reader/views.py:3953-3959`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3953-L3959)
 
 Source: `inv_05_library_topics.md#11.7`
 
 #### TOP-028 · AI-generated topic text disclosure and admin prompt tools
-`optional` `live` · rebuild: **todo** `moderator`
+`optional` `live` · rebuild: **partial** — AI marker (always in the page, as live), Admin tab, review, Generate, Publish built but never run in a moderator session; Add a source / Edit / Reorder open the old page (?editor=1 → Django via the 404 hand-off) · *tested* `moderator`
 
 Topic pages flag AI-generated source titles, and moderators can generate and publish AI prompts for sources.
 
 - Generate button (if links have ai_context but no prompt): POST /api/topics/generate-prompts/<slug> with ref_topic_links; alert (staff, Celery LLM).
 - Publish button (unpublished but reviewed links): set published=true, POST /api/ref-topic-links/bulk; confirm then reload.
 - ReviewStateIndicator per lang (Reviewed / Not Reviewed / Edited); click marks reviewed via POST /api/ref-topic-links/<ref> review_state 'reviewed'.
+- NEW READER (moderators, is_staff): the Admin tab, the per-language review buttons (POST /api/ref-topic-links/<normRef> with the link's own description and review_state 'reviewed'), Generate (POST /api/topics/generate-prompts/<slug>, alert) and Publish (POST /api/ref-topic-links/bulk, confirm and reload), all through lib/auth/http (CSRF) — never exercised against production. The old editors (Add a source → SourceEditor, Edit → TopicEditor, Reorder sources → ReorderEditor, the pencil per source) are not built: their buttons reload the page with ?editor=1, which this client hands to Django (the old page with its editors).
+- The AI notice (AiInfoTooltip) is ALWAYS in the page: the box with 'Learn More' (/ai, data-anl-event learn_more_click:click, data-anl-text learn_more) and 'Feedback' (formstack, feedback_click:click, feedback) is rendered hidden (.ai-message: opacity 0, visibility hidden, 180px back from the icon) and shown while the icon or the box is hovered (fade in 0.5s, out 2s); the box is 198px, #FBFBFA, radius 6, 14px/18px Roboto, links #4B71B7. The new reader rendered the links only on hover — anything scanning data-anl on load missed them; now as live. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/TopicPage.jsx:329-387`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L329-L387), [`reader/views.py:3628-3643`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3628-L3643)
 
 Source: `inv_05_library_topics.md#11.2`
 
 #### TOP-029 · Topic page analytics batch
-`optional` `live` · rebuild: **todo** `system`
+`optional` `live` · rebuild: **done** · *tested* `system`
 
 Topic pages tag their root with analytics context for impressions.
 
 - Root container data-anl-batch = {project:'topics', content_lang, panel_category}.
+- Root batch {project:'topics', content_lang:<english|hebrew|bilingual from the language toggle>, panel_category:<parents' slugs joined by '|'>} (left out when the topic has no category); the side column data-anl-panel_type='topics' data-anl-panel_number=0. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- GA4 events of the page (data-anl, ANL-015) as sefaria.org fires them: filter:click {text: <sort>} on the funnel, sort_by:click {text, from, to} on a sort option, search:input {text} in the filter box, lang_toggle_click on the A and lang_toggle_select {text, to: source|translation|sourcewtrans, from, feature_name: 'source lang toggled'} on a choice, each with the page batch {project: topics, content_lang, panel_category}. Tab clicks carry no data-anl attribute in the legacy TabView (TopicPage.jsx), so no declarative event. NEW READER: covered by e2e (topic-page.spec.ts 'the topic page's analytics').
 
 Code: [`static/js/TopicPage.jsx:543-624`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L543-L624)
 
 Source: `inv_05_library_topics.md#11.8`
 
 #### TOP-030 · Topic data model behaviors
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 The client relies on topic fields for display gating, ordering, images and link groupings.
 
@@ -5609,18 +5724,22 @@ The client relies on topic fields for display gating, ordering, images and link 
 - contents(minify) used in topic TOC and lists includes slug, shouldDisplay (true if has children), displayOrder, pools, categoryDescription, published description.
 - Link types: displays-under/displays-above (TOC hierarchy), is-a, related-to; RefTopicLink linkTypes about, popular-writing-of; descriptions per lang {title, prompt, ai_title, ai_context, published, review_state}.
 - Topic TOC (library.get_topic_toc_json) rebuilt after admin edits.
+- NEW READER: the rules the navigation pages apply (shouldDisplayInActiveModule, sortTopicsCompareFn with its top-level 10000 bandaid, TopicTOCCard's titles, A–Z filtering and sort) are src/lib/topics/topic-model.ts, unit-tested.
+- NEW READER: the topic page's rules (tab bucketing, refSort, refFilter, card display, link groups, Learn More, readings dates, sponsorships, admin link selection, normalize_slug) are src/lib/topics/topic-page.ts, unit-tested.
 
 Code: [`sefaria/model/topic.py:205-216`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/topic.py#L205-L216), [`sefaria/model/topic.py:449-450`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/topic.py#L449-L450), [`sefaria/model/topic.py:582-612`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/topic.py#L582-L612)
 
 Source: `inv_05_library_topics.md#19.1`
 
 #### TOP-031 · Topic pool and trending endpoints
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Server endpoints provide pooled random topics, trending topics and topic lists per site.
 
 - /api/topics/pools/<pool> topic_pool_api (voices->sheets pool mapping; Django sample_topic_slugs); /api/topics/trending trending_topics_api (GA4 28 days); /_api/topics/featured-topic; /api/topics list.
 - Sefaria.getTopicsByPool cached only for non-random order.
+- GET /api/topics/library-count → {count} (Sefaria-Project reader-next branch, 2026-11-04): the library pool's size, the new reader's numLibraryTopics. On sefaria.org it does not exist yet: api/topics/<slug> answers {} for it.
+- NEW READER: src/lib/topics/topics-api.ts holds every topic endpoint with the old URLs byte for byte (pools uncached, trending/featured/calendar topics for the day, the topic itself with the old v2 parameters for the single-topic page next).
 
 Code: [`reader/views.py:3764-3807`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3764-L3807), [`static/js/sefaria/sefaria.js:2271-2286`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2271-L2286)
 
@@ -5639,6 +5758,71 @@ Code: [`static/js/TopicsLaunchBanner.jsx`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#16; inv_08_other.md#4.5`
 
 
+### Topic categories and A-Z
+
+#### TOP-033 · Topics TOC delivery
+`core` `live` · rebuild: **done**
+
+The topics pages read the topics table of contents, which the old site put in every page's data.js; the new reader keeps it on the server and sends each page its slice.
+
+- Legacy: templates/js/data.js writes DJANGO_DATA_VARS.topic_toc (library.get_topic_toc(): the whole tree with titles, displayOrder, pools, shouldDisplay, description and categoryDescription) into the 9.4 MB /data.<ts>.js every page loads; Sefaria.topicTocPage / topicTocCategories / isTopicTopLevel read it. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- GET /api/topics-toc (Sefaria-Project, 2026-10-06) serves the same JSON; sefaria.org answers 404 until it is deployed.
+- NEW READER (src/lib/topics/toc-source.ts): the server fetches /api/topics-toc, or on a 404 /data.js (sent as the 'sefaria-node' user agent, which Django's language middleware never redirects), extracts topic_toc and keeps it an hour for all requests; pages get a category's entries, the top-level slugs and the category's path, or the slug → category-path index for the landing search, through server functions (cached as catalog data).
+
+Code: [`templates/js/data.js:8`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/js/data.js#L8), [`static/js/sefaria/sefaria.js:3240-3320`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3240-L3320), `reader/views.py topics_toc_api`
+
+Source: `inv_05_library_topics.md`
+
+
+### Topics landing page
+
+#### TOP-034 · Library topic count
+`standard` `live` · rebuild: **done**
+
+The landing search says how many topics the library has.
+
+- Legacy: base_props numLibraryTopics = get_num_library_topics() (DjangoTopic.objects.get_topic_slugs_by_pool('library')), on every page's props; 5,768 on 2026-11-04 (the A–Z list has 4,402). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: GET /api/topics/library-count (added on this branch); where it is missing, the server reads '"numLibraryTopics": N' from the old /topics page; without either the placeholder is 'Search Topics A-Z'.
+
+Code: [`reader/views.py:369`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L369), [`sefaria/helper/topic.py:297-299`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/helper/topic.py#L297-L299)
+
+Source: `inv_05_library_topics.md`
+
+
+### Topic categories and A-Z
+
+#### TOP-035 · Topics pages' sidebar modules
+`standard` `live` · rebuild: **done** · *tested*
+
+Each topics page has its own list of sidebar modules: Browse Topics, Trending Topics, All Topics A-Z, About Topics, Sponsor a Day, the Study Companion and Get the App.
+
+- Landing: TopicLandingTopicCatList, TrendingTopics, AZTopicsLink, Promo. Category: AboutTopics, (StudyCompanion on torah-portions in English), Promo, TrendingTopics, SponsorADay. A–Z: Promo, TrendingTopics, GetTheApp, SupportSefaria. Every list is followed by the sidebar footer. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- About Topics text (en/he) is inline in NavSidebar.jsx; Study Companion has no Hebrew strings (English only by design); 'Sign Up' links learn.sefaria.org/weekly-parashah/ with data-anl-event select_promotion:click|view_promotion:scrollIntoView and promotion_name 'Parashah Email Signup - Topic TOC'.
+- NEW READER: src/ui/NavSidebar/TopicModules.tsx with the old data-anl-* attributes; links to a single topic leave the app (Django), links to a category or A–Z are routed.
+- NEW READER: links to a single topic (Trending Topics, cards, the landing page's cloud, cards and search) are routed since the topic page port.
+
+Code: `static/js/NavSidebar.jsx:181-195,339-363,634-722,775-792`
+
+Source: `inv_05_library_topics.md`
+
+
+### Topic page
+
+#### TOP-036 · Topic page Library pool check
+`core` `live` · rebuild: **done** — In-app 404s reload to the server; the backend pools change is unverified (not run) · *tested*
+
+A topic page exists on the Library only for topics in the Library's pool; the new reader decides it from the A–Z list or the topic's pools, and otherwise lets Django answer.
+
+- Legacy: reader/views.py topic_page answers 404 when the topic does not exist or get_topic_pool_name_for_module(active_module) is not in topic.get_pools(); noindex unless should_display(min_sources=3, textual_only=True). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: a slug in the server's A–Z list (/api/topics?limit=0: library pool, displayable, ≥3 text sources or a description) renders; otherwise the v2 topic's `pools` decide (added to get_topic's v2 answer on this branch, sefaria/helper/topic.py); where the API gives no pools (sefaria.org today) the route answers 404 and the server hands the request to Django, which renders the old page or its 404. noindex is the same test on the topic's fields.
+- NEW READER: the hand-off to Django also works after an in-app navigation: the topics routes' notFoundComponent (src/features/topics/DjangoHandoff.tsx) loads the address again from the server when the 404 was reached in the app (the document was loaded at another address, src/lib/routing/django-handoff.ts) — a related link, a description link, a card or ?editor=1 reached by navigation then gets Django's page when pass-through is on; the server's own 404 shows 'Page not found.' and never reloads. Before, TanStack's bare 'Not Found' showed and Django never got the request.
+- Open: the backend change (get_topic's v2 answer carries `pools`) and its test (sefaria/helper/tests/topic_test.py::test_get_topic_v2_answers_the_topics_pools) have not been run (no Django/Mongo environment); until it is deployed, Library topics outside the A–Z list (~1,366) always go to Django.
+
+Code: [`reader/views.py:3592-3640`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3592-L3640), `sefaria/helper/topic.py get_topic`
+
+Source: `inv_05_library_topics.md`
+
+
 <a id="calendars"></a>
 ## Calendars
 
@@ -5646,7 +5830,7 @@ Source: `inv_05_library_topics.md#16; inv_08_other.md#4.5`
 ### Learning schedules
 
 #### CAL-001 · Learning Schedules page
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 One page lists today's and this week's learning schedules (portion, Daf Yomi, Mishnah, Rambam and more) with links to the readings.
 
@@ -5654,14 +5838,23 @@ One page lists today's and this week's learning schedules (portion, Daf Yomi, Mi
 - Sections: 'Weekly Torah Portion' (Parashat Hashavua, Haftarah (A) Ashkenazi, Haftarah (S) Sephardi, Haftarah); 'Daily Learning' (Daf Yomi, 929, Daily Mishnah, Daily Rambam, Daily Rambam (3 Chapters), Halakhah Yomit, Arukh HaShulchan Yomi, Tanakh Yomi, Zohar for Elul, Chok LeYisrael, Tanya Yomi, Yerushalmi Yomi); 'Weekly Learning' (Daf a Week).
 - Calendars not in these lists are not shown; seasonal ones (Zohar for Elul) appear only when the server returns them.
 - Layout: ResponsiveNBox per section; mobile shows AboutLearningSchedules inline; sidebar AboutLearningSchedules (multiPanel), StayConnected, SupportSefaria, Promo.
-- Server view calendars (reader/views.py:1326-1329).
+- Server view calendars (reader/views.py:1356-1359): menu_page 'calendars', title 'Learning Schedules | Sefaria Library' (English in both interfaces), description 'Weekly Torah portions, Daf Yomi, and other schedules for Torah learning.' URL /calendars/? (re_path): '/calendars/' is a page too (200), and its canonical keeps the slash ('https://www.sefaria.org/calendars/'). VERIFIED 2026-11-04.
+- Data: Sefaria.calendars = get_todays_calendar_items(**_get_user_calendar_params(request)) — diaspora from request.diaspora (cf-ipcountry), custom = the signed-in profile's settings.textual_custom (new profiles default 'sephardi'; missing → 'ashkenazi'), 'ashkenazi' when signed out. The day is the server's time zone (the API answered timezone 'America/Halifax' on 2026-11-04). The same items come from /api/calendars?diaspora=…&custom=… (no timezone). VERIFIED 2026-11-04.
+- Sections keep the API's order (the page filters the API list by each section's names), and a section with no cards keeps its heading. VERIFIED 2026-11-04.
+- Geometry (VERIFIED 2026-11-04, 1280px and phone User-Agent): headings 22px/500 dark grey, 30px over the cards (10px on a phone); page column 665px, its top 60px under the header/banner strip; sidebar modules: About Learning Schedules (multi-panel only), Stay Connected, Support Sefaria, an empty Promo module, the footer. On a phone the About module is the first thing on the page, its title without the rule, and the sidebar (Stay Connected, Support Sefaria, Promo, footer) follows 20px under the cards.
+- BUILT 2026-11-04 (src/routes/calendars.tsx, src/features/calendars/CalendarsRoute.tsx, src/ui/CalendarsPage): server-rendered from /api/calendars with diaspora from CF-IPCountry and the reader's custom (src/features/calendars/textual-custom.ts: GET /api/profile/<slug> with the reader's cookie, owner-only settings, asked through a server function from the browser too; signed out 'ashkenazi'). Pixel diff against the live page 0.00% (1280 top/middle/bottom/full, phone full page). Tests: e2e/calendars.spec.ts.
+- Head (VERIFIED 2026-11-04, the same in both interfaces): og:title/twitter:title = the title, og:description/twitter:description, og:type website, og:image https://www.sefaria.org/api/img-gen/calendars?lang=&platform=facebook&ven=&vhe= (image/png 1200x630), og:url = the canonical, twitter:card summary_large_image, twitter:site @sefariaproject, twitter:image (platform=twitter), and hreflang alternates en https://www.sefaria.org<path> / he https://www.sefaria.org.il<path>. BUILT 2026-11-04 in src/routes/calendars.tsx (src/lib/routing/site-origins.ts for the Hebrew origin).
+- Ways in (VERIFIED 2026-11-04): the phone menu's 'Learning Schedules' and /texts' 'All Learning Schedules ›' write the relative href '/calendars'. BUILT 2026-11-04: both now write '/calendars' (they pointed at www.sefaria.org) and open this page.
+- Voices host (Q-E1): voices.sefaria.org answers /calendars with 404. BUILT 2026-11-04: passed to Django there; with no Django to pass to (pass-through off) the server answers 404 itself, and the browser (leavesClient with the page's host) loads the address in full on the Voices host instead of routing to the Library page.
+- Hebrew interface parity (2026-11-04): the shared site-wide Library Assistant banner computed Heebo in Hebrew (9px taller); live keeps Roboto there. Fixed in src/features/shell/SiteWideBanner (Roboto stack in both interfaces): 1280 top/full 0.15%, end 0.12%, middle 0.38%, phone full 0.20% — the remainder is the shared Hebrew header (live lays out the Hebrew header differently and labels Texts 'טקסטים' where ours says 'מקורות') and 1px shifts in the sidebar footer/donate button; none of it is this page's markup. English: 0.00% everywhere.
+- Known differences (2026-11-04): the UA dimension5 page type 'calendars' is not sent (UA is retired; the shell sends no page types); the sidebar footer links are absolute (pre-existing footer).
 
-Code: [`static/js/CalendarsPage.jsx:17-27`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/CalendarsPage.jsx#L17-L27), [`static/js/sefaria/sefaria.js:3643-3650`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3643-L3650), [`reader/views.py:1326-1329`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1326-L1329)
+Code: [`static/js/CalendarsPage.jsx:17-27`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/CalendarsPage.jsx#L17-L27), [`static/js/sefaria/sefaria.js:3643-3650`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3643-L3650), [`reader/views.py:1340-1359`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1340-L1359)
 
 Source: `inv_05_library_topics.md#5`
 
 #### CAL-002 · Calendar listing cards
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 Each schedule is a card colored by category with a title, subtitle, description and links to each assigned reading.
 
@@ -5669,13 +5862,17 @@ Each schedule is a card colored by category with a title, subtitle, description 
 - reformatCalendars clones; attaches hard-coded calendarDescriptions (keyed by title with ' (A)'/' (S)' stripped) unless API gave description; Parashat Hashavua displayTitle = parasha displayValue with ref/heRef; others displayTitle = calendar title plus enSubtitle (Talmud/Tanakh).
 - Merges consecutive entries with the same title into one listing with multiple refs (multi-ref Haftarah, Daf a Week).
 - Descriptions duplicated in MobileContentServer exporter (comment CalendarsPage.jsx:139-141).
+- The subtitle's Hebrew strings (calendar_listing.talmud/tanakh) are empty and the brackets are drawn only under .interface-english: the Hebrew interface shows no subtitle. VERIFIED 2026-11-04.
+- The API's own description wins over the table (the weekly portion's summary comes from the API). Yerushalmi Yomi is not in the table and has no description; Zohar for Elul appears only in season. Chok LeYisrael's url is a Hebrew collection path with a query ('collections/חק-לישראל?tag=Chayei%20Sara'), written into the href unencoded. VERIFIED 2026-11-04.
+- Card geometry (VERIFIED 2026-11-04): two 327.5px columns 10px apart and rows 6px apart while the grid is wider than 500px (ResponsiveNBox threshold2), one column below; a 4px line in the category's colour (Sefaria.palette); title 24px serif on a 1.3 line, 15px over / 8px under, 20px short of the card's end; readings 18px serif dark grey, the 18px book icon 10px before, 2px apart, 16px over the description; description 14px/18px sans, 12px under the card. Hebrew interface: titles and descriptions at 122% (descriptions on a 24px line), readings in the Hebrew serif at 18px.
+- BUILT 2026-11-04 (src/lib/library/calendars.ts calendarListings/sectionListings, src/ui/CalendarsPage CalendarCard): tests e2e/calendars.spec.ts, src/lib/library/calendars.test.ts, Storybook Pages/CalendarsPage.
 
 Code: [`static/js/CalendarsPage.jsx:70-136`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/CalendarsPage.jsx#L70-L136), [`static/js/CalendarsPage.jsx:142-200`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/CalendarsPage.jsx#L142-L200)
 
 Source: `inv_05_library_topics.md#5`
 
 #### CAL-003 · Calendar APIs and quick redirects
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** — Redirects answered by the node server; the calendar APIs are Django's · *tested*
 
 Server endpoints supply calendar data, the next reading of a portion, and shortcuts to today's portion or Daf Yomi.
 
@@ -5683,10 +5880,37 @@ Server endpoints supply calendar data, the next reading of a portion, and shortc
 - /api/calendars/next-read/<parasha> - parasha_next_read_api (date, aliyot, haftarah).
 - /api/calendars/topics/parasha - parasha_data_api (includes topic slug; diaspora param default 1); /api/calendars/topics/holiday - seasonal_topic_api.
 - /parashat-hashavua and /todays-daf-yomi redirect to current calendar refs (reader/views.py:4679-4690).
+- Redirects: 302 with an empty body, Content-Type 'text/html; charset=utf-8', Vary 'Accept-Language, Cookie', Location = iri_to_uri('/' + item.url) of get_keyed_calendar_items() — today's items with diaspora=True and custom=None, whatever the request says: '?diaspora=0' is read and ignored. A title the API repeats goes to its last item (keyed dict). '/parashat-hashavua/' and '/todays-daf-yomi/' are 404s; on voices.sefaria.org both paths are 404s. VERIFIED 2026-11-04 (Location '/Genesis.23.1-25.18', '/Bekhorot.47').
+- BUILT 2026-11-04 (src/server/calendar-shortcuts.ts, wired in src/start.ts): the node server answers the two shortcuts itself from /api/calendars?diaspora=1 with Django's status, headers and Location (iri_to_uri ported); when the API fails or the schedule is missing it hands the request to Django (pass-through) or answers 503. Voices host: passed to Django (a 404, as voices.sefaria.org, when the server has no Django to pass to). The APIs themselves stay Django's (every /api/ path is). Tests: e2e/calendars.spec.ts, src/server/calendar-shortcuts.test.ts.
 
-Code: [`reader/views.py:2965-3023`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L2965-L3023), [`reader/views.py:3841-3861`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3841-L3861), [`reader/views.py:4679-4690`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4679-L4690)
+Code: [`reader/views.py:3004-3048`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3004-L3048), [`reader/views.py:3879`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3879), [`reader/views.py:4758-4769`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4758-L4769)
 
 Source: `inv_05_library_topics.md#19`
+
+#### CAL-004 · Learning Schedules follow the reader's location and custom
+`standard` `live` · rebuild: **done** — On /calendars; the library sidebar still sends no custom · *tested*
+
+The page shows Israel's or the diaspora's weekly portion by the reader's country, and the haftarah of the reader's textual custom.
+
+- request.diaspora: False when Cloudflare's cf-ipcountry is IL; an unknown country uses PINNED_IPCOUNTRY (sefaria/system/middleware.py LocationSettingsMiddleware). custom: profile settings.textual_custom when signed in (default 'sephardi' for new profiles; missing → 'ashkenazi'), 'ashkenazi' signed out (reader/views.py _get_user_calendar_params).
+- The library pages' sidebar modules (LIB-038/039/040) are fed the same way on sefaria.org; the new reader's library sidebar still sends no custom (open).
+- BUILT 2026-11-04 for /calendars (src/features/calendars/textual-custom.ts, src/lib/user/textual-custom.ts, calendarsQueryOptions(diaspora, custom)). Tests: e2e/calendars.spec.ts (CF-IPCountry IL: the server render's query cache asks for Israel's schedules), src/lib/user/textual-custom.test.ts, src/features/calendars/textual-custom.test.ts. The signed-in custom is unit-tested only (an e2e session would need production credentials); the browser asks through the server function, so it works where /api is not on the page's origin (dev, e2e).
+
+Code: [`reader/views.py:1340-1346`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1340-L1346), [`sefaria/system/middleware.py:66-83`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/system/middleware.py#L66-L83)
+
+Source: `2026-11-04 calendars lane`
+
+#### CAL-005 · Calendars refresh after a settings change
+`optional` `live` · rebuild: **partial** — Refetch through the user-query invalidation (unit-tested); the event's diaspora is ignored · *tested* `signed-in`
+
+When the account settings page changes the textual custom, the open page asks for the calendars again.
+
+- templates/account_settings.html dispatches 'sefaria:settings-updated' {textualCustom, diaspora}; ReaderApp.handleSettingsUpdatedEvent calls Sefaria.updateCalendars(custom, diaspora) → /api/calendars?custom=…&diaspora=… and replaces Sefaria.calendars.
+- New reader: the event invalidates every ['user', …] query (src/routes/__root.tsx refreshReader), which includes the textual custom; a changed custom changes the calendars query key, so the page refetches. The event's own diaspora value is not used (the page keeps the request's country). Test: src/features/calendars/textual-custom.test.ts (invalidating ['user'] refetches the custom; the schedules key follows it).
+
+Code: [`static/js/ReaderApp.jsx:1266-1278`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1266-L1278), [`static/js/sefaria/sefaria.js:3655-3662`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3655-L3662)
+
+Source: `2026-11-04 calendars lane`
 
 
 <a id="search"></a>
@@ -6042,6 +6266,7 @@ A compare panel has its own plain search box that opens search results inside th
 - Display-settings dropdown shown when interface is not Hebrew.
 - Compare search results click uses handleCompareSearchClick -> replacePanel(n) so other panels are not clobbered.
 - In compare: no desktop sidebar, exact toggle only in mobile-style overlay, no analytics.
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/ComparePanelHeader.jsx:19`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ComparePanelHeader.jsx#L19), [`static/js/ReaderApp.jsx:1102`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1102), [`static/js/SearchPage.jsx:774`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchPage.jsx#L774)
 
@@ -7082,7 +7307,7 @@ Source: `inv_06_search.md#9.2, 15`
 ### Topic and ref autocomplete elsewhere
 
 #### SRC-098 · Topics landing page search
-`standard` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides.
+`standard` `live` · rebuild: **done**
 
 The Topics landing page has a topic-only search with category paths shown for disambiguation.
 
@@ -7092,6 +7317,7 @@ The Topics landing page has a topic-only search with category paths shown for di
 - Enter opens highlighted item else FIRST suggestion.
 - Placeholder 'Search {N} Topics A-Z' (N localized) / 'חיפוש לפי נושא'.
 - 'Explore all Topics ›' link smooth-scrolls to #browseTopics offset by header height.
+- NEW READER: built with the topics landing page (TOP-004).
 
 Code: [`static/js/TopicLandingPage/TopicLandingSearch.jsx:7`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingSearch.jsx#L7), [`static/js/TopicLandingPage/TopicLandingSearch.jsx:99`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingSearch.jsx#L99), [`static/js/TopicLandingPage/TopicLandingSearch.jsx:126`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingSearch.jsx#L126)
 
@@ -8979,6 +9205,7 @@ A slide-out menu holds search, sections, account and cross-product links on mobi
 - VERIFIED 2026-10-05 (390px): bar = menu button (aria-label 'Menu'), centred logo, aleph/ayin language toggle; slide-out nav (aria-label 'Mobile navigation menu') = search, Texts, Topics, Learning Schedules (/calendars), Donate (c_src=MobileNavMenu), language toggle 'English • עברית', Get Help, About Sefaria (/mobile-about-menu), Voices on Sefaria, Developers on Sefaria, More from Sefaria, Sign up, Log in.
 - REBUILD: signed in, the phone menu has Saved, History & Notes, Account Settings and Logout instead of Sign up / Log in.
 - Layout: a fixed white sheet under the header filling the screen; search line 15px/10px with a #ededec rule; full-width rows 16px #666, 15px padding, 16px icons (book, topic, calendar, heart.png inverted on the blue Donate row) 15px from the label; the account part on #fbfbfa between #ccc rules: language row (globe, 'English • עברית'), Get Help, About, Voices/Developers with 16px dots, More from Sefaria (chevron), Sign up (login.svg) / Log in, groups split by #ededec hr lines. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- 2026-11-04: the menu's 'Learning Schedules' writes '/calendars' (relative, as sefaria.org) and opens the new reader's page (CAL-001).
 
 Code: [`static/js/Header.jsx:425`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L425)
 
@@ -9736,6 +9963,7 @@ A generic promotional banner can be dismissed permanently or snoozed so it retur
 - SSR-safe (renders nothing until mounted); promo_viewed once per session; promo_clicked with feature_name
 - Cookie names chatbot_experiment_banner_dismissed, signup_promo_banner_dismissed
 - Geometry (1280px): a 104px #f7f7f7 strip under the header (padding 10px, 1px lightgrey rule), the #653259 card radius 10px padding 20px; ai-double-star.svg 41x43, 18px from two lines (16px 600 white; 16px at 0.85 opacity, 4px apart); buttons 38px high, 14px/18px 600: 'Log in to Try' white with a shadow, 'Maybe later' transparent; 50px before the buttons, 20px between them. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- Hebrew interface: the banner's text and buttons stay in the English sans (Roboto; the Hebrew glyphs from the system's fallback face), 19px lines — not Heebo (24px lines), which made the strip 9px taller and moved every Hebrew desktop page down (the 2–14% whole-page diffs on the topics pages). VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).
 
 Code: [`static/js/SiteWideBanner.jsx:5`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SiteWideBanner.jsx#L5), [`static/js/SiteWideBanner.jsx:105`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SiteWideBanner.jsx#L105)
 
@@ -9759,7 +9987,7 @@ Source: `inv_08_other.md#4.5`
 ### Newsletter
 
 #### PRM-016 · Newsletter signup form
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — The topics landing newsletter only · *tested*
 
 Visitors can subscribe to Sefaria newsletters, optionally as educators, from sidebars, static pages, ads and topic pages.
 
@@ -9767,6 +9995,10 @@ Visitors can subscribe to Sefaria newsletters, optionally as educators, from sid
 - Used in NavSidebar (StayConnected / Voices / Portal modules), StaticPages, Promotions, TopicLandingNewsletter
 - Client APIs: subscribeSefariaNewsletter -> /api/subscribe/<email>; subscribeSteinsaltzNewsletter; subscribeSefariaAndSteinsaltzNewsletter; getTopicLandingNewsletterMailingLists (Weekly Topics Newsletter, EN only)
 - Backend: api/subscribe/<org>/<email> (views.py:299), api/subscribe/<email> (:327), api/newsletter_mailing_lists (:347), Steinsaltz helper (:355)
+- Found 2026-11-04: StayConnected passes context='sidebar' but the form reads contextName, so its event is Newsletter / 'Subscribe from undefined'. The error shown is the API's `error` string untranslated, or 'Error posting to API' for a failed status; after an error the name fields close. The Hebrew 'please enter a valid first and last name' string is English. The email goes into the path unencoded (/api/subscribe/<email>).
+- BUILT 2026-11-04 for the sidebar (src/ui/NewsletterSignUp, src/lib/user/newsletter.ts via lib/auth/http with the CSRF token; the same UA event, 'Subscribe from undefined'). Not built: the static pages, promotions and topic-landing uses (lists, Steinsaltz).
+- The arrow is an <img alt='Submit'> ('שלח'); ours is a button whose image carries that alt (its accessible name). BUILT 2026-11-04.
+- NEW READER: the topics landing newsletter (TOP-007) is built; the sidebar and static-page forms are not.
 
 Code: [`static/js/NewsletterSignUpForm.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NewsletterSignUpForm.jsx), [`sefaria/views.py:327`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L327), [`static/js/sefaria/sefaria.js:955`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L955)
 
@@ -9776,12 +10008,13 @@ Source: `inv_08_other.md#4.5`
 ### Sidebar modules
 
 #### PRM-017 · NavSidebar promo and donation modules
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — SponsorADay, GetTheApp, StudyCompanion for the topics pages
 
 The navigation sidebar hosts modules that promote donating, the apps, newsletters and community.
 
 - Module registry NavSidebar.jsx:40-80: Promo, SupportSefaria (DonateLink), SponsorADay (DonateLink dayOfLearning), GetTheApp (AppStoreButtons iOS/Android), StayConnected (newsletter), VoicesNewsletterSignUp, PortalMobile/PortalNewsletter, StudyCompanion, JoinTheCommunity
 - Steinsaltz app buttons at NavSidebar.jsx:1077-1078
+- NEW READER: SponsorADay (donate.sefaria.org/sponsor[he]?c_src=NavSidebar-SponsorADay), GetTheApp (white .appButton with the iOS/Android icons) and StudyCompanion are built for the topics pages (src/ui/NavSidebar/TopicModules.tsx).
 
 Code: [`static/js/NavSidebar.jsx:40`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L40), [`static/js/NavSidebar.jsx:1077`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L1077)
 
@@ -10757,7 +10990,7 @@ Code: [`sefaria/urls_library.py:17-89`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-010 · Learning schedules and calendar URLs
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — /calendars, /calendars/ and the two shortcuts ported; /dayoflearningcalendar stays Django's · *tested*
 
 /calendars opens the Learning Schedules page; daily shortcuts jump straight to today's reading.
 
@@ -10765,13 +10998,15 @@ Source: `inv_01_urls_routing.md#1.1`
 - /parashat-hashavua -> 302 this week's parasha URL; reads ?diaspora but ignores it (TODO) and uses the default calendar.
 - /todays-daf-yomi -> 302 today's daf.
 - /dayoflearningcalendar -> external/internal 302 (site package).
+- VERIFIED 2026-11-04: /calendars and /calendars/ are both pages (200); /parashat-hashavua and /todays-daf-yomi 302; their slashed forms 404.
+- BUILT 2026-11-04: /calendars and /calendars/ render in the new reader (Library host); the router keeps a trailing slash the server lets through (trailingSlash 'preserve'); the shortcuts are answered by the node server (CAL-003). '/dayoflearningcalendar' is not part of this port (still Django's). Known differences: '/calendars//' answers the router's 307 to '/calendars/' (live 200), and '/Calendars' renders the page (live 404; the router matches paths case-insensitively, as for /Texts).
 
 Code: [`reader/views.py:1326-1329`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1326-L1329), [`reader/views.py:4679-4690`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4679-L4690)
 
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-011 · Translations page URLs
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 /translations/<language> lists texts available in a given translation language.
 
@@ -10779,6 +11014,7 @@ Source: `inv_01_urls_routing.md#1.1`
 - Menu 'translationsPage' with initialTranslationsSlug; localized title/desc per language; noindex False.
 - In-app links inside .translationsPage override content language from link ?lang.
 - api/texts/translations builds reader URLs /<firstSectionRef>?ven=<family|title>&lang=bi.
+- BUILT 2026-11-04: 'translations' removed from DJANGO_PREFIXES on the Library host; /translations/ is a client prefix in the route manifest and an app page (not a ref) in lib/reader/paths. On the Voices host it stays Django's (RTE-065).
 
 Code: [`reader/views.py:1256-1289`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1256-L1289), [`reader/views.py:4826-4831`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4826-L4831)
 
@@ -10885,12 +11121,16 @@ Code: [`reader/views.py:3961-4107`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-019 · Version compare tool URL
-`optional` `legacy` · rebuild: **todo** `staff`
+`optional` `legacy` · rebuild: **done** · *tested* `staff`
 
 A separate page diffs two versions of a text.
 
 - /compare[/<ref>/][<en|he>/][<v1>/][<v2>] -> sefaria.views.compare, compare.html (separate React bundle) with JSON_PROPS secRef/v1/v2/lang/refArray.
 - **BUG:** stray print(comp_ref) debug left in the view (sefaria/views.py:2192).
+- Survey 2026-11-04 (the view is at sefaria/views.py:2245 on reader-next, 2196 on master). The pattern is matched on the decoded path, so: /compare/Genesis.1 (no slash) makes 'Genesis.1' the SECOND VERSION and shows an empty form; /compare/Genesis.1/ is the ref; /compare/X/he names v2='he'; an escaped %2F splits; every '_' in a version reads as a space. VERIFIED 2026-11-04 (JSON_PROPS on www.sefaria.org).
+- Repeated slashes: sefaria.org's nginx merges them before Django matches, so /compare/Genesis_2// (what 'Load Next Chapter' writes with no language) is Genesis 2's form, 200, the address keeping '//'. parseComparePath merges them too; this client's router then collapses the address to /compare/Genesis_2/ (the same page; a one-slash difference in the address bar). VERIFIED 2026-11-04.
+- trailingSlash 'preserve' is router-wide: auth pages such as /login/ now render at the slash URL (live does the same: 200 at /login/ and /login), and reader/library addresses are still sent slashless by the server's 308. e2e routing, auth, shell, header and fonts specs pass.
+- BUILT 2026-11-04: src/lib/compare/url.ts reads and writes it byte for byte; the router keeps trailing slashes (trailingSlash 'preserve') and the server's slash redirect skips /compare/; 'compare' left DJANGO_PREFIXES on the Library host — on the Voices host it still passes through to Django (LIBRARY_HOST_ONLY_PREFIXES, Q-E1). A path the pattern cannot match is our 404, which Django answers in the cluster.
 
 Code: [`sefaria/views.py:2191-2217`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L2191-L2217)
 
@@ -11064,7 +11304,7 @@ Code: [`reader/views.py:1054-1134`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#2.2`
 
 #### RTE-030 · Topics URLs
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done**
 
 Topics are browsed at /topics, by category, by letter, and individual topic pages.
 
@@ -11077,6 +11317,8 @@ Topics are browsed at /topics, by category, by letter, and individual topic page
 - Topic editors redirect to /topics/<slug>?sort=Relevance&tab=<tab>.
 - **BUG:** openURL passes tab param for topics but openTopic(slug) ignores it (ReaderApp.jsx:1432,2081).
 - Legacy: /person/<name> -> 301 /topics/<person slug> (404 if unknown); /people -> 301 /topics/category/authors; /people/Talmud -> 301 /topics/category/talmudic-figures.
+- NEW READER: see TOP-001 — the landing, category and A–Z URLs are reader-next's on the Library host; the topic page and the legacy redirects are Django's.
+- NEW READER: as TOP-001 — /topics/<slug> and /topics/b/<slug> are reader-next's on the Library host since 2026-11-04.
 
 Code: [`reader/views.py:1013-1051`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1013-L1051), [`reader/views.py:3522-3591`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3522-L3591), [`reader/views.py:5207-5221`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5207-L5221), [`static/js/Misc.jsx:1083-1089`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1083-L1089)
 
@@ -11622,6 +11864,21 @@ Opening a commentary ref from inside the app (a link, a citation, search) — e.
 Code: [`static/js/ReaderApp.jsx:1760`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1760)
 
 Source: `inv_04_connections.md#22`
+
+
+### Library page URLs
+
+#### RTE-065 · Library-only pages stay Django's on the Voices host
+`standard` `live` · rebuild: **done** · *tested*
+
+A page the new reader renders for the Library (sefaria.org) is still passed to Django when it is requested on the Voices host, until the Library/Voices host model is decided.
+
+- src/lib/routing/django-paths.ts LIBRARY_HOST_ONLY (first segment 'translations') + isVoicesHost: the hosts Django's DOMAIN_MODULES gives the voices module — voices.* (voices.sefaria.org) and the Hebrew Voices host chiburim.* (chiburim.sefaria.org.il, staging chiburim.sef-stage-il.org; sefaria/system/middleware.py). isDjangoRequest(request) in the request middleware takes the host from X-Forwarded-Host (its first value), else the request URL; the trailing-slash redirect uses the same host. Tests: src/server/pass-through.test.ts (both Voices hosts, X-Forwarded-Host, the Hebrew Library host www.sefaria.org.il keeps the page).
+- Open question Q-E1 (TARGET_ARCHITECTURE): which pages each module serves. Added 2026-11-04 by the translations port.
+
+Code: [`sefaria/urls_library.py:24`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_library.py#L24)
+
+Source: `lane translations 2026-11-04`
 
 
 <a id="platform-seo"></a>
@@ -12301,6 +12558,7 @@ Endpoints return today's learning schedule, next reading of a parasha and season
 - /api/calendars?diaspora=&custom=&timezone= (Parashat Hashavua, Haftarah, Daf Yomi, Mishnah Yomit, Rambam, Daf-a-Week, 929, etc.); /api/calendars/next-read/<parasha>; /api/calendars/topics/parasha;
 - /api/calendars/topics/holiday.
 - Redirects /parashat-hashavua, /todays-daf-yomi.
+- 2026-11-04: the /parashat-hashavua and /todays-daf-yomi redirects are answered by the new reader's server from /api/calendars (CAL-003); the endpoints stay Django's.
 
 Code: [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_shared.py#L1)
 
@@ -12680,6 +12938,7 @@ Analytics events are declared directly on page elements and collected automatica
 - Whitelist: project, panel_type, panel_number, item_id, version, content_lang, content_id, content_type, panel_name, panel_category, position, ai, text, experiment, feature_name, from, to, action, engagement_value, engagement_type, logged_in, site_lang, traffic_type, promotion_name, link_type, form_name, form_destination
 - Derived data for details toggle (from/to) and input (text); scrollIntoView via IntersectionObserver; inputStart fires on first input; MutationObserver attaches to new nodes
 - Rebuild: src/lib/analytics/declarative.ts, a port of analyticsEventTracker.js (same whitelist, closest-wins aggregation, data-anl-batch, derived toggle/input data, scrollIntoView and inputStart) attached to the app root. Module switcher uses it (modswitch_open/close/item_click).
+- 2026-11-04: /calendars keeps the old panel's data-anl-batch on the page frame: {"panel_number":1,"content_lang":"bilingual"} in the English interface, "hebrew" in the Hebrew one (ReaderPanel.getContentLanguageOverride for menuOpen 'calendars'; panel_type and panel_name are undefined there and not written). VERIFIED against live 2026-11-04. Via NavPage's anlBatch prop. Test: e2e/calendars.spec.ts.
 
 Code: [`static/js/analyticsEventTracker.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/analyticsEventTracker.js)
 
@@ -13969,7 +14228,7 @@ Source: `inv_08b_admin_linker_apps.md#1.4 / 3.6`
 ### Version Compare
 
 #### LEG-010 · Text version diff/compare tool (/compare)
-`optional` `legacy` · rebuild: **todo** `desktop only`
+`optional` `legacy` · rebuild: **partial** — Page, form, diff tables, filters, Apply Change ported at pixel parity; the Editors group (non-staff editors) is not recognised · *tested* `desktop only`
 
 A public page compares two versions of a text segment by segment with inline diffs, and lets users click a change to apply it to the text.
 
@@ -13982,6 +14241,14 @@ A public page compares two versions of a text segment by segment with inline dif
 - 'Load Next Chapter' via Sefaria.getRef(...).next; filter checkboxes (י ו " : ' ( ) ) toggle 'filtered' class on ins/del spans; book-level ref expands to first section with refArray;
 - props {secRef,v1,v2,lang,refArray}.
 - **SECURITY:** public page whose Apply action writes text; relies entirely on server-side auth of postSegment.
+- Correction (survey 2026-11-04): the page is public, but the client opens the change dialog only for Sefaria.is_moderator || Sefaria.is_editor; others get alert('Only Sefaria Moderators Can Edit Texts') or, signed out, alert('Not signed in. You must be signed in as a Sefaria Moderator to use this feature.'). The write (POST /api/texts/<segment url>, form field json={versionTitle, language, text}) is checked by the server.
+- Form: 'Ref:' text input (300px), 'Language:' Hebrew/English, and — only when the typed ref has versions — 'Version 1:'/'Version 2:' selects ('Select a Version' + the titles of the language bucket of /api/texts/versions/<ref>: a title ending [xx] is language xx). The version lists follow the typed ref and the chosen language live. 'Load Diff' goes to /compare/<ref>/<lang>/<v1>/<v2> (spaces → underscores) only when something differs from the page's address. VERIFIED 2026-11-04.
+- Texts: old /api/texts with vhe/ven=<title with underscores>, wrapLinks=0, stripItags=0, firstAvailableRef=1, fallbackOnDefaultVersion=1 — first the section of each version (row count = the longer), then every segment of both versions again (2 + 2N requests per table).
+- Diff quirks kept: diff-match-patch with its default 1s limit (its half-match pass decides which of equal-cost diffs is shown; Genesis 1:7 Masorah vs Ta'amei); an insertion before the last character is red (not applicable) because ValidateDiff reads mapping[at+1] past the end; HTML entities show literally (&thinsp;, &nbsp;) since the raw text is rendered as text. VERIFIED 2026-11-04.
+- Filters: the seven checkboxes act only on 'Update', hiding the colour of ins/del spans whose whole text is that character (only spans already rendered).
+- **BUG:** accepting an insertion at the very end of a segment computes a NaN position and writes the replacement in front of the whole text. BUG: after a failed post the row stays blocked ('Another Change in Progress, Please Wait') until reload.
+- BUILT 2026-11-04 (src/routes/compare.$.tsx + compare.index.tsx, src/features/compare, src/ui/VersionDiff, src/lib/compare): same page, address, form, tables, filters, tooltip and dialog; pixel diff 0.00% against www.sefaria.org at 1280 and on a phone, English and Hebrew interface (empty form, ref only, Genesis 1 he diff, English diff, Talmud, book-level). Differences on purpose: one texts request per section and version (segments taken from it, same text); a section range shows one table per section, a segment range the form without a table (no 500); an end-of-text insertion is applied at the end; a failed post can be retried; the dialog opens for is_staff (the client cannot see the Editors group: an editor who is not staff gets the moderators-only alert); the moderator check asks the session at the click. e2e/compare.spec.ts.
+- Tests (review 2026-11-04): e2e/compare.spec.ts compares every changed row's insertion and deletion texts of Genesis 1 (Masorah vs Ta'amei) with a capture of www.sefaria.org (e2e/fixtures/compare-genesis-1-marks.json: 18 rows, the same on both); checks that a filter clears exactly the spans of its character and Update again restores them; the three gates (signed out, signed in not staff, staff); that Apply Change posts the original raw text with exactly the clicked piece replaced at its tag-mapped position, both versions reload and the row shows the new text. Apply Change was not run against a real Django write (a POST to production is out of bounds): request shape and CSRF only, mocked.
 
 Code: [`sefaria/views.py:2191`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L2191), [`static/js/diff_page.jsx:167`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/diff_page.jsx#L167), [`static/js/diff_page.jsx:561`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/diff_page.jsx#L561)
 
@@ -14259,3 +14526,38 @@ No translation-QA page exists on master.
 Code: [`node/webpack.config.js:150`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/node/webpack.config.js#L150)
 
 Source: `inv_08b_admin_linker_apps.md#3 intro`
+
+
+### Version Compare
+
+#### LEG-031 · Version diff page frame (standalone document)
+`optional` `legacy` · rebuild: **done** · *tested* `staff`
+
+The version-diff page is a document of its own: no site header or stylesheet, the browser's default styles, English words in both interface languages.
+
+- templates/compare.html: <title>Compare</title>, no viewport meta (a phone lays it out 980px wide), <html lang> = interface language with no dir (left-to-right in the Hebrew interface too), body in the browser's defaults (Times 16px, 8px margin), Google Tag Manager only (no gtag config, no Simple Analytics, no cookie notice, no header). No data-anl-* attributes and no GA4 events of its own.
+- Own CSS: td padding 8px, border 1px #ddd, td:hover #ccffff; td.he rtl/right, td.en ltr/left; span.ins #5CEE5C; span.del rgba(193,66,66,.5); span.filtered no background; span.change tooltip (#555 on lightblue 2px border, white text, padding 10px); div.changeDialog (#ccc).
+- compare.html also loads React 15.6.1, jQuery 2.2.4 and jQuery UI from cdnjs; only jQuery is used (the filter button). The page itself is diffPage.js built with the site's React.
+- VERIFIED 2026-11-04 on www.sefaria.org (English and Hebrew interface, desktop 1280 and phone User-Agent).
+- BUILT 2026-11-04 (src/lib/routing/standalone.ts, src/routes/__root.tsx): on a /compare page the root renders no header, no viewport meta, no site fonts (no Typekit, no font preloads), GTM only, <html lang> without dir, and <body data-standalone> in the browser's own font, colours and 8px margin (base.css), so anything outside the page's wrapper (a 404 included) is in Times as on live. Body font in the Hebrew interface: 'Times', as live. VERIFIED 2026-11-04.
+- A /compare address Django's pattern cannot match: on a server load our 404 (production passes it to Django's 404 page); reached from the form in the browser, the page is loaded as a document (the old page's window.location.assign), so the server answers it. e2e/compare.spec.ts.
+
+Code: [`templates/compare.html`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/compare.html)
+
+Source: `survey 2026-11-04`
+
+#### LEG-032 · Version diff: which sections a ref shows
+`optional` `legacy` · rebuild: **done** — segment ranges and section ranges handled sensibly (legacy 500 / endless loading) · *tested* `staff`
+
+The ref in a /compare address is turned into the section(s) diffed: a book its first section, a segment its section, a ref above section level one table per section below it.
+
+- sefaria/views.py compare: Ref.is_ref(comp_ref) else secRef ''; secRef = first_available_section_ref (raised to its section when a segment); a book-level ref → one table of its first section; a ref neither section nor book level → refArray = all_subrefs (Rashi on Genesis 1 → 31 tables 'Rashi on Genesis 1:1'…'1:31').
+- A segment (Genesis 1:3): refArray [] — the form shows 'Genesis 1' and NO table (an empty array is truthy in the page). VERIFIED 2026-11-04.
+- **BUG:** a segment range (Genesis 1:3-5) answers 500 (all_subrefs of a ranged segment throws). VERIFIED 2026-11-04.
+- **BUG:** a section range (Genesis 1-2) stays secRef 'Genesis 1-2'; its table has max(sections) rows 'Genesis 1-2:1'… that never leave 'Loading...'. VERIFIED 2026-11-04.
+- 'Load Next Chapter' (Sefaria.getRef(secRef).next) goes to /compare/<next>/<lang>/<v1>/<v2> with the page's own address parts; with no language in the address the path ends '//' (from /compare/Genesis.1/: /compare/Genesis_2//). nginx merges the slashes, so Django answers 200 with Genesis 2's form and the address bar keeps the '//'. VERIFIED 2026-11-04 (curl 200, JSON_PROPS secRef 'Genesis 2'; Playwright walk).
+- Tables appear only when the address has language, v1 and v2; an invalid ref with all three shows 'Loading Text...' for ever.
+
+Code: [`sefaria/views.py:2245`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L2245), [`static/js/diff_page.jsx:107`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/diff_page.jsx#L107)
+
+Source: `survey 2026-11-04`

@@ -161,7 +161,8 @@
   "status": "todo"
  },
  "RTE-030": {
-  "status": "todo"
+  "status": "done",
+  "by": "src/routes/topics.*"
  },
  "RTE-032": {
   "status": "done",
@@ -1150,7 +1151,7 @@
  },
  "LIB-037": {
   "status": "done",
-  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library, src/routes/translations.$slug.tsx (ro/tr in the app)"
  },
  "LIB-038": {
   "status": "done",
@@ -1367,8 +1368,8 @@
   "note": "Collections / Voices / topics: Phase 7, owner decides."
  },
  "SRC-098": {
-  "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx (TopicLandingSearch)"
  },
  "SRC-099": {
   "status": "deferred",
@@ -1631,5 +1632,240 @@
   "status": "partial",
   "note": "Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet",
   "by": "src/features/shell/SiteWideBanner"
+ },
+ "LIB-020": {
+  "status": "done",
+  "by": "src/ui/TranslationsPage, src/features/library/TranslationsRoute.tsx, src/lib/translations/translations-page.ts"
+ },
+ "LIB-021": {
+  "status": "partial",
+  "note": "Pages, 404s, title and description per language done; og:url, hreflang alternates and og:image are the site-wide head (platform-seo)",
+  "by": "src/routes/translations.$slug.tsx, src/lib/translations/translations-page.ts"
+ },
+ "LIB-029": {
+  "status": "done",
+  "by": "src/ui/NavSidebar/AboutTranslatedText.tsx"
+ },
+ "LIB-070": {
+  "status": "done",
+  "by": "src/features/shared/RouterLink.tsx (VerbatimRouterLink), src/features/library/TranslationsRoute.tsx, src/lib/reader/search-serializer.ts"
+ },
+ "RTE-011": {
+  "status": "done",
+  "by": "src/routes/translations.$slug.tsx, src/lib/routing/django-paths.ts, src/server/pass-through.ts"
+ },
+ "RTE-065": {
+  "status": "done",
+  "by": "src/lib/routing/django-paths.ts, src/server/pass-through.ts, src/start.ts"
+ },
+ "CAL-001": {
+  "status": "done",
+  "by": "src/routes/calendars.tsx, src/features/calendars, src/ui/CalendarsPage"
+ },
+ "CAL-002": {
+  "status": "done",
+  "by": "src/lib/library/calendars.ts, src/ui/CalendarsPage"
+ },
+ "CAL-003": {
+  "status": "done",
+  "note": "Redirects answered by the node server; the calendar APIs are Django's",
+  "by": "src/server/calendar-shortcuts.ts"
+ },
+ "CAL-004": {
+  "status": "done",
+  "note": "On /calendars; the library sidebar still sends no custom",
+  "by": "src/features/calendars/textual-custom.ts"
+ },
+ "CAL-005": {
+  "status": "partial",
+  "note": "Refetch through the user-query invalidation (unit-tested); the event's diaspora is ignored",
+  "by": "src/features/calendars/textual-custom.ts"
+ },
+ "RTE-010": {
+  "status": "partial",
+  "note": "/calendars, /calendars/ and the two shortcuts ported; /dayoflearningcalendar stays Django's",
+  "by": "src/routes/calendars.tsx, src/server/calendar-shortcuts.ts"
+ },
+ "LIB-050": {
+  "status": "done",
+  "by": "src/ui/NavSidebar, src/ui/NewsletterSignUp"
+ },
+ "LIB-054": {
+  "status": "done",
+  "by": "src/ui/NavSidebar"
+ },
+ "PRM-016": {
+  "status": "partial",
+  "note": "The topics landing newsletter only",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx (TopicNewsletter)"
+ },
+ "LEG-010": {
+  "status": "partial",
+  "note": "Page, form, diff tables, filters, Apply Change ported at pixel parity; the Editors group (non-staff editors) is not recognised",
+  "by": "src/features/compare/ComparePage.tsx"
+ },
+ "RTE-019": {
+  "status": "done",
+  "by": "src/lib/compare/url.ts"
+ },
+ "LEG-031": {
+  "status": "done",
+  "by": "src/lib/routing/standalone.ts"
+ },
+ "LEG-032": {
+  "status": "done",
+  "note": "segment ranges and section ranges handled sensibly (legacy 500 / endless loading)",
+  "by": "src/lib/compare/queries.ts"
+ },
+ "TOP-001": {
+  "status": "done",
+  "by": "src/routes/topics.*, src/features/topics/topic-page-route.ts, src/lib/routing/django-paths.ts"
+ },
+ "TOP-002": {
+  "status": "partial",
+  "note": "Library landing page built; the Voices host's /topics stays Django's (Q-E1)",
+  "by": "src/server/pass-through.ts, src/lib/routing/django-paths.ts"
+ },
+ "TOP-003": {
+  "status": "done",
+  "by": "src/features/topics/TopicsLandingRoute.tsx, src/ui/TopicsNav/TopicsPages.tsx"
+ },
+ "TOP-004": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx (TopicLandingSearch), src/lib/topics/topic-model.ts"
+ },
+ "TOP-005": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-006": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-007": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-008": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-009": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-010": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-012": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicCard.tsx"
+ },
+ "TOP-013": {
+  "status": "partial",
+  "note": "Page, cards, sidebar built; moderators' category buttons (add/edit/reorder) not built",
+  "by": "src/features/topics/TopicCategoryRoute.tsx"
+ },
+ "TOP-014": {
+  "status": "done",
+  "by": "src/features/topics/AllTopicsRoute.tsx, src/ui/TopicsNav/AllTopics.tsx"
+ },
+ "TOP-030": {
+  "status": "done",
+  "by": "src/lib/topics/topic-model.ts, src/lib/topics/topic-page.ts"
+ },
+ "TOP-031": {
+  "status": "done",
+  "by": "src/lib/topics/topics-api.ts, src/lib/topics/topic-page-source.ts"
+ },
+ "TOP-033": {
+  "status": "done",
+  "by": "src/lib/topics/toc-source.ts"
+ },
+ "TOP-034": {
+  "status": "done",
+  "by": "src/lib/topics/toc-source.ts, reader/views.py num_library_topics_api"
+ },
+ "TOP-035": {
+  "status": "done",
+  "by": "src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "LIB-043": {
+  "status": "done",
+  "by": "src/ui/NavSidebar/TopicModules.tsx (TrendingTopics)"
+ },
+ "PRM-017": {
+  "status": "partial",
+  "note": "SponsorADay, GetTheApp, StudyCompanion for the topics pages",
+  "by": "src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "TOP-015": {
+  "status": "done",
+  "by": "src/lib/topics/topic-page-source.ts, src/features/topics/TopicPageRoute.tsx"
+ },
+ "TOP-016": {
+  "status": "done",
+  "by": "src/lib/topics/topic-page.ts (bucketTabs)"
+ },
+ "TOP-017": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicPage.tsx (TopicHeader, AiNotice)"
+ },
+ "TOP-018": {
+  "status": "done",
+  "by": "src/lib/topics/topic-page.ts (TOPIC_SPONSORSHIPS), src/ui/TopicPage/TopicPage.tsx"
+ },
+ "TOP-019": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicPage.tsx (TopicHeader)"
+ },
+ "TOP-020": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicPage.tsx (TopicTabs, AuthorWorks)"
+ },
+ "TOP-021": {
+  "status": "done",
+  "by": "src/features/topics/TopicPageRoute.tsx (SourceTab)"
+ },
+ "TOP-022": {
+  "status": "done",
+  "by": "src/lib/topics/topic-page.ts (refSort, refMatches), src/ui/TopicPage/TopicPage.tsx (SourceFilterBar)"
+ },
+ "TOP-023": {
+  "status": "done",
+  "by": "src/ui/TopicPage/SourceCard.tsx"
+ },
+ "TOP-024": {
+  "status": "partial",
+  "note": "No Sheets tab on the Library (as before); the Voices host's topic pages stay Django's",
+  "by": "src/lib/routing/django-paths.ts"
+ },
+ "TOP-025": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicSide.tsx (TopicSideColumn), src/lib/topics/topic-page.ts"
+ },
+ "TOP-026": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicSide.tsx (Readings), src/lib/topics/topic-page.ts (hebrewCalendarDate)"
+ },
+ "TOP-027": {
+  "status": "partial",
+  "note": "Modules built; the newsletter module uses the topics form, not the old NewsletterSignUpForm layout",
+  "by": "src/ui/TopicPage/TopicSide.tsx (PortalModules)"
+ },
+ "TOP-028": {
+  "status": "partial",
+  "note": "AI marker (always in the page, as live), Admin tab, review, Generate, Publish built but never run in a moderator session; Add a source / Edit / Reorder open the old page (?editor=1 → Django via the 404 hand-off)",
+  "by": "src/ui/TopicPage/TopicPage.tsx (AiNotice), src/features/topics/TopicPageRoute.tsx, src/lib/topics/topic-page-source.ts"
+ },
+ "TOP-029": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicPage.tsx (TopicPageLayout)"
+ },
+ "TOP-036": {
+  "status": "done",
+  "note": "In-app 404s reload to the server; the backend pools change is unverified (not run)",
+  "by": "src/lib/topics/topic-page-source.ts (readTopicPage), src/features/topics/DjangoHandoff.tsx, src/lib/routing/django-handoff.ts, sefaria/helper/topic.py"
  }
 }
