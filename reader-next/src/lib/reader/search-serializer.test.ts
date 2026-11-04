@@ -21,6 +21,12 @@ describe("query strings in the old site's format", () => {
     expect(stringifySearch({ w: "Commentary ConnectionsList" })).toBe("?w=Commentary+ConnectionsList");
     expect(stringifySearch({})).toBe("");
   });
+  // @feature LIB-070
+  it("keeps a version title's [de] readable, as sefaria.org writes it after opening a translation", () => {
+    const ven = "german|Die_Heilige_Schrift,_trans._Dr._Simon_Bernfeld,_Berlin,_1902_-_German_[de]";
+    expect(stringifySearch({ ven, lang: "bi", aliyot: 0 })).toBe(`?ven=${ven}&lang=bi&aliyot=0`);
+    expect(parseSearch(stringifySearch({ ven }))).toEqual({ ven });
+  });
   it("round-trips", () => {
     const s = { lang: "bi", with: "WebPage:www.example.com", w2: "Commentary ConnectionsList", w3: "a+b", p2: "Berakhot.2a.3-5" };
     expect(parseSearch(stringifySearch(s))).toEqual(s);

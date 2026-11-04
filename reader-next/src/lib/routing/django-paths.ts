@@ -18,15 +18,22 @@ export const DJANGO_PREFIXES = [
 const PREFIX_RE = new RegExp(`^/(?:${DJANGO_PREFIXES.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?:[/.]|$)`);
 
 /**
- * First path segments this client renders on the Library host only. On the Voices host (voices.sefaria.org) they stay Django's: which
+ * First path segments this client renders on the Library host only. On the Voices host (voices.sefaria.org, chiburim.sefaria.org.il) they stay Django's: which
  * pages each module serves is not decided yet (TARGET_ARCHITECTURE Q-E1), so a Voices request for them is passed through as before.
  */
 export const LIBRARY_HOST_ONLY = ["translations"];
 const LIBRARY_ONLY_RE = new RegExp(`^/(?:${LIBRARY_HOST_ONLY.join("|")})(?:[/.]|$)`);
 
-/** Is this host the Voices module's (voices.sefaria.org, voices.<any root domain>, or a local voices.localhost)? */
-export const isVoicesHost = (host: string | null | undefined): boolean => !!host && /^voices\./i.test(host);
+/**
+ * Is this host the Voices module's? English: voices.sefaria.org (voices.<any root domain>, a local voices.localhost); Hebrew:
+ * chiburim.sefaria.org.il (staging chiburim.sef-stage-il.org) — the hosts Django's DOMAIN_MODULES gives the "voices" module.
+ */
+export const isVoicesHost = (host: string | null | undefined): boolean => !!host && /^(?:voices|chiburim)\./i.test(host);
 
-/** Is this path (as written, starting with "/") one of Django's pages — on this host, when it is known? */
+/**
+ * Is this path (as written, starting with "/") one of Django's pages — on this host, when it is known? A Library-only path with a
+ * trailing slash (`/translations/de/`) stays Django's too: Django's own pattern takes "de/" as the slug and answers 404, and so must we
+ * (rather than redirect to the address without the slash).
+ */
 export const isDjangoPage = (pathname: string, host?: string | null): boolean =>
-  PREFIX_RE.test(pathname) || (isVoicesHost(host) && LIBRARY_ONLY_RE.test(pathname));
+  PREFIX_RE.test(pathname) || (LIBRARY_ONLY_RE.test(pathname) && (isVoicesHost(host) || pathname.endsWith("/")));

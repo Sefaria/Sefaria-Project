@@ -8,7 +8,7 @@
  * @feature LIB-029 Sidebar module: About translated text
  * @feature RTE-011 Translations page URLs
  */
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, type QueryClient } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { SEFARIA_API_ORIGIN, apiJson } from "~/lib/api/client";
 import { withPolicy } from "~/lib/cache/query-options";
@@ -35,8 +35,8 @@ export interface TranslationLanguage {
 }
 
 /**
- * The languages Django's translations_page accepts (reader/views.py title_dictionary), in its order. Any other slug is a 404 —
- * including "ro" and "tr", which the sidebar's language list links to (LIB-021, a legacy bug kept: the page does not exist there).
+ * The languages Django's translations_page accepts (reader/views.py title_dictionary), in its order. Any other slug loaded from the
+ * server is a 404 — including "ro" and "tr", which the sidebar's language list links to: those open only inside the app (below).
  * Ladino ("lad") is commented out on the server.
  */
 export const TRANSLATION_LANGUAGES: Readonly<Record<string, TranslationLanguage>> = {
@@ -58,6 +58,28 @@ export const TRANSLATION_LANGUAGES: Readonly<Record<string, TranslationLanguage>
 
 /** Is there a translations page for this slug? Exact and case-sensitive, as Django's dictionary lookup (`/translations/DE` is a 404). */
 export const isTranslationSlug = (slug: string): boolean => Object.prototype.hasOwnProperty.call(TRANSLATION_LANGUAGES, slug);
+
+/**
+ * Languages the old client opens a page for only when it is reached inside the app: its openURL sends any `/translations/<slug>` to
+ * the TranslationsPage (ReaderApp.jsx), titled by Sefaria.getHebrewTitle from Sefaria.ISOMap, while Django has no page for them (a
+ * direct load or reload is a 404). The library sidebar's language list links to two of them, Română and Türkçe. These are ISOMap's
+ * other languages; an ISOMap entry without a title is called "Jewish Texts in <name>" (getHebrewTitle).
+ */
+export const IN_APP_TRANSLATION_LANGUAGES: Readonly<Record<string, TranslationLanguage>> = {
+  ro: { name: "Romanian", nativeName: "română", dir: "ltr", title: "Texte evreiești în limba română", desc: "" },
+  tr: { name: "Turkish", nativeName: "Türkçe", dir: "ltr", title: "Türkçe Yahudi Metinleri", desc: "" },
+  lad: { name: "Ladino", nativeName: "Judeo-español", dir: "ltr", title: "Jewish Texts in Ladino", desc: "" },
+  jrb: { name: "Judeo-Arabic", nativeName: "Arabia Yehudia", dir: "rtl", title: "Jewish Texts in Judeo-Arabic", desc: "" },
+};
+
+/**
+ * The language of a translations page: Django's languages always; the in-app-only ones (above) only when `inApp` — the page was
+ * reached by navigating inside the app, not loaded from the server. Undefined: no page (a 404).
+ */
+export function translationLanguage(slug: string, inApp: boolean): TranslationLanguage | undefined {
+  if (isTranslationSlug(slug)) return TRANSLATION_LANGUAGES[slug];
+  return inApp && Object.prototype.hasOwnProperty.call(IN_APP_TRANSLATION_LANGUAGES, slug) ? IN_APP_TRANSLATION_LANGUAGES[slug] : undefined;
+}
 
 /**
  * The About module of a translations page (the old AboutTranslatedText): a title and blurb in the page's language. English and
@@ -165,16 +187,42 @@ export async function fetchTranslations(slug: string, signal?: AbortSignal): Pro
   return apiJson<RawTranslations>(r, `Translations ${slug}`);
 }
 
+/** How long the server keeps a page's model (the list changes when a translation is added), and a failure (the API's 500 for "he"). */
+const MODEL_TTL_MS = 10 * 60_000;
+const FAILURE_TTL_MS = 60_000;
+const shared = new Map<string, { at: number; ttl: number; model: Promise<TranslationsPageModel> }>();
+
+/**
+ * The page's model, shared by every request for a while: one upstream call per language however many readers ask, and a request that
+ * comes while one is under way joins it — so the browser's own ask after the server's page (when the server did not wait for the list,
+ * see prefetchTranslationsPage) gets the same answer, or the same failure, without a second slow call. Server only.
+ */
+export function sharedTranslationsModel(slug: string, load: (slug: string) => Promise<TranslationsPageModel>, now = Date.now()): Promise<TranslationsPageModel> {
+  const hit = shared.get(slug);
+  if (hit && now - hit.at < hit.ttl) return hit.model;
+  const model = load(slug);
+  const entry = { at: now, ttl: MODEL_TTL_MS, model };
+  shared.set(slug, entry);
+  model.catch(() => {
+    if (shared.get(slug) === entry) entry.ttl = Date.now() - entry.at + FAILURE_TTL_MS;
+  });
+  return model;
+}
+/** Tests only. */
+export const clearSharedTranslationsModels = () => shared.clear();
+
 /**
  * The model is always built on the server, from the catalog and terms it keeps for every request: the browser gets only the page's
  * few kilobytes, never the catalog (3.5 MB) or the terms (in the 9 MB `/data.js`), also when it navigates here.
  */
 const loadOnServer = createServerFn({ method: "GET" })
   .inputValidator((slug: string) => slug)
-  .handler(async ({ data: slug }): Promise<TranslationsPageModel> => {
-    const [tree, raw, terms] = await Promise.all([serverCatalogTree(), fetchTranslations(slug), serverTerms()]);
-    return buildTranslationsPage(tree, raw, slug, terms);
-  });
+  .handler(({ data: slug }): Promise<TranslationsPageModel> =>
+    sharedTranslationsModel(slug, async (lang) => {
+      const [tree, raw, terms] = await Promise.all([serverCatalogTree(), fetchTranslations(lang), serverTerms()]);
+      return buildTranslationsPage(tree, raw, lang, terms);
+    }),
+  );
 
 /**
  * The page's model, a catalog-class query of its own, put in the server's page. The API's failure (it answers 500 for "he" on
@@ -188,3 +236,35 @@ export const translationsPageQueryOptions = (slug: string) =>
     }),
     retry: false,
   });
+
+/**
+ * How long the page waits for its list before it shows without it. The old page showed its title at once and filled the list in when
+ * `/api/texts/translations/<lang>` answered; this one puts the list in the server's page when it comes quickly (nearly always), and
+ * otherwise does not hold the page back — sefaria.org's API answers "he" with a 500 after ~16s — the list then follows in the browser.
+ */
+export const LIST_WAIT_MS = 1500;
+
+/**
+ * The route's prefetch: on the server, the model when it is ready within `waitMs` (put in the cache, so in the server's page); in the
+ * browser (in-app navigation), the query, waited on for at most `waitMs`. Never throws: a failure leaves the list empty.
+ */
+export async function prefetchTranslationsPage(queryClient: QueryClient, slug: string, waitMs = LIST_WAIT_MS): Promise<void> {
+  const options = translationsPageQueryOptions(slug);
+  if (queryClient.getQueryData(options.queryKey)) return;
+  let stop = () => {};
+  const timeout = new Promise<undefined>((resolve) => {
+    const timer = setTimeout(resolve, waitMs);
+    stop = () => clearTimeout(timer);
+  });
+  try {
+    if (typeof window === "undefined") {
+      // not through the query: a pending query would be sent to the browser and hold the page's stream open until the API answers
+      const model = await Promise.race([loadOnServer({ data: slug }).catch(() => undefined), timeout]);
+      if (model) queryClient.setQueryData(options.queryKey, model);
+    } else {
+      await Promise.race([queryClient.ensureQueryData(options).catch(() => undefined), timeout]);
+    }
+  } finally {
+    stop();
+  }
+}

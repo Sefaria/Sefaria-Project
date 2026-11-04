@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isDjangoPath, passResetLink, resetLinkUid, setPasswordPath, trailingSlashRedirect } from "./pass-through";
+import { isDjangoPath, isDjangoRequest, passResetLink, resetLinkUid, setPasswordPath, trailingSlashRedirect } from "./pass-through";
 
 describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
   it("sends Django's own sections through", () => {
@@ -23,6 +23,34 @@ describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
     }
     expect(isDjangoPath("/translationsfoo", "GET", "voices.sefaria.org")).toBe(false);
     expect(isDjangoPath("/translate/x", "GET")).toBe(true);
+  });
+  // @feature RTE-065
+  it("the Hebrew Voices host (chiburim) keeps /translations on Django too; the Hebrew Library host does not", () => {
+    for (const host of ["chiburim.sefaria.org.il", "chiburim.sef-stage-il.org", "CHIBURIM.sefaria.org.il:443"]) {
+      expect(isDjangoPath("/translations/de", "GET", host), host).toBe(true);
+      expect(isDjangoPath("/translations/he", "GET", host), host).toBe(true);
+      expect(isDjangoPath("/Genesis.1", "GET", host), host).toBe(false);
+    }
+    for (const host of ["www.sefaria.org.il", "sefaria.org.il", "notchiburim.sefaria.org.il", "voicesx.sefaria.org"]) {
+      expect(isDjangoPath("/translations/de", "GET", host), host).toBe(false);
+    }
+  });
+  // @feature RTE-011
+  it("a translations address with a trailing slash is Django's (its 404), on every host — as sefaria.org answers", () => {
+    for (const p of ["/translations/", "/translations/de/", "/translations/de/x/"]) expect(isDjangoPath(p, "GET", "www.sefaria.org"), p).toBe(true);
+    expect(trailingSlashRedirect(new URL("http://localhost/translations/de/"), "GET")).toBeNull();
+  });
+  // @feature RTE-065
+  it("a whole request: the host nginx forwarded (X-Forwarded-Host) decides, not the address the server was reached at", () => {
+    const req = (host?: string) => new Request("http://reader:3000/translations/de", host ? { headers: { "x-forwarded-host": host } } : undefined);
+    expect(isDjangoRequest(req())).toBe(false);
+    expect(isDjangoRequest(req("www.sefaria.org"))).toBe(false);
+    expect(isDjangoRequest(req("voices.sefaria.org"))).toBe(true);
+    expect(isDjangoRequest(req("chiburim.sefaria.org.il"))).toBe(true);
+    expect(isDjangoRequest(req("chiburim.sefaria.org.il, proxy.internal"))).toBe(true);
+    expect(isDjangoRequest(new Request("http://voices.localhost:3000/translations/de"))).toBe(true);
+    expect(isDjangoRequest(new Request("http://reader:3000/texts", { headers: { "x-forwarded-host": "voices.sefaria.org" } }))).toBe(false);
+    expect(isDjangoRequest(new Request("http://reader:3000/translations/de", { method: "POST" }))).toBe(true);
   });
   it("sends every write through, whatever the path", () => {
     expect(isDjangoPath("/Genesis.1", "POST")).toBe(true);

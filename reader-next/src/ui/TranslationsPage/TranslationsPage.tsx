@@ -19,6 +19,8 @@ export interface TranslationsPageProps {
   collapsed?: boolean;
   sidebar?: ReactNode;
   footer?: ReactNode;
+  /** The old reader panel's analytics batch (`data-anl-batch` on the page). */
+  anlBatch?: Readonly<Record<string, string | number>>;
 }
 
 const Item = ({ link, plain }: { link: TranslationLink; plain?: boolean }) => (
@@ -34,10 +36,10 @@ const Item = ({ link, plain }: { link: TranslationLink; plain?: boolean }) => (
  *
  * @feature LIB-020 Translations by language page
  */
-export function TranslationsPage({ title, titleLang, titleDir, sections, collapsed, sidebar, footer }: TranslationsPageProps) {
+export function TranslationsPage({ title, titleLang, titleDir, sections, collapsed, sidebar, footer, anlBatch }: TranslationsPageProps) {
   const he = useInterfaceLang() === "hebrew";
   return (
-    <NavPage sidebar={sidebar} footer={footer} top={{ main: 60, side: 60 }}>
+    <NavPage sidebar={sidebar} footer={footer} top={{ main: 60, side: 60 }} anlBatch={anlBatch}>
       <div className={styles.page} data-ui={he ? "he" : "en"}>
         <h1 className={styles.title}>
           <LangText className={styles.titleText} lang={titleLang} dir={titleDir}>{title}</LangText>

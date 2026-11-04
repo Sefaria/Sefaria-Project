@@ -4,7 +4,7 @@
  *  - values are strings (numbers are written as-is); nothing is JSON-quoted;
  *  - `+` is a space, as the old server (Django) reads it — `with=Commentary+ConnectionsList` is
  *    "Commentary ConnectionsList"; spaces are written as `+` and a literal plus as %2B;
- *  - `|`, `,` and `:` stay readable (version params, ref ranges).
+ *  - `|`, `,`, `:`, `[` and `]` stay readable (version params — "…German_[de]" as sefaria.org writes it —, ref ranges).
  *
  * @feature RTE-043 @feature RTE-044 @feature SHL-066
  */
@@ -32,7 +32,7 @@ export function stringifySearch(search: Record<string, unknown>): string {
   return parts.length ? `?${parts.join("&")}` : "";
 }
 
-const encode = (s: string) => encodeURIComponent(s).replace(/%20/g, "+").replace(/%7C/gi, "|").replace(/%2C/gi, ",").replace(/%3A/gi, ":");
+const encode = (s: string) => encodeURIComponent(s).replace(/%20/g, "+").replace(/%7C/gi, "|").replace(/%2C/gi, ",").replace(/%3A/gi, ":").replace(/%5B/gi, "[").replace(/%5D/gi, "]");
 
 function safeDecode(s: string): string {
   try {

@@ -1,8 +1,19 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { readFixture } from "../../../test/msw/fixtures";
 import type { TocNode } from "~/lib/catalog/toc";
 import { parseDataJsTerms } from "./terms";
-import { ABOUT_TRANSLATED_TEXT, TRANSLATION_LANGUAGES, buildTranslationsPage, isTranslationSlug, type RawTranslations } from "./translations-page";
+import {
+  ABOUT_TRANSLATED_TEXT,
+  IN_APP_TRANSLATION_LANGUAGES,
+  TRANSLATION_LANGUAGES,
+  buildTranslationsPage,
+  clearSharedTranslationsModels,
+  isTranslationSlug,
+  sharedTranslationsModel,
+  translationLanguage,
+  type RawTranslations,
+  type TranslationsPageModel,
+} from "./translations-page";
 
 const tree = readFixture<TocNode[]>("_toc/toc.json");
 const de = readFixture<RawTranslations>("_translations/de.json");
@@ -17,6 +28,17 @@ describe("which languages have a page", () => {
   });
   it("the sidebar's ro and tr, Ladino, an upper-case code and an unknown one are 404s (as on sefaria.org)", () => {
     for (const s of ["ro", "tr", "lad", "DE", "xx", "", "toString", "__proto__"]) expect(isTranslationSlug(s)).toBe(false);
+  });
+  // @feature LIB-037
+  it("ro and tr (the sidebar's Română and Türkçe), lad and jrb open only inside the app, titled as Sefaria.getHebrewTitle", () => {
+    expect(translationLanguage("tr", false)).toBeUndefined();
+    expect(translationLanguage("ro", false)).toBeUndefined();
+    expect(translationLanguage("tr", true)!.title).toBe("Türkçe Yahudi Metinleri");
+    expect(translationLanguage("ro", true)!.title).toBe("Texte evreiești în limba română");
+    expect(translationLanguage("lad", true)!.title).toBe("Jewish Texts in Ladino");
+    expect(translationLanguage("de", false)).toBe(TRANSLATION_LANGUAGES.de);
+    for (const s of ["xx", "DE", "TR", "__proto__", "toString"]) expect(translationLanguage(s, true), s).toBeUndefined();
+    for (const s of Object.keys(IN_APP_TRANSLATION_LANGUAGES)) expect(isTranslationSlug(s)).toBe(false);
   });
   it("the About module is in every language but English and Hebrew", () => {
     expect(Object.keys(ABOUT_TRANSLATED_TEXT).sort()).toEqual(Object.keys(TRANSLATION_LANGUAGES).filter((s) => s !== "en" && s !== "he").sort());
@@ -84,5 +106,34 @@ describe("parseDataJsTerms", () => {
     const js = 'var DJANGO_DATA_VARS = {\n  _dataLoaded:          true,\n  terms:                {"Exodus": {"en": "Exodus", "he": "ספר שמות"}},\n  books: [],\n};';
     expect(parseDataJsTerms(js)).toEqual({ Exodus: { en: "Exodus", he: "ספר שמות" } });
     expect(parseDataJsTerms("nothing here")).toBeNull();
+  });
+});
+
+// @feature LIB-021
+describe("sharedTranslationsModel (the server's copy of a page's model)", () => {
+  afterEach(() => clearSharedTranslationsModels());
+  const model = (slug: string): TranslationsPageModel => ({ slug, sections: [] });
+  it("one upstream call per language; a request during a call joins it", async () => {
+    const load = vi.fn(async (slug: string) => model(slug));
+    const [a, b] = [sharedTranslationsModel("de", load, 0), sharedTranslationsModel("de", load, 10)];
+    expect(await a).toBe(await b);
+    await sharedTranslationsModel("fr", load, 20);
+    expect(load.mock.calls.map((c) => c[0])).toEqual(["de", "fr"]);
+  });
+  it("a failure is kept for a minute (the post-hydration ask fails fast), then tried again; a model for ten minutes", async () => {
+    let fail = true;
+    const load = vi.fn(async (slug: string) => {
+      if (fail) throw new Error("500");
+      return model(slug);
+    });
+    const t0 = Date.now();
+    await expect(sharedTranslationsModel("he", load, t0)).rejects.toThrow("500");
+    await expect(sharedTranslationsModel("he", load, t0 + 30_000)).rejects.toThrow("500");
+    expect(load).toHaveBeenCalledTimes(1);
+    fail = false;
+    await expect(sharedTranslationsModel("he", load, t0 + 61_000 + 1000)).resolves.toEqual(model("he"));
+    expect(load).toHaveBeenCalledTimes(2);
+    await sharedTranslationsModel("he", load, t0 + 5 * 60_000);
+    expect(load).toHaveBeenCalledTimes(2);
   });
 });

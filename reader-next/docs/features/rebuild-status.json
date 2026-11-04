@@ -1150,7 +1150,7 @@
  },
  "LIB-037": {
   "status": "done",
-  "by": "src/ui/NavSidebar/NavSidebar.tsx"
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library, src/routes/translations.$slug.tsx (ro/tr in the app)"
  },
  "LIB-038": {
   "status": "done",
@@ -1647,11 +1647,11 @@
  },
  "LIB-070": {
   "status": "done",
-  "by": "src/features/shared/RouterLink.tsx (VerbatimRouterLink), src/features/library/TranslationsRoute.tsx"
+  "by": "src/features/shared/RouterLink.tsx (VerbatimRouterLink), src/features/library/TranslationsRoute.tsx, src/lib/reader/search-serializer.ts"
  },
  "RTE-011": {
   "status": "done",
-  "by": "src/routes/translations.$slug.tsx, src/lib/routing/django-paths.ts"
+  "by": "src/routes/translations.$slug.tsx, src/lib/routing/django-paths.ts, src/server/pass-through.ts"
  },
  "RTE-065": {
   "status": "done",

@@ -15,6 +15,8 @@ export interface NavPageProps {
   sidebarLabel?: string;
   /** Top padding of the page column and of the sidebar on a wide screen, where a page sits lower than the library's 56px (search). */
   top?: { main?: number; side?: number };
+  /** The old ReaderPanel's analytics fields for every event inside the page (`data-anl-batch`, e.g. panel_number and content_lang). */
+  anlBatch?: Readonly<Record<string, string | number>>;
 }
 
 /**
@@ -24,10 +26,10 @@ export interface NavPageProps {
  * @feature LIB-023 Nav sidebar container and module registry
  * @feature LIB-019 Category and text color coding
  */
-export function NavPage({ children, sidebar, footer, colorCategory, sidebarLabel, top }: NavPageProps) {
+export function NavPage({ children, sidebar, footer, colorCategory, sidebarLabel, top, anlBatch }: NavPageProps) {
   const he = useInterfaceLang() === "hebrew";
   return (
-    <div className={styles.page} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
+    <div className={styles.page} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} data-anl-batch={anlBatch ? JSON.stringify(anlBatch) : undefined}>
       {/* the old .categoryColorLine: over the top of the page, and it stays there while the page scrolls under it */}
       {colorCategory ? <div className={styles.colorLine} style={{ background: categoryColor(colorCategory) }} aria-hidden="true" /> : null}
       <div className={styles.main} style={top?.main ? ({ "--_top": `${top.main}px` } as React.CSSProperties) : undefined}>{children}</div>
