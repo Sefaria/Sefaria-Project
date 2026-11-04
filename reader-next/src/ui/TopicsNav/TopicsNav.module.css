@@ -107,12 +107,19 @@
 .featuredText { flex: 1; display: flex; flex-direction: column; margin-inline-start: 30px; color: var(--sefaria-color-text-dark-grey); }
 .featuredText h3 { margin: 0 0 15px; font-family: var(--sefaria-font-text-en); font-size: 24px; font-weight: 400; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-transform: none; text-align: start; }
 .featuredText h3 :lang(he) { font-family: var(--sefaria-font-text-he); }
-.featuredDescription { font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: normal; }
-.featuredDescription :lang(he) { font-family: var(--sefaria-font-ui-he); }
+/* the old .topicDescription: a 14px serif block; the description inside it 16px sans */
+.featuredDescription { font-family: var(--sefaria-font-text-en); font-size: 14px; line-height: normal; }
+.featuredDescription > span { font-family: var(--sefaria-font-ui-en); font-size: 16px; }
+.featuredDescription > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
 /* the old description span was a block (.featuredTopicText .int-he: display flex, column): its lines are its own face's, with no sans strut */
 .featuredDescription > span { display: block; }
 .featuredDescription a { color: var(--sefaria-cat-commentary); text-decoration: none; }
 .featuredDescription a.featuredGo { color: var(--sefaria-color-text-dark-grey); }
+/* the old .featuredTopicGoToLink: a 14px serif block (its <br> line is serif) holding the 16px link */
+.featuredGoWrap { font-family: var(--sefaria-font-text-en); font-size: 14px; }
+.featuredGoWrap .featuredGo { display: block; font-family: var(--sefaria-font-text-en); font-size: 14px; } /* SimpleLinkedBlock: a block link around the 16px sans text */
+.featuredGoWrap .featuredGo > span { display: block; font-family: var(--sefaria-font-ui-en); font-size: 16px; }
+.featuredGoWrap .featuredGo > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
 
 /* the newsletter: a blue band, the teaser beside two rows of inputs */
 .newsletterWrapper { display: block; }

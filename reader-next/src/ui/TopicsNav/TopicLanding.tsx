@@ -126,7 +126,7 @@ export function FeaturedTopic({ topic, topicHref }: { topic: FeaturedTopicData |
           </h3>
           <div className={styles.featuredDescription}>
             <InterfaceMarkdown text={topic.description} />
-            <div>
+            <div className={styles.featuredGoWrap}>
               <br />
               <span data-anl-link_type="link" data-anl-text={prompt} data-anl-event="navto_topic:click">
                 <a href={href} className={styles.featuredGo}>
