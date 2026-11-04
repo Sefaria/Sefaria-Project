@@ -98,3 +98,41 @@ def test_extract_resolved_spans_end_paren(doc_text, span_text, tref):
     assert spans[0]['text'] == resolved_ref.pretty_text
     start, end = spans[0]['charRange']
     assert doc_text[start:end] == resolved_ref.pretty_text
+
+
+class TestOnWorkerInit:
+    """on_worker_init must not let a worker consume tasks without a built library."""
+
+    @pytest.fixture(autouse=True)
+    def no_sleep(self, monkeypatch):
+        from sefaria.helper.linker import tasks
+        monkeypatch.setattr(tasks.time, "sleep", lambda _seconds: None)
+
+    def test_retries_until_init_succeeds(self, monkeypatch):
+        from sefaria.helper.linker import tasks
+        import reader.startup
+        calls = []
+
+        def flaky_init():
+            calls.append(1)
+            if len(calls) < 3:
+                raise ConnectionError("postgres is restarting")
+
+        monkeypatch.setattr(reader.startup, "init_library_cache", flaky_init)
+        tasks.on_worker_init()
+        assert len(calls) == 3
+
+    def test_exits_when_init_keeps_failing(self, monkeypatch):
+        from sefaria.helper.linker import tasks
+        import reader.startup
+        calls = []
+
+        def failing_init():
+            calls.append(1)
+            raise ConnectionError("postgres is down")
+
+        monkeypatch.setattr(reader.startup, "init_library_cache", failing_init)
+        # SystemExit, not an Exception, so Celery's signal dispatch doesn't swallow it
+        with pytest.raises(SystemExit):
+            tasks.on_worker_init()
+        assert len(calls) == tasks.WORKER_INIT_ATTEMPTS

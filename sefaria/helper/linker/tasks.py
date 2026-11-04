@@ -30,6 +30,8 @@ from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
 from dataclasses import dataclass, field, asdict
 from bson import ObjectId
 import structlog
+import sys
+import time
 from typing import Any, Dict, List, Optional
 
 logger = structlog.get_logger(__name__)
@@ -73,11 +75,34 @@ class DeleteAndSaveLinksMsg:
 
 
 
+WORKER_INIT_ATTEMPTS = 6
+WORKER_INIT_RETRY_SECONDS = 10
+
+
 @worker_init.connect
 def on_worker_init(**kwargs):
+    """
+    Builds the library and linker in the main process, before the pool forks, so tasks don't
+    build them inside their soft time limit.
+
+    Celery logs and swallows an exception raised by a signal handler and starts consuming anyway.
+    If a dependency is briefly down at boot (e.g. Postgres being rescheduled), the worker would
+    then run with no linker, and every find_refs task would try to build it inline and hit its
+    60s soft limit. Retry for about a minute, then exit so Kubernetes restarts the pod.
+    SystemExit is not an Exception, so Celery doesn't swallow it.
+    """
     from reader.startup import init_library_cache
     logger.info("linker worker_init")
-    init_library_cache()
+    for attempt in range(1, WORKER_INIT_ATTEMPTS + 1):
+        try:
+            init_library_cache()
+            return
+        except Exception:
+            logger.exception("linker worker_init:failed", attempt=attempt, max_attempts=WORKER_INIT_ATTEMPTS)
+            if attempt < WORKER_INIT_ATTEMPTS:
+                time.sleep(WORKER_INIT_RETRY_SECONDS)
+    logger.error("linker worker_init:giving_up; exiting so the pod restarts")
+    sys.exit(1)
 
 
 # The client stops polling after ~60s, so don't let a huge page tie up a worker longer than that.
