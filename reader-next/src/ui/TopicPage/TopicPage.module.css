@@ -48,11 +48,21 @@
 .refButton > span:lang(he) { font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif; line-height: 19px; margin-block-end: -3px; }
 
 /* the AI marker beside the title */
-.ai { position: relative; display: inline-flex; align-self: center; }
-.aiIcon { width: 24px; height: 24px; cursor: pointer; }
-.aiBox { position: absolute; inset-block-start: 100%; inset-inline-start: 0; z-index: 10; width: 300px; padding: 15px; border-radius: 6px; background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-1); font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
-.aiBox a { color: inherit; text-decoration: underline; }
-.aiBox hr { border: 0; border-block-start: 1px solid var(--sefaria-color-border-strong); margin: 10px 0; }
+/* .ai-info-tooltip: a block at the title row's end; the icon an inline image 12px down, 2px into the margin (measured: 748,236 on
+   /topics/love at 1280) */
+.ai { position: relative; }
+.aiIcon { width: 24px; height: 24px; margin-block-start: 12px; margin-inline-end: -2px; cursor: pointer; }
+/* the old AiInfoTooltip (s2.css .ai-message, .ai-info-messages-box, .ai-info-first-message, .ai-info-last-message): always in the
+   page, hidden until hovered; 180px back from the icon, under its text line (no top: its static position), a 198px grey box */
+.aiMessage { position: absolute; inset-inline-start: -180px; z-index: 1; opacity: 0; visibility: hidden; transition: opacity 2s ease, visibility 0s 2s; }
+.aiMessage.aiVisible { opacity: 1; visibility: visible; transition: opacity 0.5s ease; }
+.aiBox { display: block; width: 198px; min-width: 150px; margin-inline-start: 10px; overflow: hidden; border-radius: 6px; background: var(--sefaria-color-surface-subtle); box-shadow: var(--sefaria-shadow-1); font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-dark-grey); cursor: default; }
+.aiBox * { font-family: var(--sefaria-font-ui-en); }
+.aiBox a { color: var(--sefaria-cat-commentary); text-decoration: none; }
+.aiBox a:hover { text-decoration: underline; }
+.aiFirst { padding: 12px 12px 6px; border-block-end: 0.833333px solid var(--sefaria-color-border-strong); font-size: 14px; line-height: 18px; }
+.aiHr { margin-block: 0; }
+.aiLast { display: flex; align-items: center; box-sizing: content-box; height: 23px; padding: 2px 12px; font-size: 14px; line-height: 18px; }
 
 /* the picture: in the side column on a wide screen, under the description on a phone */
 .image { padding: 0 44px; }
@@ -128,12 +138,20 @@
 .text:lang(he) { font-family: var(--sefaria-font-text-he); font-size: 22px; }
 /* source with translation: the Hebrew first, each its own block 10px apart */
 .bilingual .text:lang(he) { padding-block-end: 10px; }
-.body small { font-size: 15px; line-height: 24px; }
+/* small text keeps the browser's "smaller" of its own language's size and face (the old page had no rule: 15px in English,
+   18.33px in a 22px Hebrew text), on the text's 1.6 line */
+.body small { font-size: smaller; }
+.body .text * { font-family: inherit; }
+/* the Hebrew interface's HACK (s2.css .interface-hebrew .storyBody): the source body stays left-to-right, 26px in from the left and
+   17px out on the right, so its padding sits on the right and Hebrew wraps in the same 287px as the old page (measured 2026-11-04) */
+:global(html[lang="he"]) .body { direction: ltr; margin-inline: 26px -17px; }
 .body :global(.poetry) { display: block; }
 /* the citation under the text */
 .footer { display: flex; }
 .citation { padding: 0 0 20px; }
 .citation a { text-decoration: none; }
+/* the old row is a serif block in both interfaces (its line is the serif's, not Heebo's) */
+:global(html[lang="he"]) .citation, :global(html[lang="he"]) .citation a { font-family: var(--sefaria-font-text-en); }
 .citation a > span { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-size: 18px; color: var(--sefaria-color-text-dark-grey); }
 .citation a > span:lang(he) { font-family: "Taamey Frank", "Times New Roman", serif; }
 .reviewState { margin-inline-start: 10px; padding: 2px 8px; border: 0; border-radius: 6px; font-family: var(--sefaria-font-ui-en); font-size: 12px; height: fit-content; cursor: pointer; color: var(--sefaria-color-on-brand); }
@@ -202,6 +220,9 @@ a.meta { text-decoration: none; }
   .mainImage .photo { display: block; max-width: 66.67vw; max-height: 66.67vw; width: auto; margin: 0 auto 10px; }
   .mainImage .caption { width: 80vw; margin-block-end: 30px; text-align: center; }
   .dedication { margin: 27px 0; }
+  /* .interface-hebrew .singlePanel .tab.filter: the funnel and the "A" 3px lower */
+  :global(html[lang="he"]) .justify { margin-block-end: 0; }
+  :global(html[lang="he"]) .justify .pseudo { margin-block-start: 3px; }
 }
 @media (max-width: 900px) {
   .refButton + .refButton { margin-inline-start: 0; }

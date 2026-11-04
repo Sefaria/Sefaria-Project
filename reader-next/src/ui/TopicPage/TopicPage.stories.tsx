@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { expect, fn, userEvent, within } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { SourceCard } from "./SourceCard";
 import { AuthorWorks, SourceFilterBar, TopicHeader, TopicPageLayout, TopicTabs } from "./TopicPage";
 import { PortalModules, TopicSideColumn } from "./TopicSide";
@@ -74,6 +74,14 @@ export const Header: Story = {
       admin={{ buttons: [{ en: "Add a source", he: "Add a source", onClick: fn() }, { en: "Edit", he: "Edit", onClick: fn() }, { en: "Generate", he: "Generate", onClick: fn() }] }}
     />
   ),
+  // the AI notice's links are in the page from the start (hidden), shown while the marker is hovered
+  play: async ({ canvasElement }) => {
+    const learn = canvasElement.querySelector<HTMLAnchorElement>('[data-anl-event="learn_more_click:click"]')!;
+    await expect(learn).toBeInTheDocument();
+    await expect(learn).not.toBeVisible();
+    await userEvent.hover(canvasElement.querySelector('img[data-anl-event="ai_marker_hover:mouseover"]')!);
+    await waitFor(() => expect(learn).toBeVisible()); // it fades in over 0.5s
+  },
 };
 
 function TabsDemo() {

@@ -5,6 +5,8 @@
 @import "@fontsource/crimson-text/600.css";
 @import "@fontsource/heebo/400.css";
 @import "@fontsource/heebo/500.css";
+/* 600: the Hebrew interface's semibold titles (sefaria.org loads Heebo 100-900; without it 600 drew the 700 face, wider) */
+@import "@fontsource/heebo/600.css";
 @import "@fontsource/heebo/700.css";
 @import "@fontsource/roboto/400.css";
 /* no Roboto italic: sefaria.org loads none, so its italics are the browser's slanted regular face (VERIFIED 2026-10-29: document.fonts) */

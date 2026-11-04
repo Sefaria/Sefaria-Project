@@ -18,8 +18,11 @@ export function RainbowLine({ animated, position }: { animated?: boolean; positi
 
 /**
  * The old WordSalad: the items in centred lines, clamped to `numLines`, a bullet after every item that has another after it on
- * the same line (the old offsetTop check). The bullets are placed on the laid-out lines and placed again until the lines stop
- * moving (a bullet can push the next item down), once the fonts are in, and on resize.
+ * the same line (the old offsetTop check). sefaria.org measures once, when the random sample arrives — often before the web fonts
+ * are in — so after the fonts re-wrap the lines 1–2 of its ~40 bullets can end a line ("Shavuot •"; measured 2026-11-04, 4 loads,
+ * timing-dependent). The rule on the final lines is what it shows otherwise, and what is reproducible. The bullets are placed on
+ * the laid-out lines and placed again until the lines stop moving (a bullet can push the next item down), once the fonts are in,
+ * and on resize.
  */
 export function WordSalad({ items, numLines, renderItem }: { items: readonly LandingTopic[]; numLines: number; renderItem: (t: LandingTopic) => ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
@@ -444,7 +447,7 @@ export function TopicLandingSearch({
         <div className={styles.searchContainer}>
           <div className={styles.searchInputBox}>
             <span className={styles.searchButton} aria-hidden="true">
-              <img src="/icons/iconmonstr-magnifier-2.svg" alt="" />
+              <img src="/icons/search_mdl.svg" alt="" />
             </span>
             <input
               className={styles.searchInput}

@@ -65,7 +65,8 @@
 .searchInput { flex: 1; width: 600px; height: 100%; margin: 0 0 1px; padding: 0; border: none; background: transparent; font-family: var(--sefaria-font-text-en); font-size: 24px; font-weight: 500; color: var(--sefaria-color-text-strong); }
 .searchInput::placeholder { color: var(--sefaria-color-text-dark-grey); }
 .searchInput:focus { outline: none; }
-:global(html[lang="he"]) .searchInput { font-family: var(--sefaria-font-text-he); }
+/* the Hebrew interface's input is Heebo on a wide screen, the English sans on a phone (measured on sefaria.org.il 2026-11-04) */
+:global(html[lang="he"]) .searchInput { font-family: var(--sefaria-font-ui-he); }
 .searchDropdown { position: absolute; z-index: 2; box-sizing: content-box; width: 606px; max-height: calc(1.9em * 10 + 2em); margin-block-start: 47px; padding: 10px; overflow-y: scroll; border-radius: 0 0 6px 4px; background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-1); }
 .searchDropdown[data-empty] { visibility: hidden; padding: 0; }
 .suggestion { display: flex; flex-grow: 1; max-width: 100%; min-height: 10px; padding: 6px 12px; font-family: var(--sefaria-font-text-en); font-size: 18px; font-weight: 400; line-height: 23px; cursor: pointer; }
@@ -107,10 +108,13 @@
 .featuredText { flex: 1; display: flex; flex-direction: column; margin-inline-start: 30px; color: var(--sefaria-color-text-dark-grey); }
 .featuredText h3 { margin: 0 0 15px; font-family: var(--sefaria-font-text-en); font-size: 24px; font-weight: 400; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-transform: none; text-align: start; }
 .featuredText h3 :lang(he) { font-family: var(--sefaria-font-text-he); }
+/* the old title span was a flex box: the title row is its own face's line, with no strut of the h3's serif */
+.featuredText h3 > span { display: block; }
 /* the old .topicDescription: a 14px serif block; the description inside it 16px sans */
 .featuredDescription { font-family: var(--sefaria-font-text-en); font-size: 14px; line-height: normal; }
 .featuredDescription > span { font-family: var(--sefaria-font-ui-en); font-size: 16px; }
-.featuredDescription > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
+/* a Hebrew description is the Hebrew serif (the old .reactMarkdown div inside the Heebo span) */
+.featuredDescription > span:lang(he) { font-family: var(--sefaria-font-text-he); }
 /* the old description span was a block (.featuredTopicText .int-he: display flex, column): its lines are its own face's, with no sans strut */
 .featuredDescription > span { display: block; }
 .featuredDescription a { color: var(--sefaria-cat-commentary); text-decoration: none; }
@@ -130,7 +134,8 @@
 .newsletterRow { display: flex; flex-direction: row; justify-content: space-between; align-items: center; }
 .newsletterRow:first-child { margin-block-end: 20px; }
 .newsletterRow input, .newsletterRow button { flex: 1; padding: 5px 12px; border: 0; border-radius: 6px; background: var(--sefaria-color-surface); font-family: var(--sefaria-font-ui-en); font-size: 13.3333px; color: var(--sefaria-color-text-strong); }
-:global(html[lang="he"]) .newsletterRow input, :global(html[lang="he"]) .newsletterRow button { font-family: var(--sefaria-font-ui-he); }
+:global(html[lang="he"]) .newsletterRow input { font-family: var(--sefaria-font-ui-he); }
+/* the button keeps the English sans in the Hebrew interface (the old button had no Hebrew face) */
 .newsletterRow button { flex: unset; color: var(--sefaria-color-brand); cursor: pointer; }
 .newsletterRow input:first-child { margin-inline-end: 16px; }
 .subscribeMessage { margin-block-start: 10px; font-family: var(--sefaria-font-ui-en); color: var(--sefaria-color-on-brand); }
@@ -148,7 +153,7 @@
 .parashahLink { margin-block-start: 47px; }
 .readingLink { margin-block-end: 10px; font-family: var(--sefaria-font-text-en); font-size: 18px; line-height: normal; }
 .readingLink span { font-family: var(--sefaria-font-ui-en); }
-.readingLink a { color: var(--sefaria-color-text-strong); text-decoration: none; }
+.readingLink a { color: var(--sefaria-color-text-strong); text-decoration: none; font-family: inherit; } /* the serif line, also in the Hebrew interface */
 .readingIcon { width: 18px; height: 18px; margin-block-start: -4px; margin-inline-end: 10px; vertical-align: middle; }
 .readPortion { margin-block-start: 30px; }
 .blueButton { display: inline-block; width: fit-content; box-sizing: border-box; margin: 0 2px 6px; padding: 10px 14px; border-radius: 6px; background: var(--sefaria-color-brand); box-shadow: var(--sefaria-shadow-1); font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: 19px; color: var(--sefaria-color-on-brand); text-align: center; text-decoration: none; }
@@ -157,7 +162,7 @@
 /* a 16px serif line holding 14px sans text, as the old <a> around its span */
 .blueLink { margin-block-start: 14px; font-family: var(--sefaria-font-text-en); font-size: 16px; line-height: normal; color: var(--sefaria-cat-commentary); }
 .blueLink span { font-family: var(--sefaria-font-ui-en); font-size: 14px; }
-.blueLink a { color: inherit; text-decoration: none; }
+.blueLink a { color: inherit; text-decoration: none; font-family: inherit; }
 .seasonalBottom { margin-block-start: 10px; }
 /* a serif block (its line is 19px) holding sans runs, as the old .display-date-message */
 .dateMessage { font-family: var(--sefaria-font-text-en); font-size: 14px; font-weight: 600; line-height: 18px; color: var(--sefaria-color-text-list); }
@@ -188,10 +193,10 @@
   .afterSearch { margin-block-start: 36px; }
   .searchContainer { width: 344px; height: 47px; max-width: 100%; }
   .searchInputBox { width: 100%; min-height: 24px; margin-block-start: 9px; } /* the old search button's 24px box sets the row */
-  .searchInput { width: auto; min-width: 0; margin-block-start: 2px; font-family: var(--sefaria-font-ui-en); font-size: 14px; }
+  .searchInput, :global(html[lang="he"]) .searchInput { width: auto; min-width: 0; margin-block-start: 2px; font-family: var(--sefaria-font-ui-en); font-size: 14px; }
   .searchDropdown { width: 92vw; margin-block-start: 38px; max-height: calc(1.9em * 5 + 1em); }
   .exploreAll { display: block; margin-block-start: 15px; font-family: var(--sefaria-font-ui-en); font-size: 14px; font-weight: 400; line-height: 18px; color: var(--sefaria-color-text-list); text-align: center; cursor: pointer; }
-  .exploreAll :lang(he) { font-family: var(--sefaria-font-ui-he); }
+  .exploreAll :lang(he) { font-family: var(--sefaria-font-text-he); } /* the old span inherited the Hebrew serif */
   .rainbowUpper { margin-block-end: 20px; }
   .rainbowLower { margin-block-start: 20px; }
   .featuredHeader { font-size: 22px; }

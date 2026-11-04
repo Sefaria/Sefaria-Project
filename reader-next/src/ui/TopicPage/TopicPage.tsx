@@ -100,50 +100,43 @@ export function TopicImage({
 export function AiNotice() {
   const [open, setOpen] = useState(false);
   const he = useInterfaceLang() === "hebrew";
+  // the old AiInfoTooltip: the message is always in the page (its links and their data-anl-* too), hidden until the icon or the
+  // message is hovered; it fades in over 0.5s and out over 2s
+  const show = () => setOpen(true);
+  const hide = () => setOpen(false);
   return (
-    <div
-      className={styles.ai}
-      data-anl-feature_name="ai_marker"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
+    <div className={styles.ai} data-anl-feature_name="ai_marker">
       <img
         className={styles.aiIcon}
         src="/icons/ai-star-outline-24.svg"
         alt={he ? "בסיוע בינה מלאכותית" : "AI assisted"}
         data-anl-event="ai_marker_hover:mouseover"
         tabIndex={0}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
       />
-      {open ? (
-        <div className={styles.aiBox} role="tooltip">
-          <div>
+      <div className={`${styles.aiMessage} ${open ? styles.aiVisible : ""}`}>
+        <div className={styles.aiBox} role="tooltip" onMouseEnter={show} onMouseLeave={hide}>
+          <div className={styles.aiFirst}>
             <InterfaceText
               en="Some of the text on this page has been AI generated."
               he="חלק מהטקסט בעמוד זה נוצר על ידי בינה מלאכותית."
             />
             &nbsp;
-            <a
-              href="/ai"
-              data-anl-event="learn_more_click:click"
-              data-anl-text="learn_more"
-            >
+            <a href="/ai" data-anl-event="learn_more_click:click" data-anl-text="learn_more">
               <InterfaceText en="Learn More" he="לפרטים נוספים" />
             </a>
           </div>
-          <hr />
-          <div>
-            <a
-              href="https://sefaria.formstack.com/forms/ai_feedback_form"
-              data-anl-event="feedback_click:click"
-              data-anl-text="feedback"
-            >
-              <InterfaceText en="Feedback" he="כתבו לנו" />
+          <hr className={styles.aiHr} />
+          <div className={styles.aiLast}>
+            <a href="https://sefaria.formstack.com/forms/ai_feedback_form" data-anl-event="feedback_click:click" data-anl-text="feedback">
+              {he ? "כתבו לנו" : "Feedback"}
             </a>
           </div>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
