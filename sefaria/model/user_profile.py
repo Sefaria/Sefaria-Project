@@ -483,6 +483,10 @@ class UserProfile(object):
         self.donor_status = DonorStatus.UNKNOWN.value
         self.became_donor_at = None
 
+        # Newsletter preferences
+        self.learning_level = None  # numeric 1-5 for user learning level in Sefaria, None if not set
+        self.wants_marketing_emails = True  # whether user wants marketing emails; default opted-in
+
         # Bookshelf POC: books the user keeps on the homepage, newest first
         self.bookshelf = []
 
@@ -822,6 +826,8 @@ class UserProfile(object):
             "nationbuilder_id":      self.nationbuilder_id,
             "sf_app_user_id":        self.sf_app_user_id,
             "gauth_email":           self.gauth_email,
+            "learning_level":        self.learning_level,
+            "wants_marketing_emails": self.wants_marketing_emails,
         }
 
     def to_api_dict(self, basic=False):
@@ -854,6 +860,7 @@ class UserProfile(object):
         other_info = {
             "pinned_sheets":         self.pinned_sheets,
             "is_sustainer":          self.is_sustainer,
+            "learning_level":        self.learning_level,
             "donor_status":          DonorStatus.from_stored_value(self.donor_status).value,
             "experiments":           self.experiments,
         }

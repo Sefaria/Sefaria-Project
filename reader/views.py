@@ -284,6 +284,29 @@ def render_react_component(component, props, request):
             return render_to_string("elements/loading.html", request=request)
 
 
+def chatbot_access_props(request, profile):
+    """
+    Whether this visitor gets the Library Assistant, and the token it runs with.
+    A logged-out visitor gets it without a token; the widget identifies them itself.
+    `profile` is the logged-in user's UserProfile, or None when logged out.
+    """
+    props = {"chatbot_user_token": None, "chatbot_enabled": False}
+    if request.user.is_authenticated:
+        if library_assistant.is_enabled(profile):
+            props["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+            props["chatbot_enabled"] = True
+        # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
+        # suppresses the "try the Library Assistant" promo banner for users who have
+        # already made a choice about the assistant — whether they are using it or
+        # deliberately turned it off.
+        if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
+            props["in_chatbot_experiment"] = True
+    elif library_assistant.is_enabled_for_anonymous():
+        props["chatbot_enabled"] = True
+        props["chatbot_anon_free_answers"] = library_assistant.anonymous_free_answers()
+    return props
+
+
 def base_props(request):
     """
     Returns a dictionary of props that all App pages get based on the request
@@ -378,8 +401,6 @@ def base_props(request):
 
     # Chatbot props (passed through base_props for ReaderApp)
     chatbot_data = {
-        "chatbot_user_token": None,
-        "chatbot_enabled": False,
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
         "chatbot_version": chatbot_version,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
@@ -390,16 +411,7 @@ def base_props(request):
         "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
-    if request.user.is_authenticated:
-        if library_assistant.is_enabled(profile):
-            chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
-            chatbot_data["chatbot_enabled"] = True
-        # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
-        # suppresses the "try the Library Assistant" promo banner for users who have
-        # already made a choice about the assistant — whether they are using it or
-        # deliberately turned it off.
-        if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
-            chatbot_data["in_chatbot_experiment"] = True
+    chatbot_data.update(chatbot_access_props(request, profile if request.user.is_authenticated else None))
     user_data.update(chatbot_data)
     user_data.update({
         "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
@@ -2657,9 +2669,10 @@ def related_api(request, tref):
     elif bool(int(request.GET.get("private", False))) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
     else:
+        sheets = get_sheets_for_ref(tref)
         response = {
-            "links": get_links(tref, with_text=False, with_sheet_links=bool(int(request.GET.get("with_sheet_links", False)))),
-            "sheets": get_sheets_for_ref(tref),
+            "links": get_links(tref, with_text=False, with_sheet_links=bool(int(request.GET.get("with_sheet_links", False))), public_sheets=sheets),
+            "sheets": sheets,
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
@@ -3991,6 +4004,7 @@ def portals_api(request, slug):
     return jsonResponse(portal.contents(), callback=request.GET.get("callback", None))
 
 
+@login_required
 @ensure_csrf_cookie
 @sanitize_get_params
 def global_activity(request, page=1):
@@ -4028,6 +4042,7 @@ def global_activity(request, page=1):
     })
 
 
+@login_required
 @ensure_csrf_cookie
 @sanitize_get_params
 def user_activity(request, slug, page=1):
@@ -4069,6 +4084,7 @@ def user_activity(request, slug, page=1):
     })
 
 
+@login_required
 @ensure_csrf_cookie
 @sanitize_get_params
 def segment_history(request, tref, lang, version, page=1):
@@ -4131,6 +4147,7 @@ def revert_api(request, tref, lang, version, revision):
     return jsonResponse({"status": "ok"})
 
 
+@login_required
 def leaderboard(request):
     return render_template(request,'leaderboard.html', None, {
         'leaders': top_contributors(),
@@ -5516,7 +5533,11 @@ def apple_app_site_association(request):
                     "paths": AASA_PATHS,
                     "components": (
                         [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
-                        + [{"/": "*", "?": {NO_APPLINK_PARAM: "*"}, "exclude": True}]
+                        # Must be "?*" (one or more characters), not "*": iOS treats an
+                        # absent query item as the empty string, and "*" matches the
+                        # empty string, so "*" would exclude every URL (sc-47695).
+                        # mark_no_applink always sets a non-empty value.
+                        + [{"/": "*", "?": {NO_APPLINK_PARAM: "?*"}, "exclude": True}]
                         + [{"/": "*"}]
                     ),
                 }

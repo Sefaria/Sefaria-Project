@@ -344,6 +344,88 @@ describe('pageshow (bfcache restore)', () => {
   });
 });
 
+describe('lazy (sign-up options shown outside AuthPage, e.g. in the Library Assistant)', () => {
+  it('mounting starts nothing', () => {
+    mount({ flow: 'register', source: 'rate_limit_login_button', lazy: true });
+
+    expect(fireFlowStarted).not.toHaveBeenCalled();
+    expect(persistActiveFlow).not.toHaveBeenCalled();
+  });
+
+  it('unmounting, leaving or going back without a click reports nothing', () => {
+    mount({ flow: 'register', source: 'rate_limit_login_button', lazy: true });
+
+    act(() => { window.dispatchEvent(new Event('beforeunload')); });
+    act(() => { window.dispatchEvent(new Event('popstate')); });
+    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+    unmount();
+
+    expect(fireFlowStarted).not.toHaveBeenCalled();
+    expect(fireFlowEnded).not.toHaveBeenCalled();
+    expect(fireProcessEnded).not.toHaveBeenCalled();
+  });
+
+  it('the first chosen method starts the flow, then reports the method, in one flow', () => {
+    mount({ flow: 'register', source: 'rate_limit_login_button', lazy: true });
+
+    const attemptId = hookApi.chooseMethod('apple');
+    hookApi.startProcess();
+
+    expect(persistActiveFlow).toHaveBeenCalledWith({ flowId: 'id-1' });
+    expect(fireFlowStarted).toHaveBeenCalledWith('id-1', 'rate_limit_login_button', 'registration');
+    expect(fireMethodChosen).toHaveBeenCalledWith('id-1', attemptId, 'apple');
+    expect(fireProcessStarted).toHaveBeenCalledWith('id-1', attemptId);
+    expect(fireFlowStarted.mock.invocationCallOrder[0])
+      .toBeLessThan(fireMethodChosen.mock.invocationCallOrder[0]);
+  });
+
+  it('a second method in the same visit stays in the same flow', () => {
+    mount({ flow: 'register', source: 'rate_limit_login_button', lazy: true });
+    hookApi.chooseMethod('apple');
+    hookApi.startProcess();
+    hookApi.endProcess('failure', 'popup_closed_by_user');
+
+    hookApi.chooseMethod('google');
+
+    expect(fireFlowStarted).toHaveBeenCalledTimes(1);
+    expect(fireMethodChosen).toHaveBeenLastCalledWith('id-1', expect.any(String), 'google');
+  });
+
+  it('once started, the flow ends like any other (here: leaving the page after success)', () => {
+    mount({ flow: 'register', source: 'rate_limit_login_button', lazy: true });
+    hookApi.chooseMethod('apple');
+    hookApi.startProcess();
+    hookApi.endProcess('success', null, 'created_new_account');
+
+    act(() => { window.dispatchEvent(new Event('beforeunload')); });
+
+    expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'success', null, 'created_new_account');
+  });
+
+  it('a bfcache restore ends a started flow but does not start a new one', () => {
+    mount({ flow: 'register', source: 'rate_limit_login_button', lazy: true });
+    hookApi.chooseMethod('apple');
+    hookApi.startProcess();
+
+    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+
+    expect(fireProcessEnded).toHaveBeenCalledWith('id-1', expect.any(String), 'failure', 'back_navigation', null);
+    expect(fireFlowEnded).toHaveBeenCalledTimes(1);
+    expect(fireFlowStarted).toHaveBeenCalledTimes(1);
+  });
+
+  it('a click after an ended flow starts a fresh flow', () => {
+    mount({ flow: 'register', source: 'rate_limit_login_button', lazy: true });
+    hookApi.chooseMethod('apple');
+    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+
+    hookApi.chooseMethod('apple');
+
+    expect(fireFlowStarted).toHaveBeenCalledTimes(2);
+    expect(hookApi.getIds().flowId).not.toBe('id-1');
+  });
+});
+
 describe('suppressFlowEndRef reset', () => {
   it('a fresh startFlow (re-entering register) resets a stale suppression back to false', () => {
     mount({ flow: 'register', source: 'nav_bar' });
