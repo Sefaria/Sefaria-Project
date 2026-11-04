@@ -1174,6 +1174,163 @@ p.registration-links a:hover{
     justify-content: flex-start;
   }
 }
+/* "Your data" page (proof of concept) - shares the Account Settings header layout */
+#yourDataPage .inner {
+  position: relative;
+  max-width: 760px;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  padding: 60px 20px 100px 100px;
+}
+#yourDataPage .headerWithButtons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 57px;
+}
+#yourDataPage .headerWithButtons h1 {
+  flex: 0 0 auto;
+  font-family: var(--english-sans-serif-font-family);
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+#yourDataPage .headerWithButtons .end {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-end;
+}
+#yourDataPage .yourDataIntro {
+  color: var(--dark-grey);
+  margin: 20px 0 10px;
+}
+#yourDataPage h2.yourDataGroup {
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--medium-grey);
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 8px;
+  margin: 44px 0 16px;
+  text-align: start;
+}
+#yourDataPage .yourDataCard {
+  background: var(--lightest-grey);
+  border: 1px solid var(--lighter-grey);
+  border-radius: 6px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+#yourDataPage .yourDataCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+#yourDataPage .yourDataCardHeader h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 12px;
+  color: var(--sefaria-blue);
+}
+#yourDataPage .yourDataChange {
+  font-size: 14px;
+  color: var(--inline-link-blue);
+  white-space: nowrap;
+}
+#yourDataPage .yourDataRows {
+  display: grid;
+  grid-template-columns: minmax(140px, 40%) 1fr;
+  gap: 6px 16px;
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+#yourDataPage .yourDataRows dt {
+  color: var(--medium-grey);
+}
+#yourDataPage .yourDataRows dd {
+  margin: 0;
+  color: #000;
+  overflow-wrap: anywhere;
+}
+#yourDataPage .yourDataWhy,
+#yourDataPage .yourDataEmpty {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin: 8px 0 0;
+}
+#yourDataPage .yourDataRecent {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+#yourDataPage .yourDataRecent li {
+  padding: 4px 0;
+  border-top: 1px solid var(--lighter-grey);
+}
+#yourDataPage .yourDataDate {
+  color: var(--medium-grey);
+  font-size: 13px;
+}
+#yourDataPage .yourDataControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+#yourDataPage .yourDataMessage {
+  font-size: 14px;
+  color: var(--dark-grey);
+}
+/* One status attribute on the card drives the pill and which history buttons show. */
+#yourDataPage .yourDataStatus {
+  display: none;
+  font-size: 12px;
+  font-weight: 400;
+  border-radius: 10px;
+  padding: 2px 10px;
+  margin-inline-start: 8px;
+  vertical-align: middle;
+  background: var(--lighter-grey);
+  color: var(--dark-grey);
+}
+#yourDataPage [data-status="on"] .yourDataStatus[data-for="on"] { display: inline-block; background: #DDEEDD; color: #2E6B2E; }
+#yourDataPage [data-status="paused"] .yourDataStatus[data-for="paused"] { display: inline-block; background: #F7EBD2; color: #7A5A12; }
+#yourDataPage [data-status="off"] .yourDataStatus[data-for="off"] { display: inline-block; }
+#yourDataPage .yourDataHistoryAction { display: none; }
+#yourDataPage [data-status="on"] .yourDataHistoryAction[data-for~="on"],
+#yourDataPage [data-status="paused"] .yourDataHistoryAction[data-for~="paused"] { display: inline-flex; }
+#yourDataPage #yourDataDeleteButton {
+  background: #fff;
+  color: #CB6158;
+  border: 1px solid #CB6158;
+  box-shadow: none;
+}
+#yourDataPage .yourDataStub {
+  font-size: 14px;
+  color: var(--dark-grey);
+  background: #F7EBD2;
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+@media screen and (max-width: 700px) {
+  #yourDataPage .inner {
+    padding: 60px 16px 100px 16px;
+  }
+  #yourDataPage .headerWithButtons {
+    flex-wrap: wrap;
+  }
+  #yourDataPage .yourDataRows {
+    grid-template-columns: 1fr;
+    gap: 0 0;
+  }
+  #yourDataPage .yourDataRows dd {
+    margin-bottom: 8px;
+  }
+}
 #personPage h1 {
   margin-bottom: 40px;
 }
