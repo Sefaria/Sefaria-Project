@@ -26,7 +26,8 @@
 .category a > span { font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-dark-grey); text-transform: uppercase; letter-spacing: 0.1em; }
 .category a > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
 .description { margin: 0 0 15px; font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-strong); }
-.description > :lang(he) { font-family: var(--sefaria-font-ui-he); }
+/* the Hebrew description's markdown block takes the Hebrew text face (the old .reactMarkdown inside .int-he, measured) */
+.description > :lang(he) { font-family: var(--sefaria-font-text-he); }
 .description > span { display: block; }
 .description a { color: var(--sefaria-cat-commentary); text-decoration: none; }
 .description a:hover { text-decoration: underline; }
@@ -37,7 +38,7 @@
 .dedication a { color: inherit; text-decoration: underline; }
 /* .topicPanel .resourcesLink.blue: the book button and the Study Companion */
 .buttons { display: flex; flex-wrap: wrap; }
-.refButton { display: inline-flex; align-items: center; box-sizing: border-box; min-height: 56px; margin: 5px 0 40px; padding: 8px 16px; border: 0; border-radius: 7px; background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); font-size: 20px; text-decoration: none; box-shadow: 0 1px 3px rgb(0 0 0 / 0.2); vertical-align: middle; cursor: pointer; }
+.refButton { display: inline-flex; align-items: center; box-sizing: border-box; min-height: 56px; margin: 5px 0 40px; padding: 8px 16px; border: 0; border-radius: 7px; background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); font-size: 20px; text-decoration: none; box-shadow: var(--sefaria-shadow-legacy); vertical-align: middle; cursor: pointer; }
 .refButton + .refButton { margin-inline-start: 10px; }
 .refButton img { width: 20px; height: 20px; margin: 0 8px 5px 0; filter: invert(1); opacity: 1; }
 :global(html[dir="rtl"]) .refButton img { margin: 0 0 5px 8px; }
@@ -61,6 +62,7 @@
 /* ---------------------------------------------------------------- the tabs */
 .tabList { display: flex; flex-direction: row; justify-content: flex-start; margin: 0 0 18px; border-block-end: 1px solid var(--sefaria-color-border-strong); font-family: var(--sefaria-font-ui-en); }
 .tabList :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.tabsOnly { display: contents; }
 .tabItem { display: block; padding: 0; margin: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
 .tabItem:focus-visible { outline: 2px solid var(--sefaria-color-focus); }
 .tab { display: block; margin: 0; margin-inline-end: 30px; padding: 10px 0; font-size: 22px; text-align: center; color: var(--sefaria-color-text-dark-grey); cursor: pointer; user-select: none; }
@@ -101,7 +103,7 @@
 .message { font-family: var(--sefaria-font-ui-en); font-size: 14px; font-style: italic; color: var(--sefaria-color-text-muted); }
 
 /* ---------------------------------------------------------------- a source */
-.story { margin: 0 0 20px; padding: 0; box-shadow: 0 1px 3px rgb(0 0 0 / 0.25); font-family: var(--sefaria-font-text-en); }
+.story { margin: 0 0 20px; padding: 0; box-shadow: var(--sefaria-shadow-1); font-family: var(--sefaria-font-text-en); }
 .colorBar { clear: both; border-inline-start: 4px solid transparent; padding-inline-start: 20px; }
 .story summary { cursor: pointer; list-style: none; }
 .story summary::-webkit-details-marker { display: none; }
@@ -112,7 +114,7 @@
 /* .topicPanel .story .storyTitle: 16px semibold in the interface face (Hebrew 18px) */
 .storyTitleText { font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 600; }
 .storyTitleText > span:lang(he) { font-family: var(--sefaria-font-ui-he); font-size: 18px; }
-.primaryCategory { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-size: 16px; }
+.primaryCategory { font-family: var(--sefaria-font-text-en); font-size: 16px; }
 .prompt { margin-inline-start: -20px; padding: 20px; border-block-start: 1px solid var(--sefaria-color-border-strong); background: var(--sefaria-color-highlight-soft); }
 .prompt > span { font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-strong); }
 .prompt > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
@@ -131,7 +133,7 @@
 .citation { padding: 0 0 20px; }
 .citation a { text-decoration: none; }
 .citation a > span { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-size: 18px; color: var(--sefaria-color-text-dark-grey); }
-.citation a > span:lang(he) { font-family: var(--sefaria-font-text-he); }
+.citation a > span:lang(he) { font-family: "Taamey Frank", "Times New Roman", serif; }
 .reviewState { margin-inline-start: 10px; padding: 2px 8px; border: 0; border-radius: 6px; font-family: var(--sefaria-font-ui-en); font-size: 12px; height: fit-content; cursor: pointer; color: var(--sefaria-color-on-brand); }
 .reviewed { background: var(--sefaria-color-success); }
 .notReviewed { background: var(--sefaria-color-danger); }
@@ -139,11 +141,13 @@
 
 /* ---------------------------------------------------------------- works on sefaria */
 .works { display: flex; flex-flow: row wrap; margin-block-end: 20px; }
-.work { box-sizing: border-box; width: 50%; margin-block-end: 10px; padding-inline-end: 20px; font-size: 24px; }
-.workTitle { display: block; padding-block-end: 8px; font-family: var(--sefaria-font-ui-en); font-size: 24px; color: var(--sefaria-color-text-strong); text-decoration: none; }
+.work { box-sizing: border-box; width: 50%; margin-block-end: 10px; padding-inline-end: 20px; font-family: var(--sefaria-font-text-en); font-size: 24px; }
+/* .navBlockTitle: a serif 24px title (1.3 line), 15px over it and 8px under it */
+.workTitle { display: flex; margin-inline-end: 20px; padding: 15px 0 8px; font-family: var(--sefaria-font-text-en); font-size: 24px; line-height: 1.3; color: var(--sefaria-color-text-strong); text-decoration: none; }
+.workTitle > span { display: block; }
+.workTitle > span:lang(he) { font-family: var(--sefaria-font-text-he); }
 .workTitle:hover { color: var(--sefaria-color-text-dark-grey); }
-.workTitle > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
-.workDescription { font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
+.workDescription { margin-inline-end: 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
 .workDescription > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
 
 /* ---------------------------------------------------------------- the side column */
@@ -163,20 +167,25 @@ a.meta { text-decoration: none; }
 .meta :lang(he) { font-family: var(--sefaria-font-ui-he); }
 .more { display: block; padding: 0; border: 0; background: none; font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: 26px; color: var(--sefaria-color-text-dark-grey); cursor: pointer; text-align: start; }
 .more:lang(he), .more :lang(he) { font-family: var(--sefaria-font-ui-he); }
-/* Readings (a Torah portion) */
+/* Readings (a Torah portion): .topicPanel .readings, .parasha-date, .sectionTitleText, .navSidebarLink.ref, .sectionLink (measured) */
 .readings { margin-block-end: 40px; }
-.date { font-family: var(--sefaria-font-ui-en); font-size: 14px; font-style: italic; color: var(--sefaria-color-text-muted); }
+.date { font-family: var(--sefaria-font-text-en); font-size: 16px; font-style: italic; }
+.date > span { font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text-muted); }
+.date > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
 .date > span:first-child::after { content: "•"; margin: 0 5px; font-size: 15px; color: var(--sefaria-color-text-muted); }
-.date :lang(he) { font-family: var(--sefaria-font-ui-he); }
-.readingLabel { margin-block-start: 15px; font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: 18.75px; color: var(--sefaria-color-text-dark-grey); letter-spacing: 0.1em; }
-.readingLabel :lang(he) { font-family: var(--sefaria-font-ui-he); }
-.refLink { display: flex; align-items: flex-start; font-family: var(--sefaria-font-text-en); font-size: 18px; }
-.refLink img { width: 16px; height: 16px; margin-block-start: 3px; margin-inline-end: 10px; opacity: 0.4; }
+.readingLabel { margin-block-start: 15px; font-family: var(--sefaria-font-text-en); font-size: 16px; }
+.readingLabel > span { font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: 18.75px; color: var(--sefaria-color-text-dark-grey); letter-spacing: 0.1em; }
+.readingLabel > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
+.refLink { display: block; font-family: var(--sefaria-font-text-en); font-size: 18px; }
+.refLink img { width: 18px; height: 18px; margin: -4px 0 0; margin-inline-end: 10px; }
 .refLink a { color: var(--sefaria-color-text-strong); text-decoration: none; }
+.refLink a > span:lang(en) { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; }
 .refLink a > span:lang(he) { font-family: var(--sefaria-font-text-he); }
-.aliyot { display: flex; flex-wrap: wrap; margin-inline-start: 25px; }
-.aliya { display: inline-block; box-sizing: border-box; min-width: 30px; margin: 0 6px 6px 0; padding: 5px; border-radius: 6px; background: var(--sefaria-color-border-light); font-family: var(--sefaria-font-ui-en); font-size: 14px; text-align: center; color: var(--sefaria-color-text-strong); text-decoration: none; }
+.aliyot { margin-inline-start: 25px; font-family: var(--sefaria-font-text-en); font-size: 16px; }
+.aliya { padding: 0 4px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 30px; color: var(--sefaria-color-text-muted); text-decoration: none; }
+.aliya :lang(he) { font-family: var(--sefaria-font-ui-he); }
 .haftarot { display: flex; flex-direction: column; }
+.haftarot .refLink { margin-block-end: 10px; }
 
 /* ---------------------------------------------------------------- a phone (the old single panel) */
 @media (max-width: 842px) {
@@ -212,3 +221,18 @@ a.meta { text-decoration: none; }
 .portalImage { padding-block-start: 5px; margin-block-end: 25px; }
 .portalImage .image { padding: 0; }
 .portalImage .sideImage { display: block; }
+
+/* a portal's side column is the old NavSidebar inside .topicPanel, whose `h1` rules reach its module titles: 40px serif in a 22px
+   500-weight line, 14px over a hairline (measured on /topics/jonathan-sacks); the text is the sidebar's 16px grey sans */
+.sideNav { padding-block-start: 0; font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-dark-grey); }
+.sideNav h2 { margin: 0 0 20px; padding: 0 0 14px; border-block-end: 1px solid var(--sefaria-color-border-strong); font-family: var(--sefaria-font-text-en); font-size: 22px; font-weight: 500; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-transform: none; letter-spacing: 0; }
+.sideNav h2 > span:lang(en) { font-size: 40px; }
+.sideNav h2 > span:lang(he) { font-family: var(--sefaria-font-text-he); font-size: 36px; }
+.sideNav :lang(he) { font-family: var(--sefaria-font-ui-he); }
+@media (max-width: 540px) {
+  .sideNav { width: auto; padding: 30px 15px 0; }
+}
+
+/* the Hebrew interface's work descriptions: 122% of 14px in Heebo on a 24px line, an English fallback too (the old .int-he.enInHe) */
+:global(html[lang="he"]) .workDescription { line-height: 24px; }
+:global(html[lang="he"]) .workDescription > span { font-family: var(--sefaria-font-ui-he); font-size: 122%; }

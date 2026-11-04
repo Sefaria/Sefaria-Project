@@ -117,7 +117,9 @@ export function TopicPageRoute({ slug, prefix, search, transLangPref }: TopicPag
   const path = `/topics/${prefix}${slug}`;
   useEffect(() => {
     if (!page) return;
-    if (search.sort === sort && search.tab === current && window.location.pathname === encodeURI(path)) return;
+    const enc = (v: string) => encodeURIComponent(v).replace(/%20/g, "+");
+    const want = `?sort=${enc(sort)}${current ? `&tab=${enc(current)}` : ""}`;
+    if (window.location.search === want && window.location.pathname === encodeURI(path)) return;
     void navigate({ to: path as never, search: topicPageSearch(sort, current) as never, replace: true, resetScroll: false });
   }, [page, path, sort, current, search.sort, search.tab, navigate]);
 
@@ -152,9 +154,15 @@ export function TopicPageRoute({ slug, prefix, search, transLangPref }: TopicPag
     <TopicHeader
       title={page.primaryTitle}
       admin={
-        moderator && (toGenerate.length || toPublish.length)
+        moderator
           ? {
               buttons: [
+                // the old CategoryHeader's editors (SourceEditor, TopicEditor, ReorderEditor) are not built here yet: they open the old page
+                ...(["Add a source", "Edit", "Reorder sources"] as const).map((en) => ({
+                  en,
+                  he: en,
+                  onClick: () => window.location.assign(`${path}?sort=${encodeURIComponent(sort)}${current ? `&tab=${current}` : ""}&editor=1`),
+                })),
                 ...(toGenerate.length
                   ? [{ en: "Generate", he: "Generate", onClick: () => void generatePrompts(page.slug, toGenerate.map((s) => s.ref)).then((refs) => alert(`The following prompts are generating: ${refs.join(", ")}`), (e) => console.error("Error occurred:", e)) }]
                   : []),

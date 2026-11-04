@@ -78,7 +78,7 @@ export function SourceCard({ analytics, visible, intro, color, href, citation, t
           {review
             ? (["he", "en"] as const).map((l) =>
                 review[l] ? (
-                  <button key={l} type="button" lang={l} className={`${styles.reviewState} ${REVIEW_LABEL[review[l]!].cls}`} onClick={() => review.onMark(l)}>
+                  <button key={l} type="button" lang={l} dir={l === "he" ? "rtl" : "ltr"} className={`${styles.reviewState} ${REVIEW_LABEL[review[l]!].cls}`} onClick={() => review.onMark(l)}>
                     {REVIEW_LABEL[review[l]!].text}
                   </button>
                 ) : null,

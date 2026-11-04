@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { inlineMarkdownToHtml } from "~/lib/html/markdown";
 import { langCode, useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { AdminButtons, type PageAdmin } from "../AdminButtons/AdminButtons";
@@ -15,7 +21,11 @@ export interface BilingualText {
 }
 
 const anlAttrs = (anl: Record<string, string | number | undefined>) =>
-  Object.fromEntries(Object.entries(anl).filter(([, v]) => v !== undefined).map(([k, v]) => [`data-anl-${k}`, String(v)]));
+  Object.fromEntries(
+    Object.entries(anl)
+      .filter(([, v]) => v !== undefined)
+      .map(([k, v]) => [`data-anl-${k}`, String(v)]),
+  );
 
 /**
  * The topic page's frame (the old .topicPanel): the analytics batch on its root, the page's column and the side column beside it
@@ -23,7 +33,17 @@ const anlAttrs = (anl: Record<string, string | number | undefined>) =>
  *
  * @feature TOP-029 Topic page analytics batch
  */
-export function TopicPageLayout({ batch, main, side, sideKind = "topic" }: { batch: Record<string, unknown>; main: ReactNode; side: ReactNode; sideKind?: "topic" | "portal" }) {
+export function TopicPageLayout({
+  batch,
+  main,
+  side,
+  sideKind = "topic",
+}: {
+  batch: Record<string, unknown>;
+  main: ReactNode;
+  side: ReactNode;
+  sideKind?: "topic" | "portal";
+}) {
   return (
     <div className={styles.panel} data-anl-batch={JSON.stringify(batch)}>
       <div className={styles.columns}>
@@ -32,7 +52,11 @@ export function TopicPageLayout({ batch, main, side, sideKind = "topic" }: { bat
           sideKind === "portal" ? (
             <aside className={`${styles.side} ${styles.sideNav}`}>{side}</aside>
           ) : (
-            <aside className={styles.side} data-anl-panel_type="topics" data-anl-panel_number={0}>
+            <aside
+              className={styles.side}
+              data-anl-panel_type="topics"
+              data-anl-panel_number={0}
+            >
               {side}
             </aside>
           )
@@ -43,11 +67,22 @@ export function TopicPageLayout({ batch, main, side, sideKind = "topic" }: { bat
 }
 
 /** ImageWithCaption: the picture (its alt the caption in the interface language) and the caption under it. */
-export function TopicImage({ uri, caption, place }: { uri: string; caption: MaybeBilingual; place: "side" | "main" }) {
+export function TopicImage({
+  uri,
+  caption,
+  place,
+}: {
+  uri: string;
+  caption: MaybeBilingual;
+  place: "side" | "main";
+}) {
   const lang = langCode(useInterfaceLang());
-  const alt = (lang === "he" ? caption.he || caption.en : caption.en || caption.he) ?? "";
+  const alt =
+    (lang === "he" ? caption.he || caption.en : caption.en || caption.he) ?? "";
   return (
-    <div className={`${styles.image} ${place === "side" ? styles.sideImage : styles.mainImage}`}>
+    <div
+      className={`${styles.image} ${place === "side" ? styles.sideImage : styles.mainImage}`}
+    >
       <img className={styles.photo} src={uri} alt={alt} />
       <div className={styles.caption}>
         <InterfaceText en={caption.en} he={caption.he} />
@@ -66,20 +101,44 @@ export function AiNotice() {
   const [open, setOpen] = useState(false);
   const he = useInterfaceLang() === "hebrew";
   return (
-    <div className={styles.ai} data-anl-feature_name="ai_marker" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <img className={styles.aiIcon} src="/icons/ai-star-outline-24.svg" alt={he ? "בסיוע בינה מלאכותית" : "AI assisted"} data-anl-event="ai_marker_hover:mouseover" tabIndex={0} onFocus={() => setOpen(true)} onBlur={() => setOpen(false)} />
+    <div
+      className={styles.ai}
+      data-anl-feature_name="ai_marker"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <img
+        className={styles.aiIcon}
+        src="/icons/ai-star-outline-24.svg"
+        alt={he ? "בסיוע בינה מלאכותית" : "AI assisted"}
+        data-anl-event="ai_marker_hover:mouseover"
+        tabIndex={0}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+      />
       {open ? (
         <div className={styles.aiBox} role="tooltip">
           <div>
-            <InterfaceText en="Some of the text on this page has been AI generated." he="חלק מהטקסט בעמוד זה נוצר על ידי בינה מלאכותית." />
+            <InterfaceText
+              en="Some of the text on this page has been AI generated."
+              he="חלק מהטקסט בעמוד זה נוצר על ידי בינה מלאכותית."
+            />
             &nbsp;
-            <a href="/ai" data-anl-event="learn_more_click:click" data-anl-text="learn_more">
+            <a
+              href="/ai"
+              data-anl-event="learn_more_click:click"
+              data-anl-text="learn_more"
+            >
               <InterfaceText en="Learn More" he="לפרטים נוספים" />
             </a>
           </div>
           <hr />
           <div>
-            <a href="https://sefaria.formstack.com/forms/ai_feedback_form" data-anl-event="feedback_click:click" data-anl-text="feedback">
+            <a
+              href="https://sefaria.formstack.com/forms/ai_feedback_form"
+              data-anl-event="feedback_click:click"
+              data-anl-text="feedback"
+            >
               <InterfaceText en="Feedback" he="כתבו לנו" />
             </a>
           </div>
@@ -113,7 +172,17 @@ export interface TopicHeaderProps {
  * @feature TOP-018 Parasha topic sponsorship text
  * @feature TOP-019 Read the portion and Study Companion buttons
  */
-export function TopicHeader({ title, admin, aiNotice, category, dedication, description, image, refButton, onDescriptionClick }: TopicHeaderProps) {
+export function TopicHeader({
+  title,
+  admin,
+  aiNotice,
+  category,
+  dedication,
+  description,
+  image,
+  refButton,
+  onDescriptionClick,
+}: TopicHeaderProps) {
   const lang = langCode(useInterfaceLang());
   return (
     <div>
@@ -135,7 +204,10 @@ export function TopicHeader({ title, admin, aiNotice, category, dedication, desc
       ) : null}
       {dedication ? (
         <div className={styles.dedication}>
-          <LangText lang={lang} html={inlineMarkdownToHtml(dedication[lang] || dedication.en)} />
+          <LangText
+            lang={lang}
+            html={inlineMarkdownToHtml(dedication[lang] || dedication.en)}
+          />
         </div>
       ) : null}
       {description && (description.en || description.he) ? (
@@ -144,11 +216,20 @@ export function TopicHeader({ title, admin, aiNotice, category, dedication, desc
           <InterfaceMarkdown text={description} />
         </div>
       ) : null}
-      {image ? <TopicImage uri={image.uri} caption={image.caption} place="main" /> : null}
+      {image ? (
+        <TopicImage uri={image.uri} caption={image.caption} place="main" />
+      ) : null}
       {refButton ? (
         <div className={styles.buttons}>
-          <Link href={refButton.href} className={styles.refButton} data-target-module="library">
-            <img src="/icons/book-icon-black.svg" alt={lang === "he" ? "סמל ספר" : "book icon"} />
+          <Link
+            href={refButton.href}
+            className={styles.refButton}
+            data-target-module="library"
+          >
+            <img
+              src="/icons/book-icon-black.svg"
+              alt={lang === "he" ? "סמל ספר" : "book icon"}
+            />
             <InterfaceText en={refButton.en} he={refButton.he} />
           </Link>
           {refButton.studyCompanion ? (
@@ -160,7 +241,10 @@ export function TopicHeader({ title, admin, aiNotice, category, dedication, desc
               data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
               data-anl-promotion_name="Parashah Email Signup - Parashah Page"
             >
-              <img src="/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion" />
+              <img
+                src="/icons/email-newsletter.svg"
+                alt="Sign up for our weekly parashah study companion"
+              />
               <InterfaceText en="Get the Free Study Companion" />
             </a>
           ) : null}
@@ -182,7 +266,11 @@ export interface TopicTabsProps {
   /** The funnel (filter and sort); absent on Notable Sources and Works. */
   filter?: { open: boolean; onToggle: () => void; sort: string };
   /** The "A" (Source / Translation / Source with Translation); absent on Works. */
-  language?: { choice: string; choices: readonly { id: string; en: string; he: string }[]; onChoose: (id: string) => void };
+  language?: {
+    choice: string;
+    choices: readonly { id: string; en: string; he: string }[];
+    onChoose: (id: string) => void;
+  };
   children: ReactNode;
 }
 
@@ -192,13 +280,32 @@ export interface TopicTabsProps {
  *
  * @feature TOP-020 Topic page tabs
  */
-export function TopicTabs({ tabs, current, onSelect, filter, language, children }: TopicTabsProps) {
+export function TopicTabs({
+  tabs,
+  current,
+  onSelect,
+  filter,
+  language,
+  children,
+}: TopicTabsProps) {
   const [langOpen, setLangOpen] = useState(false);
   const refs = useRef<(HTMLDivElement | null)[]>([]);
-  const index = Math.max(0, tabs.findIndex((t) => t.id === current));
+  const index = Math.max(
+    0,
+    tabs.findIndex((t) => t.id === current),
+  );
   const he = useInterfaceLang() === "hebrew";
   const key = (e: React.KeyboardEvent, i: number) => {
-    const next = e.key === (he ? "ArrowLeft" : "ArrowRight") ? i + 1 : e.key === (he ? "ArrowRight" : "ArrowLeft") ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : null;
+    const next =
+      e.key === (he ? "ArrowLeft" : "ArrowRight")
+        ? i + 1
+        : e.key === (he ? "ArrowRight" : "ArrowLeft")
+          ? i - 1
+          : e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? tabs.length - 1
+              : null;
     if (next !== null && next >= 0 && next < tabs.length) {
       e.preventDefault();
       refs.current[next]?.focus();
@@ -210,57 +317,98 @@ export function TopicTabs({ tabs, current, onSelect, filter, language, children 
   };
   return (
     <div>
-      <div className={styles.tabList} role="tablist">
-        {tabs.map((t, i) => (
-          <div
-            key={t.id}
-            ref={(el) => {
-              refs.current[i] = el;
-            }}
-            className={styles.tabItem}
-            role="tab"
-            id={`tab-${t.id}`}
-            aria-selected={i === index}
-            tabIndex={i === index ? 0 : -1}
-            onClick={() => onSelect(t.id)}
-            onKeyDown={(e) => key(e, i)}
-          >
-            <div className={styles.tab}>
-              <div>
-                <InterfaceText en={t.title.en} he={t.title.he} />
+      <div className={styles.tabList}>
+        {/* the tabs alone in the tablist; the funnel and the "A" are buttons beside them, in the same row */}
+        <div className={styles.tabsOnly} role="tablist">
+          {tabs.map((t, i) => (
+            <div
+              key={t.id}
+              ref={(el) => {
+                refs.current[i] = el;
+              }}
+              className={styles.tabItem}
+              role="tab"
+              id={`tab-${t.id}`}
+              aria-selected={i === index}
+              tabIndex={i === index ? 0 : -1}
+              onClick={() => onSelect(t.id)}
+              onKeyDown={(e) => key(e, i)}
+            >
+              <div className={styles.tab}>
+                <div>
+                  <InterfaceText en={t.title.en} he={t.title.he} />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
         {filter ? (
           <div className={styles.justify}>
-            <button type="button" className={`${styles.pseudo} ${styles.tabItem}`} aria-expanded={filter.open} aria-label={he ? "סינון ומיון" : "Filter and sort"} onClick={filter.onToggle}>
+            <button
+              type="button"
+              className={`${styles.pseudo} ${styles.tabItem}`}
+              aria-expanded={filter.open}
+              aria-label={he ? "סינון ומיון" : "Filter and sort"}
+              onClick={filter.onToggle}
+            >
               <div />
-              <img className={styles.filterIcon} src="/icons/filter.svg" alt=" icon" data-anl-event="filter:click" data-anl-text={filter.sort} />
+              <img
+                className={styles.filterIcon}
+                src="/icons/filter.svg"
+                alt=" icon"
+                data-anl-event="filter:click"
+                data-anl-text={filter.sort}
+              />
             </button>
           </div>
         ) : null}
         {language ? (
           <div className={filter ? undefined : styles.justify}>
-            <LangToggle {...language} open={langOpen} onOpen={() => setLangOpen((o) => !o)} onClose={() => setLangOpen(false)} />
+            <LangToggle
+              {...language}
+              open={langOpen}
+              onOpen={() => setLangOpen((o) => !o)}
+              onClose={() => setLangOpen(false)}
+            />
           </div>
         ) : null}
       </div>
-      <div role="tabpanel" aria-labelledby={tabs[index] ? `tab-${tabs[index]!.id}` : undefined}>
+      <div
+        role="tabpanel"
+        aria-labelledby={tabs[index] ? `tab-${tabs[index]!.id}` : undefined}
+      >
         {children}
       </div>
     </div>
   );
 }
 
-function LangToggle({ choice, choices, onChoose, open, onOpen, onClose }: NonNullable<TopicTabsProps["language"]> & { open: boolean; onOpen: () => void; onClose: () => void }) {
+function LangToggle({
+  choice,
+  choices,
+  onChoose,
+  open,
+  onOpen,
+  onClose,
+}: NonNullable<TopicTabsProps["language"]> & {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+}) {
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (open) box.current?.focus();
   }, [open]);
   return (
     <div className={`${styles.pseudo} ${styles.langToggle}`}>
-      <button type="button" className={styles.tabItem} aria-haspopup="true" aria-expanded={open} onClick={onOpen} data-anl-event="lang_toggle_click:click">
+      <button
+        type="button"
+        className={styles.tabItem}
+        aria-haspopup="true"
+        aria-expanded={open}
+        onClick={onOpen}
+        data-anl-event="lang_toggle_click:click"
+      >
         <InterfaceText en="A" he="א" />
       </button>
       {open ? (
@@ -268,7 +416,11 @@ function LangToggle({ choice, choices, onChoose, open, onOpen, onClose }: NonNul
           ref={box}
           className={styles.popover}
           tabIndex={0}
-          data-anl-batch={JSON.stringify({ feature_name: "source lang toggled", text: choice, from: choice })}
+          data-anl-batch={JSON.stringify({
+            feature_name: "source lang toggled",
+            text: choice,
+            from: choice,
+          })}
           onBlur={() =>
             setTimeout(() => {
               if (!box.current?.contains(document.activeElement)) onClose();
@@ -277,7 +429,13 @@ function LangToggle({ choice, choices, onChoose, open, onOpen, onClose }: NonNul
           onKeyDown={(e) => e.key === "Escape" && onClose()}
         >
           {choices.map((c) => (
-            <div key={c.id} className={`${styles.choice} ${c.id === choice ? styles.active : ""}`} data-anl-event="lang_toggle_select:click" data-anl-text={c.id} data-anl-to={c.id}>
+            <div
+              key={c.id}
+              className={`${styles.choice} ${c.id === choice ? styles.active : ""}`}
+              data-anl-event="lang_toggle_select:click"
+              data-anl-text={c.id}
+              data-anl-to={c.id}
+            >
               <label htmlFor={`lang-${c.id}`}>
                 <InterfaceText en={c.en} he={c.he} />
               </label>
@@ -306,13 +464,32 @@ function LangToggle({ choice, choices, onChoose, open, onOpen, onClose }: NonNul
  *
  * @feature TOP-022 Topic source filter and sort
  */
-export function SourceFilterBar({ filter, onFilter, options, sort, onSort }: { filter: string; onFilter: (v: string) => void; options: readonly { id: string; en: string; he: string }[]; sort: string; onSort: (id: string) => void }) {
+export function SourceFilterBar({
+  filter,
+  onFilter,
+  options,
+  sort,
+  onSort,
+}: {
+  filter: string;
+  onFilter: (v: string) => void;
+  options: readonly { id: string; en: string; he: string }[];
+  sort: string;
+  onSort: (id: string) => void;
+}) {
   const he = useInterfaceLang() === "hebrew";
   return (
     <div className={styles.filterBar}>
       <div className={styles.filterInput}>
         <img src="/icons/search_mdl.svg" alt={he ? "חיפוש" : "Search"} />
-        <input type="text" placeholder={he ? "חיפוש" : "Search"} name="filterableListInput" value={filter} onChange={(e) => onFilter(e.target.value)} data-anl-event="search:input" />
+        <input
+          type="text"
+          placeholder={he ? "חיפוש" : "Search"}
+          name="filterableListInput"
+          value={filter}
+          onChange={(e) => onFilter(e.target.value)}
+          data-anl-event="search:input"
+        />
       </div>
       <div className={styles.sortBy}>
         <InterfaceText en="Sort by" he="מיון לפי" />
@@ -324,7 +501,11 @@ export function SourceFilterBar({ filter, onFilter, options, sort, onSort }: { f
             aria-pressed={sort === o.id}
             onClick={() => o.id !== sort && onSort(o.id)}
             data-anl-event="sort_by:click"
-            data-anl-batch={JSON.stringify({ text: o.id, from: sort, to: o.id })}
+            data-anl-batch={JSON.stringify({
+              text: o.id,
+              from: sort,
+              to: o.id,
+            })}
           >
             <InterfaceText en={o.en} he={o.he} />
           </button>
@@ -335,7 +516,13 @@ export function SourceFilterBar({ filter, onFilter, options, sort, onSort }: { f
 }
 
 /** The old LoadingMessage: a grey italic line ("Loading..." / "טוען מידע..."). */
-export function TopicPageMessage({ en = "Loading...", he = "טוען מידע..." }: { en?: string; he?: string }) {
+export function TopicPageMessage({
+  en = "Loading...",
+  he = "טוען מידע...",
+}: {
+  en?: string;
+  he?: string;
+}) {
   return (
     <div className={styles.message} aria-live="polite">
       <InterfaceText en={en} he={he} />
@@ -348,12 +535,24 @@ export function TopicPageMessage({ en = "Loading...", he = "טוען מידע...
  *
  * @feature TOP-020 Topic page tabs
  */
-export function AuthorWorks({ works }: { works: readonly { href: string; title: BilingualText; description: MaybeBilingual }[] }) {
+export function AuthorWorks({
+  works,
+}: {
+  works: readonly {
+    href: string;
+    title: BilingualText;
+    description: MaybeBilingual;
+  }[];
+}) {
   return (
     <div className={styles.works}>
       {works.map((w) => (
         <div key={w.href} className={styles.work}>
-          <Link href={w.href} className={styles.workTitle} data-target-module="library">
+          <Link
+            href={w.href}
+            className={styles.workTitle}
+            data-target-module="library"
+          >
             <InterfaceText en={w.title.en} he={w.title.he} />
           </Link>
           <div className={styles.workDescription}>

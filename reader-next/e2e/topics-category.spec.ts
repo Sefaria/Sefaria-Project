@@ -15,7 +15,7 @@ test.describe("a topic category (verified against sefaria.org 2026-11-04)", () =
     await expect(cards(page).nth(0)).toHaveText("Bereshit");
     await expect(cards(page).nth(1)).toHaveText("Noach");
     await expect(cards(page).nth(53)).toHaveText("VeZot HaBerakhah");
-    // a single topic is still the old site's page: a plain link to /topics/<slug>
+    // a single topic is this client's page too: a routed link to /topics/<slug>
     await expect(cards(page).nth(0)).toHaveAttribute("href", /\/topics\/parashat-bereshit$/);
     await expect(cards(page).nth(0)).toHaveAttribute("data-anl-text", "Bereshit");
     // each card: its description under the title, at most three lines

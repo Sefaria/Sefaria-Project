@@ -66,7 +66,8 @@ test.describe("the topic search", () => {
     await expect(options.first().getByRole("img", { name: "Topic" })).toHaveAttribute("src", "/icons/iconmonstr-hashtag-1.svg");
     const first = await options.first().getAttribute("data-anl-text");
     await box.press("Enter");
-    await expect(page).toHaveURL(new RegExp(`/topics/${first!.toLowerCase().replace(/\s+/g, "-")}$`));
+    // the topic page is this client's (since the topic page port): it opens in the app, its address then written as sefaria.org writes it
+    await expect(page).toHaveURL(new RegExp(`/topics/${first!.toLowerCase().replace(/\s+/g, "-")}(\\?sort=Relevance.*)?$`));
   });
 
   test("arrow keys move the highlight; a click opens that topic", async ({ page }) => {
@@ -81,8 +82,8 @@ test.describe("the topic search", () => {
     await box.press("ArrowDown");
     await expect(options.nth(1)).toHaveAttribute("aria-selected", "true");
     await options.nth(1).click();
-    await expect(page).toHaveURL(/\/topics\/[a-z0-9-]+$/);
-    await expect(page.getByRole("heading", { name: "Django topic page" })).toBeVisible();
+    await expect(page).toHaveURL(/\/topics\/[a-z0-9-]+(\?sort=Relevance.*)?$/);
+    await expect(main(page).getByRole("heading", { level: 1 })).toContainText(/Shabbat|Shabb/);
   });
 });
 
