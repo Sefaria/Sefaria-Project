@@ -3,7 +3,7 @@ import { serverConfigProblems } from "~/lib/config";
 import { pageCacheHeaders } from "./server/cache-policy";
 import { routeOwner, warmRouteManifest } from "./server/route-manifest";
 import { installInternalApiFetch, withUpstreamHealth } from "./server/internal-fetch";
-import { isDjangoPath, passResetLink, passThrough, passThroughEnabled, resetLinkUid, trailingSlashRedirect, upstreamUnavailable } from "./server/pass-through";
+import { isDjangoRequest, passResetLink, passThrough, passThroughEnabled, resetLinkUid, trailingSlashRedirect, upstreamUnavailable } from "./server/pass-through";
 
 // A misconfigured server fails at start, loudly, instead of answering every request with a broken page (CODE_REVIEW R-35)
 if (typeof window === "undefined" && typeof process !== "undefined") {
@@ -25,7 +25,7 @@ const siteRouting = createMiddleware({ type: "request" }).server(async ({ reques
   const slash = trailingSlashRedirect(new URL(request.url), request.method);
   if (slash) return slash;
   if (!passThroughEnabled()) return next();
-  if (isDjangoPath(pathname, request.method)) return passThrough(request);
+  if (isDjangoRequest(request, pathname)) return passThrough(request);
   const resetUid = request.method === "GET" ? resetLinkUid(pathname) : null;
   if (resetUid) return passResetLink(request, resetUid);
   // not a page of this client nor a text: Django's, without rendering it first (R-36)

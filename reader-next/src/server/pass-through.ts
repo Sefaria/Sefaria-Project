@@ -7,9 +7,9 @@
  *    not heard of (a new static page, a redirect) still works.
  * Off unless SEFARIA_PASS_THROUGH=1 (local development shows this client's own 404).
  */
-import { API_ORIGIN } from "~/lib/config";
+import { API_ORIGIN, PUBLIC_CONFIG } from "~/lib/config";
 import type { DeadlineInit } from "./internal-fetch";
-import { isDjangoPage } from "~/lib/routing/django-paths";
+import { isDjangoPage, isDjangoPageForHost } from "~/lib/routing/django-paths";
 
 export { DJANGO_PREFIXES } from "~/lib/routing/django-paths";
 
@@ -21,6 +21,18 @@ const SERVER_FN_RE = /^\/_serverFn\//;
 /** Always Django's, whatever this client could render (every write, except to this client's own server functions). */
 export const isDjangoPath = (pathname: string, method: string) =>
   !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || isDjangoPage(pathname));
+
+/**
+ * The request's host as the visitor typed it (nginx and Cloudflare keep it in Host; a proxy in front may put it in X-Forwarded-Host).
+ */
+export const requestHost = (request: Request): string => request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || new URL(request.url).host;
+
+/**
+ * Django's, for this request: isDjangoPath, and on the Voices host the pages Voices keeps (its /topics: the Library/Voices host model
+ * is undecided, Q-E1).
+ */
+export const isDjangoRequest = (request: Request, pathname: string) =>
+  isDjangoPath(pathname, request.method) || ((request.method === "GET" || request.method === "HEAD") && isDjangoPageForHost(pathname, requestHost(request), PUBLIC_CONFIG.voicesOrigin));
 
 const PASS_THROUGH_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH_TIMEOUT_MS) || 30000);
 

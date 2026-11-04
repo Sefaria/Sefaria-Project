@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { isDjangoPath, passResetLink, resetLinkUid, setPasswordPath, trailingSlashRedirect } from "./pass-through";
+import { isDjangoPath, isDjangoRequest, passResetLink, resetLinkUid, setPasswordPath, trailingSlashRedirect } from "./pass-through";
 
 describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
   it("sends Django's own sections through", () => {
-    for (const p of ["/api/texts/Genesis.1", "/logout", "/accounts/apple/login/", "/_allauth/browser/v1/auth/session", "/topics", "/topics/light", "/sheets/123", "/static/js/x.js", "/profile/me", "/admin/", "/sefaria.js"]) {
+    for (const p of ["/api/texts/Genesis.1", "/logout", "/accounts/apple/login/", "/_allauth/browser/v1/auth/session", "/topics/light", "/topics/b/light", "/topics/parashat-noach", "/sheets/123", "/static/js/x.js", "/profile/me", "/admin/", "/sefaria.js"]) {
       expect(isDjangoPath(p, "GET"), p).toBe(true);
     }
   });
   it("keeps reader and library pages here", () => {
-    for (const p of ["/", "/login", "/login/", "/register", "/password/reset/confirm/MTI/set-password/", "/texts", "/texts/Tanakh", "/Genesis.1", "/Genesis.1.1-5", "/search", "/Rashi_on_Genesis.1.1", "/topicsfoo", "/apis"]) {
+    for (const p of ["/", "/login", "/login/", "/register", "/password/reset/confirm/MTI/set-password/", "/texts", "/texts/Tanakh", "/Genesis.1", "/Genesis.1.1-5", "/search", "/Rashi_on_Genesis.1.1", "/topicsfoo", "/apis", "/topics", "/topics/category/authors", "/topics/all/a", "/topics/all/%D7%90"]) {
       expect(isDjangoPath(p, "GET"), p).toBe(false);
     }
   });
@@ -67,10 +67,36 @@ describe("trailingSlashRedirect", () => {
     expect(go("/texts/Tanakh/")!.headers.get("location")).toBe("/texts/Tanakh");
   });
   it("leaves the home page, Django's paths, the auth pages, writes and slash-less addresses alone", () => {
-    for (const u of ["/", "/admin/", "/topics/", "/login/", "/password/reset/confirm/MTI/tok/", "/Genesis.1"]) expect(go(u), u).toBeNull();
+    for (const u of ["/", "/admin/", "/topics/rashi/", "/login/", "/password/reset/confirm/MTI/tok/", "/Genesis.1"]) expect(go(u), u).toBeNull();
     expect(go("/Genesis.1/", "POST")).toBeNull();
   });
   it("never redirects to another host (a path that starts with two slashes)", () => {
     for (const u of ["//evil.com/", "/\\evil.com/"]) expect(trailingSlashRedirect(new URL(`https://www.sefaria.org${u}`), "GET"), u).toBeNull();
+  });
+});
+
+// @feature TOP-001 @feature TOP-002
+describe("the topics port: which /topics pages are this client's", () => {
+  it("a single topic (and its /b/ test version) is still Django's; the landing page, categories and A–Z are this client's", () => {
+    expect(isDjangoPath("/topics/rashi", "GET")).toBe(true);
+    expect(isDjangoPath("/topics/b/rashi", "GET")).toBe(true);
+    expect(isDjangoPath("/topics", "GET")).toBe(false);
+    expect(isDjangoPath("/topics/category/torah-portions", "GET")).toBe(false);
+    expect(isDjangoPath("/topics/all/b", "GET")).toBe(false);
+  });
+  it("the legacy redirects that land on the topics pages stay Django's (/people, /people/Talmud, /person/<name>, /sheets/tags)", () => {
+    for (const p of ["/people", "/people/Talmud", "/person/Rashi", "/sheets/tags", "/sheets/tags/Shabbat"]) expect(isDjangoPath(p, "GET"), p).toBe(true);
+  });
+  it("on the Voices host every /topics page is Django's (Q-E1: the host model is undecided)", () => {
+    const voices = (path: string, host = "voices.sefaria.org") => new Request(`http://${host}${path}`);
+    for (const p of ["/topics", "/topics/category/authors", "/topics/all/a"]) {
+      expect(isDjangoRequest(voices(p), p), p).toBe(true);
+      expect(isDjangoRequest(voices(p, "chiburim.sefaria.org.il"), p), p).toBe(true);
+      expect(isDjangoRequest(new Request(`http://www.sefaria.org${p}`), p), p).toBe(false);
+    }
+    // behind a proxy the visitor's host is the forwarded one
+    const proxied = new Request("http://reader:3000/topics", { headers: { "x-forwarded-host": "voices.cauldron.sefaria.org" } });
+    expect(isDjangoRequest(proxied, "/topics")).toBe(true);
+    expect(isDjangoRequest(voices("/texts"), "/texts")).toBe(false);
   });
 });

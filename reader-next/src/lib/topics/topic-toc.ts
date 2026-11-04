@@ -13,6 +13,12 @@ export interface TopicTocNode {
   slug: string;
   primaryTitle: { en: string; he: string };
   children?: TopicTocNode[];
+  /** Topic.contents(minify) fields the TOC carries (library.get_topic_toc_json): display gating, order, cards' text. */
+  shouldDisplay?: boolean;
+  displayOrder?: number;
+  pools?: string[];
+  description?: { en?: string; he?: string };
+  categoryDescription?: { en?: string; he?: string };
 }
 export interface TopicCategory {
   slug: string;
@@ -56,3 +62,59 @@ export const topicTocTreeQueryOptions = () => {
   return queryOptions<TopicTocNode[]>(rest as never);
 };
 
+
+/**
+ * One page of the topics TOC (the old Sefaria.topicTocPage(slug)): the children of a category, or the top level for none, each
+ * without its own children (the flag `isCategory` says it has some). Undefined for a slug that is not a category in the TOC.
+ *
+ * @feature TOP-013 Topic category page
+ */
+export interface TopicTocEntry {
+  slug: string;
+  primaryTitle: { en: string; he: string };
+  isCategory: boolean;
+  shouldDisplay: boolean;
+  displayOrder: number;
+  pools: string[];
+  description?: { en?: string; he?: string };
+  categoryDescription?: { en?: string; he?: string };
+}
+
+const entryOf = (n: TopicTocNode): TopicTocEntry => ({
+  slug: n.slug,
+  primaryTitle: n.primaryTitle,
+  // the old TopicTOCCard reads `children` for a category: an empty list is still a category
+  isCategory: Array.isArray(n.children),
+  shouldDisplay: n.shouldDisplay ?? !!n.children,
+  displayOrder: n.displayOrder ?? 10000,
+  pools: n.pools ?? [],
+  ...(n.description ? { description: n.description } : {}),
+  ...(n.categoryDescription ? { categoryDescription: n.categoryDescription } : {}),
+});
+
+export function findTopicTocNode(toc: readonly TopicTocNode[], slug: string): TopicTocNode | undefined {
+  for (const n of toc) {
+    if (n.slug === slug) return n;
+    const hit = n.children ? findTopicTocNode(n.children, slug) : undefined;
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
+export function topicTocPage(toc: readonly TopicTocNode[], slug?: string): TopicTocEntry[] | undefined {
+  if (!slug) return toc.map(entryOf);
+  const node = findTopicTocNode(toc, slug);
+  return node?.children ? node.children.map(entryOf) : undefined;
+}
+
+/** slug → every category above it, outermost first (the old Sefaria.topicTocCategories). Top-level categories have []. */
+export function topicTocCategoryPaths(toc: readonly TopicTocNode[]): Record<string, TopicCategory[]> {
+  const out: Record<string, TopicCategory[]> = {};
+  const walk = (node: TopicTocNode, above: TopicCategory[]) => {
+    out[node.slug] = above; // a topic under two categories: the last one walked, as the old reducer
+    const here = [...above, { slug: node.slug, en: node.primaryTitle.en, he: node.primaryTitle.he }];
+    for (const child of node.children ?? []) walk(child, here);
+  };
+  toc.forEach((n) => walk(n, []));
+  return out;
+}

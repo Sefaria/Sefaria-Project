@@ -1,6 +1,8 @@
 // Whole-page pixel parity, live vs rebuild, at desktop and phone size: a viewport shot, a full-page shot and the site header.
 // Writes docs/parity/page-<name>-<w>[-full|-header]-{live,ours}.png; compare with scripts/parity-diff.py.
 // Usage: node scripts/parity-page.mjs ['name=/path' ...]   (default: texts=/texts)
+// FREEZE_RANDOM=1: random samples (the topics pages' /api/topics/pools/…) are fetched once from the live API and served to both sides,
+// so a page built on them (the topics landing page's word cloud and cards) compares like for like.
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 const targets = process.argv.length > 2 ? Object.fromEntries(process.argv.slice(2).map((a) => [a.slice(0, a.indexOf("=")), a.slice(a.indexOf("=") + 1)])) : { texts: "/texts" };
@@ -18,6 +20,15 @@ for (const [w, h] of SIZES) {
     { name: "cookiesNotificationAccepted", value: "1", domain: ".sefaria.org", path: "/" },
     { name: "cookiesNotificationAccepted", value: "1", domain: "localhost", path: "/" },
   ]);
+  if (process.env.FREEZE_RANDOM) {
+    const frozen = new Map();
+    await ctx.route(/\/api\/topics\/pools\//, async (route) => {
+      const u = new URL(route.request().url());
+      const key = u.pathname + u.search;
+      if (!frozen.has(key)) frozen.set(key, await (await fetch(`https://www.sefaria.org${key}`)).text());
+      await route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: frozen.get(key) });
+    });
+  }
   const live = await ctx.newPage(), ours = await ctx.newPage();
   for (const [name, path] of Object.entries(targets)) {
     for (const [side, page, origin] of [["live", live, "https://www.sefaria.org"], ["ours", ours, OURS]]) {

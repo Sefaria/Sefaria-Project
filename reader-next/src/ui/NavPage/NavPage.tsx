@@ -15,6 +15,8 @@ export interface NavPageProps {
   sidebarLabel?: string;
   /** Top padding of the page column and of the sidebar on a wide screen, where a page sits lower than the library's 56px (search). */
   top?: { main?: number; side?: number };
+  /** Width of the page's content column (without its 30px padding): 665 by default (the old .contentInner); the topics landing page is 783. */
+  measure?: number;
 }
 
 /**
@@ -24,13 +26,13 @@ export interface NavPageProps {
  * @feature LIB-023 Nav sidebar container and module registry
  * @feature LIB-019 Category and text color coding
  */
-export function NavPage({ children, sidebar, footer, colorCategory, sidebarLabel, top }: NavPageProps) {
+export function NavPage({ children, sidebar, footer, colorCategory, sidebarLabel, top, measure }: NavPageProps) {
   const he = useInterfaceLang() === "hebrew";
   return (
     <div className={styles.page} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       {/* the old .categoryColorLine: over the top of the page, and it stays there while the page scrolls under it */}
       {colorCategory ? <div className={styles.colorLine} style={{ background: categoryColor(colorCategory) }} aria-hidden="true" /> : null}
-      <div className={styles.main} style={top?.main ? ({ "--_top": `${top.main}px` } as React.CSSProperties) : undefined}>{children}</div>
+      <div className={styles.main} style={top?.main || measure ? ({ ...(top?.main ? { "--_top": `${top.main}px` } : {}), ...(measure ? { "--_measure": `${measure}px` } : {}) } as React.CSSProperties) : undefined}>{children}</div>
       <aside className={styles.side} style={top?.side ? ({ "--_top": `${top.side}px` } as React.CSSProperties) : undefined} aria-label={sidebarLabel ?? (he ? "ניווט בסרגל הצד" : "Sidebar navigation")}>
         {sidebar}
         {footer ? <div className={styles.footer}>{footer}</div> : null}
