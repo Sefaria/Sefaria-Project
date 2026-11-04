@@ -39,7 +39,7 @@ const SidebarModules = ({type, props}) => {
   const moduleTypes = {
     "AboutSefaria":           AboutSefaria,
     "Promo":                  Promo,
-    "Resources":              Resources,
+    "GivingTuesdayAd":        GivingTuesdayAd,    "Resources":              Resources,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
@@ -191,6 +191,15 @@ const StudyCompanion = () => (
         </a>
     </SidebarModule>
 )
+
+
+// MOCKUP ONLY: GivingTuesday sidebar ad (the real one would come from Strapi)
+const GivingTuesdayAd = () => (
+  <div className="navSidebarModule sans-serif givingTuesdayAd">
+    <img src="/static/img/giving-tuesday-ad-mockup.png" alt="GivingTuesday: All donations matched 3x!" />
+    <a className="button givingTuesdayAdButton" href="https://donate.sefaria.org/">Triple My Gift</a>
+  </div>
+);
 
 
 const AboutSefaria = ({hideTitle}) => (
