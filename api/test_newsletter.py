@@ -302,6 +302,44 @@ class TestFetchACPersonalizationVariables:
         mock_request.assert_called_once_with("personalizations?limit=100")
 
 
+class TestRaiseIfACPageIsTruncated:
+    """AC's meta.total says how many items exist; fail if we only got part of them"""
+
+    @pytest.mark.parametrize(
+        "call, collection_key",
+        [
+            (lambda: _catalog.fetch_ac_lists(), "lists"),
+            (lambda: _catalog.fetch_ac_personalization_variables(), "personalizations"),
+            (lambda: _contacts.get_ac_field_id_by_perstag("LEARNING_LEVEL"), "fields"),
+        ],
+    )
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    def test_raises_when_total_exceeds_returned(self, mock_request, call, collection_key):
+        """More items in AC than came back: raise instead of working from a partial list"""
+        _contacts._field_id_cache.clear()
+        mock_request.return_value = {
+            collection_key: [{"id": "1", "perstag": "OTHER"}],
+            "meta": {"total": "101"},
+        }
+
+        with pytest.raises(newsletter_service.NewsletterServiceError, match="101"):
+            call()
+
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    def test_accepts_total_equal_to_returned(self, mock_request):
+        """Everything came back: no error"""
+        mock_request.return_value = {"lists": [{"id": "1"}], "meta": {"total": "1"}}
+
+        assert _catalog.fetch_ac_lists() == [{"id": "1"}]
+
+    @mock.patch("api.newsletter_service._ac_client._client.make_request")
+    def test_accepts_response_without_meta_total(self, mock_request):
+        """No meta.total to compare against: no error"""
+        mock_request.return_value = {"lists": [{"id": "1"}]}
+
+        assert _catalog.fetch_ac_lists() == [{"id": "1"}]
+
+
 class TestFetchACNewsletters:
     """Tests for complete newsletter list building with metadata"""
 

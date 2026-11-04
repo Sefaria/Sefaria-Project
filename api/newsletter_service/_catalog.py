@@ -11,7 +11,11 @@ from typing import Any
 from django.core.cache import cache
 
 from sefaria.system.exceptions import InputError
-from api.newsletter_service._ac_client import get_ac_client, requires_newsletter_service
+from api.newsletter_service._ac_client import (
+    get_ac_client,
+    raise_if_ac_page_is_truncated,
+    requires_newsletter_service,
+)
 from api.newsletter_service._errors import NewsletterListUnavailableError, reraise_as_newsletter_service_error
 from api.newsletter_service._results import NewsletterInfo
 
@@ -28,7 +32,7 @@ NEWSLETTER_LIST_CACHE_TTL: int = 60 * 60  # 1 hour
 @reraise_as_newsletter_service_error
 def fetch_ac_lists() -> list[dict[str, Any]]:
     """
-    Fetch all mailing lists from ActiveCampaign.
+    Fetch all mailing lists from ActiveCampaign, in one request with no paging.
 
     In product terms: every newsletter list in the account, including the unmanaged
     ones the sign-up page doesn't offer.
@@ -37,10 +41,15 @@ def fetch_ac_lists() -> list[dict[str, Any]]:
         list: List of newsletter list objects with 'id', 'stringid', and 'name' fields.
 
     Raises:
-        NewsletterServiceError: If the API request fails.
+        NewsletterServiceError: If the API request fails, or if AC has more lists
+            than the one request returned (see raise_if_ac_page_is_truncated).
     """
-    response: dict[str, Any] = get_ac_client().make_request("lists?limit=100")
-    lists: list[dict[str, Any]] = response.get("lists", [])
+    collection_name: str = "lists"
+    query_params: str = "limit=100"
+    endpoint: str = f"{collection_name}?{query_params}"
+    response: dict[str, Any] = get_ac_client().make_request(endpoint)
+    raise_if_ac_page_is_truncated(response, collection_name, endpoint)
+    lists: list[dict[str, Any]] = response.get(collection_name, [])
     logger.info(f"Retrieved {len(lists)} lists from ActiveCampaign")
     return lists
 
@@ -48,7 +57,7 @@ def fetch_ac_lists() -> list[dict[str, Any]]:
 @reraise_as_newsletter_service_error
 def fetch_ac_personalization_variables() -> list[dict[str, Any]]:
     """
-    Fetch all personalization variables from ActiveCampaign.
+    Fetch all personalization variables from ActiveCampaign, in one request with no paging.
 
     In product terms: the raw values that hold each managed newsletter's display
     data (icon, language, and whether it's the primary list).
@@ -57,10 +66,15 @@ def fetch_ac_personalization_variables() -> list[dict[str, Any]]:
         list: List of personalization variable objects
 
     Raises:
-        NewsletterServiceError: If API request fails
+        NewsletterServiceError: If API request fails, or if AC has more variables
+            than the one request returned (see raise_if_ac_page_is_truncated).
     """
-    response: dict[str, Any] = get_ac_client().make_request("personalizations?limit=100")
-    variables: list[dict[str, Any]] = response.get("personalizations", [])
+    collection_name: str = "personalizations"
+    query_params: str = "limit=100"
+    endpoint: str = f"{collection_name}?{query_params}"
+    response: dict[str, Any] = get_ac_client().make_request(endpoint)
+    raise_if_ac_page_is_truncated(response, collection_name, endpoint)
+    variables: list[dict[str, Any]] = response.get(collection_name, [])
     logger.info(
         f"Retrieved {len(variables)} personalization variables from ActiveCampaign"
     )
@@ -149,7 +163,9 @@ def fetch_all_ac_list_ids() -> list[str]:
         list: List of AC list ID strings (e.g., ['1', '2', '3', '99'])
 
     Raises:
-        NewsletterServiceError: If API request fails
+        NewsletterServiceError: If API request fails, or if AC has more lists than
+            fetch_ac_lists() can read in one request. The error stops a full opt-out
+            from silently leaving someone on the lists it never saw.
     """
     lists: list[dict[str, Any]] = fetch_ac_lists()
     return [lst["id"] for lst in lists]

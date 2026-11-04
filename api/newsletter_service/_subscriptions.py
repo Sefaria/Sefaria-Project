@@ -323,7 +323,8 @@ def replace_user_preferences(
         # === OPT-OUT BRANCH: Unsubscribe from ALL lists ===
         logger.info(f"Marketing opt-out for {email}: unsubscribing from all lists")
 
-        # Get ALL list IDs in the AC account (managed + unmanaged)
+        # Get ALL list IDs in the AC account (managed + unmanaged). This raises if
+        # AC has more lists than one request returns, so we never opt out partway.
         all_list_ids: set[str] = set(fetch_all_ac_list_ids())
 
         # Get user's current active memberships

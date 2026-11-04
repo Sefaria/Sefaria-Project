@@ -7,7 +7,10 @@ from typing import Any
 from urllib.parse import quote
 
 from sefaria.system.exceptions import InputError
-from api.newsletter_service._ac_client import get_ac_client
+from api.newsletter_service._ac_client import (
+    get_ac_client,
+    raise_if_ac_page_is_truncated,
+)
 from api.newsletter_service._errors import (
     NewsletterServiceError,
     NewsletterUpdateIncompleteError,
@@ -34,7 +37,7 @@ def get_ac_field_id_by_perstag(perstag: str) -> str:
     In product terms: finds where AC stores a per-person setting, such as the
     learning level.
 
-    Fetches all fields on first call and caches the full mapping.
+    Fetches all fields (one request, no paging) on first call and caches the full mapping.
     Subsequent calls return from cache without an API call.
     TODO: reconsider using actual cache in the future
 
@@ -45,13 +48,18 @@ def get_ac_field_id_by_perstag(perstag: str) -> str:
         str: The numeric field ID as a string
 
     Raises:
-        NewsletterServiceError: If field not found or API request fails
+        NewsletterServiceError: If field not found, API request fails, or AC has more
+            fields than the one request returned (see raise_if_ac_page_is_truncated)
     """
     if perstag in _field_id_cache:
         return _field_id_cache[perstag]
 
-    response: dict[str, Any] = get_ac_client().make_request("fields?limit=100")
-    fields: list[dict[str, Any]] = response.get("fields", [])
+    collection_name: str = "fields"
+    query_params: str = "limit=100"
+    endpoint: str = f"{collection_name}?{query_params}"
+    response: dict[str, Any] = get_ac_client().make_request(endpoint)
+    raise_if_ac_page_is_truncated(response, collection_name, endpoint)
+    fields: list[dict[str, Any]] = response.get(collection_name, [])
 
     _field_id_cache.update({f["perstag"]: f["id"] for f in fields if f.get("perstag")})
 

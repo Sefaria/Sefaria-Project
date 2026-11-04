@@ -270,6 +270,41 @@ _client: ActiveCampaignClient | None = (
 )
 
 
+def raise_if_ac_page_is_truncated(
+    response: dict[str, Any], collection_key: str, endpoint: str
+) -> None:
+    """
+    Raise if AC has more items than this one response returned.
+
+    The endpoints we call send a fixed `limit` and never ask for a second page.
+    AC puts the full count in `meta.total` (a string), whatever the limit. If that
+    count is bigger than what we got, we would be working from part of the list: a
+    marketing opt-out would leave the person on every list past the first 100, and
+    still save that they opted out. So fail loudly and make someone add paging.
+
+    A response with no usable `meta.total` is accepted, because there is nothing
+    to compare against.
+
+    Args:
+        response: The parsed JSON from make_request.
+        collection_key: The key holding the items ('lists', 'personalizations', 'fields').
+        endpoint: The path requested, for the error message.
+
+    Raises:
+        NewsletterServiceError: If meta.total is larger than the number of items returned.
+    """
+    try:
+        total: int = int(response.get("meta", {}).get("total"))
+    except (AttributeError, TypeError, ValueError):
+        return
+    returned: int = len(response.get(collection_key, []))
+    if total > returned:
+        raise NewsletterServiceError(
+            f"ActiveCampaign has {total} {collection_key} but '{endpoint}' returned only "
+            f"{returned}. Add paging before relying on this call."
+        )
+
+
 def requires_newsletter_service(func):
     """Decorator: raises NewsletterServiceNotConfiguredError if AC credentials are not configured."""
 
