@@ -4,10 +4,11 @@ import { open } from "./helpers";
 const main = (page: Page) => page.getByRole("main");
 const side = (page: Page) => page.getByRole("complementary", { name: "Sidebar navigation" });
 
-/** A single topic's page is still Django's (a link that leaves the app, to the site's /topics/<slug>): answered here, never loaded. */
-async function stubTopicPages(page: Page) {
-  await page.route(/^https?:\/\/[^/]*sefaria\.org\/topics\/(?!category\/|all\/)[^/?]+(\?.*)?$/, (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<title>topic page</title><h1>Django topic page</h1>" }));
-}
+/** sefaria.org picks the single panel from the User-Agent: the phone tests send a phone's. */
+const PHONE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" };
+/** The API the app under test reads (the cassette, or sefaria.org with E2E_LIVE). */
+const API = process.env.E2E_LIVE ? "https://www.sefaria.org" : `http://localhost:${Number(process.env.E2E_API_PORT) || 3998}`;
+const fontOf = (page: Page, sel: string) => page.locator(sel).first().evaluate((e) => getComputedStyle(e).fontFamily);
 
 // @feature TOP-001 @feature TOP-002 @feature TOP-003
 test.describe("/topics: Explore by Topic (verified against sefaria.org 2026-11-04)", () => {
@@ -51,7 +52,6 @@ test.describe("/topics: Explore by Topic (verified against sefaria.org 2026-11-0
 // @feature TOP-004
 test.describe("the topic search", () => {
   test("'Search N Topics A-Z'; suggestions after two letters with their category path; Enter opens the first", async ({ page }) => {
-    await stubTopicPages(page);
     await open(page, "/topics");
     const box = main(page).getByRole("combobox");
     await expect(box).toHaveAttribute("placeholder", /^Search [\d,]+ Topics A-Z$/);
@@ -67,11 +67,11 @@ test.describe("the topic search", () => {
     const first = await options.first().getAttribute("data-anl-text");
     await box.press("Enter");
     // the topic page is this client's (since the topic page port): it opens in the app, its address then written as sefaria.org writes it
-    await expect(page).toHaveURL(new RegExp(`/topics/${first!.toLowerCase().replace(/\s+/g, "-")}(\\?sort=Relevance.*)?$`));
+    await expect(page).toHaveURL(new RegExp(`/topics/${first!.toLowerCase().replace(/\s+/g, "-")}\\?sort=Relevance&tab=[a-z-]+$`));
+    await expect(main(page).getByRole("heading", { level: 1 })).toHaveText(first!);
   });
 
   test("arrow keys move the highlight; a click opens that topic", async ({ page }) => {
-    await stubTopicPages(page);
     await open(page, "/topics");
     const box = main(page).getByRole("combobox");
     await box.fill("shabb");
@@ -82,13 +82,15 @@ test.describe("the topic search", () => {
     await box.press("ArrowDown");
     await expect(options.nth(1)).toHaveAttribute("aria-selected", "true");
     await options.nth(1).click();
-    await expect(page).toHaveURL(/\/topics\/[a-z0-9-]+(\?sort=Relevance.*)?$/);
+    await expect(page).toHaveURL(/\/topics\/[a-z0-9-]+\?sort=Relevance&tab=[a-z-]+$/);
     await expect(main(page).getByRole("heading", { level: 1 })).toContainText(/Shabbat|Shabb/);
   });
 });
 
 // @feature TOP-005
 test.describe("the topic cloud", () => {
+  // sefaria.org places its bullets once, when the sample arrives (often before the web fonts): 1–2 of its ~40 can then end a line.
+  // The rule on the final lines is what it shows otherwise (measured over four loads, 2026-11-04) and what this client keeps.
   test("fifty topics in five centred lines between two rainbow lines; bullets only between items on the same line", async ({ page }) => {
     await open(page, "/topics");
     const cloud = main(page).locator('[data-anl-feature_name="Topic Salad"]');
@@ -104,6 +106,9 @@ test.describe("the topic cloud", () => {
       els.slice(0, -1).filter((el, i) => el.hasAttribute("data-bullet") !== ((el as HTMLElement).offsetTop === (els[i + 1] as HTMLElement).offsetTop)).length,
     );
     expect(bad).toBe(0);
+    // and there are bullets: the cloud is not one item per line
+    expect(await cloud.locator("[data-salad-item][data-bullet]").count()).toBeGreaterThan(20);
+    expect(await cloud.locator("[data-salad-item]").last().getAttribute("data-bullet")).toBeNull();
   });
 });
 
@@ -113,11 +118,12 @@ test.describe("featured topic and random cards", () => {
     await open(page, "/topics");
     const featured = main(page).locator('[data-anl-feature_name="Featured Topic"]');
     await expect(featured.getByRole("heading", { level: 2 })).toHaveText(/featured topic/i);
-    const title = await featured.getByRole("heading", { level: 3 }).innerText();
-    expect(title.length).toBeGreaterThan(0);
+    // the day's featured topic, as the server names it
+    const { topic: today } = (await (await page.request.get(`${API}/_api/topics/featured-topic?lang=en`)).json()) as { topic: { slug: string; primaryTitle: { en: string } } };
+    await expect(featured.getByRole("heading", { level: 3 })).toHaveText(today.primaryTitle.en);
     await expect(featured.getByRole("img")).toBeVisible();
     const go = featured.getByRole("link", { name: "Go to Topic ›" });
-    await expect(go).toHaveAttribute("href", /\/topics\/[^/]+$/);
+    await expect(go).toHaveAttribute("href", `/topics/${today.slug}`);
     // the image is 239px wide with its hairline, the text 30px beside it (measured)
     const [img, h3] = [await featured.getByRole("img").boundingBox(), await featured.getByRole("heading", { level: 3 }).boundingBox()];
     expect(Math.round(img!.width)).toBe(241);
@@ -204,7 +210,7 @@ test.describe("this week's portion and the Jewish calendar", () => {
 
 // @feature TOP-003 @feature TOP-005 @feature TOP-004
 test.describe("the landing page on a phone", () => {
-  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  test.use(PHONE);
   test("one scrolling row of blue topic pills; 'Explore all Topics ›' scrolls to Browse Topics; ten cards in a row", async ({ page }) => {
     await open(page, "/topics");
     const cloud = main(page).locator('[data-anl-feature_name="Topic Salad"]');
@@ -238,5 +244,29 @@ test.describe("the landing page in the Hebrew interface", () => {
     expect(s!.x).toBeLessThan(m!.x);
     await expect(main(page).getByText("פרשת השבוע", { exact: true })).toBeVisible();
     await expect(main(page).getByRole("link", { name: "קראו את הפרשה" })).toBeVisible();
+    // the faces sefaria.org.il uses (measured 2026-11-04): the search in Heebo, a Hebrew featured description in the Hebrew serif,
+    // the Sign Up button in the English sans, the portion's links on a serif line
+    expect(await fontOf(page, 'main [role="combobox"]')).toMatch(/^Heebo/);
+    expect(await main(page).locator('[data-anl-feature_name="Featured Topic"] h3 + div > span').first().evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/Taamey Frank/);
+    expect(await main(page).locator('[data-anl-batch*="newsletter_topics"] button').evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/^Roboto/);
+    expect(await main(page).getByRole("link", { name: "לרשימת כל הפרשות" }).evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/^Cardo/);
+    expect(Math.round((await main(page).getByRole("link", { name: "לרשימת כל הפרשות" }).locator("..").boundingBox())!.height)).toBe(21);
+  });
+});
+
+// @feature TOP-003 @feature TOP-004 @feature TOP-006 @feature I18-013
+test.describe("the landing page in the Hebrew interface on a phone", () => {
+  test.use(PHONE);
+  test("the search in the English sans, 'browse all' and the featured description in the Hebrew serif (as sefaria.org.il)", async ({ page }) => {
+    await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+    await open(page, "/topics");
+    expect(await fontOf(page, 'main [role="combobox"]')).toMatch(/^Roboto/);
+    const explore = main(page).getByRole("button", { name: "לדפדוף בכל הנושאים ›" });
+    expect(await explore.locator("span").first().evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/Taamey Frank/);
+    expect(Math.round((await explore.boundingBox())!.height)).toBe(21);
+    const featured = main(page).locator('[data-anl-feature_name="Featured Topic"]');
+    // its title row is the title's own line (32px), not the h3's taller serif strut
+    expect(Math.round((await featured.getByRole("heading", { level: 3 }).boundingBox())!.height)).toBe(32);
+    expect(await featured.locator("h3 + div > span").first().evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/Taamey Frank/);
   });
 });

@@ -68,7 +68,9 @@ test.describe("All Topics A–Z in the Hebrew interface", () => {
     expect(names.length).toBeGreaterThan(20);
     expect(names.every((n) => n.startsWith("א"))).toBe(true);
     // an English description in the Hebrew interface is a left-to-right block (the old .int-he.enInHe)
-    const en = main(page).locator('[lang="en"][dir="ltr"]').first();
-    if (await en.count()) expect(await en.evaluate((e) => getComputedStyle(e).display)).toBe("block");
+    // an English description in the Hebrew interface is a left-to-right block in Heebo at 122% (the old .int-he.enInHe)
+    const en = main(page).locator('[lang="en"][dir="ltr"]');
+    expect(await en.count()).toBeGreaterThan(0);
+    expect(await en.first().evaluate((e) => [getComputedStyle(e).display, getComputedStyle(e).fontFamily.split(",")[0]])).toEqual(["block", "Heebo"]);
   });
 });

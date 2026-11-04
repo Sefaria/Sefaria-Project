@@ -19,9 +19,14 @@ test.describe("a topic category (verified against sefaria.org 2026-11-04)", () =
     await expect(cards(page).nth(0)).toHaveAttribute("href", /\/topics\/parashat-bereshit$/);
     await expect(cards(page).nth(0)).toHaveAttribute("data-anl-text", "Bereshit");
     // each card: its description under the title, at most three lines
-    const desc = main(page).locator('[data-anl-feature_name="Main"] a + div').first();
-    await expect(desc).toContainText("Bereshit");
-    expect(Math.round((await desc.boundingBox())!.height)).toBeLessThanOrEqual(54);
+    const descs = main(page).locator('[data-anl-feature_name="Main"] a + div');
+    await expect(descs).toHaveCount(54);
+    await expect(descs.nth(0)).toContainText("Bereshit");
+    await expect(descs.nth(1)).toContainText(/Noah|Noach|flood/i);
+    // every card has a description, clamped to three 18px lines (non-empty, at most 54px)
+    const heights = await descs.evaluateAll((els) => els.map((e) => [e.textContent?.trim().length ?? 0, Math.round(e.getBoundingClientRect().height)]));
+    expect(heights.filter(([len]) => len === 0)).toEqual([]);
+    expect(heights.filter(([, h]) => h < 18 || h > 54)).toEqual([]);
     // the page reports as the old TopicCategory
     await expect(page.locator('[data-anl-project="topics"]')).toHaveAttribute("data-anl-panel_category", "Topic Landing");
   });
@@ -49,8 +54,10 @@ test.describe("a topic category (verified against sefaria.org 2026-11-04)", () =
     await expect(side(page).getByRole("heading", { name: "Study Companion" })).toHaveCount(0);
   });
 
-  test("an unknown category is not found (the old page's 404)", async ({ request }) => {
+  test("an unknown category is not found (the old page's 404): the reader sees 'Page not found.'", async ({ page, request }) => {
     expect((await request.get("/topics/category/no-such-category")).status()).toBe(404);
+    await open(page, "/topics/category/no-such-category");
+    await expect(page.getByText("Page not found.")).toBeVisible();
   });
 });
 
@@ -72,7 +79,7 @@ test.describe("a topic category in the Hebrew interface", () => {
 
 // @feature TOP-013
 test.describe("a topic category on a phone", () => {
-  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" });
   test("one card per row", async ({ page }) => {
     await open(page, "/topics/category/authors");
     const [a, b] = [await cards(page).nth(0).boundingBox(), await cards(page).nth(1).boundingBox()];
