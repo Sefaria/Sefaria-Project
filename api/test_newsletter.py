@@ -1365,7 +1365,7 @@ class TestCopyLearningLevelToNewProfile:
     """Tests for copy_learning_level_to_new_profile (run in the background after registration)"""
 
     @staticmethod
-    def make_profile(learning_level=None, uid=7):
+    def make_profile(learning_level=None, uid: int | None = 7):
         # Only the attributes the function reads; it never calls profile.save()
         return SimpleNamespace(id=uid, email="new@example.com", learning_level=learning_level)
 
