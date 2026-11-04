@@ -161,7 +161,9 @@
   "status": "todo"
  },
  "RTE-030": {
-  "status": "todo"
+  "status": "partial",
+  "note": "As TOP-001",
+  "by": "src/routes/topics.*"
  },
  "RTE-032": {
   "status": "done",
@@ -1367,8 +1369,8 @@
   "note": "Collections / Voices / topics: Phase 7, owner decides."
  },
  "SRC-098": {
-  "status": "deferred",
-  "note": "Collections / Voices / topics: Phase 7, owner decides."
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx (TopicLandingSearch)"
  },
  "SRC-099": {
   "status": "deferred",
@@ -1631,5 +1633,96 @@
   "status": "partial",
   "note": "Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet",
   "by": "src/features/shell/SiteWideBanner"
+ },
+ "TOP-001": {
+  "status": "partial",
+  "note": "Landing, category and A–Z URLs rendered; the single topic page and the legacy redirects are Django's",
+  "by": "src/routes/topics.*, src/lib/routing/django-paths.ts"
+ },
+ "TOP-002": {
+  "status": "partial",
+  "note": "Library landing page built; the Voices host's /topics stays Django's (Q-E1)",
+  "by": "src/server/pass-through.ts, src/lib/routing/django-paths.ts"
+ },
+ "TOP-003": {
+  "status": "done",
+  "by": "src/features/topics/TopicsLandingRoute.tsx, src/ui/TopicsNav/TopicsPages.tsx"
+ },
+ "TOP-004": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx (TopicLandingSearch), src/lib/topics/topic-model.ts"
+ },
+ "TOP-005": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-006": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-007": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-008": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-009": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-010": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx"
+ },
+ "TOP-012": {
+  "status": "done",
+  "by": "src/ui/TopicsNav/TopicCard.tsx"
+ },
+ "TOP-013": {
+  "status": "partial",
+  "note": "Page, cards, sidebar built; moderators' category buttons (add/edit/reorder) not built",
+  "by": "src/features/topics/TopicCategoryRoute.tsx"
+ },
+ "TOP-014": {
+  "status": "done",
+  "by": "src/features/topics/AllTopicsRoute.tsx, src/ui/TopicsNav/AllTopics.tsx"
+ },
+ "TOP-030": {
+  "status": "partial",
+  "note": "The navigation pages' rules; the topic page's are next",
+  "by": "src/lib/topics/topic-model.ts"
+ },
+ "TOP-031": {
+  "status": "partial",
+  "note": "Pools, trending, featured, list consumed; /api/topics/library-count added",
+  "by": "src/lib/topics/topics-api.ts"
+ },
+ "TOP-033": {
+  "status": "done",
+  "by": "src/lib/topics/toc-source.ts"
+ },
+ "TOP-034": {
+  "status": "done",
+  "by": "src/lib/topics/toc-source.ts, reader/views.py num_library_topics_api"
+ },
+ "TOP-035": {
+  "status": "done",
+  "by": "src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "LIB-043": {
+  "status": "done",
+  "by": "src/ui/NavSidebar/TopicModules.tsx (TrendingTopics)"
+ },
+ "PRM-016": {
+  "status": "partial",
+  "note": "The topics landing newsletter only",
+  "by": "src/ui/TopicsNav/TopicLanding.tsx (TopicNewsletter)"
+ },
+ "PRM-017": {
+  "status": "partial",
+  "note": "SponsorADay, GetTheApp, StudyCompanion for the topics pages",
+  "by": "src/ui/NavSidebar/TopicModules.tsx"
  }
 }

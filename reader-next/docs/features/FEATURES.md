@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**951 features**, 3732 documented behaviors. Proposed tiers: core 321, standard 413, optional 153, retire 61.
+**954 features**, 3773 documented behaviors. Proposed tiers: core 322, standard 415, optional 153, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 343 · partial 41 · todo 438 · replaced 19 · deferred 23 · n/a 87; 332 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 358 · partial 49 · todo 419 · replaced 19 · deferred 22 · n/a 87; 347 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -13,7 +13,7 @@ Master list of every feature in the current Sefaria web client, extracted from a
 ## Contents
 
 - **Reader**: [Reader shell & panels](#reader-shell) (75) · [Text display & reading settings](#text-display) (69) · [Text types & special cases](#text-types) (27) · [Connections & resources sidebar](#connections) (72) · [Versions & translations](#versions) (22)
-- **Library & discovery**: [Library navigation](#library-nav) (69) · [Book pages](#book-pages) (23) · [Topics](#topics) (32) · [Calendars](#calendars) (3) · [Search & autocomplete](#search) (112)
+- **Library & discovery**: [Library navigation](#library-nav) (69) · [Book pages](#book-pages) (23) · [Topics](#topics) (35) · [Calendars](#calendars) (3) · [Search & autocomplete](#search) (112)
 - **Voices (sheets & community)**: [Sheets: viewing](#sheets-view) (27) · [Sheets: editing & publishing](#sheets-editor) (29) · [Collections](#collections) (10) · [Profiles & social](#profile-social) (12) · [Saved, history & notes](#user-library) (12) · [Notifications & email](#notifications) (11)
 - **Site & accounts**: [Global UI](#global-ui) (28) · [Accounts & sign-in](#accounts) (16) · [Promotions & CMS](#promotions) (17) · [Static pages](#static-pages) (19) · [Language & accessibility](#i18n-a11y) (13) · [AI features](#ai) (20)
 - **Platform**: [URLs & routing](#routing) (64) · [SSR, SEO & platform](#platform-seo) (32) · [Public API & data exports](#api-data) (17) · [Analytics](#analytics) (17) · [Linker & embeds](#linker-embeds) (14)
@@ -4542,13 +4542,14 @@ Code: [`static/js/NavSidebar.jsx:630-643`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-043 · Sidebar module: Trending topics
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done**
 
 Lists the currently trending topics (or trending sheet tags in Voices).
 
 - Sefaria.getTrendingTopics(): library /api/topics/trending?n=10&pool=general_<lang>; voices /api/sheets/trending-tags?n=10; cached per day.
 - Links /topics/<slug>; analytics attrs.
 - Backend trending_topics_api uses GA4 pageviews of /topics/* over last 28 days, filtered by pool (helper/topic.py:470-498).
+- Module: 'Trending Topics' title, then 10 serif 18px links on a 20px line 10px apart, each data-anl-event navto_topic:click with link_type topic and its English title; wrapper feature_name 'Trending'. Rendered nothing until the list arrived. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 
 Code: [`static/js/NavSidebar.jsx:645-672`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L645-L672)
 
@@ -5196,7 +5197,7 @@ Source: `inv_05_library_topics.md#18`
 ### Topics routing
 
 #### TOP-001 · Topic URLs and legacy redirects
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **partial** — Landing, category and A–Z URLs rendered; the single topic page and the legacy redirects are Django's · *tested*
 
 Topics have landing, category, A-Z and individual topic URLs, and old sheet-tag URLs redirect to topics.
 
@@ -5204,18 +5205,22 @@ Topics have landing, category, A-Z and individual topic URLs, and old sheet-tag 
 - Legacy: /sheets/tags -> /topics, /sheets/tags/<tag> -> /topics/<tag> (301) (urls_shared.py:60-61; reader/views.py:1151-1173).
 - Client (ReaderApp.jsx:1421-1431, 2059-2104): /topics -> menuOpen 'topics'; category -> navigationTopicCategory + title via Sefaria.topicTocCategoryTitle; all -> menuOpen 'allTopics' + navigationTopicLetter; topic -> fetches Sefaria.getTopic first then sets navigationTopic, topicTitle, topicTestVersion.
 - History URL (ReaderApp.jsx:561-582): topics/<slug> (or topics/<testVersion>/<slug>) + &sort=<topicSort> + &tab=<tab>; category topics/category/<slug>; all topics/all/<letter> titled 'Explore Jewish Texts by Topic - <letter>'.
+- Page titles (get_page_title + the client's document.title): /topics 'Topics | The Sefaria Library' (he 'נושאים | האוסף של ספריא'); a category '<title> | Texts from the Sefaria Library' (he '<title> | מקורות מתוך ספריית ספריא'); A–Z 'Explore Jewish Texts by Topic - <letter> | The Sefaria Library' (he 'עיון בארון הספרים היהודי לפי נושא - <letter> | האוסף של ספריא'). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- /topics/category/<unknown> and /topics/category (no slug) are Django 404 pages ('Page Not Found | Sefaria'); /people → 301 /topics/category/authors; /people/Talmud → /topics/category/talmudic-figures; /person/Rashi → /topics/rashi (the topic page then adds ?sort=Relevance&tab=author-works-on-sefaria). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER (2026-11-04): /topics, /topics/category/<slug> and /topics/all/<letter> are rendered by reader-next on the Library host (src/routes/topics.*); /topics/<slug>, /topics/b/<slug>, /people, /people/Talmud, /person/<name>, /sheets/tags[/<tag>] stay Django's (src/lib/routing/django-paths.ts DJANGO_TOPIC_PAGE and DJANGO_PREFIXES), so the legacy redirects still land on the new pages. An unknown category or a two-character letter is a 404, which the server hands to Django (its own 404 page).
 
 Code: [`sefaria/urls_shared.py:53-61`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_shared.py#L53-L61), [`static/js/ReaderApp.jsx:561-582`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L561-L582), [`static/js/ReaderApp.jsx:2059-2104`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2059-L2104)
 
 Source: `inv_05_library_topics.md#7`
 
 #### TOP-002 · Module-specific topics home
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — Library landing page built; the Voices host's /topics stays Django's (Q-E1) · *tested*
 
 The library shows the new topics landing page, while the Voices site shows the older grid of topic categories.
 
 - ReaderPanel (983-1048) menuOpen 'topics': navigationTopicCategory -> TopicCategory; navigationTopic -> TopicPage (tab, setTab, onSetTopicSort, topicSort, translationLanguagePreference, topicTestVersion, toggleSignUpModal, multiPanel); else library -> TopicsLandingPage, voices -> TopicsPage.
 - menuOpen 'allTopics' -> TopicPageAll.
+- NEW READER: the Library host's /topics is the landing page (reader-next); on the Voices host (voices.* / chiburim.* or PUBLIC_VOICES_ORIGIN's host, X-Forwarded-Host honoured) every /topics page passes through to Django (isDjangoPageForHost; the host model is undecided, Q-E1), so TopicsPage (TOP-011) is unchanged there.
 
 Code: [`static/js/ReaderPanel.jsx:983-1048`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L983-L1048)
 
@@ -5225,20 +5230,23 @@ Source: `inv_05_library_topics.md#7`
 ### Topics landing page
 
 #### TOP-003 · Topics landing page layout
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 The library's topics home presents search, a word cloud of topics, a featured topic, a newsletter, sample topics and this week's seasonal content.
 
 - h1 'Explore by Topic'; sections in order: TopicLandingSearch (numOfTopics = Sefaria.numLibraryTopics), TopicSalad, FeaturedTopic, TopicLandingNewsletter, RandomTopicCardWithDescriptionRow, then TopicLandingParasha + TopicLandingSeasonal.
 - Sidebar: TopicLandingTopicCatList, TrendingTopics, AZTopicsLink.
 - Analytics attrs: data-anl-project='topics', panel_name, panel_type='Topic Landing', feature names per section.
+- Geometry (1280px): the column is 843px (.contentInner.topic-landing-page-content: 783px of content at x=39), the page's content starts 60px under the banner; the h1 is 32px/500 #666 centred; each section 60px under the one before (on a phone 18px for the search and 36px for the cloud, the h1 30px/600 with 10px under it). The sidebar is the library's (#FBFBFA, 420px); below 920px the old sidebar dropped under the column (sidebarLayout column), the new reader at 842px with the other library pages. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- Sidebar order: TopicLandingTopicCatList (Browse Topics: the 15 top-level TOC categories, unfiltered by module, 18px serif links on a 20px line), TrendingTopics, AZTopicsLink (a module whose h1 is the 'All Topics A-Z ›' link), Promo (empty unless the CMS fills it). Analytics: data-anl-project='topics', panel_name='Explore by Topic', panel_type='Topic Landing' on the whole panel (sidebar included); feature_name per section: Search, Topic Salad, Featured Topic, Multi-Cards, Parashah, Calendar; the newsletter's in its data-anl-batch. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- The old page fetched everything after mount (blank sections first); the new reader server-renders the search's count, Browse Topics, Trending, the featured topic and both calendar cards, and fetches only the random samples (cloud, cards) in the browser.
 
 Code: [`static/js/TopicLandingPage/TopicsLandingPage.jsx:14-57`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicsLandingPage.jsx#L14-L57)
 
 Source: `inv_05_library_topics.md#8`
 
 #### TOP-004 · Topic search with autocomplete
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A search box on the topics landing page suggests topics as you type, showing each topic's category path.
 
@@ -5247,13 +5255,15 @@ A search box on the topics landing page suggests topics as you type, showing eac
 - Item: hashtag icon + title + gray path; click/Enter opens topic via openTopic(slug); Enter with no highlight opens first suggestion.
 - Placeholder 'Search <N> Topics A-Z' (en, N localized) / 'חיפוש לפי נושא' (he); maxLength 75; SearchButton icon.
 - 'Explore all topics' prompt smooth-scrolls .content to #browseTopics offset by header height + 16px.
+- Search box: a 634x60 #EDEDEC pill (phone 344x47), the 18px magnifier 16px in, the input 24px/500 serif (phone 14px Roboto); suggestions in a 606px white drop-down 47px down, each 18px EB Garamond title + #333 '(Cat > Sub)' path, highlighted row #EDEDEC. The count is Sefaria.numLibraryTopics (5,768 today: the library pool's slugs, not the A–Z list's 4,402), grouped with ',' (toLocaleString). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: the count comes from GET /api/topics/library-count (added on this branch) or, where that is missing, from the number the old /topics page writes into its props; the category paths from the server's topics TOC index (one server-function call, cached as catalog data). The topic page itself is still Django's, so choosing a suggestion is a full navigation to /topics/<slug>.
 
 Code: [`static/js/TopicLandingPage/TopicLandingSearch.jsx:126-159`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingSearch.jsx#L126-L159)
 
 Source: `inv_05_library_topics.md#8.1`
 
 #### TOP-005 · Topic word cloud (salad)
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A colorful cloud of randomly chosen topic names links straight into topics.
 
@@ -5261,62 +5271,70 @@ A colorful cloud of randomly chosen topic names links straight into topics.
 - Animated RainbowLine while loading (upper), static lower rainbow after.
 - MultiPanel: WordSalad numLines=5, bullets between items on same line (computed via offsetTop), CSS clamp --num-lines. Mobile: RowedWordSalad single horizontally scrollable row.
 - Items link /topics/<slug>.
+- The cloud: .salad-container is a -webkit-box clamped to 5 lines in the font 'hide-ellipsis-char-font' (a zero-size face for U+2026 only), so the clamp's '…' is invisible; each item is a Roboto 22px link (40px line, 11px side margins) inside a nowrap span whose serif font sets the space and the '•' after it (margin-inline-start 0.2em). Bullets: an item gets one when the next item has the same offsetTop. Phone: RowedWordSalad, one horizontally scrolling row of #18345D pills (6px radius, 7px apart, white text). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: the bullets are placed until the lines stop moving (a bullet can push the next item to the next line, which the old single pass left as a trailing bullet), again when the fonts arrive and on resize.
 
 Code: [`static/js/TopicLandingPage/TopicSalad.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicSalad.jsx)
 
 Source: `inv_05_library_topics.md#8.2`
 
 #### TOP-006 · Featured topic of the day
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 The landing page highlights a featured topic with image, description and a link.
 
 - Sefaria.getFeaturedTopic() -> /_api/topics/featured-topic?lang=<en|he> (cached per day; Django TopicOfTheDay).
 - Shows header 'Featured Topic', topic.secondary_image_uri (4:3 crop; alt = image caption), title, markdown description, 'Go to Topic ›'. Hidden if no topic.
+- Featured Topic: h2 15px uppercase serif #666 with 30px over it; the picture (secondary_image_uri) 239px + a 1px #EDEDEC frame sitting on a serif text line (the block is 187px tall for a 181px picture); title h3 24px serif #666, 15px over the description (16px Roboto #666, links #4B71B7); a <br> then 'Go to Topic ›'. Phone: the header 22px, the picture full width with 10px under it. The answer is /_api/topics/featured-topic?lang=<en|he> (a different topic per interface language). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 
 Code: [`static/js/TopicLandingPage/FeaturedTopic.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/FeaturedTopic.jsx), [`reader/views.py:3780-3789`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3780-L3789)
 
 Source: `inv_05_library_topics.md#8.3`
 
 #### TOP-007 · Topics newsletter sign-up
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 Visitors can subscribe to the weekly topics newsletter from the landing page.
 
 - Heading 'Stay curious: get the timeless topics newsletter'; inputs first name, last name, email; Enter submits; validation (names required, valid email).
 - Sefaria.subscribeSefariaNewsletter(first,last,email,educator=false,lists) -> POST /api/subscribe/<email> with lists ['Weekly Topics Newsletter'] for English interface only; Hebrew = [].
 - States: 'Subscribing...', 'Subscribed! Welcome to our list.', error (role=alert). Analytics form_start, form_submit.
+- Form: a #18345D band (36px 65px; Hebrew 36px 46px), the teaser h3 22px Roboto white, 256px wide (Hebrew 300px); inputs 13.33px (browser default) Roboto, 5px 12px, radius 6, the first of each row 16px before the next (so the email row's button sits 16px after it), rows 20px apart; Sign Up in blue on white. Phone: everything stacked, inputs and button 18px with 20px under each. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- Messages: names missing → 'Please enter a valid first and last name.'; bad email → 'Please enter a valid email address.'; then 'Subscribing...' (no Hebrew string), 'Subscribed! Welcome to our list.' / 'הרשמה בוצעה בהצלחה!' in white under the inputs; a failure shows under the band in italic #802F3E, right-aligned: the server's {error} message, 'Error posting to API' for a failed status, else 'Sorry, there was an error.'. The Hebrew interface subscribes to no list (lists left out of the payload).
+- NEW READER: POST /api/subscribe/<email> through src/lib/auth/http (CSRF); the e2e test answers the POST itself (never production).
 
 Code: [`static/js/TopicLandingPage/TopicLandingNewsletter.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingNewsletter.jsx), [`static/js/sefaria/sefaria.js:956-968`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L956-L968)
 
 Source: `inv_05_library_topics.md#8.4`
 
 #### TOP-008 · Random topic cards with descriptions
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A row of randomly picked topics, each with a short description and an Explore link.
 
 - multiPanel -> 3 cards, mobile -> 10. Fetches numTopics^3 topics from pool general_<lang>; keeps those with description in interface lang.
 - Card with title, markdown description, bottom link 'Explore <title> ›' (relative hrefs topics/<slug>).
+- Cards: 248x361 on a wide screen (flex 1, 20px apart, content-box 345px + 12px + the 4px #18345D top), #FBFBFA, shadow 0 4px 4px rgba(0,0,0,.25); title 24px/1.1 Roboto clamped to 2 lines, 23px down and 30px in; description absolutely at 95px, 188px wide, ≤10 lines (8 in Hebrew); 'Explore <title> ›' (he 'למדו עוד על <title> ›') at 298px. The hrefs are relative ('topics/<slug>'). Phone: ten 268px cards in a scrolling row from a 1000-topic sample. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 
 Code: [`static/js/TopicLandingPage/RandomTopicCardWithDescriptionRow.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/RandomTopicCardWithDescriptionRow.jsx)
 
 Source: `inv_05_library_topics.md#8.5`
 
 #### TOP-009 · This week's Torah portion card
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 The landing page features this week's Torah portion with a topic link and a Read the Portion button.
 
 - Sefaria.getUpcomingDay('parasha') -> /api/calendars/topics/parasha?lang=xx (parasha_data_api) cached per date.
 - TopicLandingCalendar card: header 'This week's Torah portion', title parasha displayValue, description, link topics/<parasha topic>; 'Learn More about <Parasha> ›', ParashahLink (current ref from Sefaria.calendars), 'Read the Portion' /<parasha.url>, 'Browse All Torah Portions' -> /topics/category/torah-portions.
+- Layout: two columns 67px from a 1px #CCC divider (phone: stacked with the divider between); header 16px/500 Roboto #666; the card's title 24px Roboto; 'Learn More about …' 14px/18px #666; the reading (book icon + 18px link, its text in Roboto) 47px under; Read the Portion (.button.small blue, 147x39) 30px under; 'Browse All Torah Portions' 14px Roboto #4B71B7 on a 16px serif line, 14px under. The reading is Sefaria.calendars' Parashat Hashavua (the visitor's diaspora setting), the card from /api/calendars/topics/parasha?lang=<lang> (diaspora default). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 
 Code: [`static/js/TopicLandingPage/TopicLandingParasha.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingParasha.jsx)
 
 Source: `inv_05_library_topics.md#8.6`
 
 #### TOP-010 · Seasonal Jewish calendar topic card
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 The landing page features a topic tied to the current time of the Jewish year with dates and a link to the Jewish calendar topics.
 
@@ -5324,6 +5342,7 @@ The landing page features a topic tied to the current time of the Jewish year wi
 - Card header 'On the Jewish Calendar', topic title/description/link; 'Learn more about <title> ›'.
 - Date message '<prefix> <secondary topic link> <suffix>' and Intl formatRange date range (en/he month-day) only when secondary topic exists; 'Explore the Jewish Calendar' -> /topics/category/jewish-calendar2.
 - Dates created timezone-agnostically (Util.createTimeZoneAgnosticDate).
+- The date message is 14px/600 #333 on a serif line, the secondary topic's link inheriting its colour; the date 14px Roboto black, 19px under it; 'Explore the Jewish Calendar' like Browse All Torah Portions. When /api/calendars/topics/holiday fails or has no topic, the old card stays empty (rendered nothing). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 
 Code: [`static/js/TopicLandingPage/TopicLandingSeasonal.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingSeasonal.jsx), [`reader/views.py:3841-3861`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3841-L3861)
 
@@ -5341,13 +5360,14 @@ The Voices site's topics home is a grid of topic category cards plus an All Topi
 - Title 'Explore by Topic' in CategoryHeader type='topics' toggleButtonIDs ['subcategory','reorder'] (admin).
 - Mobile: inline AboutTopics. Sidebar: TrendingTopics, JoinTheConversation.
 - Voices module: only Sheets topic pool, markdown links stripped in cards, trending = trending sheet tags.
+- NEW READER: not ported — the Voices host's /topics is passed to Django (TOP-002).
 
 Code: [`static/js/TopicsPage.jsx:17-27`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicsPage.jsx#L17-L27)
 
 Source: `inv_05_library_topics.md#9`
 
 #### TOP-012 · Topic card
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A card represents a topic or category with title, description and link.
 
@@ -5355,13 +5375,15 @@ A card represents a topic or category with title, description and link.
 - Strips leading 'Parashat ' / 'פרשת ' from titles; hidden if missing en or he title.
 - Click: categories setNavTopic(slug,{en,he}); leaves setTopic(...).
 - Card (common/Card.jsx): analytics title link; markdown disallowed elements ['p'] plus 'a' in Voices (links stored with library domain; sefaria.js:3946-3950); optional bottom link.
+- Card (TOC grid): title 24px/1.3 Roboto black (15px over, 8px under), description 14px/18px #666 clamped to 3 lines with 20px end margin, links #4B71B7 unstyled; in the Hebrew interface both take Heebo at 122% and the description a 24px line — whatever the text's language (an English-only description in the Hebrew interface is Heebo, left-to-right, left-aligned: .int-he.enInHe in a -webkit-box). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- Analytics quirk: TopicTOCCard passes analyticsEventName 'navto_topic:click' and Card appends ':click', so the attribute is data-anl-event='navto_topic:click:click' (the tracker reads it as navto_topic on click); analyticsLinkType is passed but never rendered. Kept byte for byte.
 
 Code: [`static/js/common/TopicTOCCard.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/common/TopicTOCCard.jsx), [`static/js/common/Card.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/common/Card.jsx), [`static/js/sefaria/sefaria.js:3946-3950`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3946-L3950)
 
 Source: `inv_05_library_topics.md#9.1`
 
 #### TOP-013 · Topic category page
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **partial** — Page, cards, sidebar built; moderators' category buttons (add/edit/reorder) not built · *tested*
 
 A topic category page lists its subtopics as cards, sorted and filtered for the current site.
 
@@ -5370,13 +5392,15 @@ A topic category page lists its subtopics as cards, sorted and filtered for the 
 - h1 in CategoryHeader type='topics' data=topicData (admin: add subcategory / edit).
 - Sidebar: AboutTopics, Promo, TrendingTopics, SponsorADay; for torah-portions in English inserts StudyCompanion after AboutTopics.
 - Analytics data-anl-panel_category; server topics_category_page 404s unknown slug and sets SEO title/desc (reader/views.py:1013-1037).
+- Geometry: the title row (CategoryHeader) keeps 15px under it and the h1 none, so the cards start 40px under the title's top; two columns 323px wide 20px apart at ≥900px and 600–700px, one column at 700–900px and below 600px (.contentInner .table); a 1px #EDEDEC line over the first row. Sidebar: AboutTopics, (StudyCompanion — torah-portions, English interface only), Promo, TrendingTopics, SponsorADay; data-anl-panel_category is the parents' slugs joined by '|' or 'Topic Landing' for a top-level category. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: the subtopics come from the server's topics TOC (GET /api/topics-toc on this branch's Django; on sefaria.org that 404s and the server reads the same tree out of /data.js), handed to the page as its slice through a server function — the browser never downloads the tree. Not ported: the moderators' CategoryHeader buttons (add sub-category, edit, reorder) on topic categories.
 
 Code: [`static/js/TopicPage.jsx:225-273`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPage.jsx#L225-L273), [`static/js/sefaria/sefaria.js:3002-3036`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3002-L3036), [`reader/views.py:1013-1037`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1013-L1037)
 
 Source: `inv_05_library_topics.md#10`
 
 #### TOP-014 · All Topics A-Z index
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 An alphabetical index of every topic with letter navigation and a filter box.
 
@@ -5386,6 +5410,8 @@ An alphabetical index of every topic with letter navigation and a filter box.
 - AlphabeticalTopicsNav: A-Z or Hebrew א-ת (final letters excluded) links /topics/all/<letter>.
 - Excludes topics not displayable in active module; TopicTOCCard grid; 'There are no topics here.' when empty.
 - Sidebar: Promo, TrendingTopics, GetTheApp, SupportSefaria.
+- Details found: the URL's letter is used as written, so /topics/all/A matches nothing ('There are no topics here.'); the Hebrew bar excludes only ך ן ף ץ, so final mem ם shows (23 letters); in the Hebrew interface the empty list reads 'טוען מידע...' (LoadingMessage's default Hebrew: heMessage='' is falsy). Filter box 285px + 10px padding each side (content-box), #EDEDEC pill, 18px serif input; letters 16px Roboto #666, 10px apart. Sidebar: Promo, TrendingTopics, GetTheApp, SupportSefaria. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: the letter's list is filtered and sorted on the server (the 2.9 MB /api/topics?limit=0 kept there for an hour) and server-rendered; the browser downloads the whole list only once a filter of two characters is typed.
 
 Code: [`static/js/TopicPageAll.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicPageAll.jsx), [`reader/views.py:3594-3609`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3594-L3609)
 
@@ -5599,7 +5625,7 @@ Code: [`static/js/TopicPage.jsx:543-624`](https://github.com/Sefaria/Sefaria-Pro
 Source: `inv_05_library_topics.md#11.8`
 
 #### TOP-030 · Topic data model behaviors
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **partial** — The navigation pages' rules; the topic page's are next · *tested* `system`
 
 The client relies on topic fields for display gating, ordering, images and link groupings.
 
@@ -5609,18 +5635,21 @@ The client relies on topic fields for display gating, ordering, images and link 
 - contents(minify) used in topic TOC and lists includes slug, shouldDisplay (true if has children), displayOrder, pools, categoryDescription, published description.
 - Link types: displays-under/displays-above (TOC hierarchy), is-a, related-to; RefTopicLink linkTypes about, popular-writing-of; descriptions per lang {title, prompt, ai_title, ai_context, published, review_state}.
 - Topic TOC (library.get_topic_toc_json) rebuilt after admin edits.
+- NEW READER: the rules the navigation pages apply (shouldDisplayInActiveModule, sortTopicsCompareFn with its top-level 10000 bandaid, TopicTOCCard's titles, A–Z filtering and sort) are src/lib/topics/topic-model.ts, unit-tested.
 
 Code: [`sefaria/model/topic.py:205-216`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/topic.py#L205-L216), [`sefaria/model/topic.py:449-450`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/topic.py#L449-L450), [`sefaria/model/topic.py:582-612`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/topic.py#L582-L612)
 
 Source: `inv_05_library_topics.md#19.1`
 
 #### TOP-031 · Topic pool and trending endpoints
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **partial** — Pools, trending, featured, list consumed; /api/topics/library-count added · *tested* `system`
 
 Server endpoints provide pooled random topics, trending topics and topic lists per site.
 
 - /api/topics/pools/<pool> topic_pool_api (voices->sheets pool mapping; Django sample_topic_slugs); /api/topics/trending trending_topics_api (GA4 28 days); /_api/topics/featured-topic; /api/topics list.
 - Sefaria.getTopicsByPool cached only for non-random order.
+- GET /api/topics/library-count → {count} (Sefaria-Project reader-next branch, 2026-11-04): the library pool's size, the new reader's numLibraryTopics. On sefaria.org it does not exist yet: api/topics/<slug> answers {} for it.
+- NEW READER: src/lib/topics/topics-api.ts holds every topic endpoint with the old URLs byte for byte (pools uncached, trending/featured/calendar topics for the day, the topic itself with the old v2 parameters for the single-topic page next).
 
 Code: [`reader/views.py:3764-3807`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3764-L3807), [`static/js/sefaria/sefaria.js:2271-2286`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2271-L2286)
 
@@ -5637,6 +5666,53 @@ A 2025 topics launch banner with a word-cloud graphic exists but is not mounted 
 Code: [`static/js/TopicsLaunchBanner.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicsLaunchBanner.jsx)
 
 Source: `inv_05_library_topics.md#16; inv_08_other.md#4.5`
+
+
+### Topic categories and A-Z
+
+#### TOP-033 · Topics TOC delivery
+`core` `live` · rebuild: **done**
+
+The topics pages read the topics table of contents, which the old site put in every page's data.js; the new reader keeps it on the server and sends each page its slice.
+
+- Legacy: templates/js/data.js writes DJANGO_DATA_VARS.topic_toc (library.get_topic_toc(): the whole tree with titles, displayOrder, pools, shouldDisplay, description and categoryDescription) into the 9.4 MB /data.<ts>.js every page loads; Sefaria.topicTocPage / topicTocCategories / isTopicTopLevel read it. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- GET /api/topics-toc (Sefaria-Project, 2026-10-06) serves the same JSON; sefaria.org answers 404 until it is deployed.
+- NEW READER (src/lib/topics/toc-source.ts): the server fetches /api/topics-toc, or on a 404 /data.js (sent as the 'sefaria-node' user agent, which Django's language middleware never redirects), extracts topic_toc and keeps it an hour for all requests; pages get a category's entries, the top-level slugs and the category's path, or the slug → category-path index for the landing search, through server functions (cached as catalog data).
+
+Code: [`templates/js/data.js:8`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/js/data.js#L8), [`static/js/sefaria/sefaria.js:3240-3320`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3240-L3320), `reader/views.py topics_toc_api`
+
+Source: `inv_05_library_topics.md`
+
+
+### Topics landing page
+
+#### TOP-034 · Library topic count
+`standard` `live` · rebuild: **done**
+
+The landing search says how many topics the library has.
+
+- Legacy: base_props numLibraryTopics = get_num_library_topics() (DjangoTopic.objects.get_topic_slugs_by_pool('library')), on every page's props; 5,768 on 2026-11-04 (the A–Z list has 4,402). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- NEW READER: GET /api/topics/library-count (added on this branch); where it is missing, the server reads '"numLibraryTopics": N' from the old /topics page; without either the placeholder is 'Search Topics A-Z'.
+
+Code: [`reader/views.py:369`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L369), [`sefaria/helper/topic.py:297-299`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/helper/topic.py#L297-L299)
+
+Source: `inv_05_library_topics.md`
+
+
+### Topic categories and A-Z
+
+#### TOP-035 · Topics pages' sidebar modules
+`standard` `live` · rebuild: **done**
+
+Each topics page has its own list of sidebar modules: Browse Topics, Trending Topics, All Topics A-Z, About Topics, Sponsor a Day, the Study Companion and Get the App.
+
+- Landing: TopicLandingTopicCatList, TrendingTopics, AZTopicsLink, Promo. Category: AboutTopics, (StudyCompanion on torah-portions in English), Promo, TrendingTopics, SponsorADay. A–Z: Promo, TrendingTopics, GetTheApp, SupportSefaria. Every list is followed by the sidebar footer. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
+- About Topics text (en/he) is inline in NavSidebar.jsx; Study Companion has no Hebrew strings (English only by design); 'Sign Up' links learn.sefaria.org/weekly-parashah/ with data-anl-event select_promotion:click|view_promotion:scrollIntoView and promotion_name 'Parashah Email Signup - Topic TOC'.
+- NEW READER: src/ui/NavSidebar/TopicModules.tsx with the old data-anl-* attributes; links to a single topic leave the app (Django), links to a category or A–Z are routed.
+
+Code: `static/js/NavSidebar.jsx:181-195,339-363,634-722,775-792`
+
+Source: `inv_05_library_topics.md`
 
 
 <a id="calendars"></a>
@@ -7082,7 +7158,7 @@ Source: `inv_06_search.md#9.2, 15`
 ### Topic and ref autocomplete elsewhere
 
 #### SRC-098 · Topics landing page search
-`standard` `live` · rebuild: **deferred** — Collections / Voices / topics: Phase 7, owner decides.
+`standard` `live` · rebuild: **done**
 
 The Topics landing page has a topic-only search with category paths shown for disambiguation.
 
@@ -7092,6 +7168,7 @@ The Topics landing page has a topic-only search with category paths shown for di
 - Enter opens highlighted item else FIRST suggestion.
 - Placeholder 'Search {N} Topics A-Z' (N localized) / 'חיפוש לפי נושא'.
 - 'Explore all Topics ›' link smooth-scrolls to #browseTopics offset by header height.
+- NEW READER: built with the topics landing page (TOP-004).
 
 Code: [`static/js/TopicLandingPage/TopicLandingSearch.jsx:7`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingSearch.jsx#L7), [`static/js/TopicLandingPage/TopicLandingSearch.jsx:99`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingSearch.jsx#L99), [`static/js/TopicLandingPage/TopicLandingSearch.jsx:126`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TopicLandingPage/TopicLandingSearch.jsx#L126)
 
@@ -9759,7 +9836,7 @@ Source: `inv_08_other.md#4.5`
 ### Newsletter
 
 #### PRM-016 · Newsletter signup form
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — The topics landing newsletter only
 
 Visitors can subscribe to Sefaria newsletters, optionally as educators, from sidebars, static pages, ads and topic pages.
 
@@ -9767,6 +9844,7 @@ Visitors can subscribe to Sefaria newsletters, optionally as educators, from sid
 - Used in NavSidebar (StayConnected / Voices / Portal modules), StaticPages, Promotions, TopicLandingNewsletter
 - Client APIs: subscribeSefariaNewsletter -> /api/subscribe/<email>; subscribeSteinsaltzNewsletter; subscribeSefariaAndSteinsaltzNewsletter; getTopicLandingNewsletterMailingLists (Weekly Topics Newsletter, EN only)
 - Backend: api/subscribe/<org>/<email> (views.py:299), api/subscribe/<email> (:327), api/newsletter_mailing_lists (:347), Steinsaltz helper (:355)
+- NEW READER: the topics landing newsletter (TOP-007) is built; the sidebar and static-page forms are not.
 
 Code: [`static/js/NewsletterSignUpForm.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NewsletterSignUpForm.jsx), [`sefaria/views.py:327`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L327), [`static/js/sefaria/sefaria.js:955`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L955)
 
@@ -9776,12 +9854,13 @@ Source: `inv_08_other.md#4.5`
 ### Sidebar modules
 
 #### PRM-017 · NavSidebar promo and donation modules
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — SponsorADay, GetTheApp, StudyCompanion for the topics pages
 
 The navigation sidebar hosts modules that promote donating, the apps, newsletters and community.
 
 - Module registry NavSidebar.jsx:40-80: Promo, SupportSefaria (DonateLink), SponsorADay (DonateLink dayOfLearning), GetTheApp (AppStoreButtons iOS/Android), StayConnected (newsletter), VoicesNewsletterSignUp, PortalMobile/PortalNewsletter, StudyCompanion, JoinTheCommunity
 - Steinsaltz app buttons at NavSidebar.jsx:1077-1078
+- NEW READER: SponsorADay (donate.sefaria.org/sponsor[he]?c_src=NavSidebar-SponsorADay), GetTheApp (white .appButton with the iOS/Android icons) and StudyCompanion are built for the topics pages (src/ui/NavSidebar/TopicModules.tsx).
 
 Code: [`static/js/NavSidebar.jsx:40`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L40), [`static/js/NavSidebar.jsx:1077`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L1077)
 
@@ -11064,7 +11143,7 @@ Code: [`reader/views.py:1054-1134`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#2.2`
 
 #### RTE-030 · Topics URLs
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **partial** — As TOP-001
 
 Topics are browsed at /topics, by category, by letter, and individual topic pages.
 
@@ -11077,6 +11156,7 @@ Topics are browsed at /topics, by category, by letter, and individual topic page
 - Topic editors redirect to /topics/<slug>?sort=Relevance&tab=<tab>.
 - **BUG:** openURL passes tab param for topics but openTopic(slug) ignores it (ReaderApp.jsx:1432,2081).
 - Legacy: /person/<name> -> 301 /topics/<person slug> (404 if unknown); /people -> 301 /topics/category/authors; /people/Talmud -> 301 /topics/category/talmudic-figures.
+- NEW READER: see TOP-001 — the landing, category and A–Z URLs are reader-next's on the Library host; the topic page and the legacy redirects are Django's.
 
 Code: [`reader/views.py:1013-1051`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1013-L1051), [`reader/views.py:3522-3591`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3522-L3591), [`reader/views.py:5207-5221`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5207-L5221), [`static/js/Misc.jsx:1083-1089`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1083-L1089)
 
