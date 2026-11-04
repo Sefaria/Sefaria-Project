@@ -15,8 +15,11 @@ mkdirSync("docs/parity", { recursive: true });
 const b = await chromium.launch();
 for (const [w, h] of SIZES) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, ...(w <= 500 ? { isMobile: true, hasTouch: true, userAgent: PHONE_UA } : {}) });
+  // PARITY_LANG=hebrew compares the Hebrew interface (the cookie on both sides)
+  const lang = process.env.PARITY_LANG ?? "english";
   await ctx.addCookies([
-    { name: "interfaceLang", value: "english", domain: "www.sefaria.org", path: "/" },
+    { name: "interfaceLang", value: lang, domain: "www.sefaria.org", path: "/" },
+    { name: "interfaceLang", value: lang, domain: "localhost", path: "/" },
     { name: "cookiesNotificationAccepted", value: "1", domain: ".sefaria.org", path: "/" },
     { name: "cookiesNotificationAccepted", value: "1", domain: "localhost", path: "/" },
   ]);
@@ -36,7 +39,7 @@ for (const [w, h] of SIZES) {
       await page.evaluate((sel) => document.querySelectorAll(sel).forEach((n) => n.remove()), NOISE);
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(1500);
-      const base = `docs/parity/page-${name}-${w}`;
+      const base = `docs/parity/page-${name}${lang === "hebrew" ? "-he" : ""}-${w}`;
       await page.screenshot({ path: `${base}-${side}.png` });
       await page.screenshot({ path: `${base}-header-${side}.png`, clip: { x: 0, y: 0, width: w, height: w <= 500 ? 60 : 60 } });
       await page.screenshot({ path: `${base}-full-${side}.png`, fullPage: true });
