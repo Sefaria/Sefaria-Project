@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isDjangoPath, passResetLink, resetLinkUid, setPasswordPath, trailingSlashRedirect } from "./pass-through";
+import { isDjangoPath, passResetLink, requestHost, resetLinkUid, setPasswordPath, trailingSlashRedirect } from "./pass-through";
 
 describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
   it("sends Django's own sections through", () => {
@@ -72,5 +72,28 @@ describe("trailingSlashRedirect", () => {
   });
   it("never redirects to another host (a path that starts with two slashes)", () => {
     for (const u of ["//evil.com/", "/\\evil.com/"]) expect(trailingSlashRedirect(new URL(`https://www.sefaria.org${u}`), "GET"), u).toBeNull();
+  });
+});
+
+// @feature LEG-010 @feature RTE-019
+describe("the version-diff tool (/compare) is this client's on the Library host only", () => {
+  it("renders here on the Library host, and stays Django's on the Voices host (Q-E1)", () => {
+    expect(isDjangoPath("/compare/Genesis.1/he/a/b", "GET", "www.sefaria.org")).toBe(false);
+    expect(isDjangoPath("/compare", "GET", "www.sefaria.org")).toBe(false);
+    expect(isDjangoPath("/compare/Genesis.1/he/a/b", "GET", "voices.sefaria.org")).toBe(true);
+    expect(isDjangoPath("/compare", "GET", "voices.sefaria.org")).toBe(true);
+    // Voices keeps its other pages as they were
+    expect(isDjangoPath("/sheets/1", "GET", "voices.sefaria.org")).toBe(true);
+    expect(isDjangoPath("/Genesis.1", "GET", "voices.sefaria.org")).toBe(false);
+    // a write is always Django's ("Apply Change" posts to /api/texts)
+    expect(isDjangoPath("/compare/Genesis.1/", "POST", "www.sefaria.org")).toBe(true);
+  });
+  it("keeps the trailing slash, which changes what the address means", () => {
+    expect(trailingSlashRedirect(new URL("http://x/compare/Genesis.1/"), "GET")).toBeNull();
+    expect(trailingSlashRedirect(new URL("http://x/compare/"), "GET")).toBeNull();
+  });
+  it("reads the host nginx passed on", () => {
+    expect(requestHost(new Request("http://reader:3000/compare", { headers: { "x-forwarded-host": "voices.sefaria.org" } }))).toBe("voices.sefaria.org");
+    expect(requestHost(new Request("http://www.sefaria.org/compare"))).toBe("www.sefaria.org");
   });
 });

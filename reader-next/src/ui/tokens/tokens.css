@@ -123,6 +123,19 @@
   --sefaria-nav-menu-width: 725px;
   --sefaria-layout-max: 1485px;
 
+  /* ── Colour: the version-diff tool (/compare; templates/compare.html's own colours) ── */
+  --sefaria-color-diff-text: light-dark(#000000, #ededec); /* the bare page's default text */
+  --sefaria-color-diff-page: light-dark(#ffffff, #1c1c1b);
+  --sefaria-color-diff-cell-border: light-dark(#dddddd, #3a3a38);
+  --sefaria-color-diff-cell-hover: light-dark(#ccffff, #1f4747);
+  --sefaria-color-diff-insert: light-dark(#5cee5c, #2f7a2f); /* a change that can be applied */
+  --sefaria-color-diff-delete: light-dark(rgba(193, 66, 66, 0.5), rgba(193, 66, 66, 0.6)); /* a change across a tag */
+  --sefaria-color-diff-tip: light-dark(#555555, #3a3a38);
+  --sefaria-color-diff-tip-text: light-dark(#ffffff, #ededec);
+  --sefaria-color-diff-tip-border: light-dark(#add8e6, #5c8a99); /* CSS lightblue */
+  --sefaria-color-diff-dialog: light-dark(#cccccc, #333331);
+  --sefaria-color-diff-dialog-text: light-dark(#000000, #ededec);
+
   /* ── Spacing ──────────────────────────────────────── */
   --sefaria-space-0: 0;
   --sefaria-space-1: 4px;

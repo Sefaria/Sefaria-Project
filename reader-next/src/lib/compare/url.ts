@@ -1,0 +1,57 @@
+/**
+ * The version-diff page's address, read and written exactly as sefaria.org does (sefaria/urls_library.py, static/js/diff_page.jsx).
+ *
+ * Read: Django's pattern `^compare/?((?P<comp_ref>[^/]+)/)?((?P<lang>en|he)/)?((?P<v1>[^/]+)/)?(?P<v2>[^/]+)?$`, matched on the
+ * decoded path, so its quirks are kept: a group before the last needs its trailing slash (`/compare/Genesis.1` makes "Genesis.1" the
+ * second version, and shows an empty form; `/compare/Genesis.1/` is the ref), an escaped slash splits, and the versions' underscores
+ * read as spaces (every one, so a version title with a real underscore cannot be named).
+ *
+ * Write: the old page joins `/compare/<ref>/<lang>/<v1>/<v2>` with "/", collapses the first "//" of each pair left by an empty part,
+ * and turns spaces into underscores (PageLoader.componentDidUpdate). An empty language leaves a path Django cannot match (a 404 on
+ * sefaria.org too, e.g. "Load Next Chapter" on `/compare/Genesis.1/`).
+ *
+ * @feature LEG-010 Text version diff/compare tool (/compare)
+ * @feature RTE-019 Version compare tool URL
+ */
+
+export type CompareLang = "en" | "he";
+
+/** What Django hands the page: the ref as typed in the address, the language and the two version titles (spaces, not underscores). */
+export interface CompareAddress {
+  compRef: string | null;
+  lang: CompareLang | null;
+  v1: string | null;
+  v2: string | null;
+}
+
+const PATTERN = /^\/compare\/?(?:([^/]+)\/)?(?:(en|he)\/)?(?:([^/]+)\/)?([^/]+)?$/;
+
+const decode = (path: string) => {
+  try {
+    return decodeURIComponent(path);
+  } catch {
+    return path;
+  }
+};
+
+/** The address of a path (as written: it is decoded here, as Django's path_info is), or null when Django's pattern does not match it. */
+export function parseComparePath(pathname: string): CompareAddress | null {
+  const m = PATTERN.exec(decode(pathname));
+  if (!m) return null;
+  const versionOf = (v: string | undefined) => (v ? v.replace(/_/g, " ") : null);
+  return { compRef: m[1] ?? null, lang: (m[2] as CompareLang | undefined) ?? null, v1: versionOf(m[3]), v2: versionOf(m[4]) };
+}
+
+/** The path the old page goes to when its form (or "Load Next Chapter") changes something. */
+export function comparePath(s: { secRef: string | null; lang: string | null; v1: string | null; v2: string | null }): string {
+  return ["/compare", s.secRef, s.lang, s.v1, s.v2]
+    .map((p) => p ?? "")
+    .join("/")
+    .split("//")
+    .join("/")
+    .split(" ")
+    .join("_");
+}
+
+/** Is this a path of the version-diff page (the first segment is exactly "compare")? */
+export const isComparePath = (pathname: string) => /^\/compare(?:\/|$)/.test(pathname);

@@ -26,6 +26,10 @@ export function getRouter() {
     stringifySearch,
     // The old site writes a comma in a title as itself ("/Mishneh_Torah,_Shabbat.1.1", "/Jastrow,_אור"), not as %2C.
     pathParamsAllowedCharacters: [",", ":", "@"],
+    // A trailing slash is kept as written. The server already sends reader and library addresses to their slashless form (308,
+    // src/server/pass-through.ts); the version-diff tool's address means something else with and without it (/compare/Genesis.1/ is
+    // a ref, /compare/Genesis.1 a version: LEG-010), so the router must not "normalise" it with its own 307.
+    trailingSlash: "preserve",
   });
   // Dehydrates server-fetched queries into the page and hydrates them on the client (no refetch).
   // ...except the whole catalog (3.5 MB, CODE_REVIEW R-14): library pages carry their slice instead; others load it on the client

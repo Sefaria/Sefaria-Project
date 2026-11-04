@@ -9,7 +9,7 @@
  */
 import { API_ORIGIN } from "~/lib/config";
 import type { DeadlineInit } from "./internal-fetch";
-import { isDjangoPage } from "~/lib/routing/django-paths";
+import { isDjangoPage, isDjangoPageOnHost } from "~/lib/routing/django-paths";
 
 export { DJANGO_PREFIXES } from "~/lib/routing/django-paths";
 
@@ -19,8 +19,11 @@ export const passThroughEnabled = () => typeof process !== "undefined" && proces
 const SERVER_FN_RE = /^\/_serverFn\//;
 
 /** Always Django's, whatever this client could render (every write, except to this client's own server functions). */
-export const isDjangoPath = (pathname: string, method: string) =>
-  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || isDjangoPage(pathname));
+export const isDjangoPath = (pathname: string, method: string, host?: string | null) =>
+  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || (host === undefined ? isDjangoPage(pathname) : isDjangoPageOnHost(pathname, host)));
+
+/** The host the reader asked for (nginx passes it on; a proxy in front may name it in X-Forwarded-Host). */
+export const requestHost = (request: Request): string => request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || request.headers.get("host") || new URL(request.url).host;
 
 const PASS_THROUGH_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH_TIMEOUT_MS) || 30000);
 
@@ -100,6 +103,7 @@ export function trailingSlashRedirect(url: URL, method: string): Response | null
   if ((method !== "GET" && method !== "HEAD") || pathname === "/" || !pathname.endsWith("/")) return null;
   // a path starting with two slashes would make the Location protocol-relative (//evil.com: an open redirect); never redirect one
   if (/^\/[\/\\]/.test(pathname)) return null;
-  if (isDjangoPath(pathname, method) || resetLinkUid(pathname) || /^\/(login|register|password)\//.test(pathname)) return null;
+  // the version-diff tool's address means something different with and without its last slash (/compare/Genesis.1/ is the ref)
+  if (isDjangoPath(pathname, method) || resetLinkUid(pathname) || /^\/(login|register|password|compare)\//.test(pathname)) return null;
   return new Response(null, { status: 308, headers: { location: `${pathname.replace(/\/+$/, "")}${url.search}`, "cache-control": "public, max-age=86400" } });
 }
