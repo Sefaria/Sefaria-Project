@@ -41,8 +41,17 @@
 .footerLinks { display: flex; flex-wrap: wrap; max-width: 100%; padding-block-start: 15px; }
 .footerLinks a { padding-block-start: 10px; padding-inline-end: 16px; color: var(--sefaria-color-text-dark-grey); text-decoration: none; }
 .footerLinks a:hover { text-decoration: underline; }
+/* the old .social-links .appButton.white.iconOnly: 40px white squares with a 1px var(--sefaria-color-border-strong) border and 6px corners, the 18px
+   icon centred, 12px apart, 22px under the sign-up box (VERIFIED on sefaria.org /calendars, 2026-11-04) */
+.social { display: flex; gap: 12px; margin-block-start: 22px; }
+.socialButton { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; width: 40px; height: 40px; border: 1px solid var(--sefaria-color-border-strong); border-radius: 6px; background: var(--sefaria-color-surface); }
+.socialButton img { width: 18px; height: 18px; }
+.phoneOnly { display: none; }
 @media (max-width: 842px) {
   .wideOnly { display: none; }
+  /* the old phone Learning Schedules page: its About module at the top of the page, the title without the rule (measured) */
+  .phoneOnly { display: block; }
+  .phoneOnly .title { padding: 0; border: 0; }
   /* on a phone the old titles sat 10px over their content, not 20px (measured) */
   .title { margin-block-end: 10px; }
 }

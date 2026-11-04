@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as CalendarsRouteImport } from './routes/calendars'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as AuthLoginRouteImport } from './routes/_auth.login'
 import { Route as AuthRegisterRouteImport } from './routes/_auth.register'
@@ -32,6 +33,11 @@ const SplatRoute = SplatRouteImport.update({
 } as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarsRoute = CalendarsRouteImport.update({
+  id: '/calendars',
+  path: '/calendars',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -74,6 +80,7 @@ const AuthPasswordResetConfirmUidb64TokenRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/calendars': typeof CalendarsRoute
   '/search': typeof SearchRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/calendars': typeof CalendarsRoute
   '/search': typeof SearchRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/_auth': typeof AuthRouteWithChildren
+  '/calendars': typeof CalendarsRoute
   '/search': typeof SearchRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$'
+    | '/calendars'
     | '/search'
     | '/login'
     | '/register'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$'
+    | '/calendars'
     | '/search'
     | '/login'
     | '/register'
@@ -134,6 +145,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/_auth'
+    | '/calendars'
     | '/search'
     | '/_auth/login'
     | '/_auth/register'
@@ -147,6 +159,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
   AuthRoute: typeof AuthRouteWithChildren
+  CalendarsRoute: typeof CalendarsRoute
   SearchRoute: typeof SearchRoute
   InterfaceLangRoute: typeof InterfaceLangRoute
   TextsSplatRoute: typeof TextsSplatRoute
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendars': {
+      id: '/calendars'
+      path: '/calendars'
+      fullPath: '/calendars'
+      preLoaderRoute: typeof CalendarsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -247,6 +267,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
   AuthRoute: AuthRouteWithChildren,
+  CalendarsRoute: CalendarsRoute,
   SearchRoute: SearchRoute,
   InterfaceLangRoute: InterfaceLangRoute,
   TextsSplatRoute: TextsSplatRoute,
