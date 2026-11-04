@@ -1150,7 +1150,7 @@
  },
  "LIB-037": {
   "status": "done",
-  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+  "by": "src/ui/NavSidebar/NavSidebar.tsx"
  },
  "LIB-038": {
   "status": "done",
@@ -1631,5 +1631,30 @@
   "status": "partial",
   "note": "Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet",
   "by": "src/features/shell/SiteWideBanner"
+ },
+ "LIB-020": {
+  "status": "done",
+  "by": "src/ui/TranslationsPage, src/features/library/TranslationsRoute.tsx, src/lib/translations/translations-page.ts"
+ },
+ "LIB-021": {
+  "status": "partial",
+  "note": "Pages, 404s, title and description per language done; og:url, hreflang alternates and og:image are the site-wide head (platform-seo)",
+  "by": "src/routes/translations.$slug.tsx, src/lib/translations/translations-page.ts"
+ },
+ "LIB-029": {
+  "status": "done",
+  "by": "src/ui/NavSidebar/AboutTranslatedText.tsx"
+ },
+ "LIB-070": {
+  "status": "done",
+  "by": "src/features/shared/RouterLink.tsx (VerbatimRouterLink), src/features/library/TranslationsRoute.tsx"
+ },
+ "RTE-011": {
+  "status": "done",
+  "by": "src/routes/translations.$slug.tsx, src/lib/routing/django-paths.ts"
+ },
+ "RTE-065": {
+  "status": "done",
+  "by": "src/lib/routing/django-paths.ts, src/server/pass-through.ts, src/start.ts"
  }
 }

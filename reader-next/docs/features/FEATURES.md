@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**951 features**, 3732 documented behaviors. Proposed tiers: core 321, standard 413, optional 153, retire 61.
+**953 features**, 3751 documented behaviors. Proposed tiers: core 321, standard 415, optional 153, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 343 · partial 41 · todo 438 · replaced 19 · deferred 23 · n/a 87; 332 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 348 · partial 42 · todo 434 · replaced 19 · deferred 23 · n/a 87; 339 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -13,10 +13,10 @@ Master list of every feature in the current Sefaria web client, extracted from a
 ## Contents
 
 - **Reader**: [Reader shell & panels](#reader-shell) (75) · [Text display & reading settings](#text-display) (69) · [Text types & special cases](#text-types) (27) · [Connections & resources sidebar](#connections) (72) · [Versions & translations](#versions) (22)
-- **Library & discovery**: [Library navigation](#library-nav) (69) · [Book pages](#book-pages) (23) · [Topics](#topics) (32) · [Calendars](#calendars) (3) · [Search & autocomplete](#search) (112)
+- **Library & discovery**: [Library navigation](#library-nav) (70) · [Book pages](#book-pages) (23) · [Topics](#topics) (32) · [Calendars](#calendars) (3) · [Search & autocomplete](#search) (112)
 - **Voices (sheets & community)**: [Sheets: viewing](#sheets-view) (27) · [Sheets: editing & publishing](#sheets-editor) (29) · [Collections](#collections) (10) · [Profiles & social](#profile-social) (12) · [Saved, history & notes](#user-library) (12) · [Notifications & email](#notifications) (11)
 - **Site & accounts**: [Global UI](#global-ui) (28) · [Accounts & sign-in](#accounts) (16) · [Promotions & CMS](#promotions) (17) · [Static pages](#static-pages) (19) · [Language & accessibility](#i18n-a11y) (13) · [AI features](#ai) (20)
-- **Platform**: [URLs & routing](#routing) (64) · [SSR, SEO & platform](#platform-seo) (32) · [Public API & data exports](#api-data) (17) · [Analytics](#analytics) (17) · [Linker & embeds](#linker-embeds) (14)
+- **Platform**: [URLs & routing](#routing) (65) · [SSR, SEO & platform](#platform-seo) (32) · [Public API & data exports](#api-data) (17) · [Analytics](#analytics) (17) · [Linker & embeds](#linker-embeds) (14)
 - **Internal & legacy**: [Admin & moderator tools](#admin-tools) (58) · [Legacy pages](#legacy-pages) (30)
 
 ---
@@ -4247,7 +4247,7 @@ Source: `inv_05_library_topics.md#17`
 ### Translations
 
 #### LIB-020 · Translations by language page
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 A page per language lists all texts available in that language's translation, grouped by corpus and category with links straight to the translation.
 
@@ -4258,13 +4258,20 @@ A page per language lists all texts available in that language's translation, gr
 - Links are full reader URLs with translation version; .translationsPage class makes ReaderApp open them with that version (ReaderApp.jsx:1235-1236).
 - **BUG:** getTranslation called on every render; tab renderer references undefined showFilterHeader (dead filter code) (TranslationsPage.jsx:13,49).
 - Sidebar: AboutTranslatedText with slug.
+- VERIFIED 2026-11-04 (/translations/de, en, ar, yi, he; 1280px, phone User-Agent, Hebrew interface): no list in the server's HTML — it is fetched after load (/api/texts/translations/<lang>); corpora in Sefaria.toc order (de: Tanakh, Mishnah, Talmud, Midrash, Halakhah, Jewish Thought), sub-categories in the catalog's order of the corpus's contents (an API category the catalog does not have is dropped, as is a corpus the catalog does not have).
+- Prioritized: the corpus's 'Uncategorized' texts that the catalog lists directly under the corpus (Halakhah: Kitzur Shulchan Arukh), as a bare <ul> before the <details>; when the corpus has an 'Uncategorized' key but none qualifies, an empty <ul> still renders. The rest go into a last 'Uncategorized' / 'לא מסווג' block whose titles are NOT translated (plain {y.title}).
+- Sorting: sortFx compares order[0] only when both texts have order, else 0 (a stable sort keeps the API's order, which is index.order then version priority).
+- Hebrew interface: names go through Sefaria._ → hebrewTerm, so the terms dictionary (Sefaria.terms from /data.js) wins over the index title: Exodus 'ספר שמות', Leviticus 'ספר ויקרא', Deuteronomy 'ספר דברים', Jonah 'יונה הנביא' (not the catalog's heTitle). The h1 keeps the page language's title (a German title in the Hebrew interface, in Heebo 30px); the tab reads 'מקורות'.
+- Layout (1280): .content padding-top 60 (not the library home's 56); h1 = a 22px/500 grey Roboto line holding a 30px black adobe-garamond-pro span (Heebo in the Hebrew interface), 30px under it; tab list 1px #ccc rule, 18px under; the tab 22px Roboto, 10px padding, 4px #ccc underline, 30px inline-end margin; h2 24px black serif, margin-top 40 (collapses with the tab list's 18); summary 18px uppercase #666 serif, 30px over; <ul> flex-wrap, 20px over and under; li 18px serif, '•' with 0 5px margins. No category colour line. Phone (singlePanel): h1 10px over the tabs, tab 16px with 18px bottom padding, sidebar under the list.
+- BUILT 2026-11-04 (src/routes/translations.$slug.tsx, src/features/library/TranslationsRoute.tsx, src/ui/TranslationsPage, src/lib/translations): the model is built on the server (createServerFn) from the shared catalog, the API answer and the terms dictionary (server copy of /data.js's terms) and put in the server's page; the browser never downloads the catalog or terms for it. Links keep the API's href byte for byte (ven=german%7CDie+f%C3%BCnf…) and open the reader in the app (VerbatimRouterLink). Pixel diff vs www.sefaria.org: see CHANGELOG 2026-11-04 — translations.
+- Fixed on the way (not reproduced): getTranslation called on every render; the dead filter code referencing showFilterHeader.
 
 Code: [`static/js/TranslationsPage.jsx:13`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TranslationsPage.jsx#L13), [`static/js/TranslationsPage.jsx:49`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TranslationsPage.jsx#L49), [`static/js/sefaria/sefaria.js:3539-3543`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3539-L3543)
 
 Source: `inv_05_library_topics.md#6`
 
 #### LIB-021 · Translations page backend and SEO
-`standard` `broken` · rebuild: **todo**
+`standard` `broken` · rebuild: **partial** — Pages, 404s, title and description per language done; og:url, hreflang alternates and og:image are the site-wide head (platform-seo) · *tested*
 
 The server supplies translation lists and per-language page titles; some linked languages return not found.
 
@@ -4272,6 +4279,9 @@ The server supplies translation lists and per-language page titles; some linked 
 - For en/he, commentaries bundled by collective title linking to /texts/<...collective>; otherwise link to first section with ?ven=<family>|<vtitle>&lang=bi; includes order, versionTitle.
 - translations_page has hard-coded title/desc for ar,de,en,eo,es,fa,fi,fr,he,it,pl,pt,ru,yi; 404 for others.
 - **BUG:** ISOMap lists ro and tr with showTranslations=1 so the sidebar links to them, but translations_page 404s (reader/views.py:1262-1286 vs sefaria.js:903,907).
+- VERIFIED 2026-11-04: /api/texts/translations/he answers HTTP 500 after ~16 s on www.sefaria.org, so /translations/he shows only its title ('ספריה בעברית'), the Texts tab and the About module — kept: the new page shows the same and its server render waits at most the API deadline (8 s).
+- VERIFIED 2026-11-04: an unknown slug (/translations/ro, /tr, /xx, /DE — the lookup is case-sensitive) is Django's 404 'Page Not Found | Sefaria'. Head: <title> and og:title / twitter:title = the language's title; description / og:description / twitter:description = its description; og:url, hreflang alternates and the img-gen og:image are the site-wide head (not per page in the new reader yet).
+- BUILT 2026-11-04: src/lib/translations/translations-page.ts holds the 14 languages (title, description, direction) and the route answers 404 for any other slug (passed to Django in the cluster). The page's title, description, og:title/description and twitter:title/description are written per language.
 
 Code: [`reader/views.py:1257-1294`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1257-L1294), [`reader/views.py:4752-4841`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4752-L4841)
 
@@ -4378,11 +4388,13 @@ Code: [`static/js/NavSidebar.jsx:192-233`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-029 · Sidebar module: About translated text
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 Translation-language pages show a localized blurb about the library in that language.
 
 - Per-language title/body lookup for ar, de, eo, es, fa, fi, fr, it, pl, pt, ru, yi; fallback default 'living library' blurb.
+- VERIFIED 2026-11-04: the title is an InterfaceText (Roboto 22px/500 in English, Heebo in the Hebrew interface) whatever its language; the body is a bare text node directly in the module (Roboto 16px #666, no <p>, no Learn More, no video button). English and Hebrew pages have no entry and show 'A Living Library of Torah' with the library's blurb in the interface language. Sidebar order: this module, the empty Promo slot, then the footer.
+- BUILT 2026-11-04 (src/ui/NavSidebar/AboutTranslatedText.tsx). Deliberate difference: in the Hebrew interface the old bare German text inherited rtl and its final period showed at the line's start ('.der Entwicklung…'); the new module keeps the text's own lang/dir, so the period stays at the end.
 
 Code: [`static/js/NavSidebar.jsx:236-272`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L236-L272)
 
@@ -4474,13 +4486,14 @@ Code: [`static/js/NavSidebar.jsx:380-430`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_05_library_topics.md#4.2`
 
 #### LIB-037 · Sidebar module: Translations languages list
-`standard` `live` · rebuild: **done**
+`standard` `live` · rebuild: **done** · *tested*
 
 A list of languages linking to each translation-language page.
 
 - 'Translations' + blurb + links /translations/<code> for ISOMap entries with showTranslations (native names).
 - **BUG:** includes ro and tr whose pages 404 (see Translations page).
 - Languages are 18px serif, black, joined by '•' (li::after, margin 0 5px), 22px under the description; Hebrew names (Yiddish) render in Taamey Frank via the English serif stack (--english-serif-font-family includes 'Taamey Frank' after adobe-garamond-pro). Verified on www.sefaria.org with Playwright, 2026-10-29.
+- BUILT 2026-11-04: the language links are this client's own pages now (relative /translations/<code>, in-app navigation); ro and tr still 404 (passed to Django), as on sefaria.org.
 
 Code: [`static/js/NavSidebar.jsx:433-441`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L433-L441)
 
@@ -4853,6 +4866,22 @@ Server routes for /texts and category paths handle redirects, fallbacks and SEO.
 Code: [`reader/views.py:977-1010`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L977-L1010), [`reader/views.py:1320-1324`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1320-L1324), [`sefaria/urls_library.py:20-21`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_library.py#L20-L21)
 
 Source: `inv_05_library_topics.md#19`
+
+
+### Translations
+
+#### LIB-070 · Translations page link targets open the reader in that version
+`standard` `live` · rebuild: **done** · *tested*
+
+Each text on a translations page opens the reader at its first section in that language's translation, side by side with the Hebrew.
+
+- Old ReaderApp.openURL: a click inside .translationsPage opens the ref with ven from the link and takes the content language from its ?lang (bi). English/Hebrew commentaries bundled by collective title link to their category page /texts/<cats>/<collective> (spaces unescaped).
+- VERIFIED 2026-11-04: /Genesis.1?ven=german%7CDie+f%C3%BCnf+B%C3%BCcher+Moses…&lang=bi opens Genesis 1 with the Wohlgemuth German translation beside the Hebrew.
+- BUILT 2026-11-04: VerbatimRouterLink keeps the API's href byte for byte and navigates through the router on a plain click (modified clicks are the browser's).
+
+Code: [`static/js/ReaderApp.jsx:1242`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1242), [`reader/views.py:4907-4910`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4907-L4910)
+
+Source: `lane translations 2026-11-04`
 
 
 <a id="book-pages"></a>
@@ -10771,7 +10800,7 @@ Code: [`reader/views.py:1326-1329`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-011 · Translations page URLs
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 /translations/<language> lists texts available in a given translation language.
 
@@ -10779,6 +10808,7 @@ Source: `inv_01_urls_routing.md#1.1`
 - Menu 'translationsPage' with initialTranslationsSlug; localized title/desc per language; noindex False.
 - In-app links inside .translationsPage override content language from link ?lang.
 - api/texts/translations builds reader URLs /<firstSectionRef>?ven=<family|title>&lang=bi.
+- BUILT 2026-11-04: 'translations' removed from DJANGO_PREFIXES on the Library host; /translations/ is a client prefix in the route manifest and an app page (not a ref) in lib/reader/paths. On the Voices host it stays Django's (RTE-065).
 
 Code: [`reader/views.py:1256-1289`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1256-L1289), [`reader/views.py:4826-4831`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4826-L4831)
 
@@ -11622,6 +11652,21 @@ Opening a commentary ref from inside the app (a link, a citation, search) — e.
 Code: [`static/js/ReaderApp.jsx:1760`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1760)
 
 Source: `inv_04_connections.md#22`
+
+
+### Library page URLs
+
+#### RTE-065 · Library-only pages stay Django's on the Voices host
+`standard` `live` · rebuild: **done** · *tested*
+
+A page the new reader renders for the Library (sefaria.org) is still passed to Django when it is requested on the Voices host, until the Library/Voices host model is decided.
+
+- src/lib/routing/django-paths.ts LIBRARY_HOST_ONLY (first segment 'translations') + isVoicesHost (a host starting 'voices.'); isDjangoPath(pathname, method, host) in the request middleware (host from X-Forwarded-Host, else the request URL) and in the trailing-slash redirect.
+- Open question Q-E1 (TARGET_ARCHITECTURE): which pages each module serves. Added 2026-11-04 by the translations port.
+
+Code: [`sefaria/urls_library.py:24`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_library.py#L24)
+
+Source: `lane translations 2026-11-04`
 
 
 <a id="platform-seo"></a>
