@@ -29,7 +29,7 @@ Parity is checked event by event against the inventory below. — *decided* · [
 | GA4 gtag.js, `config` with `user_id`, `traffic_type` (`sefariaemail`), `site_lang`, `site_version` | `templates/base.html:285-299` | done: `scripts.ts:36-39`, user from the root loader (`src/routes/__root.tsx:52`) |
 | **The vanilla JS data tag**: `static/js/analyticsEventTracker.js`, loaded before the React bundle and attached to `#s2, #staticContentWrapper` for `click`, `scrollIntoView`, `toggle`, `mouseover`, `input`, `inputStart` | `templates/base.html:257`, `:301`; tracker `static/js/analyticsEventTracker.js:1-288` | **a TypeScript port**, not the file: `src/lib/analytics/declarative.ts:1-157`, attached in a `useEffect` after hydration (`src/routes/__root.tsx:121`) |
 | Simple Analytics: `sa_event` queue, `sa_metadata` (logged_in, interface_lang, device_type, user_type, custom_session_id, sefaria_id, traffic_type), script with `data-collect-dnt` | `templates/base.html:185-192`, `:311-346` | done: `scripts.ts:41-63`, `__root.tsx:146-160` |
-| Sentry (`CLIENT_SENTRY_DSN`) | `templates/base.html:221-229` | done: `src/lib/analytics/sentry.ts:30` |
+| Sentry (`CLIENT_SENTRY_DSN`) | `templates/base.html:221-229` | not ported: Sentry is no longer used (owner, 2026-11-04; ANL-017 retired) |
 | `Sefaria.track` (Universal Analytics `ga` calls; reach GA4 through GTM's `ga` shim, per `reader-next/src/lib/analytics/core.ts:6-10`) | `static/js/sefaria/track.js:1-126` | done as `uaEvent`: `core.ts:89-98` |
 | `TrackG4.gtagClick` → `onclick_<component>` | `static/js/sefaria/trackG4.js:13-22` | missing |
 | VWO (`is_spa=1`, hides `<body>` until loaded), Hotjar, Unbounce | `templates/base.html:152-166`, `:171-183`, `:194-195` | not loaded (`scripts.ts:10`, owner decision pending) |
@@ -94,7 +94,7 @@ Channel: **gtag** = `gtag("event", …)`; **sa** = Simple Analytics; **ua** = `S
 | `reader_app_mounted` | gtag+sa | first app mount per session | `static/js/ReaderApp.jsx:251-254` | done: `lib/analytics/session.ts:110` |
 | `intersection_observer_not_supported` | gtag+sa | once per browser | `static/js/ReaderApp.jsx:257-260` | done: `session.ts:113` |
 | `print` | gtag | print | `static/js/ReaderApp.jsx:2212-2213` | done: `session.ts:119` |
-| `Javascript Errors` | ua | `window.onerror` | `static/js/sefaria/track.js:7-9` | dropped (Sentry instead) |
+| `Javascript Errors` | ua | `window.onerror` | `static/js/sefaria/track.js:7-9` | dropped (UA only). The new reader has no browser error reporting since Sentry was removed (2026-11-04) |
 | `header_viewed` (`regular_header`) | gtag+sa | header fully visible, once per session | `static/js/Header.jsx:232-234` | done: `ui/SiteHeader/SiteHeader.tsx:121` |
 | `header_viewed` (`category_color_line`) | gtag+sa | colour line fully visible | `static/js/Misc.jsx:1635-1636` | done: `ui/CategoryColorLine/CategoryColorLine.tsx:16` |
 | `banner_probe_viewed` | gtag+sa | probe visible | `static/js/BannerImpressionProbe.jsx:34-35` | done: `features/shell/BannerImpressionProbe.tsx:24` |
@@ -260,7 +260,6 @@ Implemented in (most features first):
 - [`src/lib/auth/analytics.ts`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/auth/analytics.ts) (1)
 - [`src/lib/analytics/declarative.ts`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/analytics/declarative.ts) (1)
 - [`src/lib/analytics/core.ts`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/analytics/core.ts) (1)
-- [`src/lib/analytics/sentry.ts`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/analytics/sentry.ts) (1)
 
 ### Gaps: core and standard features not done (3)
 

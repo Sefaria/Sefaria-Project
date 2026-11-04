@@ -11,7 +11,7 @@ const names = async (page: Page) => (await log(page)).map((e) => `${e.channel}:$
 test.describe("analytics", () => {
   test("a reader page logs the old page-load events, and nothing is sent to Google", async ({ page }) => {
     const sent: string[] = [];
-    page.on("request", (r) => /^https:\/\/[^/]*(googletagmanager|google-analytics|simpleanalyticscdn|sentry\.io)/.test(r.url()) && sent.push(r.url()));
+    page.on("request", (r) => /^https:\/\/[^/]*(googletagmanager|google-analytics|simpleanalyticscdn)/.test(r.url()) && sent.push(r.url()));
     await open(page, "/Genesis.1");
     await expect.poll(() => names(page), { timeout: 10_000 }).toEqual(expect.arrayContaining(["gtag:select_content", "sa:reader_app_mounted", "gtag:reader_app_mounted", "gtag:header_viewed", "gtag:banner_probe_viewed"]));
     const l = await log(page);

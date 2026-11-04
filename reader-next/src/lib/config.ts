@@ -13,8 +13,8 @@
  *  - PUBLIC_LABS          the labs on by default in this deployment, comma-separated ("follow_me,recording"); remote config
  *                         `feature.reader.labs.<name>` overrides it either way (src/lib/labs.ts). Unset = every lab off.
  *  - Analytics (src/lib/analytics), the same settings Django's templates/base.html reads; each is off when unset, so development and
- *    tests send nothing: GOOGLE_TAG_MANAGER_CODE, GOOGLE_GTAG, CLIENT_SENTRY_DSN, SIMPLE_ANALYTICS_HOSTNAME ("sefaria.org" in
- *    production), APP_VERSION (gtag's site_version, Sentry's release).
+ *    tests send nothing: GOOGLE_TAG_MANAGER_CODE, GOOGLE_GTAG, SIMPLE_ANALYTICS_HOSTNAME ("sefaria.org" in
+ *    production), APP_VERSION (gtag's site_version).
  *  - GOOGLE_SSO_CLIENT_ID, APPLE_SSO_CLIENT_ID, RECAPTCHA_PUBLIC_KEY   the sign-in providers' public client IDs and the reCAPTCHA site
  *                         key — the same values Django hands its own pages (reader/views.py user_data). Empty = that provider's
  *                         button is not shown / no captcha, as on the old site.
@@ -25,7 +25,6 @@ import { parseLabs, type LabName } from "~/lib/labs";
 export interface AnalyticsConfig {
   gtm: string | null;
   gtag: string | null;
-  sentryDsn: string | null;
   simpleAnalyticsHost: string | null;
   appVersion: string | null;
 }
@@ -71,7 +70,7 @@ declare global {
   }
 }
 
-const NO_ANALYTICS: AnalyticsConfig = { gtm: null, gtag: null, sentryDsn: null, simpleAnalyticsHost: null, appVersion: null };
+const NO_ANALYTICS: AnalyticsConfig = { gtm: null, gtag: null, simpleAnalyticsHost: null, appVersion: null };
 
 /** What the browser is told (also what the server uses for links it renders). */
 export const PUBLIC_CONFIG: PublicConfig = isServer
@@ -82,7 +81,6 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
       analytics: {
         gtm: env("GOOGLE_TAG_MANAGER_CODE") || null,
         gtag: env("GOOGLE_GTAG") || null,
-        sentryDsn: env("CLIENT_SENTRY_DSN") || null,
         simpleAnalyticsHost: env("SIMPLE_ANALYTICS_HOSTNAME") || null,
         appVersion: env("APP_VERSION") || null,
       },

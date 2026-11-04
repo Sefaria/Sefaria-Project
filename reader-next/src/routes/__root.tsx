@@ -34,7 +34,7 @@ import tokens from "~/ui/tokens/tokens.css?url";
 import fonts from "~/ui/tokens/fonts.css?url";
 import base from "~/ui/tokens/base.css?url";
 import { configScript, PUBLIC_CONFIG } from "~/lib/config";
-import { analyticsHeadScripts, attachDeclarativeAnalytics, initSentry, saMetadataScript, searchFlow, simpleAnalyticsScript, useAppAnalytics } from "~/lib/analytics";
+import { analyticsHeadScripts, attachDeclarativeAnalytics, saMetadataScript, searchFlow, simpleAnalyticsScript, useAppAnalytics } from "~/lib/analytics";
 import { GARAMOND_FILES, TYPEKIT_CSS } from "~/lib/fonts/typekit";
 import robotoLatin from "@fontsource/roboto/files/roboto-latin-400-normal.woff2?url";
 import heeboHebrewBold from "@fontsource/heebo/files/heebo-hebrew-700-normal.woff2?url";
@@ -97,7 +97,6 @@ function RootComponent() {
   // Lets tests (and anything else that must wait for interactivity) know React has attached its handlers.
   useEffect(() => {
     document.documentElement.dataset.hydrated = "true";
-    void initSentry();
   }, []);
   return (
     <RootDocument lang={interfaceLang === "hebrew" ? "he" : "en"} dir={interfaceLang === "hebrew" ? "rtl" : "ltr"}>

@@ -2,17 +2,17 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**948 features**, 3719 documented behaviors. Proposed tiers: core 321, standard 414, optional 153, retire 60.
+**951 features**, 3732 documented behaviors. Proposed tiers: core 321, standard 413, optional 153, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 337 · partial 41 · todo 441 · replaced 18 · deferred 23 · n/a 88; 325 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 343 · partial 41 · todo 438 · replaced 19 · deferred 23 · n/a 87; 332 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
 
 ## Contents
 
-- **Reader**: [Reader shell & panels](#reader-shell) (75) · [Text display & reading settings](#text-display) (69) · [Text types & special cases](#text-types) (27) · [Connections & resources sidebar](#connections) (71) · [Versions & translations](#versions) (21)
+- **Reader**: [Reader shell & panels](#reader-shell) (75) · [Text display & reading settings](#text-display) (69) · [Text types & special cases](#text-types) (27) · [Connections & resources sidebar](#connections) (72) · [Versions & translations](#versions) (22)
 - **Library & discovery**: [Library navigation](#library-nav) (69) · [Book pages](#book-pages) (23) · [Topics](#topics) (32) · [Calendars](#calendars) (3) · [Search & autocomplete](#search) (112)
 - **Voices (sheets & community)**: [Sheets: viewing](#sheets-view) (27) · [Sheets: editing & publishing](#sheets-editor) (29) · [Collections](#collections) (10) · [Profiles & social](#profile-social) (12) · [Saved, history & notes](#user-library) (12) · [Notifications & email](#notifications) (11)
 - **Site & accounts**: [Global UI](#global-ui) (28) · [Accounts & sign-in](#accounts) (16) · [Promotions & CMS](#promotions) (17) · [Static pages](#static-pages) (19) · [Language & accessibility](#i18n-a11y) (13) · [AI features](#ai) (20)
@@ -3592,6 +3592,24 @@ Code: [`static/js/sefaria/sefaria.js:2301`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#23`
 
 
+### Moderator tools
+
+#### CON-072 · Edit a dictionary entry (moderator)
+`extended` `live` · rebuild: **done** · *tested* `moderator`
+
+On a dictionary entry, moderators get Advanced → Change Lexicon Headword and Edit Lexicon Content (#3730).
+
+- Shown when Sefaria.is_moderator and the book's categories include Dictionary (ConnectionsPanel.jsx AdvancedToolsList); modes LexiconHeadwordEdit / LexiconContentEdit.
+- The entry is the section ref after '<index title>, ' with the index's lexiconName (LexiconEntryEditBox resolveLexiconEntryRef); otherwise 'This tool is only available while viewing a lexicon entry.'
+- Headword: PATCH /api/lexicon-entry/headword/<lexicon>/<headword> {new_headword}; 'Saved as "X".' or '(adjusted from "Y")' when the server disambiguated or normalized it.
+- Content: GET /api/lexicon-entry/<lexicon>/<headword> → the content_attr_names fields as a tree (no adding or deleting keys); each string a WYSIWYG field (bold, italic, superscript, subscript, Sefaria ref link with display text) with Cancel; Save PATCHes {content}.
+- Errors come back with a real status and {error}, shown as is.
+
+Code: [`static/js/LexiconHeadwordEditBox.jsx:7`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/LexiconHeadwordEditBox.jsx#L7), [`static/js/LexiconContentEditBox.jsx:30`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/LexiconContentEditBox.jsx#L30), [`static/js/LexiconWysiwygValue.jsx:70`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/LexiconWysiwygValue.jsx#L70), [`static/js/ConnectionsPanel.jsx:1092`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L1092)
+
+Source: `admin inventory 2026-10-29`
+
+
 <a id="versions"></a>
 ## Versions & translations
 
@@ -3923,6 +3941,23 @@ Long-form notes about a version can be read in the sidebar, in English or Hebrew
 Code: [`static/js/ExtendedNotes.jsx:30`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ExtendedNotes.jsx#L30), [`static/js/ConnectionsPanel.jsx:570`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L570), [`reader/views.py:551`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L551)
 
 Source: `inv_04_connections.md#8.6`
+
+
+### Moderator tools
+
+#### VER-030 · Moderator edits or deletes a version
+`extended` `live` · rebuild: **done** · *tested* `moderator`
+
+On the book page's Versions tab, moderators get a pencil on each version that opens the version editor (VersionBlock).
+
+- Pencil enabled when Sefaria.is_moderator && rendermode == 'book-page' (VersionBlock.jsx:308).
+- Fields in order: Version Title, Hebrew Version Title, Short Version Title, Short Hebrew Version Title, Version Source, License (Sefaria.getLicenseMap keys + '(None Listed)'), Direction, isSource, isPrimary, Digitized by Sefaria, Priority, Locked (status 'locked' / null), VersionNotes, Hebrew VersionNotes, Purchase Information (Buy URL, Buy Image).
+- SAVE: POST /api/version/flags/<title>/<lang>/<versionTitle> json= every field with a value or changed; a changed title goes as newVersionTitle; the page reloads on {status: ok}.
+- Delete Version: confirm 'Are you sure you want to delete this text version?', DELETE the version (texts_api ?ven=|vhe=), alert 'Text Version Deleted.'.
+
+Code: [`static/js/VersionBlock/VersionBlock.jsx:115`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/VersionBlock/VersionBlock.jsx#L115), [`static/js/VersionBlock/VersionBlock.jsx:152`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/VersionBlock/VersionBlock.jsx#L152), [`static/js/VersionBlock/VersionBlock.jsx:218`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/VersionBlock/VersionBlock.jsx#L218)
+
+Source: `admin inventory 2026-10-29`
 
 
 ---
@@ -10289,7 +10324,7 @@ Code: [`static/js/SiteWideBanner.jsx:244`](https://github.com/Sefaria/Sefaria-Pr
 Source: `inv_08_other.md#4.3; inv_02_reader_shell.md#14`
 
 #### AI-003 · Chatbot user token and props
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 The server issues a short-lived encrypted token identifying the user to the assistant service.
 
@@ -10319,7 +10354,7 @@ Code: [`sefaria/helper/library_assistant.py:1`](https://github.com/Sefaria/Sefar
 Source: `inv_08b_admin_linker_apps.md#4.4`
 
 #### AI-005 · Chatbot preview build selection (?chatbot_version)
-`optional` `live` · rebuild: **todo** `staff` `desktop only`
+`optional` `live` · rebuild: **done** · *tested* `staff` `desktop only`
 
 Developers can load a preview build of the assistant by URL parameter, remembered for the session.
 
@@ -10411,7 +10446,7 @@ Source: `inv_08b_admin_linker_apps.md#4.3`
 ### Chatbot
 
 #### AI-011 · Library Assistant chatbot widget
-`standard` `live` · rebuild: **todo** `signed-in` `desktop only`
+`standard` `live` · rebuild: **done** · *tested* `signed-in` `desktop only`
 
 Eligible users on the Library module get a floating AI assistant chat widget embedded in the reader.
 
@@ -10436,7 +10471,7 @@ Code: [`static/js/ReaderApp.jsx:2609`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_04_connections.md#21.1; inv_08b_admin_linker_apps.md#4.4; inv_02_reader_shell.md#1`
 
 #### AI-012 · Chatbot version override via query param (POC)
-`optional` `branch-only` · rebuild: **n/a** `staff`
+`optional` `branch-only` · rebuild: **done** · *tested* `staff`
 
 Developers can pin the chatbot preview server version with a URL param.
 
@@ -12674,13 +12709,13 @@ Source: `inv_08_other.md#5.4`
 ### Error reporting
 
 #### ANL-017 · Browser error reporting (Sentry)
-`standard` `live` · rebuild: **done** `system`
+`retire` `live` · rebuild: **replaced** — Not ported: Sentry is no longer used (owner, 2026-11-04) `system`
 
 Front-end errors and performance traces are reported to Sentry.
 
 - client.jsx:21-34: @sentry/react with BrowserTracing + Replay; sample rates from remoteConfig.sentry.*; release = appVersion; DSN CLIENT_SENTRY_DSN
 - Server Sentry config in sefaria/settings_utils.py
-- Rebuild: src/lib/analytics/sentry.ts — @sentry/react loaded on demand when CLIENT_SENTRY_DSN is set; release = APP_VERSION; tracing + replay; sample rates from /api/remote-config feature.client.remote_config_json.sentry (VERIFIED live: sampleRate 1.0, others 0).
+- RETIRED 2026-11-04 (owner): Sentry is no longer used. The new reader loads no Sentry SDK and sends no errors, traces or replays; CLIENT_SENTRY_DSN is no longer passed to the reader pods. Its removal also ends the browser's /api/remote-config fetch on every page (Sentry was its only reader).
 
 Code: [`static/js/client.jsx:21`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/client.jsx#L21), [`sefaria/settings_utils.py`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/settings_utils.py)
 

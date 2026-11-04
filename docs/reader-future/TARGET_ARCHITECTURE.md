@@ -53,7 +53,7 @@ The owner answered the seven questions in §F of the consolidation (`READER_FUTU
 
 | # | Question | Decision | Architecture consequence |
 |---|---|---|---|
-| D1 | Real-user monitoring and targets | **Google `web-vitals` (attribution build) reporting LCP, INP, CLS to GA4, plus Sentry tracing at a low sample rate.** Targets: Core Web Vitals "good" at p75 on real phone sessions (LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1); CI lab gate on a Pixel 7 profile, 4× CPU, slow 4G. **Condition: the existing GA4 data stream stays exactly the same.** | Vitals are sent as one *additional* event (`web_vitals`) through the same `gtag` already loaded; no new `config` call, no change to existing events, page views or parameters; sampled by remote config (§6.5). The parity launch gate (§6.10) diffs the stream with and without vitals. |
+| D1 | Real-user monitoring and targets | **Google `web-vitals` (attribution build) reporting LCP, INP, CLS to GA4.** (Sentry tracing, part of the original decision, was dropped 2026-11-04: Sentry is no longer used.) Targets: Core Web Vitals "good" at p75 on real phone sessions (LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1); CI lab gate on a Pixel 7 profile, 4× CPU, slow 4G. **Condition: the existing GA4 data stream stays exactly the same.** | Vitals are sent as one *additional* event (`web_vitals`) through the same `gtag` already loaded; no new `config` call, no change to existing events, page views or parameters; sampled by remote config (§6.5). The parity launch gate (§6.10) diffs the stream with and without vitals. |
 | D2 | VWO, Hotjar, Unbounce | **VWO and Hotjar load according to remote-config attributes**, and remote config itself must be kept working (§6.5). **Unbounce loads only on the pages that use it.** | A runtime-config read in the node server; one client-visible config object; a third-party script registry that decides per page type. Legacy `base.html` reads the same keys so one switch controls both clients while they coexist. |
 | D3 | Dark mode | Accepted: follow the device by default, with a Light / Dark / System control; drop sepia at launch; every page the new client renders; cookie + profile; content with its own colours shown on a light "paper" surface. **Plus: dark mode is behind a feature flag and can be switched on and off.** | Flag in remote config (§6.5); when off, the control is hidden and the theme is forced light without losing the reader's stored choice. Theme resolved on the server (no flash). |
 | D4 | Integrations | Accepted: honour `replaceHistory`; keep "a ref closes all panels" at launch with optional panel targeting in versioned commands; no cross-origin `postMessage` at launch; reader team owns the interface and its contract test, AI team the chatbot side; re-read preferences on focus while `/settings` is Django. | §6.12. |
@@ -80,7 +80,7 @@ The owner answered the seven questions in §F of the consolidation (`READER_FUTU
                                   ├── /api/*       ─► Varnish ─► Django web pods ─► MongoDB · Postgres · Redis · ES
                                   └── /static/*                     │
                                                                     └─► Celery (search index, linker, LLM, CRM, email)
- Third parties (browser): GTM · GA4 · Simple Analytics · Sentry · VWO* · Hotjar* · Unbounce*   (* = remote-config gated)
+ Third parties (browser): GTM · GA4 · Simple Analytics · VWO* · Hotjar* · Unbounce*   (* = remote-config gated)
  Runtime config: Postgres RemoteConfigEntry ─► Django process cache ─► GET /api/remote-config ─► node TTL cache ─► page
 ```
 
@@ -110,7 +110,7 @@ GET /Genesis.1.1?lang=bi&with=Rashi
  5  render: head (meta, theme, fonts, analytics + gated third-party scripts) · body (text in HTML, data-anl-* attributes)
  6  dehydrate: TanStack Query cache + router context (prefs, runtime config's client part) into the page
  7  browser: data tag listens on document (before hydration) · hydrate · integration layer drains its queue
- 8  after hydration: web-vitals, Sentry (rates from runtime config), idle prefetch of next/prev sections
+ 8  after hydration: web-vitals, idle prefetch of next/prev sections
 ```
 
 Budgets that gate this path (D1): TTFB, JS, CSS and hydration time in CI; LCP / INP / CLS from the field.
@@ -131,7 +131,7 @@ src/lib/
   notices/         NEW  notice manager (§6.9)
   user/            one user-state store (history, saved, notes, reading position, bookmarks) (§6.8)
   theme/           NEW  tokens, theme resolution, `theme-color` (§6.6)
-  analytics/       built: GA4/GTM/SA/Sentry; adds data tag on SSR HTML, web-vitals, third-party loader
+  analytics/       built: GA4/GTM/SA; adds data tag on SSR HTML, web-vitals, third-party loader
   api, cache, ref, text, versions, connections, catalog, toc, lexicon, search, topics, …   adapters (§6.7)
   layout, workspace  layout tree + Workspace model + URL codec
 ```
@@ -214,7 +214,7 @@ Each subsystem: what it is for, the shape, what is built, what changes, and the 
 | Server reads | `remoteConfigCache.get(key, default)` | linker version, ref cache limit, webpages, legacy cookies, Sentry server config, chatbot limits, search boosts |
 | Client exposure (legacy) | `reader/views.py:225` | Only `feature.client.remote_config_json` is put in page props as `remoteConfig` (Sentry rates, `chatbot.hide`) |
 | Public endpoint | `GET /api/remote-config` (`urls_shared.py:321`) | All active keys as JSON. Live response: `Vary: Cookie`, Varnish `age: 0`, Cloudflare `DYNAMIC` (not cached) |
-| New client | `src/lib/analytics/sentry.ts` | Browser fetches `/api/remote-config` on every page load to read `sentry` rates; nothing else reads remote config |
+| New client | — | Nothing reads remote config yet (the Sentry reader that fetched `/api/remote-config` on every page was removed 2026-11-04) |
 | Third-party tags | `templates/base.html` | GTM; **VWO** hard-coded (account 682715, `hide_element='body'`, 2 s tolerance); **Hotjar** if `HOTJAR_ID` (prod 2695522); **Unbounce** unconditional on every page. All four are live on `/Genesis.1` today. |
 
 **Gaps that break "remote config is maintained" (fix first):**
@@ -327,7 +327,7 @@ the browser). Flags use `0`/`1` like the existing `chatbot.hide`.
 ### 6.10 Analytics and monitoring
 
 - **Built:** one module (`src/lib/analytics`): GTM, gtag `config` with `user_id`, `traffic_type`, `site_lang`, `site_version`; Simple
-  Analytics with `sa_metadata`; Sentry with rates from remote config; 33 of 59 events; a TypeScript port of the data tag attached
+  Analytics with `sa_metadata`; 33 of 59 events; a TypeScript port of the data tag attached
   after hydration; `window.__SEFARIA_ANALYTICS__` log for tests.
 - **To reach F4 (ANL-PAR-1…7):**
   - Data tag listens on `document` **before hydration** (SSR HTML carries `data-anl-*`), so early clicks are not lost; no extra page
@@ -337,7 +337,7 @@ the browser). Flags use `0`/`1` like the existing `chatbot.hide`.
   - **Launch gate per page type:** record the dataLayer on sefaria.org and on reader-next for the same journeys and diff them.
 - **Web vitals (D1):** `web-vitals/attribution` after hydration; on each metric send **one** GA4 event
   `web_vitals {metric_name, metric_value, metric_rating, metric_id, page_type, debug_target}` through the existing `gtag` (no new
-  `config`, no new property); sampled by `webVitals.sampleRate`; plus Sentry `tracesSampleRate` > 0 (e.g. 0.05) via remote config.
+  `config`, no new property); sampled by `webVitals.sampleRate`. No Sentry (removed 2026-11-04).
   The parity diff ignores exactly this event name and nothing else, which is how "the GA4 stream stays the same" is checked.
 - **Third-party loader:** §6.5 registry decides VWO/Hotjar/Unbounce per page type and flag.
 
@@ -552,7 +552,7 @@ and its Batch 2 replaces A2, A5, C1, C3 and C5 below.
 | # | Step | § | Where | Size |
 |---|---|---|---|---|
 | A1 | Remote config: TTL reload (+ optional pub/sub) in Django; correct the README; schema for `feature.client.remote_config_json` in `keys.py` + `clean()` validation; data migration that writes today's VWO/Hotjar/Unbounce values | 6.5 | BE | S |
-| A2 | `src/lib/runtime-config`: node TTL cache of `/api/remote-config`, defaults, client part into `__SEFARIA_CONFIG__.remoteConfig`; Sentry reads it instead of fetching | 6.5 | RN | S |
+| A2 | `src/lib/runtime-config`: node TTL cache of `/api/remote-config`, defaults, client part into `__SEFARIA_CONFIG__.remoteConfig` | 6.5 | RN | S |
 | A3 | Third-party script registry (VWO, Hotjar, Unbounce) gated by runtime config + page type; legacy `base.html` reads the same keys | 6.5 | RN + BE | S |
 | A4 | CI for `reader-next/`: unit + story tests + a smoke e2e on every PR to `reader-next`; budgets job (JS/CSS/hydration) | 6.11, §11 | INF | S |
 | A5 | Move `go()` and URL defaults out of React context; stable panel ids | 6.1, 6.2 | RN | M |
@@ -564,7 +564,7 @@ and its Batch 2 replaces A2, A5, C1, C3 and C5 below.
 |---|---|---|---|---|
 | B1 | Tokens for every colour; theme resolved on the server; Light/Dark/System control; `darkMode.enabled` flag; `theme-color`; stories in both themes | 6.6 | RN | M |
 | B2 | Data tag on SSR HTML before hydration; panel `data-anl-batch`; missing/partial events; `auth_*` names; GTM container export; parity diff harness | 6.10 | RN + INF | M |
-| B3 | `web-vitals` → GA4 `web_vitals` event (sampled), Sentry tracing rate; field dashboard | 6.10 | RN + INF | S |
+| B3 | `web-vitals` → GA4 `web_vitals` event (sampled); field dashboard | 6.10 | RN + INF | S |
 | B4 | `src/lib/integration`: commands, legacy adapters (`bootstrap-url` honouring `replaceHistory`, `settings-updated`), `state-changed`, `<lc-chatbot>`, contract test, `INTEGRATION.md` | 6.12 | RN | M |
 | B5 | Stacks + `layout=`, dividers, drag + keyboard move, phone rule | 6.2 | RN | M |
 | B6 | ~~Aliyot fixes found in §9~~ done 2026-10-28 | 9 | RN | S |
@@ -627,7 +627,7 @@ What someone picking this up tomorrow needs to know, checked on 2026-10-28.
 
 **Facts corrected by this audit**
 
-- Production Sentry `sampleRate` is **1.0** (errors) with tracing 0.0 (`/api/remote-config`), not "all rates 0".
+- Production Sentry `sampleRate` is **1.0** (errors) with tracing 0.0 (`/api/remote-config`), not "all rates 0". (Legacy only: the new reader dropped Sentry 2026-11-04.)
 - VWO, Hotjar (2695522) and Unbounce are all live on reader pages today.
 
 **How to run** (reader-next): `npm run dev` (port 3100), `npm run storybook`, `npm test`, `npm run test:stories`, `npm run test:e2e`,

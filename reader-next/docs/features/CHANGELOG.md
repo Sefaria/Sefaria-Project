@@ -260,3 +260,7 @@ Compared side by side with sefaria.org at 1280px, `lang2=en` and `lang2=he`, by 
 ## 2026-10-29 — text direction (owner's screenshot: Hebrew Rashi laid out left-to-right in the sidebar)
 - **I18-013 Found**: the sidebar's connected texts tagged only the inline text span with `dir`, so in an English block a Hebrew comment's lines started at the left and its last short line sat on the left. The old client puts the direction on the block (`.segment.heOnly`: rtl, justify). *Verified* on sefaria.org Exodus 18:1 `with=Rashi&lang2=he`.
 - **Built**: `ui/LangText` — LangText (lang and dir always together) and ContentText (the content-language side of `{en, he}`, strict like the old ContentText), `lib/i18n/content-lang` (the sidebar provides lang2), `lib/i18n/direction`. InterfaceText sets `dir`. Every element that set `lang` without `dir` now sets both, except five files under another session's edits, held in the baseline of the new architecture rule `lang-with-dir` (**I18-010**, **GUI-012**, **CON-032** detail added).
+
+## 2026-11-04 — Sentry retired
+
+- **ANL-017** Browser error reporting (Sentry): tier `retire`. Owner decision: Sentry is no longer used, so the new reader does not port it. `src/lib/analytics/sentry.ts`, `@sentry/react` and `@sentry/replay` are removed, and the reader pods no longer get `CLIENT_SENTRY_DSN`. This also removes the browser's `/api/remote-config` request on every page, which existed only to read Sentry's sample rates.

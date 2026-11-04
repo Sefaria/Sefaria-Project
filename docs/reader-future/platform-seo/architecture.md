@@ -30,8 +30,8 @@ does about each, are in [Legacy load/repaint issues vs. new arc](#legacy-loadrep
 - **New (`reader-next`):** the client renders reader pages on the node pods and passes the rest to Django (PLT-003, decision
   2026-10-06). Repaints and layout shift are checked in the lab only: per-step jump analysis and CLS in
   [`e2e/smoothness.spec.ts:120`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/e2e/smoothness.spec.ts#L120) and [`scripts/jank-probe.mjs:16`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/scripts/jank-probe.mjs#L16)
-  (TXD-068). No production measurement of LCP, INP or CLS exists in `reader-next/src/`; Sentry tracing and replay are wired
-  but their sample rates default to 0 ([`src/lib/analytics/sentry.ts:39-42`](https://github.com/Sefaria/Sefaria-Project/blob/reader-next/reader-next/src/lib/analytics/sentry.ts#L39-L42); live rates per ANL-017).
+  (TXD-068). No production measurement of LCP, INP or CLS exists in `reader-next/src/`; Sentry was removed from the new
+  reader on 2026-11-04 (no longer used), so field numbers come only from the planned `web-vitals` event (D1).
 
 ## Legacy load/repaint issues vs. new arc
 

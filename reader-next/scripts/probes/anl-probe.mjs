@@ -8,7 +8,7 @@ await p.addInitScript(() => {
   wrap();
 });
 const sent = [];
-p.on("request", (r) => { const u = r.url(); if (/google-analytics\.com\/g\/collect|simpleanalytics|sentry/.test(u)) sent.push(u.slice(0, 400)); });
+p.on("request", (r) => { const u = r.url(); if (/google-analytics\.com\/g\/collect|simpleanalytics/.test(u)) sent.push(u.slice(0, 400)); });
 await p.goto("https://www.sefaria.org/Genesis.1", { waitUntil: "load" });
 await p.waitForTimeout(8000);
 const info = await p.evaluate(() => ({ ga: typeof window.ga, gaGetAll: typeof window.ga?.getAll === "function" ? window.ga.getAll().length : null, gtag: typeof window.gtag, sa: typeof window.sa_event, sa_metadata: window.sa_metadata, log: window.__log.slice(0, 40), dl: (window.dataLayer || []).slice(0, 30).map((x) => { try { return JSON.parse(JSON.stringify(Array.from(x.length !== undefined ? x : [x]))); } catch { return String(x); } }) }));

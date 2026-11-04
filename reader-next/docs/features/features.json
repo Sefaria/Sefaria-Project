@@ -19541,12 +19541,12 @@
   "details": [
    "client.jsx:21-34: @sentry/react with BrowserTracing + Replay; sample rates from remoteConfig.sentry.*; release = appVersion; DSN CLIENT_SENTRY_DSN",
    "Server Sentry config in sefaria/settings_utils.py",
-   "Rebuild: src/lib/analytics/sentry.ts — @sentry/react loaded on demand when CLIENT_SENTRY_DSN is set; release = APP_VERSION; tracing + replay; sample rates from /api/remote-config feature.client.remote_config_json.sentry (VERIFIED live: sampleRate 1.0, others 0)."
+   "RETIRED 2026-11-04 (owner): Sentry is no longer used. The new reader loads no Sentry SDK and sends no errors, traces or replays; CLIENT_SENTRY_DSN is no longer passed to the reader pods. Its removal also ends the browser's /api/remote-config fetch on every page (Sentry was its only reader)."
   ],
   "audience": "system",
   "platform": "all",
   "status": "live",
-  "tier": "standard",
+  "tier": "retire",
   "refs": [
    "static/js/client.jsx:21",
    "sefaria/settings_utils.py"

@@ -5,7 +5,7 @@ import { attachDeclarativeAnalytics, collectAnalytics, parseEventAttr } from "./
 import { analyticsHeadScripts, saMetadataScript, simpleAnalyticsScript } from "./scripts";
 import { copyEvents } from "./session";
 
-const OFF = { gtm: null, gtag: null, sentryDsn: null, simpleAnalyticsHost: null, appVersion: null };
+const OFF = { gtm: null, gtag: null, simpleAnalyticsHost: null, appVersion: null };
 
 beforeEach(() => {
   analyticsLog.length = 0;
