@@ -3,6 +3,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { readVersionPrefs } from "~/lib/versions/prefs-source";
 import { normalizeTopicSlug, topicPageHead } from "~/lib/topics/topic-page";
 import { loadTopicPage } from "./TopicPageRoute";
+import { DjangoHandoff } from "./DjangoHandoff";
 
 export interface TopicPageSearch {
   sort?: string;
@@ -16,6 +17,8 @@ export interface TopicPageSearch {
  * the slug normalised as Django looks it up, the page loaded on the server, its title and description as reader/views.py topic_page.
  */
 export const topicPageRoute = (prefix: "" | "b/") => ({
+  // a 404 (a topic not rendered here, ?editor=1) reached in the app is loaded again from the server, which hands it to Django
+  notFoundComponent: DjangoHandoff,
   validateSearch: (s: Record<string, unknown>): TopicPageSearch => ({
     ...(typeof s.sort === "string" ? { sort: s.sort } : {}),
     ...(typeof s.tab === "string" ? { tab: s.tab } : {}),
