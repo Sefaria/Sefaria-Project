@@ -1,3 +1,4 @@
+import copy
 import unicodedata
 
 from django.views import View
@@ -7,6 +8,7 @@ from sefaria.model import log_update, diff_strings
 from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet, Lexicon, DictionaryEntry
 from sefaria.model.text import Ref
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from .views import _load_json_body, StaffRequiredMixin
 
@@ -157,3 +159,60 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
         _log_entry_change(request.user.id, lex, tref, old_dict, {**old_dict, "headword": actual_headword},
                           old_headword, actual_headword)
         return jsonResponse({"status": "ok", "headword": actual_headword})
+
+
+class LexiconEntryConflict(Exception):
+    def __init__(self, current):
+        super().__init__("This entry was changed since you read it.")
+        self.current = current
+
+
+def merge_entry_content(user_id, lexicon, entry, content, base_version, version_of, dry_run=False):
+    """
+    The staff tools' content edit (api/admin_mcp_views.AdminLexiconEntryView): `content` holds only the fields to change;
+    every other content field is kept. (The moderators' editor above sends the whole draft and replaces it.)
+
+    The new values go through the model's lifecycle on a copy (replace_content_attrs with the merged content, then
+    _normalize/_validate/_sanitize), so a preview is exactly what a save stores. The save writes only content fields,
+    filtered on every content field as read: an edit made since the read matches nothing and raises
+    LexiconEntryConflict, and nothing else in the document is rewritten. History and the cached ref follow, as in
+    LexiconEntryView.patch. Returns {"before", "after"} contents.
+    """
+    names = entry.content_attr_names()
+    unknown = set(content) - names
+    if unknown:
+        raise InputError(f"Unknown content fields: {sorted(unknown)}. Editable: {sorted(names)}")
+    before = entry.contents()
+    if version_of(before) != base_version:
+        raise LexiconEntryConflict(before)
+    merged = {k: getattr(entry, k) for k in names if hasattr(entry, k)}
+    merged.update(content)
+    probe = copy.deepcopy(entry)
+    probe.replace_content_attrs(merged)
+    probe._normalize()
+    probe._validate()
+    probe._sanitize()
+    new_values = {k: getattr(probe, k) for k in names if hasattr(probe, k)}
+    after = {**{k: v for k, v in before.items() if k not in names}, **new_values}
+    if dry_run:
+        return {"before": before, "after": after}
+
+    guard = {"_id": entry._id}
+    for k in names:
+        guard[k] = getattr(entry, k) if hasattr(entry, k) else {"$exists": False}
+    ops = {"$set": new_values} if new_values else {}
+    dropped = {k: "" for k in names if hasattr(entry, k) and k not in new_values}
+    if dropped:
+        ops["$unset"] = dropped
+    result = db[LexiconEntry.collection].update_one(guard, ops)
+    if result.matched_count == 0:
+        current = _load_lexicon_entry(lexicon, entry.headword)
+        raise LexiconEntryConflict(current.contents() if current else None)
+
+    saved = _load_lexicon_entry(lexicon, entry.headword)
+    lex, tref = _load_entry_ref(lexicon, entry.headword)
+    _log_entry_change(user_id, lex, tref, before, saved.contents(), _render_entry(entry), _render_entry(saved))
+    if tref:
+        Ref.remove_ref_from_cache(lex.index_title, tref)
+    return {"before": before, "after": saved.contents()}
+
