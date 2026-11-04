@@ -44,10 +44,10 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
+from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern, gen_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sso.adapters import import_gravatar
@@ -63,6 +63,7 @@ from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
+from sefaria.utils.chatbot import mark_chatbot_storage_for_clearing
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
 from sefaria.helper.skip_tracking import build_pathway
@@ -72,7 +73,6 @@ from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_t
 from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria import tracker
-from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
@@ -120,6 +120,10 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
         # Django >= 5.0 dropped GET on LogoutView. Existing <a href="/logout?next=..."> links
         # in the header / mobile menu still rely on GET, so route GET through the same flow as POST.
         return self.post(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        return mark_chatbot_storage_for_clearing(request, response)
 
     def get_next_page(self):
         next_page = self.request.GET.get('next')
@@ -784,9 +788,6 @@ def collections_image_upload(request, resize_image=True):
 def reset_cache(request):
     model.library.rebuild()
 
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "rebuild")
-
     if USE_VARNISH:
         invalidate_all()
 
@@ -818,9 +819,7 @@ def rebuild_linker_resolvers(request):
 @staff_member_required
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
-    in_memory_cache.set("websites_data", website_set)
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("in_memory_cache", "set", ["websites_data", website_set])
+    gen_cache.publish("websites_data", website_set)
     return HttpResponseRedirect("/?m=Website-Data-Reset")
 
 
@@ -838,9 +837,7 @@ def reset_index_cache_for_text(request, title):
     model.library.refresh_index_record_in_cache(index)
     model.library.reset_text_titles_cache()
 
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
-    elif USE_VARNISH:
+    if USE_VARNISH:
         invalidate_title(index.title)
 
     return HttpResponseRedirect("/%s?m=Cache-Reset" % model.Ref(title).url())
@@ -897,19 +894,14 @@ def reset_counts(request, title=None):
     else:
         model.refresh_all_states()
 
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "rebuild_toc")
-
         return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
 
 @staff_member_required
 def delete_orphaned_counts(request):
     remove_old_counts()
+    # the template cache is shared by every process, so no propagation step is needed
     scache.delete_template_cache("texts_dashboard")
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("scache", "delete_template_cache", ["texts_dashboard"])
 
     return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
@@ -917,10 +909,6 @@ def delete_orphaned_counts(request):
 @staff_member_required
 def rebuild_toc(request):
     model.library.rebuild_toc()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "rebuild_toc")
-
     return HttpResponseRedirect("/?m=TOC-Rebuilt")
 
 
@@ -929,13 +917,11 @@ def rebuild_auto_completer(request):
     # Three builders, each of which wraps itself: group them so one click reports once.
     with build_pathway("rebuild_auto_completer"):
         library.build_full_auto_completer()
+        gen_cache.mark_fresh("full_auto_completer")
         library.build_lexicon_auto_completers()
+        gen_cache.mark_fresh("lexicon_auto_completer")
         library.build_cross_lexicon_auto_completer()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "build_full_auto_completer")
-        server_coordinator.publish_event("library", "build_lexicon_auto_completers")
-        server_coordinator.publish_event("library", "build_cross_lexicon_auto_completer")
+        gen_cache.mark_fresh("cross_lexicon_auto_completer")
 
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
@@ -973,10 +959,7 @@ def reset_ref(request, tref):
         vs.refresh()
         model.library.update_index_in_toc(index)
 
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
-            server_coordinator.publish_event("library", "update_index_in_toc", [oref.index.title])
-        elif USE_VARNISH:
+        if USE_VARNISH:
             invalidate_title(oref.index.title)
 
         return HttpResponseRedirect("/{}?m=Reset-Index".format(oref.url()))

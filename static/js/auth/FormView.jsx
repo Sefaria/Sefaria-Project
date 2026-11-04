@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import AuthCard from './AuthCard.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
+import { useProviderError } from './useSsoSignIn.jsx';
 import LoadingSub from './LoadingSub.jsx';
 
 /**
@@ -27,14 +28,9 @@ const FormView = ({
   cardClass, onBack, heading, sub, formId,
   registerGoogleTarget, triggerApple, setActiveErrorHandler, onLinkClick, onSubmit, children,
 }) => {
-  const [error, setError] = useState(null);
+  const [error, setError] = useProviderError(setActiveErrorHandler);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    setActiveErrorHandler?.(setError);
-    return () => setActiveErrorHandler?.(null);
-  }, [setActiveErrorHandler]);
 
   const setFieldError = (name, message) => setFieldErrors((f) => ({ ...f, [name]: message }));
 

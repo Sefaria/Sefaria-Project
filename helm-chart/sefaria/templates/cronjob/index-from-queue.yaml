@@ -30,8 +30,6 @@ spec:
             env:
             - name: SEARCH_HOST
               value: "{{ .Values.nginx.SEARCH_HOST }}" 
-            - name: REDIS_HOST
-              value: "redis-{{ .Values.deployEnv }}"
             - name: NODEJS_HOST
               value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             - name: VARNISH_HOST
@@ -45,6 +43,7 @@ spec:
             - secretRef:
                 name: local-settings-secrets-{{ .Values.deployEnv }}
                 optional: true
+            {{- include "sefaria.secrets.redisSentinel" . | nindent 12 }}
             - configMapRef:
                 name: local-settings-{{ .Values.deployEnv }}
             volumeMounts:
