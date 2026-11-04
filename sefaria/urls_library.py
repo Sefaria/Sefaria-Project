@@ -1,6 +1,7 @@
 from django.urls import path, re_path
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
+from django.views.generic import TemplateView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from functools import partial
 import reader.views as reader_views
@@ -51,6 +52,9 @@ urlpatterns = [
 
     path('parashat-hashavua', reader_views.parashat_hashavua_redirect),
     path('todays-daf-yomi', reader_views.daf_yomi_redirect),
+
+    # Standalone mobile app demo page (prototype; renders a single self-contained template)
+    re_path(r'^app-demo/?$', TemplateView.as_view(template_name='app_demo.html'), name='app_demo'),
 
     path('add/textinfo/<path:new_title>', reader_views.edit_text_info),
     re_path(r'^add/new/?$', reader_views.edit_text),
