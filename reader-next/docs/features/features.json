@@ -218,7 +218,9 @@
    "/calendars: menu 'calendars'.",
    "/parashat-hashavua -> 302 this week's parasha URL; reads ?diaspora but ignores it (TODO) and uses the default calendar.",
    "/todays-daf-yomi -> 302 today's daf.",
-   "/dayoflearningcalendar -> external/internal 302 (site package)."
+   "/dayoflearningcalendar -> external/internal 302 (site package).",
+   "VERIFIED 2026-11-04: /calendars and /calendars/ are both pages (200); /parashat-hashavua and /todays-daf-yomi 302; their slashed forms 404.",
+   "BUILT 2026-11-04: /calendars and /calendars/ render in the new reader (Library host); the router keeps a trailing slash the server lets through (trailingSlash 'preserve'); the shortcuts are answered by the node server (CAL-003). '/dayoflearningcalendar' is not part of this port (still Django's)."
   ],
   "audience": "all",
   "platform": "all",
@@ -7918,7 +7920,8 @@
   "summary": "A CMS-driven sidebar advertisement slot.",
   "details": [
    "<Promotions adType='sidebar'/> (Strapi-driven).",
-   "The Promo module renders an empty .navSidebarModule when the CMS has nothing (always, in practice): its 34px margin folds into its neighbours' except when it comes first — the phone home page (AboutSefaria is multiPanel-only) and phone category pages without a custom module (e.g. /texts/Mishnah) — where it pushes the first title 34px down. Order: TextsPage [AboutSefaria, Promo, Translations, …]; categories [AboutTextCategory, custom (WeeklyTorahPortion | DafYomi), Promo, Visualizations, SupportSefaria]. Verified on www.sefaria.org with Playwright, 2026-10-29."
+   "The Promo module renders an empty .navSidebarModule when the CMS has nothing (always, in practice): its 34px margin folds into its neighbours' except when it comes first — the phone home page (AboutSefaria is multiPanel-only) and phone category pages without a custom module (e.g. /texts/Mishnah) — where it pushes the first title 34px down. Order: TextsPage [AboutSefaria, Promo, Translations, …]; categories [AboutTextCategory, custom (WeeklyTorahPortion | DafYomi), Promo, Visualizations, SupportSefaria]. Verified on www.sefaria.org with Playwright, 2026-10-29.",
+   "/calendars: the Promo module is the sidebar's last module (after Support Sefaria) on both layouts. VERIFIED 2026-11-04."
   ],
   "audience": "all",
   "platform": "all",
@@ -8364,7 +8367,9 @@
   "name": "Sidebar module: Stay Connected",
   "summary": "A newsletter sign-up and social links block.",
   "details": [
-   "Text + NewsletterSignUpForm context='sidebar' + Facebook (he: sefaria.org.il page)/Instagram/YouTube icon buttons."
+   "Text + NewsletterSignUpForm context='sidebar' + Facebook (he: sefaria.org.il page)/Instagram/YouTube icon buttons.",
+   "Geometry (VERIFIED 2026-11-04 on /calendars): the text, then the sign-up box 20px under it (a 40px field the module's width, no border, 0 1px 3px shadow, 6px corners, 15px #333 text, padding 10px 32px 12px 16px; Hebrew 8px 16px 11px 32px and 41px tall), the 18px arrow at 20% opacity 10px from the top and 12px from the end (mirrored in Hebrew); the three 40px white buttons (1px #ccc border, 6px corners, 18px icons) 12px apart, 22px under the box.",
+   "BUILT 2026-11-04 (src/ui/NavSidebar StayConnected + src/ui/NewsletterSignUp): used on /calendars. Tests: e2e/calendars.spec.ts."
   ],
   "audience": "all",
   "platform": "all",
@@ -8436,7 +8441,9 @@
   "name": "Sidebar module: About learning schedules",
   "summary": "A static explanation of learning schedules.",
   "details": [
-   "Static en/he text. Inline on mobile CalendarsPage."
+   "Static en/he text. Inline on mobile CalendarsPage.",
+   "Title 'Learning Schedules' / 'לוח לימוד יומי'. On the phone page it sits at the top of the page column with no rule under its title, 10px over its text, 34px over 'Weekly Torah Portion'. VERIFIED 2026-11-04.",
+   "BUILT 2026-11-04 (src/ui/NavSidebar AboutLearningSchedules, wideOnly / phoneOnly). Tests: e2e/calendars.spec.ts."
   ],
   "audience": "all",
   "platform": "all",
@@ -9954,7 +9961,11 @@
    "Sections: 'Weekly Torah Portion' (Parashat Hashavua, Haftarah (A) Ashkenazi, Haftarah (S) Sephardi, Haftarah); 'Daily Learning' (Daf Yomi, 929, Daily Mishnah, Daily Rambam, Daily Rambam (3 Chapters), Halakhah Yomit, Arukh HaShulchan Yomi, Tanakh Yomi, Zohar for Elul, Chok LeYisrael, Tanya Yomi, Yerushalmi Yomi); 'Weekly Learning' (Daf a Week).",
    "Calendars not in these lists are not shown; seasonal ones (Zohar for Elul) appear only when the server returns them.",
    "Layout: ResponsiveNBox per section; mobile shows AboutLearningSchedules inline; sidebar AboutLearningSchedules (multiPanel), StayConnected, SupportSefaria, Promo.",
-   "Server view calendars (reader/views.py:1326-1329)."
+   "Server view calendars (reader/views.py:1356-1359): menu_page 'calendars', title 'Learning Schedules | Sefaria Library' (English in both interfaces), description 'Weekly Torah portions, Daf Yomi, and other schedules for Torah learning.' URL /calendars/? (re_path): '/calendars/' is a page too (200), and its canonical keeps the slash ('https://www.sefaria.org/calendars/'). VERIFIED 2026-11-04.",
+   "Data: Sefaria.calendars = get_todays_calendar_items(**_get_user_calendar_params(request)) — diaspora from request.diaspora (cf-ipcountry), custom = the signed-in profile's settings.textual_custom (new profiles default 'sephardi'; missing → 'ashkenazi'), 'ashkenazi' when signed out. The day is the server's time zone (the API answered timezone 'America/Halifax' on 2026-11-04). The same items come from /api/calendars?diaspora=…&custom=… (no timezone). VERIFIED 2026-11-04.",
+   "Sections keep the API's order (the page filters the API list by each section's names), and a section with no cards keeps its heading. VERIFIED 2026-11-04.",
+   "Geometry (VERIFIED 2026-11-04, 1280px and phone User-Agent): headings 22px/500 dark grey, 30px over the cards (10px on a phone); page column 665px, its top 60px under the header/banner strip; sidebar modules: About Learning Schedules (multi-panel only), Stay Connected, Support Sefaria, an empty Promo module, the footer. On a phone the About module is the first thing on the page, its title without the rule, and the sidebar (Stay Connected, Support Sefaria, Promo, footer) follows 20px under the cards.",
+   "BUILT 2026-11-04 (src/routes/calendars.tsx, src/features/calendars/CalendarsRoute.tsx, src/ui/CalendarsPage): server-rendered from /api/calendars with diaspora from CF-IPCountry and the reader's custom (src/features/calendars/textual-custom.ts: GET /api/profile/<slug> with the reader's cookie, owner-only settings; signed out 'ashkenazi'). Pixel diff against the live page 0.00% (1280 top/middle/bottom/full, phone full page); Hebrew interface 0.03% (1280) and 0.2% (phone) once the shared header's 9px taller Hebrew banner is discounted. Tests: e2e/calendars.spec.ts."
   ],
   "audience": "all",
   "platform": "all",
@@ -9963,7 +9974,7 @@
   "refs": [
    "static/js/CalendarsPage.jsx:17-27",
    "static/js/sefaria/sefaria.js:3643-3650",
-   "reader/views.py:1326-1329"
+   "reader/views.py:1340-1359"
   ],
   "src": "inv_05_library_topics.md#5"
  },
@@ -9977,7 +9988,11 @@
    "CalendarListing .navBlock.withColorLine.calendarListing colored by calendar.category; title link to first ref URL; optional subtitle (calendar_listing.tanakh/talmud); refs each with book icon linking /<ref.url>; description.",
    "reformatCalendars clones; attaches hard-coded calendarDescriptions (keyed by title with ' (A)'/' (S)' stripped) unless API gave description; Parashat Hashavua displayTitle = parasha displayValue with ref/heRef; others displayTitle = calendar title plus enSubtitle (Talmud/Tanakh).",
    "Merges consecutive entries with the same title into one listing with multiple refs (multi-ref Haftarah, Daf a Week).",
-   "Descriptions duplicated in MobileContentServer exporter (comment CalendarsPage.jsx:139-141)."
+   "Descriptions duplicated in MobileContentServer exporter (comment CalendarsPage.jsx:139-141).",
+   "The subtitle's Hebrew strings (calendar_listing.talmud/tanakh) are empty and the brackets are drawn only under .interface-english: the Hebrew interface shows no subtitle. VERIFIED 2026-11-04.",
+   "The API's own description wins over the table (the weekly portion's summary comes from the API). Yerushalmi Yomi is not in the table and has no description; Zohar for Elul appears only in season. Chok LeYisrael's url is a Hebrew collection path with a query ('collections/חק-לישראל?tag=Chayei%20Sara'), written into the href unencoded. VERIFIED 2026-11-04.",
+   "Card geometry (VERIFIED 2026-11-04): two 327.5px columns 10px apart and rows 6px apart while the grid is wider than 500px (ResponsiveNBox threshold2), one column below; a 4px line in the category's colour (Sefaria.palette); title 24px serif on a 1.3 line, 15px over / 8px under, 20px short of the card's end; readings 18px serif dark grey, the 18px book icon 10px before, 2px apart, 16px over the description; description 14px/18px sans, 12px under the card. Hebrew interface: titles and descriptions at 122% (descriptions on a 24px line), readings in the Hebrew serif at 18px.",
+   "BUILT 2026-11-04 (src/lib/library/calendars.ts calendarListings/sectionListings, src/ui/CalendarsPage CalendarCard): tests e2e/calendars.spec.ts, src/lib/library/calendars.test.ts, Storybook Pages/CalendarsPage."
   ],
   "audience": "all",
   "platform": "all",
@@ -9999,18 +10014,61 @@
    "/api/calendars (diaspora, custom, timezone, year/month/day) - calendars_api.",
    "/api/calendars/next-read/<parasha> - parasha_next_read_api (date, aliyot, haftarah).",
    "/api/calendars/topics/parasha - parasha_data_api (includes topic slug; diaspora param default 1); /api/calendars/topics/holiday - seasonal_topic_api.",
-   "/parashat-hashavua and /todays-daf-yomi redirect to current calendar refs (reader/views.py:4679-4690)."
+   "/parashat-hashavua and /todays-daf-yomi redirect to current calendar refs (reader/views.py:4679-4690).",
+   "Redirects: 302 with an empty body, Content-Type 'text/html; charset=utf-8', Vary 'Accept-Language, Cookie', Location = iri_to_uri('/' + item.url) of get_keyed_calendar_items() — today's items with diaspora=True and custom=None, whatever the request says: '?diaspora=0' is read and ignored. A title the API repeats goes to its last item (keyed dict). '/parashat-hashavua/' and '/todays-daf-yomi/' are 404s; on voices.sefaria.org both paths are 404s. VERIFIED 2026-11-04 (Location '/Genesis.23.1-25.18', '/Bekhorot.47').",
+   "BUILT 2026-11-04 (src/server/calendar-shortcuts.ts, wired in src/start.ts): the node server answers the two shortcuts itself from /api/calendars?diaspora=1 with Django's status, headers and Location (iri_to_uri ported); when the API fails or the schedule is missing it hands the request to Django (pass-through) or answers 503. Voices host: passed to Django. The APIs themselves stay Django's (every /api/ path is). Tests: e2e/calendars.spec.ts, src/server/calendar-shortcuts.test.ts."
   ],
   "audience": "all",
   "platform": "all",
   "status": "live",
   "tier": "standard",
   "refs": [
-   "reader/views.py:2965-3023",
-   "reader/views.py:3841-3861",
-   "reader/views.py:4679-4690"
+   "reader/views.py:3004-3048",
+   "reader/views.py:3879",
+   "reader/views.py:4758-4769"
   ],
   "src": "inv_05_library_topics.md#19"
+ },
+ {
+  "id": "CAL-004",
+  "area": "calendars",
+  "group": "Learning schedules",
+  "name": "Learning Schedules follow the reader's location and custom",
+  "summary": "The page shows Israel's or the diaspora's weekly portion by the reader's country, and the haftarah of the reader's textual custom.",
+  "details": [
+   "request.diaspora: False when Cloudflare's cf-ipcountry is IL; an unknown country uses PINNED_IPCOUNTRY (sefaria/system/middleware.py LocationSettingsMiddleware). custom: profile settings.textual_custom when signed in (default 'sephardi' for new profiles; missing → 'ashkenazi'), 'ashkenazi' signed out (reader/views.py _get_user_calendar_params).",
+   "The library pages' sidebar modules (LIB-038/039/040) are fed the same way on sefaria.org; the new reader's library sidebar still sends no custom (open).",
+   "BUILT 2026-11-04 for /calendars (src/features/calendars/textual-custom.ts, src/lib/user/textual-custom.ts, calendarsQueryOptions(diaspora, custom)). Tests: e2e/calendars.spec.ts (CF-IPCountry IL), src/lib/user/textual-custom.test.ts. The signed-in custom is unit-tested only (an e2e session would need production credentials)."
+  ],
+  "audience": "all",
+  "platform": "all",
+  "status": "live",
+  "tier": "standard",
+  "refs": [
+   "reader/views.py:1340-1346",
+   "sefaria/system/middleware.py:66-83"
+  ],
+  "src": "2026-11-04 calendars lane"
+ },
+ {
+  "id": "CAL-005",
+  "area": "calendars",
+  "group": "Learning schedules",
+  "name": "Calendars refresh after a settings change",
+  "summary": "When the account settings page changes the textual custom, the open page asks for the calendars again.",
+  "details": [
+   "templates/account_settings.html dispatches 'sefaria:settings-updated' {textualCustom, diaspora}; ReaderApp.handleSettingsUpdatedEvent calls Sefaria.updateCalendars(custom, diaspora) → /api/calendars?custom=…&diaspora=… and replaces Sefaria.calendars.",
+   "New reader: the event invalidates every ['user', …] query (src/routes/__root.tsx refreshReader), which includes the textual custom; a changed custom changes the calendars query key, so the page refetches. The event's own diaspora value is not used (the page keeps the request's country)."
+  ],
+  "audience": "signed-in",
+  "platform": "all",
+  "status": "live",
+  "tier": "optional",
+  "refs": [
+   "static/js/ReaderApp.jsx:1266-1278",
+   "static/js/sefaria/sefaria.js:3655-3662"
+  ],
+  "src": "2026-11-04 calendars lane"
  },
  {
   "id": "SRC-001",
@@ -16078,7 +16136,9 @@
    "NewsletterSignUpForm: email field, valid email reveals first/last name (+ optional I am an educator checkbox) -> Sefaria.subscribeSefariaNewsletter(first,last,email,educator,lists); subscribing/success/error messages; tracks Newsletter / Subscribe from <context>",
    "Used in NavSidebar (StayConnected / Voices / Portal modules), StaticPages, Promotions, TopicLandingNewsletter",
    "Client APIs: subscribeSefariaNewsletter -> /api/subscribe/<email>; subscribeSteinsaltzNewsletter; subscribeSefariaAndSteinsaltzNewsletter; getTopicLandingNewsletterMailingLists (Weekly Topics Newsletter, EN only)",
-   "Backend: api/subscribe/<org>/<email> (views.py:299), api/subscribe/<email> (:327), api/newsletter_mailing_lists (:347), Steinsaltz helper (:355)"
+   "Backend: api/subscribe/<org>/<email> (views.py:299), api/subscribe/<email> (:327), api/newsletter_mailing_lists (:347), Steinsaltz helper (:355)",
+   "Found 2026-11-04: StayConnected passes context='sidebar' but the form reads contextName, so its event is Newsletter / 'Subscribe from undefined'. The error shown is the API's `error` string untranslated, or 'Error posting to API' for a failed status; after an error the name fields close. The Hebrew 'please enter a valid first and last name' string is English. The email goes into the path unencoded (/api/subscribe/<email>).",
+   "BUILT 2026-11-04 for the sidebar (src/ui/NewsletterSignUp, src/lib/user/newsletter.ts via lib/auth/http with the CSRF token; the same UA event, 'Subscribe from undefined'). Not built: the static pages, promotions and topic-landing uses (lists, Steinsaltz)."
   ],
   "audience": "all",
   "platform": "all",
@@ -18999,7 +19059,8 @@
   "details": [
    "/api/calendars?diaspora=&custom=&timezone= (Parashat Hashavua, Haftarah, Daf Yomi, Mishnah Yomit, Rambam, Daf-a-Week, 929, etc.); /api/calendars/next-read/<parasha>; /api/calendars/topics/parasha;",
    "/api/calendars/topics/holiday.",
-   "Redirects /parashat-hashavua, /todays-daf-yomi."
+   "Redirects /parashat-hashavua, /todays-daf-yomi.",
+   "2026-11-04: the /parashat-hashavua and /todays-daf-yomi redirects are answered by the new reader's server from /api/calendars (CAL-003); the endpoints stay Django's."
   ],
   "audience": "third-party",
   "platform": "all",

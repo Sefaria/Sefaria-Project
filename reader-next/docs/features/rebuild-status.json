@@ -1631,5 +1631,46 @@
   "status": "partial",
   "note": "Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet",
   "by": "src/features/shell/SiteWideBanner"
+ },
+ "CAL-001": {
+  "status": "done",
+  "by": "src/routes/calendars.tsx, src/features/calendars, src/ui/CalendarsPage"
+ },
+ "CAL-002": {
+  "status": "done",
+  "by": "src/lib/library/calendars.ts, src/ui/CalendarsPage"
+ },
+ "CAL-003": {
+  "status": "done",
+  "note": "Redirects answered by the node server; the calendar APIs are Django's",
+  "by": "src/server/calendar-shortcuts.ts"
+ },
+ "CAL-004": {
+  "status": "done",
+  "note": "On /calendars; the library sidebar still sends no custom",
+  "by": "src/features/calendars/textual-custom.ts"
+ },
+ "CAL-005": {
+  "status": "partial",
+  "note": "Refetch through the user-query invalidation; not covered by a test; event diaspora ignored",
+  "by": "src/features/calendars/textual-custom.ts"
+ },
+ "RTE-010": {
+  "status": "done",
+  "note": "/dayoflearningcalendar stays Django's",
+  "by": "src/routes/calendars.tsx, src/server/calendar-shortcuts.ts"
+ },
+ "LIB-050": {
+  "status": "done",
+  "by": "src/ui/NavSidebar, src/ui/NewsletterSignUp"
+ },
+ "LIB-054": {
+  "status": "done",
+  "by": "src/ui/NavSidebar"
+ },
+ "PRM-016": {
+  "status": "partial",
+  "note": "Sidebar sign-up only",
+  "by": "src/ui/NewsletterSignUp, src/lib/user/newsletter.ts"
  }
 }
