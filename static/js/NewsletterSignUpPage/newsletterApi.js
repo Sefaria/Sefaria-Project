@@ -1,4 +1,4 @@
-import Cookies from "js-cookie";
+import { getCsrfToken } from "../sefaria/csrf";
 
 /**
  * Newsletter API — Real endpoints
@@ -52,7 +52,7 @@ const parseJsonResponse = async (response) => {
 const apiRequest = async (url, { method = "POST", body, csrf, fallbackError } = {}) => {
   const headers = { "Content-Type": "application/json" };
   if (csrf) {
-    headers["X-CSRFToken"] = Cookies.get("csrftoken");
+    headers["X-CSRFToken"] = getCsrfToken();
   }
   const response = await fetch(url, {
     method,

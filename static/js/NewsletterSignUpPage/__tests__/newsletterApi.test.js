@@ -6,8 +6,12 @@
  * responses properly.
  */
 
-// Mock js-cookie so CSRF token header is predictable in tests
-jest.mock('js-cookie', () => ({ get: () => 'test-csrf-token' }));
+// The CSRF token comes from the server-rendered meta tag (see sefaria/csrf.js),
+// so every test page needs one, just like base.html renders on the real page.
+const csrfMeta = document.createElement('meta');
+csrfMeta.setAttribute('name', 'csrf-token');
+csrfMeta.setAttribute('content', 'test-csrf-token');
+document.head.appendChild(csrfMeta);
 
 // Mock fetch globally
 global.fetch = jest.fn();
@@ -277,5 +281,33 @@ describe('updateLearningLevel', () => {
       message: 'This page has expired.',
       code: SERVER_ERROR_CODE.LEARNING_LEVEL_TOKEN_INVALID,
     });
+  });
+});
+
+// ============================================================================
+// CSRF token source
+// ============================================================================
+
+// A cauldron (*.cauldron.sefaria.org) also receives production's `.sefaria.org`
+// csrftoken cookie. Reading the token from the cookie then sends a different
+// token than the one Django checks, and every save fails with a 403
+// "CSRF token from the 'X-Csrftoken' HTTP header incorrect".
+describe('CSRF token source', () => {
+  afterEach(() => {
+    document.cookie = 'csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  });
+
+  it.each([
+    ['subscribeNewsletter', () => subscribeNewsletter({ email: 'ada@example.com', newsletters: {} })],
+    ['updatePreferences', () => updatePreferences({ newsletters: {} })],
+    ['updateLearningLevel', () => updateLearningLevel({ learningLevel: 3 })],
+  ])('%s sends the meta-tag token, never a conflicting csrftoken cookie', async (_name, callApi) => {
+    document.cookie = 'csrftoken=conflicting-cookie-token';
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
+
+    await callApi();
+
+    const [, options] = global.fetch.mock.calls[0];
+    expect(options.headers['X-CSRFToken']).toBe('test-csrf-token');
   });
 });
