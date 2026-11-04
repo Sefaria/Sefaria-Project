@@ -46,3 +46,9 @@
   /* on a phone the old titles sat 10px over their content, not 20px (measured) */
   .title { margin-block-end: 10px; }
 }
+/* AboutTranslatedText: the title in the interface's font whatever its language (the old .int-en / .int-he span), the text bare in the
+   module's sans font in either interface (Roboto in the Hebrew interface too; VERIFIED /translations/de, 2026-11-04) */
+.title .bareTitle { font-family: inherit; }
+.module .bareText { font-family: var(--sefaria-font-ui-en); }
+/* …and its language span keeps that font: base.css's :lang(yi) would make Yiddish Heebo (taller lines than the old Roboto text) */
+.bareText > [lang] { font-family: inherit; }

@@ -18,6 +18,7 @@ import { Route as AuthRegisterRouteImport } from './routes/_auth.register'
 import { Route as InterfaceLangRouteImport } from './routes/interface.$lang'
 import { Route as TextsIndexRouteImport } from './routes/texts.index'
 import { Route as TextsSplatRouteImport } from './routes/texts.$'
+import { Route as TranslationsSlugRouteImport } from './routes/translations.$slug'
 import { Route as AuthPasswordResetConfirmUidb64TokenRouteImport } from './routes/_auth.password.reset.confirm.$uidb64.$token'
 
 const IndexRoute = IndexRouteImport.update({
@@ -64,6 +65,11 @@ const TextsSplatRoute = TextsSplatRouteImport.update({
   path: '/texts/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TranslationsSlugRoute = TranslationsSlugRouteImport.update({
+  id: '/translations/$slug',
+  path: '/translations/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthPasswordResetConfirmUidb64TokenRoute =
   AuthPasswordResetConfirmUidb64TokenRouteImport.update({
     id: '/password/reset/confirm/$uidb64/$token',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof AuthRegisterRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/translations/$slug': typeof TranslationsSlugRoute
   '/texts/': typeof TextsIndexRoute
   '/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/register': typeof AuthRegisterRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/translations/$slug': typeof TranslationsSlugRoute
   '/texts': typeof TextsIndexRoute
   '/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_auth/register': typeof AuthRegisterRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/translations/$slug': typeof TranslationsSlugRoute
   '/texts/': typeof TextsIndexRoute
   '/_auth/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/interface/$lang'
     | '/texts/$'
+    | '/translations/$slug'
     | '/texts/'
     | '/password/reset/confirm/$uidb64/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/interface/$lang'
     | '/texts/$'
+    | '/translations/$slug'
     | '/texts'
     | '/password/reset/confirm/$uidb64/$token'
   id:
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/_auth/register'
     | '/interface/$lang'
     | '/texts/$'
+    | '/translations/$slug'
     | '/texts/'
     | '/_auth/password/reset/confirm/$uidb64/$token'
   fileRoutesById: FileRoutesById
@@ -150,6 +162,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   InterfaceLangRoute: typeof InterfaceLangRoute
   TextsSplatRoute: typeof TextsSplatRoute
+  TranslationsSlugRoute: typeof TranslationsSlugRoute
   TextsIndexRoute: typeof TextsIndexRoute
 }
 
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TextsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/translations/$slug': {
+      id: '/translations/$slug'
+      path: '/translations/$slug'
+      fullPath: '/translations/$slug'
+      preLoaderRoute: typeof TranslationsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth/password/reset/confirm/$uidb64/$token': {
       id: '/_auth/password/reset/confirm/$uidb64/$token'
       path: '/password/reset/confirm/$uidb64/$token'
@@ -250,6 +270,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   InterfaceLangRoute: InterfaceLangRoute,
   TextsSplatRoute: TextsSplatRoute,
+  TranslationsSlugRoute: TranslationsSlugRoute,
   TextsIndexRoute: TextsIndexRoute,
 }
 export const routeTree = rootRouteImport

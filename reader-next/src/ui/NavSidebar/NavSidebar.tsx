@@ -4,6 +4,7 @@ import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { dafYomi, haftarot, parashah, type CalendarItem } from "~/lib/library/calendars";
 import { DONATE, HELP, LIBRARY } from "~/lib/shell/links";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
+import { Link } from "../Link/Link";
 import styles from "./NavSidebar.module.css";
 
 /**
@@ -85,7 +86,8 @@ export function Translations() {
       <p className={styles.body}><InterfaceText en="Access key works from the library in several languages." he="יצירות נבחרות מהספרייה בתרגומים לשפות שונות." /></p>
       <div className={styles.langs}>
         <ul>
-          {TRANSLATION_LANGUAGES.map(([code, name]) => <li key={code}><a href={lib(`/translations/${code}`)}>{name}</a></li>)}
+          {/* this client's own pages since the translations port (ro and tr have none: a 404, as on sefaria.org) */}
+          {TRANSLATION_LANGUAGES.map(([code, name]) => <li key={code}><Link href={`/translations/${code}`}>{name}</Link></li>)}
         </ul>
       </div>
     </SidebarModule>

@@ -18,9 +18,19 @@ export const passThroughEnabled = () => typeof process !== "undefined" && proces
 /** This client's own server functions (TanStack Start's default base): never Django's, whatever the method. */
 const SERVER_FN_RE = /^\/_serverFn\//;
 
-/** Always Django's, whatever this client could render (every write, except to this client's own server functions). */
-export const isDjangoPath = (pathname: string, method: string) =>
-  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || isDjangoPage(pathname));
+/**
+ * Always Django's, whatever this client could render (every write, except to this client's own server functions). `host`: the host
+ * the request was for — the Voices host keeps the Library-only pages on Django (django-paths.ts LIBRARY_HOST_ONLY).
+ */
+export const isDjangoPath = (pathname: string, method: string, host?: string | null) =>
+  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || isDjangoPage(pathname, host));
+
+/** The host the reader asked for: nginx's X-Forwarded-Host when it sets one (its first value), else the request's own. */
+export const requestHost = (request: Request): string =>
+  request.headers.get("x-forwarded-host")?.split(",")[0]!.trim() || new URL(request.url).host;
+
+/** isDjangoPath for a whole request: its path as sent, its method and the host it was for. */
+export const isDjangoRequest = (request: Request): boolean => isDjangoPath(new URL(request.url).pathname, request.method, requestHost(request));
 
 const PASS_THROUGH_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH_TIMEOUT_MS) || 30000);
 
@@ -95,11 +105,11 @@ export async function passResetLink(request: Request, uid: string, pass: (r: Req
  * (308 keeps the method; the router's own normalisation answered 307, a temporary one crawlers do not consolidate). Django's paths
  * and the auth pages keep their slashes. Null when nothing is to be done.
  */
-export function trailingSlashRedirect(url: URL, method: string): Response | null {
+export function trailingSlashRedirect(url: URL, method: string, host: string = url.host): Response | null {
   const { pathname } = url;
   if ((method !== "GET" && method !== "HEAD") || pathname === "/" || !pathname.endsWith("/")) return null;
   // a path starting with two slashes would make the Location protocol-relative (//evil.com: an open redirect); never redirect one
   if (/^\/[\/\\]/.test(pathname)) return null;
-  if (isDjangoPath(pathname, method) || resetLinkUid(pathname) || /^\/(login|register|password)\//.test(pathname)) return null;
+  if (isDjangoPath(pathname, method, host) || resetLinkUid(pathname) || /^\/(login|register|password)\//.test(pathname)) return null;
   return new Response(null, { status: 308, headers: { location: `${pathname.replace(/\/+$/, "")}${url.search}`, "cache-control": "public, max-age=86400" } });
 }
