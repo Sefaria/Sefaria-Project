@@ -50,3 +50,5 @@
    module's sans font in either interface (Roboto in the Hebrew interface too; VERIFIED /translations/de, 2026-11-04) */
 .title .bareTitle { font-family: inherit; }
 .module .bareText { font-family: var(--sefaria-font-ui-en); }
+/* …and its language span keeps that font: base.css's :lang(yi) would make Yiddish Heebo (taller lines than the old Roboto text) */
+.bareText > [lang] { font-family: inherit; }
