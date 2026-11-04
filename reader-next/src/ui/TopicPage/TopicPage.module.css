@@ -35,7 +35,8 @@
 .dedication { margin-block-end: 27px; padding: 26px 19px; background: var(--sefaria-color-surface-subtle); color: var(--sefaria-color-text-dark-grey); font-size: 18px; text-align: start; }
 .dedication > :lang(en) { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-style: italic; }
 /* Hebrew: the markdown block takes the Hebrew text face, its link the description blue (measured in the Hebrew interface) */
-.dedication > :lang(he) { font-family: var(--sefaria-font-text-he); font-size: 18px; font-style: normal; }
+.dedication > :lang(he) { display: block; font-family: var(--sefaria-font-text-he); font-size: 18px; font-style: normal; } /* the old markdown block */
+.dedication > :lang(he) a { font-family: inherit; }
 .dedication > :lang(he) a { color: var(--sefaria-cat-commentary); }
 .dedication a { color: inherit; text-decoration: underline; }
 /* .topicPanel .resourcesLink.blue: the book button and the Study Companion */
@@ -66,6 +67,8 @@
 
 /* the picture: in the side column on a wide screen, under the description on a phone */
 .image { padding: 0 44px; }
+/* the picture sits on a serif text line (its descent under the image) in the Hebrew interface too, not on Heebo's 1px deeper one */
+:global(html[lang="he"]) .image { font-family: var(--sefaria-font-text-en); }
 .photo { box-sizing: content-box; max-width: 100%; height: auto; border: 1px solid var(--sefaria-color-border-light); }
 .caption { width: 100%; font-family: var(--sefaria-font-ui-en); font-size: 12px; line-height: 15px; color: var(--sefaria-color-text-dark-grey); }
 .caption > span { font-family: var(--sefaria-font-ui-en); }
@@ -206,6 +209,9 @@ a.meta { text-decoration: none; }
 .aliya :lang(he) { font-family: var(--sefaria-font-ui-he); }
 .haftarot { display: flex; flex-direction: column; }
 .haftarot .refLink { margin-block-end: 10px; }
+/* the Hebrew interface: the readings are serif blocks and links as in English (the old column's serif; Heebo's taller lines added
+   1-2px per row) */
+:global(html[lang="he"]) .readings, :global(html[lang="he"]) .readings > div, :global(html[lang="he"]) .refLink a { font-family: var(--sefaria-font-text-en); }
 
 /* ---------------------------------------------------------------- a phone (the old single panel) */
 @media (max-width: 842px) {
@@ -269,3 +275,9 @@ a.meta { text-decoration: none; }
 /* the Hebrew interface's work descriptions: 122% of 14px in Heebo on a 24px line, an English fallback too (the old .int-he.enInHe) */
 :global(html[lang="he"]) .workDescription { line-height: 24px; }
 :global(html[lang="he"]) .workDescription > span { font-family: var(--sefaria-font-ui-he); font-size: 122%; }
+/* the title too is 122% in the Hebrew interface (s2.css .navBlockTitle .int-he), in the Hebrew serif */
+:global(html[lang="he"]) .workTitle > span { font-size: 122%; }
+/* .interface-hebrew .authorIndex keeps its 20px (at the left) on a phone: it outranks the (max-width: 450px) reset */
+@media (max-width: 450px) {
+  :global(html[lang="he"]) .work { padding-inline-end: 20px; }
+}

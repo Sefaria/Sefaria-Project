@@ -175,7 +175,7 @@
 .filterBox { display: flex; align-items: center; box-sizing: content-box; width: 285px; max-width: 100%; margin: 0 0 30px; padding: 0 10px; border-radius: 100px; background: var(--sefaria-color-border-light); }
 .filterIcon { width: 18px; height: 18px; opacity: 0.4; }
 .filterInput { flex: 1; box-sizing: border-box; padding: 0 10px; border: none; background: transparent; font-family: var(--sefaria-font-text-en); font-size: 18px; line-height: 30px; color: var(--sefaria-color-text-strong); }
-.filterInput[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.filterInput[lang="he"] { font-family: var(--sefaria-font-ui-he); } /* Heebo, as sefaria.org.il (measured 2026-11-04) */
 .filterInput::placeholder { color: var(--sefaria-color-text-dark-grey); }
 .filterInput:focus { outline: none; }
 .filterReset { display: flex; align-items: center; font-family: var(--sefaria-font-ui-en); color: var(--sefaria-color-text-muted); cursor: pointer; white-space: nowrap; }

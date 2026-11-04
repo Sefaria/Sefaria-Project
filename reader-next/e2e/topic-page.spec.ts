@@ -304,6 +304,23 @@ test.describe("the Hebrew interface", () => {
   });
 });
 
+// @feature TOP-018 @feature TOP-020 @feature TOP-026 @feature I18-013
+test.describe("the Hebrew interface: works, dedication and readings in sefaria.org.il's faces", () => {
+  test("an author's work titles at 122%, a portion's dedication a serif block, its readings on serif lines", async ({ page }) => {
+    await page.context().addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+    await open(page, "/topics/rashi");
+    const title = main(page).getByRole("link", { name: 'רש"י על תלמוד' }).locator("span").first();
+    expect(await title.evaluate((e) => getComputedStyle(e).fontSize)).toBe("29.28px");
+    await open(page, "/topics/parashat-bereshit");
+    const dedication = main(page).getByText(/^פרשת בראשית מוקדשת/);
+    expect(await dedication.evaluate((e) => [getComputedStyle(e).display, getComputedStyle(e).fontFamily])).toEqual(["block", expect.stringMatching(/Taamey Frank/)]);
+    expect(await main(page).getByRole("link", { name: "לחלוצי ספריא" }).evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/Taamey Frank/);
+    const ref = side(page).getByRole("link", { name: "בראשית א:א-ו:ח" });
+    expect(await ref.evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/^Cardo/);
+    expect(Math.round((await ref.locator("..").boundingBox())!.height)).toBe(26);
+  });
+});
+
 // @feature TOP-017 @feature TOP-025
 test.describe("on a phone", () => {
   test.use(PHONE);
