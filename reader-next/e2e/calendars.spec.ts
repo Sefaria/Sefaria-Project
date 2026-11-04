@@ -36,7 +36,7 @@ const cardsAfter = (page: Page, heading: string) =>
 test("/calendars lists the day's schedules under Weekly Torah Portion, Daily Learning and Weekly Learning", async ({ page, request }) => {
   const all = await items(request, "diaspora=1&custom=ashkenazi");
   await open(page, "/calendars");
-  await expect(page).toHaveTitle("Learning Schedules | Sefaria Library");
+  await expect(page).toHaveTitle("Learning Schedules | The Sefaria Library");
   const headings = page.locator("main h2").filter({ hasText: /^(Weekly Torah Portion|Daily Learning|Weekly Learning)$/ });
   await expect(headings).toHaveText(["Weekly Torah Portion", "Daily Learning", "Weekly Learning"]);
   for (const section of Object.keys(SECTIONS) as (keyof typeof SECTIONS)[]) {
@@ -92,6 +92,9 @@ test("following a card opens the reading in the reader; Back returns to the sche
   const all = await items(request, "diaspora=1&custom=ashkenazi");
   const daf = all.find((i) => i.title.en === "Daf Yomi")!;
   await open(page, "/calendars");
+  // as the old app: the whole trip stays in one document (no full page load)
+  await page.evaluate(() => ((window as unknown as { __sameDoc: boolean }).__sameDoc = true));
+  const sameDoc = () => page.evaluate(() => (window as unknown as { __sameDoc?: boolean }).__sameDoc === true);
   await page.locator('[data-calendar="Daf Yomi"]').getByRole("link", { name: daf.displayValue.en }).click();
   const at = new RegExp(`/${daf.url.replace(/[.?*+()[\]]/g, "\\$&")}(\\?|$)`);
   await expect(page).toHaveURL(at);
@@ -105,6 +108,19 @@ test("following a card opens the reading in the reader; Back returns to the sche
   await page.goForward();
   await expect(page).toHaveURL(at);
   await expect(page.locator("[data-reader-scroller]")).toBeVisible();
+  expect(await sameDoc(), "the card, Back and Forward stayed in the same document").toBe(true);
+});
+
+// @feature CAL-001 @feature RTE-010
+test("once loaded, the address becomes /calendars (no slash, no query; the hash stays) and the tab title the app's own", async ({ page, context }) => {
+  await open(page, "/calendars/?foo=1#x");
+  await expect(page).toHaveURL(/\/calendars#x$/);
+  await expect(page).toHaveTitle("Learning Schedules | The Sefaria Library");
+  await open(page, "/calendars/");
+  await expect(page).toHaveURL(/\/calendars$/);
+  await context.addCookies([{ name: "interfaceLang", value: "hebrew", domain: "localhost", path: "/" }]);
+  await open(page, "/calendars");
+  await expect(page).toHaveTitle("לוח לימוד יומי | האוסף של ספריא");
 });
 
 // @feature CAL-002
@@ -126,7 +142,7 @@ test("the sidebar: About Learning Schedules, Stay Connected, Support Sefaria, th
   await expect(side.getByRole("button", { name: "Sefaria on Facebook" })).toHaveAttribute("href", "https://www.facebook.com/sefaria.org");
   await expect(side.getByRole("button", { name: "Sefaria on Instagram" })).toHaveAttribute("href", "https://www.instagram.com/sefariaproject");
   await expect(side.getByRole("button", { name: "Sefaria on YouTube" })).toHaveAttribute("href", "https://www.youtube.com/user/SefariaProject");
-  await expect(side.getByRole("link", { name: "Make a Donation" })).toBeVisible();
+  await expect(side.getByRole("link", { name: "Make a Donation" })).toHaveAttribute("href", "https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=NavSidebar-SupportSefaria");
   await expect(side.getByRole("link", { name: "Privacy Policy" })).toBeVisible();
   // the phone's copy at the top of the page is not shown on a wide screen
   await expect(page.locator("main > div > div").first().getByRole("heading", { name: "Learning Schedules" })).toBeHidden();
@@ -144,7 +160,7 @@ test("the site's ways in: /texts' All Learning Schedules and the phone menu's Le
   await all.click();
   await expect(page).toHaveURL(/\/calendars$/);
   await page.waitForSelector("html[data-hydrated='true']");
-  await expect(page).toHaveTitle("Learning Schedules | Sefaria Library");
+  await expect(page).toHaveTitle("Learning Schedules | The Sefaria Library");
   await expect(page.locator("main h2", { hasText: "Weekly Torah Portion" })).toBeVisible();
 });
 
@@ -262,6 +278,9 @@ test("Hebrew interface: Hebrew headings and titles, no (Talmud), cards laid out 
   await expect(side.getByRole("heading")).toHaveText(["לוח לימוד יומי", "הישארו מעודכנים", "תמכו בספריא"]);
   await expect(side.getByRole("button", { name: "ספריא בפייסבוק" })).toHaveAttribute("href", "https://www.facebook.com/sefaria.org.il");
   await expect(side.getByRole("textbox", { name: "כתובת אימייל" })).toHaveAttribute("placeholder", "הרשמו לניוזלטר");
+  // the Hebrew interface's donation campaign, in the module and the footer
+  await expect(side.getByRole("link", { name: "לתרומה" })).toHaveAttribute("href", "https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=NavSidebar-SupportSefaria");
+  await expect(side.getByRole("link", { name: "תרומות" })).toHaveAttribute("href", "https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=Footer");
 });
 
 // @feature CAL-003 @feature RTE-010

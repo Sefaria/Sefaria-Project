@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation, useMatches, useRouter } from "@tanstack/react-router";
 import { useQuery, type QueryClient } from "@tanstack/react-query";
 import { getRequestHeader } from "@tanstack/react-start/server";
@@ -12,6 +12,7 @@ import { ReaderSettingsProvider } from "~/features/reader/settings-context";
 import { ReaderStateProvider } from "~/features/reader-state/ReaderStateProvider";
 import { isReaderPath } from "~/lib/reader/paths";
 import { isStandalonePage } from "~/lib/routing/standalone";
+import { markLoadEntry } from "~/lib/routing/load-entry";
 import { useHeaderSearch } from "~/features/shell/useHeaderSearch";
 import { SiteHeader } from "~/ui/SiteHeader/SiteHeader";
 import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-menu";
@@ -99,6 +100,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootComponent() {
   const { interfaceLang, settings } = Route.useRouteContext();
+  // the entry the browser loaded, noted before any page's effect runs (src/lib/routing/load-entry.ts)
+  const router = useRouter();
+  useState(() => markLoadEntry(router.history.location.state));
   // Lets tests (and anything else that must wait for interactivity) know React has attached its handlers.
   useEffect(() => {
     document.documentElement.dataset.hydrated = "true";

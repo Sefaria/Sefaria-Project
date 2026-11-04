@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { markdownToHtml } from "~/lib/html/markdown";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { dafYomi, haftarot, parashah, type CalendarItem } from "~/lib/library/calendars";
-import { DONATE, HELP, LIBRARY } from "~/lib/shell/links";
+import { DONATE, DONATE_HE, HELP, LIBRARY } from "~/lib/shell/links";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
 import styles from "./NavSidebar.module.css";
@@ -198,7 +198,7 @@ export function SupportSefaria() {
   return (
     <SidebarModule title={<InterfaceText en="Support Sefaria" he="תמכו בספריא" />}>
       <p className={styles.body}><InterfaceText en="Sefaria is an open source, nonprofit project. Support us by making a tax-deductible donation." he="ספריא היא מאגר פתוח וחינמי. תמכו בנו בעזרת תרומה." /></p>
-      <a className={`${styles.button} ${styles.auto}`} href={`${DONATE}?c_src=NavSidebar-SupportSefaria`} target="_blank" rel="noopener noreferrer"><img src="/icons/heart.png" alt={he ? "סמל תרומה" : "donation icon"} /><InterfaceText en="Make a Donation" he="לתרומה" /></a>
+      <a className={`${styles.button} ${styles.auto}`} href={`${he ? DONATE_HE : DONATE}?c_src=NavSidebar-SupportSefaria`} target="_blank" rel="noopener noreferrer"><img src="/icons/heart.png" alt={he ? "סמל תרומה" : "donation icon"} /><InterfaceText en="Make a Donation" he="לתרומה" /></a>
     </SidebarModule>
   );
 }
@@ -299,7 +299,7 @@ const FOOTER: { en: string; he: string; url: string }[] = [
 ];
 export function SidebarFooter() {
   const lang = useInterfaceLang();
-  const url = (u: string) => (u === "help" ? HELP[lang] : u === "donate" ? (lang === "hebrew" ? "https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=Footer" : `${DONATE}?c_src=Footer`) : u);
+  const url = (u: string) => (u === "help" ? HELP[lang] : u === "donate" ? `${lang === "hebrew" ? DONATE_HE : DONATE}?c_src=Footer` : u);
   return (
     <nav className={`${styles.module} ${styles.footer}`} aria-label={lang === "hebrew" ? "קישורי תחתית" : "Footer links"}>
       <div className={styles.title} aria-hidden="true" />

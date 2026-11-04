@@ -214,6 +214,8 @@ const readTopicPage = createServerFn({ method: "GET" })
   .validator((d: { slug: string; lang: AzLang }) => d)
   .handler(async ({ data }): Promise<TopicPageResult> => {
     const [toc, listed, tree] = await Promise.all([serverTopicToc().catch(() => [] as TopicTocNode[]), serverListedTopicSlugs().catch(() => undefined), serverCatalogTree().catch(() => [] as TocNode[])]);
+    // a topic outside the A–Z list is Django's page: hand it on without fetching it (the server does so before rendering, TOP-036)
+    if (listed?.size && !listed.has(data.slug)) return { kind: "django" };
     const tocPaths = topicTocCategoryPaths(toc);
     const filters = refLinkTypeFilters(tocPaths[data.slug]?.at(-1)?.slug);
     const r = await fetch(`${SEFARIA_API_ORIGIN}${topicApiPath(data.slug, filters)}`, {

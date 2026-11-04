@@ -497,10 +497,14 @@ export const linksToPublish = (about: readonly TopicSource[], lang: AzLang) => a
 // ------------------------------------------------------------------------------------------------------------------------- the URL
 
 /**
- * The page's address as the old ReaderApp wrote it: `topics/<slug>` (or `topics/b/<slug>`, the test version) then `&sort=<sort>`,
- * then `&tab=<tab>` once the tabs exist, the first `&` made a `?`.
+ * The page's address as the old ReaderApp wrote it: `topics/<slug>` (or `topics/b/<slug>`, the test version), then `&sort=<sort>` when
+ * the panel had a sort (the server's default "Relevance" on a full page load, or one the reader chose), then `&tab=<tab>` once the tabs
+ * exist, the first `&` made a `?`. Arriving inside the app the panel had no sort: `?tab=<tab>` alone.
  */
-export const topicPageSearch = (sort: string, tab: string | undefined): { sort: string; tab?: string } => (tab ? { sort, tab } : { sort });
+export const topicPageSearch = (sort: string | undefined, tab: string | undefined): { sort?: string; tab?: string } => ({
+  ...(sort !== undefined ? { sort } : {}),
+  ...(tab ? { tab } : {}),
+});
 
 /** SluggedAbstractMongoRecord.normalize_slug: the slug Django looks up (and the old client wrote back into the URL). */
 export function normalizeTopicSlug(slug: string): string {

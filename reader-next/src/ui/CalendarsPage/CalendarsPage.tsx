@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { CalendarListing } from "~/lib/library/calendars";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
+import { Link } from "../Link/Link";
 import { NavPage } from "../NavPage/NavPage";
 import { categoryColor } from "../tokens/category-color";
 import styles from "./CalendarsPage.module.css";
@@ -59,18 +60,18 @@ export function CalendarCard({ listing }: { listing: CalendarListing }) {
   const he = useInterfaceLang() === "hebrew";
   return (
     <div className={styles.card} style={{ ["--_line" as string]: categoryColor(listing.category) } as React.CSSProperties} data-calendar={listing.key}>
-      <a href={listing.href} className={styles.title}>
+      <Link href={listing.href} className={styles.title}>
         <InterfaceText en={listing.title.en} he={listing.title.he} />
         {/* the Hebrew strings for the subtitle are empty: the Hebrew interface shows none */}
         {listing.subtitle && !he ? <InterfaceText en={<span className={styles.subtitle}>{listing.subtitle}</span>} /> : null}
-      </a>
+      </Link>
       <div className={styles.readings}>
         {listing.readings.map((r, i) => (
           <div className={styles.reading} key={`${i}:${r.href}`}>
             <img src="/icons/book.svg" className={styles.icon} alt={he ? "סמל ספר" : "book icon"} />
-            <a href={r.href}>
+            <Link href={r.href}>
               <InterfaceText en={r.text.en} he={r.text.he} />
-            </a>
+            </Link>
           </div>
         ))}
       </div>

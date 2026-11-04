@@ -4,6 +4,7 @@ import { pageCacheHeaders } from "./server/cache-policy";
 import { routeOwner, warmRouteManifest } from "./server/route-manifest";
 import { installInternalApiFetch, withUpstreamHealth } from "./server/internal-fetch";
 import { calendarShortcut, voicesNotFound } from "./server/calendar-shortcuts";
+import { topicsOwner } from "./server/topics-owner";
 import { isLibraryOnlyPage, isVoicesHost } from "~/lib/routing/django-paths";
 import { passesToDjango, passResetLink, passThrough, passThroughEnabled, requestHost, resetLinkUid, trailingSlashRedirect, upstreamUnavailable } from "./server/pass-through";
 
@@ -44,6 +45,8 @@ const siteRouting = createMiddleware({ type: "request" }).server(async ({ reques
   // not a page of this client nor a text: Django's, without rendering it first (R-36)
   // (the path as sent, still encoded: a title's escaped "/" must not split it)
   if ((request.method === "GET" || request.method === "HEAD") && (await routeOwner(new URL(request.url).pathname)) === "django") return passThrough(request);
+  // a topic, category or editor the topics routes do not render: Django's, before the topic is fetched (TOP-036)
+  if ((request.method === "GET" || request.method === "HEAD") && (await topicsOwner(new URL(request.url))) === "django") return passThrough(request);
   const result = await next();
   return result.response.status === 404 ? passThrough(request) : result;
 });

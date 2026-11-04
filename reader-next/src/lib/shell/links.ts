@@ -11,6 +11,8 @@ export const LIBRARY = SITE_ORIGIN;
 export const VOICES = PUBLIC_CONFIG.voicesOrigin;
 export const DEVELOPERS = "https://developers.sefaria.org";
 export const DONATE = "https://donate.sefaria.org/give/451346/#!/donation/checkout";
+/** The Hebrew-interface donation campaign (the old site's Hebrew strings). */
+export const DONATE_HE = "https://donate.sefaria.org/give/468442/#!/donation/checkout";
 export const HELP = { english: "https://help.sefaria.org/hc/en-us", hebrew: "https://help.sefaria.org/hc/he" } as const;
 
 export const donateHref = (source: "Header" | "MobileNavMenu") => `${DONATE}?c_src=${source}`;

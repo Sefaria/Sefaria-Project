@@ -1,5 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { TranslationsRoute } from "~/features/library/TranslationsRoute";
+import { SITE_ORIGIN } from "~/lib/config";
+import { hebrewSiteOrigin } from "~/lib/routing/site-origins";
 import { ErrorState } from "~/ui/Feedback/Feedback";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { prefetchTranslationsPage, translationLanguage } from "~/lib/translations/translations-page";
@@ -26,16 +28,35 @@ export const Route = createFileRoute("/translations/$slug")({
   head: ({ params }) => {
     const language = translationLanguage(params.slug, inApp());
     if (!language) return {};
+    // as sefaria.org's head for the page (VERIFIED 2026-11-04 for de, en, he): the language's title and description, the shared card
+    const path = `/translations/${params.slug}`;
+    const url = `${SITE_ORIGIN}${path}`;
+    const img = (platform: string) => `${SITE_ORIGIN}/api/img-gen${path}?lang=&platform=${platform}&ven=&vhe=`;
     return {
       meta: [
         { title: language.title },
+        { property: "og:title", content: language.title },
+        { name: "twitter:title", content: language.title },
         ...(language.desc
           ? [
               { name: "description", content: language.desc },
-              { property: "og:title", content: language.title },
               { property: "og:description", content: language.desc },
+              { name: "twitter:description", content: language.desc },
             ]
           : []),
+        { property: "og:type", content: "website" },
+        { property: "og:image", content: img("facebook") },
+        { property: "og:image:type", content: "image/png" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:url", content: url },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:site", content: "@sefariaproject" },
+        { name: "twitter:image", content: img("twitter") },
+      ],
+      links: [
+        { rel: "alternate", href: url, hrefLang: "en" },
+        { rel: "alternate", href: `${hebrewSiteOrigin(SITE_ORIGIN)}${path}`, hrefLang: "he" },
       ],
     };
   },

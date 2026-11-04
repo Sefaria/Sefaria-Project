@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**961 features**, 3913 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
+**961 features**, 3921 documented behaviors. Proposed tiers: core 323, standard 418, optional 156, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 389 · partial 52 · todo 392 · replaced 19 · deferred 22 · n/a 87; 383 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 390 · partial 51 · todo 392 · replaced 19 · deferred 22 · n/a 87; 383 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -4279,7 +4279,7 @@ Code: [`static/js/TranslationsPage.jsx:13`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_05_library_topics.md#6`
 
 #### LIB-021 · Translations page backend and SEO
-`standard` `broken` · rebuild: **partial** — Pages, 404s, title and description per language done; og:url, hreflang alternates and og:image are the site-wide head (platform-seo) · *tested*
+`standard` `broken` · rebuild: **done** — Head tags as live, tag for tag (review fix 2026-11-04) · *tested*
 
 The server supplies translation lists and per-language page titles; some linked languages return not found.
 
@@ -4290,6 +4290,7 @@ The server supplies translation lists and per-language page titles; some linked 
 - VERIFIED 2026-11-04: /api/texts/translations/he answers HTTP 500 after ~16 s on www.sefaria.org, so /translations/he shows only its title ('ספריה בעברית'), the Texts tab and the About module; the live page answers at once (TTFB 0.5–1.1 s) because it fetches the list in the browser. BUILT: the same page; the server's page waits for the list at most 1.5 s (LIST_WAIT_MS, prefetchTranslationsPage) and otherwise ships without it, and the server keeps a page's model 10 min and a failure 60 s, shared by concurrent requests (sharedTranslationsModel) — so the browser's ask after load joins or fails fast. Ours /translations/he TTFB 0.3 s once the failure is known, ≤1.7 s while the failing call is under way (it was 7.2 s).
 - VERIFIED 2026-11-04: loaded from the server, an unknown slug (/translations/ro, /tr, /xx, /DE — the lookup is case-sensitive) is Django's 404 'Page Not Found | Sefaria' (in-app navigation is different: LIB-037). A trailing slash is a 404 too (/translations/de/, /translations/: Django's ^translations/(?P<slug>[^.]+)$ reads the slug 'de/'). Head: <title> and og:title / twitter:title = the language's title; description / og:description / twitter:description = its description; og:url, hreflang alternates and the img-gen og:image are the site-wide head (not per page in the new reader yet).
 - BUILT 2026-11-04: src/lib/translations/translations-page.ts holds the 14 languages (title, description, direction); loaded from the server the route answers 404 for any other slug (passed to Django in the cluster), and a Library-only path with a trailing slash is Django's (django-paths isDjangoPage) rather than the 308 the reader's trailing-slash rule gives its own pages — so /translations/de/ is Django's 404, as on sefaria.org. The page's title, description, og:title/description and twitter:title/description are written per language.
+- BUILT 2026-11-04 (review fix): the head is sefaria.org's tag for tag (VERIFIED for de, en, he): og:title and twitter:title, description, og:description and twitter:description, og:type website, og:image and twitter:image (api/img-gen/translations/<lang>, facebook / twitter), og:image type and size, og:url, twitter:card summary_large_image, twitter:site @sefariaproject, hreflang alternates for www.sefaria.org and www.sefaria.org.il; no canonical, as live. Tests: e2e/translations.spec.ts ('the head').
 
 Code: [`reader/views.py:1257-1294`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1257-L1294), [`reader/views.py:4752-4841`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4752-L4841)
 
@@ -4454,6 +4455,7 @@ A donation appeal with a Donate button.
 - Title + text + DonateLink button (heart icon, source 'NavSidebar-SupportSefaria'); blue variant gives white button.
 - 'Make a Donation' is .button.small: as wide as its label (176x39), padding 10px 14px, 12px under the text, the heart.png icon inverted to white, 18px, 10px from the label. Verified on www.sefaria.org with Playwright, 2026-10-29.
 - The heart's alt is 'donation icon' / 'סמל תרומה' (common.donation_icon). BUILT 2026-11-04.
+- The Hebrew interface's button goes to the Hebrew campaign, give/468442 (Misc.jsx DonateLink), as the footer's Donate; English give/451346. BUILT 2026-11-04 (src/lib/shell/links.ts DONATE_HE). Tests: e2e/calendars.spec.ts.
 
 Code: [`static/js/NavSidebar.jsx:335-345`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L335-L345)
 
@@ -5257,6 +5259,8 @@ Topics have landing, category, A-Z and individual topic URLs, and old sheet-tag 
 - NEW READER (2026-11-04): /topics, /topics/category/<slug> and /topics/all/<letter> are rendered by reader-next on the Library host (src/routes/topics.*); /topics/<slug>, /topics/b/<slug>, /people, /people/Talmud, /person/<name>, /sheets/tags[/<tag>] stay Django's (src/lib/routing/django-paths.ts DJANGO_TOPIC_PAGE and DJANGO_PREFIXES), so the legacy redirects still land on the new pages. An unknown category or a two-character letter is a 404, which the server hands to Django (its own 404 page).
 - Topic page address: the old ReaderApp writes topics/<slug> (topics/b/<slug> for the test version) then &sort=<topicSort> (always: reader/views.py passes GET sort or 'Relevance') then &tab=<tab> once TabView mounts (replacing the entry): /topics/moses → /topics/moses?sort=Relevance&tab=notable-sources; an author → ?sort=Relevance&tab=author-works-on-sefaria. A ?tab= in the address on load is IGNORED (the topic page's props carry no tab; TabView falls back to the first tab and writes it), ?sort= is honoured; the order of the parameters is rewritten. A tab click pushes a history entry, a sort click too. /topics/b/<slug> renders the same page. An unknown slug is Django's 404 ('Page Not Found | Sefaria'). Page title '<title> | Texts from the Sefaria Library' (he '<title> | מקורות מתוך ספריית ספריא'); description 'Jewish texts about <title in the interface language> from Torah, Talmud and other sources in Sefaria's library. <description>' — in English in the Hebrew interface too (the Hebrew msgstr is obsolete, #~ in locale/he). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).
 - NEW READER (2026-11-04): every Library /topics path is rendered by reader-next ('topics' has no Django rule left in src/lib/routing/django-paths.ts; route-manifest treats /topics/ as the client's): src/routes/topics.$.tsx and topics.b.$.tsx. The slug is normalised as normalize_slug. The address is written byte for byte as above, except that a ?tab= naming one of the page's tabs is honoured on load (a shared link to Sources opens Sources; an unknown tab still becomes the first). The Voices host keeps every /topics page on Django (Q-E1).
+- The address the old ReaderApp wrote: '&sort=' only when the panel had a sort — the server's 'Relevance' on a full page load, or one the reader chose. Arriving inside the app (a related topic, a card, Featured) it wrote '?tab=<tab>' alone, and after the topic search's Enter or click the bare '/topics/<slug>'. VERIFIED 2026-11-04.
+- BUILT 2026-11-04 (review fix): src/lib/routing/load-entry.ts tells the history entry the document was loaded at (by the router's history index, which a replace keeps); TopicPageRoute writes the sort only there or once chosen, and leaves the address alone after the landing search (navigation state 'bareAddress'). Tests: e2e/topic-page.spec.ts ('a related topic opens in the app'), e2e/topics-landing.spec.ts.
 
 Code: [`sefaria/urls_shared.py:53-61`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_shared.py#L53-L61), [`static/js/ReaderApp.jsx:561-582`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L561-L582), [`static/js/ReaderApp.jsx:2059-2104`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2059-L2104)
 
@@ -5809,7 +5813,7 @@ Source: `inv_05_library_topics.md`
 ### Topic page
 
 #### TOP-036 · Topic page Library pool check
-`core` `live` · rebuild: **done** — In-app 404s reload to the server; the backend pools change is unverified (not run) · *tested*
+`core` `live` · rebuild: **done** — Decided on the server before rendering: A–Z slugs and TOC categories are the client's, the rest Django's (src/server/topics-owner.ts) · *tested*
 
 A topic page exists on the Library only for topics in the Library's pool; the new reader decides it from the A–Z list or the topic's pools, and otherwise lets Django answer.
 
@@ -5817,6 +5821,7 @@ A topic page exists on the Library only for topics in the Library's pool; the ne
 - NEW READER: a slug in the server's A–Z list (/api/topics?limit=0: library pool, displayable, ≥3 text sources or a description) renders; otherwise the v2 topic's `pools` decide (added to get_topic's v2 answer on this branch, sefaria/helper/topic.py); where the API gives no pools (sefaria.org today) the route answers 404 and the server hands the request to Django, which renders the old page or its 404. noindex is the same test on the topic's fields.
 - NEW READER: the hand-off to Django also works after an in-app navigation: the topics routes' notFoundComponent (src/features/topics/DjangoHandoff.tsx) loads the address again from the server when the 404 was reached in the app (the document was loaded at another address, src/lib/routing/django-handoff.ts) — a related link, a description link, a card or ?editor=1 reached by navigation then gets Django's page when pass-through is on; the server's own 404 shows 'Page not found.' and never reloads. Before, TanStack's bare 'Not Found' showed and Django never got the request.
 - Open: the backend change (get_topic's v2 answer carries `pools`) and its test (sefaria/helper/tests/topic_test.py::test_get_topic_v2_answers_the_topics_pools) have not been run (no Django/Mongo environment); until it is deployed, Library topics outside the A–Z list (~1,366) always go to Django.
+- BUILT 2026-11-04 (review fix): src/server/topics-owner.ts decides before rendering, in the cluster's pass-through: /topics/<slug> and /topics/b/<slug> are this client's only for the A–Z list's slugs, /topics/category/<slug> only for the TOC's categories; ?editor=1 and everything else go to Django without the topic being fetched (curl with pass-through: /topics/aarons-staff 200 django 1.6s, /topics/category/moses 0.3s, /topics/moses?editor=1 1.0s). In the app, readTopicPage hands a slug outside the A–Z list to Django without fetching it, so the backend 'pools' field is no longer needed to decide. Tests: src/server/topics-owner.test.ts.
 
 Code: [`reader/views.py:3592-3640`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3592-L3640), `sefaria/helper/topic.py get_topic`
 
@@ -5848,6 +5853,8 @@ One page lists today's and this week's learning schedules (portion, Daf Yomi, Mi
 - Voices host (Q-E1): voices.sefaria.org answers /calendars with 404. BUILT 2026-11-04: passed to Django there; with no Django to pass to (pass-through off) the server answers 404 itself, and the browser (leavesClient with the page's host) loads the address in full on the Voices host instead of routing to the Library page.
 - Hebrew interface parity (2026-11-04): the shared site-wide Library Assistant banner computed Heebo in Hebrew (9px taller); live keeps Roboto there. Fixed in src/features/shell/SiteWideBanner (Roboto stack in both interfaces): 1280 top/full 0.15%, end 0.12%, middle 0.38%, phone full 0.20% — the remainder is the shared Hebrew header (live lays out the Hebrew header differently and labels Texts 'טקסטים' where ours says 'מקורות') and 1px shifts in the sidebar footer/donate button; none of it is this page's markup. English: 0.00% everywhere.
 - Known differences (2026-11-04): the UA dimension5 page type 'calendars' is not sent (UA is retired; the shell sends no page types); the sidebar footer links are absolute (pre-existing footer).
+- Once the page loads, the old app replaced the address and set the tab title (ReaderApp.jsx:630, hist.url 'calendars'): '/calendars/' and any query become '/calendars' (the hash stays), and the title becomes 'Learning Schedules | The Sefaria Library' / 'לוח לימוד יומי | האוסף של ספריא'. The server HTML keeps 'Learning Schedules | Sefaria Library' and its own canonical. VERIFIED 2026-11-04.
+- BUILT 2026-11-04 (review fix): CalendarsRoute replaces the address once on arrival through the router's history and sets the title in the interface language. Tests: e2e/calendars.spec.ts ('once loaded, the address becomes /calendars').
 
 Code: [`static/js/CalendarsPage.jsx:17-27`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/CalendarsPage.jsx#L17-L27), [`static/js/sefaria/sefaria.js:3643-3650`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3643-L3650), [`reader/views.py:1340-1359`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1340-L1359)
 
@@ -5866,6 +5873,7 @@ Each schedule is a card colored by category with a title, subtitle, description 
 - The API's own description wins over the table (the weekly portion's summary comes from the API). Yerushalmi Yomi is not in the table and has no description; Zohar for Elul appears only in season. Chok LeYisrael's url is a Hebrew collection path with a query ('collections/חק-לישראל?tag=Chayei%20Sara'), written into the href unencoded. VERIFIED 2026-11-04.
 - Card geometry (VERIFIED 2026-11-04): two 327.5px columns 10px apart and rows 6px apart while the grid is wider than 500px (ResponsiveNBox threshold2), one column below; a 4px line in the category's colour (Sefaria.palette); title 24px serif on a 1.3 line, 15px over / 8px under, 20px short of the card's end; readings 18px serif dark grey, the 18px book icon 10px before, 2px apart, 16px over the description; description 14px/18px sans, 12px under the card. Hebrew interface: titles and descriptions at 122% (descriptions on a 24px line), readings in the Hebrew serif at 18px.
 - BUILT 2026-11-04 (src/lib/library/calendars.ts calendarListings/sectionListings, src/ui/CalendarsPage CalendarCard): tests e2e/calendars.spec.ts, src/lib/library/calendars.test.ts, Storybook Pages/CalendarsPage.
+- BUILT 2026-11-04 (review fix): the cards' links follow inside the app (VerbatimRouterLink: the href exactly as the old page wrote it, a plain click through the router); the card, Back and Forward stay in one document, as live. Tests: e2e/calendars.spec.ts.
 
 Code: [`static/js/CalendarsPage.jsx:70-136`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/CalendarsPage.jsx#L70-L136), [`static/js/CalendarsPage.jsx:142-200`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/CalendarsPage.jsx#L142-L200)
 

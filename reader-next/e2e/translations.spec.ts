@@ -211,3 +211,24 @@ test.describe("phone", () => {
     await expect(page.getByRole("tab", { name: "Texts" }).locator("div")).toHaveCSS("font-size", "16px");
   });
 });
+
+// @feature LIB-021
+test("the head: title, Open Graph and Twitter cards and the hreflang alternates, as sefaria.org's", async ({ request }) => {
+  const html = await (await request.get("/translations/de")).text();
+  const title = "Jüdische Texte in Deutscher Sprache";
+  for (const tag of [
+    `<meta property="og:title" content="${title}"`,
+    `<meta name="twitter:title" content="${title}"`,
+    '<meta name="twitter:description" content="Die größte kostenlose Bibliothek',
+    '<meta property="og:type" content="website"',
+    '<meta property="og:image" content="https://www.sefaria.org/api/img-gen/translations/de?lang=&amp;platform=facebook&amp;ven=&amp;vhe="',
+    '<meta property="og:url" content="https://www.sefaria.org/translations/de"',
+    '<meta name="twitter:card" content="summary_large_image"',
+    '<meta name="twitter:site" content="@sefariaproject"',
+    '<meta name="twitter:image" content="https://www.sefaria.org/api/img-gen/translations/de?lang=&amp;platform=twitter&amp;ven=&amp;vhe="',
+    '<link rel="alternate" href="https://www.sefaria.org/translations/de" hreflang="en"',
+    '<link rel="alternate" href="https://www.sefaria.org.il/translations/de" hreflang="he"',
+  ])
+    // React writes the attribute "hrefLang": attribute names are case-insensitive in HTML, so compare without case
+    expect(html.toLowerCase(), tag).toContain(tag.toLowerCase());
+});

@@ -222,6 +222,9 @@ describe("the address and the head", () => {
   it("?sort= then &tab=, as the old ReaderApp wrote them", () => {
     expect(topicPageSearch("Relevance", "notable-sources")).toEqual({ sort: "Relevance", tab: "notable-sources" });
     expect(topicPageSearch("Relevance", undefined)).toEqual({ sort: "Relevance" });
+    // arriving inside the app the old panel had no sort: the tab alone
+    expect(topicPageSearch(undefined, "notable-sources")).toEqual({ tab: "notable-sources" });
+    expect(topicPageSearch(undefined, undefined)).toEqual({});
   });
   it("the slug as Django normalises it", () => {
     expect(normalizeTopicSlug("Moses")).toBe("moses");

@@ -1638,8 +1638,8 @@
   "by": "src/ui/TranslationsPage, src/features/library/TranslationsRoute.tsx, src/lib/translations/translations-page.ts"
  },
  "LIB-021": {
-  "status": "partial",
-  "note": "Pages, 404s, title and description per language done; og:url, hreflang alternates and og:image are the site-wide head (platform-seo)",
+  "status": "done",
+  "note": "Head tags as live, tag for tag (review fix 2026-11-04)",
   "by": "src/routes/translations.$slug.tsx, src/lib/translations/translations-page.ts"
  },
  "LIB-029": {
@@ -1865,7 +1865,7 @@
  },
  "TOP-036": {
   "status": "done",
-  "note": "In-app 404s reload to the server; the backend pools change is unverified (not run)",
-  "by": "src/lib/topics/topic-page-source.ts (readTopicPage), src/features/topics/DjangoHandoff.tsx, src/lib/routing/django-handoff.ts, sefaria/helper/topic.py"
+  "note": "Decided on the server before rendering: A–Z slugs and TOC categories are the client's, the rest Django's (src/server/topics-owner.ts)",
+  "by": "src/server/topics-owner.ts, src/lib/topics/topic-page-source.ts (readTopicPage), src/features/topics/DjangoHandoff.tsx"
  }
 }

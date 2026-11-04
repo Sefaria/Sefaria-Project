@@ -66,8 +66,10 @@ test.describe("the topic search", () => {
     await expect(options.first().getByRole("img", { name: "Topic" })).toHaveAttribute("src", "/icons/iconmonstr-hashtag-1.svg");
     const first = await options.first().getAttribute("data-anl-text");
     await box.press("Enter");
-    // the topic page is this client's (since the topic page port): it opens in the app, its address then written as sefaria.org writes it
-    await expect(page).toHaveURL(new RegExp(`/topics/${first!.toLowerCase().replace(/\s+/g, "-")}\\?sort=Relevance&tab=[a-z-]+$`));
+    // the topic page is this client's (since the topic page port): it opens in the app at the bare address, as sefaria.org's search
+    await expect(page).toHaveURL(new RegExp(`/topics/${first!.toLowerCase().replace(/\s+/g, "-")}$`));
+    await expect(main(page).getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/topics/${first!.toLowerCase().replace(/\s+/g, "-")}$`));
     await expect(main(page).getByRole("heading", { level: 1 })).toHaveText(first!);
   });
 
@@ -82,7 +84,7 @@ test.describe("the topic search", () => {
     await box.press("ArrowDown");
     await expect(options.nth(1)).toHaveAttribute("aria-selected", "true");
     await options.nth(1).click();
-    await expect(page).toHaveURL(/\/topics\/[a-z0-9-]+\?sort=Relevance&tab=[a-z-]+$/);
+    await expect(page).toHaveURL(/\/topics\/[a-z0-9-]+$/);
     await expect(main(page).getByRole("heading", { level: 1 })).toContainText(/Shabbat|Shabb/);
   });
 });

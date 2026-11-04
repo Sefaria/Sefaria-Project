@@ -1,8 +1,9 @@
 import { useQueries, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { notFound, useNavigate } from "@tanstack/react-router";
+import { notFound, useLocation, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { viewerQuery, useViewer } from "~/features/auth/viewer";
 import { SITE_ORIGIN } from "~/lib/config";
+import { BARE_ADDRESS, isLoadEntry } from "~/lib/routing/load-entry";
 import { isValidEmail } from "~/lib/feedback/feedback";
 import { langCode, useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { postJson } from "~/lib/auth/http";
@@ -101,6 +102,14 @@ export interface TopicPageRouteProps {
  * @feature TOP-022 Topic source filter and sort
  * @feature TOP-029 Topic page analytics batch
  */
+const safeDecode = (p: string) => {
+  try {
+    return decodeURIComponent(p);
+  } catch {
+    return p;
+  }
+};
+
 export function TopicPageRoute({ slug, prefix, search, transLangPref }: TopicPageRouteProps) {
   const ifl = useInterfaceLang();
   const lang = langCode(ifl);
@@ -112,21 +121,27 @@ export function TopicPageRoute({ slug, prefix, search, transLangPref }: TopicPag
   const { tabs, entries } = useMemo(() => (page ? tabsFor(page, lang, moderator) : { tabs: {}, entries: [] }), [page, lang, moderator]);
   const current = activeTab(entries, search.tab);
   const sort = search.sort ?? DEFAULT_SORT;
+  const location = useLocation();
+  // the old panel had a sort only on a full page load (the server's "Relevance") or once the reader chose one; arriving inside the app
+  // it wrote `?tab=…` alone, and nothing at all after the topic search's Enter
+  const loadEntry = isLoadEntry(location.state);
+  const bare = !!(location.state as unknown as Record<string, unknown> | undefined)?.[BARE_ADDRESS];
+  const sortInAddress = search.sort !== undefined || loadEntry ? sort : undefined;
 
-  // the old ReaderApp wrote the page's address once the tabs were there: topics/<slug>?sort=<sort>&tab=<first tab> (replacing)
+  // the old ReaderApp wrote the page's address once the tabs were there (replacing)
   const path = `/topics/${prefix}${slug}`;
   useEffect(() => {
-    if (!page) return;
-    const enc = (v: string) => encodeURIComponent(v).replace(/%20/g, "+");
-    const want = `?sort=${enc(sort)}${current ? `&tab=${enc(current)}` : ""}`;
-    if (window.location.search === want && window.location.pathname === encodeURI(path)) return;
-    void navigate({ to: path as never, search: topicPageSearch(sort, current) as never, replace: true, resetScroll: false });
-  }, [page, path, sort, current, search.sort, search.tab, navigate]);
+    // while the next page loads (Back to another topic) this one is still mounted and sees that page's location: leave it alone
+    if (!page || bare || safeDecode(location.pathname) !== path) return;
+    const want = new URLSearchParams(topicPageSearch(sortInAddress, current)).toString();
+    if (window.location.search === (want ? `?${want}` : "") && window.location.pathname === encodeURI(path)) return;
+    void navigate({ to: path as never, search: topicPageSearch(sortInAddress, current) as never, replace: true, resetScroll: false });
+  }, [page, bare, path, location.pathname, sortInAddress, current, search.sort, search.tab, navigate]);
 
   const [langPref, setLangPref] = useState<ContentLangPref>(ifl);
   const [filterOpen, setFilterOpen] = useState(false);
 
-  const go = useCallback((next: { sort?: string; tab?: string }) => void navigate({ to: path as never, search: topicPageSearch(next.sort ?? sort, next.tab ?? current) as never, resetScroll: false }), [navigate, path, sort, current]);
+  const go = useCallback((next: { sort?: string; tab?: string }) => void navigate({ to: path as never, search: topicPageSearch(next.sort ?? sortInAddress, next.tab ?? current) as never, resetScroll: false }), [navigate, path, sortInAddress, current]);
 
   // links in the description to this site's pages open here (the old ReaderApp handled every in-app link)
   const onDescriptionClick = useCallback(

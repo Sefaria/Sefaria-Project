@@ -178,6 +178,14 @@ test.describe("the side column", () => {
     await side(page).getByRole("link", { name: "Leadership" }).first().click();
     await expect(main(page).getByRole("heading", { level: 1, name: "Leadership" })).toBeVisible();
     expect(await page.evaluate(() => (window as unknown as { __same?: boolean }).__same)).toBe(true);
+    // arriving inside the app the old panel had no sort: sefaria.org writes ?tab=… alone, and a tab click keeps it so
+    await expect(page).toHaveURL(/\/topics\/leadership\?tab=[a-z-]+$/);
+    await tabs(page).filter({ hasText: /^Sources$/ }).click();
+    await expect(page).toHaveURL(/\/topics\/leadership\?tab=sources$/);
+    // Back to the page the browser loaded: its address keeps the server's sort
+    await page.goBack();
+    await page.goBack();
+    await expect(page).toHaveURL(/\/topics\/moses\?sort=Relevance&tab=notable-sources$/);
   });
 });
 
