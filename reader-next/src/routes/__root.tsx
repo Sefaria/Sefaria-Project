@@ -11,6 +11,7 @@ import { RouterLink } from "~/features/shared/RouterLink";
 import { ReaderSettingsProvider } from "~/features/reader/settings-context";
 import { ReaderStateProvider } from "~/features/reader-state/ReaderStateProvider";
 import { isReaderPath } from "~/lib/reader/paths";
+import { isStandalonePage } from "~/lib/routing/standalone";
 import { useHeaderSearch } from "~/features/shell/useHeaderSearch";
 import { SiteHeader } from "~/ui/SiteHeader/SiteHeader";
 import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-menu";
@@ -71,7 +72,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const [viewer] = await Promise.all([context.queryClient.ensureQueryData(viewerQuery), context.queryClient.ensureQueryData(remoteConfigQueryOptions()).catch(() => undefined)]);
     return { viewer };
   },
-  head: () => ({
+  head: ({ matches }) => {
+    // a standalone page (compare.html) has no viewport meta and loads no site fonts: the browser's own Times, laid out 980px wide on a phone
+    if (isStandalonePage(matches[matches.length - 1]?.pathname ?? "")) return { meta: [{ charSet: "utf-8" }, { title: "Sefaria Reader" }], links: [{ rel: "stylesheet", href: tokens }, { rel: "stylesheet", href: base }] };
+    return {
     meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { title: "Sefaria Reader" }],
     links: [
       // The faces on screen at first paint, preloaded with the page: a face that arrives later reflows the
@@ -88,7 +92,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: tokens },
       { rel: "stylesheet", href: base },
     ],
-  }),
+    };
+  },
   component: RootComponent,
 });
 
@@ -98,13 +103,15 @@ function RootComponent() {
   useEffect(() => {
     document.documentElement.dataset.hydrated = "true";
   }, []);
+  // a page sefaria.org serves outside the site's frame (the version-diff tool) is rendered bare, as there (src/lib/routing/standalone.ts)
+  const standalone = isStandalonePage(useLocation().pathname);
   return (
-    <RootDocument lang={interfaceLang === "hebrew" ? "he" : "en"} dir={interfaceLang === "hebrew" ? "rtl" : "ltr"}>
+    <RootDocument lang={interfaceLang === "hebrew" ? "he" : "en"} dir={standalone ? undefined : interfaceLang === "hebrew" ? "rtl" : "ltr"} standalone={standalone}>
       <InterfaceLangProvider lang={interfaceLang}>
         <LinkProvider value={RouterLink}>
           <ReaderStateProvider>
             <ReaderSettingsProvider initial={settings}>
-              <Shell />
+              {standalone ? <Outlet /> : <Shell />}
             </ReaderSettingsProvider>
           </ReaderStateProvider>
         </LinkProvider>
@@ -201,13 +208,14 @@ function Shell() {
 
 const simpleAnalytics = simpleAnalyticsScript(PUBLIC_CONFIG.analytics);
 
-function RootDocument({ children, lang, dir }: Readonly<{ children: ReactNode; lang: string; dir: string }>) {
+function RootDocument({ children, lang, dir, standalone }: Readonly<{ children: ReactNode; lang: string; dir?: string; standalone?: boolean }>) {
   const viewer = Route.useLoaderData()?.viewer;
   const { interfaceLang, diaspora } = Route.useRouteContext();
   const saMetadata = saMetadataScript(PUBLIC_CONFIG.analytics, { loggedIn: !!viewer, staff: !!viewer?.email?.includes("sefaria.org") });
   // The runtime config (before any module runs: src/lib/config.ts), then the analytics vendors, each only when configured. Plain
   // <script> tags here run once per document; the router's head() would re-inject them on every navigation (CODE_REVIEW R-01).
-  const headScripts = [{ children: configScript() }, { children: `window.__SEFARIA_REQUEST__=${JSON.stringify({ diaspora: diaspora !== false })};` }, ...analyticsHeadScripts(PUBLIC_CONFIG.analytics, interfaceLang ?? "english", viewer ? { uid: viewer.id, email: viewer.email } : null)];
+  // a standalone page (compare.html) loads Google Tag Manager only
+  const headScripts = [{ children: configScript() }, { children: `window.__SEFARIA_REQUEST__=${JSON.stringify({ diaspora: diaspora !== false })};` }, ...analyticsHeadScripts(standalone ? { ...PUBLIC_CONFIG.analytics, gtag: null, simpleAnalyticsHost: null } : PUBLIC_CONFIG.analytics, interfaceLang ?? "english", viewer ? { uid: viewer.id, email: viewer.email } : null)];
   return (
     // Pinned light (CODE_REVIEW R-06): with no theme the tokens follow the OS, but ~200 literal colours do not, so dark-OS readers got a
     // half-dark page. Dark mode arrives behind its remote-config flag once every colour is a token (TARGET_ARCHITECTURE §6.6).
@@ -216,11 +224,11 @@ function RootDocument({ children, lang, dir }: Readonly<{ children: ReactNode; l
         {headScripts.map(({ children: code, ...attrs }, i) => (code ? <script key={i} {...attrs} dangerouslySetInnerHTML={{ __html: code }} /> : <script key={i} {...attrs} />))}
         <HeadContent />
       </head>
-      <body>
+      <body data-standalone={standalone ? "" : undefined}>
         {children}
         <Scripts />
-        {saMetadata ? <script dangerouslySetInnerHTML={{ __html: saMetadata }} /> : null}
-        {simpleAnalytics ? <script {...simpleAnalytics} /> : null}
+        {saMetadata && !standalone ? <script dangerouslySetInnerHTML={{ __html: saMetadata }} /> : null}
+        {simpleAnalytics && !standalone ? <script {...simpleAnalytics} /> : null}
       </body>
     </html>
   );

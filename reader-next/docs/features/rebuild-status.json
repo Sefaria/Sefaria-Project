@@ -1631,5 +1631,23 @@
   "status": "partial",
   "note": "Signed-out banner done; signed-in 'Try It' (not in the experiment) not shown yet",
   "by": "src/features/shell/SiteWideBanner"
+ },
+ "LEG-010": {
+  "status": "partial",
+  "note": "Page, form, diff tables, filters, Apply Change ported at pixel parity; the Editors group (non-staff editors) is not recognised",
+  "by": "src/features/compare/ComparePage.tsx"
+ },
+ "RTE-019": {
+  "status": "done",
+  "by": "src/lib/compare/url.ts"
+ },
+ "LEG-031": {
+  "status": "done",
+  "by": "src/lib/routing/standalone.ts"
+ },
+ "LEG-032": {
+  "status": "done",
+  "note": "segment ranges and section ranges handled sensibly (legacy 500 / endless loading)",
+  "by": "src/lib/compare/queries.ts"
  }
 }

@@ -12,8 +12,8 @@ import { SEFARIA_API_ORIGIN } from "~/lib/api/client";
 import { serverCatalogTree, type TocNode } from "~/lib/catalog/toc";
 import { parseUrlRef } from "~/lib/ref/url";
 
-const CLIENT_EXACT = new Set(["/", "/search", "/login", "/register", "/texts", "/calendars", "/calendars/"]);
-const CLIENT_PREFIXES = ["/texts/", "/translations/", "/interface/", "/password/reset/confirm/", "/_serverFn/", "/assets/", "/auth/", "/brand/", "/fonts/", "/img/", "/@", "/__"];
+const CLIENT_EXACT = new Set(["/", "/search", "/login", "/register", "/texts", "/calendars", "/calendars/", "/compare"]);
+const CLIENT_PREFIXES = ["/texts/", "/translations/", "/compare/", "/interface/", "/password/reset/confirm/", "/_serverFn/", "/assets/", "/auth/", "/brand/", "/fonts/", "/img/", "/@", "/__"];
 
 export type RouteOwner = "client" | "django";
 

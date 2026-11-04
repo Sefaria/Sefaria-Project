@@ -28,7 +28,8 @@ export function getRouter() {
     pathParamsAllowedCharacters: [",", ":", "@"],
     // A trailing slash is the server's to settle (src/server/pass-through.ts trailingSlashRedirect: a 308 for reader and library
     // addresses); what it lets through renders as written, as sefaria.org does: "/calendars/" is a page there (200, its canonical with
-    // the slash), not a redirect. The router's default ("never") answered such a path with a 307 of its own.
+    // the slash), not a redirect, and the version-diff tool's address means something else with and without it (/compare/Genesis.1/ is
+    // a ref, /compare/Genesis.1 a version: LEG-010). The router's default ("never") answered such a path with a 307 of its own.
     trailingSlash: "preserve",
   });
   // Dehydrates server-fetched queries into the page and hydrates them on the client (no refetch).

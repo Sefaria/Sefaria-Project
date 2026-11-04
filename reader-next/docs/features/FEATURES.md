@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**951 features**, 3732 documented behaviors. Proposed tiers: core 321, standard 413, optional 153, retire 61.
+**953 features**, 3763 documented behaviors. Proposed tiers: core 321, standard 413, optional 155, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 343 · partial 41 · todo 438 · replaced 19 · deferred 23 · n/a 87; 332 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 346 · partial 42 · todo 436 · replaced 19 · deferred 23 · n/a 87; 336 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -17,7 +17,7 @@ Master list of every feature in the current Sefaria web client, extracted from a
 - **Voices (sheets & community)**: [Sheets: viewing](#sheets-view) (27) · [Sheets: editing & publishing](#sheets-editor) (29) · [Collections](#collections) (10) · [Profiles & social](#profile-social) (12) · [Saved, history & notes](#user-library) (12) · [Notifications & email](#notifications) (11)
 - **Site & accounts**: [Global UI](#global-ui) (28) · [Accounts & sign-in](#accounts) (16) · [Promotions & CMS](#promotions) (17) · [Static pages](#static-pages) (19) · [Language & accessibility](#i18n-a11y) (13) · [AI features](#ai) (20)
 - **Platform**: [URLs & routing](#routing) (64) · [SSR, SEO & platform](#platform-seo) (32) · [Public API & data exports](#api-data) (17) · [Analytics](#analytics) (17) · [Linker & embeds](#linker-embeds) (14)
-- **Internal & legacy**: [Admin & moderator tools](#admin-tools) (58) · [Legacy pages](#legacy-pages) (30)
+- **Internal & legacy**: [Admin & moderator tools](#admin-tools) (58) · [Legacy pages](#legacy-pages) (32)
 
 ---
 
@@ -534,6 +534,7 @@ Panels used to pick a second text have their own header with search and settings
 
 - Search mode: back chevron (MenuButton compare), search input opening search on Enter or button, display settings dropdown NOT shown for Hebrew interface (ComparePanelHeader.jsx:19-43).
 - Category mode: colour line, back, category title (ContentText), display settings (hidden placeholder in Hebrew interface) (44-57).
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/ComparePanelHeader.jsx:19`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ComparePanelHeader.jsx#L19)
 
@@ -548,6 +549,7 @@ Readers can open a second text beside the first by picking it through a library 
 - Triggered from setConnectionsMode('Add Connection') when only one text open (ReaderPanel.jsx:554-557) and ConnectionsPanel 'Other Text' control.
 - In compare panel: TextsPage back -> closePanel; selecting a book -> openCompareTextTOC (book toc w/ compare, remembering categories) (444-453,891-892); compare book TOC back returns to navigation with previous categories (919-924).
 - Compare close button runs convertToTextList: closes compare panel and reopens connections list for base highlight; for Sheet bases uses highlighted node's source ref (2469,1990-2006).
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/ReaderApp.jsx:1830`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1830), [`static/js/ReaderApp.jsx:1990`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1990), [`static/js/ReaderPanel.jsx:444`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L444)
 
@@ -3490,6 +3492,7 @@ The Compare Text tool replaces the sidebar with a text chooser to open a second 
 - ReaderApp.openComparePanel(n, connectAfter) replaces the connections panel with a navigation-menu panel (compare:true, openSidebarAsConnect); tracks 'Other Text Click'.
 - If openSidebarAsConnect, its sidebar opens in 'Add Connection' mode (ReaderApp.jsx:1865); compare panel has its own header (ComparePanelHeader.jsx) and book TOC (openCompareTextTOC).
 - Desktop only (no Compare button on mobile).
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/ReaderApp.jsx:1830`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1830)
 
@@ -4012,6 +4015,7 @@ When the library is opened as a second 'compare' panel it shows a compact header
 
 - compare mode: ComparePanelHeader search=true, onBack, openSearch replaces title.
 - In compare mode: no NavSidebar, no dedication, no library message, no About block.
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/TextsPage.jsx:69-74`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextsPage.jsx#L69-L74)
 
@@ -4225,6 +4229,7 @@ In a compare panel a category page shows a compact header with back navigation u
 
 - ComparePanelHeader with category; onBack -> setCategories(aboutCats.slice(0,-1)); catTitle/heCatTitle.
 - Title area replaced by just the subcategory toggle.
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/TextCategoryPage.jsx:58`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextCategoryPage.jsx#L58), [`static/js/TextCategoryPage.jsx:70-76`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextCategoryPage.jsx#L70-L76)
 
@@ -4919,6 +4924,7 @@ Opening a book in a compare panel shows a compact reader-style control bar with 
 - readerControls bar: left MenuButton (compare back), center title, right display-settings dropdown (DisplaySettingsButton + ReaderDisplayOptionsMenu in DropdownMenu).
 - Display-settings dropdown only for non-Hebrew interface; Hebrew shows a placeholder.
 - Opened via openCompareTextTOC; back returns to navigation with previousCategories; category prop = Sefaria.index(bookRef).primary_category (ReaderPanel.jsx:917-943).
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/BookPage.jsx:220-239`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/BookPage.jsx#L220-L239), [`static/js/ReaderPanel.jsx:917-943`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L917-L943)
 
@@ -6042,6 +6048,7 @@ A compare panel has its own plain search box that opens search results inside th
 - Display-settings dropdown shown when interface is not Hebrew.
 - Compare search results click uses handleCompareSearchClick -> replacePanel(n) so other panels are not clobbered.
 - In compare: no desktop sidebar, exact toggle only in mobile-style overlay, no analytics.
+- Not the /compare page: this is the in-reader compare panel (a second text chosen through the library from the sidebar's Compare Text tool). The /compare URL is the version-diff tool, LEG-010/RTE-019/LEG-031/LEG-032 (survey 2026-11-04). Not ported by the 2026-11-04 compare lane.
 
 Code: [`static/js/ComparePanelHeader.jsx:19`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ComparePanelHeader.jsx#L19), [`static/js/ReaderApp.jsx:1102`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1102), [`static/js/SearchPage.jsx:774`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchPage.jsx#L774)
 
@@ -10885,12 +10892,16 @@ Code: [`reader/views.py:3961-4107`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-019 · Version compare tool URL
-`optional` `legacy` · rebuild: **todo** `staff`
+`optional` `legacy` · rebuild: **done** · *tested* `staff`
 
 A separate page diffs two versions of a text.
 
 - /compare[/<ref>/][<en|he>/][<v1>/][<v2>] -> sefaria.views.compare, compare.html (separate React bundle) with JSON_PROPS secRef/v1/v2/lang/refArray.
 - **BUG:** stray print(comp_ref) debug left in the view (sefaria/views.py:2192).
+- Survey 2026-11-04 (the view is at sefaria/views.py:2245 on reader-next, 2196 on master). The pattern is matched on the decoded path, so: /compare/Genesis.1 (no slash) makes 'Genesis.1' the SECOND VERSION and shows an empty form; /compare/Genesis.1/ is the ref; /compare/X/he names v2='he'; an escaped %2F splits; every '_' in a version reads as a space. VERIFIED 2026-11-04 (JSON_PROPS on www.sefaria.org).
+- BUILT 2026-11-04: src/lib/compare/url.ts reads and writes it byte for byte; the router keeps trailing slashes (trailingSlash 'preserve') and the server's slash redirect skips /compare/; 'compare' left DJANGO_PREFIXES on the Library host — on the Voices host it still passes through to Django (LIBRARY_HOST_ONLY_PREFIXES, Q-E1). A path the pattern cannot match is our 404, which Django answers in the cluster.
+- Repeated slashes: sefaria.org's nginx merges them before Django matches, so /compare/Genesis_2// (what 'Load Next Chapter' writes with no language) is Genesis 2's form, 200, the address keeping '//'. parseComparePath merges them too; this client's router then collapses the address to /compare/Genesis_2/ (the same page; a one-slash difference in the address bar). VERIFIED 2026-11-04.
+- trailingSlash 'preserve' is router-wide: auth pages such as /login/ now render at the slash URL (live does the same: 200 at /login/ and /login), and reader/library addresses are still sent slashless by the server's 308. e2e routing, auth, shell, header and fonts specs pass.
 
 Code: [`sefaria/views.py:2191-2217`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L2191-L2217)
 
@@ -13969,7 +13980,7 @@ Source: `inv_08b_admin_linker_apps.md#1.4 / 3.6`
 ### Version Compare
 
 #### LEG-010 · Text version diff/compare tool (/compare)
-`optional` `legacy` · rebuild: **todo** `desktop only`
+`optional` `legacy` · rebuild: **partial** — Page, form, diff tables, filters, Apply Change ported at pixel parity; the Editors group (non-staff editors) is not recognised · *tested* `desktop only`
 
 A public page compares two versions of a text segment by segment with inline diffs, and lets users click a change to apply it to the text.
 
@@ -13982,6 +13993,14 @@ A public page compares two versions of a text segment by segment with inline dif
 - 'Load Next Chapter' via Sefaria.getRef(...).next; filter checkboxes (י ו " : ' ( ) ) toggle 'filtered' class on ins/del spans; book-level ref expands to first section with refArray;
 - props {secRef,v1,v2,lang,refArray}.
 - **SECURITY:** public page whose Apply action writes text; relies entirely on server-side auth of postSegment.
+- Correction (survey 2026-11-04): the page is public, but the client opens the change dialog only for Sefaria.is_moderator || Sefaria.is_editor; others get alert('Only Sefaria Moderators Can Edit Texts') or, signed out, alert('Not signed in. You must be signed in as a Sefaria Moderator to use this feature.'). The write (POST /api/texts/<segment url>, form field json={versionTitle, language, text}) is checked by the server.
+- Form: 'Ref:' text input (300px), 'Language:' Hebrew/English, and — only when the typed ref has versions — 'Version 1:'/'Version 2:' selects ('Select a Version' + the titles of the language bucket of /api/texts/versions/<ref>: a title ending [xx] is language xx). The version lists follow the typed ref and the chosen language live. 'Load Diff' goes to /compare/<ref>/<lang>/<v1>/<v2> (spaces → underscores) only when something differs from the page's address. VERIFIED 2026-11-04.
+- Texts: old /api/texts with vhe/ven=<title with underscores>, wrapLinks=0, stripItags=0, firstAvailableRef=1, fallbackOnDefaultVersion=1 — first the section of each version (row count = the longer), then every segment of both versions again (2 + 2N requests per table).
+- Diff quirks kept: diff-match-patch with its default 1s limit (its half-match pass decides which of equal-cost diffs is shown; Genesis 1:7 Masorah vs Ta'amei); an insertion before the last character is red (not applicable) because ValidateDiff reads mapping[at+1] past the end; HTML entities show literally (&thinsp;, &nbsp;) since the raw text is rendered as text. VERIFIED 2026-11-04.
+- Filters: the seven checkboxes act only on 'Update', hiding the colour of ins/del spans whose whole text is that character (only spans already rendered).
+- **BUG:** accepting an insertion at the very end of a segment computes a NaN position and writes the replacement in front of the whole text. BUG: after a failed post the row stays blocked ('Another Change in Progress, Please Wait') until reload.
+- BUILT 2026-11-04 (src/routes/compare.$.tsx + compare.index.tsx, src/features/compare, src/ui/VersionDiff, src/lib/compare): same page, address, form, tables, filters, tooltip and dialog; pixel diff 0.00% against www.sefaria.org at 1280 and on a phone, English and Hebrew interface (empty form, ref only, Genesis 1 he diff, English diff, Talmud, book-level). Differences on purpose: one texts request per section and version (segments taken from it, same text); a section range shows one table per section, a segment range the form without a table (no 500); an end-of-text insertion is applied at the end; a failed post can be retried; the dialog opens for is_staff (the client cannot see the Editors group: an editor who is not staff gets the moderators-only alert); the moderator check asks the session at the click. e2e/compare.spec.ts.
+- Tests (review 2026-11-04): e2e/compare.spec.ts compares every changed row's insertion and deletion texts of Genesis 1 (Masorah vs Ta'amei) with a capture of www.sefaria.org (e2e/fixtures/compare-genesis-1-marks.json: 18 rows, the same on both); checks that a filter clears exactly the spans of its character and Update again restores them; the three gates (signed out, signed in not staff, staff); that Apply Change posts the original raw text with exactly the clicked piece replaced at its tag-mapped position, both versions reload and the row shows the new text. Apply Change was not run against a real Django write (a POST to production is out of bounds): request shape and CSRF only, mocked.
 
 Code: [`sefaria/views.py:2191`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L2191), [`static/js/diff_page.jsx:167`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/diff_page.jsx#L167), [`static/js/diff_page.jsx:561`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/diff_page.jsx#L561)
 
@@ -14259,3 +14278,38 @@ No translation-QA page exists on master.
 Code: [`node/webpack.config.js:150`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/node/webpack.config.js#L150)
 
 Source: `inv_08b_admin_linker_apps.md#3 intro`
+
+
+### Version Compare
+
+#### LEG-031 · Version diff page frame (standalone document)
+`optional` `legacy` · rebuild: **done** · *tested* `staff`
+
+The version-diff page is a document of its own: no site header or stylesheet, the browser's default styles, English words in both interface languages.
+
+- templates/compare.html: <title>Compare</title>, no viewport meta (a phone lays it out 980px wide), <html lang> = interface language with no dir (left-to-right in the Hebrew interface too), body in the browser's defaults (Times 16px, 8px margin), Google Tag Manager only (no gtag config, no Simple Analytics, no cookie notice, no header). No data-anl-* attributes and no GA4 events of its own.
+- Own CSS: td padding 8px, border 1px #ddd, td:hover #ccffff; td.he rtl/right, td.en ltr/left; span.ins #5CEE5C; span.del rgba(193,66,66,.5); span.filtered no background; span.change tooltip (#555 on lightblue 2px border, white text, padding 10px); div.changeDialog (#ccc).
+- compare.html also loads React 15.6.1, jQuery 2.2.4 and jQuery UI from cdnjs; only jQuery is used (the filter button). The page itself is diffPage.js built with the site's React.
+- VERIFIED 2026-11-04 on www.sefaria.org (English and Hebrew interface, desktop 1280 and phone User-Agent).
+- BUILT 2026-11-04 (src/lib/routing/standalone.ts, src/routes/__root.tsx): on a /compare page the root renders no header, no viewport meta, no site fonts (no Typekit, no font preloads), GTM only, <html lang> without dir, and <body data-standalone> in the browser's own font, colours and 8px margin (base.css), so anything outside the page's wrapper (a 404 included) is in Times as on live. Body font in the Hebrew interface: 'Times', as live. VERIFIED 2026-11-04.
+- A /compare address Django's pattern cannot match: on a server load our 404 (production passes it to Django's 404 page); reached from the form in the browser, the page is loaded as a document (the old page's window.location.assign), so the server answers it. e2e/compare.spec.ts.
+
+Code: [`templates/compare.html`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/compare.html)
+
+Source: `survey 2026-11-04`
+
+#### LEG-032 · Version diff: which sections a ref shows
+`optional` `legacy` · rebuild: **done** — segment ranges and section ranges handled sensibly (legacy 500 / endless loading) · *tested* `staff`
+
+The ref in a /compare address is turned into the section(s) diffed: a book its first section, a segment its section, a ref above section level one table per section below it.
+
+- sefaria/views.py compare: Ref.is_ref(comp_ref) else secRef ''; secRef = first_available_section_ref (raised to its section when a segment); a book-level ref → one table of its first section; a ref neither section nor book level → refArray = all_subrefs (Rashi on Genesis 1 → 31 tables 'Rashi on Genesis 1:1'…'1:31').
+- A segment (Genesis 1:3): refArray [] — the form shows 'Genesis 1' and NO table (an empty array is truthy in the page). VERIFIED 2026-11-04.
+- **BUG:** a segment range (Genesis 1:3-5) answers 500 (all_subrefs of a ranged segment throws). VERIFIED 2026-11-04.
+- **BUG:** a section range (Genesis 1-2) stays secRef 'Genesis 1-2'; its table has max(sections) rows 'Genesis 1-2:1'… that never leave 'Loading...'. VERIFIED 2026-11-04.
+- 'Load Next Chapter' (Sefaria.getRef(secRef).next) goes to /compare/<next>/<lang>/<v1>/<v2> with the page's own address parts; with no language in the address the path ends '//' (from /compare/Genesis.1/: /compare/Genesis_2//). nginx merges the slashes, so Django answers 200 with Genesis 2's form and the address bar keeps the '//'. VERIFIED 2026-11-04 (curl 200, JSON_PROPS secRef 'Genesis 2'; Playwright walk).
+- Tables appear only when the address has language, v1 and v2; an invalid ref with all three shows 'Loading Text...' for ever.
+
+Code: [`sefaria/views.py:2245`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L2245), [`static/js/diff_page.jsx:107`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/diff_page.jsx#L107)
+
+Source: `survey 2026-11-04`

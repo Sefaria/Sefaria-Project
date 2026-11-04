@@ -20,17 +20,23 @@ const SERVER_FN_RE = /^\/_serverFn\//;
 
 /**
  * Always Django's, whatever this client could render (every write, except to this client's own server functions). `host`: the host
- * the request was for — the Voices host keeps the Library-only pages on Django (django-paths.ts LIBRARY_HOST_ONLY).
+ * the request was for — the Voices host keeps the Library-only pages on Django (django-paths.ts LIBRARY_ONLY_PREFIXES).
  */
 export const isDjangoPath = (pathname: string, method: string, host?: string | null) =>
   !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || isDjangoPage(pathname, host));
 
-/** The host the reader asked for: nginx's X-Forwarded-Host when it sets one (its first value), else the request's own. */
+/** The host the reader asked for: nginx's X-Forwarded-Host when it sets one (its first value), else the request's Host, else its URL's. */
 export const requestHost = (request: Request): string =>
-  request.headers.get("x-forwarded-host")?.split(",")[0]!.trim() || new URL(request.url).host;
+  request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || request.headers.get("host") || new URL(request.url).host;
 
-/** isDjangoPath for a whole request: its path as sent, its method and the host it was for. */
-export const isDjangoRequest = (request: Request): boolean => isDjangoPath(new URL(request.url).pathname, request.method, requestHost(request));
+/**
+ * The request-level decision src/start.ts makes first: does this request go to Django whatever this client renders? (Its path as sent,
+ * its method, and the host asked for: the Voices host keeps the Library-only pages, Q-E1.)
+ */
+export const passesToDjango = (request: Request, pathname: string = new URL(request.url).pathname): boolean =>
+  isDjangoPath(pathname, request.method, requestHost(request));
+/** passesToDjango with the path as sent (the translations port's name). */
+export const isDjangoRequest = (request: Request): boolean => passesToDjango(request);
 
 const PASS_THROUGH_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH_TIMEOUT_MS) || 30000);
 
@@ -110,7 +116,8 @@ export function trailingSlashRedirect(url: URL, method: string, host: string = u
   if ((method !== "GET" && method !== "HEAD") || pathname === "/" || !pathname.endsWith("/")) return null;
   // a path starting with two slashes would make the Location protocol-relative (//evil.com: an open redirect); never redirect one
   if (/^\/[\/\\]/.test(pathname)) return null;
-  // "/calendars/" is a page of its own on sefaria.org (200, its canonical with the slash) and "/parashat-hashavua/" a 404: neither redirects
-  if (isDjangoPath(pathname, method, host) || isLibraryOnlyPage(pathname) || resetLinkUid(pathname) || /^\/(login|register|password)\//.test(pathname)) return null;
+  // "/calendars/" is a page of its own on sefaria.org (200, its canonical with the slash) and "/parashat-hashavua/" a 404: neither redirects;
+  // the version-diff tool's address means something different with and without its last slash (/compare/Genesis.1/ is the ref)
+  if (isDjangoPath(pathname, method, host) || isLibraryOnlyPage(pathname) || resetLinkUid(pathname) || /^\/(login|register|password|compare)\//.test(pathname)) return null;
   return new Response(null, { status: 308, headers: { location: `${pathname.replace(/\/+$/, "")}${url.search}`, "cache-control": "public, max-age=86400" } });
 }

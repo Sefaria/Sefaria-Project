@@ -16,6 +16,8 @@ import { Route as CalendarsRouteImport } from './routes/calendars'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as AuthLoginRouteImport } from './routes/_auth.login'
 import { Route as AuthRegisterRouteImport } from './routes/_auth.register'
+import { Route as CompareIndexRouteImport } from './routes/compare.index'
+import { Route as CompareSplatRouteImport } from './routes/compare.$'
 import { Route as InterfaceLangRouteImport } from './routes/interface.$lang'
 import { Route as TextsIndexRouteImport } from './routes/texts.index'
 import { Route as TextsSplatRouteImport } from './routes/texts.$'
@@ -56,6 +58,16 @@ const AuthRegisterRoute = AuthRegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => AuthRoute,
 } as any)
+const CompareIndexRoute = CompareIndexRouteImport.update({
+  id: '/compare/',
+  path: '/compare/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareSplatRoute = CompareSplatRouteImport.update({
+  id: '/compare/$',
+  path: '/compare/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InterfaceLangRoute = InterfaceLangRouteImport.update({
   id: '/interface/$lang',
   path: '/interface/$lang',
@@ -90,9 +102,11 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
+  '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
+  '/compare/': typeof CompareIndexRoute
   '/texts/': typeof TextsIndexRoute
   '/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
@@ -103,9 +117,11 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
+  '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
+  '/compare': typeof CompareIndexRoute
   '/texts': typeof TextsIndexRoute
   '/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
@@ -118,9 +134,11 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
+  '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
+  '/compare/': typeof CompareIndexRoute
   '/texts/': typeof TextsIndexRoute
   '/_auth/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
@@ -133,9 +151,11 @@ export interface FileRouteTypes {
     | '/search'
     | '/login'
     | '/register'
+    | '/compare/$'
     | '/interface/$lang'
     | '/texts/$'
     | '/translations/$slug'
+    | '/compare/'
     | '/texts/'
     | '/password/reset/confirm/$uidb64/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -146,9 +166,11 @@ export interface FileRouteTypes {
     | '/search'
     | '/login'
     | '/register'
+    | '/compare/$'
     | '/interface/$lang'
     | '/texts/$'
     | '/translations/$slug'
+    | '/compare'
     | '/texts'
     | '/password/reset/confirm/$uidb64/$token'
   id:
@@ -160,9 +182,11 @@ export interface FileRouteTypes {
     | '/search'
     | '/_auth/login'
     | '/_auth/register'
+    | '/compare/$'
     | '/interface/$lang'
     | '/texts/$'
     | '/translations/$slug'
+    | '/compare/'
     | '/texts/'
     | '/_auth/password/reset/confirm/$uidb64/$token'
   fileRoutesById: FileRoutesById
@@ -173,9 +197,11 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   CalendarsRoute: typeof CalendarsRoute
   SearchRoute: typeof SearchRoute
+  CompareSplatRoute: typeof CompareSplatRoute
   InterfaceLangRoute: typeof InterfaceLangRoute
   TextsSplatRoute: typeof TextsSplatRoute
   TranslationsSlugRoute: typeof TranslationsSlugRoute
+  CompareIndexRoute: typeof CompareIndexRoute
   TextsIndexRoute: typeof TextsIndexRoute
 }
 
@@ -229,6 +255,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/register'
       preLoaderRoute: typeof AuthRegisterRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/compare/': {
+      id: '/compare/'
+      path: '/compare'
+      fullPath: '/compare/'
+      preLoaderRoute: typeof CompareIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare/$': {
+      id: '/compare/$'
+      path: '/compare/$'
+      fullPath: '/compare/$'
+      preLoaderRoute: typeof CompareSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/interface/$lang': {
       id: '/interface/$lang'
@@ -289,21 +329,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   CalendarsRoute: CalendarsRoute,
   SearchRoute: SearchRoute,
+  CompareSplatRoute: CompareSplatRoute,
   InterfaceLangRoute: InterfaceLangRoute,
   TextsSplatRoute: TextsSplatRoute,
   TranslationsSlugRoute: TranslationsSlugRoute,
+  CompareIndexRoute: CompareIndexRoute,
   TextsIndexRoute: TextsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
