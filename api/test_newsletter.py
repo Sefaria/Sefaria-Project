@@ -507,10 +507,15 @@ class TestFetchACNewsletters:
 class TestGetNewsletters:
     """Tests for caching the managed newsletter list at the service layer."""
 
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    def _in_memory_cache(self, settings):
+        # CI and many local setups configure DummyCache, which silently drops every write;
+        # these tests exercise real caching behavior, so give them a cache that stores.
+        settings.CACHES = {
+            "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "newsletter-tests"}
+        }
         cache.delete(_catalog.NEWSLETTER_LIST_CACHE_KEY)
-
-    def teardown_method(self):
+        yield
         cache.delete(_catalog.NEWSLETTER_LIST_CACHE_KEY)
 
     @mock.patch("api.newsletter_service._catalog.fetch_ac_newsletters")
