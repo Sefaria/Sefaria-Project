@@ -31,6 +31,9 @@ from api import newsletter_service
 # Shared fixtures (`client`, `test_user`, `logged_in_client`, etc.) live in
 # api/conftest.py so they're available to every test file in this package.
 
+# No test here may write to the real profiles collection (see conftest.py).
+pytestmark = pytest.mark.usefixtures("mock_profiles_collection")
+
 
 # Two-newsletter list used by the view-through-service tests below.
 # Kept intentionally small — these tests are checking diff/scoping logic, not
@@ -239,7 +242,7 @@ class TestFetchUserSubscriptionsIntegration:
     @mock.patch("api.newsletter_service._subscriptions.fetch_ac_contact_list_ids")
     @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_stale_opt_out_scenario(
-        self, mock_request, mock_get_memberships, mock_profile_class
+        self, mock_request, mock_get_memberships, mock_profile_class, mock_profiles_collection
     ):
         """
         Integration: Stale opt-out scenario - user has wants_marketing_emails=False in MongoDB
@@ -274,7 +277,9 @@ class TestFetchUserSubscriptionsIntegration:
         assert result["wants_marketing_emails"] is True
         assert len(result["subscribed_newsletters"]) == 2
         assert mock_profile.wants_marketing_emails is True
-        mock_profile.save.assert_called_once()
+        mock_profiles_collection.update_one.assert_called_once_with(
+            {"_id": mock_profile._id}, {"$set": {"wants_marketing_emails": True}}
+        )
 
 
 # ============================================================================
@@ -566,7 +571,7 @@ class TestViewThroughServiceFetchSubscriptions:
     @mock.patch("api.newsletter_service._ac_client._client.make_request")
     @mock.patch("api.newsletter_service._catalog.get_newsletters")
     def test_active_managed_subscription_corrects_stale_wants_marketing_false(
-        self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
+        self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client, mock_profiles_collection
     ):
         """
         UserProfile.wants_marketing_emails=False is stale when AC has any active
@@ -593,13 +598,15 @@ class TestViewThroughServiceFetchSubscriptions:
         assert data["wantsMarketingEmails"] is True
         assert data["subscribedNewsletters"] == ["sefaria_news"]
         assert mock_profile.wants_marketing_emails is True
-        mock_profile.save.assert_called_once()
+        mock_profiles_collection.update_one.assert_called_once_with(
+            {"_id": mock_profile._id}, {"$set": {"wants_marketing_emails": True}}
+        )
 
     @mock.patch("api.newsletter_service._profiles.UserProfile")
     @mock.patch("api.newsletter_service._ac_client._client.make_request")
     @mock.patch("api.newsletter_service._catalog.get_newsletters")
     def test_active_unmanaged_subscription_corrects_stale_wants_marketing_false(
-        self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
+        self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client, mock_profiles_collection
     ):
         """
         Unmanaged AC lists are not exposed as frontend newsletter selections, but
@@ -626,13 +633,15 @@ class TestViewThroughServiceFetchSubscriptions:
         assert data["wantsMarketingEmails"] is True
         assert data["subscribedNewsletters"] == []
         assert mock_profile.wants_marketing_emails is True
-        mock_profile.save.assert_called_once()
+        mock_profiles_collection.update_one.assert_called_once_with(
+            {"_id": mock_profile._id}, {"$set": {"wants_marketing_emails": True}}
+        )
 
     @mock.patch("api.newsletter_service._profiles.UserProfile")
     @mock.patch("api.newsletter_service._ac_client._client.make_request")
     @mock.patch("api.newsletter_service._catalog.get_newsletters")
     def test_wants_marketing_emails_false_remains_false_without_active_memberships(
-        self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
+        self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client, mock_profiles_collection
     ):
         """
         A user who explicitly opted out and has no active AC memberships should
@@ -655,7 +664,7 @@ class TestViewThroughServiceFetchSubscriptions:
         assert data["wantsMarketingEmails"] is False
         assert data["subscribedNewsletters"] == []
         assert mock_profile.wants_marketing_emails is False
-        mock_profile.save.assert_not_called()
+        mock_profiles_collection.update_one.assert_not_called()
 
     @mock.patch("api.newsletter_service._subscriptions.fetch_ac_learning_level_by_contact_id")
     @mock.patch("api.newsletter_service._profiles.UserProfile")

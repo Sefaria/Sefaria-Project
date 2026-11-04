@@ -33,6 +33,9 @@ from sefaria.system.exceptions import InputError
 # Shared fixtures (`client`, `test_user`, `test_user_no_name`,
 # `logged_in_client`, `mock_newsletters`) live in api/conftest.py.
 
+# No test here may write to the real profiles collection (see conftest.py).
+pytestmark = pytest.mark.usefixtures("mock_profiles_collection")
+
 
 # ============================================================================
 # Assertion helpers

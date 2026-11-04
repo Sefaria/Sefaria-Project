@@ -15,7 +15,10 @@ from api.newsletter_service._contacts import (
     fetch_ac_learning_level_by_email,
     set_ac_learning_level,
 )
-from api.newsletter_service._profiles import load_existing_profile_by_email
+from api.newsletter_service._profiles import (
+    load_existing_profile_by_email,
+    save_single_profile_field,
+)
 from api.newsletter_service._results import SetLearningLevelResult
 from api.newsletter_service._validation import (
     is_valid_learning_level,
@@ -38,7 +41,8 @@ def set_learning_level(
     Update a user's learning level, handling both authenticated and unauthenticated users.
 
     For users WITH existing Sefaria accounts:
-        - Updates their UserProfile in MongoDB
+        - Updates their UserProfile in MongoDB (the learning_level field only, because
+          the logged-out path reaches this too and must not write anything else)
         - Also updates AC for consistency across systems
 
     For users WITHOUT accounts:
@@ -95,10 +99,11 @@ def set_learning_level(
         logger.info(f"Found existing user account for {email} (ID: {user_id})")
 
         try:
-            profile.learning_level = learning_level  # type: ignore[assignment]
-            profile.save()
-            updated_profile = True
-            logger.info(f"Updated UserProfile for user {user_id}")
+            updated_profile = save_single_profile_field(profile, "learning_level", learning_level)
+            if updated_profile:
+                logger.info(f"Updated UserProfile for user {user_id}")
+            else:
+                logger.warning(f"No profile document to update for user {user_id}")
         except Exception as e:
             logger.exception(f"Error updating UserProfile for {email}: {e}")
             # Don't raise - AC already has the new value

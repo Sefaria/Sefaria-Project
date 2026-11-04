@@ -11,6 +11,8 @@ that's rolled back at the end of the test. So `test_user` creates a real
 User row, but the row is undone before the next test starts.
 """
 
+from unittest import mock
+
 import pytest
 from requests.adapters import BaseAdapter
 from django.test import Client
@@ -39,6 +41,25 @@ def newsletter_client(monkeypatch):
     fake_client._session.mount("https://", RefuseNetworkAdapter())
     monkeypatch.setattr(_ac_client, "_client", fake_client)
     return fake_client
+
+
+@pytest.fixture
+def mock_profiles_collection(monkeypatch):
+    """
+    Replace the profiles collection the newsletter service writes to.
+
+    Profile writes go through `_profiles.db.profiles`, so without this a test that
+    mocks the loaded profile but forgets the write would update a real profile in the
+    local MongoDB. The newsletter test files switch it on for every test with
+    `pytestmark = pytest.mark.usefixtures("mock_profiles_collection")`, so other tests
+    in this folder are untouched. A test asks for it by name to check what was written:
+    `mock_profiles_collection.update_one` is the call.
+    """
+    from api.newsletter_service import _profiles
+
+    fake_db = mock.MagicMock()
+    monkeypatch.setattr(_profiles, "db", fake_db)
+    return fake_db.profiles
 
 
 class RefuseNetworkAdapter(BaseAdapter):

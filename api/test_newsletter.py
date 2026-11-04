@@ -19,12 +19,15 @@ from types import SimpleNamespace
 from unittest import mock
 from django.core.cache import cache
 from api import newsletter_service
-from api.newsletter_service import _ac_client, _catalog, _contacts
+from api.newsletter_service import _ac_client, _catalog, _contacts, _profiles
 from sefaria.system.exceptions import InputError
 
 
 # Shared fixtures (`client`, `test_user`, `logged_in_client`, etc.) live in
 # api/conftest.py so they're available to every test file in this package.
+
+# No test here may write to the real profiles collection (see conftest.py).
+pytestmark = pytest.mark.usefixtures("mock_profiles_collection")
 
 
 # ============================================================================
@@ -1150,7 +1153,7 @@ class TestFetchUserSubscriptions:
     @mock.patch("api.newsletter_service._subscriptions.fetch_ac_contact_list_ids")
     @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_fetch_corrects_stale_wants_marketing_false_with_active_membership(
-        self, mock_request, mock_get_memberships, mock_profile_class
+        self, mock_request, mock_get_memberships, mock_profile_class, mock_profiles_collection
     ):
         """Active AC memberships correct stale wants_marketing_emails=False."""
         mock_request.return_value = {
@@ -1177,13 +1180,15 @@ class TestFetchUserSubscriptions:
 
         assert result["wants_marketing_emails"] is True
         assert mock_profile.wants_marketing_emails is True
-        mock_profile.save.assert_called_once()
+        mock_profiles_collection.update_one.assert_called_once_with(
+            {"_id": mock_profile._id}, {"$set": {"wants_marketing_emails": True}}
+        )
 
     @mock.patch("api.newsletter_service._profiles.UserProfile")
     @mock.patch("api.newsletter_service._subscriptions.fetch_ac_contact_list_ids")
     @mock.patch("api.newsletter_service._ac_client._client.make_request")
     def test_fetch_preserves_wants_marketing_false_without_active_memberships(
-        self, mock_request, mock_get_memberships, mock_profile_class
+        self, mock_request, mock_get_memberships, mock_profile_class, mock_profiles_collection
     ):
         """No active AC memberships means an explicit opt-out remains valid."""
         mock_request.return_value = {
@@ -1208,7 +1213,7 @@ class TestFetchUserSubscriptions:
 
         assert result["wants_marketing_emails"] is False
         assert mock_profile.wants_marketing_emails is False
-        mock_profile.save.assert_not_called()
+        mock_profiles_collection.update_one.assert_not_called()
 
 
 class TestFetchACLearningLevelByContactId:
@@ -1837,6 +1842,7 @@ class TestReplaceUserPreferences:
         mock_get_memberships,
         mock_update_memberships,
         mock_profile_class,
+        mock_profiles_collection,
     ):
         """Opting out with an account but no profile document only updates AC, so no slugless profile is created"""
         # A Django user exists (id is set) but there's no Mongo profile document
@@ -1860,7 +1866,7 @@ class TestReplaceUserPreferences:
             marketing_opt_out=True,
         )
 
-        mock_profile.save.assert_not_called()
+        mock_profiles_collection.update_one.assert_not_called()
         mock_update_memberships.assert_called_once()
         assert set(mock_update_memberships.call_args[0][2]) == {"1", "99"}
         assert result["subscribed_newsletters"] == []
@@ -1877,11 +1883,12 @@ class TestReplaceUserPreferences:
         mock_get_memberships,
         mock_update_memberships,
         mock_load_profile,
+        mock_profiles_collection,
     ):
         """A failed opt-out save doesn't stop the list removals, and is reported afterwards"""
         mock_profile = mock.MagicMock()
         mock_profile.id = 42
-        mock_profile.save.side_effect = Exception("MongoDB unavailable")
+        mock_profiles_collection.update_one.side_effect = Exception("MongoDB unavailable")
         mock_load_profile.return_value = mock_profile
 
         mock_find.return_value = {"id": "100", "email": "user@example.com"}
@@ -1898,7 +1905,9 @@ class TestReplaceUserPreferences:
                 marketing_opt_out=True,
             )
 
-        mock_profile.save.assert_called_once()
+        mock_profiles_collection.update_one.assert_called_once_with(
+            {"_id": mock_profile._id}, {"$set": {"wants_marketing_emails": False}}
+        )
         mock_update_memberships.assert_called_once()
         assert set(mock_update_memberships.call_args[0][2]) == {"1", "99"}
 
@@ -1914,11 +1923,12 @@ class TestReplaceUserPreferences:
         mock_get_memberships,
         mock_update_memberships,
         mock_load_profile,
+        mock_profiles_collection,
     ):
         """A failed opt-out save raises the error that tells the page to say "please try again" """
         mock_profile = mock.MagicMock()
         mock_profile.id = 42
-        mock_profile.save.side_effect = Exception("MongoDB unavailable")
+        mock_profiles_collection.update_one.side_effect = Exception("MongoDB unavailable")
         mock_load_profile.return_value = mock_profile
 
         mock_find.return_value = {"id": "100", "email": "user@example.com"}
@@ -1944,6 +1954,7 @@ class TestReplaceUserPreferences:
         mock_get_memberships,
         mock_update_memberships,
         mock_load_profile,
+        mock_profiles_collection,
     ):
         """When a list removal fails, the opt-out isn't saved, since the user still gets emails from that list"""
         mock_profile = mock.MagicMock()
@@ -1968,7 +1979,7 @@ class TestReplaceUserPreferences:
                 marketing_opt_out=True,
             )
 
-        mock_profile.save.assert_not_called()
+        mock_profiles_collection.update_one.assert_not_called()
         assert mock_profile.wants_marketing_emails is True
 
 
@@ -2047,13 +2058,69 @@ class TestSetACLearningLevel:
                 _contacts.set_ac_learning_level("test@example.com", 2)
 
 
+class TestSaveSingleProfileField:
+    """save_single_profile_field must change exactly one allowed field and never create a profile"""
+
+    def test_writes_only_the_named_field(self, mock_profiles_collection):
+        """A $set of that one field, found by _id, so no other field of the stale copy is written back"""
+        profile = mock.MagicMock(_id="mongo-id", id=7, learning_level=None, bio="old bio")
+
+        assert _profiles.save_single_profile_field(profile, "learning_level", 3) is True
+
+        mock_profiles_collection.update_one.assert_called_once_with(
+            {"_id": "mongo-id"}, {"$set": {"learning_level": 3}}
+        )
+        assert profile.learning_level == 3
+
+    @pytest.mark.parametrize("field_name", ["bio", "slug", "donor_status", "learning_levl"])
+    def test_refuses_fields_outside_the_allowlist(self, mock_profiles_collection, field_name):
+        """Other profile fields and typos are refused before anything is written"""
+        profile = mock.MagicMock(_id="mongo-id", id=7)
+
+        with pytest.raises(ValueError, match=field_name):
+            # Deliberately not an allowed name, so the type checker's complaint is expected
+            _profiles.save_single_profile_field(profile, field_name, "anything")  # type: ignore[arg-type]
+
+        mock_profiles_collection.update_one.assert_not_called()
+
+    def test_missing_document_is_not_created(self, mock_profiles_collection):
+        """No upsert: if the document is gone, report False and leave the loaded copy alone"""
+        mock_profiles_collection.update_one.return_value.matched_count = 0
+        profile = mock.MagicMock(_id="mongo-id", id=7, learning_level=None)
+
+        assert _profiles.save_single_profile_field(profile, "learning_level", 3) is False
+
+        # The exact call has no upsert argument, so the collection default (no upsert) applies
+        mock_profiles_collection.update_one.assert_called_once_with(
+            {"_id": "mongo-id"}, {"$set": {"learning_level": 3}}
+        )
+        assert profile.learning_level is None
+
+    def test_wants_marketing_emails_writes_only_that_field(self, mock_profiles_collection):
+        """The opt-out flag goes through the same one-field write"""
+        profile = mock.MagicMock(_id="mongo-id", id=7, wants_marketing_emails=True)
+
+        assert _profiles.save_wants_marketing_emails(profile, False) is True
+
+        mock_profiles_collection.update_one.assert_called_once_with(
+            {"_id": "mongo-id"}, {"$set": {"wants_marketing_emails": False}}
+        )
+
+    def test_wants_marketing_emails_reports_a_missing_document(self, mock_profiles_collection):
+        """If no document matched, the opt-out wasn't saved, so the caller must hear False"""
+        mock_profiles_collection.update_one.return_value.matched_count = 0
+        profile = mock.MagicMock(_id="mongo-id", id=7, wants_marketing_emails=True)
+
+        assert _profiles.save_wants_marketing_emails(profile, False) is False
+
+
 class TestSetLearningLevel:
     """Tests for set_learning_level() service function"""
 
     @mock.patch("api.newsletter_service._learning_level.set_ac_learning_level")
     @mock.patch("api.newsletter_service._profiles.UserProfile")
     def test_update_learning_level_with_account(
-        self, mock_profile_class, mock_ac_update
+        self, mock_profile_class, mock_ac_update, mock_profiles_collection
     ):
         """Update learning level for user with existing account"""
         # Mock UserProfile to simulate finding an existing user
@@ -2073,11 +2140,45 @@ class TestSetLearningLevel:
         assert "profile" in result["message"].lower()
 
         # Verify profile was saved
-        mock_profile.save.assert_called_once()
+        mock_profiles_collection.update_one.assert_called_once_with(
+            {"_id": mock_profile._id}, {"$set": {"learning_level": 4}}
+        )
 
     @mock.patch("api.newsletter_service._learning_level.set_ac_learning_level")
     @mock.patch("api.newsletter_service._profiles.UserProfile")
-    def test_update_learning_level_no_account(self, mock_profile_class, mock_ac_update):
+    def test_update_learning_level_writes_only_learning_level_to_profile(
+        self, mock_profile_class, mock_ac_update, mock_profiles_collection
+    ):
+        """The logged-out path reaches this too, so the profile write must be that one field and nothing more"""
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile_class.return_value = mock_profile
+
+        newsletter_service.set_learning_level("existing@example.com", 4)
+
+        mock_profile.save.assert_not_called()
+        (filter_arg, update_arg), _ = mock_profiles_collection.update_one.call_args
+        assert update_arg == {"$set": {"learning_level": 4}}
+
+    @mock.patch("api.newsletter_service._learning_level.set_ac_learning_level")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    def test_update_learning_level_profile_document_gone_before_write(
+        self, mock_profile_class, mock_ac_update, mock_profiles_collection
+    ):
+        """If the profile document vanished after it was loaded, AC is still updated and the message doesn't claim a profile save"""
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile_class.return_value = mock_profile
+        mock_profiles_collection.update_one.return_value.matched_count = 0
+
+        result = newsletter_service.set_learning_level("existing@example.com", 4)
+
+        mock_ac_update.assert_called_once_with("existing@example.com", 4)
+        assert "profile" not in result["message"].lower()
+
+    @mock.patch("api.newsletter_service._learning_level.set_ac_learning_level")
+    @mock.patch("api.newsletter_service._profiles.UserProfile")
+    def test_update_learning_level_no_account(self, mock_profile_class, mock_ac_update, mock_profiles_collection):
         """Update learning level for user without existing account"""
         # Mock UserProfile to simulate no user found
         mock_profile = mock.MagicMock()
@@ -2093,11 +2194,11 @@ class TestSetLearningLevel:
         assert result["email"] == "newuser@example.com"
 
         # Verify profile was NOT saved
-        mock_profile.save.assert_not_called()
+        mock_profiles_collection.update_one.assert_not_called()
 
     @mock.patch("api.newsletter_service._learning_level.set_ac_learning_level")
     @mock.patch("api.newsletter_service._profiles.UserProfile")
-    def test_update_learning_level_none(self, mock_profile_class, mock_ac_update):
+    def test_update_learning_level_none(self, mock_profile_class, mock_ac_update, mock_profiles_collection):
         """Update learning level to None (optional)"""
         mock_profile = mock.MagicMock()
         mock_profile.id = 42
@@ -2107,7 +2208,9 @@ class TestSetLearningLevel:
         result = newsletter_service.set_learning_level("test@example.com", None)
 
         assert result["learning_level"] is None
-        mock_profile.save.assert_called_once()
+        mock_profiles_collection.update_one.assert_called_once_with(
+            {"_id": mock_profile._id}, {"$set": {"learning_level": None}}
+        )
 
     def test_update_learning_level_invalid_value(self):
         """Reject invalid learning level"""
@@ -2134,7 +2237,7 @@ class TestSetLearningLevel:
     @mock.patch("api.newsletter_service._learning_level.set_ac_learning_level")
     @mock.patch("api.newsletter_service._profiles.UserProfile")
     def test_update_learning_level_ac_error_leaves_profile_unchanged(
-        self, mock_profile_class, mock_ac_update
+        self, mock_profile_class, mock_ac_update, mock_profiles_collection
     ):
         """When the AC write fails, the profile isn't saved, so the error doesn't hide a half-applied change"""
         mock_profile = mock.MagicMock()
@@ -2148,12 +2251,12 @@ class TestSetLearningLevel:
         with pytest.raises(newsletter_service.NewsletterServiceError):
             newsletter_service.set_learning_level("existing@example.com", 4)
 
-        mock_profile.save.assert_not_called()
+        mock_profiles_collection.update_one.assert_not_called()
 
     @mock.patch("api.newsletter_service._learning_level.set_ac_learning_level")
     @mock.patch("api.newsletter_service._profiles.UserProfile")
     def test_update_learning_level_account_without_profile_document(
-        self, mock_profile_class, mock_ac_update
+        self, mock_profile_class, mock_ac_update, mock_profiles_collection
     ):
         """An account with no profile document is only updated in AC, so no slugless profile is created"""
         # A Django user exists (id is set) but there's no Mongo profile document
@@ -2170,7 +2273,7 @@ class TestSetLearningLevel:
             "cleanedup@example.com", 3
         )
 
-        mock_profile.save.assert_not_called()
+        mock_profiles_collection.update_one.assert_not_called()
         mock_ac_update.assert_called_once_with("cleanedup@example.com", 3)
         assert result["user_id"] is None
 

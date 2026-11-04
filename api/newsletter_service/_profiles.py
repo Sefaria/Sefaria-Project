@@ -3,10 +3,26 @@
 from __future__ import annotations
 
 import logging
+from typing import Any, Literal, get_args
 
 from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
 
 logger: logging.Logger = logging.getLogger(__name__)
+
+
+# The only profile fields the newsletter service may write. save_single_profile_field
+# refuses anything else, because logged-out visitors reach it (through the learning-level
+# token), and a typo or a field name taken from a request would otherwise write straight
+# into someone's profile. Add a field here only after thinking about who can trigger it.
+#
+# It is a Literal so the type checker flags a wrong name where it is typed. The frozenset
+# below is built from it, because a type isn't checked while the code runs and the
+# function also has to refuse a name that only exists at runtime.
+NewsletterWritableProfileField = Literal["learning_level", "wants_marketing_emails"]
+NEWSLETTER_WRITABLE_PROFILE_FIELDS: frozenset[str] = frozenset(
+    get_args(NewsletterWritableProfileField)
+)
 
 
 def load_existing_profile_by_email(email: str) -> UserProfile | None:
@@ -40,32 +56,75 @@ def load_existing_profile_by_email(email: str) -> UserProfile | None:
         return None
 
 
+def save_single_profile_field(
+    profile: UserProfile, field_name: NewsletterWritableProfileField, value: Any
+) -> bool:
+    """
+    Write one field of a UserProfile to MongoDB, and nothing else.
+
+    Why not profile.save(): it writes back every field as this object loaded it
+    (except the donor ones). The newsletter endpoints can be used without logging
+    in, so a save from here could undo a change the person made in the meantime, and
+    would write any field added to the profile later. A $set of one field can only
+    ever change that field.
+
+    Mirrors UserProfile.save() in the one way that matters here: the document is
+    found by `_id`, and a missing document is not created (no upsert), so no
+    slugless profile gets inserted.
+
+    The loaded object is updated too, so a caller still holding it sees the new value.
+    These fields aren't part of the public user data, so there is no cache to clear.
+
+    Returns:
+        bool: False if no profile document matched; True if the field was written
+
+    Raises:
+        ValueError: If field_name isn't in NEWSLETTER_WRITABLE_PROFILE_FIELDS, which the
+            type checker catches for a literal name but not for one built at runtime.
+            This is a bug in the calling code, not bad input, so it isn't an InputError.
+    """
+    if field_name not in NEWSLETTER_WRITABLE_PROFILE_FIELDS:
+        raise ValueError(
+            f"The newsletter service may not write profile field '{field_name}'; "
+            f"allowed: {sorted(NEWSLETTER_WRITABLE_PROFILE_FIELDS)}"
+        )
+    result = db.profiles.update_one({"_id": profile._id}, {"$set": {field_name: value}})
+    if result.matched_count == 0:
+        return False
+    setattr(profile, field_name, value)
+    return True
+
+
 def save_wants_marketing_emails(
     profile: UserProfile | None, wants_marketing: bool
 ) -> bool:
     """
-    Set wants_marketing_emails on an already-loaded UserProfile and save.
+    Write wants_marketing_emails (that field only, see save_single_profile_field) to
+    an already-loaded UserProfile.
 
     Accepts an already-loaded profile (or None for users without accounts) so
     the caller controls when the MongoDB read happens. If `profile` is None,
     this is a no-op — the user has no Sefaria account to update.
 
-    Errors during save are logged at warning level and not raised, so a MongoDB
+    Errors during the write are logged at warning level and not raised, so a MongoDB
     hiccup never stops the surrounding ActiveCampaign flow. Returns False when
-    the save failed, so a caller can report it: opting out does, because
+    the write failed or no profile document matched, so a caller can report it: opting out does, because
     nothing else would set it to False later, so the user needs to try again.
     Setting True doesn't need to, because the next form load sets it again if
     the user has active lists.
 
     Returns:
-        bool: False if the save failed; True if it worked or there was no profile
+        bool: False if the write failed; True if it worked or there was no profile
     """
     if profile is None:
         logger.info("No UserProfile in scope; skipping wants_marketing_emails update")
         return True
     try:
-        profile.wants_marketing_emails = wants_marketing
-        profile.save()
+        if not save_single_profile_field(profile, "wants_marketing_emails", wants_marketing):
+            logger.warning(
+                f"No profile document to update wants_marketing_emails for user {profile.id}"
+            )
+            return False
         logger.info(
             f"Updated wants_marketing_emails={wants_marketing} for user {profile.id}"
         )
