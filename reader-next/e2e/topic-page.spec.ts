@@ -7,7 +7,7 @@ const side = (page: Page) => page.locator("aside").last();
 const tabs = (page: Page) => page.getByRole("tab");
 const cards = (page: Page) => page.locator("[data-source-card]");
 
-// @feature TOP-015 @feature TOP-017 @feature TOP-020 @feature TOP-001
+// @feature TOP-015 @feature TOP-017 @feature TOP-020 @feature TOP-001 @feature TOP-023 @feature TOP-029
 test.describe("a topic's page (Moses)", () => {
   test("title, category, description and tabs; the address written as the old site wrote it", async ({ page }) => {
     await open(page, "/topics/moses");
@@ -117,7 +117,7 @@ test.describe("tabs, sort, filter and language", () => {
   });
 });
 
-// @feature TOP-025
+// @feature TOP-025 @feature TOP-035
 test.describe("the side column", () => {
   test("picture and caption, Learn More (a new tab), Related first with ten links and More; groups by their singular title", async ({ page }) => {
     await open(page, "/topics/moses");
@@ -189,7 +189,7 @@ test.describe("a partner portal (Jonathan Sacks)", () => {
   });
 });
 
-// @feature TOP-001
+// @feature TOP-001 @feature TOP-036
 test.describe("addresses", () => {
   test("the b test version keeps its address; an unknown topic is not found", async ({ page, request }) => {
     await open(page, "/topics/b/moses");

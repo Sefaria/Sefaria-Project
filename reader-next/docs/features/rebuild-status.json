@@ -161,8 +161,7 @@
   "status": "todo"
  },
  "RTE-030": {
-  "status": "partial",
-  "note": "As TOP-001",
+  "status": "done",
   "by": "src/routes/topics.*"
  },
  "RTE-032": {
@@ -1635,9 +1634,8 @@
   "by": "src/features/shell/SiteWideBanner"
  },
  "TOP-001": {
-  "status": "partial",
-  "note": "Landing, category and A–Z URLs rendered; the single topic page and the legacy redirects are Django's",
-  "by": "src/routes/topics.*, src/lib/routing/django-paths.ts"
+  "status": "done",
+  "by": "src/routes/topics.*, src/features/topics/topic-page-route.ts, src/lib/routing/django-paths.ts"
  },
  "TOP-002": {
   "status": "partial",
@@ -1690,14 +1688,12 @@
   "by": "src/features/topics/AllTopicsRoute.tsx, src/ui/TopicsNav/AllTopics.tsx"
  },
  "TOP-030": {
-  "status": "partial",
-  "note": "The navigation pages' rules; the topic page's are next",
-  "by": "src/lib/topics/topic-model.ts"
+  "status": "done",
+  "by": "src/lib/topics/topic-model.ts, src/lib/topics/topic-page.ts"
  },
  "TOP-031": {
-  "status": "partial",
-  "note": "Pools, trending, featured, list consumed; /api/topics/library-count added",
-  "by": "src/lib/topics/topics-api.ts"
+  "status": "done",
+  "by": "src/lib/topics/topics-api.ts, src/lib/topics/topic-page-source.ts"
  },
  "TOP-033": {
   "status": "done",
@@ -1724,5 +1720,72 @@
   "status": "partial",
   "note": "SponsorADay, GetTheApp, StudyCompanion for the topics pages",
   "by": "src/ui/NavSidebar/TopicModules.tsx"
+ },
+ "TOP-015": {
+  "status": "done",
+  "by": "src/lib/topics/topic-page-source.ts, src/features/topics/TopicPageRoute.tsx"
+ },
+ "TOP-016": {
+  "status": "done",
+  "by": "src/lib/topics/topic-page.ts (bucketTabs)"
+ },
+ "TOP-017": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicPage.tsx (TopicHeader, AiNotice)"
+ },
+ "TOP-018": {
+  "status": "done",
+  "by": "src/lib/topics/topic-page.ts (TOPIC_SPONSORSHIPS), src/ui/TopicPage/TopicPage.tsx"
+ },
+ "TOP-019": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicPage.tsx (TopicHeader)"
+ },
+ "TOP-020": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicPage.tsx (TopicTabs, AuthorWorks)"
+ },
+ "TOP-021": {
+  "status": "done",
+  "by": "src/features/topics/TopicPageRoute.tsx (SourceTab)"
+ },
+ "TOP-022": {
+  "status": "done",
+  "by": "src/lib/topics/topic-page.ts (refSort, refMatches), src/ui/TopicPage/TopicPage.tsx (SourceFilterBar)"
+ },
+ "TOP-023": {
+  "status": "done",
+  "by": "src/ui/TopicPage/SourceCard.tsx"
+ },
+ "TOP-024": {
+  "status": "partial",
+  "note": "No Sheets tab on the Library (as before); the Voices host's topic pages stay Django's",
+  "by": "src/lib/routing/django-paths.ts"
+ },
+ "TOP-025": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicSide.tsx (TopicSideColumn), src/lib/topics/topic-page.ts"
+ },
+ "TOP-026": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicSide.tsx (Readings), src/lib/topics/topic-page.ts (hebrewCalendarDate)"
+ },
+ "TOP-027": {
+  "status": "partial",
+  "note": "Modules built; the newsletter module uses the topics form, not the old NewsletterSignUpForm layout",
+  "by": "src/ui/TopicPage/TopicSide.tsx (PortalModules)"
+ },
+ "TOP-028": {
+  "status": "partial",
+  "note": "AI marker, Admin tab, review, Generate, Publish built; Add a source / Edit / Reorder open the old page (?editor=1 → Django)",
+  "by": "src/features/topics/TopicPageRoute.tsx, src/lib/topics/topic-page-source.ts"
+ },
+ "TOP-029": {
+  "status": "done",
+  "by": "src/ui/TopicPage/TopicPage.tsx (TopicPageLayout)"
+ },
+ "TOP-036": {
+  "status": "done",
+  "by": "src/lib/topics/topic-page-source.ts (readTopicPage), sefaria/helper/topic.py"
  }
 }
