@@ -5,7 +5,7 @@
    #666 text-dark-grey, #6F6F6F text-muted, #4B71B7 cat-commentary, #18345D brand, #EDEDED surface-disabled-ish (filter boxes). */
 
 /* the old .readerNavMenu .content: 60px under the header strips, no sideways scroll (.noOverflowX) */
-.panel { line-height: normal; color: var(--sefaria-color-text-strong); font-family: var(--sefaria-font-text-en); font-size: 16px; overflow-x: hidden; min-height: 100%; }
+.panel { line-height: normal; color: var(--sefaria-color-text-strong); font-family: var(--sefaria-font-text-en); font-size: 16px; overflow-x: clip; min-height: 100%; }
 .columns { display: flex; flex-direction: row; padding-block-start: 60px; }
 /* .storyFeedInner: a 760px column (40px padding) centred beside the 420px side column */
 .main { box-sizing: border-box; width: 760px; max-width: 100%; margin: 0 auto; padding: 0 40px 80px; min-height: 500px; min-width: 0; }
@@ -34,7 +34,9 @@
 /* .readerNavMenu .dedication */
 .dedication { margin-block-end: 27px; padding: 26px 19px; background: var(--sefaria-color-surface-subtle); color: var(--sefaria-color-text-dark-grey); font-size: 18px; text-align: start; }
 .dedication > :lang(en) { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-style: italic; }
-.dedication > :lang(he) { font-family: var(--sefaria-font-ui-he); font-size: 18px; font-style: normal; }
+/* Hebrew: the markdown block takes the Hebrew text face, its link the description blue (measured in the Hebrew interface) */
+.dedication > :lang(he) { font-family: var(--sefaria-font-text-he); font-size: 18px; font-style: normal; }
+.dedication > :lang(he) a { color: var(--sefaria-cat-commentary); }
 .dedication a { color: inherit; text-decoration: underline; }
 /* .topicPanel .resourcesLink.blue: the book button and the Study Companion */
 .buttons { display: flex; flex-wrap: wrap; }
@@ -43,7 +45,7 @@
 .refButton img { width: 20px; height: 20px; margin: 0 8px 5px 0; filter: invert(1); opacity: 1; }
 :global(html[dir="rtl"]) .refButton img { margin: 0 0 5px 8px; }
 .refButton > span:lang(en) { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; }
-.refButton > span:lang(he) { font-family: var(--sefaria-font-text-he); margin-block-end: -3px; }
+.refButton > span:lang(he) { font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif; line-height: 19px; margin-block-end: -3px; }
 
 /* the AI marker beside the title */
 .ai { position: relative; display: inline-flex; align-self: center; }
@@ -229,8 +231,18 @@ a.meta { text-decoration: none; }
 .sideNav h2 > span:lang(en) { font-size: 40px; }
 .sideNav h2 > span:lang(he) { font-family: var(--sefaria-font-text-he); font-size: 36px; }
 .sideNav :lang(he) { font-family: var(--sefaria-font-ui-he); }
+/* the footer (the last child): held at the top of the column once it scrolls there (.stickySidebarFooter), as NavPage's */
+.sideNav > :last-child { position: sticky; top: 60px; }
 @media (max-width: 540px) {
-  .sideNav { width: auto; padding: 30px 15px 0; }
+  /* .topicPanel .navSidebar on a phone: 30px of grey over it, then the single panel's 30px padding */
+  .sideNav { width: auto; padding: 30px 15px 0; border-block-start: 30px solid var(--sefaria-color-surface-subtle); }
+}
+@media (max-width: 600px) {
+  /* the old (max-width: 600px) .imageWithCaptionPhoto / .topicImage rules reach a portal's picture too: centred, two thirds wide */
+  .portalImage { margin-block: -5px 0; padding: 0; }
+  .portalImage .sideImage { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .portalImage .photo { display: block; max-width: 66.67vw; max-height: 66.67vw; width: auto; margin: 0 auto 10px; }
+  .portalImage .caption { width: 80vw; margin-block-end: 30px; text-align: center; }
 }
 
 /* the Hebrew interface's work descriptions: 122% of 14px in Heebo on a 24px line, an English fallback too (the old .int-he.enInHe) */
