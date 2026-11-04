@@ -34,6 +34,7 @@ import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu} from "./common/DropdownMenu";
 import { getCsrfToken } from "./sefaria/csrf";
+import {TocLanguageFilter, TocLanguageFilterBookNote, useTocLanguageFilter} from "./TocLanguageFilter";
 
 
 
@@ -258,6 +259,12 @@ class BookPage extends Component {
 
                 <CategoryAttribution categories={categories} asEdition={true} />
 
+                {this.isBookToc() ?
+                <div className="tocLanguageFilterRow">
+                  <TocLanguageFilter />
+                  <TocLanguageFilterBookNote title={title} />
+                </div> : null}
+
                 {this.state.indexDetails && this.state.indexDetails.dedication ?
                   <div className="dedication">
                     <span>
@@ -288,7 +295,7 @@ class BookPage extends Component {
                         showBaseText={this.props.showBaseText}
                         currVersions={this.props.currVersions}
                    />
-                   <VersionsList
+                   <LanguageFilteredVersionsList
                      currObjectVersions={currObjectVersions}
                      openVersionInReader={this.openVersion}
                      currentRef={this.props.currentRef}
@@ -1014,6 +1021,11 @@ class VersionsList extends Component {
         );
     }
     let versions = this.state.versions;
+    const versionMatches = this.props.versionMatches;
+    if (versionMatches) {
+      // With a "Filter by Language" choice active, list matching versions first (others follow, greyed out)
+      versions = versions.filter(v => versionMatches(v)).concat(versions.filter(v => !versionMatches(v)));
+    }
     let vblocks = versions.map(v =>
       <VersionBlock
         rendermode="book-page"
@@ -1023,6 +1035,7 @@ class VersionsList extends Component {
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersionInReader={this.props.openVersionInReader}
         viewExtendedNotes={this.props.viewExtendedNotes}
+        filteredOut={versionMatches ? !versionMatches(v) : false}
         key={v.versionTitle + "/" + v.language}/>
      );
     return (
@@ -1037,6 +1050,14 @@ VersionsList.propTypes = {
   currObjectVersions:        PropTypes.object,
   openVersionInReader:       PropTypes.func,
   viewExtendedNotes:         PropTypes.func,
+  versionMatches:            PropTypes.func,
+};
+
+
+const LanguageFilteredVersionsList = (props) => {
+  // Greys out versions whose actualLanguage doesn't match the library "Filter by Language" choice.
+  const {versionMatches} = useTocLanguageFilter();
+  return <VersionsList {...props} versionMatches={versionMatches} />;
 };
 
 const SectionTypesBox = function({sections, canEdit, updateParent}) {

@@ -14,6 +14,7 @@ import {
   CategoryHeader
 } from './Misc';
 import {ContentText} from "./ContentText";
+import {TocLanguageFilter, useTocLanguageFilter} from "./TocLanguageFilter";
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
@@ -63,8 +64,11 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
             </h1>
         </CategoryHeader>
       {categoryToggle}
-      {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
-      <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+      <div className="navTitleControls">
+        <TocLanguageFilter />
+        {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ?
+        <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+      </div>
     </div>;
 
   const comparePanelHeader = compare ? (
@@ -118,6 +122,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
   const content = [];
   const cats = categories || [];
   const contentLang = useContext(ReaderPanelContext).language;
+  const langFilter = useTocLanguageFilter();
   const sortedContents = contentLang === "hebrew" ? hebrewContentSort(contents) : contents;
 
   for (const item of sortedContents) {
@@ -144,7 +149,8 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
               item={chItem}
               categories={categories}
               onClick={onClick}
-              nestLevel={nestLevel} />
+              nestLevel={nestLevel}
+              filteredOut={!langFilter.bookMatches(chItem.title)} />
           );
 
         // Create a link to a subcategory
@@ -158,6 +164,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
               heTitle     = {item.heCategory}
               enDesc      = {item.enShortDesc}
               heDesc      = {item.heShortDesc}
+              filteredOut = {!langFilter.categoryMatches(newCats)}
             />
           ));
         }
@@ -169,7 +176,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
         const longDesc = hasDesc && shortDesc.split(" ").length > 5;
         shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
         content.push(
-          <div className='category' key={"cat." + nestLevel + "." + item.category}>
+          <div className={classNames({category: 1, tocLangFilterNoMatch: !langFilter.categoryMatches(newCats)})} key={"cat." + nestLevel + "." + item.category}>
             <CategoryHeader data={newCats} type="cats">
                  <h2>
                  <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
@@ -200,6 +207,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
     } else if (item.isCollection) {
         content.push(
           <MenuItem
+            filteredOut = {langFilter.active}
             href        = {"/collections/" + item.slug}
             nestLevel   = {nestLevel}
             title       = {item.title}
@@ -223,11 +231,12 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
           }
         };
         content.push((
-          <TextMenuItem 
+          <TextMenuItem
             item={item}
             categories={categories}
             onClick={onClick}
-            nestLevel={nestLevel} />
+            nestLevel={nestLevel}
+            filteredOut={!langFilter.bookMatches(item.title)} />
         ));
     }
   }
@@ -265,11 +274,11 @@ TextCategoryContents.defaultProps = {
 };
 
 
-const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDesc, module}) => {
+const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDesc, module, filteredOut}) => {
   const keytype  = !!cats ? "cat" : "text";
   const classes = classNames({ navBlockTitle: 1 });
   return (
-    <div className="navBlock">
+    <div className={classNames({navBlock: 1, tocLangFilterNoMatch: !!filteredOut})}>
       <a href={href}
         className   = {classes}
         onClick     = {onClick}
@@ -288,7 +297,7 @@ const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDes
 };
 
 
-const TextMenuItem = ({item, categories, nestLevel, onClick}) => {
+const TextMenuItem = ({item, categories, nestLevel, onClick, filteredOut}) => {
   const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
   return (
     <MenuItem
@@ -299,6 +308,7 @@ const TextMenuItem = ({item, categories, nestLevel, onClick}) => {
       heTitle     = {heTitle}
       enDesc      = {item.enShortDesc}
       heDesc      = {item.heShortDesc}
+      filteredOut = {filteredOut}
     />
   );
 };
