@@ -124,7 +124,7 @@ Legend — Module: **L** = library host, **V** = voices host, **S** = shared (bo
 | `/activity/<tref>/<lang>/<version>[/<page>]` | `segment_history` (`:4039-4076`) | revision history for a segment/version | 404 if version missing. |
 | `/random/link` | `random_redirect` (`:4718-4723`) | 302 → random segment ref | |
 | `/random` | `random_text_page` (`:4726-4730`) | `random.html` | |
-| `/compare[/<ref>/][<en|he>/][<v1>/][<v2>]` | `sefaria.views.compare` (`sefaria/views.py:2191-2217`) | `compare.html` (separate React bundle) with `JSON_PROPS` secRef/v1/v2/lang/refArray | Version diff tool. `print(comp_ref)` debug left in. |
+| `/compare[/<ref>/][<en|he>/][<v1>/][<v2>]` | `sefaria.views.compare` (`sefaria/views.py:2191-2217`) | `compare.html` (separate React bundle) with `JSON_PROPS` secRef/v1/v2/lang/refArray | Version diff tool. `print(comp_ref)` debug left in. Groups before the last need their trailing slash (`/compare/Genesis.1` = v2 "Genesis.1", an empty form). **Rendered by reader-next since 2026-11-04 on the Library host** (Voices passes through): LEG-010, LEG-031, LEG-032. |
 | `/garden/<key>` | `custom_visual_garden_page` (`:5333-5337`) | `visual_garden.html` for Garden `sefaria.custom.<key>` | **Shadows** the next two routes (`path:` converter matches slashes). |
 | `/garden/sheets/<key>` | `sheet_tag_visual_garden_page` | intended sheet-tag garden | Unreachable (shadowed). |
 | `/garden/search/<q>` | `search_query_visual_garden_page` | intended search garden | Unreachable (shadowed). |
@@ -591,7 +591,7 @@ React app; `new?assignment=` in register next (`sefaria/views.py:266`).
 16. A `/Sheet.<id>` text URL on library renders a sheet in library (`reader/views.py:807-812`).
 17. `bootstrapUrl` passes `{replaceHistory}` as panel options, not the replace flag (`ReaderApp.jsx:1299`).
 18. `openURL` passes the `tab` param for topics but `openTopic(slug)` ignores it (`ReaderApp.jsx:1432,2081`).
-19. Legacy S1 surfaces still live: `edit_text.html` editor (`/add`, `/edit`, `/translate`), `sheets.html` embed (`?embed=1`), `sheets_visual.html`, `edit_profile.html`, `activity.html`, `explore.html`, `compare.html`, gardens, visualizations — all outside ReaderApp but under the ReaderApp header.
+19. Legacy S1 surfaces still live: `edit_text.html` editor (`/add`, `/edit`, `/translate`), `sheets.html` embed (`?embed=1`), `sheets_visual.html`, `edit_profile.html`, `activity.html`, `explore.html`, `compare.html` (correction 2026-11-04: compare.html is a standalone document with no header), gardens, visualizations — all outside ReaderApp but under the ReaderApp header.
 20. `register` appends `welcome=to-sefaria` to the post-signup URL (and `enable-library-assistant` forwards it), but no first-party JS reads `welcome` (presumably for analytics/GTM).
 21. `compare` view has a stray `print(comp_ref)` (`sefaria/views.py:2192`).
 22. Bots including `sefaria-node`, `curl`, `python-request` bypass language-domain redirects; everyone else on a mismatched language domain is 302-bounced with `set-language-cookie`.
