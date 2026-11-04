@@ -4,14 +4,15 @@
  *
  * Not here (rendered by this client since their ports): "login", "register" and "password" (the reset link); "translations" (the
  * translations-by-language pages); "calendars" (the Learning Schedules page) and the shortcuts "parashat-hashavua" and
- * "todays-daf-yomi" (this server answers their redirect); "compare" (the version-diff tool) — the last four on the Library host only
- * (LIBRARY_ONLY_PREFIXES).
+ * "todays-daf-yomi" (this server answers their redirect); "compare" (the version-diff tool); "topics" (the landing page, categories,
+ * A–Z and a single topic, /topics/<slug> and /topics/b/<slug>: a topic whose Library pool cannot be confirmed is a 404 here and so goes
+ * on to Django, features/topics). All of these on the Library host only (LIBRARY_ONLY_PREFIXES); the Voices host keeps Django's.
  */
 
 /** First path segments that are always Django's (sefaria/urls*.py, plus the pages the old site serves under them). */
 export const DJANGO_PREFIXES = [
   "api", "_api", "static", "admin", "logout", "account", "accounts", "_allauth", "gauth", "unlink-gauth", "sso",
-  "topics", "sheets", "sheets-with-ref", "collections", "groups", "profile", "people", "person", "settings", "notifications", "saved",
+  "sheets", "sheets-with-ref", "collections", "groups", "profile", "people", "person", "settings", "notifications", "saved",
   "history", "my", "community", "activity", "dashboard", "explore", "garden", "vgarden", "visualize", "translate", "contributors",
   "download", "data", "linker", "linker-editor", "modtools", "random", "torahtracker", "edit",
   "add", "new-home", "getstarted", "healthz", "healthz-rollout", "health-check", "sefaria.js", "search-autocomplete-redirecter", "embed", "edit_text",
@@ -24,10 +25,11 @@ const PREFIX_RE = new RegExp(`^/(?:${DJANGO_PREFIXES.map((p) => p.replace(/[.*+?
  * they stay Django's: which pages each module serves is not decided yet (TARGET_ARCHITECTURE Q-E1), so a Voices request for them is
  * passed through as before (src/start.ts).
  */
-export const LIBRARY_ONLY_PREFIXES = ["translations", "calendars", "parashat-hashavua", "todays-daf-yomi", "compare"];
-/** @deprecated the translations and compare ports' names for LIBRARY_ONLY_PREFIXES */
+export const LIBRARY_ONLY_PREFIXES = ["translations", "calendars", "parashat-hashavua", "todays-daf-yomi", "compare", "topics"];
+/** @deprecated the translations, compare and topics ports' names for LIBRARY_ONLY_PREFIXES */
 export const LIBRARY_HOST_ONLY = LIBRARY_ONLY_PREFIXES;
 export const LIBRARY_HOST_ONLY_PREFIXES = LIBRARY_ONLY_PREFIXES;
+export const VOICES_DJANGO_PREFIXES = LIBRARY_ONLY_PREFIXES;
 const LIBRARY_ONLY_RE = new RegExp(`^/(?:${LIBRARY_ONLY_PREFIXES.join("|")})(?:[/.]|$)`);
 export const isLibraryOnlyPage = (pathname: string): boolean => LIBRARY_ONLY_RE.test(pathname);
 
@@ -69,14 +71,15 @@ export const isDjangoPage = (pathname: string, host?: string | null, voicesOrigi
 const SERVER_REDIRECT_RE = /^\/(?:parashat-hashavua|todays-daf-yomi)(?:\/|$)/;
 export const isServerRedirect = (pathname: string): boolean => SERVER_REDIRECT_RE.test(pathname);
 
+/** Is this path Django's on this host: one of {@link DJANGO_PREFIXES}, or a Library-only page asked for on the Voices host? */
+export const isDjangoPageOnHost = (pathname: string, host: string | null | undefined, voicesOrigin?: string): boolean => isDjangoPage(pathname, host, voicesOrigin);
+export const isDjangoPageForHost = isDjangoPageOnHost;
+
 /**
  * Does the browser have to leave the app (a full page load) to reach this path? Django's pages and the server's redirects — and, on
  * the Voices host (`host`, checked against `voicesOrigin` as isVoicesHost does), the Library-only pages, which Django answers there.
  * Without a host the Library host is assumed.
  */
-/** Is this path Django's on this host: one of {@link DJANGO_PREFIXES}, or a Library-only page asked for on the Voices host? */
-export const isDjangoPageOnHost = (pathname: string, host: string | null | undefined): boolean => isDjangoPage(pathname, host);
-
 export const leavesClient = (pathname: string, host?: string, voicesOrigin?: string): boolean =>
   isDjangoPage(pathname, host, voicesOrigin) || isServerRedirect(pathname);
 

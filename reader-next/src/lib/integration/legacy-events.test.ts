@@ -10,7 +10,7 @@ describe("sefaria:bootstrap-url", () => {
     expect(bootstrapUrlAction("https://www.sefaria.org/search?q=light", here)).toEqual({ kind: "navigate", pathname: "/search", search: "?q=light", hash: "", replace: false });
   });
   it("a page Django serves (a topic) or another Sefaria site: loaded in full", () => {
-    expect(bootstrapUrlAction({ url: "/topics/shabbat" }, here)).toEqual({ kind: "load", href: "https://www.sefaria.org/topics/shabbat", replace: false });
+    expect(bootstrapUrlAction({ url: "/sheets/shabbat" }, here)).toEqual({ kind: "load", href: "https://www.sefaria.org/sheets/shabbat", replace: false });
     expect(bootstrapUrlAction({ url: "https://voices.sefaria.org/sheets/1" }, here)).toEqual({ kind: "load", href: "https://voices.sefaria.org/sheets/1", replace: false });
   });
   // @feature CAL-001 — /calendars is this client's on the Library host only
@@ -30,8 +30,8 @@ describe("sefaria:bootstrap-url", () => {
     const stop = installLegacyEvents(document, { navigate, load, refreshReader });
     document.dispatchEvent(new CustomEvent("sefaria:bootstrap-url", { detail: { url: "/Exodus.3", replaceHistory: true } }));
     expect(navigate).toHaveBeenCalledWith({ pathname: "/Exodus.3", search: "", hash: "" }, { replace: true });
-    document.dispatchEvent(new CustomEvent("sefaria:bootstrap-url", { detail: { url: "/topics/love" } }));
-    expect(load).toHaveBeenCalledWith(expect.stringMatching(/\/topics\/love$/), { replace: false });
+    document.dispatchEvent(new CustomEvent("sefaria:bootstrap-url", { detail: { url: "/sheets/love" } }));
+    expect(load).toHaveBeenCalledWith(expect.stringMatching(/\/sheets\/love$/), { replace: false });
     document.dispatchEvent(new CustomEvent("sefaria:settings-updated", { detail: {} }));
     expect(refreshReader).toHaveBeenCalledTimes(1);
     stop();

@@ -7,7 +7,7 @@
  *    not heard of (a new static page, a redirect) still works.
  * Off unless SEFARIA_PASS_THROUGH=1 (local development shows this client's own 404).
  */
-import { API_ORIGIN } from "~/lib/config";
+import { API_ORIGIN, PUBLIC_CONFIG } from "~/lib/config";
 import type { DeadlineInit } from "./internal-fetch";
 import { isDjangoPage, isLibraryOnlyPage } from "~/lib/routing/django-paths";
 
@@ -22,10 +22,10 @@ const SERVER_FN_RE = /^\/_serverFn\//;
  * Always Django's, whatever this client could render (every write, except to this client's own server functions). `host`: the host
  * the request was for — the Voices host keeps the Library-only pages on Django (django-paths.ts LIBRARY_ONLY_PREFIXES).
  */
-export const isDjangoPath = (pathname: string, method: string, host?: string | null) =>
-  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || isDjangoPage(pathname, host));
+export const isDjangoPath = (pathname: string, method: string, host?: string | null, voicesOrigin: string | undefined = PUBLIC_CONFIG.voicesOrigin) =>
+  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || isDjangoPage(pathname, host, voicesOrigin));
 
-/** The host the reader asked for: nginx's X-Forwarded-Host when it sets one (its first value), else the request's Host, else its URL's. */
+/** The host the visitor asked for: X-Forwarded-Host when a proxy sets one (its first value), else the request's Host, else its URL's. */
 export const requestHost = (request: Request): string =>
   request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || request.headers.get("host") || new URL(request.url).host;
 
@@ -35,8 +35,8 @@ export const requestHost = (request: Request): string =>
  */
 export const passesToDjango = (request: Request, pathname: string = new URL(request.url).pathname): boolean =>
   isDjangoPath(pathname, request.method, requestHost(request));
-/** passesToDjango with the path as sent (the translations port's name). */
-export const isDjangoRequest = (request: Request): boolean => passesToDjango(request);
+/** passesToDjango under the translations and topics ports' name. */
+export const isDjangoRequest = passesToDjango;
 
 const PASS_THROUGH_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH_TIMEOUT_MS) || 30000);
 

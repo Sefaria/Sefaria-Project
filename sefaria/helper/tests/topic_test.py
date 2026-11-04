@@ -289,3 +289,21 @@ def test_get_topic_omits_orphaned_ref_links():
 	finally:
 		db.topic_links.delete_many({'toTopic': slug})
 		t.delete()
+
+
+def test_get_topic_v2_answers_the_topics_pools():
+	"""The v2 topic API carries the topic's pools: the new reader decides from them whether /topics/<slug> is the Library's page
+	(reader/views.py topic_page answers 404 for a topic outside the active module's pool). v1 is unchanged."""
+	from unittest.mock import patch
+	t = Topic({'slug': '', 'data_source': 'sefaria', 'numSources': 0})
+	t.add_primary_titles('Reader Next Pools Test', 'Reader Next Pools Test'[::-1])
+	t.set_slug_to_primary_title()
+	t.save()
+	try:
+		with patch.object(Topic, 'get_pools', return_value=['library', 'sheets']):
+			v2 = topic.get_topic(True, t.slug, 'english', with_links=False, with_refs=False, with_indexes=False)
+			v1 = topic.get_topic(False, t.slug, 'english', with_links=False, with_refs=False, with_indexes=False)
+		assert v2['pools'] == ['library', 'sheets']
+		assert 'pools' not in v1
+	finally:
+		t.delete()

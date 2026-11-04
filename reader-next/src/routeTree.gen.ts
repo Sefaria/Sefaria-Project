@@ -21,7 +21,12 @@ import { Route as CompareSplatRouteImport } from './routes/compare.$'
 import { Route as InterfaceLangRouteImport } from './routes/interface.$lang'
 import { Route as TextsIndexRouteImport } from './routes/texts.index'
 import { Route as TextsSplatRouteImport } from './routes/texts.$'
+import { Route as TopicsIndexRouteImport } from './routes/topics.index'
+import { Route as TopicsSplatRouteImport } from './routes/topics.$'
 import { Route as TranslationsSlugRouteImport } from './routes/translations.$slug'
+import { Route as TopicsAllLetterRouteImport } from './routes/topics.all.$letter'
+import { Route as TopicsBSplatRouteImport } from './routes/topics.b.$'
+import { Route as TopicsCategorySlugRouteImport } from './routes/topics.category.$slug'
 import { Route as AuthPasswordResetConfirmUidb64TokenRouteImport } from './routes/_auth.password.reset.confirm.$uidb64.$token'
 
 const IndexRoute = IndexRouteImport.update({
@@ -83,9 +88,34 @@ const TextsSplatRoute = TextsSplatRouteImport.update({
   path: '/texts/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TopicsIndexRoute = TopicsIndexRouteImport.update({
+  id: '/topics/',
+  path: '/topics/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TopicsSplatRoute = TopicsSplatRouteImport.update({
+  id: '/topics/$',
+  path: '/topics/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TranslationsSlugRoute = TranslationsSlugRouteImport.update({
   id: '/translations/$slug',
   path: '/translations/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TopicsAllLetterRoute = TopicsAllLetterRouteImport.update({
+  id: '/topics/all/$letter',
+  path: '/topics/all/$letter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TopicsBSplatRoute = TopicsBSplatRouteImport.update({
+  id: '/topics/b/$',
+  path: '/topics/b/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TopicsCategorySlugRoute = TopicsCategorySlugRouteImport.update({
+  id: '/topics/category/$slug',
+  path: '/topics/category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthPasswordResetConfirmUidb64TokenRoute =
@@ -105,9 +135,14 @@ export interface FileRoutesByFullPath {
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/topics/$': typeof TopicsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
   '/compare/': typeof CompareIndexRoute
   '/texts/': typeof TextsIndexRoute
+  '/topics/': typeof TopicsIndexRoute
+  '/topics/all/$letter': typeof TopicsAllLetterRoute
+  '/topics/b/$': typeof TopicsBSplatRoute
+  '/topics/category/$slug': typeof TopicsCategorySlugRoute
   '/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
 export interface FileRoutesByTo {
@@ -120,9 +155,14 @@ export interface FileRoutesByTo {
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/topics/$': typeof TopicsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
   '/compare': typeof CompareIndexRoute
   '/texts': typeof TextsIndexRoute
+  '/topics': typeof TopicsIndexRoute
+  '/topics/all/$letter': typeof TopicsAllLetterRoute
+  '/topics/b/$': typeof TopicsBSplatRoute
+  '/topics/category/$slug': typeof TopicsCategorySlugRoute
   '/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
 export interface FileRoutesById {
@@ -137,9 +177,14 @@ export interface FileRoutesById {
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/topics/$': typeof TopicsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
   '/compare/': typeof CompareIndexRoute
   '/texts/': typeof TextsIndexRoute
+  '/topics/': typeof TopicsIndexRoute
+  '/topics/all/$letter': typeof TopicsAllLetterRoute
+  '/topics/b/$': typeof TopicsBSplatRoute
+  '/topics/category/$slug': typeof TopicsCategorySlugRoute
   '/_auth/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
 export interface FileRouteTypes {
@@ -154,9 +199,14 @@ export interface FileRouteTypes {
     | '/compare/$'
     | '/interface/$lang'
     | '/texts/$'
+    | '/topics/$'
     | '/translations/$slug'
     | '/compare/'
     | '/texts/'
+    | '/topics/'
+    | '/topics/all/$letter'
+    | '/topics/b/$'
+    | '/topics/category/$slug'
     | '/password/reset/confirm/$uidb64/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -169,9 +219,14 @@ export interface FileRouteTypes {
     | '/compare/$'
     | '/interface/$lang'
     | '/texts/$'
+    | '/topics/$'
     | '/translations/$slug'
     | '/compare'
     | '/texts'
+    | '/topics'
+    | '/topics/all/$letter'
+    | '/topics/b/$'
+    | '/topics/category/$slug'
     | '/password/reset/confirm/$uidb64/$token'
   id:
     | '__root__'
@@ -185,9 +240,14 @@ export interface FileRouteTypes {
     | '/compare/$'
     | '/interface/$lang'
     | '/texts/$'
+    | '/topics/$'
     | '/translations/$slug'
     | '/compare/'
     | '/texts/'
+    | '/topics/'
+    | '/topics/all/$letter'
+    | '/topics/b/$'
+    | '/topics/category/$slug'
     | '/_auth/password/reset/confirm/$uidb64/$token'
   fileRoutesById: FileRoutesById
 }
@@ -200,9 +260,14 @@ export interface RootRouteChildren {
   CompareSplatRoute: typeof CompareSplatRoute
   InterfaceLangRoute: typeof InterfaceLangRoute
   TextsSplatRoute: typeof TextsSplatRoute
+  TopicsSplatRoute: typeof TopicsSplatRoute
   TranslationsSlugRoute: typeof TranslationsSlugRoute
   CompareIndexRoute: typeof CompareIndexRoute
   TextsIndexRoute: typeof TextsIndexRoute
+  TopicsIndexRoute: typeof TopicsIndexRoute
+  TopicsAllLetterRoute: typeof TopicsAllLetterRoute
+  TopicsBSplatRoute: typeof TopicsBSplatRoute
+  TopicsCategorySlugRoute: typeof TopicsCategorySlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -291,11 +356,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TextsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/topics/': {
+      id: '/topics/'
+      path: '/topics'
+      fullPath: '/topics/'
+      preLoaderRoute: typeof TopicsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/topics/$': {
+      id: '/topics/$'
+      path: '/topics/$'
+      fullPath: '/topics/$'
+      preLoaderRoute: typeof TopicsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/translations/$slug': {
       id: '/translations/$slug'
       path: '/translations/$slug'
       fullPath: '/translations/$slug'
       preLoaderRoute: typeof TranslationsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/topics/all/$letter': {
+      id: '/topics/all/$letter'
+      path: '/topics/all/$letter'
+      fullPath: '/topics/all/$letter'
+      preLoaderRoute: typeof TopicsAllLetterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/topics/b/$': {
+      id: '/topics/b/$'
+      path: '/topics/b/$'
+      fullPath: '/topics/b/$'
+      preLoaderRoute: typeof TopicsBSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/topics/category/$slug': {
+      id: '/topics/category/$slug'
+      path: '/topics/category/$slug'
+      fullPath: '/topics/category/$slug'
+      preLoaderRoute: typeof TopicsCategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/password/reset/confirm/$uidb64/$token': {
@@ -332,10 +432,25 @@ const rootRouteChildren: RootRouteChildren = {
   CompareSplatRoute: CompareSplatRoute,
   InterfaceLangRoute: InterfaceLangRoute,
   TextsSplatRoute: TextsSplatRoute,
+  TopicsSplatRoute: TopicsSplatRoute,
   TranslationsSlugRoute: TranslationsSlugRoute,
   CompareIndexRoute: CompareIndexRoute,
   TextsIndexRoute: TextsIndexRoute,
+  TopicsIndexRoute: TopicsIndexRoute,
+  TopicsAllLetterRoute: TopicsAllLetterRoute,
+  TopicsBSplatRoute: TopicsBSplatRoute,
+  TopicsCategorySlugRoute: TopicsCategorySlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

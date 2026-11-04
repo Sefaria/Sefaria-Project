@@ -17,6 +17,8 @@ export interface NavPageProps {
   top?: { main?: number; side?: number };
   /** The old ReaderPanel's `data-anl-batch` (its analytics parameters for every event inside the panel, e.g. panel_number and content_lang), kept on the page's frame. */
   anlBatch?: Readonly<Record<string, unknown>>;
+  /** Width of the page's content column (without its 30px padding): 665 by default (the old .contentInner); the topics landing page is 783. */
+  measure?: number;
 }
 
 /**
@@ -26,13 +28,13 @@ export interface NavPageProps {
  * @feature LIB-023 Nav sidebar container and module registry
  * @feature LIB-019 Category and text color coding
  */
-export function NavPage({ children, sidebar, footer, colorCategory, sidebarLabel, top, anlBatch }: NavPageProps) {
+export function NavPage({ children, sidebar, footer, colorCategory, sidebarLabel, top, anlBatch, measure }: NavPageProps) {
   const he = useInterfaceLang() === "hebrew";
   return (
     <div className={styles.page} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} data-anl-batch={anlBatch ? JSON.stringify(anlBatch) : undefined}>
       {/* the old .categoryColorLine: over the top of the page, and it stays there while the page scrolls under it */}
       {colorCategory ? <div className={styles.colorLine} style={{ background: categoryColor(colorCategory) }} aria-hidden="true" /> : null}
-      <div className={styles.main} style={top?.main ? ({ "--_top": `${top.main}px` } as React.CSSProperties) : undefined}>{children}</div>
+      <div className={styles.main} style={top?.main || measure ? ({ ...(top?.main ? { "--_top": `${top.main}px` } : {}), ...(measure ? { "--_measure": `${measure}px` } : {}) } as React.CSSProperties) : undefined}>{children}</div>
       <aside className={styles.side} style={top?.side ? ({ "--_top": `${top.side}px` } as React.CSSProperties) : undefined} aria-label={sidebarLabel ?? (he ? "ניווט בסרגל הצד" : "Sidebar navigation")}>
         {sidebar}
         {footer ? <div className={styles.footer}>{footer}</div> : null}

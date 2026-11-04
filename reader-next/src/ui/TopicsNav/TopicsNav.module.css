@@ -1,0 +1,224 @@
+/* The old topics navigation pages (static/css/s2.css: .topic-landing-*, .topic-salad, .featuredTopic*, .card*, .TOCCardsWrapper,
+   .topicFilterBox, .alphabeticalTopicsNav; common.css .categoryColorLineRainbow), measured on sefaria.org at 1280px and with a
+   phone User-Agent (2026-11-04). Colours: #EDEDEC border-light, #FBFBFA surface-subtle, #CCC border-strong, #666 text-dark-grey,
+   #333 text-list, #6F6F6F text-muted, #4B71B7 cat-commentary, the Sefaria blue brand. */
+.frame { display: contents; }
+
+/* ---- page titles ---- */
+/* .readerNavMenu h1: 22px/500 dark grey, 30px under it; .navTitle.tight keeps 15px under the title row */
+.navTitle { display: flex; align-items: flex-start; justify-content: space-between; margin-block-end: 15px; }
+.pageTitle { margin: 0 0 30px; font-family: var(--sefaria-font-ui-en); font-size: 22px; font-weight: 500; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-align: start; text-transform: none; letter-spacing: 0; }
+.pageTitle :lang(he) { font-family: var(--sefaria-font-ui-he); }
+/* a category's title sits in the old CategoryHeader row: the row keeps 15px under it, the h1 none (measured: cards 40px under the title's top) */
+.navTitle .pageTitle { margin: 0; }
+.message { font-family: var(--sefaria-font-ui-en); font-size: 14px; font-style: italic; }
+
+/* ---- cards (common/Card) ---- */
+.grid { display: flex; flex-wrap: wrap; column-gap: 20px; flex: 1; }
+.card { position: relative; flex: 1 1 45%; padding-block-end: 12px; line-height: normal; }
+/* the first card's hairline, and the second's beside it on a two-column screen */
+.grid > .card:nth-child(1) { border-block-start: 1px solid var(--sefaria-color-border-light); }
+/* the old .contentInner .table: a row of two columns at 900px and up and between 600 and 700px, one column otherwise */
+@media (min-width: 900px) { .grid > .card:nth-child(-n + 2) { border-block-start: 1px solid var(--sefaria-color-border-light); } }
+@media (min-width: 600px) and (max-width: 700px) { .grid > .card:nth-child(-n + 2) { border-block-start: 1px solid var(--sefaria-color-border-light); } }
+@media (min-width: 700px) and (max-width: 900px), (max-width: 600px) { .grid { flex-direction: column; } }
+/* an odd last card keeps half the row */
+.grid > .card:last-child:nth-child(2n + 1):not(:first-child) { flex: 0 0 45%; }
+.cardTitle { display: flex; align-items: center; flex: 1; margin: 0; padding: 15px 0 8px; font-family: var(--sefaria-font-ui-en); font-size: 24px; font-weight: 400; line-height: 1.3; color: var(--sefaria-color-text-strong); text-align: start; text-decoration: none; cursor: pointer; }
+/* the text takes the interface language's face and size, whichever language it is in (the old int-he / int-en classes:
+   an English fallback in the Hebrew interface is Heebo at 122%, as .int-he.enInHe) */
+:global(html[lang="he"]) .cardTitle > span { font-family: var(--sefaria-font-ui-he); font-size: 122%; }
+.cardTitle:hover { color: var(--sefaria-color-text-dark-grey); text-decoration: none; }
+.cardDescription { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-inline-end: 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
+:global(html[lang="he"]) .cardDescription > span { font-family: var(--sefaria-font-ui-he); font-size: 122%; }
+:global(html[lang="he"]) .cardDescription { line-height: 24px; }
+/* the text is a block of its own language's direction (the old span held a ReactMarkdown <div>): an English fallback sits left in the Hebrew interface */
+.cardDescription > span { display: block; }
+.cardDescription a { color: var(--sefaria-cat-commentary); text-decoration: none; }
+.cardDescription a:hover { text-decoration: underline; }
+.bottomCardLink a { color: inherit; text-decoration: none; }
+
+/* the landing page's cards: a blue top, light grey, a shadow, 345px tall; text placed absolutely as the old card */
+.described { flex: 1; box-sizing: content-box; height: 345px; border-block-start: 4px solid var(--sefaria-color-brand); background: var(--sefaria-color-surface-subtle); box-shadow: var(--sefaria-shadow-raised); padding-block-end: 12px; }
+.described .cardTitle { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-inline: 30px; margin-block-start: 23px; padding: 0; line-height: 1.1; }
+.described .cardDescription { position: absolute; top: 95px; max-width: 208px; max-height: 201px; margin-inline: 30px; -webkit-line-clamp: 10; overflow-y: hidden; overflow-wrap: break-word; }
+:global(html[lang="he"]) .described .cardDescription { -webkit-line-clamp: 8; }
+.described .bottomCardLink { position: absolute; top: 298px; margin-inline: 30px 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
+.described .bottomCardLink :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.deck { display: flex; gap: 20px; justify-content: center; }
+.deckItem { display: flex; flex: 1 1 0; }
+
+/* ---- the landing page ---- */
+/* the old pages ran on a "normal" line (this client's base is 1.4) */
+.landing { line-height: normal; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.landingHeader { margin: 0; font-family: var(--sefaria-font-ui-en); font-size: 32px; font-weight: 500; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-align: center; }
+.landingHeader :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.section { width: 100%; margin-block-start: 60px; }
+.temporal { display: flex; font-family: var(--sefaria-font-text-en); }
+
+/* the search box: a 634 x 60 grey pill, the 24px serif input 15px down, suggestions under it */
+.searchWrapper { display: flex; justify-content: center; }
+.searchContainer { position: relative; display: flex; flex-direction: column; align-items: center; width: 634px; height: 60px; padding: 0; border-radius: 250px; background: var(--sefaria-color-border-light); }
+.searchInputBox { display: flex; margin-block-start: 15px; }
+.searchButton { position: relative; top: 6px; margin: 0 9px 0 7px; padding-inline-start: 16px; }
+.searchButton img { display: block; width: 18px; height: 18px; }
+.searchInput { flex: 1; width: 600px; height: 100%; margin: 0 0 1px; padding: 0; border: none; background: transparent; font-family: var(--sefaria-font-text-en); font-size: 24px; font-weight: 500; color: var(--sefaria-color-text-strong); }
+.searchInput::placeholder { color: var(--sefaria-color-text-dark-grey); }
+.searchInput:focus { outline: none; }
+/* the Hebrew interface's input is Heebo on a wide screen, the English sans on a phone (measured on sefaria.org.il 2026-11-04) */
+:global(html[lang="he"]) .searchInput { font-family: var(--sefaria-font-ui-he); }
+.searchDropdown { position: absolute; z-index: 2; box-sizing: content-box; width: 606px; max-height: calc(1.9em * 10 + 2em); margin-block-start: 47px; padding: 10px; overflow-y: scroll; border-radius: 0 0 6px 4px; background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-1); }
+.searchDropdown[data-empty] { visibility: hidden; padding: 0; }
+.suggestion { display: flex; flex-grow: 1; max-width: 100%; min-height: 10px; padding: 6px 12px; font-family: var(--sefaria-font-text-en); font-size: 18px; font-weight: 400; line-height: 23px; cursor: pointer; }
+.suggestion[data-highlighted] { background: var(--sefaria-color-border-light); }
+.suggestionIcon { display: inline-block; width: 18px; height: 18px; margin-block-start: 2px; margin-inline-end: 8px; opacity: 0.4; }
+.suggestionTitle { font-family: "EB Garamond", var(--sefaria-font-text-en); }
+.suggestionPath { color: var(--sefaria-color-text-list); }
+.exploreAll { display: none; }
+
+/* the word cloud */
+.rainbow { width: 100%; height: 4px; background: linear-gradient(90deg, var(--sefaria-cat-tanakh) 0% 10%, var(--sefaria-cat-commentary) 10% 20%, var(--sefaria-cat-musar) 20% 30%, var(--sefaria-cat-mishnah) 30% 40%, var(--sefaria-cat-talmud) 40% 50%, var(--sefaria-cat-midrash) 50% 60%, var(--sefaria-cat-halakhah) 60% 70%, var(--sefaria-cat-jewish-thought) 70% 80%, var(--sefaria-cat-tosefta) 80% 90%, var(--sefaria-cat-chasidut) 90% 100%); }
+.rainbowAnimated { background-size: 200% 100%; animation: rainbow 1s linear infinite; }
+@keyframes rainbow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+@media (prefers-reduced-motion: reduce) { .rainbowAnimated { animation: none; } }
+.rainbowUpper { margin-block-end: 15px; }
+.rainbowLower { margin-block-start: 15px; }
+.salad { font-size: 22px; font-weight: 400; line-height: 32px; text-align: center; text-underline-position: from-font; text-decoration-skip-ink: none; }
+/* the clamp's "…" is drawn in a face of zero size (the old hide-ellipsis-char-font), so the cut line ends clean */
+@font-face { font-family: "hide-ellipsis-char-font"; src: local("Courier"); unicode-range: U+2026; size-adjust: 0%; }
+.saladContainer { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--num-lines); overflow: hidden; text-overflow: clip; font-family: hide-ellipsis-char-font; }
+.saladItemBox { white-space: nowrap; font-family: var(--sefaria-font-text-en); } /* the bullet and the space after an item are serif, as the old span inherited */
+.saladItemBox[data-bullet]::after { content: "•"; margin-inline-start: 0.2em; }
+.saladItem { margin: 11px; font-family: var(--sefaria-font-ui-en); line-height: 40px; color: var(--sefaria-color-text-strong); text-decoration: none; }
+.saladItem :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.saladItem:hover { text-decoration: underline; }
+.rowedSalad { display: flex; overflow-x: scroll; white-space: nowrap; scrollbar-width: none; }
+.rowedSalad::-webkit-scrollbar { display: none; }
+.rowedItem { margin-inline-end: 7px; padding-block: 4px; border-radius: 6px; background: var(--sefaria-color-brand); }
+.rowedItem .saladItem { color: var(--sefaria-color-on-brand); }
+
+/* the featured topic */
+.featured { display: flex; flex-direction: column; }
+.featuredHeader { margin: 30px 0 0; font-family: var(--sefaria-font-text-en); font-size: 15px; font-weight: 400; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-transform: uppercase; letter-spacing: 0; text-align: start; }
+.featuredHeader :lang(he) { font-family: var(--sefaria-font-text-he); }
+.featuredContent { display: flex; flex-direction: row; }
+.featuredImg { width: 239px; height: 100%; font-family: var(--sefaria-font-text-en); } /* the serif line the inline picture sits on (its descent is part of the block) */
+.featuredImg a { color: inherit; } /* inline, as the old wrapper: the picture sits on a text line (its descent is part of the block) */
+.featuredPhoto { box-sizing: content-box; max-width: 100%; height: auto; border: 1px solid var(--sefaria-color-border-light); object-fit: contain; }
+.featuredText { flex: 1; display: flex; flex-direction: column; margin-inline-start: 30px; color: var(--sefaria-color-text-dark-grey); }
+.featuredText h3 { margin: 0 0 15px; font-family: var(--sefaria-font-text-en); font-size: 24px; font-weight: 400; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-transform: none; text-align: start; }
+.featuredText h3 :lang(he) { font-family: var(--sefaria-font-text-he); }
+/* the old title span was a flex box: the title row is its own face's line, with no strut of the h3's serif */
+.featuredText h3 > span { display: block; }
+/* the old .topicDescription: a 14px serif block; the description inside it 16px sans */
+.featuredDescription { font-family: var(--sefaria-font-text-en); font-size: 14px; line-height: normal; }
+.featuredDescription > span { font-family: var(--sefaria-font-ui-en); font-size: 16px; }
+/* a Hebrew description is the Hebrew serif (the old .reactMarkdown div inside the Heebo span) */
+.featuredDescription > span:lang(he) { font-family: var(--sefaria-font-text-he); }
+/* the old description span was a block (.featuredTopicText .int-he: display flex, column): its lines are its own face's, with no sans strut */
+.featuredDescription > span { display: block; }
+.featuredDescription a { color: var(--sefaria-cat-commentary); text-decoration: none; }
+.featuredDescription a.featuredGo { color: var(--sefaria-color-text-dark-grey); }
+/* the old .featuredTopicGoToLink: a 14px serif block (its <br> line is serif) holding the 16px link */
+.featuredGoWrap { font-family: var(--sefaria-font-text-en); font-size: 14px; }
+.featuredGoWrap .featuredGo { display: block; font-family: var(--sefaria-font-text-en); font-size: 14px; } /* SimpleLinkedBlock: a block link around the 16px sans text */
+.featuredGoWrap .featuredGo > span { display: block; font-family: var(--sefaria-font-ui-en); font-size: 16px; }
+.featuredGoWrap .featuredGo > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
+
+/* the newsletter: a blue band, the teaser beside two rows of inputs */
+.newsletterWrapper { display: block; }
+.newsletter { display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 36px 65px; background: var(--sefaria-color-brand); }
+:global(html[lang="he"]) .newsletter { padding: 36px 46px; }
+.newsletterText { width: 256px; margin: 0; font-family: var(--sefaria-font-ui-en); font-size: 22px; font-weight: 400; line-height: normal; color: var(--sefaria-color-on-brand); text-transform: none; text-align: start; }
+:global(html[lang="he"]) .newsletterText { width: 300px; font-family: var(--sefaria-font-ui-he); }
+.newsletterRow { display: flex; flex-direction: row; justify-content: space-between; align-items: center; }
+.newsletterRow:first-child { margin-block-end: 20px; }
+.newsletterRow input, .newsletterRow button { flex: 1; padding: 5px 12px; border: 0; border-radius: 6px; background: var(--sefaria-color-surface); font-family: var(--sefaria-font-ui-en); font-size: 13.3333px; color: var(--sefaria-color-text-strong); }
+:global(html[lang="he"]) .newsletterRow input { font-family: var(--sefaria-font-ui-he); }
+/* the button keeps the English sans in the Hebrew interface (the old button had no Hebrew face) */
+.newsletterRow button { flex: unset; color: var(--sefaria-color-brand); cursor: pointer; }
+.newsletterRow input:first-child { margin-inline-end: 16px; }
+.subscribeMessage { margin-block-start: 10px; font-family: var(--sefaria-font-ui-en); color: var(--sefaria-color-on-brand); }
+.subscribeError { margin-block-start: 10px; font-family: var(--sefaria-font-ui-en); font-size: 16px; font-style: italic; color: var(--sefaria-cat-halakhah); text-align: end; }
+
+/* this week's portion and the seasonal topic, side by side */
+.parasha { flex: 1; padding-inline-end: 67px; border-inline-end: 1px solid var(--sefaria-color-border-strong); }
+.seasonal { position: relative; flex: 1; padding-inline-start: 67px; }
+.seasonal .cardDescription { -webkit-line-clamp: 9; }
+.calendarHeader { font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 500; line-height: normal; color: var(--sefaria-color-text-dark-grey); }
+.calendarHeader :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.learnMore { margin-inline-end: 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
+.learnMore a { color: inherit; text-decoration: none; }
+.learnMore :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.parashahLink { margin-block-start: 47px; }
+.readingLink { margin-block-end: 10px; font-family: var(--sefaria-font-text-en); font-size: 18px; line-height: normal; }
+.readingLink span { font-family: var(--sefaria-font-ui-en); }
+.readingLink a { color: var(--sefaria-color-text-strong); text-decoration: none; font-family: inherit; } /* the serif line, also in the Hebrew interface */
+.readingIcon { width: 18px; height: 18px; margin-block-start: -4px; margin-inline-end: 10px; vertical-align: middle; }
+.readPortion { margin-block-start: 30px; }
+.blueButton { display: inline-block; width: fit-content; box-sizing: border-box; margin: 0 2px 6px; padding: 10px 14px; border-radius: 6px; background: var(--sefaria-color-brand); box-shadow: var(--sefaria-shadow-1); font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: 19px; color: var(--sefaria-color-on-brand); text-align: center; text-decoration: none; }
+.blueButton :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.blueButton:hover { color: var(--sefaria-color-on-brand); }
+/* a 16px serif line holding 14px sans text, as the old <a> around its span */
+.blueLink { margin-block-start: 14px; font-family: var(--sefaria-font-text-en); font-size: 16px; line-height: normal; color: var(--sefaria-cat-commentary); }
+.blueLink span { font-family: var(--sefaria-font-ui-en); font-size: 14px; }
+.blueLink a { color: inherit; text-decoration: none; font-family: inherit; }
+.seasonalBottom { margin-block-start: 10px; }
+/* a serif block (its line is 19px) holding sans runs, as the old .display-date-message */
+.dateMessage { font-family: var(--sefaria-font-text-en); font-size: 14px; font-weight: 600; line-height: 18px; color: var(--sefaria-color-text-list); }
+.dateMessage span, .dateMessage a { font-family: var(--sefaria-font-ui-en); }
+.dateMessage a { color: inherit; text-decoration: none; }
+.date { line-height: normal; margin-block-start: 19px; font-family: var(--sefaria-font-ui-en); font-size: 14px; font-weight: 400; color: var(--sefaria-color-text-strong); }
+/* Roboto in both interfaces, as the old spans (.display-date-message span, .display-date span: font-family Roboto) */
+
+/* ---- A–Z ---- */
+.filterBox { display: flex; align-items: center; box-sizing: content-box; width: 285px; max-width: 100%; margin: 0 0 30px; padding: 0 10px; border-radius: 100px; background: var(--sefaria-color-border-light); }
+.filterIcon { width: 18px; height: 18px; opacity: 0.4; }
+.filterInput { flex: 1; box-sizing: border-box; padding: 0 10px; border: none; background: transparent; font-family: var(--sefaria-font-text-en); font-size: 18px; line-height: 30px; color: var(--sefaria-color-text-strong); }
+.filterInput[lang="he"] { font-family: var(--sefaria-font-ui-he); } /* Heebo, as sefaria.org.il (measured 2026-11-04) */
+.filterInput::placeholder { color: var(--sefaria-color-text-dark-grey); }
+.filterInput:focus { outline: none; }
+.filterReset { display: flex; align-items: center; font-family: var(--sefaria-font-ui-en); color: var(--sefaria-color-text-muted); cursor: pointer; white-space: nowrap; }
+.filterResetIcon { width: 16px; height: 16px; margin-inline-start: 8px; vertical-align: -2px; }
+.alphabet { margin-block-end: 5px; font-family: var(--sefaria-font-ui-en); line-height: normal; color: var(--sefaria-color-text-dark-grey); }
+.alphabet a { display: inline-block; margin-block-end: 10px; color: inherit; text-decoration: none; }
+.alphabet a + a { margin-inline-start: 10px; }
+.alphabet :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.allTopicsList { min-height: 500px; }
+
+/* ---- a phone (the old .singlePanel) ---- */
+@media (max-width: 842px) {
+  .landingHeader { margin-block-end: 10px; font-size: 30px; font-weight: 600; }
+  .firstSection { margin-block-start: 18px; }
+  .afterSearch { margin-block-start: 36px; }
+  .searchContainer { width: 344px; height: 47px; max-width: 100%; }
+  .searchInputBox { width: 100%; min-height: 24px; margin-block-start: 9px; } /* the old search button's 24px box sets the row */
+  .searchInput, :global(html[lang="he"]) .searchInput { width: auto; min-width: 0; margin-block-start: 2px; font-family: var(--sefaria-font-ui-en); font-size: 14px; }
+  .searchDropdown { width: 92vw; margin-block-start: 38px; max-height: calc(1.9em * 5 + 1em); }
+  .exploreAll { display: block; margin-block-start: 15px; font-family: var(--sefaria-font-ui-en); font-size: 14px; font-weight: 400; line-height: 18px; color: var(--sefaria-color-text-list); text-align: center; cursor: pointer; }
+  .exploreAll :lang(he) { font-family: var(--sefaria-font-text-he); } /* the old span inherited the Hebrew serif */
+  .rainbowUpper { margin-block-end: 20px; }
+  .rainbowLower { margin-block-start: 20px; }
+  .featuredHeader { font-size: 22px; }
+  .featuredContent { flex-direction: column; }
+  .featuredImg { width: auto; }
+  .featuredPhoto { display: block; max-width: 92vw; margin: 0 auto 10px; }
+  .featuredText { margin-inline-start: 0; }
+  .newsletter, :global(html[lang="he"]) .newsletter { flex-direction: column; align-items: stretch; padding: 36px 31px; }
+  .newsletterText { margin-block-end: 20px; }
+  .newsletterInputs { display: flex; flex-direction: column; width: 100%; }
+  .newsletterRow { flex-direction: column; align-items: stretch; }
+  .newsletterRow:first-child { margin-block-end: 0; }
+  .newsletterRow input, .newsletterRow button { margin-block-end: 20px; font-size: 18px; }
+  .newsletterRow button { height: 31px; margin-inline-start: 0; }
+  .newsletterRow input:first-child { margin-inline-end: 0; }
+  .deck { justify-content: unset; overflow-x: scroll; overflow-y: visible; box-sizing: border-box; padding: 0 5px 5px; scrollbar-width: none; }
+  .deck::-webkit-scrollbar { display: none; }
+  .deck .described { width: 268px; flex: none; }
+  .temporal { flex-direction: column; }
+  .parasha { padding-block-end: 30px; padding-inline-end: unset; border-inline-end: 0; border-block-end: 1px solid var(--sefaria-color-border-strong); }
+  .seasonal { padding-block-start: 30px; padding-inline-start: 0; border-block-start: 1px solid var(--sefaria-color-border-strong); }
+  .dateMessage { margin-block-start: 55px; }
+  .filterBox { margin-block-start: 20px; }
+  .pageTitle { margin-block-end: 10px; }
+}

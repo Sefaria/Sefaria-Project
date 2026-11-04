@@ -6,6 +6,9 @@
 //   E2E_API_MODE=replay  answer only from the cassette; a miss is a 504 and is logged (CI: deterministic, never touches the network)
 //   E2E_API_MODE=record  always ask the live API and overwrite the recording (refresh after the API changed)
 //
+// The user agent names "sefaria-node" (the old Node server's), which Django's language middleware never redirects to the other
+// language's domain: page paths outside /api/ (the topics TOC in /data.js, /topics) are recorded as answered, not as a 302 to .org.il.
+//
 // Recordings live in e2e/.cassette/ (not in git: tens of MB). CI restores them from its cache; a fresh checkout records on the first
 // run.  E2E_API_PORT (default 3998), E2E_API_UPSTREAM (default https://www.sefaria.org).
 import { createServer } from "node:http";
@@ -37,7 +40,7 @@ function cors(req, headers) {
 async function record(method, url, body, file) {
   const res = await fetch(`${UPSTREAM}${url}`, {
     method,
-    headers: { "accept-encoding": "identity", ...(body ? { "content-type": "text/plain;charset=UTF-8" } : {}), "user-agent": "sefaria-reader-e2e-cassette" },
+    headers: { "accept-encoding": "identity", ...(body ? { "content-type": "text/plain;charset=UTF-8" } : {}), "user-agent": "sefaria-reader-e2e-cassette (sefaria-node)" },
     body: body ?? undefined,
     redirect: "manual",
   });

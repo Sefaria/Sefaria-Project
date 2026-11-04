@@ -16,7 +16,7 @@ describe("routeOwner", () => {
   }, 30_000);
   it("this client's own pages, without asking anyone", async () => {
     const fetcher = nameApi({});
-    for (const p of ["/", "/texts", "/texts/Tanakh/Torah", "/translations/de", "/search", "/login", "/interface/hebrew", "/assets/x.js", "/calendars", "/calendars/"]) expect(await routeOwner(p, { fetcher })).toBe("client");
+    for (const p of ["/", "/texts", "/texts/Tanakh/Torah", "/translations/de", "/search", "/login", "/interface/hebrew", "/assets/x.js", "/calendars", "/calendars/", "/compare", "/topics", "/topics/category/authors", "/topics/all/a"]) expect(await routeOwner(p, { fetcher })).toBe("client");
     expect(fetcher).not.toHaveBeenCalled();
   });
   it("a text of the catalog renders here, without a name check", async () => {

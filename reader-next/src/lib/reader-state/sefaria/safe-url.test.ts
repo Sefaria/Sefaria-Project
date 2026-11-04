@@ -36,7 +36,7 @@ describe("acceptsUrl", () => {
     ["null byte", "/Genesis.1\u0000"],
     ["malformed escape", "/%E0%A4%A"],
     ["Django page", "/api/texts/Genesis.1"],
-    ["Django page: topics", "/topics/moses"],
+    ["Django page: profiles", "/profile/moses"],
     ["Django page: sheets", "/sheets/1"],
     ["Django page by dot segments", "/Genesis/../api/texts"],
     ["Django page by encoded dot segments", "/x/%2e%2e/admin"],

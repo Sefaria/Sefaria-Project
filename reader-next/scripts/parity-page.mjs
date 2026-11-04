@@ -1,6 +1,8 @@
 // Whole-page pixel parity, live vs rebuild, at desktop and phone size: a viewport shot, a full-page shot and the site header.
 // Writes docs/parity/page-<name>-<w>[-full|-header]-{live,ours}.png; compare with scripts/parity-diff.py.
 // Usage: node scripts/parity-page.mjs ['name=/path' ...]   (default: texts=/texts)
+// FREEZE_RANDOM=1: random samples (the topics pages' /api/topics/pools/…) are fetched once from the live API and served to both sides,
+// so a page built on them (the topics landing page's word cloud and cards) compares like for like.
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 const targets = process.argv.length > 2 ? Object.fromEntries(process.argv.slice(2).map((a) => [a.slice(0, a.indexOf("=")), a.slice(a.indexOf("=") + 1)])) : { texts: "/texts" };
@@ -13,13 +15,24 @@ mkdirSync("docs/parity", { recursive: true });
 const b = await chromium.launch();
 for (const [w, h] of SIZES) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, ...(w <= 500 ? { isMobile: true, hasTouch: true, userAgent: PHONE_UA } : {}) });
+  // PARITY_LANG=hebrew compares the Hebrew interface (the cookie on both sides)
+  // PARITY_LANG=hebrew (or INTERFACE_LANG=hebrew) compares the Hebrew interface (both sites read the interfaceLang cookie)
+  const lang = process.env.PARITY_LANG ?? process.env.INTERFACE_LANG ?? "english";
   await ctx.addCookies([
-    // INTERFACE_LANG=hebrew compares the Hebrew interface (both sites read the interfaceLang cookie)
-    { name: "interfaceLang", value: process.env.INTERFACE_LANG ?? "english", domain: "www.sefaria.org", path: "/" },
-    { name: "interfaceLang", value: process.env.INTERFACE_LANG ?? "english", domain: "localhost", path: "/" },
+    { name: "interfaceLang", value: lang, domain: "www.sefaria.org", path: "/" },
+    { name: "interfaceLang", value: lang, domain: "localhost", path: "/" },
     { name: "cookiesNotificationAccepted", value: "1", domain: ".sefaria.org", path: "/" },
     { name: "cookiesNotificationAccepted", value: "1", domain: "localhost", path: "/" },
   ]);
+  if (process.env.FREEZE_RANDOM) {
+    const frozen = new Map();
+    await ctx.route(/\/api\/topics\/pools\//, async (route) => {
+      const u = new URL(route.request().url());
+      const key = u.pathname + u.search;
+      if (!frozen.has(key)) frozen.set(key, await (await fetch(`https://www.sefaria.org${key}`)).text());
+      await route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: frozen.get(key) });
+    });
+  }
   const live = await ctx.newPage(), ours = await ctx.newPage();
   for (const [name, path] of Object.entries(targets)) {
     for (const [side, page, origin] of [["live", live, "https://www.sefaria.org"], ["ours", ours, OURS]]) {
@@ -27,7 +40,7 @@ for (const [w, h] of SIZES) {
       await page.evaluate((sel) => document.querySelectorAll(sel).forEach((n) => n.remove()), NOISE);
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(1500);
-      const base = `docs/parity/page-${name}-${w}`;
+      const base = `docs/parity/page-${name}${lang === "hebrew" ? "-he" : ""}-${w}`;
       await page.screenshot({ path: `${base}-${side}.png` });
       await page.screenshot({ path: `${base}-header-${side}.png`, clip: { x: 0, y: 0, width: w, height: w <= 500 ? 60 : 60 } });
       await page.screenshot({ path: `${base}-full-${side}.png`, fullPage: true });

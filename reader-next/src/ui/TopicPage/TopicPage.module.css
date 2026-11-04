@@ -1,0 +1,283 @@
+/* The single topic page (static/css/s2.css: .topicPanel, .columnLayout, .storyFeedInner, .story*, .colorBarBox, .tab-view.largeTabs,
+   .filter-bar-new, .langSelectPopover, .sideColumn, .link-section, .topicImage, .imageWithCaptionPhoto, .readings, .authorIndex,
+   .dedication, .resourcesLink.blue, .ai-info-tooltip), measured on sefaria.org at 1280px, with a phone User-Agent and in the Hebrew
+   interface (2026-11-04). Colours: #FBFBFA surface-subtle, #F0F7FF highlight-soft, #CCC border-strong, #EDEDEC border-light,
+   #666 text-dark-grey, #6F6F6F text-muted, #4B71B7 cat-commentary, #18345D brand, #EDEDED surface-disabled-ish (filter boxes). */
+
+/* the old .readerNavMenu .content: 60px under the header strips, no sideways scroll (.noOverflowX) */
+.panel { line-height: normal; color: var(--sefaria-color-text-strong); font-family: var(--sefaria-font-text-en); font-size: 16px; overflow-x: clip; min-height: 100%; }
+.columns { display: flex; flex-direction: row; padding-block-start: 60px; }
+/* .storyFeedInner: a 760px column (40px padding) centred beside the 420px side column */
+.main { box-sizing: border-box; width: 760px; max-width: 100%; margin: 0 auto; padding: 0 40px 80px; min-height: 500px; min-width: 0; }
+/* the side column's grey runs to the bottom of the page (a flex item, stretched) and 80px above its top (the old negative margin) */
+.side { flex: 0 0 420px; width: 420px; box-sizing: border-box; background: var(--sefaria-color-surface-subtle); border-block-start: 80px solid var(--sefaria-color-surface-subtle); margin-block-start: -80px; }
+.sideInner { margin-block-end: 20px; }
+/* a portal's side column is the library's NavSidebar (44px in, modules and the footer) */
+.sideNav { padding: 0 44px 120px; }
+
+/* ---------------------------------------------------------------- the header */
+.navTitle { display: flex; align-items: flex-start; justify-content: space-between; margin-block-end: 15px; }
+.titleRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.title { margin: 0 0 5px; font-family: var(--sefaria-font-text-en); font-size: 30px; font-weight: 500; line-height: normal; text-align: start; color: var(--sefaria-color-text-strong); }
+.title > span:lang(en) { font-size: 40px; }
+.title > span:lang(he) { font-family: var(--sefaria-font-text-he); font-size: 36px; }
+.category { margin: 0 0 15px; font-size: 16px; }
+.category a { text-decoration: none; color: inherit; }
+.category a > span { font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-dark-grey); text-transform: uppercase; letter-spacing: 0.1em; }
+.category a > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
+.description { margin: 0 0 15px; font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-strong); }
+/* the Hebrew description's markdown block takes the Hebrew text face (the old .reactMarkdown inside .int-he, measured) */
+.description > :lang(he) { font-family: var(--sefaria-font-text-he); }
+.description > span { display: block; }
+.description a { color: var(--sefaria-cat-commentary); text-decoration: none; }
+.description a:hover { text-decoration: underline; }
+/* .readerNavMenu .dedication */
+.dedication { margin-block-end: 27px; padding: 26px 19px; background: var(--sefaria-color-surface-subtle); color: var(--sefaria-color-text-dark-grey); font-size: 18px; text-align: start; }
+.dedication > :lang(en) { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-style: italic; }
+/* Hebrew: the markdown block takes the Hebrew text face, its link the description blue (measured in the Hebrew interface) */
+.dedication > :lang(he) { display: block; font-family: var(--sefaria-font-text-he); font-size: 18px; font-style: normal; } /* the old markdown block */
+.dedication > :lang(he) a { font-family: inherit; }
+.dedication > :lang(he) a { color: var(--sefaria-cat-commentary); }
+.dedication a { color: inherit; text-decoration: underline; }
+/* .topicPanel .resourcesLink.blue: the book button and the Study Companion */
+.buttons { display: flex; flex-wrap: wrap; }
+.refButton { display: inline-flex; align-items: center; box-sizing: border-box; min-height: 56px; margin: 5px 0 40px; padding: 8px 16px; border: 0; border-radius: 7px; background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); font-size: 20px; text-decoration: none; box-shadow: var(--sefaria-shadow-legacy); vertical-align: middle; cursor: pointer; }
+.refButton + .refButton { margin-inline-start: 10px; }
+.refButton img { width: 20px; height: 20px; margin: 0 8px 5px 0; filter: invert(1); opacity: 1; }
+:global(html[dir="rtl"]) .refButton img { margin: 0 0 5px 8px; }
+.refButton > span:lang(en) { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; }
+.refButton > span:lang(he) { font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif; line-height: 19px; margin-block-end: -3px; }
+
+/* the AI marker beside the title */
+/* .ai-info-tooltip: a block at the title row's end; the icon an inline image 12px down, 2px into the margin (measured: 748,236 on
+   /topics/love at 1280) */
+.ai { position: relative; }
+.aiIcon { width: 24px; height: 24px; margin-block-start: 12px; margin-inline-end: -2px; cursor: pointer; }
+/* the old AiInfoTooltip (s2.css .ai-message, .ai-info-messages-box, .ai-info-first-message, .ai-info-last-message): always in the
+   page, hidden until hovered; 180px back from the icon, under its text line (no top: its static position), a 198px grey box */
+.aiMessage { position: absolute; inset-inline-start: -180px; z-index: 1; opacity: 0; visibility: hidden; transition: opacity 2s ease, visibility 0s 2s; }
+.aiMessage.aiVisible { opacity: 1; visibility: visible; transition: opacity 0.5s ease; }
+.aiBox { display: block; width: 198px; min-width: 150px; margin-inline-start: 10px; overflow: hidden; border-radius: 6px; background: var(--sefaria-color-surface-subtle); box-shadow: var(--sefaria-shadow-1); font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-dark-grey); cursor: default; }
+.aiBox * { font-family: var(--sefaria-font-ui-en); }
+.aiBox a { color: var(--sefaria-cat-commentary); text-decoration: none; }
+.aiBox a:hover { text-decoration: underline; }
+.aiFirst { padding: 12px 12px 6px; border-block-end: 0.833333px solid var(--sefaria-color-border-strong); font-size: 14px; line-height: 18px; }
+.aiHr { margin-block: 0; }
+.aiLast { display: flex; align-items: center; box-sizing: content-box; height: 23px; padding: 2px 12px; font-size: 14px; line-height: 18px; }
+
+/* the picture: in the side column on a wide screen, under the description on a phone */
+.image { padding: 0 44px; }
+/* the picture sits on a serif text line (its descent under the image) in the Hebrew interface too, not on Heebo's 1px deeper one */
+:global(html[lang="he"]) .image { font-family: var(--sefaria-font-text-en); }
+.photo { box-sizing: content-box; max-width: 100%; height: auto; border: 1px solid var(--sefaria-color-border-light); }
+.caption { width: 100%; font-family: var(--sefaria-font-ui-en); font-size: 12px; line-height: 15px; color: var(--sefaria-color-text-dark-grey); }
+.caption > span { font-family: var(--sefaria-font-ui-en); }
+.mainImage { display: none; }
+
+/* ---------------------------------------------------------------- the tabs */
+.tabList { display: flex; flex-direction: row; justify-content: flex-start; margin: 0 0 18px; border-block-end: 1px solid var(--sefaria-color-border-strong); font-family: var(--sefaria-font-ui-en); }
+.tabList :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.tabsOnly { display: contents; }
+.tabItem { display: block; padding: 0; margin: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
+.tabItem:focus-visible { outline: 2px solid var(--sefaria-color-focus); }
+.tab { display: block; margin: 0; margin-inline-end: 30px; padding: 10px 0; font-size: 22px; text-align: center; color: var(--sefaria-color-text-dark-grey); cursor: pointer; user-select: none; }
+.tabItem[aria-selected="true"] .tab { color: var(--sefaria-color-text-strong); border-block-end: 4px solid var(--sefaria-color-border-strong); }
+/* the funnel and the "A": pushed to the far end */
+.justify { display: flex; align-items: center; margin: 0 0 4px; margin-inline-start: auto; }
+.pseudo { position: relative; display: inline-block; margin: 0; padding: 10px 0; font-size: 22px; color: var(--sefaria-color-text-dark-grey); cursor: pointer; user-select: none; }
+.pseudo.langToggle { margin-inline-start: 10px; }
+.justify .pseudo.langToggle { margin-inline-start: 0; }
+:global(html[dir="rtl"]) .pseudo.langToggle { transform: scale(1.3); }
+.filterIcon { width: 18px; height: 18px; margin: 0 0 1px 6px; position: relative; top: 2px; }
+:global(html[dir="rtl"]) .filterIcon { margin: 0 6px 1px 0; }
+
+/* the language choice under the "A" */
+.popover { position: absolute; top: 100%; inset-inline-end: 0; z-index: 10; box-sizing: border-box; width: 266px; padding: 15px 0; border-radius: 6px; background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-1); text-align: start; transform: none; }
+:global(html[dir="rtl"]) .popover { transform: scale(calc(1 / 1.3)); transform-origin: top left; }
+.choice { display: flex; justify-content: space-between; align-items: center; margin-inline: 15px; background: var(--sefaria-color-border-light); color: var(--sefaria-color-text-strong); font-size: 14px; cursor: pointer; }
+.choice:first-child { border-radius: 6px 6px 0 0; }
+.choice:last-child { border-radius: 0 0 6px 6px; }
+.choice.active { background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
+.choice label { flex-grow: 1; padding: 10px; cursor: pointer; }
+.choice input { appearance: none; display: inline-grid; place-content: center; box-sizing: border-box; width: 20px; height: 20px; margin: 0; margin-inline-end: 10px; border: 2px solid var(--sefaria-color-text-muted); border-radius: 20px; background: var(--sefaria-color-surface); }
+.choice input::before { content: ""; width: 10px; height: 10px; transform: scale(0); background: var(--sefaria-color-brand); clip-path: polygon(13% 50%, 34% 66%, 81% 2%, 100% 18%, 39% 100%, 0 71%); }
+.choice input:checked { border: 0; }
+.choice input:checked::before { transform: scale(1); }
+
+/* the filter and sort bar (.filter-bar-new) */
+.filterBar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 0 0 20px; font-family: var(--sefaria-font-ui-en); }
+.filterBar :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.filterInput { display: flex; align-items: center; width: 250px; padding: 5px; border-radius: 5px; background: var(--sefaria-color-border-light); }
+.filterInput img { width: 18px; height: 18px; margin: 0 9px 0 7px; }
+.filterInput input { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 16px; color: var(--sefaria-color-text-strong); }
+.filterInput input::placeholder { color: var(--sefaria-color-text-muted); }
+.filterInput input:focus { outline: none; }
+.sortBy { font-size: 16px; color: var(--sefaria-color-text-strong); }
+.sortOption { margin: 0; margin-inline-start: 7px; padding: 7px; border: 0; border-radius: 5px; background: var(--sefaria-color-border-light); font: inherit; font-size: 16px; color: var(--sefaria-color-text-dark-grey); cursor: pointer; }
+.sortOption[aria-pressed="true"] { color: var(--sefaria-color-text-strong); }
+.message { font-family: var(--sefaria-font-ui-en); font-size: 14px; font-style: italic; color: var(--sefaria-color-text-muted); }
+
+/* ---------------------------------------------------------------- a source */
+.story { margin: 0 0 20px; padding: 0; box-shadow: var(--sefaria-shadow-1); font-family: var(--sefaria-font-text-en); }
+.colorBar { clear: both; border-inline-start: 4px solid transparent; padding-inline-start: 20px; }
+.story summary { cursor: pointer; list-style: none; }
+.story summary::-webkit-details-marker { display: none; }
+.descBlock { display: flex; justify-content: space-between; margin-inline-start: -20px; padding: 20px; background: var(--sefaria-color-surface-subtle); }
+.storyTitle { margin: 0; padding: 0 0 1px; padding-inline-start: 24px; background: url("/icons/arrow-down-bold.svg") no-repeat transparent; background-size: 14px; background-position-y: center; vertical-align: middle; }
+:global(html[dir="rtl"]) .storyTitle { background-position-x: right; }
+.story details[open] .storyTitle { background-image: url("/icons/arrow-up-bold.svg"); }
+/* .topicPanel .story .storyTitle: 16px semibold in the interface face (Hebrew 18px) */
+.storyTitleText { font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 600; }
+.storyTitleText > span:lang(he) { font-family: var(--sefaria-font-ui-he); font-size: 18px; }
+.primaryCategory { font-family: var(--sefaria-font-text-en); font-size: 16px; }
+.prompt { margin-inline-start: -20px; padding: 20px; border-block-start: 1px solid var(--sefaria-color-border-strong); background: var(--sefaria-color-highlight-soft); }
+.prompt > span { font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-strong); }
+.prompt > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
+/* .story .storyBody: justified 18px text, 20px from the top and the end */
+.body { clear: both; margin: 0 0 10px; padding-block-start: 20px; padding-inline-end: 20px; text-align: justify; font-size: 18px; }
+.body a { color: inherit; text-decoration: none; }
+.text { display: block; line-height: 1.6; }
+.text:lang(en) { font-family: var(--sefaria-font-text-en); font-size: 18px; }
+.text:lang(he) { font-family: var(--sefaria-font-text-he); font-size: 22px; }
+/* source with translation: the Hebrew first, each its own block 10px apart */
+.bilingual .text:lang(he) { padding-block-end: 10px; }
+/* small text keeps the browser's "smaller" of its own language's size and face (the old page had no rule: 15px in English,
+   18.33px in a 22px Hebrew text), on the text's 1.6 line */
+.body small { font-size: smaller; }
+.body .text * { font-family: inherit; }
+/* the Hebrew interface's HACK (s2.css .interface-hebrew .storyBody): the source body stays left-to-right, 26px in from the left and
+   17px out on the right, so its padding sits on the right and Hebrew wraps in the same 287px as the old page (measured 2026-11-04) */
+:global(html[lang="he"]) .body { direction: ltr; margin-inline: 26px -17px; }
+.body :global(.poetry) { display: block; }
+/* the citation under the text */
+.footer { display: flex; }
+.citation { padding: 0 0 20px; }
+.citation a { text-decoration: none; }
+/* the old row is a serif block in both interfaces (its line is the serif's, not Heebo's) */
+:global(html[lang="he"]) .citation, :global(html[lang="he"]) .citation a { font-family: var(--sefaria-font-text-en); }
+.citation a > span { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-size: 18px; color: var(--sefaria-color-text-dark-grey); }
+.citation a > span:lang(he) { font-family: "Taamey Frank", "Times New Roman", serif; }
+.reviewState { margin-inline-start: 10px; padding: 2px 8px; border: 0; border-radius: 6px; font-family: var(--sefaria-font-ui-en); font-size: 12px; height: fit-content; cursor: pointer; color: var(--sefaria-color-on-brand); }
+.reviewed { background: var(--sefaria-color-success); }
+.notReviewed { background: var(--sefaria-color-danger); }
+.edited { background: var(--sefaria-color-attention); }
+
+/* ---------------------------------------------------------------- works on sefaria */
+.works { display: flex; flex-flow: row wrap; margin-block-end: 20px; }
+.work { box-sizing: border-box; width: 50%; margin-block-end: 10px; padding-inline-end: 20px; font-family: var(--sefaria-font-text-en); font-size: 24px; }
+/* .navBlockTitle: a serif 24px title (1.3 line), 15px over it and 8px under it */
+.workTitle { display: flex; margin-inline-end: 20px; padding: 15px 0 8px; font-family: var(--sefaria-font-text-en); font-size: 24px; line-height: 1.3; color: var(--sefaria-color-text-strong); text-decoration: none; }
+.workTitle > span { display: block; }
+.workTitle > span:lang(he) { font-family: var(--sefaria-font-text-he); }
+.workTitle:hover { color: var(--sefaria-color-text-dark-grey); }
+.workDescription { margin-inline-end: 20px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-dark-grey); }
+.workDescription > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
+
+/* ---------------------------------------------------------------- the side column */
+.section { padding: 0 44px; }
+.sectionTitle { margin: 30px 0 10px; padding-block-end: 10px; border-block-end: 1px solid var(--sefaria-color-border-strong); font-family: var(--sefaria-font-ui-en); font-size: 15px; font-weight: 400; text-align: start; text-transform: uppercase; color: var(--sefaria-color-text-dark-grey); }
+.sectionTitle > span { font-family: var(--sefaria-font-ui-en); font-size: 22px; font-weight: 400; color: var(--sefaria-color-text-dark-grey); text-transform: none; }
+.sectionTitle > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
+.side .sideInner > .section:first-child > .sectionTitle { margin-block-start: 0; }
+.sideList { font-size: 18px; line-height: 26px; }
+.related { display: block; color: var(--sefaria-color-text-strong); text-decoration: none; }
+.related:hover { text-decoration: underline; }
+.related > span:lang(en) { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; }
+.related > span:lang(he) { font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif; }
+.meta { font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-dark-grey); }
+.meta a { color: inherit; text-decoration: none; }
+a.meta { text-decoration: none; }
+.meta :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.more { display: block; padding: 0; border: 0; background: none; font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: 26px; color: var(--sefaria-color-text-dark-grey); cursor: pointer; text-align: start; }
+.more:lang(he), .more :lang(he) { font-family: var(--sefaria-font-ui-he); }
+/* Readings (a Torah portion): .topicPanel .readings, .parasha-date, .sectionTitleText, .navSidebarLink.ref, .sectionLink (measured) */
+.readings { margin-block-end: 40px; }
+.date { font-family: var(--sefaria-font-text-en); font-size: 16px; font-style: italic; }
+.date > span { font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text-muted); }
+.date > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
+.date > span:first-child::after { content: "•"; margin: 0 5px; font-size: 15px; color: var(--sefaria-color-text-muted); }
+.readingLabel { margin-block-start: 15px; font-family: var(--sefaria-font-text-en); font-size: 16px; }
+.readingLabel > span { font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: 18.75px; color: var(--sefaria-color-text-dark-grey); letter-spacing: 0.1em; }
+.readingLabel > span:lang(he) { font-family: var(--sefaria-font-ui-he); }
+.refLink { display: block; font-family: var(--sefaria-font-text-en); font-size: 18px; }
+.refLink img { width: 18px; height: 18px; margin: -4px 0 0; margin-inline-end: 10px; }
+.refLink a { color: var(--sefaria-color-text-strong); text-decoration: none; }
+.refLink a > span:lang(en) { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; }
+.refLink a > span:lang(he) { font-family: var(--sefaria-font-text-he); }
+.aliyot { margin-inline-start: 25px; font-family: var(--sefaria-font-text-en); font-size: 16px; }
+.aliya { padding: 0 4px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 30px; color: var(--sefaria-color-text-muted); text-decoration: none; }
+.aliya :lang(he) { font-family: var(--sefaria-font-ui-he); }
+.haftarot { display: flex; flex-direction: column; }
+.haftarot .refLink { margin-block-end: 10px; }
+/* the Hebrew interface: the readings are serif blocks and links as in English (the old column's serif; Heebo's taller lines added
+   1-2px per row) */
+:global(html[lang="he"]) .readings, :global(html[lang="he"]) .readings > div, :global(html[lang="he"]) .refLink a { font-family: var(--sefaria-font-text-en); }
+
+/* ---------------------------------------------------------------- a phone (the old single panel) */
+@media (max-width: 842px) {
+  .columns { padding-block-start: 25px; }
+  .title { margin: 0; }
+  .tab { font-size: 16px; }
+  .tabItem[aria-selected="true"] .tab { padding-block-end: 18px; }
+  .sideImage { display: none; }
+  /* the picture moved to the page: the first section is the column's first again */
+  .side .sideInner > .sideImage:first-child + .section > .sectionTitle { margin-block-start: 0; }
+  .mainImage { display: flex; flex-direction: column; justify-content: center; align-items: center; margin-block-start: 30px; padding: 0; }
+  .mainImage .photo { display: block; max-width: 66.67vw; max-height: 66.67vw; width: auto; margin: 0 auto 10px; }
+  .mainImage .caption { width: 80vw; margin-block-end: 30px; text-align: center; }
+  .dedication { margin: 27px 0; }
+  /* .interface-hebrew .singlePanel .tab.filter: the funnel and the "A" 3px lower */
+  :global(html[lang="he"]) .justify { margin-block-end: 0; }
+  :global(html[lang="he"]) .justify .pseudo { margin-block-start: 3px; }
+}
+@media (max-width: 900px) {
+  .refButton + .refButton { margin-inline-start: 0; }
+}
+/* the side column under the page (the old (max-width: 540px) rule) */
+@media (max-width: 540px) {
+  .columns { flex-direction: column; }
+  /* the old .sideColumn kept its 420px plus 25px padding each side on a phone, cut at the screen's edge (.noOverflowX) */
+  .side { flex: none; align-self: stretch; width: calc(100% + 50px); max-width: none; margin: 0; padding: 20px 25px 30px; border: 0; }
+  .side .sideInner > .section:first-child > .sectionTitle { margin-block-start: 0; }
+}
+@media (max-width: 450px) {
+  .main { margin: 0; padding: 0 25px; }
+  .work { width: 100%; padding: 0; }
+  .filterBar .sortBy { margin-block-start: 20px; }
+}
+
+/* a portal's About picture (.portalTopicImageWrapper): 5px down, 25px over the text, no side padding */
+.portalImage { padding-block-start: 5px; margin-block-end: 25px; }
+.portalImage .image { padding: 0; }
+.portalImage .sideImage { display: block; }
+
+/* a portal's side column is the old NavSidebar inside .topicPanel, whose `h1` rules reach its module titles: 40px serif in a 22px
+   500-weight line, 14px over a hairline (measured on /topics/jonathan-sacks); the text is the sidebar's 16px grey sans */
+.sideNav { padding-block-start: 0; font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-dark-grey); }
+.sideNav h2 { margin: 0 0 20px; padding: 0 0 14px; border-block-end: 1px solid var(--sefaria-color-border-strong); font-family: var(--sefaria-font-text-en); font-size: 22px; font-weight: 500; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-transform: none; letter-spacing: 0; }
+.sideNav h2 > span:lang(en) { font-size: 40px; }
+.sideNav h2 > span:lang(he) { font-family: var(--sefaria-font-text-he); font-size: 36px; }
+.sideNav :lang(he) { font-family: var(--sefaria-font-ui-he); }
+/* the footer (the last child): held at the top of the column once it scrolls there (.stickySidebarFooter), as NavPage's */
+.sideNav > :last-child { position: sticky; top: 60px; }
+@media (max-width: 540px) {
+  /* .topicPanel .navSidebar on a phone: 30px of grey over it, then the single panel's 30px padding */
+  .sideNav { width: auto; padding: 30px 15px 0; border-block-start: 30px solid var(--sefaria-color-surface-subtle); }
+}
+@media (max-width: 600px) {
+  /* the old (max-width: 600px) .imageWithCaptionPhoto / .topicImage rules reach a portal's picture too: centred, two thirds wide */
+  .portalImage { margin-block: -5px 0; padding: 0; }
+  .portalImage .sideImage { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .portalImage .photo { display: block; max-width: 66.67vw; max-height: 66.67vw; width: auto; margin: 0 auto 10px; }
+  .portalImage .caption { width: 80vw; margin-block-end: 30px; text-align: center; }
+}
+
+/* the Hebrew interface's work descriptions: 122% of 14px in Heebo on a 24px line, an English fallback too (the old .int-he.enInHe) */
+:global(html[lang="he"]) .workDescription { line-height: 24px; }
+:global(html[lang="he"]) .workDescription > span { font-family: var(--sefaria-font-ui-he); font-size: 122%; }
+/* the title too is 122% in the Hebrew interface (s2.css .navBlockTitle .int-he), in the Hebrew serif */
+:global(html[lang="he"]) .workTitle > span { font-size: 122%; }
+/* .interface-hebrew .authorIndex keeps its 20px (at the left) on a phone: it outranks the (max-width: 450px) reset */
+@media (max-width: 450px) {
+  :global(html[lang="he"]) .work { padding-inline-end: 20px; }
+}

@@ -21,19 +21,22 @@ installInternalApiFetch();
 // the route manifest's catalog, loaded at start rather than by the first requests (they do not wait for it meanwhile)
 if (typeof window === "undefined" && passThroughEnabled()) void warmRouteManifest();
 
+const VOICES_404_RE = /^\/(?:calendars|parashat-hashavua|todays-daf-yomi)(?:\/|$)/;
+
 /** `/healthz` for the cluster's probes, and the hand-over to Django of every page this client does not render. */
 const siteRouting = createMiddleware({ type: "request" }).server(async ({ request, pathname, next }) => {
   if (pathname === "/healthz-reader") return new Response("ok", { headers: { "content-type": "text/plain" } });
   const slash = trailingSlashRedirect(new URL(request.url), request.method, requestHost(request));
   if (slash) return slash;
-  // the Learning Schedules page and the calendar shortcuts are this client's on the Library host only (Voices: Django's, Q-E1)
+  // the Library-only pages (translations, calendars and their shortcuts, compare, topics) are this client's on the Library host only
+  // (Voices: Django's, Q-E1)
   const voicesOnly = isLibraryOnlyPage(pathname) && isVoicesHost(requestHost(request), PUBLIC_CONFIG.voicesOrigin);
   if (!voicesOnly) {
     const shortcut = await calendarShortcut(pathname, request.method, () => (passThroughEnabled() ? passThrough(request) : upstreamUnavailable()));
     if (shortcut) return shortcut;
   }
-  // without Django to hand it to, the Voices host answers these as live voices.sefaria.org does (404), not with the Library page
-  if (voicesOnly && !passThroughEnabled()) return voicesNotFound();
+  // without Django to hand it to, the Voices host answers the calendars pages as live voices.sefaria.org does (404), not with the Library page
+  if (voicesOnly && !passThroughEnabled() && VOICES_404_RE.test(pathname)) return voicesNotFound();
   if (!passThroughEnabled()) return next();
   if (voicesOnly || passesToDjango(request, pathname)) return passThrough(request);
   const resetUid = request.method === "GET" ? resetLinkUid(pathname) : null;
