@@ -9323,7 +9323,8 @@
    "Analytics attrs: data-anl-project='topics', panel_name, panel_type='Topic Landing', feature names per section.",
    "Geometry (1280px): the column is 843px (.contentInner.topic-landing-page-content: 783px of content at x=39), the page's content starts 60px under the banner; the h1 is 32px/500 #666 centred; each section 60px under the one before (on a phone 18px for the search and 36px for the cloud, the h1 30px/600 with 10px under it). The sidebar is the library's (#FBFBFA, 420px); below 920px the old sidebar dropped under the column (sidebarLayout column), the new reader at 842px with the other library pages. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
    "Sidebar order: TopicLandingTopicCatList (Browse Topics: the 15 top-level TOC categories, unfiltered by module, 18px serif links on a 20px line), TrendingTopics, AZTopicsLink (a module whose h1 is the 'All Topics A-Z ›' link), Promo (empty unless the CMS fills it). Analytics: data-anl-project='topics', panel_name='Explore by Topic', panel_type='Topic Landing' on the whole panel (sidebar included); feature_name per section: Search, Topic Salad, Featured Topic, Multi-Cards, Parashah, Calendar; the newsletter's in its data-anl-batch. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
-   "The old page fetched everything after mount (blank sections first); the new reader server-renders the search's count, Browse Topics, Trending, the featured topic and both calendar cards, and fetches only the random samples (cloud, cards) in the browser."
+   "The old page fetched everything after mount (blank sections first); the new reader server-renders the search's count, Browse Topics, Trending, the featured topic and both calendar cards, and fetches only the random samples (cloud, cards) in the browser.",
+   "Hebrew interface faces (sefaria.org.il): the page title 30px/600 Heebo on a phone (the new reader now loads Heebo 600; it drew the 700 face, 4px wider); 'Explore all Topics ›' (לדפדוף בכל הנושאים) is a 14px span in the HEBREW SERIF (it inherits the column's serif, only English is set to sans) on an 18px line, 21px tall; the portion's 'Browse All Torah Portions' and the calendar's 'Explore the Jewish Calendar' links keep the English serif line (Cardo stack, 16px → 21px tall), the reading link the 18px serif line (23px) — the new reader had Heebo there (the global :lang(he) rule) and each row grew 2–3px. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9347,7 +9348,8 @@
    "Placeholder 'Search <N> Topics A-Z' (en, N localized) / 'חיפוש לפי נושא' (he); maxLength 75; SearchButton icon.",
    "'Explore all topics' prompt smooth-scrolls .content to #browseTopics offset by header height + 16px.",
    "Search box: a 634x60 #EDEDEC pill (phone 344x47), the 18px magnifier 16px in, the input 24px/500 serif (phone 14px Roboto); suggestions in a 606px white drop-down 47px down, each 18px EB Garamond title + #333 '(Cat > Sub)' path, highlighted row #EDEDEC. The count is Sefaria.numLibraryTopics (5,768 today: the library pool's slugs, not the A–Z list's 4,402), grouped with ',' (toLocaleString). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
-   "NEW READER: the count comes from GET /api/topics/library-count (added on this branch) or, where that is missing, from the number the old /topics page writes into its props; the category paths from the server's topics TOC index (one server-function call, cached as catalog data). The topic page itself is still Django's, so choosing a suggestion is a full navigation to /topics/<slug>."
+   "NEW READER: the count comes from GET /api/topics/library-count (added on this branch) or, where that is missing, from the number the old /topics page writes into its props; the category paths from the server's topics TOC index (one server-function call, cached as catalog data). The topic page itself is still Django's, so choosing a suggestion is a full navigation to /topics/<slug>.",
+   "The search box's face in the Hebrew interface: Heebo 24px/500 on a wide screen, the English sans (Roboto) 14px/500 on a phone — not the serif of the English page (the new reader had the Hebrew serif). The magnifier is /static/icons/search_mdl.svg at every size (the old SearchButton), not the iconmonstr magnifier. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9370,7 +9372,8 @@
    "MultiPanel: WordSalad numLines=5, bullets between items on same line (computed via offsetTop), CSS clamp --num-lines. Mobile: RowedWordSalad single horizontally scrollable row.",
    "Items link /topics/<slug>.",
    "The cloud: .salad-container is a -webkit-box clamped to 5 lines in the font 'hide-ellipsis-char-font' (a zero-size face for U+2026 only), so the clamp's '…' is invisible; each item is a Roboto 22px link (40px line, 11px side margins) inside a nowrap span whose serif font sets the space and the '•' after it (margin-inline-start 0.2em). Bullets: an item gets one when the next item has the same offsetTop. Phone: RowedWordSalad, one horizontally scrolling row of #18345D pills (6px radius, 7px apart, white text). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
-   "NEW READER: the bullets are placed until the lines stop moving (a bullet can push the next item to the next line, which the old single pass left as a trailing bullet), again when the fonts arrive and on resize."
+   "NEW READER: the bullets are placed until the lines stop moving (a bullet can push the next item to the next line, which the old single pass left as a trailing bullet), again when the fonts arrive and on resize.",
+   "Bullets as sefaria.org actually shows them: WordSalad places them ONCE, in a useEffect when the random sample arrives, often before the web fonts are in; when the fonts land the lines re-wrap and nothing re-places them. Over four loads (2026-11-04) 1–2 of ~40 bullets ended a line ('Shavuot •') — a single pass on the final, bullet-less lines would differ in 6–20 places, the same-line rule on the final lines in 1–2. The new reader keeps the same-line rule on the final lines (reproducible; the closest to what live shows); a trailing bullet on live is timing, not a rule. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9390,7 +9393,8 @@
   "details": [
    "Sefaria.getFeaturedTopic() -> /_api/topics/featured-topic?lang=<en|he> (cached per day; Django TopicOfTheDay).",
    "Shows header 'Featured Topic', topic.secondary_image_uri (4:3 crop; alt = image caption), title, markdown description, 'Go to Topic ›'. Hidden if no topic.",
-   "Featured Topic: h2 15px uppercase serif #666 with 30px over it; the picture (secondary_image_uri) 239px + a 1px #EDEDEC frame sitting on a serif text line (the block is 187px tall for a 181px picture); title h3 24px serif #666, 15px over the description (16px Roboto #666, links #4B71B7); a <br> then 'Go to Topic ›'. Phone: the header 22px, the picture full width with 10px under it. The answer is /_api/topics/featured-topic?lang=<en|he> (a different topic per interface language). VERIFIED 2026-11-04 (www.sefaria.org with Playwright)."
+   "Featured Topic: h2 15px uppercase serif #666 with 30px over it; the picture (secondary_image_uri) 239px + a 1px #EDEDEC frame sitting on a serif text line (the block is 187px tall for a 181px picture); title h3 24px serif #666, 15px over the description (16px Roboto #666, links #4B71B7); a <br> then 'Go to Topic ›'. Phone: the header 22px, the picture full width with 10px under it. The answer is /_api/topics/featured-topic?lang=<en|he> (a different topic per interface language). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
+   "Hebrew interface: the description is the HEBREW SERIF (the old .reactMarkdown div inside the Heebo span: \"Noto Color Emoji\", \"EnglishInHebrew Serif Font\", Cardo, \"Taamey Frank\"…), 16px — Heebo made a description one line longer on a phone (4 lines instead of 3) and the page 43px taller; the title span is a flex box, so the title row is Taamey Frank's own 32px line, not the h3's 34px serif strut. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9414,7 +9418,8 @@
    "States: 'Subscribing...', 'Subscribed! Welcome to our list.', error (role=alert). Analytics form_start, form_submit.",
    "Form: a #18345D band (36px 65px; Hebrew 36px 46px), the teaser h3 22px Roboto white, 256px wide (Hebrew 300px); inputs 13.33px (browser default) Roboto, 5px 12px, radius 6, the first of each row 16px before the next (so the email row's button sits 16px after it), rows 20px apart; Sign Up in blue on white. Phone: everything stacked, inputs and button 18px with 20px under each. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
    "Messages: names missing → 'Please enter a valid first and last name.'; bad email → 'Please enter a valid email address.'; then 'Subscribing...' (no Hebrew string), 'Subscribed! Welcome to our list.' / 'הרשמה בוצעה בהצלחה!' in white under the inputs; a failure shows under the band in italic #802F3E, right-aligned: the server's {error} message, 'Error posting to API' for a failed status, else 'Sorry, there was an error.'. The Hebrew interface subscribes to no list (lists left out of the payload).",
-   "NEW READER: POST /api/subscribe/<email> through src/lib/auth/http (CSRF); the e2e test answers the POST itself (never production)."
+   "NEW READER: POST /api/subscribe/<email> through src/lib/auth/http (CSRF); the e2e test answers the POST itself (never production).",
+   "The Sign Up button keeps the English sans (Roboto stack) in the Hebrew interface — the Hebrew glyphs fall back to the system's — while the inputs are Heebo. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9576,7 +9581,8 @@
    "Excludes topics not displayable in active module; TopicTOCCard grid; 'There are no topics here.' when empty.",
    "Sidebar: Promo, TrendingTopics, GetTheApp, SupportSefaria.",
    "Details found: the URL's letter is used as written, so /topics/all/A matches nothing ('There are no topics here.'); the Hebrew bar excludes only ך ן ף ץ, so final mem ם shows (23 letters); in the Hebrew interface the empty list reads 'טוען מידע...' (LoadingMessage's default Hebrew: heMessage='' is falsy). Filter box 285px + 10px padding each side (content-box), #EDEDEC pill, 18px serif input; letters 16px Roboto #666, 10px apart. Sidebar: Promo, TrendingTopics, GetTheApp, SupportSefaria. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
-   "NEW READER: the letter's list is filtered and sorted on the server (the 2.9 MB /api/topics?limit=0 kept there for an hour) and server-rendered; the browser downloads the whole list only once a filter of two characters is typed."
+   "NEW READER: the letter's list is filtered and sorted on the server (the 2.9 MB /api/topics?limit=0 kept there for an hour) and server-rendered; the browser downloads the whole list only once a filter of two characters is typed.",
+   "Hebrew interface: the filter box's input is Heebo (the new reader had the Hebrew serif). VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9653,7 +9659,8 @@
    "Description markdown (with HTML, disallowed elements per module); topic image under description on mobile (non-multiPanel) via TopicImage (ImageWithCaption).",
    "Loading placeholder 'Loading...'.",
    "Geometry (1280): .content padding-top 60 under the banner; the column .storyFeedInner 760px centred beside the 420px side column (50px margins, 40px padding: text from x=90, 680 wide); h1 30px/500 with the English title 40px serif (Hebrew 36px), 5px under; the category 16px Roboto #666 uppercase 0.1em, 15px under; the description 16px Roboto black (links #4B71B7 to https://www.sefaria.org/topics/…), 15px under; Hebrew description's markdown block in the Hebrew serif face. Phone: 25px under the header, 25px side padding, h1 without margin, the picture centred under the description (≤66.67vw, caption 12px centred 80vw, 30px under). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
-   "AiInfoTooltip (outline 24px) beside the title when an about-link has a published ai_title in the interface language: hover box with 'Some of the text on this page has been AI generated.' + Learn More (/ai) and Feedback (formstack). NEW READER: ui/TopicPage TopicHeader + AiNotice."
+   "AiInfoTooltip (outline 24px) beside the title when an about-link has a published ai_title in the interface language: hover box with 'Some of the text on this page has been AI generated.' + Learn More (/ai) and Feedback (formstack). NEW READER: ui/TopicPage TopicHeader + AiNotice.",
+   "Hebrew interface on a phone: Hebrew text in the page inherits the serif where the old page set no face; the new reader's global `:lang(he) { Heebo }` had turned unstyled rows (citations, links inside serif blocks) into Heebo lines 2–3px taller. Fixed per element (citation row, landing links), not globally. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9672,7 +9679,8 @@
   "summary": "Certain Torah portion topic pages show a hard-coded sponsorship dedication.",
   "details": [
    "TopicSponsorship hard-coded text for parasha topics: bereshit, lech-lecha, toldot, vayigash, achrei-mot, vaetchanan, vzot-haberachah; only for topics with ref; markdown.",
-   "The dedication (#FBFBFA, 26px 19px, 18px #666 italic garamond; Hebrew in the Hebrew serif face with a #4B71B7 link), 27px under; shown only when the topic has a ref. NEW READER: TOPIC_SPONSORSHIPS in src/lib/topics/topic-page.ts. VERIFIED 2026-11-04 (www.sefaria.org with Playwright)."
+   "The dedication (#FBFBFA, 26px 19px, 18px #666 italic garamond; Hebrew in the Hebrew serif face with a #4B71B7 link), 27px under; shown only when the topic has a ref. NEW READER: TOPIC_SPONSORSHIPS in src/lib/topics/topic-page.ts. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
+   "Hebrew interface: the dedication's markdown is a BLOCK in the Hebrew serif (the old .reactMarkdown div), its link too (Taamey Frank, 22px tall); the new reader had an inline span with a Heebo link, 8px taller. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9717,7 +9725,9 @@
    "Tab URL-driven (tab prop / setTab); pseudo-tabs via onClickArray.",
    "Empty -> null; loading -> LoadingMessage.",
    "Tabs: 22px Roboto (phone 16px, the active one 18px padding-bottom), 10px padding, 30px apart, the active one black with a 4px #CCC underline, the others #666; a 1px #CCC rule under the row, 18px under it. Pseudo-tabs at the far end: the funnel (18px filter.svg, data-anl-event filter:click, data-anl-text=<sort>) on every tab but Notable Sources and Works; the 'A' (Hebrew 'א', scaled 1.3) on every tab but Works, opening a 266px popover Source / Translation / Source with Translation (default: the interface language — English: Translation). Works on Sefaria: titles 24px serif on a 1.3 line (15px over, 8px under), descriptions 14px/18px #666 (Hebrew interface: Heebo 122% on a 24px line, the English fallback too), two to a row, one on a phone. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
-   "NEW READER: TopicTabs (role=tablist holds only the tabs; the funnel and the A are buttons beside them), AuthorWorks, arrow keys move between tabs. The content language choice is the page's own state (not in the URL), as before."
+   "NEW READER: TopicTabs (role=tablist holds only the tabs; the funnel and the A are buttons beside them), AuthorWorks, arrow keys move between tabs. The content language choice is the page's own state (not in the URL), as before.",
+   "Hebrew interface on a phone (.interface-hebrew .singlePanel .tab.filter): the funnel and the 'א' sit 3px lower (margin-top 3px); the 1.3× scaled 'א' is 8.7px under the tab row's top on both sites after the port. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).",
+   "Hebrew interface: Works on Sefaria titles are 122% (29.28px, s2.css .navBlockTitle .int-he) in the Hebrew serif; on a phone the work keeps its 20px at the left (.interface-hebrew .authorIndex outranks the 450px reset). The new reader had 24px titles and no padding, so Rashi's list was 117px shorter. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9790,7 +9800,9 @@
    "Analytics batch per item: position, ai/human, item_id (ref), content_id (index title), content_type (categories).",
    "DEAD: dataSources tooltip text computed but afterSave element never rendered (TopicPage.jsx:186-194).",
    "Card: box-shadow 0 1px 3px rgba(0,0,0,.25), 20px apart; summary #FBFBFA 20px padding, the 14px arrow, title 16px/600 Roboto (Hebrew 18px Heebo), the book's primary category upper-cased at the end (16px serif); prompt #F0F7FF 20px padding under a 1px #CCC rule; text 18px serif on a 1.6 line (Hebrew 22px), justified, 20px from the top and the end; citation 18px garamond #666 (Hebrew Taamey Frank) with 20px under; a 4px category-colour bar at the start of each block. Only the first curated source is open. A source missing the chosen language is not shown on Notable Sources and Sources (its analytics wrapper stays, empty); on Top Citations it shows in the language it has. Body and citation link to /<normRef> (legacy encodes the book: /Zohar%2C_Shemot.51.376). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
-   "NEW READER: ui/TopicPage/SourceCard; per-source data-anl-batch {position, ai, item_id, content_id, content_type} as before."
+   "NEW READER: ui/TopicPage/SourceCard; per-source data-anl-batch {position, ai, item_id, content_id, content_type} as before.",
+   "Hebrew interface: the source body keeps s2.css's HACK `.interface-hebrew .storyBody { direction: ltr; margin: 0 -17px 10px 26px }` — the body stays left-to-right with its 20px padding on the RIGHT, so Hebrew text wraps in a 287px column 51px from the left on a phone (the new reader mirrored it to 296px from x=45 and wrapped differently). Small print inside a text is the browser's `smaller` of the text's own size (15px in English, 18.33px in a 22px Hebrew text) and the text's own face (the new reader had 15px Heebo). The citation row is a serif line (44px with the 18px Taamey Frank citation), not Heebo's 46px. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode).",
+   "Known difference: sefaria.org never loads Taamey Frank Bold on the topic page (document.fonts reports it 'unloaded' after load), so <b> in a Hebrew source is the browser's synthetic bold of the Medium face, ~4px narrower per word than the real Bold the new reader loads (it preloads it for the reader's Talmud). Now and then a line wraps one word differently."
   ],
   "audience": "all",
   "platform": "all",
@@ -9836,7 +9848,8 @@
    "Promotions (sidebar ads) under side column.",
    "Side column: 420px #FBFBFA (80px of grey above its top); sections 44px in; h2 15px uppercase #666 with its 22px Roboto title, 30px over (0 for the first), 10px padding and a 1px #CCC rule; lists 18px garamond on 26px lines; ten links then More / Less (16px Roboto #666). The picture: 332px + border, the 12px caption 6px under it (an inline image). 'Lived' shows the time period's name and year range ('1040 – 1105 CE'). Group order: 'Related' first, then alphabetical by the SINGULAR title (Parent before Parent-in-Law although 'Parents' is shown). With no displayable group the old fallback maps the category's first 20 subtopics to objects without shouldDisplay, which its own filter then drops: a titled, empty section (kept). Phone: under the page, the old 420px + 25px padding cut at the screen's edge. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
    "Found: in the Hebrew interface the Learn More links read 'undefined' on sefaria.org (Sefaria._ returns nothing for topic_page.wikipedia etc. there). NEW READER shows the Hebrew names (ויקיפדיה, האנציקלופדיה היהודית, הספרייה הלאומית) — a deliberate difference.",
-   "NEW READER: ui/TopicPage/TopicSide TopicSideColumn, sideSections / learnMoreLinks in src/lib/topics/topic-page.ts; related topics are routed links (they open in the app)."
+   "NEW READER: ui/TopicPage/TopicSide TopicSideColumn, sideSections / learnMoreLinks in src/lib/topics/topic-page.ts; related topics are routed links (they open in the app).",
+   "Hebrew interface: the side picture sits on a serif text line (its descent under the image), as in English — on a Heebo line it was 1px deeper and moved the column down. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9857,7 +9870,8 @@
   "summary": "A Torah portion topic shows the next reading date, aliyot, and haftarah links.",
   "details": [
    "ReadingsComponent (:1058-1105) for parasha topics with next-read data: 'Readings' header, next read date (Gregorian locale + Hebrew calendar string), Torah ref link, aliyot links 1-7 and 'M' (maftir; Hebrew numerals, 'מ'), Haftarah link(s), all targeted at library module.",
-   "Readings: 'October 30, 2027' • '29th of Tishrei, 5788' (14px italic Roboto #6F6F6F; hebcal's render / renderGematriya 'כ״ט תִשְׁרֵי תשפ״ח'), Torah / Haftarah labels 16px #666 0.1em, the 18px book icon and 18px garamond links, the aliyot 1–7 and M as 14px #6F6F6F links on a 30px line 25px in. NEW READER: the Hebrew date from the platform's Hebrew calendar (ICU) with hebcal's month names, no hebcal dependency. VERIFIED 2026-11-04 (www.sefaria.org with Playwright)."
+   "Readings: 'October 30, 2027' • '29th of Tishrei, 5788' (14px italic Roboto #6F6F6F; hebcal's render / renderGematriya 'כ״ט תִשְׁרֵי תשפ״ח'), Torah / Haftarah labels 16px #666 0.1em, the 18px book icon and 18px garamond links, the aliyot 1–7 and M as 14px #6F6F6F links on a 30px line 25px in. NEW READER: the Hebrew date from the platform's Hebrew calendar (ICU) with hebcal's month names, no hebcal dependency. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
+   "Hebrew interface: the readings' blocks and links keep the English serif lines (date row 21px, ref row 26px); Heebo made each row 1–2px taller. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
@@ -9902,7 +9916,8 @@
    "Generate button (if links have ai_context but no prompt): POST /api/topics/generate-prompts/<slug> with ref_topic_links; alert (staff, Celery LLM).",
    "Publish button (unpublished but reviewed links): set published=true, POST /api/ref-topic-links/bulk; confirm then reload.",
    "ReviewStateIndicator per lang (Reviewed / Not Reviewed / Edited); click marks reviewed via POST /api/ref-topic-links/<ref> review_state 'reviewed'.",
-   "NEW READER (moderators, is_staff): the Admin tab, the per-language review buttons (POST /api/ref-topic-links/<normRef> with the link's own description and review_state 'reviewed'), Generate (POST /api/topics/generate-prompts/<slug>, alert) and Publish (POST /api/ref-topic-links/bulk, confirm and reload), all through lib/auth/http (CSRF) — never exercised against production. The old editors (Add a source → SourceEditor, Edit → TopicEditor, Reorder sources → ReorderEditor, the pencil per source) are not built: their buttons reload the page with ?editor=1, which this client hands to Django (the old page with its editors)."
+   "NEW READER (moderators, is_staff): the Admin tab, the per-language review buttons (POST /api/ref-topic-links/<normRef> with the link's own description and review_state 'reviewed'), Generate (POST /api/topics/generate-prompts/<slug>, alert) and Publish (POST /api/ref-topic-links/bulk, confirm and reload), all through lib/auth/http (CSRF) — never exercised against production. The old editors (Add a source → SourceEditor, Edit → TopicEditor, Reorder sources → ReorderEditor, the pencil per source) are not built: their buttons reload the page with ?editor=1, which this client hands to Django (the old page with its editors).",
+   "The AI notice (AiInfoTooltip) is ALWAYS in the page: the box with 'Learn More' (/ai, data-anl-event learn_more_click:click, data-anl-text learn_more) and 'Feedback' (formstack, feedback_click:click, feedback) is rendered hidden (.ai-message: opacity 0, visibility hidden, 180px back from the icon) and shown while the icon or the box is hovered (fade in 0.5s, out 2s); the box is 198px, #FBFBFA, radius 6, 14px/18px Roboto, links #4B71B7. The new reader rendered the links only on hover — anything scanning data-anl on load missed them; now as live. VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "moderator",
   "platform": "all",
@@ -9922,7 +9937,8 @@
   "summary": "Topic pages tag their root with analytics context for impressions.",
   "details": [
    "Root container data-anl-batch = {project:'topics', content_lang, panel_category}.",
-   "Root batch {project:'topics', content_lang:<english|hebrew|bilingual from the language toggle>, panel_category:<parents' slugs joined by '|'>} (left out when the topic has no category); the side column data-anl-panel_type='topics' data-anl-panel_number=0. VERIFIED 2026-11-04 (www.sefaria.org with Playwright)."
+   "Root batch {project:'topics', content_lang:<english|hebrew|bilingual from the language toggle>, panel_category:<parents' slugs joined by '|'>} (left out when the topic has no category); the side column data-anl-panel_type='topics' data-anl-panel_number=0. VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
+   "GA4 events of the page (data-anl, ANL-015) as sefaria.org fires them: filter:click {text: <sort>} on the funnel, sort_by:click {text, from, to} on a sort option, search:input {text} in the filter box, lang_toggle_click on the A and lang_toggle_select {text, to: source|translation|sourcewtrans, from, feature_name: 'source lang toggled'} on a choice, each with the page batch {project: topics, content_lang, panel_category}. Tab clicks carry no data-anl attribute in the legacy TabView (TopicPage.jsx), so no declarative event. NEW READER: covered by e2e (topic-page.spec.ts 'the topic page's analytics')."
   ],
   "audience": "system",
   "platform": "all",
@@ -10075,7 +10091,9 @@
   "summary": "A topic page exists on the Library only for topics in the Library's pool; the new reader decides it from the A–Z list or the topic's pools, and otherwise lets Django answer.",
   "details": [
    "Legacy: reader/views.py topic_page answers 404 when the topic does not exist or get_topic_pool_name_for_module(active_module) is not in topic.get_pools(); noindex unless should_display(min_sources=3, textual_only=True). VERIFIED 2026-11-04 (www.sefaria.org with Playwright).",
-   "NEW READER: a slug in the server's A–Z list (/api/topics?limit=0: library pool, displayable, ≥3 text sources or a description) renders; otherwise the v2 topic's `pools` decide (added to get_topic's v2 answer on this branch, sefaria/helper/topic.py); where the API gives no pools (sefaria.org today) the route answers 404 and the server hands the request to Django, which renders the old page or its 404. noindex is the same test on the topic's fields."
+   "NEW READER: a slug in the server's A–Z list (/api/topics?limit=0: library pool, displayable, ≥3 text sources or a description) renders; otherwise the v2 topic's `pools` decide (added to get_topic's v2 answer on this branch, sefaria/helper/topic.py); where the API gives no pools (sefaria.org today) the route answers 404 and the server hands the request to Django, which renders the old page or its 404. noindex is the same test on the topic's fields.",
+   "NEW READER: the hand-off to Django also works after an in-app navigation: the topics routes' notFoundComponent (src/features/topics/DjangoHandoff.tsx) loads the address again from the server when the 404 was reached in the app (the document was loaded at another address, src/lib/routing/django-handoff.ts) — a related link, a description link, a card or ?editor=1 reached by navigation then gets Django's page when pass-through is on; the server's own 404 shows 'Page not found.' and never reloads. Before, TanStack's bare 'Not Found' showed and Django never got the request.",
+   "Open: the backend change (get_topic's v2 answer carries `pools`) and its test (sefaria/helper/tests/topic_test.py::test_get_topic_v2_answers_the_topics_pools) have not been run (no Django/Mongo environment); until it is deployed, Library topics outside the A–Z list (~1,366) always go to Django."
   ],
   "refs": [
    "reader/views.py:3592-3640",
@@ -16180,7 +16198,8 @@
    "Nudge schedule {1:{sessions:2,days:7}, 2:{sessions:4,days:21}}; max 3 maybe-later then hidden forever; migrates legacy cookie",
    "SSR-safe (renders nothing until mounted); promo_viewed once per session; promo_clicked with feature_name",
    "Cookie names chatbot_experiment_banner_dismissed, signup_promo_banner_dismissed",
-   "Geometry (1280px): a 104px #f7f7f7 strip under the header (padding 10px, 1px lightgrey rule), the #653259 card radius 10px padding 20px; ai-double-star.svg 41x43, 18px from two lines (16px 600 white; 16px at 0.85 opacity, 4px apart); buttons 38px high, 14px/18px 600: 'Log in to Try' white with a shadow, 'Maybe later' transparent; 50px before the buttons, 20px between them. Verified on www.sefaria.org with Playwright, 2026-10-29."
+   "Geometry (1280px): a 104px #f7f7f7 strip under the header (padding 10px, 1px lightgrey rule), the #653259 card radius 10px padding 20px; ai-double-star.svg 41x43, 18px from two lines (16px 600 white; 16px at 0.85 opacity, 4px apart); buttons 38px high, 14px/18px 600: 'Log in to Try' white with a shadow, 'Maybe later' transparent; 50px before the buttons, 20px between them. Verified on www.sefaria.org with Playwright, 2026-10-29.",
+   "Hebrew interface: the banner's text and buttons stay in the English sans (Roboto; the Hebrew glyphs from the system's fallback face), 19px lines — not Heebo (24px lines), which made the strip 9px taller and moved every Hebrew desktop page down (the 2–14% whole-page diffs on the topics pages). VERIFIED 2026-11-04 (www.sefaria.org / www.sefaria.org.il with Playwright, computed styles and CSS.getPlatformFontsForNode)."
   ],
   "audience": "all",
   "platform": "all",
