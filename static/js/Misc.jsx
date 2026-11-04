@@ -858,6 +858,7 @@ class ToggleSet extends Component {
             style={style}
             image={option.image}
             fa={option.fa}
+            analyticsAttributes={option.analyticsAttributes}
             content={option.content} />))}
         </div>
       </div>);
@@ -935,6 +936,7 @@ class ToggleOption extends Component {
         tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
         aria-checked={ariaCheckedValue}
         className={classes}
+        {...this.props.analyticsAttributes}
         onKeyDown={this.checkKeyPress}
         onClick={this.handleClick}>
         {content}
