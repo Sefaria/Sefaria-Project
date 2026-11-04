@@ -13,7 +13,7 @@ import { serverCatalogTree, type TocNode } from "~/lib/catalog/toc";
 import { parseUrlRef } from "~/lib/ref/url";
 
 const CLIENT_EXACT = new Set(["/", "/search", "/login", "/register", "/texts", "/topics"]);
-const CLIENT_PREFIXES = ["/texts/", "/topics/category/", "/topics/all/", "/interface/", "/password/reset/confirm/", "/_serverFn/", "/assets/", "/auth/", "/brand/", "/fonts/", "/img/", "/@", "/__"];
+const CLIENT_PREFIXES = ["/texts/", "/topics/", "/interface/", "/password/reset/confirm/", "/_serverFn/", "/assets/", "/auth/", "/brand/", "/fonts/", "/img/", "/@", "/__"];
 
 export type RouteOwner = "client" | "django";
 

@@ -61,9 +61,9 @@ export function TopicCard({ href, title, description, bottomLink, analyticsEvent
       </div>
       {bottomLink ? (
         <div className={styles.bottomCardLink}>
-          <a href={bottomLink.href} data-anl-text={bottomLink.en} data-anl-event={event} data-target-module="library">
+          <A href={bottomLink.href} data-anl-text={bottomLink.en} data-anl-event={event} data-target-module="library">
             <InterfaceMarkdown text={{ en: bottomLink.en, he: bottomLink.he }} noLinks />
-          </a>
+          </A>
         </div>
       ) : null}
     </div>

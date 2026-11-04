@@ -19,7 +19,9 @@ import { Route as InterfaceLangRouteImport } from './routes/interface.$lang'
 import { Route as TextsIndexRouteImport } from './routes/texts.index'
 import { Route as TextsSplatRouteImport } from './routes/texts.$'
 import { Route as TopicsIndexRouteImport } from './routes/topics.index'
+import { Route as TopicsSplatRouteImport } from './routes/topics.$'
 import { Route as TopicsAllLetterRouteImport } from './routes/topics.all.$letter'
+import { Route as TopicsBSplatRouteImport } from './routes/topics.b.$'
 import { Route as TopicsCategorySlugRouteImport } from './routes/topics.category.$slug'
 import { Route as AuthPasswordResetConfirmUidb64TokenRouteImport } from './routes/_auth.password.reset.confirm.$uidb64.$token'
 
@@ -72,9 +74,19 @@ const TopicsIndexRoute = TopicsIndexRouteImport.update({
   path: '/topics/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TopicsSplatRoute = TopicsSplatRouteImport.update({
+  id: '/topics/$',
+  path: '/topics/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TopicsAllLetterRoute = TopicsAllLetterRouteImport.update({
   id: '/topics/all/$letter',
   path: '/topics/all/$letter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TopicsBSplatRoute = TopicsBSplatRouteImport.update({
+  id: '/topics/b/$',
+  path: '/topics/b/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TopicsCategorySlugRoute = TopicsCategorySlugRouteImport.update({
@@ -97,9 +109,11 @@ export interface FileRoutesByFullPath {
   '/register': typeof AuthRegisterRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/topics/$': typeof TopicsSplatRoute
   '/texts/': typeof TextsIndexRoute
   '/topics/': typeof TopicsIndexRoute
   '/topics/all/$letter': typeof TopicsAllLetterRoute
+  '/topics/b/$': typeof TopicsBSplatRoute
   '/topics/category/$slug': typeof TopicsCategorySlugRoute
   '/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
@@ -111,9 +125,11 @@ export interface FileRoutesByTo {
   '/register': typeof AuthRegisterRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/topics/$': typeof TopicsSplatRoute
   '/texts': typeof TextsIndexRoute
   '/topics': typeof TopicsIndexRoute
   '/topics/all/$letter': typeof TopicsAllLetterRoute
+  '/topics/b/$': typeof TopicsBSplatRoute
   '/topics/category/$slug': typeof TopicsCategorySlugRoute
   '/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
@@ -127,9 +143,11 @@ export interface FileRoutesById {
   '/_auth/register': typeof AuthRegisterRoute
   '/interface/$lang': typeof InterfaceLangRoute
   '/texts/$': typeof TextsSplatRoute
+  '/topics/$': typeof TopicsSplatRoute
   '/texts/': typeof TextsIndexRoute
   '/topics/': typeof TopicsIndexRoute
   '/topics/all/$letter': typeof TopicsAllLetterRoute
+  '/topics/b/$': typeof TopicsBSplatRoute
   '/topics/category/$slug': typeof TopicsCategorySlugRoute
   '/_auth/password/reset/confirm/$uidb64/$token': typeof AuthPasswordResetConfirmUidb64TokenRoute
 }
@@ -143,9 +161,11 @@ export interface FileRouteTypes {
     | '/register'
     | '/interface/$lang'
     | '/texts/$'
+    | '/topics/$'
     | '/texts/'
     | '/topics/'
     | '/topics/all/$letter'
+    | '/topics/b/$'
     | '/topics/category/$slug'
     | '/password/reset/confirm/$uidb64/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -157,9 +177,11 @@ export interface FileRouteTypes {
     | '/register'
     | '/interface/$lang'
     | '/texts/$'
+    | '/topics/$'
     | '/texts'
     | '/topics'
     | '/topics/all/$letter'
+    | '/topics/b/$'
     | '/topics/category/$slug'
     | '/password/reset/confirm/$uidb64/$token'
   id:
@@ -172,9 +194,11 @@ export interface FileRouteTypes {
     | '/_auth/register'
     | '/interface/$lang'
     | '/texts/$'
+    | '/topics/$'
     | '/texts/'
     | '/topics/'
     | '/topics/all/$letter'
+    | '/topics/b/$'
     | '/topics/category/$slug'
     | '/_auth/password/reset/confirm/$uidb64/$token'
   fileRoutesById: FileRoutesById
@@ -186,9 +210,11 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   InterfaceLangRoute: typeof InterfaceLangRoute
   TextsSplatRoute: typeof TextsSplatRoute
+  TopicsSplatRoute: typeof TopicsSplatRoute
   TextsIndexRoute: typeof TextsIndexRoute
   TopicsIndexRoute: typeof TopicsIndexRoute
   TopicsAllLetterRoute: typeof TopicsAllLetterRoute
+  TopicsBSplatRoute: typeof TopicsBSplatRoute
   TopicsCategorySlugRoute: typeof TopicsCategorySlugRoute
 }
 
@@ -264,11 +290,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TopicsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/topics/$': {
+      id: '/topics/$'
+      path: '/topics/$'
+      fullPath: '/topics/$'
+      preLoaderRoute: typeof TopicsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/topics/all/$letter': {
       id: '/topics/all/$letter'
       path: '/topics/all/$letter'
       fullPath: '/topics/all/$letter'
       preLoaderRoute: typeof TopicsAllLetterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/topics/b/$': {
+      id: '/topics/b/$'
+      path: '/topics/b/$'
+      fullPath: '/topics/b/$'
+      preLoaderRoute: typeof TopicsBSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/topics/category/$slug': {
@@ -310,9 +350,11 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   InterfaceLangRoute: InterfaceLangRoute,
   TextsSplatRoute: TextsSplatRoute,
+  TopicsSplatRoute: TopicsSplatRoute,
   TextsIndexRoute: TextsIndexRoute,
   TopicsIndexRoute: TopicsIndexRoute,
   TopicsAllLetterRoute: TopicsAllLetterRoute,
+  TopicsBSplatRoute: TopicsBSplatRoute,
   TopicsCategorySlugRoute: TopicsCategorySlugRoute,
 }
 export const routeTree = rootRouteImport

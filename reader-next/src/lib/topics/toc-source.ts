@@ -112,6 +112,12 @@ function serverCached<T>(load: () => Promise<T>): () => Promise<T> {
 const serverToc = serverCached(() => fetchTopicTocTree());
 const serverCount = serverCached(() => fetchNumLibraryTopics());
 const serverList = serverCached(() => fetchTopicList());
+const serverListSlugs = serverCached(async () => new Set((await serverList()).map((t) => t.slug)));
+
+/** Server only: the topics TOC this server keeps (an hour). For other server functions (the single topic page). */
+export const serverTopicToc = (): Promise<TopicTocNode[]> => serverToc();
+/** Server only: the slugs of the A–Z list (the library's displayable topics: library pool, should_display(3, textual only)). */
+export const serverListedTopicSlugs = (): Promise<Set<string>> => serverListSlugs();
 
 export interface TopicTocPageData {
   /** The category's own titles (the page's h1); null for the top level. */

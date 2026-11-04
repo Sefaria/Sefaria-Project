@@ -3,8 +3,9 @@
  * and the browser (which must leave the app to reach them, e.g. when the Library Assistant asks for a topic page).
  *
  * Not here (rendered by this client since the auth port): "login", "register" and "password" (the reset link).
- * "topics" (since the topics port): the landing page, categories and A–Z are this client's; a single topic is still Django's
- * (DJANGO_TOPIC_PAGE below), and so is every /topics page on the Voices host (isDjangoPageForHost).
+ * "topics" (since the topics ports, 2026-11-04): every Library /topics page — the landing page, categories, A–Z and a single topic
+ * (/topics/<slug>, /topics/b/<slug>) — is this client's; a topic whose Library pool cannot be confirmed is a 404 here and so goes on
+ * to Django (features/topics). Every /topics page on the Voices host stays Django's (isDjangoPageForHost).
  */
 
 /** First path segments that are always Django's (sefaria/urls*.py, plus the pages the old site serves under them). */
@@ -18,14 +19,8 @@ export const DJANGO_PREFIXES = [
 ];
 const PREFIX_RE = new RegExp(`^/(?:${DJANGO_PREFIXES.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?:[/.]|$)`);
 
-/**
- * Under /topics this client renders /topics, /topics/category/<slug> and /topics/all/<letter>; every other /topics/… path (a single
- * topic, /topics/b/<slug>) is Django's.
- */
-const DJANGO_TOPIC_PAGE = /^\/topics\/(?!(?:category|all)(?:\/|$))[^/]/;
-
 /** Is this path (as written, starting with "/") one of Django's pages? */
-export const isDjangoPage = (pathname: string): boolean => PREFIX_RE.test(pathname) || DJANGO_TOPIC_PAGE.test(pathname);
+export const isDjangoPage = (pathname: string): boolean => PREFIX_RE.test(pathname);
 
 /**
  * The Voices host (voices.<domain>, chiburim.<domain>, or the configured Voices origin's host): which product it is is decided by

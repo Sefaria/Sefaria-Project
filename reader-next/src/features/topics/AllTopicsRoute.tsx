@@ -40,7 +40,7 @@ export function AllTopicsRoute({ letter }: { letter: string }) {
           cards.length ? (
             <TopicCardGrid>
               {cards.map((c) => (
-                <TopicCard key={c.slug} href={topicPageHref(c.slug)} title={c.title} description={c.description} analyticsEvent="navto_topic:click" />
+                <TopicCard key={c.slug} href={topicPageHref(c.slug)} routed title={c.title} description={c.description} analyticsEvent="navto_topic:click" />
               ))}
             </TopicCardGrid>
           ) : (

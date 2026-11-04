@@ -47,7 +47,7 @@ export function TopicCategoryRoute({ slug }: { slug: string }) {
         <TopicCardGrid>
           {cards.map((c) => (
             // a sub-category is this client's page; a topic is still Django's (a link that leaves the app)
-            <TopicCard key={c.slug} href={c.isCategory ? c.href : topicPageHref(c.slug)} routed={c.isCategory} title={c.title} description={c.description} analyticsEvent="navto_topic:click" />
+            <TopicCard key={c.slug} href={c.isCategory ? c.href : topicPageHref(c.slug)} routed title={c.title} description={c.description} analyticsEvent="navto_topic:click" />
           ))}
         </TopicCardGrid>
       }

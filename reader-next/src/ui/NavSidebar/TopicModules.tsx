@@ -12,8 +12,8 @@ export interface SidebarTopic {
   primaryTitle: { en: string; he: string };
 }
 
-/** A single topic's page is still Django's (the next port): a plain link that leaves the app, as `/topics/<slug>` on the old site. */
-export const topicPageHref = (slug: string) => `${LIBRARY}/topics/${slug}`;
+/** A single topic's page (this client's since the topic page port): `/topics/<slug>`, a routed link. */
+export const topicPageHref = (slug: string) => `/topics/${slug}`;
 
 /**
  * The topics pages' sidebar modules, ported from the old NavSidebar (static/js/NavSidebar.jsx): About Topics, Trending Topics,
@@ -44,9 +44,9 @@ export function TrendingTopics({ topics }: { topics: readonly SidebarTopic[] | u
         <div className={t.list}>
           {topics.map((topic) => (
             <div className={`${styles.link} ${styles.ref}`} key={topic.slug}>
-              <a href={topicPageHref(topic.slug)} data-anl-link_type="topic" data-anl-event="navto_topic:click" data-anl-text={topic.primaryTitle.en}>
+              <Link href={topicPageHref(topic.slug)} data-anl-link_type="topic" data-anl-event="navto_topic:click" data-anl-text={topic.primaryTitle.en}>
                 <InterfaceText en={topic.primaryTitle.en} he={topic.primaryTitle.he} />
-              </a>
+              </Link>
             </div>
           ))}
         </div>

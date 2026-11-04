@@ -80,9 +80,9 @@ export function RowedWordSalad({ items, renderItem }: { items: readonly LandingT
  */
 export function TopicSalad({ items, phone, topicHref }: { items: readonly LandingTopic[] | undefined; phone: boolean; topicHref: (slug: string) => string }) {
   const renderItem = (t: LandingTopic) => (
-    <a href={topicHref(t.slug)} className={styles.saladItem} data-anl-link_type="topic" data-anl-text={t.primaryTitle.en} data-anl-event="navto_topic:click">
+    <Link href={topicHref(t.slug)} className={styles.saladItem} data-anl-link_type="topic" data-anl-text={t.primaryTitle.en} data-anl-event="navto_topic:click">
       <InterfaceText en={t.primaryTitle.en} he={t.primaryTitle.he} />
-    </a>
+    </Link>
   );
   const list = items ?? [];
   return (
@@ -118,7 +118,7 @@ export function FeaturedTopic({ topic, topicHref }: { topic: FeaturedTopicData |
       </h2>
       <div className={styles.featuredContent}>
         <div className={styles.featuredImg}>
-          <a href={href}>{topic.imageUrl ? <img className={styles.featuredPhoto} src={topic.imageUrl} alt={alt} /> : null}</a>
+          <Link href={href}>{topic.imageUrl ? <img className={styles.featuredPhoto} src={topic.imageUrl} alt={alt} /> : null}</Link>
         </div>
         <div className={styles.featuredText}>
           <h3>
@@ -129,9 +129,9 @@ export function FeaturedTopic({ topic, topicHref }: { topic: FeaturedTopicData |
             <div className={styles.featuredGoWrap}>
               <br />
               <span data-anl-link_type="link" data-anl-text={prompt} data-anl-event="navto_topic:click">
-                <a href={href} className={styles.featuredGo}>
+                <Link href={href} className={styles.featuredGo}>
                   <InterfaceText en={prompt} he="לפתיחת הנושא ›" />
-                </a>
+                </Link>
               </span>
             </div>
           </div>
@@ -232,6 +232,7 @@ export function TopicDeck({ topics, topicHref }: { topics: readonly LandingTopic
         <div className={styles.deckItem} data-anl-link_type="topic" key={t.slug}>
           <TopicCard
             variant="described"
+            routed
             href={topicHref(t.slug)}
             title={t.primaryTitle}
             description={t.description}
@@ -249,7 +250,7 @@ function CalendarCard({ header, title, description, href, children }: { header: 
   return (
     <div className={styles.calendar}>
       <div className={styles.calendarHeader}>{header}</div>
-      <span data-anl-link_type="topic">{title ? <TopicCard href={href} title={title} description={description} analyticsEvent="navto_topic" /> : <div className={styles.card} />}</span>
+      <span data-anl-link_type="topic">{title ? <TopicCard href={href} routed title={title} description={description} analyticsEvent="navto_topic" /> : <div className={styles.card} />}</span>
       {children ? <div>{children}</div> : null}
     </div>
   );
@@ -280,9 +281,9 @@ export function ParashaCard({ parasha, reading, topicHref }: { parasha: ParashaC
     <div className={styles.parasha} data-anl-feature_name="Parashah">
       <CalendarCard header={<InterfaceText en="This Week’s Torah Portion" he="פרשת השבוע" />} title={p.displayValue} description={p.description} href={href}>
         <div className={styles.learnMore}>
-          <a href={href} data-anl-link_type="topic" data-anl-text={learn.en} data-anl-event="navto_topic:click">
+          <Link href={href} data-anl-link_type="topic" data-anl-text={learn.en} data-anl-event="navto_topic:click">
             <InterfaceText en={learn.en} he={learn.he} />
-          </a>
+          </Link>
         </div>
         <div className={styles.parashahLink}>
           <span data-anl-link_type="open reader" data-anl-event="navto_topic:click">
@@ -346,9 +347,9 @@ export function SeasonalCard({ seasonal, topicHref }: { seasonal: SeasonalCardDa
     <>
       {s.prefix ?? ""}{" "}
       {secondary ? (
-        <a href={href} data-anl-link_type="topic" data-anl-text={secondary} data-anl-event="navto_topic:click">
+        <Link href={href} data-anl-link_type="topic" data-anl-text={secondary} data-anl-event="navto_topic:click">
           {secondary}
-        </a>
+        </Link>
       ) : (
         ""
       )}{" "}
@@ -361,9 +362,9 @@ export function SeasonalCard({ seasonal, topicHref }: { seasonal: SeasonalCardDa
     <div className={styles.seasonal} data-anl-feature_name="Calendar">
       <CalendarCard header={<InterfaceText en="On the Jewish Calendar" he="מועדים קרובים בלוח השנה העברי" />} title={title} description={s.topic?.description} href={href} />
       <div className={styles.learnMore}>
-        <a href={href} data-anl-link_type="topic" data-anl-text={learn.en} data-anl-event="navto_topic:click">
+        <Link href={href} data-anl-link_type="topic" data-anl-text={learn.en} data-anl-event="navto_topic:click">
           <InterfaceText en={learn.en} he={learn.he} />
-        </a>
+        </Link>
       </div>
       <div className={styles.seasonalBottom}>
         <div className={styles.dateMessage}>

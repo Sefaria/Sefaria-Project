@@ -1,5 +1,5 @@
 import { useQuery, type QueryClient } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
+import { useNavigate, useRouteContext } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { langCode, useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { isValidEmail } from "~/lib/feedback/feedback";
@@ -55,6 +55,7 @@ export function TopicsLandingRoute() {
   const lang = langCode(useInterfaceLang());
   const { diaspora } = useRouteContext({ from: "__root__" });
   const phone = useMediaQuery(PHONE);
+  const navigate = useNavigate();
   const mounted = useMounted();
 
   const cats = useQuery(topicTocPageQueryOptions("")).data?.entries;
@@ -83,7 +84,7 @@ export function TopicsLandingRoute() {
   const teaser = lang === "he" ? "הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים." : "Stay curious. Get the Timeless Topics newsletter every Tuesday.";
   return (
     <TopicsLandingPage
-      search={<TopicLandingSearch numOfTopics={count} suggestions={suggestions} onInput={setWord} onChoose={(slug) => window.location.assign(topicPageHref(slug))} />}
+      search={<TopicLandingSearch numOfTopics={count} suggestions={suggestions} onInput={setWord} onChoose={(slug) => void navigate({ to: topicPageHref(slug) as never })} />}
       salad={<TopicSalad items={salad} phone={phone} topicHref={topicPageHref} />}
       featured={<FeaturedTopic topic={featured ? { ...featured, imageUrl: featured.secondary_image_uri, imageCaption: featured.image?.image_caption } : featured} topicHref={topicPageHref} />}
       newsletter={
