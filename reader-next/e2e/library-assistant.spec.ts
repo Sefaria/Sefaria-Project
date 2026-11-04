@@ -36,15 +36,16 @@ test.describe("the Library Assistant's links", () => {
     expect(await inApp(page)).toBe(true);
   });
 
-  test("a topic (a page Django serves) is loaded in full; another site is ignored", async ({ page }) => {
-    await page.route("**/topics/shabbat", (r) => r.fulfill({ contentType: "text/html", body: "<html><body>Django's topic page</body></html>" }));
+  // (a topic page was the example until the topics port made /topics this client's; a collection is still Django's)
+  test("a page Django serves is loaded in full; another site is ignored", async ({ page }) => {
+    await page.route("**/collections/shabbat", (r) => r.fulfill({ contentType: "text/html", body: "<html><body>Django's collection page</body></html>" }));
     await open(page, "/Genesis.1?lang=bi");
     await page.evaluate(() => ((window as unknown as { __mark: number }).__mark = 1));
     await ask(page, { url: "https://evil.example.com/phish" });
     await page.waitForTimeout(300);
     expect(new URL(page.url()).pathname).toBe("/Genesis.1");
-    await ask(page, { url: "/topics/shabbat" });
-    await expect(page.getByText("Django's topic page")).toBeVisible();
-    expect(new URL(page.url()).pathname).toBe("/topics/shabbat");
+    await ask(page, { url: "/collections/shabbat" });
+    await expect(page.getByText("Django's collection page")).toBeVisible();
+    expect(new URL(page.url()).pathname).toBe("/collections/shabbat");
   });
 });
