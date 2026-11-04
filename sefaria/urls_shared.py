@@ -211,6 +211,7 @@ shared_patterns = [
     path('api/topics', reader_views.topics_list_api),
     path('api/topics/generate-prompts/<path:slug>', reader_views.generate_topic_prompts_api),
     re_path(r'^api/topics-toc/?$', reader_views.topics_toc_api),
+    re_path(r'^api/topics/library-count/?$', reader_views.num_library_topics_api),
     path('api/topics-graph/<path:topic>', reader_views.topic_graph_api),
     path('api/topics/pools/<path:pool_name>', reader_views.topic_pool_api),
     re_path(r'^_api/topics/featured-topic/?$', reader_views.featured_topic_api),

@@ -2095,6 +2095,15 @@ def topics_toc_api(request):
 
 
 @catch_error_as_json
+def num_library_topics_api(request):
+    """
+    How many topics the library's pool has: the topics landing page's "Search N Topics A-Z" (the old pages read it from their props,
+    base_props' numLibraryTopics; the new reader asks for it).
+    """
+    return jsonResponse({"count": get_num_library_topics()})
+
+
+@catch_error_as_json
 def search_autocomplete_redirecter(request):
     query = request.GET.get("q", "")
     topic_override = query.startswith('#')
