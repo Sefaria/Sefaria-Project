@@ -24,15 +24,26 @@ NEW = [
          "A segment (Genesis 1:3): refArray [] — the form shows 'Genesis 1' and NO table (an empty array is truthy in the page). VERIFIED 2026-11-04.",
          "BUG: a segment range (Genesis 1:3-5) answers 500 (all_subrefs of a ranged segment throws). VERIFIED 2026-11-04.",
          "BUG: a section range (Genesis 1-2) stays secRef 'Genesis 1-2'; its table has max(sections) rows 'Genesis 1-2:1'… that never leave 'Loading...'. VERIFIED 2026-11-04.",
-         "'Load Next Chapter' (Sefaria.getRef(secRef).next) goes to /compare/<next>/<lang>/<v1>/<v2> with the page's own address parts; with no language in the address the path ends '//' and Django answers 404 (e.g. from /compare/Genesis.1/).",
+         "'Load Next Chapter' (Sefaria.getRef(secRef).next) goes to /compare/<next>/<lang>/<v1>/<v2> with the page's own address parts; with no language in the address the path ends '//' (from /compare/Genesis.1/: /compare/Genesis_2//). nginx merges the slashes, so Django answers 200 with Genesis 2's form and the address bar keeps the '//'. VERIFIED 2026-11-04 (curl 200, JSON_PROPS secRef 'Genesis 2'; Playwright walk).",
          "Tables appear only when the address has language, v1 and v2; an invalid ref with all three shows 'Loading Text...' for ever.",
      ], "audience": "staff", "platform": "all", "status": "legacy", "tier": "optional", "refs": ["sefaria/views.py:2245", "static/js/diff_page.jsx:107"], "src": "survey 2026-11-04"},
 ]
+# Corrections to lines this script wrote before (the review of 2026-11-04): replaced in place, so a rerun stays idempotent
+def replace(fid, old_start, new):
+    d = by[fid]["details"]
+    for k, l in enumerate(d):
+        if l.startswith(old_start) and l != new:
+            d[k] = new
 for n in NEW:
     if n["id"] not in by:
         atlas.append(n); by[n["id"]] = n
     print(n["id"], n["name"])
+replace("LEG-032", "'Load Next Chapter' (Sefaria.getRef(secRef).next)", NEW[1]["details"][4])
 
+add("LEG-031", [
+    "BUILT 2026-11-04 (src/lib/routing/standalone.ts, src/routes/__root.tsx): on a /compare page the root renders no header, no viewport meta, no site fonts (no Typekit, no font preloads), GTM only, <html lang> without dir, and <body data-standalone> in the browser's own font, colours and 8px margin (base.css), so anything outside the page's wrapper (a 404 included) is in Times as on live. Body font in the Hebrew interface: 'Times', as live. VERIFIED 2026-11-04.",
+    "A /compare address Django's pattern cannot match: on a server load our 404 (production passes it to Django's 404 page); reached from the form in the browser, the page is loaded as a document (the old page's window.location.assign), so the server answers it. e2e/compare.spec.ts.",
+])
 add("LEG-010", [
     "Correction (survey 2026-11-04): the page is public, but the client opens the change dialog only for Sefaria.is_moderator || Sefaria.is_editor; others get alert('Only Sefaria Moderators Can Edit Texts') or, signed out, alert('Not signed in. You must be signed in as a Sefaria Moderator to use this feature.'). The write (POST /api/texts/<segment url>, form field json={versionTitle, language, text}) is checked by the server.",
     "Form: 'Ref:' text input (300px), 'Language:' Hebrew/English, and — only when the typed ref has versions — 'Version 1:'/'Version 2:' selects ('Select a Version' + the titles of the language bucket of /api/texts/versions/<ref>: a title ending [xx] is language xx). The version lists follow the typed ref and the chosen language live. 'Load Diff' goes to /compare/<ref>/<lang>/<v1>/<v2> (spaces → underscores) only when something differs from the page's address. VERIFIED 2026-11-04.",
@@ -41,9 +52,12 @@ add("LEG-010", [
     "Filters: the seven checkboxes act only on 'Update', hiding the colour of ins/del spans whose whole text is that character (only spans already rendered).",
     "BUG: accepting an insertion at the very end of a segment computes a NaN position and writes the replacement in front of the whole text. BUG: after a failed post the row stays blocked ('Another Change in Progress, Please Wait') until reload.",
     "BUILT 2026-11-04 (src/routes/compare.$.tsx + compare.index.tsx, src/features/compare, src/ui/VersionDiff, src/lib/compare): same page, address, form, tables, filters, tooltip and dialog; pixel diff 0.00% against www.sefaria.org at 1280 and on a phone, English and Hebrew interface (empty form, ref only, Genesis 1 he diff, English diff, Talmud, book-level). Differences on purpose: one texts request per section and version (segments taken from it, same text); a section range shows one table per section, a segment range the form without a table (no 500); an end-of-text insertion is applied at the end; a failed post can be retried; the dialog opens for is_staff (the client cannot see the Editors group: an editor who is not staff gets the moderators-only alert); the moderator check asks the session at the click. e2e/compare.spec.ts.",
+    "Tests (review 2026-11-04): e2e/compare.spec.ts compares every changed row's insertion and deletion texts of Genesis 1 (Masorah vs Ta'amei) with a capture of www.sefaria.org (e2e/fixtures/compare-genesis-1-marks.json: 18 rows, the same on both); checks that a filter clears exactly the spans of its character and Update again restores them; the three gates (signed out, signed in not staff, staff); that Apply Change posts the original raw text with exactly the clicked piece replaced at its tag-mapped position, both versions reload and the row shows the new text. Apply Change was not run against a real Django write (a POST to production is out of bounds): request shape and CSRF only, mocked.",
 ])
 add("RTE-019", [
     "Survey 2026-11-04 (the view is at sefaria/views.py:2245 on reader-next, 2196 on master). The pattern is matched on the decoded path, so: /compare/Genesis.1 (no slash) makes 'Genesis.1' the SECOND VERSION and shows an empty form; /compare/Genesis.1/ is the ref; /compare/X/he names v2='he'; an escaped %2F splits; every '_' in a version reads as a space. VERIFIED 2026-11-04 (JSON_PROPS on www.sefaria.org).",
+    "Repeated slashes: sefaria.org's nginx merges them before Django matches, so /compare/Genesis_2// (what 'Load Next Chapter' writes with no language) is Genesis 2's form, 200, the address keeping '//'. parseComparePath merges them too; this client's router then collapses the address to /compare/Genesis_2/ (the same page; a one-slash difference in the address bar). VERIFIED 2026-11-04.",
+    "trailingSlash 'preserve' is router-wide: auth pages such as /login/ now render at the slash URL (live does the same: 200 at /login/ and /login), and reader/library addresses are still sent slashless by the server's 308. e2e routing, auth, shell, header and fonts specs pass.",
     "BUILT 2026-11-04: src/lib/compare/url.ts reads and writes it byte for byte; the router keeps trailing slashes (trailingSlash 'preserve') and the server's slash redirect skips /compare/; 'compare' left DJANGO_PREFIXES on the Library host — on the Voices host it still passes through to Django (LIBRARY_HOST_ONLY_PREFIXES, Q-E1). A path the pattern cannot match is our 404, which Django answers in the cluster.",
 ])
 for i in ["SHL-037", "SHL-038", "CON-066", "LIB-003", "LIB-018", "BOK-004", "SRC-025"]:
