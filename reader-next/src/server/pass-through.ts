@@ -9,7 +9,7 @@
  */
 import { API_ORIGIN } from "~/lib/config";
 import type { DeadlineInit } from "./internal-fetch";
-import { isDjangoPage } from "~/lib/routing/django-paths";
+import { isDjangoPage, isLibraryOnlyPage } from "~/lib/routing/django-paths";
 
 export { DJANGO_PREFIXES } from "~/lib/routing/django-paths";
 
@@ -110,6 +110,7 @@ export function trailingSlashRedirect(url: URL, method: string, host: string = u
   if ((method !== "GET" && method !== "HEAD") || pathname === "/" || !pathname.endsWith("/")) return null;
   // a path starting with two slashes would make the Location protocol-relative (//evil.com: an open redirect); never redirect one
   if (/^\/[\/\\]/.test(pathname)) return null;
-  if (isDjangoPath(pathname, method, host) || resetLinkUid(pathname) || /^\/(login|register|password)\//.test(pathname)) return null;
+  // "/calendars/" is a page of its own on sefaria.org (200, its canonical with the slash) and "/parashat-hashavua/" a 404: neither redirects
+  if (isDjangoPath(pathname, method, host) || isLibraryOnlyPage(pathname) || resetLinkUid(pathname) || /^\/(login|register|password)\//.test(pathname)) return null;
   return new Response(null, { status: 308, headers: { location: `${pathname.replace(/\/+$/, "")}${url.search}`, "cache-control": "public, max-age=86400" } });
 }

@@ -15,8 +15,8 @@ export interface NavPageProps {
   sidebarLabel?: string;
   /** Top padding of the page column and of the sidebar on a wide screen, where a page sits lower than the library's 56px (search). */
   top?: { main?: number; side?: number };
-  /** The old ReaderPanel's analytics fields for every event inside the page (`data-anl-batch`, e.g. panel_number and content_lang). */
-  anlBatch?: Readonly<Record<string, string | number>>;
+  /** The old ReaderPanel's `data-anl-batch` (its analytics parameters for every event inside the panel, e.g. panel_number and content_lang), kept on the page's frame. */
+  anlBatch?: Readonly<Record<string, unknown>>;
 }
 
 /**

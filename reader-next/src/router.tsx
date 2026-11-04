@@ -26,6 +26,10 @@ export function getRouter() {
     stringifySearch,
     // The old site writes a comma in a title as itself ("/Mishneh_Torah,_Shabbat.1.1", "/Jastrow,_אור"), not as %2C.
     pathParamsAllowedCharacters: [",", ":", "@"],
+    // A trailing slash is the server's to settle (src/server/pass-through.ts trailingSlashRedirect: a 308 for reader and library
+    // addresses); what it lets through renders as written, as sefaria.org does: "/calendars/" is a page there (200, its canonical with
+    // the slash), not a redirect. The router's default ("never") answered such a path with a 307 of its own.
+    trailingSlash: "preserve",
   });
   // Dehydrates server-fetched queries into the page and hydrates them on the client (no refetch).
   // ...except the whole catalog (3.5 MB, CODE_REVIEW R-14): library pages carry their slice instead; others load it on the client

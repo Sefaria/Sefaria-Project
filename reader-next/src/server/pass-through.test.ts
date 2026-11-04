@@ -114,3 +114,13 @@ describe("trailingSlashRedirect", () => {
     for (const u of ["//evil.com/", "/\\evil.com/"]) expect(trailingSlashRedirect(new URL(`https://www.sefaria.org${u}`), "GET"), u).toBeNull();
   });
 });
+
+// @feature CAL-001 @feature CAL-003
+describe("trailing slashes of the calendars pages (sefaria.org: /calendars/ is a page, /parashat-hashavua/ a 404)", () => {
+  it("never redirects them", () => {
+    for (const p of ["/calendars/", "/parashat-hashavua/", "/todays-daf-yomi/"]) expect(trailingSlashRedirect(new URL(`http://x${p}`), "GET"), p).toBeNull();
+  });
+  it("renders them here on the Library host (no longer Django's paths)", () => {
+    for (const p of ["/calendars", "/calendars/", "/parashat-hashavua", "/todays-daf-yomi"]) expect(isDjangoPath(p, "GET"), p).toBe(false);
+  });
+});

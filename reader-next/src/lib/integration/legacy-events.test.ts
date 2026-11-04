@@ -13,6 +13,12 @@ describe("sefaria:bootstrap-url", () => {
     expect(bootstrapUrlAction({ url: "/topics/shabbat" }, here)).toEqual({ kind: "load", href: "https://www.sefaria.org/topics/shabbat", replace: false });
     expect(bootstrapUrlAction({ url: "https://voices.sefaria.org/sheets/1" }, here)).toEqual({ kind: "load", href: "https://voices.sefaria.org/sheets/1", replace: false });
   });
+  // @feature CAL-001 — /calendars is this client's on the Library host only
+  it("/calendars: an app navigation on the Library host, a full load on the Voices host (Django's there)", () => {
+    expect(bootstrapUrlAction({ url: "/calendars" }, here)).toMatchObject({ kind: "navigate", pathname: "/calendars" });
+    const voices = { href: "https://voices.sefaria.org/sheets/1", host: "voices.sefaria.org" };
+    expect(bootstrapUrlAction({ url: "/calendars" }, voices)).toEqual({ kind: "load", href: "https://voices.sefaria.org/calendars", replace: false });
+  });
   it("any other site, another scheme, or no URL: nothing", () => {
     expect(bootstrapUrlAction({ url: "https://evil.example.com/x" }, here)).toBeNull();
     expect(bootstrapUrlAction({ url: "javascript:alert(1)" }, here)).toBeNull();
