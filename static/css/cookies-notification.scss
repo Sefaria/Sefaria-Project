@@ -1,0 +1,64 @@
+// The cookie banner (CookiesNotification in Misc.jsx). It hides when printing (see s2-print.css
+// and sheets-print.css).
+
+@import "breakpoints";
+
+.cookiesNotification {
+  position: fixed;
+  z-index: 9999;
+  color: white;
+  background-color: #212E50;
+  border-top: 1px solid #ccc;
+  bottom: 0;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 0;
+  line-height: 1.1;
+  text-align: center;
+  unicode-bidi: plaintext;
+
+  a {
+    text-decoration: underline;
+    color: inherit;
+    margin-inline-start: 5px;
+  }
+
+  .button {
+    margin-inline-start: 12px;
+  }
+}
+
+@include breakpoint(mobile) {
+  // Here the banner spans the bottom of the screen, so keep the page's bottom above it.
+  // --bottom-bar-height is set while the banner shows (see launcherOffset.js)
+  body {
+    padding-bottom: var(--bottom-bar-height, 0px);
+  }
+  #s2:not(.headerOnly) #readerAppWrap,
+  .mobileNavMenu {
+    padding-bottom: var(--bottom-bar-height, 0px);
+  }
+  #s2:not(.headerOnly) #readerAppWrap {
+    box-sizing: border-box;
+  }
+}
+
+@media (min-width: $bp-tablet-min) {
+  // Here the banner is a card in the corner, clear of the Library Assistant's button
+  :root {
+    --lc-launcher-bottom-offset: 0px !important;
+  }
+  .cookiesNotification {
+    width: 360px;
+    margin: 10px;
+    padding: 15px;
+    text-align: start;
+    border-radius: 10px;
+    border-top: none;
+
+    .button {
+      display: block;
+      margin: 10px 0 0 0;
+    }
+  }
+}

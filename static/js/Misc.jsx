@@ -25,7 +25,7 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import { liftLauncherAbove } from './sefaria/launcherOffset';
+import { reserveBottomBar } from './sefaria/launcherOffset';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {
   DropdownLanguageToggle,
@@ -2818,8 +2818,8 @@ ReaderMessage.propTypes = {
 
 
 
-// While the banner shows, the Library Assistant's floating button sits above it (phones and
-// tablets, where the banner spans the bottom of the screen; see s2.css)
+// While the banner shows, the page and the Library Assistant's floating button sit above it
+// (mobile widths, where the banner spans the bottom of the screen; see cookies-notification.scss)
 class CookiesNotification extends Component {
   constructor(props) {
     super(props);
@@ -2829,10 +2829,10 @@ class CookiesNotification extends Component {
     this.bannerRef = React.createRef();
   }
   componentDidMount() {
-    this.releaseLauncher = liftLauncherAbove(this.bannerRef.current);
+    this.releaseBottomBar = reserveBottomBar(this.bannerRef.current);
   }
   componentWillUnmount() {
-    this.releaseLauncher?.();
+    this.releaseBottomBar?.();
   }
   setCookie() {
     // Use the getCookieDomain function to get the appropriate cookie domain
@@ -2845,7 +2845,7 @@ class CookiesNotification extends Component {
     }
     
     $.cookie("cookiesNotificationAccepted", 1, cookieOptions);
-    this.releaseLauncher?.();
+    this.releaseBottomBar?.();
     this.setState({showNotification: false});
   }
   render() {
