@@ -25,8 +25,11 @@ export interface CalendarsPageProps {
  * @feature CAL-002 Calendar listing cards
  */
 export function CalendarsPage({ weeklyPortion, daily, weekly, intro, sidebar, footer }: CalendarsPageProps) {
+  // the old panel's analytics batch: panel 1, content language "bilingual" in the English interface and "hebrew" in the Hebrew one
+  // (ReaderPanel.getContentLanguageOverride for menuOpen "calendars"; panel_type and panel_name are undefined there, so not written)
+  const he = useInterfaceLang() === "hebrew";
   return (
-    <NavPage sidebar={sidebar} footer={footer} top={{ main: 60, side: 60 }}>
+    <NavPage sidebar={sidebar} footer={footer} top={{ main: 60, side: 60 }} anlBatch={{ panel_number: 1, content_lang: he ? "hebrew" : "bilingual" }}>
       {intro}
       <Section heading={<InterfaceText en="Weekly Torah Portion" he="פרשת השבוע" />} listings={weeklyPortion} />
       <Section heading={<InterfaceText en="Daily Learning" he="לימוד יומי" />} listings={daily} />

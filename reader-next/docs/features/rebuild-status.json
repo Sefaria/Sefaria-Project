@@ -1652,12 +1652,12 @@
  },
  "CAL-005": {
   "status": "partial",
-  "note": "Refetch through the user-query invalidation; not covered by a test; event diaspora ignored",
+  "note": "Refetch through the user-query invalidation (unit-tested); the event's diaspora is ignored",
   "by": "src/features/calendars/textual-custom.ts"
  },
  "RTE-010": {
-  "status": "done",
-  "note": "/dayoflearningcalendar stays Django's",
+  "status": "partial",
+  "note": "/calendars, /calendars/ and the two shortcuts ported; /dayoflearningcalendar stays Django's",
   "by": "src/routes/calendars.tsx, src/server/calendar-shortcuts.ts"
  },
  "LIB-050": {

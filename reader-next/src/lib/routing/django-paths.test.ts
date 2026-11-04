@@ -14,6 +14,13 @@ describe("the calendars port's paths", () => {
     expect(leavesClient("/calendars")).toBe(false);
     expect(leavesClient("/topics")).toBe(true);
   });
+  it("on the Voices host the browser leaves the app for /calendars too (Django answers it there, Q-E1)", () => {
+    expect(leavesClient("/calendars", "voices.sefaria.org")).toBe(true);
+    expect(leavesClient("/calendars/", "voices.localhost:3335")).toBe(true);
+    expect(leavesClient("/calendars", "sheets.example.org", "https://sheets.example.org")).toBe(true);
+    expect(leavesClient("/calendars", "www.sefaria.org", "https://voices.sefaria.org")).toBe(false);
+    expect(leavesClient("/Genesis.1", "voices.sefaria.org")).toBe(false);
+  });
   it("knows the Voices host by the configured origin or its first label", () => {
     expect(isVoicesHost("voices.sefaria.org")).toBe(true);
     expect(isVoicesHost("voices.localhost:8000")).toBe(true);

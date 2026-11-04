@@ -53,5 +53,13 @@ export function isVoicesHost(host: string | null | undefined, voicesOrigin?: str
 const SERVER_REDIRECT_RE = /^\/(?:parashat-hashavua|todays-daf-yomi)(?:\/|$)/;
 export const isServerRedirect = (pathname: string): boolean => SERVER_REDIRECT_RE.test(pathname);
 
-/** Does the browser have to leave the app (a full page load) to reach this path? Django's pages and the server's redirects. */
-export const leavesClient = (pathname: string): boolean => isDjangoPage(pathname) || isServerRedirect(pathname);
+/**
+ * Does the browser have to leave the app (a full page load) to reach this path? Django's pages and the server's redirects — and, on
+ * the Voices host (`host`, checked against `voicesOrigin` as isVoicesHost does), the Library-only pages, which Django answers there.
+ * Without a host the Library host is assumed.
+ */
+export const leavesClient = (pathname: string, host?: string, voicesOrigin?: string): boolean =>
+  isDjangoPage(pathname) || isServerRedirect(pathname) || (host !== undefined && isLibraryOnlyPage(pathname) && isVoicesHost(host, voicesOrigin));
+
+/** The browser's host, for leavesClient; undefined on the server. */
+export const browserHost = (): string | undefined => (typeof window === "undefined" ? undefined : window.location.host);

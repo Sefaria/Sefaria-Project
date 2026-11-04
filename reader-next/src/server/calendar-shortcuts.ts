@@ -35,3 +35,10 @@ export async function calendarShortcut(pathname: string, method: string, fallbac
   if (!location) return fallback();
   return new Response(null, { status: 302, headers: { location, "content-type": "text/html; charset=utf-8", vary: "Accept-Language, Cookie" } });
 }
+
+/**
+ * The Voices host's answer for the Library-only paths (/calendars, the shortcuts) when this server cannot hand them to Django (pass-through
+ * off, as in dev and e2e): live voices.sefaria.org answers 404 there, so this does too, rather than render the Library page.
+ */
+export const voicesNotFound = (): Response =>
+  new Response("Not Found", { status: 404, headers: { "content-type": "text/html; charset=utf-8", "x-served-by": "reader-voices-404" } });

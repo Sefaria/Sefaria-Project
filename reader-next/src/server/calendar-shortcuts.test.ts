@@ -35,3 +35,12 @@ describe("calendarShortcut (/parashat-hashavua, /todays-daf-yomi)", () => {
     expect((await calendarShortcut("/parashat-hashavua", "GET", fallback, thrown as unknown as typeof fetch))!.status).toBe(299);
   });
 });
+
+describe("voicesNotFound", () => {
+  it("answers 404, as voices.sefaria.org does for the Library-only paths", async () => {
+    const { voicesNotFound } = await import("./calendar-shortcuts");
+    const r = voicesNotFound();
+    expect(r.status).toBe(404);
+    expect(r.headers.get("x-served-by")).toBe("reader-voices-404");
+  });
+});

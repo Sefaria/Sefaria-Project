@@ -90,8 +90,9 @@ export function NewsletterSignUp({ subscribe, onSubscribed, isValidEmail, includ
     if (e.key === "Enter") submit();
   };
   const arrow = (
-    <button type="button" className={styles.arrow} onClick={submit} aria-label={t(T.submit)}>
-      <img src="/icons/circled-arrow-right.svg" alt="" />
+    <button type="button" className={styles.arrow} onClick={submit}>
+      {/* the old form's arrow is an <img alt="Submit">: its alt names the button */}
+      <img src="/icons/circled-arrow-right.svg" alt={t(T.submit)} />
     </button>
   );
   return (

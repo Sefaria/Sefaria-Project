@@ -242,7 +242,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer }:
         </div>
         <A href={`${LIBRARY}/texts`}><img src="/icons/book.svg" alt="" /><InterfaceText en="Texts" he="מקורות" /></A>
         <A href={`${LIBRARY}/topics`}><img src="/icons/topic.svg" alt="" /><InterfaceText en="Topics" he="נושאים" /></A>
-        <A href={`${LIBRARY}/calendars`}><img src="/icons/calendar.svg" alt="" /><InterfaceText en="Learning Schedules" he="לוח לימוד יומי" /></A>
+        <A href="/calendars"><img src="/icons/calendar.svg" alt="" /><InterfaceText en="Learning Schedules" he="לוח לימוד יומי" /></A>
         <A href={donateHref("MobileNavMenu")} className={mn.blue} target="_blank"><img src="/icons/heart.png" alt="" /><InterfaceText en="Donate" he="תרומה" /></A>
         <div className={mn.accountLinks}>
           {viewer ? (

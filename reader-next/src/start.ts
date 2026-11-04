@@ -5,6 +5,7 @@ import { routeOwner, warmRouteManifest } from "./server/route-manifest";
 import { installInternalApiFetch, withUpstreamHealth } from "./server/internal-fetch";
 import { calendarShortcut } from "./server/calendar-shortcuts";
 import { isLibraryOnlyPage, isVoicesHost } from "~/lib/routing/django-paths";
+import { voicesNotFound } from "./server/calendar-shortcuts";
 import { isDjangoPath, passResetLink, passThrough, passThroughEnabled, resetLinkUid, trailingSlashRedirect, upstreamUnavailable } from "./server/pass-through";
 
 // A misconfigured server fails at start, loudly, instead of answering every request with a broken page (CODE_REVIEW R-35)
@@ -32,6 +33,8 @@ const siteRouting = createMiddleware({ type: "request" }).server(async ({ reques
     const shortcut = await calendarShortcut(pathname, request.method, () => (passThroughEnabled() ? passThrough(request) : upstreamUnavailable()));
     if (shortcut) return shortcut;
   }
+  // without Django to hand it to, the Voices host answers these as live voices.sefaria.org does (404), not with the Library page
+  if (voicesOnly && !passThroughEnabled()) return voicesNotFound();
   if (!passThroughEnabled()) return next();
   if (voicesOnly || isDjangoPath(pathname, request.method)) return passThrough(request);
   const resetUid = request.method === "GET" ? resetLinkUid(pathname) : null;

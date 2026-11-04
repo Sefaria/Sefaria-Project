@@ -5,7 +5,8 @@
  * (`javascript:`), nothing hidden behind percent-encoding or control characters, and no page Django serves (navigating the app there
  * would render this client's 404, and a full page load is not the API's to make).
  */
-import { leavesClient } from "~/lib/routing/django-paths";
+import { PUBLIC_CONFIG } from "~/lib/config";
+import { browserHost, leavesClient } from "~/lib/routing/django-paths";
 
 const BASE = "https://x.invalid";
 // C0 controls, DEL and C1 controls: the URL parser strips some (tab, newline) silently, so "/\t/evil.com" would become "//evil.com"
@@ -39,5 +40,6 @@ export function acceptsUrl(url: unknown): boolean {
   }
   if (parsed.origin !== BASE) return false;
   // the parser resolves dot segments ("/a/../api/x" is "/api/x"): judge the path that would be requested, and as written
-  return !leavesClient(parsed.pathname) && !leavesClient(path);
+  const host = browserHost();
+  return !leavesClient(parsed.pathname, host, PUBLIC_CONFIG.voicesOrigin) && !leavesClient(path, host, PUBLIC_CONFIG.voicesOrigin);
 }

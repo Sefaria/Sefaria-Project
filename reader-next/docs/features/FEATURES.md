@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**953 features**, 3757 documented behaviors. Proposed tiers: core 321, standard 414, optional 154, retire 61.
+**953 features**, 3767 documented behaviors. Proposed tiers: core 321, standard 414, optional 154, retire 61.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 350 · partial 43 · todo 431 · replaced 19 · deferred 23 · n/a 87; 341 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 349 · partial 44 · todo 431 · replaced 19 · deferred 23 · n/a 87; 342 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -4432,6 +4432,7 @@ A donation appeal with a Donate button.
 
 - Title + text + DonateLink button (heart icon, source 'NavSidebar-SupportSefaria'); blue variant gives white button.
 - 'Make a Donation' is .button.small: as wide as its label (176x39), padding 10px 14px, 12px under the text, the heart.png icon inverted to white, 18px, 10px from the label. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- The heart's alt is 'donation icon' / 'סמל תרומה' (common.donation_icon). BUILT 2026-11-04.
 
 Code: [`static/js/NavSidebar.jsx:335-345`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L335-L345)
 
@@ -4493,6 +4494,7 @@ Source: `inv_05_library_topics.md#4.2`
 Shows this week's Torah portion, haftarah and Daf Yomi with a link to all schedules.
 
 - Weekly Torah Portion: <parasha displayValue> + link to parasha ref; Haftarah links (all calendars starting 'Haftarah'); Daf Yomi link; 'All Learning Schedules ›' -> /calendars.
+- 2026-11-04: 'All Learning Schedules ›' writes '/calendars' (relative, as sefaria.org) and opens the new reader's page (CAL-001).
 
 Code: [`static/js/NavSidebar.jsx:444-533`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NavSidebar.jsx#L444-L533)
 
@@ -5663,7 +5665,12 @@ One page lists today's and this week's learning schedules (portion, Daf Yomi, Mi
 - Data: Sefaria.calendars = get_todays_calendar_items(**_get_user_calendar_params(request)) — diaspora from request.diaspora (cf-ipcountry), custom = the signed-in profile's settings.textual_custom (new profiles default 'sephardi'; missing → 'ashkenazi'), 'ashkenazi' when signed out. The day is the server's time zone (the API answered timezone 'America/Halifax' on 2026-11-04). The same items come from /api/calendars?diaspora=…&custom=… (no timezone). VERIFIED 2026-11-04.
 - Sections keep the API's order (the page filters the API list by each section's names), and a section with no cards keeps its heading. VERIFIED 2026-11-04.
 - Geometry (VERIFIED 2026-11-04, 1280px and phone User-Agent): headings 22px/500 dark grey, 30px over the cards (10px on a phone); page column 665px, its top 60px under the header/banner strip; sidebar modules: About Learning Schedules (multi-panel only), Stay Connected, Support Sefaria, an empty Promo module, the footer. On a phone the About module is the first thing on the page, its title without the rule, and the sidebar (Stay Connected, Support Sefaria, Promo, footer) follows 20px under the cards.
-- BUILT 2026-11-04 (src/routes/calendars.tsx, src/features/calendars/CalendarsRoute.tsx, src/ui/CalendarsPage): server-rendered from /api/calendars with diaspora from CF-IPCountry and the reader's custom (src/features/calendars/textual-custom.ts: GET /api/profile/<slug> with the reader's cookie, owner-only settings; signed out 'ashkenazi'). Pixel diff against the live page 0.00% (1280 top/middle/bottom/full, phone full page); Hebrew interface 0.03% (1280) and 0.2% (phone) once the shared header's 9px taller Hebrew banner is discounted. Tests: e2e/calendars.spec.ts.
+- BUILT 2026-11-04 (src/routes/calendars.tsx, src/features/calendars/CalendarsRoute.tsx, src/ui/CalendarsPage): server-rendered from /api/calendars with diaspora from CF-IPCountry and the reader's custom (src/features/calendars/textual-custom.ts: GET /api/profile/<slug> with the reader's cookie, owner-only settings, asked through a server function from the browser too; signed out 'ashkenazi'). Pixel diff against the live page 0.00% (1280 top/middle/bottom/full, phone full page). Tests: e2e/calendars.spec.ts.
+- Head (VERIFIED 2026-11-04, the same in both interfaces): og:title/twitter:title = the title, og:description/twitter:description, og:type website, og:image https://www.sefaria.org/api/img-gen/calendars?lang=&platform=facebook&ven=&vhe= (image/png 1200x630), og:url = the canonical, twitter:card summary_large_image, twitter:site @sefariaproject, twitter:image (platform=twitter), and hreflang alternates en https://www.sefaria.org<path> / he https://www.sefaria.org.il<path>. BUILT 2026-11-04 in src/routes/calendars.tsx (src/lib/routing/site-origins.ts for the Hebrew origin).
+- Ways in (VERIFIED 2026-11-04): the phone menu's 'Learning Schedules' and /texts' 'All Learning Schedules ›' write the relative href '/calendars'. BUILT 2026-11-04: both now write '/calendars' (they pointed at www.sefaria.org) and open this page.
+- Voices host (Q-E1): voices.sefaria.org answers /calendars with 404. BUILT 2026-11-04: passed to Django there; with no Django to pass to (pass-through off) the server answers 404 itself, and the browser (leavesClient with the page's host) loads the address in full on the Voices host instead of routing to the Library page.
+- Hebrew interface parity (2026-11-04): the shared site-wide Library Assistant banner computed Heebo in Hebrew (9px taller); live keeps Roboto there. Fixed in src/features/shell/SiteWideBanner (Roboto stack in both interfaces): 1280 top/full 0.15%, end 0.12%, middle 0.38%, phone full 0.20% — the remainder is the shared Hebrew header (live lays out the Hebrew header differently and labels Texts 'טקסטים' where ours says 'מקורות') and 1px shifts in the sidebar footer/donate button; none of it is this page's markup. English: 0.00% everywhere.
+- Known differences (2026-11-04): the UA dimension5 page type 'calendars' is not sent (UA is retired; the shell sends no page types); the sidebar footer links are absolute (pre-existing footer).
 
 Code: [`static/js/CalendarsPage.jsx:17-27`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/CalendarsPage.jsx#L17-L27), [`static/js/sefaria/sefaria.js:3643-3650`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3643-L3650), [`reader/views.py:1340-1359`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1340-L1359)
 
@@ -5697,7 +5704,7 @@ Server endpoints supply calendar data, the next reading of a portion, and shortc
 - /api/calendars/topics/parasha - parasha_data_api (includes topic slug; diaspora param default 1); /api/calendars/topics/holiday - seasonal_topic_api.
 - /parashat-hashavua and /todays-daf-yomi redirect to current calendar refs (reader/views.py:4679-4690).
 - Redirects: 302 with an empty body, Content-Type 'text/html; charset=utf-8', Vary 'Accept-Language, Cookie', Location = iri_to_uri('/' + item.url) of get_keyed_calendar_items() — today's items with diaspora=True and custom=None, whatever the request says: '?diaspora=0' is read and ignored. A title the API repeats goes to its last item (keyed dict). '/parashat-hashavua/' and '/todays-daf-yomi/' are 404s; on voices.sefaria.org both paths are 404s. VERIFIED 2026-11-04 (Location '/Genesis.23.1-25.18', '/Bekhorot.47').
-- BUILT 2026-11-04 (src/server/calendar-shortcuts.ts, wired in src/start.ts): the node server answers the two shortcuts itself from /api/calendars?diaspora=1 with Django's status, headers and Location (iri_to_uri ported); when the API fails or the schedule is missing it hands the request to Django (pass-through) or answers 503. Voices host: passed to Django. The APIs themselves stay Django's (every /api/ path is). Tests: e2e/calendars.spec.ts, src/server/calendar-shortcuts.test.ts.
+- BUILT 2026-11-04 (src/server/calendar-shortcuts.ts, wired in src/start.ts): the node server answers the two shortcuts itself from /api/calendars?diaspora=1 with Django's status, headers and Location (iri_to_uri ported); when the API fails or the schedule is missing it hands the request to Django (pass-through) or answers 503. Voices host: passed to Django (a 404, as voices.sefaria.org, when the server has no Django to pass to). The APIs themselves stay Django's (every /api/ path is). Tests: e2e/calendars.spec.ts, src/server/calendar-shortcuts.test.ts.
 
 Code: [`reader/views.py:3004-3048`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3004-L3048), [`reader/views.py:3879`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L3879), [`reader/views.py:4758-4769`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4758-L4769)
 
@@ -5710,19 +5717,19 @@ The page shows Israel's or the diaspora's weekly portion by the reader's country
 
 - request.diaspora: False when Cloudflare's cf-ipcountry is IL; an unknown country uses PINNED_IPCOUNTRY (sefaria/system/middleware.py LocationSettingsMiddleware). custom: profile settings.textual_custom when signed in (default 'sephardi' for new profiles; missing → 'ashkenazi'), 'ashkenazi' signed out (reader/views.py _get_user_calendar_params).
 - The library pages' sidebar modules (LIB-038/039/040) are fed the same way on sefaria.org; the new reader's library sidebar still sends no custom (open).
-- BUILT 2026-11-04 for /calendars (src/features/calendars/textual-custom.ts, src/lib/user/textual-custom.ts, calendarsQueryOptions(diaspora, custom)). Tests: e2e/calendars.spec.ts (CF-IPCountry IL), src/lib/user/textual-custom.test.ts. The signed-in custom is unit-tested only (an e2e session would need production credentials).
+- BUILT 2026-11-04 for /calendars (src/features/calendars/textual-custom.ts, src/lib/user/textual-custom.ts, calendarsQueryOptions(diaspora, custom)). Tests: e2e/calendars.spec.ts (CF-IPCountry IL: the server render's query cache asks for Israel's schedules), src/lib/user/textual-custom.test.ts, src/features/calendars/textual-custom.test.ts. The signed-in custom is unit-tested only (an e2e session would need production credentials); the browser asks through the server function, so it works where /api is not on the page's origin (dev, e2e).
 
 Code: [`reader/views.py:1340-1346`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1340-L1346), [`sefaria/system/middleware.py:66-83`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/system/middleware.py#L66-L83)
 
 Source: `2026-11-04 calendars lane`
 
 #### CAL-005 · Calendars refresh after a settings change
-`optional` `live` · rebuild: **partial** — Refetch through the user-query invalidation; not covered by a test; event diaspora ignored `signed-in`
+`optional` `live` · rebuild: **partial** — Refetch through the user-query invalidation (unit-tested); the event's diaspora is ignored · *tested* `signed-in`
 
 When the account settings page changes the textual custom, the open page asks for the calendars again.
 
 - templates/account_settings.html dispatches 'sefaria:settings-updated' {textualCustom, diaspora}; ReaderApp.handleSettingsUpdatedEvent calls Sefaria.updateCalendars(custom, diaspora) → /api/calendars?custom=…&diaspora=… and replaces Sefaria.calendars.
-- New reader: the event invalidates every ['user', …] query (src/routes/__root.tsx refreshReader), which includes the textual custom; a changed custom changes the calendars query key, so the page refetches. The event's own diaspora value is not used (the page keeps the request's country).
+- New reader: the event invalidates every ['user', …] query (src/routes/__root.tsx refreshReader), which includes the textual custom; a changed custom changes the calendars query key, so the page refetches. The event's own diaspora value is not used (the page keeps the request's country). Test: src/features/calendars/textual-custom.test.ts (invalidating ['user'] refetches the custom; the schedules key follows it).
 
 Code: [`static/js/ReaderApp.jsx:1266-1278`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1266-L1278), [`static/js/sefaria/sefaria.js:3655-3662`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3655-L3662)
 
@@ -9019,6 +9026,7 @@ A slide-out menu holds search, sections, account and cross-product links on mobi
 - VERIFIED 2026-10-05 (390px): bar = menu button (aria-label 'Menu'), centred logo, aleph/ayin language toggle; slide-out nav (aria-label 'Mobile navigation menu') = search, Texts, Topics, Learning Schedules (/calendars), Donate (c_src=MobileNavMenu), language toggle 'English • עברית', Get Help, About Sefaria (/mobile-about-menu), Voices on Sefaria, Developers on Sefaria, More from Sefaria, Sign up, Log in.
 - REBUILD: signed in, the phone menu has Saved, History & Notes, Account Settings and Logout instead of Sign up / Log in.
 - Layout: a fixed white sheet under the header filling the screen; search line 15px/10px with a #ededec rule; full-width rows 16px #666, 15px padding, 16px icons (book, topic, calendar, heart.png inverted on the blue Donate row) 15px from the label; the account part on #fbfbfa between #ccc rules: language row (globe, 'English • עברית'), Get Help, About, Voices/Developers with 16px dots, More from Sefaria (chevron), Sign up (login.svg) / Log in, groups split by #ededec hr lines. Verified on www.sefaria.org with Playwright, 2026-10-29.
+- 2026-11-04: the menu's 'Learning Schedules' writes '/calendars' (relative, as sefaria.org) and opens the new reader's page (CAL-001).
 
 Code: [`static/js/Header.jsx:425`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L425)
 
@@ -9809,6 +9817,7 @@ Visitors can subscribe to Sefaria newsletters, optionally as educators, from sid
 - Backend: api/subscribe/<org>/<email> (views.py:299), api/subscribe/<email> (:327), api/newsletter_mailing_lists (:347), Steinsaltz helper (:355)
 - Found 2026-11-04: StayConnected passes context='sidebar' but the form reads contextName, so its event is Newsletter / 'Subscribe from undefined'. The error shown is the API's `error` string untranslated, or 'Error posting to API' for a failed status; after an error the name fields close. The Hebrew 'please enter a valid first and last name' string is English. The email goes into the path unencoded (/api/subscribe/<email>).
 - BUILT 2026-11-04 for the sidebar (src/ui/NewsletterSignUp, src/lib/user/newsletter.ts via lib/auth/http with the CSRF token; the same UA event, 'Subscribe from undefined'). Not built: the static pages, promotions and topic-landing uses (lists, Steinsaltz).
+- The arrow is an <img alt='Submit'> ('שלח'); ours is a button whose image carries that alt (its accessible name). BUILT 2026-11-04.
 
 Code: [`static/js/NewsletterSignUpForm.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NewsletterSignUpForm.jsx), [`sefaria/views.py:327`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L327), [`static/js/sefaria/sefaria.js:955`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L955)
 
@@ -10799,7 +10808,7 @@ Code: [`sefaria/urls_library.py:17-89`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_01_urls_routing.md#1.1`
 
 #### RTE-010 · Learning schedules and calendar URLs
-`standard` `live` · rebuild: **done** — /dayoflearningcalendar stays Django's · *tested*
+`standard` `live` · rebuild: **partial** — /calendars, /calendars/ and the two shortcuts ported; /dayoflearningcalendar stays Django's · *tested*
 
 /calendars opens the Learning Schedules page; daily shortcuts jump straight to today's reading.
 
@@ -10808,7 +10817,7 @@ Source: `inv_01_urls_routing.md#1.1`
 - /todays-daf-yomi -> 302 today's daf.
 - /dayoflearningcalendar -> external/internal 302 (site package).
 - VERIFIED 2026-11-04: /calendars and /calendars/ are both pages (200); /parashat-hashavua and /todays-daf-yomi 302; their slashed forms 404.
-- BUILT 2026-11-04: /calendars and /calendars/ render in the new reader (Library host); the router keeps a trailing slash the server lets through (trailingSlash 'preserve'); the shortcuts are answered by the node server (CAL-003). '/dayoflearningcalendar' is not part of this port (still Django's).
+- BUILT 2026-11-04: /calendars and /calendars/ render in the new reader (Library host); the router keeps a trailing slash the server lets through (trailingSlash 'preserve'); the shortcuts are answered by the node server (CAL-003). '/dayoflearningcalendar' is not part of this port (still Django's). Known differences: '/calendars//' answers the router's 307 to '/calendars/' (live 200), and '/Calendars' renders the page (live 404; the router matches paths case-insensitively, as for /Texts).
 
 Code: [`reader/views.py:1326-1329`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1326-L1329), [`reader/views.py:4679-4690`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4679-L4690)
 
@@ -12725,6 +12734,7 @@ Analytics events are declared directly on page elements and collected automatica
 - Whitelist: project, panel_type, panel_number, item_id, version, content_lang, content_id, content_type, panel_name, panel_category, position, ai, text, experiment, feature_name, from, to, action, engagement_value, engagement_type, logged_in, site_lang, traffic_type, promotion_name, link_type, form_name, form_destination
 - Derived data for details toggle (from/to) and input (text); scrollIntoView via IntersectionObserver; inputStart fires on first input; MutationObserver attaches to new nodes
 - Rebuild: src/lib/analytics/declarative.ts, a port of analyticsEventTracker.js (same whitelist, closest-wins aggregation, data-anl-batch, derived toggle/input data, scrollIntoView and inputStart) attached to the app root. Module switcher uses it (modswitch_open/close/item_click).
+- 2026-11-04: /calendars keeps the old panel's data-anl-batch on the page frame: {"panel_number":1,"content_lang":"bilingual"} in the English interface, "hebrew" in the Hebrew one (ReaderPanel.getContentLanguageOverride for menuOpen 'calendars'; panel_type and panel_name are undefined there and not written). VERIFIED against live 2026-11-04. Via NavPage's anlBatch prop. Test: e2e/calendars.spec.ts.
 
 Code: [`static/js/analyticsEventTracker.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/analyticsEventTracker.js)
 

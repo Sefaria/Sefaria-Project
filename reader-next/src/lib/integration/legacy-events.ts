@@ -14,6 +14,7 @@
  *
  * @feature AI-011 Library Assistant chatbot widget
  */
+import { PUBLIC_CONFIG } from "~/lib/config";
 import { leavesClient } from "~/lib/routing/django-paths";
 
 export const BOOTSTRAP_URL_EVENT = "sefaria:bootstrap-url";
@@ -47,7 +48,7 @@ export function bootstrapUrlAction(
   }
   if (url.protocol !== "https:" && url.protocol !== "http:") return null;
   if (!isSefariaHost(url.host, here.host)) return null;
-  if (url.host !== here.host || leavesClient(url.pathname)) return { kind: "load", href: url.href, replace };
+  if (url.host !== here.host || leavesClient(url.pathname, here.host, PUBLIC_CONFIG.voicesOrigin)) return { kind: "load", href: url.href, replace };
   return { kind: "navigate", pathname: url.pathname, search: url.search, hash: url.hash, replace };
 }
 

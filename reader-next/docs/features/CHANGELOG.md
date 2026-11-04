@@ -274,3 +274,14 @@ Compared side by side with sefaria.org at 1280px, `lang2=en` and `lang2=he`, by 
 - **LIB-050 / LIB-054 / LIB-026 Added detail** (*verified*): Stay Connected and About Learning Schedules geometry; the Promo slot's place on /calendars.
 - **New**: **CAL-004** Learning Schedules follow the reader's location and custom; **CAL-005** Calendars refresh after a settings change.
 - **Built**: `routes/calendars.tsx`, `features/calendars`, `ui/CalendarsPage`, `ui/NewsletterSignUp`, `ui/NavSidebar` (AboutLearningSchedules, StayConnected), `lib/library/calendars.ts` (listings, sections, shortcuts, `iri_to_uri`), `lib/user/textual-custom.ts`, `lib/user/newsletter.ts`, `server/calendar-shortcuts.ts`. `calendars`, `parashat-hashavua` and `todays-daf-yomi` leave `DJANGO_PREFIXES` (Library host only); the router keeps a trailing slash the server lets through. Pixel diff against the live page 0.00% (1280 and phone, English); Hebrew ≤0.2% once the shared header's taller Hebrew banner is discounted.
+- **Review fixes (same day)**:
+  - **CAL-001 / LIB-038 / GUI-011**: the ways in now lead to the new page. The phone menu's "Learning Schedules" and /texts' "All Learning Schedules ›" write the relative `/calendars`, as sefaria.org does. Before this fix they pointed at www.sefaria.org.
+  - **CAL-001 head** (*verified*): the og:\*, twitter:\* and hreflang alternate tags from sefaria.org's head are added.
+  - **ANL-015** (*verified*): the old panel's `data-anl-batch` (`{"panel_number":1,"content_lang":"bilingual"|"hebrew"}`) is kept on the page frame.
+  - **Voices host**: `/calendars` and the shortcuts answer 404, as voices.sefaria.org does, when there is no Django to pass them to. On the Voices host the browser loads them in full instead of routing to the Library page (`leavesClient` now takes the host).
+  - **CAL-004**: the browser asks for the textual custom through the server function, so it works where `/api` is not on the page's origin.
+  - **CAL-005**: now covered by a unit test.
+  - **RTE-010**: now `partial`, because `/dayoflearningcalendar` stays Django's.
+  - **LIB-033 / PRM-016**: the old alt texts are restored ("donation icon", "Submit").
+  - **Shared banner**: the site-wide Library Assistant banner keeps its Roboto stack in Hebrew, as live does. Before, it computed Heebo and was 9px taller, which pushed every Hebrew page down. With that fixed, Hebrew /calendars differs from live by 0.15% at 1280 and 0.20% on a phone. What remains is the shared Hebrew header.
+  - **Known differences**: `/calendars//` answers 307 where live answers 200. `/Calendars` answers 200 where live answers 404 (the router ignores case). The UA page type is not sent.

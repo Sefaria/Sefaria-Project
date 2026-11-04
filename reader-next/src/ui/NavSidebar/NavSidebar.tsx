@@ -131,7 +131,7 @@ export function LearningSchedules({ items }: { items: readonly CalendarItem[] | 
           <RefLink href={d.url}><InterfaceText en={d.displayValue.en} he={d.displayValue.he} /></RefLink>
         </div>
       ) : null}
-      <a className={styles.all} href={lib("/calendars")}><InterfaceText en="All Learning Schedules ›" he="לוחות לימוד נוספים ›" /></a>
+      <a className={styles.all} href="/calendars"><InterfaceText en="All Learning Schedules ›" he="לוחות לימוד נוספים ›" /></a>
     </SidebarModule>
   );
 }
@@ -192,10 +192,11 @@ export function Resources() {
 }
 
 export function SupportSefaria() {
+  const he = useInterfaceLang() === "hebrew";
   return (
     <SidebarModule title={<InterfaceText en="Support Sefaria" he="תמכו בספריא" />}>
       <p className={styles.body}><InterfaceText en="Sefaria is an open source, nonprofit project. Support us by making a tax-deductible donation." he="ספריא היא מאגר פתוח וחינמי. תמכו בנו בעזרת תרומה." /></p>
-      <a className={`${styles.button} ${styles.auto}`} href={`${DONATE}?c_src=NavSidebar-SupportSefaria`} target="_blank" rel="noopener noreferrer"><img src="/icons/heart.png" alt="" /><InterfaceText en="Make a Donation" he="לתרומה" /></a>
+      <a className={`${styles.button} ${styles.auto}`} href={`${DONATE}?c_src=NavSidebar-SupportSefaria`} target="_blank" rel="noopener noreferrer"><img src="/icons/heart.png" alt={he ? "סמל תרומה" : "donation icon"} /><InterfaceText en="Make a Donation" he="לתרומה" /></a>
     </SidebarModule>
   );
 }

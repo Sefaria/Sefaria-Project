@@ -1,7 +1,7 @@
 /**
  * The signed-in reader's textual custom, for the Learning Schedules page's haftarah (src/lib/user/textual-custom.ts). On the server the
- * reader's Cookie header goes to Django with the profile request (only when it carries a session); in the browser the request is
- * same-origin. Signed out: "ashkenazi", with no request.
+ * reader's Cookie header goes to Django with the profile request (only when it carries a session); the browser asks through the same
+ * server function. Signed out: "ashkenazi", with no request.
  *
  * @feature CAL-004 Learning Schedules follow the reader's location and custom
  * @feature CAL-005 Calendars refresh after a settings change (the user queries are invalidated by sefaria:settings-updated)
@@ -28,7 +28,9 @@ export const textualCustomQuery = (profileUrl: string | undefined) => {
   const slug = profileSlug(profileUrl);
   return queryOptions({
     queryKey: ["user", "textual-custom", slug ?? ""] as const,
-    queryFn: (): Promise<string> => (!slug ? Promise.resolve(SIGNED_OUT_CUSTOM) : typeof window === "undefined" ? getCustomOnServer({ data: slug }) : fetchTextualCustom("", slug)),
+    // the browser asks through this server too (a server function, the session cookie along): /api is not on the page's origin in
+    // every deployment (dev, e2e), and a same-origin /api/profile there would quietly read as "ashkenazi"
+    queryFn: (): Promise<string> => (!slug ? Promise.resolve(SIGNED_OUT_CUSTOM) : getCustomOnServer({ data: slug })),
     staleTime: 5 * 60_000,
     gcTime: POLICIES.user.gcTime,
     retry: false,
