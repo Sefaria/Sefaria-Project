@@ -18,9 +18,12 @@ export const passThroughEnabled = () => typeof process !== "undefined" && proces
 /** This client's own server functions (TanStack Start's default base): never Django's, whatever the method. */
 const SERVER_FN_RE = /^\/_serverFn\//;
 
-/** Always Django's, whatever this client could render (every write, except to this client's own server functions). */
-export const isDjangoPath = (pathname: string, method: string) =>
-  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || isDjangoPage(pathname));
+/**
+ * Always Django's, whatever this client could render (every write, except to this client's own server functions). `host`: the host
+ * the request was for — the Voices host keeps the Library-only pages on Django (django-paths.ts LIBRARY_HOST_ONLY).
+ */
+export const isDjangoPath = (pathname: string, method: string, host?: string | null) =>
+  !SERVER_FN_RE.test(pathname) && ((method !== "GET" && method !== "HEAD") || isDjangoPage(pathname, host));
 
 const PASS_THROUGH_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH_TIMEOUT_MS) || 30000);
 
@@ -100,6 +103,6 @@ export function trailingSlashRedirect(url: URL, method: string): Response | null
   if ((method !== "GET" && method !== "HEAD") || pathname === "/" || !pathname.endsWith("/")) return null;
   // a path starting with two slashes would make the Location protocol-relative (//evil.com: an open redirect); never redirect one
   if (/^\/[\/\\]/.test(pathname)) return null;
-  if (isDjangoPath(pathname, method) || resetLinkUid(pathname) || /^\/(login|register|password)\//.test(pathname)) return null;
+  if (isDjangoPath(pathname, method, url.host) || resetLinkUid(pathname) || /^\/(login|register|password)\//.test(pathname)) return null;
   return new Response(null, { status: 308, headers: { location: `${pathname.replace(/\/+$/, "")}${url.search}`, "cache-control": "public, max-age=86400" } });
 }

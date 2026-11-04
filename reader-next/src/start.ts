@@ -19,13 +19,16 @@ installInternalApiFetch();
 // the route manifest's catalog, loaded at start rather than by the first requests (they do not wait for it meanwhile)
 if (typeof window === "undefined" && passThroughEnabled()) void warmRouteManifest();
 
+/** The host the reader asked for: nginx's X-Forwarded-Host when it sets one, else the request's own. */
+const requestHost = (request: Request) => request.headers.get("x-forwarded-host") ?? new URL(request.url).host;
+
 /** `/healthz` for the cluster's probes, and the hand-over to Django of every page this client does not render. */
 const siteRouting = createMiddleware({ type: "request" }).server(async ({ request, pathname, next }) => {
   if (pathname === "/healthz-reader") return new Response("ok", { headers: { "content-type": "text/plain" } });
   const slash = trailingSlashRedirect(new URL(request.url), request.method);
   if (slash) return slash;
   if (!passThroughEnabled()) return next();
-  if (isDjangoPath(pathname, request.method)) return passThrough(request);
+  if (isDjangoPath(pathname, request.method, requestHost(request))) return passThrough(request);
   const resetUid = request.method === "GET" ? resetLinkUid(pathname) : null;
   if (resetUid) return passResetLink(request, resetUid);
   // not a page of this client nor a text: Django's, without rendering it first (R-36)

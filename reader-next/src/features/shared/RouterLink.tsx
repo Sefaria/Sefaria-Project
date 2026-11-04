@@ -1,4 +1,4 @@
-import { Link as TanstackLink } from "@tanstack/react-router";
+import { Link as TanstackLink, useNavigate } from "@tanstack/react-router";
 import { forwardRef } from "react";
 import type { LinkProps } from "~/lib/ui-link";
 
@@ -32,5 +32,31 @@ export const RouterLink = forwardRef<HTMLAnchorElement, LinkProps>(function Rout
     <TanstackLink ref={ref} to={loc.to as never} search={loc.search as never} preload="intent" {...(rest as object)}>
       {children}
     </TanstackLink>
+  );
+});
+
+/**
+ * A link whose `href` is written exactly as given — an address sefaria.org's server wrote (`/Genesis.1?ven=german%7CDie+f%C3%BCnf…`),
+ * which the router's Link would re-serialise (`ven=german|Die+fünf…`) — and which still navigates on the client: a plain click goes
+ * through the router; a modified or middle click, a target, or an external address is left to the browser.
+ */
+export const VerbatimRouterLink = forwardRef<HTMLAnchorElement, LinkProps>(function VerbatimRouterLink({ href, onClick, children, ...rest }, ref) {
+  const navigate = useNavigate();
+  const external = isExternal(href) || href.startsWith("#");
+  return (
+    <a
+      ref={ref}
+      href={href}
+      onClick={(e) => {
+        onClick?.(e);
+        if (external || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (rest.target && rest.target !== "_self")) return;
+        e.preventDefault();
+        const loc = toRouterLocation(href);
+        void navigate({ to: loc.to as never, search: loc.search as never });
+      }}
+      {...rest}
+    >
+      {children}
+    </a>
   );
 });

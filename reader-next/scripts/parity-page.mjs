@@ -14,7 +14,9 @@ const b = await chromium.launch();
 for (const [w, h] of SIZES) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, ...(w <= 500 ? { isMobile: true, hasTouch: true, userAgent: PHONE_UA } : {}) });
   await ctx.addCookies([
-    { name: "interfaceLang", value: "english", domain: "www.sefaria.org", path: "/" },
+    // INTERFACE_LANG=hebrew compares the Hebrew interface (both sites read the interfaceLang cookie)
+    { name: "interfaceLang", value: process.env.INTERFACE_LANG ?? "english", domain: "www.sefaria.org", path: "/" },
+    { name: "interfaceLang", value: process.env.INTERFACE_LANG ?? "english", domain: "localhost", path: "/" },
     { name: "cookiesNotificationAccepted", value: "1", domain: ".sefaria.org", path: "/" },
     { name: "cookiesNotificationAccepted", value: "1", domain: "localhost", path: "/" },
   ]);

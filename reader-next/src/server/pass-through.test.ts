@@ -12,6 +12,18 @@ describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
       expect(isDjangoPath(p, "GET"), p).toBe(false);
     }
   });
+  // @feature RTE-011 @feature RTE-065
+  it("/translations/<lang> is rendered here on the Library host; on the Voices host it stays Django's (Q-E1)", () => {
+    for (const host of [undefined, "www.sefaria.org", "localhost:3100", "www.sefaria.org.il"]) {
+      expect(isDjangoPath("/translations/de", "GET", host)).toBe(false);
+    }
+    for (const host of ["voices.sefaria.org", "voices.cauldron.sefaria.org", "VOICES.sefaria.org"]) {
+      expect(isDjangoPath("/translations/de", "GET", host)).toBe(true);
+      expect(isDjangoPath("/texts", "GET", host)).toBe(false);
+    }
+    expect(isDjangoPath("/translationsfoo", "GET", "voices.sefaria.org")).toBe(false);
+    expect(isDjangoPath("/translate/x", "GET")).toBe(true);
+  });
   it("sends every write through, whatever the path", () => {
     expect(isDjangoPath("/Genesis.1", "POST")).toBe(true);
     expect(isDjangoPath("/", "DELETE")).toBe(true);
