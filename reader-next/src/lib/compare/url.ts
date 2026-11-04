@@ -6,9 +6,13 @@
  * second version, and shows an empty form; `/compare/Genesis.1/` is the ref), an escaped slash splits, and the versions' underscores
  * read as spaces (every one, so a version title with a real underscore cannot be named).
  *
+ * Read, part two: sefaria.org's nginx merges repeated slashes (merge_slashes) before Django sees the path, so `/compare/Genesis_2//`
+ * is read as `/compare/Genesis_2/` (VERIFIED 2026-11-04: live answers 200 with secRef "Genesis 2", the address bar keeping the "//").
+ *
  * Write: the old page joins `/compare/<ref>/<lang>/<v1>/<v2>` with "/", collapses the first "//" of each pair left by an empty part,
- * and turns spaces into underscores (PageLoader.componentDidUpdate). An empty language leaves a path Django cannot match (a 404 on
- * sefaria.org too, e.g. "Load Next Chapter" on `/compare/Genesis.1/`).
+ * and turns spaces into underscores (PageLoader.componentDidUpdate). An empty language can leave a doubled slash ("Load Next Chapter"
+ * on `/compare/Genesis.1/` writes `/compare/Genesis_2//`): sefaria.org shows Genesis 2's form at that address; this client's router
+ * collapses the slash (`/compare/Genesis_2/`), the same page.
  *
  * @feature LEG-010 Text version diff/compare tool (/compare)
  * @feature RTE-019 Version compare tool URL
@@ -34,9 +38,12 @@ const decode = (path: string) => {
   }
 };
 
-/** The address of a path (as written: it is decoded here, as Django's path_info is), or null when Django's pattern does not match it. */
+/**
+ * The address of a path (as written: repeated slashes merged, as nginx does, then decoded, as Django's path_info is), or null when
+ * Django's pattern does not match it (a 404 on sefaria.org).
+ */
 export function parseComparePath(pathname: string): CompareAddress | null {
-  const m = PATTERN.exec(decode(pathname));
+  const m = PATTERN.exec(decode(pathname.replace(/\/{2,}/g, "/")));
   if (!m) return null;
   const versionOf = (v: string | undefined) => (v ? v.replace(/_/g, " ") : null);
   return { compRef: m[1] ?? null, lang: (m[2] as CompareLang | undefined) ?? null, v1: versionOf(m[3]), v2: versionOf(m[4]) };

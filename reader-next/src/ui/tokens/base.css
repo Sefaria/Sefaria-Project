@@ -16,3 +16,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+/* A page sefaria.org serves outside the site's frame (compare.html: src/lib/routing/standalone.ts) is in the browser's own styles: its
+   font, colours and 8px margin (anything rendered outside the page's own wrapper, a 404 included, looks as there). */
+body[data-standalone] { margin: 8px; background: initial; color: initial; font: initial; line-height: initial; }

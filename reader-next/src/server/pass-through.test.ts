@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isDjangoPath, passResetLink, requestHost, resetLinkUid, setPasswordPath, trailingSlashRedirect } from "./pass-through";
+import { isDjangoPath, passesToDjango, passResetLink, requestHost, resetLinkUid, setPasswordPath, trailingSlashRedirect } from "./pass-through";
 
 describe("isDjangoPath (PLT deployment: which requests go to Django)", () => {
   it("sends Django's own sections through", () => {
@@ -91,6 +91,15 @@ describe("the version-diff tool (/compare) is this client's on the Library host 
   it("keeps the trailing slash, which changes what the address means", () => {
     expect(trailingSlashRedirect(new URL("http://x/compare/Genesis.1/"), "GET")).toBeNull();
     expect(trailingSlashRedirect(new URL("http://x/compare/"), "GET")).toBeNull();
+  });
+  it("the whole request, as src/start.ts decides it: Voices' /compare goes to Django, the Library's stays here", () => {
+    const req = (url: string, headers: Record<string, string> = {}, method = "GET") => new Request(url, { method, headers });
+    expect(passesToDjango(req("http://reader:3000/compare/Genesis.1/he/a/b", { host: "voices.sefaria.org" }))).toBe(true);
+    expect(passesToDjango(req("http://reader:3000/compare", { "x-forwarded-host": "voices.sefaria.org" }))).toBe(true);
+    expect(passesToDjango(req("https://voices.sefaria.org/compare/"))).toBe(true);
+    expect(passesToDjango(req("http://reader:3000/compare/Genesis.1/he/a/b", { host: "www.sefaria.org" }))).toBe(false);
+    expect(passesToDjango(req("https://www.sefaria.org/compare"))).toBe(false);
+    expect(passesToDjango(req("https://www.sefaria.org/compare/Genesis.1/", {}, "POST"))).toBe(true);
   });
   it("reads the host nginx passed on", () => {
     expect(requestHost(new Request("http://reader:3000/compare", { headers: { "x-forwarded-host": "voices.sefaria.org" } }))).toBe("voices.sefaria.org");

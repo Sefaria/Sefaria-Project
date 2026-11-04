@@ -5,7 +5,7 @@
  * @feature LEG-010 Text version diff/compare tool (/compare)
  * @feature RTE-019 Version compare tool URL
  */
-import { notFound } from "@tanstack/react-router";
+import { notFound, redirect } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
 import { compareSetupQueryOptions, sectionTextQueryOptions } from "~/lib/compare/queries";
 import { parseComparePath } from "~/lib/compare/url";
@@ -14,9 +14,14 @@ import { versionsQueryOptions } from "~/lib/versions/book-versions";
 /** Tables rendered on the server; a ref above section level can list dozens (Rashi on Genesis 1: 31), the rest load in the browser. */
 const SSR_TABLES = 6;
 
-export async function loadCompareRoute(queryClient: QueryClient, pathname: string) {
+export async function loadCompareRoute(queryClient: QueryClient, pathname: string, href: string = pathname) {
   const address = parseComparePath(pathname);
-  if (!address) throw notFound();
+  if (!address) {
+    // In the browser (a navigation from the form): load the address as a document, as the old page did (window.location.assign), so
+    // the server answers it (in production Django, with its own 404 page). On the server: a 404 (which production passes to Django).
+    if (typeof window !== "undefined") throw redirect({ href, reloadDocument: true });
+    throw notFound();
+  }
   const setup = await queryClient.ensureQueryData(compareSetupQueryOptions(address.compRef)).catch(() => ({ secRef: "", refArray: null, nextChapter: null }));
   const { lang, v1, v2 } = address;
   const refs = lang && v1 && v2 ? (setup.refArray ?? (setup.secRef ? [setup.secRef] : [])).slice(0, SSR_TABLES) : [];

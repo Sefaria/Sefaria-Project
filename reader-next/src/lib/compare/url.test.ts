@@ -21,9 +21,13 @@ describe("parseComparePath (Django's pattern, VERIFIED 2026-11-04 against www.se
     expect(parseComparePath("/compare/Genesis.1/en/A%20B/C%27D")).toEqual({ compRef: "Genesis.1", lang: "en", v1: "A B", v2: "C'D" });
     expect(parseComparePath("/compare/Genesis.1/en/A%2FB/C")).toBeNull();
   });
-  it("a path the pattern cannot match is null (a 404)", () => {
-    expect(parseComparePath("/compare/Genesis_2//")).toBeNull();
+  it("merges repeated slashes first, as sefaria.org's nginx (live: /compare/Genesis_2// is Genesis 2's form, 200)", () => {
+    expect(parseComparePath("/compare/Genesis_2//")).toEqual({ compRef: "Genesis_2", lang: null, v1: null, v2: null });
+    expect(parseComparePath("/compare//Genesis.1//he/a/b")).toEqual({ compRef: "Genesis.1", lang: "he", v1: "a", v2: "b" });
+  });
+  it("a path the pattern cannot match is null (a 404 on sefaria.org)", () => {
     expect(parseComparePath("/compare/a/b/c/d/e")).toBeNull();
+    expect(parseComparePath("/compare/Genesis.1/xx/a/b")).toBeNull();
   });
 });
 
@@ -31,7 +35,7 @@ describe("comparePath (PageLoader.componentDidUpdate)", () => {
   it("joins the parts and turns spaces into underscores", () => {
     expect(comparePath({ secRef: "Genesis 2", lang: "he", v1: "Miqra according to the Masorah", v2: "Tanach with Nikkud" })).toBe("/compare/Genesis_2/he/Miqra_according_to_the_Masorah/Tanach_with_Nikkud");
   });
-  it("collapses what an empty part leaves, as the old page (even when Django then cannot match it)", () => {
+  it("collapses what an empty part leaves, as the old page (a doubled slash may remain; the server merges it)", () => {
     expect(comparePath({ secRef: "Genesis 1", lang: "he", v1: "", v2: "" })).toBe("/compare/Genesis_1/he/");
     expect(comparePath({ secRef: "Genesis 2", lang: null, v1: null, v2: null })).toBe("/compare/Genesis_2//");
     expect(comparePath({ secRef: "", lang: "he", v1: "a", v2: "b" })).toBe("/compare/he/a/b");

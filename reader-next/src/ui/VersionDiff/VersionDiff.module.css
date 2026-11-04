@@ -1,12 +1,11 @@
 /*
  * The version-diff page is a bare page in the browser's own styles on sefaria.org (templates/compare.html loads no site stylesheet):
- * Times, 16px, default form controls, the body's 8px margin. Inside it every site rule is reverted to the browser's (`all: revert`;
+ * Times, 16px, default form controls, the body's 8px margin (the body's own, base.css `body[data-standalone]`). Inside it every site rule is reverted to the browser's (`all: revert`;
  * doubled classes outrank base.css's `:lang(he)` font and `*` box-sizing), then compare.html's own rules are applied.
  */
 .page.page {
   all: initial;
   display: block;
-  padding: 8px;
   /* compare.html sets no dir in either interface language: the page is left-to-right in Hebrew too (`all` leaves direction alone) */
   direction: ltr;
   color: var(--sefaria-color-diff-text);

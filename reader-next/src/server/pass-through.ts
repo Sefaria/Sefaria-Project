@@ -25,6 +25,12 @@ export const isDjangoPath = (pathname: string, method: string, host?: string | n
 /** The host the reader asked for (nginx passes it on; a proxy in front may name it in X-Forwarded-Host). */
 export const requestHost = (request: Request): string => request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || request.headers.get("host") || new URL(request.url).host;
 
+/**
+ * The request-level decision src/start.ts makes first: does this request go to Django whatever this client renders? (Its path, its
+ * method, and the host asked for: the Voices host keeps the Library-only pages, Q-E1.)
+ */
+export const passesToDjango = (request: Request, pathname: string = new URL(request.url).pathname) => isDjangoPath(pathname, request.method, requestHost(request));
+
 const PASS_THROUGH_TIMEOUT_MS = Number((typeof process !== "undefined" && process.env.SEFARIA_PASS_THROUGH_TIMEOUT_MS) || 30000);
 
 /** What a page answers when what it needs upstream is down or too slow: 503 (try again), never a 500 (a bug) or a hang. */

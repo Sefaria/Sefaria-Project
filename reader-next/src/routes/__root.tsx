@@ -72,7 +72,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const [viewer] = await Promise.all([context.queryClient.ensureQueryData(viewerQuery), context.queryClient.ensureQueryData(remoteConfigQueryOptions()).catch(() => undefined)]);
     return { viewer };
   },
-  head: () => ({
+  head: ({ matches }) => {
+    // a standalone page (compare.html) has no viewport meta and loads no site fonts: the browser's own Times, laid out 980px wide on a phone
+    if (isStandalonePage(matches[matches.length - 1]?.pathname ?? "")) return { meta: [{ charSet: "utf-8" }, { title: "Sefaria Reader" }], links: [{ rel: "stylesheet", href: tokens }, { rel: "stylesheet", href: base }] };
+    return {
     meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { title: "Sefaria Reader" }],
     links: [
       // The faces on screen at first paint, preloaded with the page: a face that arrives later reflows the
@@ -89,7 +92,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: tokens },
       { rel: "stylesheet", href: base },
     ],
-  }),
+    };
+  },
   component: RootComponent,
 });
 
@@ -220,7 +224,7 @@ function RootDocument({ children, lang, dir, standalone }: Readonly<{ children: 
         {headScripts.map(({ children: code, ...attrs }, i) => (code ? <script key={i} {...attrs} dangerouslySetInnerHTML={{ __html: code }} /> : <script key={i} {...attrs} />))}
         <HeadContent />
       </head>
-      <body>
+      <body data-standalone={standalone ? "" : undefined}>
         {children}
         <Scripts />
         {saMetadata && !standalone ? <script dangerouslySetInnerHTML={{ __html: saMetadata }} /> : null}
