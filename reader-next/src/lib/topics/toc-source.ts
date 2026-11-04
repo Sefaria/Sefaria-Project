@@ -21,6 +21,13 @@ import { findTopicTocNode, topicTocCategoryPaths, topicTocPage, type TopicTocEnt
 import { azSlice, type AzLang, type TopicListItem } from "./topic-model";
 
 const TTL_MS = 60 * 60_000;
+/** The big answers (data.js is 9.4 MB, the topic list 2.9 MB) get longer than the API's 8 s on the server; they are fetched once an hour. */
+const BIG = { deadlineMs: 30_000 } as RequestInit; // src/server/internal-fetch.ts reads deadlineMs; the browser ignores it
+/**
+ * Django's LanguageSettingsMiddleware may redirect a page request (data.js, /topics: not under /api/) to the other language's domain;
+ * it never redirects its own "sefaria-node" user agent (the old Node server's), nor one with the English interface cookie.
+ */
+const PAGE: RequestInit = { ...BIG, headers: { "user-agent": "sefaria-node (reader-next)", cookie: "interfaceLang=english" } };
 
 /** The JSON value after `topic_toc:` in the old data.js (a JS object literal whose values are JSON). */
 export function topicTocFromDataJs(src: string): TopicTocNode[] {
@@ -53,7 +60,7 @@ export async function fetchTopicTocTree(origin = SEFARIA_API_ORIGIN, fetcher: ty
   if (r.ok) return (await r.json()) as TopicTocNode[];
   await r.body?.cancel().catch(() => undefined);
   if (r.status !== 404) throw new SefariaApiError(`Topic TOC: HTTP ${r.status}`, r.status);
-  const d = await fetcher(`${origin}/data.js`);
+  const d = await fetcher(`${origin}/data.js`, PAGE);
   if (!d.ok) throw new SefariaApiError(`Topic TOC (data.js): HTTP ${d.status}`, d.status);
   return topicTocFromDataJs(await d.text());
 }
@@ -71,7 +78,7 @@ export async function fetchNumLibraryTopics(origin = SEFARIA_API_ORIGIN, fetcher
       const n = ((await r.json()) as { count?: unknown }).count;
       if (typeof n === "number") return n;
     } else await r.body?.cancel().catch(() => undefined);
-    const page = await fetcher(`${origin}/topics`, { headers: { cookie: "interfaceLang=english" } });
+    const page = await fetcher(`${origin}/topics`, PAGE);
     return page.ok ? numLibraryTopicsFromHtml(await page.text()) : null;
   } catch {
     return null;
@@ -80,7 +87,7 @@ export async function fetchNumLibraryTopics(origin = SEFARIA_API_ORIGIN, fetcher
 
 /** The A–Z list (`GET /api/topics?limit=0`: every displayable topic of the library, most sources first; 2.9 MB). */
 export async function fetchTopicList(origin = SEFARIA_API_ORIGIN, fetcher: typeof fetch = (...a) => globalThis.fetch(...a)): Promise<TopicListItem[]> {
-  const r = await fetcher(`${origin}/api/topics?limit=0`);
+  const r = await fetcher(`${origin}/api/topics?limit=0`, BIG);
   if (!r.ok) throw new SefariaApiError(`Topic list: HTTP ${r.status}`, r.status);
   return (await r.json()) as TopicListItem[];
 }
