@@ -12,7 +12,9 @@ describe("the calendars port's paths", () => {
     expect(isServerRedirect("/parashat-hashavua")).toBe(true);
     expect(leavesClient("/todays-daf-yomi")).toBe(true);
     expect(leavesClient("/calendars")).toBe(false);
-    expect(leavesClient("/topics")).toBe(true);
+    expect(leavesClient("/sheets/1")).toBe(true);
+    // /topics is this client's since the topics port (Library host)
+    expect(leavesClient("/topics")).toBe(false);
   });
   it("on the Voices host the browser leaves the app for /calendars too (Django answers it there, Q-E1)", () => {
     expect(leavesClient("/calendars", "voices.sefaria.org")).toBe(true);
@@ -29,5 +31,24 @@ describe("the calendars port's paths", () => {
     expect(isVoicesHost("www.sefaria.org", "https://voices.sefaria.org")).toBe(false);
     expect(isVoicesHost("localhost:3100")).toBe(false);
     expect(isVoicesHost(undefined)).toBe(false);
+  });
+});
+
+// @feature RTE-065
+describe("the ported pages together (integration of the 2026-11-04 ports)", () => {
+  const pages = ["/translations/de", "/calendars", "/parashat-hashavua", "/compare/Genesis.1/he/a/b", "/topics", "/topics/moses", "/topics/category/authors", "/topics/all/a"];
+  it("are this client's on the Library host", () => {
+    for (const p of pages) expect(isDjangoPage(p, "www.sefaria.org"), p).toBe(false);
+  });
+  it("stay Django's on either Voices host", () => {
+    for (const p of pages) {
+      expect(isDjangoPage(p, "voices.sefaria.org"), p).toBe(true);
+      expect(isDjangoPage(p, "chiburim.sefaria.org.il"), p).toBe(true);
+    }
+  });
+  it("only translations keeps Django's 404 for a trailing slash; /calendars/ is a page", () => {
+    expect(isDjangoPage("/translations/")).toBe(true);
+    expect(isDjangoPage("/translations/de/")).toBe(true);
+    expect(isDjangoPage("/calendars/")).toBe(false);
   });
 });

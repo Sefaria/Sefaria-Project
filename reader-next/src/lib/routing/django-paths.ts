@@ -37,7 +37,7 @@ export const isLibraryOnlyPage = (pathname: string): boolean => LIBRARY_ONLY_RE.
  * Library-only paths that stay Django's with a trailing slash: Django's translations pattern takes "de/" as the slug and answers 404,
  * and so must we (rather than redirect to the address without the slash). "/calendars/" is not one: it is a page of its own on sefaria.org.
  */
-const DJANGO_WITH_SLASH_RE = /^\/translations(?:[/.]|$).*\/$/;
+const DJANGO_WITH_SLASH_RE = /^\/translations(?:\/.*)?\/$/;
 
 /**
  * Is this request's host the Voices site? Its host is the configured Voices origin's (PUBLIC_VOICES_ORIGIN), or any host whose first
