@@ -34,6 +34,15 @@ const rawIndex = (raw: string, filteredIndex: number) => {
 };
 
 const table = (page: Page) => page.locator("[data-diff-table]");
+/** The browser's default font with no stylesheet at all: a blank page's body. */
+const browserDefaultFont = async (page: Page) => {
+  const blank = await page.context().newPage();
+  try {
+    return await blank.evaluate(() => getComputedStyle(document.body).fontFamily);
+  } finally {
+    await blank.close();
+  }
+};
 const row = (page: Page, ref: string) => page.locator(`tr[data-seg-ref="${ref}"]`);
 
 // @feature LEG-010 @feature RTE-019 @feature LEG-031
@@ -53,12 +62,14 @@ test.describe("the page", () => {
     await expect(page.getByLabel("Version 2:")).toHaveCount(0);
     // compare.html has no viewport meta and loads no site font
     await expect(page.locator("meta[name=viewport]")).toHaveCount(0);
-    // the browser's own styles, as compare.html: Times 16px (live computed "Times"), the body's 8px margin, the filters right-aligned
+    // the browser's own styles, as compare.html: its default serif at 16px (live computed "Times" on a Mac), the body's 8px margin,
+    // the filters right-aligned. The default serif is the platform's ("Times New Roman" on Linux), so it is read from a blank page.
+    const browserFont = await browserDefaultFont(page);
     const s = await page.evaluate(() => {
       const p = document.querySelector("[data-compare-page]")!, b = document.body;
       return { font: getComputedStyle(p).fontFamily, bodyFont: getComputedStyle(b).fontFamily, size: getComputedStyle(p).fontSize, margin: getComputedStyle(b).margin, x: p.getBoundingClientRect().x };
     });
-    expect(s).toEqual({ font: "Times", bodyFont: "Times", size: "16px", margin: "8px", x: 8 });
+    expect(s).toEqual({ font: browserFont, bodyFont: browserFont, size: "16px", margin: "8px", x: 8 });
     const ref = await page.getByLabel("Ref:").boundingBox();
     expect(Math.round(ref!.width)).toBe(308); // style="width: 300px" plus the input's own border and padding (live 308)
     // direction: rtl, as live: the first checkbox (י) at the right edge, the last ")" leftmost, Update at the right
@@ -350,8 +361,8 @@ test.describe("Hebrew interface", () => {
     expect(await page.evaluate(() => [document.documentElement.lang, document.documentElement.getAttribute("dir")])).toEqual(["he", null]);
     await expect(page.getByLabel("Ref:")).toHaveValue("Genesis 1");
     await expect(page.getByRole("button", { name: "Load Diff" })).toBeVisible();
-    // the body in the browser's own font (live: "Times"), not the Hebrew interface's
-    expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toBe("Times");
+    // the body in the browser's own font (live: "Times" on a Mac), not the Hebrew interface's
+    expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toBe(await browserDefaultFont(page));
     // form and table start at the left; the filters and Update stay at the right (their own direction: rtl), as in English
     const ref = await page.getByLabel("Ref:").boundingBox();
     expect(Math.round(ref!.x)).toBe(36); // "Ref:" then the input (live 36)
