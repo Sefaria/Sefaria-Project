@@ -3,7 +3,8 @@ import { notFound, useLocation, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { viewerQuery, useViewer } from "~/features/auth/viewer";
 import { SITE_ORIGIN } from "~/lib/config";
-import { BARE_ADDRESS, isLoadEntry } from "~/lib/routing/load-entry";
+import { isLoadEntry } from "~/lib/routing/load-entry";
+import { carriedTopicSort, carryTopicSort } from "~/lib/topics/topic-sort-carry";
 import { isValidEmail } from "~/lib/feedback/feedback";
 import { langCode, useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { postJson } from "~/lib/auth/http";
@@ -110,6 +111,12 @@ const safeDecode = (p: string) => {
   }
 };
 
+/** Is this location this topic page's own (any spelling of its slug Django would normalise to it)? */
+function isOwnLocation(pathname: string, prefix: string, slug: string): boolean {
+  const m = /^\/topics\/(b\/)?([^/]+)$/.exec(pathname);
+  return !!m && (m[1] ?? "") === prefix && normalizeTopicSlug(safeDecode(m[2]!)) === slug;
+}
+
 export function TopicPageRoute({ slug, prefix, search, transLangPref }: TopicPageRouteProps) {
   const ifl = useInterfaceLang();
   const lang = langCode(ifl);
@@ -122,21 +129,23 @@ export function TopicPageRoute({ slug, prefix, search, transLangPref }: TopicPag
   const current = activeTab(entries, search.tab);
   const sort = search.sort ?? DEFAULT_SORT;
   const location = useLocation();
-  // the old panel had a sort only on a full page load (the server's "Relevance") or once the reader chose one; arriving inside the app
-  // it wrote `?tab=…` alone, and nothing at all after the topic search's Enter
+  // the old panel had a sort on a full page load (the server's "Relevance"), once the reader chose one, or carried from the topic page
+  // before it inside the app; otherwise it wrote `?tab=…` alone (src/lib/topics/topic-sort-carry.ts)
   const loadEntry = isLoadEntry(location.state);
-  const bare = !!(location.state as unknown as Record<string, unknown> | undefined)?.[BARE_ADDRESS];
-  const sortInAddress = search.sort !== undefined || loadEntry ? sort : undefined;
+  const sortInAddress = search.sort !== undefined ? search.sort : loadEntry ? DEFAULT_SORT : carriedTopicSort();
 
-  // the old ReaderApp wrote the page's address once the tabs were there (replacing)
+  // the old ReaderApp wrote the page's address once the tabs were there (replacing), the slug as Django normalises it (/topics/Moses
+  // becomes /topics/moses)
   const path = `/topics/${prefix}${slug}`;
+  const own = isOwnLocation(location.pathname, prefix, slug);
   useEffect(() => {
     // while the next page loads (Back to another topic) this one is still mounted and sees that page's location: leave it alone
-    if (!page || bare || safeDecode(location.pathname) !== path) return;
+    if (!page || !own) return;
+    carryTopicSort(sortInAddress);
     const want = new URLSearchParams(topicPageSearch(sortInAddress, current)).toString();
     if (window.location.search === (want ? `?${want}` : "") && window.location.pathname === encodeURI(path)) return;
     void navigate({ to: path as never, search: topicPageSearch(sortInAddress, current) as never, replace: true, resetScroll: false });
-  }, [page, bare, path, location.pathname, sortInAddress, current, search.sort, search.tab, navigate]);
+  }, [page, own, path, sortInAddress, current, search.sort, search.tab, navigate]);
 
   const [langPref, setLangPref] = useState<ContentLangPref>(ifl);
   const [filterOpen, setFilterOpen] = useState(false);

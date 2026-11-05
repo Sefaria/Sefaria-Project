@@ -22,6 +22,3 @@ export function markLoadEntry(state: unknown): void {
 
 /** Whether this location's history entry is the one the document was loaded at. */
 export const isLoadEntry = (state: unknown): boolean => loadIndex !== undefined && (indexOf(state) ?? 0) === loadIndex;
-
-/** Navigation state a caller sets when the old site wrote the bare address for that way in (`/topics/<slug>` from the topic search). */
-export const BARE_ADDRESS = "bareAddress";

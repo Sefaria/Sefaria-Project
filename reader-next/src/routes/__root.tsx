@@ -13,6 +13,7 @@ import { ReaderStateProvider } from "~/features/reader-state/ReaderStateProvider
 import { isReaderPath } from "~/lib/reader/paths";
 import { isStandalonePage } from "~/lib/routing/standalone";
 import { markLoadEntry } from "~/lib/routing/load-entry";
+import { forgetTopicSortOff } from "~/lib/topics/topic-sort-carry";
 import { useHeaderSearch } from "~/features/shell/useHeaderSearch";
 import { SiteHeader } from "~/ui/SiteHeader/SiteHeader";
 import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-menu";
@@ -108,7 +109,10 @@ function RootComponent() {
     document.documentElement.dataset.hydrated = "true";
   }, []);
   // a page sefaria.org serves outside the site's frame (the version-diff tool) is rendered bare, as there (src/lib/routing/standalone.ts)
-  const standalone = isStandalonePage(useLocation().pathname);
+  const pathname = useLocation().pathname;
+  const standalone = isStandalonePage(pathname);
+  // the topic panel's sort lasts only while the reader moves from topic to topic (src/lib/topics/topic-sort-carry.ts)
+  useEffect(() => forgetTopicSortOff(pathname), [pathname]);
   return (
     <RootDocument lang={interfaceLang === "hebrew" ? "he" : "en"} dir={standalone ? undefined : interfaceLang === "hebrew" ? "rtl" : "ltr"} standalone={standalone}>
       <InterfaceLangProvider lang={interfaceLang}>

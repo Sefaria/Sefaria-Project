@@ -112,6 +112,8 @@ test.describe("tabs, sort, filter and language", () => {
     await open(page, "/topics/moses?tab=sources&sort=Chronological");
     await expect(tabs(page).nth(1)).toHaveAttribute("aria-selected", "true");
     await expect(page).toHaveURL(/\?sort=Chronological&tab=sources$/);
+    // sefaria.org ignores ?tab= on load (always the first tab) though its own address writes it: honoured here on purpose (a
+    // copied address opens what it says); an unknown tab is the first, as there
     await open(page, "/topics/moses?tab=sheets");
     await expect(page).toHaveURL(/\?sort=Relevance&tab=notable-sources$/);
   });
@@ -172,17 +174,29 @@ test.describe("the side column", () => {
     await expect(links).toHaveCount(10);
   });
 
+  test("arriving from the topics pages (no sort yet) writes ?tab= alone; a chosen sort carries on through a category page", async ({ page }) => {
+    await open(page, "/topics/all/a");
+    await page.locator('a[href="/topics/aaron"]').first().click();
+    await expect(page).toHaveURL(/\/topics\/aaron\?tab=notable-sources$/);
+    await open(page, "/topics/moses?sort=Chronological");
+    await page.locator('a[href="/topics/category/biblical-figures"]').first().click();
+    // live also writes the topic's stale ?tab= onto the category's address: not ported
+    await expect(page).toHaveURL(/\/topics\/category\/biblical-figures$/);
+    await page.locator('a[href="/topics/aaron"]').first().click();
+    await expect(page).toHaveURL(/\/topics\/aaron\?sort=Chronological&tab=notable-sources$/);
+  });
+
   test("a related topic opens in the app", async ({ page }) => {
     await open(page, "/topics/moses");
     await page.evaluate(() => ((window as unknown as { __same: boolean }).__same = true));
     await side(page).getByRole("link", { name: "Leadership" }).first().click();
     await expect(main(page).getByRole("heading", { level: 1, name: "Leadership" })).toBeVisible();
     expect(await page.evaluate(() => (window as unknown as { __same?: boolean }).__same)).toBe(true);
-    // arriving inside the app the old panel had no sort: sefaria.org writes ?tab=… alone, and a tab click keeps it so
-    await expect(page).toHaveURL(/\/topics\/leadership\?tab=[a-z-]+$/);
+    // the old panel's sort outlives the page: from a loaded topic the next one keeps ?sort= (VERIFIED on sefaria.org 2026-11-05)
+    await expect(page).toHaveURL(/\/topics\/leadership\?sort=Relevance&tab=notable-sources$/);
     await tabs(page).filter({ hasText: /^Sources$/ }).click();
-    await expect(page).toHaveURL(/\/topics\/leadership\?tab=sources$/);
-    // Back to the page the browser loaded: its address keeps the server's sort
+    await expect(page).toHaveURL(/\/topics\/leadership\?sort=Relevance&tab=sources$/);
+    // Back to the page the browser loaded
     await page.goBack();
     await page.goBack();
     await expect(page).toHaveURL(/\/topics\/moses\?sort=Relevance&tab=notable-sources$/);
@@ -248,6 +262,11 @@ test.describe("a partner portal (Jonathan Sacks)", () => {
 
 // @feature TOP-001 @feature TOP-036
 test.describe("addresses", () => {
+  test("a slug in another spelling is written as Django normalises it", async ({ page }) => {
+    await open(page, "/topics/Moses");
+    await expect(page).toHaveURL(/\/topics\/moses\?sort=Relevance&tab=notable-sources$/);
+  });
+
   test("the b test version keeps its address; an unknown topic is not found", async ({ page, request }) => {
     await open(page, "/topics/b/moses");
     await expect(page).toHaveURL(/\/topics\/b\/moses\?sort=Relevance&tab=notable-sources$/);

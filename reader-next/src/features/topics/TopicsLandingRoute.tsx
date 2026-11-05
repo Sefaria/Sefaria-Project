@@ -1,5 +1,4 @@
 import { useQuery, type QueryClient } from "@tanstack/react-query";
-import { BARE_ADDRESS } from "~/lib/routing/load-entry";
 import { useNavigate, useRouteContext } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { langCode, useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -85,7 +84,7 @@ export function TopicsLandingRoute() {
   const teaser = lang === "he" ? "הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים." : "Stay curious. Get the Timeless Topics newsletter every Tuesday.";
   return (
     <TopicsLandingPage
-      search={<TopicLandingSearch numOfTopics={count} suggestions={suggestions} onInput={setWord} onChoose={(slug) => void navigate({ to: topicPageHref(slug) as never, state: { [BARE_ADDRESS]: true } as never })} />}
+      search={<TopicLandingSearch numOfTopics={count} suggestions={suggestions} onInput={setWord} onChoose={(slug) => void navigate({ to: topicPageHref(slug) as never })} />}
       salad={<TopicSalad items={salad} phone={phone} topicHref={topicPageHref} />}
       featured={<FeaturedTopic topic={featured ? { ...featured, imageUrl: featured.secondary_image_uri, imageCaption: featured.image?.image_caption } : featured} topicHref={topicPageHref} />}
       newsletter={
