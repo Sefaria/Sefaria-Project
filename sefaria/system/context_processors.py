@@ -18,6 +18,8 @@ from sefaria.model import library
 import structlog
 
 from sefaria.utils.util import is_int
+from sefaria.utils.chatbot import CLEAR_STORAGE_COOKIE
+from sefaria.constants.model import LIBRARY_MODULE
 logger = structlog.get_logger(__name__)
 
 
@@ -159,14 +161,35 @@ def chatbot_user_token(request):
     elif "chatbot_version" in request.session:
         chatbot_version = request.session["chatbot_version"]
 
+    clearing = _chatbot_storage_clearing(request)
     if not library_assistant.is_enabled_for_user(request.user):
         return {
             "chatbot_script_url": None,
             "chatbot_script_type": None,
+            **clearing,
         }
 
     script_url, script_type = _chatbot_script_url_and_type(chatbot_version)
     return {
         "chatbot_script_url": script_url,
         "chatbot_script_type": script_type,
+        **clearing,
+    }
+
+
+def _chatbot_storage_clearing(request):
+    """
+    After a logout (which sets CLEAR_STORAGE_COOKIE), the next Library page clears the
+    Library Assistant's localStorage and deletes the cookie (templates/base.html). Only
+    on Library pages: that's the origin where the assistant keeps its data, so a Voices
+    page must leave the cookie for it.
+    """
+    return {
+        "chatbot_clear_storage": (
+            request.COOKIES.get(CLEAR_STORAGE_COOKIE) == "1"
+            and getattr(request, "active_module", LIBRARY_MODULE) == LIBRARY_MODULE
+        ),
+        "chatbot_clear_storage_cookie": CLEAR_STORAGE_COOKIE,
+        # The domain the cookie was set on (SessionCookieDomainMiddleware); deleting needs it.
+        "chatbot_cookie_domain": getattr(request, "_cookie_domain", None),
     }
