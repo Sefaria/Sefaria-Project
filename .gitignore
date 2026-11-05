@@ -27,6 +27,8 @@
 *.log
 *.sql
 !semantic_search/sql/*.sql
+# auth-service Postgres test fixture
+!auth-service/internal/registry/testdata/*.sql
 *.sqlite
 *.db
 

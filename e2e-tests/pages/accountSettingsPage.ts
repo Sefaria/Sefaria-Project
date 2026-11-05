@@ -48,20 +48,34 @@ export class AccountSettingsPage extends HelperBase {
     return this.page.getByRole('button', { name: this.language === LANGUAGES.EN ? 'Cancel' : 'ביטול' });
   }
 
+  /**
+   * Waits until React has hydrated the server-rendered page. With server rendering on, the
+   * controls are in the DOM before their handlers are, and an early click does nothing.
+   */
+  async waitForHydration() {
+    await this.page.waitForFunction(() => {
+      const el = document.querySelector('#accountSettingsPage .saveAccountSettingsBtn');
+      return !!el && Object.keys(el).some(k => /^__react(Props|EventHandlers|Fiber|InternalInstance)\$/.test(k));
+    }, null, { timeout: t(45000) });
+  }
+
   // Actions
   async selectEmailNotificationFrequency(frequency: 'daily' | 'weekly' | 'never') {
+    await this.waitForHydration();
     const option = this.emailNotificationsSection.locator(`.toggleOption[data-value="${frequency}"]`);
     await option.click();
     await expect(option).toHaveClass(/on/);
   }
 
   async selectSiteLanguage(language: 'english' | 'hebrew') {
+    await this.waitForHydration();
     const option = this.siteLanguageSection.locator(`.toggleOption[data-value="${language}"]`);
     await option.click();
     await expect(option).toHaveClass(/on/);
   }
 
   async selectReadingHistory(enabled: boolean) {
+    await this.waitForHydration();
     const value = enabled ? 'true' : 'false';
     const option = this.readingHistorySection.locator(`.toggleOption[data-value="${value}"]`);
     await option.click();
@@ -69,23 +83,31 @@ export class AccountSettingsPage extends HelperBase {
   }
 
   async selectTextualCustom(custom: 'sephardi' | 'ashkenazi') {
+    await this.waitForHydration();
     const option = this.textualCustomSection.locator(`.toggleOption[data-value="${custom}"]`);
     await option.click();
     await expect(option).toHaveClass(/on/);
   }
 
+  /**
+   * Saves with the last Save button and accepts the "Settings Saved" alert. The dialog listener
+   * is registered before the click: Playwright dismisses a dialog nobody listens for, so a
+   * listener added afterwards never sees it.
+   */
   async saveSettings() {
-    // Click the last save button (there are multiple)
+    await this.waitForHydration();
+    const saved = this.page.waitForResponse(
+      r => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/profile',
+      { timeout: t(30000) },
+    );
+    const dialog = this.page.waitForEvent('dialog', { timeout: t(30000) });
     await this.saveButtons.last().click();
-
-    // Wait for alert dialog to appear and handle it
-    this.page.once('dialog', async dialog => {
-      expect(dialog.message()).toMatch(/Settings Saved|הגדרות נשמרו/i);
-      await dialog.accept();
-    });
-
-    // Wait a bit for the save operation to complete
-    await this.page.waitForTimeout(t(1000));
+    const response = await saved;
+    expect(response.status()).toBe(200);
+    const alert = await dialog;
+    const message = alert.message();
+    await alert.accept();
+    expect(message).toMatch(/Settings Saved|הגדרות נשמרו/i);
   }
 
   async verifyPageLoaded() {

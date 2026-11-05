@@ -74,6 +74,40 @@ spec:
       alpnProtocols:
         - h2
         - http/1.1
+    # API Key Program authService (Phase 1). Ships disabled: merging this must not change what this environment runs.
+    # The block must exist here: deploy-static.yaml writes authService.image.tag into whichever env file is deploying, and
+    # without a repository here the chart default (a development-registry repo, where release tags do not exist) would be used.
+    authService:
+      # Flip to true only after staging is deliberately included in the rollout. Before flipping, two things must be true:
+      #  1. A release has run first: deploy-static.yaml writes authService.image.tag, and that tag must exist in the registry.
+      #     Flipping enabled alone fails rendering (image.tag is empty and required).
+      #  2. The Secret auth-service-registry (key AUTH_PG_DSN) exists in this release's namespace. This HelmRelease sets no
+      #     targetNamespace, so that is its own namespace (default); not verified against the cluster.
+      enabled: false
+      # observe: never denies; records what would be rejected in x-sefaria-auth-result.
+      mode: observe
+      replicaCount: 1
+      image:
+        # Release image, built by scripts/release-prepare.sh; deploy-static.yaml writes the tag on each release.
+        repository: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
+        tag: ""
+      extAuth:
+        # Fail open: if the auth service is down or slower than the timeout, the request goes through as the anonymous tier.
+        failOpen: true
+        timeout: 200ms
+      postgres:
+        secrets:
+          dsn:
+            # Name only. This Secret is not provisioned yet: before enabling, create auth-service-registry (key AUTH_PG_DSN)
+            # via infrastructure in the namespace this release deploys to.
+            ref: auth-service-registry
+            key: AUTH_PG_DSN
+      rateLimit:
+        # Needs the controller rateLimit backend (infrastructure repo) first.
+        enabled: false
+      nginxLogFields: true
+      monitoring:
+        enabled: true
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset

@@ -447,6 +447,26 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
         request.user_id = user.id
 
 
+class ApiCorsPreflightMiddleware(MiddlewareMixin):
+    """
+    Answers browser CORS preflights for /api/ so a page on any origin may send x-api-key.
+    nginx adds Access-Control-Allow-Origin to the actual response; the auth service checks
+    a key's allowed origins.
+    """
+    ALLOW_HEADERS = "Content-Type, X-API-Key"
+
+    def process_request(self, request):
+        if (request.method != "OPTIONS" or not request.path.startswith("/api/")
+                or "HTTP_ACCESS_CONTROL_REQUEST_METHOD" not in request.META):
+            return None
+        response = HttpResponse(status=204)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = self.ALLOW_HEADERS
+        response["Access-Control-Max-Age"] = "86400"
+        return response
+
+
 class CORSDebugMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         """

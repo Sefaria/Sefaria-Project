@@ -12,6 +12,15 @@
 $sef-error:           #c03522;
 $sef-text-primary:    #121212;
 $sef-text-muted:      #707070;
+$sef-text-secondary:  #575757; // text-secondary (gray-700)
+$sef-border-strong:   #4f6f9a; // border-strong (navy-600)
+$sef-action-primary:  #18345d; // action-primary (navy-700)
+$sef-action-hover:    #132b4c; // action-primary-hover (navy-800)
+$sef-focus:           #1976d2; // functional-focus-blue
+$sef-border-focus:    #cccccc; // border-focus (gray-300): the Figma fields' border
+$sef-gray-250:        #e6e6e6; // disabled field fill
+$sef-gray-400:        #999999; // disabled field border, text-disabled
+$sef-surface-hover:   #eeeeee; // surface-hover
 $sef-surface:         #ffffff;
 $sef-border-default:  #e6e6e6;
 $sef-surface-disabled:#f5f5f5;
@@ -43,6 +52,14 @@ $stroke-strong:   1.5px;
     align-items: baseline;
     justify-content: space-between;
     gap: $sp-2;
+  }
+
+  &-labelGroup {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: $sp-1;
+    min-width: 0;
   }
 
   &-label {
@@ -106,6 +123,15 @@ $stroke-strong:   1.5px;
 
   &--error .sefaria-input-control { border-color: $sef-error; }
 
+  // Read-only: the disabled look, but focusable and selectable, in full-strength text
+  &--readonly .sefaria-input-control,
+  &--readonly .sefaria-input-control:hover {
+    background: $sef-surface-disabled;
+    border-color: $sef-border-default;
+    color: $sef-text-primary;
+    cursor: default;
+  }
+
   // Password reveal toggle
   &-reveal {
     position: absolute;
@@ -126,6 +152,38 @@ $stroke-strong:   1.5px;
     img { width: 20px; height: 20px; display: block; }
   }
 
+  // Multi-line variant: same control, grows to its rows and can be resized taller
+  &-control--multiline {
+    height: auto;
+    min-height: 96px;
+    padding: $sp-3 $sp-4;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  // A small addon inside the field's bottom-right corner (a character count)
+  &-field.has-addon .sefaria-input-control { padding-inline-end: 64px; }
+  &-field.has-addon .sefaria-input-control--multiline { padding-inline-end: $sp-4; padding-bottom: 28px; }
+  &-fieldAddon {
+    position: absolute;
+    inset-inline-end: $sp-3;
+    bottom: $sp-2;
+    pointer-events: none;
+    font-size: 12px;                          // en-system-caption
+    line-height: 20px;
+    font-variant-numeric: tabular-nums;
+    color: $sef-text-muted;                   // text-muted
+  }
+  &-field.has-addon:not(:has(textarea)) .sefaria-input-fieldAddon { bottom: auto; top: 50%; transform: translateY(-50%); }
+
+  // Helper text under the field
+  &-hint {
+    margin: 0;
+    font-size: $font-size-error;
+    line-height: 1.5;
+    color: $sef-text-secondary; // text-secondary
+  }
+
   // Inline error message
   &-error {
     display: flex;
@@ -137,6 +195,163 @@ $stroke-strong:   1.5px;
   }
 
   &-errorIcon { width: 16px; height: 16px; flex: 0 0 auto; }
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Select — Select Field (Figma Components 158:194) with the Dropdown menu (130:66)
+// ══════════════════════════════════════════════════════════════════════════════
+.sefaria-select {
+  display: flex;
+  flex-direction: column;
+  gap: $sp-2;
+  width: 100%;
+
+  &-labelRow { display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: $sp-1; }
+  &-label { font-size: $font-size-label; line-height: 18px; color: $sef-text-primary; }
+
+  &-field { position: relative; }
+
+  &-control {
+    width: 100%;
+    box-sizing: border-box;
+    height: 45px;                             // as Input (the Figma Select Field is 40px)
+    display: flex;
+    align-items: center;
+    gap: $sp-2;
+    padding: 0 $sp-3 0 $sp-4;
+    border: $stroke solid $sef-border-default; // as Input (the Figma Select Field uses gray-300)
+    border-radius: 4px;
+    background: $sef-surface;
+    color: $sef-text-primary;
+    font: inherit;
+    font-size: $font-size-field;              // as Input (the Figma Select Field is 14px)
+    line-height: 1.45;
+    text-align: start;
+    cursor: pointer;
+
+    &:hover:not(:disabled) { border-color: var(--medium-grey-legacy); }
+    &:focus-visible { outline: 2px solid $sef-focus; outline-offset: 2px; }
+    &.is-placeholder { color: var(--medium-grey-legacy); font-size: $font-size-label; } // as Input's placeholder
+    &:disabled { background: $sef-gray-250; border-color: $sef-gray-400; color: $sef-text-muted; cursor: not-allowed; }
+  }
+  &-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &-chevron { flex: 0 0 16px; color: $sef-text-primary; transition: transform .15s; }
+  &.is-open &-chevron { transform: rotate(180deg); }
+  &--disabled &-chevron { color: $sef-gray-400; }
+  &--disabled &-label { color: $sef-text-muted; }
+  &--error &-control { border-color: $sef-error; }
+
+  &-menu {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + #{$sp-1});
+    inset-inline: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: $sef-surface;
+    border-radius: 8px;
+    box-shadow: 0 10px 20px 0 rgba(0, 0, 0, .08), 0 1px 2px 0 rgba(0, 0, 0, .08); // shadow-medium (menus)
+    overflow: hidden;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  &-item {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 $sp-4;
+    font-size: $font-size-label;
+    line-height: 21px;
+    color: $sef-text-primary;
+    cursor: pointer;
+
+    &.is-active { background: $sef-surface-hover; }   // surface-hover: menu items
+    &.is-chosen { font-weight: 600; }
+  }
+}
+@media (prefers-reduced-motion: reduce) { .sefaria-select-chevron { transition: none; } }
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Checkbox — built from DS tokens (no checkbox component existed in code)
+// ══════════════════════════════════════════════════════════════════════════════
+.sefaria-checkbox {
+  display: flex;
+  flex-direction: column;
+  gap: $sp-1;
+
+  &-row {
+    display: flex;
+    align-items: flex-start;
+    gap: $sp-3;
+    min-height: 24px; // WCAG 2.5.8 target size; the whole row is the target
+    cursor: pointer;
+  }
+
+  &-box {
+    position: relative;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    margin-top: 2px; // centres the 18px icon on the first 16px/1.4 line
+  }
+
+  // The real checkbox stays on top, invisible, so clicks, keyboard and screen readers work as usual.
+  &-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    &:disabled { cursor: not-allowed; }
+  }
+
+  &-icon {
+    position: absolute;
+    inset: 0;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+    color: #6f6f6f;                         // icon-muted (5.02:1, passes 3:1 for controls)
+  }
+  &-icon--on { display: none; color: $sef-action-primary; }   // action-primary
+  .sefaria-checkbox-input:checked ~ &-icon--off { display: none; }
+  .sefaria-checkbox-input:checked ~ &-icon--on { display: block; }
+  .sefaria-checkbox-input:hover:not(:disabled) ~ &-icon--off { color: $sef-text-primary; }
+  .sefaria-checkbox-input:focus-visible ~ &-icon { outline: 2px solid $sef-focus; outline-offset: 2px; border-radius: 4px; }
+  .sefaria-checkbox-input:disabled ~ &-icon { color: $sef-gray-400; }  // icon-disabled
+
+  &-label {
+    font-size: $font-size-label;
+    line-height: 1.4;
+    color: $sef-text-primary;
+
+    a { color: var(--sefaria-blue); text-decoration: underline; }
+  }
+
+  &-description,
+  &-error {
+    margin: 0;
+    padding-inline-start: 30px; // lines up with the label text (18px box + 12px gap)
+  }
+  &-description {
+    font-size: $font-size-error;
+    line-height: 1.5;
+    color: $sef-text-secondary;
+  }
+
+  &--error .sefaria-checkbox-icon { color: $sef-error; }
+  &--disabled .sefaria-checkbox-row { cursor: not-allowed; }
+  &--disabled .sefaria-checkbox-label { color: var(--medium-grey-legacy); }
 }
 
 
