@@ -133,7 +133,12 @@ class LexiconEntry(abst.AbstractMongoRecord):
     ALLOWED_ATTRS   = {
         'span':['class', 'dir'],
         'i': ['data-commentator', 'data-order', 'class', 'data-label', 'dir'],
-        'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
+        # Inline images: data URIs, or files hosted on Sefaria's text-image bucket (the
+        # convention texts like Mishnat Eretz Yisrael use). `alt` is the reader's caption.
+        # (bleach calls attribute filters as (tag, name, value); the previous 2-arg lambda
+        # raised TypeError on any <img>.)
+        'img': lambda tag, name, value: name == 'alt' or (name == 'src' and (
+            value.startswith("data:image/") or value.startswith("https://textimages.sefaria.org/"))),
         # data-scroll-link matches the general text-sanitization allowlist for `a`
         # (sefaria/constants/model.py) -- TextRange.jsx:464 reads it to scroll within the
         # same panel instead of opening a new one.
@@ -526,6 +531,83 @@ class KovetzYesodotEntry(DictionaryEntry):
         return ['<br>'.join(strings)]
 
 
+class EncyclopediaTalmuditEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+    # vocalized_headword: the lemma as printed, with nikkud (volumes כג onward); the
+    # headword itself stays unvocalized because it is the Ref and the lookup key.
+    optional_attrs = DictionaryEntry.optional_attrs + ["volume", "chapter_list", "running_header",
+                                                       "vocalized_headword"]
+
+    def headword_string(self):
+        return f'<big><b>{getattr(self, "vocalized_headword", None) or self.headword}</b></big>'
+
+    def as_strings(self, with_headword=True):
+        """Return one string per paragraph so each becomes its own segment.
+
+        Layout mirrors the print encyclopedia:
+          • segment 1: bold lemma + first definition paragraph
+          • next segment(s): any additional definition paragraphs (rare)
+          • next segment: the chapter list (הפרקים) — if present
+          • for each chapter: heading is bolded into the first paragraph;
+            subsequent paragraphs of that chapter become their own segments.
+        """
+        segments = []
+
+        # Segment 1: lemma + first definition paragraph (combined).
+        head = self.headword_string() if with_headword else ""
+        defn_paras = self.content.get("definition", []) or []
+        if defn_paras:
+            first = defn_paras[0]
+            if head:
+                # Splice the head inside the leading <p> tag if present.
+                if first.startswith("<p>"):
+                    first = "<p>" + head + " " + first[3:]
+                else:
+                    first = head + " " + first
+            segments.append(first)
+            segments.extend(defn_paras[1:])
+        elif head:
+            segments.append(head)
+
+        # Chapter list as a standalone segment.
+        chapter_list = self.content.get("הפרקים")
+        if chapter_list:
+            html = "".join(chapter_list) if isinstance(chapter_list, list) else chapter_list
+            segments.append(f'<small>הפרקים:</small> {html}')
+
+        # Each chapter: heading folded into its first paragraph; rest become own segments.
+        for key, value in self.content.items():
+            if key in ("definition", "הפרקים"):
+                continue
+            paras = value if isinstance(value, list) else [value]
+            paras = [p for p in paras if p]
+            if re.match(r'^—( \(\d+\))?$', key):
+                # "—" is the importer's key for the untitled intro paragraphs before the
+                # first chapter: no heading to show.
+                segments.extend(paras)
+                continue
+            if not paras:
+                # Heading-only (e.g. a top-level division header) — emit it as its own segment.
+                segments.append(f'<b>{key}</b>')
+                continue
+            heading_html = f'<b>{key}.</b> '
+            first = paras[0]
+            if re.match(r'^\s*<img\b[^>]*>\s*$', first):
+                # An image must stay a segment of its own (the reader renders image-only
+                # segments with their caption), so the heading gets its own segment.
+                segments.append(f'<b>{key}</b>')
+                segments.extend(paras)
+                continue
+            if first.startswith("<p>"):
+                first = "<p>" + heading_html + first[3:]
+            else:
+                first = heading_html + first
+            segments.append(first)
+            segments.extend(paras[1:])
+
+        return segments or [head or ""]
+
+
 class BenYehudaDictionaryEntry(DictionaryEntry):
     """Eliezer Ben-Yehuda's מילון הלשון העברית.
 
@@ -722,6 +804,7 @@ class LexiconEntrySubClassMapping(object):
         'BDB Aramaic Dictionary': BDBEntry,
         'Kovetz Yesodot VaChakirot': KovetzYesodotEntry,
         'Krupnik Dictionary': KrupnikEntry,
+        'Encyclopedia Talmudit': EncyclopediaTalmuditEntry,
         'Ben Yehuda Dictionary': BenYehudaDictionaryEntry,
     }
 

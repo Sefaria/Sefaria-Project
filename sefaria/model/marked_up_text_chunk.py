@@ -99,12 +99,12 @@ class MarkedUpTextChunk(AbstractMongoRecord):
                 text = text[idx]
 
         for span in self.spans:
+            if span.get("deleted"):
+                continue
             if span['type'] == MUTCSpanType.CITATION.value and 'ref' not in span:
                 raise InputError(f'{type(self).__name__}._validate(): Span must have "ref" attribute if type is "citation".')
             if span['type'] == MUTCSpanType.NAMED_ENTITY.value and 'topicSlug' not in span:
                 raise InputError(f'{type(self).__name__}._validate(): Span must have "topicSlug" attribute if type is "named_entity".')
-            if span.get("deleted"):
-                continue
             citation_text = text[span['charRange'][0]:span['charRange'][1]]
             if citation_text != span['text']:
                 raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span.get('ref', span.get('topicSlug'))}"
