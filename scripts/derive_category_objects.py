@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-
+from sefaria.summaries import update_table_of_contents
 
 from sefaria.model import *
-from sefaria.system.database import db
 from sefaria.model.category import toc_serial_to_objects
-from sefaria.summaries import update_table_of_contents
+from sefaria.system.database import db
 
 
 def visit_structure(treenode, callback, order=None, **kwargs):
@@ -35,6 +33,7 @@ def create_category(treenode):
     c.lastPath = treenode.full_path[-1]
     print("Creating - {}".format(" / ".join(c.path)))
     c.save(override_dependencies=True)
+
 
 db.category.remove({})
 serial_toc = update_table_of_contents()

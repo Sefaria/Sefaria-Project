@@ -5,6 +5,7 @@ Follows the same pattern as sefaria/helper/crm/tasks.py: a task that retries onc
 plus a dispatch_* function that queues it when Celery is on and runs it right away
 when Celery is off.
 """
+
 from typing import Any
 
 import django
@@ -16,15 +17,15 @@ from django.db import transaction
 # runs this task (sefaria/helper/texts/tasks.py does the same).
 django.setup()
 
-from sefaria.celery_setup.app import app
-from sefaria.celery_setup.config import CeleryQueue
-from sefaria.settings import CELERY_ENABLED
-from sefaria.model.user_profile import UserProfile
 from api.newsletter_service import (
     REGISTRATION_PROVIDER_TIMEOUT,
     copy_learning_level_to_new_profile,
     is_newsletter_service_configured,
 )
+from sefaria.celery_setup.app import app
+from sefaria.celery_setup.config import CeleryQueue
+from sefaria.model.user_profile import UserProfile
+from sefaria.settings import CELERY_ENABLED
 
 logger = structlog.get_logger(__name__)
 
@@ -85,6 +86,7 @@ def dispatch_copy_learning_level_from_ac(profile: UserProfile) -> None:
         return
 
     if CELERY_ENABLED:
+
         def queue_task() -> None:
             try:
                 copy_learning_level_from_ac_task.apply_async(
@@ -99,7 +101,9 @@ def dispatch_copy_learning_level_from_ac(profile: UserProfile) -> None:
         transaction.on_commit(queue_task)
     else:
         try:
-            learning_level: int | None = copy_learning_level_to_new_profile(profile.id, timeout=REGISTRATION_PROVIDER_TIMEOUT)
+            learning_level: int | None = copy_learning_level_to_new_profile(
+                profile.id, timeout=REGISTRATION_PROVIDER_TIMEOUT
+            )
             if learning_level is not None:
                 # Keep the in-memory profile in step with what was just saved
                 profile.learning_level = learning_level

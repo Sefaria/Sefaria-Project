@@ -14,13 +14,16 @@ Rationale — why the breakers exist, why there are two, why the guard raises
 BuildDegradationError instead of re-raising, and the locking rules — lives in the wiki:
 wiki/meta/decision-2026-06-25-bad-record-exceptions-startup-guards.md
 """
+
 import itertools
 import threading
-import structlog
-from contextlib import contextmanager
 from collections import defaultdict, namedtuple
-from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS, BuildDegradationError
+from contextlib import contextmanager
+
+import structlog
+
 from sefaria.helper.slack.send_message import notify_engineering_signal
+from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS, BuildDegradationError
 
 logger = structlog.get_logger(__name__)
 
@@ -81,8 +84,7 @@ def get_skip_counts():
     return {pathway: dict(operations) for pathway, operations in counts.items()}
 
 
-def _note_skip(pathway, operation, level, record=None, error_type=None, detail=None,
-               count_signature=True):
+def _note_skip(pathway, operation, level, record=None, error_type=None, detail=None, count_signature=True):
     """Record one skipped record; return the name of the breaker it tripped, or None.
 
     It only REPORTS the trip — the caller acts on it, because responding means posting the
@@ -127,16 +129,18 @@ def _trip_breaker(log, breaker, pathway, operation, error_type=None, detail=None
     Must be called with `_lock` released.
     """
     reason = {
-        "signature": ("one error signature repeated {} times, which indicates broken code "
-                      "rather than {} individually corrupt records"
-                      .format(SIGNATURE_BREAKER_THRESHOLD, SIGNATURE_BREAKER_THRESHOLD)),
-        "volume": ("{} records skipped at a single site, too many to serve a usable library"
-                   .format(VOLUME_BREAKER_THRESHOLD)),
+        "signature": (
+            f"one error signature repeated {SIGNATURE_BREAKER_THRESHOLD} times, which indicates broken code "
+            f"rather than {SIGNATURE_BREAKER_THRESHOLD} individually corrupt records"
+        ),
+        "volume": (f"{VOLUME_BREAKER_THRESHOLD} records skipped at a single site, too many to serve a usable library"),
     }[breaker]
     signal_and_reset_skip_counts(pathway)
-    log.error("[pathway:{}] {}: ABORTING BUILD — {}{}".format(
-        pathway, operation, reason,
-        ": {}: {}".format(error_type, detail) if error_type else ""))
+    log.error(
+        "[pathway:{}] {}: ABORTING BUILD — {}{}".format(
+            pathway, operation, reason, f": {error_type}: {detail}" if error_type else ""
+        )
+    )
 
 
 def log_skip(log, pathway, operation, detail, level="warning", record=None):
@@ -145,14 +149,13 @@ def log_skip(log, pathway, operation, detail, level="warning", record=None):
 
     Raises BuildDegradationError if this skip crosses the volume backstop.
     """
-    tripped = _note_skip(pathway, operation, level, record=record, detail=detail,
-                         count_signature=False)
-    getattr(log, level)("[pathway:{}] {}: {}".format(pathway, operation, detail))
+    tripped = _note_skip(pathway, operation, level, record=record, detail=detail, count_signature=False)
+    getattr(log, level)(f"[pathway:{pathway}] {operation}: {detail}")
     if tripped:
         _trip_breaker(log, tripped, pathway, operation, detail=detail)
         raise BuildDegradationError(
-            "[pathway:{}] {}: aborting build after {} skipped records".format(
-                pathway, operation, VOLUME_BREAKER_THRESHOLD))
+            f"[pathway:{pathway}] {operation}: aborting build after {VOLUME_BREAKER_THRESHOLD} skipped records"
+        )
 
 
 def signal_and_reset_skip_counts(pathway):
@@ -182,15 +185,15 @@ def signal_and_reset_skip_counts(pathway):
     # Worst-offender first, then alphabetical, for stable & scannable output.
     groups = sorted(group_counts.items(), key=lambda kv: (-kv[1], kv[0]))
 
-    header = "*[{}]* skipped *{}* bad record(s)".format(pathway, total)
+    header = f"*[{pathway}]* skipped *{total}* bad record(s)"
     lines = [header]
     for (pw, operation), count in groups:
-        lines.append("\n*{}* — {}".format(operation, count))
+        lines.append(f"\n*{operation}* — {count}")
         stored = grouped.get((pw, operation), [])
         for rec in stored:
-            lines.append("  • {}".format(_format_skip_record(rec)))
+            lines.append(f"  • {_format_skip_record(rec)}")
         if count > len(stored):
-            lines.append("  _… {} more_".format(count - len(stored)))
+            lines.append(f"  _… {count - len(stored)} more_")
 
     message = "\n".join(lines)
     level = "error" if saw_error else "warning"
@@ -199,7 +202,7 @@ def signal_and_reset_skip_counts(pathway):
         "cache_build_skipped",
         pathway=pathway,
         total=total,
-        groups={"{}/{}".format(pw, operation): count for (pw, operation), count in groups},
+        groups={f"{pw}/{operation}": count for (pw, operation), count in groups},
     )
     notify_engineering_signal(message, level=level)
 
@@ -236,13 +239,13 @@ def build_pathway(pathway):
 
 def _format_skip_record(rec):
     """One-line '<record> — <error_type>: <detail>' rendering of a SkipRecord."""
-    record = "{!r}".format(rec.record) if rec.record is not None else "<unknown>"
+    record = f"{rec.record!r}" if rec.record is not None else "<unknown>"
     if rec.error_type and rec.detail:
-        return "{} — {}: {}".format(record, rec.error_type, rec.detail)
+        return f"{record} — {rec.error_type}: {rec.detail}"
     if rec.detail:
-        return "{} — {}".format(record, rec.detail)
+        return f"{record} — {rec.detail}"
     if rec.error_type:
-        return "{} — {}".format(record, rec.error_type)
+        return f"{record} — {rec.error_type}"
     return record
 
 
@@ -275,15 +278,15 @@ def bad_record_guard(log):
             with skip_bad_record("startup", "build_virtual_books", record=rec_id):
                 ...build using rec...
     """
+
     @contextmanager
     def skip_bad_record(pathway, operation, record=None, level="warning", exceptions=BAD_RECORD_EXCEPTIONS):
         try:
             yield
         except exceptions as e:
             error_type, detail = type(e).__name__, str(e)
-            tripped = _note_skip(pathway, operation, level, record=record,
-                                 error_type=error_type, detail=detail)
-            getattr(log, level)("[pathway:{}] {}: skipping {!r}: {}".format(pathway, operation, record, e))
+            tripped = _note_skip(pathway, operation, level, record=record, error_type=error_type, detail=detail)
+            getattr(log, level)(f"[pathway:{pathway}] {operation}: skipping {record!r}: {e}")
             if tripped:
                 _trip_breaker(log, tripped, pathway, operation, error_type, detail)
                 # NOT a bare re-raise: the original is in BAD_RECORD_EXCEPTIONS, so an
@@ -291,7 +294,7 @@ def bad_record_guard(log):
                 # BuildDegradationError escapes every nested guard; `from e` keeps the
                 # original diagnosis and traceback as __cause__.
                 raise BuildDegradationError(
-                    "[pathway:{}] {}: aborting build after {} breaker trip".format(
-                        pathway, operation, tripped)
+                    f"[pathway:{pathway}] {operation}: aborting build after {tripped} breaker trip"
                 ) from e
+
     return skip_bad_record

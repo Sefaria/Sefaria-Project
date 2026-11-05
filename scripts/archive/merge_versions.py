@@ -1,4 +1,5 @@
 from sefaria.texts import *
+
 from sefaria.model import *
 
 """
@@ -16,7 +17,7 @@ merge_text_versions("eu5 text", "Halachos for Donning Clothing", "Mishnah Berura
 merge_text_versions("Wikitext", "Wiki text", "Mishnah Berurah", "he", warn=True)
 """
 
-#An example of the new way of updating version title
+# An example of the new way of updating version title
 merge_text_versions_by_language("Ein Yaakov", "he", warn=True)
 version = Version().load({"title": "Ein Yaakov", "language": "he"})
 version.versionTitle = "Vilna, 1922"

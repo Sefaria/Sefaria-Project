@@ -84,17 +84,13 @@ def add_newsletter_subscriptions(
         NewsletterServiceError: If any step fails
     """
     email = normalize_and_validate_email(email)
-    logger.info(
-        f"Starting subscription flow for {email} with newsletters: {newsletter_stringids}"
-    )
+    logger.info(f"Starting subscription flow for {email} with newsletters: {newsletter_stringids}")
     valid_newsletters = resolve_valid_newsletters(valid_newsletters)
 
     # Step 1: Map stringids to AC list IDs. map_stringids_to_list_ids raises
     # InputError if any stringid isn't in valid_newsletters, so this
     # validates and maps in one pass.
-    new_list_ids: set[str] = set(
-        map_stringids_to_list_ids(newsletter_stringids, valid_newsletters)
-    )
+    new_list_ids: set[str] = set(map_stringids_to_list_ids(newsletter_stringids, valid_newsletters))
     logger.info(f"Mapped to AC list IDs: {new_list_ids}")
 
     # Step 2: Find or create contact
@@ -105,9 +101,7 @@ def add_newsletter_subscriptions(
     # Use active_only=True so a list the user previously unsubscribed from
     # (status: 2) is treated as "not subscribed" and ends up in to_add below —
     # otherwise we'd silently skip resubscribing them.
-    existing_active_list_ids: set[str] = set(
-        fetch_ac_contact_list_ids(contact_id, active_only=True)
-    )
+    existing_active_list_ids: set[str] = set(fetch_ac_contact_list_ids(contact_id, active_only=True))
     logger.info(f"Contact has existing active list IDs: {existing_active_list_ids}")
 
     # Step 4: Only subscribe to lists the user isn't already actively on.
@@ -122,20 +116,12 @@ def add_newsletter_subscriptions(
     # final_list_ids reflects the post-call state: previously-active lists
     # plus the ones we just added.
     final_list_ids: set[str] = existing_active_list_ids | to_add
-    list_id_to_stringid: dict[str, str] = {
-        nl["id"]: nl["stringid"] for nl in valid_newsletters
-    }
+    list_id_to_stringid: dict[str, str] = {nl["id"]: nl["stringid"] for nl in valid_newsletters}
     all_subscriptions: list[str] = sorted(
-        [
-            stringid
-            for lid in final_list_ids
-            if (stringid := list_id_to_stringid.get(lid))
-        ]
+        [stringid for lid in final_list_ids if (stringid := list_id_to_stringid.get(lid))]
     )
 
-    logger.info(
-        f"Subscription complete for {email}. All subscriptions: {all_subscriptions}"
-    )
+    logger.info(f"Subscription complete for {email}. All subscriptions: {all_subscriptions}")
 
     return {"contact": contact, "all_subscriptions": all_subscriptions}
 
@@ -192,9 +178,7 @@ def fetch_user_subscriptions(
     logger.info(f"Found contact {contact_id} for email {email}")
 
     # Get list memberships (active only for accurate subscription state)
-    existing_list_ids: list[str] = fetch_ac_contact_list_ids(
-        contact_id, active_only=True
-    )
+    existing_list_ids: list[str] = fetch_ac_contact_list_ids(contact_id, active_only=True)
     valid_newsletters = resolve_valid_newsletters(valid_newsletters)
 
     # If the user previously opted out, but AC now shows any active membership,
@@ -215,15 +199,9 @@ def fetch_user_subscriptions(
         wants_marketing_emails = True
 
     # Map to stringids, separating out the managed newsletter lists
-    list_id_to_stringid: dict[str, str] = {
-        nl["id"]: nl["stringid"] for nl in valid_newsletters
-    }
+    list_id_to_stringid: dict[str, str] = {nl["id"]: nl["stringid"] for nl in valid_newsletters}
     subscribed_newsletters: list[str] = sorted(
-        [
-            stringid
-            for lid in existing_list_ids
-            if (stringid := list_id_to_stringid.get(lid))
-        ]
+        [stringid for lid in existing_list_ids if (stringid := list_id_to_stringid.get(lid))]
     )
 
     logger.info(f"User {email} is subscribed to: {subscribed_newsletters}")
@@ -310,9 +288,7 @@ def replace_user_preferences(
     new_list_ids: set[str] = set()
     if not marketing_opt_out:
         valid_newsletters = resolve_valid_newsletters(valid_newsletters)
-        new_list_ids = set(
-            map_stringids_to_list_ids(selected_stringids, valid_newsletters)
-        )
+        new_list_ids = set(map_stringids_to_list_ids(selected_stringids, valid_newsletters))
         logger.info(f"Mapped selections to AC list IDs: {new_list_ids}")
 
     # Find or create contact
@@ -328,15 +304,11 @@ def replace_user_preferences(
         all_list_ids: set[str] = set(fetch_all_ac_list_ids())
 
         # Get user's current active memberships
-        active_list_ids: set[str] = set(
-            fetch_ac_contact_list_ids(contact_id, active_only=True)
-        )
+        active_list_ids: set[str] = set(fetch_ac_contact_list_ids(contact_id, active_only=True))
 
         # Only unsubscribe from lists the user is actually subscribed to
         lists_to_remove: set[str] = all_list_ids & active_list_ids
-        logger.info(
-            f"Unsubscribing from {len(lists_to_remove)} lists: {lists_to_remove}"
-        )
+        logger.info(f"Unsubscribing from {len(lists_to_remove)} lists: {lists_to_remove}")
 
         # Remove the lists first and save the opt-out only once they're all
         # gone. wants_marketing_emails describes whether the user gets marketing
@@ -359,41 +331,32 @@ def replace_user_preferences(
         logger.info(f"Marketing opt-out complete for {email}")
         return {"contact": contact, "subscribed_newsletters": []}
 
-    else:
-        # === NORMAL BRANCH: REPLACE within managed lists only ===
-        logger.info(f"Normal preference update for {email}")
-        assert valid_newsletters is not None  # resolved above, before the contact write
+    # === NORMAL BRANCH: REPLACE within managed lists only ===
+    logger.info(f"Normal preference update for {email}")
+    assert valid_newsletters is not None  # resolved above, before the contact write
 
-        # Get managed list IDs (only diff against these)
-        managed_list_ids: set[str] = set(nl["id"] for nl in valid_newsletters)
+    # Get managed list IDs (only diff against these)
+    managed_list_ids: set[str] = set(nl["id"] for nl in valid_newsletters)
 
-        # Get existing active subscriptions
-        existing_list_ids: set[str] = set(
-            fetch_ac_contact_list_ids(contact_id, active_only=True)
-        )
-        logger.info(f"Contact has existing active list IDs: {existing_list_ids}")
+    # Get existing active subscriptions
+    existing_list_ids: set[str] = set(fetch_ac_contact_list_ids(contact_id, active_only=True))
+    logger.info(f"Contact has existing active list IDs: {existing_list_ids}")
 
-        # Scope the diff to managed lists only (don't touch unmanaged lists)
-        existing_managed: set[str] = existing_list_ids & managed_list_ids
-        lists_to_add: set[str] = new_list_ids - existing_managed
-        lists_to_remove_managed: set[str] = existing_managed - new_list_ids
-        logger.info(
-            f"Lists to add: {lists_to_add}, Lists to remove: {lists_to_remove_managed}"
-        )
+    # Scope the diff to managed lists only (don't touch unmanaged lists)
+    existing_managed: set[str] = existing_list_ids & managed_list_ids
+    lists_to_add: set[str] = new_list_ids - existing_managed
+    lists_to_remove_managed: set[str] = existing_managed - new_list_ids
+    logger.info(f"Lists to add: {lists_to_add}, Lists to remove: {lists_to_remove_managed}")
 
-        # Update list memberships (add and remove as needed)
-        update_ac_list_memberships(
-            contact_id, list(lists_to_add), list(lists_to_remove_managed)
-        )
+    # Update list memberships (add and remove as needed)
+    update_ac_list_memberships(contact_id, list(lists_to_add), list(lists_to_remove_managed))
 
-        # Update wants_marketing_emails on the pre-loaded profile
-        save_wants_marketing_emails(profile, True)
+    # Update wants_marketing_emails on the pre-loaded profile
+    save_wants_marketing_emails(profile, True)
 
-        logger.info(
-            f"Preferences updated for {email}. New subscriptions: {selected_stringids}"
-        )
+    logger.info(f"Preferences updated for {email}. New subscriptions: {selected_stringids}")
 
-        return {
-            "contact": contact,
-            "subscribed_newsletters": sorted(selected_stringids),
-        }
+    return {
+        "contact": contact,
+        "subscribed_newsletters": sorted(selected_stringids),
+    }

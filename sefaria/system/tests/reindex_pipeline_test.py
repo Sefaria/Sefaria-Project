@@ -1,4 +1,5 @@
 """Tests for shared reindex pipeline helpers."""
+
 import importlib.util
 import pathlib
 
@@ -27,8 +28,7 @@ def test_run_reindex_entities_rebuilds_all_entity_types(monkeypatch):
     """
     mod = load_pipeline()
     calls = []
-    monkeypatch.setattr("sefaria.search.index_entities",
-                        lambda debug=False: calls.append(("entities", debug)))
+    monkeypatch.setattr("sefaria.search.index_entities", lambda debug=False: calls.append(("entities", debug)))
 
     mod.run_reindex_entities(debug=True)
 

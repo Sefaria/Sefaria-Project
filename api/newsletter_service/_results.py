@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, TypedDict
 
-
 type DisplayName = dict[str, str | None]
 
 

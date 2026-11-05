@@ -1,13 +1,15 @@
 """
 Tests for serve_static view — voices→library redirect for about-sidebar pages.
 """
+
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.test import RequestFactory
-from django.conf import settings
-from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+
 import reader.views as reader_views
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
 
 @pytest.fixture

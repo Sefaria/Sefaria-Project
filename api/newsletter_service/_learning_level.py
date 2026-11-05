@@ -7,9 +7,6 @@ from typing import Any
 
 from django.core import signing
 
-from sefaria.system.exceptions import InputError
-from sefaria.model.user_profile import UserProfile
-from sefaria.system.database import db
 from api.newsletter_service._ac_client import requires_newsletter_service
 from api.newsletter_service._contacts import (
     fetch_ac_learning_level_by_email,
@@ -24,6 +21,9 @@ from api.newsletter_service._validation import (
     is_valid_learning_level,
     normalize_and_validate_email,
 )
+from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -34,9 +34,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 @requires_newsletter_service
-def set_learning_level(
-    email: str, learning_level: int | None
-) -> SetLearningLevelResult:
+def set_learning_level(email: str, learning_level: int | None) -> SetLearningLevelResult:
     """
     Update a user's learning level, handling both authenticated and unauthenticated users.
 
@@ -70,9 +68,7 @@ def set_learning_level(
     # Validate learning_level
     if learning_level is not None and not is_valid_learning_level(learning_level):
         logger.warning(f"Invalid learning level {learning_level} for {email}")
-        raise InputError(
-            "Learning level must be an integer between 1 and 5, or null/None"
-        )
+        raise InputError("Learning level must be an integer between 1 and 5, or null/None")
 
     logger.info(f"Updating learning level for {email}: {learning_level}")
 
@@ -159,9 +155,7 @@ def verify_learning_level_token(token: Any) -> str | None:
     if not isinstance(token, str) or not token:
         return None
     try:
-        payload: Any = signing.loads(
-            token, salt=LEARNING_LEVEL_TOKEN_SALT, max_age=LEARNING_LEVEL_TOKEN_MAX_AGE
-        )
+        payload: Any = signing.loads(token, salt=LEARNING_LEVEL_TOKEN_SALT, max_age=LEARNING_LEVEL_TOKEN_MAX_AGE)
     except signing.BadSignature:  # SignatureExpired is a kind of BadSignature
         return None
     email: Any = payload.get("email") if isinstance(payload, dict) else None
