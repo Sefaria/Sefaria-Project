@@ -62,7 +62,7 @@ class WebsiteRestrictionTest(DeveloperApiTestCase):
         self.assertEqual(state["error"], developer.WEBSITE_IN_USE_ERROR)
         self.assertEqual(Project.objects.get(api_projects__id=int(self.project["id"])).project_link,
                          PROJECT["websiteUrl"])
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://dafportal.org"])
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["dafportal.org"])
 
     def test_clear_website_allowed_when_no_key_is_restricted(self):
         self.create_key(self.project["id"], "Local")
@@ -80,7 +80,7 @@ class WebsiteRestrictionTest(DeveloperApiTestCase):
         status, _ = self.call("post", self.url, {"project": {**PROJECT, "websiteUrl": "https://new.example.org"}})
 
         self.assertEqual(status, 200)
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://new.example.org"])
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["new.example.org"])
         self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
 

@@ -145,13 +145,13 @@ class WebsiteOriginTest(DeveloperApiTestCase):
         self.assertEqual(ApiKey.objects.get(id=key_id).allowed_origins, [browser_origin])
 
     def test_C7_an_internationalised_host_is_refused_or_stored_as_punycode(self):
-        self.assert_refused_or_stored_as_browsers_send_it("https://bücher.example/app", "https://xn--bcher-kva.example")
+        self.assert_refused_or_stored_as_browsers_send_it("https://bücher.example/app", "xn--bcher-kva.example")
 
     def test_C7_an_ipv6_host_is_refused_or_stored_with_brackets(self):
-        self.assert_refused_or_stored_as_browsers_send_it("http://[::1]:8080/", "http://[::1]:8080")
+        self.assert_refused_or_stored_as_browsers_send_it("http://[::1]:8080/", "[::1]")
 
     def test_C7_a_trailing_dot_host_is_refused_or_stored_with_the_dot(self):
-        self.assert_refused_or_stored_as_browsers_send_it("https://example.org./", "https://example.org.")
+        self.assert_refused_or_stored_as_browsers_send_it("https://example.org./", "example.org.")
 
 
 class KeySlotTest(DeveloperApiTestCase):

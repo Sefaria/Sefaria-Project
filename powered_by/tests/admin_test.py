@@ -96,7 +96,7 @@ class ProjectAdminTest(TestCase):
         )
         self.api_project = ApiProject.objects.create(profile=self.listing)
         self.key = ApiKey.objects.create(project=self.api_project, label="Production",
-                                         allowed_origins=["https://tehillimcircle.org"])
+                                         allowed_origins=["tehillimcircle.org"])
 
     def tearDown(self):
         purge_test_profiles(self.staff)
@@ -147,14 +147,14 @@ class ProjectAdminTest(TestCase):
         self.assertEqual(project_after, project_before)
         self.assertEqual(row(ApiKey, self.key.pk), key_before)
 
-    def test_N_M11_an_invalid_origin_is_rejected(self):
+    def test_N_M11_an_invalid_domain_is_rejected(self):
         data = self.api_change_form()
         data["api_keys-0-allowed_origins"] = '["https://tehillimcircle.org/with/a/path"]'
 
         response = self.api_save(data)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(ApiKey.objects.get(pk=self.key.pk).allowed_origins, ["https://tehillimcircle.org"])
+        self.assertEqual(ApiKey.objects.get(pk=self.key.pk).allowed_origins, ["tehillimcircle.org"])
 
     def test_N_M11_deleting_a_project_with_keys_is_refused_with_a_page(self):
         url = admin_url("delete", self.listing.pk)

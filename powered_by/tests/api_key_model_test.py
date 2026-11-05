@@ -1,6 +1,6 @@
 """
 ApiKey.allowed_origins: the database refuses anything but an array of strings (Postgres), and
-model validation refuses anything but a list of origins.
+model validation refuses anything but a list of domains.
 """
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connection, transaction
@@ -21,7 +21,7 @@ class AllowedOriginsTest(TestCase):
         return ApiKey(project=self.project, label="k", allowed_origins=origins)
 
     def test_valid_values_are_stored(self):
-        for origins in ([], ["https://a.example"], ["https://a.example", "http://localhost:3000"]):
+        for origins in ([], ["a.example"], ["a.example", "[::1]"]):
             with transaction.atomic():
                 self.make(origins).save()
 
@@ -33,11 +33,11 @@ class AllowedOriginsTest(TestCase):
                 self.make(bad).save()
 
     def test_full_clean_rejects_bad_values(self):
-        for bad in ([1], ["a", {}], "x", ["not an origin"], ["https://a.example/path"], [""]):
+        for bad in ([1], ["a", {}], "x", ["not a domain"], ["https://a.example"], ["a.example/path"], ["a.example:8080"], ["A.example"], [""]):
             with self.subTest(bad=bad), self.assertRaises(ValidationError) as ctx:
                 self.make(bad).full_clean(exclude=["key"])
             self.assertIn("allowed_origins", ctx.exception.message_dict)
 
-    def test_full_clean_accepts_origins(self):
-        self.make(["https://a.example", "http://localhost:3000"]).full_clean()
+    def test_full_clean_accepts_domains(self):
+        self.make(["a.example", "xn--bcher-kva.example", "127.0.0.1", "[::1]"]).full_clean()
         self.make([]).full_clean()
