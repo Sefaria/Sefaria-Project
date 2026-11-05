@@ -242,6 +242,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.93.0-fixapi-keys-delete-claimed-listings.1.tgz
     version: 0.93.0-fixapi-keys-delete-claimed-listings.1
   - apiVersion: v2
+    appVersion: v7.11.2
+    created: "2026-11-05T03:56:44.867954882Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 6c37b1f87f9011ffbe24946f528b154d1a82c2181f35b72ce5ccb635e2b0a373
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.92.5-weblate.1.tgz
+    version: 0.92.5-weblate.1
+  - apiVersion: v2
     appVersion: v7.11.1
     created: "2026-11-04T11:31:20.440349604Z"
     description: Chart to deploy complete Sefaria environment
@@ -24060,4 +24075,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-04T11:31:20.436410098Z"
+generated: "2026-11-05T03:56:44.86435856Z"
