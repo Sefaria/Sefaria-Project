@@ -17,9 +17,8 @@ from sefaria.settings import ENABLE_LINKER
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
 
-from sefaria.model.linker.named_entity_recognizer import load_spacy_model
-
 from sefaria.helper import linker
+from sefaria.model.linker.named_entity_recognizer import load_spacy_model
 
 try:
     import spacy

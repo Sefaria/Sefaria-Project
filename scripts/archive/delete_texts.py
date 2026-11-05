@@ -10,9 +10,8 @@ sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
 os.environ["DJANGO_SETTINGS_MODULE"] = "settings"
 
-from sefaria.texts import delete_text
-
 from sefaria.system.database import db
+from sefaria.texts import delete_text
 
 texts = (
     "Parshat Bereshit",

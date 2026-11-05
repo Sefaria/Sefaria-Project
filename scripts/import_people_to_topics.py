@@ -7,11 +7,11 @@ from typing import Optional
 
 import django
 import requests
-from sefaria.model.person import Person, PersonRelationship, PersonRelationshipSet, PersonSet
 from tqdm import tqdm
 
 from sefaria.helper.topic import calculate_popular_writings_for_authors
 from sefaria.model import *
+from sefaria.model.person import Person, PersonRelationship, PersonRelationshipSet, PersonSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 

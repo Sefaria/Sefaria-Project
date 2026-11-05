@@ -3,6 +3,7 @@ Creates a group document in Mongo for each Django Group.
 """
 
 from django.contrib.auth.models import Group
+
 from sefaria.model.group import Group as NewGroup
 from sefaria.model.group import GroupSet
 

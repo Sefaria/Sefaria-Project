@@ -203,6 +203,12 @@ ignore = [
     "SIM103",  # needless-bool
 ]
 
+[tool.ruff.lint.isort]
+# Import sections must not depend on which files exist on disk. `sefaria/local_settings.py` is gitignored: present on
+# dev machines, absent in CI. Without this, Ruff classified `from sefaria.local_settings import ...` differently in
+# the two environments, so I001 passed locally and failed in CI (scripts/bookworm_list.py).
+known-first-party = ["sefaria"]
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

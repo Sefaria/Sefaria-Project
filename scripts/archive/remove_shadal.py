@@ -12,11 +12,10 @@ path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-from sefaria.database import db
-from sefaria.texts import parse_ref
-
 from sefaria import counts
 from sefaria.clean import remove_old_counts
+from sefaria.database import db
+from sefaria.texts import parse_ref
 
 titles = set()
 

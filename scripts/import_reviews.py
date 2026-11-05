@@ -7,9 +7,8 @@ path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-from sefaria.reviews import validate_review
-
 from sefaria.model import *
+from sefaria.reviews import validate_review
 from sefaria.system.database import db
 
 filename = sys.argv[1]

@@ -1,7 +1,6 @@
-from sefaria.summaries import update_table_of_contents
-
 from sefaria.model import *
 from sefaria.model.category import toc_serial_to_objects
+from sefaria.summaries import update_table_of_contents
 from sefaria.system.database import db
 
 

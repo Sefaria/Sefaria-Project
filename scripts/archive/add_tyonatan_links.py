@@ -6,9 +6,9 @@ sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
 
 import pymongo
-from sefaria.texts import generate_refs_list, get_text
 
 from sefaria.settings import *
+from sefaria.texts import generate_refs_list, get_text
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]

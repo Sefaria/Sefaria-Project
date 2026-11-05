@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Group as DjangoGroup
 from django.contrib.auth.models import User
-from sefaria.model.group import Group
 
+from sefaria.model.group import Group
 from sefaria.system.database import db
 
 skip = ["Editors", "User Seeds"]

@@ -2,8 +2,8 @@ import re
 from itertools import groupby
 
 import unicodecsv as csv
-from sefaria.helper.splice import SegmentSplicer
 
+from sefaria.helper.splice import SegmentSplicer
 from sefaria.model import *
 
 live = True
