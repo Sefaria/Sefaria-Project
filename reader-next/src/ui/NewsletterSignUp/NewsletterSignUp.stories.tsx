@@ -12,32 +12,41 @@ const meta = {
 } satisfies Meta<typeof NewsletterSignUp>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+/** The interface language of this run (`npm run test:stories:hebrew` sets it), so the play tests find the labels the reader shows. */
+const he = import.meta.env.VITE_SB_LANG === "hebrew";
+const L = {
+  email: he ? "כתובת אימייל" : "Email address",
+  first: he ? "שם פרטי" : "First Name",
+  last: he ? "שם משפחה" : "Last Name",
+  subscribed: he ? "הרשמה בוצעה בהצלחה!" : "Subscribed! Welcome to our list.",
+  invalidEmail: he ? 'כתובת הדוא"ל שהוזנה אינה תקינה.' : "Please enter a valid email address.",
+};
 export const Empty: Story = {};
 export const Hebrew: Story = { decorators: [(Story) => <InterfaceLangProvider lang="hebrew"><Story /></InterfaceLangProvider>] };
 /** A valid address opens the name fields; both names subscribe. */
 export const Subscribed: Story = {
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
-    await userEvent.type(c.getByRole("textbox", { name: "Email address" }), "reader@example.com{enter}");
-    await userEvent.type(c.getByRole("textbox", { name: "First Name" }), "Ada");
-    await userEvent.type(c.getByRole("textbox", { name: "Last Name" }), "Lovelace{enter}");
-    await expect(await c.findByText("Subscribed! Welcome to our list.")).toBeVisible();
+    await userEvent.type(c.getByRole("textbox", { name: L.email }), "reader@example.com{enter}");
+    await userEvent.type(c.getByRole("textbox", { name: L.first }), "Ada");
+    await userEvent.type(c.getByRole("textbox", { name: L.last }), "Lovelace{enter}");
+    await expect(await c.findByText(L.subscribed)).toBeVisible();
   },
 };
 export const InvalidEmail: Story = {
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
-    await userEvent.type(c.getByRole("textbox", { name: "Email address" }), "nope{enter}");
-    await expect(c.getByText("Please enter a valid email address.")).toBeVisible();
+    await userEvent.type(c.getByRole("textbox", { name: L.email }), "nope{enter}");
+    await expect(c.getByText(L.invalidEmail)).toBeVisible();
   },
 };
 export const Failed: Story = {
   args: { subscribe: async () => Promise.reject(new Error("Sorry, that address is blocked.")) },
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
-    await userEvent.type(c.getByRole("textbox", { name: "Email address" }), "reader@example.com{enter}");
-    await userEvent.type(c.getByRole("textbox", { name: "First Name" }), "Ada");
-    await userEvent.type(c.getByRole("textbox", { name: "Last Name" }), "L{enter}");
+    await userEvent.type(c.getByRole("textbox", { name: L.email }), "reader@example.com{enter}");
+    await userEvent.type(c.getByRole("textbox", { name: L.first }), "Ada");
+    await userEvent.type(c.getByRole("textbox", { name: L.last }), "L{enter}");
     await expect(await c.findByText("Sorry, that address is blocked.")).toBeVisible();
   },
 };
