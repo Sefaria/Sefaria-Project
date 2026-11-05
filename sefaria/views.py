@@ -53,6 +53,7 @@ from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, CELERY_ENABLED, S
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sso.adapters import import_gravatar
+from api.tasks import dispatch_copy_learning_level_from_ac
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.export import export_all as start_export_all
@@ -64,6 +65,7 @@ from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
+from sefaria.utils.chatbot import mark_chatbot_storage_for_clearing
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
 from sefaria.helper.skip_tracking import build_pathway
@@ -121,6 +123,10 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
         # Django >= 5.0 dropped GET on LogoutView. Existing <a href="/logout?next=..."> links
         # in the header / mobile menu still rely on GET, so route GET through the same flow as POST.
         return self.post(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        return mark_chatbot_storage_for_clearing(request, response)
 
     def get_next_page(self):
         next_page = self.request.GET.get('next')
@@ -217,6 +223,8 @@ def process_register_form(request, auth_method='session'):
 
         import_gravatar(p)
         p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
+        # After the last save: the copy runs in the background and only fills in an empty learning level
+        dispatch_copy_learning_level_from_ac(p)
 
         if auth_method == 'session':
             auth_login(request, user)

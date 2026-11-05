@@ -279,7 +279,7 @@ def serialize_project(api_project):
         "description": profile.project_desc,
         "organization": profile.organization,
         "websiteUrl": profile.project_link,
-        "visibility": "public" if profile.consent_to_display else "private",
+        "visibility": "private" if profile.request_not_to_publish else "public",
         "aiAssisted": profile.vibe_coded,
         "linkedListing": profile.submission_source != SubmissionSource.DEVELOPER_SETTINGS,
         "consentWithdrawnAt": iso(profile.consent_withdrawn_at),
@@ -555,14 +555,15 @@ def _apply_fields(project, fields):
 
 def _set_visibility(project, visibility):
     """
-    Public is the owner's consent to be listed on Powered by Sefaria. The listing shows only
-    while staff also leave it published, and only staff change is_published.
+    Public is the owner's consent to be listed on Powered by Sefaria; private sets request_not_to_publish,
+    which also unpublishes (Project.save). Only staff publish, so a project made public again stays
+    unlisted until staff republish it.
     """
     if visibility == "public":
-        project.consent_to_display = True
+        project.request_not_to_publish = False
         project.consent_withdrawn_at = None
-    elif project.consent_to_display:
-        project.consent_to_display = False
+    elif not project.request_not_to_publish:
+        project.request_not_to_publish = True
         project.consent_withdrawn_at = timezone.now()
 
 
@@ -604,7 +605,7 @@ def _check_project_limit(user):
 
 
 def _unpublish(profile):
-    profile.consent_to_display = False
+    profile.request_not_to_publish = True
     profile.is_published = False
     profile.save()
 
@@ -619,7 +620,7 @@ def create_project(user, data):
         submission_date=timezone.now(),
         creator=user.get_full_name(),
         creator_email=user.email,
-        consent_to_display=fields["visibility"] == "public",
+        request_not_to_publish=fields["visibility"] != "public",
     )
     _apply_fields(profile, fields)
     profile.save()

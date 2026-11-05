@@ -66,7 +66,7 @@ def create_listing(user):
         project_name=name,
         project_link=link,
         project_desc=description,
-        consent_to_display=True,
+        request_not_to_publish=False,
         notes=MOCK_LISTING_NOTE,
     )
 

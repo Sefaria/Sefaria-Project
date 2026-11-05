@@ -8,7 +8,7 @@
 }
 
 .headerInner,
-.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *) {
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *):not(.libraryAssistantLink):not(.libraryAssistantLink *) {
   display: flex;
   align-items: center;
 }
@@ -160,7 +160,7 @@
   }
 }
 
-.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *) {
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *):not(.libraryAssistantLink):not(.libraryAssistantLink *) {
   cursor: pointer;
 }
 

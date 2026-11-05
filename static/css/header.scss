@@ -15,6 +15,7 @@ $exclude-flex: ( //Elements excluded from the general rules of flex and align to
   ".floating-ui-popover",
   ".keyboardInputInitiator",
   ".readerNavMenuSearchButton",
+  ".libraryAssistantLink",
 );
 $not-selector: "";
 @each $sel in $exclude-flex {

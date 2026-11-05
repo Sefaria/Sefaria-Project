@@ -415,7 +415,7 @@ class ProjectTest(DeveloperApiTestCase):
         self.assertEqual(api_project.owner, self.user)
         self.assertEqual(row.submission_source, SubmissionSource.DEVELOPER_SETTINGS)
         self.assertEqual(api_project.tier_id, "developer")
-        self.assertFalse(row.consent_to_display)
+        self.assertTrue(row.request_not_to_publish)
         self.assertEqual(project["visibility"], "private")
         self.assertFalse(project["linkedListing"])
 
@@ -423,9 +423,10 @@ class ProjectTest(DeveloperApiTestCase):
         public = ApiProject.objects.get(id=int(self.create_project(visibility="public")["id"])).profile
         private = ApiProject.objects.get(id=int(self.create_project(visibility="private")["id"])).profile
 
-        self.assertTrue(public.consent_to_display)
-        self.assertFalse(private.consent_to_display)
-        self.assertTrue(public.is_published and private.is_published, "staff haven't unpublished either")
+        self.assertFalse(public.request_not_to_publish)
+        self.assertTrue(private.request_not_to_publish)
+        self.assertTrue(public.is_published)
+        self.assertFalse(private.is_published, "a project its owner keeps private is never published")
         listed = gallery_ids()
         self.assertIn(public.id, listed)
         self.assertNotIn(private.id, listed)
@@ -442,8 +443,8 @@ class ProjectTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 200)
         row = ApiProject.objects.get(id=int(project["id"])).profile
-        self.assertFalse(row.consent_to_display)
-        self.assertTrue(row.is_published, "the owner doesn't change the staff publish gate")
+        self.assertTrue(row.request_not_to_publish)
+        self.assertFalse(row.is_published, "going private unpublishes; staff republish if it goes public again")
         self.assertNotIn(row.id, gallery_ids())
         self.assertIsNotNone(state["projects"][0]["consentWithdrawnAt"])
 
@@ -563,7 +564,7 @@ class ListingTest(DeveloperApiTestCase):
         self.set_up_developer()
         self.listing = Project.objects.create(
             submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email.upper(),
-            project_name="Tehillim Circle", project_link="https://tehillimcircle.org", consent_to_display=True,
+            project_name="Tehillim Circle", project_link="https://tehillimcircle.org", request_not_to_publish=False,
         )
 
     def test_an_unclaimed_listing_with_the_account_email_is_offered(self):
@@ -584,15 +585,15 @@ class ListingTest(DeveloperApiTestCase):
         self.assertEqual(project["visibility"], "public")
 
     def test_claiming_keeps_the_listing_consent_and_publish_flags(self):
-        for consent, published in ((True, False), (False, True)):
+        for refused, published in ((False, False), (True, False)):
             ApiProject.objects.filter(profile_id=self.listing.id).delete()
-            Project.objects.filter(id=self.listing.id).update(consent_to_display=consent, is_published=published)
+            Project.objects.filter(id=self.listing.id).update(request_not_to_publish=refused, is_published=published)
 
             status, state = self.call("post", "listings/{}/claim".format(self.listing.id))
             self.assertEqual(status, 200)
 
             row = Project.objects.get(id=self.listing.id)
-            self.assertEqual((row.consent_to_display, row.is_published), (consent, published))
+            self.assertEqual((row.request_not_to_publish, row.is_published), (refused, published))
             self.assertNotIn(row.id, gallery_ids())
             self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
 
@@ -611,7 +612,7 @@ class ListingTest(DeveloperApiTestCase):
         self.assertIsNotNone(ApiProject.objects.get(id=int(claimed)).deleted_at)
         self.assertIsNotNone(ApiProject.objects.get(id=int(own["id"])).deleted_at)
         listing = Project.objects.get(id=self.listing.id)
-        self.assertFalse(listing.consent_to_display or listing.is_published)
+        self.assertTrue(listing.request_not_to_publish and not listing.is_published)
         self.assertIsNone(listing.deleted_at)
         self.assertFalse(ApiProject.objects.filter(profile_id=self.listing.id, deleted_at__isnull=True).exists())
 
@@ -623,7 +624,7 @@ class ListingTest(DeveloperApiTestCase):
         self.assertEqual(status, 200, state)
         self.assertIsNone(state["yourListing"])
         listing = Project.objects.get(id=self.listing.id)
-        self.assertFalse(listing.consent_to_display or listing.is_published)
+        self.assertTrue(listing.request_not_to_publish and not listing.is_published)
         self.assertEqual(self.call("post", "listings/{}/claim".format(self.listing.id))[0], 404)
 
     def test_a_dismissed_listing_is_not_offered_again(self):
@@ -766,7 +767,7 @@ class MockTest(DeveloperApiTestCase):
         self.assertIsNotNone(ApiProject.objects.get(id=int(claimed)).deleted_at)
         self.assertIsNotNone(ApiProject.objects.get(id=int(own["id"])).deleted_at)
         self.assertFalse(ApiProject.objects.filter(profile_id=int(listing_id), deleted_at__isnull=True).exists())
-        self.assertFalse(Project.objects.get(id=int(listing_id)).consent_to_display)
+        self.assertTrue(Project.objects.get(id=int(listing_id)).request_not_to_publish)
 
 
 def test_origin_of_is_the_browser_origin():
