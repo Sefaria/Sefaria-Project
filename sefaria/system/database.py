@@ -168,6 +168,10 @@ def ensure_indices(active_db=None):
         ('sheets', ["sources.ref"],{}),
         ('sheets', ["includedRefs"],{}),
         ('sheets', ["expandedRefs"], {}),
+        # Picked by the planner for get_sheets_for_ref (public / collection / owner queries); they exist on prod.
+        ('sheets', [[("expandedRefs", pymongo.ASCENDING), ("status", pymongo.ASCENDING), ("group", pymongo.ASCENDING), ("views", pymongo.DESCENDING)]], {}),
+        ('sheets', [[("expandedRefs", pymongo.ASCENDING), ("status", pymongo.ASCENDING), ("views", pymongo.DESCENDING)]], {}),
+        ('sheets', [[("expandedRefs", pymongo.ASCENDING), ("owner", pymongo.ASCENDING), ("views", pymongo.DESCENDING)]], {}),
         ('sheets', ["tags"],{}),
         ('sheets', ["owner"],{}),
         ('sheets', ["assignment_id"],{}),

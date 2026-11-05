@@ -227,6 +227,7 @@ def topics_with_varying_source_counts(django_db_setup, django_db_blocker):
 			('two', 2, {}),
 			('three', 3, {}),
 			('curated', 1, {"description": {"en": "A hand-written description"}}),
+			('sheets_only', 0, {"numSourceSheets": 4}),
 		]
 		by_suffix = {}
 		for suffix, num_sources, extra_attrs in specs:
@@ -251,12 +252,13 @@ def test_get_all_topics_min_sources(topics_with_varying_source_counts):
 	relevant_slugs = {t.slug for t in by_suffix.values()}
 
 	default_result = {t.slug for t in topic.get_all_topics(limit=0) if t.slug in relevant_slugs}
-	# unchanged legacy behavior: raw query only requires numSources > 0, no min_sources filtering applied
-	assert default_result == {by_suffix['two'].slug, by_suffix['three'].slug, by_suffix['curated'].slug}
+	# without min_sources, any topic with text or sheet sources is returned. same result as before the split, when numSources included sheets
+	assert default_result == {by_suffix['two'].slug, by_suffix['three'].slug, by_suffix['curated'].slug, by_suffix['sheets_only'].slug}
 
-	strict_result = {t.slug for t in topic.get_all_topics(limit=0, min_sources=3) if t.slug in relevant_slugs}
+	strict_result = {t.slug for t in topic.get_all_topics(limit=0, min_sources=3, textual_only=True) if t.slug in relevant_slugs}
 	# 'two' has only 2 sources and no exemption, so it's hidden; 'curated' has 1 source but a
 	# published description, so the curation exemption keeps it visible; 'three' clears the bar outright
+	# 'sheets_only' has 4 sheet sources but no text sources; the 3-source bar counts text sources only
 	assert strict_result == {by_suffix['three'].slug, by_suffix['curated'].slug}
 
 
