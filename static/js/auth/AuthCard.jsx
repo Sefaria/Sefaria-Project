@@ -3,23 +3,22 @@ import PropTypes from 'prop-types';
 import Sefaria from '../sefaria/sefaria';
 import { InterfaceText } from '../Misc.jsx';
 
-// Set by AuthPage when the visitor came from developer settings or the Powered by form ('developer' | 'share').
+// Set by AuthPage when the visitor came from developer settings or the Powered by form ('developer').
 export const AuthNoticeContext = React.createContext(null);
 
 const AUTH_NOTICES = {
   developer: {
-    title: { en: 'Looking for Developer settings?', he: 'מחפשים את הגדרות המפתחים?' },
-    body: { en: 'Log in or create a free Sefaria account first.', he: 'קודם צריך להתחבר או ליצור חשבון ספריא בחינם.' },
-  },
-  share: {
-    title: { en: 'Interested in sharing your project with Sefaria?', he: 'רוצים לשתף את הפרויקט שלכם עם ספריא?' },
+    title: { en: 'Looking for Developer Settings?', he: 'מחפשים את הגדרות המפתחים?' },
     body: { en: 'Log in or create a free Sefaria account first.', he: 'קודם צריך להתחבר או ליצור חשבון ספריא בחינם.' },
   },
 };
 
 const AuthNotice = ({ kind }) => (
   <p className="sefaria-auth-notice">
-    <img src="/static/icons/info.svg" alt="" aria-hidden="true" />
+    {/* Lucide info, 18px */}
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
+    </svg>
     <span>
       <strong><InterfaceText text={AUTH_NOTICES[kind].title} /></strong>{' '}
       <InterfaceText text={AUTH_NOTICES[kind].body} />

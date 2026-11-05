@@ -375,6 +375,6 @@ $stroke-strong:   1.5px;
   color: $sef-text-primary;
   text-align: start;
 
-  img { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 1px; }
+  svg { flex: 0 0 18px; margin-top: 1px; color: #575757; } // text-secondary; Lucide info at 18px
   strong { font-weight: 500; }
 }

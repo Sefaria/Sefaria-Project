@@ -83,10 +83,10 @@ export function nextFromPath(path) {
 }
 
 // Developer banner (PBS check-in, 2026-11-02): someone sent here from developer settings or the Powered by form
-// should read why they have to log in first. The return address already brings them back afterwards.
+// should read why they have to log in first. Both get the same message (D78). The return address already brings
+// them back afterwards.
 export function authNoticeFor(next) {
-  if (!next || !/^\/settings\/developer(\/|\?|$)/.test(next)) return null;
-  return /[?&]share(=|&|$)/.test(next) ? 'share' : 'developer';
+  return next && /^\/settings\/developer(\/|\?|$)/.test(next) ? 'developer' : null;
 }
 
 export function checkPasswordsMatch(p1, p2) {
