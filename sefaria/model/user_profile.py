@@ -245,10 +245,12 @@ class UserHistory(abst.AbstractMongoRecord):
         uh.delete()
 
     @staticmethod
-    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets_only=False, serialized=False, annotate=False, limit=0, skip=0):
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets_only=False, serialized=False, annotate=False, limit=0, skip=0, book=None):
         query = {}
         if uid is not None:
             query["uid"] = uid
+        if book is not None:
+            query["book"] = book
         if oref is not None:
             regex_list = oref.context_ref().regex(as_list=True)
             ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
@@ -753,10 +755,11 @@ class UserProfile(object):
         else:  # history disabled do nothing.
             return None
 
-    def get_history(self, oref=None, saved=None, secondary=None, sheets_only=False, last_place=None, serialized=False, annotate=False, limit=0, skip=0):
+    def get_history(self, oref=None, saved=None, secondary=None, sheets_only=False, last_place=None, serialized=False, annotate=False, limit=0, skip=0, book=None):
         """
         personal user history
         :param oref:
+        :param book: index title, to only get items of this book
         :param saved: True if you only want saved. False if not. None if you dont care
         :param secondary: ditto
         :param last_place: ditto
@@ -767,7 +770,7 @@ class UserProfile(object):
         """
         if not self.settings.get('reading_history', True) and not saved:
             return [] if serialized else None
-        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets_only=sheets_only, last_place=last_place, serialized=serialized, annotate=annotate, limit=limit, skip=skip)
+        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets_only=sheets_only, last_place=last_place, serialized=serialized, annotate=annotate, limit=limit, skip=skip, book=book)
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
