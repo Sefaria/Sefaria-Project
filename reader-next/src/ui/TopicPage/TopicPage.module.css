@@ -29,7 +29,7 @@
 /* the Hebrew description's markdown block takes the Hebrew text face (the old .reactMarkdown inside .int-he, measured) */
 .description > :lang(he) { font-family: var(--sefaria-font-text-he); }
 .description > span { display: block; }
-.description a { color: var(--sefaria-cat-commentary); text-decoration: none; }
+.description a { color: var(--sefaria-color-link-blue); text-decoration: none; }
 .description a:hover { text-decoration: underline; }
 /* .readerNavMenu .dedication */
 .dedication { margin-block-end: 27px; padding: 26px 19px; background: var(--sefaria-color-surface-subtle); color: var(--sefaria-color-text-dark-grey); font-size: 18px; text-align: start; }
@@ -37,7 +37,7 @@
 /* Hebrew: the markdown block takes the Hebrew text face, its link the description blue (measured in the Hebrew interface) */
 .dedication > :lang(he) { display: block; font-family: var(--sefaria-font-text-he); font-size: 18px; font-style: normal; } /* the old markdown block */
 .dedication > :lang(he) a { font-family: inherit; }
-.dedication > :lang(he) a { color: var(--sefaria-cat-commentary); }
+.dedication > :lang(he) a { color: var(--sefaria-color-link-blue); }
 .dedication a { color: inherit; text-decoration: underline; }
 /* .topicPanel .resourcesLink.blue: the book button and the Study Companion */
 .buttons { display: flex; flex-wrap: wrap; }
@@ -59,7 +59,7 @@
 .aiMessage.aiVisible { opacity: 1; visibility: visible; transition: opacity 0.5s ease; }
 .aiBox { display: block; width: 198px; min-width: 150px; margin-inline-start: 10px; overflow: hidden; border-radius: 6px; background: var(--sefaria-color-surface-subtle); box-shadow: var(--sefaria-shadow-1); font-family: var(--sefaria-font-ui-en); font-size: 16px; color: var(--sefaria-color-text-dark-grey); cursor: default; }
 .aiBox * { font-family: var(--sefaria-font-ui-en); }
-.aiBox a { color: var(--sefaria-cat-commentary); text-decoration: none; }
+.aiBox a { color: var(--sefaria-color-link-blue); text-decoration: none; }
 .aiBox a:hover { text-decoration: underline; }
 .aiFirst { padding: 12px 12px 6px; border-block-end: 0.833333px solid var(--sefaria-color-border-strong); font-size: 14px; line-height: 18px; }
 .aiHr { margin-block: 0; }

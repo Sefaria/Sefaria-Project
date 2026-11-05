@@ -11,7 +11,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   font-size: 18px;
   font-family: var(--sefaria-font-text-en, "adobe-garamond-pro", "Crimson Text", Georgia, serif);
-  background: #fff;
+  background: var(--sefaria-color-surface);
   color: var(--sefaria-color-text);
   resize: vertical;
 }
@@ -29,7 +29,7 @@
 }
 .allNotesLink { margin-top: 10px; }
 .noteList { list-style: none; margin: 0; padding: 0; }
-.note { position: relative; padding: 30px 0; border-top: 1px solid #e6e5e6; }
+.note { position: relative; padding: 30px 0; border-top: 1px solid var(--sefaria-color-border-title); }
 .note:first-child { border-top: none; }
 .noteContent { font-family: var(--sefaria-font-text-en, "adobe-garamond-pro", Georgia, serif); font-size: 18px; line-height: 1.4; overflow-wrap: anywhere; }
 .editNoteButton {

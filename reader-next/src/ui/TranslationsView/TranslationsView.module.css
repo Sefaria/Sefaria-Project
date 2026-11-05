@@ -17,20 +17,20 @@
 .summary { cursor: pointer; color: var(--sefaria-color-text-secondary); display: flex; flex-wrap: wrap; gap: 0 var(--sefaria-space-2); align-items: baseline; }
 .title { font-style: italic; }
 .selected { color: var(--sefaria-color-text-muted); }
-.select { color: var(--sefaria-color-link, #4b71b7); text-decoration: none; }
+.select { color: var(--sefaria-color-link); text-decoration: none; }
 .select:hover { text-decoration: underline; }
 .meta { padding: var(--sefaria-space-2) 0 var(--sefaria-space-1) var(--sefaria-space-4); }
 .fullTitle { margin-block-end: var(--sefaria-space-1); color: var(--sefaria-color-text); }
 .open { display: inline-block; padding: 4px 12px; border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-sm, 6px); color: var(--sefaria-color-text); text-decoration: none; }
 
 /* VERIFIED on sefaria.org: intro 16px; preview 18px/22px black; one 14px line under it: ⌄ Title • Select (or Currently Selected) */
-.intro { font-size: 16px; line-height: 1.2; color: #666; }
+.intro { font-size: 16px; line-height: 1.2; color: var(--sefaria-color-text-dark-grey); }
 .count { font-weight: 300; }
-.preview { font-size: 18px; line-height: 22px; color: #000; }
-.row { justify-content: flex-start; gap: 0; margin-block-start: 14px; font-size: 14px; color: #6f6f6f; align-items: baseline; }
+.preview { font-size: 18px; line-height: 22px; color: var(--sefaria-color-text-strong); }
+.row { justify-content: flex-start; gap: 0; margin-block-start: 14px; font-size: 14px; color: var(--sefaria-color-text-muted); align-items: baseline; }
 .row > .details { flex: 0 1 auto; }
-.row > .selected::before, .row > .select::before { content: "•"; margin-inline: 6px; color: #6f6f6f; }
-.select { color: #4b71b7; }
+.row > .selected::before, .row > .select::before { content: "•"; margin-inline: 6px; color: var(--sefaria-color-text-muted); }
+.select { color: var(--sefaria-color-link-blue); }
 .summary { list-style: none; gap: 0; }
 .summary::-webkit-details-marker { display: none; }
 .summary::before { content: ""; width: 5px; height: 5px; margin-inline-end: 8px; border-inline-end: 1.5px solid #999; border-block-end: 1.5px solid #999; transform: translateY(-2px) rotate(45deg); flex: none; align-self: center; }
