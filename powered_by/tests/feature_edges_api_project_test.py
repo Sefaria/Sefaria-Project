@@ -129,7 +129,7 @@ class ApiProjectSchemaEdgesTest(TestCase):
     def test_profile_table_keeps_its_metadata_and_the_frozen_columns(self):
         columns = table_columns("powered_by_project")
         for name in ("project_name", "project_link", "project_desc", "organization", "vibe_coded",
-                     "consent_to_display", "consent_withdrawn_at", "notes"):
+                     "request_not_to_publish", "consent_withdrawn_at", "notes"):
             self.assertIn(name, columns)
         for frozen in ("tier", "owner_id", "deleted_at"):
             self.assertIn(frozen, columns, "an older image still reads and writes " + frozen)
@@ -184,7 +184,7 @@ class ApiProjectSchemaEdgesTest(TestCase):
     def test_listing_responses_never_expose_tier_limits_or_keys(self):
         profile = Project.objects.create(
             submission_source=SubmissionSource.FORMSTACK, project_name="Exposure check",
-            project_link="https://exposure.example.org", is_published=True, consent_to_display=True)
+            project_link="https://exposure.example.org", is_published=True, request_not_to_publish=False)
         api_project = ApiProject.objects.create(profile=profile, tier_id="partner")
         api_key = ApiKey.objects.create(project=api_project, label="Exposure key label")
         staff = Client()
@@ -259,7 +259,7 @@ class ApiProjectWriterEdgesTest(DeveloperApiTestCase):
         listing = Project.objects.create(
             submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
             project_name="Claimable", project_link="https://claimable.example.org",
-            consent_to_display=True, is_published=True)
+            request_not_to_publish=False, is_published=True)
         status, state = self.call("post", "listings/{}/claim".format(listing.id))
         self.assertEqual(status, 200, state)
         self.assertEqual(self.call("post", "projects/" + state["projectId"],
@@ -285,7 +285,7 @@ class ProfileAdminEdgesTest(TestCase):
             submission_source=SubmissionSource.FORMSTACK, submission_date=timezone.now().replace(microsecond=0),
             creator="Tova Levi", creator_email="tova@example.org", project_name="Tehillim Circle",
             project_link="https://tehillimcircle.org", project_desc="Psalms for a group.",
-            sefaria_tools_used=["API"], tags=["Liturgy"], notes="Checked by staff.", consent_to_display=True,
+            sefaria_tools_used=["API"], tags=["Liturgy"], notes="Checked by staff.", request_not_to_publish=False,
             is_published=True)
 
     def tearDown(self):

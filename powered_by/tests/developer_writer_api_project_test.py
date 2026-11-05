@@ -92,7 +92,7 @@ class ClaimedListingAccountDeletionTest(DeveloperApiTestCase):
         listing = Project.objects.create(
             submission_source=SubmissionSource.FORMSTACK, creator_email=email,
             project_name="Tehillim Circle", project_link="https://tehillimcircle.org",
-            consent_to_display=True, is_published=True,
+            request_not_to_publish=False, is_published=True,
         )
         status, state = self.call("post", "listings/{}/claim".format(listing.id))
         self.assertEqual(status, 200, state)
@@ -108,7 +108,7 @@ class ClaimedListingAccountDeletionTest(DeveloperApiTestCase):
         self.user.delete()
         self.user.id = user_id
 
-        unpublished = {**profile_before, "consent_to_display": False, "is_published": False}
+        unpublished = {**profile_before, "request_not_to_publish": True, "is_published": False}
         profile_after = Project.objects.filter(id=listing.id).values().get()
         self.assertEqual({**profile_after, "updated_at": None}, {**unpublished, "updated_at": None})
         api_project = ApiProject.objects.get(id=int(api_id))
@@ -143,14 +143,14 @@ class DeletedSettingsProjectTest(DeveloperApiTestCase):
     def test_settings_created_project_is_unpublished_on_delete(self):
         project = self.create_project(visibility="public")
         profile = ApiProject.objects.get(id=int(project["id"])).profile
-        self.assertTrue(profile.consent_to_display)
+        self.assertFalse(profile.request_not_to_publish)
 
         status, state = self.call("delete", "projects/" + project["id"])
 
         self.assertEqual(status, 200)
         self.assertEqual(state["projects"], [])
         profile.refresh_from_db()
-        self.assertFalse(profile.consent_to_display)
+        self.assertTrue(profile.request_not_to_publish)
         self.assertFalse(profile.is_published)
         self.assertIsNotNone(ApiProject.objects.get(id=int(project["id"])).deleted_at)
 
@@ -257,7 +257,7 @@ class ClaimGuardsTest(DeveloperApiTestCase):
         return Project.objects.create(
             submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
             project_name="Tehillim Circle", project_link="https://tehillimcircle.org",
-            consent_to_display=True, is_published=True, **fields)
+            request_not_to_publish=False, is_published=True, **fields)
 
     def test_a_claim_that_loses_a_race_for_the_listing_is_refused_not_a_server_error(self):
         listing = self.make_listing()

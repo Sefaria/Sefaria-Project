@@ -17,7 +17,7 @@ def mark_developer_settings_projects_manual(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('powered_by', '0002_is_published_default_true'),
+        ('powered_by', '0003_request_not_to_publish'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

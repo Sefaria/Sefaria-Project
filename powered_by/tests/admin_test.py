@@ -91,7 +91,7 @@ class ProjectAdminTest(TestCase):
             submission_source=SubmissionSource.FORMSTACK, submission_date=timezone.now().replace(microsecond=0),
             creator="Tova Levi", creator_email="tova@example.org", project_name="Tehillim Circle",
             project_link="https://tehillimcircle.org", project_desc="Psalms for a group.",
-            sefaria_tools_used=["API"], tags=["Liturgy"], notes="Checked by staff.", consent_to_display=True,
+            sefaria_tools_used=["API"], tags=["Liturgy"], notes="Checked by staff.", request_not_to_publish=False,
             is_published=True,
         )
         self.api_project = ApiProject.objects.create(profile=self.listing)
@@ -170,7 +170,7 @@ class ProjectAdminTest(TestCase):
 
     def test_staff_can_soft_delete_an_api_project_and_revoke_its_keys(self):
         settings_made = Project.objects.create(submission_source=SubmissionSource.DEVELOPER_SETTINGS,
-                                               project_name="Settings project", consent_to_display=True, is_published=True)
+                                               project_name="Settings project", request_not_to_publish=False, is_published=True)
         other = ApiProject.objects.create(profile=settings_made)
         other_key = ApiKey.objects.create(project=other, label="Other")
 

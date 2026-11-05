@@ -13,7 +13,7 @@ from powered_by.tests.admin_test import admin_url, form_data
 def make_profile(name, source=SubmissionSource.FORMSTACK, **overrides):
     fields = dict(
         submission_source=source, project_name=name, project_link="https://example.org",
-        is_published=True, consent_to_display=True,
+        is_published=True, request_not_to_publish=False,
     )
     fields.update(overrides)
     return Project.objects.create(**fields)
@@ -37,7 +37,7 @@ class PublicListingApiProjectTest(TestCase):
         self.assertIn("Internal Tool", self.listed_names())
 
     def test_private_profile_with_live_project_is_not_listed(self):
-        profile = make_profile("Private Tool", SubmissionSource.DEVELOPER_SETTINGS, consent_to_display=False)
+        profile = make_profile("Private Tool", SubmissionSource.DEVELOPER_SETTINGS, request_not_to_publish=True)
         ApiProject.objects.create(profile=profile)
 
         self.assertNotIn("Private Tool", self.listed_names())

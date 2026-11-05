@@ -157,7 +157,7 @@ class ProjectCapTest(DeveloperApiTestCase):
     def test_N_CR7_claiming_a_listing_counts_toward_the_cap(self):
         self.fill()
         listing = Project.objects.create(submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
-                                         project_name="Submitted", consent_to_display=True, is_published=True)
+                                         project_name="Submitted", request_not_to_publish=False, is_published=True)
 
         status, body = self.call("post", "listings/{}/claim".format(listing.id))
 
@@ -181,7 +181,7 @@ class DeletedProjectGalleryTest(DeveloperApiTestCase):
     def test_N_CR14_a_deleted_project_marked_published_is_not_public(self):
         project_id = self.create_project(visibility="public")["id"]
         self.assertEqual(self.call("delete", "projects/" + project_id)[0], 200)
-        Project.objects.filter(api_projects__id=int(project_id)).update(is_published=True, consent_to_display=True)
+        Project.objects.filter(api_projects__id=int(project_id)).update(is_published=True, request_not_to_publish=False)
         profile_id = ApiProject.objects.get(id=int(project_id)).profile_id
 
         response = Client().get("/api/powered-by")

@@ -36,7 +36,7 @@ class OtherAccountTest(DeveloperApiTestCase):
         self.listing = Project.objects.create(
             submission_source=SubmissionSource.FORMSTACK, creator_email=self.other.email,
             project_name="Owned by A, submitted with B's email", project_link="https://listing.example.org",
-            consent_to_display=True,
+            request_not_to_publish=False,
         )
         ApiProject.objects.create(profile=self.listing, owner=self.user)
 
@@ -188,7 +188,7 @@ class ClaimConsentTest(DeveloperApiTestCase):
         self.listing = Project.objects.create(
             submission_source=SubmissionSource.FORMSTACK, creator_email=self.user.email,
             project_name="Said no", project_link="https://saidno.example.org",
-            consent_to_display=False, is_published=False,
+            request_not_to_publish=True, is_published=False,
         )
 
     def edit(self, visibility):
@@ -204,7 +204,7 @@ class ClaimConsentTest(DeveloperApiTestCase):
         self.assertEqual(status, 200, state)
         row = Project.objects.get(id=self.listing.id)
         self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
-        self.assertFalse(row.consent_to_display)
+        self.assertTrue(row.request_not_to_publish)
         self.assertFalse(row.is_published)
         self.assertEqual(state["projects"][0]["visibility"], "private")
 
@@ -215,7 +215,7 @@ class ClaimConsentTest(DeveloperApiTestCase):
 
         row = self.edit("public")
 
-        self.assertTrue(row.consent_to_display)
+        self.assertFalse(row.request_not_to_publish)
         self.assertIn(self.listing.id, gallery_ids())
 
     def test_N_C15_the_owner_picking_public_does_not_publish_an_unpublished_listing(self):
@@ -223,7 +223,7 @@ class ClaimConsentTest(DeveloperApiTestCase):
 
         row = self.edit("public")
 
-        self.assertTrue(row.consent_to_display)
+        self.assertFalse(row.request_not_to_publish)
         self.assertFalse(row.is_published)
         self.assertNotIn(self.listing.id, gallery_ids())
 
@@ -235,7 +235,7 @@ class ClaimConsentTest(DeveloperApiTestCase):
         self.edit("private")
         row = self.edit("public")
 
-        self.assertTrue(row.consent_to_display)
+        self.assertFalse(row.request_not_to_publish)
         self.assertFalse(row.is_published)
 
 
