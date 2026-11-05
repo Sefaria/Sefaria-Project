@@ -697,7 +697,7 @@ describe('the confirmation link', () => {
     expect(container.textContent).toContain('Thank you for confirming your email');
     expect(container.textContent).toContain('You can close this tab');
     const next = container.querySelector('[data-agent-action="continue-to-developer-settings"]');
-    expect(next.textContent).toBe('Continue to developer settings');
+    expect(next.textContent).toBe('Continue to Developer Settings');
     expect(next.getAttribute('href')).toBe('/settings/developer');
     expect(window.localStorage.getItem('sefariaDeveloperEmailConfirmed')).toBeTruthy();
   });

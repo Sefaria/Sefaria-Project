@@ -111,7 +111,7 @@ const ChevronIcon = () => (
 );
 
 const ExternalIcon = () => (
-  <svg className="devPocExternalIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2"
+  <svg className="devPocExternalIcon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"
     strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
     <path d="M14 4h6v6" />
     <path d="M20 4 10 14" />
@@ -575,7 +575,7 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
     return (
       <section className="devSetup devSetupLoading" role="status">
         <span className="devPocSpinner" aria-hidden="true" />
-        <p className="devSetupLead"><InterfaceText text={{en: "Setting up developer settings…", he: "מכינים את הגדרות המפתחים…"}} /></p>
+        <p className="devSetupLead"><InterfaceText text={{en: "Setting up Developer Settings…", he: "מכינים את הגדרות המפתחים…"}} /></p>
       </section>
     );
   }
@@ -602,7 +602,7 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
         </div>
         <p className="devSetupNote">
           <InterfaceText text={{
-            en: "Can't find it? Check your spam folder. Wrong address? Change it in Account settings.",
+            en: "Can't find it? Check your spam folder. Wrong address? Change it in Account Settings.",
             he: "לא מוצאים? בדקו בתיקיית הספאם. הכתובת שגויה? שנו אותה בהגדרות החשבון.",
           }} />
         </p>
@@ -741,6 +741,8 @@ const FieldError = ({id, error}) => error ? (
 
 /* A failed save: the sign-in forms' error banner, at the top of the form. */
 const saveFailure = (err) => ({message: (err && err.message) || Sefaria._v(SAVE_FAILED)});
+/* A key that couldn't be made: say so, and nothing more (Penina, 2026-11-05). */
+const keyFailure = (err) => ({message: (err && err.message) || Sefaria._v({en: "We couldn't create your key. Please try again.", he: "לא הצלחנו ליצור את המפתח. נסו שוב."})});
 
 /* Name and email come from the Sefaria account and are shown locked; an account without a
    name types one here instead. */
@@ -1984,16 +1986,19 @@ const ECopyIcon = ({size = 14}) => (
 );
 
 /* Lucide icons, pasted (not yet in our icon library): pencil, plus, sparkles, globe, star, check, trash-2. */
-const eLucide = (paths, size = 14) => (
+/* Lucide icons at the design system's sizes only: 12, 18 or 24px (18 by default). */
+const eLucide = (paths, size = 18) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{paths}</svg>
 );
-const EPencilIcon = () => eLucide(<React.Fragment><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></React.Fragment>);
-const EPlusIcon = () => eLucide(<React.Fragment><path d="M5 12h14" /><path d="M12 5v14" /></React.Fragment>);
-const ESparklesIcon = () => eLucide(<React.Fragment><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /><path d="M4 17v2" /><path d="M5 18H3" /></React.Fragment>);
-const EGlobeIcon = () => eLucide(<React.Fragment><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></React.Fragment>);
-const EStarIcon = () => eLucide(<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />);
-const ECheckIcon = () => eLucide(<path d="M20 6 9 17l-5-5" />);
-const ETrashIcon = () => eLucide(<React.Fragment><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><path d="M10 11v6" /><path d="M14 11v6" /></React.Fragment>, 16);
+const EPencilIcon = ({size} = {}) => eLucide(<React.Fragment><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></React.Fragment>, size);
+const EPlusIcon = ({size} = {}) => eLucide(<React.Fragment><path d="M5 12h14" /><path d="M12 5v14" /></React.Fragment>, size);
+const ESparklesIcon = ({size} = {}) => eLucide(<React.Fragment><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /><path d="M4 17v2" /><path d="M5 18H3" /></React.Fragment>, size);
+const EGlobeIcon = ({size} = {}) => eLucide(<React.Fragment><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></React.Fragment>, size);
+const EStarIcon = ({size} = {}) => eLucide(<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />, size);
+const ECheckIcon = ({size} = {}) => eLucide(<path d="M20 6 9 17l-5-5" />, size);
+const EArrowLeftIcon = ({size} = {}) => eLucide(<React.Fragment><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></React.Fragment>, size);
+const EMailIcon = ({size} = {}) => eLucide(<React.Fragment><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></React.Fragment>, size);
+const ETrashIcon = ({size} = {}) => eLucide(<React.Fragment><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><path d="M10 11v6" /><path d="M14 11v6" /></React.Fragment>, size);
 
 const eCopy = (text, done) => {
   try {
@@ -2094,7 +2099,6 @@ const EEntry = ({onStart, withConfirm, share}) => {
       </button>
       <p className="devE-links">
         <a href={API_DOCS_URL} target="_blank" rel="noreferrer">{tE("Technical documentation", "תיעוד טכני")}<ExternalIcon /></a>
-        <span aria-hidden="true">·</span>
         <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">{tE("Download the library", "הורדת הספרייה")}<ExternalIcon /></a>
       </p>
     </div>
@@ -2236,8 +2240,12 @@ const toDomain = (raw) => {
 };
 const E_DOMAIN_HINT = {en: "Includes www and any subdomain, like app.example.com.", he: "כולל www וכל תת־דומיין, למשל app.example.com."};
 /* Security recommendation (PBS check-in, 2026-11-02): the badge says why the website matters, the hint explains it. */
-const E_SITE_SECURITY_HINT = {en: "Lets you limit your keys to this site and its subdomains, so no one else can use them.",
-  he: "מאפשר להגביל את המפתחות שלכם לאתר הזה ולתתי־הדומיינים שלו, כך שאף אחד אחר לא יוכל להשתמש בהם."};
+/* "Learn more" points at the API docs until a Help Center article on website restriction exists (D64). */
+const E_SITE_LEARN_MORE_URL = API_DOCS_URL;
+const E_SITE_SECURITY_HINT = {
+  en: <React.Fragment>Adding your website lets you limit a key to this site and its subdomains, so that no one else can use it.{" "}<a className="devE-inlineLink" href={E_SITE_LEARN_MORE_URL} target="_blank" rel="noopener noreferrer">Learn more</a></React.Fragment>,
+  he: <React.Fragment>הוספת האתר מאפשרת להגביל מפתח לאתר הזה ולתתי־הדומיינים שלו, כך שאף אחד אחר לא יוכל להשתמש בו.{" "}<a className="devE-inlineLink" href={E_SITE_LEARN_MORE_URL} target="_blank" rel="noopener noreferrer">מידע נוסף</a></React.Fragment>,
+};
 
 /* "What are you building?" (PBS form check-in, 2026-11-02): a quick choice, so someone who is only trying the API
    has an honest answer, and the data is cleaner than free text. */
@@ -2253,7 +2261,7 @@ const E_PURPOSES = [
 const EProjectFields = ({fields, set, errors, check, showcase}) => (
   <React.Fragment>
     <Input id="devEProjName" required dir="auto" label={tE("Project name", "שם הפרויקט")}
-      placeholder={vE("e.g. Torah Study Companion", "למשל: מלווה ללימוד תורה")}
+      placeholder={vE("e.g. Shabbat Table Questions", "למשל: שאלות לשולחן השבת")}
       value={fields.name} onChange={e => set("name", e.target.value)} error={errors.name} onBlur={() => check("name")} />
     <Input id="devEProjOrg" dir="auto" label={tE("Organization", "ארגון")} labelAddon={EOpt}
       placeholder={vE("e.g. your company or organization", "למשל: החברה או הארגון שלכם")}
@@ -2264,7 +2272,7 @@ const EProjectFields = ({fields, set, errors, check, showcase}) => (
       options={E_PURPOSES.map(o => ({value: o.value, label: {en: o.en, he: o.he}}))} />
     <Input id="devEProjDesc" required multiline rows={3} dir="auto" maxLength={MAX_DESCRIPTION_LENGTH}
       label={tE("Short description", "תיאור קצר")}
-      placeholder={vE("e.g. A mobile app that sends a daily passage with commentary, so study groups can learn and discuss it together.", "למשל: אפליקציה ששולחת קטע יומי עם פרשנות, כדי שקבוצות לימוד יוכלו ללמוד ולדון בו יחד.")}
+      placeholder={vE("e.g. A site that turns each week's parashah into three discussion questions for the Shabbat table, with a printable version.", "למשל: אתר שהופך את פרשת השבוע לשלוש שאלות לדיון סביב שולחן השבת, עם גרסה להדפסה.")}
       value={fields.description} onChange={e => set("description", e.target.value)} error={errors.description}
       onBlur={() => check("description")} aria-describedby="devEProjDescCount"
       fieldAddon={<span id="devEProjDescCount" dir="ltr">{fields.description.length}/{MAX_DESCRIPTION_LENGTH}</span>} />
@@ -2276,13 +2284,17 @@ const EProjectFields = ({fields, set, errors, check, showcase}) => (
   </React.Fragment>
 );
 
+/* One message for a website that isn't a real address (no domain ending like .com), shown on blur under every
+   website field (Penina, 2026-11-05). https:// and www. are cleaned up, not errors. */
+const E_SITE_INVALID = <InterfaceText text={{en: "Invalid website", he: "כתובת אתר לא תקינה"}} />;
+const eSiteError = (value, required) => !(value || "").trim() ? (required ? "auth.required_field" : null)
+  : parseWebsite(value).valid ? null : E_SITE_INVALID;
 const E_PROJECT_RULES = {
   name: f => requiredFieldValidate(f.name),
   /* Not saved by the server yet, so a project being edited has none: only a new project must choose one. */
   purpose: f => f.isNew ? requiredFieldValidate(f.purpose) : null,
   description: f => requiredFieldValidate(f.description),
-  websiteUrl: f => parseWebsite(f.websiteUrl).valid ? null :
-    <InterfaceText text={{en: "Enter a website address like example.com.", he: "נא להזין כתובת אתר כמו example.com."}} />,
+  websiteUrl: f => eSiteError(f.websiteUrl, false),
 };
 const E_FIELD_IDS = {name: "devEProjName", purpose: "devEProjPurpose", description: "devEProjDesc", websiteUrl: "devEProjSite", label: "devEKeyName"};
 
@@ -2295,7 +2307,7 @@ const useEProjectForm = (initial, withKey, initialLabel) => {
   const [errors, setErrors] = useState({});
   const set = (key, value) => {
     setFields(f => ({...f, [key]: value}));
-    if (errors[key] && E_PROJECT_RULES[key] && !E_PROJECT_RULES[key]({...fields, [key]: value})) { setErrors(e => ({...e, [key]: null})); }
+    if (errors[key]) { setErrors(e => ({...e, [key]: null})); }   // any change clears the error; blur checks again (2026-11-05)
   };
   const check = (key) => setErrors(e => ({...e, [key]: E_PROJECT_RULES[key](fields)}));
   const setKeyLabel = (value) => {
@@ -2352,7 +2364,7 @@ const EProjectKey = ({dots, mode, onBack, backLabel, onLater, onCreate, onProjec
       <form className="devE-form" onSubmit={submit} noValidate>
         <ErrorBanner error={banner} />
         <EProjectFields fields={form.fields} set={form.set} errors={form.errors} check={form.check} />
-        <EKeyNameField label={form.label} setLabel={form.setKeyLabel} error={form.errors.label} placeholder={vE("My first key", "המפתח הראשון שלי")} />
+        <EKeyNameField label={form.label} setLabel={form.setKeyLabel} error={form.errors.label} placeholder={vE("My key", "המפתח שלי")} />
         <ENote>{tE("Projects created in this account can't be moved to another account.",
           "אי אפשר להעביר פרויקטים שנוצרו בחשבון הזה לחשבון אחר.")}</ENote>
         <EPrimary data-agent-action="create-key" disabled={busy}>
@@ -2367,7 +2379,7 @@ const EProjectKey = ({dots, mode, onBack, backLabel, onLater, onCreate, onProjec
 
 const ENewKey = ({project, onBack, onCreate}) => {
   const restrict = useKeyRestrict(project);
-  const [label, setLabel] = useState(project.keys.length ? "Key " + (project.keys.length + 1) : "My first key");
+  const [label, setLabel] = useState("");   // empty, with the "My key" placeholder, first key or not (2026-11-05)
   const [error, setError] = useState(null);
   const [banner, setBanner] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -2378,16 +2390,18 @@ const ENewKey = ({project, onBack, onCreate}) => {
     if (problem) { document.getElementById("devEKeyName").focus(); return; }
     if (!restrict.check() || busy) { return; }
     setBusy(true); setBanner(null);
-    Promise.resolve(onCreate(label.trim(), restrict.options())).catch(err => { setBanner(saveFailure(err)); setBusy(false); });
+    Promise.resolve(onCreate(label.trim(), restrict.options())).catch(err => { setBanner(keyFailure(err)); setBusy(false); });
   };
   return (
+    /* Same one-line heading as the setup key step; a long project name wraps (Penina, 2026-11-05). */
     <EStep onBack={onBack} title={<InterfaceText text={{
-        en: <React.Fragment>Add a key to <bdi dir="auto">{project.name}</bdi></React.Fragment>,
-        he: <React.Fragment>הוספת מפתח ל־<bdi dir="auto">{project.name}</bdi></React.Fragment>,
+        en: <React.Fragment>Create an API key for <bdi dir="auto">{project.name}</bdi></React.Fragment>,
+        he: <React.Fragment>צרו מפתח API עבור <bdi dir="auto">{project.name}</bdi></React.Fragment>,
       }} />}>
       <form className="devE-form" onSubmit={submit} noValidate>
         <ErrorBanner error={banner} />
-        <EKeyNameField label={label} setLabel={v => { setLabel(v); if (error && v.trim()) { setError(null); } }} error={error} />
+        <EKeyNameField label={label} setLabel={v => { setLabel(v); if (error && v.trim()) { setError(null); } }} error={error}
+          placeholder={vE("My key", "המפתח שלי")} />
         {restrict.field}
         <EPrimary data-agent-action="create-key" disabled={busy}>{tE("Create API key", "יצירת מפתח API")}</EPrimary>
       </form>
@@ -2426,7 +2440,7 @@ const ESetupProject = ({dots, title, onBack, backLabel, onSkip, skipLabel, onCre
 /* "Limit to website" while creating a key (2026-11-01): the moment people pay most attention. Off by default, since
    a key used from a server or an AI tool must stay unlimited. Without a website on the project, turning it on asks
    for one right here; it's saved to the project. The switch stays on the key's row afterwards, to change either way. */
-const EKeyRestrictField = ({project, on, setOn, site, setSite, siteError}) => {
+const EKeyRestrictField = ({project, on, setOn, site, setSite, siteError, setSiteError}) => {
   const host = websiteHost(project.websiteUrl);
   return (
     <div className="devE-restrict">
@@ -2438,17 +2452,33 @@ const EKeyRestrictField = ({project, on, setOn, site, setSite, siteError}) => {
         </span>
         <ToggleSwitch name="devEKeyRestrict" isChecked={on} onChange={e => setOn(e.target.checked)} />
       </div>
-      <p className="devE-hint" id="devEKeyRestrict-hint">
-        {tE("Turn it on if the key goes in a web page's code. Leave it off for a server or an AI tool. You can change this later.",
-          "הפעילו אם המפתח נמצא בקוד של דף אינטרנט. השאירו כבוי לשרת או לכלי AI. אפשר לשנות את זה אחר כך.")}
-      </p>
+      <ERestrictHint id="devEKeyRestrict-hint" />
       {on && !host ?
         <Input id="devEKeySite" inputDir="ltr" label={tE("Your website", "האתר שלכם")} placeholder="example.com"
           hint={<InterfaceText text={{en: E_DOMAIN_HINT.en + " We'll add it to the project's details.", he: E_DOMAIN_HINT.he + " נוסיף אותו לפרטי הפרויקט."}} />}
-          value={site} onChange={e => setSite(e.target.value)} onBlur={() => setSite(toDomain(site))} error={siteError} /> : null}
+          value={site} onChange={e => setSite(e.target.value)} onBlur={() => { setSite(toDomain(site)); if (site.trim()) { setSiteError(eSiteError(site, true)); } }} error={siteError} /> : null}
     </div>
   );
 };
+
+/* When to limit a key, in three lines with on and off in bold (Penina, 2026-11-05). Used in the key forms and in
+   the window that asks for a website from the key table. */
+const ERestrictHint = ({id}) => (
+  <div className="devE-hint devE-restrictHint" id={id}>
+    <InterfaceText text={{
+      en: <React.Fragment>
+        <span>Turn this <strong>on</strong> if your key is going in your web page's code.</span>
+        <span>Leave it switched <strong>off</strong> if your key is going in a server or an AI tool.</span>
+        <span>You can change this setting at any time from the Developer Settings dashboard.</span>
+      </React.Fragment>,
+      he: <React.Fragment>
+        <span><strong>הפעילו</strong> אם המפתח שלכם נכנס לקוד של דף האינטרנט שלכם.</span>
+        <span>השאירו <strong>כבוי</strong> אם המפתח נכנס לשרת או לכלי AI.</span>
+        <span>אפשר לשנות את ההגדרה הזו בכל עת מלוח הבקרה של הגדרות המפתחים.</span>
+      </React.Fragment>,
+    }} />
+  </div>
+);
 
 /* The restriction state for a key form, and its check before submit. */
 const useKeyRestrict = (project) => {
@@ -2457,16 +2487,14 @@ const useKeyRestrict = (project) => {
   const [siteError, setSiteError] = useState(null);
   const check = () => {
     if (!on || websiteHost(project.websiteUrl)) { setSiteError(null); return true; }
-    const parsed = parseWebsite(site);
-    const problem = !site.trim() ? "auth.required_field" : parsed.valid ? null
-      : <InterfaceText text={{en: "Enter a website address like example.com.", he: "נא להזין כתובת אתר כמו example.com."}} />;
+    const problem = eSiteError(site, true);
     setSiteError(problem);
     if (problem) { document.getElementById("devEKeySite").focus(); }
     return !problem;
   };
   const options = () => ({restrict: on, websiteUrl: on && !websiteHost(project.websiteUrl) ? parseWebsite(site).url : ""});
   return {field: <EKeyRestrictField project={project} on={on} setOn={setOn} site={site}
-    setSite={v => { setSite(v); if (siteError) { setSiteError(null); } }} siteError={siteError} />, check, options};
+    setSite={v => { setSite(v); if (siteError) { setSiteError(null); } }} siteError={siteError} setSiteError={setSiteError} />, check, options};
 };
 
 const ESetupKey = ({dots, project, onBack, backLabel, onSkip, onCreate}) => {
@@ -2482,18 +2510,17 @@ const ESetupKey = ({dots, project, onBack, backLabel, onSkip, onCreate}) => {
     if (problem) { document.getElementById("devEKeyName").focus(); return; }
     if (!restrict.check() || busy) { return; }
     setBusy(true); setBanner(null);
-    Promise.resolve(onCreate(label.trim(), restrict.options())).catch(err => { setBanner(saveFailure(err)); setBusy(false); });
+    Promise.resolve(onCreate(label.trim(), restrict.options())).catch(err => { setBanner(keyFailure(err)); setBusy(false); });
   };
   return (
-    <EStep dots={dots} onBack={onBack} backLabel={backLabel} title={tE("Create your API key", "צרו את מפתח ה־API שלכם")}
-      lead={<p className="devE-lead"><InterfaceText text={{
-        en: <React.Fragment><strong dir="auto">{project.name}</strong> is saved. Name your first key, or come back for it later.</React.Fragment>,
-        he: <React.Fragment><strong dir="auto">{project.name}</strong> נשמר. תנו שם למפתח הראשון, או חזרו אליו מאוחר יותר.</React.Fragment>,
-      }} /></p>}>
+    <EStep dots={dots} onBack={onBack} backLabel={backLabel} title={<InterfaceText text={{
+        en: <React.Fragment>Create an API key for <bdi dir="auto">{project.name}</bdi></React.Fragment>,
+        he: <React.Fragment>צרו מפתח API עבור <bdi dir="auto">{project.name}</bdi></React.Fragment>,
+      }} />}>
       <form className="devE-form" onSubmit={submit} noValidate>
         <ErrorBanner error={banner} />
         <EKeyNameField label={label} setLabel={v => { setLabel(v); if (error && v.trim()) { setError(null); } }} error={error}
-          placeholder={vE("My first key", "המפתח הראשון שלי")} />
+          placeholder={vE("My key", "המפתח שלי")} />
         {restrict.field}
         <div className="devE-footer">
           <button type="button" className="devE-backBtn" onClick={onSkip}>{tE("Skip for now", "דילוג בינתיים")}</button>
@@ -2684,21 +2711,44 @@ const EDeleteKeyDialog = ({apiKey, onDelete, onCancel}) => {
 
 /* Turning on "Limit to website" before the project has one: say why, and go add it. Same small
    card as the delete modal. */
-const ENeedSiteDialog = ({onAdd, onCancel}) => {
-  const addRef = useRef(null);
-  useDialogKeys(addRef, onCancel);
+/* Turning on "Limit to website" from the key table when the project has no website: the same explanation as the key
+   forms, and the website asked for right here, saved to the project, then the key limited (Penina, 2026-11-05). */
+const ELimitKeyDialog = ({project, apiKey, run, onDone, onCancel}) => {
+  /* Without a key it's the plain "Add your website" window, opened from the project row's Add website. */
+  const formRef = useRef(null);   // traps Tab inside the window; focus starts in the website field
+  const [site, setSite] = useState("");
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+  useDialogKeys(formRef, onCancel);
+  const focusSite = () => { const el = document.getElementById("devELimitSite"); if (el) { el.focus(); } };
+  useEffect(focusSite, []);
+  const save = (e) => {
+    e.preventDefault();
+    if (busy) { return; }
+    const parsed = parseWebsite(site);
+    const problem = eSiteError(site, true);
+    setError(problem);
+    if (problem) { focusSite(); return; }
+    setBusy(true);
+    run(updateProject(project.id, {
+      name: project.name, description: project.description, organization: project.organization || "",
+      websiteUrl: parsed.url, aiAssisted: !!project.aiAssisted, visibility: project.visibility || "private",
+    })).then(() => apiKey ? run(setKeyRestriction(apiKey.id, true)) : null).then(onDone, () => setBusy(false));
+  };
   return (
-    <div className="devPocModalStage devE-deleteStage" role="dialog" aria-modal="true" aria-labelledby="devESiteTitle" aria-describedby="devESiteText"
+    <div className="devPocModalStage devE-deleteStage" role="dialog" aria-modal="true" aria-labelledby="devELimitTitle"
       onClick={e => { if (e.target === e.currentTarget) { onCancel(); } }}>
-      <section className="devE-deleteModal">
-        <h3 id="devESiteTitle">{tE("Add your website first", "קודם הוסיפו את האתר שלכם")}</h3>
-        <p id="devESiteText">{tE("To limit a key to your website, add the website to this project's details.",
-          "כדי להגביל מפתח לאתר שלכם, הוסיפו את האתר לפרטי הפרויקט.")}</p>
+      <form className="devE-deleteModal devE-limitModal" onSubmit={save} noValidate ref={formRef}>
+        <h3 id="devELimitTitle">{apiKey ? tE("Limit this key to your website", "הגבלת המפתח לאתר שלכם") : tE("Add your website", "הוספת האתר שלכם")}</h3>
+        {apiKey ? <ERestrictHint id="devELimitHint" /> : <p className="devE-hint">{<InterfaceText text={E_SITE_SECURITY_HINT} />}</p>}
+        <Input id="devELimitSite" inputDir="ltr" label={tE("Your website", "האתר שלכם")} placeholder="example.com"
+          hint={<InterfaceText text={apiKey ? {en: E_DOMAIN_HINT.en + " We'll add it to the project's details.", he: E_DOMAIN_HINT.he + " נוסיף אותו לפרטי הפרויקט."} : E_DOMAIN_HINT} />}
+          value={site} onChange={e => { setSite(e.target.value); if (error) { setError(null); } }} onBlur={() => { setSite(toDomain(site)); if (site.trim()) { setError(eSiteError(site, true)); } }} error={error} />
         <div className="devE-deleteActions">
-          <button type="button" className="devE-deleteBtn devE-deleteBtnPrimary" ref={addRef} onClick={onAdd}>{tE("Add website", "הוספת אתר")}</button>
+          <button type="submit" className="devE-deleteBtn devE-deleteBtnPrimary" disabled={busy || !site.trim()}>{apiKey ? tE("Limit key", "הגבלת המפתח") : tE("Save website", "שמירת האתר")}</button>
           <button type="button" className="devE-deleteBtn" onClick={onCancel}>{tE("Cancel", "ביטול")}</button>
         </div>
-      </section>
+      </form>
     </div>
   );
 };
@@ -2820,6 +2870,12 @@ const EFieldError = ({id, error}) => error ?
 
 /* The Powered by form's intro, word for word from the current Formstack form (wiki: Powered by Sefaria Submission Form). */
 /* Gallery of featured projects (PBS check-in, 2026-11-02). Points at today's Powered by page until the new gallery is live. */
+/* A confirmation link works for 3 days (the server's EMAIL_CONFIRMATION_EXPIRE_DAYS). While one is out, setup waits on
+   "Check your email"; once it has expired, setup starts over from the welcome screen, since a new link is needed anyway. */
+const E_LINK_DAYS = 3;
+const eLinkLive = (sentAt) => !!sentAt && Date.now() - new Date(sentAt).getTime() < E_LINK_DAYS * 24 * 60 * 60 * 1000;
+const E_CONFIRM_TIP = () => tE("Confirm your email in the banner above to create projects and keys.",
+  "אשרו את כתובת הדוא״ל בבאנר למעלה כדי ליצור פרויקטים ומפתחות.");
 const E_PB_GALLERY_URL = "https://developers.sefaria.org/docs/powered-by-sefaria";
 const E_DISCORD_URL = "https://sefaria.formstack.com/forms/sefaria_developer_discord_community";  // a sign-up form, not a direct invite (2026-11-05)
 const EShareLead = () => (
@@ -3001,6 +3057,9 @@ const EShareProject = ({project, profile, picker, dots, onBack, onSubmit}) => {
 const E_NEW_PROJECT = "__new__";
 /* Read when the script loads: the app rewrites the address without the query once it starts. */
 const E_SHARE_LINK = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("share");
+/* "Continue to Developer Settings" on the email-confirmed page adds ?continue, so setup picks up at About you
+   instead of the welcome screen. */
+const E_CONTINUE = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("continue");
 const EProjectPicker = ({projects, value, onPick}) => (
   <Select id="devESharePick" value={value || ""} onChange={onPick}
     label={tE("Which project do you want to share?", "איזה פרויקט תרצו לשתף?")}
@@ -3053,11 +3112,10 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
       {toast ? <div className="devE-toast" role="status"><span className="devE-toastIcon" aria-hidden="true">✓</span><span className="devE-toastText">{toast}</span>
         <button type="button" className="devE-textBtn devE-muted" onClick={() => setToast("")}>{tE("Dismiss", "סגירה")}</button></div> : null}
       {confirmDel ? <EDeleteKeyDialog apiKey={confirmDel} onDelete={() => removeKey(confirmDel)} onCancel={() => setConfirmDel(null)} /> : null}
-      {needSite ? <ENeedSiteDialog onCancel={() => setNeedSite(null)}
-        onAdd={() => { const id = needSite.id; setNeedSite(null); open({screen: "editproj", projectId: id, focus: "devEProjSite"}); }} /> : null}
+      {needSite ? <ELimitKeyDialog project={needSite.project} apiKey={needSite.apiKey} run={run} onCancel={() => setNeedSite(null)}
+        onDone={() => setNeedSite(null)} /> : null}   {/* no message: the switch turning on says it (Penina, 2026-11-05) */}
       {aiFor ? <EAiDialog apiKey={aiFor.apiKey} projectName={aiFor.project.name} onClose={() => setAiFor(null)} /> : null}
-      {!canCreate ?
-        <ReconfirmEmail confirmationSent={!!state.confirmationSentAt} onSend={() => run(sendConfirmation()).catch(() => {})} /> : null}
+      {!canCreate ? <EReconfirmBanner sentAt={state.confirmationSentAt} run={run} /> : null}
 
       {/* Edit profile opens the setup's About you step on its own, with the same fields. */}
       {
@@ -3078,10 +3136,12 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
              says why. aria-disabled rather than disabled, so it can still be hovered and focused to read that. */
           <span className="devE-tipWrap">
             <button type="button" className="devE-pill" data-agent-action="new-project"
-              disabled={!canCreate} aria-disabled={atProjectLimit ? "true" : null} aria-describedby={atProjectLimit ? "devEProjLimitTip" : null}
-              onClick={() => { if (!atProjectLimit) { open({screen: "newproj"}); } }}>
+              aria-disabled={atProjectLimit || !canCreate ? "true" : null} aria-describedby={atProjectLimit || !canCreate ? "devEProjLimitTip" : null}
+              onClick={() => { if (!atProjectLimit && canCreate) { open({screen: "newproj"}); } }}>
               <EPlusIcon />{tE("New project", "פרויקט חדש")}</button>
-            {atProjectLimit ?
+            {!canCreate ?
+              <span className="devPocPopover devE-tip" id="devEProjLimitTip" role="tooltip">{E_CONFIRM_TIP()}</span> :
+            atProjectLimit ?
               <span className="devPocPopover devE-tip" id="devEProjLimitTip" role="tooltip">
                 {tE("You have " + maxProjects + " projects, the most an account can have. To add another, delete one you don't use.",
                   "יש לך " + maxProjects + " פרויקטים, המספר המרבי לחשבון. כדי להוסיף עוד, מחקו פרויקט שאינו בשימוש.")}
@@ -3100,7 +3160,12 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                   <h3>{tE("No projects or keys yet", "אין עדיין פרויקטים או מפתחות")}</h3>
                   <p>{tE("Create a project and we'll give you its first API key. Your projects and keys will show up here.",
                     "צרו פרויקט וניצור לכם את מפתח ה־API הראשון שלו. הפרויקטים והמפתחות שלכם יופיעו כאן.")}</p>
-                  <button type="button" className="devE-pill" data-agent-action="new-project" disabled={!canCreate} onClick={() => open({screen: "firstkey"})}>{tE("Create a project", "יצירת פרויקט")}</button>
+                  <span className="devE-tipWrap">
+                    <button type="button" className="devE-pill" data-agent-action="new-project" aria-disabled={!canCreate ? "true" : null}
+                      aria-describedby={!canCreate ? "devEFirstProjTip" : null}
+                      onClick={() => { if (canCreate) { open({screen: "firstkey"}); } }}>{tE("Create a project", "יצירת פרויקט")}</button>
+                    {!canCreate ? <span className="devPocPopover devE-tip" id="devEFirstProjTip" role="tooltip">{E_CONFIRM_TIP()}</span> : null}
+                  </span>
                 </div>
               </td></tr>
             </tbody>
@@ -3124,7 +3189,7 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                   <span className="devE-chips">
                     {host ?
                       <span className="devE-chip devE-chipDone"><EGlobeIcon /><bdi dir="ltr">{host}</bdi></span> :
-                      <button type="button" className="devE-chip" onClick={() => open({screen: "editproj", projectId: project.id, focus: "devEProjSite"})}>
+                      <button type="button" className="devE-chip" data-agent-action="add-website" onClick={() => setNeedSite({project})}>
                         <EPlusIcon />{tE("Add website", "הוספת אתר")}</button>}
                     {project.visibility === "public" ?
                       <span className="devE-chip devE-chipDone"><ECheckIcon />{tE("Submitted to Powered by Sefaria", "נשלח ל־Powered by Sefaria")}</span> :
@@ -3136,10 +3201,14 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                 <div className="devE-actions">
                   <button type="button" className="devE-quiet" data-agent-action="edit-project" onClick={() => open({screen: "editproj", projectId: project.id})}
                     aria-label={vE("Edit details of " + project.name, "עריכת הפרטים של " + project.name)}><EPencilIcon />{tE("Edit project details", "עריכת פרטי הפרויקט")}</button>
-                  <button type="button" className="devE-pill devE-pillSm" data-agent-action="new-key" disabled={atLimit || !canCreate}
-                    title={atLimit ? vE("5 keys is the most a project can have. Delete one you don't use to make room.", "חמישה מפתחות הם המקסימום לפרויקט. מחקו מפתח שאינו בשימוש כדי לפנות מקום.") : ""}
-                    aria-label={vE("Add a key to " + project.name, "הוספת מפתח ל־" + project.name)}
-                    onClick={() => open({screen: "newkey", projectId: project.id})}><EPlusIcon />{tE("Add key", "הוספת מפתח")}</button>
+                  <span className="devE-tipWrap">
+                    <button type="button" className="devE-pill devE-pillSm" data-agent-action="new-key" disabled={atLimit}
+                      aria-disabled={!canCreate ? "true" : null} aria-describedby={!canCreate ? "devEKeyTip-" + project.id : null}
+                      title={atLimit ? vE("5 keys is the most a project can have. Delete one you don't use to make room.", "חמישה מפתחות הם המקסימום לפרויקט. מחקו מפתח שאינו בשימוש כדי לפנות מקום.") : ""}
+                      aria-label={vE("Add a key to " + project.name, "הוספת מפתח ל־" + project.name)}
+                      onClick={() => { if (canCreate) { open({screen: "newkey", projectId: project.id}); } }}><EPlusIcon />{tE("Add key", "הוספת מפתח")}</button>
+                    {!canCreate ? <span className="devPocPopover devE-tip" id={"devEKeyTip-" + project.id} role="tooltip">{E_CONFIRM_TIP()}</span> : null}
+                  </span>
                 </div>
                 <EUsage usage={eUsageOf(project, index)} projectName={project.name} />
                 </div>
@@ -3177,7 +3246,7 @@ const EHome = ({state, run, notice, setNotice, connectedMessage, toast, setToast
                                 : vE("Limit " + apiKey.label + " to the project's website", "הגבלת " + apiKey.label + " לאתר הפרויקט")}
                             </span>
                             <ToggleSwitch name={"devERes-" + apiKey.id} isChecked={!!host && !!apiKey.restrictToWebsite}
-                              onChange={e => host ? run(setKeyRestriction(apiKey.id, e.target.checked)).catch(() => {}) : setNeedSite(project)} />
+                              onChange={e => host ? run(setKeyRestriction(apiKey.id, e.target.checked)).catch(() => {}) : setNeedSite({project, apiKey})} />
                           </span>
                         </td>
                         <td className="devE-end">
@@ -3208,12 +3277,82 @@ const eScrollTop = () => {
   window.scrollTo(0, 0);
 };
 
+/* Rule 14: the account email changed (or lost confirmation) after setup. Everything stays and keeps working; only
+   creating projects and keys waits. The whole confirmation happens in this banner, so the projects stay in view. */
+const EReconfirmBanner = ({sentAt, run}) => {
+  const [sentHere, setSentHere] = useState(false);
+  const [wait, setWait] = useState(0);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!wait) { return; }
+    const t = setTimeout(() => setWait(w => Math.max(0, w - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [wait]);
+  const send = () => run(sendConfirmation(), {quiet: true}).then(() => { setError(""); setSentHere(true); setWait(60); }, err => {
+    if (sentAt && !/today/.test(err.message || "")) { setError(""); setSentHere(true); setWait(60); }
+    else { setError(err.message || Sefaria._v(SAVE_FAILED)); }
+  });
+  const email = <bdi dir="ltr" className="devE-noWrap"><strong>{accountEmail()}</strong></bdi>;
+  /* Mirrors setup: a link older than 3 days has expired, so the banner goes back to asking for one. */
+  const sent = sentHere || eLinkLive(sentAt);
+  return (
+    /* The design system's AnnouncementBanner, Warning variant (Figma Components library), without its close button:
+       this notice goes away only once the email is confirmed. */
+    <div className="devE-banner" role="region" aria-label={vE("Confirm your new email address", "אישור כתובת הדוא״ל החדשה")}>
+      <div className="devE-bannerContent">
+        <span className="devE-bannerIcon" aria-hidden="true"><EMailIcon /></span>
+        <div className="devE-bannerText" aria-live="polite">
+          {sent ? <React.Fragment>
+            <p className="devE-bannerTitle">{tE("Check your email", "בדקו את תיבת הדוא״ל")}</p>
+            <p><InterfaceText text={{
+              en: <React.Fragment>We sent a confirmation link to {email}.</React.Fragment>,
+              he: <React.Fragment>שלחנו קישור לאישור אל {email}.</React.Fragment>,
+            }} /></p>
+            <p>{tE("Didn't get the email?", "המייל לא הגיע?")}{" "}
+              <button type="button" className="devE-inlineLink devE-linkBtn devE-resendLink" data-agent-action="resend-confirmation"
+                disabled={!!wait} onClick={send}>
+                {wait ? vE("Resend in " + wait + "s", "שליחה חוזרת בעוד " + wait + " שנ׳") : tE("Resend link", "שליחה חוזרת")}
+              </button></p>
+          </React.Fragment> : <React.Fragment>
+            <p className="devE-bannerTitle">{tE("Confirm your email address", "אשרו את כתובת הדוא״ל")}</p>
+            <p>{tE("To create new projects and keys, first confirm your email.", "כדי ליצור פרויקטים ומפתחות חדשים, קודם צריך לאשר את כתובת הדוא״ל.")}</p>
+          </React.Fragment>}
+          {error ? <p className="devE-errorText" role="alert">{error}</p> : null}
+        </div>
+      </div>
+      {sent ? null :
+        <div className="devE-bannerActions">
+          <button type="button" className="devE-bannerBtn" data-agent-action="send-confirmation" onClick={send}>
+            {tE("Send confirmation link", "שליחת קישור לאישור")}</button>
+        </div>}
+    </div>
+  );
+};
+
+/* Kept outside the component: a request can re-mount it, and a link sent a moment ago must still
+   show "Check your email". A reload starts a new visit. */
+let eSentThisVisit = false;
+let eStarted = E_CONTINUE;
+
 const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessage}) => {
   const [view, setView] = useState(null);   // {screen, projectId, keyId, inSetup}
   const [toast, setToast] = useState("");
   const [freshKeyId, setFreshKeyId] = useState(null);
   const [sent, setSent] = useState(false);
-  const [started, setStarted] = useState(false);
+  /* A link sent during this visit shows "Check your email" at once, before the state's sent time arrives. */
+  const [sentThisVisit, setSentThisVisitState] = useState(eSentThisVisit);
+  const setSentThisVisit = (v) => { eSentThisVisit = v; setSentThisVisitState(v); };
+  const [resendWait, setResendWait] = useState(0);
+  const [sendError, setSendError] = useState("");
+  useEffect(() => {
+    if (!resendWait) { return; }
+    const t = setTimeout(() => setResendWait(w => Math.max(0, w - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [resendWait]);
+  /* Kept outside the component, like the sent flag: confirming the email re-mounts it, and setup should carry on
+     to About you rather than show the welcome screen again. */
+  const [started, setStartedState] = useState(eStarted);
+  const setStarted = (v) => { eStarted = v; setStartedState(v); };
   const [cancelled, setCancelled] = useState(false);
   const mounted = useRef(true);
   useEffect(() => () => { mounted.current = false; }, []);
@@ -3225,7 +3364,9 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
   }, []);
   const verified = accountVerified(state);
   const needConfirm = !developerOn && !verified;
-  const confirmStep = !!(needConfirm || view && view.withConfirm);
+  /* Email sign-ups keep "Confirm your email" counted as step 1 after confirming, so About you reads "Step 2 of 4"
+     (Penina, 2026-11-05). Google and Apple sign-ups skip it. */
+  const confirmStep = !!(needConfirm || view && view.withConfirm || !state.ssoConnected);
   const stepLabels = [
     ...(confirmStep ? [{en: "Confirm email", he: "אישור דוא״ל"}] : []),
     {en: "About you", he: "קצת עליך"},
@@ -3281,39 +3422,77 @@ const DeveloperE = ({state, developerOn, run, notice, setNotice, connectedMessag
   let body;
 
   /* The welcome screen, until "Get started"; Cancel on About you comes back to it. */
-  if ((!developerOn || !state.profile) && !started && (!state.confirmationSentAt || cancelled)) {
+  const linkLive = eLinkLive(state.confirmationSentAt);
+  /* Every visit opens on the welcome screen, its steps including "Confirm your email". "Get started" goes to step 1,
+     or straight to "Check your email" while a link sent earlier is still live. */
+  if ((!developerOn || !state.profile) && !started) {
     body = <EEntry withConfirm={needConfirm} share={E_SHARE_LINK} onStart={() => { setStarted(true); eScrollTop(); }} />;
   } else if (needConfirm) {
-    body = (
-      <EStep dots={{at: 0, of: dotsOf, labels: stepLabels}} icon="</>"
-        title={state.confirmationSentAt ? tE("Check your email", "בדקו את תיבת הדוא״ל") : tE("Confirm your email", "אישור כתובת הדוא״ל")}
-        lead={<p className="devE-lead">{state.confirmationSentAt
-          ? <InterfaceText text={{
-              en: <React.Fragment>We sent a link to <bdi dir="ltr"><strong>{accountEmail()}</strong></bdi>. Open it on any device to continue. It works for 3 days.</React.Fragment>,
-              he: <React.Fragment>שלחנו קישור אל <bdi dir="ltr"><strong>{accountEmail()}</strong></bdi>. פתחו אותו בכל מכשיר כדי להמשיך. הקישור בתוקף 3 ימים.</React.Fragment>,
-            }} />
-          : <InterfaceText text={{
-              en: <React.Fragment>We'll send a link to <bdi dir="ltr"><strong>{accountEmail()}</strong></bdi>. It's a one-time step, and you'll keep signing in the way you do now.</React.Fragment>,
-              he: <React.Fragment>נשלח קישור אל <bdi dir="ltr"><strong>{accountEmail()}</strong></bdi>. זה צעד חד־פעמי, ודרך ההתחברות שלך לא משתנה.</React.Fragment>,
-            }} />}</p>}>
-        <div className="devE-form">
-          {state.confirmationSentAt ?
-            <React.Fragment>
-              <button type="button" className="devE-pill devE-pillSec devE-wide" data-agent-action="resend-confirmation"
-                onClick={() => run(sendConfirmation()).then(() => setSent(true), () => {})}>{tE("Resend link", "שליחה חוזרת")}</button>
-              {sent ? <p className="devE-hint" role="status">{tE("Sent again.", "נשלח שוב.")}</p> : null}
-              <p className="devE-hint">
-                <InterfaceText text={{
-                  en: <React.Fragment>Can't find it? Check your spam folder. Wrong address? <a className="devE-inlineLink" href="/settings/account#username-change">Change it in Account Settings</a>.</React.Fragment>,
-                  he: <React.Fragment>לא מוצאים? בדקו בתיקיית הספאם. הכתובת שגויה? <a className="devE-inlineLink" href="/settings/account#username-change">שנו אותה בהגדרות החשבון</a>.</React.Fragment>,
-                }} />
-              </p>
-            </React.Fragment> :
-            <button type="button" className="sefaria-common-button auth-primary fullwidth" data-agent-action="send-confirmation"
-              onClick={() => run(sendConfirmation()).catch(() => {})}>{tE("Send confirmation link", "שליחת קישור לאישור")}</button>}
-        </div>
-      </EStep>
+    /* Modelled on common sign-up flows (Clerk, Notion, Linear, GitLab): once a link is out, the step
+       number gives way to an inbox screen; resend is a quiet link with a short cooldown. */
+    /* The server allows one email a minute. If a link went out moments ago (another tab, or a
+       return visit), it refuses; that link is still good, so show "Check your email" anyway. */
+    const sendLink = () => run(sendConfirmation(), {quiet: true}).then(() => {
+      setSendError(""); setSentThisVisit(true); setSent(!!state.confirmationSentAt); setResendWait(60);
+    }, err => {
+      /* The one-a-minute limit while a link is out: that link still works. Anything else (such as
+         the five-a-day limit) is said right here, under the button. */
+      if (state.confirmationSentAt && !/today/.test(err.message || "")) { setSendError(""); setSentThisVisit(true); setResendWait(60); }
+      else { setSendError(err.message || Sefaria._v(SAVE_FAILED)); }
+    });
+    const sendErrorLine = sendError ? <p className="devE-hint devE-hintCenter devE-errorText" role="alert">{sendError}</p> : null;
+    const changeEmail = (
+      <p className="devE-hint devE-hintCenter">
+        <InterfaceText text={{
+          en: <React.Fragment>Wrong address? <a className="devE-inlineLink" href="/settings/account#username-change">Change it in Account Settings</a></React.Fragment>,
+          he: <React.Fragment>הכתובת שגויה? <a className="devE-inlineLink" href="/settings/account#username-change">שנו אותה בהגדרות החשבון</a></React.Fragment>,
+        }} />
+      </p>
     );
+    /* Laid out like common "Check your email" screens: icon, title, the address on its own line, one
+       action, then quiet links, with the way back last. */
+    const emailLine = <React.Fragment><br /><bdi dir="ltr" className="devE-noWrap"><strong>{accountEmail()}</strong></bdi></React.Fragment>;
+    const cancel = <button type="button" className="devE-ghostBtn" onClick={() => { setStarted(false); setCancelled(true); eScrollTop(); }}><EArrowLeftIcon />{tE("Back to Developer Settings", "חזרה להגדרות המפתחים")}</button>;
+    const sendButton = <button type="button" className="sefaria-common-button auth-primary fullwidth" data-agent-action="send-confirmation"
+      onClick={sendLink}>{tE("Send confirmation link", "שליחת קישור לאישור")}</button>;
+    if (linkLive || (state.confirmationSentAt && sentThisVisit)) {
+      /* While a link is live, Get started lands here; there's no way back from it until the link is confirmed or expires. */
+      body = (
+        <EStep icon={<EMailIcon size={24} />} title={tE("Check your email", "בדקו את תיבת הדוא״ל")}
+          lead={<p className="devE-lead devE-leadCenter"><InterfaceText text={{
+            en: <React.Fragment>We sent a confirmation link to{emailLine}</React.Fragment>,
+            he: <React.Fragment>שלחנו קישור לאישור אל{emailLine}</React.Fragment>,
+          }} /></p>}>
+          <div className="devE-form devE-formCenter">
+            {/* Disabled with a countdown right after a send, then enabled (Clerk, Slack). */}
+            <p className="devE-hint devE-hintCenter" aria-live="polite">
+              {tE("Didn't get the email?", "המייל לא הגיע?")}{" "}
+              <button type="button" className="devE-inlineLink devE-linkBtn devE-resendLink" data-agent-action="resend-confirmation"
+                disabled={!!resendWait} onClick={sendLink}>
+                {resendWait ? vE("Resend in " + resendWait + "s", "שליחה חוזרת בעוד " + resendWait + " שנ׳") : tE("Resend link", "שליחה חוזרת")}
+              </button>
+            </p>
+            {sendErrorLine}
+            {changeEmail}
+          </div>
+        </EStep>
+      );
+    } else {
+      body = (
+        <EStep dots={{at: 0, of: dotsOf, labels: stepLabels}} icon="</>" title={tE("Confirm your email", "אישור כתובת הדוא״ל")}
+          lead={<p className="devE-lead devE-leadCenter"><InterfaceText text={{
+            en: <React.Fragment>We'll send a confirmation link to{emailLine}</React.Fragment>,
+            he: <React.Fragment>נשלח קישור לאישור אל{emailLine}</React.Fragment>,
+          }} /></p>}>
+          <div className="devE-form">
+            {sendButton}
+            {sendErrorLine}
+            {changeEmail}
+            {cancel}
+          </div>
+        </EStep>
+      );
+    }
   } else if (!developerOn || !state.profile) {
     /* Cancel before any profile exists goes back to the welcome screen; nothing is saved. */
     body = <EWelcome dots={dots(0)} onCancel={() => { setStarted(false); setCancelled(true); eScrollTop(); }} onSave={profile =>
@@ -3606,10 +3785,10 @@ const MockEmailDialog = ({confirmationKey, onCancel}) => {
         <p className="devPocMockSsoBanner" lang="en" dir="ltr">MOCK &mdash; the email the user receives; no email is sent</p>
         <div className="devPocMockSsoBody">
           <p className="devPocMockEmailMeta" dir="ltr">Sefaria &lt;hello@sefaria.org&gt; → {email}</p>
-          <h2><InterfaceText text={{en: "Confirm your email for Sefaria developer settings", he: "אישור כתובת הדוא״ל להגדרות המפתחים בספריא"}} /></h2>
+          <h2><InterfaceText text={{en: "Confirm your email for Sefaria Developer Settings", he: "אישור כתובת הדוא״ל להגדרות המפתחים בספריא"}} /></h2>
           <p>
             <InterfaceText text={{
-              en: "Someone, hopefully you, asked to set up developer settings on the Sefaria account that uses this address. Confirm it to continue. The link works for 3 days.",
+              en: "Someone, hopefully you, asked to set up Developer Settings on the Sefaria account that uses this address. Confirm it to continue. The link works for 3 days.",
               he: "מישהו, כנראה את/ה, ביקש להגדיר הגדרות מפתחים בחשבון ספריא שמשתמש בכתובת הזו. אשרו אותה כדי להמשיך. הקישור בתוקף 3 ימים.",
             }} />
           </p>
@@ -4079,6 +4258,15 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
   const pageMounted = useRef(true);
   useEffect(() => () => { pageMounted.current = false; }, []);
 
+  /* N-C8: an email change on the Account tab resets confirmation (rule 14). Opening the Developer tab reads the
+     state again, so its banner and disabled create buttons show without a reload. */
+  const firstTab = useRef(true);
+  useEffect(() => {
+    if (firstTab.current) { firstTab.current = false; return; }
+    if (tab !== "developer") { return; }
+    readState().then(server => { if (pageMounted.current) { setDeveloperState(server); } }, () => {});
+  }, [tab]);
+
   /* Every API call answers with the whole developer state, which replaces the page's copy. A
      failure leaves a notice, unless the caller shows the error itself ({quiet: true}); either
      way the promise rejects, so callers can tell. With {refresh: true} a failure also reloads
@@ -4251,20 +4439,20 @@ export const EmailConfirmedPage = () => {
     <div className="readerNavMenu settingsPage" key="emailConfirmed">
       <div className="content">
         <div className="contentInner">
+          {/* Same layout as the confirmation steps in developer settings: no box, icon, title, one action. */}
           <div className="devPocPage devPocEmailConfirmed">
-            <div className="devPocCard">
-              <h1><InterfaceText text={{en: "Thank you for confirming your email", he: "תודה שאישרת את כתובת הדוא״ל"}} /></h1>
-              <div className="devPocActions">
-                <a className="button small blue" href="/settings/developer" data-agent-action="continue-to-developer-settings">
-                  <InterfaceText text={{en: "Continue to developer settings", he: "המשך להגדרות המפתחים"}} />
-                </a>
-              </div>
-              <p className="devPocHelp">
-                <InterfaceText text={{
-                  en: "You can close this tab. If developer settings are open in another tab, they carry on there.",
-                  he: "אפשר לסגור את הלשונית הזו. אם הגדרות המפתחים פתוחות בלשונית אחרת, הן ימשיכו שם.",
-                }} />
-              </p>
+            <div className="devE-wrap devE-standalone">
+              <section className="devE-card" aria-labelledby="devEConfirmedTitle">
+                <div className="devE-head">
+                  <span className="devE-ico ok" aria-hidden="true"><ECheckIcon size={24} /></span>
+                  <h1 className="devE-title" id="devEConfirmedTitle"><InterfaceText text={{en: "Thank you for confirming your email", he: "תודה שאישרת את כתובת הדוא״ל"}} /></h1>
+                </div>
+                <div className="devE-form">
+                  <a className="sefaria-common-button auth-primary fullwidth" href="/settings/developer?continue" data-agent-action="continue-to-developer-settings">
+                    <InterfaceText text={{en: "Continue to Developer Settings", he: "המשך להגדרות המפתחים"}} />
+                  </a>
+                </div>
+              </section>
             </div>
           </div>
         </div>
@@ -4280,52 +4468,80 @@ export const EmailLinkPage = ({link}) => {
   const {status, key} = link || {};
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
-  const sendNewLink = () => requestNewLink(key).then(() => { setSent(true); setError(""); }, err => setError(
-    err.message || Sefaria._v({en: "We couldn't send a new link. Ask for one in developer settings.", he: "לא הצלחנו לשלוח קישור חדש. בקשו קישור בהגדרות המפתחים."})
+  const [wait, setWait] = useState(0);
+  useEffect(() => {
+    if (!wait) { return; }
+    const t = setTimeout(() => setWait(w => Math.max(0, w - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [wait]);
+  const sendNewLink = () => requestNewLink(key).then(() => { setSent(true); setError(""); setWait(60); }, err => setError(
+    err.message || Sefaria._v({en: "We couldn't send a new link. Ask for one in Developer Settings.", he: "לא הצלחנו לשלוח קישור חדש. בקשו קישור בהגדרות המפתחים."})
   ));
   const continueLink = (
-    <a className="button small blue" href="/settings/developer" data-agent-action="continue-to-developer-settings">
-      <InterfaceText text={{en: "Continue to developer settings", he: "המשך להגדרות המפתחים"}} />
+    <a className="sefaria-common-button auth-primary fullwidth" href="/settings/developer?continue" data-agent-action="continue-to-developer-settings">
+      <InterfaceText text={{en: "Continue to Developer Settings", he: "המשך להגדרות המפתחים"}} />
     </a>
   );
-  const content = {
+  /* Expired and old-address links share one screen and one button. The server sends a fresh link for an expired
+     one without a login; a link to a former address can't be renewed from here (it must be for the account email),
+     so its button opens developer settings, where the banner sends one to the current address. */
+  const newLinkButton = status === "expired" ?
+    <button className="sefaria-common-button auth-primary fullwidth" type="button" data-agent-action="send-new-link" onClick={sendNewLink}>
+      <InterfaceText text={{en: "Send a new link", he: "שליחת קישור חדש"}} />
+    </button> :
+    <a className="sefaria-common-button auth-primary fullwidth" href="/settings/developer" data-agent-action="send-new-link">
+      <InterfaceText text={{en: "Send a new link", he: "שליחת קישור חדש"}} />
+    </a>;
+  const deadLink = {
+    title: {en: "This link no longer works", he: "הקישור כבר לא פעיל"},
+    body: {
+      en: "It has expired, or it was sent to an email address that is no longer on your Sefaria account.",
+      he: "תוקפו פג, או שהוא נשלח לכתובת דוא״ל שכבר אינה משויכת לחשבון ספריא שלך.",
+    },
+    action: newLinkButton,
+  };
+  /* Once a new link is sent, the page turns into the setup's "Check your email" screen. It has no login, so it
+     can't name the address; the link goes to the account email. */
+  const checkEmail = {
+    title: {en: "Check your email", he: "בדקו את תיבת הדוא״ל"},
+    body: {en: "We sent a new confirmation link to your account email.", he: "שלחנו קישור אישור חדש לכתובת הדוא״ל של החשבון."},
+    action: <p className="devE-hint devE-hintCenter" aria-live="polite">
+      {tE("Didn't get the email?", "המייל לא הגיע?")}{" "}
+      <button type="button" className="devE-inlineLink devE-linkBtn devE-resendLink" data-agent-action="send-new-link"
+        disabled={!!wait} onClick={sendNewLink}>
+        {wait ? vE("Resend in " + wait + "s", "שליחה חוזרת בעוד " + wait + " שנ׳") : tE("Resend link", "שליחה חוזרת")}
+      </button>
+    </p>,
+  };
+  const content = sent ? checkEmail : {
     "already-confirmed": {
       title: {en: "Already confirmed", he: "כבר אושר"},
       body: {en: "This email address is already confirmed.", he: "כתובת הדוא״ל הזו כבר אושרה."},
       action: continueLink,
+      ok: true,
     },
-    "expired": {
-      title: {en: "This link has expired", he: "תוקף הקישור פג"},
-      body: {en: "Confirmation links work for 3 days.", he: "קישורי אישור בתוקף 3 ימים."},
-      action: sent ? null :
-        <button className="button small blue" type="button" data-agent-action="send-new-link" onClick={sendNewLink}>
-          <InterfaceText text={{en: "Send a new link", he: "שליחת קישור חדש"}} />
-        </button>,
-    },
-    "not-account-email": {
-      title: {en: "This link is no longer valid", he: "הקישור כבר אינו בתוקף"},
-      body: {
-        en: "It was sent to an address that is no longer your account email. Ask for a new link in developer settings.",
-        he: "הוא נשלח לכתובת שכבר אינה כתובת הדוא״ל של החשבון. בקשו קישור חדש בהגדרות המפתחים.",
-      },
-      action: continueLink,
-    },
+    "expired": deadLink,
+    "not-account-email": deadLink,
   }[status];
   if (!content) { return null; }
   return (
     <div className="readerNavMenu settingsPage" key="emailLink">
       <div className="content">
         <div className="contentInner">
+          {/* Same layout as the confirmation steps in developer settings: no box, icon, title, one action. */}
           <div className="devPocPage devPocEmailConfirmed">
-            <div className="devPocCard">
-              <h1><InterfaceText text={content.title} /></h1>
-              <p><InterfaceText text={content.body} /></p>
-              {content.action ? <div className="devPocActions">{content.action}</div> : null}
-              {sent ?
-                <p role="status">
-                  <InterfaceText text={{en: "We sent a new link. Check your email.", he: "שלחנו קישור חדש. בדקו את תיבת הדוא״ל."}} />
-                </p> : null}
-              {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
+            <div className="devE-wrap devE-standalone">
+              <section className="devE-card" aria-labelledby="devELinkTitle">
+                <div className="devE-head">
+                  <span className={"devE-ico" + (content.ok ? " ok" : "")} aria-hidden="true">{content.ok ? <ECheckIcon size={24} /> : <EMailIcon size={24} />}</span>
+                  <h1 className="devE-title" id="devELinkTitle"><InterfaceText text={content.title} /></h1>
+                  <p className="devE-lead devE-leadCenter"><InterfaceText text={content.body} /></p>
+                </div>
+                <div className="devE-form">
+                  {content.action}
+                  {error ? <p className="devE-hint devE-hintCenter devE-errorText" role="alert">{error}</p> : null}
+                </div>
+              </section>
             </div>
           </div>
         </div>

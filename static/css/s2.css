@@ -18205,7 +18205,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-card { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 24px; }
 .devPocPage .devE-head { display: flex; flex-direction: column; align-items: center; gap: 12px; /* spacing-medium */ text-align: center; }
 .devPocPage .devE-ico { width: 48px; height: 48px; border-radius: 8px; border: 1px solid #ededec; display: grid; place-items: center; font: 600 14px/1 ui-monospace, Menlo, monospace; color: #18345d; background: #fff; }
-.devPocPage .devE-ico.ok { background: #eaf3ec; border-color: #eaf3ec; color: #1f4d29; font-size: 18px; }
+.devPocPage .devE-ico.ok { width: 48px; height: 48px; border-radius: 50%; background: #eaf3ec; border-color: #eaf3ec; color: #1f4d29; font-size: 18px; /* a circle: 24px Lucide check with 12px all round */ }
 .devPocPage .devE-title { margin: 0; font-family: var(--english-sans-serif-font-family); font-size: 22px; font-weight: 400; line-height: 1.4; color: #121212; text-wrap: balance; /* en-system-h3, text-primary */ }
 .devPocPage .devE-title:focus { outline: none; }
 .devPocPage .devE-lead { margin: 0; font-size: 16px; line-height: 1.5; color: #575757; /* text-secondary */ }
@@ -18318,7 +18318,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-path { list-style: none; margin: 0; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; /* spacing-large, spacing-xlarge, spacing-medium */ background: #fafafa; /* surface-subtle */ border-radius: 12px; }
 .devPocPage .devE-path li { display: flex; align-items: center; gap: 12px; font-size: 16px; color: #121212; }
 .devPocPage .devE-path .devE-n { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #e4eaf3; /* surface-highlighted */ color: #18345d; font-size: 14px; font-weight: 600; }
-.devPocPage .devE-links { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; font-size: 14px; color: #999999; }
+.devPocPage .devE-links { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; font-size: 14px; color: #999999; }
 .devPocPage .devE-links a { display: inline-flex; align-items: center; gap: 4px; color: #575757; text-decoration: underline; }
 .devPocPage .devE-links a:hover { color: #121212; }
 /* trial E: optional fields say "Optional"; required fields carry no mark */
@@ -18350,6 +18350,10 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-backBtn { flex: 0 0 auto; height: 51px; padding: 0 24px; border-radius: 4px; border: 1.5px solid #575757; background: #ffffff; color: #575757; font: 600 16px/1 var(--english-sans-serif-font-family); cursor: pointer; /* action-secondary, en-system-body-strong */ }
 .devPocPage .devE-backBtn:hover { border-color: #333333; color: #333333; background: #eeeeee; /* action-secondary-hover, surface-hover */ }
 .devPocPage .devE-backBtn:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+.devPocPage .devE-ghostBtn { display: inline-flex; align-items: center; gap: 8px; align-self: center; min-height: 44px; /* tap target; nothing drawn around it */ padding: 0 8px; border: 0; background: none; color: #575757; font: 500 16px/1 var(--english-sans-serif-font-family); cursor: pointer; }
+.interface-hebrew .devPocPage .devE-ghostBtn svg { transform: scaleX(-1); } /* the arrow points back in RTL */
+.devPocPage .devE-ghostBtn:hover { color: #333333; text-decoration: underline; }
+.devPocPage .devE-ghostBtn:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
 /* trial E: tighter steps, so a setup step fits one laptop screen (spacing tokens in comments) */
 .devPocPage .devE-pageHeader { margin-bottom: 24px; /* spacing-2xlarge */ }
 .devPocPage .devE-wrap { gap: 16px; padding: 0 0 24px; /* spacing-large */ }
@@ -18357,7 +18361,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-head { gap: 8px; /* spacing-small */ }
 .devPocPage .devE-ico { width: 40px; height: 40px; }
 .devPocPage .devE-form { gap: 16px; /* spacing-large */ }
-.devPocPage .devE-note { padding: 8px 12px; /* spacing-small, spacing-medium */ }
+.devPocPage .devE-note { padding: 12px 16px; /* spacing-medium, dimension-200: room for the stacked community box too (2026-11-05) */ }
 .devPocPage .devE-legal { margin-top: -4px; }
 /* trial E: Back at the step's top-left, as the sign-in card's back arrow */
 .devPocPage .devE-head { position: relative; }
@@ -18390,6 +18394,15 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 /* trial E: a link inside running text is underlined, so it doesn't rely on colour alone */
 .devPocPage .devE-inlineLink { color: #18345d; text-decoration: underline; /* text-link */ }
 .devPocPage .devE-inlineLink:hover { color: #132b4c; /* text-link-hovered */ }
+/* A button that reads as an inline link: same weight and size as the text around it. */
+.devPocPage .devE-linkBtn { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; }
+.devPocPage .devE-hintCenter { text-align: center; }
+.devPocPage .devE-errorText { color: #c03522; } /* feedback-error-text */
+.devPocPage .devE-leadCenter { text-align: center; text-wrap: balance; }
+.devPocPage .devE-noWrap { white-space: nowrap; } /* keep an email address on one line */
+.devPocPage .devE-formCenter { align-items: center; }
+.devPocPage .devE-resendLink { min-height: 44px; font-size: 14px; /* mobile tap target */ }
+.devPocPage .devE-resendLink:disabled { color: #707070; text-decoration: none; cursor: default; font-variant-numeric: tabular-nums; /* text-disabled */ }
 /* trial E: more room (was 12px throughout, squeezed to fit one laptop screen) */
 .devPocPage .devE-wrap { gap: 24px; /* spacing-2xlarge */ }
 .devPocPage .devE-card { gap: 24px; /* spacing-2xlarge: head to first field */ }
@@ -18677,9 +18690,77 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-shareLead { display: flex; flex-direction: column; gap: 12px; }
 .devPocPage .devE-shareNoteTight { margin: 4px 0 0; }
 .devPocPage .devE-galleryLink { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; }
+/* Rule 14 banner: the design system's AnnouncementBanner, Warning variant (Figma, Components library). */
+.devPocPage .devE-banner { display: flex; align-items: center; gap: 18px; padding: 16px 24px; border: 1.5px solid #ededec; border-radius: 12px; background: #fdf8e9; margin-block-end: 24px; /* Feedback/Warning/Background; Border/Default; dimension-200 / -150 */ }
+.devPocPage .devE-bannerContent { flex: 1; min-width: 0; display: flex; align-items: flex-start; gap: 8px; }
+.devPocPage .devE-bannerIcon { flex: none; display: grid; place-items: center; width: 18px; height: 22px; color: #0f223b; /* Lucide mail, 18px */ }
+.devPocPage .devE-bannerText { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 16px; line-height: 1.4; color: #0f223b; /* Feedback/Info/Text, as the Warning variant uses */ }
+.devPocPage .devE-bannerText p { margin: 0; }
+.devPocPage .devE-bannerText strong { font-weight: 600; }
+.devPocPage .devE-bannerTitle { font-weight: 600; }
+.devPocPage .devE-bannerText .devE-resendLink { min-height: 0; font-size: 16px; }
+.devPocPage .devE-bannerActions { flex: none; display: flex; gap: 12px; }
+.devPocPage .devE-bannerBtn { height: 34px; padding: 8px 12px; border: 1px solid #18345d; border-radius: 4px; background: #18345d; color: #ffffff; font: 500 14px/1 var(--english-sans-serif-font-family); cursor: pointer; white-space: nowrap; /* Action/Primary; Space/200, Space/300; dimension-50 */ }
+.devPocPage .devE-bannerBtn:hover { background: #132b4c; border-color: #132b4c; }
+.devPocPage .devE-bannerBtn:focus-visible { outline: 2px solid #1976d2; outline-offset: 2px; }
+/* Mobile variant: buttons drop under the text. */
+@media (max-width: 600px) {
+  .devPocPage .devE-banner { flex-direction: column; align-items: stretch; gap: 12px; }
+  .devPocPage .devE-bannerActions { padding-inline-start: 28px; }
+  .devPocPage .devE-bannerBtn { height: 44px; /* mobile tap target */ }
+}
+/* The confirmation link's landing page: the developer steps' layout on a page of its own. */
+.devPocPage .devE-standalone { padding-block: 64px; }
+.devPocPage a.sefaria-common-button.auth-primary { display: flex; align-items: center; justify-content: center; text-decoration: none; color: #ffffff; }
+/* Developer forms: design system colors where the shared form components differ. */
+.devPocPage .devE-form .sefaria-input input::placeholder, .devPocPage .devE-form .sefaria-input textarea::placeholder { color: #707070; /* text-muted */ }
+.devPocPage .devE-form .sefaria-input input, .devPocPage .devE-form .sefaria-input textarea, .devPocPage .devE-form .sefaria-select select, .devPocPage .devE-form .sefaria-select-field > button { border-color: #999999; /* gray-400: visible without reading as focused (focus is navy). 2.85:1 on white, just under WCAG 1.4.11's 3:1; gray-550 #707070 passes but looked focused (Penina, 2026-11-05) */ }
+.devPocPage .devE-form .sefaria-checkbox label, .devPocPage .devE-form .sefaria-checkbox-label { color: #121212; font-size: 16px; line-height: 1.4; /* text-primary, en-system-body-regular */ }
 /* "Join the developer community": a quiet, secondary panel under Additional email, so it's seen without pulling focus. */
 .devPocPage .devE-community { flex-direction: column; align-items: stretch; gap: 12px; /* the same gray box as ENote (.devE-note: surface-subtle, 8px radius, padding); only the layout differs. spacing-medium */ }
 .devPocPage .devE-communityTitle { margin: 0; font: 500 14px/18px var(--english-sans-serif-font-family); color: #575757; /* en-system-small-compact at 500, text-secondary */ }
 .devPocPage .devE-community .sefaria-checkbox label, .devPocPage .devE-community .sefaria-checkbox-label { font-size: 14px; line-height: 21px; /* en-system-small-comfortable */ }
 .devPocPage .devE-communityLink { margin: 0; padding-block-start: 12px; border-block-start: 1px solid #ededec; font-size: 14px; line-height: 21px; color: #121212; /* a divider (border-default) between the two options; en-system-small-comfortable */ }
 .devPocPage .devE-communityJoin { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; white-space: nowrap; /* the link stays on one line */ }
+/* The shared ToggleSwitch (common/ToggleSwitch.jsx) in developer settings: a quicker slide (0.3s ease-in felt slow), and
+   its focus ring only for keyboard focus, not after a click. The shared rule outlines on :focus everywhere on the site. */
+.devPocPage .toggle-switch-inner, .devPocPage .toggle-switch-switch { transition-duration: 0.15s; transition-timing-function: ease-out; }
+.devPocPage .focus-visible:has(input:focus):not(:has(input:focus-visible)) { outline: none; }
+@media (prefers-reduced-motion: reduce) { .devPocPage .toggle-switch-inner, .devPocPage .toggle-switch-switch { transition: none; } }
+.devPocPage .devE-restrictHint span { display: block; }
+.devPocPage .devE-restrictHint strong { font-weight: 600; color: #121212; /* text-primary */ }
+/* "Limit this key to your website" window, opened from the key table: stacked with design system gaps; the hint and the
+   field's help text at the dialog's 14px. */
+.devPocPage .devE-limitModal { display: flex; flex-direction: column; gap: 16px; /* dimension-200 */ }
+.devPocPage .devE-limitModal h3, .devPocPage .devE-limitModal .devE-deleteActions { margin: 0; }
+.devPocPage .devE-limitModal .devE-restrictHint, .devPocPage .devE-limitModal .sefaria-input-hint { font-size: 14px; line-height: 21px; color: #575757; /* en-system-small-comfortable, text-secondary */ }
+.devE-deleteBtnPrimary:disabled { background: #ededec; color: #999999; cursor: not-allowed; /* same disabled look as .devE-pill:disabled: gray-200, text-disabled */ }
+/* Developer settings: a field's error sits right under the field, above its help text (Penina, 2026-11-05). The
+   shared Input renders help text first; screen readers still get both through aria-describedby. */
+.devPocPage .sefaria-input .sefaria-input-error { order: 1; }
+.devPocPage .sefaria-input .sefaria-input-hint { order: 2; }
+/* An error border stays red on hover and on focus; it clears only when the value changes (the forms drop the error on
+   change). The shared field's hover and focus rules, and the gray outline above, would otherwise replace it. */
+.devPocPage .sefaria-input--error .sefaria-input-control,
+.devPocPage .sefaria-input--error .sefaria-input-control:hover,
+.devPocPage .sefaria-input--error .sefaria-input-control:focus,
+.devPocPage .devE-form .sefaria-input--error input, .devPocPage .devE-form .sefaria-input--error textarea,
+.devPocPage .sefaria-select--error .sefaria-select-control,
+.devPocPage .sefaria-select--error .sefaria-select-control:hover,
+.devPocPage .devE-form .sefaria-select--error .sefaria-select-field > button { border-color: #c03522; /* feedback-error-border */ }
+/* UI pass, 2026-11-05 */
+/* Delete-key trash: red at rest, deeper red on hover, as the AI chatbot's chat-history delete (--lc-danger /
+   --lc-danger-hover). red-700 = feedback-error-text, red-800. */
+.devPocPage .devE-icoDanger { color: #c03522; }
+.devPocPage .devE-icoDanger:hover { color: #a02c1c; background: none; }
+/* Add website and Share your project: underline on hover, no fill. */
+.devPocPage .devE-chip:hover { background: none; text-decoration: underline; }
+/* Primary buttons: a hover dark enough to see. The design system's action-primary-hover (navy-800 #132b4c) is barely
+   different from navy-700, so this uses action-primary-pressed (navy-1000) for hover: a deliberate divergence. */
+.devPocPage .devE-pill:hover:not(:disabled):not([aria-disabled="true"]),
+.devPocPage .sefaria-common-button.auth-primary:hover:not(:disabled),
+.devPocPage .devE-bannerBtn:hover, .devPocPage .devE-deleteBtnPrimary:hover:not(:disabled) { background: #0b1a2d; border-color: #0b1a2d; }
+/* Edit project details and Add key: one size, border width, padding and weight, so they read as a pair. */
+.devPocPage .devE-quiet, .devPocPage .devE-pillSm { height: 32px; padding: 0 12px; border-width: 1px; font: 500 14px/1 var(--english-sans-serif-font-family); }
+.devPocPage .devE-quiet { border-color: #cccccc; /* gray-300, as the design system's small secondary button */ }
+.devPocPage .devE-quiet:hover { background: #eeeeee; /* surface-hover */ }
