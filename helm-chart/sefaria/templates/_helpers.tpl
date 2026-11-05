@@ -6,6 +6,17 @@ google-client-secret-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
+{{- /*
+Redis/Sentinel password secretRefs, for an envFrom: list. Every Django process needs them,
+since CACHES and GenCache connect to Redis, not just the Celery tasks pod.
+*/ -}}
+{{- define "sefaria.secrets.redisSentinel" }}
+- secretRef:
+    name: {{ .Values.tasks.redis.sentinelPassword.ref }}
+- secretRef:
+    name: {{ .Values.tasks.redis.redisPassword.ref }}
+{{- end }}
+
 {{- define "sefaria.secrets.backupManager" }}
 {{- if .Values.secrets.backupManager.ref -}}
 {{- .Values.secrets.backupManager.ref }}
@@ -173,6 +184,9 @@ Setup complete tasks queue info
 */}}
 {{- define "sefaria.tasks.internalQueues" }}
 tasks: {{ .Values.deployEnv }}-tasks
+{{- if .Values.tasks.findRefs.enabled }}
+findRefs: {{ .Values.deployEnv }}-find-refs
+{{- end }}
 {{- end }}
 {{- define "sefaria.tasks.queues" }}
 {{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}

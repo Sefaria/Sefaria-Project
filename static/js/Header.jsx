@@ -23,6 +23,23 @@ import {
 import Util from './sefaria/util';
 import Button from './common/Button';
 import { ThemeToggle, MobileThemeToggle } from './ThemeToggle';
+import LibraryAssistantStar from './LibraryAssistantStar';
+
+// The "✦ Library Assistant" pill in the header, just before search: opens the assistant widget
+const LibraryAssistantHeaderLink = () => {
+  const open = (e) => {
+    e.preventDefault(); // tells ReaderApp's in-app link handler to leave this click alone
+    document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'header'}}));
+  };
+  return (
+    <a href="#" role="button" className="textLink libraryAssistantLink libraryAssistantPill"
+       onClick={open} onKeyDown={Util.handleKeyboardClick}>
+      <LibraryAssistantStar />
+      <span className="libraryAssistantLabel"><InterfaceText>header.library_assistant</InterfaceText></span>
+      <span className="libraryAssistantShortLabel"><InterfaceText>header.library_assistant_short</InterfaceText></span>
+    </a>
+  );
+};
 
 const AuthNavLink = ({flow, openURL, close, children}) => {
   const href = `/${flow}`;
@@ -219,18 +236,34 @@ const Header = (props) => {
     }
   }, []);
   
-  const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
-  
-  const shouldHide = () => {
-    // Determines whether or not this component should be displayed or not. 
-    // When the component is hidden, there are two cases: (1) the ReaderControls component is displayed instead of this component, essentially
-    // functioning as the header.  This case occurs when viewing a library text in mode "Text"
-    // and (2) there is simply no header at all.  This case occurs when viewing a library text in mode "TextAndConnections".    
-    // shouldHide() returns true when the header should be hidden (a) on mobile (b) while viewing library texts (c) when the mobile nav menu is not open.
-    const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
-    const hidden = mobile && !props.mobileNavMenuOpen && isViewingTextContent;
-    return hidden;
-  }
+  // The breakpoint is unknown during SSR, so the server renders both the mobile and the desktop headers, and CSS media
+  // queries (header.scss) show the right one until the client renders. CSS alone isn't enough, because keeping the
+  // hidden header mounted would leave duplicate DOM and its components' document-level listeners (e.g. the dropdowns'
+  // click-outside and Escape handlers) running. So after mount, only the header matching the breakpoint is rendered.
+  // The first client render still includes both, so that it matches the server markup for hydration.
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+  const isMobile = isMounted && Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
+  const shouldShowMobile = !isMounted || isMobile;
+  const shouldShowDesktop = !isMounted || !isMobile;
+
+  const headerRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "regular_header" });
+    gtag("event", "header_viewed", { impression_type: "regular_header" });
+    if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
+  }, "sa.header_viewed");
+
+  // Determines whether or not this component should be displayed on mobile.
+  // When the component is hidden, there are two cases: (1) the ReaderControls component is displayed instead of this component, essentially
+  // functioning as the header.  This case occurs when viewing a library text in mode "Text"
+  // and (2) there is simply no header at all.  This case occurs when viewing a library text in mode "TextAndConnections".
+  // shouldHideOnMobile is true when the header should be hidden (a) in the single panel layout (mobile devices) (b) while viewing library texts
+  // (c) when the mobile nav menu is not open. The multi panel layout keeps space for the header above the panels, so hiding it there
+  // would leave an empty bar on narrow screens.
+  // It doesn't check the breakpoint, so it's also used for the CSS class that hides the header on mobile before the client renders.
+  const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
+  const shouldHideOnMobile = !props.multiPanel && !props.mobileNavMenuOpen && isViewingTextContent;
+  if (isMobile && shouldHideOnMobile) return null;
 
   const hasUnreadNotifications = !!(props.notificationCount);
 
@@ -255,12 +288,7 @@ const Header = (props) => {
                               />;
 
 
-  const headerRef = useOnceFullyVisible(() => {
-    sa_event("header_viewed", { impression_type: "regular_header" });
-    gtag("event", "header_viewed", { impression_type: "regular_header" });
-    if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
-  }, "sa.header_viewed");
-
+  const showAssistantLink = props.libraryAssistant && props.module === Sefaria.LIBRARY_MODULE;
 
   const links = props.module === Sefaria.LIBRARY_MODULE ? ['Texts', 'Topics'] : ['Topics', 'Collections']
   const linkIds = {'Topics': 'common.topics', 'Collections': 'common.collections'};  // 'Texts' translates via the terms dictionary
@@ -279,8 +307,6 @@ const Header = (props) => {
     <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>
   </div>
 
-  
-  if (shouldHide()) return null;
 
   const headerContent = (
     <>
@@ -290,6 +316,7 @@ const Header = (props) => {
       </nav>
 
       <div className="headerLinksSection">
+        {showAssistantLink && <LibraryAssistantHeaderLink />}
         <HeaderAutocomplete
           onRefClick={props.onRefClick}
           showSearch={props.showSearch}
@@ -350,18 +377,20 @@ const Header = (props) => {
   // In "book toc" mode, we want to show a color line below the header.  In all other cases, we want to show a box shadow.
   const hasColorLine = props?.firstPanel?.menuOpen === "book toc";
   const hasBoxShadow = !hasColorLine;
-  const headerInnerClasses = classNames({
-    headerInner: 1,
-    boxShadow: hasBoxShadow,
-    mobile: mobile
-  });
   return (
-    <div className="header" role="banner" ref={headerRef}>
-      <div className={headerInnerClasses}>
-        {mobile ? mobileHeaderContent : headerContent}
-      </div>
+    <div className={classNames({header: 1, hiddenOnMobile: shouldHideOnMobile})} role="banner" ref={headerRef}>
+      {shouldShowDesktop &&
+        <div className={classNames({headerInner: 1, desktopHeaderInner: 1, boxShadow: hasBoxShadow})}>
+          {headerContent}
+        </div>
+      }
+      {shouldShowMobile &&
+        <div className={classNames({headerInner: 1, mobile: 1, boxShadow: hasBoxShadow})}>
+          {mobileHeaderContent}
+        </div>
+      }
 
-      {mobile &&
+      {shouldShowMobile &&
         <MobileNavMenu
           visible={props.mobileNavMenuOpen}
           onRefClick={props.onRefClick}
@@ -371,6 +400,7 @@ const Header = (props) => {
           close={props.onMobileMenuButtonClick}
           module={props.module}
           hasUnreadNotifications={hasUnreadNotifications}
+          libraryAssistant={props.libraryAssistant}
           />
       }
       <GlobalWarningMessage />
@@ -399,6 +429,7 @@ Header.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func,
   notificationCount: PropTypes.number,
+  libraryAssistant: PropTypes.bool,
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
@@ -425,11 +456,16 @@ const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
   );
 }
 
-const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications }) => {
+const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications, libraryAssistant }) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
   });
+  const openLibraryAssistant = (e) => {
+    e.preventDefault(); // tells ReaderApp's in-app link handler to leave this click alone
+    close();
+    document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'mobile_nav_menu'}}));
+  };
       
   return (
     <nav className={classes} aria-label="Mobile navigation menu">
@@ -453,6 +489,13 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
             <img src="/static/icons/topic.svg" alt={Sefaria._("common.topics")} />
             <InterfaceText>common.topics</InterfaceText>
           </a>
+          {libraryAssistant &&
+            <a href="#" role="button" className="libraryAssistantMenuItem" onClick={openLibraryAssistant}
+               onKeyDown={Util.handleKeyboardClick}>
+              <LibraryAssistantStar className="libraryAssistantMenuStar" />
+              <InterfaceText>header.library_assistant</InterfaceText>
+            </a>
+          }
           <a href="/calendars" onClick={close}>
             <img src="/static/icons/calendar.svg" alt={Sefaria._("header.learning_schedules")} />
             <InterfaceText>header.learning_schedules</InterfaceText>
@@ -657,4 +700,4 @@ const CreateButton = () => {
 };
 
 
-export { Header };
+export { Header, MobileNavMenu };

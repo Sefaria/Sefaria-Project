@@ -146,7 +146,7 @@ Sefaria = extend(Sefaria, {
       const norm = Sefaria.makeRef(Sefaria.parseRef(ref));
       if (typeof norm === "object" && "error" in norm) {
           // If the ref doesn't parse, just replace spaces with undescores.
-          return typeof ref === "string" ? ref.replace(/ /g, "_") : ref;
+          return typeof ref === "string" ? Sefaria.util.encodeTitleForUrl(ref) : ref;
       }
       return norm;
   },
@@ -1448,6 +1448,19 @@ Sefaria = extend(Sefaria, {
         key:   title,
         store: this._indexDetails
     });
+  },
+  getRawIndex: async function(title) {
+    // Returns the Index record exactly as stored, bypassing all client-side caches, or null
+    // if it can't be loaded. Use this (not getIndexDetails) when the record will be posted
+    // back to /api/v2/raw/index. index_api is wrapped by catch_error_as_json, so a server-side
+    // failure comes back as HTTP 200 with an {error: ...} body.
+    const response = await fetch(`${Sefaria.apiHost}/api/v2/raw/index/${encodeURIComponent(title.replace(/ /g, "_"))}`, {
+      credentials: 'same-origin',
+      cache: 'no-store'
+    });
+    if (!response.ok) { return null; }
+    const data = await response.json();
+    return data && !data.error ? data : null;
   },
   titleIsTorah: function(title){
       let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
@@ -3038,7 +3051,6 @@ _media: {},
   },
   _tableOfContentsDedications: {},
     _strapiContent: null,
-  _inAppAds: null,
   _upcomingDay: {},  // for example, possible keys are 'parasha' and 'holiday'
   getUpcomingDay: function(day) {
       // currently `day` can be 'holiday' or 'parasha'
@@ -4018,6 +4030,7 @@ Sefaria.unpackBaseProps = function(props){
       "is_moderator",
       "is_editor",
       "is_sustainer",
+      "donor_status",
       "experiments",
       "full_name",
       "profile_pic_url",
@@ -4167,7 +4180,6 @@ Sefaria.resetCache = function() {
     this.sheets._userSheetsByRef = {};
 
     // These change slowly, but they do change
-    this._inAppAds = {};
     this._upcomingDay = {};
     this._parashaNextRead = {};
     this._featuredTopic = {};

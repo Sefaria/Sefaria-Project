@@ -667,7 +667,7 @@
       "token": "--color-bg-on-accent"
     },
     {
-      "sel": "^\\.sidebarPromo\\.blue a\\.button$",
+      "sel": "^\\.sidebarPromo\\.colored a\\.button$",
       "cls": "bg",
       "color": "#ffffff",
       "token": "--color-bg-on-accent"

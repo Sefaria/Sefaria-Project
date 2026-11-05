@@ -110,7 +110,7 @@ class AuthorIndexAggregation(AuthorWorksAggregation):
         return self._index.get_title(lang)
 
     def get_url(self):
-        return f'/{self._index.title.replace(" ", "_").replace("?", "%3F")}'
+        return f'/{Ref(self._index.title).url()}'
 
     def is_category(self):
         return False
@@ -214,6 +214,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     pkeys = ["description"]
     track_pkeys = True
     reverse_subclass_map = {v: k for k, v in subclass_map.items()}
+    # mongo aggregation expression equivalent to `total_sources`
+    TOTAL_SOURCES_EXPR = {"$add": [{"$ifNull": ["$numSources", 0]}, {"$ifNull": ["$numSourceSheets", 0]}]}
     required_attrs = [
         'slug',
         'titles',
@@ -226,7 +228,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'categoryDescription',  # dictionary, keys are 2-letter language codes
         'isTopLevelDisplay',
         'displayOrder',
-        'numSources',  # total number of refLinks, to texts and sheets.
+        'numSources',  # number of refLinks to texts (non-sheet sources)
+        'numSourceSheets',  # number of refLinks to sheets
         'shouldDisplay',
         'parasha',  # name of parsha as it appears in `parshiot` collection
         'ref',  # dictionary for topics with refs associated with them (e.g. parashah) containing strings `en`, `he`, and `url`.
@@ -414,7 +417,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         links = IntraTopicLinkSet({f"{dir2}Topic": self.slug, "linkType": linkType}).array()
         children = [getattr(l, f"{dir1}Topic") for l in links]
         if len(children) == 0:
-            if min_sources is not None and self.numSources < min_sources:
+            if min_sources is not None and self.total_sources < min_sources:
                 return [], [], {self.slug}
             return [self], [], set()
         else:
@@ -446,8 +449,35 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         types = self.get_types(search_slug_set=search_slug_set)
         return len(search_slug_set.intersection(types)) > 0
 
-    def should_display(self, min_sources: int = 1) -> bool:
-        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) >= min_sources or self.has_description() or getattr(self, "data_source", "") == "sefaria")
+    def should_display(self, min_sources: int = 1, textual_only: bool = False) -> bool:
+        """
+        :param min_sources: minimum number of sources for the topic to display (unless exempted by a description or data_source)
+        :param textual_only: if True, only count links to texts (`numSources`). Otherwise, count links to texts and sheets.
+        """
+        num_sources = self.num_text_sources if textual_only else self.total_sources
+        return getattr(self, 'shouldDisplay', True) and (num_sources >= min_sources or self.has_description() or getattr(self, "data_source", "") == "sefaria")
+
+    @property
+    def num_text_sources(self) -> int:
+        """
+        Number of links to texts
+        """
+        return getattr(self, 'numSources', 0)
+
+    @property
+    def total_sources(self) -> int:
+        """
+        Number of links to texts plus number of links to sheets
+        """
+        return self.num_text_sources + getattr(self, 'numSourceSheets', 0)
+
+    def recount_sources(self) -> None:
+        """
+        Recompute `numSources` and `numSourceSheets` from this topic's RefTopicLinks, excluding mentions.
+        Does not save.
+        """
+        self.numSources = self.get_ref_links(False, {"linkType": {"$ne": "mention"}}).count()
+        self.numSourceSheets = self.get_ref_links(True, {"linkType": {"$ne": "mention"}}).count()
 
     def has_description(self) -> bool:
         """
@@ -544,9 +574,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 if len(temp_dict) > 0:
                     setattr(self, dict_attr, temp_dict)
             setattr(self, 'numSources', getattr(self, 'numSources', 0) + getattr(other, 'numSources', 0))
+            setattr(self, 'numSourceSheets', getattr(self, 'numSourceSheets', 0) + getattr(other, 'numSourceSheets', 0))
 
             # everything else
-            already_merged = ['slug', 'titles', 'alt_ids', 'properties', 'numSources']
+            already_merged = ['slug', 'titles', 'alt_ids', 'properties', 'numSources', 'numSourceSheets']
             for attr in filter(lambda x: x not in already_merged, self.required_attrs + self.optional_attrs):
                 if not getattr(self, attr, False) and getattr(other, attr, False):
                     setattr(self, attr, getattr(other, attr))
@@ -599,9 +630,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         else:
             children = kwargs.get("children", [])
             min_sources = kwargs.get("min_sources_for_display", 1)
+            textual_only = kwargs.get("textual_only_for_display", False)
             d.update({
                 'slug': self.slug,
-                "shouldDisplay": True if len(children) > 0 else self.should_display(min_sources=min_sources),
+                "shouldDisplay": True if len(children) > 0 else self.should_display(min_sources=min_sources, textual_only=textual_only),
                 "displayOrder": getattr(self, "displayOrder", 10000),
                 "pools": self.get_pools()})
             if getattr(self, "categoryDescription", False):
@@ -665,7 +697,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def update_after_link_change(self, pool):
         """
-        updating the pools 'sheets' or 'textual' according to the existence of links and the numSources
+        updating the pools 'sheets' or 'textual' according to the existence of links, and numSources and numSourceSheets
         :param pool: 'sheets' or 'textual'
         """
         links = self.get_ref_links(pool == PoolType.SHEETS.value)
@@ -673,7 +705,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             self.remove_pool(pool)
         elif not self.has_pool(pool) and links:
             self.add_pool(pool)
-        self.numSources = self.link_set('refTopic').count()
+        self.recount_sources()
         self.save()
 
 
@@ -903,11 +935,22 @@ class TopicSet(abst.AbstractMongoSet):
         return TopicSet(query=query)
 
     def _read_records(self):
-        super()._read_records()
-        for rec in self.records:
+        # The cast happens per-record, inside _build_records(), rather than in a second pass
+        # over self.records afterwards: a `subclass` value missing from subclass_map raises
+        # KeyError, and only work done inside _build_records() is covered by the guard
+        # with_skip_guard() installs. Cast in a second pass and that KeyError would escape the
+        # guard and abort the whole set -- precisely what the guard exists to prevent, on the
+        # guarded startup path in Library._build_topic_mapping. Here the malformed topic is
+        # skipped and the rest survive. See AbstractMongoSet._build_records.
+        def instantiate(raw):
+            rec = self.recordClass(attrs=raw, **self.record_kwargs)
             if getattr(rec, 'subclass', False):
                 Subclass = globals()[self.recordClass.subclass_map[rec.subclass]]
                 rec.__class__ = Subclass  # cast to relevant subclass
+            return rec
+
+        if self.records is None:
+            self._build_records(instantiate)
 
 
 class PersonTopicSet(TopicSet):
@@ -1285,7 +1328,7 @@ def process_index_delete_in_topic_links(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
     # Delete each matching link independently rather than via the set's bulk loop:
-    # RefTopicLink.delete() recomputes the topic's pools/numSources, and if one link's
+    # RefTopicLink.delete() recomputes the topic's pools/numSources/numSourceSheets, and if one link's
     # topic is itself malformed and fails to save, the set loop would abort and leave the
     # remaining orphaned links behind. Isolate each deletion so one bad record can't strand
     # the rest. We swallow the bad-record error families the delete + topic recompute can
@@ -1350,7 +1393,6 @@ def process_topic_description_change(topic, **kwargs):
             ref_topic_dict = {"toTopic": topic.slug, "dataSource": "learning-team-editing-tool", "linkType": refLinkType,
                               'ref': ref}
             RefTopicLink(ref_topic_dict).save()
-
 
 
 

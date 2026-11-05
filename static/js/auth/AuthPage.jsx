@@ -11,8 +11,8 @@ import MessageView from './MessageView.jsx';
 import Button from '../common/Button.jsx';
 import { pathToFlow, flowToPath, nextFromPath } from './utils.js';
 import { useProviderTriggers } from './useSsoSignIn.jsx';
-import { useSignUpTracking } from './useSignUpTracking.js';
-import { SIGNUP_METHOD } from './signupAnalytics.js';
+import { useAuthTracking } from './useAuthTracking.js';
+import { AUTH_METHOD } from './authAnalytics.js';
 import { getCsrfToken } from '../sefaria/csrf';
 
 /**
@@ -31,6 +31,7 @@ import { getCsrfToken } from '../sefaria/csrf';
 const AuthPage = ({
   initialPath = '/login',
   authSource = null,
+  initialView = null,
   resetValid = null,
   onNavigate,
 }) => {
@@ -53,7 +54,7 @@ const AuthPage = ({
   }, [flow]);
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
   const csrf = getCsrfToken();
-  const tracking = useSignUpTracking({ flow, source: authSource });
+  const tracking = useAuthTracking({ flow, source: authSource });
   const {
     googleReady, appleReady, ssoLoading, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
   } = useProviderTriggers({ next, tracking });
@@ -77,10 +78,17 @@ const AuthPage = ({
   // existing manual-email-entry ForgotView rather than building a new one.
   const requestNewLink = () => { setView('forgot'); onNavigate?.(flowToPath('login', next)); };
   const onEmailClick = () => {
-    tracking.chooseMethod(SIGNUP_METHOD.EMAIL);
+    tracking.chooseMethod(AUTH_METHOD.EMAIL);
     tracking.startProcess();
     setView('email');
   };
+  // Opened straight on the email sign-up form (the Library Assistant's Email option): the same
+  // as clicking Email on the card, so it's reported the same way. Runs after useAuthTracking's
+  // own effect, which starts the flow.
+  useEffect(() => {
+    if (initialView === 'email' && flow === 'register') onEmailClick();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   let content;
   if (view === 'email' && flow === 'register') {
@@ -88,7 +96,7 @@ const AuthPage = ({
       <RegisterView
         switchFlow={switchFlow} fields={fields} setField={setField}
         onBack={() => setView('choose')}
-        endProcess={tracking.endProcess}
+        startProcess={tracking.startProcess} endProcess={tracking.endProcess}
         next={next} csrf={csrf}
         registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
@@ -99,7 +107,9 @@ const AuthPage = ({
       <LoginView
         switchFlow={switchFlow} fields={fields} setField={setField}
         onBack={() => setView('choose')}
-        onForgotClick={onForgotClick} next={next} csrf={csrf}
+        onForgotClick={onForgotClick}
+        startProcess={tracking.startProcess} endProcess={tracking.endProcess}
+        next={next} csrf={csrf}
         registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
       />
@@ -156,6 +166,7 @@ const AuthPage = ({
 AuthPage.propTypes = {
   initialPath: PropTypes.string,
   authSource: PropTypes.string,
+  initialView: PropTypes.oneOf(['email']),
   resetValid: PropTypes.bool,
   onNavigate: PropTypes.func,
 };

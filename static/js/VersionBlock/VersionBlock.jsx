@@ -30,9 +30,9 @@ class VersionBlockUtils {
       const versionParam = mainPanel ? version.language : 'side';
       const nonSelectedVersionParams = Object.entries(currObjectVersions)
                                         .filter(([vlang, ver]) => !!ver && !!ver?.versionTitle && !version?.merged && (withParam || vlang === version.language))  // in 'side' case, keep all version params
-                                        .map(([vlang, ver]) => `&v${vlang}=${ver.versionTitle.replace(/\s/g,'_')}`)
+                                        .map(([vlang, ver]) => `&v${vlang}=${Sefaria.util.encodeVtitle(ver.versionTitle)}`)
                                         .join("");
-      const versionLink = nonSelectedVersionParams === "" ? null : `/${Sefaria.normRef(currRef)}${nonSelectedVersionParams}&v${versionParam}=${version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
+      const versionLink = nonSelectedVersionParams === "" ? null : `/${Sefaria.normRef(currRef)}${nonSelectedVersionParams}&v${versionParam}=${Sefaria.util.encodeVtitle(version.versionTitle)}${withParam}`.replace("&","?");
       return versionLink;
     }
     static makeAttrClassNames(version, extraClassNames, attrToExist = null, attrIsMultilingual = false){
@@ -130,9 +130,10 @@ class VersionBlock extends Component {
       payloadVersion.newVersionTitle = this.state.versionTitle;
     }
     this.setState({"error": "Saving.  Page will reload on success."});
-    const title = v.title.replace(/\?/g, "%3F");
+    const title = Sefaria.util.encodeTitleForUrl(v.title);
+    const versionTitle = Sefaria.util.encodeTitleForUrl(v.versionTitle);
     $.ajax({
-      url: `/api/version/flags/${title}/${v.language}/${v.versionTitle}`,
+      url: `/api/version/flags/${title}/${v.language}/${versionTitle}`,
       dataType: 'json',
       type: 'POST',
       data: {json: JSON.stringify(payloadVersion)},

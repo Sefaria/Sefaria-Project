@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from '../sefaria/sefaria';
 import { InterfaceText } from '../Misc.jsx';
@@ -9,18 +9,14 @@ import Button from '../common/Button.jsx';
 import ProviderButton from './ProviderButton.jsx';
 import LegalText from './LegalText.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
+import { useProviderError } from './useSsoSignIn.jsx';
 
 const ChooseView = ({
   flow, switchFlow, onEmailClick,
   googleReady, appleReady, ssoLoading, registerGoogleTarget, triggerApple, setActiveErrorHandler,
 }) => {
-  const [error, setError] = useState(null);
+  const [error] = useProviderError(setActiveErrorHandler);
   const { googleClientId, appleClientId } = Sefaria;
-
-  useEffect(() => {
-    setActiveErrorHandler?.(setError);
-    return () => setActiveErrorHandler?.(null);
-  }, [setActiveErrorHandler]);
 
   const isLogin = flow === 'login';
   const heading = isLogin
@@ -39,7 +35,7 @@ const ChooseView = ({
       <>
         <InterfaceText>auth.already_have_an_account</InterfaceText>
         {' '}
-        <a href="/login" onClick={switchFlow('login')}>
+        <a href="/login" data-signup-source="register_crosslink" onClick={switchFlow('login')}>
           <InterfaceText>auth.log_in_link</InterfaceText>
         </a>
       </>

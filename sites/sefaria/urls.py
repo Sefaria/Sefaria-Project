@@ -2,6 +2,7 @@
 
 from django.urls import re_path
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.views.generic.base import RedirectView
 import reader.views as reader_views
 import dedications.views as dedications_views
 from sefaria.settings import STATIC_URL
@@ -24,7 +25,6 @@ static_pages = [
     "linker",
     "ios",
     "mobile",
-    "app",
     "sefaria-edition",
     "sefaria-community-translation",
     "contributed-to-sefaria",
@@ -64,6 +64,8 @@ static_pages_by_lang = [
 
 # Static and Semi Static Content
 site_urlpatterns = [
+    # Unlike a plain HttpResponsePermanentRedirect, query_string=True preserves UTM campaign parameters.
+    re_path(r'^app/?$', RedirectView.as_view(url='/mobile', permanent=True, query_string=True)),
     re_path(r'^metrics/?$', reader_views.metrics),
     re_path(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     re_path(r'^(favicon\.ico|apple-touch-icon\.png|favicon\.svg)/?$', reader_views.module_favicon),

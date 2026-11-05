@@ -205,14 +205,14 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(parasha_names)
             self.ngram_matcher.train_phrases(parasha_names, normal_parasha_names)
         if include_topics:
-            ts_gte10 = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":min_topics}, "subclass": {"$ne": "author"}})
+            ts_gte10 = TopicSet({"shouldDisplay":{"$ne":False}, "$expr": {"$gte": [Topic.TOTAL_SOURCES_EXPR, min_topics]}, "subclass": {"$ne": "author"}})
             authors = AuthorTopicSet()  # include all authors
             ts = ts_gte10.array() + authors.array()
             tnames = [name for t in ts for name in t.get_titles(lang)]
             normal_topics_names = [self.normalizer(n) for n in tnames]
 
             def sub_order_fn(t: Topic) -> int:
-                sub_order = PAD - getattr(t, 'numSources', 0) - 1
+                sub_order = PAD - t.total_sources - 1
                 if isinstance(t, AuthorTopic):
                     # give a bonus to authors so they don't get drowned out by topics
                     sub_order -= 100
@@ -583,7 +583,8 @@ class LexiconTrie(datrie.Trie):
     def __init__(self, lexicon_name):
         super(LexiconTrie, self).__init__(letter_scope)
 
-        for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]):
+        for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]).with_skip_guard(
+                skip_bad_record, "startup", "LexiconTrie({}) entry".format(lexicon_name)):
             # One malformed lexicon entry (e.g. missing headword) must not abort startup.
             with skip_bad_record("startup", "LexiconTrie({}) entry".format(lexicon_name), record=getattr(entry, "_id", None)):
                 self[hebrew.strip_nikkud(entry.headword)] = self.get(hebrew.strip_nikkud(entry.headword), []) + [entry.headword]

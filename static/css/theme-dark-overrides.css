@@ -35,6 +35,9 @@
     --dm-palette-darkblue: #5B86C8; /* theme-exempt */
     /* Mobile dark-mode switch track when on (section 7c). */
     --dm-switch-track-on: var(--color-accent-fill-hover, #3A69AB); /* theme-exempt */
+    /* Library Assistant purple as text (section 7b): --chatbot-purple #7C416F is 2.5:1 on dark surfaces. */
+    --dm-assistant-ink: #C995BC; /* theme-exempt */
+    --dm-assistant-ink-hover: #DDB6D3; /* theme-exempt */
 
     /* #000-family ink (black, #121212, #333, brand navy) -> near-white; navy comes out light blue (#A3BCE1). */
     --dm-icon-filter: var(--color-icon-filter, invert(1) hue-rotate(180deg) brightness(.9));
@@ -63,6 +66,7 @@
   :root[data-theme="dark"] img[src$="static/icons/community-black.svg"],
   :root[data-theme="dark"] img[src$="static/icons/editing-pencil.svg"],
   :root[data-theme="dark"] img[src$="static/icons/email-newsletter.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/email.svg"],
   :root[data-theme="dark"] img[src$="static/icons/eye-off.svg"],
   :root[data-theme="dark"] img[src$="static/icons/eye.svg"],
   :root[data-theme="dark"] img[src$="static/icons/help-black.svg"],
@@ -98,6 +102,12 @@
   :root[data-theme="dark"] img[src$="static/icons/little-chevron-up.svg"],
   :root[data-theme="dark"] img[src$="static/icons/magnifier.svg"],
   :root[data-theme="dark"] img[src$="static/icons/new-sheet-black.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/newsletter-signup/educator-resources.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/newsletter-signup/new-text-release-updates.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/newsletter-signup/news-and-resources.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/newsletter-signup/technology-updates.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/newsletter-signup/timeless-topics.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/newsletter-signup/weekly-study-guide.svg"],
   :root[data-theme="dark"] img[src$="static/icons/plus.svg"],
   :root[data-theme="dark"] img[src$="static/icons/safari-pinned-tab.svg"],
   :root[data-theme="dark"] img[src$="static/icons/twitter.svg"],
@@ -133,6 +143,8 @@
   :root[data-theme="dark"] img[src$="static/img/logout.svg"],
   :root[data-theme="dark"] img[src$="static/img/more.svg"],
   :root[data-theme="dark"] img[src$="static/img/new-sheet.svg"],
+  :root[data-theme="dark"] img[src$="static/img/newsletter-signup-page/quote-en.svg"],
+  :root[data-theme="dark"] img[src$="static/img/newsletter-signup-page/quote-he.svg"],
   :root[data-theme="dark"] img[src$="static/img/pause.svg"],
   :root[data-theme="dark"] img[src$="static/img/pin.svg"],
   :root[data-theme="dark"] img[src$="static/img/play.svg"],
@@ -448,9 +460,9 @@
 
   /* b. 1.4.3 Contrast (Minimum). White fills that stay white in dark mode (the on-accent surface)
      need their dark text back. */
-  /* Blue Strapi sidebar ad: the white button's brand-blue text became light blue (1.8:1 on white). */
-  :root[data-theme="dark"] .sidebarPromo.blue a.button,
-  :root[data-theme="dark"] .sidebarPromo.blue.button a:hover {
+  /* Colored Strapi sidebar ad: the white button's brand-blue text became light blue (1.8:1 on white). */
+  :root[data-theme="dark"] .sidebarPromo.colored a.button,
+  :root[data-theme="dark"] .sidebarPromo.colored a.button:hover {
     color: var(--color-accent-fill, var(--dm-ink-on-light));
   }
   /* Google Docs add-on promo: "Install now" was light grey on a white pill (2.1:1). In dark it is a
@@ -463,6 +475,15 @@
   :root[data-theme="dark"] #interruptingMessage.beitMidrashModalContentBox,
   :root[data-theme="dark"] #interruptingMessage.beitMidrashModalContentBox button.dark-grey {
     color: var(--color-text, var(--dm-text));
+  }
+  /* Library Assistant entry points (library-assistant.scss): purple text was 2.5:1 on the dark page
+     and menu; this is 7.3:1 (hover 10:1). The purple header pill keeps its white text and needs no fix. */
+  :root[data-theme="dark"] .mobileNavMenu a.libraryAssistantMenuItem,
+  :root[data-theme="dark"] .noSearchResults-assistantLink {
+    color: var(--dm-assistant-ink);
+  }
+  :root[data-theme="dark"] .noSearchResults-assistantLink:hover {
+    color: var(--dm-assistant-ink-hover);
   }
 
   /* c. 1.4.11 Non-text Contrast. The mobile "Dark mode" switch (ThemeToggle.jsx) is always on while

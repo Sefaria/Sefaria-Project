@@ -30,6 +30,7 @@ from sefaria.model.text import Ref
 from sefaria.model.schema import AddressType
 from sefaria.helper.normalization import NormalizerComposer, NormalizerFactory
 from sefaria.constants.model import get_direction_from_legacy_lang
+from sefaria.constants.http import SEFARIA_LINKER_USER_AGENT
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
@@ -410,6 +411,7 @@ _SEARCH_HEADERS = {
     'Accept': 'application/json',
     'Origin': 'https://www.sefaria.org',
     'Referer': 'https://www.sefaria.org/texts',
+    'User-Agent': SEFARIA_LINKER_USER_AGENT,
 }
 
 

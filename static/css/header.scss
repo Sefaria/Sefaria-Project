@@ -15,6 +15,7 @@ $exclude-flex: ( //Elements excluded from the general rules of flex and align to
   ".floating-ui-popover",
   ".keyboardInputInitiator",
   ".readerNavMenuSearchButton",
+  ".libraryAssistantLink",
 );
 $not-selector: "";
 @each $sel in $exclude-flex {
@@ -189,4 +190,20 @@ body.user-is-tabbing .header .themeToggle:focus {
   padding: 0;
   font-size: 24px;
   cursor: pointer;
+}
+
+// The breakpoint is unknown during SSR, so the server renders both the mobile and the desktop headers
+// and these rules show the right one until the client renders only the matching one.
+@include breakpoint(mobile) {
+  .header .headerInner.desktopHeaderInner,
+  .header.hiddenOnMobile {
+    display: none;
+  }
+}
+
+@include breakpoint(tablet, desktop) {
+  .header .headerInner.mobile,
+  .header .mobileNavMenu {
+    display: none;
+  }
 }

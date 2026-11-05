@@ -4,6 +4,8 @@ import FilterNode from './FilterNode';
 import SearchState from './searchState';
 import { SearchTotal } from "./searchTotal";
 
+const NO_AUTOCORRECT = Object.freeze({corrected_query: null, suggested_queries: null});
+
 
 class Search {
     constructor(searchIndexText, searchIndexSheet) {
@@ -583,6 +585,60 @@ class Search {
       });
       return { availableFilters, registry: {}, orphans: [] };
     }
+    _cachedGet(url, key) {
+        // _cachedApiPromise caches whatever comes back, error bodies included, so evict failures
+        // or they'd stick for the session. Promise.resolve() because its miss path returns a
+        // jQuery 2 Deferred, which has no .catch().
+        return Promise.resolve(Sefaria._cachedApiPromise({url, key, store: this._cache}))
+            .then(data => {
+                if (!data || data.error) { throw new Error(data?.error || "empty response"); }
+                return data;
+            })
+            .catch(e => { delete this._cache[key]; throw e; });
+    }
+    _decisionKey(query) {
+        return `autocorrectDecision|${query}`;
+    }
+    getCachedDecision(query) {
+        // Lets a component apply an already-made decision synchronously, at construction.
+        return this._cache[this._decisionKey(query)];
+    }
+    decideAutocorrect(query, countResults) {
+        // Resolves to {corrected_query, suggested_queries}: what to search, and what to suggest.
+        // Never rejects.
+        //
+        // A confident correction is applied only when the query as typed finds nothing in any
+        // tab. `countResults()` returns one promise of a result count per tab, and is called
+        // only when there is a correction to decide on. Any results, or any failed count,
+        // means searching the query as typed. Suggestions pass through untouched.
+        //
+        // Decisions are cached per query, except those made without an answer from the
+        // autocorrect endpoint or a count, so a transient failure doesn't stick for the session.
+        if (!query) { return Promise.resolve(NO_AUTOCORRECT); }
+        const cached = this.getCachedDecision(query);
+        if (cached) { return Promise.resolve(cached); }
+        const remember = decision => { this._cache[this._decisionKey(query)] = decision; return decision; };
+        const url = `${Sefaria.apiHost}/api/search-autocorrect?q=${encodeURIComponent(query)}`;
+        return this._cachedGet(url, `autocorrect|${query}`).then(async suggestion => {
+            if (!suggestion.corrected_query) { return remember(suggestion); }
+            const allEmpty = await this._allEmpty(countResults());
+            if (allEmpty === null) { return NO_AUTOCORRECT; }
+            return remember(allEmpty ? suggestion : NO_AUTOCORRECT);
+        }).catch(() => NO_AUTOCORRECT);
+    }
+    _allEmpty(counts) {
+        // Resolves true if every count is 0, false as soon as one isn't, and null if a count
+        // fails (or isn't a number) before any count has shown results.
+        return new Promise(resolve => {
+            let pending = counts.length;
+            if (!pending) { resolve(null); }
+            counts.forEach(count => Promise.resolve(count).then(n => {
+                if (!Number.isFinite(n)) { resolve(null); }
+                else if (n > 0) { resolve(false); }
+                else if (--pending === 0) { resolve(true); }
+            }, () => resolve(null)));
+        });
+    }
     entitySearch(query, type, start = 0, {sort = "relevance", categoryPaths = []} = {}) {
         // Fetches one page of entity results (from `start`), so the tab panels can lazily
         // load more on scroll. `total` reports the full match count so the count badges and
@@ -604,20 +660,7 @@ class Search {
         const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}`;
         let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
         paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
-        // Sefaria._cachedApiPromise is the shared helper for cached GETs: it returns the
-        // stored value on a hit, and on a miss fetches, caches under `key`, and de-duplicates
-        // concurrent requests for the same url. Promise.resolve() re-wraps its result because
-        // on the miss path it hands back a jQuery 2 Deferred, which has no .catch() for callers.
-        return Promise.resolve(Sefaria._cachedApiPromise({url, key: cacheKey, store: this._cache}))
-            .then(data => {
-                if (data.error) {
-                    // The helper caches whatever the API returned, so evict the error body —
-                    // otherwise one failed page would stick for the rest of the session.
-                    delete this._cache[cacheKey];
-                    throw new Error(data.error);
-                }
-                return data;
-            });
+        return this._cachedGet(url, cacheKey);
     }
 }
 

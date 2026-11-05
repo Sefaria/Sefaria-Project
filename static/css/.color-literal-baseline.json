@@ -1,6 +1,10 @@
 {
   "_comment": "Colour-literal ratchet baseline: per stylesheet, the number of colour literals and raw palette var() uses. Counts may only go down. Regenerate with `node scripts/darkmode/tokenize-css.js --baseline`. See static/js/tests/cssColorLiterals.test.js.",
   "files": {
+    "auth.scss": {
+      "literals": 0,
+      "paletteVars": 3
+    },
     "base.css": {
       "literals": 144,
       "paletteVars": 1
@@ -25,6 +29,14 @@
       "literals": 3,
       "paletteVars": 0
     },
+    "lexicon-edit.scss": {
+      "literals": 1,
+      "paletteVars": 8
+    },
+    "library-assistant.scss": {
+      "literals": 0,
+      "paletteVars": 7
+    },
     "linker-editor.css": {
       "literals": 102,
       "paletteVars": 0
@@ -32,6 +44,10 @@
     "modtools.css": {
       "literals": 56,
       "paletteVars": 0
+    },
+    "newsletter-signup-page.css": {
+      "literals": 41,
+      "paletteVars": 32
     },
     "reader.css": {
       "literals": 111,
@@ -58,7 +74,7 @@
       "paletteVars": 20
     },
     "static.css": {
-      "literals": 20,
+      "literals": 26,
       "paletteVars": 0
     },
     "tablesorter/style.css": {
