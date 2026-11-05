@@ -13,7 +13,7 @@ const rec = makeRecording(
   3_000,
 );
 
-/** A fake API whose local input the test fires, and a controller whose player never advances on its own (no timers). */
+/** A fake API whose local input the test fires, and a controller whose player never advances on its own (no timers, and a frozen clock: a recording made here lasts a fraction of a millisecond, which a slow machine would otherwise play to the end before the test acts). */
 function setup() {
   const api = createFakeApi(snap("/Exodus.4", S(20)));
   const inputs = new Set<() => void>();
@@ -21,7 +21,7 @@ function setup() {
   const deferred: (() => void)[] = [];
   const download = vi.fn(() => true);
   const c = createRecordingController(api, {
-    createPlayer: (r, a) => createPlayer(r, a, { schedule: () => () => {} }),
+    createPlayer: (r, a) => createPlayer(r, a, { schedule: () => () => {}, now: () => 0 }),
     download,
     defer: (cb) => deferred.push(cb),
   });
