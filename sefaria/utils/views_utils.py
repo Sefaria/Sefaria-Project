@@ -47,9 +47,19 @@ def is_aasa_excluded(url):
 
 # Marks a redirect as "stay on web". Read by apple_app_site_association's AASA rule, stripped in client.jsx.
 NO_APPLINK_PARAM = "no_applink"
+NO_APPLINK_VALUE = "1"
 
 
 def mark_no_applink(url):
-    if NO_APPLINK_PARAM in dict(parse_qsl(urlparse(url).query, keep_blank_values=True)):
+    """
+    Return url carrying no_applink with a non-empty value. The AASA rule matches the
+    value with "?*" (at least one character), so a bare or blank no_applink would not
+    be excluded; such a marker is replaced with no_applink=1.
+    """
+    parsed = urlparse(url)
+    pairs = parse_qsl(parsed.query, keep_blank_values=True)
+    if any(key == NO_APPLINK_PARAM and value for key, value in pairs):
         return url
-    return add_query_param(url, NO_APPLINK_PARAM, "1")
+    pairs = [(key, value) for key, value in pairs if key != NO_APPLINK_PARAM]
+    pairs.append((NO_APPLINK_PARAM, NO_APPLINK_VALUE))
+    return urlunparse(parsed._replace(query=urlencode(pairs)))

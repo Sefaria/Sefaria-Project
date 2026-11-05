@@ -210,17 +210,19 @@ class SaveUserTest(TestCase):
     sefaria/views.py: once inside the atomic block (with assign_slug/
     join_invited_collections/interface_language already set) so a failure
     there rolls back the Django User too, and again after import_gravatar,
-    which runs outside the transaction since it's a slow network call.
+    which runs outside the transaction since it is a slow network call. The
+    learning-level copy from ActiveCampaign starts after that last save.
     """
     def _sociallogin_for(self, user):
         sl = MagicMock(spec=SocialLogin)
         sl.user = user
         return sl
 
+    @patch('sso.adapters.dispatch_copy_learning_level_from_ac')
     @patch('sso.adapters.CrmMediator')
     @patch('sso.adapters.import_gravatar')
     @patch('sso.adapters.UserProfile')
-    def test_creates_profile_and_registers_crm_user(self, mock_profile_cls, mock_import_gravatar, mock_crm_cls):
+    def test_creates_profile_and_registers_crm_user(self, mock_profile_cls, mock_import_gravatar, mock_crm_cls, mock_dispatch_copy):
         user = User(username='new@test.com', email='new@test.com', first_name='New', last_name='User')
         user.id = 42
         # spec restricts the mock to exactly this attribute, so
@@ -228,6 +230,11 @@ class SaveUserTest(TestCase):
         # instead of resolving to an auto-vivified MagicMock attribute.
         request = MagicMock(spec=['interfaceLang'])
         request.interfaceLang = 'english'
+
+        # Put the save and the copy under one parent so we can see the order they ran in
+        steps = MagicMock()
+        steps.attach_mock(mock_profile_cls.return_value.save, 'save')
+        steps.attach_mock(mock_dispatch_copy, 'dispatch_copy_learning_level_from_ac')
 
         adapter = SefariaSocialAccountAdapter()
         with patch.object(SefariaSocialAccountAdapter.__bases__[0], 'save_user', return_value=user):
@@ -240,7 +247,14 @@ class SaveUserTest(TestCase):
         profile.join_invited_collections.assert_called_once()
         profile.settings.__setitem__.assert_called_once_with('interface_language', 'english')
         mock_import_gravatar.assert_called_once_with(profile)
+        # A learning level answered on the newsletter page before signing up is copied
+        # in the background, starting after the last save so no save can overwrite it
+        mock_dispatch_copy.assert_called_once_with(profile)
         self.assertEqual(profile.save.call_count, 2)
+        self.assertEqual(
+            [name for name, _args, _kwargs in steps.mock_calls],
+            ['save', 'save', 'dispatch_copy_learning_level_from_ac'],
+        )
         mock_crm_cls.return_value.create_crm_user.assert_called_once_with(
             user.email, first_name='New', last_name='User', lang='en', educator=False,
         )
@@ -248,10 +262,11 @@ class SaveUserTest(TestCase):
         # save_user only ever runs for brand-new users, so this must always be set here.
         self.assertTrue(request._sefaria_new_social_user)
 
+    @patch('sso.adapters.dispatch_copy_learning_level_from_ac')
     @patch('sso.adapters.CrmMediator')
     @patch('sso.adapters.import_gravatar')
     @patch('sso.adapters.UserProfile')
-    def test_crm_outage_does_not_roll_back_user_or_profile(self, mock_profile_cls, mock_import_gravatar, mock_crm_cls):
+    def test_crm_outage_does_not_roll_back_user_or_profile(self, mock_profile_cls, mock_import_gravatar, mock_crm_cls, _mock_dispatch_copy):
         # The try/except around create_crm_user is the whole point of this code
         # path (see save_user's docstring) — assert it directly rather than
         # trusting the comment.

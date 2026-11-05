@@ -131,14 +131,6 @@ CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
 CLOUDFLARE_TOKEN = ""
 
-# Multiserver
-MULTISERVER_ENABLED = False
-MULTISERVER_REDIS_SERVER = "127.0.0.1"
-MULTISERVER_REDIS_PORT = 6379
-MULTISERVER_REDIS_DB = 0
-MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
-MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
-
 # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
 GOOGLE_OAUTH2_CLIENT_ID = ""
 GOOGLE_OAUTH2_CLIENT_SECRET = ""
@@ -171,10 +163,22 @@ SENTINEL_HEADLESS_URL = None
 SENTINEL_TRANSPORT_OPTS = {}
 SENTINEL_PASSWORD = None
 REDIS_URL = "redis://127.0.0.1"
+SENTINEL_MASTER_SET = "mymaster"
+
+GENCACHE_REDIS_DB_NUM = 6
+GENCACHE_CHECK_INTERVAL_SECONDS = 2
+GENCACHE_JITTER_MAX_SECONDS = 3
+DEPLOY_ENV = ""
 
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
+
+# Donor-status webhooks: off in CI (see local_settings_example.py).
+CLASSY_WEBHOOK_SECRET = None
+SALESFORCE_WEBHOOK_SECRET = None
+CLASSY_API_CLIENT_ID = None
+CLASSY_API_CLIENT_SECRET = None
 
 ENABLE_LINKER = False
 GPU_SERVER_URL = "http://localhost:5000"
@@ -213,6 +217,9 @@ LOGGING = {
 STRAPI_LOCATION = None
 STRAPI_PORT = None
 
+ACTIVECAMPAIGN_API_TOKEN = None
+ACTIVECAMPAIGN_ACCOUNT_NAME = None
+
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,
@@ -239,3 +246,6 @@ POWERED_BY_FORMSTACK_HMAC_SECRET = os.getenv("POWERED_BY_FORMSTACK_HMAC_SECRET")
 
 GEMINI_API_KEY = ""
 SEMANTIC_SEARCH_API_TOKEN = ""
+
+# Where the ai-chatbot repo is checked out. Not read by Django; used by the Playwright e2e tests.
+AI_CHATBOT_REPO_PATH = os.getenv("AI_CHATBOT_REPO_PATH", "../ai-chatbot")

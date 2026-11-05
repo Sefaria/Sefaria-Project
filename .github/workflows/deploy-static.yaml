@@ -254,8 +254,7 @@ jobs:
             .spec.chart.spec.version = strenv(CHART_VERSION) |
             .spec.values.web.containerImage.tag = strenv(APP_TAG) |
             .spec.values.nodejs.containerImage.tag = strenv(APP_TAG) |
-            .spec.values.nginx.containerImage.tag = strenv(APP_TAG) |
-            .spec.values.monitor.containerImage.tag = strenv(APP_TAG)
+            .spec.values.nginx.containerImage.tag = strenv(APP_TAG)
           ' "$ENV_FILE"
       - name: Commit and tag
         id: tag

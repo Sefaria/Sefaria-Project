@@ -14,7 +14,6 @@ from collections import OrderedDict
 from enum import Enum
 import pytz
 from html import unescape
-import redis
 import os
 import re
 import uuid
@@ -25,6 +24,7 @@ from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.helper import library_assistant
+from sefaria.donors.types import DonorStatus
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY, \
     get_direction_from_legacy_lang, get_legacy_lang_from_direction
@@ -72,14 +72,13 @@ from sefaria.utils.views_utils import add_query_param, AASA_EXCLUDED_PATHS, NO_A
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, \
+    ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
     CHATBOT_API_BASE_URL, CELERY_ENABLED, DISABLE_AUTOCOMPLETER, APP_VERSION
 from sefaria.site.site_settings import SITE_SETTINGS
-from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
-from sefaria.system.cache import django_cache
+from sefaria.system.cache import django_cache, gen_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
@@ -285,6 +284,29 @@ def render_react_component(component, props, request):
             return render_to_string("elements/loading.html", request=request)
 
 
+def chatbot_access_props(request, profile):
+    """
+    Whether this visitor gets the Library Assistant, and the token it runs with.
+    A logged-out visitor gets it without a token; the widget identifies them itself.
+    `profile` is the logged-in user's UserProfile, or None when logged out.
+    """
+    props = {"chatbot_user_token": None, "chatbot_enabled": False}
+    if request.user.is_authenticated:
+        if library_assistant.is_enabled(profile):
+            props["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+            props["chatbot_enabled"] = True
+        # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
+        # suppresses the "try the Library Assistant" promo banner for users who have
+        # already made a choice about the assistant — whether they are using it or
+        # deliberately turned it off.
+        if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
+            props["in_chatbot_experiment"] = True
+    elif library_assistant.is_enabled_for_anonymous():
+        props["chatbot_enabled"] = True
+        props["chatbot_anon_free_answers"] = library_assistant.anonymous_free_answers()
+    return props
+
+
 def base_props(request):
     """
     Returns a dictionary of props that all App pages get based on the request
@@ -305,6 +327,8 @@ def base_props(request):
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "is_sustainer": profile.is_sustainer,
+            # Decoded here so a missing or unexpected stored value reaches the page as "unknown".
+            "donor_status": DonorStatus.from_stored_value(profile.donor_status).value,
             "experiments": profile.experiments,
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
@@ -327,6 +351,7 @@ def base_props(request):
             "is_moderator": False,
             "is_editor": False,
             "is_sustainer": False,
+            "donor_status": DonorStatus.UNKNOWN.value,
             "experiments": False,
             "full_name": "",
             "profile_pic_url": "",
@@ -374,8 +399,6 @@ def base_props(request):
 
     # Chatbot props (passed through base_props for ReaderApp)
     chatbot_data = {
-        "chatbot_user_token": None,
-        "chatbot_enabled": False,
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
         "chatbot_version": chatbot_version,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
@@ -386,16 +409,7 @@ def base_props(request):
         "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
-    if request.user.is_authenticated:
-        if library_assistant.is_enabled(profile):
-            chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
-            chatbot_data["chatbot_enabled"] = True
-        # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
-        # suppresses the "try the Library Assistant" promo banner for users who have
-        # already made a choice about the assistant — whether they are using it or
-        # deliberately turned it off.
-        if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
-            chatbot_data["in_chatbot_experiment"] = True
+    chatbot_data.update(chatbot_access_props(request, profile if request.user.is_authenticated else None))
     user_data.update(chatbot_data)
     user_data.update({
         "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
@@ -2653,9 +2667,10 @@ def related_api(request, tref):
     elif bool(int(request.GET.get("private", False))) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
     else:
+        sheets = get_sheets_for_ref(tref)
         response = {
-            "links": get_links(tref, with_text=False, with_sheet_links=bool(int(request.GET.get("with_sheet_links", False)))),
-            "sheets": get_sheets_for_ref(tref),
+            "links": get_links(tref, with_text=False, with_sheet_links=bool(int(request.GET.get("with_sheet_links", False))), public_sheets=sheets),
+            "sheets": sheets,
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
@@ -3673,14 +3688,13 @@ def generate_topic_prompts_api(request, slug: str):
 def rebuild_full_auto_completer_across_servers():
     """
     Rebuilds the full auto completer locally and, when this server cannot serve
-    completion traffic itself (DISABLE_AUTOCOMPLETER), publishes the rebuild over
-    the multiserver channel so the name service picks it up.  When this server
-    holds its own completers the publish is skipped, preserving the historical
-    local-only rebuild semantics rather than triggering a fleet-wide build.
+    completion traffic itself (DISABLE_AUTOCOMPLETER), bumps GenCache's counter so the name
+    service picks it up. When this server holds its own completers the rebuild stays local
+    rather than triggering a fleet-wide build.
     """
     library.build_full_auto_completer()
-    if MULTISERVER_ENABLED and DISABLE_AUTOCOMPLETER:
-        server_coordinator.publish_event("library", "build_full_auto_completer")
+    if DISABLE_AUTOCOMPLETER:
+        gen_cache.mark_fresh("full_auto_completer")
 
 
 @staff_member_required
@@ -3988,6 +4002,7 @@ def portals_api(request, slug):
     return jsonResponse(portal.contents(), callback=request.GET.get("callback", None))
 
 
+@login_required
 @ensure_csrf_cookie
 @sanitize_get_params
 def global_activity(request, page=1):
@@ -4025,6 +4040,7 @@ def global_activity(request, page=1):
     })
 
 
+@login_required
 @ensure_csrf_cookie
 @sanitize_get_params
 def user_activity(request, slug, page=1):
@@ -4066,6 +4082,7 @@ def user_activity(request, slug, page=1):
     })
 
 
+@login_required
 @ensure_csrf_cookie
 @sanitize_get_params
 def segment_history(request, tref, lang, version, page=1):
@@ -4128,6 +4145,7 @@ def revert_api(request, tref, lang, version, revision):
     return jsonResponse({"status": "ok"})
 
 
+@login_required
 def leaderboard(request):
     return render_template(request,'leaderboard.html', None, {
         'leaders': top_contributors(),
@@ -4188,6 +4206,12 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
+        # Donor status is recorded only from verified webhooks (sefaria/donors/), and
+        # is_sustainer only by the CRM sync. Without this, any logged-in user could POST
+        # {"donor_status": "donor"} or {"is_sustainer": true} and be targeted as a donor, or
+        # store a non-date that would break the donor task's date comparison.
+        for donor_field in ("donor_status", "became_donor_at", "is_sustainer"):
+            profileUpdate.pop(donor_field, None)
         # TEMPORARY (goes with the experiments framework): legacy handling of the
         # `experiments` field.
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
@@ -4449,9 +4473,9 @@ def profile_sync_api(request):
             else:
                 last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
 
-            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
+            uhs = UserHistory.get_sync_items(request.user.id, last_sync)
             ret["last_sync"] = now
-            ret["user_history"] = [uh.contents(for_api=True, annotate=False) for uh in uhs.array()]
+            ret["user_history"] = [uh.contents(for_api=True, annotate=False) for uh in uhs]
             ret["settings"] = profile.settings
             ret["settings"]["time_stamp"] = profile.attr_time_stamps["settings"]
             if post.get("client", "") == "web":
@@ -5483,7 +5507,11 @@ def apple_app_site_association(request):
                     "paths": AASA_PATHS,
                     "components": (
                         [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
-                        + [{"/": "*", "?": {NO_APPLINK_PARAM: "*"}, "exclude": True}]
+                        # Must be "?*" (one or more characters), not "*": iOS treats an
+                        # absent query item as the empty string, and "*" matches the
+                        # empty string, so "*" would exclude every URL (sc-47695).
+                        # mark_no_applink always sets a non-empty value.
+                        + [{"/": "*", "?": {NO_APPLINK_PARAM: "?*"}, "exclude": True}]
                         + [{"/": "*"}]
                     ),
                 }
@@ -5560,27 +5588,22 @@ def application_health_api_nonlibrary(request):
 def application_health_api(request):
     """
     Defines the /healthz API endpoint which responds with
-        200 if the services Django depends on, Redis, Multiserver, and NodeJs
+        200 if the services Django depends on, Redis, and NodeJs
             are available.
         500 if any of the aforementioned services are not available
 
     {
         allReady: (true|false)
-        multiserverReady: (true|false)
         redisReady: (true|false)
         nodejsReady: (true|false)
     }
     """
     def isRedisReachable():
         try:
-            redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
-            return redis_client.ping() == True
+            return gen_cache.redis.ping()
         except Exception as e:
             logger.warn(f"Failed redis healthcheck. Error: {e}")
             return False
-
-    def isMultiserverReachable():
-        return True
 
     def isNodeJsReachable():
         url = NODE_HOST + "/healthz"
@@ -5598,12 +5621,11 @@ def application_health_api(request):
         except SystemError as ivne:
             return False
 
-    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable() and is_database_reachable()
+    allReady = isRedisReachable() and isNodeJsReachable() and is_database_reachable()
 
     resp = {
         'allReady': allReady,
         'dbConnected': f'Database Connection: {is_database_reachable()}',
-        'multiserverReady': isMultiserverReachable(),
         'redisReady': isRedisReachable(),
         'nodejsReady': isNodeJsReachable(),
         'revisionNumber': os.getenv("HELM_REVISION"),

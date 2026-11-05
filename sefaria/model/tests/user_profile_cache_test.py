@@ -125,3 +125,37 @@ def test_save_broadcasts_only_when_flagged(profile, monkeypatch):
     profile.save()
     assert published == [FAKE_UID]
     assert profile._public_data_updated is False, "flag must reset so it fires once"
+
+
+class _FakeRedis(object):
+    def __init__(self):
+        self.store = {}
+
+    def get(self, key):
+        return self.store.get(key)
+
+    def set(self, key, value):
+        self.store[key] = value
+
+
+def test_public_data_change_clears_other_processes_cache(monkeypatch):
+    from sefaria.system.cache import GenCache
+
+    redis = _FakeRedis()
+    writer = GenCache(redis, check_interval_seconds=0, jitter_max_seconds=0)
+    peer = GenCache(redis, check_interval_seconds=0, jitter_max_seconds=0)
+    peer_cache = {FAKE_UID: (time.monotonic() + 600, {"name": "Old Name"})}
+    peer.register(up.PUBLIC_USER_DATA_GEN_KEY, peer_cache.clear)
+    peer.get(up.PUBLIC_USER_DATA_GEN_KEY)  # first access records the current generation
+    peer_cache[FAKE_UID] = (time.monotonic() + 600, {"name": "Old Name"})
+
+    peer.get(up.PUBLIC_USER_DATA_GEN_KEY)
+    assert FAKE_UID in peer_cache, "no bump yet, so the peer keeps its entry"
+
+    monkeypatch.setattr(up, "gen_cache", writer)
+    writer.register(up.PUBLIC_USER_DATA_GEN_KEY, lambda: None)
+    p = UserProfile.__new__(UserProfile)
+    p._publish_public_data_invalidation()
+
+    peer.get(up.PUBLIC_USER_DATA_GEN_KEY)
+    assert FAKE_UID not in peer_cache

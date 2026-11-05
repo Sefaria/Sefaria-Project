@@ -22,11 +22,11 @@ WRITABLE_FIELDS = (
     "submission_date", "submission_source", "sefaria_tools_used", "tech_used_raw",
     "technical_experience", "vibe_coded", "project_why", "project_name", "project_link",
     "project_source_code", "project_reach", "project_desc", "project_category",
-    "image_url", "has_pbs_logo", "consent_to_display", "creator", "creator_email",
+    "image_url", "has_pbs_logo", "request_not_to_publish", "creator", "creator_email",
     "is_developer", "job_title", "found_sefaria", "notes",
 )
 
-BOOLEAN_FIELDS = ("vibe_coded", "is_developer", "consent_to_display", "has_pbs_logo")
+BOOLEAN_FIELDS = ("vibe_coded", "is_developer", "request_not_to_publish", "has_pbs_logo")
 
 LIST_FIELDS = ("sefaria_tools_used",)
 
@@ -72,8 +72,15 @@ FORMSTACK_FIELD_MAP = {
 FORMSTACK_BOOLEAN_FIELD_MAP = {
     "196457843": "is_developer",
     "196457992": "vibe_coded",
-    "179245509": "consent_to_display",
     "191150099": "has_pbs_logo",
+}
+
+# Yes/No radio fields whose answer is the opposite of the Project field: the
+# form asks "do you consent to display?" (Yes = fine to publish), but we store
+# request_not_to_publish, so "No" -> True. Absent/blank answers are omitted
+# (consent is assumed).
+FORMSTACK_INVERTED_BOOLEAN_FIELD_MAP = {
+    "179245509": "request_not_to_publish",
 }
 
 # "Which Sefaria data or tools did you use?", "Which categories of endpoints
@@ -140,6 +147,11 @@ def translate_formstack_payload(body):
         value = _formstack_field(body, field_id)
         if value not in (None, ""):
             cleaned[project_field] = _formstack_yes_no(value)
+
+    for field_id, project_field in FORMSTACK_INVERTED_BOOLEAN_FIELD_MAP.items():
+        value = _formstack_field(body, field_id)
+        if value not in (None, ""):
+            cleaned[project_field] = not _formstack_yes_no(value)
 
     category_values = _formstack_checkbox_values(_formstack_field(body, FORMSTACK_CATEGORY_FIELD))
     if category_values:
@@ -315,8 +327,8 @@ def _powered_by_post(request):
 
     cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
     cleaned.setdefault("submission_date", timezone.now())
-    # A submitter who explicitly declines display consent is never auto-published.
-    if cleaned.get("consent_to_display") is False:
+    # Consent is assumed; a submitter who explicitly asks not to be published never is.
+    if cleaned.get("request_not_to_publish") is True:
         cleaned["is_published"] = False
 
     # No upsert: project_link is a public field (visible via GET), so keying
