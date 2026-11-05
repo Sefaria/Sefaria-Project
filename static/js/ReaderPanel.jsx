@@ -45,6 +45,7 @@ import {SheetsHomePage} from "./sheets/SheetsHomePage";
 import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import GuideOverlay from './GuideOverlay';
+import { BookshelfStar } from './Bookshelf';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import {DropdownMenu} from "./common/DropdownMenu";
 
@@ -1472,11 +1473,14 @@ class ReaderControls extends Component {
               tooltip={true}
             />
           }
-          <SaveButton
-            historyObject={this.props.historyObject}
-            tooltip={true}
-            toggleSignUpModal={this.props.toggleSignUpModal}
-          />
+          {this.props.historyObject && this.props.historyObject.ref && this.props.historyObject.ref.startsWith("Sheet") ?
+            <SaveButton
+              historyObject={this.props.historyObject}
+              tooltip={true}
+              toggleSignUpModal={this.props.toggleSignUpModal}
+            /> :
+            <BookshelfStar book={this.props.currentBook()} />
+          }
         <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={displaySettingsButton}>{displaySettingsMenu}</DropdownMenu>
         </div>);
     const openTransBannerApplies = () => Sefaria.openTransBannerApplies(this.props.currentBook(), this.props.settings.language);

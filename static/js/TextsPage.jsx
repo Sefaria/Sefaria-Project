@@ -17,6 +17,7 @@ import {
   CategoryHeader
 } from './Misc';
 import {ContentText} from "./ContentText";
+import { BookshelfHome } from './Bookshelf';
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
@@ -107,6 +108,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
+            { !compare ? <BookshelfHome /> : null }
             { title }
             { about }
             { dedication }
