@@ -31,6 +31,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags, strip_markdown
 from sefaria.constants.model import get_direction_from_legacy_lang
 from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
+from .search_index_shards import primary_shard_count
 from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK, SEARCH_INDEX_NAME_CATEGORY
 # Aliased on import: this module already defines an unrelated `get_search_categories(oref,
 # categories)` (the text index's category-path helper, below), which would shadow it.
@@ -355,6 +356,8 @@ def create_index(index_name, type, force=False):
     :param force: If False (default), will not recreate an index with documents (safety check)
     """
     logger.debug(f"Creating new Elasticsearch index - index_name: {index_name}, type: {type}, force: {force}")
+    # Validate config before anything is deleted: a bad value must not leave the cluster without this index.
+    number_of_shards = primary_shard_count(type, os.environ)
     
     # Check if index already exists and has documents
     exists_before = index_client.exists(index=index_name)
@@ -379,6 +382,7 @@ def create_index(index_name, type, force=False):
 
     settings = {
         "index": {
+            "number_of_shards": number_of_shards,
             "blocks": {
                 "read_only_allow_delete": False
             },

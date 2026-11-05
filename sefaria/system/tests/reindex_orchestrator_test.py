@@ -2,6 +2,7 @@
 Uses importlib to exec_module so heavy imports (kubernetes, django) are never triggered
 — they live inside main() only."""
 import importlib.util
+import itertools
 import pathlib
 import sys
 import types
@@ -482,10 +483,32 @@ class _FakeIndexClient:
         return (index, name) in self.live_alias_pairs
 
 
+_GIB = 1024 ** 3
+
+
+class _FakeEsClient:
+    """Stands in for search.es_client: canned _cluster/health and _cat/allocation responses."""
+    def __init__(self, health, allocation):
+        self.cluster = types.SimpleNamespace(health=lambda: health)
+        self.cat = types.SimpleNamespace(allocation=lambda **kwargs: allocation)
+        self.options_calls = []
+
+    def options(self, **kwargs):
+        # elasticsearch-py 8 returns a client copy with per-request options; the disk guard
+        # uses it for a short timeout and no retries.
+        self.options_calls.append(kwargs)
+        return self
+
+
 class _FakeSearchModule:
-    def __init__(self, names_by_type, live_alias_pairs=()):
+    def __init__(self, names_by_type, live_alias_pairs=(), health=None, allocation=None):
         self.names_by_type = names_by_type
         self.index_client = _FakeIndexClient(live_alias_pairs)
+        healthy_allocation = [{"node": "es-data-0", "disk.avail": str(100 * _GIB), "disk.percent": "30"}]
+        self.es_client = _FakeEsClient(
+            health if health is not None else {"status": "green"},
+            allocation if allocation is not None else healthy_allocation,
+        )
         self.deleted = []
 
     def get_new_and_current_index_names(self, type, debug=False):
@@ -831,3 +854,333 @@ def test_orchestrator_only_reads_jobs_through_granted_rbac_verbs():
     assert not _re.search(r"\.read_namespaced_job\(", code)
     rbac = pathlib.Path("helm-chart/sefaria/templates/rbac/reindex-orchestrator-rbac.yaml").read_text()
     assert '"jobs/status"' in rbac
+
+
+def _data_node_row(node="es-data-0", avail=50 * _GIB, percent=40):
+    return {"node": node, "shards": "10", "disk.avail": str(avail), "disk.percent": str(percent)}
+
+
+def test_preflight_passes_when_green_and_every_data_node_has_headroom():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"},
+        [_data_node_row("es-0"), _data_node_row("es-1")],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert problems == []
+
+
+def test_preflight_flags_non_green_cluster_status():
+    spec.loader.exec_module(orch)
+    for status in ("yellow", "red"):
+        problems = orch.check_reindex_preflight(
+            {"status": status}, [_data_node_row()], min_free_bytes=20 * _GIB, max_disk_percent=75,
+        )
+        assert len(problems) == 1
+        assert status in problems[0]
+
+
+def test_preflight_flags_missing_cluster_status():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {}, [_data_node_row()], min_free_bytes=20 * _GIB, max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "status" in problems[0]
+
+
+def test_preflight_flags_node_below_minimum_free_bytes():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"},
+        [_data_node_row("es-0", avail=5 * _GIB), _data_node_row("es-1")],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "es-0" in problems[0]
+    assert "free" in problems[0]
+
+
+def test_preflight_flags_node_above_maximum_disk_percent():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"},
+        [_data_node_row("es-1", percent=91)],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "es-1" in problems[0]
+    assert "91" in problems[0]
+
+
+def test_preflight_threshold_boundaries_pass():
+    """Exactly min free bytes and exactly max percent are still acceptable."""
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"},
+        [_data_node_row(avail=20 * _GIB, percent=75)],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert problems == []
+
+
+def test_preflight_ignores_unassigned_and_nodeless_rows():
+    spec.loader.exec_module(orch)
+    rows = [
+        {"node": "UNASSIGNED", "shards": "3", "disk.avail": None, "disk.percent": None},
+        {"node": None, "shards": "0", "disk.avail": None, "disk.percent": None},
+        _data_node_row(),
+    ]
+    problems = orch.check_reindex_preflight(
+        {"status": "green"}, rows, min_free_bytes=20 * _GIB, max_disk_percent=75,
+    )
+    assert problems == []
+
+
+@pytest.mark.parametrize("rows", [None, [], [{"node": "UNASSIGNED", "shards": "3"}], [{"node": None}]])
+def test_preflight_fails_closed_when_no_data_node_is_reported(rows):
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green"}, rows, min_free_bytes=20 * _GIB, max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "no data nodes" in problems[0]
+
+
+def test_preflight_accepts_string_numbers_and_reports_null_disk_values():
+    """ES _cat returns strings with bytes=b. A data node whose disk numbers are null cannot
+    prove headroom, so it is a problem rather than a silent pass."""
+    spec.loader.exec_module(orch)
+    ok = orch.check_reindex_preflight(
+        {"status": "green"},
+        [{"node": "es-0", "disk.avail": "21474836480", "disk.percent": "74"}],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert ok == []
+
+    unknown = orch.check_reindex_preflight(
+        {"status": "green"},
+        [{"node": "es-1", "disk.avail": None, "disk.percent": None}],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(unknown) == 1
+    assert "es-1" in unknown[0]
+
+
+def test_main_preflight_failure_raises_before_any_job_or_index_change(monkeypatch):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            events.append("delete_job")
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append("create_job")
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        },
+        health={"status": "red"},
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    pipeline = sys.modules["scripts.scheduled.reindex_pipeline"]
+    monkeypatch.setattr(pipeline, "run_reindex_init_all", lambda debug=False: events.append("init"))
+    monkeypatch.setenv("REINDEX_PREFLIGHT_SKIP", "")
+
+    with pytest.raises(RuntimeError, match="pre-flight"):
+        orch.main()
+
+    assert events == []
+    assert search.deleted == []
+
+
+def test_main_preflight_skip_env_lets_reindex_proceed(monkeypatch):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append("create_job")
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        },
+        health={"status": "red"},
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    pipeline = sys.modules["scripts.scheduled.reindex_pipeline"]
+    monkeypatch.setattr(pipeline, "run_reindex_init_all", lambda debug=False: events.append("init"))
+    monkeypatch.setattr(orch, "run_barrier_loop", lambda **kwargs: ("complete", []))
+    monkeypatch.setenv("REINDEX_PREFLIGHT_SKIP", "true")
+
+    orch.main()
+
+    assert events == ["init", "create_job"]
+
+
+# --- in-flight disk abort ---------------------------------------------------------------
+
+def _alloc(node, percent):
+    return {"node": node, "disk.percent": str(percent), "disk.avail": "1000"}
+
+
+def test_disk_abort_reasons_names_nodes_at_or_over_the_limit():
+    spec.loader.exec_module(orch)
+    rows = [_alloc("es-0", 40), _alloc("es-1", 85), _alloc("es-2", 91), {"node": "UNASSIGNED"}]
+    reasons = orch.disk_abort_reasons(rows, max_disk_percent=85)
+    assert len(reasons) == 2
+    assert "es-1" in reasons[0] and "es-2" in reasons[1]
+
+
+def test_disk_abort_reasons_ignores_unknown_numbers():
+    # A missing number must not abort a multi-hour build; the pre-flight already refuses unknowns.
+    spec.loader.exec_module(orch)
+    rows = [{"node": "es-0", "disk.percent": None}, _alloc("es-1", 40)]
+    assert orch.disk_abort_reasons(rows, max_disk_percent=85) == []
+
+
+def test_run_barrier_loop_aborts_when_disk_check_reports_a_problem():
+    spec.loader.exec_module(orch)
+    statuses = iter([
+        _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+        _FakeJobStatus(succeeded=2, failed=0, completed_indexes="0-1"),
+    ])
+    checks = iter([[], ["node es-2 disk is 88% full"]])
+    logs = []
+    state, incomplete = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=itertools.count().__next__,
+        log_fn=logs.append,
+        check_abort=lambda: next(checks),
+    )
+    assert state == "aborted"
+    assert incomplete == [2, 3, 4, 5, 6, 7]
+    assert any("es-2" in line for line in logs)
+
+
+def test_run_barrier_loop_keeps_waiting_when_disk_check_errors():
+    # ES briefly unreachable is not a reason to throw away the build; the shard deadline still bounds it.
+    spec.loader.exec_module(orch)
+    statuses = iter([
+        _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+        _FakeJobStatus(succeeded=8, failed=0, completed_indexes="0-7"),
+    ])
+
+    def flaky():
+        raise ConnectionError("refused")
+
+    state, _ = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=itertools.count().__next__,
+        log_fn=lambda msg: None,
+        check_abort=flaky,
+    )
+    assert state == "complete"
+
+
+@pytest.mark.parametrize("raw", ["nan", "inf", "-inf", "101", "0", "-5", "abc", ""])
+def test_parse_abort_disk_percent_rejects_values_that_disable_the_guard(raw):
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError):
+        orch.parse_abort_disk_percent(raw)
+
+
+def test_parse_abort_disk_percent_accepts_a_real_percentage():
+    spec.loader.exec_module(orch)
+    assert orch.parse_abort_disk_percent("85") == 85.0
+    assert orch.parse_abort_disk_percent(" 92.5 ") == 92.5
+
+
+def test_disk_abort_reasons_raises_when_no_node_reports_numbers():
+    # No usable number on any node is a failed observation, not an all-clear.
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError):
+        orch.disk_abort_reasons([{"node": "es-0", "disk.percent": None}, {"node": "UNASSIGNED"}], 85)
+    with pytest.raises(ValueError):
+        orch.disk_abort_reasons([], 85)
+
+
+def test_run_barrier_loop_aborts_when_disk_checks_keep_failing_past_the_grace_period():
+    spec.loader.exec_module(orch)
+    statuses = iter([_FakeJobStatus(succeeded=0, failed=0, completed_indexes=None)] * 5)
+    clock = iter([0.0, 0.0, 100.0, 100.0, 400.0, 400.0, 700.0, 700.0, 701.0])
+
+    def always_fails():
+        raise ConnectionError("refused")
+
+    logs = []
+    state, incomplete = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=clock.__next__,
+        log_fn=logs.append,
+        check_abort=always_fails,
+        abort_check_grace_seconds=600,
+    )
+    assert state == "aborted"
+    assert incomplete == list(range(8))
+    assert any("no successful disk check" in line for line in logs)
+
+
+# --- per-node freshness (DiskGuard) -------------------------------------------------------
+
+def test_disk_abort_reasons_treats_nan_and_out_of_range_as_missing():
+    spec.loader.exec_module(orch)
+    rows = [{"node": "es-0", "disk.percent": "NaN"}, {"node": "es-1", "disk.percent": "150"}]
+    with pytest.raises(ValueError):
+        orch.disk_abort_reasons(rows, 85)
+
+
+def test_disk_guard_aborts_when_one_node_stays_unobserved_past_grace():
+    # Two healthy nodes must not hide a third that stopped reporting.
+    spec.loader.exec_module(orch)
+    clock = iter([0.0, 300.0, 601.0])
+    guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=clock.__next__,
+                           expected_nodes=["es-0", "es-1", "es-2"])
+    partial = [_alloc("es-0", 40), _alloc("es-1", 41), {"node": "es-2", "disk.percent": None}]
+    assert guard.check(partial) == []
+    reasons = guard.check(partial)
+    assert len(reasons) == 1 and "es-2" in reasons[0]
+
+
+def test_disk_guard_tolerates_a_short_gap_and_watches_nodes_that_vanish():
+    spec.loader.exec_module(orch)
+    clock = iter([0.0, 100.0, 200.0, 900.0])
+    guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=clock.__next__)
+    full = [_alloc("es-0", 40), _alloc("es-1", 41)]
+    assert guard.check(full) == []                      # learns es-0, es-1 at t=100
+    assert guard.check([_alloc("es-0", 42)]) == []      # es-1 missing for 100 s: fine
+    reasons = guard.check([_alloc("es-0", 43)])         # es-1 missing since t=100: 800 s
+    assert len(reasons) == 1 and "es-1" in reasons[0]
+
+
+def test_disk_guard_reports_threshold_breaches():
+    spec.loader.exec_module(orch)
+    guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=itertools.count().__next__)
+    reasons = guard.check([_alloc("es-0", 40), _alloc("es-1", 90)])
+    assert len(reasons) == 1 and "es-1" in reasons[0] and "90%" in reasons[0]
