@@ -184,3 +184,13 @@ def test_get_webpages_for_ref_filters_whitelisted(whitelisted_webpage, non_white
 def test_get_webpages_for_ref_requires_segment_level():
 	with pytest.raises(InputError):
 		get_webpages_for_ref("Genesis 1")
+
+
+def test_site_data_looked_up_once_per_domain(monkeypatch):
+	calls = []
+	monkeypatch.setattr("sefaria.model.webpage.get_site_data_for_domain", lambda domain: calls.append(domain))
+	site_data_by_domain = {}
+	for path in ["a", "b"]:
+		WebPage({"url": f"https://example.com/{path}"}, site_data_by_domain=site_data_by_domain)
+	WebPage({"url": "https://example.org/a"}, site_data_by_domain=site_data_by_domain)
+	assert calls == ["example.com", "example.org"]
