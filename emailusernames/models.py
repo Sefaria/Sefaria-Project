@@ -1,5 +1,6 @@
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
+
 from emailusernames.forms import EmailAdminAuthenticationForm
 from emailusernames.utils import _email_to_username
 
@@ -18,14 +19,11 @@ def user_init_patch(self, *args, **kwargs):
 
 
 def user_save_patch(self, *args, **kwargs):
-    email_as_username = (self.username.lower() == self.email.lower())
+    email_as_username = self.username.lower() == self.email.lower()
     if self.pk is not None:
         try:
             old_user = self.__class__.objects.get(pk=self.pk)
-            email_as_username = (
-                email_as_username or
-                ('@' in self.username and old_user.username == old_user.email)
-            )
+            email_as_username = email_as_username or ("@" in self.username and old_user.username == old_user.email)
         except self.__class__.DoesNotExist:
             pass
 
@@ -49,7 +47,7 @@ def monkeypatch_user():
     if _patched:
         # Django's test database creation can overwrite User.__dict__['__init__']
         # with Model.__init__, removing our patch. Check and re-apply if needed.
-        if User.__dict__.get('__init__') is not user_init_patch:
+        if User.__dict__.get("__init__") is not user_init_patch:
             User.__init__ = user_init_patch
             User.save_base = user_save_patch
         return
@@ -69,4 +67,4 @@ def unmonkeypatch_user():
 
 # Monkey-path the admin site to use a custom login form
 AdminSite.login_form = EmailAdminAuthenticationForm
-AdminSite.login_template = 'email_usernames/login.html'
+AdminSite.login_template = "email_usernames/login.html"

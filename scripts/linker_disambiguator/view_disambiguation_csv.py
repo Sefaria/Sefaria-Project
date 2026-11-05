@@ -8,8 +8,10 @@ or drop a file via the sidebar uploader.
 Annotations are written to the 'correcness' column (preserving original typo)
 and saved back to the same file (or a download button if loaded via upload).
 """
+
 import argparse
 import sys
+
 import pandas as pd
 import streamlit as st
 
@@ -22,8 +24,10 @@ args, _ = parser.parse_known_args(sys.argv[1:])
 st.sidebar.header("Data source")
 uploaded = st.sidebar.file_uploader("Upload CSV", type="csv")
 
+
 def load(path_or_buf):
     return pd.read_csv(path_or_buf, dtype=str).fillna("")
+
 
 # ── Session-state dataframe (mutable, survives reruns) ────────────────────────
 if "df" not in st.session_state:
@@ -82,12 +86,20 @@ st.title("Disambiguation Results")
 c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("Rows (filtered)", total)
 c2.metric("Success=TRUE", n_true)
-c3.metric("Success rate", f"{n_true/total:.1%}" if total else "—")
+c3.metric("Success rate", f"{n_true / total:.1%}" if total else "—")
 c4.metric("Annotated", f"{n_annotated}/{len(df)}")
 c5.metric("Marked correct", n_correct)
 
-display_cols = ["case_type", "success", "correcness", "result_method",
-                "payload_ref", "payload_text", "result_matched_segment", "result_resolved_ref"]
+display_cols = [
+    "case_type",
+    "success",
+    "correcness",
+    "result_method",
+    "payload_ref",
+    "payload_text",
+    "result_matched_segment",
+    "result_resolved_ref",
+]
 st.dataframe(df.loc[filtered_idx, display_cols], use_container_width=True, height=280)
 
 # ── Row detail + annotation ───────────────────────────────────────────────────
@@ -103,8 +115,7 @@ st.session_state.row_pos = min(st.session_state.row_pos, total - 1)
 
 nav_col, _, save_col = st.columns([2, 4, 2])
 with nav_col:
-    pos = st.number_input("Row (0-based in filtered set)", 0, total - 1,
-                          value=st.session_state.row_pos, step=1)
+    pos = st.number_input("Row (0-based in filtered set)", 0, total - 1, value=st.session_state.row_pos, step=1)
 
 real_idx = filtered_idx[int(pos)]
 row = df.loc[real_idx]
