@@ -36,7 +36,6 @@ export const readState = () => call("GET", "state");
 export const enableDeveloper = () => call("POST", "enable");
 export const saveProfile = (profile) => call("POST", "profile", {profile});
 export const sendConfirmation = () => call("POST", "confirmation");
-export const cancelConfirmation = () => call("DELETE", "confirmation");
 export const requestNewLink = (key) => call("POST", "confirmation/new-link", {key});
 export const createProject = (project) => call("POST", "projects", {project});
 export const updateProject = (projectId, project) => call("POST", "projects/" + projectId, {project});
@@ -44,8 +43,6 @@ export const deleteProject = (projectId) => call("DELETE", "projects/" + project
 export const createKey = (projectId, label) => call("POST", "projects/" + projectId + "/keys", {label});
 export const setKeyRestriction = (keyId, restrictToWebsite) => call("POST", "keys/" + keyId, {restrictToWebsite});
 export const deleteKey = (keyId) => call("DELETE", "keys/" + keyId);
-export const claimListing = (listingId) => call("POST", "listings/" + listingId + "/claim");
-export const dismissListing = (listingId) => call("POST", "listings/" + listingId + "/dismiss");
 export const mockAction = (action, fields) => call("POST", "mock", {action, ...fields});
 
 /* Developer settings need a verified email: Google or Apple sign-in verifies it, and so does
