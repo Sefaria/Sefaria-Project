@@ -97,7 +97,7 @@ const LoggedInDropdown = ({ module }) => {
         {module === Sefaria.LIBRARY_MODULE &&
           <>
             <DropdownMenuItem url={'/settings/account'} targetModule={Sefaria.LIBRARY_MODULE}>
-              <InterfaceText>header.account_settings</InterfaceText>
+              <InterfaceText>header.my_settings</InterfaceText>
             </DropdownMenuItem>
             <DropdownMenuItem url={'/torahtracker'}>
               <InterfaceText text={{ 'en': 'Torah Tracker', 'he': 'לימוד במספרים' }} />
@@ -117,7 +117,7 @@ const LoggedInDropdown = ({ module }) => {
               <InterfaceText>common.history</InterfaceText>
             </DropdownMenuItem>
             <DropdownMenuItem url={'/settings/account'} targetModule={Sefaria.LIBRARY_MODULE}>
-              <InterfaceText>header.account_settings</InterfaceText>
+              <InterfaceText>header.my_settings</InterfaceText>
             </DropdownMenuItem>
           </>
         }
@@ -524,7 +524,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <>
             <a href="/settings/account" data-target-module={Sefaria.LIBRARY_MODULE}>
               <img src="/static/icons/settings.svg" alt={Sefaria._("header.settings")} />
-              <InterfaceText>header.account_settings</InterfaceText>
+              <InterfaceText>header.my_settings</InterfaceText>
             </a>
           </>
         }
