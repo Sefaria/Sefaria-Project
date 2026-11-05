@@ -43,7 +43,7 @@ class TopicSearch extends Component {
           name: suggestion.title,
           key: suggestion.key,
           type: suggestion.type,
-          border_color: "#ffffff"
+          border_color: "var(--color-bg-surface, #ffffff)"  // no category bar: paint it in the surface colour
         }))
 
     results.showAddButton = true;

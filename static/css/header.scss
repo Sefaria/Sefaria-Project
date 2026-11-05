@@ -35,7 +35,7 @@ $not-selector: "";
   box-sizing: border-box;
   padding: 0 30px;
   justify-content: space-between;
-  background: white;
+  background: var(--color-bg-surface, var(--white));
   @include breakpoint(mobile) {
     padding: 0 15px;
   }
@@ -52,7 +52,7 @@ $not-selector: "";
 }
 
 .headerInner.boxShadow {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px var(--color-shadow);
 }
 
 $logo-widths: (
@@ -118,7 +118,7 @@ $interfaces: english hebrew;
 
 .textLink,
 .textLink:hover {
-  color: var(--dark-grey);
+  color: var(--color-text-secondary, var(--dark-grey));
 }
 
 .headerLinksSection {
@@ -128,7 +128,7 @@ $interfaces: english hebrew;
 
 .header .searchBox {
   overflow: hidden;
-  background: var(--lighter-grey);
+  background: var(--color-bg-muted, var(--lighter-grey));
   border-radius: 250px;
   width: 250px;
   height: 30px;
@@ -164,7 +164,7 @@ $interfaces: english hebrew;
 }
 
 .header .menuButton {
-  color: var(--medium-grey);
+  color: var(--color-text-muted, var(--medium-grey));
   border: none;
   background: transparent;
   padding: 0;

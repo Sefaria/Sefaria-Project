@@ -1,8 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups } from '../utils';
-import { t } from '../globals';
+import { LANGUAGES, t } from '../globals';
 import { MOBILE_HAMBURGER, MOBILE_PAGE_URLS, SEARCH_DROPDOWN } from '../constants';
+import { APPEARANCE_SELECTORS } from './appearancePage';
 
 /**
  * Page object for the mobile hamburger menu rendered by Sefaria's
@@ -35,8 +36,12 @@ export class MobileHamburgerPage extends HelperBase {
     // past the 843px mobile breakpoint, producing a strict-mode violation.
     // The hamburger has aria-label="Menu" exactly AND class `menuButton`;
     // anchor on both so the locator is unambiguous in any layout state.
+    // The label is interface-language dependent (header.menu: "Menu" / "תפריט").
+    const label = this.language === LANGUAGES.HE
+      ? MOBILE_HAMBURGER.MENU_BUTTON_LABEL_HE
+      : MOBILE_HAMBURGER.MENU_BUTTON_LABEL;
     return this.page.locator('button.menuButton').and(
-      this.page.getByRole('button', { name: 'Menu', exact: true })
+      this.page.getByRole('button', { name: label, exact: true })
     );
   }
 
@@ -147,6 +152,11 @@ export class MobileHamburgerPage extends HelperBase {
     return this.navMenu.locator(MOBILE_HAMBURGER.LABELS.LANG_TOGGLE_CONTAINER);
   }
 
+  /** Appearance row (Auto / Light / Dark), directly after the language row (details: appearancePage.ts). */
+  private get appearanceRow(): Locator {
+    return this.navMenu.locator(APPEARANCE_SELECTORS.MOBILE_GROUP);
+  }
+
   private get englishLanguageLinkInMenu(): Locator {
     // NextRedirectAnchor flips href to "#" on hydrate and intercepts the
     // click in JS, so we anchor on the rendered classes (int-en / int-he)
@@ -227,6 +237,18 @@ export class MobileHamburgerPage extends HelperBase {
   async openMenu(): Promise<void> {
     if (await this.isMenuOpen()) return;
     await this.tapMenuButton();
+    await expect(this.navMenuOpen).toBeVisible({ timeout: t(5000) });
+  }
+
+  /**
+   * Open the drawer with a mouse click: for a desktop browser window narrowed below the mobile
+   * breakpoint, which has no touch support (so `openMenu`'s tap would throw).
+   */
+  async openMenuWithMouse(): Promise<void> {
+    if (await this.isMenuOpen()) return;
+    await hideAllModalsAndPopups(this.page);
+    await expect(this.menuButton).toBeVisible({ timeout: t(10000) });
+    await this.menuButton.click();
     await expect(this.navMenuOpen).toBeVisible({ timeout: t(5000) });
   }
 
@@ -314,6 +336,12 @@ export class MobileHamburgerPage extends HelperBase {
     await expect(this.interfaceLanguageToggle).toBeVisible({ timeout: t(5000) });
     await expect(this.englishLanguageLinkInMenu).toBeVisible({ timeout: t(5000) });
     await expect(this.hebrewLanguageLinkInMenu).toBeVisible({ timeout: t(5000) });
+
+    // Appearance row: a labelled group of three options (placement and behaviour: THEME-M0xx
+    // in appearance.spec.ts)
+    await expect(this.appearanceRow).toBeVisible({ timeout: t(5000) });
+    await expect(this.appearanceRow).toHaveAttribute('role', 'group');
+    await expect(this.appearanceRow.locator(APPEARANCE_SELECTORS.OPTION)).toHaveCount(3);
 
     // Help, About, Voices on Sefaria, Developers, More from Sefaria
     await expect(this.getHelpLink).toBeVisible({ timeout: t(5000) });

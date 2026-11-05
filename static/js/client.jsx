@@ -6,9 +6,12 @@ import ReactDOM from 'react-dom';
 import DjangoCSRF from './lib/django-csrf';
 const SefariaReact = require('./ReaderApp');
 import * as Sentry from "@sentry/react";
+import { watchSystemTheme } from './sefaria/theme';
 
 
 $(function() {
+  watchSystemTheme(); // Appearance "auto": follow the OS switching light/dark after load
+
   // no_applink (see sefaria/utils/views_utils.py) is a one-hop marker; strip it so a
   // bookmarked/shared copy of this URL doesn't keep it forever.
   const url = new URL(window.location.href);

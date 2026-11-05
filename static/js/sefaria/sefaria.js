@@ -12,6 +12,7 @@ import $ from './sefariaJquery';
 import { getCsrfToken } from './csrf';
 import FilterNode from "./FilterNode";
 import { VOICES_MODULE, LIBRARY_MODULE } from '../constants';
+import { normalizePreference } from './theme';
 
 
 let Sefaria = Sefaria || {
@@ -21,6 +22,7 @@ let Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
+  theme: null,  // stored appearance preference (auto/light/dark) from the `theme` cookie, or null (see sefaria/theme.js)
   VOICES_MODULE,
   LIBRARY_MODULE,
   apiHost: "" 
@@ -4062,12 +4064,16 @@ Sefaria.unpackBaseProps = function(props){
       "googleClientId",
       "appleClientId",
       "recaptchaSiteKey",
+      "theme",
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {
         Sefaria[element] = props[element];
       }
   }
+  // Per-visitor, and Node reuses this object across visitors: never keep a previous render's
+  // value. Django always sends `theme` (null when unset); treat a missing or invalid one as null.
+  Sefaria.theme = normalizePreference(props.theme);
 }
 
 Sefaria.loadServerData = function(data){

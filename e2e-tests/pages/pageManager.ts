@@ -29,6 +29,7 @@ import { VoicesBookmarksPage } from "./voicesBookmarksPage"
 import { InterfaceStringsPage } from "./interfaceStringsPage"
 import { UserHistoryCookiePage } from "./userHistoryCookiePage"
 import { LinkExplorerPage } from "./linkExplorerPage"
+import { AppearancePage } from "./appearancePage"
 
 
 export class PageManager {
@@ -61,6 +62,7 @@ export class PageManager {
     private readonly interfaceStringsPage: InterfaceStringsPage
     private readonly userHistoryCookiePage: UserHistoryCookiePage
     private readonly linkExplorerPage: LinkExplorerPage
+    private readonly appearancePage: AppearancePage
 
 
 
@@ -94,6 +96,7 @@ export class PageManager {
         this.interfaceStringsPage = new InterfaceStringsPage(page, language)
         this.userHistoryCookiePage = new UserHistoryCookiePage(page, language)
         this.linkExplorerPage = new LinkExplorerPage(page, language)
+        this.appearancePage = new AppearancePage(page, language)
 
     }
 
@@ -207,6 +210,10 @@ export class PageManager {
     }
     onLinkExplorer() {
         return this.linkExplorerPage
+    }
+
+    onAppearance() {
+        return this.appearancePage
     }
 
 

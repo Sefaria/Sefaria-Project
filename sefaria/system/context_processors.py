@@ -14,6 +14,7 @@ from sefaria.settings import *
 from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
+from sefaria.system.theme import get_stored_theme, resolve_theme
 
 import structlog
 
@@ -98,6 +99,21 @@ def module_context(request):
         'active_module': request.active_module,
         'domain_modules': DOMAIN_MODULES
     }
+
+def theme_context(request):
+    """
+    Appearance for base.html: ``theme`` is the validated ``theme`` cookie or None (the same value
+    base_props sends to React), ``resolved_theme`` is what the server can render ('light' | 'dark'),
+    or None for auto, where the head script (elements/theme_head.html) picks from the system setting.
+    base.html only renders ``data-theme`` when ``resolved_theme`` is set.
+    Not @user_only: it is a whitelisted cookie read, cheap enough to run on every template.
+    """
+    stored = get_stored_theme(request)
+    return {
+        "theme": stored,
+        "resolved_theme": resolve_theme(stored),
+    }
+
 
 @user_only
 def cache_timestamp(request):

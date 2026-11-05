@@ -11,7 +11,7 @@
   position: absolute;
   text-align: center;
   padding: 10px;
-  background-color: #eee;
+  background-color: var(--color-legacy-bg-eeeeee);
   width: auto;
   height: auto;
   left: auto;
@@ -26,7 +26,7 @@
   display: none;
   position: fixed;
   z-index: 20;
-  background: black;
+  background: var(--color-scrim);
   opacity: 0.4;
   height: 100%;
   width: 100%;
@@ -39,12 +39,12 @@
   display:none;
   z-index:101;
   text-align:center;
-  background-color: #f2dede;
-  border-color: #eed3d7;
-  color: #b94a48;
-  border: 1px solid #fbeed5;
+  background-color: var(--color-legacy-bg-f2dede);
+  border-color: var(--color-legacy-border-eed3d7);
+  color: var(--color-legacy-text-b94a48);
+  border: 1px solid var(--color-legacy-border-fbeed5);
   margin-bottom: 18px;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 0 var(--color-legacy-shadow-ffffff-50);
 }
 #messageComposer {
   max-width: 100%;
@@ -69,9 +69,9 @@
   display: none;
 }
 #viewMessage #messageText {
-  background: white;
+  background: var(--color-bg-raised);
   border-radius: 5px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-legacy-border-dddddd);
   padding: 14px;
   margin: 8px;
   width: 480px;
@@ -89,7 +89,7 @@
 }
 #peopleList {
   margin: 8px;
-  background-color: white;
+  background-color: var(--color-bg-raised);
   border-radius: 5px;
   padding: 20px;
   text-align: left;
@@ -140,7 +140,7 @@
   cursor: pointer;
   padding: 0px 8px;
   line-height: 28px;
-  border: 1px solid #aaa;
+  border: 1px solid var(--color-legacy-border-aaaaaa);
   border-right: none;
   letter-spacing: 1px;
   font-size: 1px;
@@ -158,13 +158,13 @@
 .toggleOption:last-child {
   border-top-right-radius: 8px;
   border-bottom-right-radius: 8px;
-  border-right: 1px solid #aaa;
+  border-right: 1px solid var(--color-legacy-border-aaaaaa);
 }
 .toggleOption:active {
-  background: #d8d8d8;
+  background: var(--color-legacy-bg-d8d8d8);
 }
 .toggleOption:hover {
-  background: #ccc;
+  background: var(--color-bg-hover-strong);
 }
 #languageToggle, 
 #layoutToggle, 
@@ -183,13 +183,13 @@
   margin: 0 auto;
   top: 40px;
   padding: 14px;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 0 var(--color-legacy-shadow-ffffff-50);
   text-align: center;
-  border: 1px solid #fbeed5;
+  border: 1px solid var(--color-legacy-border-fbeed5);
   border-radius: 4px;
-  background-color: #f2dede;
-  border-color: #eed3d7;
-  color: #b94a48;
+  background-color: var(--color-legacy-bg-f2dede);
+  border-color: var(--color-legacy-border-eed3d7);
+  color: var(--color-legacy-text-b94a48);
 }
 #globalWarning .fa-times {
   float: right;
@@ -228,7 +228,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   direction: rtl;
   line-height: 1.7;
   background: #3A87AD;
-  color: white;
+  color: var(--color-text-on-accent);
   padding: 0px 7px;
   display: inline-block;
   float: right;
@@ -269,7 +269,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   width: 400px;
   padding: 40px;
   box-sizing: border-box;
-  background: #eee;
+  background: var(--color-legacy-bg-eeeeee);
   text-align: center;
   z-index: 21;
 }
@@ -312,8 +312,8 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   min-height: 250px;
 }
 .alertBox .multiOptions {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-legacy-border-dddddd);
   border-radius: 3px;
   text-align: left;
   width: 90%;
@@ -335,8 +335,8 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 }
 #textBrowser {
   padding: 0;
-  background: white;
-  box-shadow: 1px 1px 3px #555;
+  background: var(--color-bg-raised);
+  box-shadow: 1px 1px 3px var(--color-legacy-shadow-555555);
   font-family: "Georgia", serif;
   -moz-user-select: none; 
   -khtml-user-select: none; 
@@ -353,9 +353,9 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 }
 #browserPath {
   clear: both;
-  background-color: #eee;
+  background-color: var(--color-legacy-bg-eeeeee);
   padding: 6px 10px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--color-legacy-border-dddddd);
   min-height: 20px;
   line-height: 20px;
   font-size: 16px;
@@ -379,14 +379,14 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   width: 180px;
   height: 310px;
   overflow-y: auto;
-  border-right: 1px solid #aaa;
+  border-right: 1px solid var(--color-legacy-border-aaaaaa);
   font-size: 16px;
 }
 .interface-hebrew #browserNav {
   left: auto;
   right: 0;
   border-right: none;
-  border-left: 1px solid #aaa;
+  border-left: 1px solid var(--color-legacy-border-aaaaaa);
 }
 .browserNavItem {
   padding: 8px 4px 8px 10px;
@@ -400,7 +400,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   text-decoration: underline;
 }
 .browserNavItem {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--color-legacy-border-dddddd);
 }
 #browserPreview {
   position: relative;
@@ -426,15 +426,15 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   border-right: 4px solid transparent;
 }
 #browserPreview .segment:hover {
-    background-color: #EDF4FA;
+    background-color: var(--color-legacy-bg-edf4fa);
 }
 #browserPreview .segment.selected {
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
-  background-color: #CFE5F8;
+  background-color: var(--color-legacy-bg-cfe5f8);
 }
 #browserPreview .segment.selected:hover {
-  background-color: #CFE5F8;
+  background-color: var(--color-legacy-bg-cfe5f8);
 }
 #browserPreview .number {
   font-size: 13px;
@@ -458,14 +458,14 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 }
 #browserPreview .empty {
   text-align: center;
-  color: #777;
+  color: var(--color-legacy-text-777777);
 }
 #browserActions {
   text-align: center;
-  background-color: #eee;
+  background-color: var(--color-legacy-bg-eeeeee);
   padding: 8px;
   clear: both;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid var(--color-legacy-border-dddddd);
   -moz-user-select: none; 
   -khtml-user-select: none; 
   -webkit-user-select: none; 
@@ -479,7 +479,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   font-size: 20px;
 }
 #browserOK.inactive {
-  color: #ddd;
+  color: var(--color-legacy-text-dddddd);
 }
 .onoffswitch {
   position: relative;
@@ -516,14 +516,14 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   padding: 0;
   line-height: 36px;
   font-size: 14px;
-  color: white;
+  color: var(--color-text-on-accent);
   box-sizing: border-box;
 }
 .onoffswitch-inner:before {
   content: "Yes";
   padding-left: 10px;
-  background-color: #212D4F;
-  color: #FFFFFF;
+  background-color: var(--color-legacy-bg-212d4f);
+  color: var(--color-text-on-accent);
 }
 .interface-hebrew .onoffswitch-inner:before{
   content: "לא";
@@ -532,8 +532,8 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 .onoffswitch-inner:after {
   content: "No";
   padding-right: 10px;
-  background-color: #212D4F;
-  color: #fff;
+  background-color: var(--color-legacy-bg-212d4f);
+  color: var(--color-text-on-accent);
   text-align: right;
 }
 .interface-hebrew .onoffswitch-inner:after {
@@ -547,12 +547,12 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   display: block;
   width: 31px;
   margin: 1px;
-  background: #FFFFFF;
+  background: var(--color-bg-knob);
   position: absolute;
   top: 0;
   bottom: 0;
   right: 36px;
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border);
   border-radius: 26px;
   transition: all 0.3s ease-in 0s;
 }
@@ -579,7 +579,7 @@ ul.tagit li {
 ul.tagit li.tagit-choice {
     position: relative;
     line-height: inherit;
-    color: #08c;
+    color: var(--color-legacy-text-0088cc);
 }
 ul.tagit li.tagit-choice-read-only {
     padding: .2em .5em .2em .5em;
@@ -626,15 +626,15 @@ ul.tagit input[type="text"], #sheetsContent ul.tagit input[type="text"] {
     outline: none;
 }
 a {
-	color: #08C;
+	color: var(--color-legacy-text-0088cc);
 	text-decoration: none;
 }
 a:hover {
-  color: #005580;
+  color: var(--color-legacy-text-005580);
   text-decoration: underline;
 }
 a:focus {
-  outline: thin dotted #333;
+  outline: thin dotted var(--color-text);
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
@@ -677,7 +677,7 @@ a:active {
   background-color: #2d6987;
 }
 .badge-inverse {
-  background-color: #333333;
+  background-color: var(--color-bg-inverse);
 }
 .badge-inverse:hover {
   background-color: #1a1a1a;
@@ -687,7 +687,7 @@ a:active {
 }
 .static {
   font-size: 16px;
-  background-color: #FBFBFA;
+  background-color: var(--color-bg-subtle);
 }
 .static .inner {
   width: 90%;
@@ -703,15 +703,15 @@ a:active {
   margin: 0;
   cursor: pointer;
   border-radius: 7px;
-  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0px 1px 3px var(--color-shadow);
   border: none;
-  color: var(--dark-grey);
+  color: var(--color-text-secondary);
   font-size: 14px;
-  background-color: white;
+  background-color: var(--color-bg-control);
   -webkit-appearance: none;
 }
 .static label {
-  color: #000;
+  color: var(--color-text-strong);
   font-size: 16px;
   height: 18px;
   margin-bottom: 5px;
@@ -720,7 +720,7 @@ a:active {
 }
 .static label .sub {
   font-size: 12px;
-  color: var(--medium-grey);
+  color: var(--color-text-muted);
   letter-spacing: normal;
   white-space: nowrap;
 }
@@ -738,16 +738,16 @@ a:active {
     z-index: 101;
     background: linear-gradient(
     90deg,
-    var(--tanakh-teal) 0% 10%,
-    var(--commentary-blue) 10% 20%,
-    var(--mussar-purple) 20% 30%,
-    var(--mishnah-blue) 30% 40%,
-    var(--talmud-gold) 40% 50%,
-    var(--midrash-green) 50% 60%,
-    var(--halakhah-red) 60% 70%,
-    var(--philosophy-purple) 70% 80%,
-    var(--taanitic-green) 80% 90%,
-    var(--chasidut-green) 90% 100%
+    var(--color-cat-tanakh) 0% 10%,
+    var(--color-cat-commentary) 10% 20%,
+    var(--color-cat-mussar) 20% 30%,
+    var(--color-cat-mishnah) 30% 40%,
+    var(--color-cat-talmud) 40% 50%,
+    var(--color-cat-midrash) 50% 60%,
+    var(--color-cat-halakhah) 60% 70%,
+    var(--color-cat-philosophy) 70% 80%,
+    var(--color-cat-taanitic) 80% 90%,
+    var(--color-cat-chasidut) 90% 100%
     );
 }
 .animatedCategoryColorLineRainbow.fixedBar{
@@ -769,7 +769,7 @@ a:active {
   width: 100%;
   height: 4px;
   z-index: 101;
-  background: linear-gradient(90deg, var(--tanakh-teal) 0% 10%, var(--commentary-blue) 10% 20%, var(--mussar-purple) 20% 30%, var(--mishnah-blue) 30% 40%, var(--talmud-gold) 40% 50%, var(--midrash-green) 50% 60%, var(--halakhah-red) 60% 70%, var(--philosophy-purple) 70% 80%, var(--taanitic-green) 80% 90%, var(--chasidut-green) 90% 100%);
+  background: linear-gradient(90deg, var(--color-cat-tanakh) 0% 10%, var(--color-cat-commentary) 10% 20%, var(--color-cat-mussar) 20% 30%, var(--color-cat-mishnah) 30% 40%, var(--color-cat-talmud) 40% 50%, var(--color-cat-midrash) 50% 60%, var(--color-cat-halakhah) 60% 70%, var(--color-cat-philosophy) 70% 80%, var(--color-cat-taanitic) 80% 90%, var(--color-cat-chasidut) 90% 100%);
   background-size: 200% 100%; /* Expand the size so we can animate */
   animation: rainbowAnimation 1s linear infinite;
 }

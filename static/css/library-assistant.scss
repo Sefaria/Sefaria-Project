@@ -1,7 +1,7 @@
 // Everything the Library Assistant (the <lc-chatbot> widget from ai-chatbot) adds to Sefaria's
 // pages: its entry points (the header pill, the phone menu item, the empty-search link) and how
 // the page makes room for it. Its colors are --chatbot-purple / --chatbot-purple-hover
-// (color-palette.css). Loaded right after s2.css (templates/base.html).
+// (color-palette.css). Loaded after s2.css and theme-dark-overrides.css (templates/base.html).
 //
 // The header's flex catch-all excludes the pill in header.scss's $exclude-flex.
 

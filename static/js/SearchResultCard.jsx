@@ -253,7 +253,7 @@ function SearchResultCard({
   // Books and sources derive their accent color from the Sefaria category palette.
   // An explicit accentColor prop always wins (useful for overrides / storybook).
   const resolvedAccentColor = accentColor
-    || (MODES_WITH_CATEGORY_COLOR.has(mode) && name ? Sefaria.palette.refColor(name) : '#000');
+    || (MODES_WITH_CATEGORY_COLOR.has(mode) && name ? Sefaria.palette.refColor(name) : 'var(--color-text-strong, #000)');
 
   const isSourcesMode = mode === 'sources';
   // Sources cards don't show the icon circle — the colored bar and ref title are sufficient.
