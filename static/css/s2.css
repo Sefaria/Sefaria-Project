@@ -18677,3 +18677,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-shareLead { display: flex; flex-direction: column; gap: 12px; }
 .devPocPage .devE-shareNoteTight { margin: 4px 0 0; }
 .devPocPage .devE-galleryLink { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; }
+/* "Join the developer community": a quiet, secondary panel under Additional email, so it's seen without pulling focus. */
+.devPocPage .devE-community { flex-direction: column; align-items: stretch; gap: 12px; /* the same gray box as ENote (.devE-note: surface-subtle, 8px radius, padding); only the layout differs. spacing-medium */ }
+.devPocPage .devE-communityTitle { margin: 0; font: 500 14px/18px var(--english-sans-serif-font-family); color: #575757; /* en-system-small-compact at 500, text-secondary */ }
+.devPocPage .devE-community .sefaria-checkbox label, .devPocPage .devE-community .sefaria-checkbox-label { font-size: 14px; line-height: 21px; /* en-system-small-comfortable */ }
+.devPocPage .devE-communityLink { margin: 0; padding-block-start: 12px; border-block-start: 1px solid #ededec; font-size: 14px; line-height: 21px; color: #121212; /* a divider (border-default) between the two options; en-system-small-comfortable */ }
+.devPocPage .devE-communityJoin { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; white-space: nowrap; /* the link stays on one line */ }

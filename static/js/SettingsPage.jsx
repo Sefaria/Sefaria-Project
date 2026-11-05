@@ -2194,9 +2194,20 @@ const EWelcome = ({dots, onSave, initial, onCancel, edit}) => {
           placeholder="name@example.com" value={fields.additionalEmail}
           onChange={e => set("additionalEmail", e.target.value)} error={errors.additionalEmail}
           onBlur={() => setErrors(x => ({...x, additionalEmail: emailError(fields.additionalEmail)}))} />
-        <Checkbox id="devENews" checked={!!fields.developerNews} onChange={e => set("developerNews", e.target.checked)}
-          label={tE("I would like to receive Sefaria's developer newsletter to hear about new features, events and opportunities.",
-            "אשמח לקבל את הניוזלטר למפתחים של ספריא כדי לשמוע על תכונות חדשות, אירועים והזדמנויות.")} />
+        {/* The two ways to join the developer community side by side (Penina, 2026-11-05): the newsletter and the
+            Discord, which is a plain link rather than a checkbox (Sarah, D83). */}
+        <section className="devE-note devE-community" aria-labelledby="devECommunityTitle">
+          <h3 className="devE-communityTitle" id="devECommunityTitle">{tE("Join the developer community", "הצטרפו לקהילת המפתחים")}</h3>
+          <Checkbox id="devENews" checked={!!fields.developerNews} onChange={e => set("developerNews", e.target.checked)}
+            label={tE("I would like to receive Sefaria's developer newsletter to hear about new features, events and opportunities.",
+              "אשמח לקבל את הניוזלטר למפתחים של ספריא כדי לשמוע על תכונות חדשות, אירועים והזדמנויות.")} />
+          {/* A second, separate option. It's a place to go, not a setting, so it gets a link instead of a
+              checkbox: an inline link, and no icon in the checkbox's column (Penina, 2026-11-05). */}
+          <p className="devE-communityLink"><InterfaceText text={{
+            en: <React.Fragment><a className="devE-inlineLink devE-communityJoin" href={E_DISCORD_URL} target="_blank" rel="noopener noreferrer">Join our Discord</a> to talk with other developers building on Sefaria.</React.Fragment>,
+            he: <React.Fragment><a className="devE-inlineLink devE-communityJoin" href={E_DISCORD_URL} target="_blank" rel="noopener noreferrer">הצטרפו לדיסקורד שלנו</a> כדי לשוחח עם מפתחים אחרים שבונים עם ספריא.</React.Fragment>,
+          }} /></p>
+        </section>
         <div className="devE-footer">
           {onCancel ? <button type="button" className="devE-backBtn" onClick={onCancel}>{tE("Cancel", "ביטול")}</button> : null}
           <EPrimary data-agent-action="save-profile" disabled={saving}>{edit ? tE("Save", "שמירה") : tE("Continue", "המשך")}</EPrimary>
@@ -2810,6 +2821,7 @@ const EFieldError = ({id, error}) => error ?
 /* The Powered by form's intro, word for word from the current Formstack form (wiki: Powered by Sefaria Submission Form). */
 /* Gallery of featured projects (PBS check-in, 2026-11-02). Points at today's Powered by page until the new gallery is live. */
 const E_PB_GALLERY_URL = "https://developers.sefaria.org/docs/powered-by-sefaria";
+const E_DISCORD_URL = "https://sefaria.formstack.com/forms/sefaria_developer_discord_community";  // a sign-up form, not a direct invite (2026-11-05)
 const EShareLead = () => (
   <div className="devE-shareLead">
     <p className="devE-lead"><InterfaceText text={{
