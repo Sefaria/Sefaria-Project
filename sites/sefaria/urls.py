@@ -70,6 +70,7 @@ site_urlpatterns = [
     re_path(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     re_path(r'^(favicon\.ico|apple-touch-icon\.png|favicon\.svg)/?$', reader_views.module_favicon),
     re_path(r'^(?P<filename>site\.webmanifest|manifest\.json)/?$', reader_views.dynamic_manifest),
+    re_path(r'^sw\.js$', reader_views.service_worker),
     re_path(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
     re_path(r'^\.well-known/apple-app-site-association/?$', reader_views.apple_app_site_association),
     re_path(r'^\.well-known/assetlinks.json/?$', reader_views.android_asset_links_json),
