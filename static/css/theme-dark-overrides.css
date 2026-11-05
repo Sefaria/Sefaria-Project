@@ -33,8 +33,8 @@
     /* palette.js fallback colours that have no category token and fail 3:1 on dark surfaces. */
     --dm-palette-raspberry: #B272A4; /* theme-exempt */
     --dm-palette-darkblue: #5B86C8; /* theme-exempt */
-    /* Mobile dark-mode switch track when on (section 7c). */
-    --dm-switch-track-on: var(--color-accent-fill-hover, #3A69AB); /* theme-exempt */
+    /* Fill of the pressed Appearance option (section 7c): the palette's commentary blue. */
+    --dm-option-pressed: var(--commentary-blue, #4B71B7); /* theme-exempt */
     /* Library Assistant purple as text (section 7b): --chatbot-purple #7C416F is 2.5:1 on dark surfaces. */
     --dm-assistant-ink: #C995BC; /* theme-exempt */
     --dm-assistant-ink-hover: #DDB6D3; /* theme-exempt */
@@ -413,11 +413,12 @@
   }
 
   /* ── 5. Third-party widgets and islands that only have a light design ─────────────────────────── */
-  /* Library Assistant <lc-chatbot>: a shadow-DOM widget with its own light design and --lc-* tokens
-     declared on :host. It publishes no dark palette yet (only --lc-font / --lc-tooltip-* / --lc-user-bg
-     are documented), so keep it a light island: stop the page's dark `color` and `color-scheme` from
-     inheriting into the shadow tree, where they would give light text on its white panel. */
-  :root[data-theme="dark"] lc-chatbot {
+  /* Library Assistant <lc-chatbot>: widget versions with a dark palette follow <html data-theme>
+     themselves and mark the host with their own data-theme. Older versions (no attribute) only have
+     a light design, so keep them a light island: stop the page's dark `color` and `color-scheme`
+     from inheriting into the shadow tree, where they would give light text on a white panel.
+     Never style a host that has data-theme: page rules on the host beat the widget's :host rules. */
+  :root[data-theme="dark"] lc-chatbot:not([data-theme]) {
     color-scheme: light;
     color: var(--dm-island-text);
   }
@@ -486,10 +487,12 @@
     color: var(--dm-assistant-ink-hover);
   }
 
-  /* c. 1.4.11 Non-text Contrast. The mobile "Dark mode" switch (ThemeToggle.jsx) is always on while
-     the page is dark (switching it off turns the page light). Its on track, --color-accent-fill, was
-     2.6:1 against the menu; this one is 3.2:1, and the white knob on it is 5.5:1. */
-  :root[data-theme="dark"] .mobileNavMenu .mobileThemeToggle[aria-checked="true"] .mobileThemeToggleSwitch {
-    background-color: var(--dm-switch-track-on);
+  /* c. 1.4.11 Non-text Contrast. The pressed Appearance option (AppearanceToggle.jsx) is a filled
+     chip. On --color-accent-fill it would be 2.2:1 against the desktop account menu (--color-bg-raised)
+     and 2.6:1 against the mobile menu; this fill is 3.2:1 and 3.7:1, and the white icon on it 4.8:1.
+     (--color-accent-fill-hover, #3A69AB, is only 2.8:1 on the desktop menu.) */
+  :root[data-theme="dark"] .appearanceOption.active,
+  :root[data-theme="dark"] .appearanceOption.active:hover {
+    background-color: var(--dm-option-pressed);
   }
 }

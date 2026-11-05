@@ -1,15 +1,16 @@
 /**
- * WCAG 2.1 Level A checks for the dark mode controls (ThemeToggle.jsx): the desktop header
- * button and the mobile hamburger-menu switch, in English and Hebrew. Each describe names the
- * success criterion it gives evidence for; the compliance report cites these test names.
+ * WCAG 2.1 Level A checks for the Appearance controls (AppearanceToggle.jsx): the Auto / Light /
+ * Dark group in the desktop account menus and the row in the mobile hamburger menu, in English
+ * and Hebrew. Each describe names the success criterion it gives evidence for; the compliance
+ * report cites these test names.
  *
- * Unlike ThemeToggle.test.js, `../sefaria/theme` is NOT mocked here: toggling runs the real
- * writeStoredTheme / applyTheme against jsdom, so the checks on <html lang>, navigation and focus
- * cover the whole client path. Only the Sefaria singleton is mocked.
+ * Unlike AppearanceToggle.test.js, `../sefaria/theme` is NOT wrapped here: choosing runs the real
+ * writeStoredPreference / applyTheme against jsdom, so the checks on <html lang>, navigation and
+ * focus cover the whole client path. Only the Sefaria singleton is mocked.
  *
- * Contrast (1.4.3, 1.4.11) and link distinction (1.4.1) are covered by the token audit in
- * cssColorLiterals.test.js; in-browser behaviour (Tab order, focus rings, skip link, key presses)
- * by e2e-tests/library/theme-a11y.spec.ts and "e2e-tests/mobile web/theme-a11y.spec.ts".
+ * Contrast (1.4.3, 1.4.11, including the pressed chip) is covered by the token audit in
+ * cssColorLiterals.test.js; the menu staying open by headerAppearance.test.js; in-browser
+ * behaviour (Tab order, focus rings, key presses) by the E2E theme-a11y specs.
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -32,19 +33,31 @@ import fs from 'fs';
 import path from 'path';
 import Sefaria from '../sefaria/sefaria';
 import * as theme from '../sefaria/theme';
-import { ThemeToggle, MobileThemeToggle } from '../ThemeToggle';
+import { AppearanceToggle, MobileAppearanceToggle } from '../AppearanceToggle';
 
 const REPO = path.resolve(__dirname, '../../..');
+const SOURCE = fs.readFileSync(path.join(REPO, 'static/js/AppearanceToggle.jsx'), 'utf8');
 const en = require('../sefaria/i18n/interface/en.json');
 const he = require('../sefaria/i18n/interface/he.json');
-const LANGS = [['english', en['header.dark_mode']], ['hebrew', he['header.dark_mode']]];
+const OPTIONS = ['auto', 'light', 'dark'];
+const labelsOf = (dict) => ({
+  group: dict['header.appearance'],
+  auto: dict['header.appearance_auto'],
+  light: dict['header.appearance_light'],
+  dark: dict['header.appearance_dark'],
+});
+const LANGS = [['english', labelsOf(en)], ['hebrew', labelsOf(he)]];
 
 let container;
 const mount = (el) => act(() => { ReactDOM.render(el, container); });
 const click = (el) => act(() => { el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })); });
-const desktop = () => container.querySelector('button.themeToggle');
-const mobile = () => container.querySelector('button.mobileThemeToggle');
-const both = () => mount(<div><ThemeToggle /><MobileThemeToggle /></div>);
+const desktopGroup = () => container.querySelector('.dropdownAppearanceToggle');
+const mobileGroup = () => container.querySelector('.mobileAppearanceToggle');
+const groups = () => [desktopGroup(), mobileGroup()].filter(Boolean);
+const option = (group, value) => group.querySelector(`button[data-appearance="${value}"]`);
+const allOptions = () => Array.from(container.querySelectorAll('button.appearanceOption'));
+const both = () => mount(<div><AppearanceToggle /><MobileAppearanceToggle /></div>);
+const shown = () => document.documentElement.getAttribute('data-theme');
 
 /** Accessible name, following the parts of accname 1.2 these controls can use. */
 function accessibleName(el) {
@@ -62,8 +75,15 @@ function accessibleName(el) {
   return fromContent || (el.getAttribute('title') || '').trim();
 }
 
-/** The text a sighted user sees on the control (everything not aria-hidden). */
-const visibleText = (el) => Array.from(el.querySelectorAll('span:not([aria-hidden="true"])')).map((s) => s.textContent).join(' ').trim();
+/** The text a sighted user sees on an element (text nodes outside aria-hidden subtrees). */
+const visibleText = (el) => {
+  const walk = (node) => Array.from(node.childNodes).map((c) => {
+    if (c.nodeType === 3) return c.nodeValue;
+    if (c.nodeType !== 1 || c.getAttribute('aria-hidden') === 'true') return '';
+    return walk(c);
+  }).join('');
+  return walk(el).replace(/\s+/g, ' ').trim();
+};
 
 beforeEach(() => {
   container = document.createElement('div');
@@ -80,6 +100,7 @@ afterEach(() => {
   act(() => { ReactDOM.unmountComponentAtNode(container); });
   container.remove();
   jest.restoreAllMocks();
+  delete window.matchMedia;
 });
 
 describe.each(LANGS)('%s interface', (lang, label) => {
@@ -92,179 +113,234 @@ describe.each(LANGS)('%s interface', (lang, label) => {
   });
 
   describe('1.1.1 Non-text Content', () => {
-    test('the icons are decorative: aria-hidden, not focusable, no <img> without alt; the button carries the name', () => {
+    test('the icons are decorative: aria-hidden, not focusable, no <img> without alt; each button carries the name', () => {
       both();
-      for (const btn of [desktop(), mobile()]) {
-        for (const svg of btn.querySelectorAll('svg')) {
-          expect(svg.getAttribute('aria-hidden')).toBe('true');
-          expect(svg.getAttribute('focusable')).toBe('false');
-          expect(svg.querySelector('title, desc')).toBeNull();
-        }
-        expect(btn.querySelectorAll('img:not([alt])')).toHaveLength(0);
-        expect(accessibleName(btn)).toBe(label);
+      const svgs = container.querySelectorAll('svg');
+      expect(svgs).toHaveLength(7);   // 3 options x 2 controls + the mobile row icon
+      for (const svg of svgs) {
+        expect(svg.getAttribute('aria-hidden')).toBe('true');
+        expect(svg.getAttribute('focusable')).toBe('false');
+        expect(svg.querySelector('title, desc')).toBeNull();
+      }
+      expect(container.querySelectorAll('img:not([alt])')).toHaveLength(0);
+      for (const group of groups()) {
+        for (const v of OPTIONS) expect(accessibleName(option(group, v))).toBe(label[v]);
       }
     });
 
-    test('the sun icon that replaces the moon in dark is decorative too', () => {
+    test('the pressed option\'s icon is decorative too, and its name does not change', () => {
       both();
-      click(desktop());
-      const svg = desktop().querySelector('svg.themeToggleSun');
-      expect(svg.getAttribute('aria-hidden')).toBe('true');
-      expect(accessibleName(desktop())).toBe(label);
+      click(option(desktopGroup(), 'dark'));
+      const btn = option(desktopGroup(), 'dark');
+      expect(btn.querySelector('svg').getAttribute('aria-hidden')).toBe('true');
+      expect(accessibleName(btn)).toBe(label.dark);
     });
   });
 
   describe('1.3.1 Info and Relationships / 4.1.2 Name, Role, Value', () => {
-    test(`desktop: a native button (implicit role "button") named "${label}" with aria-pressed`, () => {
-      mount(<ThemeToggle />);
-      const btn = desktop();
-      expect(btn.tagName).toBe('BUTTON');
-      expect(btn.getAttribute('type')).toBe('button');
-      expect(btn.hasAttribute('role')).toBe(false);
-      expect(btn.getAttribute('aria-pressed')).toBe('false');
-      expect(btn.hasAttribute('aria-checked')).toBe(false);
-      expect(accessibleName(btn)).toBe(label);
-    });
-
-    test(`mobile: role="switch" named "${label}" with aria-checked, no aria-pressed`, () => {
-      mount(<MobileThemeToggle />);
-      const btn = mobile();
-      expect(btn.tagName).toBe('BUTTON');
-      expect(btn.getAttribute('role')).toBe('switch');
-      expect(btn.getAttribute('aria-checked')).toBe('false');
-      expect(btn.hasAttribute('aria-pressed')).toBe(false);
-      expect(accessibleName(btn)).toBe(label);
-    });
-
-    test('the state attribute follows the theme; the name never changes', () => {
+    test(`each control is a group named "${label.group}"`, () => {
       both();
-      click(desktop());
-      expect(desktop().getAttribute('aria-pressed')).toBe('true');
-      expect(mobile().getAttribute('aria-checked')).toBe('true');
-      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-      expect([accessibleName(desktop()), accessibleName(mobile())]).toEqual([label, label]);
-      click(mobile());
-      expect(desktop().getAttribute('aria-pressed')).toBe('false');
-      expect(mobile().getAttribute('aria-checked')).toBe('false');
-      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+      for (const group of groups()) {
+        expect(group.getAttribute('role')).toBe('group');
+        expect(accessibleName(group)).toBe(label.group);
+      }
     });
 
-    test('server-rendered markup already has role, name and state (works before the bundle loads)', () => {
+    test('each option is a native button (implicit role "button") with a name and aria-pressed', () => {
+      both();
+      for (const group of groups()) {
+        for (const v of OPTIONS) {
+          const btn = option(group, v);
+          expect(btn.tagName).toBe('BUTTON');
+          expect(btn.getAttribute('type')).toBe('button');
+          expect(btn.hasAttribute('role')).toBe(false);
+          expect(btn.getAttribute('aria-pressed')).toBe(String(v === 'auto'));
+          expect(btn.hasAttribute('aria-checked')).toBe(false);
+          expect(accessibleName(btn)).toBe(label[v]);
+        }
+      }
+    });
+
+    test('exactly one option is pressed; the state follows the choice and the names never change', () => {
+      both();
+      const state = () => groups().map((g) => OPTIONS.filter((v) => option(g, v).getAttribute('aria-pressed') === 'true'));
+      expect(state()).toEqual([['auto'], ['auto']]);
+      click(option(desktopGroup(), 'dark'));
+      expect(state()).toEqual([['dark'], ['dark']]);
+      expect(shown()).toBe('dark');
+      click(option(mobileGroup(), 'light'));
+      expect(state()).toEqual([['light'], ['light']]);
+      expect(shown()).toBe('light');
+      expect(allOptions().map(accessibleName)).toEqual([...OPTIONS, ...OPTIONS].map((v) => label[v]));
+    });
+
+    test('server-rendered markup already has roles, names and state (works before the bundle loads)', () => {
       Sefaria.theme = 'dark';
-      const html = ReactDOMServer.renderToStaticMarkup(<div><ThemeToggle /><MobileThemeToggle /></div>);
-      expect(html).toContain(`aria-pressed="true" aria-label="${label}" title="${label}"`);
-      expect(html).toMatch(/role="switch"[^>]*aria-checked="true"/);
+      const html = ReactDOMServer.renderToStaticMarkup(<div><AppearanceToggle /><MobileAppearanceToggle /></div>);
+      expect(html.match(new RegExp(`role="group" aria-label="${label.group}"`, 'g'))).toHaveLength(2);
+      expect(html.match(new RegExp(`data-appearance="dark" aria-pressed="true" aria-label="${label.dark}" title="${label.dark}"`, 'g'))).toHaveLength(2);
+      expect(html.match(/aria-pressed="false"/g)).toHaveLength(4);
     });
   });
 
   describe('2.5.3 Label in Name', () => {
-    test('mobile: the visible text is contained in the accessible name', () => {
-      mount(<MobileThemeToggle />);
-      const shown = visibleText(mobile());
-      expect(shown).toBe(label);
-      expect(accessibleName(mobile()).toLowerCase()).toContain(shown.toLowerCase());
+    test('options: no visible text; the tooltip (title) is exactly the accessible name', () => {
+      both();
+      for (const btn of allOptions()) {
+        expect(visibleText(btn)).toBe('');
+        expect(btn.textContent.trim()).toBe('');
+        expect(btn.getAttribute('title')).toBe(accessibleName(btn));
+        expect(btn.getAttribute('title')).toBe(btn.getAttribute('aria-label'));
+      }
     });
 
-    test('desktop: no visible text; the tooltip (title) is the accessible name', () => {
-      mount(<ThemeToggle />);
-      expect(visibleText(desktop())).toBe('');
-      expect(desktop().textContent.trim()).toBe('');
-      expect(desktop().getAttribute('title')).toBe(accessibleName(desktop()));
+    test('desktop: the visible title above the group is the group\'s name', () => {
+      mount(<AppearanceToggle />);
+      const title = container.querySelector('.appearanceHeader');
+      expect(visibleText(title)).toBe(label.group);
+      expect(accessibleName(desktopGroup()).toLowerCase()).toContain(visibleText(title).toLowerCase());
+    });
+
+    test('mobile: the visible row text is contained in the group\'s name', () => {
+      mount(<MobileAppearanceToggle />);
+      const text = visibleText(mobileGroup());
+      expect(text).toBe(label.group);
+      expect(accessibleName(mobileGroup()).toLowerCase()).toContain(text.toLowerCase());
     });
   });
 
   describe('3.1.1 Language of Page', () => {
-    test('toggling keeps <html lang> (and dir) next to data-theme', () => {
+    test('choosing keeps <html lang> (and dir) next to data-theme', () => {
       const before = [document.documentElement.getAttribute('lang'), document.documentElement.getAttribute('dir')];
       both();
-      click(desktop());
-      click(mobile());
+      click(option(desktopGroup(), 'dark'));
+      click(option(mobileGroup(), 'light'));
+      click(option(desktopGroup(), 'auto'));
       expect([document.documentElement.getAttribute('lang'), document.documentElement.getAttribute('dir')]).toEqual(before);
-      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+      expect(shown()).toBe('light');
+    });
+
+    test('the interface-language text is marked with the matching int-en / int-he class', () => {
+      both();
+      const cls = lang === 'hebrew' ? 'int-he' : 'int-en';
+      const other = lang === 'hebrew' ? 'int-en' : 'int-he';
+      expect(container.querySelectorAll(`span.${cls}`)).toHaveLength(2);
+      expect(container.querySelectorAll(`span.${other}`)).toHaveLength(0);
     });
   });
 });
 
 describe('1.3.2 Meaningful Sequence / 2.4.3 Focus Order', () => {
-  test('mobile row reads icon (hidden), label, then the decorative switch', () => {
-    mount(<MobileThemeToggle />);
-    const kids = Array.from(mobile().children);
+  test('options are in the order Auto, Light, Dark in both controls', () => {
+    both();
+    for (const group of groups()) {
+      expect(Array.from(group.querySelectorAll('button')).map((b) => b.getAttribute('data-appearance'))).toEqual(OPTIONS);
+    }
+  });
+
+  test('desktop: the title comes right before the group it names', () => {
+    mount(<AppearanceToggle />);
+    expect(container.querySelector('.appearanceHeader').nextElementSibling).toBe(desktopGroup());
+  });
+
+  test('mobile row reads icon (hidden), label, then the options', () => {
+    mount(<MobileAppearanceToggle />);
+    const kids = Array.from(mobileGroup().children);
     expect(kids.map((k) => k.tagName.toLowerCase())).toEqual(['svg', 'span', 'span']);
     expect(kids[0].getAttribute('aria-hidden')).toBe('true');
     expect(kids[1].getAttribute('aria-hidden')).toBeNull();
-    expect(kids[2].getAttribute('aria-hidden')).toBe('true');
+    expect(kids[2].querySelectorAll('button')).toHaveLength(3);
   });
 
   test('no positive tabindex and no CSS reordering of the controls', () => {
     both();
     expect(container.querySelectorAll('[tabindex]')).toHaveLength(0);
     const css = ['static/css/header.scss', 'static/css/s2.css'].map((f) => fs.readFileSync(path.join(REPO, f), 'utf8'));
-    const rules = css.flatMap((src) => src.match(/[^{}]*(themeToggle|mobileThemeToggle)[^{}]*\{[^}]*\}/g) || []);
-    expect(rules.length).toBeGreaterThan(3);
-    expect(rules.filter((r) => /(^|[\s;{])(order|flex-direction\s*:\s*\w+-reverse|position\s*:\s*(absolute|fixed))\s*:/.test(r.replace(/.*\{/, '{')))
-      .filter((r) => !/::after|Switch/.test(r.split('{')[0]))).toEqual([]);
+    const rules = css.flatMap((src) => src.match(/[^{}]*([aA]ppearance)[^{}]*\{[^}]*\}/g) || []);
+    expect(rules.length).toBeGreaterThan(5);
+    expect(rules.filter((r) => /(^|[\s;{])(order|flex-direction\s*:\s*\w+-reverse|position\s*:\s*(absolute|fixed))\s*:/.test(r.replace(/.*\{/, '{'))))
+      .toEqual([]);
+    expect(rules.filter((r) => /flex-direction\s*:\s*\w+-reverse|(^|[\s;{])order\s*:/.test(r))).toEqual([]);
   });
 });
 
 describe('1.3.3 Sensory Characteristics', () => {
-  test('the label names the function, not a shape, colour or position', () => {
+  test('the labels name the function, not a shape, colour or position', () => {
     for (const [, label] of LANGS) {
-      expect(label).not.toMatch(/moon|sun|icon|left|right|above|below|circle|black|white|ירח|שמש|סמל|ימין|שמאל/i);
+      for (const text of Object.values(label)) {
+        expect(text).not.toMatch(/moon|sun|screen|icon|left|right|above|below|circle|black|white|ירח|שמש|מסך|סמל|ימין|שמאל|שחור|לבן/i);
+      }
     }
-    expect(en['header.dark_mode']).toBe('Dark mode');
-    expect(he['header.dark_mode']).toBe('מצב כהה');
+  });
+
+  test('the strings exist in both languages, and the two-state "Dark mode" string is gone', () => {
+    expect(labelsOf(en)).toEqual({ group: 'Appearance', auto: 'Auto', light: 'Light', dark: 'Dark' });
+    expect(labelsOf(he)).toEqual({ group: 'מראה', auto: 'אוטומטי', light: 'בהיר', dark: 'כהה' });
+    expect(en['header.dark_mode']).toBeUndefined();
+    expect(he['header.dark_mode']).toBeUndefined();
   });
 });
 
 describe('1.4.1 Use of Color (state is not shown by colour alone)', () => {
   const s2 = fs.readFileSync(path.join(REPO, 'static/css/s2.css'), 'utf8');
-  test('mobile: "on" moves the knob (inset-inline-start), not just the track colour', () => {
-    expect(s2).toMatch(/\.mobileThemeToggle\[aria-checked="true"\] \.mobileThemeToggleSwitch::after \{\s*inset-inline-start: 24px;/);
-    expect(s2).toMatch(/\.mobileThemeToggleSwitch::after \{[^}]*inset-inline-start: 2px;/);
+  test('the pressed option is a filled chip: a background fill on the whole button, not only an icon colour', () => {
+    const rule = s2.match(/\.appearanceOption\.active,\s*\.appearanceOption\.active:hover \{([^}]*)\}/);
+    expect(rule).not.toBeNull();
+    expect(rule[1]).toMatch(/background-color: var\(--color-accent-fill\);/);
+    expect(rule[1]).toMatch(/color: var\(--color-text-on-accent\);/);
+    // the unpressed options have no fill at rest (the chip is the difference; >= 3:1 in the token audit)
+    expect(s2).toMatch(/\.appearanceOption \{[^}]*background: none;/);
   });
 
-  test('desktop: the icon changes shape (moon when light, sun when dark) as well as aria-pressed', () => {
-    mount(<ThemeToggle />);
-    expect(desktop().querySelector('svg.themeToggleMoon')).not.toBeNull();
-    click(desktop());
-    expect(desktop().querySelector('svg.themeToggleMoon')).toBeNull();
-    expect(desktop().querySelector('svg.themeToggleSun')).not.toBeNull();
+  test('every option has its own icon shape, so the choices are told apart without colour', () => {
+    both();
+    const shapes = OPTIONS.map((v) => option(desktopGroup(), v).querySelector('svg').innerHTML);
+    expect(new Set(shapes).size).toBe(3);
+  });
+
+  test('the pressed class moves with aria-pressed', () => {
+    both();
+    click(option(desktopGroup(), 'light'));
+    for (const btn of allOptions()) {
+      expect(btn.classList.contains('active')).toBe(btn.getAttribute('aria-pressed') === 'true');
+    }
   });
 });
 
 describe('2.1.1 Keyboard / 2.1.2 No Keyboard Trap', () => {
-  test.each([['desktop', desktop], ['mobile', mobile]])('%s: focusable native button that leaves Enter, Space and Tab to the browser', (name, get) => {
+  test.each([['desktop', desktopGroup], ['mobile', mobileGroup]])('%s: focusable native buttons that leave Enter, Space and Tab to the browser', (name, getGroup) => {
     both();
-    const btn = get();
-    btn.focus();
-    expect(document.activeElement).toBe(btn);
-    expect(btn.disabled).toBe(false);
-    expect(btn.tabIndex).toBe(0);
-    for (const key of ['Enter', ' ', 'Tab']) {
-      for (const type of ['keydown', 'keyup']) {
-        const ev = new KeyboardEvent(type, { key, bubbles: true, cancelable: true, shiftKey: false });
-        act(() => { btn.dispatchEvent(ev); });
-        expect([name, type, key, ev.defaultPrevented]).toEqual([name, type, key, false]);
+    for (const v of OPTIONS) {
+      const btn = option(getGroup(), v);
+      btn.focus();
+      expect(document.activeElement).toBe(btn);
+      expect(btn.disabled).toBe(false);
+      expect(btn.tabIndex).toBe(0);
+      for (const key of ['Enter', ' ', 'Tab', 'ArrowLeft', 'ArrowRight']) {
+        for (const type of ['keydown', 'keyup']) {
+          const ev = new KeyboardEvent(type, { key, bubbles: true, cancelable: true, shiftKey: false });
+          act(() => { btn.dispatchEvent(ev); });
+          expect([name, v, type, key, ev.defaultPrevented]).toEqual([name, v, type, key, false]);
+        }
       }
+      const shiftTab = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+      act(() => { btn.dispatchEvent(shiftTab); });
+      expect(shiftTab.defaultPrevented).toBe(false);
     }
-    const shiftTab = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
-    act(() => { btn.dispatchEvent(shiftTab); });
-    expect(shiftTab.defaultPrevented).toBe(false);
-    // The click a browser dispatches for Enter/Space toggles it (the key press itself is covered in E2E).
-    act(() => { btn.click(); });
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    // The click a browser dispatches for Enter/Space chooses it (the key press itself is covered in E2E).
+    act(() => { option(getGroup(), 'dark').click(); });
+    expect(shown()).toBe('dark');
   });
 
   test('blurring is allowed: focus is never pulled back', () => {
     both();
     const other = document.createElement('button');
     document.body.appendChild(other);
-    desktop().focus();
-    other.focus();
-    expect(document.activeElement).toBe(other);
-    mobile().focus();
-    other.focus();
-    expect(document.activeElement).toBe(other);
+    for (const btn of allOptions()) {
+      btn.focus();
+      other.focus();
+      expect(document.activeElement).toBe(other);
+    }
     other.remove();
   });
 });
@@ -278,56 +354,58 @@ describe('2.1.4 Character Key Shortcuts', () => {
     }
     both();
     expect(added.filter((t) => /^key/.test(t))).toEqual([]);
-    for (const key of ['d', 'D', 't', 'l', 'm', 'n', 'ד']) {
+    for (const key of ['a', 'A', 'd', 'D', 'l', 'L', 't', 'm', 'n', 'ד', 'ב', 'א']) {
       act(() => { document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true })); });
     }
-    expect(document.documentElement.getAttribute('data-theme')).toBeNull();
-    expect(desktop().getAttribute('aria-pressed')).toBe('false');
+    expect(shown()).toBeNull();
+    expect(option(desktopGroup(), 'auto').getAttribute('aria-pressed')).toBe('true');
   });
 
-  test('ThemeToggle.jsx defines no key handlers', () => {
-    const src = fs.readFileSync(path.join(REPO, 'static/js/ThemeToggle.jsx'), 'utf8');
-    expect(src).not.toMatch(/onKey(Down|Up|Press)|['"]key(down|up|press)['"]|accessKey/);
+  test('AppearanceToggle.jsx defines no key handlers or access keys', () => {
+    expect(SOURCE).not.toMatch(/onKey(Down|Up|Press)|['"]key(down|up|press)['"]|accessKey/);
   });
 });
 
 describe('2.5.1 Pointer Gestures / 2.5.2 Pointer Cancellation', () => {
   test('activation is a single click (up event): press alone does nothing', () => {
     both();
-    for (const btn of [desktop(), mobile()]) {
+    for (const btn of allOptions()) {
       for (const type of ['pointerdown', 'mousedown', 'touchstart']) {
         act(() => { btn.dispatchEvent(new Event(type, { bubbles: true, cancelable: true })); });
       }
     }
-    expect(document.documentElement.getAttribute('data-theme')).toBeNull();
-    click(desktop());
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(shown()).toBeNull();
+    expect(document.cookie).toBe('');
+    click(option(desktopGroup(), 'dark'));
+    expect(shown()).toBe('dark');
   });
 
-  test('ThemeToggle.jsx uses onClick only (no down, touch, drag or multi-point handlers)', () => {
-    const src = fs.readFileSync(path.join(REPO, 'static/js/ThemeToggle.jsx'), 'utf8');
-    expect(src).toMatch(/onClick=\{toggle\}/);
-    expect(src).not.toMatch(/on(Pointer|Mouse|Touch)(Down|Start|Move|Up|End)|onDrag|onDoubleClick|onContextMenu/);
+  test('AppearanceToggle.jsx uses onClick only (no down, touch, drag or multi-point handlers)', () => {
+    expect(SOURCE).toMatch(/onClick=\{\(\) => choose\(value\)\}/);
+    expect(SOURCE.match(/\bon[A-Z]\w*=/g)).toEqual(['onClick=']);
+    expect(SOURCE).not.toMatch(/on(Pointer|Mouse|Touch)(Down|Start|Move|Up|End)|onDrag|onDoubleClick|onContextMenu/);
   });
 });
 
 describe('3.2.1 On Focus', () => {
-  test('focusing either control changes nothing', () => {
-    const write = jest.spyOn(theme, 'writeStoredTheme');
+  test('focusing any option changes nothing', () => {
+    const write = jest.spyOn(theme, 'writeStoredPreference');
     const apply = jest.spyOn(theme, 'applyTheme');
     both();
-    desktop().focus();
-    mobile().focus();
-    act(() => { mobile().dispatchEvent(new FocusEvent('focusin', { bubbles: true })); });
+    for (const btn of allOptions()) {
+      btn.focus();
+      act(() => { btn.dispatchEvent(new FocusEvent('focusin', { bubbles: true })); });
+    }
     expect(write).not.toHaveBeenCalled();
     expect(apply).not.toHaveBeenCalled();
-    expect(document.documentElement.getAttribute('data-theme')).toBeNull();
-    expect(desktop().getAttribute('aria-pressed')).toBe('false');
+    expect(shown()).toBeNull();
+    expect(document.cookie).toBe('');
+    expect(option(desktopGroup(), 'auto').getAttribute('aria-pressed')).toBe('true');
   });
 });
 
 describe('3.2.2 On Input', () => {
-  test('toggling does not navigate, reload, submit or change history, and focus stays on the control', () => {
+  test('choosing does not navigate, reload, submit or change history, and focus stays on the option', () => {
     const push = jest.spyOn(window.history, 'pushState');
     const replace = jest.spyOn(window.history, 'replaceState');
     const errors = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -336,15 +414,15 @@ describe('3.2.2 On Input', () => {
     const submitted = jest.fn((e) => e.preventDefault());
     form.addEventListener('submit', submitted);
     container.appendChild(form);
-    act(() => { ReactDOM.render(<div><ThemeToggle /><MobileThemeToggle /></div>, form); });
-    const d = form.querySelector('button.themeToggle');
-    const m = form.querySelector('button.mobileThemeToggle');
-    d.focus();
-    click(d);
-    expect(document.activeElement).toBe(d);
-    m.focus();
-    click(m);
-    expect(document.activeElement).toBe(m);
+    act(() => { ReactDOM.render(<div><AppearanceToggle /><MobileAppearanceToggle /></div>, form); });
+    for (const [sel, v] of [['.dropdownAppearanceToggle', 'dark'], ['.mobileAppearanceToggle', 'light'], ['.dropdownAppearanceToggle', 'auto']]) {
+      const btn = form.querySelector(`${sel} [data-appearance="${v}"]`);
+      btn.focus();
+      click(btn);
+      expect(document.activeElement).toBe(btn);
+      expect(btn.isConnected).toBe(true);     // re-rendering keeps the same element (keyed by value)
+      expect(btn.getAttribute('aria-pressed')).toBe('true');
+    }
     expect(window.location.href).toBe(href);
     expect(push).not.toHaveBeenCalled();
     expect(replace).not.toHaveBeenCalled();
@@ -354,35 +432,58 @@ describe('3.2.2 On Input', () => {
     act(() => { ReactDOM.unmountComponentAtNode(form); });
   });
 
-  test('the click is neither cancelled nor stopped, so a surrounding menu decides for itself (it stays open: headerThemeToggle.test.js)', () => {
+  test('the click is neither cancelled nor stopped, so a surrounding menu decides for itself (it stays open: headerAppearance.test.js)', () => {
     const outer = jest.fn();
-    mount(<div onClick={outer}><MobileThemeToggle /></div>);
-    const ev = new MouseEvent('click', { bubbles: true, cancelable: true });
-    act(() => { mobile().dispatchEvent(ev); });
-    expect(ev.defaultPrevented).toBe(false);
-    expect(outer).toHaveBeenCalledTimes(1);
+    mount(<div onClick={outer}><AppearanceToggle /><MobileAppearanceToggle /></div>);
+    for (const btn of [option(desktopGroup(), 'dark'), option(mobileGroup(), 'light')]) {
+      const ev = new MouseEvent('click', { bubbles: true, cancelable: true });
+      act(() => { btn.dispatchEvent(ev); });
+      expect(ev.defaultPrevented).toBe(false);
+    }
+    expect(outer).toHaveBeenCalledTimes(2);
   });
 
-  test('the theme is stored and applied in place: cookie written, data-theme set, no page load', () => {
+  test('the desktop group asks its menu to stay open (data-prevent-close), so the change can be seen', () => {
     both();
-    click(desktop());
-    expect(theme.readStoredTheme()).toBe('dark');
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(desktopGroup().getAttribute('data-prevent-close')).toBe('true');
+    for (const btn of desktopGroup().querySelectorAll('button')) {
+      expect(btn.closest('[data-prevent-close="true"]')).toBe(desktopGroup());
+      expect(btn.querySelector('path').closest('[data-prevent-close="true"]')).toBe(desktopGroup());
+    }
+  });
+
+  test('the preference is stored and shown in place: cookie written, data-theme set, no page load', () => {
+    window.matchMedia = (q) => ({ matches: q === '(prefers-color-scheme: dark)', media: q });
+    both();
+    click(option(desktopGroup(), 'light'));
+    expect(theme.readStoredPreference()).toBe('light');
+    expect(shown()).toBe('light');
+    click(option(desktopGroup(), 'auto'));
+    expect(theme.readStoredPreference()).toBe('auto');
+    expect(shown()).toBe('dark');
   });
 });
 
 describe('4.1.1 Parsing', () => {
   test('the controls add no ids (so none can collide), and SVG markup has no id-bearing defs', () => {
     both();
-    click(desktop());   // sun icon too
+    click(option(desktopGroup(), 'dark'));
     expect(container.querySelectorAll('[id]')).toHaveLength(0);
-    const html = ReactDOMServer.renderToStaticMarkup(<div><ThemeToggle /><MobileThemeToggle /></div>);
-    expect(html).not.toMatch(/\sid=|<defs|<use\b|url\(#/);
+    for (const pref of [null, 'light', 'dark']) {
+      Sefaria.theme = pref;
+      const html = ReactDOMServer.renderToStaticMarkup(<div><AppearanceToggle /><MobileAppearanceToggle /></div>);
+      expect(html).not.toMatch(/\sid=|<defs|<use\b|url\(#|aria-labelledby|aria-describedby/);
+    }
   });
 
-  test('rendering the header pair twice (desktop header + mobile menu) still has no duplicate ids', () => {
-    mount(<div><ThemeToggle /><MobileThemeToggle /><ThemeToggle /><MobileThemeToggle /></div>);
+  test('rendering the pair twice (both account menus + the mobile menu) still has no duplicate ids', () => {
+    mount(<div><AppearanceToggle /><MobileAppearanceToggle /><AppearanceToggle /><MobileAppearanceToggle /></div>);
     const ids = Array.from(document.querySelectorAll('[id]')).map((e) => e.id);
     expect(ids.length).toBe(new Set(ids).size);
+  });
+
+  test('aria-pressed is always the string "true" or "false"', () => {
+    both();
+    for (const btn of allOptions()) expect(['true', 'false']).toContain(btn.getAttribute('aria-pressed'));
   });
 });

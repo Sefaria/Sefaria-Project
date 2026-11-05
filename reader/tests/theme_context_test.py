@@ -1,6 +1,8 @@
 """
-Light/dark theme, server side: cookie validation (sefaria/system/theme.py), the theme_context
-context processor, the always-present ``theme`` key in base_props, and what base.html renders.
+Appearance (auto / light / dark), server side: cookie validation (sefaria/system/theme.py), the
+theme_context context processor, the always-present ``theme`` key in base_props, and what base.html
+renders. The server renders ``data-theme`` only for an explicit light or dark preference; for auto
+(also unset or invalid) it cannot know the system setting, so the head script picks the theme.
 
 The tests use RequestFactory and mocks and need no Mongo data. Heavy modules (the context
 processors, reader.views) are imported inside the tests that need them.
@@ -16,7 +18,8 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.test import RequestFactory
 
-from sefaria.system.theme import DEFAULT_THEME, THEME_COOKIE, THEMES, get_stored_theme, resolve_theme
+import sefaria.system.theme as theme_module
+from sefaria.system.theme import PREFERENCES, THEME_COOKIE, THEMES, get_stored_theme, resolve_theme
 
 REPO = Path(__file__).resolve().parents[2]
 COOKIE_CASES = json.loads((REPO / "static/js/sefaria/tests/themeCookieCases.json").read_text())["cases"]
@@ -28,6 +31,11 @@ MALICIOUS = [
     "dark\" onload=\"alert(1)",
     "dark' x='",
     "DARK",
+    "AUTO",
+    "Auto",
+    "auto ",
+    " auto",
+    "automatic",
     "system",
     "",
     "dark\x00",
@@ -59,8 +67,23 @@ def _render_base_lines(context):
 
 def test_constants():
     assert THEME_COOKIE == "theme"
+    assert PREFERENCES == ("auto", "light", "dark")
     assert THEMES == ("light", "dark")
-    assert DEFAULT_THEME == "light"
+    # No server-side default theme: unset means auto, which only the browser can resolve.
+    assert not hasattr(theme_module, "DEFAULT_THEME")
+
+
+@pytest.mark.parametrize("value", ["auto", "light", "dark"])
+def test_every_preference_is_accepted(value):
+    request = _request()
+    request.COOKIES = {THEME_COOKIE: value}
+    assert get_stored_theme(request) == value
+    assert get_stored_theme(_request("theme=%s" % value)) == value
+
+
+def test_the_shared_cookie_cases_cover_every_preference():
+    outcomes = {case["expected"] for case in COOKIE_CASES}
+    assert outcomes == {None, *PREFERENCES}
 
 
 @pytest.mark.parametrize("case", COOKIE_CASES, ids=lambda c: repr(c["cookie"]))
@@ -93,8 +116,10 @@ def test_request_without_cookies():
 
 
 @pytest.mark.parametrize("stored, expected", [
-    ("dark", "dark"), ("light", "light"), (None, "light"), ("", "light"), ("DARK", "light"),
-    ("system", "light"), ("garbage", "light"), (["dark"], "light"),
+    ("dark", "dark"), ("light", "light"),
+    # auto, unset and anything invalid: the browser decides from the system setting
+    ("auto", None), (None, None), ("", None), ("DARK", None), ("Auto", None),
+    ("system", None), ("garbage", None), (["dark"], None),
 ])
 def test_resolve_theme(stored, expected):
     assert resolve_theme(stored) == expected
@@ -103,12 +128,14 @@ def test_resolve_theme(stored, expected):
 # --- context processor --------------------------------------------------------------------------
 
 @pytest.mark.parametrize("cookie, theme, resolved", [
-    (None, None, "light"),
+    (None, None, None),
+    ("theme=auto", "auto", None),
     ("theme=dark", "dark", "dark"),
     ("theme=light", "light", "light"),
-    ("theme=garbage", None, "light"),
-    ('theme="><script>alert(1)</script>', None, "light"),
+    ("theme=garbage", None, None),
+    ('theme="><script>alert(1)</script>', None, None),
     ("theme=dark; theme=light", "light", "light"),
+    ("theme=dark; theme=auto", "auto", None),
 ])
 def test_theme_context(cookie, theme, resolved):
     from sefaria.system.context_processors import theme_context
@@ -120,6 +147,8 @@ def test_theme_context_runs_on_every_path(path):
     from sefaria.system.context_processors import theme_context
     request = RequestFactory().get(path, HTTP_COOKIE="theme=dark")
     assert theme_context(request)["resolved_theme"] == "dark"
+    request = RequestFactory().get(path, HTTP_COOKIE="theme=auto")
+    assert theme_context(request) == {"theme": "auto", "resolved_theme": None}
 
 
 def test_theme_context_is_registered():
@@ -159,6 +188,7 @@ def base_props_request(monkeypatch):
 
 @pytest.mark.parametrize("cookie, expected", [
     (None, None),
+    ("theme=auto", "auto"),
     ("theme=dark", "dark"),
     ("theme=light", "light"),
     ("theme=garbage", None),
@@ -168,7 +198,8 @@ def test_base_props_always_has_theme(base_props_request, cookie, expected):
     from reader.views import base_props
     props = base_props(base_props_request(cookie))
     # The key must be present even when unset, or Node's shared Sefaria object keeps the previous
-    # visitor's theme (static/js/sefaria/tests/unpackBaseProps.theme.test.js covers the JS side).
+    # visitor's preference (static/js/sefaria/tests/unpackBaseProps.theme.test.js covers the JS side).
+    # It carries the preference (auto included), not the resolved theme: the controls show it.
     assert "theme" in props
     assert props["theme"] == expected
     assert json.loads(json.dumps(props))["theme"] == expected
@@ -176,31 +207,42 @@ def test_base_props_always_has_theme(base_props_request, cookie, expected):
 
 # --- templates ----------------------------------------------------------------------------------
 
+def _html_tag(attr):
+    return '<html lang="en" %s>' % attr if attr else '<html lang="en">'
+
+
 @pytest.mark.parametrize("cookie, attr, meta", [
-    (None, 'data-theme="light"', "#18345D"),
+    # auto (also unset or invalid): no data-theme and the light colour; the head script decides
+    (None, None, "#18345D"),
+    ("theme=auto", None, "#18345D"),
+    ("theme=garbage", None, "#18345D"),
+    ('theme="><script>alert(1)</script>', None, "#18345D"),
+    # an explicit choice is in the first byte
     ("theme=light", 'data-theme="light"', "#18345D"),
     ("theme=dark", 'data-theme="dark"', "#181818"),
-    ("theme=garbage", 'data-theme="light"', "#18345D"),
-    ('theme="><script>alert(1)</script>', 'data-theme="light"', "#18345D"),
+    ("theme=auto; theme=dark", 'data-theme="dark"', "#181818"),
 ])
 def test_base_html_renders_the_theme(cookie, attr, meta):
     from sefaria.system.context_processors import theme_context
     context = {"request": SimpleNamespace(LANGUAGE_CODE="en"), "active_module": "library"}
     context.update(theme_context(_request(cookie)))
     out = _render_base_lines(context)
-    assert out.splitlines()[0] == '<html lang="en" %s>' % attr
-    assert 'content="%s"' % meta in out
+    assert out.splitlines()[0] == _html_tag(attr)
+    assert '<meta name="theme-color" content="%s">' % meta in out
     assert "<script" not in out
+    if attr is None:
+        assert "data-theme" not in out
 
 
-@pytest.mark.parametrize("resolved, meta", [("light", "#518159"), ("dark", "#181818")])
+@pytest.mark.parametrize("resolved, meta", [(None, "#518159"), ("light", "#518159"), ("dark", "#181818")])
 def test_base_html_theme_color_on_voices(resolved, meta):
     out = _render_base_lines({"resolved_theme": resolved, "active_module": "voices"})
     assert '<meta name="theme-color" content="%s">' % meta in out
 
 
 def test_base_html_omits_data_theme_without_the_context_processor():
-    # The head script then applies the cookie itself; see elements/theme_head.html.
+    # The same output as auto: the head script applies the cookie or the system setting itself
+    # (see elements/theme_head.html).
     out = _render_base_lines({"request": SimpleNamespace(LANGUAGE_CODE="en"), "active_module": "library"})
     assert out.splitlines()[0] == '<html lang="en">'
     assert 'content="#18345D"' in out
@@ -233,9 +275,11 @@ def _webpack_stats_missing():
 
 
 @pytest.mark.parametrize("cookie, attr, meta", [
-    (None, 'data-theme="light"', "#18345D"),
+    (None, None, "#18345D"),
+    ("theme=auto", None, "#18345D"),
+    ("theme=light", 'data-theme="light"', "#18345D"),
     ("theme=dark", 'data-theme="dark"', "#181818"),
-    ('theme="><b>x</b>', 'data-theme="light"', "#18345D"),
+    ('theme="><b>x</b>', None, "#18345D"),
 ])
 def test_full_base_html_render(cookie, attr, meta):
     """The whole of base.html through every registered context processor (needs the built bundle stats)."""
@@ -249,7 +293,7 @@ def test_full_base_html_render(cookie, attr, meta):
     request.LANGUAGE_CODE = "en"
     out = render_to_string("base.html", {"html": "", "propsJSON": "null"}, request=request)
     head = out[:out.index("</head>")]
-    assert re.search(r"<html[^>]*>", out).group(0) == '<html lang="en" %s>' % attr
+    assert re.search(r"<html[^>]*>", out).group(0) == _html_tag(attr)
     assert '<meta name="theme-color" content="%s">' % meta in head
     script_at = head.index("<script>(function(){try{var d=document.documentElement")
     assert script_at == head.index("<script")

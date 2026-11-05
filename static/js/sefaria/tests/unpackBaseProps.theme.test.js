@@ -32,11 +32,13 @@ test('Sefaria.theme starts as null', () => {
   });
 });
 
-test('copies the visitor\'s theme', () => {
+test('copies the visitor\'s appearance preference', () => {
   Sefaria.unpackBaseProps(visitor('dark'));
   expect(Sefaria.theme).toBe('dark');
   Sefaria.unpackBaseProps(visitor('light'));
   expect(Sefaria.theme).toBe('light');
+  Sefaria.unpackBaseProps(visitor('auto'));
+  expect(Sefaria.theme).toBe('auto');
 });
 
 test('a dark visitor does not leak into the next visitor who sends theme: null', () => {
@@ -51,7 +53,7 @@ test('nor into a visitor whose props lack the key entirely', () => {
   expect(Sefaria.theme).toBeNull();
 });
 
-test.each(['DARK', 'system', '"><script>alert(1)</script>', 42, {}, ['dark']])(
+test.each(['DARK', 'Auto', 'system', '"><script>alert(1)</script>', 42, {}, ['dark'], ['auto']])(
   'an invalid value %p becomes null instead of reaching render', bad => {
     Sefaria.unpackBaseProps(visitor('dark'));
     Sefaria.unpackBaseProps(visitor(bad));
@@ -66,11 +68,11 @@ test('the full SSR entry point (unpackDataFromProps) resets it too', () => {
 });
 
 test('interleaved visitors each see only their own theme', () => {
-  const seen = ['dark', null, 'light', null, 'dark', 'dark', null].map(t => {
+  const seen = ['dark', null, 'light', 'auto', null, 'dark', 'dark', 'auto', null].map(t => {
     Sefaria.unpackBaseProps(visitor(t));
     return Sefaria.theme;
   });
-  expect(seen).toEqual(['dark', null, 'light', null, 'dark', 'dark', null]);
+  expect(seen).toEqual(['dark', null, 'light', 'auto', null, 'dark', 'dark', 'auto', null]);
 });
 
 test('undefined props (no DJANGO_VARS) leave the value alone, as for every other base prop', () => {

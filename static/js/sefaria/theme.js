@@ -1,16 +1,22 @@
 /**
- * Light/dark site theme: the single source of truth for the client side.
+ * Site appearance (auto / light / dark): the single source of truth for the client side.
+ *
+ * Two values, kept apart on purpose:
+ *   - the PREFERENCE the user picked: 'auto' | 'light' | 'dark'. No cookie means 'auto'.
+ *   - the THEME shown: 'light' | 'dark'. A light or dark preference is shown as is; 'auto' follows
+ *     the system setting (prefers-color-scheme), and is light when the browser gives no signal.
  *
  * How the theme reaches the page:
- *   1. The user's choice lives in the `theme` cookie (`light` | `dark`). There is no other store.
- *   2. Django validates the cookie (sefaria/system/theme.py) and renders `<html data-theme="…">`
- *      and the matching `<meta name="theme-color">`, so the first paint is already themed.
- *   3. templates/elements/theme_head.html is a tiny inline script that re-applies the cookie
- *      before any stylesheet loads, for templates that render without the server value.
- *   4. After that, only the toggle changes the theme, via writeStoredTheme() + applyTheme().
- * No cookie (or an unrecognised value) always means light.
+ *   1. The preference lives in the `theme` cookie. There is no other store.
+ *   2. Django validates the cookie (sefaria/system/theme.py). For light or dark it renders
+ *      `<html data-theme="…">` and the matching `<meta name="theme-color">` in the first byte.
+ *      For auto it renders no data-theme, because only the browser knows the system setting.
+ *   3. templates/elements/theme_head.html is a tiny inline script that runs before any stylesheet:
+ *      it sets data-theme from the cookie, or from the system setting for auto.
+ *   4. After load, the Appearance controls change it (writeStoredPreference() + applyTheme()), and
+ *      watchSystemTheme() follows live system changes while the preference is auto.
  *
- * SSR safety: Node requires this module to server-render the toggle, so nothing here touches
+ * SSR safety: Node requires this module to server-render the controls, so nothing here touches
  * `document`, `window` or `Sefaria` at import time. Every browser access is inside a function and
  * guarded, and `Sefaria` is looked up lazily (sefaria.js imports this file, so a top-level import
  * back would be circular). The module holds no mutable state, so nothing can leak between
@@ -22,9 +28,12 @@
  * (static/js/sefaria/tests/themeCookieCases.json) pins that for all three.
  */
 
-export const THEMES = Object.freeze(['light', 'dark']);   // the stored choices
+export const PREFERENCES = Object.freeze(['auto', 'light', 'dark']);   // what the user can pick
+export const THEMES = Object.freeze(['light', 'dark']);                 // what the page can show
 export const COOKIE = 'theme';
-export const DEFAULT_THEME = 'light';
+export const DEFAULT_PREFERENCE = 'auto';
+export const FALLBACK_THEME = 'light';   // auto with no system signal, and anything invalid
+export const SYSTEM_DARK_QUERY = '(prefers-color-scheme: dark)';
 // 20 years, the same lifetime as the other long-lived preference cookies (cookie banner).
 export const COOKIE_MAX_AGE = 60 * 60 * 24 * 365 * 20;
 // Values for <meta name="theme-color">, i.e. the browser chrome around the page. Light is the
@@ -36,6 +45,7 @@ export const THEME_COLORS = Object.freeze({
 });
 
 const getDocument = () => (typeof document !== 'undefined' ? document : undefined);
+const getWindow = () => (typeof window !== 'undefined' ? window : undefined);
 
 const getSefaria = () => {
   // Lazy on purpose (see the header comment). Tolerates a jest.mock() factory without `default`.
@@ -43,18 +53,40 @@ const getSefaria = () => {
   return (mod && mod.default) || mod;
 };
 
-/** Returns `v` if it is a stored theme value ('light' | 'dark'), else null. Case-sensitive, like the server. */
+/** Returns `v` if it is a preference ('auto' | 'light' | 'dark'), else null. Case-sensitive, like the server. */
+export function normalizePreference(v) {
+  return typeof v === 'string' && PREFERENCES.includes(v) ? v : null;
+}
+
+/** Returns `v` if it is a theme that can be shown ('light' | 'dark'), else null. */
 export function normalizeTheme(v) {
   return typeof v === 'string' && THEMES.includes(v) ? v : null;
 }
 
-/** The theme to show for a stored value: the stored choice if valid, otherwise light. */
-export function resolveTheme(stored) {
-  return normalizeTheme(stored) || DEFAULT_THEME;
+const systemQuery = (win = getWindow()) => {
+  try {
+    return win && typeof win.matchMedia === 'function' ? win.matchMedia(SYSTEM_DARK_QUERY) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+/** The system setting: 'dark' when the browser reports a dark preference, otherwise light. */
+export function getSystemTheme(win = getWindow()) {
+  const query = systemQuery(win);
+  return query && query.matches ? 'dark' : FALLBACK_THEME;
 }
 
 /**
- * Returns the stored theme from a raw `document.cookie` string, or null.
+ * The theme to show for a preference. Light or dark is shown as is. Auto, a missing value and
+ * anything invalid follow `system` ('light' | 'dark'), which defaults to the browser's setting.
+ */
+export function resolveTheme(preference, system = getSystemTheme()) {
+  return normalizeTheme(preference) || normalizeTheme(system) || FALLBACK_THEME;
+}
+
+/**
+ * Returns the stored preference from a raw `document.cookie` string, or null.
  * Mirrors django.http.cookie.parse_cookie: the LAST `theme` entry wins even when its value is
  * invalid, so that a stray duplicate resolves the same way on the server and in the browser.
  */
@@ -71,11 +103,11 @@ export function parseThemeCookie(cookieString) {
   if (value !== null && value.length >= 2 && value[0] === '"' && value[value.length - 1] === '"') {
     value = value.slice(1, -1);           // Django's _unquote
   }
-  return normalizeTheme(value);
+  return normalizePreference(value);
 }
 
-/** The theme stored in the cookie ('light' | 'dark'), or null when unset, invalid or unreadable. */
-export function readStoredTheme(doc = getDocument()) {
+/** The preference stored in the cookie, or null when unset, invalid or unreadable. */
+export function readStoredPreference(doc = getDocument()) {
   if (!doc) { return null; }
   let cookieString;
   try {
@@ -107,7 +139,7 @@ const defaultCookieDomain = () => {
  * so the server never receives two `theme` cookies. Expiring first matters: on a bare host
  * (sefaria.org with domain .sefaria.org) browsers treat the two as the same cookie.
  *
- * @param {string} theme      'light' | 'dark'; anything else writes nothing.
+ * @param {string} preference 'auto' | 'light' | 'dark'; anything else writes nothing.
  * @param {object} [options]
  * @param {string|null} [options.domain]  Cookie domain. Omit for getCookieDomain(); null for host-only.
  *                                        Ignored (host-only) if the current host is not inside it,
@@ -115,8 +147,8 @@ const defaultCookieDomain = () => {
  * @param {Document} [options.doc]        For tests; defaults to the global document.
  * @returns {string|null} The cookie string written, or null if nothing was written (SSR, bad value).
  */
-export function writeStoredTheme(theme, {domain, doc = getDocument()} = {}) {
-  const value = normalizeTheme(theme);
+export function writeStoredPreference(preference, {domain, doc = getDocument()} = {}) {
+  const value = normalizePreference(preference);
   if (!value || !doc) { return null; }
   const location = doc.location || {};
   let cookieDomain = domain === undefined ? defaultCookieDomain() : domain;
@@ -139,17 +171,18 @@ export function writeStoredTheme(theme, {domain, doc = getDocument()} = {}) {
 
 /** The <meta name="theme-color"> value for `theme` on `activeModule` ('library' | 'voices'). */
 export function getThemeColor(theme, activeModule) {
-  if (resolveTheme(theme) === 'dark') { return THEME_COLORS.dark; }
+  if (normalizeTheme(theme) === 'dark') { return THEME_COLORS.dark; }
   return THEME_COLORS.light[activeModule] || THEME_COLORS.light.library;
 }
 
 /**
- * Shows `theme` on the page: sets `data-theme` on <html> (which the CSS tokens key off) and
- * updates <meta name="theme-color">. An invalid value applies light. A no-op without a document.
+ * Shows `theme` ('light' | 'dark') on the page: sets `data-theme` on <html> (which the CSS tokens
+ * key off) and updates <meta name="theme-color">. Anything else applies light. A no-op without a
+ * document. Pass resolveTheme(preference) to show a preference.
  * @returns {string} the theme applied.
  */
 export function applyTheme(theme, root) {
-  const value = resolveTheme(theme);
+  const value = normalizeTheme(theme) || FALLBACK_THEME;
   if (!root) {
     const doc = getDocument();
     root = doc && doc.documentElement;
@@ -166,21 +199,40 @@ export function applyTheme(theme, root) {
 }
 
 /**
- * The theme currently shown ('light' | 'dark'). In the browser it reads <html data-theme>, which
- * the server and the head script set. Elsewhere (Node SSR) it resolves `Sefaria.theme`, the
- * validated cookie value the server passed in base props.
+ * The preference in effect. In the browser it reads the cookie; elsewhere (Node SSR) it uses
+ * `Sefaria.theme`, the validated cookie value the server passed in base props. Unset means auto.
  */
-export function getCurrentTheme() {
+export function getCurrentPreference() {
   const doc = getDocument();
-  if (doc && doc.documentElement) {
-    const shown = normalizeTheme(doc.documentElement.getAttribute('data-theme'));
-    if (shown) { return shown; }
-  }
+  if (doc) { return readStoredPreference(doc) || DEFAULT_PREFERENCE; }
   let stored = null;
   try {
     stored = getSefaria().theme;
   } catch (e) {
     stored = null;
   }
-  return resolveTheme(stored);
+  return normalizePreference(stored) || DEFAULT_PREFERENCE;
+}
+
+/**
+ * Follows the system setting while the preference is auto: re-applies the theme whenever the OS
+ * switches between light and dark. Call once on the client. Returns a function that stops it.
+ */
+export function watchSystemTheme(win = getWindow()) {
+  const query = systemQuery(win);
+  if (!query) { return () => {}; }
+  const onChange = (e) => {
+    if (getCurrentPreference() === 'auto') {
+      applyTheme(e && typeof e.matches === 'boolean' ? (e.matches ? 'dark' : 'light') : getSystemTheme(win));
+    }
+  };
+  if (typeof query.addEventListener === 'function') {
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }
+  if (typeof query.addListener === 'function') {   // Safari < 14
+    query.addListener(onChange);
+    return () => query.removeListener(onChange);
+  }
+  return () => {};
 }

@@ -17121,73 +17121,73 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
 
-/* ===== ThemeToggle (darkmode chunk B) ===== */
-/* The dark mode row in the mobile hamburger menu (MobileThemeToggle in ThemeToggle.jsx). It sits
-   right after .mobileInterfaceLanguageToggle and copies that row's metrics: 15px padding, 16px
-   text, 16x16 icon with a 15px gap. The switch mirrors .toggle-switch (46x24 track, 20px knob).
-   Colours are theme tokens only (theme-tokens.css); fallbacks are the light palette values. */
-.mobileNavMenu .mobileThemeToggle {
+/* ===== Appearance (AppearanceToggle.jsx) ===== */
+/* Auto / Light / Dark. Desktop: an item in the account menus right after Site Language, with the
+   same .languageHeader title and the row metrics of .dropdownLanguageToggle. Mobile: a row in the
+   hamburger menu right after the language row, with its metrics (15px padding, 16px text, 16x16
+   icon, 15px gap). The pressed option is a filled accent chip, so the state does not rely on a
+   subtle colour change. Colours are theme tokens only (theme-tokens.css). */
+.dropdownAppearanceToggle {
   display: flex;
+  gap: 6px;
+  padding-inline: 15px;
+  margin-top: 7px;
+  margin-bottom: 4px;
+}
+.appearanceOption {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   box-sizing: border-box;
-  width: 100%;
-  min-height: 44px;
+  width: 36px;
+  height: 32px;
   margin: 0;
-  padding: 15px;
+  padding: 0;
   border: none;
-  border-radius: 0;
+  border-radius: 6px;
   background: none;
-  color: var(--color-text-secondary, var(--dark-grey));
+  color: var(--color-text-secondary);
   font: inherit;
-  font-size: 16px;
-  text-align: start;
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
   -webkit-tap-highlight-color: transparent;
 }
-.mobileNavMenu .mobileThemeToggle .themeToggleIcon {
+.appearanceOption:hover {
+  background-color: var(--color-bg-muted);
+}
+.appearanceOption.active,
+.appearanceOption.active:hover {
+  background-color: var(--color-accent-fill);
+  color: var(--color-text-on-accent);
+  cursor: default;
+}
+.appearanceOption .appearanceIcon {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+}
+body.user-is-tabbing .appearanceOption:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+.mobileNavMenu .mobileAppearanceToggle {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+}
+.header .mobileAppearanceToggle .int-en,
+.header .mobileAppearanceToggle .int-he {
+  display: inline;
+}
+.mobileNavMenu .mobileAppearanceToggle .appearanceIconRow {
+  flex-shrink: 0;
   margin-inline-end: 15px;
 }
-.mobileNavMenu .mobileThemeToggleSwitch {
-  position: relative;
-  flex-shrink: 0;
-  box-sizing: border-box;
-  width: 46px;
-  height: 24px;
+.mobileNavMenu .mobileAppearanceOptions {
+  display: flex;
+  gap: 6px;
+  margin-block: -6px;
   margin-inline-start: auto;
-  border-radius: 12px;
-  background-color: var(--color-border, var(--light-grey));
-  transition: background-color 0.2s ease-in;
 }
-.mobileNavMenu .mobileThemeToggleSwitch::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  inset-inline-start: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: var(--color-text-on-accent, var(--white));
-  transition: inset-inline-start 0.2s ease-in;
-}
-.mobileNavMenu .mobileThemeToggle[aria-checked="true"] .mobileThemeToggleSwitch {
-  background-color: var(--color-accent-fill, var(--sefaria-blue));
-}
-.mobileNavMenu .mobileThemeToggle[aria-checked="true"] .mobileThemeToggleSwitch::after {
-  inset-inline-start: 24px;
-}
-body.user-is-tabbing .mobileNavMenu .mobileThemeToggle:focus {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: -2px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .mobileNavMenu .mobileThemeToggleSwitch,
-  .mobileNavMenu .mobileThemeToggleSwitch::after {
-    transition: none;
-  }
-}
-/* ===== end ThemeToggle (darkmode chunk B) ===== */
+/* ===== end Appearance ===== */

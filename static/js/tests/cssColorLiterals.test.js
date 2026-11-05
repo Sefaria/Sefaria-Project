@@ -9,7 +9,8 @@
  *     every dark override also exists in light.
  *  3. WCAG contrast of the key token pairs, computed here, in both themes.
  *  4. theme-tokens.css structure: dark values only under `@media screen { :root[data-theme="dark"] }`
- *     and no bare [data-theme] selector anywhere (reCAPTCHA renders data-theme="white").
+ *     and no bare [data-theme] selector anywhere (reCAPTCHA renders data-theme="white"), with one
+ *     exact exception: the Library Assistant light island skips `lc-chatbot:not([data-theme])` hosts.
  *
  * The parser is shared with the codemod (scripts/darkmode/css-colors.js). To fix a failure, use
  * a token from theme-tokens.css instead of a literal, or map the colour in
@@ -44,6 +45,18 @@ const color = (env, name) => {
   if (!c) throw new Error(`${name} does not resolve to a colour`);
   return c;
 };
+
+describe('codemod boundaries', () => {
+  // tokenize-css.js leaves everything from B_BLOCK_MARKER on untouched (hand-tokenized controls).
+  // If the marker drifts from s2.css, the codemod silently starts rewriting that block.
+  test('B_BLOCK_MARKER opens the Appearance block in s2.css, exactly once', () => {
+    const s2 = fs.readFileSync(path.join(CSS_DIR, 's2.css'), 'utf8');
+    expect(s2.split(codemod.B_BLOCK_MARKER)).toHaveLength(2);
+    const block = s2.slice(s2.indexOf(codemod.B_BLOCK_MARKER));
+    expect(block).toMatch(/^[^\n]*\n[\s\S]*?\.dropdownAppearanceToggle \{/);
+    expect(block).toContain('/* ===== end Appearance ===== */');
+  });
+});
 
 describe('colour-literal parser', () => {
   const count = (css, opts = {}) => P.countFile(css, { paletteNames: new Set(['--dark-grey']), ...opts });
@@ -227,16 +240,56 @@ describe('theme selector structure', () => {
     expect([...new Set(tokenDecls.map(d => d.selector))].sort()).toEqual([':root', ':root[data-theme="dark"]']);
   });
 
+  // The one bare [data-theme] allowed, in exactly this form and file: Library Assistant widget
+  // versions with a dark palette reflect data-theme on their <lc-chatbot> host and must never be
+  // styled by the page, so the light-island rule skips any host that has the attribute.
+  const LA_ISLAND = ':root[data-theme="dark"] lc-chatbot:not([data-theme])';
+  const ALLOWED_BARE = { 'theme-dark-overrides.css': [LA_ISLAND] };
+  const maskedSource = file => P.maskText(fs.readFileSync(path.join(CSS_DIR, file), 'utf8'), { scss: file.endsWith('.scss'), onlyComments: true });
+  // Snippets around each [data-theme that is neither :root[...] nor one of the `allowed` forms.
+  const bareDataTheme = (src, allowed = []) => {
+    const allowedAt = new Set();
+    for (const form of allowed) {
+      const offset = form.indexOf('[data-theme', form.indexOf(':not('));
+      for (let i = src.indexOf(form); i !== -1; i = src.indexOf(form, i + 1)) {
+        if (!/[\w-]/.test(src[i + form.length] || '')) allowedAt.add(i + offset);
+      }
+    }
+    return [...src.matchAll(/\[data-theme\b/g)]
+      .filter(m => !/:root$/.test(src.slice(Math.max(0, m.index - 5), m.index)) && !allowedAt.has(m.index))
+      .map(m => src.slice(Math.max(0, m.index - 30), m.index + 25));
+  };
+
   test.each(stylesheets().map(rel))('%s has no bare [data-theme] selector', file => {
-    const src = P.maskText(fs.readFileSync(path.join(CSS_DIR, file), 'utf8'), { scss: file.endsWith('.scss'), onlyComments: true });
-    const bare = [...src.matchAll(/\[data-theme\b/g)].filter(m => !/:root$/.test(src.slice(Math.max(0, m.index - 5), m.index)));
-    expect(bare.map(m => src.slice(Math.max(0, m.index - 30), m.index + 25))).toEqual([]);
+    expect(bareDataTheme(maskedSource(file), ALLOWED_BARE[file])).toEqual([]);
+  });
+
+  test('the Library Assistant exception is used once, in theme-dark-overrides.css, as the whole selector', () => {
+    const uses = stylesheets().map(rel).flatMap(file => {
+      const src = maskedSource(file);
+      return [...src.matchAll(/lc-chatbot:not\(\[data-theme\]\)/g)].map(() => file);
+    });
+    expect(uses).toEqual(['theme-dark-overrides.css']);
+    const decls = P.findDeclarations(fs.readFileSync(path.join(CSS_DIR, 'theme-dark-overrides.css'), 'utf8'))
+      .filter(d => /lc-chatbot/.test(d.selector));
+    expect([...new Set(decls.map(d => d.selector.trim().replace(/\s+/g, ' ')))]).toEqual([LA_ISLAND]);
+    expect(decls.map(d => d.prop).sort()).toEqual(['color', 'color-scheme']);
+  });
+
+  test('the exception is exact: a near miss is still reported', () => {
+    // Guards the allow-list itself, using the same matcher on made-up selectors.
+    const check = css => bareDataTheme(P.maskText(css, { onlyComments: true }), [LA_ISLAND]).length;
+    expect(check(`${LA_ISLAND} { color: red; }`)).toBe(0);
+    expect(check(':root[data-theme="dark"] lc-chatbot:not([data-theme="dark"]) { color: red; }')).toBe(1);
+    expect(check(':root[data-theme="dark"] .x:not([data-theme]) { color: red; }')).toBe(1);
+    expect(check('lc-chatbot:not([data-theme]) { color: red; }')).toBe(1);
+    expect(check('[data-theme="white"] iframe { color: red; }')).toBe(1);
   });
 });
 
 /* ---------- 5. WCAG 2.1 token audit (dark mode accessibility report) ----------
  * The contrast evidence for the dark-mode compliance report: WCAG 1.4.3 (text 4.5:1), 1.4.11
- * (control boundaries, focus rings, switch, icons 3:1) and 1.4.1 (links in running text told apart
+ * (control boundaries, focus rings, the pressed Appearance chip, icons 3:1) and 1.4.1 (links in running text told apart
  * by more than colour). Dark mode must pass everything enforced here. Light mode is unchanged by the
  * dark-mode work, so its pre-existing failures are pinned in KNOWN_LIGHT: a new light failure, or a
  * known one that starts passing (stale entry), fails the build. Pairs that are reported rather than
@@ -498,7 +551,7 @@ describe('WCAG token audit', () => {
     });
   });
 
-  describe('1.4.11: focus ring, control boundaries and the mobile switch', () => {
+  describe('1.4.11: focus ring, control boundaries and the Appearance chip', () => {
     test.each(THEMES.flatMap(th => [...SURFACES, ...(th === 'dark' ? FILLS : [])].map(bg => [th, bg])))(
       '%s: focus ring on %s >= 3:1', (theme, bg) => {
         if (ratio(theme, '--color-focus-ring', bg) < 3) throw new Error(`${fmt(theme, '--color-focus-ring', bg)}, needs 3:1`);
@@ -514,32 +567,64 @@ describe('WCAG token audit', () => {
       expect(ratio('light', '--color-border-input', '--color-bg-control')).toBeLessThan(3);
     });
 
-    // ThemeToggle.jsx MobileThemeToggle: the knob position shows the state; knob and track must
-    // both stand out. Dark uses the section 7c overrides; light is the site's existing .toggle-switch look.
+    // AppearanceToggle.jsx: the pressed option is a filled chip with a white icon; the other two are
+    // unfilled icons. The menus they sit on: the desktop account menu (.headerDropdownMenu
+    // .dropdownLinks-menu, --color-bg-raised) and the mobile menu (.mobileNavMenu on
+    // --color-bg-page, its .mobileAccountLinks on --color-bg-subtle). Dark uses the section 7c fill.
     const OVERRIDES = fs.readFileSync(path.join(CSS_DIR, 'theme-dark-overrides.css'), 'utf8');
+    const S2 = fs.readFileSync(path.join(CSS_DIR, 's2.css'), 'utf8');
     const aliases = {};
-    for (const d of P.findDeclarations(OVERRIDES)) if (d.prop.startsWith('--dm-')) aliases[d.prop] = d.value;
+    for (const d of P.findDeclarations(OVERRIDES)) if (d.prop.startsWith('--dm-')) aliases[d.prop] = d.value.replace(/\s*\/\*.*$/, '');
     const env = { ...DARK, ...aliases };
     const c = v => P.resolveColor(v, env);
-    const MENU_BG = ['--color-bg-page', '--color-bg-subtle'];
-    // The switch is on whenever the page is dark and off whenever it is light (it IS the theme).
-    test('dark (switch on): the track is >= 3:1 against the menu and the knob >= 3:1 against the track', () => {
-      const on = c('var(--dm-switch-track-on)'), knob = c('var(--color-text-on-accent)');
-      for (const bg of MENU_BG) expect(P.contrast(on, c(`var(${bg})`))).toBeGreaterThanOrEqual(3);
-      expect(P.contrast(knob, on)).toBeGreaterThanOrEqual(3);
-      // without the section 7c override the on track would be 2.6:1
-      expect(P.contrast(color(DARK, '--color-accent-fill'), color(DARK, '--color-bg-subtle'))).toBeLessThan(3);
+    const MENU_BG = ['--color-bg-raised', '--color-bg-page', '--color-bg-subtle'];
+    const s2Decl = (sel, prop) => P.findDeclarations(S2).find(d => d.prop === prop && d.selector.split(',').map(x => x.trim().replace(/\s+/g, ' ')).includes(sel));
+
+    test('the menus the controls sit on are the surfaces audited here', () => {
+      expect(s2Decl('.header .headerDropdownMenu .dropdownLinks-menu', 'background').value).toBe('var(--color-bg-raised)');
+      expect(s2Decl('.mobileNavMenu', 'background-color').value).toBe('var(--color-bg-page)');
+      expect(s2Decl('.mobileNavMenu .mobileAccountLinks', 'background-color').value).toBe('var(--color-bg-subtle)');
     });
-    test('light (switch off): track and knob are below 3:1, the site\'s existing .toggle-switch look (reported); "on" passes', () => {
-      const off = color(LIGHT, '--color-border'), on = color(LIGHT, '--color-accent-fill'), knob = color(LIGHT, '--color-text-on-accent');
-      expect(P.contrast(on, color(LIGHT, '--color-bg-page'))).toBeGreaterThanOrEqual(3);
-      expect(P.contrast(knob, on)).toBeGreaterThanOrEqual(3);
-      expect(P.contrast(off, color(LIGHT, '--color-bg-page'))).toBeLessThan(3);   // #CCC on white, 1.61:1
-      expect(P.contrast(knob, off)).toBeLessThan(3);
+
+    test('the chip is drawn with the tokens audited here (s2.css, and the dark override in section 7c)', () => {
+      expect(s2Decl('.appearanceOption.active', 'background-color').value).toBe('var(--color-accent-fill)');
+      expect(s2Decl('.appearanceOption.active:hover', 'background-color').value).toBe('var(--color-accent-fill)');
+      expect(s2Decl('.appearanceOption.active', 'color').value).toBe('var(--color-text-on-accent)');
+      expect(s2Decl('.appearanceOption', 'color').value).toBe('var(--color-text-secondary)');
+      const dark = P.findDeclarations(OVERRIDES).filter(d => /appearanceOption/.test(d.selector));
+      expect(dark.map(d => [d.selector.replace(/\s+/g, ' '), d.prop, d.value])).toEqual([[
+        ':root[data-theme="dark"] .appearanceOption.active, :root[data-theme="dark"] .appearanceOption.active:hover',
+        'background-color', 'var(--dm-option-pressed)',
+      ]]);
+      expect(OVERRIDES).not.toMatch(/--dm-switch-track-on|mobileThemeToggle/);
     });
-    test('the desktop toggle glyph (currentColor = --color-text-secondary) is >= 3:1 on the header in both themes', () => {
-      for (const th of THEMES) expect(ratio(th, '--color-text-secondary', '--color-bg-surface')).toBeGreaterThanOrEqual(3);
+
+    test.each(MENU_BG)('dark: the pressed chip is >= 3:1 against the menu on %s', bg => {
+      const chip = c('var(--dm-option-pressed)');
+      const r = P.contrast(chip, c(`var(${bg})`));
+      if (r < 3) throw new Error(`dark: --dm-option-pressed ${chip} on ${short(bg)} ${c(`var(${bg})`)} = ${r.toFixed(2)}:1, needs 3:1`);
     });
+
+    test('dark: the white icon on the pressed chip is >= 4.5:1', () => {
+      expect(P.contrast(c('var(--color-text-on-accent)'), c('var(--dm-option-pressed)'))).toBeGreaterThanOrEqual(4.5);
+    });
+
+    test('dark: without the section 7c override the chip would fail 3:1 against the menus', () => {
+      for (const bg of MENU_BG) expect(P.contrast(color(DARK, '--color-accent-fill'), color(DARK, bg))).toBeLessThan(3);
+    });
+
+    test.each(MENU_BG)('light: the pressed chip (--color-accent-fill) is >= 3:1 against the menu on %s', bg => {
+      expect(ratio('light', '--color-accent-fill', bg)).toBeGreaterThanOrEqual(3);
+    });
+
+    test('light: the white icon on the pressed chip is >= 4.5:1', () => {
+      expect(ratio('light', '--color-text-on-accent', '--color-accent-fill')).toBeGreaterThanOrEqual(4.5);
+    });
+
+    test.each(THEMES.flatMap(th => [...MENU_BG, '--color-bg-muted'].map(bg => [th, bg])))(
+      '%s: an unpressed option\'s icon (currentColor = --color-text-secondary) is >= 3:1 on %s (menus, and its hover fill)', (theme, bg) => {
+        if (ratio(theme, '--color-text-secondary', bg) < 3) throw new Error(`${fmt(theme, '--color-text-secondary', bg)}, needs 3:1`);
+      });
   });
 
   describe('1.4.11: monochrome icons after the dark filter (theme-dark-overrides.css section 1)', () => {

@@ -1,12 +1,12 @@
 /* Testing done using Jest */
 /*
- * The theme contract is spread over JS, a Python module and two templates. These checks read the
- * source files so that renaming the cookie, a value or a colour in one place fails CI until the
- * others follow. (Jest is the frontend gate that runs on every PR.)
+ * The appearance contract (auto / light / dark) is spread over JS, a Python module and two
+ * templates. These checks read the source files so that renaming the cookie, a value or a colour
+ * in one place fails CI until the others follow. (Jest is the frontend gate that runs on every PR.)
  */
 import fs from 'fs';
 import path from 'path';
-import {THEMES, COOKIE, DEFAULT_THEME, THEME_COLORS} from '../sefaria/theme';
+import {PREFERENCES, THEMES, COOKIE, THEME_COLORS} from '../sefaria/theme';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const read = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -16,24 +16,33 @@ const PY_THEME = read('sefaria/system/theme.py');
 const headOf = html => html.slice(0, html.indexOf('</head>'));
 
 describe('sefaria/system/theme.py matches theme.js', () => {
+  const pyTuple = name => {
+    const m = PY_THEME.match(new RegExp(`^${name} = \\(([^)]*)\\)$`, 'm'));
+    expect(m).not.toBeNull();
+    return m[1].split(',').map(s => s.trim()).filter(Boolean).map(s => JSON.parse(s));
+  };
+
   test('cookie name', () => {
     expect(PY_THEME).toMatch(new RegExp(`^THEME_COOKIE = "${COOKIE}"$`, 'm'));
   });
 
-  test('stored values, in the same order', () => {
-    const m = PY_THEME.match(/^THEMES = \(([^)]*)\)$/m);
-    expect(m).not.toBeNull();
-    const pyThemes = m[1].split(',').map(s => s.trim()).filter(Boolean).map(s => JSON.parse(s));
-    expect(pyThemes).toEqual([...THEMES]);
+  test('stored preferences, in the same order', () => {
+    expect(pyTuple('PREFERENCES')).toEqual([...PREFERENCES]);
   });
 
-  test('default', () => {
-    expect(PY_THEME).toMatch(new RegExp(`^DEFAULT_THEME = "${DEFAULT_THEME}"$`, 'm'));
+  test('themes the server can render, in the same order', () => {
+    expect(pyTuple('THEMES')).toEqual([...THEMES]);
+  });
+
+  test('no server-side default theme: auto (unset) is left to the browser', () => {
+    expect(PY_THEME).not.toMatch(/^DEFAULT_THEME\b/m);
+    expect(PY_THEME).toMatch(/return value if isinstance\(value, str\) and value in PREFERENCES else None/);
+    expect(PY_THEME).toMatch(/return stored if stored in THEMES else None/);
   });
 });
 
 describe('templates/base.html', () => {
-  test('<html> carries the server-resolved theme, and only when the context processor ran', () => {
+  test('<html> carries the server-resolved theme only when there is one (light/dark; not auto)', () => {
     expect(BASE).toContain(
       '<html lang="{{ request.LANGUAGE_CODE }}"{% if resolved_theme %} data-theme="{{ resolved_theme }}"{% endif %}>');
   });
@@ -102,7 +111,38 @@ describe('server wiring', () => {
     expect(read('sefaria/settings.py')).toContain('"sefaria.system.context_processors.theme_context",');
   });
 
+  test('the context processor sends the stored preference and what the server can render', () => {
+    const src = read('sefaria/system/context_processors.py');
+    expect(src).toMatch(/"theme": stored,\s*"resolved_theme": resolve_theme\(stored\),/);
+  });
+
   test('base_props always sends theme', () => {
     expect(read('reader/views.py')).toMatch(/^\s+"theme": get_stored_theme\(request\),$/m);
+  });
+});
+
+describe('client wiring', () => {
+  test('client.jsx starts watchSystemTheme() exactly once, from theme.js', () => {
+    const src = read('static/js/client.jsx');
+    expect(src).toMatch(/^import \{ watchSystemTheme \} from '\.\/sefaria\/theme';$/m);
+    expect(src.match(/watchSystemTheme\(\)/g)).toHaveLength(1);
+  });
+
+  test('sefaria.js keeps the validated preference (auto included) from base props', () => {
+    const src = read('static/js/sefaria/sefaria.js');
+    expect(src).toMatch(/^import \{ normalizePreference \} from '\.\/theme';$/m);
+    expect(src).toMatch(/^\s+Sefaria\.theme = normalizePreference\(props\.theme\);$/m);
+  });
+
+  test('nothing imports the removed ThemeToggle or the two-state theme.js API', () => {
+    const dir = path.join(ROOT, 'static/js');
+    const walk = d => fs.readdirSync(d, {withFileTypes: true}).flatMap(e =>
+      e.isDirectory() ? (e.name === 'node_modules' ? [] : walk(path.join(d, e.name))) : [path.join(d, e.name)]);
+    const offenders = walk(dir)
+      .filter(f => /\.jsx?$/.test(f) && !/[\\/]tests?[\\/]/.test(f))
+      .filter(f => /ThemeToggle'|readStoredTheme|writeStoredTheme|getCurrentTheme|DEFAULT_THEME/.test(fs.readFileSync(f, 'utf8')))
+      .map(f => path.relative(ROOT, f));
+    expect(offenders).toEqual([]);
+    expect(fs.existsSync(path.join(dir, 'ThemeToggle.jsx'))).toBe(false);
   });
 });

@@ -1,12 +1,13 @@
 /* Testing done using Jest */
 /*
- * templates/elements/theme_head.html is an inline <head> script that re-applies the stored theme
- * before any stylesheet loads. These tests evaluate its exact bytes in jsdom and hold it to the
- * same rules as static/js/sefaria/theme.js, which it cannot import.
+ * templates/elements/theme_head.html is an inline <head> script that sets <html data-theme> before
+ * any stylesheet loads: the cookie's light or dark as is; otherwise (auto, no cookie, invalid) the
+ * system setting, or light without one. These tests evaluate its exact bytes in jsdom and hold it
+ * to the same rules as static/js/sefaria/theme.js, which it cannot import.
  */
 import fs from 'fs';
 import path from 'path';
-import {THEMES, COOKIE, THEME_COLORS, parseThemeCookie, resolveTheme} from '../sefaria/theme';
+import {THEMES, COOKIE, THEME_COLORS, SYSTEM_DARK_QUERY, parseThemeCookie, resolveTheme} from '../sefaria/theme';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const PARTIAL = fs.readFileSync(path.join(ROOT, 'templates/elements/theme_head.html'), 'utf8');
@@ -20,9 +21,22 @@ const SIZE_BUDGET_BYTES = 512;   // the whole <script>…</script> element, as s
 const html = document.documentElement;
 let meta;
 
+// The system setting as the browser reports it: 'dark' | 'light' (matchMedia present),
+// 'absent' (no matchMedia) or 'throws' (matchMedia throws).
+const setSystem = (system) => {
+  delete window.matchMedia;
+  if (system === 'absent') { return null; }
+  const matchMedia = jest.fn(system === 'throws'
+    ? () => { throw new Error('SyntaxError'); }
+    : (q) => ({matches: system === 'dark' && q === SYSTEM_DARK_QUERY, media: q}));
+  window.matchMedia = matchMedia;
+  return matchMedia;
+};
+
 // Runs the head script with `document.cookie` returning exactly `cookie` (or throwing).
-const run = ({cookie = '', serverTheme = null, throwOnCookie = false} = {}) => {
+const run = ({cookie = '', serverTheme = null, system = 'absent', throwOnCookie = false} = {}) => {
   if (serverTheme === null) { html.removeAttribute('data-theme'); } else { html.setAttribute('data-theme', serverTheme); }
+  setSystem(system);
   Object.defineProperty(document, 'cookie', {
     configurable: true,
     get() { if (throwOnCookie) { throw new Error('SecurityError'); } return cookie; },
@@ -72,14 +86,18 @@ describe('the partial', () => {
     expect(SCRIPT).not.toMatch(/https?:|\/\/|src\s*=|href\s*=|url\(|@import/i);
     expect(SCRIPT).not.toMatch(/\b(Sefaria|jQuery|require|import|fetch|XMLHttpRequest|localStorage|sessionStorage|DJANGO_VARS)\b/);
     expect(SCRIPT).not.toMatch(/\$\s*[(.]/);   // no jQuery
-    expect(SCRIPT).not.toMatch(/matchMedia|prefers-color-scheme/);   // light unless the cookie says dark
+  });
+
+  test('guards matchMedia before calling it (older browsers have none)', () => {
+    expect(SCRIPT).toMatch(/window\.matchMedia&&matchMedia\(/);
   });
 
   test('is wrapped in an IIFE with try/catch and leaks no globals', () => {
     expect(SCRIPT).toMatch(/^\(function\(\)\{try\{[\s\S]*\}catch\(\w+\)\{\}\}\)\(\);$/);
     const before = new Set(Object.keys(window));
     run({cookie: 'theme=dark'});
-    expect(Object.keys(window).filter(k => !before.has(k))).toEqual([]);
+    run({cookie: 'theme=auto', system: 'dark'});
+    expect(Object.keys(window).filter(k => !before.has(k) && k !== 'matchMedia')).toEqual([]);
   });
 
   test('is valid ES5 syntax (no arrow functions, let/const or template literals)', () => {
@@ -96,10 +114,24 @@ describe('agrees with theme.js', () => {
     expect(SCRIPT).toContain(`\\s*${COOKIE}\\s*=`);
   });
 
-  test('accepts exactly the stored values in THEMES and defaults to light', () => {
-    const literals = new Set([...SCRIPT.matchAll(/"(light|dark)"/g)].map(m => m[1]));
+  test('shows exactly the themes in THEMES and nothing else', () => {
+    const literals = new Set([...SCRIPT.matchAll(/"(light|dark|auto|system|no-preference)"/g)].map(m => m[1]));
     expect([...literals].sort()).toEqual([...THEMES].sort());
-    expect(run({cookie: ''})).toBe(resolveTheme(null));
+    expect(SCRIPT).not.toMatch(/"auto"/);   // auto is the absence of light/dark, not a value it checks
+  });
+
+  test('asks for the same system query (SYSTEM_DARK_QUERY), and only that one', () => {
+    const queries = [...SCRIPT.matchAll(/matchMedia\(("[^"]*")\)/g)].map(m => JSON.parse(m[1]));
+    expect(queries).toEqual([SYSTEM_DARK_QUERY]);
+  });
+
+  test('calls matchMedia with exactly SYSTEM_DARK_QUERY', () => {
+    html.removeAttribute('data-theme');
+    const matchMedia = setSystem('dark');
+    Object.defineProperty(document, 'cookie', {configurable: true, get: () => '', set() {}});
+    try { (0, eval)(SCRIPT); } finally { delete document.cookie; }
+    expect(matchMedia.mock.calls).toEqual([[SYSTEM_DARK_QUERY]]);
+    expect(html.getAttribute('data-theme')).toBe('dark');
   });
 
   test('uses the same dark theme-color', () => {
@@ -107,47 +139,90 @@ describe('agrees with theme.js', () => {
     expect(colors).toEqual([THEME_COLORS.dark]);
   });
 
-  test.each(COOKIE_CASES.map(c => [c.cookie, c.expected]))(
-    'cookie %p parses like parseThemeCookie (-> %p)', (cookie, expected) => {
-      expect(parseThemeCookie(cookie)).toBe(expected);
-      expect(run({cookie})).toBe(resolveTheme(expected));
-    });
+  describe.each([['dark'], ['light'], ['absent']])('system %s', (system) => {
+    const shownSystem = system === 'dark' ? 'dark' : 'light';
+    test.each(COOKIE_CASES.map(c => [c.cookie, c.expected]))(
+      'cookie %p parses like parseThemeCookie (-> %p) and shows resolveTheme()', (cookie, expected) => {
+        expect(parseThemeCookie(cookie)).toBe(expected);
+        expect(run({cookie, system})).toBe(resolveTheme(expected, shownSystem));
+      });
+  });
 });
 
 describe('resolution', () => {
-  // [server-rendered data-theme, cookie, expected data-theme]
+  // [server-rendered data-theme, cookie, system, expected data-theme]
   test.each([
-    [null, '', 'light'],
-    [null, 'theme=light', 'light'],
-    [null, 'theme=dark', 'dark'],
-    [null, 'theme=garbage', 'light'],
-    ['light', '', 'light'],
-    ['light', 'theme=light', 'light'],
-    ['light', 'theme=garbage', 'light'],
-    ['dark', 'theme=dark', 'dark'],
-    ['dark', 'theme=light', 'dark'],     // valid cookie: keep the server value (it read the same header)
-    ['light', 'theme=dark', 'light'],
-    ['dark', '', 'light'],               // no valid cookie: light
-    ['dark', 'theme=garbage', 'light'],
-    ['garbage', 'theme=dark', 'dark'],   // an invalid attribute is replaced
-    ['garbage', '', 'light'],
-    ['', 'theme=dark', 'dark'],
-  ])('server %p + cookie %p -> %p', (serverTheme, cookie, expected) => {
-    expect(run({serverTheme, cookie})).toBe(expected);
+    // auto: no cookie, auto, or anything invalid follows the system, light without a signal
+    [null, '', 'absent', 'light'],
+    [null, '', 'light', 'light'],
+    [null, '', 'dark', 'dark'],
+    [null, 'theme=auto', 'absent', 'light'],
+    [null, 'theme=auto', 'light', 'light'],
+    [null, 'theme=auto', 'dark', 'dark'],
+    [null, 'theme=garbage', 'dark', 'dark'],
+    [null, 'theme=garbage', 'light', 'light'],
+    [null, 'theme="auto"', 'dark', 'dark'],
+    // an explicit cookie overrides the system setting
+    [null, 'theme=light', 'dark', 'light'],
+    [null, 'theme=light', 'absent', 'light'],
+    [null, 'theme=dark', 'light', 'dark'],
+    [null, 'theme=dark', 'absent', 'dark'],
+    [null, 'theme=auto; theme=light', 'dark', 'light'],   // last cookie wins
+    [null, 'theme=dark; theme=auto', 'light', 'light'],
+    // what the server rendered for light/dark is confirmed, never second-guessed by the OS
+    ['dark', 'theme=dark', 'light', 'dark'],
+    ['light', 'theme=light', 'dark', 'light'],
+    // the cookie, not a server-rendered value, decides
+    ['dark', 'theme=light', 'dark', 'light'],
+    ['light', 'theme=dark', 'light', 'dark'],
+    ['light', '', 'dark', 'dark'],
+    ['dark', '', 'light', 'light'],
+    ['dark', 'theme=auto', 'absent', 'light'],
+    // an invalid or empty attribute is replaced
+    ['garbage', 'theme=dark', 'light', 'dark'],
+    ['garbage', '', 'absent', 'light'],
+    ['', 'theme=dark', 'absent', 'dark'],
+    ['', 'theme=auto', 'dark', 'dark'],
+  ])('server %p + cookie %p + system %s -> %p', (serverTheme, cookie, system, expected) => {
+    expect(run({serverTheme, cookie, system})).toBe(expected);
   });
 
-  test('always leaves a valid data-theme', () => {
-    for (const serverTheme of [null, '', 'light', 'dark', 'x']) {
-      for (const {cookie} of COOKIE_CASES) {
-        expect(THEMES).toContain(run({serverTheme, cookie}));
+  test('always leaves a valid data-theme when the system setting can be read (or is absent)', () => {
+    for (const system of ['dark', 'light', 'absent']) {
+      for (const serverTheme of [null, '', 'light', 'dark', 'x']) {
+        for (const {cookie} of COOKIE_CASES) {
+          expect(THEMES).toContain(run({serverTheme, cookie, system}));
+        }
       }
+    }
+  });
+
+  test('an explicit cookie never consults the system setting', () => {
+    for (const cookie of ['theme=light', 'theme=dark', 'a=1; theme="dark"']) {
+      run({cookie, system: 'dark'});
+      expect(window.matchMedia).not.toHaveBeenCalled();
+    }
+  });
+
+  test('auto, no cookie and invalid cookies consult it exactly once', () => {
+    for (const cookie of ['', 'theme=auto', 'theme=bogus']) {
+      run({cookie, system: 'light'});
+      expect(window.matchMedia).toHaveBeenCalledTimes(1);
     }
   });
 });
 
 describe('theme-color', () => {
-  test('switching to dark sets the dark header colour', () => {
+  test('switching to dark by cookie sets the dark header colour', () => {
     run({cookie: 'theme=dark'});
+    expect(meta.getAttribute('content')).toBe('#181818');
+  });
+
+  test('switching to dark by the system setting (auto) sets it too', () => {
+    run({cookie: '', system: 'dark'});
+    expect(meta.getAttribute('content')).toBe('#181818');
+    meta.setAttribute('content', '#518159');
+    run({cookie: 'theme=auto', system: 'dark'});
     expect(meta.getAttribute('content')).toBe('#181818');
   });
 
@@ -156,35 +231,56 @@ describe('theme-color', () => {
     run({serverTheme: 'dark', cookie: 'theme=dark'});
     expect(meta.getAttribute('content')).toBe('#181818');
     meta.setAttribute('content', '#518159');
-    run({serverTheme: 'light', cookie: ''});
+    run({serverTheme: 'light', cookie: 'theme=light', system: 'dark'});
     expect(meta.getAttribute('content')).toBe('#518159');
   });
 
-  test('light never changes the module colour', () => {
+  test('light never changes the module colour (the server already rendered it for auto)', () => {
     meta.setAttribute('content', '#518159');
     run({cookie: 'theme=light'});
+    expect(meta.getAttribute('content')).toBe('#518159');
+    run({cookie: 'theme=auto', system: 'light'});
+    expect(meta.getAttribute('content')).toBe('#518159');
+    run({cookie: '', system: 'absent'});
     expect(meta.getAttribute('content')).toBe('#518159');
   });
 
   test('works without a theme-color meta', () => {
     document.head.innerHTML = '';
     expect(run({cookie: 'theme=dark'})).toBe('dark');
+    expect(run({cookie: '', system: 'dark'})).toBe('dark');
   });
 });
 
 describe('robustness', () => {
-  test('does not follow the OS, with or without matchMedia', () => {
-    window.matchMedia = jest.fn(() => ({matches: true, media: '(prefers-color-scheme: dark)'}));
-    expect(run({cookie: ''})).toBe('light');
-    expect(window.matchMedia).not.toHaveBeenCalled();
-    delete window.matchMedia;
-    expect(typeof window.matchMedia).toBe('undefined');
-    expect(run({cookie: ''})).toBe('light');
-    expect(run({cookie: 'theme=dark'})).toBe('dark');
+  test('never throws when matchMedia throws; an explicit cookie still applies', () => {
+    expect(() => run({cookie: 'theme=dark', system: 'throws'})).not.toThrow();
+    expect(html.getAttribute('data-theme')).toBe('dark');
+    expect(() => run({cookie: 'theme=light', serverTheme: 'dark', system: 'throws'})).not.toThrow();
+    expect(html.getAttribute('data-theme')).toBe('light');
+  });
+
+  test('when matchMedia throws under auto it changes nothing: the page stays as rendered (no data-theme = light CSS)', () => {
+    meta.setAttribute('content', '#518159');
+    for (const cookie of ['', 'theme=auto', 'theme=garbage']) {
+      expect(() => run({cookie, system: 'throws'})).not.toThrow();
+      expect(html.hasAttribute('data-theme')).toBe(false);
+      expect(meta.getAttribute('content')).toBe('#518159');
+    }
+  });
+
+  test('when matchMedia returns no MediaQueryList it does not throw', () => {
+    window.matchMedia = jest.fn(() => null);
+    Object.defineProperty(document, 'cookie', {configurable: true, get: () => 'theme=auto', set() {}});
+    try {
+      expect(() => (0, eval)(SCRIPT)).not.toThrow();
+    } finally {
+      delete document.cookie;
+    }
   });
 
   test('never throws when reading cookies throws, and keeps the server value', () => {
-    expect(() => run({serverTheme: 'dark', throwOnCookie: true})).not.toThrow();
+    expect(() => run({serverTheme: 'dark', throwOnCookie: true, system: 'light'})).not.toThrow();
     expect(html.getAttribute('data-theme')).toBe('dark');
     expect(() => run({serverTheme: null, throwOnCookie: true})).not.toThrow();
   });
@@ -193,6 +289,7 @@ describe('robustness', () => {
     const spy = jest.spyOn(html, 'setAttribute').mockImplementation(() => { throw new Error('nope'); });
     try {
       expect(() => run({cookie: 'theme=dark'})).not.toThrow();
+      expect(() => run({cookie: '', system: 'dark'})).not.toThrow();
     } finally {
       spy.mockRestore();
     }
@@ -202,14 +299,26 @@ describe('robustness', () => {
     'theme=dark; ' + 'x'.repeat(4000) + '=1',
     Array.from({length: 200}, (_, i) => `c${i}=v${i}`).join('; ') + '; theme=dark',
   ])('handles long cookie headers (%#)', cookie => {
-    expect(run({cookie})).toBe('dark');
+    expect(run({cookie, system: 'light'})).toBe('dark');
   });
 
   test('only the data-theme attribute and the meta are touched', () => {
     const htmlBefore = [...html.attributes].map(a => a.name).filter(n => n !== 'data-theme');
     const headBefore = document.head.innerHTML;
-    run({cookie: 'theme=light'});
+    run({cookie: 'theme=light', system: 'dark'});
+    run({cookie: '', system: 'light'});
     expect([...html.attributes].map(a => a.name).filter(n => n !== 'data-theme')).toEqual(htmlBefore);
     expect(document.head.innerHTML).toBe(headBefore);
+  });
+
+  test('installs no listener: live system changes are watchSystemTheme()\'s job', () => {
+    const addEventListener = jest.fn();
+    const addListener = jest.fn();
+    window.matchMedia = jest.fn(() => ({matches: true, addEventListener, addListener}));
+    Object.defineProperty(document, 'cookie', {configurable: true, get: () => '', set() {}});
+    try { (0, eval)(SCRIPT); } finally { delete document.cookie; }
+    expect(html.getAttribute('data-theme')).toBe('dark');
+    expect(addEventListener).not.toHaveBeenCalled();
+    expect(addListener).not.toHaveBeenCalled();
   });
 });

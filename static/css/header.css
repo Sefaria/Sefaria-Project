@@ -164,22 +164,6 @@
   cursor: pointer;
 }
 
-.header .themeToggle {
-  margin: 0;
-  color: var(--color-text-secondary, var(--dark-grey));
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.header .themeToggle .themeToggleIcon {
-  flex-shrink: 0;
-}
-
-body.user-is-tabbing .header .themeToggle:focus {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
-}
-
 .header .menuButton {
   color: var(--color-text-muted, var(--medium-grey));
   border: none;

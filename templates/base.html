@@ -67,7 +67,7 @@
                   {% endif %}">
     {% endwith %}
 
-    {# Light/dark safety net: must stay after the theme-color meta and before any stylesheet or script. #}
+    {# Appearance (auto/light/dark): must stay after the theme-color meta and before any stylesheet or script. #}
     {% include "elements/theme_head.html" %}
 
     {% if ldBreadcrumbs %}{% autoescape off %}

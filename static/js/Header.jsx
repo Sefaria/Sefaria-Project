@@ -22,7 +22,7 @@ import {
 } from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
-import { ThemeToggle, MobileThemeToggle } from './ThemeToggle';
+import { AppearanceToggle, MobileAppearanceToggle } from './AppearanceToggle';
 import LibraryAssistantStar from './LibraryAssistantStar';
 
 // The "✦ Library Assistant" pill in the header, just before search: opens the assistant widget
@@ -76,6 +76,7 @@ const LoggedOutDropdown = ({module, openURL}) => {
         </AuthNavLink>
         <DropdownMenuSeparator />
         <DropdownLanguageToggle />
+        <AppearanceToggle />
         <DropdownMenuSeparator />
         {module === Sefaria.LIBRARY_MODULE &&
           <DropdownMenuItem url={'/updates'}>
@@ -142,6 +143,7 @@ const LoggedInDropdown = ({ module }) => {
 
         <DropdownMenuSeparator />
         <DropdownLanguageToggle />
+        <AppearanceToggle />
         <DropdownMenuSeparator />
 
         {module === Sefaria.LIBRARY_MODULE &&
@@ -338,8 +340,6 @@ const Header = (props) => {
           {Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon : voicesNotificationIcon)}
 
           <ModuleSwitcher />
-
-          <ThemeToggle />
 
           {Sefaria._uid ?
             <LoggedInDropdown module={props.module} />
@@ -577,7 +577,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
 
         <MobileInterfaceLanguageToggle />
 
-        <MobileThemeToggle />
+        <MobileAppearanceToggle />
 
         <hr />
 

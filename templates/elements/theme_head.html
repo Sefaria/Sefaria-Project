@@ -1,18 +1,17 @@
 {% comment %}
-Theme safety net: re-applies the stored light/dark choice to <html data-theme> before any
-stylesheet loads, so a page never paints in the wrong theme. The server normally renders the
-attribute already (sefaria/system/theme.py); this covers templates rendered without it.
+Appearance: sets <html data-theme> before any stylesheet loads, so a page never paints in the
+wrong theme. The server renders the attribute itself for a light or dark preference
+(sefaria/system/theme.py); for auto it cannot, because only the browser knows the system setting.
 
 Rules (shared with static/js/sefaria/theme.js and sefaria/system/theme.py):
-  * The `theme` cookie holds `light` or `dark`. Parsing matches Django's parse_cookie: the last
-    `theme` cookie wins, the value is trimmed and surrounding double quotes are removed.
-  * A valid cookie keeps a valid server-rendered value (the server read the same cookie header);
-    with no valid cookie the page is light.
+  * The `theme` cookie holds `auto`, `light` or `dark`. Parsing matches Django's parse_cookie: the
+    last `theme` cookie wins, the value is trimmed and surrounding double quotes are removed.
+  * `light` or `dark` is shown as is. Auto, no cookie and any other value follow
+    prefers-color-scheme, and are light when the browser gives no signal.
   * When it switches to dark it also updates <meta name="theme-color">, so it must be included
-    after that meta tag. It only overrides a server-rendered dark page if JS cannot see a cookie
-    that Django saw (an HttpOnly `theme` cookie, which our code never writes); the meta colour is
-    then left for applyTheme() to correct on the next toggle.
+    after that meta tag.
+  * Live system changes after load are handled by watchSystemTheme() in theme.js.
 
 Keep it dependency-free (no Sefaria, jQuery or external files), wrapped in try/catch, and small.
 static/js/tests/themeHeadScript.test.js evaluates these exact bytes and checks the size budget.
-{% endcomment %}<script>(function(){try{var d=document.documentElement,m=(";"+document.cookie).match(/.*;\s*theme\s*=([^;]*)/),c=m&&m[1].trim().replace(/^"(.*)"$/,"$1"),s=d.getAttribute("data-theme"),v=function(x){return x==="light"||x==="dark"},t=v(c)?(v(s)?s:c):"light",e;if(t!==s){d.setAttribute("data-theme",t);if(t==="dark"&&(e=document.querySelector('meta[name="theme-color"]')))e.setAttribute("content","#181818")}}catch(x){}})();</script>
+{% endcomment %}<script>(function(){try{var d=document.documentElement,m=(";"+document.cookie).match(/.*;\s*theme\s*=([^;]*)/),c=m&&m[1].trim().replace(/^"(.*)"$/,"$1"),s=d.getAttribute("data-theme"),t=c==="light"||c==="dark"?c:window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light",e;if(t!==s){d.setAttribute("data-theme",t);if(t==="dark"&&(e=document.querySelector('meta[name="theme-color"]')))e.setAttribute("content","#181818")}}catch(x){}})();</script>
